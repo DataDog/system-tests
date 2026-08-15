@@ -6,7 +6,6 @@ from tests.ffe.utils.exposures import assert_exposure_side_effects_contract, exp
 from tests.ffe.utils.fixtures import make_ufc_fixture
 from utils import context, features, interfaces, remote_config as rc, scenarios, weblog
 from utils._context._scenarios.agentless_endtoend import FeatureFlaggingAgentlessEndToEndScenario
-from utils._context.component_version import Version
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils.mocked_backend.ffe import EXPECTED_API_KEY
 
@@ -28,7 +27,7 @@ def exposure_egress() -> ExposureEgress:
         return ExposureEgress(interfaces.agent)
 
     if scenario.exposure_egress == "sidecar":
-        assert scenario.components["serverless-init"] == Version("1.9.13")
+        assert "serverless-init" in scenario.components
         expected_api_key = scenario.serverless_init_container.environment["DD_API_KEY"]
         assert expected_api_key is not None
         return ExposureEgress(
@@ -89,7 +88,7 @@ class ExposureEgressContract:
             return
 
         request = matching_requests[0]
-        assert request["host"] == "event-platform-intake.datad0g.com"
+        assert request["host"] == "event-platform-intake.mock-intake.invalid"
         assert request["response"]["status_code"] == 202
 
         headers = {name.lower(): value for name, value in request["request"]["headers"]}

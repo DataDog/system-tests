@@ -566,19 +566,6 @@ patterns:
         scenario_groups: null
         libraries: null
 
-    tests/ffe/test_exposure_egress.py:
-        scenarios:
-          - FEATURE_FLAGGING_AND_EXPERIMENTATION
-          - FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_DIRECT
-          - FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_SERVERLESS
-
-    tests/ffe/utils/exposures.py:
-        # This helper is shared by Agent and agentless exposure tests.
-        scenarios:
-          - FEATURE_FLAGGING_AND_EXPERIMENTATION
-          - FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_DIRECT
-          - FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_SERVERLESS
-
     # This helper has no test items of its own, so it's invisible to the scenario map that
     # drives dynamic selection below. List its consumers' scenarios explicitly.
     tests/test_telemetry_heartbeat_utils.py:

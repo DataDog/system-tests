@@ -844,10 +844,10 @@ class ServerlessInitContainer(TestedContainer):
     def __init__(self) -> None:
         super().__init__(
             name="ffe-serverless-init",
-            image_name="datadog/serverless-init:1.9.13",
+            image_name="datadog/serverless-init:1.10.2",
             environment={
                 "DD_API_KEY": _FAKE_DD_API_KEY,
-                "DD_SITE": "datad0g.com",
+                "DD_SITE": "mock-intake.invalid",
                 "DD_SERVICE": "ffe-system-tests-serverless-init",
                 "DD_ENV": "system-tests",
                 "DD_APM_ENABLED": "true",

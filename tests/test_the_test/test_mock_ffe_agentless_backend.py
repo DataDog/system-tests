@@ -144,12 +144,13 @@ def test_agentless_exposure_scenario_has_no_agent_and_two_capture_routes(
     assert scenario.agent_container not in scenario._containers  # noqa: SLF001 - focused topology test
     assert scenario.proxy_container in scenario._containers  # noqa: SLF001 - focused topology test
     assert scenario.get_libraries() is None
-    assert environment["DD_SITE"] == "datad0g.com"
+    assert environment["DD_SITE"] == "mock-intake.invalid"
     assert environment["DD_PROXY_HTTPS"] == f"http://proxy:{ProxyPorts.datadog_direct}"
     assert environment["HTTPS_PROXY"] == f"http://proxy:{ProxyPorts.datadog_direct}"
 
     if exposure_egress == "direct":
-        assert "DD_TRACE_AGENT_URL" not in environment
+        for name in ("DD_AGENT_HOST", "DD_DOGSTATSD_HOST", "DD_TRACE_AGENT_PORT", "DD_TRACE_AGENT_URL"):
+            assert name not in environment
         assert not any(
             isinstance(container, ServerlessInitContainer)
             for container in scenario._containers  # noqa: SLF001 - focused topology test
@@ -159,8 +160,9 @@ def test_agentless_exposure_scenario_has_no_agent_and_two_capture_routes(
     assert environment["DD_TRACE_AGENT_URL"] == "http://ffe-serverless-init:8126"
     serverless_init = scenario.serverless_init_container
     assert isinstance(serverless_init, ServerlessInitContainer)
-    assert serverless_init.image.name == "datadog/serverless-init:1.9.13"
+    assert serverless_init.environment["DD_SITE"] == "mock-intake.invalid"
     assert serverless_init.environment["DD_PROXY_HTTPS"] == f"http://proxy:{ProxyPorts.datadog_sidecar}"
+    assert serverless_init.environment["DD_PROXY_HTTP"] == f"http://proxy:{ProxyPorts.datadog_sidecar}"
 
 
 @scenarios.test_the_test

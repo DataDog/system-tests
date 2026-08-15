@@ -144,9 +144,8 @@ class FeatureFlaggingAgentlessEndToEndScenario(AgentlessEndToEndScenario):
         other_weblog_containers: tuple[type[TestedContainer], ...] = ()
         if exposure_egress is not None:
             environment |= {
-                # datad0g.com is a synthetic test site. The scenario proxy intercepts
-                # every request and returns a mocked response without external egress.
-                "DD_SITE": "datad0g.com",
+                # The reserved .invalid domain fails closed if a request bypasses the proxy.
+                "DD_SITE": "mock-intake.invalid",
                 "DD_PROXY_HTTPS": f"http://proxy:{ProxyPorts.datadog_direct}",
                 "HTTPS_PROXY": f"http://proxy:{ProxyPorts.datadog_direct}",
             }
@@ -167,6 +166,12 @@ class FeatureFlaggingAgentlessEndToEndScenario(AgentlessEndToEndScenario):
             use_proxy_for_weblog=exposure_egress is not None,
             weblog_env=environment,
         )
+
+        if exposure_egress == "direct":
+            # Direct mode uses the proxy only to capture HTTPS intake requests.
+            # Do not advertise the proxy as a local Agent endpoint.
+            for env_name in ("DD_AGENT_HOST", "DD_DOGSTATSD_HOST", "DD_TRACE_AGENT_PORT", "DD_TRACE_AGENT_URL"):
+                self.weblog_infra.library_container.environment.pop(env_name, None)
 
     def configure(self, config: pytest.Config) -> None:
         try:
