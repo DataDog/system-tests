@@ -1874,7 +1874,12 @@ manifest:
   tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP: v4.8.0
   tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP::test_128bit_trace_id_consistent_across_spans: v4.12.0rc1
   tests/otel/test_tracing_otlp.py::Test_Otlp_Carries_Ot: missing_feature (APMAPI-2172)
-  tests/otel/test_tracing_otlp.py::Test_Otlp_Forwards_Inherited_Ot: missing_feature (APMAPI-2172)
+  tests/otel/test_tracing_otlp.py::Test_Otlp_Forwards_Inherited_Ot:  # TODO: a lower version might be supported
+    - declaration: missing_feature (APMAPI-2172)
+      component_version: <4.12.2
+      weblog: [uds-flask, fastapi, flask-poc, tornado, django-py3.13, django-poc, python3.12, uwsgi-poc]
+    - declaration: missing_feature (APMAPI-2172)
+      excluded_weblog: [uds-flask, fastapi, flask-poc, tornado, django-py3.13, django-poc, python3.12, uwsgi-poc]
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
@@ -2442,16 +2447,61 @@ manifest:
   tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_2: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_99: missing_feature (APMAPI-2171)
-  tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh: missing_feature (APMAPI-2171)
-  tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchanged: missing_feature (APMAPI-2171)
-  tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchangedWhenDropped: missing_feature (APMAPI-2171)
+  tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh:  # TODO: a lower version might be supported
+    - declaration: missing_feature (APMAPI-2171)
+      component_version: <4.12.2
+      weblog: [uds-flask, fastapi, flask-poc, tornado, django-py3.13, django-poc, python3.12, uwsgi-poc]
+    - declaration: missing_feature (APMAPI-2171)
+      excluded_weblog: [uds-flask, fastapi, flask-poc, tornado, django-py3.13, django-poc, python3.12, uwsgi-poc]
+  tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh::test_force_keep_overrides_inherited_drop_decision:
+    - weblog_declaration:
+        python3.12: missing_feature (APMAPI-2171)
+        flask-poc: missing_feature (APMAPI-2171)
+        django-poc: missing_feature (APMAPI-2171)
+        django-py3.13: missing_feature (APMAPI-2171)
+        uwsgi-poc: missing_feature (APMAPI-2171)
+        tornado: missing_feature (APMAPI-2171)
+        fastapi: missing_feature (APMAPI-2171)
+        uds-flask: missing_feature (APMAPI-2171)
+  tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchanged:  # TODO: a lower version might be supported
+    - declaration: missing_feature (APMAPI-2171)
+      component_version: <4.12.2
+      weblog: [uds-flask, fastapi, flask-poc, tornado, django-py3.13, django-poc, python3.12, uwsgi-poc]
+    - declaration: missing_feature (APMAPI-2171)
+      excluded_weblog: [uds-flask, fastapi, flask-poc, tornado, django-py3.13, django-poc, python3.12, uwsgi-poc]
+  tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchangedWhenDropped:  # TODO: a lower version might be supported
+    - declaration: missing_feature (APMAPI-2171)
+      component_version: <4.12.2
+      weblog: [uds-flask, fastapi, flask-poc, tornado, django-py3.13, django-poc, python3.12, uwsgi-poc]
+    - declaration: missing_feature (APMAPI-2171)
+      excluded_weblog: [uds-flask, fastapi, flask-poc, tornado, django-py3.13, django-poc, python3.12, uwsgi-poc]
   tests/test_otel_tracestate_sampling.py::Test_MalformedOtHandling: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_PrecisionBoundaryDecision_Rate0_05: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_PrecisionBoundaryDecision_Rate0_1: missing_feature (APMAPI-2171)
-  tests/test_otel_tracestate_sampling.py::Test_PreserveDdAndOtherVendors: missing_feature (APMAPI-2171)
-  tests/test_otel_tracestate_sampling.py::Test_SampledWithoutOtNotFabricated: missing_feature (APMAPI-2171)
-  tests/test_otel_tracestate_sampling.py::Test_ThOnlyDoesNotFabricateRv: missing_feature (APMAPI-2171)
-  tests/test_otel_tracestate_sampling.py::Test_ThOnlyDoesNotFabricateRvWhenDropped: missing_feature (APMAPI-2171)
+  tests/test_otel_tracestate_sampling.py::Test_PreserveDdAndOtherVendors:  # TODO: a lower version might be supported
+    - declaration: missing_feature (APMAPI-2171)
+      component_version: <4.12.2
+      weblog: [uds-flask, fastapi, flask-poc, tornado, django-py3.13, django-poc, python3.12, uwsgi-poc]
+    - declaration: missing_feature (APMAPI-2171)
+      excluded_weblog: [uds-flask, fastapi, flask-poc, tornado, django-py3.13, django-poc, python3.12, uwsgi-poc]
+  tests/test_otel_tracestate_sampling.py::Test_SampledWithoutOtNotFabricated:  # TODO: a lower version might be supported
+    - declaration: missing_feature (APMAPI-2171)
+      component_version: <4.12.2
+      weblog: [uds-flask, fastapi, flask-poc, tornado, django-py3.13, django-poc, python3.12, uwsgi-poc]
+    - declaration: missing_feature (APMAPI-2171)
+      excluded_weblog: [uds-flask, fastapi, flask-poc, tornado, django-py3.13, django-poc, python3.12, uwsgi-poc]
+  tests/test_otel_tracestate_sampling.py::Test_ThOnlyDoesNotFabricateRv:  # TODO: a lower version might be supported
+    - declaration: missing_feature (APMAPI-2171)
+      component_version: <4.12.2
+      weblog: [uds-flask, fastapi, flask-poc, tornado, django-py3.13, django-poc, python3.12, uwsgi-poc]
+    - declaration: missing_feature (APMAPI-2171)
+      excluded_weblog: [uds-flask, fastapi, flask-poc, tornado, django-py3.13, django-poc, python3.12, uwsgi-poc]
+  tests/test_otel_tracestate_sampling.py::Test_ThOnlyDoesNotFabricateRvWhenDropped:  # TODO: a lower version might be supported
+    - declaration: missing_feature (APMAPI-2171)
+      component_version: <4.12.2
+      weblog: [uds-flask, fastapi, flask-poc, tornado, django-py3.13, django-poc, python3.12, uwsgi-poc]
+    - declaration: missing_feature (APMAPI-2171)
+      excluded_weblog: [uds-flask, fastapi, flask-poc, tornado, django-py3.13, django-poc, python3.12, uwsgi-poc]
   tests/test_otlp_runtime_metrics.py::Test_OtlpRuntimeMetrics:  # TODO: a lower version might be supported
     - weblog_declaration:
         '*': missing_feature
