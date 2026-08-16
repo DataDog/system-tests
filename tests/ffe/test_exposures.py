@@ -61,6 +61,10 @@ def find_exposure_events(flag_key: str, subject_id: str | None = None) -> list[d
 
 def wait_for_exposure_event(flag_keys: set[str], subject_id: str | None = None) -> None:
     """Wait until the agent receives an exposure event for one of the given flags."""
+    # ask the weblog to flush its exposure writer instead of waiting on its periodic timer.
+    # weblogs that don't support this route (or don't buffer exposures) just no-op here, and the
+    # wait_for below still covers them.
+    weblog.get("/flush")
     assert interfaces.agent.wait_for(
         lambda data: bool(exposure_events_from_data(data, flag_keys, subject_id)),
         timeout=EXPOSURE_WAIT_TIMEOUT_SECONDS,
@@ -72,6 +76,7 @@ def wait_for_min_exposure_count(flag_key: str, expected: int, subject_id: str | 
     count = count_exposure_events(flag_key, subject_id)
 
     if count < expected:
+        weblog.get("/flush")
         assert interfaces.agent.wait_for(
             lambda _: count_exposure_events(flag_key, subject_id) >= expected,
             timeout=EXPOSURE_WAIT_TIMEOUT_SECONDS,
