@@ -7,10 +7,14 @@ RUN pip uninstall -y psycopg2-binary
 RUN pip install psycopg2
 #############
 
-RUN pip install opentelemetry-distro[otlp]==0.49b0
+COPY binaries* /binaries/
+RUN if [ -f /binaries/python-otel-load-from-pip ]; then \
+      pip install "$(cat /binaries/python-otel-load-from-pip)"; \
+    else \
+      pip install opentelemetry-distro[otlp]==0.49b0; \
+    fi
 
 WORKDIR /app
-COPY binaries* /binaries/
 
 COPY utils/build/docker/python/flask /app
 COPY utils/build/docker/python_otel/flask-poc-otel/app.py /app
@@ -22,4 +26,3 @@ RUN pip freeze | grep opentelemetry
 ENV OTEL_PYTHON_LOGGING_AUTO_INSTRUMENTATION_ENABLED=true
 ENV FLASK_APP=app.py
 CMD ./app.sh
-

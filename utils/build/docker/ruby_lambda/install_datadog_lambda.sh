@@ -28,15 +28,30 @@ elif [ "$(find . -maxdepth 1 -name '*.zip' | wc -l)" = "1" ]; then
     path=$(readlink -f "$(find . -maxdepth 1 -name '*.zip')")
     echo "Install datadog-lambda from ${path}"
     unzip "${path}" -d /opt
+elif [ -f ruby-lambda-load-from-git ]; then
+    TARGET=$(cat ruby-lambda-load-from-git)
+    URL=$(echo "$TARGET" | cut -d "@" -f 1)
+    REF=$(echo "$TARGET" | cut -d "@" -f 2)
+    echo "Install datadog-lambda from ${TARGET}"
+    git clone "$URL" datadog-lambda-rb
+    git -C datadog-lambda-rb checkout "$REF"
+    cd datadog-lambda-rb
+    gem build datadog-lambda
+    gem install datadog-lambda-*.gem --install-dir "${GEM_DIR}" --no-document
 else
-    echo "Fetching from latest GitHub release..."
     ARCH=$(uname -m | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/')
     RUBY_MINOR=$(ruby -e 'puts RUBY_VERSION.split(".")[0..1].join(".")')
     # NOTE: Release assets are datadog-lambda_ruby-<arch>-<major.minor>.zip
     #       just one-dot (3.4, not 3.4.0).
     #       The old datadog_lambda_rb-* name still resolved, but to a stale layer
     #       with no AppSec
-    URL="https://github.com/DataDog/datadog-lambda-rb/releases/latest/download/datadog-lambda_ruby-${ARCH}-${RUBY_MINOR}.zip"
+    if [ -f ruby-lambda-load-from-release ]; then
+        RELEASE_TAG=$(cat ruby-lambda-load-from-release)
+        URL="https://github.com/DataDog/datadog-lambda-rb/releases/download/${RELEASE_TAG}/datadog-lambda_ruby-${ARCH}-${RUBY_MINOR}.zip"
+    else
+        echo "Fetching from latest GitHub release..."
+        URL="https://github.com/DataDog/datadog-lambda-rb/releases/latest/download/datadog-lambda_ruby-${ARCH}-${RUBY_MINOR}.zip"
+    fi
     echo "${URL}"
     curl -fsSLO "${URL}"
     ZIPFILE="datadog-lambda_ruby-${ARCH}-${RUBY_MINOR}.zip"

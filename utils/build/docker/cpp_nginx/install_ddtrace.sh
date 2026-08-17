@@ -41,12 +41,10 @@ function epilogue {
 }
 
 version_first_is_greater() {
-    local v1=(${1//./ })
-    local v2=(${2//./ })
-
-    # Remove the 'v' prefix from the version numbers
-    v1[0]=${v1[0]//v/}
-    v2[0]=${v2[0]//v/}
+    local v1=()
+    local v2=()
+    IFS='.' read -r -a v1 <<< "${1#v}"
+    IFS='.' read -r -a v2 <<< "${2#v}"
 
     # Compare the major, minor, and patch numbers
     for i in {0..2}; do
@@ -61,43 +59,69 @@ version_first_is_greater() {
     return 1
 }
 
-if [[ $(find /binaries -name 'ngx_http_datadog_module-*.so.tgz' | wc -l) -gt 0 ]]; then
-  echo "Found module in /binaries"
+function install_staged_binaries {
+  if [[ $(find /binaries -name 'ngx_http_datadog_module-*.so.tgz' | wc -l) -gt 0 ]]; then
+    echo "Found module in /binaries"
 
-  if [[ $(find /binaries -name 'ngx_http_datadog_module-*.so.tgz' | wc -l) -gt 1 ]]; then
-    echo "ERROR: Found several ngx_http_datadog_module-*.so.tgz files in binaries/, abort."
-    exit 1
+    if [[ $(find /binaries -name 'ngx_http_datadog_module-*.so.tgz' | wc -l) -gt 1 ]]; then
+      echo "ERROR: Found several ngx_http_datadog_module-*.so.tgz files in binaries/, abort."
+      exit 1
+    fi
+
+    NGINX_VERSION_OF_MODULE=$(find /binaries -name 'ngx_http_datadog_module-*.so.tgz' | grep -Po '(\d+\.\d+\.\d+)')
+    if [[ $NGINX_VERSION_OF_MODULE != "$NGINX_VERSION" ]]; then
+      echo "ERROR: nginx mismatch: module for $NGINX_VERSION_OF_MODULE, but base image of $NGINX_VERSION"
+      exit 1
+    fi
+
+    MAIN_TARBALL=$(find /binaries -name 'ngx_http_datadog_module-*.so.tgz')
+    tar -xzvf "$MAIN_TARBALL" -C /usr/lib/nginx/modules
+    if [[ $(find /binaries -name 'ngx_http_datadog_module-*.so.debug.tgz' | wc -l) -eq 1 ]]; then
+      tar -xzvf /binaries/ngx_http_datadog_module-*.so.debug.tgz -C /usr/lib/nginx/modules
+    fi
+
+    epilogue unknown_mod_version
+    exit 0
   fi
 
-  NGINX_VERSION_OF_MODULE=$(find /binaries -name 'ngx_http_datadog_module-*.so.tgz' | grep -Po '(\d+\.\d+\.\d+)')
-  if [[ $NGINX_VERSION_OF_MODULE != $NGINX_VERSION ]]; then
-    echo "ERROR: nginx mismatch: module for $NGINX_VERSION_OF_MODULE, but base image of $NGINX_VERSION"
-    exit 1
+  if [[ -f /binaries/ngx_http_datadog_module.so ]]; then
+    cp -v /binaries/ngx_http_datadog_module.so /usr/lib/nginx/modules
+    if [[ -f /binaries/ngx_http_datadog_module.so.debug ]]; then
+      cp -v /binaries/ngx_http_datadog_module.so.debug /usr/lib/nginx/modules
+    fi
+
+    epilogue unknown_mod_version
+    exit 0
   fi
+}
 
-  MAIN_TARBALL=$(find /binaries -name 'ngx_http_datadog_module-*.so.tgz')
-  tar -xzvf "$MAIN_TARBALL" -C /usr/lib/nginx/modules
-  if [[ $(find /binaries -name 'ngx_http_datadog_module-*.so.debug.tgz' | wc -l) -eq 1 ]]; then
-    tar -xzvf /binaries/ngx_http_datadog_module-*.so.debug.tgz -C /usr/lib/nginx/modules
+install_staged_binaries
+
+if [[ -f /binaries/cpp-nginx-github-actions-artifact.json ]]; then
+  echo "Install NGINX plugin from staged GitHub Actions artifact metadata"
+  ARCHIVE_URL=$(jq -r '.archive_download_url' /binaries/cpp-nginx-github-actions-artifact.json)
+  AUTH_HEADER=()
+  if [[ -f /run/secrets/github_token ]]; then
+    AUTH_HEADER=(-H "Authorization: Bearer $(cat /run/secrets/github_token)")
   fi
-
-  epilogue unknown_mod_version
-  exit 0
-fi
-
-if [[ -f /binaries/ngx_http_datadog_module.so ]]; then
-  cp -v /binaries/ngx_http_datadog_module.so /usr/lib/nginx/modules
-  if [[ -f /binaries/ngx_http_datadog_module.so.debug ]]; then
-    cp -v /binaries/ngx_http_datadog_module.so.debug /usr/lib/nginx/modules
+  curl -Lf "${AUTH_HEADER[@]}" -o /tmp/nginx-datadog-artifact.zip "$ARCHIVE_URL"
+  mkdir -p /tmp/nginx-datadog-artifact
+  unzip -o /tmp/nginx-datadog-artifact.zip -d /tmp/nginx-datadog-artifact
+  if [[ -f /tmp/nginx-datadog-artifact/binaries.zip ]]; then
+    unzip -o /tmp/nginx-datadog-artifact/binaries.zip -d /binaries
+  else
+    find /tmp/nginx-datadog-artifact -type f -name 'ngx_http_datadog_module*' -exec cp '{}' /binaries/ ';'
   fi
-
-  epilogue unknown_mod_version
-  exit 0
+  install_staged_binaries
 fi
 
 get_latest_release() {
+  if [[ -f /binaries/cpp-nginx-load-from-release ]]; then
+    cat /binaries/cpp-nginx-load-from-release
+  else
     wget -qO- "https://api.github.com/repos/DataDog/nginx-datadog/releases/latest" \
       | jq -r '.tag_name'
+  fi
 }
 
 get_architecture() {
@@ -105,12 +129,13 @@ get_architecture() {
 }
 
 
-if [ NGINX_VERSION == "" ]; then
+if [[ -z ${NGINX_VERSION:-} ]]; then
   echo 1>&2 "ERROR: Missing NGINX_VERSION."
   exit 1
 fi
 
-readonly ARCH=$(get_architecture)
+ARCH=$(get_architecture)
+readonly ARCH
 
 if [[ $ARCH != "amd64" && $ARCH != "arm64" ]]; then
     echo 1>&2 "ERROR: Architecture ${ARCH} is not supported."
@@ -121,10 +146,10 @@ FILENAME=ngx_http_datadog_module-appsec-$ARCH-$NGINX_VERSION.so
 
 if [ -f "$FILENAME" ]; then
   echo "Install NGINX plugin from binaries/$FILENAME"
-  cp $FILENAME /usr/lib/nginx/modules/ngx_http_datadog_module.so
+  cp "$FILENAME" /usr/lib/nginx/modules/ngx_http_datadog_module.so
   NGINX_DATADOG_VERSION="v99.99.99"  # TODO: get version from the binary. Right now, use the "big-version" trick
 else
-  readonly NGINX_DATADOG_VERSION="$(get_latest_release)"
+  NGINX_DATADOG_VERSION="$(get_latest_release)"
 
   if version_first_is_greater "$NGINX_DATADOG_VERSION" "v1.1.0"; then
     TARBALLS=(

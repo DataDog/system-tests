@@ -52,8 +52,8 @@ if [ -d /opt/php/nts ]; then
 elif [[ $IS_APACHE -eq 0 ]]; then
   PHP_VERSION=$(php -r "echo PHP_MAJOR_VERSION.'.'.PHP_MINOR_VERSION;")
   INI_FILE=/etc/php/$PHP_VERSION/fpm/conf.d/98-ddtrace.ini
-  mkdir -p $(dirname $INI_FILE)
-  chmod 777 $(dirname $INI_FILE)
+  mkdir -p "$(dirname "$INI_FILE")"
+  chmod 777 "$(dirname "$INI_FILE")"
 fi
 
 # Always install from package first (to get recommended.json and other files)
@@ -63,8 +63,13 @@ if [ "$PKG" != "" ] && [ ! -f "$SETUP" ]; then
 fi
 
 if [ "$PKG" == "" ]; then
-  #Download latest release
-  curl -LO https://github.com/DataDog/dd-trace-php/releases/latest/download/datadog-setup.php
+  if [ -f /binaries/php-load-from-release ]; then
+    RELEASE_TAG=$(cat /binaries/php-load-from-release)
+    curl -LO "https://github.com/DataDog/dd-trace-php/releases/download/${RELEASE_TAG}/datadog-setup.php"
+  else
+    # Download latest release for compatibility when artifact staging has not run.
+    curl -LO https://github.com/DataDog/dd-trace-php/releases/latest/download/datadog-setup.php
+  fi
   SETUP=datadog-setup.php
 
   unset PKG
@@ -101,26 +106,26 @@ else
 fi
 
 # After package installation, override with custom ddtrace.so if present
-if [ -f $DDTRACE_SO ]; then
+if [ -f "$DDTRACE_SO" ]; then
   echo "Overriding package ddtrace.so with custom binary from $DDTRACE_SO"
   # Find and replace the installed ddtrace.so with custom one
   INSTALLED_DDTRACE=$(find /root /opt /usr/lib/php -name ddtrace.so 2>/dev/null | grep -v /binaries | head -1)
   if [ -n "$INSTALLED_DDTRACE" ]; then
     echo "Found installed ddtrace.so at $INSTALLED_DDTRACE, replacing with custom binary"
-    cp -f $DDTRACE_SO $INSTALLED_DDTRACE
+    cp -f "$DDTRACE_SO" "$INSTALLED_DDTRACE"
   else
     echo "Warning: Could not find installed ddtrace.so to replace"
   fi
 fi
 
 # After package installation, override with custom ddappsec.so and helper if present
-if [ -f $DDAPPSEC_SO ] && [ -f $APPSEC_HELPER_SO ]; then
+if [ -f "$DDAPPSEC_SO" ] && [ -f "$APPSEC_HELPER_SO" ]; then
   echo "Overriding package ddappsec.so and helper with custom binaries"
   # Find and replace the installed ddappsec.so
   INSTALLED_DDAPPSEC=$(find /root /opt /usr/lib/php -name ddappsec.so 2>/dev/null | grep -v /binaries | head -1)
   if [ -n "$INSTALLED_DDAPPSEC" ]; then
     echo "Found installed ddappsec.so at $INSTALLED_DDAPPSEC, replacing with custom binary"
-    cp -f $DDAPPSEC_SO $INSTALLED_DDAPPSEC
+    cp -f "$DDAPPSEC_SO" "$INSTALLED_DDAPPSEC"
   else
     echo "Warning: Could not find installed ddappsec.so to replace"
   fi
@@ -129,44 +134,44 @@ if [ -f $DDAPPSEC_SO ] && [ -f $APPSEC_HELPER_SO ]; then
   INSTALLED_HELPER=$(find /root /opt -name libddappsec-helper.so 2>/dev/null | grep -v /binaries | head -1)
   if [ -n "$INSTALLED_HELPER" ]; then
     echo "Found installed helper at $INSTALLED_HELPER, replacing with custom binary"
-    cp -f $APPSEC_HELPER_SO $INSTALLED_HELPER
+    cp -f "$APPSEC_HELPER_SO" "$INSTALLED_HELPER"
   else
     echo "Warning: Could not find installed libddappsec-helper.so to replace"
   fi
 fi
 
 # Install the Rust helper alongside the C++ helper so DD_APPSEC_HELPER_RUST_REDIRECTION works
-if [ -f $APPSEC_RUST_HELPER_SO ]; then
+if [ -f "$APPSEC_RUST_HELPER_SO" ]; then
   INSTALLED_HELPER=$(find /root /opt -name libddappsec-helper.so 2>/dev/null | grep -v /binaries | head -1)
   if [ -n "$INSTALLED_HELPER" ]; then
     echo "Installing Rust helper at $(dirname "$INSTALLED_HELPER")/libddappsec-helper-rust.so"
-    cp -f $APPSEC_RUST_HELPER_SO "$(dirname "$INSTALLED_HELPER")/libddappsec-helper-rust.so"
+    cp -f "$APPSEC_RUST_HELPER_SO" "$(dirname "$INSTALLED_HELPER")/libddappsec-helper-rust.so"
   else
     echo "Warning: Could not find installed libddappsec-helper.so to install Rust helper alongside"
   fi
 fi
 
-if [ -f $LIBDDWAF_SO ]; then
+if [ -f "$LIBDDWAF_SO" ]; then
   echo "Copying libddwaf.so from /binaries"
   INSTALLED_HELPER=$(find /root /opt -name libddappsec-helper.so 2>/dev/null | grep -v /binaries | head -1)
   if [ -n "$INSTALLED_HELPER" ]; then
     echo "Found installed helper at $INSTALLED_HELPER, installing custom libddwaf.so alongside"
-    cp -v $LIBDDWAF_SO "$(dirname "$INSTALLED_HELPER")"
+    cp -v "$LIBDDWAF_SO" "$(dirname "$INSTALLED_HELPER")"
   else
     echo "Warning: Could not find installed libddappsec-helper.so"
   fi
 fi
 
 
-if test -f $INI_FILE; then
+if test -f "$INI_FILE"; then
   #There is a bug on 0.98.1 which disable explicitly appsec when it shouldnt. Delete this line when hotfix
-  sed -i "/datadog.appsec.enabled/s/^/;/g" $INI_FILE
+  sed -i "/datadog.appsec.enabled/s/^/;/g" "$INI_FILE"
   #Parametric tests don't need appsec
-  [ ! -z ${NO_EXTRACT_VERSION+x} ] && echo "datadog.appsec.enabled = Off" >> $INI_FILE
+  [ -n "${NO_EXTRACT_VERSION+x}" ] && echo "datadog.appsec.enabled = Off" >> "$INI_FILE"
 fi
 
 #Ensure parametric test compatibility
-[ ! -z ${NO_EXTRACT_VERSION+x} ] && exit 0
+[ -n "${NO_EXTRACT_VERSION+x}" ] && exit 0
 
 #Extract version info
 php -d error_reporting='' -d extension=ddtrace.so -d extension=ddappsec.so -r 'echo phpversion("ddtrace");' > \

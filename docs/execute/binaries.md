@@ -2,10 +2,31 @@ By default, system tests will build a [weblog](../edit/weblog.md) image that shi
 
 But we often want to run system tests against unmerged changes. The general approach is to identify the git commit hash that contains your changes and use this commit hash to download a targeted build of the tracer. Note: ensure that the commit is pushed to a remote branch first, and when taking the commit hash, ensure you use the full hash. You can identify the commit hash using `git log` or from the github UI.
 
+## Target artifact staging
+
+Target artifact staging is the preferred way to generate the text files consumed from `binaries/`.
+Run it with:
+
+```bash
+python3 utils/scripts/stage-target-artifacts.py <target> <dev|prod|custom>
+```
+
+The legacy compatibility command still works and delegates test targets to the same staging model:
+
+```bash
+./utils/scripts/load-binary.sh <target> <dev|prod|custom>
+```
+
+Generated artifact entries are text-only. They select an artifact by a bounded artifact selector, such as a commit SHA, release tag, package version, or OCI digest. Generated entries must not use unbounded rolling selectors such as `latest`.
+
+Manual payload overrides remain supported. If you put a jar, wheel, archive, native module, local checkout, or explicit marker file in `binaries/`, the installer behavior documented below still applies. Staging refuses to overwrite unowned files so local payload overrides are not silently replaced.
+
+Some providers require an installer-facing fetch selector that is not itself bounded. In that case staging also writes a selection marker containing the bounded selector used for cache identity. The generated `binaries/.target-artifacts-manifest.json` file records which target owns generated entries and lets later staging refresh stale entries safely.
 
 ## Agent
 
 * Add a file `agent-image` in `binaries/`. The content must be a valid docker image name containing the datadog agent, like `datadog/agent` or `datadog/agent-dev:master-py3`.
+* Compatibility command: `./utils/scripts/load-binary.sh agent dev`
 
 ## C++ library
 
@@ -31,6 +52,7 @@ There are three ways to run system-tests with a custom Kong plugin:
     ```bash
     ./utils/scripts/load-binary.sh cpp_kong
     ```
+    The command now stages bounded references and metadata; the Docker build fetches the selected payload when needed.
 
 To test with a custom dd-trace-cpp C binding, you can additionally:
 * Create a file `cpp-load-from-git` in `binaries/` (e.g. `https://github.com/DataDog/dd-trace-cpp@main`)
@@ -240,6 +262,7 @@ You can also use `utils/scripts/watch.sh` script to sync your local `dd-trace-rs
 ## WAF rule set
 
 * copy a file `waf_rule_set` in `binaries/`
+* Compatibility command: `./utils/scripts/load-binary.sh waf_rule_set dev`
 
 #### After Testing with a Custom Tracer:
 Most of the ways to run system-tests with a custom tracer version involve modifying the binaries directory. Modifying the binaries will alter the tracer version used across your local computer. Once you're done testing with the custom tracer, ensure you **remove** it. For example for Python:

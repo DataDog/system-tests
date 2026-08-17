@@ -15,6 +15,8 @@ COPY utils/build/docker/nodejs/express /usr/app
 #overwrite app.js and package files
 COPY utils/build/docker/nodejs_otel/express4-otel /usr/app
 RUN npm ci || (sleep 30 && npm ci)
+COPY binaries* /binaries/
+RUN if [ -f /binaries/nodejs-otel-load-from-npm ]; then npm install "$(cat /binaries/nodejs-otel-load-from-npm)"; fi
 
 EXPOSE 7777
 

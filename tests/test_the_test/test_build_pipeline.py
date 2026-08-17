@@ -134,3 +134,184 @@ class Test_BuildPipeline:
 
         for job_name in expected_run_jobs:
             assert ".system_tests_base" in pipeline[job_name]["extends"]
+
+    def test_build_job_stages_target_artifacts_without_upstream_bundle(self, tmp_path: Path) -> None:
+        params = {
+            "endtoend_defs": {
+                "parallel_weblogs": [{"name": "flask"}],
+                "parallel_jobs": [{"weblog": "flask", "scenarios": ["DEFAULT"], "weblog_build_required": True}],
+            },
+            "miscs": {"binaries_artifact": "", "ci_environment": "prod"},
+            "parametric": {"enable": False, "parallel_jobs": []},
+        }
+        (tmp_path / "params_python.json").write_text(json.dumps(params))
+        out = tmp_path / "out"
+
+        build(["python"], tmp_path, out, stage="e2e", ci_image="myimage", chunks=1)
+
+        pipeline = yaml.safe_load((out / "generated-pipeline-chunk-0.yml").read_text())
+        build_script = pipeline["system_tests_build_python_flask"]["script"]
+        assert "python3 utils/scripts/stage-target-artifacts.py python prod" in build_script
+        assert not any(job_name.startswith("system_tests_stage") for job_name in pipeline)
+
+    def test_parametric_job_stages_target_artifacts_without_upstream_bundle(self, tmp_path: Path) -> None:
+        params = {
+            "endtoend_defs": {"parallel_weblogs": [], "parallel_jobs": []},
+            "miscs": {"binaries_artifact": "", "ci_environment": "dev"},
+            "parametric": {"enable": True, "job_count": 1, "job_matrix": [1]},
+        }
+        (tmp_path / "params_nodejs.json").write_text(json.dumps(params))
+        out = tmp_path / "out"
+
+        build(["nodejs"], tmp_path, out, stage="e2e", ci_image="myimage", chunks=1)
+
+        pipeline = yaml.safe_load((out / "generated-pipeline-chunk-0.yml").read_text())
+        run_script = pipeline["system_tests_run_nodejs_PARAMETRIC_1"]["script"]
+        assert "python3 utils/scripts/stage-target-artifacts.py nodejs dev" in run_script
+
+    def test_upstream_artifact_bundle_skips_target_artifact_staging(self, tmp_path: Path) -> None:
+        params = {
+            "endtoend_defs": {
+                "parallel_weblogs": [{"name": "flask"}],
+                "parallel_jobs": [{"weblog": "flask", "scenarios": ["DEFAULT"], "weblog_build_required": True}],
+            },
+            "miscs": {"binaries_artifact": "", "ci_environment": "custom"},
+            "parametric": {"enable": True, "job_count": 1, "job_matrix": [1]},
+        }
+        (tmp_path / "params_python.json").write_text(json.dumps(params))
+        out = tmp_path / "out"
+
+        build(
+            ["python"],
+            tmp_path,
+            out,
+            stage="e2e",
+            ci_image="myimage",
+            chunks=1,
+            binaries_artifacts="upstream-binaries",
+            binaries_artifact_path="system-tests-binaries",
+        )
+
+        text = (out / "generated-pipeline-chunk-0.yml").read_text()
+        assert "stage-target-artifacts.py" not in text
+
+    def test_buildx_cache_updates_system_tests_main(self, tmp_path: Path) -> None:
+        params = {
+            "endtoend_defs": {
+                "parallel_weblogs": [{"name": "perl-mojolicious"}],
+                "parallel_jobs": [
+                    {
+                        "weblog": "perl-mojolicious",
+                        "scenarios": ["DEFAULT", "SAMPLING", "IPV6"],
+                        "weblog_build_required": True,
+                    }
+                ],
+            },
+            "miscs": {"binaries_artifact": ""},
+            "parametric": {"enable": False, "parallel_jobs": []},
+        }
+        (tmp_path / "params_c.json").write_text(json.dumps(params))
+        out = tmp_path / "out"
+
+        build(
+            ["c"],
+            tmp_path,
+            out,
+            stage="e2e",
+            ci_image="myimage",
+            chunks=1,
+            binaries_artifacts="system_tests_package_refs",
+            binaries_artifact_path="system-tests-binaries",
+            ref="main",
+            ci_project_name="system-tests",
+            ci_commit_branch="main",
+            ci_default_branch="main",
+        )
+
+        text = (out / "generated-pipeline-chunk-0.yml").read_text()
+        assert (
+            "--cache-to=type=registry,ref=registry.ddbuild.io/system-tests/cache/c/perl-mojolicious:main,mode=max"
+            in text
+        )
+        assert (
+            "--cache-to=type=registry,ref=registry.ddbuild.io/system-tests/cache/c/perl-mojolicious:lib_main,mode=max"
+            not in text
+        )
+
+    def test_buildx_cache_updates_library_default_branch(self, tmp_path: Path) -> None:
+        params = {
+            "endtoend_defs": {
+                "parallel_weblogs": [{"name": "perl-mojolicious"}],
+                "parallel_jobs": [
+                    {
+                        "weblog": "perl-mojolicious",
+                        "scenarios": ["DEFAULT", "SAMPLING", "IPV6"],
+                        "weblog_build_required": True,
+                    }
+                ],
+            },
+            "miscs": {"binaries_artifact": ""},
+            "parametric": {"enable": False, "parallel_jobs": []},
+        }
+        (tmp_path / "params_c.json").write_text(json.dumps(params))
+        out = tmp_path / "out"
+
+        build(
+            ["c"],
+            tmp_path,
+            out,
+            stage="e2e",
+            ci_image="myimage",
+            chunks=1,
+            binaries_artifacts="system_tests_package_refs",
+            binaries_artifact_path="system-tests-binaries",
+            ref="main",
+            ci_project_name="dd-trace-rb",
+            ci_commit_branch="master",
+            ci_default_branch="master",
+        )
+
+        text = (out / "generated-pipeline-chunk-0.yml").read_text()
+        assert (
+            "--cache-to=type=registry,ref=registry.ddbuild.io/system-tests/cache/c/perl-mojolicious:lib_main,mode=max"
+            in text
+        )
+        assert (
+            "--cache-to=type=registry,ref=registry.ddbuild.io/system-tests/cache/c/perl-mojolicious:main,mode=max"
+            not in text
+        )
+
+    def test_buildx_cache_does_not_update_from_not_main(self, tmp_path: Path) -> None:
+        params = {
+            "endtoend_defs": {
+                "parallel_weblogs": [{"name": "perl-mojolicious"}],
+                "parallel_jobs": [
+                    {
+                        "weblog": "perl-mojolicious",
+                        "scenarios": ["DEFAULT", "SAMPLING", "IPV6"],
+                        "weblog_build_required": True,
+                    }
+                ],
+            },
+            "miscs": {"binaries_artifact": ""},
+            "parametric": {"enable": False, "parallel_jobs": []},
+        }
+        (tmp_path / "params_c.json").write_text(json.dumps(params))
+        out = tmp_path / "out"
+
+        build(
+            ["c"],
+            tmp_path,
+            out,
+            stage="e2e",
+            ci_image="myimage",
+            chunks=1,
+            binaries_artifacts="system_tests_package_refs",
+            binaries_artifact_path="system-tests-binaries",
+            ref="some-branch",
+            ci_project_name="system-tests",
+            ci_commit_branch="some-branch",
+            ci_default_branch="main",
+        )
+
+        assert not re.search("--cache-to=type=registry,ref=", (out / "generated-pipeline-chunk-0.yml").read_text())

@@ -17,7 +17,11 @@ RUN apk add --no-cache jq zstd \
         output="$2"; \
         manifest="$(oras manifest fetch --platform "linux/${TARGETARCH}" "$reference")"; \
         digest="$(printf '%s' "$manifest" | jq -er '.layers[0].digest')"; \
-        repository="${reference%:*}"; \
+        if printf '%s' "$reference" | grep -q '@'; then \
+            repository="${reference%%@*}"; \
+        else \
+            repository="${reference%:*}"; \
+        fi; \
         mkdir -p "$output"; \
         oras blob fetch --output /tmp/package.tar.zst "${repository}@${digest}"; \
         zstd --decompress --stdout /tmp/package.tar.zst | tar -x -C "$output"; \

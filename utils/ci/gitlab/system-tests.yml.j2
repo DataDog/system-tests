@@ -1,16 +1,3 @@
-{% macro docker_auth() %}
-    - section_start "docker_auth" "Docker hub auth"
-    - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
-    - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
-    - |
-      for i in 1 2 3; do
-        echo "$DOCKER_LOGIN_PASS" | docker login --username "$DOCKER_LOGIN" --password-stdin && break
-        if [ "$i" -eq 3 ]; then echo "docker login failed after 3 attempts"; exit 1; fi
-        echo "docker login failed (attempt $i), retrying in $((i*5))s..."
-        sleep $((i*5))
-      done
-    - section_end "docker_auth"
-{% endmacro %}
 {% macro copy_binaries(path) %}
     - section_start "copy_binaries" "Copying pre-built binaries into binaries/"
     - mkdir -p binaries
@@ -30,9 +17,11 @@
         echo "SYSTEM_TESTS_GENERATED_PIPELINE_START_TIME not set or not numeric ('$SYSTEM_TESTS_GENERATED_PIPELINE_START_TIME'), skipping metric emission"
       fi
 {% endmacro %}
-{% macro trace(name, command, library, weblog=none, scenario=none) -%}
-datadog-ci trace --name "{{name}}" --tags system-tests.library:{{library}}{% if weblog %} --tags system-tests.weblog:{{weblog}}{% endif %}{% if scenario %} --tags system-tests.scenario:{{scenario}}{% endif %} -- {{command}}
-{%- endmacro %}
+{% macro stage_target_artifacts() %}
+    - section_start "target_artifacts" "Staging target artifacts"
+    - python3 utils/scripts/stage-target-artifacts.py {{library}} {{ci_environment}}
+    - section_end "target_artifacts"
+{% endmacro %}
 {% if not skip_header %}
 workflow:
   name: "System-tests end to end"
@@ -104,15 +93,14 @@ system_tests_build_{{library}}_{{variant}}:
     {% endfor %}
   {% endif %}
   script:
-    {% if docker_auth_enabled %}
-    {{ docker_auth() }}
-    {% endif %}
     {% if binaries_artifacts_list and binaries_artifact_path %}
     {{ copy_binaries(binaries_artifact_path) }}
+    {% elif not binaries_artifacts_list %}
+    {{ stage_target_artifacts() }}
     {% endif %}
     - section_start "build" "Building weblog" false
     {{ job_tag("build") }}
-    - {{ trace("build " ~ library ~ " " ~ variant, "./build.sh " ~ library ~ " -i weblog --save-to-binaries --weblog-variant " ~ variant, library, weblog=variant) }}
+    - {{ render_build(library, variant) }}
     - mv binaries ..
     - section_end "build"
   artifacts:
@@ -146,9 +134,6 @@ system_tests_run_{{library}}_{{scenario}}_{{variant}}:
     {% endfor %}
   {% endif %}
   script:
-    {% if docker_auth_enabled %}
-    {{ docker_auth() }}
-    {% endif %}
     - section_start "weblog_setup" "Setting up the weblog"
     {% if build_required %}
     - mv ../binaries/* binaries/
@@ -200,6 +185,8 @@ system_tests_run_{{library}}_PARAMETRIC_{{job_index}}:
     {{ job_tag("run") }}
     {% if binaries_artifacts_list and binaries_artifact_path %}
     {{ copy_binaries(binaries_artifact_path) }}
+    {% elif not binaries_artifacts_list %}
+    {{ stage_target_artifacts() }}
     {% endif %}
     - {{ trace("run " ~ library ~ " PARAMETRIC " ~ job_index, "./run.sh PARAMETRIC -L " ~ library ~ " --splits=" ~ parametric.job_count ~ " --group=" ~ job_index, library, scenario="PARAMETRIC") }}
     - section_end "run"

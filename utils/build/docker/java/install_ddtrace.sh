@@ -14,10 +14,15 @@ install_custom_jar() {
         echo "Using default $artifact_id"
     elif [ "$jar_count" = 1 ]; then
         [[ "$#" -lt 3 ]] && MVN_OPTS= || MVN_OPTS="$3"
+        local mvn_args=()
+        if [[ -n "$MVN_OPTS" ]]; then
+            read -r -a mvn_args <<< "$MVN_OPTS"
+        fi
         local custom_jar
         custom_jar=$(find /binaries/ -name "${jar_pattern}")
         echo "Using custom $artifact_id: ${custom_jar}"
-        mvn -Dfile="$custom_jar" -DgroupId=com.datadoghq -DartifactId="$artifact_id" -Dversion=9999 -Dpackaging=jar $MVN_OPTS install:install-file
+        mvn -Dfile="$custom_jar" -DgroupId=com.datadoghq -DartifactId="$artifact_id" \
+            -Dversion=9999 -Dpackaging=jar "${mvn_args[@]}" install:install-file
     else
         echo "Too many $artifact_id within binaries folder"
         exit 1
@@ -33,14 +38,23 @@ install_custom_jar "dd-trace-api*.jar" "dd-trace-api" "$MVN_OPTS"
 install_custom_jar "dd-openfeature*.jar" "dd-openfeature" "$MVN_OPTS"
 
 # Look for custom dd-trace-java jar in custom binaries folder
-if [ $(ls /binaries/dd-java-agent*.jar | wc -l) = 0 ]; then
-    BUILD_URL="https://github.com/DataDog/dd-trace-java/releases/latest/download/dd-java-agent.jar"
-    echo "install from Github release: $BUILD_URL"
-    curl  -Lf -o /dd-tracer/dd-java-agent.jar $BUILD_URL
+if [ "$(find /binaries -maxdepth 1 -name 'dd-java-agent*.jar' | wc -l)" = 0 ]; then
+    if [ -f /binaries/java-load-from-s3 ]; then
+        GIT_REF=$(cat /binaries/java-load-from-s3)
+        BUILD_URL="https://s3.us-east-1.amazonaws.com/dd-trace-java-builds/${GIT_REF}/dd-java-agent.jar"
+    elif [ -f /binaries/java-load-from-release ]; then
+        RELEASE_TAG=$(cat /binaries/java-load-from-release)
+        BUILD_URL="https://github.com/DataDog/dd-trace-java/releases/download/${RELEASE_TAG}/dd-java-agent.jar"
+    else
+        BUILD_URL="https://github.com/DataDog/dd-trace-java/releases/latest/download/dd-java-agent.jar"
+    fi
+    echo "install from reference: $BUILD_URL"
+    curl -Lf -o /dd-tracer/dd-java-agent.jar "$BUILD_URL"
 
-elif [ $(ls /binaries/dd-java-agent*.jar | wc -l) = 1 ]; then
-    echo "Install local file $(ls /binaries/dd-java-agent*.jar)"
-    cp $(ls /binaries/dd-java-agent*.jar) /dd-tracer/dd-java-agent.jar
+elif [ "$(find /binaries -maxdepth 1 -name 'dd-java-agent*.jar' | wc -l)" = 1 ]; then
+    CUSTOM_JAR=$(find /binaries -maxdepth 1 -name 'dd-java-agent*.jar')
+    echo "Install local file $CUSTOM_JAR"
+    cp "$CUSTOM_JAR" /dd-tracer/dd-java-agent.jar
 
 else
     echo "Too many jar files in binaries"
@@ -51,7 +65,4 @@ java -jar /dd-tracer/dd-java-agent.jar > /binaries/SYSTEM_TESTS_LIBRARY_VERSION
 
 echo "Installed $(cat /binaries/SYSTEM_TESTS_LIBRARY_VERSION) java library"
 
-SYSTEM_TESTS_LIBRARY_VERSION=$(cat /binaries/SYSTEM_TESTS_LIBRARY_VERSION)
-
 echo "dd-trace version: $(cat /binaries/SYSTEM_TESTS_LIBRARY_VERSION)"
-

@@ -47,9 +47,6 @@ spec:
     condition:
       description: "GitLab CI rule expression controlling whether system-tests jobs run (e.g. '$NIGHTLY_BUILD == \"true\"'). Defaults to always-run."
       default: "null == null"
-    docker_auth:
-      description: "Whether to authenticate calls to docker hub"
-      default: "false"
     split_pipeline:
       description: "Split jobs across multiple child pipelines"
       type: boolean
@@ -122,7 +119,6 @@ system_tests_build_pipeline:
       force_execute=$(echo "$[[ inputs.force_execute ]],$FORCE_EXECUTE" | tr ',' '\n' | sed '/^$/d' | tr '\n' ',' | sed 's/,$//')
       parametric_job_count="${SYSTEM_TESTS_PARAMETRIC_JOB_COUNT:-$[[ inputs.parametric_job_count ]]}"
       push_to_test_optimization="${SYSTEM_TESTS_PUSH_TO_TEST_OPTIMIZATION:-$[[ inputs.push_to_test_optimization ]]}"
-      docker_auth="${SYSTEM_TESTS_DOCKER_AUTH:-$[[ inputs.docker_auth ]]}"
       skip_empty_scenario="${SYSTEM_TESTS_SKIP_EMPTY_SCENARIO:-$[[ inputs.skip_empty_scenarios ]]}"
       echo "libraries:              $libraries"
       echo "scenarios:              $scenarios"
@@ -141,7 +137,7 @@ system_tests_build_pipeline:
       done
       chunks=1
       if [ "$SYSTEM_TESTS_SPLIT_PIPELINE" = "true" ]; then chunks=3; fi
-      python3 utils/ci/gitlab/build_pipeline.py --stage $[[ inputs.stage ]] --ci-image "$CI_IMAGE" --ref "$[[ inputs.ref ]]" --push-to-test-optimization "$push_to_test_optimization" --libraries "$libraries" --params-dir . --output-dir . --chunks $chunks --docker-auth "$docker_auth" --binaries-artifact-path "$binaries_artifact_path" --binaries-artifacts "$binaries_artifacts" --pipeline-start-time "$SYSTEM_TESTS_PIPELINE_START_TIME"
+      python3 utils/ci/gitlab/build_pipeline.py --stage $[[ inputs.stage ]] --ci-image "$CI_IMAGE" --ref "$[[ inputs.ref ]]" --push-to-test-optimization "$push_to_test_optimization" --libraries "$libraries" --params-dir . --output-dir . --chunks $chunks --binaries-artifact-path "$binaries_artifact_path" --binaries-artifacts "$binaries_artifacts" --pipeline-start-time "$SYSTEM_TESTS_PIPELINE_START_TIME"
   artifacts:
     paths:
       - system-tests/generated-pipeline-chunk-*.yml
