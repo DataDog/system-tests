@@ -267,56 +267,63 @@ class Test_OtelTracestateSampling:
             assert (sampling_priority in (SamplingPriority.AUTO_KEEP, SamplingPriority.USER_KEEP)) is expected_sampled
 
     @pytest.mark.parametrize("library_env", [_library_env(0.1)])
-    def test_forwards_and_sanitizes_inbound_ot(self, test_library: APMLibrary) -> None:
+    def test_forwards_inbound_ot(self, test_library: APMLibrary) -> None:
         """A2: DD honors an already-decided upstream trace; ot=rv:...;th:... is forwarded unchanged, never re-derived."""
-        inherited = f"dd=s:2;t.dm:-3,ot=rv:{FORWARD_RV};th:{FORWARD_TH};foo:bar,congo=t61rcWkgMzE"
-        # A6: a malformed ot.th/ot.rv field is cleared, never re-derived; the actual sampling decision is already
-        # settled by traceparent/dd=, so DD must not fabricate a fresh probability decision to replace it.
-        # dd= and other vendors survive, and the trace is never rejected.
-        # dd=s:1 (AUTO_KEEP) is the actual decision here, so the traceparent flag must agree (sampled=True).
-        malformed = "dd=s:1,ot=rv:not-hex;th:not-hex,congo=xyz123"
-        # A2b: th alone is a valid OTel default-sampling decision (rv is only carried when the decision deviates
-        # from that default); DD must forward th unchanged and never fabricate a matching rv.
-        th_only = f"ot=th:{FORWARD_TH}"
-
         with test_library:
-            inherited_headers = test_library.dd_make_child_span_and_get_headers(
+            headers = test_library.dd_make_child_span_and_get_headers(
                 [
                     ("traceparent", _traceparent(FORWARD_TRACE_ID, sampled=True)),
-                    ("tracestate", inherited),
-                ]
-            )
-            malformed_headers = test_library.dd_make_child_span_and_get_headers(
-                [
-                    ("traceparent", _traceparent(FORWARD_TRACE_ID, sampled=True)),
-                    ("tracestate", malformed),
-                ]
-            )
-            th_only_headers = test_library.dd_make_child_span_and_get_headers(
-                [
-                    ("traceparent", _traceparent(FORWARD_TRACE_ID, sampled=True)),
-                    ("tracestate", th_only),
+                    ("tracestate", f"ot=rv:{FORWARD_RV};th:{FORWARD_TH}"),
                 ]
             )
 
-        _, inherited_tracestate = get_tracecontext(inherited_headers)
-        assert _parse_ot(inherited_tracestate) == {
-            "rv": FORWARD_RV,
-            "th": FORWARD_TH,
-            "foo": "bar",
-        }
-        assert "s:2" in inherited_tracestate["dd"].split(";")
-        # A3: ot= handling must not disturb dd= or an unrelated vendor tracestate member.
-        # an unrelated vendor member is opaque to DD: it must be forwarded byte-for-byte
-        assert inherited_tracestate["congo"] == "t61rcWkgMzE"
+        _, tracestate = get_tracecontext(headers)
+        assert _parse_ot(tracestate) == {"rv": FORWARD_RV, "th": FORWARD_TH}
 
-        _, malformed_tracestate = get_tracecontext(malformed_headers)
-        assert "ot" not in malformed_tracestate
-        assert "dd" in malformed_tracestate
-        assert malformed_tracestate["congo"] == "xyz123"
+    @pytest.mark.parametrize("library_env", [_library_env(0.1)])
+    def test_sanitizes_malformed_inbound_ot(self, test_library: APMLibrary) -> None:
+        """A6: malformed ot= fields are cleared rather than re-derived."""
+        with test_library:
+            headers = test_library.dd_make_child_span_and_get_headers(
+                [
+                    ("traceparent", _traceparent(FORWARD_TRACE_ID, sampled=True)),
+                    ("tracestate", "dd=s:1,ot=rv:not-hex;th:not-hex,congo=xyz123"),
+                ]
+            )
 
-        _, th_only_tracestate = get_tracecontext(th_only_headers)
-        assert _parse_ot(th_only_tracestate) == {"th": FORWARD_TH}
+        _, tracestate = get_tracecontext(headers)
+        assert "ot" not in tracestate
+        assert "dd" in tracestate
+        assert tracestate["congo"] == "xyz123"
+
+    @pytest.mark.parametrize("library_env", [_library_env(0.1)])
+    def test_forwards_th_only_inbound_ot(self, test_library: APMLibrary) -> None:
+        """A2b: an inherited th is forwarded without a fabricated rv."""
+        with test_library:
+            headers = test_library.dd_make_child_span_and_get_headers(
+                [
+                    ("traceparent", _traceparent(FORWARD_TRACE_ID, sampled=True)),
+                    ("tracestate", f"ot=th:{FORWARD_TH}"),
+                ]
+            )
+
+        _, tracestate = get_tracecontext(headers)
+        assert _parse_ot(tracestate) == {"th": FORWARD_TH}
+
+    @pytest.mark.parametrize("library_env", [_library_env(0.1)])
+    def test_preserves_other_tracestate_members(self, test_library: APMLibrary) -> None:
+        """A3: ot= handling does not disturb other tracestate members."""
+        with test_library:
+            headers = test_library.dd_make_child_span_and_get_headers(
+                [
+                    ("traceparent", _traceparent(FORWARD_TRACE_ID, sampled=True)),
+                    ("tracestate", f"dd=s:2;t.dm:-3,ot=rv:{FORWARD_RV};th:{FORWARD_TH},congo=t61rcWkgMzE"),
+                ]
+            )
+
+        _, tracestate = get_tracecontext(headers)
+        assert "s:2" in tracestate["dd"].split(";")
+        assert tracestate["congo"] == "t61rcWkgMzE"
 
     @pytest.mark.parametrize("library_env", [_library_env(0.1)])
     def test_forwards_unknown_inbound_ot_subkeys(self, test_library: APMLibrary) -> None:
