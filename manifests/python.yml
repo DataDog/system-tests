@@ -830,9 +830,6 @@ manifest:
     - weblog_declaration:
         "*": v3.11.0.dev
         *django: v3.3.0.dev
-  tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_Session_Blocking::test_session_blocking:
-    - weblog_declaration:
-        *django: flaky (APPSEC-69650)
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Blocking:
     - weblog_declaration:
         "*": v3.0.0.rc
