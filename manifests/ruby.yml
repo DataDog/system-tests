@@ -94,7 +94,21 @@ manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_NoRedaction: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactedMessagesInSDKResponse: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Redaction: missing_feature
-  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionDisabled: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionDisabled:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        rails72: '>=2.41.0'
+        uds-rails: '>=2.41.0'
+        rails52: '>=2.41.0'
+        rails80: '>=2.41.0'
+        rails61: '>=2.41.0'
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionDisabled::test_findings_still_reported:
+    - weblog_declaration:
+        rails72: missing_feature
+        rails61: missing_feature
+        uds-rails: missing_feature
+        rails80: missing_feature
+        rails52: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionDisabledTelemetry: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionFailSafe: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionInSDKResponse: missing_feature
