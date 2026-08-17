@@ -1,4 +1,6 @@
 import json
+import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
@@ -7,6 +9,7 @@ import pytest
 import yaml
 
 from utils.manifest._internal.types import Condition, SkipDeclaration, SemverRange
+from utils.scripts.activate_easy_wins import __main__ as activate_easy_wins_main
 from utils.scripts.activate_easy_wins._internal.test_artifact import (
     ActivationStatus,
     parse_artifact_data,
@@ -43,6 +46,17 @@ def create_manifest_yaml(rules: dict[str, str]) -> str:
     for rule, declaration in sorted(rules.items()):
         lines.append(f"  {rule}: {declaration}")
     return "\n".join(lines) + "\n"
+
+
+class FakeCompletedProcess:
+    def __init__(self, args: list[str], *, returncode: int = 0, stdout: str = "") -> None:
+        self.args = args
+        self.returncode = returncode
+        self.stdout = stdout
+
+    def check_returncode(self) -> None:
+        if self.returncode != 0:
+            raise subprocess.CalledProcessError(self.returncode, self.args)
 
 
 # =============================================================================
@@ -390,6 +404,64 @@ def test_e2e_activation_modifies_manifest():
         # Verify activation occurred
         assert logger.tests_per_language.get("ruby", 0) > 0
         assert logger.total_modified_rules > 0 or len(manifest_editor.added_rules) > 0
+
+
+def test_split_code_owner_activation_skips_commit_when_manifest_write_has_no_diff(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    skipped_nodes_file = tmp_path / "skip.yml"
+    skipped_nodes_file.write_text("{}\n", encoding="utf-8")
+    recorded_commands: list[list[str]] = []
+
+    class NoDiffManifestEditor:
+        def __init__(self, *_: object, **__: object) -> None:
+            self.added_rules: dict[str, set[object]] = {}
+
+        def write(self) -> None:
+            pass
+
+    class MatchedActivationLogger:
+        total_tests_activated = 1
+        total_modified_rules = 1
+
+    def fake_parse_artifact_data(
+        *_: object, **__: object
+    ) -> tuple[dict[object, object], dict[str, set[str]], set[str]]:
+        return {object(): object()}, {"python": {"flask"}}, {"@DataDog/team-a"}
+
+    def fake_update_manifest(*_: object, **__: object) -> MatchedActivationLogger:
+        return MatchedActivationLogger()
+
+    def fake_subprocess_run(
+        args: list[str],
+        *,
+        check: bool = False,
+        capture_output: bool = False,
+        text: bool = False,
+    ) -> FakeCompletedProcess:
+        del capture_output, text
+        recorded_commands.append(args)
+        if args == ["git", "rev-parse", "--abbrev-ref", "HEAD"]:
+            return FakeCompletedProcess(args, stdout="main\n")
+        if args[:2] == ["git", "commit"]:
+            raise subprocess.CalledProcessError(returncode=1, cmd=args)
+        process = FakeCompletedProcess(args)
+        if check:
+            process.check_returncode()
+        return process
+
+    monkeypatch.setattr(sys, "argv", ["activate_easy_wins", "--no-download", "--split-co", "--components", "python"])
+    monkeypatch.setattr(activate_easy_wins_main, "SKIPPED_NODES_FILE", skipped_nodes_file)
+    monkeypatch.setattr(activate_easy_wins_main, "ManifestEditor", NoDiffManifestEditor)
+    monkeypatch.setattr(activate_easy_wins_main, "parse_artifact_data", fake_parse_artifact_data)
+    monkeypatch.setattr(activate_easy_wins_main, "update_manifest", fake_update_manifest)
+    monkeypatch.setattr(activate_easy_wins_main.subprocess, "run", fake_subprocess_run)
+
+    with pytest.raises(SystemExit) as exception:
+        activate_easy_wins_main.main()
+
+    assert exception.value.code == 1
+    assert ["git", "commit", "-m", "chore: activate easy wins for @DataDog/team-a"] not in recorded_commands
 
 
 def test_e2e_activation_filters_by_component():
