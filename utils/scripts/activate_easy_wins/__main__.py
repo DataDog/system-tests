@@ -1,6 +1,5 @@
 import argparse
 import subprocess
-import sys
 from os import environ
 from pathlib import Path
 
@@ -138,7 +137,7 @@ def main() -> None:
 
         manifest_editor.write(dry_run=args.dry_run)
 
-    # Exit with status 1 if no updates were made
+    # Keep no-change activations successful so scheduled workflows can continue.
     if not has_updates:
         print("No update were made")
 
