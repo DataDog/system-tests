@@ -382,24 +382,41 @@ class Test_OtelTracestateSampling:
         assert _parse_ot(tracestate) == {"th": FORWARD_TH}
 
     @pytest.mark.parametrize("library_env", [_library_env(0.1)])
-    def test_force_keep_clears_th(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
-        """A4: a non-probability (force-keep) decision erases th but still forwards an inherited rv."""
+    def test_force_keep_does_not_add_ot(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         with test_library:
-            # Nothing was inherited to forward: a local force-keep must not fabricate an ot= from nothing.
-            no_ot_headers = _make_root_manual_keep_headers(test_library)
-            # An inherited rv (no th, so no upstream probability decision) is still forwarded on a local force-keep.
-            rv_only_headers = _make_manual_keep_headers(
+            headers = _make_root_manual_keep_headers(test_library)
+
+        traceparent, tracestate = get_tracecontext(headers)
+        assert traceparent.trace_flags == "01"
+        assert "ot" not in tracestate
+
+        (trace,) = test_agent.wait_for_num_traces(1)
+        (span,) = trace
+        assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == SamplingPriority.USER_KEEP
+
+    @pytest.mark.parametrize("library_env", [_library_env(0.1)])
+    def test_force_keep_forwards_inherited_rv(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        with test_library:
+            headers = _make_manual_keep_headers(
                 test_library,
                 [
                     ("traceparent", _traceparent(FORWARD_TRACE_ID, sampled=False)),
                     ("tracestate", "ot=rv:1234567890abcd"),
                 ],
             )
-            # a full upstream probability decision that dropped the trace (SAMPLING_RATE_0_1's row for trace_id=10, at
-            # rate 0.1: sampled=False), so DD's local force-keep has a real inherited decision to override, not just rv.
-            # Upstream already decided to drop (a full th/rv pair); the local force-keep still clears th but forwards
-            # the inherited rv unchanged.
-            dropped_headers = _make_manual_keep_headers(
+
+        traceparent, tracestate = get_tracecontext(headers)
+        assert traceparent.trace_flags == "01"
+        assert _parse_ot(tracestate) == {"rv": "1234567890abcd"}
+
+        (trace,) = test_agent.wait_for_num_traces(1)
+        (span,) = trace
+        assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == SamplingPriority.USER_KEEP
+
+    @pytest.mark.parametrize("library_env", [_library_env(0.1)])
+    def test_force_keep_clears_inherited_th(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        with test_library:
+            headers = _make_manual_keep_headers(
                 test_library,
                 [
                     ("traceparent", _traceparent(10, sampled=False)),
@@ -407,22 +424,13 @@ class Test_OtelTracestateSampling:
                 ],
             )
 
-        no_ot_traceparent, no_ot_tracestate = get_tracecontext(no_ot_headers)
-        assert no_ot_traceparent.trace_flags == "01"
-        assert "ot" not in no_ot_tracestate
+        traceparent, tracestate = get_tracecontext(headers)
+        assert traceparent.trace_flags == "01"
+        assert _parse_ot(tracestate) == {"rv": "65cd67504a538e"}
 
-        rv_only_traceparent, rv_only_tracestate = get_tracecontext(rv_only_headers)
-        assert rv_only_traceparent.trace_flags == "01"
-        assert _parse_ot(rv_only_tracestate) == {"rv": "1234567890abcd"}
-
-        dropped_traceparent, dropped_tracestate = get_tracecontext(dropped_headers)
-        assert dropped_traceparent.trace_flags == "01"
-        assert _parse_ot(dropped_tracestate) == {"rv": "65cd67504a538e"}
-
-        traces = test_agent.wait_for_num_traces(3)
-        for trace in traces:
-            (span,) = trace
-            assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == SamplingPriority.USER_KEEP
+        (trace,) = test_agent.wait_for_num_traces(1)
+        (span,) = trace
+        assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == SamplingPriority.USER_KEEP
 
     @pytest.mark.parametrize("library_env", [_library_env(0.1)])
     def test_sampled_without_ot_does_not_fabricate_it(self, test_library: APMLibrary) -> None:
