@@ -316,8 +316,8 @@ func writeBlock(w http.ResponseWriter, block *blockResult) error {
 	// Header.get, so the server would content-sniff and emit a second Content-Type
 	applyHeaders(w.Header(), block.Headers)
 	w.WriteHeader(block.Status)
-	_, err = w.Write(content)
-	return err
+	_, _ = w.Write(content)
+	return nil
 }
 
 func writeUpstreamResponse(w http.ResponseWriter, response *http.Response, body []byte) {

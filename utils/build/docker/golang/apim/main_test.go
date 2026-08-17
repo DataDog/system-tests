@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"io"
 	"net"
 	"net/http"
@@ -20,6 +21,23 @@ type calloutStep struct {
 	requestID string
 	response  string
 	assert    func(*testing.T, map[string]json.RawMessage)
+}
+
+type failingResponseWriter struct {
+	header   http.Header
+	statuses []int
+}
+
+func (w *failingResponseWriter) Header() http.Header {
+	return w.header
+}
+
+func (w *failingResponseWriter) Write([]byte) (int, error) {
+	return 0, errors.New("client disconnected")
+}
+
+func (w *failingResponseWriter) WriteHeader(status int) {
+	w.statuses = append(w.statuses, status)
 }
 
 func TestReplayFixtures(t *testing.T) {
@@ -453,6 +471,26 @@ func TestFailClosedOnMalformedBlock(t *testing.T) {
 			})
 		})
 	}
+}
+
+func TestBlockWriteErrorDoesNotFailClosedAfterResponseIsCommitted(t *testing.T) {
+	callout := newScriptedCallout(t, []calloutStep{{
+		phase:    "<RequestHeaders>",
+		response: `{"block":{"status":403,"content":"YmxvY2tlZA=="}}`,
+	}})
+
+	var logs bytes.Buffer
+	gateway := newTestGateway(callout.URL, "", &logs)
+	writer := &failingResponseWriter{header: make(http.Header)}
+
+	gateway.ServeHTTP(writer, httptest.NewRequest(http.MethodGet, "http://example.test:7777/", nil))
+
+	if got := writer.statuses; len(got) != 1 || got[0] != http.StatusForbidden {
+		t.Fatalf("statuses = %v, want [%d]", got, http.StatusForbidden)
+	}
+	assertLogLines(t, logs.String(), []string{
+		`apim-gateway callout phase=<RequestHeaders> request-id="" path="/" outcome=ok`,
+	})
 }
 
 // TestFailClosedOnNegativeAllowedBodySize covers the guard that keeps a hostile or buggy
