@@ -1,0 +1,22 @@
+{
+ "request": {
+  "method": "POST",
+  "url": "https://app.datadoghq.com/api/v2/ai-guard/evaluate",
+  "headers": {
+   "Content-Type": "application/json",
+   "DD-AI-GUARD-SOURCE": "SDK"
+  },
+  "body": "{\"data\": {\"attributes\": {\"messages\": [{\"role\": \"user\", \"content\": \"My SSN is 123-45-6789 and my email is paco@gmail.com\"}, {\"role\": \"assistant\", \"content\": \"Understood, thank you.\"}, {\"role\": \"user\", \"content\": \"My phone number is 415-555-0132\"}], \"meta\": {\"service\": \"weblog\", \"env\": \"system-tests\"}}}}"
+ },
+ "response": {
+  "status": {
+   "code": 200,
+   "message": "OK"
+  },
+  "headers": {
+   "content-type": "application/vnd.api+json",
+   "content-length": "1343"
+  },
+  "body": "{\"data\": {\"id\": \"redaction-fixture\", \"type\": \"evaluations\", \"attributes\": {\"action\": \"ALLOW\", \"is_blocking_enabled\": true, \"reason\": \"Sensitive data detected; configured categories will be redacted.\", \"redaction_replacements\": [{\"path\": \"messages[0].content\", \"replacement\": \"My SSN is <REDACTED> and my email is <REDACTED>\"}, {\"path\": \"messages[2].content\", \"replacement\": \"My phone number is <REDACTED>\"}], \"sds_findings\": [{\"rule_display_name\": \"US Social Security Number Scanner\", \"rule_tag\": \"us_ssn\", \"category\": \"ssn\", \"location\": {\"path\": \"messages[0].content\", \"start_index\": 10, \"end_index_exclusive\": 21}}, {\"rule_display_name\": \"Standard Email Address Scanner\", \"rule_tag\": \"email_address\", \"category\": \"email_address\", \"location\": {\"path\": \"messages[0].content\", \"start_index\": 38, \"end_index_exclusive\": 52}}, {\"rule_display_name\": \"Phone Number Scanner\", \"rule_tag\": \"phone_number\", \"category\": \"phone_number\", \"location\": {\"path\": \"messages[2].content\", \"start_index\": 19, \"end_index_exclusive\": 31}}], \"tag_probs\": {\"authority-override\": 0.0, \"data-exfiltration\": 0.0, \"denial-of-service-tool-call\": 0.0, \"destructive-tool-call\": 0.0, \"indirect-prompt-injection\": 0.0, \"instruction-override\": 0.0, \"jailbreak\": 0.0, \"obfuscation\": 0.0, \"role-play\": 0.0, \"security-exploit\": 0.0, \"system-prompt-extraction\": 0.0}, \"tags\": []}}}"
+ }
+}

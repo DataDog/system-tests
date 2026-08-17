@@ -151,7 +151,7 @@ jobs:
       if: inputs._build_weblog_base_image
       run: |
         source venv/bin/activate
-        ./utils/script/build_base_image.py ${{ inputs.library }} ${{ inputs.weblog }}
+        ./utils/scripts/build-base-image.py ${{ inputs.library }} ${{ inputs.weblog }}
 
     - name: Pull images
       uses: ./.github/actions/pull_images
@@ -412,6 +412,21 @@ jobs:
     - name: Run SAMPLING_RATE_CAPPING scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"SAMPLING_RATE_CAPPING"')
       run: ./run.sh SAMPLING_RATE_CAPPING
+    - name: Run OTEL_SAMPLING_RATE_0_01 scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_SAMPLING_RATE_0_01"')
+      run: ./run.sh OTEL_SAMPLING_RATE_0_01
+    - name: Run OTEL_SAMPLING_RATE_0_05 scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_SAMPLING_RATE_0_05"')
+      run: ./run.sh OTEL_SAMPLING_RATE_0_05
+    - name: Run OTEL_SAMPLING_RATE_0_1 scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_SAMPLING_RATE_0_1"')
+      run: ./run.sh OTEL_SAMPLING_RATE_0_1
+    - name: Run OTEL_SAMPLING_RATE_0_2 scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_SAMPLING_RATE_0_2"')
+      run: ./run.sh OTEL_SAMPLING_RATE_0_2
+    - name: Run OTEL_SAMPLING_RATE_0_99 scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_SAMPLING_RATE_0_99"')
+      run: ./run.sh OTEL_SAMPLING_RATE_0_99
     - name: Run TELEMETRY_APP_STARTED_PRODUCTS_DISABLED scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"TELEMETRY_APP_STARTED_PRODUCTS_DISABLED"')
       run: ./run.sh TELEMETRY_APP_STARTED_PRODUCTS_DISABLED
@@ -430,6 +445,9 @@ jobs:
     - name: Run TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED"')
       run: ./run.sh TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED
+    - name: Run DEBUGGER_CAPTURE_TIMEOUT scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"DEBUGGER_CAPTURE_TIMEOUT"')
+      run: ./run.sh DEBUGGER_CAPTURE_TIMEOUT
     - name: Run DEBUGGER_PROBES_SNAPSHOT scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"DEBUGGER_PROBES_SNAPSHOT"')
       run: ./run.sh DEBUGGER_PROBES_SNAPSHOT
@@ -536,6 +554,12 @@ jobs:
     - name: Run AI_GUARD_STANDALONE scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"AI_GUARD_STANDALONE"')
       run: ./run.sh AI_GUARD_STANDALONE
+    - name: Run AI_GUARD_REDACTION_DISABLED scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"AI_GUARD_REDACTION_DISABLED"')
+      run: ./run.sh AI_GUARD_REDACTION_DISABLED
+    - name: Run AI_GUARD_REDACTION_TELEMETRY scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"AI_GUARD_REDACTION_TELEMETRY"')
+      run: ./run.sh AI_GUARD_REDACTION_TELEMETRY
 
     - name: Run all scenarios in replay mode
       if: success() && steps.build.outcome == 'success' && inputs._enable_replay_scenarios

@@ -1,5 +1,6 @@
-from typing import Literal
 import os
+from typing import Literal
+
 import pytest
 
 from docker.models.networks import Network
@@ -22,12 +23,6 @@ from utils._context.containers import (
     TestedContainer,
 )
 from utils._context.weblog_infrastructure import EndToEndWeblogInfra
-from utils.docker_fixtures._core import extra_hosts_for_environment
-from utils.mocked_backend.ffe import (
-    EXPECTED_API_KEY,
-    MockFFEAgentlessBackendServer,
-    MockFFEAgentlessBackendStatus,
-)
 from utils._context.constants import WeblogCategory
 from utils._logger import logger
 
@@ -466,9 +461,9 @@ class EndToEndScenario(DockerScenario):
         else:
             self._wait_interface(interfaces.library, 0 if is_empty_test_run else self.library_interface_timeout)
 
-            # An empty selection has no test-generated data to flush. This also avoids waiting on
-            # Agent-backed writers in scenarios that intentionally do not start an Agent.
-            self.weblog_infra.stop(flush=not is_empty_test_run)
+            # An empty selection has no test-generated data to flush. An Agentless scenario also
+            # has no Agent-backed writer target, so its flush endpoint can only time out.
+            self.weblog_infra.stop(flush=not is_empty_test_run and self.include_agent)
             interfaces.library.check_deserialization_errors()
 
             for container in self.buddies:
@@ -609,86 +604,6 @@ class DdTraceEndToEndScenario(EndToEndScenario):
             weblog_env=weblog_env,
             weblog_volumes=weblog_volumes,
         )
-
-
-class FeatureFlaggingAgentlessEndToEndScenario(DdTraceEndToEndScenario):
-    """FFE end-to-end scenario with UFC available before the weblog starts."""
-
-    _default_scenario_groups: tuple[ScenarioGroup, ...] = ()
-
-    _mock_backend: MockFFEAgentlessBackendServer | None = None
-    _last_mock_backend_status: MockFFEAgentlessBackendStatus | None = None
-
-    def __init__(
-        self,
-        name: str,
-        *,
-        doc: str = "Validate default agentless UFC delivery and evaluation without a Datadog Agent.",
-        weblog_env: dict[str, str | None] | None = None,
-    ) -> None:
-        environment: dict[str, str | None] = {
-            "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
-            "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_POLL_INTERVAL_SECONDS": "0.2",
-            "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_REQUEST_TIMEOUT_SECONDS": "2",
-            "DD_REMOTE_CONFIGURATION_ENABLED": "false",
-        }
-        environment.update(weblog_env or {})
-
-        super().__init__(
-            name,
-            doc=doc,
-            include_agent=False,
-            library_interface_timeout=0,
-            scenario_groups=[all_scenario_groups.ffe],
-            use_proxy_for_agent=False,
-            use_proxy_for_weblog=False,
-            weblog_env=environment,
-        )
-
-    def configure(self, config: pytest.Config) -> None:
-        try:
-            if not self.replay:
-                self._start_mock_backend()
-
-            super().configure(config)
-        except BaseException:
-            self._stop_mock_backend()
-            raise
-
-    def _start_mock_backend(self) -> None:
-        assert self._mock_backend is None, "mock FFE agentless backend is already running"
-
-        self._mock_backend = MockFFEAgentlessBackendServer()
-        self._mock_backend.reset()
-
-        environment = self.weblog_infra.library_container.environment
-        environment |= {
-            "DD_API_KEY": EXPECTED_API_KEY,
-            "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL": self._mock_backend.library_config_url,
-        }
-        self.weblog_infra.library_container.extra_hosts = extra_hosts_for_environment(environment)
-
-    def mock_backend_status(self) -> MockFFEAgentlessBackendStatus | None:
-        if self._mock_backend is not None:
-            return self._mock_backend.status()
-        return self._last_mock_backend_status
-
-    def _stop_mock_backend(self) -> None:
-        backend = self._mock_backend
-        if backend is None:
-            return
-
-        self._mock_backend = None
-        try:
-            self._last_mock_backend_status = backend.status()
-        finally:
-            backend.close()
-
-    def close_targets(self) -> None:
-        try:
-            super().close_targets()
-        finally:
-            self._stop_mock_backend()
 
 
 class GraphQlEndToEndScenario(EndToEndScenario):

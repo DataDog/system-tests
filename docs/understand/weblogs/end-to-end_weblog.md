@@ -559,6 +559,38 @@ This endpoint accept a mandatory parameter `url`. It'll make a call to these url
 }
 ```
 
+### GET /trace/manual_keep_drop
+
+This endpoint forces the sampling decision of the current trace, using the tracer's manual keep/drop
+API (the `manual.keep` / `manual.drop` tags, or the equivalent idiomatic call in the library) applied
+to the currently active span.
+
+It accepts a mandatory query parameter `decision`, whose value must be either:
+
+- `keep`: force the trace to be kept (`manual.keep`)
+- `drop`: force the trace to be dropped (`manual.drop`)
+
+Examples:
+
+- `GET /trace/manual_keep_drop?decision=keep`
+- `GET /trace/manual_keep_drop?decision=drop`
+
+Once the decision has been applied, the endpoint makes an outgoing HTTP call to `http://localhost:7777/`,
+so that tests can assert on the sampling decision propagated downstream. Unlike `/make_distant_call`
+the target is not configurable. The response mirrors `/make_distant_call`, with a `200` status code:
+
+```js
+{
+    "url": "http://localhost:7777/",  // the hardcoded downstream url
+    "status_code": 200, // status code of the downstream response
+    "request_headers": {}, // headers sent downstream, including the propagated sampling decision
+    "response_headers": {} // headers of the downstream response
+}
+```
+
+Any other value for `decision`, or a missing `decision` parameter, returns a `400` status code and
+makes no downstream call.
+
 ### GET /dbm
 
 This endpoint executes database queries for [DBM supported libraries](https://docs.datadoghq.com/database_monitoring/guide/connect_dbm_and_apm/?tab=go#before-you-begin). A 200 response is returned if the query
@@ -929,6 +961,12 @@ Additionally, the method supports the following query parameters to use the sdk 
 
 These endpoints are used for the `Dynamic Instrumentation` tests.
 
+#### GET /debugger/snapshot/capture-timeout
+
+Creates a collection containing `collectionSize` object chains. Each chain has a leaf wrapped by
+`nestingDepth` nested objects and is exposed through `largeCollection` at the probe line. It is used
+to test the snapshot capture time budget without exceeding tracer collection-size guardrails.
+
 ### GET /exceptionreplay/*
 
 These endpoints will be used for `Exception Replay` tests.
@@ -1105,7 +1143,7 @@ Returns a JSON dict, with those values :
 {
   "status": "ok",
   "library": {
-    "name": "<library's name>", // one of c, cpp, cpp_nginx, cpp_httpd, dotnet, golang, java, nodejs, php, python, ruby
+    "name": "<library's name>", // one of c, cpp, cpp_nginx, cpp_httpd, dotnet, golang, java, nodejs, php, python, ruby, rust
     "version": "1.2.3" // version of the library
   }
 }
@@ -1325,9 +1363,36 @@ Successful evaluation:
   "tags": [],
   "tag_probs": {
     "jailbreak": 0.0
-  }
+  },
+  "sds": [],
+  "messages": [
+    {
+      "role": "user",
+      "content": "My SSN is <REDACTED>"
+    }
+  ],
+  "redaction_replacements": [
+    {
+      "path": "messages[0].content",
+      "replacement": "My SSN is <REDACTED>"
+    }
+  ]
 }
 ```
+
+The response must expose every field the SDK evaluation carries. A weblog that builds the JSON
+field by field instead of serializing the evaluation has to include, on top of `action`, `reason`,
+`tags` and `tag_probs`:
+
+- `sds`: the sensitive data detection metadata (`sds_findings`), reported whether or not anything
+  was redacted
+- `messages`: the message list the SDK hands back to the caller, which is the redacted list
+  whenever the backend asked for a redaction and the original one otherwise
+- `redaction_replacements`: the `{path, replacement}` pairs the backend returned
+
+The last two are omitted when the tracer's SDK does not expose them yet. The 403 response
+deliberately carries none of them: the abort error reports the outcome, and the messages surface
+on the span only (see `tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionOnBlock`).
 
 ### POST /stripe/create_checkout_session
 

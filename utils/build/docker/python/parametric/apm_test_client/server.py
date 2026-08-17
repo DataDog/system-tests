@@ -68,9 +68,24 @@ from .llmobs import router as llmobs_router
 
 log = logging.getLogger(__name__)
 
-# OpenFeature client initialization
+# OpenFeature client initialization.
+#
+# The configuration-source contract requires lazy activation: no configuration
+# delivery may happen before the provider is accessed through /ffe/start. When any
+# Feature Flagging configuration variable is set, skip this eager initialization and
+# leave provider setup to /ffe/start. Tests that predate that contract keep the
+# original eager behavior.
+_FFE_CONFIGURATION_ENVVARS = (
+    "DD_FEATURE_FLAGS_ENABLED",
+    "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE",
+    "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL",
+    "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_POLL_INTERVAL_SECONDS",
+    "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_REQUEST_TIMEOUT_SECONDS",
+)
 openfeature_client = None
-if os.environ.get("DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED") == "true":
+if os.environ.get("DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED") == "true" and not any(
+    name in os.environ for name in _FFE_CONFIGURATION_ENVVARS
+):
     try:
         from openfeature import api
         from ddtrace.openfeature import DataDogProvider
@@ -441,17 +456,18 @@ def trace_stats_flush(args: TraceStatsFlushArgs) -> TraceStatsFlushReturn:
             return TraceStatsFlushReturn()
 
     # Modern path: dd-trace-py >= 3.x delegates CSS to libdatadog's native TraceExporter.
-    # The exporter only emits /v0.6/stats on its internal 10-second timer or on shutdown,
-    # so we force a shutdown+recreate to flush stats deterministically for the test.
-    writer = getattr(ddtrace.tracer._span_aggregator, "writer", None)
-    if writer is not None and hasattr(writer, "on_shutdown") and hasattr(writer, "recreate"):
-        writer.on_shutdown()
-        try:
-            ddtrace.tracer._span_aggregator.writer = writer.recreate()
-        except Exception:
-            # If recreate is unavailable or raises, the writer is left stopped — acceptable
-            # since the test client is reset after each parametric test.
-            pass
+    # The exporter only emits /v0.6/stats on its internal 10-second timer or on shutdown.
+    span_aggregator = getattr(ddtrace.tracer, "_span_aggregator", None)
+    writer = getattr(span_aggregator, "writer", None)
+    if writer is None:
+        return TraceStatsFlushReturn()
+    stats_enabled = (
+        getattr(writer, "_compute_stats_enabled", False) and not getattr(writer, "_stats_opt_out", False)
+    ) or getattr(writer, "_otlp_metrics_endpoint", None)
+    if not stats_enabled:
+        return TraceStatsFlushReturn()
+    if hasattr(writer, "recreate"):
+        span_aggregator.writer = writer.recreate()
     return TraceStatsFlushReturn()
 
 
@@ -1463,28 +1479,37 @@ async def ffe_evaluate(request: Request) -> JSONResponse:
         # Build context
         context = EvaluationContext(targeting_key=targeting_key, attributes=attributes)
 
-        # Evaluate based on variation type
+        # Evaluate based on variation type. The detailed variants are used so the
+        # provider's reason and error code reach the test, which the
+        # configuration-source contract asserts on (for example
+        # PROVIDER_NOT_READY while no configuration has been delivered yet).
         value = default_value
         reason = "DEFAULT"
+        error_code = None
 
         try:
             if variation_type == "BOOLEAN":
-                value = openfeature_client.get_boolean_value(flag, default_value, context)
+                details = openfeature_client.get_boolean_details(flag, default_value, context)
             elif variation_type == "STRING":
-                value = openfeature_client.get_string_value(flag, default_value, context)
+                details = openfeature_client.get_string_details(flag, default_value, context)
             elif variation_type == "INTEGER":
-                value = openfeature_client.get_integer_value(flag, default_value, context)
+                details = openfeature_client.get_integer_details(flag, default_value, context)
             elif variation_type == "NUMERIC":
-                value = openfeature_client.get_float_value(flag, default_value, context)
+                details = openfeature_client.get_float_details(flag, default_value, context)
             elif variation_type == "JSON":
-                value = openfeature_client.get_object_value(flag, default_value, context)
+                details = openfeature_client.get_object_details(flag, default_value, context)
             else:
-                value = default_value
+                details = None
+
+            if details is not None:
+                value = details.value
+                reason = getattr(details.reason, "value", details.reason) or "DEFAULT"
+                error_code = getattr(details.error_code, "value", details.error_code)
         except Exception:
             value = default_value
             reason = "ERROR"
 
-        return JSONResponse({"value": value, "reason": reason}, status_code=200)
+        return JSONResponse({"value": value, "reason": reason, "errorCode": error_code}, status_code=200)
     except Exception as e:
         log.error(f"[FFE] Error evaluating flag: {e}")
         return JSONResponse({"error": str(e)}, status_code=500)
