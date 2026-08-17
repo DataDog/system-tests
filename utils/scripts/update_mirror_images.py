@@ -130,9 +130,9 @@ def main(excluded: set[str], *, skip_lock: bool) -> None:
     images = collect_images(excluded)
     print(f"Collected {len(images)} mirrorable image(s) from the CI scenarios.", flush=True)
 
-    if not MIRROR_YAML.exists():
-        MIRROR_YAML.write_text(MIRROR_YAML_HEADER)
-
+    # This is generated output, not an append-only allowlist. Recreate it so
+    # aliases, old content tags, and removed scenario images cannot linger.
+    MIRROR_YAML.write_text(MIRROR_YAML_HEADER)
     _run_mirror_images("add", *images)
     if not skip_lock:
         _run_mirror_images("lock")

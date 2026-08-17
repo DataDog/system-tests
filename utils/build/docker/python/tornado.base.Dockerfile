@@ -7,11 +7,11 @@ RUN apt-get update && apt-get install -y curl
 RUN python --version && curl --version
 
 # install python deps
-COPY utils/build/docker/python/tornado/requirements-tornado.txt /tmp/tornado-requirements.txt
+COPY tornado/requirements-tornado.txt /tmp/tornado-requirements.txt
 RUN pip install --upgrade pip && pip install -r /tmp/tornado-requirements.txt
 
 RUN mkdir app
 WORKDIR /app
 
-# docker build --progress=plain -f utils/build/docker/python/tornado.base.Dockerfile -t datadog/system-tests:tornado.base-v1 .
+# docker build --progress=plain -f utils/build/docker/python/tornado.base.Dockerfile -t datadog/system-tests:tornado.base-v1 utils/build/docker/python
 # docker push datadog/system-tests:tornado.base-v1
