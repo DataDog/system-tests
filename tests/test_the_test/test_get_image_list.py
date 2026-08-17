@@ -43,6 +43,10 @@ def _pointer_file(path: Path, *, present: bool) -> Iterator[None]:
     """
 
     backup = path.parent / f"{path.name}.test_the_test_backup"
+    if backup.is_file():
+        path.unlink(missing_ok=True)
+        backup.rename(path)
+
     existed = path.is_file()
 
     if existed:
@@ -76,6 +80,18 @@ def _run_get_image_list(weblog: str) -> str:
 
 @scenarios.test_the_test
 class Test_GetImageList:
+    def test_pointer_file_recovers_interrupted_present_state(self, tmp_path: Path) -> None:
+        pointer = tmp_path / "processor-image"
+        backup = tmp_path / "processor-image.test_the_test_backup"
+        pointer.write_text("fake-test-pointer\n", encoding="utf-8")
+        backup.write_text("original-pointer\n", encoding="utf-8")
+
+        with _pointer_file(pointer, present=False):
+            assert not pointer.exists()
+
+        assert pointer.read_text(encoding="utf-8") == "original-pointer\n"
+        assert not backup.exists()
+
     @pytest.mark.parametrize("weblog", sorted(GO_PROXY_POINTER_FILES))
     @pytest.mark.parametrize("pointer_present", [False, True], ids=["pointer_absent", "pointer_present"])
     def test_stdout_is_only_a_compose_document(self, weblog: str, pointer_present: bool):  # noqa: FBT001
