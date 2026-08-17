@@ -170,7 +170,7 @@ system_tests_build_pipeline:
     LIBRARIES: $LIBRARIES
     UPSTREAM_PIPELINE_ID: $CI_PIPELINE_ID
 
-system_tests_run_pipeline_0:
+system_tests_e2e_run_pipeline_0:
   extends: .run_test_pipeline_base
   trigger:
     include:
@@ -178,7 +178,7 @@ system_tests_run_pipeline_0:
         job: system_tests_build_pipeline
     strategy: depend
 
-system_tests_run_pipeline_1:
+system_tests_e2e_run_pipeline_1:
   extends: .run_test_pipeline_base
   rules:
     - if: $SYSTEM_TESTS_SPLIT_PIPELINE != "true"
@@ -191,7 +191,7 @@ system_tests_run_pipeline_1:
         job: system_tests_build_pipeline
     strategy: depend
 
-system_tests_run_pipeline_2:
+system_tests_e2e_run_pipeline_2:
   extends: .run_test_pipeline_base
   rules:
     - if: $SYSTEM_TESTS_SPLIT_PIPELINE != "true"
