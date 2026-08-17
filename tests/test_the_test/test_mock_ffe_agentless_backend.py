@@ -141,6 +141,11 @@ def test_agentless_exposure_scenario_has_no_agent_and_two_capture_routes(
     )
 
     environment = scenario.weblog_infra.library_container.environment
+    serverless_init_containers = tuple(
+        container
+        for container in scenario.weblog_infra.get_containers()
+        if isinstance(container, ServerlessInitContainer)
+    )
     assert scenario.agent_container not in scenario._containers  # noqa: SLF001 - focused topology test
     assert scenario.proxy_container in scenario._containers  # noqa: SLF001 - focused topology test
     assert scenario.get_libraries() is None
@@ -151,15 +156,15 @@ def test_agentless_exposure_scenario_has_no_agent_and_two_capture_routes(
     if exposure_egress == "direct":
         for name in ("DD_AGENT_HOST", "DD_DOGSTATSD_HOST", "DD_TRACE_AGENT_PORT", "DD_TRACE_AGENT_URL"):
             assert name not in environment
-        assert not any(
-            isinstance(container, ServerlessInitContainer)
-            for container in scenario._containers  # noqa: SLF001 - focused topology test
-        )
+        assert not serverless_init_containers
         return
 
-    assert environment["DD_TRACE_AGENT_URL"] == "http://ffe-serverless-init:8126"
     serverless_init = scenario.serverless_init_container
+    assert serverless_init_containers == (serverless_init,)
     assert isinstance(serverless_init, ServerlessInitContainer)
+    assert environment["DD_TRACE_AGENT_PORT"] == str(serverless_init.apm_receiver_port)
+    assert environment["DD_TRACE_AGENT_URL"] == f"http://ffe-serverless-init:{serverless_init.apm_receiver_port}"
+    assert serverless_init.healthcheck is not None
     assert serverless_init.environment["DD_SITE"] == "mock-intake.invalid"
     assert serverless_init.environment["DD_PROXY_HTTPS"] == f"http://proxy:{ProxyPorts.datadog_sidecar}"
     assert serverless_init.environment["DD_PROXY_HTTP"] == f"http://proxy:{ProxyPorts.datadog_sidecar}"

@@ -841,7 +841,10 @@ class AgentContainer(TestedContainer):
 class ServerlessInitContainer(TestedContainer):
     """Run serverless-init as the local trace and Feature Flags relay."""
 
+    apm_receiver_port = 8126
+
     def __init__(self) -> None:
+        apm_receiver_port_hex = f"{self.apm_receiver_port:04X}"
         super().__init__(
             name="ffe-serverless-init",
             image_name="datadog/serverless-init:1.10.2",
@@ -856,6 +859,18 @@ class ServerlessInitContainer(TestedContainer):
                 "DD_PROXY_HTTP": f"http://proxy:{ProxyPorts.datadog_sidecar}",
                 "DD_SERVERLESS_FLUSH_STRATEGY": "periodically,100",
                 "DD_SKIP_SSL_VALIDATION": "true",
+            },
+            # This image has no HTTP client. Inspect the kernel socket table instead.
+            healthcheck={
+                "test": (
+                    "/bin/sh -c 'for table in /proc/net/tcp /proc/net/tcp6; do "
+                    "while read -r _ local_address _ state _; do "
+                    f'[ "${{local_address##*:}}" = "{apm_receiver_port_hex}" ] '
+                    '&& [ "$state" = "0A" ] && exit 0; '
+                    'done < "$table"; done; exit 1'
+                    "'"
+                ),
+                "retries": 60,
             },
         )
 

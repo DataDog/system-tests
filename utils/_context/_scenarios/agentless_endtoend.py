@@ -151,10 +151,11 @@ class FeatureFlaggingAgentlessEndToEndScenario(AgentlessEndToEndScenario):
             }
 
         if exposure_egress == "sidecar":
+            serverless_init_port = str(ServerlessInitContainer.apm_receiver_port)
             environment |= {
                 "DD_AGENT_HOST": "ffe-serverless-init",
-                "DD_TRACE_AGENT_PORT": "8126",
-                "DD_TRACE_AGENT_URL": "http://ffe-serverless-init:8126",
+                "DD_TRACE_AGENT_PORT": serverless_init_port,
+                "DD_TRACE_AGENT_URL": f"http://ffe-serverless-init:{serverless_init_port}",
             }
             other_weblog_containers = (ServerlessInitContainer,)
 
