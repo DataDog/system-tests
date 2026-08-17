@@ -1,6 +1,7 @@
 import re
 from collections import defaultdict
 from pathlib import Path
+import time
 
 from utils import context, features, interfaces, irrelevant, weblog
 from utils._weblog import HttpResponse
@@ -159,18 +160,13 @@ class Test_ApimCallout:
             json={"body": "inline state"},
             headers={"X-Datadog-Apim-Body-Mode": "inline"},
         )
+        # Keep the callout alive beyond its configured 2s request-state TTL. If inline response
+        # handling leaves the state cached, the live expiry sweep logs the orphan before teardown.
+        time.sleep(3)
 
     def test_inline_body_mode_closes_request_state(self) -> None:
         assert self.r.status_code == 200, f"inline probe returned {self.r.status_code}, expected 200"
         request_id = _assert_inline_probe_phases(STATE_CLOSURE_PROBE_PATH)
-        # The callout evicts cached request state after a 30s TTL and logs one warning naming the
-        # request-id. Inline mode deletes the state on the response-headers call, so that warning
-        # must never appear for this exchange. No wait is needed here: every setup_ runs before any
-        # test_, and the containers are stopped and their logs collected in between, so far more
-        # than the TTL has elapsed by the time this assertion reads the log.
-        #
-        # Scoped to this request-id on purpose. Matching the bare warning text would also fail on
-        # an unrelated request that legitimately orphaned state, and attribute it to inline mode.
         orphaned = [
             line
             for line in _container_stderr("apim-callout").splitlines()

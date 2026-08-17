@@ -1851,6 +1851,8 @@ class ApimCalloutContainer(GoProcessorContainer):
             # "false" whenever the variable is empty, which rate-limits ordinary traces to one per
             # minute and makes APM assertions nondeterministic
             "DD_APM_TRACING_ENABLED": "true",
+            # Keep the state-closure test fast while leaving ample time for each local exchange.
+            "DD_APIM_CALLOUT_REQUEST_TIMEOUT": "2s",
         }
 
         if env:
