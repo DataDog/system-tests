@@ -234,7 +234,7 @@ manifest:
   tests/parametric/test_otel_tracer.py::Test_Otel_Tracer::test_otel_force_flush: irrelevant (library does not implement OpenTelemetry)
   tests/parametric/test_otel_tracer.py::Test_Otel_Tracer::test_otel_simple_trace: irrelevant (library does not implement OpenTelemetry)
   tests/parametric/test_otel_tracestate_sampling.py::Test_OtelTracestateSampling: missing_feature (APMAPI-2171)
-  tests/parametric/test_otel_tracestate_sampling.py::Test_OtlpTracestateSampling: missing_feature (APMAPI-2172)
+  tests/parametric/test_otlp_trace_export.py::Test_OtlpTracestateSampling: missing_feature (APMAPI-2172)
   tests/parametric/test_otlp_trace_metrics.py: '>=2.1.1'  # TODO: a lower version might be supported
   tests/parametric/test_otlp_trace_metrics.py::Test_FR01_Enablement_Configuration::test_fr01_1_enabled_explicit: missing_feature
   tests/parametric/test_otlp_trace_metrics.py::Test_FR01_Enablement_Configuration::test_fr01_3_enabled_by_default: missing_feature
