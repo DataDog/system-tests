@@ -191,7 +191,7 @@ def test_agentless_exposure_proxy_ca_wrapper_only_replaces_standard_spring_boot_
         doc="test",
         exposure_egress="direct",
     )
-    library_container = scenario.weblog_infra.library_container
+    library_container = scenario.weblog_infra.http_container
     library_container.image.labels["system-tests-library"] = library
     library_container.weblog_variant = weblog_variant
 
