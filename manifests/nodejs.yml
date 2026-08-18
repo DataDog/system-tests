@@ -1793,8 +1793,6 @@ manifest:
     - weblog_declaration:
         "*": incomplete_test_app
         express4: *ref_5_77_0
-  tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Direct: missing_feature (dd-trace-js#9527)
-  tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Sidecar: missing_feature (dd-trace-js#9527)
   tests/ffe/test_exposures_datadog_agent.py:
     - weblog_declaration:
         "*": incomplete_test_app
