@@ -838,6 +838,51 @@ class AgentContainer(TestedContainer):
         return os.environ.get("DD_SITE", "datad0g.com")
 
 
+class ServerlessInitContainer(TestedContainer):
+    """Run serverless-init as the local trace and Feature Flags relay."""
+
+    apm_receiver_port = 8126
+
+    def __init__(self) -> None:
+        apm_receiver_port_hex = f"{self.apm_receiver_port:04X}"
+        super().__init__(
+            name="ffe-serverless-init",
+            image_name="datadog/serverless-init:1.10.2",
+            environment={
+                "DD_API_KEY": _FAKE_DD_API_KEY,
+                "DD_SITE": "mock-intake.invalid",
+                "DD_SERVICE": "ffe-system-tests-serverless-init",
+                "DD_ENV": "system-tests",
+                "DD_APM_ENABLED": "true",
+                "DD_APM_NON_LOCAL_TRAFFIC": "true",
+                "DD_PROXY_HTTPS": f"http://proxy:{ProxyPorts.datadog_sidecar}",
+                "DD_PROXY_HTTP": f"http://proxy:{ProxyPorts.datadog_sidecar}",
+                "DD_SERVERLESS_FLUSH_STRATEGY": "periodically,100",
+                "DD_SKIP_SSL_VALIDATION": "true",
+            },
+            # This image has no HTTP client. Inspect the kernel socket table instead.
+            healthcheck={
+                "test": (
+                    "/bin/sh -c 'for table in /proc/net/tcp /proc/net/tcp6; do "
+                    "while read -r _ local_address _ state _; do "
+                    f'[ "${{local_address##*:}}" = "{apm_receiver_port_hex}" ] '
+                    '&& [ "$state" = "0A" ] && exit 0; '
+                    'done < "$table"; done; exit 1'
+                    "'"
+                ),
+                "retries": 60,
+            },
+        )
+
+    @property
+    def serverless_init_version(self) -> Version:
+        """Read the serverless-init version from the image metadata."""
+        version = self.image.labels.get("org.opencontainers.image.version")
+        if not version:
+            raise ValueError("The serverless-init image has no OCI version label")
+        return Version(version)
+
+
 class BuddyContainer(TestedContainer):
     def __init__(
         self,

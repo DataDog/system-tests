@@ -748,7 +748,10 @@ manifest:
   tests/ffe/test_dynamic_evaluation.py: v3.36.0
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_Flag_Parse_Error_Isolation: bug (FFL-2184)
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_Unknown_Operator_Tolerance: bug (FFL-2184)
-  tests/ffe/test_exposures.py: v3.36.0
+  tests/ffe/test_exposure_egress.py: v3.36.0
+  tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Direct: missing_feature (Not yet implemented)
+  tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Sidecar: missing_feature (Not yet implemented)
+  tests/ffe/test_exposures_datadog_agent.py: v3.36.0
   tests/ffe/test_flag_eval_evp.py: missing_feature (FFL-2446)
   tests/ffe/test_flag_eval_metrics.py: v3.44.0
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_error: bug (MLOB-1234)
