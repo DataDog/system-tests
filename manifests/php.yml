@@ -432,7 +432,7 @@ manifest:
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone: v1.11.0
   ? tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2
   : - weblog_declaration:
-        laravel11x: v1.23.3  # TODO: a lower version might be supported
+        laravel11x: flaky (APPSEC-69699)
         symfony7x: v1.23.3  # TODO: a lower version might be supported
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_APMDisabledMarker:  # TODO: a lower version might be supported
     - weblog_declaration:
@@ -1228,12 +1228,19 @@ manifest:
         "*": v1.21.0-dev
         laravel11x: incomplete_test_app
         symfony7x: incomplete_test_app
-  tests/ffe/test_exposures.py:
+  tests/ffe/test_exposure_egress.py:
     - weblog_declaration:
         "*": v1.21.0-dev
         laravel11x: incomplete_test_app
         symfony7x: incomplete_test_app
-  tests/ffe/test_exposures.py::Test_FFE_Exposure_Events::test_ffe_multiple_remote_config_files: flaky (FFL-2676)
+  tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Direct: missing_feature (Not yet implemented)
+  tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Sidecar: missing_feature (Not yet implemented)
+  tests/ffe/test_exposures_datadog_agent.py:
+    - weblog_declaration:
+        "*": v1.21.0-dev
+        laravel11x: incomplete_test_app
+        symfony7x: incomplete_test_app
+  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Events::test_ffe_multiple_remote_config_files: flaky (FFL-2676)
   tests/ffe/test_flag_eval_evp.py: missing_feature (FFL-2446)
   tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Burst_Aggregation: bug (FFL-2676)
   tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Degradation: bug (FFL-2676)
