@@ -3352,7 +3352,7 @@ manifest:
   tests/ffe/test_flag_eval_evp.py:
     - weblog_declaration:
         "*": irrelevant
-        spring-boot: v1.64.0-SNAPSHOT
+        spring-boot: v1.66.0-SNAPSHOT
   tests/ffe/test_flag_eval_metrics.py:
     - weblog_declaration:
         "*": irrelevant
