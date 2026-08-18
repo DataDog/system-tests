@@ -3348,8 +3348,6 @@ manifest:
     - weblog_declaration:
         "*": irrelevant
         spring-boot: v1.56.0
-  tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Direct: missing_feature (Not yet implemented)
-  tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Sidecar: missing_feature (Not yet implemented)
   tests/ffe/test_exposures_datadog_agent.py:
     - weblog_declaration:
         "*": irrelevant

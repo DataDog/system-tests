@@ -177,6 +177,21 @@ class FeatureFlaggingAgentlessEndToEndScenario(AgentlessEndToEndScenario):
     def configure(self, config: pytest.Config) -> None:
         try:
             super().configure(config)
+            if self.exposure_egress is not None and self.weblog_infra.library_name == "java":
+                library_container = self.weblog_infra.library_container
+                library_container.environment["JAVA_OPTS"] = (
+                    f"-Dhttps.proxyHost=proxy -Dhttps.proxyPort={ProxyPorts.datadog_direct}"
+                )
+                library_container.volumes |= {
+                    "./utils/build/docker/java/app-with-proxy-ca.sh": {
+                        "bind": "/app/app.sh",
+                        "mode": "ro",
+                    },
+                    "./utils/proxy/.mitmproxy/mitmproxy-ca-cert.cer": {
+                        "bind": "/app/system-tests-proxy-ca.cer",
+                        "mode": "ro",
+                    },
+                }
             if self.exposure_egress is not None:
                 interfaces.datadog_sidecar.configure(self.host_log_folder, replay=self.replay)
                 interfaces.datadog_direct.configure(self.host_log_folder, replay=self.replay)
