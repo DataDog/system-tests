@@ -215,6 +215,9 @@ jobs:
         run: ls -la binaries/
       - name: Export github token to a file
         run: echo "${{ secrets.GITHUB_TOKEN }}" > "$RUNNER_TEMP/github_token.txt"
+      - name: Install runner
+        if: matrix.weblog.build_base_images
+        uses: ./.github/actions/install_runner
       - name: Build weblog base images
         if: matrix.weblog.build_base_images
         run: |
