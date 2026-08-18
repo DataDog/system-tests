@@ -1,12 +1,14 @@
 """Unit coverage for the mock FFE agentless backend test fixture."""
 
 from pathlib import Path
+from typing import Literal
 from unittest.mock import MagicMock
 
 import requests
 import pytest
 
-from utils import scenarios
+from utils import features, scenarios
+from utils._context.containers import ServerlessInitContainer
 from utils._context._scenarios import agentless_endtoend as agentless_endtoend_scenarios
 from utils._context._scenarios import endtoend as endtoend_scenarios
 from utils.docker_fixtures._core import HOST_GATEWAY_EXTRA_HOSTS, extra_hosts_for_environment
@@ -18,6 +20,7 @@ from utils.mocked_backend.ffe import (
     UFC_RESPONSE_TYPE,
 )
 from utils._context._scenarios.agentless_endtoend import FeatureFlaggingAgentlessEndToEndScenario
+from utils.proxy.ports import ProxyPorts
 
 
 @scenarios.test_the_test
@@ -123,6 +126,48 @@ def test_agentless_end_to_end_scenario_starts_backend_before_weblog() -> None:
         assert status["requests_total"] == 0
     finally:
         scenario._stop_mock_backend()  # noqa: SLF001 - focused lifecycle test
+
+
+@pytest.mark.parametrize("exposure_egress", ["direct", "sidecar"])
+@scenarios.test_the_test
+@features.not_reported
+def test_agentless_exposure_scenario_has_no_agent_and_two_capture_routes(
+    exposure_egress: Literal["direct", "sidecar"],
+) -> None:
+    scenario = FeatureFlaggingAgentlessEndToEndScenario(
+        "MOCK_FFE_AGENTLESS_EXPOSURES",
+        doc="test",
+        exposure_egress=exposure_egress,
+    )
+
+    environment = scenario.weblog_infra.library_container.environment
+    serverless_init_containers = tuple(
+        container
+        for container in scenario.weblog_infra.get_containers()
+        if isinstance(container, ServerlessInitContainer)
+    )
+    assert scenario.agent_container not in scenario._containers  # noqa: SLF001 - focused topology test
+    assert scenario.proxy_container in scenario._containers  # noqa: SLF001 - focused topology test
+    assert scenario.get_libraries() is None
+    assert environment["DD_SITE"] == "mock-intake.invalid"
+    assert environment["DD_PROXY_HTTPS"] == f"http://proxy:{ProxyPorts.datadog_direct}"
+    assert environment["HTTPS_PROXY"] == f"http://proxy:{ProxyPorts.datadog_direct}"
+
+    if exposure_egress == "direct":
+        for name in ("DD_AGENT_HOST", "DD_DOGSTATSD_HOST", "DD_TRACE_AGENT_PORT", "DD_TRACE_AGENT_URL"):
+            assert name not in environment
+        assert not serverless_init_containers
+        return
+
+    serverless_init = scenario.serverless_init_container
+    assert serverless_init_containers == (serverless_init,)
+    assert isinstance(serverless_init, ServerlessInitContainer)
+    assert environment["DD_TRACE_AGENT_PORT"] == str(serverless_init.apm_receiver_port)
+    assert environment["DD_TRACE_AGENT_URL"] == f"http://ffe-serverless-init:{serverless_init.apm_receiver_port}"
+    assert serverless_init.healthcheck is not None
+    assert serverless_init.environment["DD_SITE"] == "mock-intake.invalid"
+    assert serverless_init.environment["DD_PROXY_HTTPS"] == f"http://proxy:{ProxyPorts.datadog_sidecar}"
+    assert serverless_init.environment["DD_PROXY_HTTP"] == f"http://proxy:{ProxyPorts.datadog_sidecar}"
 
 
 @scenarios.test_the_test

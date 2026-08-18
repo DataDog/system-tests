@@ -1759,11 +1759,17 @@ manifest:
         "*": incomplete_test_app
         express4: *ref_5_77_0
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_Unknown_Operator_Tolerance::test_unknown_operator_errors: bug (FFL-2182)
-  tests/ffe/test_exposures.py:
+  tests/ffe/test_exposure_egress.py:
     - weblog_declaration:
         "*": incomplete_test_app
         express4: *ref_5_77_0
-  tests/ffe/test_exposures.py::Test_FFE_EXP_5_Missing_Targeting_Key: bug (FFL-1730)
+  tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Direct: missing_feature (dd-trace-js#9527)
+  tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Sidecar: missing_feature (dd-trace-js#9527)
+  tests/ffe/test_exposures_datadog_agent.py:
+    - weblog_declaration:
+        "*": incomplete_test_app
+        express4: *ref_5_77_0
+  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_EXP_5_Missing_Targeting_Key: bug (FFL-1730)
   tests/ffe/test_flag_eval_evp.py: missing_feature (FFL-2446)
   tests/ffe/test_flag_eval_metrics.py:
     - weblog_declaration:
