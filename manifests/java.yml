@@ -3344,11 +3344,17 @@ manifest:
       weblog: [spring-boot]
     - declaration: bug (FFL-2184)
       excluded_weblog: [spring-boot]
-  tests/ffe/test_exposures.py:
+  tests/ffe/test_exposure_egress.py:
     - weblog_declaration:
         "*": irrelevant
         spring-boot: v1.56.0
-  tests/ffe/test_exposures.py::Test_FFE_EXP_5_Missing_Targeting_Key: bug (FFL-1729)
+  tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Direct: missing_feature (Not yet implemented)
+  tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Sidecar: missing_feature (Not yet implemented)
+  tests/ffe/test_exposures_datadog_agent.py:
+    - weblog_declaration:
+        "*": irrelevant
+        spring-boot: v1.56.0
+  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_EXP_5_Missing_Targeting_Key: bug (FFL-1729)
   tests/ffe/test_flag_eval_evp.py:
     - weblog_declaration:
         "*": irrelevant

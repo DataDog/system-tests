@@ -1,11 +1,11 @@
 from collections.abc import Generator
-import uuid
 
 import pytest
 
 from utils.docker_fixtures import (
     FrameworkTestClientApi,
     TestAgentAPI,
+    new_test_id,
 )
 from utils import context, scenarios, logger
 
@@ -24,7 +24,7 @@ def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item
 
 @pytest.fixture
 def test_id(request: pytest.FixtureRequest) -> str:
-    result = str(uuid.uuid4())[0:6]
+    result = new_test_id()
     logger.info(f"Test {request.node.nodeid} ID: {result}")
     return result
 

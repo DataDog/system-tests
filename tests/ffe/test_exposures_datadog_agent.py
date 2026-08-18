@@ -1,7 +1,12 @@
-"""Test feature flags exposure events logging in weblog end-to-end scenario."""
+"""Test Feature Flags exposure events through the Datadog Agent."""
 
 import json
 
+from tests.ffe.utils.exposures import (
+    EXPOSURES_PATH,
+    EXPOSURE_WAIT_TIMEOUT_SECONDS,
+    exposure_events_from_data,
+)
 from tests.ffe.utils.fixtures import make_exposure_ufc_fixture as make_ufc_fixture
 from utils import (
     weblog,
@@ -14,41 +19,6 @@ from utils import (
 
 RC_PRODUCT = "FFE_FLAGS"
 RC_PATH = f"datadog/2/{RC_PRODUCT}"
-EXPOSURES_PATH = "/api/v2/exposures"
-EXPOSURE_WAIT_TIMEOUT_SECONDS = 30
-
-
-def exposure_events_from_data(
-    data: dict, flag_keys: set[str] | None = None, subject_id: str | None = None
-) -> list[dict]:
-    """Return exposure events from one agent payload matching the optional flag/subject filters."""
-    if data.get("path") != EXPOSURES_PATH:
-        return []
-
-    exposure_data = data.get("request", {}).get("content")
-    if not isinstance(exposure_data, dict):
-        return []
-
-    exposures = exposure_data.get("exposures")
-    if not isinstance(exposures, list):
-        return []
-
-    events = []
-    for event in exposures:
-        if not isinstance(event, dict):
-            continue
-
-        flag = event.get("flag")
-        subject = event.get("subject")
-        event_flag_key = flag.get("key") if isinstance(flag, dict) else None
-        event_subject_id = subject.get("id") if isinstance(subject, dict) else None
-
-        if flag_keys is not None and event_flag_key not in flag_keys:
-            continue
-        if subject_id is not None and event_subject_id != subject_id:
-            continue
-        events.append(event)
-    return events
 
 
 def find_exposure_events(flag_key: str, subject_id: str | None = None) -> list[dict]:
@@ -501,57 +471,6 @@ def count_exposure_events(flag_key: str, subject_id: str | None = None) -> int:
 
     """
     return len(find_exposure_events(flag_key, subject_id))
-
-
-@scenarios.feature_flagging_and_experimentation
-@features.feature_flags_exposures
-class Test_FFE_Exposure_Caching_Same_Subject:
-    """Test that exposure caching deduplicates events for the same (subject, allocation, variant).
-
-    When the same subject evaluates the same flag multiple times and gets the same variant,
-    only one exposure event should be generated due to the exposure cache.
-    """
-
-    def setup_ffe_exposure_caching_same_subject(self):
-        """Set up FFE exposure caching test with multiple evaluations for the same subject."""
-        config_id = "ffe-caching-test"
-        self.flag_key = "same-subject-test-flag"  # Unique flag key for this test
-        rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key)).apply()
-
-        self.targeting_key = "same-subject-user"
-
-        # Evaluate the same flag multiple times with the same subject
-        self.responses = []
-        for _i in range(5):
-            r = weblog.post(
-                "/ffe",
-                json={
-                    "flag": self.flag_key,
-                    "variationType": "STRING",
-                    "defaultValue": "default",
-                    "targetingKey": self.targeting_key,
-                    "attributes": {},
-                },
-            )
-            self.responses.append(r)
-
-    def test_ffe_exposure_caching_same_subject(self):
-        """Test that multiple evaluations for the same subject generate at most one exposure event."""
-        # Verify all requests succeeded
-        for i, r in enumerate(self.responses):
-            assert r.status_code == 200, f"Request {i + 1} failed: {r.text}"
-            result = json.loads(r.text)
-            assert result["value"] == "value-a", f"Request {i + 1}: expected 'value-a', got '{result['value']}'"
-
-        # Count exposure events for this specific subject
-        exposure_count = wait_for_min_exposure_count(self.flag_key, 1, self.targeting_key)
-
-        # The exposure cache should deduplicate events - we expect exactly 1 exposure
-        # for the same (subject, allocation, variant) tuple
-        assert exposure_count == 1, (
-            f"Expected exactly 1 exposure event for subject '{self.targeting_key}' due to caching, "
-            f"but found {exposure_count} events"
-        )
 
 
 @scenarios.feature_flagging_and_experimentation
