@@ -980,6 +980,10 @@ MAGIC_SESSION_KEY = "random_session_id"
 def session_new(request):
     request.session.save()
     session_id = request.session.session_key
+    # The signed_cookies backend re-derives session_key from a fresh timestamp on every save(), and
+    # SessionMiddleware saves again in process_response. Without pinning, the key we return here and
+    # the one set in the cookie differ whenever the clock second ticks in between.
+    request.session.save = lambda *args, **kwargs: None
     return HttpResponse(session_id)
 
 
