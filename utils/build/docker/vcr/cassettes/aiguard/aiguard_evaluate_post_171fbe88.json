@@ -1,0 +1,22 @@
+{
+ "request": {
+  "method": "POST",
+  "url": "https://app.datadoghq.com/api/v2/ai-guard/evaluate",
+  "headers": {
+   "Content-Type": "application/json",
+   "DD-AI-GUARD-SOURCE": "SDK"
+  },
+  "body": "{\"data\": {\"attributes\": {\"messages\": [{\"role\": \"user\", \"content\": [{\"type\": \"text\", \"text\": \"Here is my card 4111-1111-1111-1111, what bank issued it?\"}, {\"type\": \"image_url\", \"image_url\": {\"url\": \"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==\"}}]}], \"meta\": {\"service\": \"weblog\", \"env\": \"system-tests\"}}}}"
+ },
+ "response": {
+  "status": {
+   "code": 200,
+   "message": "OK"
+  },
+  "headers": {
+   "content-type": "application/vnd.api+json",
+   "content-length": "878"
+  },
+  "body": "{\"data\": {\"id\": \"redaction-fixture\", \"type\": \"evaluations\", \"attributes\": {\"action\": \"ALLOW\", \"is_blocking_enabled\": true, \"reason\": \"Sensitive data detected; configured categories will be redacted.\", \"redaction_replacements\": [{\"path\": \"messages[0].content[0].text\", \"replacement\": \"Here is my card <REDACTED>, what bank issued it?\"}], \"sds_findings\": [{\"rule_display_name\": \"Credit Card Scanner\", \"rule_tag\": \"credit_card\", \"category\": \"credit_card\", \"location\": {\"path\": \"messages[0].content[0].text\", \"start_index\": 16, \"end_index_exclusive\": 35}}], \"tag_probs\": {\"authority-override\": 0.0, \"data-exfiltration\": 0.0, \"denial-of-service-tool-call\": 0.0, \"destructive-tool-call\": 0.0, \"indirect-prompt-injection\": 0.0, \"instruction-override\": 0.0, \"jailbreak\": 0.0, \"obfuscation\": 0.0, \"role-play\": 0.0, \"security-exploit\": 0.0, \"system-prompt-extraction\": 0.0}, \"tags\": []}}}"
+ }
+}

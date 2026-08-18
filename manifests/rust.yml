@@ -22,7 +22,8 @@ manifest:
   tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: missing_feature
   tests/ffe/test_agentless_configuration.py: missing_feature (Rust is not in scope for v1 agentless server SDK coverage; FFL-2731 tracks the system-tests contract)
   tests/ffe/test_dynamic_evaluation.py: missing_feature
-  tests/ffe/test_exposures.py: missing_feature
+  tests/ffe/test_exposure_egress.py: missing_feature (Not yet implemented)
+  tests/ffe/test_exposures_datadog_agent.py: missing_feature
   tests/ffe/test_flag_eval_evp.py: missing_feature (FFL-2446)
   tests/ffe/test_flag_eval_metrics.py: missing_feature
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_error: bug (MLOB-1234)
@@ -350,7 +351,7 @@ manifest:
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_enabled_propagated: missing_feature  # Created by easy win activation script
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_enabled_propagated_specifics: irrelevant
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: missing_feature
-  tests/parametric/test_trace_filters.py::Test_Trace_Filters: '>=0.5.1-dev+8efc582'  # TODO: a lower version might be supported
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters: flaky (APMSP-3915)
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Basic: v0.0.1
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs: v0.0.1
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs_Feb2024_Revision: v0.0.1
