@@ -216,7 +216,7 @@ jobs:
       - name: Export github token to a file
         run: echo "${{ secrets.GITHUB_TOKEN }}" > "$RUNNER_TEMP/github_token.txt"
       - name: Build weblog base images
-        if: matrix.weblog.build_base_image
+        if: matrix.weblog.build_base_images
         run: |
           source venv/bin/activate
           ./utils/scripts/build-base-image.py ${{ inputs.library }} ${{ matrix.weblog.name }}
