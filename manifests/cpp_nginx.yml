@@ -285,7 +285,8 @@ manifest:
   tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: missing_feature
   tests/ffe/test_agentless_configuration.py: missing_feature (C++ is not in scope for v1 agentless server SDK coverage; FFL-2731 tracks the system-tests contract)
   tests/ffe/test_dynamic_evaluation.py: missing_feature
-  tests/ffe/test_exposures.py: missing_feature
+  tests/ffe/test_exposure_egress.py: missing_feature (Not yet implemented)
+  tests/ffe/test_exposures_datadog_agent.py: missing_feature
   tests/ffe/test_flag_eval_evp.py: missing_feature (FFL-2446)
   tests/ffe/test_flag_eval_metrics.py: missing_feature
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_error: bug (MLOB-1234)

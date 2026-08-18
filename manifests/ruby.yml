@@ -2022,7 +2022,13 @@ manifest:
     - weblog_declaration:
         "*": irrelevant
         rails72: v2.23.0-dev
-  tests/ffe/test_exposures.py:
+  tests/ffe/test_exposure_egress.py:
+    - weblog_declaration:
+        "*": irrelevant
+        rails72: v2.23.0-dev
+  tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Direct: missing_feature (Not yet implemented)
+  tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Sidecar: missing_feature (Not yet implemented)
+  tests/ffe/test_exposures_datadog_agent.py:
     - weblog_declaration:
         "*": irrelevant
         rails72: v2.23.0-dev

@@ -292,7 +292,8 @@ patterns:
         scenario_groups: [end_to_end, open_telemetry]
 
     utils/mocked_backend/ffe.py:
-        scenarios: [FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS, PARAMETRIC]
+        scenario_groups: agentless
+        scenarios: PARAMETRIC
 
     utils/_context/virtual_machine.py:
         scenario_groups: onboarding
