@@ -18,8 +18,9 @@ manifest:
         "*": irrelevant (just one weblog is enough to test the SDK)
         "flask-poc": v4.13.0-dev
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone_APMDisabledMarker: missing_feature
-  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests: missing_feature
-  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRedacted: bug (APPSEC-69627)
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests: bug (APPSEC-69627)
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated: bug (APPSEC-69627)
   tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
@@ -40,6 +41,39 @@ manifest:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
         "flask-poc": v4.1.0
+  tests/ai_guard/test_ai_guard_sdk.py::Test_NoRedaction:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "flask-poc": v4.14.0-dev
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactedMessagesInSDKResponse:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "flask-poc": v4.14.0-dev
+  tests/ai_guard/test_ai_guard_sdk.py::Test_Redaction:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "flask-poc": v4.14.0-dev
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionDisabled:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "flask-poc": v4.14.0-dev
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionDisabledTelemetry: bug (APPSEC-69627)
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionFailSafe:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "flask-poc": v4.14.0-dev
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionInSDKResponse:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "flask-poc": missing_feature (the evaluation exposes the redacted messages but not the redaction_replacements that produced them)
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionOnBlock:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "flask-poc": v4.14.0-dev
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionSkipsStructuralFields:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "flask-poc": v4.14.0-dev
   tests/ai_guard/test_ai_guard_sdk.py::Test_RootSpanUserKeep:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
@@ -796,6 +830,9 @@ manifest:
     - weblog_declaration:
         "*": v3.11.0.dev
         *django: v3.3.0.dev
+  tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_Session_Blocking::test_session_blocking:
+    - weblog_declaration:
+        *django: flaky (APPSEC-69650)
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Blocking:
     - weblog_declaration:
         "*": v3.0.0.rc
@@ -1234,6 +1271,7 @@ manifest:
       component_version: <3.0.0
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Line_Capture_Expressions: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions: missing_feature (Not yet implemented)
+  tests/debugger/test_debugger_capture_expressions_errors.py::Test_Debugger_Filter_Rejected_Capture_Expression_Error: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_code_origins.py::Test_Debugger_Code_Origins:
     - weblog_declaration:
         "*": missing_feature
@@ -1259,6 +1297,10 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         *flask: v2.11.0
+  tests/debugger/test_debugger_guardrails.py::Test_Debugger_Capture_Timeout_Guardrail: missing_feature (Configurable capture timeout is not available)
+  tests/debugger/test_debugger_guardrails.py::Test_Debugger_Evaluation_Timeout_Line_Probe: irrelevant (Line-probe variant is only used by Node.js and Ruby)
+  tests/debugger/test_debugger_guardrails.py::Test_Debugger_Evaluation_Timeout_Method_Probe: missing_feature (Debugger evaluation timeout guardrail not implemented yet)
+  tests/debugger/test_debugger_guardrails.py::Test_Debugger_Snapshot_Size_Guardrail: missing_feature (Debugger snapshot size guardrail not implemented yet)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin:
     - weblog_declaration:
         "*": missing_feature
@@ -1342,7 +1384,12 @@ manifest:
       component_version: 2.16.1
   ? tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses::test_probe_status_log_line_with_different_casing
   : bug (DEBUG-5106)
-  tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses::test_probe_status_log_line_with_windows_path: bug (DEBUG-5110)
+  tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses::test_probe_status_log_line_with_windows_path:  # TODO: a lower version might be supported
+    - declaration: bug (DEBUG-5110)
+      component_version: <4.13.0
+      weblog: [uds-flask, uwsgi-poc, flask-poc]
+    - declaration: bug (DEBUG-5110)
+      excluded_weblog: [uds-flask, uwsgi-poc, flask-poc]
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Method_Probe_Statuses:
     - weblog_declaration:
         "*": missing_feature
@@ -1356,7 +1403,19 @@ manifest:
         "*": missing_feature
         *flask: v2.11.0
   # TODO(andrei): un-skip when v4.10.0 is released
-  tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb::test_event_metadata: missing_feature (extended event schema not yet shipped)
+  tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb::test_event_metadata:  # TODO: a lower version might be supported
+    - declaration: missing_feature (extended event schema not yet shipped)
+      component_version: <4.13.0
+      weblog: [uds-flask, django-py3.13, python3.12, uwsgi-poc, tornado, django-poc, flask-poc, fastapi]
+    - declaration: missing_feature (extended event schema not yet shipped)
+      excluded_weblog: [uds-flask, django-py3.13, python3.12, uwsgi-poc, tornado, django-poc, flask-poc, fastapi]
+  tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb::test_symdb_upload:
+    - weblog_declaration:
+        python3.12: missing_feature
+        django-poc: missing_feature
+        django-py3.13: missing_feature
+        tornado: missing_feature
+        fastapi: missing_feature
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry: v2.11.0
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry::test_telemetry_co:
     - declaration: missing_feature (DEBUG-3550)
