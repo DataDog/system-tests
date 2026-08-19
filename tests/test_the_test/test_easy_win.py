@@ -407,7 +407,7 @@ def test_e2e_activation_modifies_manifest():
 
 
 def test_split_code_owner_activation_skips_commit_when_manifest_write_has_no_diff(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
     skipped_nodes_file = tmp_path / "skip.yml"
     skipped_nodes_file.write_text("{}\n", encoding="utf-8")
@@ -457,10 +457,10 @@ def test_split_code_owner_activation_skips_commit_when_manifest_write_has_no_dif
     monkeypatch.setattr(activate_easy_wins_main, "update_manifest", fake_update_manifest)
     monkeypatch.setattr(activate_easy_wins_main.subprocess, "run", fake_subprocess_run)
 
-    with pytest.raises(SystemExit) as exception:
-        activate_easy_wins_main.main()
+    activate_easy_wins_main.main()
 
-    assert exception.value.code == 1
+    captured = capsys.readouterr()
+    assert "No update were made" in captured.out
     assert ["git", "commit", "-m", "chore: activate easy wins for @DataDog/team-a"] not in recorded_commands
 
 

@@ -1,4 +1,4 @@
-from ._core import get_host_port, docker_run, compute_volumes
+from ._core import get_host_port, docker_run, compute_volumes, new_test_id
 from ._test_agent import TestAgentAPI, TestAgentFactory
 from ._test_clients import (
     ParametricTestClientFactory,
@@ -17,4 +17,5 @@ __all__ = [
     "compute_volumes",
     "docker_run",
     "get_host_port",
+    "new_test_id",
 ]
