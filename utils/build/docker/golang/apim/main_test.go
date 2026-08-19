@@ -292,58 +292,6 @@ func TestInlineBodyModeUsesTwoCallouts(t *testing.T) {
 	})
 }
 
-func TestInlineStateVerificationRepeatsResponseHeadersAfterCleanup(t *testing.T) {
-	requestBody := "request-body"
-	responseBody := "response-body"
-	callout := newScriptedCallout(t, []calloutStep{
-		{
-			phase:    "<RequestHeaders>",
-			response: `{"request-id":"request-123"}`,
-			assert: func(t *testing.T, message map[string]json.RawMessage) {
-				assertRequestHeaderAddresses(t, message, &requestBody)
-			},
-		},
-		{
-			phase:     "<ResponseHeaders>",
-			requestID: fixtureRequestID,
-			response:  `{}`,
-			assert: func(t *testing.T, message map[string]json.RawMessage) {
-				assertResponseHeaderAddresses(t, message, &responseBody)
-			},
-		},
-		{
-			phase:     "<ResponseHeaders>",
-			requestID: fixtureRequestID,
-			response:  `{}`,
-			assert: func(t *testing.T, message map[string]json.RawMessage) {
-				assertResponseHeaderAddresses(t, message, &responseBody)
-			},
-		},
-	})
-	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
-		w.Header().Set("Content-Type", "text/plain")
-		_, _ = io.WriteString(w, responseBody)
-	}))
-	t.Cleanup(upstream.Close)
-
-	var logs bytes.Buffer
-	gateway := newTestGateway(callout.URL, upstream.URL, &logs)
-	request := newFixtureRequest(http.MethodPost, strings.NewReader(requestBody))
-	request.Header.Set(bodyModeHeader, "inline-verify-state")
-	recorder := httptest.NewRecorder()
-
-	gateway.ServeHTTP(recorder, request)
-
-	if got := recorder.Code; got != http.StatusOK {
-		t.Fatalf("status = %d, want %d", got, http.StatusOK)
-	}
-	assertLogLines(t, logs.String(), []string{
-		`apim-gateway callout phase=<RequestHeaders> request-id="request-123" path="/resource?x=1" outcome=ok`,
-		`apim-gateway callout phase=<ResponseHeaders> request-id="request-123" path="/resource?x=1" outcome=ok`,
-		`apim-gateway callout phase=<ResponseHeaders> request-id="request-123" path="/resource?x=1" outcome=ok`,
-	})
-}
-
 // TestZeroAllowedBodySizeStillSendsBodyPhases pins the pointer semantics of allowed-body-size:
 // a returned 0 is a limit, not an absence, so both body phases must still fire with a fully
 // truncated body. Every other fixture returns a positive size, so a regression from

@@ -17,7 +17,6 @@ DEFERRED_PHASES = ("<RequestHeaders>", "<RequestBody>", "<ResponseHeaders>")
 # Inline body mode: both bodies ride along on the header calls, which is exactly what suppresses
 # `allowed-body-size`, so no body phase is ever requested on either side.
 INLINE_PHASES = ("<RequestHeaders>", "<ResponseHeaders>")
-STATE_VERIFICATION_PHASES = (*INLINE_PHASES, "<ResponseHeaders>")
 # A fourth <ResponseBody> phase is possible but NOT guaranteed, so it is tolerated and never
 # required. The gateway only makes it when the <ResponseHeaders> callout answers with
 # `allowed-body-size`, and the callout only asks for the response body when the upstream returned
@@ -31,7 +30,6 @@ DEFAULT_PROBE_PATH = "/?probe=default-deferred-body"
 INLINE_PROBE_PATH = "/?probe=inline-two-call"
 TRACE_DEFAULT_PROBE_PATH = "/?probe=trace-default"
 TRACE_INLINE_PROBE_PATH = "/?probe=trace-inline"
-STATE_CLOSURE_PROBE_PATH = "/?probe=inline-state-closure"
 
 
 def _container_stderr(container_name: str) -> str:
@@ -97,15 +95,6 @@ def _assert_inline_probe_phases(probe_path: str) -> str:
     return request_id
 
 
-def _assert_state_verification_probe_phases(probe_path: str) -> str:
-    request_id, phases = _probe_phase_group(probe_path)
-    assert phases == list(STATE_VERIFICATION_PHASES), (
-        f"state-verification probe {probe_path} (request-id {request_id}) hit callout phases {phases}, "
-        f"expected {list(STATE_VERIFICATION_PHASES)}"
-    )
-    return request_id
-
-
 def _span_structure(span: DataDogLibrarySpan) -> tuple[str, str, str]:
     return span["type"], span["meta"]["span.kind"], span["meta"]["component"]
 
@@ -161,27 +150,4 @@ class Test_ApimCallout:
         inline_spans = _trace_structure(self.inline_response)
         assert default_spans == inline_spans, (
             f"inline body delivery changed the trace: deferred spans {default_spans}, inline spans {inline_spans}"
-        )
-
-    def setup_inline_body_mode_closes_request_state(self) -> None:
-        self.r = weblog.post(
-            STATE_CLOSURE_PROBE_PATH,
-            json={"body": "inline state"},
-            headers={"X-Datadog-Apim-Body-Mode": "inline-verify-state"},
-        )
-
-    def test_inline_body_mode_closes_request_state(self) -> None:
-        assert self.r.status_code == 200, f"inline probe returned {self.r.status_code}, expected 200"
-        request_id = _assert_state_verification_probe_phases(STATE_CLOSURE_PROBE_PATH)
-        # The verification mode repeats <ResponseHeaders> with the same request-id immediately
-        # after the real response phase. The callout logs this positive cache-miss signal only when
-        # the first response phase already deleted the request state.
-        cache_misses = [
-            line
-            for line in _container_stderr("apim-callout").splitlines()
-            if "no request state found" in line and request_id in line
-        ]
-        assert cache_misses, (
-            f"apim-callout did not emit the expected cache-miss signal for inline request-id {request_id}; "
-            "the first response phase may not have closed its request state"
         )

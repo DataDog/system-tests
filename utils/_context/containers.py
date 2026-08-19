@@ -1851,8 +1851,6 @@ class ApimCalloutContainer(GoProcessorContainer):
             # "false" whenever the variable is empty, which rate-limits ordinary traces to one per
             # minute and makes APM assertions nondeterministic
             "DD_APM_TRACING_ENABLED": "true",
-            # Expose the explicit cache-miss signal used by the state-closure test.
-            "DD_TRACE_DEBUG": "true",
         }
 
         if env:

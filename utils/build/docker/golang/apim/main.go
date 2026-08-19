@@ -16,7 +16,6 @@ const (
 	upstreamEndpoint = "http://http-app:8080"
 	bodyModeHeader   = "X-Datadog-Apim-Body-Mode"
 	bodyModeInline   = "inline"
-	bodyModeVerify   = "inline-verify-state"
 
 	calloutTimeout  = 3 * time.Second
 	upstreamTimeout = 10 * time.Second
@@ -115,8 +114,7 @@ func (g *gateway) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	requestPath := r.URL.RequestURI()
-	bodyMode := r.Header.Get(bodyModeHeader)
-	inline := bodyMode == bodyModeInline || bodyMode == bodyModeVerify
+	inline := r.Header.Get(bodyModeHeader) == bodyModeInline
 	r.Header.Del(bodyModeHeader)
 
 	requestAddresses := addressesRequestHeaders{
@@ -203,12 +201,6 @@ func (g *gateway) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			g.failClosed(w, "write-block-response-headers", err)
 		}
 		return
-	}
-	if bodyMode == bodyModeVerify {
-		if _, err := g.callout(phaseResponseHeaders, requestID, requestPath, responseAddresses); err != nil {
-			g.writeFailClosed(w)
-			return
-		}
 	}
 	if phase3.AllowedBodySize != nil {
 		body, err := encodedBody(responseBody, phase3.AllowedBodySize)
