@@ -18,7 +18,7 @@ def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo) -> Gener
         report = outcome.get_result()
         report.outcome = "skipped"
         current_filename, lineno, _ = item.location
-        report.longrepr = (current_filename, lineno, "Generating cassettes - test assertions are not evaluated")
+        report.longrepr = (current_filename, lineno + 1, "Generating cassettes - test assertions are not evaluated")
 
 
 @pytest.fixture
