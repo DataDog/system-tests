@@ -7,9 +7,9 @@ import binascii
 import re
 
 from tests.otel.utils import (
-    FORWARD_RV as _FORWARD_RV,
-    FORWARD_TH as _FORWARD_TH,
-    FORWARD_TRACE_ID as _FORWARD_TRACE_ID,
+    FORWARD_RV,
+    FORWARD_TH,
+    FORWARD_TRACE_ID,
 )
 from utils import context, features, interfaces, scenarios, weblog
 from utils._context._scenarios.endtoend import EndToEndScenario
@@ -216,11 +216,6 @@ def _parse_ot_from_trace_state(trace_state: str) -> dict[str, str]:
 
 # Trace ID, rv and th match the RFC's own verified worked example (rate 0.1, trace ID 0xfff972474538efff),
 # also used in tests/test_otel_tracestate_sampling.py. rv only depends on the trace ID, not the sample rate.
-OTLP_TRACE_ID = _FORWARD_TRACE_ID
-OTLP_RV = _FORWARD_RV
-OTLP_TH = _FORWARD_TH
-
-
 @features.otel_api
 @scenarios.apm_tracing_otlp
 class Test_Otlp_Carries_Ot:
@@ -231,7 +226,7 @@ class Test_Otlp_Carries_Ot:
 
     def setup_otlp_carries_ot(self):
         self.req = weblog.get(
-            "/", headers={"x-datadog-trace-id": str(OTLP_TRACE_ID), "x-datadog-parent-id": str(OTLP_TRACE_ID)}
+            "/", headers={"x-datadog-trace-id": str(FORWARD_TRACE_ID), "x-datadog-parent-id": str(FORWARD_TRACE_ID)}
         )
 
     def test_otlp_carries_ot(self):
@@ -240,7 +235,7 @@ class Test_Otlp_Carries_Ot:
         _, _, span = data[0]
 
         ot = _parse_ot_from_trace_state(span.get("traceState", ""))
-        assert ot.get("rv") == OTLP_RV, f"rv={ot.get('rv')!r}, expected {OTLP_RV!r}"
+        assert ot.get("rv") == FORWARD_RV, f"rv={ot.get('rv')!r}, expected {FORWARD_RV!r}"
         assert "th" in ot, "no th on the exported span's tracestate for a probability sampling decision"
 
 
@@ -256,8 +251,8 @@ class Test_Otlp_Forwards_Inherited_Ot:
         self.req = weblog.get(
             "/",
             headers={
-                "traceparent": f"00-{OTLP_TRACE_ID:032x}-0000000000000001-01",
-                "tracestate": f"dd=s:2;t.dm:-3,ot=rv:{OTLP_RV};th:{OTLP_TH}",
+                "traceparent": f"00-{FORWARD_TRACE_ID:032x}-0000000000000001-01",
+                "tracestate": f"dd=s:2;t.dm:-3,ot=rv:{FORWARD_RV};th:{FORWARD_TH}",
             },
         )
 
@@ -267,5 +262,5 @@ class Test_Otlp_Forwards_Inherited_Ot:
         _, _, span = data[0]
 
         ot = _parse_ot_from_trace_state(span.get("traceState", ""))
-        assert ot.get("rv") == OTLP_RV, "inherited rv was not forwarded unchanged onto the exported OTLP span"
-        assert ot.get("th") == OTLP_TH, "inherited th was not forwarded unchanged onto the exported OTLP span"
+        assert ot.get("rv") == FORWARD_RV, "inherited rv was not forwarded unchanged onto the exported OTLP span"
+        assert ot.get("th") == FORWARD_TH, "inherited th was not forwarded unchanged onto the exported OTLP span"

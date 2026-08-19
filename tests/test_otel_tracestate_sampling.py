@@ -10,9 +10,9 @@ See APMAPI-2171. Landed disabled for every tracer (manifests/*.yml); each tracer
 import json
 
 from tests.otel.utils import (
-    FORWARD_RV as _FORWARD_RV,
-    FORWARD_TH as _FORWARD_TH,
-    FORWARD_TRACE_ID as _FORWARD_TRACE_ID,
+    FORWARD_RV,
+    FORWARD_TH,
+    FORWARD_TRACE_ID,
     SAMPLING_RATE_0_5,
     TH_BY_RATE,
 )
@@ -105,11 +105,6 @@ class Test_EmitOtOnProbabilityDecision_Rate0_5(_EmitOtOnProbabilityDecisionBase)
 
 
 # Trace ID and rv/th below match the RFC's own verified worked example (rate 0.1, trace ID 0xfff972474538efff).
-FORWARD_TRACE_ID = _FORWARD_TRACE_ID
-FORWARD_RV = _FORWARD_RV
-FORWARD_TH = _FORWARD_TH
-
-
 @scenarios.default
 @features.w3c_headers_injection_and_extraction
 class Test_ForwardInboundOtUnchanged:
