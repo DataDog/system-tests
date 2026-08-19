@@ -432,7 +432,7 @@ manifest:
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone: v1.11.0
   ? tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2
   : - weblog_declaration:
-        laravel11x: v1.23.3  # TODO: a lower version might be supported
+        laravel11x: flaky (APPSEC-69699)
         symfony7x: v1.23.3  # TODO: a lower version might be supported
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_APMDisabledMarker:  # TODO: a lower version might be supported
     - weblog_declaration:
