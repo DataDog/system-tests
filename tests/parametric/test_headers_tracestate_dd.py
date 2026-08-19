@@ -619,3 +619,291 @@ class Test_Headers_Tracestate_DD:
         assert len(tracestate_1_string.split(",")) == 32
         assert "key32=value32" not in tracestate_1_string
         assert tracestate_1_string.startswith("dd=")
+
+    @temporary_enable_propagationstyle_default()
+    def test_headers_tracestate_dd_trailing_semicolon_still_parses(self, test_library: APMLibrary):
+        """EXPECT SUCCESS: a trailing ';' at the end of the 'dd' tracestate member value is a
+        harmless, spec-permitted separator. It must NOT cause the whole 'dd' member - and the
+        sampling priority/origin decoded from it - to be dropped. Contrast with the
+        test_headers_tracestate_dd_*_fails_to_parse tests, where whitespace/empty elements
+        appear *inside* (not trailing) the dd value and parsing of the whole dd member is
+        expected to fail/be skipped instead.
+        """
+        with test_library:
+            headers = test_library.dd_make_child_span_and_get_headers(
+                [
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
+                    ("tracestate", "foo=1,dd=s:2;o:some;"),
+                ],
+            )
+
+        # Expect: parsing succeeds - the trailing separator is ignored, s and o are still decoded
+        assert headers["x-datadog-sampling-priority"] == "2"
+        assert headers["x-datadog-origin"] == "some"
+
+        _, tracestate = get_tracecontext(headers)
+        dd_items = tracestate["dd"].split(";")
+        assert "s:2" in dd_items
+        assert "o:some" in dd_items
+
+    @temporary_enable_propagationstyle_default()
+    def test_headers_tracestate_dd_trailing_semicolon_and_ows_still_parses(self, test_library: APMLibrary):
+        """EXPECT SUCCESS: a trailing ';' followed by OWS (space then tab) at the end of the
+        'dd' tracestate member value is harmless and must not cause the whole 'dd' member to be
+        dropped. See test_headers_tracestate_dd_trailing_semicolon_still_parses for context.
+        """
+        with test_library:
+            headers = test_library.dd_make_child_span_and_get_headers(
+                [
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
+                    ("tracestate", "foo=1,dd=s:2;o:some; \t"),
+                ],
+            )
+
+        # Expect: parsing succeeds - the trailing separator and OWS are ignored, s and o are
+        # still decoded
+        assert headers["x-datadog-sampling-priority"] == "2"
+        assert headers["x-datadog-origin"] == "some"
+
+        _, tracestate = get_tracecontext(headers)
+        dd_items = tracestate["dd"].split(";")
+        assert "s:2" in dd_items
+        assert "o:some" in dd_items
+
+    @temporary_enable_propagationstyle_default()
+    def test_headers_tracestate_dd_trailing_semicolon_ows_before_next_member_still_parses(
+        self, test_library: APMLibrary
+    ):
+        """EXPECT SUCCESS: a trailing ';' followed by OWS, then the ',' that starts the next
+        list-member, is harmless and must not cause the whole 'dd' member (nor the sibling
+        list-member) to be dropped. See test_headers_tracestate_dd_trailing_semicolon_still_parses
+        for context.
+        """
+        with test_library:
+            headers = test_library.dd_make_child_span_and_get_headers(
+                [
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
+                    ("tracestate", "dd=s:2;o:some;  ,x=y"),
+                ],
+            )
+
+        # Expect: parsing succeeds - the trailing separator and OWS are ignored, s and o are
+        # still decoded, and the sibling list-member 'x=y' is preserved
+        assert headers["x-datadog-sampling-priority"] == "2"
+        assert headers["x-datadog-origin"] == "some"
+
+        tracestate_str = str(get_tracecontext(headers)[1])
+        assert "x=y" in tracestate_str.split(",")
+        dd_items = get_tracecontext(headers)[1]["dd"].split(";")
+        assert "s:2" in dd_items
+        assert "o:some" in dd_items
+
+    @temporary_enable_propagationstyle_default()
+    def test_headers_tracestate_dd_trailing_ows_without_semicolon_still_parses(self, test_library: APMLibrary):
+        """EXPECT SUCCESS: trailing OWS (space then tab) at the end of the 'dd' tracestate
+        member value, with no trailing ';' before it, is harmless padding and must not cause
+        the whole 'dd' member to be dropped. See
+        test_headers_tracestate_dd_trailing_semicolon_still_parses for context.
+        """
+        with test_library:
+            headers = test_library.dd_make_child_span_and_get_headers(
+                [
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
+                    ("tracestate", "foo=1,dd=s:2;o:some \t"),
+                ],
+            )
+
+        # Expect: parsing succeeds - the trailing OWS is ignored, s and o are still decoded
+        assert headers["x-datadog-sampling-priority"] == "2"
+        assert headers["x-datadog-origin"] == "some"
+
+        _, tracestate = get_tracecontext(headers)
+        dd_items = tracestate["dd"].split(";")
+        assert "s:2" in dd_items
+        assert "o:some" in dd_items
+
+    @temporary_enable_propagationstyle_default()
+    def test_headers_tracestate_dd_trailing_ows_without_semicolon_before_next_member_still_parses(
+        self, test_library: APMLibrary
+    ):
+        """EXPECT SUCCESS: trailing OWS (with no trailing ';' before it), followed by the ','
+        that starts the next list-member, is harmless and must not cause the whole 'dd' member
+        (nor the sibling list-member) to be dropped. See
+        test_headers_tracestate_dd_trailing_semicolon_still_parses for context.
+        """
+        with test_library:
+            headers = test_library.dd_make_child_span_and_get_headers(
+                [
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
+                    ("tracestate", "dd=s:2;o:some  ,x=y"),
+                ],
+            )
+
+        # Expect: parsing succeeds - the trailing OWS is ignored, s and o are still decoded,
+        # and the sibling list-member 'x=y' is preserved
+        assert headers["x-datadog-sampling-priority"] == "2"
+        assert headers["x-datadog-origin"] == "some"
+
+        tracestate_str = str(get_tracecontext(headers)[1])
+        assert "x=y" in tracestate_str.split(",")
+        dd_items = get_tracecontext(headers)[1]["dd"].split(";")
+        assert "s:2" in dd_items
+        assert "o:some" in dd_items
+
+    @temporary_enable_propagationstyle_default()
+    def test_headers_tracestate_dd_double_semicolon_still_parses(self, test_library: APMLibrary):
+        """EXPECT SUCCESS: an empty submember caused by a duplicated ';' in the middle of the
+        'dd' value is a harmless, spec-permitted empty list-item and must NOT cause the whole
+        'dd' member to be dropped. See test_headers_tracestate_dd_trailing_semicolon_still_parses
+        for context.
+        """
+        with test_library:
+            headers = test_library.dd_make_child_span_and_get_headers(
+                [
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
+                    ("tracestate", "foo=1,dd=s:2;;o:some"),
+                ],
+            )
+
+        # Expect: parsing succeeds - the empty submember is ignored, s and o are still decoded
+        assert headers["x-datadog-sampling-priority"] == "2"
+        assert headers["x-datadog-origin"] == "some"
+
+        _, tracestate = get_tracecontext(headers)
+        dd_items = tracestate["dd"].split(";")
+        assert "s:2" in dd_items
+        assert "o:some" in dd_items
+
+    @temporary_enable_propagationstyle_default()
+    def test_headers_tracestate_dd_leading_semicolon_still_parses(self, test_library: APMLibrary):
+        """EXPECT SUCCESS: a leading separator before the first 'dd' submember (an empty first
+        element) is harmless, just like the double-';' case in
+        test_headers_tracestate_dd_double_semicolon_still_parses, and must not cause the whole
+        'dd' member to be dropped.
+        """
+        with test_library:
+            headers = test_library.dd_make_child_span_and_get_headers(
+                [
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
+                    ("tracestate", "foo=1,dd=;s:2;o:some"),
+                ],
+            )
+
+        # Expect: parsing succeeds - the empty leading submember is ignored, s and o are still
+        # decoded
+        assert headers["x-datadog-sampling-priority"] == "2"
+        assert headers["x-datadog-origin"] == "some"
+
+        _, tracestate = get_tracecontext(headers)
+        dd_items = tracestate["dd"].split(";")
+        assert "s:2" in dd_items
+        assert "o:some" in dd_items
+
+    @temporary_enable_propagationstyle_default()
+    def test_headers_tracestate_dd_interior_ows_between_submembers_fails_to_parse(self, test_library: APMLibrary):
+        """EXPECT FAILURE/SKIP: unlike a harmless trailing separator (see
+        test_headers_tracestate_dd_trailing_semicolon_still_parses), OWS *between* two 'dd'
+        submembers (as opposed to trailing padding) makes the whole 'dd' value unparseable. In
+        that case none of the sampling priority, origin, or tags decoded from 'dd' may be
+        applied: parsing of the 'dd' member must be skipped entirely, falling back to the same
+        behavior as when tracestate[dd] is simply absent.
+        """
+        with test_library:
+            headers = test_library.dd_make_child_span_and_get_headers(
+                [
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
+                    ("tracestate", "foo=1,dd=s:0;t.dm:934086a686-4;  t.x:y"),
+                ],
+            )
+
+        # Expect: parsing of 'dd' is skipped - sampling priority falls back to the incoming
+        # traceparent's sampled flag (here, 1) instead of the (unparsed) 's' value, origin is
+        # not set, and none of the (would-be) decoded tags are propagated
+        assert headers["x-datadog-sampling-priority"] == "1"
+        assert "x-datadog-origin" not in headers
+
+        _, tracestate = get_tracecontext(headers)
+        dd_items = tracestate["dd"].split(";") if "dd" in tracestate else []
+        assert "t.dm:934086a686-4" not in dd_items
+        assert "t.x:y" not in dd_items
+
+    @temporary_enable_propagationstyle_default()
+    def test_headers_tracestate_dd_interior_ows_after_first_submember_fails_to_parse(self, test_library: APMLibrary):
+        """EXPECT FAILURE/SKIP: OWS right after the first 'dd' submember (not trailing padding)
+        makes the whole 'dd' value unparseable, just like OWS between later submembers in
+        test_headers_tracestate_dd_interior_ows_between_submembers_fails_to_parse.
+        """
+        with test_library:
+            headers = test_library.dd_make_child_span_and_get_headers(
+                [
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
+                    ("tracestate", "foo=1,dd=s:0; t.dm:934086a686-4"),
+                ],
+            )
+
+        # Expect: parsing of 'dd' is skipped - sampling priority falls back to the incoming
+        # traceparent's sampled flag (here, 1) instead of the (unparsed) 's' value, origin is
+        # not set, and none of the (would-be) decoded tags are propagated
+        assert headers["x-datadog-sampling-priority"] == "1"
+        assert "x-datadog-origin" not in headers
+
+        _, tracestate = get_tracecontext(headers)
+        dd_items = tracestate["dd"].split(";") if "dd" in tracestate else []
+        assert "t.dm:934086a686-4" not in dd_items
+
+    @temporary_enable_propagationstyle_default()
+    def test_headers_tracestate_outer_list_empty_member_between_commas_still_parses(self, test_library: APMLibrary):
+        """EXPECT SUCCESS: per the W3C tracestate grammar (list-member = (key "=" value) / OWS),
+        a list-member may be empty/OWS-only. A stray ',,' in the outer tracestate list (as
+        opposed to inside the 'dd' value itself, see
+        test_headers_tracestate_dd_double_semicolon_still_parses) produces such an empty
+        list-member and must be skipped without affecting the surrounding list-members,
+        including 'dd'.
+        """
+        with test_library:
+            headers = test_library.dd_make_child_span_and_get_headers(
+                [
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
+                    ("tracestate", "foo=1,,dd=s:2;o:some"),
+                ],
+            )
+
+        # Expect: parsing succeeds - the empty outer list-member is ignored, s and o are still
+        # decoded, and the sibling list-member 'foo=1' is preserved
+        assert headers["x-datadog-sampling-priority"] == "2"
+        assert headers["x-datadog-origin"] == "some"
+
+        tracestate_str = str(get_tracecontext(headers)[1])
+        assert "foo=1" in tracestate_str.split(",")
+        dd_items = get_tracecontext(headers)[1]["dd"].split(";")
+        assert "s:2" in dd_items
+        assert "o:some" in dd_items
+
+    @temporary_enable_propagationstyle_default()
+    def test_headers_tracestate_outer_list_ows_around_commas_still_parses(self, test_library: APMLibrary):
+        """EXPECT SUCCESS: per the W3C tracestate grammar (tracestate = list-member 0*31( OWS
+        "," OWS list-member )), OWS is explicitly permitted around the commas separating outer
+        list-members. OWS surrounding the commas next to 'dd' - as distinct from OWS *inside*
+        the 'dd' value, see test_headers_tracestate_dd_interior_ows_between_submembers_fails_to_parse -
+        must not prevent 'dd' (or its neighbors) from being parsed.
+        """
+        with test_library:
+            headers = test_library.dd_make_child_span_and_get_headers(
+                [
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
+                    ("tracestate", "foo=1 , dd=s:2;o:some , bar=2"),
+                ],
+            )
+
+        # Expect: parsing succeeds - the OWS around the outer commas is ignored, s and o are
+        # still decoded, and both sibling list-members are preserved
+        assert headers["x-datadog-sampling-priority"] == "2"
+        assert headers["x-datadog-origin"] == "some"
+
+        tracestate_str = str(get_tracecontext(headers)[1])
+        tracestate_items = tracestate_str.split(",")
+        assert "foo=1" in tracestate_items
+        assert "bar=2" in tracestate_items
+        dd_items = get_tracecontext(headers)[1]["dd"].split(";")
+        assert "s:2" in dd_items
+        assert "o:some" in dd_items
