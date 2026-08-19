@@ -399,7 +399,8 @@ manifest:
         haproxy: irrelevant (not applicable to proxies)
   tests/appsec/test_alpha.py:
     - weblog_declaration:
-        envoy, apim: v1.72.0
+        apim: v2.7.1
+        envoy: v1.72.0
         haproxy: v2.4.0
   tests/appsec/test_alpha.py::Test_Basic:
     - weblog_declaration:
@@ -526,7 +527,8 @@ manifest:
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Tracking: irrelevant (Go only supports SDK events)
   tests/appsec/test_blocking_addresses.py:
     - weblog_declaration:
-        envoy, apim: v1.72.0
+        apim: v2.7.1
+        envoy: v1.72.0
         haproxy: v2.4.0
   tests/appsec/test_blocking_addresses.py::Test_BlockingGraphqlResolvers:
     - weblog_declaration:
@@ -644,7 +646,8 @@ manifest:
         net-http-orchestrion: missing_feature (path params are not supported)
   tests/appsec/test_client_ip.py:
     - weblog_declaration:
-        envoy, apim: v1.72.0
+        apim: v2.7.1
+        envoy: v1.72.0
         haproxy: v2.4.0
   tests/appsec/test_client_ip.py::Test_StandardTagsClientIp: v1.44.1
   tests/appsec/test_conf.py::Test_ConfigurationVariables: v2.0.0
@@ -771,7 +774,8 @@ manifest:
   tests/appsec/test_ip_blocking_full_denylist.py::Test_AppSecIPBlockingFullDenylist:
     - weblog_declaration:
         "*": v1.47.0
-        envoy, apim: v1.72.0
+        apim: v2.7.1
+        envoy: v1.72.0
         haproxy: v2.4.0
   tests/appsec/test_logs.py::Test_Standardization: missing_feature
   tests/appsec/test_logs.py::Test_StandardizationBlockMode: missing_feature
@@ -789,7 +793,8 @@ manifest:
   tests/appsec/test_remote_config_rule_changes.py::Test_UpdateRuleFileWithRemoteConfig: v2.0.0
   tests/appsec/test_reports.py:
     - weblog_declaration:
-        envoy, apim: v1.72.0
+        apim: v2.7.1
+        envoy: v1.72.0
         haproxy: v2.4.0
   tests/appsec/test_reports.py::Test_ExtraTagsFromRule:
     - weblog_declaration:
@@ -817,7 +822,8 @@ manifest:
   tests/appsec/test_request_blocking.py::Test_AppSecRequestBlocking:
     - weblog_declaration:
         "*": v1.50.0-rc.1
-        envoy, apim: v1.72.0
+        apim: v2.7.1
+        envoy: v1.72.0
         haproxy: v2.4.0
   tests/appsec/test_runtime_activation.py::Test_RuntimeActivation: v1.69.0
   tests/appsec/test_runtime_activation.py::Test_RuntimeActivationCapabilities: v1.69.0
@@ -856,7 +862,8 @@ manifest:
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRulesRcCapability: v2.1.0-dev
   tests/appsec/test_traces.py:
     - weblog_declaration:
-        envoy, apim: v1.72.0
+        apim: v2.7.1
+        envoy: v1.72.0
         haproxy: v2.4.0
   tests/appsec/test_traces.py::Test_AppSecEventSpanTags:
     - weblog_declaration:
@@ -889,7 +896,8 @@ manifest:
     - weblog_declaration:
         "*": v1.36.0
         gin: v1.37.0
-        envoy, apim: v1.72.0
+        apim: v2.7.1
+        envoy: v1.72.0
         haproxy: v2.4.0
   tests/appsec/waf/test_addresses.py::Test_BodyJson: v1.37.0
   tests/appsec/waf/test_addresses.py::Test_BodyJson::test_json_array:
@@ -1738,7 +1746,8 @@ manifest:
   tests/test_config_consistency.py::Test_Config_UnifiedServiceTagging_CustomService:
     - weblog_declaration:
         "*": v1.67.0
-        envoy, apim: v1.72.0
+        apim: v2.7.1
+        envoy: v1.72.0
         haproxy: v2.4.0
   tests/test_config_consistency.py::Test_Config_UnifiedServiceTagging_CustomService::test_specified_service_name:
     - weblog_declaration:
@@ -1907,7 +1916,8 @@ manifest:
   tests/test_sampling_rates.py::Test_SamplingRates: v1.36.2
   tests/test_scrubbing.py:
     - weblog_declaration:
-        envoy, apim: v1.72.0
+        apim: v2.7.1
+        envoy: v1.72.0
         haproxy: v2.4.0
   tests/test_scrubbing.py::Test_UrlField::test_main:
     - weblog_declaration:
@@ -1916,12 +1926,14 @@ manifest:
   tests/test_scrubbing.py::Test_UrlQuery: v1.40.0
   tests/test_semantic_conventions.py:
     - weblog_declaration:
-        envoy, apim: v1.72.0
+        apim: v2.7.1
+        envoy: v1.72.0
         haproxy: v2.4.0
   tests/test_semantic_conventions.py::Test_Meta: v1.45.0
   tests/test_semantic_conventions.py::Test_Meta::test_meta_component_tag:
     - weblog_declaration:
-        envoy, apim: v2.3.0
+        apim: v2.7.1
+        envoy: v2.3.0
   tests/test_semantic_conventions.py::Test_Meta::test_meta_http_url:
     - component_version: <1.69.0-dev
       declaration: bug (APMRP-360)
@@ -1945,7 +1957,8 @@ manifest:
       declaration: missing_feature (span got an event property set as an empty list)
   tests/test_standard_tags.py:
     - weblog_declaration:
-        envoy, apim: v1.72.0
+        apim: v2.7.1
+        envoy: v1.72.0
         haproxy: v2.4.0
   tests/test_standard_tags.py::Test_StandardTagsClientIp: v1.46.0
   tests/test_standard_tags.py::Test_StandardTagsClientIp::test_client_ip_vendor:
