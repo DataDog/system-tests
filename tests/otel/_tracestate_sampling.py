@@ -1,5 +1,20 @@
 """Shared OpenTelemetry tracestate sampling fixtures."""
 
+# ---------------------------------------------------------------------------
+# Expected ot.rv / ot.th values for known trace IDs and known sample rates
+#
+# DD's sampling decision is h = (trace_id_low64 * 1111111111111111111) mod 2**64, keep if h <= rate * (2**64 - 1)
+# (dd-trace-go/ddtrace/tracer/sampler.go:114-122). The OTel-compatible pair is:
+#   rv = (~h & (2**64 - 1)) >> 8      (56-bit, 14 hex digits) -- depends only on trace_id, not on rate
+#   th = round((1 - rate) * (2**56)) (56-bit, trailing zero nibbles trimmed when formatted) -- depends only on rate
+#   These fixtures use the maximum available 14 hexadecimal digits of precision, rather than the 4 digits
+#   recommended by the OTel specification: https://opentelemetry.io/docs/specs/otel/trace/tracestate-probability-sampling/
+#
+# Trace IDs are the ones already used (and verified) in tests/fixtures/sampling_rates.csv, crossed with
+# 5 rates. Expected values below were computed with the formula above and cross-checked: at rate 0.5 they
+# reproduce the exact same keep/drop decisions as that CSV for all 23 trace IDs.
+# ---------------------------------------------------------------------------
+
 TH_BY_RATE: dict[float, str] = {
     0.01: "fd70a3d70a3d7",
     0.1: "e6666666666668",
@@ -11,6 +26,7 @@ TH_BY_RATE: dict[float, str] = {
 SamplingVector = tuple[int, str, bool]
 
 SAMPLING_RATE_0_01: list[SamplingVector] = [
+    # (trace_id, expected_rv_hex, expected_sampled)
     (1, "f0948a54d43b8e", False),
     (10, "65cd67504a538e", False),
     (100, "fa060922e7438e", False),
@@ -38,6 +54,7 @@ SAMPLING_RATE_0_01: list[SamplingVector] = [
 ]
 
 SAMPLING_RATE_0_1: list[SamplingVector] = [
+    # (trace_id, expected_rv_hex, expected_sampled)
     (1, "f0948a54d43b8e", True),
     (10, "65cd67504a538e", False),
     (100, "fa060922e7438e", True),
@@ -65,6 +82,7 @@ SAMPLING_RATE_0_1: list[SamplingVector] = [
 ]
 
 SAMPLING_RATE_0_2: list[SamplingVector] = [
+    # (trace_id, expected_rv_hex, expected_sampled)
     (1, "f0948a54d43b8e", True),
     (10, "65cd67504a538e", False),
     (100, "fa060922e7438e", True),
@@ -92,6 +110,7 @@ SAMPLING_RATE_0_2: list[SamplingVector] = [
 ]
 
 SAMPLING_RATE_0_5: list[SamplingVector] = [
+    # (trace_id, expected_rv_hex, expected_sampled)
     (1, "f0948a54d43b8e", True),
     (10, "65cd67504a538e", False),
     (100, "fa060922e7438e", True),
@@ -119,6 +138,7 @@ SAMPLING_RATE_0_5: list[SamplingVector] = [
 ]
 
 SAMPLING_RATE_0_99: list[SamplingVector] = [
+    # (trace_id, expected_rv_hex, expected_sampled)
     (1, "f0948a54d43b8e", True),
     (10, "65cd67504a538e", True),
     (100, "fa060922e7438e", True),
@@ -145,6 +165,9 @@ SAMPLING_RATE_0_99: list[SamplingVector] = [
     (83, "0028d980cf4f1c", False),
 ]
 
+# Trace ID and rv/th below match the RFC's own verified worked example (rate 0.1, trace ID 0xfff972474538efff).
+# Trace ID, rv and th match the RFC's own verified worked example (rate 0.1, trace ID 0xfff972474538efff),
+# also used in tests/test_otel_tracestate_sampling.py. rv only depends on the trace ID, not the sample rate.
 FORWARD_TRACE_ID = 18444899399302180863
 FORWARD_RV = "ef284ace7a91e1"
 FORWARD_TH = "e6666666666668"

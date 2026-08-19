@@ -213,7 +213,10 @@ def _parse_ot_from_trace_state(trace_state: str) -> dict[str, str]:
 @features.otel_api
 @scenarios.apm_tracing_otlp
 class Test_Otlp_Carries_Ot:
-    """B1: a probability decision is carried to the exported OTLP span."""
+    """B1: a probability sampling decision is carried on the exported OTLP span's tracestate as ot=rv:...;th:...
+
+    See APMAPI-2172.
+    """
 
     def setup_otlp_carries_ot(self):
         self.req = weblog.get(
@@ -234,7 +237,10 @@ class Test_Otlp_Carries_Ot:
 @features.otel_api
 @scenarios.apm_tracing_otlp
 class Test_Otlp_Forwards_Inherited_Ot:
-    """B2: an inherited ot=rv:...;th:... reaches the exported OTLP span unchanged."""
+    """B2: an inherited ot=rv:...;th:... is forwarded unchanged onto the exported OTLP span's tracestate.
+
+    See APMAPI-2172.
+    """
 
     def setup_otlp_forwards_inherited_ot(self):
         self.req = weblog.get(
