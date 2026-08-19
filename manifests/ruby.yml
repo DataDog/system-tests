@@ -2254,6 +2254,8 @@ manifest:
         uds-rails: missing_feature
         rack: missing_feature
         rails42: missing_feature
+  tests/otel/test_tracing_otlp.py::Test_Otlp_Carries_Ot: missing_feature (APMAPI-2172)
+  tests/otel/test_tracing_otlp.py::Test_Otlp_Forwards_Inherited_Ot: missing_feature (APMAPI-2172)
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
@@ -2530,7 +2532,6 @@ manifest:
   : "irrelevant (\"Ruby tracer decided to always set _dd1.sr.eausr: 1 for truthy analytics.event inputs, else 0\")"
   tests/parametric/test_otel_span_with_baggage.py::Test_Otel_Span_With_Baggage: missing_feature
   tests/parametric/test_otel_tracestate_sampling.py::Test_OtelTracestateSampling: v2.42.0-dev
-  tests/parametric/test_otlp_trace_export.py::Test_OtlpTracestateSampling: missing_feature (APMAPI-2172)
   tests/parametric/test_otlp_trace_metrics.py: '>=2.35.0'  # TODO: a lower version might be supported
   tests/parametric/test_otlp_trace_metrics.py::Test_FR01_Enablement_Configuration::test_fr01_1_enabled_explicit: missing_feature
   tests/parametric/test_otlp_trace_metrics.py::Test_FR01_Enablement_Configuration::test_fr01_3_enabled_by_default: missing_feature
@@ -2987,6 +2988,64 @@ manifest:
   tests/test_library_logs.py::Test_NoExceptions::test_dotnet: irrelevant (only for .NET)
   tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)
   tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
+  tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5: missing_feature (APMAPI-2171)
+  tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh:  # TODO: a lower version might be supported
+    - declaration: missing_feature (APMAPI-2171)
+      component_version: <2.40.0
+      weblog: [rails52, rails42, sinatra14, uds-rails, rails72, sinatra32, sinatra22, rails61, sinatra41, rack, uds-sinatra, rails80]
+    - declaration: missing_feature (APMAPI-2171)
+      excluded_weblog: [rails52, rails42, sinatra14, uds-rails, rails72, sinatra32, sinatra22, rails61, sinatra41, rack, uds-sinatra, rails80]
+  tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh::test_force_keep_overrides_inherited_drop_decision:
+    - weblog_declaration:
+        sinatra22: missing_feature (APMAPI-2171)
+        rails61: missing_feature (APMAPI-2171)
+        sinatra32: missing_feature (APMAPI-2171)
+        rails72: missing_feature (APMAPI-2171)
+        uds-sinatra: missing_feature (APMAPI-2171)
+        rails52: missing_feature (APMAPI-2171)
+        sinatra14: missing_feature (APMAPI-2171)
+        sinatra41: missing_feature (APMAPI-2171)
+        rails80: missing_feature (APMAPI-2171)
+        uds-rails: missing_feature (APMAPI-2171)
+        rack: missing_feature (APMAPI-2171)
+        rails42: missing_feature (APMAPI-2171)
+  tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchanged:  # TODO: a lower version might be supported
+    - declaration: missing_feature (APMAPI-2171)
+      component_version: <2.40.0
+      weblog: [rails52, rails42, sinatra14, uds-rails, rails72, sinatra32, sinatra22, rails61, sinatra41, rack, uds-sinatra, rails80]
+    - declaration: missing_feature (APMAPI-2171)
+      excluded_weblog: [rails52, rails42, sinatra14, uds-rails, rails72, sinatra32, sinatra22, rails61, sinatra41, rack, uds-sinatra, rails80]
+  tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchangedWhenDropped:  # TODO: a lower version might be supported
+    - declaration: missing_feature (APMAPI-2171)
+      component_version: <2.40.0
+      weblog: [rails52, rails42, sinatra14, uds-rails, rails72, sinatra32, sinatra22, rails61, sinatra41, rack, uds-sinatra, rails80]
+    - declaration: missing_feature (APMAPI-2171)
+      excluded_weblog: [rails52, rails42, sinatra14, uds-rails, rails72, sinatra32, sinatra22, rails61, sinatra41, rack, uds-sinatra, rails80]
+  tests/test_otel_tracestate_sampling.py::Test_MalformedOtHandling: missing_feature (APMAPI-2171)
+  tests/test_otel_tracestate_sampling.py::Test_PreserveDdAndOtherVendors:  # TODO: a lower version might be supported
+    - declaration: missing_feature (APMAPI-2171)
+      component_version: <2.40.0
+      weblog: [rails52, rails42, sinatra14, uds-rails, rails72, sinatra32, sinatra22, rails61, sinatra41, rack, uds-sinatra, rails80]
+    - declaration: missing_feature (APMAPI-2171)
+      excluded_weblog: [rails52, rails42, sinatra14, uds-rails, rails72, sinatra32, sinatra22, rails61, sinatra41, rack, uds-sinatra, rails80]
+  tests/test_otel_tracestate_sampling.py::Test_SampledWithoutOtNotFabricated:  # TODO: a lower version might be supported
+    - declaration: missing_feature (APMAPI-2171)
+      component_version: <2.40.0
+      weblog: [rails52, rails42, sinatra14, uds-rails, rails72, sinatra32, sinatra22, rails61, sinatra41, rack, uds-sinatra, rails80]
+    - declaration: missing_feature (APMAPI-2171)
+      excluded_weblog: [rails52, rails42, sinatra14, uds-rails, rails72, sinatra32, sinatra22, rails61, sinatra41, rack, uds-sinatra, rails80]
+  tests/test_otel_tracestate_sampling.py::Test_ThOnlyDoesNotFabricateRv:  # TODO: a lower version might be supported
+    - declaration: missing_feature (APMAPI-2171)
+      component_version: <2.40.0
+      weblog: [rails52, rails42, sinatra14, uds-rails, rails72, sinatra32, sinatra22, rails61, sinatra41, rack, uds-sinatra, rails80]
+    - declaration: missing_feature (APMAPI-2171)
+      excluded_weblog: [rails52, rails42, sinatra14, uds-rails, rails72, sinatra32, sinatra22, rails61, sinatra41, rack, uds-sinatra, rails80]
+  tests/test_otel_tracestate_sampling.py::Test_ThOnlyDoesNotFabricateRvWhenDropped:  # TODO: a lower version might be supported
+    - declaration: missing_feature (APMAPI-2171)
+      component_version: <2.40.0
+      weblog: [rails52, rails42, sinatra14, uds-rails, rails72, sinatra32, sinatra22, rails61, sinatra41, rack, uds-sinatra, rails80]
+    - declaration: missing_feature (APMAPI-2171)
+      excluded_weblog: [rails52, rails42, sinatra14, uds-rails, rails72, sinatra32, sinatra22, rails61, sinatra41, rack, uds-sinatra, rails80]
   tests/test_otlp_runtime_metrics.py::Test_OtlpRuntimeMetrics:  # TODO: a lower version might be supported
     - weblog_declaration:
         '*': missing_feature
