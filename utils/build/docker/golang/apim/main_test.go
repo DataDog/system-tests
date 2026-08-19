@@ -489,6 +489,13 @@ func TestFailClosedOnMalformedBlock(t *testing.T) {
 			response:   `{"block":{"status":42,"headers":{"X-Block":["headers"]},"content":"YmxvY2tlZA=="}}`,
 			wantLogged: `apim-gateway fail-closed stage=write-block-request-headers error="invalid block status 42"`,
 		},
+		{
+			// A 1xx status is the dangerous case: WriteHeader(103) would not commit, so the block
+			// body would then commit an implicit 200 OK. The guard must reject it before any write.
+			name:       "informational-status",
+			response:   `{"block":{"status":103,"headers":{"X-Block":["headers"]},"content":"YmxvY2tlZA=="}}`,
+			wantLogged: `apim-gateway fail-closed stage=write-block-request-headers error="invalid block status 103"`,
+		},
 	} {
 		t.Run(fixture.name, func(t *testing.T) {
 			callout := newScriptedCallout(t, []calloutStep{{

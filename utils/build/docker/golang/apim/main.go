@@ -328,7 +328,10 @@ func writeBlock(w http.ResponseWriter, block *blockResult) error {
 	if err != nil {
 		return err
 	}
-	if block.Status < http.StatusContinue || block.Status > 999 {
+	// Reject 1xx as well as out-of-range codes. WriteHeader(1xx) sends an informational response
+	// without committing, so a following Write would commit an implicit 200 OK carrying the block
+	// body: the client sees 200 and the upstream is never called. The lower bound must be 200.
+	if block.Status < http.StatusOK || block.Status > 999 {
 		return fmt.Errorf("invalid block status %d", block.Status)
 	}
 	// canonicalize: a lowercase name from the callout would not be found by Go's internal
