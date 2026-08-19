@@ -63,6 +63,19 @@ The `--skip-empty-scenario` option will deselect all tests if the current scenar
 
 This option can also be activated with the environment variable `SYSTEM_TESTS_SKIP_EMPTY_SCENARIO=True`
 
+## Change the denylist size of `APPSEC_BLOCKING_FULL_DENYLIST`
+
+The `APPSEC_BLOCKING_FULL_DENYLIST` scenario pushes an IP denylist through remote config and checks
+that the library enforces its first, middle and last entries. The denylist holds 12500 addresses by
+default; `SYSTEM_TESTS_BLOCKED_IPS_COUNT` overrides that, accepting a value between 1 and 100000.
+
+```bash
+SYSTEM_TESTS_BLOCKED_IPS_COUNT=50000 ./run.sh APPSEC_BLOCKING_FULL_DENYLIST
+```
+
+Use it to find where a library starts truncating the denylist. An invalid value fails the scenario
+setup with an explicit error.
+
 ## Spawn components, but do nothing
 
 ```bash

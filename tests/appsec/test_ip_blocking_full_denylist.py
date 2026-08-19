@@ -19,14 +19,14 @@ class Test_AppSecIPBlockingFullDenylist(BaseFullDenyListTest):
         self.setup_scenario()
 
         self.not_blocked_request = weblog.get(headers={"X-Forwarded-For": not_blocked_ip})
-        self.blocked_requests = [(ip, weblog.get(headers={"X-Forwarded-For": ip})) for ip in self.blocked_ips]
+        self.blocked_requests = {ip: weblog.get(headers={"X-Forwarded-For": ip}) for ip in self.blocked_ips}
 
     def test_blocked_ips(self) -> None:
         """Test blocked ips are enforced"""
 
         self.assert_protocol_is_respected()
 
-        for ip, r in self.blocked_requests:
+        for ip, r in self.blocked_requests.items():
             assert r.status_code == 403, f"IP {ip} was not blocked"
             interfaces.library.assert_waf_attack(r, rule="blk-001-001")
 
