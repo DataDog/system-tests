@@ -178,11 +178,37 @@ class FeatureFlaggingAgentlessEndToEndScenario(AgentlessEndToEndScenario):
         try:
             super().configure(config)
             if self.exposure_egress is not None:
+                self._configure_java_proxy_ca()
                 interfaces.datadog_sidecar.configure(self.host_log_folder, replay=self.replay)
                 interfaces.datadog_direct.configure(self.host_log_folder, replay=self.replay)
         except BaseException:
             self._stop_mock_backend(persist_status=False)
             raise
+
+    def _configure_java_proxy_ca(self) -> None:
+        # The wrapper replaces /app/app.sh and uses the standard Spring Boot image layout.
+        # Other Java weblogs use different startup scripts and application paths.
+        if self.weblog_infra.library_name != "java" or self.weblog_variant != "spring-boot":
+            return
+
+        library_container = self.weblog_infra.library_container
+        library_container.environment["SYSTEM_TESTS_JAVA_PROXY_OPTS"] = (
+            f"-Dhttps.proxyHost=proxy -Dhttps.proxyPort={ProxyPorts.datadog_direct}"
+        )
+        library_container.volumes |= {
+            "./utils/build/docker/java/app-with-proxy-ca.sh": {
+                "bind": "/app/app.sh",
+                "mode": "ro",
+            },
+            "./utils/build/docker/java/app.sh": {
+                "bind": "/app/system-tests-java-app.sh",
+                "mode": "ro",
+            },
+            "./utils/proxy/.mitmproxy/mitmproxy-ca-cert.cer": {
+                "bind": "/app/system-tests-proxy-ca.cer",
+                "mode": "ro",
+            },
+        }
 
     @property
     def serverless_init_container(self) -> ServerlessInitContainer:
