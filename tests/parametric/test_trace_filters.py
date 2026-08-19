@@ -1,5 +1,5 @@
 import json
-import pytest
+from utils import pytest
 
 from .conftest import APMLibrary
 from .utils import MIN_AGENT_VERSION_FOR_CSS, enable_tracestats

@@ -4,7 +4,7 @@ from utils.docker_fixtures import FrameworkTestClientApi, TestAgentAPI
 
 from .utils import BaseAnthropicTest
 
-import pytest
+from utils import pytest
 from unittest import mock
 import json
 

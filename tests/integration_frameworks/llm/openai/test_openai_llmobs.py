@@ -1,7 +1,7 @@
 import json
 from utils import features, scenarios
 
-import pytest
+from utils import pytest
 from unittest import mock
 
 from utils.docker_fixtures import FrameworkTestClientApi, TestAgentAPI

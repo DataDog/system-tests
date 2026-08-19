@@ -1,6 +1,6 @@
 import time
 import json
-import pytest
+from utils import pytest
 from utils.docker_fixtures.spec.trace import SAMPLING_PRIORITY_KEY
 from utils.docker_fixtures.spec.trace import SINGLE_SPAN_SAMPLING_MAX_PER_SEC
 from utils.docker_fixtures.spec.trace import SINGLE_SPAN_SAMPLING_MECHANISM

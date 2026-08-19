@@ -1,6 +1,6 @@
 from collections.abc import Generator
 
-import pytest
+from utils import pytest
 
 from utils.docker_fixtures import (
     FrameworkTestClientApi,
