@@ -525,6 +525,40 @@ func TestFailClosedOnMalformedBlock(t *testing.T) {
 	}
 }
 
+// TestFailClosedOnTrailingCalloutData pins the fail-open guard: a callout body that carries a
+// valid JSON value followed by a second value must be rejected. The classic exploit is a
+// well-formed head that decodes cleanly with a nil block, hiding a real block in the trailing
+// value; a bare Decode would drop it and let the request reach the upstream.
+func TestFailClosedOnTrailingCalloutData(t *testing.T) {
+	callout := newScriptedCallout(t, []calloutStep{{
+		phase:     "<RequestHeaders>",
+		requestID: "",
+		response:  `{"request-id":"request-123"} {"block":{"status":403,"content":"YmxvY2tlZA=="}}`,
+	}})
+
+	var upstreamCalls atomic.Int32
+	upstream := httptest.NewServer(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {
+		upstreamCalls.Add(1)
+	}))
+	t.Cleanup(upstream.Close)
+
+	var logs bytes.Buffer
+	gateway := newTestGateway(callout.URL, upstream.URL, &logs)
+	recorder := httptest.NewRecorder()
+	gateway.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "http://example.test:7777/", nil))
+
+	if got := recorder.Code; got != http.StatusBadGateway {
+		t.Fatalf("status = %d, want %d", got, http.StatusBadGateway)
+	}
+	if got := upstreamCalls.Load(); got != 0 {
+		t.Errorf("upstream calls = %d, want 0 (trailing data must fail closed, not reach upstream)", got)
+	}
+	// The diagnostic text is ours, so the whole line is pinned.
+	assertLogLines(t, logs.String(), []string{
+		`apim-gateway callout phase=<RequestHeaders> request-id="" path="/" outcome=error error="callout response has trailing data after the JSON value"`,
+	})
+}
+
 func TestBlockWriteErrorDoesNotFailClosedAfterResponseIsCommitted(t *testing.T) {
 	callout := newScriptedCallout(t, []calloutStep{{
 		phase:    "<RequestHeaders>",

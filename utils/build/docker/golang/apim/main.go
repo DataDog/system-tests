@@ -267,7 +267,17 @@ func (g *gateway) callout(phase, requestID, requestPath string, addresses any) (
 	}
 
 	var result calloutResult
-	if err := json.NewDecoder(response.Body).Decode(&result); err != nil {
+	// Decode exactly one JSON value and reject trailing data. A bare Decode stops at the end of
+	// the first value, so a payload like `{"request-id":"rid"} {"block":{"status":403}}` would
+	// decode "fine" and silently drop the block, letting the request reach the upstream (fail
+	// open). More() reports whether another value follows, which is the trailing garbage.
+	decoder := json.NewDecoder(response.Body)
+	if err := decoder.Decode(&result); err != nil {
+		g.logCallout(phase, requestID, requestPath, err)
+		return calloutResult{}, err
+	}
+	if decoder.More() {
+		err := fmt.Errorf("callout response has trailing data after the JSON value")
 		g.logCallout(phase, requestID, requestPath, err)
 		return calloutResult{}, err
 	}
