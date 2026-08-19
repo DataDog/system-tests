@@ -2,16 +2,9 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import os
-
 from utils import weblog, interfaces, rfc, scenarios, features
 
 from .utils import BaseFullDenyListTest
-
-BLOCKED_IP_COUNT = int(os.environ.get("SYSTEM_TESTS_BLOCKED_IPS_COUNT", "12500"))
-BLOCKED_USER_COUNT = int(os.environ.get("SYSTEM_TESTS_BLOCKED_USERS_COUNT", "2500"))
-assert 1 <= BLOCKED_IP_COUNT <= 100000
-assert 0 <= BLOCKED_USER_COUNT <= 2500
 
 
 @rfc("https://docs.google.com/document/d/1GUd8p7HBp9gP0a6PZmDY26dpGrS1Ztef9OYdbK3Vq3M/edit")
@@ -23,7 +16,7 @@ class Test_AppSecIPBlockingFullDenylist(BaseFullDenyListTest):
     def setup_blocked_ips(self) -> None:
         not_blocked_ip = "42.42.42.3"
 
-        self.setup_scenario(BLOCKED_IP_COUNT, BLOCKED_USER_COUNT)
+        self.setup_scenario()
 
         self.not_blocked_request = weblog.get(headers={"X-Forwarded-For": not_blocked_ip})
         self.blocked_requests = [(ip, weblog.get(headers={"X-Forwarded-For": ip})) for ip in self.blocked_ips]

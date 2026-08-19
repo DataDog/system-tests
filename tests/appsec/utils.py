@@ -1,9 +1,18 @@
 from collections.abc import Generator, Iterable
+import os
 
 from utils import interfaces
 from utils import remote_config
 from utils.dd_constants import RemoteConfigApplyState
 from utils.dd_types import DataDogLibrarySpan
+
+try:
+    BLOCKED_IP_COUNT = int(os.environ.get("SYSTEM_TESTS_BLOCKED_IPS_COUNT", "12500"))
+except ValueError as error:
+    raise ValueError("SYSTEM_TESTS_BLOCKED_IPS_COUNT must be an integer") from error
+
+if not 1 <= BLOCKED_IP_COUNT <= 100000:
+    raise ValueError("SYSTEM_TESTS_BLOCKED_IPS_COUNT must be between 1 and 100000")
 
 
 def assert_all_spans_have_apm_disabled_marker(spans: Iterable[DataDogLibrarySpan]) -> None:
@@ -44,15 +53,13 @@ def find_configuration() -> Generator:
 
 class BaseFullDenyListTest:
     states: remote_config.RemoteConfigStateResults | None = None
-    states_by_denylist_counts: dict[str, remote_config.RemoteConfigStateResults] = {}
 
-    def setup_scenario(self, blocked_ip_count: int = 12500, blocked_user_count: int = 2500) -> None:
+    def setup_scenario(self) -> None:
         blocked_ips = [
-            f"12.{8 + value // 65536}.{(value // 256) % 256}.{value % 256}" for value in range(blocked_ip_count)
+            f"12.{8 + value // 65536}.{(value // 256) % 256}.{value % 256}" for value in range(BLOCKED_IP_COUNT)
         ]
-        denylist_counts = f"{blocked_ip_count}:{blocked_user_count}"
 
-        if denylist_counts not in self.states_by_denylist_counts:
+        if BaseFullDenyListTest.states is None:
             config = {
                 "rules_data": [
                     {
@@ -63,9 +70,7 @@ class BaseFullDenyListTest:
                     {
                         "id": "blocked_users",
                         "type": "data_with_expiration",
-                        "data": [
-                            {"value": str(value), "expiration": 9999999999} for value in range(blocked_user_count)
-                        ],
+                        "data": [{"value": str(value), "expiration": 9999999999} for value in range(2500)],
                     },
                 ]
             }
@@ -73,10 +78,11 @@ class BaseFullDenyListTest:
             rc_state = remote_config.tracer_rc_state
             rc_state.set_config("datadog/2/ASM_DATA/ASM_DATA-base/config", config)
 
-            self.states_by_denylist_counts[denylist_counts] = rc_state.apply()
+            BaseFullDenyListTest.states = rc_state.apply()
 
-        self.states = self.states_by_denylist_counts[denylist_counts]
-        self.blocked_ips = [blocked_ips[0], blocked_ips[-1]]
+        self.states = BaseFullDenyListTest.states
+        sample_indices = sorted({0, BLOCKED_IP_COUNT // 2, BLOCKED_IP_COUNT - 1})
+        self.blocked_ips = [blocked_ips[index] for index in sample_indices]
 
     def assert_protocol_is_respected(self) -> None:
         assert self.states is not None
