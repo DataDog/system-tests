@@ -192,12 +192,16 @@ class FeatureFlaggingAgentlessEndToEndScenario(AgentlessEndToEndScenario):
             return
 
         library_container = self.weblog_infra.library_container
-        library_container.environment["JAVA_OPTS"] = (
+        library_container.environment["SYSTEM_TESTS_JAVA_PROXY_OPTS"] = (
             f"-Dhttps.proxyHost=proxy -Dhttps.proxyPort={ProxyPorts.datadog_direct}"
         )
         library_container.volumes |= {
             "./utils/build/docker/java/app-with-proxy-ca.sh": {
                 "bind": "/app/app.sh",
+                "mode": "ro",
+            },
+            "./utils/build/docker/java/app.sh": {
+                "bind": "/app/system-tests-java-app.sh",
                 "mode": "ro",
             },
             "./utils/proxy/.mitmproxy/mitmproxy-ca-cert.cer": {

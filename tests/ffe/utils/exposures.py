@@ -44,23 +44,6 @@ def exposure_events_from_data(
     return events
 
 
-def wait_for_exposure_event(
-    interface: ProxyBasedInterfaceValidator,
-    *,
-    flag_key: str,
-    targeting_key: str,
-) -> None:
-    """Wait until the capture interface receives the expected exposure."""
-
-    def matches_exposure(data: dict) -> bool:
-        return bool(exposure_events_from_data(data, {flag_key}, targeting_key))
-
-    assert interface.wait_for(
-        matches_exposure,
-        timeout=EXPOSURE_WAIT_TIMEOUT_SECONDS,
-    ), f"Timed out waiting for exposure event for {flag_key!r} and {targeting_key!r}"
-
-
 def assert_exposure_side_effects_contract(
     interface: ProxyBasedInterfaceValidator,
     responses: Iterable[HttpResponse],
@@ -77,10 +60,13 @@ def assert_exposure_side_effects_contract(
         value = json.loads(response.text)["value"]
         assert value == expected_value, f"Evaluation {index} returned {value!r}"
 
-    wait_for_exposure_event(interface, flag_key=flag_key, targeting_key=targeting_key)
-
     def matches_exposure(data: dict) -> bool:
         return bool(exposure_events_from_data(data, {flag_key}, targeting_key))
+
+    assert interface.wait_for(
+        matches_exposure,
+        timeout=EXPOSURE_WAIT_TIMEOUT_SECONDS,
+    ), f"Timed out waiting for exposure event for {flag_key!r} and {targeting_key!r}"
 
     if not interface.replay:
         interface.wait(EXPOSURE_CACHE_SETTLE_SECONDS)

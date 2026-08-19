@@ -5,7 +5,6 @@ from dataclasses import dataclass
 from tests.ffe.utils.exposures import (
     assert_exposure_side_effects_contract,
     exposure_events_from_data,
-    wait_for_exposure_event,
 )
 from tests.ffe.utils.fixtures import make_ufc_fixture
 from utils import context, features, interfaces, remote_config as rc, scenarios, weblog
@@ -52,19 +51,14 @@ def exposure_egress() -> ExposureEgress:
 class ExposureEgressContract:
     """One exposure contract inherited by each supported topology adapter."""
 
-    flag_key = "empty_string_flag"
+    flag_key = "empty-targeting-key-flag"
     targeting_key = "exposure-egress-user"
 
     def setup_exposure_egress(self) -> None:
         if not isinstance(context.scenario, FeatureFlaggingAgentlessEndToEndScenario):
             rc.tracer_rc_state.reset().set_config(
                 f"{RC_PATH}/exposure-egress/config",
-                make_ufc_fixture(
-                    self.flag_key,
-                    variant_key="non_empty",
-                    allocation_key="allocation-test",
-                    variation_values={"empty_string": "", "non_empty": "non_empty"},
-                ),
+                make_ufc_fixture(self.flag_key),
             ).apply()
 
         self.responses = [
@@ -81,13 +75,6 @@ class ExposureEgressContract:
             for _ in range(5)
         ]
 
-        egress = exposure_egress()
-        wait_for_exposure_event(
-            egress.interface,
-            flag_key=self.flag_key,
-            targeting_key=self.targeting_key,
-        )
-
     def test_exposure_egress(self) -> None:
         egress = exposure_egress()
         matching_requests = assert_exposure_side_effects_contract(
@@ -95,9 +82,8 @@ class ExposureEgressContract:
             self.responses,
             flag_key=self.flag_key,
             targeting_key=self.targeting_key,
-            expected_value="non_empty",
-            expected_variant="non_empty",
-            expected_allocation="allocation-test",
+            expected_value="on-value",
+            expected_variant="on",
         )
         assert len(matching_requests) == 1
 

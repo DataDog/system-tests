@@ -194,15 +194,25 @@ def test_agentless_exposure_proxy_ca_wrapper_only_replaces_standard_spring_boot_
     library_container = scenario.weblog_infra.http_container
     library_container.image.labels["system-tests-library"] = library
     library_container.weblog_variant = weblog_variant
+    library_container.environment["JAVA_OPTS"] = "-Dexisting.option=true"
 
     scenario._configure_java_proxy_ca()  # noqa: SLF001 - focused startup wrapper test
 
     wrapper_path = "./utils/build/docker/java/app-with-proxy-ca.sh"
+    canonical_startup_path = "./utils/build/docker/java/app.sh"
     certificate_path = "./utils/proxy/.mitmproxy/mitmproxy-ca-cert.cer"
     expected_wrapper = expected_result == "configured"
-    assert ("JAVA_OPTS" in library_container.environment) is expected_wrapper
+    assert library_container.environment["JAVA_OPTS"] == "-Dexisting.option=true"
+    assert ("SYSTEM_TESTS_JAVA_PROXY_OPTS" in library_container.environment) is expected_wrapper
     assert (wrapper_path in library_container.volumes) is expected_wrapper
+    assert (canonical_startup_path in library_container.volumes) is expected_wrapper
     assert (certificate_path in library_container.volumes) is expected_wrapper
+
+    if expected_wrapper:
+        assert library_container.environment["SYSTEM_TESTS_JAVA_PROXY_OPTS"] == (
+            f"-Dhttps.proxyHost=proxy -Dhttps.proxyPort={ProxyPorts.datadog_direct}"
+        )
+        assert library_container.volumes[canonical_startup_path]["bind"] == "/app/system-tests-java-app.sh"
 
 
 @scenarios.test_the_test
