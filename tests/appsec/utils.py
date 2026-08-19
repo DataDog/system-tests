@@ -44,14 +44,15 @@ def find_configuration() -> Generator:
 
 class BaseFullDenyListTest:
     states: remote_config.RemoteConfigStateResults | None = None
+    states_by_denylist_counts: dict[str, remote_config.RemoteConfigStateResults] = {}
 
-    def setup_scenario(self) -> None:
-        # Generate the list of 100 * 125 = 12500 blocked ips that are found in the
-        # file rc_mocked_responses_asm_data_full_denylist.json
-        # to edit or generate a new rc mocked response, use the DataDog/rc-tracer-client-test-generator repository
-        blocked_ips = [f"12.8.{a}.{b}" for a in range(100) for b in range(125)]
+    def setup_scenario(self, blocked_ip_count: int = 12500, blocked_user_count: int = 2500) -> None:
+        blocked_ips = [
+            f"12.{8 + value // 65536}.{(value // 256) % 256}.{value % 256}" for value in range(blocked_ip_count)
+        ]
+        denylist_counts = f"{blocked_ip_count}:{blocked_user_count}"
 
-        if BaseFullDenyListTest.states is None:
+        if denylist_counts not in self.states_by_denylist_counts:
             config = {
                 "rules_data": [
                     {
@@ -62,7 +63,9 @@ class BaseFullDenyListTest:
                     {
                         "id": "blocked_users",
                         "type": "data_with_expiration",
-                        "data": [{"value": str(value), "expiration": 9999999999} for value in range(2500)],
+                        "data": [
+                            {"value": str(value), "expiration": 9999999999} for value in range(blocked_user_count)
+                        ],
                     },
                 ]
             }
@@ -70,10 +73,10 @@ class BaseFullDenyListTest:
             rc_state = remote_config.tracer_rc_state
             rc_state.set_config("datadog/2/ASM_DATA/ASM_DATA-base/config", config)
 
-            BaseFullDenyListTest.states = rc_state.apply()
+            self.states_by_denylist_counts[denylist_counts] = rc_state.apply()
 
-        self.states = BaseFullDenyListTest.states
-        self.blocked_ips = [blocked_ips[0], blocked_ips[2500], blocked_ips[-1]]
+        self.states = self.states_by_denylist_counts[denylist_counts]
+        self.blocked_ips = [blocked_ips[0], blocked_ips[-1]]
 
     def assert_protocol_is_respected(self) -> None:
         assert self.states is not None

@@ -2,32 +2,39 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+import os
+
 from utils import weblog, interfaces, rfc, scenarios, features
 
 from .utils import BaseFullDenyListTest
+
+BLOCKED_IP_COUNT = int(os.environ.get("SYSTEM_TESTS_BLOCKED_IPS_COUNT", "12500"))
+BLOCKED_USER_COUNT = int(os.environ.get("SYSTEM_TESTS_BLOCKED_USERS_COUNT", "2500"))
+assert 1 <= BLOCKED_IP_COUNT <= 100000
+assert 0 <= BLOCKED_USER_COUNT <= 2500
 
 
 @rfc("https://docs.google.com/document/d/1GUd8p7HBp9gP0a6PZmDY26dpGrS1Ztef9OYdbK3Vq3M/edit")
 @features.appsec_client_ip_blocking
 @scenarios.appsec_blocking_full_denylist
 class Test_AppSecIPBlockingFullDenylist(BaseFullDenyListTest):
-    """A library should block requests from up to 2500 different blocked IP addresses."""
+    """A library should ingest a large IP denylist without truncating its final entries."""
 
-    def setup_blocked_ips(self):
+    def setup_blocked_ips(self) -> None:
         not_blocked_ip = "42.42.42.3"
 
-        self.setup_scenario()
+        self.setup_scenario(BLOCKED_IP_COUNT, BLOCKED_USER_COUNT)
 
         self.not_blocked_request = weblog.get(headers={"X-Forwarded-For": not_blocked_ip})
-        self.blocked_requests = [weblog.get(headers={"X-Forwarded-For": ip}) for ip in self.blocked_ips]
+        self.blocked_requests = [(ip, weblog.get(headers={"X-Forwarded-For": ip})) for ip in self.blocked_ips]
 
-    def test_blocked_ips(self):
+    def test_blocked_ips(self) -> None:
         """Test blocked ips are enforced"""
 
         self.assert_protocol_is_respected()
 
-        for r in self.blocked_requests:
-            assert r.status_code == 403
+        for ip, r in self.blocked_requests:
+            assert r.status_code == 403, f"IP {ip} was not blocked"
             interfaces.library.assert_waf_attack(r, rule="blk-001-001")
 
         assert self.not_blocked_request.status_code == 200
