@@ -9,7 +9,7 @@ from utils.docker_fixtures.spec.trace import SAMPLING_PRIORITY_KEY, find_trace
 from utils.docker_fixtures.spec.tracecontext import Tracestate, get_tracecontext
 
 from .conftest import APMLibrary
-from tests.otel._tracestate_sampling import (
+from tests.otel.utils import (
     FORWARD_RV,
     FORWARD_TH,
     FORWARD_TRACE_ID,

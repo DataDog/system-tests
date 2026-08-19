@@ -9,7 +9,7 @@ See APMAPI-2171. Landed disabled for every tracer (manifests/*.yml); each tracer
 
 import json
 
-from tests.otel._tracestate_sampling import (
+from tests.otel.utils import (
     FORWARD_RV,
     FORWARD_TH,
     FORWARD_TRACE_ID,

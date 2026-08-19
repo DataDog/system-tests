@@ -6,7 +6,7 @@ import base64
 import binascii
 import re
 
-from tests.otel._tracestate_sampling import FORWARD_RV, FORWARD_TH, FORWARD_TRACE_ID
+from tests.otel.utils import FORWARD_RV, FORWARD_TH, FORWARD_TRACE_ID
 from utils import context, features, interfaces, scenarios, weblog
 from utils._context._scenarios.endtoend import EndToEndScenario
 from utils.dd_constants import SpanKind, StatusCode
