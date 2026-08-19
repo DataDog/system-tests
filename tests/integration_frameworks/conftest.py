@@ -1,5 +1,5 @@
 from collections.abc import Generator
-
+from typing import Any
 import pytest
 
 from utils.docker_fixtures import (
@@ -10,16 +10,15 @@ from utils.docker_fixtures import (
 from utils import context, scenarios, logger
 
 
-def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:
-    """Mark all integration_frameworks tests as xfail when generating cassettes."""
-    if config.option.generate_cassettes:
-        for item in items:
-            item.add_marker(
-                pytest.mark.xfail(
-                    reason="Generating cassettes - test assertions are not evaluated",
-                    strict=False,
-                )
-            )
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo) -> Generator[None, Any, None]:
+    """When generating cassettes, don't let setup/assertion failures fail the run."""
+    outcome = yield
+    if item.config.option.generate_cassettes and call.when in ("setup", "call") and call.excinfo is not None:
+        report = outcome.get_result()
+        report.outcome = "skipped"
+        current_filename, lineno, _ = item.location
+        report.longrepr = (current_filename, lineno, "Generating cassettes - test assertions are not evaluated")
 
 
 @pytest.fixture
