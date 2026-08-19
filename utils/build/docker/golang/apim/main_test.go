@@ -620,6 +620,83 @@ func TestFailClosedOnNegativeAllowedBodySize(t *testing.T) {
 	})
 }
 
+// TestUpstreamRedirectIsForwardedNotFollowed pins the proxy invariant that a 3xx from the upstream
+// is handed back to the client verbatim. Following it would hide the redirect from the client and,
+// on a 301/302/303, rewrite the proxied POST into a GET against a location the client never chose.
+func TestUpstreamRedirectIsForwardedNotFollowed(t *testing.T) {
+	callout := newScriptedCallout(t, []calloutStep{
+		{phase: "<RequestHeaders>", response: `{"request-id":"request-123"}`},
+		{phase: "<ResponseHeaders>", requestID: fixtureRequestID, response: `{}`},
+	})
+
+	var upstreamCalls atomic.Int32
+	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		upstreamCalls.Add(1)
+		if r.URL.Path == "/elsewhere" {
+			w.WriteHeader(http.StatusOK)
+			_, _ = io.WriteString(w, "followed")
+			return
+		}
+		http.Redirect(w, r, "/elsewhere", http.StatusFound)
+	}))
+	t.Cleanup(upstream.Close)
+
+	gateway := newTestGateway(callout.URL, upstream.URL, io.Discard)
+	recorder := httptest.NewRecorder()
+	gateway.ServeHTTP(recorder, httptest.NewRequest(http.MethodPost, "http://example.test:7777/", strings.NewReader("payload")))
+
+	if got := recorder.Code; got != http.StatusFound {
+		t.Fatalf("status = %d, want %d (the redirect must be forwarded, not followed)", got, http.StatusFound)
+	}
+	if got := recorder.Header().Get("Location"); got != "/elsewhere" {
+		t.Errorf("Location = %q, want /elsewhere", got)
+	}
+	if got := upstreamCalls.Load(); got != 1 {
+		t.Errorf("upstream calls = %d, want 1 (a followed redirect would call twice)", got)
+	}
+}
+
+// TestCalloutRedirectFailsClosed pins that a 3xx from the callout is treated as the non-2xx it is.
+// If the client followed it, a redirect to an endpoint answering 200 with a well-formed callout
+// body would be accepted as a real decision, bypassing the non-2xx guard entirely.
+func TestCalloutRedirectFailsClosed(t *testing.T) {
+	var calloutCalls atomic.Int32
+	callout := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		calloutCalls.Add(1)
+		if r.URL.Path == "/elsewhere" {
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = io.WriteString(w, `{"request-id":"request-123"}`)
+			return
+		}
+		http.Redirect(w, r, "/elsewhere", http.StatusFound)
+	}))
+	t.Cleanup(callout.Close)
+
+	var upstreamCalls atomic.Int32
+	upstream := httptest.NewServer(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {
+		upstreamCalls.Add(1)
+	}))
+	t.Cleanup(upstream.Close)
+
+	var logs bytes.Buffer
+	gateway := newTestGateway(callout.URL, upstream.URL, &logs)
+	recorder := httptest.NewRecorder()
+	gateway.ServeHTTP(recorder, httptest.NewRequest(http.MethodGet, "http://example.test:7777/", nil))
+
+	if got := recorder.Code; got != http.StatusBadGateway {
+		t.Fatalf("status = %d, want %d", got, http.StatusBadGateway)
+	}
+	if got := calloutCalls.Load(); got != 1 {
+		t.Errorf("callout calls = %d, want 1 (the redirect must not be followed into an accepted 200)", got)
+	}
+	if got := upstreamCalls.Load(); got != 0 {
+		t.Errorf("upstream calls = %d, want 0", got)
+	}
+	assertLogPrefixes(t, logs.String(), []string{
+		`apim-gateway callout phase=<RequestHeaders> request-id="" path="/" outcome=error error="callout returned 302`,
+	})
+}
+
 func closedListenerAddress(t *testing.T) string {
 	t.Helper()
 	listener, err := net.Listen("tcp", "127.0.0.1:0")

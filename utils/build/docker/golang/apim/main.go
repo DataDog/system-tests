@@ -92,10 +92,18 @@ func newGateway() *gateway {
 	return &gateway{
 		calloutURL:     calloutEndpoint,
 		upstreamURL:    upstreamEndpoint,
-		calloutClient:  &http.Client{Timeout: calloutTimeout},
-		upstreamClient: &http.Client{Timeout: upstreamTimeout},
+		calloutClient:  &http.Client{Timeout: calloutTimeout, CheckRedirect: noRedirect},
+		upstreamClient: &http.Client{Timeout: upstreamTimeout, CheckRedirect: noRedirect},
 		stderr:         os.Stderr,
 	}
+}
+
+// noRedirect makes a client hand a 3xx back to its caller instead of following it. A gateway must
+// forward the upstream's redirect verbatim rather than resolving it (following also rewrites a POST
+// into a GET on a 301/302/303), and the callout client must treat a 3xx as the non-2xx it is
+// instead of silently following it into an accepted 200.
+func noRedirect(*http.Request, []*http.Request) error {
+	return http.ErrUseLastResponse
 }
 
 func (g *gateway) ServeHTTP(w http.ResponseWriter, r *http.Request) {
