@@ -105,6 +105,7 @@ refs:
   - &ref_6_7_0 '>=6.7.0 || ^5.118.0'
   - &ref_6_8_0 '>=6.8.0 || ^5.119.0'
   - &ref_6_10_0 '>=6.10.0 || ^5.121.0'
+  - &ref_7_0_0 '>=7.0.0-pre'
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag:
     - weblog_declaration:
@@ -1793,6 +1794,8 @@ manifest:
     - weblog_declaration:
         "*": incomplete_test_app
         express4: *ref_5_77_0
+  tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Direct: *ref_7_0_0
+  tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Sidecar: *ref_7_0_0
   tests/ffe/test_exposures_datadog_agent.py:
     - weblog_declaration:
         "*": incomplete_test_app

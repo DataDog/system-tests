@@ -8,7 +8,7 @@ from tests.ffe.utils.exposures import (
     wait_for_exposure_event,
 )
 from tests.ffe.utils.fixtures import make_ufc_fixture
-from utils import context, features, interfaces, remote_config as rc, scenarios, weblog
+from utils import context, features, interfaces, remote_config as rc, scenarios, slow, weblog
 from utils._context._scenarios.agentless_endtoend import FeatureFlaggingAgentlessEndToEndScenario
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils.mocked_backend.ffe import EXPECTED_API_KEY
@@ -83,6 +83,7 @@ class ExposureEgressContract:
             targeting_key=self.targeting_key,
         )
 
+    @slow
     def test_exposure_egress(self) -> None:
         egress = exposure_egress()
         matching_requests = assert_exposure_side_effects_contract(
