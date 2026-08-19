@@ -10,9 +10,9 @@ See APMAPI-2171. Landed disabled for every tracer (manifests/*.yml); each tracer
 import json
 
 from tests.otel.utils import (
-    FORWARD_RV,
-    FORWARD_TH,
-    FORWARD_TRACE_ID,
+    FORWARD_RV as _FORWARD_RV,
+    FORWARD_TH as _FORWARD_TH,
+    FORWARD_TRACE_ID as _FORWARD_TRACE_ID,
     SAMPLING_RATE_0_5,
     TH_BY_RATE,
 )
@@ -104,6 +104,12 @@ class Test_EmitOtOnProbabilityDecision_Rate0_5(_EmitOtOnProbabilityDecisionBase)
     TRACE_IDS = SAMPLING_RATE_0_5
 
 
+# Trace ID and rv/th below match the RFC's own verified worked example (rate 0.1, trace ID 0xfff972474538efff).
+FORWARD_TRACE_ID = _FORWARD_TRACE_ID
+FORWARD_RV = _FORWARD_RV
+FORWARD_TH = _FORWARD_TH
+
+
 @scenarios.default
 @features.w3c_headers_injection_and_extraction
 class Test_ForwardInboundOtUnchanged:
@@ -172,7 +178,6 @@ class Test_ForwardInboundOtUnchanged:
 @features.w3c_headers_injection_and_extraction
 class Test_ThOnlyDoesNotFabricateRv:
     """A2b: th alone is a valid OTel default-sampling decision (rv is only carried when the decision deviates
-
     from that default); DD must forward th unchanged and never fabricate a matching rv.
     """
 
@@ -264,6 +269,7 @@ class Test_PreserveDdAndOtherVendors:
         # an unrelated vendor member is opaque to DD: it must be forwarded byte-for-byte
         assert "congo" in tracestate, "unrelated vendor tracestate member was dropped"
         assert tracestate["congo"] == self.OTHER_VENDOR_VALUE, "unrelated vendor tracestate member was rewritten"
+
         assert "dd" in tracestate, "dd= tracestate member was dropped"
         assert "s:2" in tracestate["dd"].split(";"), "dd= sampling priority was lost while handling ot="
 
@@ -408,7 +414,7 @@ class Test_MalformedOtHandling:
         tracestate = _outbound_tracestate(req)
         assert "congo" in tracestate, "an unrelated vendor member was dropped while handling a malformed ot="
         assert tracestate["congo"] == self.OTHER_VENDOR_VALUE, "an unrelated vendor member was rewritten"
-        assert "dd" in tracestate, "dd= tracestate member was dropped while handling malformed ot="
+        assert "dd" in tracestate, "dd= tracestate member was dropped while handling a malformed ot="
         assert "ot" not in tracestate, "a malformed ot= must be cleared, not replaced by a freshly-derived one"
 
     def setup_malformed_th_only_treated_as_absent(self):

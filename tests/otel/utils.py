@@ -165,9 +165,6 @@ SAMPLING_RATE_0_99: list[SamplingVector] = [
     (83, "0028d980cf4f1c", False),
 ]
 
-# Trace ID and rv/th below match the RFC's own verified worked example (rate 0.1, trace ID 0xfff972474538efff).
-# Trace ID, rv and th match the RFC's own verified worked example (rate 0.1, trace ID 0xfff972474538efff),
-# also used in tests/test_otel_tracestate_sampling.py. rv only depends on the trace ID, not the sample rate.
 FORWARD_TRACE_ID = 18444899399302180863
 FORWARD_RV = "ef284ace7a91e1"
 FORWARD_TH = "e6666666666668"
