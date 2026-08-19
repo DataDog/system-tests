@@ -25,11 +25,13 @@ class TestParameterValue(BaseSourceTest):
     setup_source_post_reported = BaseSourceTest.setup_source_reported
 
     def test_source_post_reported(self):
+        assert self.requests["POST"].status_code == 200
         self.validate_request_reported(self.requests["POST"])
 
     setup_source_get_reported = BaseSourceTest.setup_source_reported
 
     def test_source_get_reported(self):
+        assert self.requests["GET"].status_code == 200
         self.validate_request_reported(self.requests["GET"], source_type="http.request.parameter")
 
     def test_telemetry_metric_instrumented_source(self):
