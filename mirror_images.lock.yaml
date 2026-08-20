@@ -98,10 +98,18 @@ images:
     digest: sha256:bc6089dc235abdb972965d004dc409c78636ba0b1e0f30b485057e10f2628e3b
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:django-poc.base-v11
     tag: django-poc.base-v11
+  datadog/system-tests:django-poc.base-v12:
+    digest: sha256:c00e74db03de9c9b25f0af00b67eb4844d8d36cd922eecba56bf5fb1393af0ff
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:django-poc.base-v12
+    tag: django-poc.base-v12
   datadog/system-tests:django-py3.13.base-v10:
     digest: sha256:3249e0d5df7b8c88f95a4dec4aee196ade0ac01b3f263a7162993c9a00ec892c
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:django-py3.13.base-v10
     tag: django-py3.13.base-v10
+  datadog/system-tests:django-py3.13.base-v11:
+    digest: sha256:b7753da4aa511b202d62e43f8bacbd2c2ab284afd22651565e02fae733959241
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:django-py3.13.base-v11
+    tag: django-py3.13.base-v11
   datadog/system-tests:express4-typescript.base-v1:
     digest: sha256:be33d685d24e57f478ece1258c722822c8fd496aef29abe409e1f9bbd63bb8a3
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:express4-typescript.base-v1
@@ -166,6 +174,10 @@ images:
     digest: sha256:d46c08ea596e8cd5576fc6cacf3c3dbdc77a5f8d9b3ecb92673155d15728554d
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:flask-poc.base-v14
     tag: flask-poc.base-v14
+  datadog/system-tests:flask-poc.base-v15:
+    digest: sha256:afe2c59f8ed741ea796214cc68819306b7e5fdf9a270df1375058786b543ad25
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:flask-poc.base-v15
+    tag: flask-poc.base-v15
   datadog/system-tests:golang_buddy-v2:
     digest: sha256:b567fa2e328f24c74aab600e8bf07362b4265ac508413a83e06afddb399bee80
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:golang_buddy-v2
@@ -238,6 +250,10 @@ images:
     digest: sha256:89bfdf492c920e5653ca8099301d6710d0bbdf7dc54129d788cbfad5aafa46da
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:python3.12.base-v13
     tag: python3.12.base-v13
+  datadog/system-tests:python3.12.base-v14:
+    digest: sha256:83725988f03f3ef18ca7b0974d8a7cadc3ffdc017e73b821dff58260886b040b
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:python3.12.base-v14
+    tag: python3.12.base-v14
   datadog/system-tests:python_buddy-v2:
     digest: sha256:abbd02d4495d83c66af12b5562ccca0077800cb920142375cd48dcfc8aeb1596
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:python_buddy-v2
@@ -254,6 +270,10 @@ images:
     digest: sha256:939106a94fa4a4d8a2a8038b7e25933bc00811dad2847441c07df0c228e81f39
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:uwsgi-poc.base-v10
     tag: uwsgi-poc.base-v10
+  datadog/system-tests:uwsgi-poc.base-v11:
+    digest: sha256:557ca8f363632dff0f382d2e93ed6f654400e82c147ae0b6728c7d444996b7d9
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:uwsgi-poc.base-v11
+    tag: uwsgi-poc.base-v11
   datadog/system-tests:uwsgi-poc.base-v9:
     digest: sha256:7c8fe35e132b686b584c1f06bdc296502e0ae3c4cdac1d77e1f6fbc4226f8d03
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:uwsgi-poc.base-v9
@@ -322,14 +342,14 @@ images:
     digest: sha256:63266a046d1cf5ebebb1461733ed7548148f122e0d422096e177cfa70b521cb1
     target: registry.ddbuild.io/system-tests/mirror/ghcr.io/oras-project/oras:v1.2.3
     tag: v1.2.3
-  golang:1.25:
-    digest: sha256:00feed335fe561979f2cdcc30a5191231977c5631fe79c40f7d3ab63b4fa222f
-    target: registry.ddbuild.io/system-tests/mirror/golang:1.25
-    tag: '1.25'
-  golang:1.25-alpine:
-    digest: sha256:89f71d90dff0d7f30316963b3c3b8bfe5fb96b94641b3258963ce0c7a21dedda
-    target: registry.ddbuild.io/system-tests/mirror/golang:1.25-alpine
-    tag: 1.25-alpine
+  golang:1.26:
+    digest: sha256:45a5f7a810238aabcbad211d70b9ae082022d96f7c7259e94041ad1b933575ac
+    target: registry.ddbuild.io/system-tests/mirror/golang:1.26
+    tag: '1.26'
+  golang:1.26-alpine:
+    digest: sha256:28d89ee9cc0ff9fec75c82ca201e6bf7fdf9a679d4b7b24dfa04f2bb766bb468
+    target: registry.ddbuild.io/system-tests/mirror/golang:1.26-alpine
+    tag: 1.26-alpine
   kong/kong-gateway:3.4:
     digest: sha256:195b1dedb78d9fa4976d089af9cc2573f6bb667b2b4be40e50d9e8cef85b4b58
     target: registry.ddbuild.io/system-tests/mirror/kong/kong-gateway:3.4
