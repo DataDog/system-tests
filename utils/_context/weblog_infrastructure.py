@@ -51,7 +51,7 @@ class EndToEndWeblogInfra(WeblogInfra):
     proxy runtime to apply AppSec rules and emit traces. This is the "weblog" from the library's
     point of view."""
 
-    _proxy_runtime_container: TestedContainer
+    _proxy_runtime_container: EnvoyContainer | HAProxyContainer | ApimGatewayContainer
     """the proxy runtime (Envoy, HAProxy or the APIM gateway) that sits in front of the
     dummy HTTP server and forwards requests through the processor. It is the actual HTTP
     entry point for test requests, exposing the weblog port to the test suite."""
