@@ -60,6 +60,7 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         echo: v2.7.0-dev  # Automatic with orchestrion, semi-manual without
+        uds-echo: v2.9.2  # TODO: a lower version might be supported
   tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_authentication: irrelevant (Not supported)
   tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_request_body_type: irrelevant (Not supported)
   tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_response_body_type: irrelevant (Not supported)
@@ -138,10 +139,42 @@ manifest:
   tests/appsec/iast/sink/test_hardcoded_secrets.py::Test_HardcodedSecrets_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_hardcoded_secrets.py::Test_HardcodedSecrets_StackTrace: missing_feature
   tests/appsec/iast/sink/test_header_injection.py::TestHeaderInjection: missing_feature
-  tests/appsec/iast/sink/test_header_injection.py::TestHeaderInjectionExclusionAccessControlAllow: missing_feature
-  tests/appsec/iast/sink/test_header_injection.py::TestHeaderInjectionExclusionContentEncoding: missing_feature
-  tests/appsec/iast/sink/test_header_injection.py::TestHeaderInjectionExclusionPragma: missing_feature
-  tests/appsec/iast/sink/test_header_injection.py::TestHeaderInjectionExclusionTransferEncoding: missing_feature
+  tests/appsec/iast/sink/test_header_injection.py::TestHeaderInjectionExclusionAccessControlAllow:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        envoy: '>=2.9.2'
+        haproxy: '>=2.9.2'
+  tests/appsec/iast/sink/test_header_injection.py::TestHeaderInjectionExclusionAccessControlAllow::test_no_exclusion:
+    - weblog_declaration:
+        envoy: missing_feature
+        haproxy: missing_feature
+  tests/appsec/iast/sink/test_header_injection.py::TestHeaderInjectionExclusionContentEncoding:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        envoy: '>=2.9.2'
+        haproxy: '>=2.9.2'
+  tests/appsec/iast/sink/test_header_injection.py::TestHeaderInjectionExclusionContentEncoding::test_no_exclusion:
+    - weblog_declaration:
+        envoy: missing_feature
+        haproxy: missing_feature
+  tests/appsec/iast/sink/test_header_injection.py::TestHeaderInjectionExclusionPragma:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        envoy: '>=2.9.2'
+        haproxy: '>=2.9.2'
+  tests/appsec/iast/sink/test_header_injection.py::TestHeaderInjectionExclusionPragma::test_no_exclusion:
+    - weblog_declaration:
+        envoy: missing_feature
+        haproxy: missing_feature
+  tests/appsec/iast/sink/test_header_injection.py::TestHeaderInjectionExclusionTransferEncoding:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        envoy: '>=2.9.2'
+        haproxy: '>=2.9.2'
+  tests/appsec/iast/sink/test_header_injection.py::TestHeaderInjectionExclusionTransferEncoding::test_no_exclusion:
+    - weblog_declaration:
+        envoy: missing_feature
+        haproxy: missing_feature
   tests/appsec/iast/sink/test_header_injection.py::TestHeaderInjection_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_header_injection.py::TestHeaderInjection_StackTrace: missing_feature
   tests/appsec/iast/sink/test_hsts_missing_header.py::Test_HstsMissingHeader: missing_feature
@@ -150,18 +183,78 @@ manifest:
   tests/appsec/iast/sink/test_insecure_auth_protocol.py::Test_InsecureAuthProtocol: missing_feature
   tests/appsec/iast/sink/test_insecure_auth_protocol.py::Test_InsecureAuthProtocol_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_insecure_auth_protocol.py::Test_InsecureAuthProtocol_StackTrace: missing_feature
-  tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookie: missing_feature
+  tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookie:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        envoy: '>=2.9.2'
+        haproxy: '>=2.9.2'
+  tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookie::test_insecure:
+    - weblog_declaration:
+        envoy: missing_feature
+        haproxy: missing_feature
+  tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookie::test_secure:
+    - weblog_declaration:
+        envoy: missing_feature
+        haproxy: missing_feature
+  tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookie::test_telemetry_metric_executed_sink:
+    - weblog_declaration:
+        envoy: missing_feature
+        haproxy: missing_feature
+  tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookie::test_telemetry_metric_instrumented_sink:
+    - weblog_declaration:
+        envoy: missing_feature
+        haproxy: missing_feature
   tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookieNameFilter: missing_feature
   tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookie_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookie_StackTrace: missing_feature
   tests/appsec/iast/sink/test_ldap_injection.py::TestLDAPInjection: missing_feature
   tests/appsec/iast/sink/test_ldap_injection.py::TestLDAPInjection_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_ldap_injection.py::TestLDAPInjection_StackTrace: missing_feature
-  tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookie: missing_feature
+  tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookie:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        envoy: '>=2.9.2'
+        haproxy: '>=2.9.2'
+  tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookie::test_insecure:
+    - weblog_declaration:
+        envoy: missing_feature
+        haproxy: missing_feature
+  tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookie::test_secure:
+    - weblog_declaration:
+        envoy: missing_feature
+        haproxy: missing_feature
+  tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookie::test_telemetry_metric_executed_sink:
+    - weblog_declaration:
+        envoy: missing_feature
+        haproxy: missing_feature
+  tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookie::test_telemetry_metric_instrumented_sink:
+    - weblog_declaration:
+        envoy: missing_feature
+        haproxy: missing_feature
   tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookieNameFilter: missing_feature
   tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookie_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookie_StackTrace: missing_feature
-  tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie: missing_feature
+  tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        envoy: '>=2.9.2'
+        haproxy: '>=2.9.2'
+  tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie::test_insecure:
+    - weblog_declaration:
+        envoy: missing_feature
+        haproxy: missing_feature
+  tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie::test_secure:
+    - weblog_declaration:
+        envoy: missing_feature
+        haproxy: missing_feature
+  tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie::test_telemetry_metric_executed_sink:
+    - weblog_declaration:
+        envoy: missing_feature
+        haproxy: missing_feature
+  tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie::test_telemetry_metric_instrumented_sink:
+    - weblog_declaration:
+        envoy: missing_feature
+        haproxy: missing_feature
   tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookieNameFilter: missing_feature
   tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie_StackTrace: missing_feature
@@ -505,7 +598,15 @@ manifest:
         uds-echo: missing_feature
         chi: missing_feature
         net-http-orchestrion: missing_feature
-  tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_APMDisabledMarker: missing_feature
+  tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_APMDisabledMarker:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        net-http-orchestrion: '>=2.9.2'
+        uds-echo: '>=2.9.2'
+        gin: '>=2.9.2'
+        net-http: '>=2.9.2'
+        echo: '>=2.9.2'
+        chi: '>=2.9.2'
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_NotEnabled:
     - weblog_declaration:
         envoy: missing_feature
@@ -530,7 +631,35 @@ manifest:
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Anon: irrelevant (Go only supports SDK events)
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Blocking: irrelevant (Go only supports SDK events)
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_RC: irrelevant (Go only supports SDK events)
-  tests/appsec/test_automated_payment_events.py: missing_feature
+  tests/appsec/test_automated_payment_events.py:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        envoy: '>=2.9.2'
+        haproxy: '>=2.9.2'
+  tests/appsec/test_automated_payment_events.py::Test_Automated_Payment_Events_Stripe_Default_Rules::test_checkout_session:
+    - weblog_declaration:
+        envoy: missing_feature
+        haproxy: missing_feature
+  tests/appsec/test_automated_payment_events.py::Test_Automated_Payment_Events_Stripe_Default_Rules::test_payment_cancellation:
+    - weblog_declaration:
+        envoy: missing_feature
+        haproxy: missing_feature
+  tests/appsec/test_automated_payment_events.py::Test_Automated_Payment_Events_Stripe_Default_Rules::test_payment_failure:
+    - weblog_declaration:
+        envoy: missing_feature
+        haproxy: missing_feature
+  tests/appsec/test_automated_payment_events.py::Test_Automated_Payment_Events_Stripe_Default_Rules::test_payment_intent:
+    - weblog_declaration:
+        envoy: missing_feature
+        haproxy: missing_feature
+  tests/appsec/test_automated_payment_events.py::Test_Automated_Payment_Events_Stripe_Default_Rules::test_payment_success:
+    - weblog_declaration:
+        envoy: missing_feature
+        haproxy: missing_feature
+  tests/appsec/test_automated_payment_events.py::Test_Automated_Payment_Events_Stripe_Default_Rules::test_wrong_signature:
+    - weblog_declaration:
+        envoy: missing_feature
+        haproxy: missing_feature
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_Session_Blocking: irrelevant (Go only supports SDK events)
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Blocking: irrelevant (Go only supports SDK events)
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Tracking: irrelevant (Go only supports SDK events)
@@ -644,14 +773,24 @@ manifest:
     - weblog_declaration:
         "*": v2.3.0-dev
         net-http-orchestrion: v2.5.0  # Modified by easy win activation script
-        envoy: missing_feature (can't test with set tag)
-        haproxy: missing_feature (can't test with set tag)
+        envoy: v2.9.2  # TODO: a lower version might be supported
+        haproxy: v2.9.2  # TODO: a lower version might be supported
   tests/appsec/test_blocking_addresses.py::Test_Suspicious_Request_Blocking::test_blocking:  # Created by easy win activation script
     - weblog_declaration:
         net-http-orchestrion: missing_feature (path params are not supported)
+    - weblog_declaration:
+        envoy: missing_feature (can't test with set tag)
+        haproxy: missing_feature (can't test with set tag)
   tests/appsec/test_blocking_addresses.py::Test_Suspicious_Request_Blocking::test_blocking_before:  # Created by easy win activation script
     - weblog_declaration:
         net-http-orchestrion: missing_feature (path params are not supported)
+    - weblog_declaration:
+        envoy: missing_feature (can't test with set tag)
+        haproxy: missing_feature (can't test with set tag)
+  tests/appsec/test_blocking_addresses.py::Test_Suspicious_Request_Blocking::test_blocking_before_without_path_params:
+    - weblog_declaration:
+        envoy: missing_feature (can't test with set tag)
+        haproxy: missing_feature (can't test with set tag)
   tests/appsec/test_client_ip.py:
     - weblog_declaration:
         envoy: v1.72.0
@@ -683,8 +822,12 @@ manifest:
   tests/appsec/test_event_tracking.py::Test_UserLoginSuccessEvent:
     - weblog_declaration:
         "*": v1.47.0
-        haproxy: missing_feature
+        haproxy: v2.9.2  # TODO: a lower version might be supported
+        envoy: v2.9.2  # TODO: a lower version might be supported
+  tests/appsec/test_event_tracking.py::Test_UserLoginSuccessEvent::test_user_login_success_event:
+    - weblog_declaration:
         envoy: missing_feature
+        haproxy: missing_feature
   tests/appsec/test_event_tracking.py::Test_UserLoginSuccessEvent_Metrics: v2.1.0-dev
   tests/appsec/test_event_tracking.py::Test_UserLoginSuccessEvent_Metrics::test_user_login_success_event:
     - weblog_declaration:
@@ -1896,6 +2039,8 @@ manifest:
         net-http: v2.4.0
         net-http-orchestrion: v2.4.0
         net-http-span-pool: v2.4.0
+        envoy: v2.9.2  # TODO: a lower version might be supported
+        haproxy: v2.9.2  # TODO: a lower version might be supported
   tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)
   tests/test_sampling_manual.py::Test_Manual_Sampling: v2.4.0  # before 2.4, the manual tags could not override an extracted decision
   tests/test_sampling_rate_capping.py::Test_SamplingRateCappedIncrease: v2.7.0-dev
