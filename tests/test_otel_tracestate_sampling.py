@@ -278,9 +278,8 @@ class Test_PreserveDdAndOtherVendors:
 class Test_ForceKeepClearsTh:
     """A4: a non-probability (force-keep) decision erases th but still forwards an inherited rv.
 
-    Modeled on the only existing e2e lever for a local, non-probability keep decision: an ASM /waf attack
-    detection (tests/appsec/test_traces.py::Test_RetainTraces). There is no dedicated manual-keep/drop
-    weblog endpoint today (tracked as a follow-up).
+    The manual-keep endpoint applies the decision before making its downstream request, whose propagated
+    headers are returned in the response.
     """
 
     INHERITED_RV = "1234567890abcd"
@@ -293,9 +292,8 @@ class Test_ForceKeepClearsTh:
 
     def setup_force_keep_with_no_inbound_ot(self):
         self.no_ot_request = weblog.get(
-            "/make_distant_call",
-            params={"url": "http://weblog:7777"},
-            headers={"User-Agent": "Arachni/v1"},
+            "/trace/manual_keep_drop",
+            params={"decision": "keep"},
         )
 
     def test_force_keep_with_no_inbound_ot(self):
@@ -310,12 +308,11 @@ class Test_ForceKeepClearsTh:
 
     def setup_force_keep_forwards_inherited_rv(self):
         self.rv_only_request = weblog.get(
-            "/make_distant_call",
-            params={"url": "http://weblog:7777"},
+            "/trace/manual_keep_drop",
+            params={"decision": "keep"},
             headers={
                 "traceparent": _traceparent(FORWARD_TRACE_ID, sampled=False),
                 "tracestate": f"ot=rv:{self.INHERITED_RV}",
-                "User-Agent": "Arachni/v1",
             },
         )
 
@@ -333,12 +330,11 @@ class Test_ForceKeepClearsTh:
 
     def setup_force_keep_overrides_inherited_drop_decision(self):
         self.dropped_request = weblog.get(
-            "/make_distant_call",
-            params={"url": "http://weblog:7777"},
+            "/trace/manual_keep_drop",
+            params={"decision": "keep"},
             headers={
                 "traceparent": _traceparent(self.DROPPED_TRACE_ID, sampled=False),
                 "tracestate": f"ot=rv:{self.DROPPED_RV};th:{self.DROPPED_TH}",
-                "User-Agent": "Arachni/v1",
             },
         )
 
