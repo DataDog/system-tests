@@ -116,8 +116,6 @@ patterns:
         scenario_groups: null
     .shellcheckrc:
         scenario_groups: null
-    .vscode/settings.json:
-        scenario_groups: null
     .yamlfmt:
         scenario_groups: null
     .yamllint:
