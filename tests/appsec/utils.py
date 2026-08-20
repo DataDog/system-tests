@@ -6,7 +6,7 @@ from utils import remote_config
 from utils.dd_constants import RemoteConfigApplyState
 from utils.dd_types import DataDogLibrarySpan
 
-BLOCKED_IPS_COUNT_ENV_VAR = "SYSTEM_TESTS_BLOCKED_IPS_COUNT"
+BLOCKED_IPS_COUNT_ENV_VAR = "_SYSTEM_TESTS_BLOCKED_IPS_COUNT"
 DEFAULT_BLOCKED_IPS_COUNT = 12500
 # _blocked_ip() lays the denylist out over 12.8.0.0-12.9.255.255, using the second octet as an
 # overflow digit for the two low ones. That range holds 2 * 65536 = 131072 addresses, so raising
@@ -51,7 +51,12 @@ def find_configuration() -> Generator:
 
 
 def _get_blocked_ips_count() -> int:
-    """Size of the IP denylist sent through remote config, overridable to probe other library limits."""
+    """Size of the IP denylist sent through remote config.
+
+    `_SYSTEM_TESTS_BLOCKED_IPS_COUNT` overrides it, to probe by hand where a library starts
+    truncating the denylist. It is deliberately private and undocumented: it is an ad-hoc
+    debugging knob for this scenario, not a system-tests option.
+    """
     raw_count = os.environ.get(BLOCKED_IPS_COUNT_ENV_VAR, str(DEFAULT_BLOCKED_IPS_COUNT))
 
     try:
