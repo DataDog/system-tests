@@ -6,7 +6,7 @@ tracer.use('express', false)
 tracer.use('http', false)
 tracer.use('dns', false)
 
-const { MANUAL_KEEP, MANUAL_DROP } = require('dd-trace/ext')
+const { tags: { MANUAL_KEEP, MANUAL_DROP } } = require('dd-trace/ext')
 const SpanContext = require('dd-trace/packages/dd-trace/src/opentracing/span_context')
 const OtelSpanContext = require('dd-trace/packages/dd-trace/src/opentelemetry/span_context')
 
@@ -509,8 +509,23 @@ app.post("/trace/otel/otel_set_baggage", (req, res) => {
 
 // Feature Flag & Experimentation endpoints
 app.post('/ffe/start', async (req, res) => {
-  const { openfeature } = tracer
-  await OpenFeature.setProviderAndWait(openfeature)
+  const hasFeatureFlaggingConfiguration = [
+    'DD_FEATURE_FLAGS_ENABLED',
+    'DD_FEATURE_FLAGS_CONFIGURATION_SOURCE',
+    'DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL',
+    'DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED'
+  ].some(name => process.env[name] !== undefined)
+
+  if (hasFeatureFlaggingConfiguration) {
+    try {
+      const { openfeature } = tracer
+      await OpenFeature.setProviderAndWait(openfeature)
+    } catch {
+      openFeatureClient = OpenFeature.getClient()
+      res.status(500).json({})
+      return
+    }
+  }
   openFeatureClient = OpenFeature.getClient()
   res.json({})
 })

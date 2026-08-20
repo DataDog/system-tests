@@ -1,6 +1,6 @@
 from collections.abc import Callable
+from pathlib import Path
 import socket
-import os
 import subprocess
 
 from fabric.api import env
@@ -22,7 +22,7 @@ class VagrantProvider(VmProvider):
         self.vagrant_machine = None
         self.commander = VagrantCommander()
 
-    def stack_up(self):
+    def stack_up(self) -> None:
         logger.stdout(f"--------- Starting Vagrant VM: {self.vm.name} -----------")
         log_cm = vagrant.make_file_cm(f"{context.scenario.host_log_folder}/virtual_machine_{self.name}.log")
         self.vagrant_machine = vagrant.Vagrant(root=context.scenario.host_log_folder, out_cm=log_cm, err_cm=log_cm)
@@ -56,7 +56,7 @@ class VagrantProvider(VmProvider):
         # qe.extra_qemu_args = %w(-accel tcg,thread=multi,tb-size=512)
         extra_config = ""
         if vm.os_cpu == "amd64":
-            extra_config = f"""
+            extra_config = """
                 qe.arch="x86_64"
                 qe.machine = "q35"
                 qe.cpu = "max"
@@ -88,7 +88,7 @@ class VagrantProvider(VmProvider):
         s.close()
         return port
 
-    def stack_destroy(self):
+    def stack_destroy(self) -> None:
         logger.info(f"Destroying VM: {self.vm}")
 
         self.vagrant_machine.destroy()
@@ -97,27 +97,27 @@ class VagrantProvider(VmProvider):
 class VagrantCommander(Commander):
     def execute_local_command(
         self,
-        local_command_id: str,
+        local_command_id: str,  # noqa: ARG002
         local_command: str,
         env: dict[str, str],
         last_task: pulumi_command.remote.Command,
         logger_name: str,
-    ):
+    ) -> pulumi_command.remote.Command:
         logger.info(f"Vagrant: Execute local command: {local_command}")
 
-        result = subprocess.run(local_command.split(" "), stdout=subprocess.PIPE, env=env)
+        result = subprocess.run(local_command.split(" "), check=False, stdout=subprocess.PIPE, env=env)
         vm_logger(context.scenario.host_log_folder, logger_name).info(result.stdout)
         return last_task
 
     def copy_file(
         self,
-        id: str,
+        copy_id: str,  # noqa: ARG002
         local_path: str,
         remote_path: str,
         connection: pulumi_command.remote.ConnectionArgs,
         last_task: pulumi_command.remote.Command,
-        vm: _VirtualMachine | None = None,
-    ):
+        vm: _VirtualMachine | None = None,  # noqa: ARG002
+    ) -> pulumi_command.remote.Command:
         SCPClient(connection.get_transport()).put(local_path, remote_path)
         return last_task
 
@@ -132,8 +132,8 @@ class VagrantCommander(Commander):
         logger_name: str | None = None,
         output_callback: Callable | None = None,
         *,
-        populate_env: bool = True,
-    ):
+        populate_env: bool = True,  # noqa: ARG002
+    ) -> pulumi_command.remote.Command:
         logger.debug(f"Running remote-command with installation id: {installation_id}")
 
         # Workaround with env variables and paramiko :-(
@@ -142,7 +142,7 @@ class VagrantCommander(Commander):
             export_command += f"export {key}={value} \n "
 
         # Run the command
-        _, stdout, stderr = connection.exec_command(export_command + remote_command)
+        _, stdout, _stderr = connection.exec_command(export_command + remote_command)
 
         # Only combine the error output when we don't have output_callback
         if not output_callback:
@@ -161,7 +161,8 @@ class VagrantCommander(Commander):
             # same remote machine in the same log file
             header = "*****************************************************************"
             vm_logger(context.scenario.host_log_folder, vm.name).info(
-                f"{header} \n  - COMMAND: {installation_id} \n {header} \n {remote_command} \n\n {header} \n COMMAND OUTPUT \n\n {header} \n {command_output}"
+                f"{header} \n  - COMMAND: {installation_id} \n {header} \n {remote_command} \n\n "
+                f"{header} \n COMMAND OUTPUT \n\n {header} \n {command_output}"
             )
 
         if output_callback:
@@ -173,13 +174,13 @@ class VagrantCommander(Commander):
         self,
         source_folder: str,
         destination_folder: str,
-        command_id: str,
+        command_id: str,  # noqa: ARG002
         connection: pulumi_command.remote.ConnectionArgs,
-        depends_on: pulumi_command.remote.Command,
+        depends_on: pulumi_command.remote.Command,  # noqa: ARG002
         *,
-        relative_path: bool = False,
-        vm: _VirtualMachine = None,
-    ):
+        relative_path: bool = False,  # noqa: ARG002
+        vm: _VirtualMachine | None = None,  # noqa: ARG002
+    ) -> None:
         if not source_folder.endswith("/"):
             source_folder = source_folder + "/"
 
@@ -192,23 +193,23 @@ class VagrantCommander(Commander):
 
 
 class MySFTPClient(paramiko.SFTPClient):
-    def put_dir(self, source: str, target: str):
+    def put_dir(self, source: str, target: str) -> None:
         """Uploads the contents of the source directory to the target path. The
         target directory needs to exists. All subdirectories in source are
         created under target.
         """
-        for item in os.listdir(source):
-            if os.path.isfile(os.path.join(source, item)):
-                self.put(os.path.join(source, item), "%s/%s" % (target, item))
+        for item in Path(source).iterdir():
+            if item.is_file():
+                self.put(str(item), f"{target}/{item.name}")
             else:
-                self.mkdir("%s/%s" % (target, item), ignore_existing=True)
-                self.put_dir(os.path.join(source, item), "%s/%s" % (target, item))
+                self.mkdir(f"{target}/{item.name}", ignore_existing=True)
+                self.put_dir(str(item), f"{target}/{item.name}")
 
-    def mkdir(self, path: str, mode: int = 511, *, ignore_existing: bool = False):
+    def mkdir(self, path: str, mode: int = 511, *, ignore_existing: bool = False) -> None:
         """Augments mkdir by adding an option to not fail if the folder exists"""
         try:
-            super(MySFTPClient, self).mkdir(path, mode)
-        except IOError:
+            super().mkdir(path, mode)
+        except OSError:
             if ignore_existing:
                 pass
             else:

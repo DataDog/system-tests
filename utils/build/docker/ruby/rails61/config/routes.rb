@@ -22,6 +22,7 @@ Rails.application.routes.draw do
   get '/params/:value' => 'system_test#handle_path_params'
   get '/spans' => 'system_test#generate_spans'
   get '/status' => 'system_test#status'
+  get '/trace/manual_keep_drop' => 'system_test#trace_manual_keep_drop'
   get '/make_distant_call' => 'system_test#make_distant_call'
 
   get '/headers' => 'system_test#test_headers'

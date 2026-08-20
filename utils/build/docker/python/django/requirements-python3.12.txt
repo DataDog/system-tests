@@ -1,7 +1,7 @@
 django==5.2.4
 pycryptodome==3.23.0
 gunicorn==23.0.0
-gevent==25.5.1
+gevent==26.8.0
 requests==2.32.4
 httpx==0.28.1
 boto3==1.34.141

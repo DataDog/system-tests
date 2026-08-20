@@ -85,3 +85,52 @@ class Test_BuildPipeline:
         for key in ("workflow:", "stages:", "include:"):
             count = len(re.findall(rf"^{re.escape(key)}", text, re.MULTILINE))
             assert count <= 1, f"duplicate top-level key '{key}' found {count} times"
+
+    def test_c_pipeline_renders_three_scenarios_and_package_artifact(self, tmp_path: Path) -> None:
+        params = {
+            "endtoend_defs": {
+                "parallel_weblogs": [{"name": "perl-mojolicious"}],
+                "parallel_jobs": [
+                    {
+                        "weblog": "perl-mojolicious",
+                        "scenarios": ["DEFAULT", "SAMPLING", "IPV6"],
+                        "weblog_build_required": True,
+                    }
+                ],
+            },
+            "miscs": {"binaries_artifact": ""},
+            "parametric": {"enable": False, "parallel_jobs": []},
+        }
+        (tmp_path / "params_c.json").write_text(json.dumps(params))
+        out = tmp_path / "out"
+
+        build(
+            ["c"],
+            tmp_path,
+            out,
+            stage="e2e",
+            ci_image="myimage",
+            chunks=1,
+            binaries_artifacts="system_tests_package_refs",
+            binaries_artifact_path="system-tests-binaries",
+        )
+
+        pipeline = yaml.safe_load((out / "generated-pipeline-chunk-0.yml").read_text())
+        expected_run_jobs = {
+            f"system_tests_run_c_{scenario}_perl-mojolicious" for scenario in ("DEFAULT", "SAMPLING", "IPV6")
+        }
+        assert expected_run_jobs <= pipeline.keys()
+
+        build_job = pipeline["system_tests_build_c_perl-mojolicious"]
+        assert build_job["extends"] == ".system_tests_base"
+        assert build_job["needs"] == [
+            {
+                "job": "system_tests_package_refs",
+                "artifacts": True,
+                "pipeline": "$UPSTREAM_PIPELINE_ID",
+            }
+        ]
+        assert any("system-tests-binaries/." in command for command in build_job["script"])
+
+        for job_name in expected_run_jobs:
+            assert ".system_tests_base" in pipeline[job_name]["extends"]

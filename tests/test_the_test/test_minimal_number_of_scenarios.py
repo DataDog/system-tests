@@ -30,6 +30,12 @@ FAILED tests/appsec/test_suspicious_attacker_blocking.py::Test_Suspicious_Attack
     # If merge into REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD that is identical to this scenario,
     # test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDD::test_tracer_update_sequence will fail
     ("APPSEC_BLOCKING_FULL_DENYLIST", "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD"): "Incompatible test sequence",
+    # AI_GUARD_REDACTION_TELEMETRY is deliberately configured exactly like AI_GUARD: what it needs
+    # is not a different weblog, it is an empty one. Test_AIGuardTelemetryRedacted asserts exact
+    # counts on the ai_guard.requests metric, which is not request-scoped, so those counts only
+    # hold while it is the sole class posting evaluations into the scenario. Merging it into
+    # AI_GUARD, where 40+ tests each post their own evaluation, makes the metric uncountable.
+    ("AI_GUARD", "AI_GUARD_REDACTION_TELEMETRY"): "Exact telemetry counts need a scenario with no other evaluations",
     ("APPSEC_REQUEST_BLOCKING", "APPSEC_BLOCKING_FULL_DENYLIST"): "TODO",
     ("APPSEC_REQUEST_BLOCKING", "APPSEC_RUNTIME_ACTIVATION"): "TODO",
     ("APPSEC_RUNTIME_ACTIVATION", "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD"): "TODO",

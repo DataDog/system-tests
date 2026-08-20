@@ -135,5 +135,22 @@ module.exports = {
       })
       return 'Capture limits probe' // This needs to be line 136
     })
+
+    fastify.get('/debugger/snapshot/capture-timeout', async (request, reply) => {
+      const collectionSize = parseInt(request.query.collectionSize, 10) || 0
+      const nestingDepth = parseInt(request.query.nestingDepth, 10) || 0
+      return captureTimeoutFixture(collectionSize, nestingDepth)
+    })
   }
+}
+
+function captureTimeoutFixture (collectionSize, nestingDepth) {
+  const largeCollection = Array.from({ length: collectionSize }, (_, index) => {
+    let nested = { value: index }
+    for (let level = nestingDepth; level > 0; level--) {
+      nested = { level, nested }
+    }
+    return nested
+  })
+  return 'Capture timeout probe' // This needs to be line 155
 }

@@ -48,6 +48,8 @@ func main() {
 		w.Write([]byte("Hello world!\n"))
 	})
 
+	mux.HandleFunc("/trace/manual_keep_drop", common.ManualKeepDrop)
+
 	mux.HandleFunc("/healthcheck", func(w http.ResponseWriter, r *http.Request) {
 
 		healthCheck, err := common.GetHealtchCheck()

@@ -1,0 +1,1322 @@
+{
+  "NO_REDACT_ONE_MSG": {
+    "description": "A benign single message: no findings, no replacements, nothing changes.",
+    "action": "ALLOW",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Tell me a fun fact about the ocean."
+      }
+    ],
+    "replacements": [],
+    "expected_messages": [
+      {
+        "role": "user",
+        "content": "Tell me a fun fact about the ocean."
+      }
+    ],
+    "redacted": false,
+    "sensitive_values": [],
+    "retained_values": [],
+    "sds_findings": [],
+    "cassette": "aiguard_evaluate_post_f548d24a.json"
+  },
+  "NO_REDACT_TOOL_CALLS": {
+    "description": "A benign tool-call conversation is left untouched.",
+    "action": "ALLOW",
+    "messages": [
+      {
+        "role": "user",
+        "content": "What is the weather in Paris?"
+      },
+      {
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "id": "call_1",
+            "function": {
+              "name": "get_weather",
+              "arguments": "{ \"city\": \"Paris\" }"
+            }
+          }
+        ]
+      },
+      {
+        "role": "tool",
+        "tool_call_id": "call_1",
+        "content": "It is sunny and 24 degrees."
+      }
+    ],
+    "replacements": [],
+    "expected_messages": [
+      {
+        "role": "user",
+        "content": "What is the weather in Paris?"
+      },
+      {
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "id": "call_1",
+            "function": {
+              "name": "get_weather",
+              "arguments": "{ \"city\": \"Paris\" }"
+            }
+          }
+        ]
+      },
+      {
+        "role": "tool",
+        "tool_call_id": "call_1",
+        "content": "It is sunny and 24 degrees."
+      }
+    ],
+    "redacted": false,
+    "sensitive_values": [],
+    "retained_values": [],
+    "sds_findings": [],
+    "cassette": "aiguard_evaluate_post_13cd8690.json"
+  },
+  "NO_REDACT_FINDINGS_ONLY": {
+    "description": "sds_findings without redaction_replacements: detection metadata never drives redaction.",
+    "action": "ALLOW",
+    "messages": [
+      {
+        "role": "user",
+        "content": "My SSN is 123-45-6789, please keep it safe."
+      }
+    ],
+    "replacements": [],
+    "expected_messages": [
+      {
+        "role": "user",
+        "content": "My SSN is 123-45-6789, please keep it safe."
+      }
+    ],
+    "redacted": false,
+    "sensitive_values": [],
+    "retained_values": [
+      "123-45-6789"
+    ],
+    "sds_findings": [
+      {
+        "rule_display_name": "US Social Security Number Scanner",
+        "rule_tag": "us_ssn",
+        "category": "ssn",
+        "location": {
+          "path": "messages[0].content",
+          "start_index": 10,
+          "end_index_exclusive": 21
+        }
+      }
+    ],
+    "cassette": "aiguard_evaluate_post_2e624e80.json"
+  },
+  "NO_REDACT_EMPTY_ARRAY": {
+    "description": "An explicitly empty redaction_replacements array is the same signal as an absent one.",
+    "action": "ALLOW",
+    "messages": [
+      {
+        "role": "user",
+        "content": "My email is paco@gmail.com, do not store it."
+      }
+    ],
+    "replacements": [],
+    "expected_messages": [
+      {
+        "role": "user",
+        "content": "My email is paco@gmail.com, do not store it."
+      }
+    ],
+    "redacted": false,
+    "sensitive_values": [],
+    "retained_values": [
+      "paco@gmail.com"
+    ],
+    "sds_findings": [
+      {
+        "rule_display_name": "Standard Email Address Scanner",
+        "rule_tag": "email_address",
+        "category": "email_address",
+        "location": {
+          "path": "messages[0].content",
+          "start_index": 12,
+          "end_index_exclusive": 26
+        }
+      }
+    ],
+    "cassette": "aiguard_evaluate_post_fc2eedde.json"
+  },
+  "REDACT_ONE_MSG_ONE_FINDING": {
+    "description": "RFC baseline: one message with a single sensitive value.",
+    "action": "ALLOW",
+    "messages": [
+      {
+        "role": "user",
+        "content": "My SSN is 123-45-6789"
+      }
+    ],
+    "replacements": [
+      {
+        "path": "messages[0].content",
+        "replacement": "My SSN is <REDACTED>"
+      }
+    ],
+    "expected_messages": [
+      {
+        "role": "user",
+        "content": "My SSN is <REDACTED>"
+      }
+    ],
+    "redacted": true,
+    "sensitive_values": [
+      "123-45-6789"
+    ],
+    "retained_values": [],
+    "sds_findings": [
+      {
+        "rule_display_name": "US Social Security Number Scanner",
+        "rule_tag": "us_ssn",
+        "category": "ssn",
+        "location": {
+          "path": "messages[0].content",
+          "start_index": 10,
+          "end_index_exclusive": 21
+        }
+      }
+    ],
+    "cassette": "aiguard_evaluate_post_1e019487.json"
+  },
+  "REDACT_MULTI_ONE_FINDING": {
+    "description": "Several messages, only the last one carries sensitive data.",
+    "action": "ALLOW",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "Please email my report."
+      },
+      {
+        "role": "assistant",
+        "content": "Sure, what is your email?"
+      },
+      {
+        "role": "user",
+        "content": "It is john.smith@acmebank.com"
+      }
+    ],
+    "replacements": [
+      {
+        "path": "messages[3].content",
+        "replacement": "It is <REDACTED>"
+      }
+    ],
+    "expected_messages": [
+      {
+        "role": "system",
+        "content": "You are a helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "Please email my report."
+      },
+      {
+        "role": "assistant",
+        "content": "Sure, what is your email?"
+      },
+      {
+        "role": "user",
+        "content": "It is <REDACTED>"
+      }
+    ],
+    "redacted": true,
+    "sensitive_values": [
+      "john.smith@acmebank.com"
+    ],
+    "retained_values": [],
+    "sds_findings": [
+      {
+        "rule_display_name": "Standard Email Address Scanner",
+        "rule_tag": "email_address",
+        "category": "email_address",
+        "location": {
+          "path": "messages[3].content",
+          "start_index": 6,
+          "end_index_exclusive": 29
+        }
+      }
+    ],
+    "cassette": "aiguard_evaluate_post_350bf191.json"
+  },
+  "REDACT_ONE_MSG_MULTI_FINDINGS": {
+    "description": "Two sensitive spans in one string arrive already merged into a single replacement.",
+    "action": "ALLOW",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a banking assistant."
+      },
+      {
+        "role": "user",
+        "content": "My SSN is 123-45-6789 and my email is paco@gmail.com"
+      }
+    ],
+    "replacements": [
+      {
+        "path": "messages[1].content",
+        "replacement": "My SSN is <REDACTED> and my email is <REDACTED>"
+      }
+    ],
+    "expected_messages": [
+      {
+        "role": "system",
+        "content": "You are a banking assistant."
+      },
+      {
+        "role": "user",
+        "content": "My SSN is <REDACTED> and my email is <REDACTED>"
+      }
+    ],
+    "redacted": true,
+    "sensitive_values": [
+      "123-45-6789",
+      "paco@gmail.com"
+    ],
+    "retained_values": [],
+    "sds_findings": [
+      {
+        "rule_display_name": "US Social Security Number Scanner",
+        "rule_tag": "us_ssn",
+        "category": "ssn",
+        "location": {
+          "path": "messages[1].content",
+          "start_index": 10,
+          "end_index_exclusive": 21
+        }
+      },
+      {
+        "rule_display_name": "Standard Email Address Scanner",
+        "rule_tag": "email_address",
+        "category": "email_address",
+        "location": {
+          "path": "messages[1].content",
+          "start_index": 38,
+          "end_index_exclusive": 52
+        }
+      }
+    ],
+    "cassette": "aiguard_evaluate_post_4289ced0.json"
+  },
+  "REDACT_MIXED": {
+    "description": "One string with several findings plus another string with a single finding.",
+    "action": "ALLOW",
+    "messages": [
+      {
+        "role": "user",
+        "content": "My SSN is 123-45-6789 and my email is paco@gmail.com"
+      },
+      {
+        "role": "assistant",
+        "content": "Understood, thank you."
+      },
+      {
+        "role": "user",
+        "content": "My phone number is 415-555-0132"
+      }
+    ],
+    "replacements": [
+      {
+        "path": "messages[0].content",
+        "replacement": "My SSN is <REDACTED> and my email is <REDACTED>"
+      },
+      {
+        "path": "messages[2].content",
+        "replacement": "My phone number is <REDACTED>"
+      }
+    ],
+    "expected_messages": [
+      {
+        "role": "user",
+        "content": "My SSN is <REDACTED> and my email is <REDACTED>"
+      },
+      {
+        "role": "assistant",
+        "content": "Understood, thank you."
+      },
+      {
+        "role": "user",
+        "content": "My phone number is <REDACTED>"
+      }
+    ],
+    "redacted": true,
+    "sensitive_values": [
+      "123-45-6789",
+      "paco@gmail.com",
+      "415-555-0132"
+    ],
+    "retained_values": [],
+    "sds_findings": [
+      {
+        "rule_display_name": "US Social Security Number Scanner",
+        "rule_tag": "us_ssn",
+        "category": "ssn",
+        "location": {
+          "path": "messages[0].content",
+          "start_index": 10,
+          "end_index_exclusive": 21
+        }
+      },
+      {
+        "rule_display_name": "Standard Email Address Scanner",
+        "rule_tag": "email_address",
+        "category": "email_address",
+        "location": {
+          "path": "messages[0].content",
+          "start_index": 38,
+          "end_index_exclusive": 52
+        }
+      },
+      {
+        "rule_display_name": "Phone Number Scanner",
+        "rule_tag": "phone_number",
+        "category": "phone_number",
+        "location": {
+          "path": "messages[2].content",
+          "start_index": 19,
+          "end_index_exclusive": 31
+        }
+      }
+    ],
+    "cassette": "aiguard_evaluate_post_f674ea5e.json"
+  },
+  "REDACT_SYSTEM_PROMPT": {
+    "description": "Sensitive data baked into the system prompt is redactable like any other role.",
+    "action": "ALLOW",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are an assistant. Escalate to ops@acme.io or SSN 123-45-6789 if needed."
+      },
+      {
+        "role": "user",
+        "content": "Hello"
+      }
+    ],
+    "replacements": [
+      {
+        "path": "messages[0].content",
+        "replacement": "You are an assistant. Escalate to <REDACTED> or SSN <REDACTED> if needed."
+      }
+    ],
+    "expected_messages": [
+      {
+        "role": "system",
+        "content": "You are an assistant. Escalate to <REDACTED> or SSN <REDACTED> if needed."
+      },
+      {
+        "role": "user",
+        "content": "Hello"
+      }
+    ],
+    "redacted": true,
+    "sensitive_values": [
+      "ops@acme.io",
+      "123-45-6789"
+    ],
+    "retained_values": [],
+    "sds_findings": [
+      {
+        "rule_display_name": "Standard Email Address Scanner",
+        "rule_tag": "email_address",
+        "category": "email_address",
+        "location": {
+          "path": "messages[0].content",
+          "start_index": 34,
+          "end_index_exclusive": 45
+        }
+      },
+      {
+        "rule_display_name": "US Social Security Number Scanner",
+        "rule_tag": "us_ssn",
+        "category": "ssn",
+        "location": {
+          "path": "messages[0].content",
+          "start_index": 53,
+          "end_index_exclusive": 64
+        }
+      }
+    ],
+    "cassette": "aiguard_evaluate_post_bcbe58c9.json"
+  },
+  "REDACT_ASSISTANT_RESPONSE": {
+    "description": "Output redaction: the model's own answer leaked a value.",
+    "action": "ALLOW",
+    "messages": [
+      {
+        "role": "user",
+        "content": "What is on file for my account?"
+      },
+      {
+        "role": "assistant",
+        "content": "Your card on file is 4111-1111-1111-1111."
+      }
+    ],
+    "replacements": [
+      {
+        "path": "messages[1].content",
+        "replacement": "Your card on file is <REDACTED>."
+      }
+    ],
+    "expected_messages": [
+      {
+        "role": "user",
+        "content": "What is on file for my account?"
+      },
+      {
+        "role": "assistant",
+        "content": "Your card on file is <REDACTED>."
+      }
+    ],
+    "redacted": true,
+    "sensitive_values": [
+      "4111-1111-1111-1111"
+    ],
+    "retained_values": [],
+    "sds_findings": [
+      {
+        "rule_display_name": "Credit Card Scanner",
+        "rule_tag": "credit_card",
+        "category": "credit_card",
+        "location": {
+          "path": "messages[1].content",
+          "start_index": 21,
+          "end_index_exclusive": 40
+        }
+      }
+    ],
+    "cassette": "aiguard_evaluate_post_e773c0de.json"
+  },
+  "REDACT_TOOL_RESULT": {
+    "description": "A tool result (role:tool) carrying data fetched from a backend.",
+    "action": "ALLOW",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Look up my bank account balance."
+      },
+      {
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "id": "call_1",
+            "function": {
+              "name": "get_account",
+              "arguments": "{ \"user\": \"john\" }"
+            }
+          }
+        ]
+      },
+      {
+        "role": "tool",
+        "tool_call_id": "call_1",
+        "content": "Account 000123456789 SSN 123-45-6789 balance 100"
+      }
+    ],
+    "replacements": [
+      {
+        "path": "messages[2].content",
+        "replacement": "Account <REDACTED> SSN <REDACTED> balance 100"
+      }
+    ],
+    "expected_messages": [
+      {
+        "role": "user",
+        "content": "Look up my bank account balance."
+      },
+      {
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "id": "call_1",
+            "function": {
+              "name": "get_account",
+              "arguments": "{ \"user\": \"john\" }"
+            }
+          }
+        ]
+      },
+      {
+        "role": "tool",
+        "tool_call_id": "call_1",
+        "content": "Account <REDACTED> SSN <REDACTED> balance 100"
+      }
+    ],
+    "redacted": true,
+    "sensitive_values": [
+      "000123456789",
+      "123-45-6789"
+    ],
+    "retained_values": [],
+    "sds_findings": [
+      {
+        "rule_display_name": "Bank Account Number Scanner",
+        "rule_tag": "bank_account",
+        "category": "bank_account",
+        "location": {
+          "path": "messages[2].content",
+          "start_index": 8,
+          "end_index_exclusive": 20
+        }
+      },
+      {
+        "rule_display_name": "US Social Security Number Scanner",
+        "rule_tag": "us_ssn",
+        "category": "ssn",
+        "location": {
+          "path": "messages[2].content",
+          "start_index": 25,
+          "end_index_exclusive": 36
+        }
+      }
+    ],
+    "cassette": "aiguard_evaluate_post_611df616.json"
+  },
+  "REDACT_TOOL_ARGS": {
+    "description": "Tool call arguments are a JSON string, and stay valid JSON once redacted.",
+    "action": "ALLOW",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Send an email to my accountant."
+      },
+      {
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "id": "call_1",
+            "function": {
+              "name": "send_email",
+              "arguments": "{\"to\":\"john@acme.io\",\"ssn\":\"123-45-6789\"}"
+            }
+          }
+        ]
+      }
+    ],
+    "replacements": [
+      {
+        "path": "messages[1].tool_calls[0].function.arguments",
+        "replacement": "{\"to\":\"<REDACTED>\",\"ssn\":\"<REDACTED>\"}"
+      }
+    ],
+    "expected_messages": [
+      {
+        "role": "user",
+        "content": "Send an email to my accountant."
+      },
+      {
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "id": "call_1",
+            "function": {
+              "name": "send_email",
+              "arguments": "{\"to\":\"<REDACTED>\",\"ssn\":\"<REDACTED>\"}"
+            }
+          }
+        ]
+      }
+    ],
+    "redacted": true,
+    "sensitive_values": [
+      "john@acme.io",
+      "123-45-6789"
+    ],
+    "retained_values": [],
+    "sds_findings": [
+      {
+        "rule_display_name": "Standard Email Address Scanner",
+        "rule_tag": "email_address",
+        "category": "email_address",
+        "location": {
+          "path": "messages[1].tool_calls[0].function.arguments",
+          "start_index": 7,
+          "end_index_exclusive": 19
+        }
+      },
+      {
+        "rule_display_name": "US Social Security Number Scanner",
+        "rule_tag": "us_ssn",
+        "category": "ssn",
+        "location": {
+          "path": "messages[1].tool_calls[0].function.arguments",
+          "start_index": 28,
+          "end_index_exclusive": 39
+        }
+      }
+    ],
+    "cassette": "aiguard_evaluate_post_8c66ae36.json"
+  },
+  "REDACT_CONTENT_PART_TEXT": {
+    "description": "Multimodal message: only the text part is redacted, the image locator is left alone.",
+    "action": "ALLOW",
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Here is my card 4111-1111-1111-1111, what bank issued it?"
+          },
+          {
+            "type": "image_url",
+            "image_url": {
+              "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+            }
+          }
+        ]
+      }
+    ],
+    "replacements": [
+      {
+        "path": "messages[0].content[0].text",
+        "replacement": "Here is my card <REDACTED>, what bank issued it?"
+      }
+    ],
+    "expected_messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Here is my card <REDACTED>, what bank issued it?"
+          },
+          {
+            "type": "image_url",
+            "image_url": {
+              "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+            }
+          }
+        ]
+      }
+    ],
+    "redacted": true,
+    "sensitive_values": [
+      "4111-1111-1111-1111"
+    ],
+    "retained_values": [],
+    "sds_findings": [
+      {
+        "rule_display_name": "Credit Card Scanner",
+        "rule_tag": "credit_card",
+        "category": "credit_card",
+        "location": {
+          "path": "messages[0].content[0].text",
+          "start_index": 16,
+          "end_index_exclusive": 35
+        }
+      }
+    ],
+    "cassette": "aiguard_evaluate_post_171fbe88.json"
+  },
+  "REDACT_EMPTY_REPLACEMENT": {
+    "description": "An empty replacement is the customer's remove strategy, not a missing value.",
+    "action": "ALLOW",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Store this for later: SSN 123-45-6789"
+      }
+    ],
+    "replacements": [
+      {
+        "path": "messages[0].content",
+        "replacement": ""
+      }
+    ],
+    "expected_messages": [
+      {
+        "role": "user",
+        "content": ""
+      }
+    ],
+    "redacted": true,
+    "sensitive_values": [
+      "123-45-6789"
+    ],
+    "retained_values": [],
+    "sds_findings": [
+      {
+        "rule_display_name": "US Social Security Number Scanner",
+        "rule_tag": "us_ssn",
+        "category": "ssn",
+        "location": {
+          "path": "messages[0].content",
+          "start_index": 26,
+          "end_index_exclusive": 37
+        }
+      }
+    ],
+    "cassette": "aiguard_evaluate_post_5254e743.json"
+  },
+  "REDACT_HASHED_REPLACEMENT": {
+    "description": "Hash strategy: the replacement is an opaque digest, still copied verbatim.",
+    "action": "ALLOW",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hash my SSN 123-45-6789 before storing it"
+      }
+    ],
+    "replacements": [
+      {
+        "path": "messages[0].content",
+        "replacement": "Hash my SSN 5c2f1a4b8d3e6f7091a2b3c4d5e6f708 before storing it"
+      }
+    ],
+    "expected_messages": [
+      {
+        "role": "user",
+        "content": "Hash my SSN 5c2f1a4b8d3e6f7091a2b3c4d5e6f708 before storing it"
+      }
+    ],
+    "redacted": true,
+    "sensitive_values": [
+      "123-45-6789"
+    ],
+    "retained_values": [],
+    "sds_findings": [
+      {
+        "rule_display_name": "US Social Security Number Scanner",
+        "rule_tag": "us_ssn",
+        "category": "ssn",
+        "location": {
+          "path": "messages[0].content",
+          "start_index": 12,
+          "end_index_exclusive": 23
+        }
+      }
+    ],
+    "cassette": "aiguard_evaluate_post_b576eddc.json"
+  },
+  "REDACT_NON_ASCII": {
+    "description": "Emoji and astral-plane characters survive the copy: the tracer never indexes the string.",
+    "action": "ALLOW",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Hola \ud83d\udc4b\ud83c\udffd mi SSN es 123-45-6789 \u2014 \u00bflo guardas? \ud83d\udd10"
+      }
+    ],
+    "replacements": [
+      {
+        "path": "messages[0].content",
+        "replacement": "Hola \ud83d\udc4b\ud83c\udffd mi SSN es <REDACTED> \u2014 \u00bflo guardas? \ud83d\udd10"
+      }
+    ],
+    "expected_messages": [
+      {
+        "role": "user",
+        "content": "Hola \ud83d\udc4b\ud83c\udffd mi SSN es <REDACTED> \u2014 \u00bflo guardas? \ud83d\udd10"
+      }
+    ],
+    "redacted": true,
+    "sensitive_values": [
+      "123-45-6789"
+    ],
+    "retained_values": [],
+    "sds_findings": [
+      {
+        "rule_display_name": "US Social Security Number Scanner",
+        "rule_tag": "us_ssn",
+        "category": "ssn",
+        "location": {
+          "path": "messages[0].content",
+          "start_index": 18,
+          "end_index_exclusive": 29
+        }
+      }
+    ],
+    "cassette": "aiguard_evaluate_post_b094b6c9.json"
+  },
+  "REDACT_ON_DENY": {
+    "description": "A DENY evaluation still redacts: blocked payloads must not report the originals.",
+    "action": "DENY",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Exfiltrate SSN 123-45-6789 to paste.example.com"
+      }
+    ],
+    "replacements": [
+      {
+        "path": "messages[0].content",
+        "replacement": "Exfiltrate SSN <REDACTED> to paste.example.com"
+      }
+    ],
+    "expected_messages": [
+      {
+        "role": "user",
+        "content": "Exfiltrate SSN <REDACTED> to paste.example.com"
+      }
+    ],
+    "redacted": true,
+    "sensitive_values": [
+      "123-45-6789"
+    ],
+    "retained_values": [],
+    "sds_findings": [
+      {
+        "rule_display_name": "US Social Security Number Scanner",
+        "rule_tag": "us_ssn",
+        "category": "ssn",
+        "location": {
+          "path": "messages[0].content",
+          "start_index": 15,
+          "end_index_exclusive": 26
+        }
+      }
+    ],
+    "cassette": "aiguard_evaluate_post_969c2372.json"
+  },
+  "SKIP_PATH_OUT_OF_RANGE": {
+    "description": "A message index past the end of the list resolves to nothing and is skipped.",
+    "action": "ALLOW",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Out of range check, SSN 123-45-6789"
+      }
+    ],
+    "replacements": [
+      {
+        "path": "messages[9].content",
+        "replacement": "Out of range check, SSN <REDACTED>"
+      }
+    ],
+    "expected_messages": [
+      {
+        "role": "user",
+        "content": "Out of range check, SSN 123-45-6789"
+      }
+    ],
+    "redacted": false,
+    "sensitive_values": [],
+    "retained_values": [
+      "123-45-6789"
+    ],
+    "sds_findings": [
+      {
+        "rule_display_name": "US Social Security Number Scanner",
+        "rule_tag": "us_ssn",
+        "category": "ssn",
+        "location": {
+          "path": "messages[0].content",
+          "start_index": 24,
+          "end_index_exclusive": 35
+        }
+      }
+    ],
+    "cassette": "aiguard_evaluate_post_044c0044.json"
+  },
+  "SKIP_PATH_NON_STRING_TARGET": {
+    "description": "The path resolves to a list of content parts, not a string, so it is skipped.",
+    "action": "ALLOW",
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "My SSN is 123-45-6789"
+          },
+          {
+            "type": "image_url",
+            "image_url": {
+              "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+            }
+          }
+        ]
+      }
+    ],
+    "replacements": [
+      {
+        "path": "messages[0].content",
+        "replacement": "My SSN is <REDACTED>"
+      }
+    ],
+    "expected_messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "My SSN is 123-45-6789"
+          },
+          {
+            "type": "image_url",
+            "image_url": {
+              "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+            }
+          }
+        ]
+      }
+    ],
+    "redacted": false,
+    "sensitive_values": [],
+    "retained_values": [
+      "123-45-6789"
+    ],
+    "sds_findings": [
+      {
+        "rule_display_name": "US Social Security Number Scanner",
+        "rule_tag": "us_ssn",
+        "category": "ssn",
+        "location": {
+          "path": "messages[0].content[0].text",
+          "start_index": 10,
+          "end_index_exclusive": 21
+        }
+      }
+    ],
+    "cassette": "aiguard_evaluate_post_7ac75cfc.json"
+  },
+  "SKIP_PATH_MALFORMED_SEGMENT": {
+    "description": "Segments must match the grammar in full: a hyphen, a trailing dot and a negative index.",
+    "action": "ALLOW",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Grammar check, SSN 123-45-6789"
+      }
+    ],
+    "replacements": [
+      {
+        "path": "messages[0].content-x",
+        "replacement": "Grammar check, SSN <REDACTED>"
+      },
+      {
+        "path": "messages[0].content.",
+        "replacement": "Grammar check, SSN <REDACTED>"
+      },
+      {
+        "path": "messages[-1].content",
+        "replacement": "Grammar check, SSN <REDACTED>"
+      }
+    ],
+    "expected_messages": [
+      {
+        "role": "user",
+        "content": "Grammar check, SSN 123-45-6789"
+      }
+    ],
+    "redacted": false,
+    "sensitive_values": [],
+    "retained_values": [
+      "123-45-6789"
+    ],
+    "sds_findings": [
+      {
+        "rule_display_name": "US Social Security Number Scanner",
+        "rule_tag": "us_ssn",
+        "category": "ssn",
+        "location": {
+          "path": "messages[0].content",
+          "start_index": 19,
+          "end_index_exclusive": 30
+        }
+      }
+    ],
+    "cassette": "aiguard_evaluate_post_27197f80.json"
+  },
+  "SKIP_CONFLICTING_REPLACEMENTS": {
+    "description": "Two different replacements for one path: the tracer skips instead of guessing.",
+    "action": "ALLOW",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Conflict check, SSN 123-45-6789"
+      }
+    ],
+    "replacements": [
+      {
+        "path": "messages[0].content",
+        "replacement": "Conflict check, SSN <REDACTED>"
+      },
+      {
+        "path": "messages[0].content",
+        "replacement": "Conflict check, SSN <PRIVATE>"
+      }
+    ],
+    "expected_messages": [
+      {
+        "role": "user",
+        "content": "Conflict check, SSN 123-45-6789"
+      }
+    ],
+    "redacted": false,
+    "sensitive_values": [],
+    "retained_values": [
+      "123-45-6789"
+    ],
+    "sds_findings": [
+      {
+        "rule_display_name": "US Social Security Number Scanner",
+        "rule_tag": "us_ssn",
+        "category": "ssn",
+        "location": {
+          "path": "messages[0].content",
+          "start_index": 20,
+          "end_index_exclusive": 31
+        }
+      }
+    ],
+    "cassette": "aiguard_evaluate_post_2f61a849.json"
+  },
+  "SKIP_MALFORMED_ENTRIES": {
+    "description": "Entries with no path, no replacement or a non-string replacement are all unusable.",
+    "action": "ALLOW",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Malformed entries check, SSN 123-45-6789"
+      }
+    ],
+    "replacements": [
+      {
+        "replacement": "Malformed entries check, SSN <REDACTED>"
+      },
+      {
+        "path": "messages[0].content"
+      },
+      {
+        "path": "messages[0].content",
+        "replacement": null
+      },
+      {
+        "path": "messages[0].content",
+        "replacement": 42
+      },
+      {
+        "path": "",
+        "replacement": "Malformed entries check, SSN <REDACTED>"
+      }
+    ],
+    "expected_messages": [
+      {
+        "role": "user",
+        "content": "Malformed entries check, SSN 123-45-6789"
+      }
+    ],
+    "redacted": false,
+    "sensitive_values": [],
+    "retained_values": [
+      "123-45-6789"
+    ],
+    "sds_findings": [
+      {
+        "rule_display_name": "US Social Security Number Scanner",
+        "rule_tag": "us_ssn",
+        "category": "ssn",
+        "location": {
+          "path": "messages[0].content",
+          "start_index": 29,
+          "end_index_exclusive": 40
+        }
+      }
+    ],
+    "cassette": "aiguard_evaluate_post_7c2c34af.json"
+  },
+  "MIXED_APPLIED_AND_SKIPPED": {
+    "description": "Partial application: the resolvable path is written, the unresolvable one is skipped.",
+    "action": "ALLOW",
+    "messages": [
+      {
+        "role": "user",
+        "content": "My SSN is 123-45-6789"
+      },
+      {
+        "role": "user",
+        "content": "My email is paco@gmail.com"
+      }
+    ],
+    "replacements": [
+      {
+        "path": "messages[0].content",
+        "replacement": "My SSN is <REDACTED>"
+      },
+      {
+        "path": "messages[7].content",
+        "replacement": "My email is <REDACTED>"
+      },
+      {
+        "path": "messages[1].content",
+        "replacement": null
+      }
+    ],
+    "expected_messages": [
+      {
+        "role": "user",
+        "content": "My SSN is <REDACTED>"
+      },
+      {
+        "role": "user",
+        "content": "My email is paco@gmail.com"
+      }
+    ],
+    "redacted": true,
+    "sensitive_values": [
+      "123-45-6789"
+    ],
+    "retained_values": [
+      "paco@gmail.com"
+    ],
+    "sds_findings": [
+      {
+        "rule_display_name": "US Social Security Number Scanner",
+        "rule_tag": "us_ssn",
+        "category": "ssn",
+        "location": {
+          "path": "messages[0].content",
+          "start_index": 10,
+          "end_index_exclusive": 21
+        }
+      },
+      {
+        "rule_display_name": "Standard Email Address Scanner",
+        "rule_tag": "email_address",
+        "category": "email_address",
+        "location": {
+          "path": "messages[1].content",
+          "start_index": 12,
+          "end_index_exclusive": 26
+        }
+      }
+    ],
+    "cassette": "aiguard_evaluate_post_d9f7be56.json"
+  },
+  "SKIP_PATH_STRUCTURAL_FIELD": {
+    "description": "role, tool_call_id and a tool name are structural: overwriting them corrupts the conversation.",
+    "action": "ALLOW",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Look up my bank account balance."
+      },
+      {
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "id": "call_1",
+            "function": {
+              "name": "get_account",
+              "arguments": "{ \"user\": \"john\" }"
+            }
+          }
+        ]
+      },
+      {
+        "role": "tool",
+        "tool_call_id": "call_1",
+        "content": "Balance is 100"
+      }
+    ],
+    "replacements": [
+      {
+        "path": "messages[0].role",
+        "replacement": "<REDACTED>"
+      },
+      {
+        "path": "messages[2].tool_call_id",
+        "replacement": "<REDACTED>"
+      },
+      {
+        "path": "messages[1].tool_calls[0].function.name",
+        "replacement": "<REDACTED>"
+      },
+      {
+        "path": "messages[1].tool_calls[0].id",
+        "replacement": "<REDACTED>"
+      }
+    ],
+    "expected_messages": [
+      {
+        "role": "user",
+        "content": "Look up my bank account balance."
+      },
+      {
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "id": "call_1",
+            "function": {
+              "name": "get_account",
+              "arguments": "{ \"user\": \"john\" }"
+            }
+          }
+        ]
+      },
+      {
+        "role": "tool",
+        "tool_call_id": "call_1",
+        "content": "Balance is 100"
+      }
+    ],
+    "redacted": false,
+    "sensitive_values": [],
+    "retained_values": [],
+    "sds_findings": [],
+    "cassette": "aiguard_evaluate_post_44aefe7d.json"
+  },
+  "SKIP_PATH_IMAGE_LOCATOR": {
+    "description": "Image and file locators are out of scope and can never be overwritten.",
+    "action": "ALLOW",
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Describe the attached screenshot."
+          },
+          {
+            "type": "image_url",
+            "image_url": {
+              "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+            }
+          }
+        ]
+      }
+    ],
+    "replacements": [
+      {
+        "path": "messages[0].content[1].image_url.url",
+        "replacement": "<REDACTED>"
+      }
+    ],
+    "expected_messages": [
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "Describe the attached screenshot."
+          },
+          {
+            "type": "image_url",
+            "image_url": {
+              "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+            }
+          }
+        ]
+      }
+    ],
+    "redacted": false,
+    "sensitive_values": [],
+    "retained_values": [],
+    "sds_findings": [],
+    "cassette": "aiguard_evaluate_post_2a2bc7c5.json"
+  }
+}

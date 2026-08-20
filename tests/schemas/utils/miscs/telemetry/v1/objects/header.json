@@ -24,7 +24,9 @@
     "tracer_time": {
       "type": "integer",
       "format": "uint64"
+    },
+    "debug": {
+      "type": "boolean"
     }
-  },
-  "$comment": "api_version tracer_time runtime_id seq_id application host are required, but currently disabled because of the agent"
+  }
 }

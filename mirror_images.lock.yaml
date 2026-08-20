@@ -2,6 +2,10 @@
 # Do not edit manually.
 version: 1
 images:
+  alpine:3.22:
+    digest: sha256:14358309a308569c32bdc37e2e0e9694be33a9d99e68afb0f5ff33cc1f695dce
+    target: registry.ddbuild.io/system-tests/mirror/alpine:3.22
+    tag: '3.22'
   apache/kafka:3.7.1:
     digest: sha256:ed74d7d115968d5e8b00ba6822ac6a384cbaaf54ca38991828647000d7089b68
     target: registry.ddbuild.io/system-tests/mirror/apache/kafka:3.7.1
@@ -22,6 +26,10 @@ images:
     digest: sha256:0199e251729b25276f97049cbcd39dd1997e98413a07b10a3c7e9e755d505a42
     target: registry.ddbuild.io/system-tests/mirror/datadog/dd-appsec-php-ci:php-8.2-release
     tag: php-8.2-release
+  datadog/serverless-init:1.10.2:
+    digest: sha256:9936ccb50daa747d71a8b1148e74720a6ae60238ebdcc1793ea1834c01493bd3
+    target: registry.ddbuild.io/system-tests/mirror/datadog/serverless-init:1.10.2
+    tag: 1.10.2
   datadog/system-tests:apache-mod-7.0-zts.base-v1:
     digest: sha256:bafc072734341cafb86f45673df2de4851a04b951d0717c88f7958cac1815b20
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:apache-mod-7.0-zts.base-v1
@@ -282,30 +290,38 @@ images:
     digest: sha256:e83bb3b3805a88faf37ea0f957d6700d9dcf3ed8845847134699c6bb2b7d6ff7
     target: registry.ddbuild.io/system-tests/mirror/ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.63.0
     tag: v1.63.0
-  ghcr.io/datadog/images-rb/engines/ruby:2.5:
-    digest: sha256:80a31383585fff1a3c0d33c149171460bca182deddd50f2ed8f54217252f5178
-    target: registry.ddbuild.io/system-tests/mirror/ghcr.io/datadog/images-rb/engines/ruby:2.5
-    tag: '2.5'
-  ghcr.io/datadog/images-rb/engines/ruby:2.7:
-    digest: sha256:7c0f84d46c8fd5982abd50243c6b6fa53ce86a8978d4b1ae63b537698acf3755
-    target: registry.ddbuild.io/system-tests/mirror/ghcr.io/datadog/images-rb/engines/ruby:2.7
-    tag: '2.7'
-  ghcr.io/datadog/images-rb/engines/ruby:3.0:
-    digest: sha256:69d8af29e1105110d553e0597a8dee886ce2b1a7a43dedee622434365eb711db
-    target: registry.ddbuild.io/system-tests/mirror/ghcr.io/datadog/images-rb/engines/ruby:3.0
-    tag: '3.0'
-  ghcr.io/datadog/images-rb/engines/ruby:3.1:
-    digest: sha256:87f74691edd471099442996bfeab1d70804a3b74ea9a6e2ccea9f7500aff92ec
-    target: registry.ddbuild.io/system-tests/mirror/ghcr.io/datadog/images-rb/engines/ruby:3.1
-    tag: '3.1'
-  ghcr.io/datadog/images-rb/engines/ruby:3.4:
-    digest: sha256:2d22ecb3e636e12c397c872ff147cbd7ce67a8ab70a39caa1a2b520812ccccd2
-    target: registry.ddbuild.io/system-tests/mirror/ghcr.io/datadog/images-rb/engines/ruby:3.4
-    tag: '3.4'
+  ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.64.1:
+    digest: sha256:817244a7aec2196c0ad5b09e958a9d1fb40846ecc4257736917aa6b9b55c5e49
+    target: registry.ddbuild.io/system-tests/mirror/ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.64.1
+    tag: v1.64.1
+  ghcr.io/datadog/images-rb/engines/ruby:2.5-gnu-gcc:
+    digest: sha256:4d8c3db9472c4458713f6b36018ed907e1eb1b953795ed38678cccd78ea3f1cd
+    target: registry.ddbuild.io/system-tests/mirror/ghcr.io/datadog/images-rb/engines/ruby:2.5-gnu-gcc
+    tag: 2.5-gnu-gcc
+  ghcr.io/datadog/images-rb/engines/ruby:2.7-gnu-gcc:
+    digest: sha256:4a039c4779cd150828f8ffdd0fc978555adcb94c7cdb3a8d1f13277d01de13e0
+    target: registry.ddbuild.io/system-tests/mirror/ghcr.io/datadog/images-rb/engines/ruby:2.7-gnu-gcc
+    tag: 2.7-gnu-gcc
+  ghcr.io/datadog/images-rb/engines/ruby:3.0-gnu-gcc:
+    digest: sha256:4f5e48c3b859a32b5deb876ed4373a489c2271358b1624a809ad7abc8198ac4d
+    target: registry.ddbuild.io/system-tests/mirror/ghcr.io/datadog/images-rb/engines/ruby:3.0-gnu-gcc
+    tag: 3.0-gnu-gcc
+  ghcr.io/datadog/images-rb/engines/ruby:3.1-gnu-gcc:
+    digest: sha256:32d22777dccad7984178d8d43092272f991e8a4a455f12f3349776a732c316c8
+    target: registry.ddbuild.io/system-tests/mirror/ghcr.io/datadog/images-rb/engines/ruby:3.1-gnu-gcc
+    tag: 3.1-gnu-gcc
+  ghcr.io/datadog/images-rb/engines/ruby:3.4-gnu-gcc:
+    digest: sha256:b27e76ef714e9dc9e9ac1c1efe9178e3d334a036496aafc2a08e4c6120f5a107
+    target: registry.ddbuild.io/system-tests/mirror/ghcr.io/datadog/images-rb/engines/ruby:3.4-gnu-gcc
+    tag: 3.4-gnu-gcc
   ghcr.io/graalvm/native-image-community:22.0.0:
     digest: sha256:0e7b3ee194aadc80845a29cd4e6501b9ed4422e6b998267926df31d63caf4770
     target: registry.ddbuild.io/system-tests/mirror/ghcr.io/graalvm/native-image-community:22.0.0
     tag: 22.0.0
+  ghcr.io/oras-project/oras:v1.2.3:
+    digest: sha256:63266a046d1cf5ebebb1461733ed7548148f122e0d422096e177cfa70b521cb1
+    target: registry.ddbuild.io/system-tests/mirror/ghcr.io/oras-project/oras:v1.2.3
+    tag: v1.2.3
   golang:1.25:
     digest: sha256:00feed335fe561979f2cdcc30a5191231977c5631fe79c40f7d3ab63b4fa222f
     target: registry.ddbuild.io/system-tests/mirror/golang:1.25
@@ -426,6 +442,10 @@ images:
     digest: sha256:d7be1c094cc5845ee815d4632fe377514ee6ebcf8efaed6892889657e5ddaaa6
     target: registry.ddbuild.io/system-tests/mirror/rockylinux:9
     tag: '9'
+  rust:1.94.1-slim-bookworm:
+    digest: sha256:cf9dd0ec73e75f827fe59123fff9dc65af1a1c8363c3c31ee8d7f8ad0b6a5fb2
+    target: registry.ddbuild.io/system-tests/mirror/rust:1.94.1-slim-bookworm
+    tag: 1.94.1-slim-bookworm
   softwaremill/elasticmq-native:1.6.11:
     digest: sha256:fe3af4a8dd59f310b20e07ec3499cfdeb16a14f518c95ad7e70f200845dce3f5
     target: registry.ddbuild.io/system-tests/mirror/softwaremill/elasticmq-native:1.6.11

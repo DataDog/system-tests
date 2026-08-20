@@ -98,6 +98,7 @@ class CiData:
             and "otel" not in library
             and library
             not in (
+                "c",
                 "cpp_nginx",
                 "cpp_kong",
                 "cpp_httpd",

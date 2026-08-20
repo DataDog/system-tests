@@ -6,9 +6,15 @@ import base64
 import binascii
 import re
 
+from tests.otel.utils import (
+    FORWARD_RV,
+    FORWARD_TH,
+    FORWARD_TRACE_ID,
+)
 from utils import context, features, interfaces, scenarios, weblog
 from utils._context._scenarios.endtoend import EndToEndScenario
 from utils.dd_constants import SpanKind, StatusCode
+from utils.docker_fixtures.spec.tracecontext import Tracestate
 
 
 def _trace_id_to_hex(tid: str | None) -> str:
@@ -191,3 +197,70 @@ class Test_Otel_Tracing_OTLP:
             f"exporter is not propagating _dd.p.tid (high 64 bits) from the chunk root to "
             f"the remaining chunk spans."
         )
+
+
+def _parse_ot_from_trace_state(trace_state: str) -> dict[str, str]:
+    """Split an OTLP span's traceState ot= list-member into its rv/th sub-keys."""
+    tracestate = Tracestate(trace_state) if trace_state else Tracestate()
+    if "ot" not in tracestate:
+        return {}
+
+    parsed = {}
+    for item in tracestate["ot"].split(";"):
+        if ":" not in item:
+            continue
+        key, _, value = item.partition(":")
+        parsed[key] = value
+    return parsed
+
+
+# Trace ID, rv and th match the RFC's own verified worked example (rate 0.1, trace ID 0xfff972474538efff),
+# also used in tests/test_otel_tracestate_sampling.py. rv only depends on the trace ID, not the sample rate.
+@features.otel_api
+@scenarios.apm_tracing_otlp
+class Test_Otlp_Carries_Ot:
+    """B1: a probability sampling decision is carried on the exported OTLP span's tracestate as ot=rv:...;th:...
+
+    See APMAPI-2172.
+    """
+
+    def setup_otlp_carries_ot(self):
+        self.req = weblog.get(
+            "/", headers={"x-datadog-trace-id": str(FORWARD_TRACE_ID), "x-datadog-parent-id": str(FORWARD_TRACE_ID)}
+        )
+
+    def test_otlp_carries_ot(self):
+        data = list(interfaces.open_telemetry.get_otel_spans(self.req))
+        assert len(data) >= 1, f"Expected at least one matching OTLP span, got {data}"
+        _, _, span = data[0]
+
+        ot = _parse_ot_from_trace_state(span.get("traceState", ""))
+        assert ot.get("rv") == FORWARD_RV, f"rv={ot.get('rv')!r}, expected {FORWARD_RV!r}"
+        assert "th" in ot, "no th on the exported span's tracestate for a probability sampling decision"
+
+
+@features.otel_api
+@scenarios.apm_tracing_otlp
+class Test_Otlp_Forwards_Inherited_Ot:
+    """B2: an inherited ot=rv:...;th:... is forwarded unchanged onto the exported OTLP span's tracestate.
+
+    See APMAPI-2172.
+    """
+
+    def setup_otlp_forwards_inherited_ot(self):
+        self.req = weblog.get(
+            "/",
+            headers={
+                "traceparent": f"00-{FORWARD_TRACE_ID:032x}-0000000000000001-01",
+                "tracestate": f"dd=s:2;t.dm:-3,ot=rv:{FORWARD_RV};th:{FORWARD_TH}",
+            },
+        )
+
+    def test_otlp_forwards_inherited_ot(self):
+        data = list(interfaces.open_telemetry.get_otel_spans(self.req))
+        assert len(data) >= 1, f"Expected at least one matching OTLP span, got {data}"
+        _, _, span = data[0]
+
+        ot = _parse_ot_from_trace_state(span.get("traceState", ""))
+        assert ot.get("rv") == FORWARD_RV, "inherited rv was not forwarded unchanged onto the exported OTLP span"
+        assert ot.get("th") == FORWARD_TH, "inherited th was not forwarded unchanged onto the exported OTLP span"

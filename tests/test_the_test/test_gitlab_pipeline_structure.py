@@ -31,7 +31,7 @@ def test_generated_chunk_jobs_have_required_keys(tmp_path: Path):
             if (
                 not isinstance(job, dict)
                 or name.startswith(".")
-                or name in ("workflow", "stages", "include", "variables")
+                or name in ("workflow", "stages", "include", "variables", "default")
             ):
                 continue
             has_stage = "stage" in job or "extends" in job

@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+### 2026-07 (150 PR merged)
+
+* 2026-07-01 [feat: add per-weblog metadata to control CI build requirement](https://github.com/DataDog/system-tests/pull/7130) by @rochdev
+* 2026-07-03 [Gitlab pipeline for End to End and parametric scenarios](https://github.com/DataDog/system-tests/pull/6651) by @nccatoni
+
+
 ### 2026-06 (140 PR merged)
 
 * 2026-06-05 [[ruby] Add new Ruby-lang weblog `ruby_lambda`](https://github.com/DataDog/system-tests/pull/7065) by @Strech

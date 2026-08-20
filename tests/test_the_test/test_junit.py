@@ -106,7 +106,7 @@ def _normalize_etree(filename: str, ignore_attrs: Iterable[str] | None = None) -
     # clean moving parts
     rough = re.sub(rb"0x[0-9abcdef]{8,}", b"0xhash", rough)  # object hashs
     rough = re.sub(
-        rb"/[\w/\-\.]+/system-tests/tests/test_the_test/test_junit.py",
+        rb"/[\w/\-\.]+/tests/test_the_test/test_junit.py",
         b"system-tests/tests/test_the_test/test_junit.py",
         rough,
     )  # absolute paths

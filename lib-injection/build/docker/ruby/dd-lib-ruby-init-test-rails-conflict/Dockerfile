@@ -42,6 +42,11 @@ WORKDIR /app
 # Add files
 COPY lib_injection_rails_app /app
 
+# Use the lockfile for this Ruby version before introducing a conflict
+RUN set -eu; \
+  ruby_minor="$(ruby -e 'print RUBY_VERSION.split(".").take(2).join(".")')"; \
+  cp "gemfiles/ruby-${ruby_minor}.gemfile.lock" Gemfile.lock
+
 # Introducing a conflict
 RUN echo "gem 'debase-ruby_core_source', '0.10.15'" >> Gemfile
 
@@ -52,4 +57,3 @@ RUN bundle install
 ENTRYPOINT ["/bin/bash", "-c"]
 
 CMD ["bin/rails server -b 0.0.0.0 -p 18080"]
-

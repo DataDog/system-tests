@@ -22,6 +22,7 @@ from utils._context.component_version import ComponentVersion, Version
 from utils._context.docker import get_docker_client
 from utils._context._image_mirror import mirror_image
 from utils._context.constants import ContainerPorts
+from utils.docker_fixtures._core import extra_hosts_for_environment
 from utils.proxy.tuf import get_tuf_root_json
 from utils.proxy.ports import ProxyPorts
 from utils.proxy.mocked_response import (
@@ -86,6 +87,7 @@ class TestedContainer:
         cap_add: list[str] | None = None,
         command: str | list[str] | None = None,
         environment: dict[str, str | None] | None = None,
+        extra_hosts: dict[str, str] | None = None,
         healthcheck: dict | None = None,
         local_image_only: bool = False,
         ports: dict | None = None,
@@ -115,6 +117,7 @@ class TestedContainer:
         self.healthy: bool | None = None
 
         self.environment = environment or {}
+        self.extra_hosts = extra_hosts
         self.volumes = volumes or {}
         self.ports = ports or {}
         self.depends_on: list[TestedContainer] = []
@@ -229,6 +232,7 @@ class TestedContainer:
             name=self.container_name,
             hostname=self.name,
             environment=self.environment,
+            extra_hosts=self.extra_hosts,
             # auto_remove=True,
             detach=True,
             network=network.name,
@@ -834,6 +838,51 @@ class AgentContainer(TestedContainer):
         return os.environ.get("DD_SITE", "datad0g.com")
 
 
+class ServerlessInitContainer(TestedContainer):
+    """Run serverless-init as the local trace and Feature Flags relay."""
+
+    apm_receiver_port = 8126
+
+    def __init__(self) -> None:
+        apm_receiver_port_hex = f"{self.apm_receiver_port:04X}"
+        super().__init__(
+            name="ffe-serverless-init",
+            image_name="datadog/serverless-init:1.10.2",
+            environment={
+                "DD_API_KEY": _FAKE_DD_API_KEY,
+                "DD_SITE": "mock-intake.invalid",
+                "DD_SERVICE": "ffe-system-tests-serverless-init",
+                "DD_ENV": "system-tests",
+                "DD_APM_ENABLED": "true",
+                "DD_APM_NON_LOCAL_TRAFFIC": "true",
+                "DD_PROXY_HTTPS": f"http://proxy:{ProxyPorts.datadog_sidecar}",
+                "DD_PROXY_HTTP": f"http://proxy:{ProxyPorts.datadog_sidecar}",
+                "DD_SERVERLESS_FLUSH_STRATEGY": "periodically,100",
+                "DD_SKIP_SSL_VALIDATION": "true",
+            },
+            # This image has no HTTP client. Inspect the kernel socket table instead.
+            healthcheck={
+                "test": (
+                    "/bin/sh -c 'for table in /proc/net/tcp /proc/net/tcp6; do "
+                    "while read -r _ local_address _ state _; do "
+                    f'[ "${{local_address##*:}}" = "{apm_receiver_port_hex}" ] '
+                    '&& [ "$state" = "0A" ] && exit 0; '
+                    'done < "$table"; done; exit 1'
+                    "'"
+                ),
+                "retries": 60,
+            },
+        )
+
+    @property
+    def serverless_init_version(self) -> Version:
+        """Read the serverless-init version from the image metadata."""
+        version = self.image.labels.get("org.opencontainers.image.version")
+        if not version:
+            raise ValueError("The serverless-init image has no OCI version label")
+        return Version(version)
+
+
 class BuddyContainer(TestedContainer):
     def __init__(
         self,
@@ -949,6 +998,7 @@ class WeblogContainer(TestedContainer):
             image_name="system_tests/weblog",
             name="weblog",
             environment=environment,
+            extra_hosts=extra_hosts_for_environment(environment),
             volumes=volumes,
             # ddprof's perf event open is blocked by default by docker's seccomp profile
             # This is worse than the line above though prevents mmap bugs locally
@@ -1473,7 +1523,7 @@ class OpenTelemetryCollectorContainer(TestedContainer):
 class APMTestAgentContainer(TestedContainer):
     def __init__(self, agent_port: int = 8126) -> None:
         super().__init__(
-            image_name="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.63.0",
+            image_name="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.31.1",
             name="ddapm-test-agent",
             environment={
                 "SNAPSHOT_CI": "0",
@@ -1506,7 +1556,7 @@ class VCRCassettesContainer(TestedContainer):
 
     def __init__(self, vcr_port: int = ContainerPorts.vcr_cassettes) -> None:
         super().__init__(
-            image_name="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.63.0",
+            image_name="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.64.1",
             name="vcr_cassettes",
             environment={
                 "PORT": str(vcr_port),

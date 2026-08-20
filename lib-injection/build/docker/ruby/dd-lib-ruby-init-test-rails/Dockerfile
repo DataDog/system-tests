@@ -43,10 +43,12 @@ WORKDIR /app
 COPY lib_injection_rails_app /app
 
 # Install gems
-RUN bundle install
+RUN set -eu; \
+  ruby_minor="$(ruby -e 'print RUBY_VERSION.split(".").take(2).join(".")')"; \
+  cp "gemfiles/ruby-${ruby_minor}.gemfile.lock" Gemfile.lock; \
+  bundle install
 
 # Set entrypoint
 ENTRYPOINT ["/bin/bash", "-c"]
 
 CMD ["bin/rails server -b 0.0.0.0 -p 18080"]
-

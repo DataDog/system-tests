@@ -256,6 +256,7 @@
                         "allowed_runtime_versions": [
                             "RB27",
                             "RB30",
+                            "RB31",
                             "RB32",
                             "RB33",
                             "RB34"
@@ -266,6 +267,7 @@
                         "allowed_runtime_versions": [
                             "RB27",
                             "RB30",
+                            "RB31",
                             "RB32",
                             "RB33",
                             "RB34"

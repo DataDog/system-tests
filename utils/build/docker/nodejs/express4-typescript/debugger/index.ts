@@ -135,4 +135,22 @@ export function initRoutes (app: Express) {
     })
     res.send('Capture limits probe') // This needs to be line 136
   })
+
+  app.get('/debugger/snapshot/capture-timeout', (req: Request, res: Response) => {
+    const collectionSize = parseInt(req.query.collectionSize as string, 10) || 0
+    const nestingDepth = parseInt(req.query.nestingDepth as string, 10) || 0
+    res.send(captureTimeoutFixture(collectionSize, nestingDepth))
+  })
+}
+
+function captureTimeoutFixture (collectionSize: number, nestingDepth: number): string {
+  const largeCollection = Array.from({ length: collectionSize }, (_, index) => {
+    let nested: object = { value: index }
+    for (let level = nestingDepth; level > 0; level--) {
+      nested = { level, nested }
+    }
+    return nested
+  })
+
+  return 'Capture timeout probe' // This needs to be line 155
 }

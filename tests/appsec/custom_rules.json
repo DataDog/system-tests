@@ -3100,6 +3100,27 @@
           }
         }
       ]
+    },
+    {
+      "id": "raw-response-body-test",
+      "name": "Test rule for server.response.body.raw",
+      "tags": {
+        "type": "security_scanner",
+        "category": "attack_attempt"
+      },
+      "conditions": [
+        {
+          "operator": "match_regex",
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.response.body.raw"
+              }
+            ],
+            "regex": "(?i)server_response_body_raw_poison"
+          }
+        }
+      ]
     }
   ]
 }
