@@ -15,7 +15,7 @@ group "default" {
 target "django-py3_13" {
   context    = "."
   dockerfile = "utils/build/docker/python/django-py3.13.base.Dockerfile"
-  tags       = ["datadog/system-tests:django-py3.13.base-v10"]
+  tags       = ["datadog/system-tests:django-py3.13.base-v11"]
 }
 
 target "fastapi" {
@@ -27,25 +27,25 @@ target "fastapi" {
 target "python3_12" {
   context    = "."
   dockerfile = "utils/build/docker/python/python3.12.base.Dockerfile"
-  tags       = ["datadog/system-tests:python3.12.base-v13"]
+  tags       = ["datadog/system-tests:python3.12.base-v14"]
 }
 
 target "django-poc" {
   context    = "."
   dockerfile = "utils/build/docker/python/django-poc.base.Dockerfile"
-  tags       = ["datadog/system-tests:django-poc.base-v11"]
+  tags       = ["datadog/system-tests:django-poc.base-v12"]
 }
 
 target "flask-poc" {
   context    = "."
   dockerfile = "utils/build/docker/python/flask-poc.base.Dockerfile"
-  tags       = ["datadog/system-tests:flask-poc.base-v14"]
+  tags       = ["datadog/system-tests:flask-poc.base-v15"]
 }
 
 target "uwsgi-poc" {
   context    = "."
   dockerfile = "utils/build/docker/python/uwsgi-poc.base.Dockerfile"
-  tags       = ["datadog/system-tests:uwsgi-poc.base-v10"]
+  tags       = ["datadog/system-tests:uwsgi-poc.base-v11"]
 }
 
 target "tornado" {
