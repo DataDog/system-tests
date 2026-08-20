@@ -5,6 +5,7 @@
 __pycache__
 binaries/*
 !binaries/README.md
+!binaries/agent-image
 
 venv
 venv.
