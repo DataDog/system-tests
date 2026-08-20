@@ -4,6 +4,7 @@ import json
 
 from tests.ffe.utils.exposures import (
     EXPOSURES_PATH,
+    EXPOSURE_CACHE_SETTLE_SECONDS,
     EXPOSURE_WAIT_TIMEOUT_SECONDS,
     exposure_events_from_data,
 )
@@ -49,6 +50,16 @@ def wait_for_min_exposure_count(flag_key: str, expected: int, subject_id: str | 
         count = count_exposure_events(flag_key, subject_id)
 
     return count
+
+
+def settle_and_count_exposures(flag_key: str, subject_id: str | None = None) -> int:
+    """Let late payloads arrive, then count. An exact count taken as soon as the expected
+    number is reached cannot see an over-emitting cache that delivers the extra event later.
+    """
+    if not interfaces.agent.replay:
+        interfaces.agent.wait(EXPOSURE_CACHE_SETTLE_SECONDS)
+
+    return count_exposure_events(flag_key, subject_id)
 
 
 # Simple UFC fixture for testing with doLog: true
@@ -518,7 +529,7 @@ class Test_FFE_Exposure_Caching_Different_Subjects:
             wait_for_min_exposure_count(self.flag_key, 1, subject)
 
         # Count total exposure events for this flag
-        total_exposure_count = count_exposure_events(self.flag_key)
+        total_exposure_count = settle_and_count_exposures(self.flag_key)
 
         # Each unique subject should generate exactly one exposure
         assert total_exposure_count == len(self.subjects), (
@@ -621,7 +632,8 @@ class Test_FFE_Exposure_Caching_Allocation_Cycle:
         # - Exposure #1: default-allocation
         # - Exposure #2: different-allocation (allocation changed)
         # - Exposure #3: default-allocation (allocation changed back)
-        exposure_count = wait_for_min_exposure_count(self.flag_key, 3, self.targeting_key)
+        wait_for_min_exposure_count(self.flag_key, 3, self.targeting_key)
+        exposure_count = settle_and_count_exposures(self.flag_key, self.targeting_key)
 
         assert exposure_count == 3, (
             f"Expected exactly 3 exposure events for subject '{self.targeting_key}' "
@@ -716,7 +728,8 @@ class Test_FFE_Exposure_Caching_Variant_Cycle:
         # - Exposure #1: variant-a
         # - Exposure #2: variant-b (variant changed)
         # - Exposure #3: variant-a (variant changed back)
-        exposure_count = wait_for_min_exposure_count(self.flag_key, 3, self.targeting_key)
+        wait_for_min_exposure_count(self.flag_key, 3, self.targeting_key)
+        exposure_count = settle_and_count_exposures(self.flag_key, self.targeting_key)
 
         assert exposure_count == 3, (
             f"Expected exactly 3 exposure events for subject '{self.targeting_key}' "
@@ -781,7 +794,10 @@ class Test_FFE_Exposure_Serial_Id:
         assert self.response_with.status_code == 200, f"Flag evaluation failed: {self.response_with.text}"
         assert self.response_without.status_code == 200, f"Flag evaluation failed: {self.response_without.text}"
 
-        wait_for_exposure_event({self.flag_with, self.flag_without}, self.targeting_key)
+        # Wait for each flag separately. A combined wait releases on whichever payload
+        # arrives first, and the two evaluations straddle a configuration refresh.
+        wait_for_exposure_event({self.flag_with}, self.targeting_key)
+        wait_for_exposure_event({self.flag_without}, self.targeting_key)
 
         events_with = find_exposure_events(self.flag_with, self.targeting_key)
         assert len(events_with) == 1, (
@@ -855,7 +871,8 @@ class Test_FFE_Exposure_Caching_Serial_Id_Appears:
         assert self.response_1.status_code == 200, f"Request 1 failed: {self.response_1.text}"
         assert self.response_2.status_code == 200, f"Request 2 failed: {self.response_2.text}"
 
-        exposure_count = wait_for_min_exposure_count(self.flag_key, 2, self.targeting_key)
+        wait_for_min_exposure_count(self.flag_key, 2, self.targeting_key)
+        exposure_count = settle_and_count_exposures(self.flag_key, self.targeting_key)
 
         assert exposure_count == 2, (
             f"Expected exactly 2 exposure events for subject '{self.targeting_key}' "
@@ -911,7 +928,8 @@ class Test_FFE_Exposure_Caching_Serial_Id_Cycle:
         for step, response in enumerate(self.responses, start=1):
             assert response.status_code == 200, f"Request {step} failed: {response.text}"
 
-        exposure_count = wait_for_min_exposure_count(self.flag_key, 3, self.targeting_key)
+        wait_for_min_exposure_count(self.flag_key, 3, self.targeting_key)
+        exposure_count = settle_and_count_exposures(self.flag_key, self.targeting_key)
 
         assert exposure_count == 3, (
             f"Expected exactly 3 exposure events for subject '{self.targeting_key}' "
