@@ -7,6 +7,7 @@ from utils import features
 from utils import remote_config as rc
 from tests.appsec.utils import find_series
 from tests.appsec.utils import find_configuration
+from tests.appsec.utils import find_products
 
 CONFIG_ENABLED = {"asm": {"enabled": True}}
 
@@ -80,3 +81,30 @@ class TestServiceActivationEnvVarConfigurationMetric(BaseServiceActivationConfig
 
     def setup_service_activation_metric(self):
         self.origin = "env_var"
+
+
+class BaseServiceActivationProductsPayload:
+    """Test that app-started / app-product-change telemetry reports products.appsec.enabled.
+
+    This is the payload that feeds service_instance.asm_enabled in the backend,
+    which is what fleet-api queries to surface AAP as an enabled product per agent.
+    """
+
+    def test_service_activation_metric(self):
+        assert any(products.get("appsec", {}).get("enabled") is True for products in find_products()), (
+            "No app-started/app-product-change telemetry with products.appsec.enabled=true found"
+        )
+
+
+@scenarios.appsec_runtime_activation
+@features.appsec_service_activation_origin_metric
+class TestServiceActivationRemoteConfigProductsPayload(BaseServiceActivationProductsPayload):
+    """Test that enabling AppSec via remote config sets products.appsec.enabled in telemetry"""
+
+    def setup_service_activation_metric(self):
+        self.config_state = _send_config(CONFIG_ENABLED)
+
+
+@features.appsec_service_activation_origin_metric
+class TestServiceActivationEnvVarProductsPayload(BaseServiceActivationProductsPayload):
+    """Test that enabling AppSec via env var sets products.appsec.enabled in telemetry"""
