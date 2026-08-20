@@ -2853,20 +2853,7 @@ manifest:
   tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)
   tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
   tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5: missing_feature (APMAPI-2171)
-  tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh:  # TODO: a lower version might be supported
-    - declaration: missing_feature (APMAPI-2171)
-      component_version: <6.8.0
-      weblog: [express4-typescript, uds-express4, express4, express5, fastify, nextjs]
-    - declaration: missing_feature (APMAPI-2171)
-      excluded_weblog: [express4-typescript, uds-express4, express4, express5, fastify, nextjs]
-  tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh::test_force_keep_overrides_inherited_drop_decision:
-    - weblog_declaration:
-        fastify: missing_feature (APMAPI-2171)
-        express4: missing_feature (APMAPI-2171)
-        express5: missing_feature (APMAPI-2171)
-        uds-express4: missing_feature (APMAPI-2171)
-        express4-typescript: missing_feature (APMAPI-2171)
-        nextjs: missing_feature (APMAPI-2171)
+  tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchanged:  # TODO: a lower version might be supported
     - declaration: missing_feature (APMAPI-2171)
       component_version: <6.8.0
