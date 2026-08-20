@@ -4,7 +4,6 @@ import json
 
 from tests.ffe.utils.exposures import (
     EXPOSURES_PATH,
-    EXPOSURE_CACHE_SETTLE_SECONDS,
     EXPOSURE_WAIT_TIMEOUT_SECONDS,
     exposure_events_from_data,
 )
@@ -50,16 +49,6 @@ def wait_for_min_exposure_count(flag_key: str, expected: int, subject_id: str | 
         count = count_exposure_events(flag_key, subject_id)
 
     return count
-
-
-def settle_and_count_exposures(flag_key: str, subject_id: str | None = None) -> int:
-    """Let late payloads arrive, then count. An exact count taken as soon as the expected
-    number is reached cannot see an over-emitting cache that delivers the extra event later.
-    """
-    if not interfaces.agent.replay:
-        interfaces.agent.wait(EXPOSURE_CACHE_SETTLE_SECONDS)
-
-    return count_exposure_events(flag_key, subject_id)
 
 
 # Simple UFC fixture for testing with doLog: true
@@ -529,7 +518,7 @@ class Test_FFE_Exposure_Caching_Different_Subjects:
             wait_for_min_exposure_count(self.flag_key, 1, subject)
 
         # Count total exposure events for this flag
-        total_exposure_count = settle_and_count_exposures(self.flag_key)
+        total_exposure_count = count_exposure_events(self.flag_key)
 
         # Each unique subject should generate exactly one exposure
         assert total_exposure_count == len(self.subjects), (
@@ -632,8 +621,7 @@ class Test_FFE_Exposure_Caching_Allocation_Cycle:
         # - Exposure #1: default-allocation
         # - Exposure #2: different-allocation (allocation changed)
         # - Exposure #3: default-allocation (allocation changed back)
-        wait_for_min_exposure_count(self.flag_key, 3, self.targeting_key)
-        exposure_count = settle_and_count_exposures(self.flag_key, self.targeting_key)
+        exposure_count = wait_for_min_exposure_count(self.flag_key, 3, self.targeting_key)
 
         assert exposure_count == 3, (
             f"Expected exactly 3 exposure events for subject '{self.targeting_key}' "
@@ -728,8 +716,7 @@ class Test_FFE_Exposure_Caching_Variant_Cycle:
         # - Exposure #1: variant-a
         # - Exposure #2: variant-b (variant changed)
         # - Exposure #3: variant-a (variant changed back)
-        wait_for_min_exposure_count(self.flag_key, 3, self.targeting_key)
-        exposure_count = settle_and_count_exposures(self.flag_key, self.targeting_key)
+        exposure_count = wait_for_min_exposure_count(self.flag_key, 3, self.targeting_key)
 
         assert exposure_count == 3, (
             f"Expected exactly 3 exposure events for subject '{self.targeting_key}' "
@@ -824,6 +811,11 @@ class Test_FFE_Exposure_Caching_Serial_Id_Appears:
     variant stay the same. That is a new assignment and must be reported. An exposure cache
     keyed on (allocation_key, variant) alone suppresses it, which loses the only link back to
     the holdout.
+
+    The serial id that appears is 0. Serial ids start at 0 for each organization, so 0 is a
+    valid value held by the oldest allocation in every organization. An SDK that tests the
+    value for truthiness, or that omits an empty value when it serializes, treats 0 as no
+    serial id: it reports no second exposure here, and it drops the field from the payload.
     """
 
     def setup_ffe_exposure_caching_serial_id_appears(self) -> None:
@@ -849,10 +841,10 @@ class Test_FFE_Exposure_Caching_Serial_Id_Appears:
             },
         )
 
-        # Step 2: same allocation and variant, serial id now present
+        # Step 2: same allocation and variant, serial id of 0 now present
         rc.tracer_rc_state.set_config(
             f"{RC_PATH}/{config_id}/config",
-            make_ufc_fixture(self.flag_key, "variant-a", allocation_key="default-allocation", serial_id=340132),
+            make_ufc_fixture(self.flag_key, "variant-a", allocation_key="default-allocation", serial_id=0),
         ).apply()
 
         self.response_2 = weblog.post(
@@ -871,18 +863,87 @@ class Test_FFE_Exposure_Caching_Serial_Id_Appears:
         assert self.response_1.status_code == 200, f"Request 1 failed: {self.response_1.text}"
         assert self.response_2.status_code == 200, f"Request 2 failed: {self.response_2.text}"
 
-        wait_for_min_exposure_count(self.flag_key, 2, self.targeting_key)
-        exposure_count = settle_and_count_exposures(self.flag_key, self.targeting_key)
+        exposure_count = wait_for_min_exposure_count(self.flag_key, 2, self.targeting_key)
 
         assert exposure_count == 2, (
             f"Expected exactly 2 exposure events for subject '{self.targeting_key}' "
-            f"(no serial id, then serial id 340132, with the allocation and variant unchanged), "
+            f"(no serial id, then serial id 0, with the allocation and variant unchanged), "
             f"but found {exposure_count} events"
         )
 
         events = find_exposure_events(self.flag_key, self.targeting_key)
         assert "serial_id" not in events[0], f"First exposure should carry no serial id, got {events[0]!r}"
-        assert events[1].get("serial_id") == 340132, f"Second exposure should carry serial id 340132, got {events[1]!r}"
+        assert events[1].get("serial_id") == 0, f"Second exposure should carry serial id 0, got {events[1]!r}"
+
+
+@scenarios.feature_flagging_and_experimentation
+@features.feature_flags_exposures
+class Test_FFE_Exposure_Caching_Serial_Id_Disappears:
+    """Test that a serial id removed from an unchanged assignment generates a new exposure.
+
+    A split can lose its serial id on a later configuration refresh while the allocation and
+    the variant stay the same. The subject is no longer in the holdout that the serial id
+    identified, so that is a new assignment and must be reported. This is the reverse of the
+    case where a serial id appears, and an SDK that only compares a present value against
+    another present value misses it.
+    """
+
+    def setup_ffe_exposure_caching_serial_id_disappears(self) -> None:
+        """Set up an FFE exposure test where the serial id is removed on a refresh."""
+        config_id = "ffe-serial-id-disappears-test"
+        self.flag_key = "serial-id-disappears-flag"
+        self.targeting_key = "serial-id-disappears-user"
+
+        # Step 1: same allocation and variant, serial id present
+        rc.tracer_rc_state.reset().set_config(
+            f"{RC_PATH}/{config_id}/config",
+            make_ufc_fixture(self.flag_key, "variant-a", allocation_key="default-allocation", serial_id=340132),
+        ).apply()
+
+        self.response_1 = weblog.post(
+            "/ffe",
+            json={
+                "flag": self.flag_key,
+                "variationType": "STRING",
+                "defaultValue": "default",
+                "targetingKey": self.targeting_key,
+                "attributes": {},
+            },
+        )
+
+        # Step 2: same allocation and variant, serial id removed
+        rc.tracer_rc_state.set_config(
+            f"{RC_PATH}/{config_id}/config",
+            make_ufc_fixture(self.flag_key, "variant-a", allocation_key="default-allocation"),
+        ).apply()
+
+        self.response_2 = weblog.post(
+            "/ffe",
+            json={
+                "flag": self.flag_key,
+                "variationType": "STRING",
+                "defaultValue": "default",
+                "targetingKey": self.targeting_key,
+                "attributes": {},
+            },
+        )
+
+    def test_ffe_exposure_caching_serial_id_disappears(self) -> None:
+        """Test that a serial id then no serial id generates 2 exposures."""
+        assert self.response_1.status_code == 200, f"Request 1 failed: {self.response_1.text}"
+        assert self.response_2.status_code == 200, f"Request 2 failed: {self.response_2.text}"
+
+        exposure_count = wait_for_min_exposure_count(self.flag_key, 2, self.targeting_key)
+
+        assert exposure_count == 2, (
+            f"Expected exactly 2 exposure events for subject '{self.targeting_key}' "
+            f"(serial id 340132, then no serial id, with the allocation and variant unchanged), "
+            f"but found {exposure_count} events"
+        )
+
+        events = find_exposure_events(self.flag_key, self.targeting_key)
+        assert events[0].get("serial_id") == 340132, f"First exposure should carry serial id 340132, got {events[0]!r}"
+        assert "serial_id" not in events[1], f"Second exposure should carry no serial id, got {events[1]!r}"
 
 
 @scenarios.feature_flagging_and_experimentation
@@ -928,8 +989,7 @@ class Test_FFE_Exposure_Caching_Serial_Id_Cycle:
         for step, response in enumerate(self.responses, start=1):
             assert response.status_code == 200, f"Request {step} failed: {response.text}"
 
-        wait_for_min_exposure_count(self.flag_key, 3, self.targeting_key)
-        exposure_count = settle_and_count_exposures(self.flag_key, self.targeting_key)
+        exposure_count = wait_for_min_exposure_count(self.flag_key, 3, self.targeting_key)
 
         assert exposure_count == 3, (
             f"Expected exactly 3 exposure events for subject '{self.targeting_key}' "
