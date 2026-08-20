@@ -6,6 +6,9 @@ haproxy:
 envoy:
   build_mode: none
   supported_scenarios: [APPSEC_BLOCKING, DEFAULT]
+apim:
+  build_mode: none
+  supported_scenarios: [APPSEC_BLOCKING, DEFAULT]
 graphql-go:
   categories: [dd_trace_graphql]
   excluded_scenarios: [GRAPHQL_ERROR_TRACKING]  # why ???
