@@ -125,7 +125,7 @@ system_tests_run_{{library}}_{{scenario}}_{{variant}}:
   timeout: 15 minutes
   variables:
     KUBERNETES_CPU_REQUEST: 0.5
-    KUBERNETES_MEMORY_REQUEST: 1.3Gi
+    KUBERNETES_MEMORY_REQUEST: 2Gi
   extends:
     - .system_tests_base
 {% if push_to_test_optimization %}
