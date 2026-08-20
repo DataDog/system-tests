@@ -97,7 +97,7 @@ fi
 echo "Running yamlfmt checks..."
 if ! which yamlfmt > /dev/null; then
   echo "yamlfmt is not installed, installing it (ETA 5s)"
-  YAMLFMT_VERSION="0.16.0"
+  YAMLFMT_VERSION="0.21.0"
 
   YAMLFMT_OS=""
   case "$(uname -s)" in
@@ -117,14 +117,14 @@ if ! which yamlfmt > /dev/null; then
 
   YAMLFMT_SHA256=""
   case "${YAMLFMT_OS}_${YAMLFMT_ARCH}" in
-    Darwin_arm64)   YAMLFMT_SHA256="fcffb2efdfdd27fb5bb658a8156972fda14f0864f336c181705b98eee5f6c139" ;;
-    Darwin_x86_64)  YAMLFMT_SHA256="740d23864fffcf1865a9e0a221840baae6b5f40b8a20ad2d5e79c1b9de9eaec7" ;;
-    Linux_arm64)    YAMLFMT_SHA256="208b9c0c4e67472e5205d3f826205b2f20da59a180b548cff02621401355bead" ;;
-    Linux_i386)     YAMLFMT_SHA256="1c20a6a7ca58736ba10e5c4fc02743d1163815d38e5332872033e775f9f048a1" ;;
-    Linux_x86_64)   YAMLFMT_SHA256="7819fa7c7e994d239009d30cbd58897149d7e7dd5847aedf7abd19c332298033" ;;
-    Windows_arm64)  YAMLFMT_SHA256="1adc6fa71e6e2fad3da09df409e2454e96a5c4a61a8669a6ae4023c163fc2a14" ;;
-    Windows_i386)   YAMLFMT_SHA256="de013077d923d9064cdd1ffedfd6d56274271772007fe214c6db7afdf571228d" ;;
-    Windows_x86_64) YAMLFMT_SHA256="dea055eb85a30d923850e46b462bb5f0e8f3ca9aee3b33b76a55f22995224e1b" ;;
+    Darwin_arm64)   YAMLFMT_SHA256="4b417ecb94339d57e4c122ecc948c1a00fe328b5853266de9806e652a92858fa" ;;
+    Darwin_x86_64)  YAMLFMT_SHA256="060e943bcb8583c456810eb1ff4721b4f46c4a0c1a4432449d5dc3bbfe29a22b" ;;
+    Linux_arm64)    YAMLFMT_SHA256="5b2689c963b177271330c5ce8ca7396751107e5a826be46f03d2cb9b6f0c7784" ;;
+    Linux_i386)     YAMLFMT_SHA256="c559e93f2a0d12c063b6c989d612318146cc92ea47f44eba8b265f814e008dcd" ;;
+    Linux_x86_64)   YAMLFMT_SHA256="1f300d9257b232bb3b541d7fb1b0e6b3c121bcbab381c86cd38cb8722be8a566" ;;
+    Windows_arm64)  YAMLFMT_SHA256="c1e64d1c72ca8986bc5b8c8edd4ec89f0627804e7e08f8de9f4b484cb5cad897" ;;
+    Windows_i386)   YAMLFMT_SHA256="3bc1faface507713109a608cf8812d3f46d2d722dda5ab1f9fe99a203985b952" ;;
+    Windows_x86_64) YAMLFMT_SHA256="07f80ce5d741eb4b0a9380ac78a19c7cb5bd44e2a9a47a5a04839e3ba54dd463" ;;
     *) echo "No known checksum for ${YAMLFMT_OS}_${YAMLFMT_ARCH}"; return 1 ;;
   esac
 
