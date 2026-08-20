@@ -1,0 +1,41 @@
+load("@rules_go//go:def.bzl", "go_binary")
+
+package(default_visibility = ["//visibility:public"])
+
+exports_files([
+    "go.mod",
+    "go.sum",
+])
+
+go_binary(
+    name = "go_parametric_server",
+    srcs = [
+        "datadog.go",
+        "ffe.go",
+        "helpers.go",
+        "main.go",
+        "main_v2_4.go",
+        "otel.go",
+        "otel_metrics.go",
+    ],
+    gotags = [
+        "appsec",
+        "ddtrace_v2_4",
+    ],
+    pure = "on",
+    static = "on",
+    deps = [
+        "@com_github_datadog_dd_trace_go_v2//ddtrace/ext",
+        "@com_github_datadog_dd_trace_go_v2//ddtrace/opentelemetry",
+        "@com_github_datadog_dd_trace_go_v2//ddtrace/tracer",
+        "@com_github_datadog_dd_trace_go_v2//openfeature",
+        "@com_github_datadog_dd_trace_go_v2//profiler",
+        "@com_github_open_feature_go_sdk//openfeature",
+        "@com_github_sirupsen_logrus//:logrus",
+        "@io_opentelemetry_go_otel//:otel",
+        "@io_opentelemetry_go_otel//attribute",
+        "@io_opentelemetry_go_otel//codes",
+        "@io_opentelemetry_go_otel_metric//:metric",
+        "@io_opentelemetry_go_otel_trace//:trace",
+    ],
+)

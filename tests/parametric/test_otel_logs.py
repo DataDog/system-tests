@@ -76,6 +76,7 @@ def otlp_endpoint_library_env(
     test_agent_otlp_grpc_port: int,
 ) -> Generator[dict[str, str], None, None]:
     """Set up a custom endpoint for OTLP logs."""
+    del test_agent_otlp_http_port, test_agent_otlp_grpc_port
     prev_value = library_env.get(endpoint_env)
 
     protocol = library_env.get("OTEL_EXPORTER_OTLP_LOGS_PROTOCOL", library_env.get("OTEL_EXPORTER_OTLP_PROTOCOL"))
@@ -84,10 +85,9 @@ def otlp_endpoint_library_env(
             "One of the following environment variables must be set in library_env: OTEL_EXPORTER_OTLP_LOGS_PROTOCOL, OTEL_EXPORTER_OTLP_PROTOCOL"
         )
 
-    port = test_agent_otlp_grpc_port if protocol == "grpc" else test_agent_otlp_http_port
     path = "/" if protocol == "grpc" or endpoint_env == "OTEL_EXPORTER_OTLP_ENDPOINT" else "/v1/logs"
-
-    library_env[endpoint_env] = f"http://{test_agent.container_name}:{port}{path}"
+    endpoint = f"http://{test_agent.otlp_grpc_endpoint}" if protocol == "grpc" else test_agent.otlp_http_url
+    library_env[endpoint_env] = f"{endpoint}{path}"
     yield library_env
     if prev_value is None:
         del library_env[endpoint_env]
