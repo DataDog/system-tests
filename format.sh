@@ -95,9 +95,18 @@ else
 fi
 
 echo "Running yamlfmt checks..."
+YAMLFMT_VERSION="0.21.0"
+
+if which yamlfmt > /dev/null; then
+  YAMLFMT_INSTALLED_VERSION="$(yamlfmt -version 2>&1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -n1)"
+  if [ "$YAMLFMT_INSTALLED_VERSION" != "$YAMLFMT_VERSION" ]; then
+    echo "yamlfmt version is outdated ($YAMLFMT_INSTALLED_VERSION), removing it"
+    rm -f "$(which yamlfmt)"
+  fi
+fi
+
 if ! which yamlfmt > /dev/null; then
   echo "yamlfmt is not installed, installing it (ETA 5s)"
-  YAMLFMT_VERSION="0.21.0"
 
   YAMLFMT_OS=""
   case "$(uname -s)" in
