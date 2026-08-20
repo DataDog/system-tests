@@ -114,6 +114,37 @@ def get_env_bool(env_var_name: str, *, default: bool = False) -> bool:
     return value in {"true", "True", "1"}
 
 
+def capture_point_contains_data(point: object) -> bool:
+    """Return True iff a single capture point (entry / return / one line entry) contains data."""
+    if not isinstance(point, dict):
+        return False
+    for key in ("arguments", "locals", "staticFields"):
+        if point.get(key):
+            return True
+    return bool(point.get("throwable"))
+
+
+def captures_contain_data(captures: object) -> bool:
+    """Return True iff the ``captures`` field of a snapshot contains any captured probe data.
+
+    A snapshot whose ``captures`` is missing, ``None``, or only contains empty
+    ``entry`` / ``return`` / ``lines`` sub-structures (i.e. no captured arguments,
+    locals, static fields, or throwable) returns False -- it is an empty captures
+    container and acceptable as part of an evaluation-error snapshot.
+    """
+    if not isinstance(captures, dict):
+        return False
+    for key, value in captures.items():
+        # `entry` and `return` map directly to a capture-point dict.
+        # `lines` maps line-numbers to capture-point dicts, so descend one level.
+        if key == "lines" and isinstance(value, dict):
+            if any(capture_point_contains_data(v) for v in value.values()):
+                return True
+        elif capture_point_contains_data(value):
+            return True
+    return False
+
+
 class BaseDebuggerTest:
     tracer: dict[str, str] = {}
 
@@ -161,6 +192,10 @@ class BaseDebuggerTest:
             "Budgets": {"java": [138], "dotnet": [136], "python": [142], "golang": [117]},
             "LogProbe": {"nodejs": [20]},
             "Expression": {"java": [71], "dotnet": [74], "python": [72], "ruby": [82], "nodejs": [82], "golang": [71]},
+            # In-scope line for the probe_capture_expressions_line line probe. Kept separate
+            # from "Expression" because Node.js captures at a different line (71) than its
+            # expression-language probe (82); Ruby's weblog layout puts the line at 82, not 71.
+            "CaptureExpressionsLine": {"java": [71], "nodejs": [71], "golang": [71], "ruby": [82]},
             # The `@exception` variable is not available in the context of line probes.
             "ExpressionException": {},
             "ExpressionOperators": {"java": [82], "dotnet": [90], "python": [87], "ruby": [102], "nodejs": [90]},
@@ -168,9 +203,29 @@ class BaseDebuggerTest:
             "CollectionOperations": {"java": [114], "dotnet": [114], "python": [123], "ruby": [162], "nodejs": [120]},
             "Nulls": {"java": [130], "dotnet": [127], "python": [136], "ruby": [192], "nodejs": [126]},
             "SnapshotLimits": {"java": [153], "python": [172], "nodejs": [136], "ruby": [233], "dotnet": [150]},
+            "CaptureTimeout": {"java": [172], "nodejs": [155], "dotnet": [171]},
         }
 
         return definitions.get(method, {}).get(language, [])
+
+    def _rewrite_where_for_lines(self, probes: list[dict], lines: list[int] | None) -> None:
+        """Point each probe's `where` at the given source lines.
+
+        Line numbers are serialized as strings: the Go system-probe rejects
+        integer line numbers, so an integer `lines` makes the probe never reach
+        INSTALLED status. When `lines` is None the probe's `where` is left
+        untouched, which is how method probes keep the type/method targeting
+        from their JSON definition.
+        """
+        if lines is None:
+            return
+
+        string_lines = [str(line) for line in lines]
+        for probe in probes:
+            probe["where"].pop("methodName", None)
+            probe["where"]["lines"] = string_lines
+            probe["where"]["sourceFile"] = "ACTUAL_SOURCE_FILE"
+            probe["where"]["typeName"] = None
 
     ###### set #####
     def set_probes(
@@ -605,6 +660,28 @@ class BaseDebuggerTest:
 
         return False
 
+    def wait_for_snapshot_count(self, count: int, timeout: int = 5) -> bool:
+        """Wait until `count` snapshots have been received for the expected probes.
+
+        Tests that assert an upper bound on the number of emitted snapshots use this instead of
+        sleeping: it returns as soon as `count` snapshots are on disk, and otherwise waits out the
+        timeout, which is the expected outcome for a tracer respecting the bound.
+        """
+        logger.debug(f"Waiting for {count} snapshots from probes: {self.probe_ids}")
+        seen: set[tuple[str, int]] = set()
+        return interfaces.agent.wait_for(lambda data: self._count_snapshots(data, seen=seen) >= count, timeout=timeout)
+
+    def _count_snapshots(self, data: dict, seen: set[tuple[str, int]]) -> int:
+        if data["path"] in [_LOGS_PATH, _DEBUGGER_PATH]:
+            contents = data["request"].get("content", []) or []
+
+            for index, content in enumerate(_iter_snapshot_content_items(contents)):
+                snapshot = content.get("debugger", {}).get("snapshot") or content.get("debugger.snapshot")
+                if snapshot and snapshot.get("probe", {}).get("id") in self.probe_ids:
+                    seen.add((data["log_filename"], index))
+
+        return len(seen)
+
     _no_capture_reason_span_found = False
 
     def wait_for_no_capture_reason_span(self, error_message: str, timeout: int) -> bool:
@@ -814,6 +891,45 @@ class BaseDebuggerTest:
             return snapshot_hash
 
         self.probe_snapshots = _get_snapshot_hash()
+
+    def get_snapshot_request_lengths(self, probe_id: str) -> list[int]:
+        """Return decoded body lengths for backend requests containing a probe snapshot."""
+        requests = list(interfaces.agent.get_data(_LOGS_PATH))
+        requests += list(interfaces.agent.get_data(_DEBUGGER_PATH))
+
+        lengths: list[int] = []
+        for request in requests:
+            content = request["request"].get("content", []) or []
+            for item in _iter_snapshot_content_items(content):
+                snapshot = item.get("debugger", {}).get("snapshot") or item.get("debugger.snapshot")
+                if snapshot and snapshot.get("probe", {}).get("id") == probe_id:
+                    length = request["request"].get("length")
+                    assert isinstance(length, int), f"Request length is missing or invalid: {length!r}"
+                    lengths.append(length)
+                    break
+
+        return lengths
+
+    def wait_for_additional_snapshots(self, timeout: int = 5) -> bool:
+        """Wait for another backend request containing a snapshot for an expected probe."""
+        existing_files = {
+            data["log_filename"] for path in (_LOGS_PATH, _DEBUGGER_PATH) for data in interfaces.agent.get_data(path)
+        }
+        expected_probe_ids = set(self.probe_ids)
+
+        def _contains_additional_snapshot(data: dict[str, Any]) -> bool:
+            if data["path"] not in (_LOGS_PATH, _DEBUGGER_PATH) or data["log_filename"] in existing_files:
+                return False
+
+            content = data["request"].get("content", []) or []
+            for item in _iter_snapshot_content_items(content):
+                snapshot = item.get("debugger", {}).get("snapshot") or item.get("debugger.snapshot")
+                if snapshot and snapshot.get("probe", {}).get("id") in expected_probe_ids:
+                    return True
+
+            return False
+
+        return interfaces.agent.wait_for(_contains_additional_snapshot, timeout=timeout)
 
     def _debugger_v2_input_snapshots_received(self):
         """Test that the library sends snapshots to the debugger/v2/input endpoint"""

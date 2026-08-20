@@ -100,6 +100,8 @@ if os.environ.get("CONFIG_CHAINING_TEST", "").lower() == "true":
     config._logs_injection = True
 
 from ddtrace.appsec import trace_utils as appsec_trace_utils
+from ddtrace.constants import MANUAL_DROP_KEY
+from ddtrace.constants import MANUAL_KEEP_KEY
 from ddtrace.internal.datastreams import data_streams_processor
 from ddtrace.internal.datastreams.processor import DsmPathwayCodec
 from ddtrace.data_streams import set_consume_checkpoint
@@ -607,6 +609,27 @@ def status_code():
 def stats_unique():
     code = flask_request.args.get("code", default=200, type=int)
     return Response("OK, probably", status=code)
+
+
+@app.route("/trace/manual_keep_drop")
+def trace_manual_keep_drop():
+    decision = flask_request.args.get("decision")
+    if decision not in ("keep", "drop"):
+        return Response("decision must be keep or drop", status=400)
+
+    span = tracer.current_span()
+    span.set_tag(MANUAL_KEEP_KEY if decision == "keep" else MANUAL_DROP_KEY)
+
+    # Call downstream so that tests can assert on the sampling decision that gets propagated
+    url = "http://localhost:7777/"
+    response = requests.get(url)
+
+    return {
+        "url": url,
+        "status_code": response.status_code,
+        "request_headers": dict(response.request.headers),
+        "response_headers": dict(response.headers),
+    }
 
 
 @app.route("/make_distant_call")

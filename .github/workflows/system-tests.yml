@@ -216,11 +216,16 @@ jobs:
       - name: Log binaries contents
         if : ${{ needs.compute_parameters.outputs.binaries_artifact != '' }}
         run: ls -la binaries/
+      - name: Export github token to a file
+        run: echo "${{ secrets.GITHUB_TOKEN }}" > "$RUNNER_TEMP/github_token.txt"
+      - name: Install runner
+        if: matrix.weblog.build_base_images
+        uses: ./.github/actions/install_runner
       - name: Build weblog base images
-        if: matrix.weblog.build_base_image
+        if: matrix.weblog.build_base_images
         run: |
           source venv/bin/activate
-          ./utils/script/build_base_image.py ${{ inputs.library }} ${{ matrix.weblog.name }}
+          ./utils/scripts/build-base-image.py ${{ inputs.library }} ${{ matrix.weblog.name }}
       # TODO: Remove this token exchange after dd-iast-go becomes public.
       - name: Get temporary dd-iast-go read token
         id: dd_iast_go_token

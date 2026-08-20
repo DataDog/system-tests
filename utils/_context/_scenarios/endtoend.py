@@ -1,5 +1,6 @@
-from typing import Literal
 import os
+from typing import Literal
+
 import pytest
 
 from docker.models.networks import Network
@@ -12,6 +13,7 @@ from utils import interfaces
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils.buddies import BuddyHostPorts
 from utils.proxy.ports import ProxyPorts
+from utils._context.component_version import Version
 from utils._context.docker import get_docker_client
 from utils._context.containers import (
     WeblogContainer,
@@ -186,7 +188,13 @@ class DockerScenario(Scenario):
 
 
 class EndToEndScenario(DockerScenario):
-    """Scenario that implier an instrumented HTTP application shipping a datadog tracer (weblog) and an datadog agent"""
+    """Scenario with an instrumented HTTP application and an optional Datadog Agent."""
+
+    _default_scenario_groups: tuple[ScenarioGroup, ...] = (
+        all_scenario_groups.all,
+        all_scenario_groups.end_to_end,
+        all_scenario_groups.tracer_release,
+    )
 
     def __init__(
         self,
@@ -217,15 +225,12 @@ class EndToEndScenario(DockerScenario):
         runtime_metrics_enabled: bool = False,
         backend_interface_timeout: int = 0,
         include_buddies: bool = False,
+        include_agent: bool = True,
         include_opentelemetry: bool = False,
         require_api_key: bool = False,
         other_weblog_containers: tuple[type[TestedContainer], ...] = (),
     ) -> None:
-        scenario_groups = [
-            all_scenario_groups.all,
-            all_scenario_groups.end_to_end,
-            all_scenario_groups.tracer_release,
-        ] + (scenario_groups or [])
+        scenario_groups = [*self._default_scenario_groups, *(scenario_groups or [])]
 
         super().__init__(
             name,
@@ -234,7 +239,7 @@ class EndToEndScenario(DockerScenario):
             scenario_groups=scenario_groups,
             weblog_categories=weblog_categories,
             enable_ipv6=enable_ipv6,
-            use_proxy=use_proxy_for_agent or use_proxy_for_weblog,
+            use_proxy=(include_agent and use_proxy_for_agent) or use_proxy_for_weblog,
             rc_api_enabled=rc_api_enabled,
             rc_backend_enabled=rc_backend_enabled,
             meta_structs_disabled=meta_structs_disabled,
@@ -243,14 +248,19 @@ class EndToEndScenario(DockerScenario):
             obfuscation_version=obfuscation_version,
         )
 
-        self._use_proxy_for_agent = use_proxy_for_agent
+        if include_buddies and not include_agent:
+            raise ValueError("include_buddies requires include_agent")
+
+        self.include_agent = include_agent
+        self._use_proxy_for_agent = include_agent and use_proxy_for_agent
         self._use_proxy_for_weblog = use_proxy_for_weblog
         self._require_api_key = require_api_key
 
         self.agent_container = AgentContainer(
             use_proxy=use_proxy_for_agent, rc_backend_enabled=rc_backend_enabled, environment=agent_env
         )
-        self._containers.append(self.agent_container)
+        if include_agent:
+            self._containers.append(self.agent_container)
 
         self._weblog_env = dict(weblog_env) if weblog_env else {}
         self.weblog_infra = EndToEndWeblogInfra(
@@ -315,12 +325,14 @@ class EndToEndScenario(DockerScenario):
         self._set_containers_dependancies()
 
         super().configure(config)
-        interfaces.agent.configure(self.host_log_folder, replay=self.replay)
+        if self.include_agent:
+            interfaces.agent.configure(self.host_log_folder, replay=self.replay)
         interfaces.library.configure(self.host_log_folder, replay=self.replay)
         interfaces.backend.configure(self.host_log_folder, replay=self.replay)
         interfaces.library_dotnet_managed.configure(self.host_log_folder, replay=self.replay)
         interfaces.library_stdout.configure(self.host_log_folder, replay=self.replay)
-        interfaces.agent_stdout.configure(self.host_log_folder, replay=self.replay)
+        if self.include_agent:
+            interfaces.agent_stdout.configure(self.host_log_folder, replay=self.replay)
 
         if self.include_opentelemetry:
             interfaces.open_telemetry.configure(self.host_log_folder, replay=self.replay)
@@ -365,7 +377,8 @@ class EndToEndScenario(DockerScenario):
             self.agent_container.depends_on.append(self.proxy_container)
 
         proxy_container = self.proxy_container if self._use_proxy_for_weblog else None
-        self.weblog_infra.set_weblog_dependencies(self.agent_container, proxy_container)
+        agent_container = self.agent_container if self.include_agent else None
+        self.weblog_infra.set_weblog_dependencies(agent_container, proxy_container)
 
         for buddy in self.buddies:
             buddy.depends_on.append(self.agent_container)
@@ -374,8 +387,10 @@ class EndToEndScenario(DockerScenario):
         open_telemetry_interfaces: list[ProxyBasedInterfaceValidator] = (
             [interfaces.open_telemetry] if self.include_opentelemetry else []
         )
+        agent_interfaces: list[ProxyBasedInterfaceValidator] = [interfaces.agent] if self.include_agent else []
         super().start_interfaces_watchdog(
-            [interfaces.library, interfaces.agent]
+            [interfaces.library]
+            + agent_interfaces
             + [container.interface for container in self.buddies]
             + open_telemetry_interfaces
         )
@@ -385,7 +400,8 @@ class EndToEndScenario(DockerScenario):
             self.weblog_container.set_weblog_domain_for_ipv6(self._network)
 
     def _set_components(self):
-        self.components["agent"] = self.agent_version
+        if self.include_agent:
+            self.components["agent"] = self.agent_version
         self.components["library"] = self.library.version
         self.components[self.library.name] = self.library.version
 
@@ -414,13 +430,13 @@ class EndToEndScenario(DockerScenario):
         is_empty_test_run = session.config.option.skip_empty_scenario and len(session.items) == 0
 
         try:
-            self._wait_and_stop_containers(force_interface_timout_to_zero=is_empty_test_run)
+            self._wait_and_stop_containers(is_empty_test_run=is_empty_test_run)
         finally:
             self.close_targets()
 
         interfaces.library_dotnet_managed.load_data()
 
-    def _wait_and_stop_containers(self, *, force_interface_timout_to_zero: bool):
+    def _wait_and_stop_containers(self, *, is_empty_test_run: bool):
         if self.replay:
             logger.terminal.write_sep("-", "Load all data from logs")
             logger.terminal.flush()
@@ -432,8 +448,9 @@ class EndToEndScenario(DockerScenario):
                 container.interface.load_data_from_logs()
                 container.interface.check_deserialization_errors()
 
-            interfaces.agent.load_data_from_logs()
-            interfaces.agent.check_deserialization_errors()
+            if self.include_agent:
+                interfaces.agent.load_data_from_logs()
+                interfaces.agent.check_deserialization_errors()
 
             interfaces.backend.load_data_from_logs()
 
@@ -442,11 +459,11 @@ class EndToEndScenario(DockerScenario):
                 interfaces.open_telemetry.check_deserialization_errors()
 
         else:
-            self._wait_interface(
-                interfaces.library, 0 if force_interface_timout_to_zero else self.library_interface_timeout
-            )
+            self._wait_interface(interfaces.library, 0 if is_empty_test_run else self.library_interface_timeout)
 
-            self.weblog_infra.stop()
+            # An empty selection has no test-generated data to flush. An Agentless scenario also
+            # has no Agent-backed writer target, so its flush endpoint can only time out.
+            self.weblog_infra.stop(flush=not is_empty_test_run and self.include_agent)
             interfaces.library.check_deserialization_errors()
 
             for container in self.buddies:
@@ -455,19 +472,16 @@ class EndToEndScenario(DockerScenario):
                 container.stop()
                 container.interface.check_deserialization_errors()
 
-            self._wait_interface(
-                interfaces.agent, 0 if force_interface_timout_to_zero else self.agent_interface_timeout
-            )
-            self.agent_container.stop()
-            interfaces.agent.check_deserialization_errors()
+            if self.include_agent:
+                self._wait_interface(interfaces.agent, 0 if is_empty_test_run else self.agent_interface_timeout)
+                self.agent_container.stop()
+                interfaces.agent.check_deserialization_errors()
 
-            self._wait_interface(
-                interfaces.backend, 0 if force_interface_timout_to_zero else self.backend_interface_timeout
-            )
+            self._wait_interface(interfaces.backend, 0 if is_empty_test_run else self.backend_interface_timeout)
 
             if self.include_opentelemetry:
                 self._wait_interface(
-                    interfaces.open_telemetry, 0 if force_interface_timout_to_zero else self.backend_interface_timeout
+                    interfaces.open_telemetry, 0 if is_empty_test_run else self.backend_interface_timeout
                 )
 
     def _wait_interface(self, interface: ProxyBasedInterfaceValidator, timeout: int):
@@ -482,7 +496,9 @@ class EndToEndScenario(DockerScenario):
 
     @property
     def dd_site(self):
-        return self.agent_container.dd_site
+        if self.include_agent:
+            return self.agent_container.dd_site
+        return self.weblog_container.environment.get("DD_SITE", "datad0g.com")
 
     @property
     def library(self):
@@ -490,7 +506,7 @@ class EndToEndScenario(DockerScenario):
 
     @property
     def agent_version(self):
-        return self.agent_container.agent_version
+        return self.agent_container.agent_version if self.include_agent else Version("0.0.0")
 
     @property
     def weblog_variant(self) -> str:
@@ -542,6 +558,7 @@ class DdTraceEndToEndScenario(EndToEndScenario):
         backend_interface_timeout: int = 0,
         client_drop_p0s: bool | None = None,
         iast_enabled: bool = True,
+        include_agent: bool = True,
         include_opentelemetry: bool = False,
         library_interface_timeout: int | None = None,
         meta_structs_disabled: bool = False,
@@ -554,6 +571,8 @@ class DdTraceEndToEndScenario(EndToEndScenario):
         scenario_groups: list[ScenarioGroup] | None = None,
         span_events: bool = True,
         tracer_sampling_rate: float | None = None,
+        use_proxy_for_agent: bool = True,
+        use_proxy_for_weblog: bool = True,
         weblog_env: dict[str, str | None] | None = None,
         weblog_volumes: dict | None = None,
     ) -> None:
@@ -566,6 +585,7 @@ class DdTraceEndToEndScenario(EndToEndScenario):
             client_drop_p0s=client_drop_p0s,
             doc=doc,
             iast_enabled=iast_enabled,
+            include_agent=include_agent,
             include_opentelemetry=include_opentelemetry,
             library_interface_timeout=library_interface_timeout,
             meta_structs_disabled=meta_structs_disabled,
@@ -578,6 +598,8 @@ class DdTraceEndToEndScenario(EndToEndScenario):
             scenario_groups=scenario_groups,
             span_events=span_events,
             tracer_sampling_rate=tracer_sampling_rate,
+            use_proxy_for_agent=use_proxy_for_agent,
+            use_proxy_for_weblog=use_proxy_for_weblog,
             weblog_categories=[WeblogCategory.dd_trace],
             weblog_env=weblog_env,
             weblog_volumes=weblog_volumes,

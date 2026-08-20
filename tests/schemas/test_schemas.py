@@ -33,6 +33,48 @@ class Test_DdtraceSchemas:
             ),
             SchemaBug(
                 endpoint="/telemetry/proxy/api/v2/apmtelemetry",
+                data_path="$.payload[].payload.configuration[].value",
+                condition=context.library == "ruby",
+                ticket="APMAPI-2220",
+            ),
+            SchemaBug(
+                endpoint="/telemetry/proxy/api/v2/apmtelemetry",
+                data_path="$.application.process_tags",
+                condition=context.library == "nodejs",
+                ticket="APMAPI-2221",
+            ),
+            SchemaBug(
+                endpoint="/telemetry/proxy/api/v2/apmtelemetry",
+                data_path="$.payload[].payload.series[]",
+                condition=context.library == "golang",
+                ticket="APMAPI-2222",
+            ),
+            SchemaBug(
+                endpoint="/telemetry/proxy/api/v2/apmtelemetry",
+                data_path="$.payload[].payload.series[]",
+                condition=context.library == "dotnet",
+                ticket="APMAPI-2223",
+            ),
+            SchemaBug(
+                endpoint="/telemetry/proxy/api/v2/apmtelemetry",
+                data_path="$.payload.dependencies",
+                condition=context.library == "php",
+                ticket="APMAPI-2259",
+            ),
+            SchemaBug(
+                endpoint="/telemetry/proxy/api/v2/apmtelemetry",
+                data_path="$.payload.integrations",
+                condition=context.library == "php",
+                ticket="APMAPI-2259",
+            ),
+            SchemaBug(
+                endpoint="/telemetry/proxy/api/v2/apmtelemetry",
+                data_path="$.payload[].payload.integrations",
+                condition=context.library == "dotnet",
+                ticket="APMAPI-2260",
+            ),
+            SchemaBug(
+                endpoint="/telemetry/proxy/api/v2/apmtelemetry",
                 data_path="$.payload",
                 condition=context.library < "python@v2.9.0.dev",
                 ticket="APPSEC-52845",
@@ -81,30 +123,6 @@ class Test_DdtraceSchemas:
                 ticket="DEBUG-3298",
             ),
             SchemaBug(
-                endpoint="/telemetry/proxy/api/v2/apmtelemetry",
-                data_path="$.payload",
-                condition=context.library > "php@1.7.3",
-                ticket="APMAPI-1270",
-            ),
-            SchemaBug(
-                endpoint="/telemetry/proxy/api/v2/apmtelemetry",
-                data_path="$.payload.dependencies[].version",
-                condition=context.library == "php" and context.scenario is scenarios.telemetry_extended_heartbeat,
-                ticket="APMAPI-1938",
-            ),
-            SchemaBug(
-                endpoint="/telemetry/proxy/api/v2/apmtelemetry",
-                data_path="$.payload.integrations[].auto_enabled",
-                condition=context.library == "php" and context.scenario is scenarios.telemetry_extended_heartbeat,
-                ticket="APMAPI-1938",
-            ),
-            SchemaBug(
-                endpoint="/telemetry/proxy/api/v2/apmtelemetry",
-                data_path="$.payload.integrations[].compatible",
-                condition=context.library == "php" and context.scenario is scenarios.telemetry_extended_heartbeat,
-                ticket="APMAPI-1938",
-            ),
-            SchemaBug(
                 endpoint="/debugger/v1/diagnostics",
                 data_path="$[]",
                 condition=context.library >= "php@1.8.3",
@@ -114,7 +132,7 @@ class Test_DdtraceSchemas:
                 endpoint="/v0.6/stats",
                 data_path=None,
                 condition=context.library
-                in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "java", "nodejs", "php", "python", "ruby")
+                in ("c", "cpp", "cpp_httpd", "cpp_nginx", "dotnet", "java", "nodejs", "php", "python", "ruby")
                 and context.scenario
                 in (
                     scenarios.appsec_blocking,
@@ -177,6 +195,48 @@ class Test_DdtraceSchemas:
             ),
             SchemaBug(
                 endpoint="/api/v2/apmtelemetry",
+                data_path="$.payload[].payload.configuration[].value",
+                condition=context.library == "ruby",
+                ticket="APMAPI-2220",
+            ),
+            SchemaBug(
+                endpoint="/api/v2/apmtelemetry",
+                data_path="$.application.process_tags",
+                condition=context.library == "nodejs",
+                ticket="APMAPI-2221",
+            ),
+            SchemaBug(
+                endpoint="/api/v2/apmtelemetry",
+                data_path="$.payload[].payload.series[]",
+                condition=context.library == "golang",
+                ticket="APMAPI-2222",
+            ),
+            SchemaBug(
+                endpoint="/api/v2/apmtelemetry",
+                data_path="$.payload[].payload.series[]",
+                condition=context.library == "dotnet",
+                ticket="APMAPI-2223",
+            ),
+            SchemaBug(
+                endpoint="/api/v2/apmtelemetry",
+                data_path="$.payload.dependencies",
+                condition=context.library == "php",
+                ticket="APMAPI-2259",
+            ),
+            SchemaBug(
+                endpoint="/api/v2/apmtelemetry",
+                data_path="$.payload.integrations",
+                condition=context.library == "php",
+                ticket="APMAPI-2259",
+            ),
+            SchemaBug(
+                endpoint="/api/v2/apmtelemetry",
+                data_path="$.payload[].payload.integrations",
+                condition=context.library == "dotnet",
+                ticket="APMAPI-2260",
+            ),
+            SchemaBug(
+                endpoint="/api/v2/apmtelemetry",
                 data_path="$.payload",
                 condition=context.library < "python@v2.9.0.dev",
                 ticket="APPSEC-52845",
@@ -198,24 +258,6 @@ class Test_DdtraceSchemas:
                 data_path="$[]",
                 condition=context.library == "python" and context.scenario is scenarios.debugger_probes_snapshot,
                 ticket="DEBUG-5715",
-            ),
-            SchemaBug(
-                endpoint="/api/v2/apmtelemetry",
-                data_path="$.payload.dependencies[].version",
-                condition=context.library == "php" and context.scenario is scenarios.telemetry_extended_heartbeat,
-                ticket="APMAPI-1938",
-            ),
-            SchemaBug(
-                endpoint="/api/v2/apmtelemetry",
-                data_path="$.payload.integrations[].auto_enabled",
-                condition=context.library == "php" and context.scenario is scenarios.telemetry_extended_heartbeat,
-                ticket="APMAPI-1938",
-            ),
-            SchemaBug(
-                endpoint="/api/v2/apmtelemetry",
-                data_path="$.payload.integrations[].compatible",
-                condition=context.library == "php" and context.scenario is scenarios.telemetry_extended_heartbeat,
-                ticket="APMAPI-1938",
             ),
             SchemaBug(
                 endpoint="/api/v2/debugger",

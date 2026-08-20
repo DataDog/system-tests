@@ -1,28 +1,28 @@
-from collections.abc import Generator, Iterable
 import contextlib
+from collections.abc import Generator, Iterable
 from dataclasses import asdict
 from http import HTTPStatus
 from types import TracebackType
 from typing import TypedDict, cast
 
-from requests.exceptions import RequestException
+import pytest
 from docker.models.containers import Container
 from opentelemetry.trace import SpanKind, StatusCode
-import pytest
+from requests.exceptions import RequestException
 
+from utils._logger import logger
 from utils.docker_fixtures._core import extra_hosts_for_environment, get_host_port, docker_run
 from utils.docker_fixtures._test_agent import TestAgentAPI
+from utils.docker_fixtures.parametric import Link, LogLevel
 from utils.docker_fixtures.spec.llm_observability import (
-    SpanRequest,
-    LlmObsAnnotationContextRequest,
     DatasetCreateRequest,
     DatasetResponse,
+    LlmObsAnnotationContextRequest,
+    SpanRequest,
 )
 from utils.docker_fixtures.spec.otel_trace import OtelSpanContext
-from utils.docker_fixtures.parametric import LogLevel, Link
-from utils._logger import logger
 
-from ._core import TestClientFactory, TestClientApi
+from ._core import TestClientApi, TestClientFactory
 
 
 class ParametricTestClientFactory(TestClientFactory):
@@ -147,6 +147,12 @@ class _TestSpan:
                 assert all(c in "0123456789abcdefABCDEF" for c in span_id[2:]), f"{span_id} is not hexadecimal"
             else:
                 assert span_id.isdigit(), f"{span_id} is not decimal"
+
+    def get_trace_id(self) -> int:
+        return self.trace_id
+
+    def get_span_id(self) -> int | str:
+        return self.span_id
 
     def set_resource(self, resource: str):
         self._client.span_set_resource(self.span_id, resource)
@@ -492,6 +498,9 @@ class ParametricTestClientApi(TestClientApi):
         if not HTTPStatus(r.status_code).is_success:
             return False
 
+        return self.dd_flush_stats()
+
+    def dd_flush_stats(self) -> bool:
         r = self._session.post(self._url("/trace/stats/flush"), json={})
 
         return HTTPStatus(r.status_code).is_success
@@ -1097,6 +1106,9 @@ class APMLibrary:
 
     def dd_flush(self) -> bool:
         return self._client.dd_flush()
+
+    def dd_flush_stats(self) -> bool:
+        return self._client.dd_flush_stats()
 
     def flush_remote_config(self, timeout: float = 10.0) -> list[dict[str, str]] | None:
         """Synchronously drain pending Remote Config and return the applied set.

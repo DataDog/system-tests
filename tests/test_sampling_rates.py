@@ -37,7 +37,12 @@ def get_trace_request_path(root_span: DataDogLibrarySpan) -> str | None:
 def assert_all_traces_requests_forwarded(paths: list[str] | set[str]) -> None:
     path_to_logfile = {}
 
-    for trace, span in interfaces.library.get_root_spans():
+    # get_root_spans() yields nothing when no root span was collected. Report that explicitly instead
+    # of letting it surface as "every path is missing" below.
+    root_spans = list(interfaces.library.get_root_spans())
+    assert root_spans, "Expected at least one root span"
+
+    for trace, span in root_spans:
         path = get_trace_request_path(span)
         path_to_logfile[path] = trace.data["log_filename"]
 
@@ -121,19 +126,18 @@ class Test_SamplingRates:
             sampled_count[priority_should_be_kept(sampling_priority)] += 1
 
         trace_count = sum(sampled_count.values())
-        # 95% confidence interval = 4 * std_dev = 4 * √(n * p (1 - p))
-        confidence_interval = 4 * (
-            trace_count * context.tracer_sampling_rate * (1.0 - context.tracer_sampling_rate)
-        ) ** (1 / 2)
+        # Kept count ~ Binomial(n, p), std_dev = sqrt(n * p * (1 - p)). The tolerance band spans
+        # std_devs standard deviations: wide enough a correct tracer virtually never fails on noise.
+        std_devs = 5
+        std_dev = (trace_count * context.tracer_sampling_rate * (1.0 - context.tracer_sampling_rate)) ** (1 / 2)
+        tolerance = std_devs * std_dev
         # E = n * p
         expectation = context.tracer_sampling_rate * trace_count
-        if not expectation - confidence_interval <= sampled_count[True] <= expectation + confidence_interval:
+        if not expectation - tolerance <= sampled_count[True] <= expectation + tolerance:
             raise ValueError(
-                f"Sampling rate is set to {context.tracer_sampling_rate}, "
-                f"expected count of sampled traces {expectation}/{trace_count}."
-                f"Actual {sampled_count[True]}/{trace_count}={sampled_count[True] / trace_count}, "
-                f"which is outside of the confidence interval of +-{confidence_interval}\n"
-                "This test is probabilistic in nature and should fail ~5% of the time, you might want to rerun it."
+                f"Sampling rate {context.tracer_sampling_rate}: expected ~{expectation}/{trace_count} kept, "
+                f"got {sampled_count[True]}/{trace_count}, outside the +-{tolerance} ({std_devs} std_dev) band. "
+                "Probabilistic; rerun, and if it repeats the sampling rate is off."
             )
 
 
@@ -172,8 +176,13 @@ class Test_SamplingDecisions:
                     f"sampling decision {sampling_decision} differs from the expected {expected_decision}"
                 )
 
-        for data, span in interfaces.library.get_root_spans():
-            validator(data, span)
+        # get_root_spans() yields nothing when no root span was collected, so the validator below
+        # would never run without this guard
+        root_spans = list(interfaces.library.get_root_spans())
+        assert root_spans, "Expected at least one root span"
+
+        for trace, root_span in root_spans:
+            validator(trace, root_span)
 
 
 @scenarios.sampling

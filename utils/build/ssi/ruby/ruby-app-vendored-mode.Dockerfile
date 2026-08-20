@@ -14,6 +14,10 @@ ENV HOME  /root
 ENV RBENV_ROOT $HOME/.rbenv
 ENV PATH $RBENV_ROOT/shims:$RBENV_ROOT/bin:$PATH
 ENV BUNDLE_PATH=/bundle
-RUN env DD_APM_INSTRUMENTATION_DEBUG=false bundle install && rbenv rehash
+RUN set -eu; \
+    ruby_minor="$(ruby -e 'print RUBY_VERSION.split(".").take(2).join(".")')"; \
+    cp "gemfiles/ruby-${ruby_minor}.gemfile.lock" Gemfile.lock; \
+    env DD_APM_INSTRUMENTATION_DEBUG=false bundle install; \
+    rbenv rehash
 EXPOSE 18080
 CMD bin/rails server -b 0.0.0.0 -p 18080
