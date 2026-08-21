@@ -286,7 +286,7 @@ def _is_supported_legacy(weblog: WeblogMetaData, scenario: Scenario, _ci_environ
             return False
 
     # Go proxies
-    if weblog.name in ("envoy", "haproxy"):
+    if weblog.name in ("envoy", "haproxy", "apim"):
         if scenario.name not in ("DEFAULT", "APPSEC_BLOCKING"):
             return False
 

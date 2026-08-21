@@ -396,7 +396,11 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
                 keys_to_remove = []
                 span_meta = get_span_meta(span, span_format)
                 for meta_key, meta_value in span_meta.items():
-                    if meta_key in {
+                    if meta_key.startswith("_dd.appsec.s."):
+                        # API Security samples schemas per (route, method, status) on a time window, so
+                        # which request of the test carries them is not deterministic
+                        keys_to_remove.append(meta_key)
+                    elif meta_key in {
                         "_dd.convertedv1",  # trace agent marker, only set when it converts v0.4 -> v1
                         "_dd.appsec.fp.http.endpoint",
                         "_dd.appsec.fp.http.header",

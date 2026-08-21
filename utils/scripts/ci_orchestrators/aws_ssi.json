@@ -666,6 +666,8 @@
             {
                 "name": "test-app-php-alpine",
                 "excluded_os_branches": [
+                    "centos_7_amd64",
+                    "rhel_7_amd64",
                     "windows"
                 ]
             },

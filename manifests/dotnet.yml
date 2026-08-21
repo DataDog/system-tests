@@ -695,6 +695,13 @@ manifest:
     - declaration: missing_feature (keywords are not fully redacted)
       component_version: <2.51
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers: v2.50.0
+  tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers::test_pii_redaction_log_probe_computed_key: bug (DEBUG-5960)
+  tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers::test_pii_redaction_log_probe_identifiers: bug (DEBUG-5962)
+  tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers::test_pii_redaction_log_probe_map_key: bug (DEBUG-5962)
+  ? tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers::test_pii_redaction_log_probe_map_rendering
+  : bug (DEBUG-5963)
+  ? tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers::test_pii_redaction_log_probe_sensitive_type
+  : bug (DEBUG-5961)
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets: v2.53.0
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_log_line_budgets:  # Modified by easy win activation script
     - declaration: bug (DEBUG-4746)
@@ -752,6 +759,10 @@ manifest:
   tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Direct: missing_feature (Not yet implemented)
   tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Sidecar: missing_feature (Not yet implemented)
   tests/ffe/test_exposures_datadog_agent.py: v3.36.0
+  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Appears: missing_feature (EX-3416)
+  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Cycle: missing_feature (EX-3416)
+  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Disappears: missing_feature (EX-3416)
+  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Serial_Id: missing_feature (EX-3416)
   tests/ffe/test_flag_eval_evp.py: missing_feature (FFL-2446)
   tests/ffe/test_flag_eval_metrics.py: v3.44.0
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_error: bug (MLOB-1234)
@@ -1045,6 +1056,7 @@ manifest:
       component_version: <=2.41.0
   tests/parametric/test_otel_span_with_baggage.py::Test_Otel_Span_With_Baggage: missing_feature
   tests/parametric/test_otel_tracer.py::Test_Otel_Tracer: v2.8.0
+  tests/parametric/test_otel_tracestate_sampling.py::Test_OtelTracestateSampling: missing_feature (APMAPI-2171)
   tests/parametric/test_otlp_trace_metrics.py: v3.50.0
   tests/parametric/test_otlp_trace_metrics.py::Test_FR02_Mutual_Exclusion::test_fr02_3_otlp_suppresses_native_stats: irrelevant (OTLP trace metrics alongside native (non-OTLP) trace export was removed and will not be supported; OTLP trace metrics now require OTEL_TRACES_EXPORTER=otlp)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR04_Span_Selection::test_fr04_2_unmeasured_child_excluded: v3.51.0
@@ -1279,17 +1291,11 @@ manifest:
   tests/test_library_conf.py::Test_HeaderTags_Wildcard_Response_Headers: missing_feature
   tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)
   tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
-  tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_01: missing_feature (APMAPI-2171)
-  tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_1: missing_feature (APMAPI-2171)
-  tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_2: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5: missing_feature (APMAPI-2171)
-  tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_99: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchanged: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchangedWhenDropped: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_MalformedOtHandling: missing_feature (APMAPI-2171)
-  tests/test_otel_tracestate_sampling.py::Test_PrecisionBoundaryDecision_Rate0_05: missing_feature (APMAPI-2171)
-  tests/test_otel_tracestate_sampling.py::Test_PrecisionBoundaryDecision_Rate0_1: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_PreserveDdAndOtherVendors: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_SampledWithoutOtNotFabricated: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_ThOnlyDoesNotFabricateRv: missing_feature (APMAPI-2171)
