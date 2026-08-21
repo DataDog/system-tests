@@ -177,6 +177,17 @@ class FeatureFlaggingAgentlessEndToEndScenario(AgentlessEndToEndScenario):
     def configure(self, config: pytest.Config) -> None:
         try:
             super().configure(config)
+            if self.exposure_egress is not None and self.weblog_infra.library_name == "nodejs":
+                library_container = self.weblog_infra.library_container
+                library_container.environment["NODE_EXTRA_CA_CERTS"] = (
+                    "/usr/local/share/ca-certificates/system-tests-mitmproxy-ca.pem"
+                )
+                library_container.volumes |= {
+                    "./utils/proxy/.mitmproxy/mitmproxy-ca-cert.pem": {
+                        "bind": "/usr/local/share/ca-certificates/system-tests-mitmproxy-ca.pem",
+                        "mode": "ro",
+                    }
+                }
             if self.exposure_egress is not None:
                 interfaces.datadog_sidecar.configure(self.host_log_folder, replay=self.replay)
                 interfaces.datadog_direct.configure(self.host_log_folder, replay=self.replay)
