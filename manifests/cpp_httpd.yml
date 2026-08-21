@@ -192,6 +192,7 @@ manifest:
   tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)
   tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
   tests/test_miscs.py: irrelevant
+  tests/test_otel_http_semantics.py: missing_feature (httpd-datadog does not implement OTel HTTP semantic-convention mode)
   tests/test_otel_tracestate_sampling.py: irrelevant (library does not implement OpenTelemetry)
   tests/test_profiling.py: missing_feature (missing profiling module in weblog)
   tests/test_resource_renaming.py: missing_feature
