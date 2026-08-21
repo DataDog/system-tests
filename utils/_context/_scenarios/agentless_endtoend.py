@@ -247,8 +247,7 @@ class JavaOpenFeatureAgentlessEndToEndScenario(FeatureFlaggingAgentlessEndToEndS
             },
         )
         self.deployment_mode = deployment_mode
-
-    def configure(self, config: pytest.Config) -> None:
-        if config.option.library != "java":
-            pytest.exit(f"{self.name} supports only the java library", 1)
-        super().configure(config)
+        # These deployment shapes are implemented only by the Java spring-boot weblog.
+        # Keep them out of the generic dd_trace category; weblog metadata opts in the
+        # supported target explicitly.
+        self.weblog_categories = []
