@@ -237,6 +237,31 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec],
     )
 
+    trace_stats_computation_v1 = DdTraceEndToEndScenario(
+        name="TRACE_STATS_COMPUTATION_V1",
+        # Same as trace_stats_computation, but the tracer emits traces on the v1 (efficient payload)
+        # endpoint instead of a legacy one. CSS and the v1 trace protocol are independent features, so
+        # the stats assertions must hold identically here: the only delta versus TRACE_STATS_COMPUTATION
+        # is the trace protocol. Without this scenario the combination is only ever reached by accident,
+        # via whichever protocol a tracer happens to default to.
+        weblog_env={
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",  # default env var for CSS
+            "DD_TRACE_COMPUTE_STATS": "true",
+            "DD_TRACE_FEATURES": "discovery",
+            "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
+            "_DD_TRACE_STATS_COMPUTATION_EXPERIMENTAL_CLIENT_OBFUSCATION_ENABLED": "true",
+            "DD_TRACE_AGENT_PROTOCOL_VERSION": "1.0",
+        },
+        agent_env={
+            "DD_APM_ENABLE_V1_TRACE_ENDPOINT": "true",
+        },
+        doc=(
+            "End to end testing with DD_TRACE_COMPUTE_STATS=1 and the v1 trace protocol. "
+            "Tests that client-side stats computation is unaffected by the trace payload format."
+        ),
+        scenario_groups=[scenario_groups.appsec],
+    )
+
     sampling = DdTraceEndToEndScenario(
         "SAMPLING",
         tracer_sampling_rate=0.5,
@@ -827,6 +852,26 @@ class _Scenarios:
         },
         backend_interface_timeout=5,
         doc="End-to-end testing scenario focused on efficient payload handling and v1 trace format validation",
+    )
+
+    apm_tracing_efficient_payload_stats_disabled = DdTraceEndToEndScenario(
+        "APM_TRACING_EFFICIENT_PAYLOAD_STATS_DISABLED",
+        # Same as apm_tracing_efficient_payload but with Client-Side Stats explicitly disabled. CSS is
+        # negotiated out of band (the Datadog-Client-Computed-Stats header and the separate /v0.6/stats
+        # endpoint), so turning it off must not change the trace wire format. This is the only scenario
+        # that pins the v1 protocol while CSS is off, which is what makes it able to catch a tracer
+        # gating v1 on CSS and silently falling back to /v0.4/traces.
+        weblog_env={
+            "DD_TRACE_SAMPLE_RATE": "1.0",
+            "DD_TRACE_AGENT_PROTOCOL_VERSION": "1.0",
+            # Same idiom DefaultScenario uses to express "CSS off"
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
+        },
+        agent_env={
+            "DD_APM_ENABLE_V1_TRACE_ENDPOINT": "true",
+        },
+        backend_interface_timeout=5,
+        doc="End-to-end testing that the v1 trace format does not depend on Client-Side Stats being enabled",
     )
 
     otel_tracing_e2e = OpenTelemetryScenario("OTEL_TRACING_E2E", require_api_key=True, doc="")
