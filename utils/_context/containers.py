@@ -1829,7 +1829,7 @@ class ApimGatewayContainer(TestedContainer):
     def __init__(self) -> None:
         super().__init__(
             # already mirrored: mirror_images.lock.yaml:325, curated at mirror_images.yaml:90
-            image_name="golang:1.25-alpine",
+            image_name="golang:1.26-alpine",
             name="apim-gateway",
             working_dir="/app",
             # there is no dockerfile for this weblog (build_mode: none), the shim sources are
@@ -1843,7 +1843,7 @@ class ApimGatewayContainer(TestedContainer):
             },
             ports={"80": ("127.0.0.1", weblog.port)},
             healthcheck={
-                # golang:1.25-alpine ships busybox but no bash, so the /bin/bash + /dev/tcp
+                # golang:1.26-alpine ships busybox but no bash, so the /bin/bash + /dev/tcp
                 # healthcheck used by EnvoyContainer and HAProxyContainer is not usable here
                 "test": "wget -qO- http://localhost:80/",
                 # `go run .` compiles the shim on every container start, and since Go 1.20 ships
