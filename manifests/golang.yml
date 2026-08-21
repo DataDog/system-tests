@@ -1491,7 +1491,7 @@ manifest:
       component_version: '<=2.10.0-dev'
   tests/parametric/test_llm_observability/test_llm_observability.py: incomplete_test_app
   tests/parametric/test_llm_observability/test_llm_observability_dne.py: incomplete_test_app
-  tests/parametric/test_llm_observability/test_llm_observability_export.py: v2.11.0-dev.1
+  tests/parametric/test_llm_observability/test_llm_observability_export.py: '>=2.11.0-dev.1'
   tests/parametric/test_otel_api_interoperability.py: missing_feature
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: v1.66.0
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_otel_enabled_takes_precedence: irrelevant (does not support enabling opentelemetry via DD_TRACE_OTEL_ENABLED)
