@@ -232,3 +232,23 @@ class FeatureFlaggingAgentlessEndToEndScenario(AgentlessEndToEndScenario):
         )
         for interface in telemetry_interfaces:
             interface.load_data_from_logs()
+
+
+class JavaOpenFeatureAgentlessEndToEndScenario(FeatureFlaggingAgentlessEndToEndScenario):
+    """Java-only FFE scenario for a specific OpenFeature deployment shape."""
+
+    def __init__(self, name: str, *, deployment_mode: Literal["standalone", "ssi"], doc: str) -> None:
+        super().__init__(
+            name,
+            doc=doc,
+            weblog_env={
+                "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE": "agentless",
+                "SYSTEM_TESTS_JAVA_OPENFEATURE_MODE": deployment_mode,
+            },
+        )
+        self.deployment_mode = deployment_mode
+
+    def configure(self, config: pytest.Config) -> None:
+        if config.option.library != "java":
+            pytest.exit(f"{self.name} supports only the java library", 1)
+        super().configure(config)

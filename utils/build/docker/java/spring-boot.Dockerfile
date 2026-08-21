@@ -13,6 +13,11 @@ COPY ./utils/build/docker/java/spring-boot/src ./src
 COPY ./utils/build/docker/java/install_*.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh -Dmaven.repo.local=/maven
 RUN mvn -Dmaven.repo.local=/maven package
+RUN cp /app/target/myproject-0.0.1-SNAPSHOT.jar /app/app-explicit.jar
+RUN jar tf /app/app-explicit.jar | grep -q '^BOOT-INF/lib/dd-openfeature-.*\.jar$'
+RUN mvn -Dmaven.repo.local=/maven -Ptomcat,openfeature-ssi clean package
+RUN cp /app/target/myproject-0.0.1-SNAPSHOT.jar /app/app-ssi.jar
+RUN ! jar tf /app/app-ssi.jar | grep -q '^BOOT-INF/lib/dd-openfeature-.*\.jar$'
 
 RUN /binaries/install_drop_in.sh
 
@@ -21,7 +26,8 @@ FROM eclipse-temurin:11-jre
 WORKDIR /app
 COPY --from=build /binaries/SYSTEM_TESTS_LIBRARY_VERSION SYSTEM_TESTS_LIBRARY_VERSION
 
-COPY --from=build /app/target/myproject-0.0.1-SNAPSHOT.jar /app/app.jar
+COPY --from=build /app/app-explicit.jar /app/app.jar
+COPY --from=build /app/app-ssi.jar /app/app-ssi.jar
 COPY --from=build /dd-tracer/opentelemetry-javaagent-r2dbc.jar .
 COPY --from=build /dd-tracer/dd-java-agent.jar .
 
