@@ -2443,10 +2443,10 @@ manifest:
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_AdditionalTags::test_fr08_10_dd_tags_tracer_tags_resource_attributes: v6.11.0
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_AdditionalTags::test_fr08_11_otel_resource_attributes_env_tracer_tags: v6.11.0
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_AdditionalTags::test_fr08_12_stats_additional_tags: missing_feature (DD_TRACE_STATS_ADDITIONAL_TAGS is not forwarded to the native OTLP trace-metrics exporter)
-  tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes::test_fr08_13_is_trace_root: v6.11.0
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes::test_fr08_13_is_trace_root: missing_feature (different-service child spans are not aggregated into OTLP trace-metric data points)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes::test_fr08_14_peer_tags: missing_feature (Blocked on test-agent support for advertising a peer_tags allowlist in /info)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes::test_fr08_15_service_source: v6.11.0
-  tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes::test_fr08_5_top_level_child_different_service: v6.11.0
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes::test_fr08_5_top_level_child_different_service: missing_feature (different-service child spans are not aggregated into OTLP trace-metric data points)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes::test_fr08_8_process_tags: v6.11.0
   tests/parametric/test_otlp_trace_metrics.py::Test_FR09_Red_Metric_Derivation::test_fr09_2_error_count: v6.11.0
   tests/parametric/test_parametric_endpoints.py::TestRemoteConfigApplyEndpoint: incomplete_test_app (POST /trace/remote-config/apply only implemented in the python parametric app)
