@@ -1,3 +1,32 @@
+"""Shared LLM Observability parametric contracts.
+
+The request types in this module define the cross-SDK HTTP interface. Intake
+payload assertions must follow the canonical consumers pinned below rather than
+any tracer's producer-side types.
+
+Pinned intake source roots:
+
+https://github.com/ddoghq/dd-go/tree/0293d577fbc211484fda1815eafbbbaa7a111f17
+https://github.com/ddoghq/dd-source/tree/7b1e4d9f79cf6ef25fb288a691775d24be59c789
+
+Canonical intake sources:
+
+- Span and evaluation decoder:
+  https://github.com/ddoghq/dd-go/blob/0293d577fbc211484fda1815eafbbbaa7a111f17/domains/ml-observability/apps/llm-obs-events-processor/decoder/decoder.go
+- Event envelope and internal attributes:
+  https://github.com/ddoghq/dd-source/blob/7b1e4d9f79cf6ef25fb288a691775d24be59c789/domains/ml-observability/shared/libs/llmobs-internal/types.go
+- Span payload, span link, and error fields:
+  https://github.com/ddoghq/dd-source/blob/7b1e4d9f79cf6ef25fb288a691775d24be59c789/domains/ml-observability/shared/libs/llmobs-internal/types_span.go
+- Raw span metadata and error placement:
+  https://github.com/ddoghq/dd-source/blob/7b1e4d9f79cf6ef25fb288a691775d24be59c789/domains/ml-observability/shared/libs/llmobs-internal/types_span_deprecated.go
+- V2 evaluation intake request and handler:
+  https://github.com/ddoghq/dd-source/blob/7b1e4d9f79cf6ef25fb288a691775d24be59c789/domains/ml-observability/apps/apis/llm-obs/internal/adapters/handlersv1/http/eval_metric.go
+- V2 evaluation metric fields:
+  https://github.com/ddoghq/dd-source/blob/7b1e4d9f79cf6ef25fb288a691775d24be59c789/domains/ml-observability/apps/apis/llm-obs/internal/core/domain/eval_metric.go
+- Intake route registration:
+  https://github.com/ddoghq/dd-source/blob/7b1e4d9f79cf6ef25fb288a691775d24be59c789/domains/ml-observability/apps/apis/llm-obs/bootstrap.go
+"""
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field

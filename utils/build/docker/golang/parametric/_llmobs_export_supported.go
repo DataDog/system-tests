@@ -10,28 +10,10 @@ import (
 	llmobsexport "github.com/DataDog/dd-trace-go/v2/llmobs/export"
 )
 
-// The endpoint DTOs below mirror the LlmObsExport* parametric protocol in
-// utils/docker_fixtures/spec/llm_observability.py. The dd-trace-go types are
-// producer-side inputs; the canonical intake consumer and contracts are pinned
-// here:
-// https://github.com/ddoghq/dd-go/tree/0293d577fbc211484fda1815eafbbbaa7a111f17
-// https://github.com/ddoghq/dd-source/tree/7b1e4d9f79cf6ef25fb288a691775d24be59c789
-//
-// Intake sources:
-//   - the intake processor decoding spans and evaluation metrics:
-//     https://github.com/ddoghq/dd-go/blob/0293d577fbc211484fda1815eafbbbaa7a111f17/domains/ml-observability/apps/llm-obs-events-processor/decoder/decoder.go
-//   - common event envelope and internal attributes:
-//     https://github.com/ddoghq/dd-source/blob/7b1e4d9f79cf6ef25fb288a691775d24be59c789/domains/ml-observability/shared/libs/llmobs-internal/types.go
-//   - span payload, SpanLink, and ErrorField definitions:
-//     https://github.com/ddoghq/dd-source/blob/7b1e4d9f79cf6ef25fb288a691775d24be59c789/domains/ml-observability/shared/libs/llmobs-internal/types_span.go
-//   - raw span metadata and error placement:
-//     https://github.com/ddoghq/dd-source/blob/7b1e4d9f79cf6ef25fb288a691775d24be59c789/domains/ml-observability/shared/libs/llmobs-internal/types_span_deprecated.go
-//   - v2 evaluation intake request and handler:
-//     https://github.com/ddoghq/dd-source/blob/7b1e4d9f79cf6ef25fb288a691775d24be59c789/domains/ml-observability/apps/apis/llm-obs/internal/adapters/handlersv1/http/eval_metric.go
-//   - v2 evaluation metric fields:
-//     https://github.com/ddoghq/dd-source/blob/7b1e4d9f79cf6ef25fb288a691775d24be59c789/domains/ml-observability/apps/apis/llm-obs/internal/core/domain/eval_metric.go
-//   - intake route registration:
-//     https://github.com/ddoghq/dd-source/blob/7b1e4d9f79cf6ef25fb288a691775d24be59c789/domains/ml-observability/apps/apis/llm-obs/bootstrap.go
+// The endpoint DTOs below mirror the cross-SDK LlmObsExport* parametric
+// protocol in utils/docker_fixtures/spec/llm_observability.py. They are
+// transport DTOs, not intake schemas. The shared spec pins the canonical
+// intake consumers used by the tests.
 type llmObsExportRequest struct {
 	MLApp       string                          `json:"ml_app"`
 	Service     string                          `json:"service"`
