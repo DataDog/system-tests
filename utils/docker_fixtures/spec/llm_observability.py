@@ -23,6 +23,10 @@ Canonical intake sources:
   https://github.com/ddoghq/dd-source/blob/7b1e4d9f79cf6ef25fb288a691775d24be59c789/domains/ml-observability/apps/apis/llm-obs/internal/adapters/handlersv1/http/eval_metric.go
 - V2 evaluation metric fields:
   https://github.com/ddoghq/dd-source/blob/7b1e4d9f79cf6ef25fb288a691775d24be59c789/domains/ml-observability/apps/apis/llm-obs/internal/core/domain/eval_metric.go
+- V2 evaluation metric structural validation:
+  https://github.com/ddoghq/dd-source/blob/7b1e4d9f79cf6ef25fb288a691775d24be59c789/domains/ml-observability/apps/apis/llm-obs/internal/validation/eval_metric.go
+- V2 evaluation metric timestamp validation:
+  https://github.com/ddoghq/dd-source/blob/7b1e4d9f79cf6ef25fb288a691775d24be59c789/domains/ml-observability/apps/apis/llm-obs/internal/validation/validator.go
 - Intake route registration:
   https://github.com/ddoghq/dd-source/blob/7b1e4d9f79cf6ef25fb288a691775d24be59c789/domains/ml-observability/apps/apis/llm-obs/bootstrap.go
 """

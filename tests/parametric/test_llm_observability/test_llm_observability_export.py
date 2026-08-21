@@ -1,3 +1,4 @@
+import time
 from typing import Any, cast
 
 from utils import features, scenarios
@@ -162,6 +163,7 @@ class Test_Offline_Export:
         assert step_span["status"] == "ok"
 
     def test_evaluation_contract(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        timestamp_ms = int(time.time() * 1000)
         response = test_library.llmobs_export(
             LlmObsExportRequest(
                 ml_app="client-app",
@@ -174,7 +176,7 @@ class Test_Offline_Export:
                         metric_type="score",
                         score_value=0.9,
                         tags=["judge:test"],
-                        timestamp_ms=1_700_000_000_123,
+                        timestamp_ms=timestamp_ms,
                         assessment="mostly correct",
                         reasoning="grounded in the supplied context",
                         metadata={"judge": "gpt-4o", "rubric_version": 3},
@@ -186,7 +188,7 @@ class Test_Offline_Export:
                         metric_type="json",
                         json_value={"score": 0.95, "reasons": ["grounded", "concise"]},
                         ml_app="row-app",
-                        timestamp_ms=1_700_000_000_124,
+                        timestamp_ms=timestamp_ms,
                     ),
                 ],
             )
@@ -208,7 +210,7 @@ class Test_Offline_Export:
         assert score_metric["metric_type"] == "score"
         assert score_metric["score_value"] == 0.9
         assert score_metric["ml_app"] == "call-app"
-        assert score_metric["timestamp_ms"] == 1_700_000_000_123
+        assert score_metric["timestamp_ms"] == timestamp_ms
         assert score_metric["assessment"] == "mostly correct"
         assert score_metric["reasoning"] == "grounded in the supplied context"
         assert score_metric["metadata"] == {"judge": "gpt-4o", "rubric_version": 3}
