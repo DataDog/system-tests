@@ -11,18 +11,26 @@ import (
 )
 
 // The endpoint DTOs below mirror the LlmObsExport* parametric protocol in
-// utils/docker_fixtures/spec/llm_observability.py. They map into these public
-// dd-trace-go types introduced by DataDog/dd-trace-go#4936:
-//   - client and submission options: llmobs/export/client.go
-//   - SpanEvent, SpanLink, and ErrorMessage: llmobs/export/span.go
-//   - EvaluationMetric: llmobs/export/eval_metric.go
-//   - Result: llmobs/export/result.go
+// utils/docker_fixtures/spec/llm_observability.py. They map into the public API
+// introduced by DataDog/dd-trace-go#4936 at these pinned sources:
+//   - client and submission options:
+//     https://github.com/DataDog/dd-trace-go/blob/b8d0489ecfe4664faae4adcbf2480962ddd8eb4c/llmobs/export/client.go
+//   - SpanEvent, SpanLink, and ErrorMessage:
+//     https://github.com/DataDog/dd-trace-go/blob/b8d0489ecfe4664faae4adcbf2480962ddd8eb4c/llmobs/export/span.go
+//   - EvaluationMetric:
+//     https://github.com/DataDog/dd-trace-go/blob/b8d0489ecfe4664faae4adcbf2480962ddd8eb4c/llmobs/export/eval_metric.go
+//   - Result:
+//     https://github.com/DataDog/dd-trace-go/blob/b8d0489ecfe4664faae4adcbf2480962ddd8eb4c/llmobs/export/result.go
 //
-// Pinned upstream source root:
-// https://github.com/DataDog/dd-trace-go/tree/81a6224f9794276d093e92c4e1f29af06ef4bff0
-// SpanEvent, SpanLink, and ErrorMessage alias the canonical wire types in
-// internal/llmobs/transport/span.go; EvaluationMetric aliases EvaluationConfig
-// from internal/llmobs/evaluation.go.
+// The intake wire sources are distinct from those public input types:
+//   - SpanEvent and SpanLink:
+//     https://github.com/DataDog/dd-trace-go/blob/b8d0489ecfe4664faae4adcbf2480962ddd8eb4c/internal/llmobs/transport/span.go
+//   - ErrorMessage:
+//     https://github.com/DataDog/dd-trace-go/blob/b8d0489ecfe4664faae4adcbf2480962ddd8eb4c/internal/llmobs/transport/transport.go
+//   - EvaluationMetric input and its lowering into the intake payload:
+//     https://github.com/DataDog/dd-trace-go/blob/b8d0489ecfe4664faae4adcbf2480962ddd8eb4c/internal/llmobs/evaluation.go
+//     https://github.com/DataDog/dd-trace-go/blob/b8d0489ecfe4664faae4adcbf2480962ddd8eb4c/internal/llmobs/export.go
+//     https://github.com/DataDog/dd-trace-go/blob/b8d0489ecfe4664faae4adcbf2480962ddd8eb4c/internal/llmobs/transport/eval_metric.go
 type llmObsExportRequest struct {
 	MLApp       string                          `json:"ml_app"`
 	Service     string                          `json:"service"`
