@@ -211,7 +211,7 @@ class Test_Offline_Export:
         assert score_metric["timestamp_ms"] == 1_700_000_000_123
         assert score_metric["assessment"] == "mostly correct"
         assert score_metric["reasoning"] == "grounded in the supplied context"
-        assert score_metric["eval_metric_metadata"] == {"judge": "gpt-4o", "rubric_version": 3}
+        assert score_metric["metadata"] == {"judge": "gpt-4o", "rubric_version": 3}
         assert "judge:test" in score_metric["tags"]
         assert any(tag.startswith("ddtrace.version:") for tag in score_metric["tags"])
 
