@@ -52,6 +52,23 @@ def test_ipv6_is_not_supported_for_uds_weblogs():
 
 
 @scenarios.test_the_test
+def test_java_openfeature_deployment_scenarios_are_spring_boot_only():
+    java_openfeature_scenarios = (
+        scenarios.feature_flagging_and_experimentation_java_standalone,
+        scenarios.feature_flagging_and_experimentation_java_ssi,
+    )
+
+    for scenario in java_openfeature_scenarios:
+        supported_targets = [
+            (library, weblog.name)
+            for library in sorted(COMPONENT_GROUPS.all)
+            for weblog in WeblogMetaData.load(library)
+            if weblog.support_scenario(scenario.name, scenario.weblog_categories)
+        ]
+        assert supported_targets == [("java", "spring-boot")]
+
+
+@scenarios.test_the_test
 def test_get_endtoend_definitions_empty_scenario_map():
     # Regression: previously raised KeyError when "endtoend" or "parametric" keys were absent
     defs = get_endtoend_definitions("ruby", {}, [], "dev", 200000, 256, "123", "")
@@ -205,6 +222,12 @@ def _is_supported_legacy(weblog: WeblogMetaData, scenario: Scenario, _ci_environ
 
     library = weblog.library
     weblog_name = weblog.name
+
+    if scenario.name in (
+        "FEATURE_FLAGGING_AND_EXPERIMENTATION_JAVA_STANDALONE",
+        "FEATURE_FLAGGING_AND_EXPERIMENTATION_JAVA_SSI",
+    ):
+        return (library, weblog_name) == ("java", "spring-boot")
 
     if library == "c":
         return scenario.name in ("DEFAULT", "IPV6", "SAMPLING")

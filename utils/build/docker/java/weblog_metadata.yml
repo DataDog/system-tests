@@ -16,6 +16,9 @@ resteasy-netty3:
   categories: [dd_trace]
 spring-boot:
   categories: [dd_trace]
+  supported_scenarios:
+    - FEATURE_FLAGGING_AND_EXPERIMENTATION_JAVA_STANDALONE
+    - FEATURE_FLAGGING_AND_EXPERIMENTATION_JAVA_SSI
 spring-boot-3-native:
   categories: [dd_trace]
 spring-boot-jetty:

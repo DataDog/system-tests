@@ -2,7 +2,6 @@ package com.datadoghq.system_tests.springboot.featureflag;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import datadog.trace.api.openfeature.Provider;
 import dev.openfeature.sdk.Client;
 import dev.openfeature.sdk.EvaluationContext;
 import dev.openfeature.sdk.FeatureProvider;
@@ -26,9 +25,13 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @RestController
 public class FeatureFlagEvaluatorController {
+
+    private static final String DEPLOYMENT_MODE = System.getenv().getOrDefault("SYSTEM_TESTS_JAVA_OPENFEATURE_MODE", "explicit");
+    private static volatile String providerName = "uninitialized";
 
     @Configuration
     public static class FeatureFlagEvaluatorConfig {
@@ -44,7 +47,9 @@ public class FeatureFlagEvaluatorController {
                             || Boolean.parseBoolean(System.getenv("DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED"));
             final FeatureProvider provider;
             if (featureFlaggingConfigured) {
-                provider = new Provider();
+                provider = "ssi".equalsIgnoreCase(DEPLOYMENT_MODE)
+                        ? api.getProvider()
+                        : createDatadogProvider();
             } else {
                 provider = new NoOpProvider() {
                     @Override
@@ -53,8 +58,39 @@ public class FeatureFlagEvaluatorController {
                     }
                 };
             }
-            api.setProviderAndWait(provider);
-            return api.getClient();
+            if (!"ssi".equalsIgnoreCase(DEPLOYMENT_MODE)) {
+                api.setProviderAndWait(provider);
+            }
+            providerName = api.getProviderMetadata().getName();
+            final Client client = api.getClient();
+            if ("ssi".equalsIgnoreCase(DEPLOYMENT_MODE)) {
+                waitForInjectedProvider(client);
+            }
+            return client;
+        }
+
+        private static void waitForInjectedProvider(final Client client) {
+            final long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
+            while (client.getProviderState() == ProviderState.NOT_READY && System.nanoTime() < deadline) {
+                try {
+                    TimeUnit.MILLISECONDS.sleep(25);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new IllegalStateException("Interrupted while waiting for the injected provider", e);
+                }
+            }
+            if (client.getProviderState() != ProviderState.READY) {
+                throw new IllegalStateException("Injected provider did not become ready: " + client.getProviderState());
+            }
+        }
+
+        private static FeatureProvider createDatadogProvider() {
+            try {
+                final Class<?> providerClass = Class.forName("datadog.trace.api.openfeature.Provider");
+                return (FeatureProvider) providerClass.getConstructor().newInstance();
+            } catch (ReflectiveOperationException e) {
+                throw new IllegalStateException("Datadog OpenFeature provider is not on the application classpath", e);
+            }
         }
     }
 
@@ -112,6 +148,8 @@ public class FeatureFlagEvaluatorController {
         result.put("reason", reason);
         result.put("value", value);
         result.put("count", targetingKeys.size());
+        result.put("deploymentMode", DEPLOYMENT_MODE);
+        result.put("provider", providerName);
         return ResponseEntity.ok(result);
     }
 

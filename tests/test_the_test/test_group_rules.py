@@ -37,11 +37,24 @@ def test_tracer_release():
         assert scenario_groups.end_to_end not in exposure_scenario.scenario_groups
         assert scenario_groups.tracer_release not in exposure_scenario.scenario_groups
 
+    java_openfeature_scenarios = [
+        scenarios.feature_flagging_and_experimentation_java_standalone,
+        scenarios.feature_flagging_and_experimentation_java_ssi,
+    ]
+    for java_openfeature_scenario in java_openfeature_scenarios:
+        assert java_openfeature_scenario.include_agent is False
+        assert java_openfeature_scenario.use_proxy is False
+        assert scenario_groups.ffe in java_openfeature_scenario.scenario_groups
+        assert scenario_groups.all not in java_openfeature_scenario.scenario_groups
+        assert scenario_groups.end_to_end not in java_openfeature_scenario.scenario_groups
+        assert scenario_groups.tracer_release not in java_openfeature_scenario.scenario_groups
+
     not_in_tracer_release_group = [
         # list of scenario that will never be part of tracer release
         scenarios.fuzzer,
         dormant_agentless_scenario,
         *agentless_exposure_scenarios,
+        *java_openfeature_scenarios,
         scenarios.mock_the_test,
         scenarios.mock_the_test_2,
         scenarios.test_the_test,

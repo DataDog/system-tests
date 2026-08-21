@@ -179,7 +179,14 @@ public class App {
             }
             version = line;
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Can't get version");
+            try (Scanner scanner = new Scanner(new File("SYSTEM_TESTS_LIBRARY_VERSION"), StandardCharsets.ISO_8859_1.name())) {
+                if (!scanner.hasNextLine()) {
+                    throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Can't get version");
+                }
+                version = scanner.nextLine();
+            } catch (Exception fallbackException) {
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Can't get version");
+            }
         }
 
         Map<String, String> library = new HashMap<>();

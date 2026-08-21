@@ -7,7 +7,7 @@ from utils.tools import update_environ_with_local_env
 from .aws_lambda import LambdaScenario
 from .core import Scenario, scenario_groups
 from .default import DefaultScenario
-from .agentless_endtoend import FeatureFlaggingAgentlessEndToEndScenario
+from .agentless_endtoend import FeatureFlaggingAgentlessEndToEndScenario, JavaOpenFeatureAgentlessEndToEndScenario
 from .endtoend import (
     DockerScenario,
     DdTraceEndToEndScenario,
@@ -761,6 +761,18 @@ class _Scenarios:
 
     feature_flagging_and_experimentation_agentless = FeatureFlaggingAgentlessEndToEndScenario(
         "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS"
+    )
+
+    feature_flagging_and_experimentation_java_standalone = JavaOpenFeatureAgentlessEndToEndScenario(
+        "FEATURE_FLAGGING_AND_EXPERIMENTATION_JAVA_STANDALONE",
+        deployment_mode="standalone",
+        doc="Validate the standalone dd-openfeature runtime without a Java agent.",
+    )
+
+    feature_flagging_and_experimentation_java_ssi = JavaOpenFeatureAgentlessEndToEndScenario(
+        "FEATURE_FLAGGING_AND_EXPERIMENTATION_JAVA_SSI",
+        deployment_mode="ssi",
+        doc="Validate Java agent injection into an application that only bundles the OpenFeature SDK.",
     )
 
     feature_flagging_and_experimentation_agentless_direct = FeatureFlaggingAgentlessEndToEndScenario(

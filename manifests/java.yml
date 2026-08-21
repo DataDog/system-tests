@@ -3364,6 +3364,8 @@ manifest:
     - weblog_declaration:
         "*": irrelevant
         spring-boot: v1.63.0
+  tests/ffe/test_java_openfeature_deployment_modes.py::Test_FFE_Java_OpenFeature_SSI: v1.66.0-SNAPSHOT
+  tests/ffe/test_java_openfeature_deployment_modes.py::Test_FFE_Java_OpenFeature_Standalone: v1.66.0-SNAPSHOT
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_error: bug (MLOB-1234)
   tests/integration_frameworks/llm/openai/test_openai_ai_guard.py: missing_feature (APPSEC-68977, AI Guard/OpenAI integration not yet wired into INTEGRATION_FRAMEWORKS)
   tests/integration_frameworks/llm/openai/test_openai_apm.py: v1.61.0
