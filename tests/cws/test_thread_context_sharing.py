@@ -22,9 +22,7 @@ class Test_ThreadContextSharing:
     def setup_open_file_carries_trace_context(self):
         # CWS drops events generated before its pipeline is live, so hold the request back
         # until the agent's self test reports success.
-        assert interfaces.agent.wait_for(cws_self_test_succeeded, timeout=50), (
-            "CWS never reported a successful self test, so no security event can be expected"
-        )
+        self.cws_ready = interfaces.agent.wait_for(cws_self_test_succeeded, timeout=50)
 
         self.canary_path = f"/tmp/system-tests-thread-context-sharing-{uuid.uuid4()}"
         self.response = weblog.get("/security/thread_context_sharing", params={"path": self.canary_path})
@@ -36,6 +34,7 @@ class Test_ThreadContextSharing:
         )
 
     def test_open_file_carries_trace_context(self):
+        assert self.cws_ready, "CWS never reported a successful self test, so no security event can be expected"
         assert self.response.status_code == 200
 
         body = json.loads(self.response.text)
