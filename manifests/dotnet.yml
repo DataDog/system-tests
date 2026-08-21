@@ -695,6 +695,13 @@ manifest:
     - declaration: missing_feature (keywords are not fully redacted)
       component_version: <2.51
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers: v2.50.0
+  tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers::test_pii_redaction_log_probe_computed_key: bug (DEBUG-5960)
+  tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers::test_pii_redaction_log_probe_identifiers: bug (DEBUG-5962)
+  tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers::test_pii_redaction_log_probe_map_key: bug (DEBUG-5962)
+  ? tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers::test_pii_redaction_log_probe_map_rendering
+  : bug (DEBUG-5963)
+  ? tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers::test_pii_redaction_log_probe_sensitive_type
+  : bug (DEBUG-5961)
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets: v2.53.0
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_log_line_budgets:  # Modified by easy win activation script
     - declaration: bug (DEBUG-4746)
