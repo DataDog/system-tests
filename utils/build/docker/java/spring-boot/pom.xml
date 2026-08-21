@@ -51,11 +51,6 @@
             <version>${dd-trace-api.version}</version>
         </dependency>
         <dependency>
-            <groupId>dev.openfeature</groupId>
-            <artifactId>sdk</artifactId>
-            <version>1.20.2</version>
-        </dependency>
-        <dependency>
             <groupId>io.opentelemetry</groupId>
             <artifactId>opentelemetry-api</artifactId>
             <version>1.41.0</version>
@@ -251,7 +246,7 @@
         <dependency>
             <groupId>dev.openfeature</groupId>
             <artifactId>sdk</artifactId>
-            <version>1.18.2</version>
+            <version>1.20.2</version>
         </dependency>
         <dependency>
             <groupId>com.github.junrar</groupId>
