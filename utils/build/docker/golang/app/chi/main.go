@@ -56,7 +56,8 @@ func main() {
 	}
 	defer profiler.Stop()
 
-	mux := chi.NewRouter().With(chitrace.Middleware())
+	mux := chi.NewRouter()
+	mux.Use(chitrace.Middleware())
 
 	mux.HandleFunc("/stats-unique", func(w http.ResponseWriter, r *http.Request) {
 		if c := r.URL.Query().Get("code"); c != "" {
