@@ -822,9 +822,6 @@ class _Scenarios:
             "DD_TRACE_SAMPLE_RATE": "1.0",
             "DD_TRACE_AGENT_PROTOCOL_VERSION": "1.0",
         },
-        agent_env={
-            "DD_APM_ENABLE_V1_TRACE_ENDPOINT": "true",
-        },
         backend_interface_timeout=5,
         doc="End-to-end testing scenario focused on efficient payload handling and v1 trace format validation",
     )

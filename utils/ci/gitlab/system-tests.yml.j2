@@ -120,12 +120,16 @@ system_tests_build_{{library}}_{{variant}}:
       - binaries/
 
 {% endfor %}
-{% for variant, scenario, build_required in scenario_pairs %}
-system_tests_run_{{library}}_{{scenario}}_{{variant}}:
+{% for job in scenario_jobs %}
+{% set variant = job.weblog %}
+{% set scenario = job.scenario %}
+{% set build_required = job.build_required %}
+system_tests_run_{{library}}_{{scenario}}_{{variant}}{{job.job_name_suffix}}:
   timeout: 15 minutes
   variables:
     KUBERNETES_CPU_REQUEST: 0.5
     KUBERNETES_MEMORY_REQUEST: 1.3Gi
+    SYSTEM_TESTS_WEBLOG_ENV: '{{ job.weblog_env | tojson }}'
   extends:
     - .system_tests_base
 {% if push_to_test_optimization %}
