@@ -1,5 +1,5 @@
-"""AI Guard <-> OpenAI integration tests (APPSEC-68977): DD_AI_GUARD_ENABLED=true auto-evaluates the
-/chat/completions request and its tool calls. After-model needs the stream path: not yet cross-language.
+"""AI Guard <-> Anthropic integration tests (APPSEC-68977): DD_AI_GUARD_ENABLED=true auto-evaluates the
+/create request and its tool_use blocks. After-model needs the stream path: not yet cross-language.
 """
 
 import pytest
@@ -12,7 +12,7 @@ from tests.integration_frameworks.llm.utils import (
     assert_ai_guard_evaluated,
     assert_assistant_tool_calls_forwarded,
 )
-from .utils import TOOLS, BaseOpenaiTest
+from .utils import TOOLS, BaseAnthropicTest
 
 
 @pytest.fixture
@@ -22,19 +22,19 @@ def library_env() -> dict[str, str]:
 
 @features.ai_guard
 @scenarios.integration_frameworks
-class TestOpenAiAiGuard(BaseOpenaiTest):
-    """AI Guard evaluation triggered through the auto-instrumented OpenAI integration."""
+class TestAnthropicAiGuard(BaseAnthropicTest):
+    """AI Guard evaluation triggered through the auto-instrumented Anthropic integration."""
 
     def test_before_model_validation(self, test_agent: TestAgentAPI, test_client: FrameworkTestClientApi):
-        """The prompt is evaluated by AI Guard before the OpenAI model is called."""
+        """The prompt is evaluated by AI Guard before the Anthropic model is called."""
         with test_agent.vcr_context():
             test_client.request(
                 "POST",
-                "/chat/completions",
+                "/create",
                 dict(
-                    model="gpt-4o-mini",
-                    messages=[{"role": "user", "content": "What is the weather like today?"}],
-                    parameters=dict(max_tokens=35),
+                    model="claude-sonnet-4-5-20250929",
+                    messages=[{"role": "user", "content": "What is 2+2?"}],
+                    parameters=dict(max_tokens=100, temperature=0.5, stream=False),
                 ),
             )
 
@@ -45,16 +45,11 @@ class TestOpenAiAiGuard(BaseOpenaiTest):
         with test_agent.vcr_context():
             test_client.request(
                 "POST",
-                "/chat/completions",
+                "/create",
                 dict(
-                    model="gpt-4o-mini",
-                    messages=[
-                        {
-                            "role": "user",
-                            "content": "Bob is a student at Stanford University. He is studying computer science.",
-                        }
-                    ],
-                    parameters=dict(tool_choice="auto", tools=TOOLS),
+                    model="claude-sonnet-4-5-20250929",
+                    messages=[{"role": "user", "content": "What is the weather in New York City?"}],
+                    parameters=dict(max_tokens=100, temperature=0.5, stream=False, tools=TOOLS),
                 ),
             )
 
