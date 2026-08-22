@@ -17,7 +17,12 @@ manifest:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
         "flask-poc": v4.13.0-dev
-  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone_APMDisabledMarker: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone_APMDisabledMarker:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        uds-flask: '>=4.13.1'
+        uwsgi-poc: '>=4.13.1'
+        flask-poc: '>=4.13.1'
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRedacted: bug (APPSEC-69627)
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests: bug (APPSEC-69627)
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated: bug (APPSEC-69627)
@@ -53,7 +58,7 @@ manifest:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
         "flask-poc": v4.14.0-dev
-  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionDisabled:
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionDisabled:  # Easy win for flask-poc and version 4.13.1
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
         "flask-poc": v4.14.0-dev
