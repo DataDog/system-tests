@@ -29,9 +29,21 @@ manifest:
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span: missing_feature (missing /e2e_otel_span endpoint on weblog)
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span::test_distributed_otel_trace: irrelevant (Golang specific test with OTel Go contrib package)
   tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags: v3.34.0
-  tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_remote_config_process_tags_svc: missing_feature
-  tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_telemetry_process_tags_svc: missing_feature
-  tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_tracing_process_tags_svc: missing_feature
+  tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_remote_config_process_tags_svc:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        uds: '>=3.51.1'
+        poc: '>=3.51.1'
+  tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_telemetry_process_tags_svc:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        uds: '>=3.51.1'
+        poc: '>=3.51.1'
+  tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_tracing_process_tags_svc:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        uds: '>=3.51.1'
+        poc: '>=3.51.1'
   tests/apm_tracing_e2e/test_single_span.py::Test_SingleSpan: missing_feature (missing /e2e_otel_span endpoint on weblog)
   tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_processors: v2.50.0
   tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_scanners: v2.50.0
@@ -1063,7 +1075,9 @@ manifest:
   tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Resource_Attributes::test_fr06_10_hostname: missing_feature (host.name is not yet reported on the OTLP trace metrics resource)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Resource_Attributes::test_fr06_15_default_service_on_data_point: missing_feature (service.name is omitted from the data point when the span uses the configured default service)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Span_Attributes::test_fr06_2_span_kind: missing_feature (span.kind is emitted as the raw Datadog value, e.g. "server", not the SMC's SPAN_KIND_* convention)
-  tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Span_Attributes::test_fr06_8_status_code_error: missing_feature (status.code is emitted as an integer, e.g. 2, not the SMC's STATUS_CODE_ERROR string convention)
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Span_Attributes::test_fr06_8_status_code_error:  # TODO: a lower version might be supported
+    - declaration: missing_feature (status.code is emitted as an integer, e.g. 2, not the SMC's STATUS_CODE_ERROR string convention)
+      component_version: <3.51.1
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_AdditionalTags::test_fr08_10_dd_tags_tracer_tags_resource_attributes: missing_feature (DD_TAGS is not yet reported as datadog.tracer_tags on the OTLP trace metrics resource)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_AdditionalTags::test_fr08_11_otel_resource_attributes_env_tracer_tags: missing_feature (OTEL_RESOURCE_ATTRIBUTES is not yet reported as datadog.tracer_tags on the OTLP trace metrics resource)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_AdditionalTags::test_fr08_12_stats_additional_tags: missing_feature (pending implementation release)
@@ -1071,7 +1085,9 @@ manifest:
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes::test_fr08_14_peer_tags: missing_feature (Blocked on test-agent support for advertising a peer_tags allowlist in /info)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes::test_fr08_15_service_source: missing_feature (pending implementation release)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes::test_fr08_8_process_tags: missing_feature (process tags are not yet emitted on the OTLP trace metrics resource)
-  tests/parametric/test_otlp_trace_metrics.py::Test_FR09_Red_Metric_Derivation::test_fr09_2_error_count: missing_feature (status.code is emitted as an integer, e.g. 2, not the SMC's STATUS_CODE_ERROR string convention, so the error span is not counted)
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR09_Red_Metric_Derivation::test_fr09_2_error_count:  # TODO: a lower version might be supported
+    - declaration: missing_feature (status.code is emitted as an integer, e.g. 2, not the SMC's STATUS_CODE_ERROR string convention, so the error span is not counted)
+      component_version: <3.51.1
   tests/parametric/test_otlp_trace_metrics.py::Test_FR15_Client_Computed_Stats_Header::test_fr15_1_header_set_when_enabled: irrelevant (OTLP trace metrics alongside native (non-OTLP) trace export was removed and will not be supported; OTLP trace metrics now require OTEL_TRACES_EXPORTER=otlp)
   tests/parametric/test_parametric_endpoints.py::TestRemoteConfigApplyEndpoint: incomplete_test_app (POST /trace/remote-config/apply only implemented in the python parametric app)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Add_Link: incomplete_test_app (add_link parametric endpoint is not implemented)
@@ -1130,7 +1146,9 @@ manifest:
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar: v2.50.0
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_enabled_propagated_specifics: irrelevant
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: v2.53.0
-  tests/parametric/test_trace_filters.py::Test_Trace_Filters: missing_feature
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters: '>=3.51.1'  # TODO: a lower version might be supported
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_ignore_resources: missing_feature
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_trim: missing_feature
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Basic: v2.46.0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs: v2.46.0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs_Feb2024_Revision: v2.48.0
@@ -1306,7 +1324,11 @@ manifest:
         "*": v1.0  # real version not known
         uds: v3.36.0  # Modified by easy win activation script
   tests/test_profiling.py::Test_Profile::test_process_tags: v3.35.0
-  tests/test_profiling.py::Test_Profile::test_process_tags_svc: missing_feature
+  tests/test_profiling.py::Test_Profile::test_process_tags_svc:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        uds: '>=3.51.1'
+        poc: '>=3.51.1'
   tests/test_resource_renaming.py: missing_feature
   tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)
   tests/test_sampling_manual.py::Test_Manual_Sampling: v3.0.0  # before 3.0, ActiveScope can be null on ASP.NET Core requests
