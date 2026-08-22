@@ -1268,7 +1268,12 @@ manifest:
       component_version: <3.0.0
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Line_Capture_Expressions: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions: missing_feature (Not yet implemented)
-  tests/debugger/test_debugger_capture_expressions_errors.py::Test_Debugger_Filter_Rejected_Capture_Expression_Error: missing_feature (Not yet implemented)
+  tests/debugger/test_debugger_capture_expressions_errors.py::Test_Debugger_Filter_Rejected_Capture_Expression_Error:  # TODO: a lower version might be supported
+    - declaration: missing_feature (Not yet implemented)
+      component_version: <4.13.1
+      weblog: [uds-flask, uwsgi-poc, flask-poc]
+    - declaration: missing_feature (Not yet implemented)
+      excluded_weblog: [uds-flask, uwsgi-poc, flask-poc]
   tests/debugger/test_debugger_code_origins.py::Test_Debugger_Code_Origins:
     - weblog_declaration:
         "*": missing_feature
@@ -1417,6 +1422,12 @@ manifest:
         django-py3.13: missing_feature
         tornado: missing_feature
         fastapi: missing_feature
+    - weblog_declaration:
+        django-poc: missing_feature
+        tornado: missing_feature
+        django-py3.13: missing_feature
+        fastapi: missing_feature
+        python3.12: missing_feature
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry: v2.11.0
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry::test_telemetry_co:
     - declaration: missing_feature (DEBUG-3550)
