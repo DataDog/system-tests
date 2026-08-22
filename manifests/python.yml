@@ -2213,15 +2213,15 @@ manifest:
       component_version: <=2.16.0
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: v3.11.0
   tests/parametric/test_trace_filters.py::Test_Trace_Filters: '>=4.12.2'  # TODO: a lower version might be supported
-  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_ignore_resources: missing_feature
-  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_reject: missing_feature
-  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_reject_no_value: missing_feature
-  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_reject_regex: missing_feature
-  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_require_missing: missing_feature
-  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_require_regex_missing: missing_feature
-  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_resource_normalization: missing_feature
-  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_tag_normalization_env: missing_feature
-  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_trim: missing_feature
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_ignore_resources: '>=4.13.1'  # TODO: a lower version might be supported
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_reject: '>=4.13.1'  # TODO: a lower version might be supported
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_reject_no_value: '>=4.13.1'  # TODO: a lower version might be supported
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_reject_regex: '>=4.13.1'  # TODO: a lower version might be supported
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_require_missing: '>=4.13.1'  # TODO: a lower version might be supported
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_require_regex_missing: '>=4.13.1'  # TODO: a lower version might be supported
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_resource_normalization: '>=4.13.1'  # TODO: a lower version might be supported
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_tag_normalization_env: '>=4.13.1'  # TODO: a lower version might be supported
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_trim: '>=4.13.1'  # TODO: a lower version might be supported
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Basic: v1.9.0  # actual version unknown
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs: v2.8.0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs_Feb2024_Revision: v2.8.0
