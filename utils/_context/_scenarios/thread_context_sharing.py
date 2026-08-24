@@ -28,18 +28,13 @@ class ThreadContextSharingScenario(EndToEndScenario):
             name=name,
             doc=doc,
             weblog_categories=[WeblogCategory.dd_trace],
-            appsec_enabled=False,  # unrelated to this feature, keep the CWS signal clean
+            appsec_enabled=True,
+            iast_enabled=False,
             scenario_groups=[scenario_groups.thread_context_sharing],
-            weblog_env={
-                "DD_TRACE_OTEL_CTX_ENABLED": "true",
-            },
         )
 
     def configure(self, config: pytest.Config):
         super().configure(config)
-
-        if self.weblog_infra.library_name == "java":
-            self.weblog_container.environment["DD_PROFILING_ENABLED"] = "true"
 
         agent = self.agent_container
 
