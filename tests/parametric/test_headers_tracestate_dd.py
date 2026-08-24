@@ -619,3 +619,309 @@ class Test_Headers_Tracestate_DD:
         assert len(tracestate_1_string.split(",")) == 32
         assert "key32=value32" not in tracestate_1_string
         assert tracestate_1_string.startswith("dd=")
+
+    @temporary_enable_propagationstyle_default()
+    def test_headers_tracestate_dd_trailing_separator(self, test_library: APMLibrary):
+        """A trailing element separator (optionally followed by OWS, optionally right before
+        the next list-member's comma) in the tracestate 'dd' value must not invalidate the
+        rest of the 'dd' member: known sub-keys (s, o) are still extracted, and any other
+        list-member is still preserved.
+        """
+        with test_library:
+            # 1) Trailing separator
+            headers1 = test_library.dd_make_child_span_and_get_headers(
+                [
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
+                    ("tracestate", "dd=s:2;o:some;"),
+                ],
+            )
+
+            # 2) Trailing separator followed by OWS
+            headers2 = test_library.dd_make_child_span_and_get_headers(
+                [
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
+                    ("tracestate", "dd=s:2;o:some; \t"),
+                ],
+            )
+
+            # 3) Double trailing separator
+            headers3 = test_library.dd_make_child_span_and_get_headers(
+                [
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
+                    ("tracestate", "dd=s:2;o:some;;"),
+                ],
+            )
+
+            # 4) Trailing separator immediately before the next list-member's comma
+            headers4 = test_library.dd_make_child_span_and_get_headers(
+                [
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
+                    ("tracestate", "dd=s:2;o:some;,other=x"),
+                ],
+            )
+
+        # 1) Trailing separator
+        _, tracestate1 = get_tracecontext(headers1)
+        dd_items1 = tracestate1["dd"].split(";")
+        assert "s:2" in dd_items1
+        assert "o:some" in dd_items1
+
+        # 2) Trailing separator followed by OWS
+        _, tracestate2 = get_tracecontext(headers2)
+        dd_items2 = tracestate2["dd"].split(";")
+        assert "s:2" in dd_items2
+        assert "o:some" in dd_items2
+
+        # 3) Double trailing separator
+        _, tracestate3 = get_tracecontext(headers3)
+        dd_items3 = tracestate3["dd"].split(";")
+        assert "s:2" in dd_items3
+        assert "o:some" in dd_items3
+
+        # 4) Trailing separator immediately before the next list-member's comma
+        _, tracestate4 = get_tracecontext(headers4)
+        dd_items4 = tracestate4["dd"].split(";")
+        assert "s:2" in dd_items4
+        assert "o:some" in dd_items4
+        assert "other" in tracestate4
+        assert tracestate4["other"] == "x"
+
+    @temporary_enable_propagationstyle_default()
+    def test_headers_tracestate_dd_empty_elements(self, test_library: APMLibrary):
+        """Bare element separators (empty elements) anywhere in the tracestate 'dd' value
+        must be ignored rather than invalidating the rest of the 'dd' member.
+        """
+        with test_library:
+            # 1) Leading empty element
+            headers1 = test_library.dd_make_child_span_and_get_headers(
+                [
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
+                    ("tracestate", "dd=;s:2;o:some"),
+                ],
+            )
+
+            # 2) Interior double separator
+            headers2 = test_library.dd_make_child_span_and_get_headers(
+                [
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
+                    ("tracestate", "dd=s:2;;o:some"),
+                ],
+            )
+
+            # 3) Interior triple separator
+            headers3 = test_library.dd_make_child_span_and_get_headers(
+                [
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
+                    ("tracestate", "dd=s:2;;;o:some"),
+                ],
+            )
+
+        # 1) Leading empty element
+        _, tracestate1 = get_tracecontext(headers1)
+        dd_items1 = tracestate1["dd"].split(";")
+        assert "s:2" in dd_items1
+        assert "o:some" in dd_items1
+
+        # 2) Interior double separator
+        _, tracestate2 = get_tracecontext(headers2)
+        dd_items2 = tracestate2["dd"].split(";")
+        assert "s:2" in dd_items2
+        assert "o:some" in dd_items2
+
+        # 3) Interior triple separator
+        _, tracestate3 = get_tracecontext(headers3)
+        dd_items3 = tracestate3["dd"].split(";")
+        assert "s:2" in dd_items3
+        assert "o:some" in dd_items3
+
+    @temporary_enable_propagationstyle_default()
+    def test_headers_tracestate_dd_skips_malformed_elements(self, test_library: APMLibrary):
+        """A malformed element (no ':' separator, or invalid characters abutting a
+        neighboring separator) inside the tracestate 'dd' value must be skipped rather
+        than invalidating the rest of the 'dd' member.
+        """
+        with test_library:
+            # 1) Bare colonless element in the middle
+            headers1 = test_library.dd_make_child_span_and_get_headers(
+                [
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
+                    ("tracestate", "dd=s:2;flag;o:some"),
+                ],
+            )
+
+            # 2) Bare element leading
+            headers2 = test_library.dd_make_child_span_and_get_headers(
+                [
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
+                    ("tracestate", "dd=flag;s:2;o:some"),
+                ],
+            )
+
+            # 3) Bare element trailing, no separator after it
+            headers3 = test_library.dd_make_child_span_and_get_headers(
+                [
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
+                    ("tracestate", "dd=s:2;o:some;flag"),
+                ],
+            )
+
+            # 4) Interior-OWS-abutting malformed element
+            headers4 = test_library.dd_make_child_span_and_get_headers(
+                [
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
+                    ("tracestate", "dd=s:2; z:w;o:some"),
+                ],
+            )
+
+        # 1) Bare colonless element in the middle
+        _, tracestate1 = get_tracecontext(headers1)
+        dd_items1 = tracestate1["dd"].split(";")
+        assert "s:2" in dd_items1
+        assert "o:some" in dd_items1
+
+        # 2) Bare element leading
+        _, tracestate2 = get_tracecontext(headers2)
+        dd_items2 = tracestate2["dd"].split(";")
+        assert "s:2" in dd_items2
+        assert "o:some" in dd_items2
+
+        # 3) Bare element trailing, no separator after it
+        _, tracestate3 = get_tracecontext(headers3)
+        dd_items3 = tracestate3["dd"].split(";")
+        assert "s:2" in dd_items3
+        assert "o:some" in dd_items3
+
+        # 4) Interior-OWS-abutting malformed element
+        _, tracestate4 = get_tracecontext(headers4)
+        dd_items4 = tracestate4["dd"].split(";")
+        assert "s:2" in dd_items4
+        assert "o:some" in dd_items4
+
+    @temporary_enable_propagationstyle_default()
+    def test_headers_tracestate_dd_known_elements_not_duplicated(self, test_library: APMLibrary):
+        """When an unknown element coexists with a known sub-key (p, o, or s) in the
+        tracestate 'dd' value, the known sub-key must not be duplicated when the 'dd'
+        value is re-serialized for propagation.
+        """
+        with test_library:
+            # 1) Last parent id alongside an unknown element
+            headers1 = test_library.dd_make_child_span_and_get_headers(
+                [
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
+                    ("tracestate", "dd=p:b6241412414a;x:y"),
+                ],
+            )
+
+            # 2) Origin alongside an unknown element
+            headers2 = test_library.dd_make_child_span_and_get_headers(
+                [
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
+                    ("tracestate", "dd=o:rum;x:y"),
+                ],
+            )
+
+            # 3) Sampling priority alongside an unknown element
+            headers3 = test_library.dd_make_child_span_and_get_headers(
+                [
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
+                    ("tracestate", "dd=s:1;x:y"),
+                ],
+            )
+
+        # 1) Last parent id alongside an unknown element
+        _, tracestate1 = get_tracecontext(headers1)
+        dd_items1 = tracestate1["dd"].split(";")
+        assert sum(1 for item in dd_items1 if item.startswith("p:")) == 1
+
+        # 2) Origin alongside an unknown element
+        _, tracestate2 = get_tracecontext(headers2)
+        dd_items2 = tracestate2["dd"].split(";")
+        assert sum(1 for item in dd_items2 if item.startswith("o:")) == 1
+
+        # 3) Sampling priority alongside an unknown element
+        _, tracestate3 = get_tracecontext(headers3)
+        dd_items3 = tracestate3["dd"].split(";")
+        assert sum(1 for item in dd_items3 if item.startswith("s:")) == 1
+
+    @temporary_enable_propagationstyle_default()
+    def test_headers_tracestate_ows_between_list_members(self, test_library: APMLibrary):
+        """Empty list-members (consecutive commas) and OWS around the outer list's commas
+        are both explicitly allowed by the W3C tracestate grammar and must not invalidate
+        the 'dd' member or any other list-member.
+        """
+        with test_library:
+            # 1) Leading empty outer list-member
+            headers1 = test_library.dd_make_child_span_and_get_headers(
+                [
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
+                    ("tracestate", ",dd=s:2;o:some"),
+                ],
+            )
+
+            # 2) Trailing empty outer list-members
+            headers2 = test_library.dd_make_child_span_and_get_headers(
+                [
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
+                    ("tracestate", "dd=s:2;o:some,,"),
+                ],
+            )
+
+            # 3) Interior empty outer list-member between two list-members
+            headers3 = test_library.dd_make_child_span_and_get_headers(
+                [
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
+                    ("tracestate", "dd=s:2;o:some,,other=x"),
+                ],
+            )
+
+            # 4) OWS around the outer list's commas
+            headers4 = test_library.dd_make_child_span_and_get_headers(
+                [
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
+                    ("tracestate", "dd=s:2;o:some , other=x"),
+                ],
+            )
+
+            # 5) OWS before and after the comma that precedes the 'dd' member
+            headers5 = test_library.dd_make_child_span_and_get_headers(
+                [
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
+                    ("tracestate", "other=x , dd=s:2;o:some"),
+                ],
+            )
+
+        # 1) Leading empty outer list-member
+        _, tracestate1 = get_tracecontext(headers1)
+        dd_items1 = tracestate1["dd"].split(";")
+        assert "s:2" in dd_items1
+        assert "o:some" in dd_items1
+
+        # 2) Trailing empty outer list-members
+        _, tracestate2 = get_tracecontext(headers2)
+        dd_items2 = tracestate2["dd"].split(";")
+        assert "s:2" in dd_items2
+        assert "o:some" in dd_items2
+
+        # 3) Interior empty outer list-member between two list-members
+        _, tracestate3 = get_tracecontext(headers3)
+        dd_items3 = tracestate3["dd"].split(";")
+        assert "s:2" in dd_items3
+        assert "o:some" in dd_items3
+        assert "other" in tracestate3
+        assert tracestate3["other"] == "x"
+
+        # 4) OWS around the outer list's commas
+        _, tracestate4 = get_tracecontext(headers4)
+        dd_items4 = tracestate4["dd"].split(";")
+        assert "s:2" in dd_items4
+        assert "o:some" in dd_items4
+        assert "other" in tracestate4
+        assert tracestate4["other"] == "x"
+
+        # 5) OWS before and after the comma that precedes the 'dd' member
+        _, tracestate5 = get_tracecontext(headers5)
+        dd_items5 = tracestate5["dd"].split(";")
+        assert "s:2" in dd_items5
+        assert "o:some" in dd_items5
+        assert "other" in tracestate5
+        assert tracestate5["other"] == "x"
