@@ -504,7 +504,9 @@ manifest:
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_APMDisabledMarker: missing_feature
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_NotEnabled:
     - weblog_declaration:
-        haproxy: missing_feature
+        apim: v2.7.1
+        envoy: v1.72.0
+        haproxy: v2.4.0
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2: v1.73.0-dev
   tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2: missing_feature
   tests/appsec/test_asm_standalone.py::Test_SCAStandalone_Telemetry_V2: v2.0.0
@@ -835,10 +837,14 @@ manifest:
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules: v2.1.0-dev
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules::test_rule_with_attributes_no_keep_event:
     - weblog_declaration:
-        haproxy: missing_feature
+        apim: v2.7.1
+        envoy: v1.72.0
+        haproxy: v2.4.0
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules::test_rule_with_attributes_no_keep_no_event:
     - weblog_declaration:
-        haproxy: missing_feature
+        apim: v2.7.1
+        envoy: v1.72.0
+        haproxy: v2.4.0
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRulesRcCapability: v2.1.0-dev
   tests/appsec/test_traces.py:
     - weblog_declaration:
@@ -878,6 +884,16 @@ manifest:
         envoy: v1.72.0
         haproxy: v2.4.0
   tests/appsec/waf/test_addresses.py::Test_BodyJson: v1.37.0
+  tests/appsec/waf/test_addresses.py::Test_BodyJson::test_json_array:
+    - weblog_declaration:
+        apim: v2.7.1
+        envoy: v1.72.0
+        haproxy: v2.4.0
+  tests/appsec/waf/test_addresses.py::Test_BodyJson::test_json_value:
+    - weblog_declaration:
+        apim: v2.7.1
+        envoy: v1.72.0
+        haproxy: v2.4.0
   tests/appsec/waf/test_addresses.py::Test_BodyUrlEncoded: v1.37.0
   tests/appsec/waf/test_addresses.py::Test_BodyUrlEncoded::test_body_value:
     - weblog_declaration:
@@ -1728,6 +1744,8 @@ manifest:
   tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts: v2.2.3
   tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts::test_span_links_from_conflicting_contexts:
     - weblog_declaration:
+        apim: v2.7.1
+        envoy: v1.72.0
         haproxy: missing_feature
   tests/test_distributed.py::Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   tests/test_distributed.py::Test_Synthetics_APM_Datadog:  # Modified by easy win activation script
@@ -1779,7 +1797,9 @@ manifest:
   tests/test_library_conf.py::Test_HeaderTags: v1.53.0
   tests/test_library_conf.py::Test_HeaderTags::test_trace_header_tags_basic:
     - weblog_declaration:
-        haproxy: missing_feature
+        apim: v2.7.1
+        envoy: v1.72.0
+        haproxy: v2.4.0
   tests/test_library_conf.py::Test_HeaderTags_Colon_Leading: v1.53.0
   tests/test_library_conf.py::Test_HeaderTags_Colon_Trailing: v1.70.0
   tests/test_library_conf.py::Test_HeaderTags_DynamicConfig: v1.70.0
