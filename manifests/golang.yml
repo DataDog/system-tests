@@ -1262,7 +1262,9 @@ manifest:
   tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptAppsec: v2.0.0
   tests/auto_inject/test_auto_inject_install.py::TestHostAutoInjectInstallScriptAppsec: v2.0.0
   tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualAppsec: v2.0.0
-  tests/cws/test_thread_context_sharing.py::Test_ThreadContextSharing: missing_feature (missing /security/thread_context_sharing endpoint on weblog)
+  tests/cws/test_thread_context_sharing.py::Test_ThreadContextSharing:
+    - declaration: missing_feature (only tested with one variant)
+      excluded_weblog: [net-http]
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Line_Capture_Expressions: v2.2.3
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions: v2.2.3
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions::test_complex_capture_expressions: missing_feature (index expression not yet supported in Go system-probe)
