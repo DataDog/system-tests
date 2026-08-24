@@ -1728,7 +1728,6 @@ class ExternalProcessingContainer(GoProcessorContainer):
             image = "ghcr.io/datadog/dd-trace-go/service-extensions-callout:latest"
 
         environment: dict[str, str | None] = {
-            "DD_APPSEC_ENABLED": "true",
             "DD_SERVICE": "service_test",
             "DD_ENV": "system-tests",
             "DD_AGENT_HOST": "proxy",
@@ -1780,7 +1779,7 @@ class HAProxyContainer(TestedContainer):
             healthcheck={
                 "test": "/bin/bash -c \"\
                     exec 3<>/dev/tcp/127.0.0.1/80 || exit 1;\
-                    echo -e 'GET / HTTP/1.1\nHost: system-tests\r\n\r\n' >&3;\
+                    echo -e 'GET / HTTP/1.1\r\nHost: system-tests\r\nUser-Agent: systemtests-healthcheck\r\n\r\n' >&3;\
                     cat <&3 | grep -q '200'\"",
                 "retries": 10,
             },
@@ -1802,10 +1801,13 @@ class StreamProcessingOffloadContainer(GoProcessorContainer):
             image = "ghcr.io/datadog/dd-trace-go/haproxy-spoa:latest"
 
         environment: dict[str, str | None] = {
+            "DD_APPSEC_ENABLED": "true",
             "DD_SERVICE": "service_test",
             "DD_ENV": "system-tests",
             "DD_AGENT_HOST": "proxy",
             "DD_TRACE_AGENT_PORT": str(ProxyPorts.weblog),
+            "DD_APPSEC_WAF_TIMEOUT": "1s",
+            "DD_APM_TRACING_ENABLED": "true",
         }
 
         if env:
