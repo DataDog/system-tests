@@ -1744,8 +1744,7 @@ manifest:
   tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts: v2.2.3
   tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts::test_span_links_from_conflicting_contexts:
     - weblog_declaration:
-        apim: v2.7.1
-        envoy: v1.72.0
+        apim: missing_feature (apim-callout defaults DD_TRACE_PROPAGATION_STYLE to datadog, so the conflicting W3C context is not extracted)
         haproxy: missing_feature
   tests/test_distributed.py::Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   tests/test_distributed.py::Test_Synthetics_APM_Datadog:  # Modified by easy win activation script

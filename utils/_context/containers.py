@@ -1728,6 +1728,7 @@ class ExternalProcessingContainer(GoProcessorContainer):
             image = "ghcr.io/datadog/dd-trace-go/service-extensions-callout:latest"
 
         environment: dict[str, str | None] = {
+            "DD_APPSEC_ENABLED": "true",
             "DD_SERVICE": "service_test",
             "DD_ENV": "system-tests",
             "DD_AGENT_HOST": "proxy",
@@ -1901,7 +1902,6 @@ class ApimCalloutContainer(GoProcessorContainer):
             # "false" whenever the variable is empty, which rate-limits ordinary traces to one per
             # minute and makes APM assertions nondeterministic
             "DD_APM_TRACING_ENABLED": "true",
-            "DD_TRACE_PROPAGATION_STYLE": "datadog,tracecontext",
         }
 
         if env:
