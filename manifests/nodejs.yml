@@ -2901,6 +2901,7 @@ manifest:
         "*": missing_feature
         express4: *ref_6_0_0
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client::test_peer_service_suppressed: missing_feature (peer.service default derivation remains enabled under OTel semantics)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client::test_status_500_is_error: missing_feature (OTel status description includes the HTTP status code)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server:
     - weblog_declaration:
         "*": missing_feature
