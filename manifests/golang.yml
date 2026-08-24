@@ -740,7 +740,7 @@ manifest:
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Header_And_Network_Preprocessor: v1.69.0
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Header_And_Network_Preprocessor::test_fingerprinting_header_blocking:
     - weblog_declaration:
-        envoy, haproxy: missing_feature
+        envoy, apim, haproxy: missing_feature
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Header_Capability: v1.69.0
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Network_Capability: v1.69.0
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session: v1.69.0
@@ -911,7 +911,7 @@ manifest:
         gin: v1.37.0
   tests/appsec/waf/test_addresses.py::Test_Headers::test_specific_key3:
     - weblog_declaration:
-        envoy: missing_feature
+        envoy, apim: missing_feature
   tests/appsec/waf/test_addresses.py::Test_IoFsFileWrite: "irrelevant (Java-only address: server.io.fs.file_write)"
   tests/appsec/waf/test_addresses.py::Test_PathParams:
     - weblog_declaration:
@@ -1728,7 +1728,6 @@ manifest:
   tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts: v2.2.3
   tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts::test_span_links_from_conflicting_contexts:
     - weblog_declaration:
-        apim: missing_feature (apim-callout defaults DD_TRACE_PROPAGATION_STYLE to datadog, so the conflicting W3C context is not extracted)
         haproxy: missing_feature
   tests/test_distributed.py::Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   tests/test_distributed.py::Test_Synthetics_APM_Datadog:  # Modified by easy win activation script

@@ -1899,6 +1899,7 @@ class ApimCalloutContainer(GoProcessorContainer):
             # "false" whenever the variable is empty, which rate-limits ordinary traces to one per
             # minute and makes APM assertions nondeterministic
             "DD_APM_TRACING_ENABLED": "true",
+            "DD_TRACE_PROPAGATION_STYLE": "datadog,tracecontext",
         }
 
         if env:
