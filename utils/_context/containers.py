@@ -1693,7 +1693,7 @@ class EnvoyContainer(TestedContainer):
             healthcheck={
                 "test": "/bin/bash -c \"\
                     exec 3<>/dev/tcp/127.0.0.1/80 || exit 1;\
-                    echo -e 'GET / HTTP/1.1\nHost: system-tests\r\n\r\n' >&3;\
+                    echo -e 'GET / HTTP/1.1\r\nHost: system-tests\r\nUser-Agent: systemtests-healthcheck\r\n\r\n' >&3;\
                     cat <&3 | grep -q '200'\"",
                 "retries": 10,
             },
@@ -1734,6 +1734,9 @@ class ExternalProcessingContainer(GoProcessorContainer):
             "DD_AGENT_HOST": "proxy",
             "DD_TRACE_AGENT_PORT": str(ProxyPorts.weblog),
             "DD_APPSEC_WAF_TIMEOUT": "1s",
+            # The callout defaults APM tracing to false, which rate-limits ordinary traces
+            # and makes APM assertions nondeterministic.
+            "DD_APM_TRACING_ENABLED": "true",
         }
 
         if env:
@@ -1777,7 +1780,7 @@ class HAProxyContainer(TestedContainer):
             healthcheck={
                 "test": "/bin/bash -c \"\
                     exec 3<>/dev/tcp/127.0.0.1/80 || exit 1;\
-                    echo -e 'GET / HTTP/1.1\nHost: system-tests\r\n\r\n' >&3;\
+                    echo -e 'GET / HTTP/1.1\r\nHost: system-tests\r\nUser-Agent: systemtests-healthcheck\r\n\r\n' >&3;\
                     cat <&3 | grep -q '200'\"",
                 "retries": 10,
             },
@@ -1799,10 +1802,13 @@ class StreamProcessingOffloadContainer(GoProcessorContainer):
             image = "ghcr.io/datadog/dd-trace-go/haproxy-spoa:latest"
 
         environment: dict[str, str | None] = {
+            "DD_APPSEC_ENABLED": "true",
             "DD_SERVICE": "service_test",
             "DD_ENV": "system-tests",
             "DD_AGENT_HOST": "proxy",
             "DD_TRACE_AGENT_PORT": str(ProxyPorts.weblog),
+            "DD_APPSEC_WAF_TIMEOUT": "1s",
+            "DD_APM_TRACING_ENABLED": "true",
         }
 
         if env:
@@ -1829,7 +1835,7 @@ class ApimGatewayContainer(TestedContainer):
     def __init__(self) -> None:
         super().__init__(
             # already mirrored: mirror_images.lock.yaml:325, curated at mirror_images.yaml:90
-            image_name="golang:1.25-alpine",
+            image_name="golang:1.26-alpine",
             name="apim-gateway",
             working_dir="/app",
             # there is no dockerfile for this weblog (build_mode: none), the shim sources are
@@ -1843,7 +1849,7 @@ class ApimGatewayContainer(TestedContainer):
             },
             ports={"80": ("127.0.0.1", weblog.port)},
             healthcheck={
-                # golang:1.25-alpine ships busybox but no bash, so the /bin/bash + /dev/tcp
+                # golang:1.26-alpine ships busybox but no bash, so the /bin/bash + /dev/tcp
                 # healthcheck used by EnvoyContainer and HAProxyContainer is not usable here
                 "test": "wget -qO- http://localhost:80/",
                 # `go run .` compiles the shim on every container start, and since Go 1.20 ships

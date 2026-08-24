@@ -3,6 +3,7 @@
 manifest:
   tests/ai_guard/: irrelevant (dd-trace-c does not implement AI Guard)
   tests/appsec/: irrelevant (dd-trace-c does not implement AppSec or IAST)
+  tests/cws/test_thread_context_sharing.py::Test_ThreadContextSharing: missing_feature (missing /security/thread_context_sharing endpoint on weblog)
   tests/integrations/test_dbm.py: incomplete_test_app (The Perl Mojolicious workload does not provide database endpoints)
   tests/serverless/: irrelevant (dd-trace-c does not instrument serverless runtimes)
   tests/test_config_consistency.py::Test_Config_ClientTagQueryString_Empty: missing_feature (dd-trace-c does not support configuring query-string tagging)

@@ -1,15 +1,8 @@
 * @DataDog/system-tests-core
 
-/utils/build/docker/cpp/ @DataDog/dd-trace-cpp @DataDog/system-tests-core
-/utils/build/docker/dotnet*/ @DataDog/apm-dotnet @DataDog/asm-dotnet @DataDog/system-tests-core
-/utils/build/docker/golang*/ @DataDog/dd-trace-go-guild @DataDog/system-tests-core
-/utils/build/docker/java*/ @DataDog/apm-java @DataDog/asm-java @DataDog/system-tests-core
-/utils/build/docker/java_otel/ @DataDog/opentelemetry @DataDog/system-tests-core
-/utils/build/docker/nodejs*/ @DataDog/dd-trace-js @DataDog/system-tests-core
-/utils/build/docker/php*/ @DataDog/apm-php @DataDog/system-tests-core
-/utils/build/docker/python*/ @DataDog/apm-python @DataDog/asm-python @DataDog/system-tests-core
-/utils/build/docker/ruby*/ @DataDog/ruby-guild @DataDog/asm-ruby @DataDog/system-tests-core
-/utils/build/docker/rust*/ @DataDog/apm-rust @DataDog/system-tests-core
+# Can be approved by anyone, unless overridden below
+/utils/build/docker/ @DataDog/system-tests-reviewers
+/manifests/ @DataDog/system-tests-reviewers
 
 /utils/build/docker/vcr/cassettes/aiguard @DataDog/k9-ai-guard @DataDog/system-tests-core
 /utils/scripts/generate-ai-guard-cassettes.sh @DataDog/k9-ai-guard @DataDog/system-tests-core
@@ -38,20 +31,6 @@
 /tests/external_processing/ @DataDog/asm-libraries @DataDog/system-tests-core
 /tests/stream_processing_offload/ @DataDog/asm-libraries @DataDog/system-tests-core
 /tests/integration_frameworks/llm/ @DataDog/ml-observability
-
-/manifests/cpp.yml @DataDog/dd-trace-cpp
-/manifests/cpp_httpd.yml @DataDog/dd-trace-cpp
-/manifests/cpp_nginx.yml @DataDog/dd-trace-cpp
-/manifests/dotnet.yml @DataDog/apm-dotnet @DataDog/asm-dotnet
-/manifests/golang.yml @DataDog/dd-trace-go-guild
-/manifests/java.yml @DataDog/asm-java @DataDog/apm-java
-/manifests/nodejs.yml @DataDog/dd-trace-js
-/manifests/php.yml @DataDog/apm-php @DataDog/asm-php
-/manifests/python.yml @DataDog/apm-python @DataDog/asm-python
-/manifests/python_lambda.yml @DataDog/apm-python @DataDog/asm-python
-/manifests/python_otel.yml @DataDog/apm-python @DataDog/asm-python
-/manifests/ruby.yml @DataDog/ruby-guild @DataDog/asm-ruby
-/manifests/rust.yml @DataDog/apm-rust
 
 /.github/chainguard/** @DataDog/system-tests-core # Security sensitive
 

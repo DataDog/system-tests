@@ -1054,6 +1054,7 @@ manifest:
   tests/auto_inject/test_auto_inject_install.py::TestHostAutoInjectInstallScriptProfiling: v1.9.0
   tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualAppsec: v1.9.0
   tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualProfiling: v1.9.0
+  tests/cws/test_thread_context_sharing.py::Test_ThreadContextSharing: missing_feature (missing /security/thread_context_sharing endpoint on weblog)
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Line_Capture_Expressions: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions:
     - weblog_declaration:
@@ -1240,7 +1241,11 @@ manifest:
         "*": v1.21.0-dev
         laravel11x: incomplete_test_app
         symfony7x: incomplete_test_app
+  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Appears: missing_feature (EX-3425)
+  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Cycle: missing_feature (EX-3425)
+  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Disappears: missing_feature (EX-3425)
   tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Events::test_ffe_multiple_remote_config_files: flaky (FFL-2676)
+  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Serial_Id: missing_feature (EX-3425)
   tests/ffe/test_flag_eval_evp.py: missing_feature (FFL-2446)
   tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Burst_Aggregation: bug (FFL-2676)
   tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Degradation: bug (FFL-2676)

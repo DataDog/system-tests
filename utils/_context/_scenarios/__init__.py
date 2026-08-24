@@ -24,6 +24,7 @@ from .otel_collector import OtelCollectorScenario
 from .parametric import ParametricScenario
 from .profiling import ProfilingScenario
 from .debugger import DebuggerScenario
+from .thread_context_sharing import ThreadContextSharingScenario
 from .test_the_test import TestTheTestScenario
 from .auto_injection import InstallerAutoInjectionScenario
 from .k8s_lib_injection import K8sScenario, K8sSparkScenario
@@ -1089,6 +1090,15 @@ class _Scenarios:
             "DD_SYMBOL_DATABASE_UPLOAD_ENABLED": "1",
         },
         doc="Test scenario for checking symdb.",
+    )
+
+    thread_context_sharing = ThreadContextSharingScenario(
+        "THREAD_CONTEXT_SHARING",
+        doc=(
+            "Check that tracers share the trace_id/span_id of the currently active span with "
+            "system-probe, so that CWS (Cloud Workload Security) security events triggered on "
+            "the same thread carry them as dd.trace_id/dd.span_id."
+        ),
     )
 
     debugger_inproduct_enablement = DdTraceEndToEndScenario(

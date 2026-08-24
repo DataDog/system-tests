@@ -7,6 +7,7 @@ manifest:
   tests/appsec/smoke_tests/test_apm_standalone.py:
     - component_version: "<7.77.0-0"
       declaration: irrelevant (APM Standalone option was added in 7.77.0)
+  tests/cws/test_thread_context_sharing.py::Test_ThreadContextSharing: missing_feature (agent does not yet correlate CWS events with the trace_id/span_id shared by the tracer)
   tests/debugger/test_debugger_condition_errors.py::Test_Debugger_Invalid_Condition_DSL:
     - component_version: "<7.77.1"
       weblog_declaration:
