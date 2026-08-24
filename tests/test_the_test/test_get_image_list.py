@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 from pathlib import Path
 import subprocess
 import sys
@@ -32,15 +31,13 @@ GO_PROXY_POINTER_FILES = {
 def _run_get_image_list(weblog: str, cwd: Path) -> str:
     # The proxy container constructors open binaries/<weblog>-image relative to the process cwd, so
     # running from `cwd` (a tmp dir) lets a test control the pointer without ever touching the real
-    # worktree binaries/. Imports still resolve through PYTHONPATH pointed at the repo root, so both
-    # pointer states can run in parallel (pytest -n) with no shared file to race on.
+    # worktree binaries/
     result = subprocess.run(
         [sys.executable, str(SCRIPT), SCENARIOS, "-l=golang", f"-w={weblog}"],
         check=False,
         capture_output=True,
         text=True,
         cwd=cwd,
-        env={**os.environ, "PYTHONPATH": str(REPO_ROOT)},
     )
 
     assert result.returncode == 0, result.stderr
