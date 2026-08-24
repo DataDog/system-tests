@@ -195,6 +195,38 @@ func main() {
 
 	mux.HandleFunc("/trace/manual_keep_drop", common.ManualKeepDrop)
 
+	mux.HandleFunc("/security/thread_context_sharing", func(w http.ResponseWriter, r *http.Request) {
+		path := r.URL.Query().Get("path")
+
+		span, ok := tracer.SpanFromContext(r.Context())
+		if !ok {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		if err := os.WriteFile(path, []byte("system-tests thread context sharing"), 0o644); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		// The Go tracer only forwards the low 64 bits of the (128-bit) trace id to the
+		// agent, so that's what system-probe stamps onto the security event too.
+		jsonResponse, err := json.Marshal(struct {
+			TraceID string `json:"trace_id"`
+			SpanID  string `json:"span_id"`
+		}{
+			TraceID: strconv.FormatUint(span.Context().TraceIDLower(), 10),
+			SpanID:  strconv.FormatUint(span.Context().SpanID(), 10),
+		})
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(jsonResponse)
+	})
+
 	mux.HandleFunc("/make_distant_call", func(w http.ResponseWriter, r *http.Request) {
 		url := r.URL.Query().Get("url")
 		if url == "" {
