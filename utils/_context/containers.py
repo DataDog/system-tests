@@ -1693,7 +1693,7 @@ class EnvoyContainer(TestedContainer):
             healthcheck={
                 "test": "/bin/bash -c \"\
                     exec 3<>/dev/tcp/127.0.0.1/80 || exit 1;\
-                    echo -e 'GET / HTTP/1.1\nHost: system-tests\r\n\r\n' >&3;\
+                    echo -e 'GET / HTTP/1.1\r\nHost: system-tests\r\nUser-Agent: systemtests-healthcheck\r\n\r\n' >&3;\
                     cat <&3 | grep -q '200'\"",
                 "retries": 10,
             },
@@ -1734,6 +1734,9 @@ class ExternalProcessingContainer(GoProcessorContainer):
             "DD_AGENT_HOST": "proxy",
             "DD_TRACE_AGENT_PORT": str(ProxyPorts.weblog),
             "DD_APPSEC_WAF_TIMEOUT": "1s",
+            # The callout defaults APM tracing to false, which rate-limits ordinary traces
+            # and makes APM assertions nondeterministic.
+            "DD_APM_TRACING_ENABLED": "true",
         }
 
         if env:
