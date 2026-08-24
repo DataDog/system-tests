@@ -1,5 +1,7 @@
 """Cross-tracer conformance for OpenTelemetry consistent probability sampling (ot.th / ot.rv) on the wire."""
 
+import json
+
 import pytest
 
 from utils import features, scenarios
@@ -47,6 +49,7 @@ def _library_env(rate: float) -> dict[str, str]:
     return {
         "DD_TRACE_RATE_LIMIT": "10000000",
         "DD_TRACE_SAMPLE_RATE": str(rate),
+        "DD_TRACE_SAMPLING_RULES": json.dumps([{"sample_rate": rate}]),
         "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
     }
 

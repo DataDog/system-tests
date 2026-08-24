@@ -1,0 +1,26 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://app.datadoghq.com/api/v2/ai-guard/evaluate",
+    "headers": {
+      "Accept-Encoding": "identity",
+      "Content-Length": "329",
+      "Content-Type": "application/json",
+      "DD-AI-GUARD-VERSION": "4.14.0rc1",
+      "DD-AI-GUARD-SOURCE": "SDK",
+      "DD-AI-GUARD-LANGUAGE": "python"
+    },
+    "body": "{\"data\": {\"attributes\": {\"messages\": [{\"role\": \"user\", \"content\": \"What is the weather in New York City?\"}, {\"role\": \"assistant\", \"tool_calls\": [{\"id\": \"toolu_01AiyJM8LucZ3yc76rcrGYDU\", \"function\": {\"name\": \"get_weather\", \"arguments\": \"{\\\"location\\\": \\\"New York City, NY\\\"}\"}}]}], \"meta\": {\"service\": \"anthropic\", \"env\": null}}}}"
+  },
+  "response": {
+    "status": {
+      "code": 200,
+      "message": "OK"
+    },
+    "headers": {
+      "content-type": "application/vnd.api+json",
+      "content-length": "218"
+    },
+    "body": "{\"data\":{\"id\":\"e08a3c72-5b19-4f6d-a2c7-94f1d3b6082a\",\"type\":\"evaluations\",\"attributes\":{\"action\":\"ALLOW\",\"global_prob\":0.0057373046875,\"is_blocking_enabled\":false,\"reason\":\"No rule match.\",\"tag_probs\":null,\"tags\":[]}}}"
+  }
+}

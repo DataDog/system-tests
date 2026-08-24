@@ -38,6 +38,10 @@ spec:
       description: "Push test results to Datadog Test Optimization"
       type: boolean
       default: false
+    allow_failure:
+      description: "Allow system-tests e2e jobs to fail without failing the parent pipeline"
+      type: boolean
+      default: false
     auto_cancel_on_new_commit:
       description: "Auto-cancel strategy when a new commit is pushed (interruptible, conservative, disabled)"
       default: "interruptible"
@@ -80,6 +84,7 @@ variables:
 
 .system_tests_param_base:
   image: $CI_IMAGE
+  allow_failure: $[[ inputs.allow_failure ]]
   tags:
     - arch:amd64
   id_tokens:
@@ -95,6 +100,7 @@ variables:
 
 system_tests_build_pipeline:
   extends: .system_tests_base
+  allow_failure: $[[ inputs.allow_failure ]]
   tags:
     - arch:amd64
   id_tokens:
@@ -150,6 +156,7 @@ system_tests_build_pipeline:
 
 .run_test_pipeline_base:
   interruptible: true
+  allow_failure: $[[ inputs.allow_failure ]]
   stage: $[[ inputs.stage ]]
   rules:
     - if: $[[ inputs.condition ]]

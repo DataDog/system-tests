@@ -1417,6 +1417,31 @@ It takes a raw (unparsed) request body, and a signature located in header `Strip
 The endpoint must return as JSON in the response body, the sub-object `event.data.object` returned by the `constructEvent()` Stripe SDK method.
 If an error happens, the endpoint must respond with a 403 error code.
 
+### GET /security/thread_context_sharing
+
+This endpoint is used by the `THREAD_CONTEXT_SHARING` scenario to check that the tracer shares the
+trace_id/span_id of the currently active span with system-probe (CWS - Cloud Workload Security), so
+that a security event triggered on the same thread can be correlated back to the request that
+caused it.
+
+It must accept a mandatory query parameter `path`, and, from the same thread that is handling the
+request (i.e. while the request's span is the active one on that thread), open `path` for writing,
+creating it if it does not already exist, write any content to it, then close it. The operation
+must use `path` as provided, without any alteration.
+
+It must return a `200` response with a JSON body:
+
+```js
+{
+    "trace_id": "1234567890123456789", // decimal string, 128 bits trace_id
+    "span_id": "1234567890123456789" // decimal string, the active span's span_id
+}
+```
+
+Example:
+
+- `GET /security/thread_context_sharing?path=/tmp/system-tests-thread-context-sharing-abc123`
+
 ### GET /llm
 
 This endpoint is implemented by Python, Node.js, and PHP (using openai-php/client).
