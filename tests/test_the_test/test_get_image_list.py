@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -31,13 +32,19 @@ GO_PROXY_POINTER_FILES = {
 def _run_get_image_list(weblog: str, cwd: Path) -> str:
     # The proxy container constructors open binaries/<weblog>-image relative to the process cwd, so
     # running from `cwd` (a tmp dir) lets a test control the pointer without ever touching the real
-    # worktree binaries/
+    # worktree binaries/. Since cwd is no longer the repo root, the child process needs REPO_ROOT
+    # back on PYTHONPATH to resolve `utils` imports; the inherited PYTHONPATH is kept (not replaced)
+    # because under nix it's also what makes third-party deps (e.g. pyyaml) importable.
     result = subprocess.run(
         [sys.executable, str(SCRIPT), SCENARIOS, "-l=golang", f"-w={weblog}"],
         check=False,
         capture_output=True,
         text=True,
         cwd=cwd,
+        env={
+            **os.environ,
+            "PYTHONPATH": os.pathsep.join(filter(None, [str(REPO_ROOT), os.environ.get("PYTHONPATH")])),
+        },
     )
 
     assert result.returncode == 0, result.stderr
