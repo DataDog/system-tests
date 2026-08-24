@@ -1,4 +1,5 @@
 'use strict'
+/* eslint-disable camelcase */
 
 const opts = {}
 
@@ -859,8 +860,15 @@ app.get('/external_request/redirect', (req, res) => {
 require('./rasp')(app)
 
 app.post('/ai_guard/evaluate', async (req, res) => {
-  // eslint-disable-next-line camelcase
-  const renameAttrs = ({ tagProbabilities: tag_probs, ...rest }) => ({ ...rest, tag_probs })
+  const renameAttrs = ({
+    tagProbabilities: tag_probs,
+    redactionReplacements: redaction_replacements,
+    ...rest
+  }) => ({
+    ...rest,
+    tag_probs,
+    redaction_replacements
+  })
   const block = req.headers['x-ai-guard-block'] === 'true'
   const messages = req.body
   const userId = req.headers['x-user-id']
