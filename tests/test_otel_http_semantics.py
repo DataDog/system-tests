@@ -612,6 +612,9 @@ class Test_OtelSemantics_Spans_Http_Client:
         _assert_int_attribute(span, "http.response.status_code", 500)
         assert _span_is_error(span), "HTTP 500 span must be marked as an error"
         assert _attributes(span).get("error.type") == "500"
+        assert not span.get("status", {}).get("message"), (
+            "HTTP status errors must have an empty status description when the status code explains the error"
+        )
 
     def setup_status_3xx_not_error(self) -> None:
         self.response = _distant_call("http://weblog:7777/status?code=302")
