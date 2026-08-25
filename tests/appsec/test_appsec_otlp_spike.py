@@ -85,8 +85,7 @@ class Test_AppSec_OTLP_Detection:
         appsec_keys = _find_appsec_keys_in_otlp()
 
         assert len(appsec_keys) > 0, (
-            "No AppSec data found in OTLP span attributes. "
-            "This means dd-trace may not export AppSec data via OTLP."
+            "No AppSec data found in OTLP span attributes. This means dd-trace may not export AppSec data via OTLP."
         )
         assert "appsec.event" in appsec_keys, f"Missing 'appsec.event' key. Found: {appsec_keys}"
         assert "_dd.appsec.enabled" in appsec_keys, f"Missing '_dd.appsec.enabled' key. Found: {appsec_keys}"

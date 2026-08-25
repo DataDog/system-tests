@@ -199,6 +199,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         if isinstance(appsec_data, str):
             try:
                 import base64
+
                 decoded = base64.b64decode(appsec_data)
                 try:
                     return json.loads(decoded)
@@ -207,6 +208,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
                     if "triggers" in text:
                         try:
                             import msgpack
+
                             return msgpack.unpackb(decoded, raw=False)
                         except ImportError:
                             logger.warning("msgpack not available, appsec data may not be fully parsed")
