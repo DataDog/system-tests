@@ -26,6 +26,7 @@ manifest:
   tests/test_ipv6.py: missing_feature
   tests/test_library_conf.py: irrelevant
   tests/test_miscs.py: irrelevant
+  tests/test_otel_http_semantics.py: missing_feature (The Kong plugin does not implement OTel HTTP semantic-convention mode)
   tests/test_otel_tracestate_sampling.py: irrelevant (library does not implement OpenTelemetry)
   tests/test_profiling.py: irrelevant (Kong is a proxy, not a profiling target)
   tests/test_resource_renaming.py: missing_feature

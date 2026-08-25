@@ -1285,6 +1285,13 @@ manifest:
   tests/test_library_conf.py::Test_HeaderTags_Wildcard_Response_Headers: missing_feature
   tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)
   tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_Spans_Http_ErrorStatusConfiguration: v3.52.0
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics: v3.52.0
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics::test_trace_metric_agrees_with_client_success: missing_feature (successful client trace metrics report OTel OK status instead of leaving status unset)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics::test_trace_metric_agrees_with_server_success: missing_feature (successful server trace metrics report OTel OK status instead of leaving status unset)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_SamplingRules: missing_feature (HTTP server span names use Datadog semantics when sampling rules run)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client: v3.52.0
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server: missing_feature (OTel HTTP server semantics not implemented over OTLP export)
   tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchanged: missing_feature (APMAPI-2171)

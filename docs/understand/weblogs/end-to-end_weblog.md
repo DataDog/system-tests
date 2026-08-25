@@ -548,7 +548,13 @@ A post request using a parameter with a value that triggers a vulnerability. The
 
 ### GET /make_distant_call
 
-This endpoint accept a mandatory parameter `url`. It'll make a call to these url, and should return a JSON response :
+This endpoint accepts a mandatory `url` parameter and an optional `method` parameter. `method` must be
+uppercase and defaults to `GET` when omitted. It makes a request to `url` using that method.
+
+For example, `/make_distant_call?url=http%3A%2F%2Fweblog%3A7777%2Fusers&method=POST` makes a `POST`
+request to `http://weblog:7777/users`.
+
+It returns a JSON response:
 
 ```js
 {
