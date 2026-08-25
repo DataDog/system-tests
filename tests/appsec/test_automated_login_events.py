@@ -1229,14 +1229,12 @@ class Test_V3_Login_Events:
 
             # mandatory
             assert meta["appsec.events.users.login.success.usr.login"] == login
-            assert meta["_dd.appsec.usr.login"] == login
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "identification"
             assert_boolean_meta_tag(meta, "appsec.events.users.login.success.track")
 
             # optional (to review for each library)
             if login_success_includes_usr_id_meta():
                 assert meta["usr.id"] == "social-security-id"
-                assert meta["_dd.appsec.usr.id"] == "social-security-id"
 
     def setup_login_success_basic(self):
         self.r_success = weblog.get("/login?auth=basic", headers={"Authorization": BASIC_AUTH_USER_HEADER})
@@ -1251,14 +1249,12 @@ class Test_V3_Login_Events:
 
             # mandatory
             assert meta["appsec.events.users.login.success.usr.login"] == login
-            assert meta["_dd.appsec.usr.login"] == login
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "identification"
             assert_boolean_meta_tag(meta, "appsec.events.users.login.success.track")
 
             # optional (to review for each library)
             if login_success_includes_usr_id_meta():
                 assert meta["usr.id"] == "social-security-id"
-                assert meta["_dd.appsec.usr.id"] == "social-security-id"
 
     def setup_login_wrong_user_failure_local(self):
         self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(INVALID_USER, PASSWORD))
@@ -1271,7 +1267,6 @@ class Test_V3_Login_Events:
 
             # mandatory
             assert meta["appsec.events.users.login.failure.usr.login"] == INVALID_USER
-            assert meta["_dd.appsec.usr.login"] == INVALID_USER
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "identification"
             assert_boolean_meta_tag(meta, "appsec.events.users.login.failure.track")
 
@@ -1292,7 +1287,6 @@ class Test_V3_Login_Events:
 
             # mandatory
             assert meta["appsec.events.users.login.failure.usr.login"] == INVALID_USER
-            assert meta["_dd.appsec.usr.login"] == INVALID_USER
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "identification"
             assert_boolean_meta_tag(meta, "appsec.events.users.login.failure.track")
 
@@ -1311,7 +1305,6 @@ class Test_V3_Login_Events:
 
             # mandatory
             assert meta["appsec.events.users.login.failure.usr.login"] == USER
-            assert meta["_dd.appsec.usr.login"] == USER
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "identification"
             assert_boolean_meta_tag(meta, "appsec.events.users.login.failure.track")
 
@@ -1321,7 +1314,6 @@ class Test_V3_Login_Events:
 
             if login_failure_includes_usr_id_meta():
                 assert meta["appsec.events.users.login.failure.usr.id"] == "social-security-id"
-                assert meta["_dd.appsec.usr.id"] == "social-security-id"
 
     def setup_login_wrong_password_failure_basic(self):
         self.r_wrong_user_failure = weblog.get(
@@ -1336,7 +1328,6 @@ class Test_V3_Login_Events:
 
             # mandatory
             assert meta["appsec.events.users.login.failure.usr.login"] == USER
-            assert meta["_dd.appsec.usr.login"] == USER
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "identification"
             assert_boolean_meta_tag(meta, "appsec.events.users.login.failure.track")
 
@@ -1346,7 +1337,6 @@ class Test_V3_Login_Events:
 
             if login_failure_includes_usr_id_meta():
                 assert meta["appsec.events.users.login.failure.usr.id"] == "social-security-id"
-                assert meta["_dd.appsec.usr.id"] == "social-security-id"
 
     def setup_login_sdk_success_local(self):
         self.r_sdk_success = [
@@ -1366,7 +1356,6 @@ class Test_V3_Login_Events:
 
                 # mandatory
                 assert meta["appsec.events.users.login.success.usr.login"] == "sdkUser"
-                assert meta["_dd.appsec.usr.login"] == USER
                 assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "identification"
                 assert_boolean_meta_tag(meta, "appsec.events.users.login.success.track")
                 assert_boolean_meta_tag(meta, "_dd.appsec.events.users.login.success.sdk")
@@ -1374,7 +1363,6 @@ class Test_V3_Login_Events:
                 # optional (to review for each library)
                 if login_success_includes_usr_id_meta():
                     assert meta["usr.id"] == "sdkUser"
-                    assert meta["_dd.appsec.usr.id"] == "social-security-id"
 
     def setup_login_sdk_success_basic(self):
         self.r_sdk_success = [
@@ -1392,11 +1380,8 @@ class Test_V3_Login_Events:
                 assert_priority(span)
                 meta = span.get("meta", {})
 
-                login = USER
-
                 # mandatory
                 assert meta["appsec.events.users.login.success.usr.login"] == "sdkUser"
-                assert meta["_dd.appsec.usr.login"] == login
                 assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "identification"
                 assert_boolean_meta_tag(meta, "appsec.events.users.login.success.track")
                 assert_boolean_meta_tag(meta, "_dd.appsec.events.users.login.success.sdk")
@@ -1404,7 +1389,6 @@ class Test_V3_Login_Events:
                 # optional (to review for each library)
                 if login_success_includes_usr_id_meta():
                     assert meta["usr.id"] == "sdkUser"
-                    assert meta["_dd.appsec.usr.id"] == "social-security-id"
 
     def setup_login_sdk_failure_local(self):
         self.r_sdk_failure = [
@@ -1424,7 +1408,6 @@ class Test_V3_Login_Events:
 
                 # mandatory
                 assert meta["appsec.events.users.login.failure.usr.login"] == "sdkUser"
-                assert meta["_dd.appsec.usr.login"] == INVALID_USER
                 assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "identification"
                 assert_boolean_meta_tag(meta, "appsec.events.users.login.failure.track")
                 assert_boolean_meta_tag(meta, "_dd.appsec.events.users.login.failure.sdk")
@@ -1448,7 +1431,6 @@ class Test_V3_Login_Events:
 
                 # mandatory
                 assert meta["appsec.events.users.login.failure.usr.login"] == "sdkUser"
-                assert meta["_dd.appsec.usr.login"] == INVALID_USER
                 assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "identification"
                 assert_boolean_meta_tag(meta, "appsec.events.users.login.failure.track")
                 assert_boolean_meta_tag(meta, "_dd.appsec.events.users.login.failure.sdk")
@@ -1465,14 +1447,12 @@ class Test_V3_Login_Events:
 
             # mandatory
             assert meta["appsec.events.users.signup.usr.login"] == NEW_USER
-            assert meta["_dd.appsec.usr.login"] == NEW_USER
             assert meta["_dd.appsec.events.users.signup.auto.mode"] == "identification"
             assert_boolean_meta_tag(meta, "appsec.events.users.signup.track")
 
             # optional (to review for each library)
             if login_success_includes_usr_id_meta():
                 assert meta["appsec.events.users.signup.usr.id"] == "new-user"
-                assert meta["_dd.appsec.usr.id"] == "new-user"
 
     def setup_login_success_headers(self):
         self.r_hdr_success = weblog.post(
@@ -1535,14 +1515,12 @@ class Test_V3_Login_Events_Anon:
 
             # mandatory
             assert meta["appsec.events.users.login.success.usr.login"] == USERNAME_HASH
-            assert meta["_dd.appsec.usr.login"] == USERNAME_HASH
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "anonymization"
             assert is_same_boolean(actual=meta["appsec.events.users.login.success.track"], expected="true")
 
             # optional (to review for each library)
             if login_success_includes_usr_id_meta():
                 assert meta["usr.id"] == USER_HASH
-                assert meta["_dd.appsec.usr.id"] == USER_HASH
 
     def setup_login_success_basic(self):
         self.r_success = weblog.get("/login?auth=basic", headers={"Authorization": BASIC_AUTH_USER_HEADER})
@@ -1555,14 +1533,12 @@ class Test_V3_Login_Events_Anon:
 
             # mandatory
             assert meta["appsec.events.users.login.success.usr.login"] == USERNAME_HASH
-            assert meta["_dd.appsec.usr.login"] == USERNAME_HASH
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "anonymization"
             assert is_same_boolean(actual=meta["appsec.events.users.login.success.track"], expected="true")
 
             # optional (to review for each library)
             if login_success_includes_usr_id_meta():
                 assert meta["usr.id"] == USER_HASH
-                assert meta["_dd.appsec.usr.id"] == USER_HASH
 
     def setup_login_wrong_user_failure_local(self):
         self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(INVALID_USER, PASSWORD))
@@ -1575,7 +1551,6 @@ class Test_V3_Login_Events_Anon:
 
             # mandatory
             assert meta["appsec.events.users.login.failure.usr.login"] == INVALID_USER_HASH
-            assert meta["_dd.appsec.usr.login"] == INVALID_USER_HASH
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "anonymization"
             assert is_same_boolean(actual=meta["appsec.events.users.login.failure.track"], expected="true")
 
@@ -1596,7 +1571,6 @@ class Test_V3_Login_Events_Anon:
 
             # mandatory
             assert meta["appsec.events.users.login.failure.usr.login"] == INVALID_USER_HASH
-            assert meta["_dd.appsec.usr.login"] == INVALID_USER_HASH
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "anonymization"
             assert is_same_boolean(actual=meta["appsec.events.users.login.failure.track"], expected="true")
 
@@ -1615,7 +1589,6 @@ class Test_V3_Login_Events_Anon:
 
             # mandatory
             assert meta["appsec.events.users.login.failure.usr.login"] == USERNAME_HASH
-            assert meta["_dd.appsec.usr.login"] == USERNAME_HASH
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "anonymization"
             assert is_same_boolean(actual=meta["appsec.events.users.login.failure.track"], expected="true")
 
@@ -1625,7 +1598,6 @@ class Test_V3_Login_Events_Anon:
 
             if login_failure_includes_usr_id_meta():
                 assert meta["appsec.events.users.login.failure.usr.id"] == USER_HASH
-                assert meta["_dd.appsec.usr.id"] == USER_HASH
 
     def setup_login_wrong_password_failure_basic(self):
         self.r_wrong_user_failure = weblog.get(
@@ -1640,7 +1612,6 @@ class Test_V3_Login_Events_Anon:
 
             # mandatory
             assert meta["appsec.events.users.login.failure.usr.login"] == USERNAME_HASH
-            assert meta["_dd.appsec.usr.login"] == USERNAME_HASH
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "anonymization"
             assert is_same_boolean(actual=meta["appsec.events.users.login.failure.track"], expected="true")
 
@@ -1650,7 +1621,6 @@ class Test_V3_Login_Events_Anon:
 
             if login_failure_includes_usr_id_meta():
                 assert meta["appsec.events.users.login.failure.usr.id"] == USER_HASH
-                assert meta["_dd.appsec.usr.id"] == USER_HASH
 
     def setup_login_sdk_success_local(self):
         self.r_sdk_success = [
@@ -1670,7 +1640,6 @@ class Test_V3_Login_Events_Anon:
 
                 # mandatory
                 assert meta["appsec.events.users.login.success.usr.login"] == "sdkUser"
-                assert meta["_dd.appsec.usr.login"] == USERNAME_HASH
                 assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "anonymization"
                 assert is_same_boolean(actual=meta["appsec.events.users.login.success.track"], expected="true")
                 assert is_same_boolean(actual=meta["_dd.appsec.events.users.login.success.sdk"], expected="true")
@@ -1678,7 +1647,6 @@ class Test_V3_Login_Events_Anon:
                 # optional (to review for each library)
                 if login_success_includes_usr_id_meta():
                     assert meta["usr.id"] == "sdkUser"
-                    assert meta["_dd.appsec.usr.id"] == USER_HASH
 
     def setup_login_sdk_success_basic(self):
         self.r_sdk_success = [
@@ -1698,7 +1666,6 @@ class Test_V3_Login_Events_Anon:
 
                 # mandatory
                 assert meta["appsec.events.users.login.success.usr.login"] == "sdkUser"
-                assert meta["_dd.appsec.usr.login"] == USERNAME_HASH
                 assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "anonymization"
                 assert is_same_boolean(actual=meta["appsec.events.users.login.success.track"], expected="true")
                 assert is_same_boolean(actual=meta["_dd.appsec.events.users.login.success.sdk"], expected="true")
@@ -1706,7 +1673,6 @@ class Test_V3_Login_Events_Anon:
                 # optional (to review for each library)
                 if login_success_includes_usr_id_meta():
                     assert meta["usr.id"] == "sdkUser"
-                    assert meta["_dd.appsec.usr.id"] == USER_HASH
 
     def setup_login_sdk_failure_local(self):
         self.r_sdk_failure = [
@@ -1726,7 +1692,6 @@ class Test_V3_Login_Events_Anon:
 
                 # mandatory
                 assert meta["appsec.events.users.login.failure.usr.login"] == "sdkUser"
-                assert meta["_dd.appsec.usr.login"] == INVALID_USER_HASH
                 assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "anonymization"
                 assert is_same_boolean(actual=meta["appsec.events.users.login.failure.track"], expected="true")
                 assert is_same_boolean(actual=meta["_dd.appsec.events.users.login.failure.sdk"], expected="true")
@@ -1750,7 +1715,6 @@ class Test_V3_Login_Events_Anon:
 
                 # mandatory
                 assert meta["appsec.events.users.login.failure.usr.login"] == "sdkUser"
-                assert meta["_dd.appsec.usr.login"] == INVALID_USER_HASH
                 assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "anonymization"
                 assert is_same_boolean(actual=meta["appsec.events.users.login.failure.track"], expected="true")
                 assert is_same_boolean(actual=meta["_dd.appsec.events.users.login.failure.sdk"], expected="true")
@@ -1767,14 +1731,12 @@ class Test_V3_Login_Events_Anon:
 
             # mandatory
             assert meta["appsec.events.users.signup.usr.login"] == NEW_USERNAME_HASH
-            assert meta["_dd.appsec.usr.login"] == NEW_USERNAME_HASH
             assert meta["_dd.appsec.events.users.signup.auto.mode"] == "anonymization"
             assert is_same_boolean(actual=meta["appsec.events.users.signup.track"], expected="true")
 
             # optional (to review for each library)
             if login_success_includes_usr_id_meta():
                 assert meta["appsec.events.users.signup.usr.id"] == NEW_USER_HASH
-                assert meta["_dd.appsec.usr.id"] == NEW_USER_HASH
 
 
 DISABLED = ("datadog/2/ASM_FEATURES/auto-user-instrum/config", {"auto_user_instrum": {"mode": "disabled"}})
