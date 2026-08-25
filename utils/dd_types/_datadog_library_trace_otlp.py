@@ -237,7 +237,7 @@ class DataDogLibraryTraceOTLP(DataDogLibraryTrace):
                 a["key"]: a.get("value") for a in resource_attrs if isinstance(a, dict) and "key" in a
             }
 
-        spans = []
+        spans: list[DataDogLibrarySpan] = []
         for scope_span in resource_span.get("scopeSpans", []):
             for raw_span in scope_span.get("spans", []):
                 spans.append(DataDogLibrarySpanOTLP(self, raw_span, resource_attrs))

@@ -22,7 +22,7 @@ import base64
 import json
 import re
 
-from utils import weblog, interfaces, scenarios
+from utils import weblog, interfaces, scenarios, features
 
 
 def _find_appsec_keys_in_otlp():
@@ -56,6 +56,7 @@ def _find_waf_trigger_in_otlp():
     return False
 
 
+@features.not_reported
 @scenarios.appsec_otlp_export
 class Test_AppSec_OTLP_Blocking:
     """Verify WAF blocking works when traces are exported via OTLP."""
@@ -71,6 +72,7 @@ class Test_AppSec_OTLP_Blocking:
         )
 
 
+@features.not_reported
 @scenarios.appsec_otlp_export
 class Test_AppSec_OTLP_Detection:
     """Verify AppSec detection data appears in OTLP spans."""
@@ -100,6 +102,7 @@ class Test_AppSec_OTLP_Detection:
         )
 
 
+@features.not_reported
 @scenarios.appsec_otlp_export
 class Test_AppSec_OTLP_Structure:
     """Verify the structure of OTLP spans when AppSec is enabled."""
@@ -129,6 +132,7 @@ class Test_AppSec_OTLP_Structure:
         assert "_dd.appsec.event_rules.version" in appsec_keys
 
 
+@features.not_reported
 @scenarios.appsec_otlp_export
 class Test_AppSec_OTLP_RCPolling:
     """Verify that Remote Config polling works when traces go via OTLP."""
