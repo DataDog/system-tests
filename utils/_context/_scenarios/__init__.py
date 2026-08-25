@@ -1423,6 +1423,39 @@ class _Scenarios:
         trace_managed_services=True,
     )
 
+    # M1 topology: DD Tracer as drop-in OTel SDK replacement (instrumentation layer)
+    # Uses standard DD agent for transport (native protocol), OTel API backed by dd-tracer
+    appsec_otel_api = DdTraceEndToEndScenario(
+        "APPSEC_OTEL_API",
+        weblog_env={
+            "DD_TRACE_OTEL_ENABLED": "true",
+            "DD_APPSEC_RULES": "/appsec_blocking_rule.json",
+            "DD_TRACE_RESOURCE_RENAMING_ALWAYS_SIMPLIFIED_ENDPOINT": "true",
+            "DD_TRACE_COMPUTE_STATS": "true",
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",
+            "DD_IAST_WEAK_HASH_ALGORITHMS": "NOTexist",
+        },
+        weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
+        other_weblog_containers=(PostgresContainer, InternalServerContainer),
+        backend_interface_timeout=5,
+        rc_api_enabled=True,
+        doc="M1: DD Tracer as drop-in OTel SDK replacement, AppSec via OTel API (blocking rules)",
+        scenario_groups=[scenario_groups.appsec, scenario_groups.open_telemetry],
+    )
+
+    # M1 variant with default ruleset (for detection tests that need full ruleset)
+    appsec_otel_api_default_rules = DdTraceEndToEndScenario(
+        "APPSEC_OTEL_API_DEFAULT_RULES",
+        weblog_env={
+            "DD_TRACE_OTEL_ENABLED": "true",
+        },
+        other_weblog_containers=(PostgresContainer, InternalServerContainer),
+        backend_interface_timeout=5,
+        rc_api_enabled=True,
+        doc="M1: DD Tracer as drop-in OTel SDK replacement, AppSec via OTel API (default ruleset)",
+        scenario_groups=[scenario_groups.appsec, scenario_groups.open_telemetry],
+    )
+
     otel_collector = OtelCollectorScenario("OTEL_COLLECTOR")
     otel_collector_e2e = OtelCollectorScenario("OTEL_COLLECTOR_E2E", mocked_backend=False)
 
