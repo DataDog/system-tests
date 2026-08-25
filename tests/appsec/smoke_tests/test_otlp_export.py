@@ -14,11 +14,19 @@ and ApiSecurity smoke tests require additional scenario configuration
 OTLP export scenarios.
 """
 
-from utils import features, scenarios
+import pytest
+
+from utils import features, scenarios, context
 
 from tests.appsec.smoke_tests.utils import (
     BaseThreatsSmokeTests,
     BaseUserEventsSmokeTests,
+)
+
+
+pytestmark = pytest.mark.skipif(
+    context.library not in ("python", "java"),
+    reason="OTLP export is only configured for Python and Java",
 )
 
 
