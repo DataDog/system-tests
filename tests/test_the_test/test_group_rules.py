@@ -39,6 +39,7 @@ def test_tracer_release():
         scenarios.otel_metric_e2e,
         scenarios.otel_tracing_e2e,
         scenarios.otel_collector,
+        scenarios.otel_collector_e2e,
         # to be added once stability is proven
         scenarios.chaos_installer_auto_injection,
         scenarios.container_auto_injection_install_script_appsec,

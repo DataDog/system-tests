@@ -1423,6 +1423,46 @@ class _Scenarios:
         trace_managed_services=True,
     )
 
+    # M2 topology: DD Tracer + OTel Collector (data plane) + DD Agent (RC control plane)
+    appsec_otlp_export = DdTraceEndToEndScenario(
+        "APPSEC_OTLP_EXPORT",
+        weblog_env={
+            "OTEL_TRACES_EXPORTER": "otlp",
+            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}/v1/traces",
+            "OTEL_EXPORTER_OTLP_TRACES_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
+            "DD_TRACE_OTEL_ENABLED": "true",
+            "DD_APPSEC_RULES": "/appsec_blocking_rule.json",
+            "DD_TRACE_RESOURCE_RENAMING_ALWAYS_SIMPLIFIED_ENDPOINT": "true",
+            "DD_TRACE_COMPUTE_STATS": "true",
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",
+            "DD_IAST_WEAK_HASH_ALGORITHMS": "NOTexist",
+        },
+        weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
+        other_weblog_containers=(PostgresContainer, InternalServerContainer),
+        backend_interface_timeout=5,
+        include_opentelemetry=True,
+        rc_api_enabled=True,
+        doc="Test AAP features with DD Tracer exporting via OTLP + DD Agent for Remote Config (M2 topology)",
+        scenario_groups=[scenario_groups.appsec, scenario_groups.open_telemetry],
+    )
+
+    # M2 variant with default ruleset (for detection tests that need full ruleset)
+    appsec_otlp_export_default_rules = DdTraceEndToEndScenario(
+        "APPSEC_OTLP_EXPORT_DEFAULT_RULES",
+        weblog_env={
+            "OTEL_TRACES_EXPORTER": "otlp",
+            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}/v1/traces",
+            "OTEL_EXPORTER_OTLP_TRACES_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
+            "DD_TRACE_OTEL_ENABLED": "true",
+        },
+        other_weblog_containers=(PostgresContainer, InternalServerContainer),
+        backend_interface_timeout=5,
+        include_opentelemetry=True,
+        rc_api_enabled=True,
+        doc="Test AAP features with DD Tracer exporting via OTLP + DD Agent for RC, using default ruleset (M2 topology)",
+        scenario_groups=[scenario_groups.appsec, scenario_groups.open_telemetry],
+    )
+
     otel_collector = OtelCollectorScenario("OTEL_COLLECTOR")
     otel_collector_e2e = OtelCollectorScenario("OTEL_COLLECTOR_E2E", mocked_backend=False)
 

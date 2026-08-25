@@ -542,6 +542,12 @@ jobs:
         ./run.sh OTEL_COLLECTOR_E2E
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run APPSEC_OTLP_EXPORT scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_OTLP_EXPORT"')
+      run: ./run.sh APPSEC_OTLP_EXPORT
+    - name: Run APPSEC_OTLP_EXPORT_DEFAULT_RULES scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_OTLP_EXPORT_DEFAULT_RULES"')
+      run: ./run.sh APPSEC_OTLP_EXPORT_DEFAULT_RULES
     - name: Run AI_GUARD scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"AI_GUARD"')
       run: ./run.sh AI_GUARD
