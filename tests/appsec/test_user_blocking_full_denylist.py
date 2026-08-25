@@ -6,6 +6,7 @@ from .utils import BaseFullDenyListTest
 
 @features.appsec_user_blocking
 @scenarios.appsec_blocking_full_denylist
+@scenarios.appsec_otel_api_blocking_full_denylist
 class Test_UserBlocking_FullDenylist(BaseFullDenyListTest):
     NOT_BLOCKED_USER = "regularUser"
     NUM_OF_BLOCKED_USERS = 2500

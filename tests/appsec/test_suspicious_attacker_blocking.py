@@ -65,6 +65,7 @@ HEADERS_REGULAR_NON_BLOCKING = {"User-Agent": "Arachni/v1"}
 
 
 @scenarios.appsec_runtime_activation
+@scenarios.appsec_otel_api_runtime_activation
 @features.suspicious_attacker_blocking
 class Test_Suspicious_Attacker_Blocking:
     """A library should block requests after AppSec is activated via remote config,

@@ -10,6 +10,7 @@ from .utils import BaseFullDenyListTest
 @rfc("https://docs.google.com/document/d/1GUd8p7HBp9gP0a6PZmDY26dpGrS1Ztef9OYdbK3Vq3M/edit")
 @features.appsec_client_ip_blocking
 @scenarios.appsec_blocking_full_denylist
+@scenarios.appsec_otel_api_blocking_full_denylist
 class Test_AppSecIPBlockingFullDenylist(BaseFullDenyListTest):
     """A library should block requests from up to 2500 different blocked IP addresses."""
 

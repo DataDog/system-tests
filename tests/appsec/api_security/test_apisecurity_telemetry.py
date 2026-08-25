@@ -53,6 +53,7 @@ FRAMEWORKS: dict[str, dict[str, str | list[str]]] = {
     "https://docs.google.com/document/d/1D4hkC0jwwUyeo0hEQgyKP54kM1LZU98GL8MaP60tQrA/edit?tab=t.0#heading=h.6shrh2msb59g"
 )
 @scenarios.appsec_api_security
+@scenarios.appsec_otel_api_security
 @features.api_security_schemas
 class Test_API_Security_Telemetry_Metric:
     """Test API Security - Telemetry Metric

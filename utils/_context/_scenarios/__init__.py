@@ -1456,6 +1456,87 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec, scenario_groups.open_telemetry],
     )
 
+    # M1 variant: API Security
+    appsec_otel_api_security = DdTraceEndToEndScenario(
+        "APPSEC_OTEL_API_SECURITY",
+        weblog_env={
+            "DD_TRACE_OTEL_ENABLED": "true",
+            "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
+            "DD_API_SECURITY_ENABLED": "true",
+            "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
+            "DD_API_SECURITY_SAMPLE_DELAY": "0.0",
+            "DD_API_SECURITY_MAX_CONCURRENT_REQUESTS": "50",
+            "DD_API_SECURITY_ENDPOINT_COLLECTION_ENABLED": "true",
+            "DD_API_SECURITY_ENDPOINT_COLLECTION_MESSAGE_LIMIT": "30",
+        },
+        other_weblog_containers=(PostgresContainer, InternalServerContainer),
+        backend_interface_timeout=5,
+        rc_api_enabled=True,
+        doc="M1: DD Tracer as OTel SDK replacement, API Security via OTel API",
+        scenario_groups=[scenario_groups.appsec, scenario_groups.open_telemetry],
+    )
+
+    # M1 variant: RASP
+    appsec_otel_api_rasp = DdTraceEndToEndScenario(
+        "APPSEC_OTEL_API_RASP",
+        weblog_env={
+            "DD_TRACE_OTEL_ENABLED": "true",
+            "DD_APPSEC_RULES": "/rasp_ruleset.json",
+            "DD_APPSEC_RASP_ENABLED": "true",
+        },
+        weblog_volumes={"./tests/appsec/rasp/rasp_ruleset.json": {"bind": "/rasp_ruleset.json", "mode": "ro"}},
+        other_weblog_containers=(PostgresContainer, InternalServerContainer),
+        backend_interface_timeout=5,
+        rc_api_enabled=True,
+        doc="M1: DD Tracer as OTel SDK replacement, RASP via OTel API",
+        scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_rasp, scenario_groups.open_telemetry],
+    )
+
+    # M1 variant: Runtime activation (RC-driven AppSec on/off)
+    appsec_otel_api_runtime_activation = DdTraceEndToEndScenario(
+        "APPSEC_OTEL_API_RUNTIME_ACTIVATION",
+        weblog_env={
+            "DD_TRACE_OTEL_ENABLED": "true",
+            "DD_APPSEC_WAF_TIMEOUT": "10000000",
+            "DD_APPSEC_TRACE_RATE_LIMIT": "10000",
+        },
+        appsec_enabled=False,
+        iast_enabled=False,
+        other_weblog_containers=(PostgresContainer, InternalServerContainer),
+        backend_interface_timeout=5,
+        rc_api_enabled=True,
+        doc="M1: DD Tracer as OTel SDK replacement, runtime activation via RC",
+        scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_rasp, scenario_groups.open_telemetry],
+    )
+
+    # M1 variant: Blocking full denylist (RC-driven blocking)
+    appsec_otel_api_blocking_full_denylist = DdTraceEndToEndScenario(
+        "APPSEC_OTEL_API_BLOCKING_FULL_DENYLIST",
+        weblog_env={
+            "DD_TRACE_OTEL_ENABLED": "true",
+            "DD_APPSEC_RULES": None,
+        },
+        other_weblog_containers=(PostgresContainer, InternalServerContainer),
+        backend_interface_timeout=5,
+        rc_api_enabled=True,
+        doc="M1: DD Tracer as OTel SDK replacement, blocking via RC denylist",
+        scenario_groups=[scenario_groups.appsec, scenario_groups.open_telemetry],
+    )
+
+    # M1 variant: Rate limiter
+    appsec_otel_api_rate_limiter = DdTraceEndToEndScenario(
+        "APPSEC_OTEL_API_RATE_LIMITER",
+        weblog_env={
+            "DD_TRACE_OTEL_ENABLED": "true",
+            "DD_APPSEC_TRACE_RATE_LIMIT": "1",
+            "RAILS_MAX_THREADS": "1",
+        },
+        other_weblog_containers=(PostgresContainer, InternalServerContainer),
+        backend_interface_timeout=5,
+        doc="M1: DD Tracer as OTel SDK replacement, rate limiter",
+        scenario_groups=[scenario_groups.appsec, scenario_groups.open_telemetry],
+    )
+
     otel_collector = OtelCollectorScenario("OTEL_COLLECTOR")
     otel_collector_e2e = OtelCollectorScenario("OTEL_COLLECTOR_E2E", mocked_backend=False)
 
