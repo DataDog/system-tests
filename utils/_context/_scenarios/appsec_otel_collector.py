@@ -1,9 +1,11 @@
+import json
 import os
 import pytest
 from pathlib import Path
 
 from utils import interfaces
-from utils._context.component_version import Version
+from utils._context.component_version import ComponentVersion, Version
+from utils._context.constants import WeblogCategory
 from utils._context.containers import (
     OpenTelemetryCollectorContainer,
     WeblogContainer,
@@ -33,7 +35,14 @@ class AppSecOtelCollectorScenario(DockerScenario):
 
     otel_collector_version: Version
 
-    def __init__(self, name: str, *, mocked_backend: bool = True, weblog_env: dict | None = None, weblog_volumes: dict | None = None):
+    def __init__(
+        self,
+        name: str,
+        *,
+        mocked_backend: bool = True,
+        weblog_env: dict | None = None,
+        weblog_volumes: dict | None = None,
+    ):
         super().__init__(
             name,
             github_workflow="endtoend",
@@ -41,6 +50,7 @@ class AppSecOtelCollectorScenario(DockerScenario):
             scenario_groups=[scenario_groups.appsec, scenario_groups.open_telemetry],
             use_proxy=True,
             mocked_backend=mocked_backend,
+            weblog_categories=[WeblogCategory.dd_trace],
         )
 
         # OTel Collector (data plane -- replaces DD agent)
@@ -79,7 +89,7 @@ class AppSecOtelCollectorScenario(DockerScenario):
             base_env.update(weblog_env)
 
         self.weblog_container = WeblogContainer(
-            environment=base_env,
+            environment=dict(base_env),
             appsec_enabled=True,
             iast_enabled=True,
             volumes=weblog_volumes,
@@ -89,10 +99,6 @@ class AppSecOtelCollectorScenario(DockerScenario):
 
     def post_start(self):
         """Override to handle otel-api version string from DD_TRACE_OTEL_ENABLED."""
-        import json
-        from utils._context.component_version import ComponentVersion
-        from utils._logger import logger
-
         with open(self.weblog_container.healthcheck_log_file, encoding="utf-8") as f:
             data = json.load(f)
             lib = data["library"]
@@ -101,10 +107,10 @@ class AppSecOtelCollectorScenario(DockerScenario):
         # can't be parsed by semantic_version. Fall back to 0.0.0.
         version = lib["version"]
         try:
-            self.weblog_container._library = ComponentVersion(lib["name"], version)
+            self.weblog_container._library = ComponentVersion(lib["name"], version)  # noqa: SLF001
         except ValueError:
             logger.warning(f"Cannot parse library version '{version}', using 0.0.0")
-            self.weblog_container._library = ComponentVersion(lib["name"], "0.0.0")
+            self.weblog_container._library = ComponentVersion(lib["name"], "0.0.0")  # noqa: SLF001
 
         logger.stdout(f"Library: {self.weblog_container.library}")
 
@@ -142,9 +148,7 @@ class AppSecOtelCollectorScenario(DockerScenario):
         result["configuration"]["config_file"] = config_file_path.name
 
     def _start_interfaces_watchdog(self):
-        super().start_interfaces_watchdog(
-            [interfaces.open_telemetry, interfaces.otel_collector, interfaces.library]
-        )
+        super().start_interfaces_watchdog([interfaces.open_telemetry, interfaces.otel_collector, interfaces.library])
 
     def _print_otel_collector_version(self):
         logger.stdout(f"Otel collector: {self.otel_collector_version}")
