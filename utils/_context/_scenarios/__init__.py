@@ -270,6 +270,7 @@ class _Scenarios:
             "DD_TRACE_OTEL_SEMANTICS_ENABLED": "true",
             # OTel semantics must override both conflicting configurations.
             "DD_TRACE_PEER_SERVICE_DEFAULTS_ENABLED": "true",
+            "DD_TRACE_RESOURCE_RENAMING_ALWAYS_SIMPLIFIED_ENDPOINT": "true",
             "DD_TRACE_RESOURCE_RENAMING_ENABLED": "true",
             "DD_TRACE_SPAN_ATTRIBUTE_SCHEMA": "v1",
             "DD_TRACE_OTEL_ENABLED": "true",
