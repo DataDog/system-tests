@@ -42,7 +42,7 @@ Build images used for system tests.
 
 * For `c`: `perl-mojolicious` (default)
 * For `dotnet`: `poc` (default), `uds`
-* For `golang`: `net-http` (default), `gin`, `echo`, `chi`, `go-restful-v3`
+* For `golang`: `net-http` (default), `gin`, `echo`, `chi`, `go-restful-v3`, `gorilla-mux`
   + Specific to the `GRAPHQL_APPSEC` scenario: `gqlgen`, `graph-gophers`, `graphql-go`
 * For `java`: `spring-boot` (default),`akka-http`,`jersey-grizzly2`,`play`,`ratpack`,`resteasy-netty3`,`spring-boot-3-native`,`spring-boot-jetty`,`spring-boot-openliberty`,`spring-boot-payara`,`spring-boot-undertow`,`spring-boot-wildfly`,`uds-spring-boot`,`vertx3`,`vertx4`
 * For `nodejs`: `express4` (default), `express4-typescript`, `express5`, `nextjs`, `fastify`

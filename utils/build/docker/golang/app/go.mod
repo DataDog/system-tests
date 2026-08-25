@@ -11,6 +11,7 @@ require (
 	github.com/DataDog/dd-trace-go/contrib/gin-gonic/gin/v2 v2.7.0-dev
 	github.com/DataDog/dd-trace-go/contrib/go-chi/chi.v5/v2 v2.7.0-dev
 	github.com/DataDog/dd-trace-go/contrib/google.golang.org/grpc/v2 v2.7.0-dev
+	github.com/DataDog/dd-trace-go/contrib/gorilla/mux/v2 v2.7.0-dev
 	github.com/DataDog/dd-trace-go/contrib/graph-gophers/graphql-go/v2 v2.7.0-dev
 	github.com/DataDog/dd-trace-go/contrib/graphql-go/graphql/v2 v2.7.0-dev
 	github.com/DataDog/dd-trace-go/contrib/labstack/echo.v4/v2 v2.7.0-dev
@@ -21,6 +22,7 @@ require (
 	github.com/emicklei/go-restful/v3 v3.12.2
 	github.com/gin-gonic/gin v1.10.1
 	github.com/go-chi/chi/v5 v5.2.2
+	github.com/gorilla/mux v1.8.1
 	github.com/graph-gophers/graphql-go v1.5.0
 	github.com/graphql-go/graphql v0.8.1
 	github.com/graphql-go/handler v0.2.3

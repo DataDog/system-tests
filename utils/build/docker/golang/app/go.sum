@@ -34,6 +34,8 @@ github.com/DataDog/dd-trace-go/contrib/go-chi/chi.v5/v2 v2.7.0-dev h1:SD9hSTS4At
 github.com/DataDog/dd-trace-go/contrib/go-chi/chi.v5/v2 v2.7.0-dev/go.mod h1:I1MQeZ4PfvHgoBLx6nk49AEHgVT/lnVVVLKwl6ew+/k=
 github.com/DataDog/dd-trace-go/contrib/google.golang.org/grpc/v2 v2.7.0-dev h1:W9WNWDeDxH8KHqYDLA8epuFsCqdRxwogM/SFnZqdwX0=
 github.com/DataDog/dd-trace-go/contrib/google.golang.org/grpc/v2 v2.7.0-dev/go.mod h1:5ww2N1goCH5hrx0GLXjCc9jOPRDoBbeZR7dR8pgQRRc=
+github.com/DataDog/dd-trace-go/contrib/gorilla/mux/v2 v2.7.0-dev h1:d9+nwOFt7E5qiGM8PdKCMD2/hp3nOrpsGJfd/tDQlUE=
+github.com/DataDog/dd-trace-go/contrib/gorilla/mux/v2 v2.7.0-dev/go.mod h1:j+DolnFqJneH2BYDpAQFmvxdzJG2NWH2qcnW72LfWj0=
 github.com/DataDog/dd-trace-go/contrib/graph-gophers/graphql-go/v2 v2.7.0-dev h1:fqumDuaS45kUFwBwl/bBfRVol+/sh6mWoiZit28OypU=
 github.com/DataDog/dd-trace-go/contrib/graph-gophers/graphql-go/v2 v2.7.0-dev/go.mod h1:HhqRd1qtO96NI0hy8q/MRhrZlGguUv2/H4oDli1islU=
 github.com/DataDog/dd-trace-go/contrib/graphql-go/graphql/v2 v2.7.0-dev h1:NXOZsXV9t6ipqCYrY6TtoRjsPnwonQj46YPbJvvk9pw=
@@ -168,6 +170,8 @@ github.com/google/pprof v0.0.0-20241210010833-40e02aabc2ad h1:a6HEuzUHeKH6hwfN/Z
 github.com/google/pprof v0.0.0-20241210010833-40e02aabc2ad/go.mod h1:vavhavw2zAxS5dIdcRluK6cSGGPlZynqzFM8NdvU144=
 github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
 github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
+github.com/gorilla/mux v1.8.1 h1:TuBL49tXwgrFYWhqrNgrUNEY92u81SPhu7sTdzQEiWY=
+github.com/gorilla/mux v1.8.1/go.mod h1:AKf9I4AEqPTmMytcMc0KkNouC66V3BtZ4qD5fmWSiMQ=
 github.com/gorilla/securecookie v1.1.1/go.mod h1:ra0sb63/xPlUeL+yeDciTfxMRAA+MP+HVt/4epWDjd4=
 github.com/gorilla/sessions v1.2.1/go.mod h1:dk2InVEVJ0sfLlnXv9EAgkf6ecYs/i80K/zI+bUmuGM=
 github.com/graph-gophers/graphql-go v1.5.0 h1:fDqblo50TEpD0LY7RXk/LFVYEVqo3+tXMNMPSVXA1yc=
