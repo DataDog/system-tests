@@ -43,7 +43,7 @@ RFC: https://docs.google.com/document/d/1SONUGEa38eLumE5b6gnNhykFhzZL9uQpsnMFq06
 from collections.abc import Iterator
 from typing import Any
 
-from utils import context, features, interfaces, rfc, scenarios, weblog
+from utils import features, interfaces, rfc, scenarios, weblog
 from utils._weblog import HttpResponse
 from utils.dd_constants import SpanKind, StatusCode
 
@@ -504,13 +504,19 @@ class Test_OtelSemantics_Spans_Http_Server:
         assert _attributes(span).get("server.address"), "server.port is required once server.address is set"
         _assert_int_attribute(span, "server.port", 7777)
 
-    def setup_http_endpoint_retained(self) -> None:
-        if context.library == "dotnet":
-            self.response = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
-        else:
-            self.response = weblog.get("/resource_renaming/int/123")
+    def setup_http_endpoint_retained_from_resource_renaming(self) -> None:
+        self.response = weblog.get("/resource_renaming/int/123")
 
-    def test_http_endpoint_retained(self) -> None:
+    def test_http_endpoint_retained_from_resource_renaming(self) -> None:
+        """``http.endpoint`` created by resource renaming is retained."""
+        span = _server_span(self.response)
+        endpoint = _attributes(span).get("http.endpoint")
+        assert endpoint, "http.endpoint must be retained on the OTLP span"
+
+    def setup_http_endpoint_retained_from_appsec(self) -> None:
+        self.response = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
+
+    def test_http_endpoint_retained_from_appsec(self) -> None:
         """``http.endpoint`` is Datadog-only with no OTel equivalent, so it is retained."""
         span = _server_span(self.response)
         endpoint = _attributes(span).get("http.endpoint")

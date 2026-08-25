@@ -2448,6 +2448,7 @@ manifest:
   tests/test_otel_http_semantics.py::Test_OtelSemantics_SamplingRules: 4.15.0-dev
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client: 4.15.0-dev
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server: 4.15.0-dev
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_http_endpoint_retained_from_appsec: irrelevant (The AppSec endpoint retention request is specific to .NET)
   tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchanged: missing_feature (APMAPI-2171)
