@@ -133,10 +133,10 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
 
     def _get_traces_from_otlp(self, rid: str | None) -> Generator[tuple[dict, DataDogLibraryTraceOTLP], None, None]:
         """Fallback: read traces from interfaces.open_telemetry (OTLP format)."""
-        from utils import interfaces
+        from utils import interfaces  # noqa: PLC0415
 
         otel = interfaces.open_telemetry
-        if not otel._data_list:
+        if not otel._data_list:  # noqa: SLF001
             return
 
         for data in otel.get_data(path_filters=["/v1/traces", "/api/v0.2/traces"]):
@@ -192,13 +192,13 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         return spans[0]
 
     @staticmethod
-    def _decode_appsec_data(appsec_data):
+    def _decode_appsec_data(appsec_data: object) -> object:
         """Decode appsec data if it is a base64-encoded string (OTLP format)."""
         if isinstance(appsec_data, dict):
             return appsec_data
         if isinstance(appsec_data, str):
             try:
-                import base64
+                import base64  # noqa: PLC0415
 
                 decoded = base64.b64decode(appsec_data)
                 try:
@@ -207,7 +207,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
                     text = decoded.decode("utf-8", errors="replace")
                     if "triggers" in text:
                         try:
-                            import msgpack
+                            import msgpack  # noqa: PLC0415
 
                             return msgpack.unpackb(decoded, raw=False)
                         except ImportError:

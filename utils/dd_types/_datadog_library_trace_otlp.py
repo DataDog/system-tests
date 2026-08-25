@@ -37,7 +37,7 @@ _NUMERIC_METRIC_KEYS = {
 _APPSEC_DATA_KEYS = {"appsec", "_dd.appsec.json", "iast", "_dd.iast.json"}
 
 
-def _try_decode_appsec(value: Any) -> Any:
+def _try_decode_appsec(value: Any) -> Any:  # noqa: ANN401
     """Decode base64-encoded appsec data (msgpack or JSON) into a dict."""
     if isinstance(value, dict):
         return value
@@ -54,7 +54,7 @@ def _try_decode_appsec(value: Any) -> Any:
         pass
     # Try msgpack
     try:
-        import msgpack
+        import msgpack  # noqa: PLC0415
 
         return msgpack.unpackb(decoded_bytes, raw=False)
     except ImportError:
@@ -69,7 +69,7 @@ def _try_decode_appsec(value: Any) -> Any:
         return value
 
 
-def _coerce_numeric(key: str, value: Any) -> Any:
+def _coerce_numeric(key: str, value: Any) -> Any:  # noqa: ANN401
     """Coerce string values to numbers for known numeric metric keys."""
     if key not in _NUMERIC_METRIC_KEYS:
         return value
@@ -166,8 +166,7 @@ class DataDogLibrarySpanOTLP(DataDogLibrarySpan):
         if key == "span_id":
             return self.raw_span.get("spanId", self.raw_span.get("span_id", default))
         if key == "parent_id":
-            val = self.raw_span.get("parentSpanId", self.raw_span.get("parent_span_id", default))
-            return val
+            return self.raw_span.get("parentSpanId", self.raw_span.get("parent_span_id", default))
         if key == "name":
             return self.raw_span.get("name", default)
         if key == "type":
@@ -219,7 +218,7 @@ class DataDogLibrarySpanOTLP(DataDogLibrarySpan):
                 return None
         return None
 
-    def get_span_links(self):  # noqa: ANN202
+    def get_span_links(self):
         return []
 
 

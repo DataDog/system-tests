@@ -1459,7 +1459,7 @@ class _Scenarios:
         backend_interface_timeout=5,
         include_opentelemetry=True,
         rc_api_enabled=True,
-        doc="Test AAP features with DD Tracer exporting via OTLP + DD Agent for RC, using default ruleset (M2 topology)",
+        doc="Test AAP with OTLP export + DD Agent for RC, default ruleset (M2)",
         scenario_groups=[scenario_groups.appsec, scenario_groups.open_telemetry],
     )
 

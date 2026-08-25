@@ -23,6 +23,7 @@ import json
 import re
 
 from utils import weblog, interfaces, scenarios, features
+from utils._logger import logger
 
 
 def _find_appsec_keys_in_otlp():
@@ -51,7 +52,7 @@ def _find_waf_trigger_in_otlp():
                 decoded = base64.b64decode(encoded).decode("utf-8", errors="replace")
                 if "ua0-600" in decoded or "trigger" in decoded.lower():
                     return True
-            except Exception:
+            except Exception:  # noqa: S110
                 pass
     return False
 
@@ -121,9 +122,9 @@ class Test_AppSec_OTLP_Structure:
         """Document all _dd.appsec.* attribute keys found in OTLP spans."""
         appsec_keys = _find_appsec_keys_in_otlp()
 
-        print(f"\n=== AppSec attribute keys found in OTLP spans ===")
+        logger.info("=== AppSec attribute keys found in OTLP spans ===")
         for k in sorted(appsec_keys):
-            print(f"  {k}")
+            logger.info(f"  {k}")
 
         assert len(appsec_keys) > 0, "No _dd.appsec.* keys found in OTLP spans"
         assert "_dd.appsec.enabled" in appsec_keys
@@ -145,7 +146,7 @@ class Test_AppSec_OTLP_RCPolling:
         rc_paths = ["/v0.7/config", "/v0.7/config/"]
         found_rc = False
 
-        for data in interfaces.library.get_data(path_filters=rc_paths):
+        for _data in interfaces.library.get_data(path_filters=rc_paths):
             found_rc = True
             break
 
@@ -154,9 +155,9 @@ class Test_AppSec_OTLP_RCPolling:
         for data in interfaces.library.get_data():
             all_paths.add(data.get("path", ""))
 
-        print(f"\n=== All paths in library interface ===")
+        logger.info("=== All paths in library interface ===")
         for p in sorted(all_paths):
-            print(f"  {p}")
+            logger.info(f"  {p}")
 
         assert found_rc, (
             "No Remote Config polling traffic found in interfaces.library. "
