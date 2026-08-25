@@ -8,6 +8,7 @@ from utils.dd_types import DataDogLibrarySpan
 
 @features.security_events_metadata
 @scenarios.appsec_otlp_export_default_rules
+@scenarios.appsec_otel_collector_default_rules
 class Test_StatusCode:
     """Appsec reports good status code"""
 
@@ -37,6 +38,7 @@ class Test_StatusCode:
 
 @features.security_events_metadata
 @scenarios.appsec_otlp_export_default_rules
+@scenarios.appsec_otel_collector_default_rules
 class Test_Info:
     """Environment (production, staging) from DD_ENV variable"""
 
@@ -69,7 +71,9 @@ class Test_Info:
 @features.security_events_metadata
 @scenarios.default
 @scenarios.appsec_otlp_export
+@scenarios.appsec_otel_collector
 @scenarios.appsec_otlp_export_default_rules
+@scenarios.appsec_otel_collector_default_rules
 @scenarios.appsec_lambda_default
 class Test_RequestHeaders:
     """Request Headers for IP resolution"""
@@ -108,7 +112,9 @@ class Test_RequestHeaders:
 @features.security_events_metadata
 @scenarios.default
 @scenarios.appsec_otlp_export
+@scenarios.appsec_otel_collector
 @scenarios.appsec_otlp_export_default_rules
+@scenarios.appsec_otel_collector_default_rules
 @scenarios.appsec_lambda_default
 class Test_TagsFromRule:
     """Tags tags from the rule"""
@@ -165,7 +171,9 @@ def _get_appsec_triggers(request: HttpResponse):
 @features.security_events_metadata
 @scenarios.default
 @scenarios.appsec_otlp_export
+@scenarios.appsec_otel_collector
 @scenarios.appsec_otlp_export_default_rules
+@scenarios.appsec_otel_collector_default_rules
 @scenarios.appsec_lambda_default
 class Test_AttackTimestamp:
     """Attack timestamp"""

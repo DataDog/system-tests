@@ -16,6 +16,7 @@ from utils.dd_types import DataDogLibrarySpan
 @scenarios.appsec_blocking
 @scenarios.appsec_lambda_blocking
 @scenarios.appsec_otlp_export
+@scenarios.appsec_otel_collector
 class Test_TraceTaggingRules:
     """Test different variants of trace-tagging rules"""
 

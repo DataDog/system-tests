@@ -27,6 +27,7 @@ class Test_InsecureAuthProtocol(BaseSinkTest):
 
 
 @scenarios.appsec_otlp_export_default_rules
+@scenarios.appsec_otel_collector_default_rules
 @rfc(
     "https://docs.google.com/document/d/1ga7yCKq2htgcwgQsInYZKktV0hNlv4drY9XzSxT-o5U/edit?tab=t.0#heading=h.d0f5wzmlfhat"
 )
@@ -47,6 +48,7 @@ class Test_InsecureAuthProtocol_StackTrace:
 
 
 @scenarios.appsec_otlp_export_default_rules
+@scenarios.appsec_otel_collector_default_rules
 @rfc("https://docs.google.com/document/d/1R8AIuQ9_rMHBPdChCb5jRwPrg1WvIz96c_WQ3y8DWk4")
 @features.iast_extended_location
 class Test_InsecureAuthProtocol_ExtendedLocation:

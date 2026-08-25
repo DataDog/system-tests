@@ -98,6 +98,7 @@ JSON_CONTENT_TYPES = {
 @scenarios.appsec_blocking
 @scenarios.appsec_lambda_blocking
 @scenarios.appsec_otlp_export
+@scenarios.appsec_otel_collector
 @features.appsec_blocking_action
 class Test_Blocking:
     """Blocking response is obtained when triggering a blocking rule, test the default blocking response"""
@@ -241,6 +242,7 @@ class Test_Blocking:
 @scenarios.appsec_blocking
 @scenarios.appsec_lambda_blocking
 @scenarios.appsec_otlp_export
+@scenarios.appsec_otel_collector
 @features.appsec_blocking_action
 class Test_Blocking_strip_response_headers:
     def setup_strip_response_headers(self):
@@ -260,6 +262,7 @@ class Test_Blocking_strip_response_headers:
 @scenarios.appsec_blocking
 @scenarios.appsec_lambda_blocking
 @scenarios.appsec_otlp_export
+@scenarios.appsec_otel_collector
 @features.appsec_blocking_action
 class Test_CustomBlockingResponse:
     """Custom Blocking response"""

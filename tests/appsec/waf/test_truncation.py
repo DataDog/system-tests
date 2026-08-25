@@ -12,6 +12,7 @@ def create_nested_object(n: int, obj: dict) -> dict:
 @rfc("https://docs.google.com/document/d/1D4hkC0jwwUyeo0hEQgyKP54kM1LZU98GL8MaP60tQrA")
 @features.appsec_truncation_action
 @scenarios.appsec_otlp_export_default_rules
+@scenarios.appsec_otel_collector_default_rules
 class Test_Truncation:
     """Test WAF truncation"""
 

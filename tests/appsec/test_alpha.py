@@ -9,6 +9,7 @@ from utils import weblog, interfaces, scenarios, features
 @scenarios.appsec_lambda_default
 @scenarios.default
 @scenarios.appsec_otlp_export_default_rules
+@scenarios.appsec_otel_collector_default_rules
 class Test_Basic:
     """Detect attacks on raw URI and headers with default rules"""
 

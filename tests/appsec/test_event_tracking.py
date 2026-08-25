@@ -37,6 +37,7 @@ def validate_metric_type_and_version(event_type: str, version: str, metric: dict
 
 @features.user_monitoring
 @scenarios.appsec_otlp_export_default_rules
+@scenarios.appsec_otel_collector_default_rules
 class Test_UserLoginSuccessEvent:
     """Success test for User Login Event SDK for AppSec"""
 
@@ -89,6 +90,7 @@ class Test_UserLoginSuccessEvent:
 
 @features.user_monitoring
 @scenarios.appsec_otlp_export_default_rules
+@scenarios.appsec_otel_collector_default_rules
 class Test_UserLoginSuccessEvent_Metrics:
     """Success test for User Login Event SDK for AppSec"""
 
@@ -108,6 +110,7 @@ class Test_UserLoginSuccessEvent_Metrics:
 
 @features.user_monitoring
 @scenarios.appsec_otlp_export_default_rules
+@scenarios.appsec_otel_collector_default_rules
 class Test_UserLoginFailureEvent:
     """Failure test for User Login Event SDK for AppSec"""
 
@@ -159,6 +162,7 @@ class Test_UserLoginFailureEvent:
 
 @features.user_monitoring
 @scenarios.appsec_otlp_export_default_rules
+@scenarios.appsec_otel_collector_default_rules
 class Test_UserLoginFailureEvent_Metrics:
     """Success test for User Login Event SDK for AppSec"""
 
@@ -178,6 +182,7 @@ class Test_UserLoginFailureEvent_Metrics:
 
 @features.custom_business_logic_events
 @scenarios.appsec_otlp_export_default_rules
+@scenarios.appsec_otel_collector_default_rules
 class Test_CustomEvent:
     """Test for Custom Event SDK for AppSec"""
 
@@ -212,6 +217,7 @@ class Test_CustomEvent:
 
 @features.user_monitoring
 @scenarios.appsec_otlp_export_default_rules
+@scenarios.appsec_otel_collector_default_rules
 class Test_CustomEvent_Metrics:
     """Success test for User Login Event SDK for AppSec"""
 

@@ -8,6 +8,7 @@ from utils.dd_types import DataDogLibrarySpan
 
 @features.user_monitoring
 @scenarios.appsec_otlp_export_default_rules
+@scenarios.appsec_otel_collector_default_rules
 class Test_Basic:
     """Basic tests for Identify SDK for AppSec"""
 

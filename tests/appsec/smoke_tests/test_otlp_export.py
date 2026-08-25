@@ -35,12 +35,14 @@ pytestmark = pytest.mark.skipif(
 
 @features.not_reported
 @scenarios.appsec_otlp_export
+@scenarios.appsec_otel_collector
 class Test_AppSecOtlpExport_Threats(BaseThreatsSmokeTests):
     pass
 
 
 @features.not_reported
 @scenarios.appsec_otlp_export
+@scenarios.appsec_otel_collector
 class Test_AppSecOtlpExport_UserEvents(BaseUserEventsSmokeTests):
     pass
 
@@ -50,11 +52,13 @@ class Test_AppSecOtlpExport_UserEvents(BaseUserEventsSmokeTests):
 
 @features.not_reported
 @scenarios.appsec_otlp_export_default_rules
+@scenarios.appsec_otel_collector_default_rules
 class Test_AppSecOtlpExportDefaultRules_Threats(BaseThreatsSmokeTests):
     pass
 
 
 @features.not_reported
 @scenarios.appsec_otlp_export_default_rules
+@scenarios.appsec_otel_collector_default_rules
 class Test_AppSecOtlpExportDefaultRules_UserEvents(BaseUserEventsSmokeTests):
     pass

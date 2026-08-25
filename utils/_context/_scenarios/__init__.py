@@ -31,6 +31,7 @@ from .k8s_injector_dev import K8sInjectorDevScenario
 from .docker_ssi import DockerSSIScenario
 from .ipv6 import IPV6Scenario
 from .appsec_low_waf_timeout import AppsecLowWafTimeout
+from .appsec_otel_collector import AppSecOtelCollectorScenario
 from .ai_guard import AIGuardScenario
 from .integration_frameworks import IntegrationFrameworksScenario
 from utils._context.constants import ContainerPorts
@@ -1465,6 +1466,16 @@ class _Scenarios:
 
     otel_collector = OtelCollectorScenario("OTEL_COLLECTOR")
     otel_collector_e2e = OtelCollectorScenario("OTEL_COLLECTOR_E2E", mocked_backend=False)
+
+    # DDOT: DD Tracer + OTel Collector (data plane), no DD Agent (no RC)
+    appsec_otel_collector = AppSecOtelCollectorScenario(
+        "APPSEC_OTEL_COLLECTOR",
+        weblog_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
+        weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
+    )
+    appsec_otel_collector_default_rules = AppSecOtelCollectorScenario(
+        "APPSEC_OTEL_COLLECTOR_DEFAULT_RULES",
+    )
 
     integration_frameworks = IntegrationFrameworksScenario(
         "INTEGRATION_FRAMEWORKS", doc="Tests for third-party integration frameworks"
