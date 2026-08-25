@@ -12,6 +12,7 @@ TELEMETRY_REQUEST_TYPE_GENERATE_METRICS = "generate-metrics"
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2355333252/Environment+Variables")
 @features.threats_configuration
+@scenarios.appsec_otlp_export_default_rules
 class Test_ConfigurationVariables:
     """Configuration environment variables"""
 

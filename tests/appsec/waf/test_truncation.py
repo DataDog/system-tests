@@ -1,6 +1,6 @@
 import json
 from tests.appsec.utils import find_series
-from utils import weblog, rfc, features, interfaces
+from utils import weblog, rfc, features, interfaces, scenarios
 
 
 def create_nested_object(n: int, obj: dict) -> dict:
@@ -11,6 +11,7 @@ def create_nested_object(n: int, obj: dict) -> dict:
 
 @rfc("https://docs.google.com/document/d/1D4hkC0jwwUyeo0hEQgyKP54kM1LZU98GL8MaP60tQrA")
 @features.appsec_truncation_action
+@scenarios.appsec_otlp_export_default_rules
 class Test_Truncation:
     """Test WAF truncation"""
 

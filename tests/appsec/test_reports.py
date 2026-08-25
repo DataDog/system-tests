@@ -7,6 +7,7 @@ from utils.dd_types import DataDogLibrarySpan
 
 
 @features.security_events_metadata
+@scenarios.appsec_otlp_export_default_rules
 class Test_StatusCode:
     """Appsec reports good status code"""
 
@@ -35,6 +36,7 @@ class Test_StatusCode:
 
 
 @features.security_events_metadata
+@scenarios.appsec_otlp_export_default_rules
 class Test_Info:
     """Environment (production, staging) from DD_ENV variable"""
 

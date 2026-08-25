@@ -68,6 +68,7 @@ SDK_TRIGGERS = ["before", "after"]
 
 @rfc("https://docs.google.com/document/d/1-trUpphvyZY7k5ldjhW-MgqWl0xOm7AMEQDJEAZ63_Q/edit#heading=h.8d3o7vtyu1y1")
 @features.user_monitoring
+@scenarios.appsec_otlp_export_default_rules
 class Test_Login_Events:
     """Test login success/failure use cases"""
 
@@ -551,6 +552,7 @@ class Test_Login_Events_Extended:
 @rfc("https://docs.google.com/document/d/19VHLdJLVFwRb_JrE87fmlIM5CL5LdOBv4AmLxgdo9qI/edit")
 @features.user_monitoring
 @features.user_id_collection_modes
+@scenarios.appsec_otlp_export_default_rules
 class Test_V2_Login_Events:
     """Test login success/failure use cases
     By default, mode is identification
@@ -1185,6 +1187,7 @@ def login_success_includes_usr_id_meta() -> bool:
 @rfc("https://docs.google.com/document/d/1RT38U6dTTcB-8muiYV4-aVDCsT_XrliyakjtAPyjUpw")
 @features.user_monitoring
 @features.user_id_collection_modes
+@scenarios.appsec_otlp_export_default_rules
 class Test_V3_Login_Events:
     """Test login success/failure use cases
     By default, mode is identification

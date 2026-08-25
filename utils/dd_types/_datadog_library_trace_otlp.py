@@ -34,7 +34,7 @@ _NUMERIC_METRIC_KEYS = {
 }
 
 # Keys whose values are base64-encoded appsec trigger data that need decoding.
-_APPSEC_DATA_KEYS = {"appsec", "_dd.appsec.json"}
+_APPSEC_DATA_KEYS = {"appsec", "_dd.appsec.json", "iast", "_dd.iast.json"}
 
 
 def _try_decode_appsec(value: Any) -> Any:
@@ -172,6 +172,9 @@ class DataDogLibrarySpanOTLP(DataDogLibrarySpan):
             return self.raw_span.get("name", default)
         if key == "type":
             return self._merged_attributes().get("span.type", default)
+        if key == "service":
+            # OTLP stores service name in resource attributes as "service.name"
+            return self._merged_attributes().get("service.name", default)
         if key == "start":
             return int(self.raw_span.get("startTimeUnixNano", self.raw_span.get("start_time_unix_nano", 0)))
         if key == "duration":
