@@ -5,7 +5,6 @@ from pathlib import Path
 from utils import interfaces
 from utils._context.component_version import Version
 from utils._context.containers import (
-    AgentContainer,
     OpenTelemetryCollectorContainer,
     WeblogContainer,
 )
@@ -67,10 +66,6 @@ class AppSecOtelCollectorScenario(DockerScenario):
         self.collector_container.name = "system-tests-collector"
         self._containers.append(self.collector_container)
 
-        # DD Agent for /info only (no RC -- tracer needs agent to initialize)
-        self.agent_container = AgentContainer(use_proxy=True)
-        self._containers.append(self.agent_container)
-
         # AppSec-enabled weblog with OTLP export to the collector (via proxy)
         base_env = {
             "OTEL_TRACES_EXPORTER": "otlp",
@@ -78,6 +73,7 @@ class AppSecOtelCollectorScenario(DockerScenario):
             "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}/v1/traces",
             "OTEL_EXPORTER_OTLP_TRACES_HEADERS": "dd-protocol=otlp,dd-otlp-path=collector",
             "DD_TRACE_OTEL_ENABLED": "true",
+            "DD_AGENT_HOST": "",
         }
         if weblog_env:
             base_env.update(weblog_env)
@@ -89,7 +85,6 @@ class AppSecOtelCollectorScenario(DockerScenario):
             volumes=weblog_volumes,
         )
         self.weblog_container.depends_on.append(self.collector_container)
-        self.weblog_container.depends_on.append(self.agent_container)
         self._containers.append(self.weblog_container)
 
     def post_start(self):
@@ -127,7 +122,6 @@ class AppSecOtelCollectorScenario(DockerScenario):
 
             self.collector_container.environment["DD_API_KEY"] = os.environ["DD_API_KEY"]
 
-        interfaces.agent.configure(self.host_log_folder, replay=self.replay)
         interfaces.otel_collector.configure(self.host_log_folder, replay=self.replay)
         interfaces.open_telemetry.configure(self.host_log_folder, replay=self.replay)
         interfaces.library.configure(self.host_log_folder, replay=self.replay)
@@ -149,7 +143,7 @@ class AppSecOtelCollectorScenario(DockerScenario):
 
     def _start_interfaces_watchdog(self):
         super().start_interfaces_watchdog(
-            [interfaces.open_telemetry, interfaces.otel_collector, interfaces.library, interfaces.agent]
+            [interfaces.open_telemetry, interfaces.otel_collector, interfaces.library]
         )
 
     def _print_otel_collector_version(self):
