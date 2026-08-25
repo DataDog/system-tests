@@ -738,7 +738,7 @@ class Test_Headers_Tracestate_DD:
     def test_headers_tracestate_dd_skips_malformed_elements(self, test_library: APMLibrary):
         """A malformed element (no ':' separator, or invalid characters abutting a
         neighboring separator) inside the tracestate 'dd' value must be skipped rather
-        than invalidating the rest of the 'dd' member.
+        than invalidating the entire 'dd' member.
         """
         with test_library:
             # 1) Bare colonless element in the middle
