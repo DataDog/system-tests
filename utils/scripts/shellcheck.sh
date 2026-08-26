@@ -41,9 +41,9 @@ function lint() {
         fi
 
         files+=("$f")
-    done < <( find utils -type d -name 'node_modules' -prune -o -type f -name '*.sh' -print; ls -1 -- *.sh )
+    done < <( find utils -type d -name 'node_modules' -prune -o -name '*.sh' -print; ls -1 -- *.sh )
 
-    shellcheck "${files[@]}"
+    ./venv/bin/shellcheck "${files[@]}"
 }
 
 function root() {
@@ -71,5 +71,5 @@ function main() {
 }
 
 if [[ "${0}" == "${BASH_SOURCE[0]}" ]]; then
-    main
+    main "${@}"
 fi
