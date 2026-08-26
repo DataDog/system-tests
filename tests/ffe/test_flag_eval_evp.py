@@ -1,5 +1,6 @@
 """Test server-side feature flag evaluation counts via EVP flagevaluation."""
 
+import hashlib
 import json
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
@@ -103,7 +104,9 @@ def evaluate_flag(
     return weblog.post("/ffe", json=payload)
 
 
-def evp_flagevaluation_events_from_data(data: JSON, flag_key: str) -> list[tuple[JSON, JSON]]:
+def evp_flagevaluation_events_from_data(
+    data: JSON, flag_key: str, targeting_key: str | None = None
+) -> list[tuple[JSON, JSON]]:
     if data.get("path") != EVP_FLAGEVALUATIONS_PATH:
         return []
 
@@ -125,8 +128,15 @@ def evp_flagevaluation_events_from_data(data: JSON, flag_key: str) -> list[tuple
             continue
 
         flag = event.get("flag")
-        if isinstance(flag, dict) and flag.get("key") == flag_key:
-            results.append((cast("JSON", content), cast("JSON", event)))
+        if not isinstance(flag, dict) or flag.get("key") != flag_key:
+            continue
+
+        if targeting_key is not None:
+            hashed_targeting_key = f"sha256_{hashlib.sha256(targeting_key.encode()).hexdigest()}"
+            if event.get("targeting_key") not in (targeting_key, hashed_targeting_key):
+                continue
+
+        results.append((cast("JSON", content), cast("JSON", event)))
 
     return results
 
@@ -301,7 +311,9 @@ class FlagevaluationEgressContract:
         # Keep the target alive until buffered SDK writers have flushed to the selected route.
         egress = flagevaluation_egress()
         assert egress.interface.wait_for(
-            lambda data: bool(evp_flagevaluation_events_from_data(cast("JSON", data), self.flag_key)),
+            lambda data: bool(
+                evp_flagevaluation_events_from_data(cast("JSON", data), self.flag_key, self.targeting_key)
+            ),
             timeout=EVP_WAIT_TIMEOUT_SECONDS,
         ), f"Timed out waiting for EVP flagevaluation event for flag {self.flag_key}"
 
@@ -312,7 +324,7 @@ class FlagevaluationEgressContract:
         egress = flagevaluation_egress()
 
         def matcher(data: JSON) -> bool:
-            return bool(evp_flagevaluation_events_from_data(data, self.flag_key))
+            return bool(evp_flagevaluation_events_from_data(data, self.flag_key, self.targeting_key))
 
         assert egress.interface.wait_for(
             lambda data: matcher(cast("JSON", data)),
@@ -328,7 +340,7 @@ class FlagevaluationEgressContract:
 
         events: list[tuple[JSON, JSON]] = []
         for request in matching_requests:
-            events.extend(evp_flagevaluation_events_from_data(request, self.flag_key))
+            events.extend(evp_flagevaluation_events_from_data(request, self.flag_key, self.targeting_key))
 
         assert events, f"Expected EVP flagevaluation events for flag {self.flag_key}"
         for _, event in events:
@@ -350,7 +362,7 @@ class FlagevaluationEgressContract:
 
         for excluded_interface in egress.excluded_interfaces:
             assert not any(
-                evp_flagevaluation_events_from_data(cast("JSON", data), self.flag_key)
+                evp_flagevaluation_events_from_data(cast("JSON", data), self.flag_key, self.targeting_key)
                 for data in excluded_interface.get_data(path_filters=EVP_FLAGEVALUATIONS_PATH)
             )
 
