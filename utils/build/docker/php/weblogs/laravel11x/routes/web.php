@@ -89,13 +89,28 @@ Route::get('/make_distant_call', function (Request $request) {
         return response()->json(['error' => 'url parameter required'], 400);
     }
 
+    $debugStream = fopen('php://temp', 'w+');
+    $response    = Http::withOptions(['debug' => $debugStream])->get($url);
+
+    rewind($debugStream);
+    $debug = stream_get_contents($debugStream);
+    fclose($debugStream);
+
     $requestHeaders = [];
-    $response = Http::beforeSending(function ($outgoingRequest) use (&$requestHeaders) {
-            foreach ($outgoingRequest->headers() as $name => $values) {
-                $requestHeaders[strtolower($name)] = implode(', ', $values);
-            }
-        })
-        ->get($url);
+    $inRequest      = false;
+    foreach (explode("\n", $debug) as $line) {
+        $line = rtrim($line);
+        if (str_starts_with($line, '> ')) {
+            $inRequest = true;
+            $line      = substr($line, 2);
+        } elseif ($inRequest && (str_starts_with($line, '< ') || $line === '')) {
+            break;
+        }
+        if ($inRequest && str_contains($line, ':')) {
+            [$key, $value]                   = explode(':', $line, 2);
+            $requestHeaders[strtolower(trim($key))] = trim($value);
+        }
+    }
 
     $responseHeaders = [];
     foreach ($response->headers() as $name => $values) {
