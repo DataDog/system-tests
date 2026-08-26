@@ -10,6 +10,8 @@ from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils.mocked_backend.ffe import EXPECTED_API_KEY
 
 RC_PATH = "datadog/2/FFE_FLAGS"
+
+
 @dataclass(frozen=True)
 class ExposureEgress:
     interface: ProxyBasedInterfaceValidator
