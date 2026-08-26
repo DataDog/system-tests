@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from pathlib import Path
 import ruamel.yaml
 from utils.manifest._internal.const import TestDeclaration
+from utils.manifest._internal.parser import parse_weblogs
 from utils.manifest import Manifest
 from ruamel.yaml import CommentedMap, YAML, CommentedSeq
 
@@ -60,6 +61,24 @@ class ManifestEditor:
         self.poked_views = {}
         self.added_rules = {}
         self.weblogs = weblogs
+
+    def component_weblogs(self, component: str) -> set[str]:
+        """All weblogs known for a component, derived from the manifest itself.
+
+        ``self.weblogs`` only reflects the weblogs present in the test artifacts,
+        which is not enough to decide whether an activation covers every weblog of
+        a component.  Using the manifest-derived set avoids collapsing weblog-scoped
+        rules into unconditional ones that would override weblogs already activated
+        in the manifest (e.g. ``other_var``).
+        """
+        weblogs: set[str] = set(self.weblogs.get(component, set()))
+        for conditions in self.manifest.data.values():
+            for condition in conditions:
+                if condition.get("component") != component:
+                    continue
+                weblogs.update(condition.get("weblog", []))
+                weblogs.update(condition.get("excluded_weblog", []))
+        return weblogs
 
     def wrap_key_anchors(self, file: Path) -> str:
         """Wrap anchor references used as keys in quotes for ruamel.yaml parsing.
@@ -175,8 +194,14 @@ class ManifestEditor:
                 if is_clause:
                     key_list = parsed_condition.get("weblog", ["*"])
                     assert key_list
-                    assert len(key_list) == 1
-                    clause_key = key_list[0]
+                    # When a rule is expanded into multiple weblog clauses, the manifest
+                    # parser may report a "clause" match but still return a condition
+                    # with multiple weblogs. In that case, we can't reliably map back
+                    # to a single weblog key, so fall back to editing the parent rule.
+                    if len(key_list) == 1:
+                        clause_key = key_list[0]
+                    else:
+                        is_clause = False
 
                 ret.add(
                     ManifestEditor.View(
@@ -300,7 +325,9 @@ class ManifestEditor:
                 ret[rule] = []
             for condition_key, weblogs in weblog_conditions.items():
                 condition = non_var_conditions[condition_key].copy()
-                if set(weblogs) != self.weblogs[condition["component"]] and "parametric-" not in next(iter(weblogs)):
+                if set(weblogs) != self.component_weblogs(condition["component"]) and "parametric-" not in next(
+                    iter(weblogs)
+                ):
                     condition["weblog"] = list(weblogs)
                 ret[rule].append(condition)
         return ret
@@ -409,7 +436,7 @@ class ManifestEditor:
         for view, contexts in self.poked_views.items():
             raw_data = self.raw_data[view.condition["component"]]["manifest"][view.rule]
             component_version, weblogs = ManifestEditor.compress_pokes(contexts)
-            all_weblogs = set(weblogs) == self.weblogs[view.condition["component"]] or "parametric-" in next(
+            all_weblogs = set(weblogs) == self.component_weblogs(view.condition["component"]) or "parametric-" in next(
                 iter(weblogs)
             )
 
@@ -473,6 +500,20 @@ class ManifestEditor:
                 weblog_declaration = raw_data[view.condition_index]["weblog_declaration"]
                 # Add comments to the individual weblog lines that were modified
                 for weblog in weblogs:
+                    # The weblog may be part of a comma-separated key in the raw
+                    # weblog_declaration (e.g. 'rails70, sinatra').  We need to
+                    # split that key, remove the activated weblog, and add a new
+                    # individual entry for it.
+                    keys_to_split = [
+                        key for key in list(weblog_declaration)
+                        if "," in key and weblog in parse_weblogs(key)
+                    ]
+                    for key in keys_to_split:
+                        original_value = weblog_declaration[key]
+                        remaining = [w for w in parse_weblogs(key) if w != weblog]
+                        del weblog_declaration[key]
+                        if remaining:
+                            weblog_declaration[", ".join(remaining)] = original_value
                     weblog_declaration[weblog] = f"v{component_version}"
                     # Add comment to the specific weblog key that was modified
                     # weblog_declaration is a dict loaded from YAML, so it should be a CommentedMap
