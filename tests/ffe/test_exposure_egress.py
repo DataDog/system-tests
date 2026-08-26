@@ -2,7 +2,11 @@
 
 from dataclasses import dataclass
 
-from tests.ffe.utils.exposures import assert_exposure_side_effects_contract, exposure_events_from_data
+from tests.ffe.utils.exposures import (
+    EXPOSURE_WAIT_TIMEOUT_SECONDS,
+    assert_exposure_side_effects_contract,
+    exposure_events_from_data,
+)
 from tests.ffe.utils.fixtures import make_ufc_fixture
 from utils import context, features, interfaces, remote_config as rc, scenarios, weblog
 from utils._context._scenarios.agentless_endtoend import FeatureFlaggingAgentlessEndToEndScenario
@@ -10,6 +14,7 @@ from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils.mocked_backend.ffe import EXPECTED_API_KEY
 
 RC_PATH = "datadog/2/FFE_FLAGS"
+EXPECTED_API_KEY_FINGERPRINT = "rijn_Fc1Sxm6lPHiKU1IdWeNqpcVZiiW3C2LXJLqQp670sFU"
 
 
 @dataclass(frozen=True)
@@ -17,6 +22,7 @@ class ExposureEgress:
     interface: ProxyBasedInterfaceValidator
     excluded_interfaces: tuple[ProxyBasedInterfaceValidator, ...] = ()
     expected_api_key: str | None = None
+    expected_api_key_fingerprint: str | None = None
 
 
 def exposure_egress() -> ExposureEgress:
@@ -42,6 +48,7 @@ def exposure_egress() -> ExposureEgress:
         interfaces.datadog_direct,
         (interfaces.datadog_sidecar,),
         EXPECTED_API_KEY,
+        EXPECTED_API_KEY_FINGERPRINT,
     )
 
 
@@ -72,6 +79,14 @@ class ExposureEgressContract:
             for _ in range(5)
         ]
 
+        # Agentless targets are stopped immediately after setup, before test assertions run.
+        # Keep the target alive until buffered SDK writers have flushed to the selected route.
+        egress = exposure_egress()
+        assert egress.interface.wait_for(
+            lambda data: bool(exposure_events_from_data(data, {self.flag_key}, self.targeting_key)),
+            timeout=EXPOSURE_WAIT_TIMEOUT_SECONDS,
+        ), f"Timed out waiting for exposure event for {self.flag_key!r} and {self.targeting_key!r}"
+
     def test_exposure_egress(self) -> None:
         egress = exposure_egress()
         matching_requests = assert_exposure_side_effects_contract(
@@ -93,6 +108,8 @@ class ExposureEgressContract:
 
         headers = {name.lower(): value for name, value in request["request"]["headers"]}
         assert headers["dd-api-key"] in {egress.expected_api_key, "--redacted--"}
+        if egress.expected_api_key_fingerprint is not None:
+            assert headers["dd-api-key-fingerprint"] == egress.expected_api_key_fingerprint
 
         for excluded_interface in egress.excluded_interfaces:
             assert not any(
