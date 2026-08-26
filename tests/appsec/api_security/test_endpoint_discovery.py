@@ -5,6 +5,7 @@ from utils.telemetry import validate_app_endpoints_schema
 
 @rfc("https://docs.google.com/document/d/1txwuurIiSUWjYX7Xa0let7e49XKW2uhm1djgqjl_gL0/edit?tab=t.0")
 @scenarios.appsec_api_security
+@scenarios.appsec_otel_collector_api_security
 @features.api_security_endpoint_discovery
 class Test_Endpoint_Discovery:
     _main_setup_done: bool = False

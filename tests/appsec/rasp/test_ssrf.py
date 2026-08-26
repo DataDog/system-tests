@@ -37,6 +37,7 @@ class SlashInsensitiveStr(str):
 @scenarios.appsec_rasp
 @scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
+@scenarios.appsec_otel_collector_rasp
 class Test_Ssrf_UrlQuery:
     """Server-side request forgery through query parameters"""
 
@@ -63,6 +64,7 @@ class Test_Ssrf_UrlQuery:
 @scenarios.appsec_rasp
 @scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
+@scenarios.appsec_otel_collector_rasp
 class Test_Ssrf_BodyUrlEncoded:
     """Server-side request forgery through a url-encoded body parameter"""
 
@@ -95,6 +97,7 @@ class Test_Ssrf_BodyUrlEncoded:
 @scenarios.appsec_rasp
 @scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
+@scenarios.appsec_otel_collector_rasp
 class Test_Ssrf_BodyXml:
     """Server-side request forgery through an xml body parameter"""
 
@@ -128,6 +131,7 @@ class Test_Ssrf_BodyXml:
 @scenarios.appsec_rasp
 @scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
+@scenarios.appsec_otel_collector_rasp
 class Test_Ssrf_BodyJson:
     """Server-side request forgery through a json body parameter"""
 
@@ -162,6 +166,7 @@ class Test_Ssrf_BodyJson:
 @scenarios.appsec_rasp
 @scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
+@scenarios.appsec_otel_collector_rasp
 class Test_Ssrf_Mandatory_SpanTags:
     """Validate span tag generation on exploit attempts"""
 
@@ -178,6 +183,7 @@ class Test_Ssrf_Mandatory_SpanTags:
 @scenarios.appsec_rasp
 @scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
+@scenarios.appsec_otel_collector_rasp
 class Test_Ssrf_Optional_SpanTags:
     """Validate span tag generation on exploit attempts"""
 
@@ -200,6 +206,7 @@ class Test_Ssrf_Optional_SpanTags:
 @scenarios.appsec_rasp
 @scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
+@scenarios.appsec_otel_collector_rasp
 class Test_Ssrf_StackTrace:
     """Validate stack trace generation on exploit attempts"""
 
@@ -215,6 +222,7 @@ class Test_Ssrf_StackTrace:
 @scenarios.appsec_rasp
 @scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
+@scenarios.appsec_otel_collector_rasp
 class Test_Ssrf_Telemetry:
     """Validate Telemetry data on exploit attempts"""
 
@@ -240,6 +248,7 @@ class Test_Ssrf_Telemetry:
 @scenarios.appsec_rasp
 @scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
+@scenarios.appsec_otel_collector_rasp
 class Test_Ssrf_Telemetry_V2:
     """Validate Telemetry data on exploit attempts"""
 

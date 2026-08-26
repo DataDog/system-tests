@@ -59,6 +59,7 @@ def validate_builder(headers: CaseInsensitiveDict, *, mandatory: bool = True):
 @features.appsec_request_blocking
 @scenarios.appsec_blocking
 @scenarios.appsec_otlp_export
+@scenarios.appsec_otel_collector
 class Test_Headers_No_Event:
     """Check for headers in the absence of security event"""
 
@@ -76,6 +77,7 @@ class Test_Headers_No_Event:
 @features.appsec_request_blocking
 @scenarios.appsec_blocking
 @scenarios.appsec_otlp_export
+@scenarios.appsec_otel_collector
 class Test_Headers_Event_No_Blocking:
     """Check for headers in the absence of security event"""
 
@@ -93,6 +95,7 @@ class Test_Headers_Event_No_Blocking:
 @features.appsec_request_blocking
 @scenarios.appsec_blocking
 @scenarios.appsec_otlp_export
+@scenarios.appsec_otel_collector
 class Test_Headers_Event_Blocking:
     """Check for headers when a security event is triggered"""
 

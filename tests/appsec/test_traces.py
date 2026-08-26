@@ -21,7 +21,9 @@ RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python", "c
 @features.security_events_metadata
 @scenarios.default
 @scenarios.appsec_otlp_export
+@scenarios.appsec_otel_collector
 @scenarios.appsec_otlp_export_default_rules
+@scenarios.appsec_otel_collector_default_rules
 @scenarios.appsec_lambda_default
 class Test_RetainTraces:
     """Retain trace (manual keep & appsec.event = true)"""
@@ -292,7 +294,9 @@ class Test_CollectRespondHeaders:
 @features.security_events_metadata
 @scenarios.default
 @scenarios.appsec_otlp_export
+@scenarios.appsec_otel_collector
 @scenarios.appsec_otlp_export_default_rules
+@scenarios.appsec_otel_collector_default_rules
 @scenarios.appsec_lambda_default
 class Test_CollectDefaultRequestHeader:
     HEADERS = {
@@ -326,7 +330,9 @@ class Test_CollectDefaultRequestHeader:
 @features.security_events_metadata
 @scenarios.default
 @scenarios.appsec_otlp_export
+@scenarios.appsec_otel_collector
 @scenarios.appsec_otlp_export_default_rules
+@scenarios.appsec_otel_collector_default_rules
 @scenarios.appsec_lambda_default
 class Test_ExternalWafRequestsIdentification:
     def setup_external_wafs_header_collection(self):

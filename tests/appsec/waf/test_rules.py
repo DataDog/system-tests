@@ -9,6 +9,7 @@ from utils import weblog, interfaces, features, scenarios, waf_rules
 
 @features.waf_rules
 @scenarios.appsec_otlp_export_default_rules
+@scenarios.appsec_otel_collector_default_rules
 class Test_Scanners:
     """Appsec WAF tests on scanners rules"""
 
@@ -26,6 +27,7 @@ class Test_Scanners:
 
 @features.waf_rules
 @scenarios.appsec_otlp_export_default_rules
+@scenarios.appsec_otel_collector_default_rules
 class Test_HttpProtocol:
     """Appsec WAF tests on HTTP protocol rules"""
 
@@ -48,6 +50,7 @@ class Test_HttpProtocol:
 
 @features.waf_rules
 @scenarios.appsec_otlp_export_default_rules
+@scenarios.appsec_otel_collector_default_rules
 class Test_LFI:
     """Appsec WAF tests on LFI rules"""
 
@@ -80,6 +83,7 @@ class Test_LFI:
 
 @features.waf_rules
 @scenarios.appsec_otlp_export_default_rules
+@scenarios.appsec_otel_collector_default_rules
 class Test_RFI:
     """Appsec WAF tests on RFI rules"""
 
@@ -95,6 +99,7 @@ class Test_RFI:
 
 @features.waf_rules
 @scenarios.appsec_otlp_export_default_rules
+@scenarios.appsec_otel_collector_default_rules
 class Test_CommandInjection:
     """Appsec WAF tests on Command injection rules"""
 
@@ -118,6 +123,7 @@ class Test_CommandInjection:
 
 @features.waf_rules
 @scenarios.appsec_otlp_export_default_rules
+@scenarios.appsec_otel_collector_default_rules
 class Test_PhpCodeInjection:
     """Appsec WAF tests on PHP injection rules"""
 
@@ -150,6 +156,7 @@ class Test_PhpCodeInjection:
 
 @features.waf_rules
 @scenarios.appsec_otlp_export_default_rules
+@scenarios.appsec_otel_collector_default_rules
 class Test_JsInjection:
     """Appsec WAF tests on Js Injection rules"""
 
@@ -165,6 +172,7 @@ class Test_JsInjection:
 
 @features.waf_rules
 @scenarios.appsec_otlp_export_default_rules
+@scenarios.appsec_otel_collector_default_rules
 class Test_XSS:
     """Appsec WAF tests on XSS rules"""
 
@@ -191,6 +199,7 @@ class Test_XSS:
 
 @features.waf_rules
 @scenarios.appsec_otlp_export_default_rules
+@scenarios.appsec_otel_collector_default_rules
 class Test_SQLI:
     """Appsec WAF tests on SQLI rules"""
 
@@ -212,6 +221,7 @@ class Test_SQLI:
 
 @features.waf_rules
 @scenarios.appsec_otlp_export_default_rules
+@scenarios.appsec_otel_collector_default_rules
 class Test_NoSqli:
     """Appsec WAF tests on NoSQLi rules"""
 
@@ -227,6 +237,7 @@ class Test_NoSqli:
 
 @features.waf_rules
 @scenarios.appsec_otlp_export_default_rules
+@scenarios.appsec_otel_collector_default_rules
 class Test_JavaCodeInjection:
     """Appsec WAF tests on Java code injection rules"""
 
@@ -244,6 +255,7 @@ class Test_JavaCodeInjection:
 
 @features.waf_rules
 @scenarios.appsec_otlp_export_default_rules
+@scenarios.appsec_otel_collector_default_rules
 class Test_SSRF:
     """Appsec WAF tests on SSRF rules"""
 
@@ -257,6 +269,7 @@ class Test_SSRF:
 
 @features.waf_rules
 @scenarios.appsec_otlp_export_default_rules
+@scenarios.appsec_otel_collector_default_rules
 class Test_DiscoveryScan:
     """AppSec WAF Tests on Discovery Scan rules"""
 

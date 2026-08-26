@@ -7,6 +7,7 @@ from utils import weblog, interfaces, scenarios, features, waf_rules
 
 @features.appsec_response_blocking
 @scenarios.appsec_otlp_export_default_rules
+@scenarios.appsec_otel_collector_default_rules
 class Test_404:
     """Appsec WAF misc tests"""
 
@@ -41,6 +42,7 @@ class Test_MultipleHighlight:
 
 @features.appsec_blocking_action
 @scenarios.appsec_otlp_export_default_rules
+@scenarios.appsec_otel_collector_default_rules
 class Test_MultipleAttacks:
     """If several attacks are sent threw one requests, all of them are reported"""
 
@@ -73,6 +75,7 @@ class Test_MultipleAttacks:
 
 @features.waf_features
 @scenarios.appsec_otlp_export_default_rules
+@scenarios.appsec_otel_collector_default_rules
 class Test_CorrectOptionProcessing:
     """Check that the case sensitive option is properly processed"""
 

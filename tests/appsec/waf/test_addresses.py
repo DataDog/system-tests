@@ -10,6 +10,7 @@ from utils.dd_types import DataDogLibrarySpan
 
 @features.appsec_request_blocking
 @scenarios.appsec_otlp_export_default_rules
+@scenarios.appsec_otel_collector_default_rules
 class Test_UrlQueryKey:
     """Appsec supports keys on server.request.query"""
 
@@ -24,6 +25,7 @@ class Test_UrlQueryKey:
 
 @features.appsec_request_blocking
 @scenarios.appsec_otlp_export_default_rules
+@scenarios.appsec_otel_collector_default_rules
 class Test_UrlQuery:
     """Appsec supports values on server.request.query"""
 
@@ -46,6 +48,7 @@ class Test_UrlQuery:
 
 @features.appsec_request_blocking
 @scenarios.appsec_otlp_export_default_rules
+@scenarios.appsec_otel_collector_default_rules
 class Test_UrlRaw:
     """Appsec supports server.request.uri.raw"""
 
@@ -59,6 +62,7 @@ class Test_UrlRaw:
 
 @features.appsec_request_blocking
 @scenarios.appsec_otlp_export_default_rules
+@scenarios.appsec_otel_collector_default_rules
 class Test_Headers:
     """Appsec supports server.request.headers.no_cookies"""
 
@@ -134,6 +138,7 @@ class Test_Headers:
 
 @features.appsec_request_blocking
 @scenarios.appsec_otlp_export_default_rules
+@scenarios.appsec_otel_collector_default_rules
 class Test_Cookies:
     """Appsec supports server.request.cookies"""
 
@@ -176,6 +181,7 @@ class Test_Cookies:
 
 @features.appsec_request_blocking
 @scenarios.appsec_otlp_export_default_rules
+@scenarios.appsec_otel_collector_default_rules
 class Test_BodyUrlEncoded:
     """Appsec supports <url encoded body>"""
 
@@ -190,6 +196,7 @@ class Test_BodyUrlEncoded:
 
 @features.appsec_request_blocking
 @scenarios.appsec_otlp_export_default_rules
+@scenarios.appsec_otel_collector_default_rules
 class Test_BodyJson:
     """Appsec supports <JSON encoded body>"""
 
@@ -211,6 +218,7 @@ class Test_BodyJson:
 
 @features.appsec_request_blocking
 @scenarios.appsec_otlp_export_default_rules
+@scenarios.appsec_otel_collector_default_rules
 class Test_BodyXml:
     """Appsec supports <XML encoded body>"""
 
@@ -244,6 +252,7 @@ class Test_BodyXml:
 
 @features.appsec_request_blocking
 @scenarios.appsec_otlp_export_default_rules
+@scenarios.appsec_otel_collector_default_rules
 class Test_ResponseStatus:
     """Appsec supports values on server.response.status"""
 
@@ -257,6 +266,7 @@ class Test_ResponseStatus:
 
 @features.appsec_request_blocking
 @scenarios.appsec_otlp_export_default_rules
+@scenarios.appsec_otel_collector_default_rules
 class Test_PathParams:
     """Appsec supports values on server.request.path_params"""
 
@@ -272,6 +282,7 @@ class Test_PathParams:
 
 @features.grpc_threats_management
 @scenarios.appsec_otlp_export_default_rules
+@scenarios.appsec_otel_collector_default_rules
 class Test_gRPC:
     """Appsec supports address grpc.server.request.message"""
 
@@ -293,6 +304,7 @@ class Test_gRPC:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2278064284/gRPC+Protocol+Support")
 @features.grpc_threats_management
 @scenarios.appsec_otlp_export_default_rules
+@scenarios.appsec_otel_collector_default_rules
 class Test_FullGrpc:
     """Full gRPC support"""
 
