@@ -22,6 +22,7 @@ from utils._context.component_version import ComponentVersion, Version
 from utils._context.docker import get_docker_client
 from utils._context._image_mirror import mirror_image
 from utils._context.constants import ContainerPorts
+from utils.base_image.base_image import base_image_contexts
 from utils.docker_fixtures._core import extra_hosts_for_environment
 from utils.proxy.tuf import get_tuf_root_json
 from utils.proxy.ports import ProxyPorts
@@ -1046,20 +1047,23 @@ class WeblogContainer(TestedContainer):
 
         args = {}
 
-        pattern = re.compile(r"^FROM\s+(?P<image_name>[^\s]+)")
+        pattern = re.compile(r"^FROM\s+(?:--\S+\s+)*(?P<image_name>\S+)", re.IGNORECASE)
         arg_pattern = re.compile(r"^ARG\s+(?P<arg_name>[^\s]+)\s*=\s*(?P<arg_value>[^\s]+)")
-        with open(f"utils/build/docker/{library}/{weblog}.Dockerfile", encoding="utf-8") as f:
-            for line in f:
-                if match := arg_pattern.match(line):
-                    args[match.group("arg_name")] = match.group("arg_value")
+        dockerfile = Path(f"utils/build/docker/{library}/{weblog}.Dockerfile")
+        dockerfile_text = dockerfile.read_text()
+        base_contexts = base_image_contexts(dockerfile_text)
+        for line in dockerfile_text.splitlines():
+            if match := arg_pattern.match(line):
+                args[match.group("arg_name")] = match.group("arg_value")
 
-                if match := pattern.match(line):
-                    image_name = match.group("image_name")
+            if match := pattern.match(line):
+                image_name = match.group("image_name")
+                image_name = base_contexts.get(image_name, image_name)
 
-                    for name, value in args.items():
-                        image_name = image_name.replace(f"${name}", value)
+                for name, value in args.items():
+                    image_name = image_name.replace(f"${name}", value)
 
-                    result.append(image_name)
+                result.append(image_name)
 
         return result
 

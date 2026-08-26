@@ -1,4 +1,4 @@
-FROM datadog/system-tests:tornado.base-v2
+FROM system_tests_base_python_tornado
 
 WORKDIR /app
 
