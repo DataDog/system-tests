@@ -169,6 +169,11 @@ class FeatureFlaggingAgentlessEndToEndScenario(AgentlessEndToEndScenario):
         )
 
         if exposure_egress == "direct":
+            if self.weblog_infra.library_name == "nodejs":
+                # Node.js does not load the operating-system CA bundle by default.
+                self.weblog_infra.library_container.environment["NODE_EXTRA_CA_CERTS"] = (
+                    "/etc/ssl/certs/ca-certificates.crt"
+                )
             # Direct mode uses the proxy only to capture HTTPS intake requests.
             # Do not advertise the proxy as a local Agent endpoint.
             for env_name in ("DD_AGENT_HOST", "DD_DOGSTATSD_HOST", "DD_TRACE_AGENT_PORT", "DD_TRACE_AGENT_URL"):
