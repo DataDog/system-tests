@@ -130,6 +130,11 @@ class FeatureFlaggingAgentlessEndToEndScenario(AgentlessEndToEndScenario):
     ) -> None:
         self.exposure_egress = exposure_egress
         environment: dict[str, str | None] = {
+            # The shared weblogs use this switch to install their OpenFeature provider. The
+            # configuration source selects how the provider receives flags; it does not make the
+            # application adopt the provider on its own.
+            "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
+            "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE": "agentless",
             # Both variables are integer seconds across the SDKs: Java parses them with
             # getInteger, and the shared configuration registry declares them "int" with an
             # allowed pattern of [1-9]\d*. A fractional value only ever worked on Node, which
@@ -173,6 +178,10 @@ class FeatureFlaggingAgentlessEndToEndScenario(AgentlessEndToEndScenario):
             # Do not advertise the proxy as a local Agent endpoint.
             for env_name in ("DD_AGENT_HOST", "DD_DOGSTATSD_HOST", "DD_TRACE_AGENT_PORT", "DD_TRACE_AGENT_URL"):
                 self.weblog_infra.library_container.environment.pop(env_name, None)
+            self.weblog_infra.library_container.volumes["./utils/build/docker/agent/ca-certificates.crt"] = {
+                "bind": "/etc/ssl/certs/ca-certificates.crt",
+                "mode": "ro",
+            }
 
     def configure(self, config: pytest.Config) -> None:
         try:
