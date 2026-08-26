@@ -2500,6 +2500,7 @@ manifest:
   ? tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint::test_otlp_metrics_custom_endpoint_grpc
   : missing_feature (Does not support grpc)
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Configuration_Temporality_Preference::test_otel_aggregation_temporality: missing_feature (default Histogram bucket ranges is not up to spec)
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Lifecycle: missing_feature (OTel metrics lifecycle API not implemented)
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_metrics_grpc: missing_feature (Does not support grpc)
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods: v1.17.0
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_add_event_meta_serialization:  # TODO: a lower version might be supported

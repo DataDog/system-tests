@@ -255,6 +255,7 @@ manifest:
   : missing_feature (OpenTelemetry Rust SDK does not filter negative values for Histogram.record(). This is a bug in the upstream SDK)
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Api_MeterProvider::test_otel_get_meter_by_distinct_scope_attributes: missing_feature (Rust OpenTelemetry SDK 0.31.0's meter() method does not support scope attributes parameter)
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Host_Name::test_hostname_from_dd_hostname: missing_feature
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Lifecycle: missing_feature (OTel metrics lifecycle API not implemented)
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_metrics_grpc: '>=0.2.1'  # Modified by easy win activation script
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_metrics_http_protobuf: '>=0.2.1'  # Modified by easy win activation script
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods: v0.0.1

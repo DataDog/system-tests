@@ -289,6 +289,10 @@ class ParametricTestClientApi(TestClientApi):
         except RequestException as e:
             logger.info(f"Expected exception when calling /trace/crash: {e}")
 
+    def terminate(self) -> None:
+        self.container.kill(signal="SIGKILL")
+        self.container.wait(timeout=10)
+
     def get_logs(self) -> str:
         return self.container.logs().decode("utf-8")
 
@@ -967,8 +971,14 @@ class ParametricTestClientApi(TestClientApi):
             },
         )
 
-    def otel_metrics_force_flush(self) -> bool:
-        resp = self._session.post(self._url("/metrics/otel/force_flush"), json={}).json()
+    def otel_metrics_force_flush(self, seconds: int = 10, *, public_only: bool = False) -> bool:
+        resp = self._session.post(
+            self._url("/metrics/otel/force_flush"), json={"seconds": seconds, "public_only": public_only}
+        ).json()
+        return resp["success"]
+
+    def otel_metrics_shutdown(self, seconds: int = 10) -> bool:
+        resp = self._session.post(self._url("/metrics/otel/shutdown"), json={"seconds": seconds}).json()
         return resp["success"]
 
     def llmobs_trace(
@@ -1213,8 +1223,14 @@ class APMLibrary:
     ) -> None:
         self._client.otel_create_asynchronous_gauge(meter_name, name, unit, description, value, attributes)
 
-    def otel_metrics_force_flush(self) -> bool:
-        return self._client.otel_metrics_force_flush()
+    def otel_metrics_force_flush(self, seconds: int = 10, *, public_only: bool = False) -> bool:
+        return self._client.otel_metrics_force_flush(seconds, public_only=public_only)
+
+    def otel_metrics_shutdown(self, seconds: int = 10) -> bool:
+        return self._client.otel_metrics_shutdown(seconds)
+
+    def terminate(self) -> None:
+        self._client.terminate()
 
     def is_alive(self) -> bool:
         return self._client.is_alive()
