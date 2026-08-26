@@ -1,4 +1,5 @@
 'use strict'
+/* eslint-disable camelcase */
 
 const opts = {}
 
@@ -263,17 +264,12 @@ app.get('/trace/manual_keep_drop', (req, res) => {
 
 app.get('/make_distant_call', (req, res) => {
   const url = req.query.url
-
   const parsedUrl = new URL(url)
+  const method = req.query.method || 'GET'
 
-  const options = {
-    hostname: parsedUrl.hostname,
-    port: parsedUrl.port || 80, // Use default port if not provided
-    path: parsedUrl.pathname,
-    method: 'GET'
-  }
-
-  const request = http.request(options, (response) => {
+  // Passing the URL object preserves query strings and credentials. This endpoint is used by
+  // semantic-convention tests that need the tracer to observe the complete outbound request.
+  const request = http.request(parsedUrl, { method }, (response) => {
     let responseBody = ''
     response.on('data', (chunk) => {
       responseBody += chunk
@@ -859,8 +855,15 @@ app.get('/external_request/redirect', (req, res) => {
 require('./rasp')(app)
 
 app.post('/ai_guard/evaluate', async (req, res) => {
-  // eslint-disable-next-line camelcase
-  const renameAttrs = ({ tagProbabilities: tag_probs, ...rest }) => ({ ...rest, tag_probs })
+  const renameAttrs = ({
+    tagProbabilities: tag_probs,
+    redactionReplacements: redaction_replacements,
+    ...rest
+  }) => ({
+    ...rest,
+    tag_probs,
+    redaction_replacements
+  })
   const block = req.headers['x-ai-guard-block'] === 'true'
   const messages = req.body
   const userId = req.headers['x-user-id']

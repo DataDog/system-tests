@@ -86,3 +86,4 @@ go.work*
 # Git worktrees
 .claude/worktrees/
 .worktrees/
+.omc/

@@ -95,60 +95,76 @@ else
 fi
 
 echo "Running yamlfmt checks..."
-if ! which yamlfmt > /dev/null; then
-  echo "yamlfmt is not installed, installing it (ETA 5s)"
-  YAMLFMT_VERSION="0.16.0"
+YAMLFMT_VERSION="0.21.0"
 
-  YAMLFMT_OS=""
-  case "$(uname -s)" in
-    Darwin) YAMLFMT_OS="Darwin" ;;
-    Linux) YAMLFMT_OS="Linux" ;;
-    CYGWIN*|MINGW*|MSYS*) YAMLFMT_OS="Windows" ;;
-    *) echo "Unsupported OS"; return 1 ;;
-  esac
+if [[ -n "${IN_NIX_SHELL:-}" ]]; then
+  # yamlfmt is provided (and version-pinned) by the nix flake, use it as-is
+  YAMLFMT_BIN="$(which yamlfmt)"
+else
+  YAMLFMT_BIN="$PWD/venv/bin/yamlfmt"
 
-  YAMLFMT_ARCH=""
-  case "$(uname -m)" in
-    arm64|aarch64) YAMLFMT_ARCH="arm64" ;;
-    x86_64) YAMLFMT_ARCH="x86_64" ;;
-    i386|i686) YAMLFMT_ARCH="i386" ;;
-    *) echo "Unsupported architecture"; return 1 ;;
-  esac
-
-  YAMLFMT_SHA256=""
-  case "${YAMLFMT_OS}_${YAMLFMT_ARCH}" in
-    Darwin_arm64)   YAMLFMT_SHA256="fcffb2efdfdd27fb5bb658a8156972fda14f0864f336c181705b98eee5f6c139" ;;
-    Darwin_x86_64)  YAMLFMT_SHA256="740d23864fffcf1865a9e0a221840baae6b5f40b8a20ad2d5e79c1b9de9eaec7" ;;
-    Linux_arm64)    YAMLFMT_SHA256="208b9c0c4e67472e5205d3f826205b2f20da59a180b548cff02621401355bead" ;;
-    Linux_i386)     YAMLFMT_SHA256="1c20a6a7ca58736ba10e5c4fc02743d1163815d38e5332872033e775f9f048a1" ;;
-    Linux_x86_64)   YAMLFMT_SHA256="7819fa7c7e994d239009d30cbd58897149d7e7dd5847aedf7abd19c332298033" ;;
-    Windows_arm64)  YAMLFMT_SHA256="1adc6fa71e6e2fad3da09df409e2454e96a5c4a61a8669a6ae4023c163fc2a14" ;;
-    Windows_i386)   YAMLFMT_SHA256="de013077d923d9064cdd1ffedfd6d56274271772007fe214c6db7afdf571228d" ;;
-    Windows_x86_64) YAMLFMT_SHA256="dea055eb85a30d923850e46b462bb5f0e8f3ca9aee3b33b76a55f22995224e1b" ;;
-    *) echo "No known checksum for ${YAMLFMT_OS}_${YAMLFMT_ARCH}"; return 1 ;;
-  esac
-
-  YAMLFMT_URL="https://github.com/google/yamlfmt/releases/download/v${YAMLFMT_VERSION}/yamlfmt_${YAMLFMT_VERSION}_${YAMLFMT_OS}_${YAMLFMT_ARCH}.tar.gz"
-  curl -Lo "$PWD"/venv/bin/yamlfmt.tar.gz "$YAMLFMT_URL"
-
-  # Validate checksum of downloaded archive
-  if command -v sha256sum > /dev/null; then
-    echo "$YAMLFMT_SHA256 *$PWD/venv/bin/yamlfmt.tar.gz" | sha256sum --check --strict
-  elif command -v shasum > /dev/null; then
-    echo "$YAMLFMT_SHA256 *$PWD/venv/bin/yamlfmt.tar.gz" | shasum -a 256 --check --strict
-  else
-    echo "ERROR: no sha256sum or shasum found, cannot verify download"; return 1
+  if [ -x "$YAMLFMT_BIN" ]; then
+    YAMLFMT_INSTALLED_VERSION="$("$YAMLFMT_BIN" -version 2>&1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -n1)"
+    if [ "$YAMLFMT_INSTALLED_VERSION" != "$YAMLFMT_VERSION" ]; then
+      echo "$YAMLFMT_BIN is version $YAMLFMT_INSTALLED_VERSION, expected $YAMLFMT_VERSION, reinstalling it"
+      rm -f "$YAMLFMT_BIN"
+    fi
   fi
 
-  tar -xzf "$PWD"/venv/bin/yamlfmt.tar.gz -C "$PWD"/venv/bin/
-  chmod +x "$PWD"/venv/bin/yamlfmt
+  if [ ! -x "$YAMLFMT_BIN" ]; then
+    echo "yamlfmt is not installed, installing it (ETA 5s)"
+
+    YAMLFMT_OS=""
+    case "$(uname -s)" in
+      Darwin) YAMLFMT_OS="Darwin" ;;
+      Linux) YAMLFMT_OS="Linux" ;;
+      CYGWIN*|MINGW*|MSYS*) YAMLFMT_OS="Windows" ;;
+      *) echo "Unsupported OS"; return 1 ;;
+    esac
+
+    YAMLFMT_ARCH=""
+    case "$(uname -m)" in
+      arm64|aarch64) YAMLFMT_ARCH="arm64" ;;
+      x86_64) YAMLFMT_ARCH="x86_64" ;;
+      i386|i686) YAMLFMT_ARCH="i386" ;;
+      *) echo "Unsupported architecture"; return 1 ;;
+    esac
+
+    YAMLFMT_SHA256=""
+    case "${YAMLFMT_OS}_${YAMLFMT_ARCH}" in
+      Darwin_arm64)   YAMLFMT_SHA256="4b417ecb94339d57e4c122ecc948c1a00fe328b5853266de9806e652a92858fa" ;;
+      Darwin_x86_64)  YAMLFMT_SHA256="060e943bcb8583c456810eb1ff4721b4f46c4a0c1a4432449d5dc3bbfe29a22b" ;;
+      Linux_arm64)    YAMLFMT_SHA256="5b2689c963b177271330c5ce8ca7396751107e5a826be46f03d2cb9b6f0c7784" ;;
+      Linux_i386)     YAMLFMT_SHA256="c559e93f2a0d12c063b6c989d612318146cc92ea47f44eba8b265f814e008dcd" ;;
+      Linux_x86_64)   YAMLFMT_SHA256="1f300d9257b232bb3b541d7fb1b0e6b3c121bcbab381c86cd38cb8722be8a566" ;;
+      Windows_arm64)  YAMLFMT_SHA256="c1e64d1c72ca8986bc5b8c8edd4ec89f0627804e7e08f8de9f4b484cb5cad897" ;;
+      Windows_i386)   YAMLFMT_SHA256="3bc1faface507713109a608cf8812d3f46d2d722dda5ab1f9fe99a203985b952" ;;
+      Windows_x86_64) YAMLFMT_SHA256="07f80ce5d741eb4b0a9380ac78a19c7cb5bd44e2a9a47a5a04839e3ba54dd463" ;;
+      *) echo "No known checksum for ${YAMLFMT_OS}_${YAMLFMT_ARCH}"; return 1 ;;
+    esac
+
+    YAMLFMT_URL="https://github.com/google/yamlfmt/releases/download/v${YAMLFMT_VERSION}/yamlfmt_${YAMLFMT_VERSION}_${YAMLFMT_OS}_${YAMLFMT_ARCH}.tar.gz"
+    curl -Lo "$YAMLFMT_BIN.tar.gz" "$YAMLFMT_URL"
+
+    # Validate checksum of downloaded archive
+    if command -v sha256sum > /dev/null; then
+      echo "$YAMLFMT_SHA256 *$YAMLFMT_BIN.tar.gz" | sha256sum --check --strict
+    elif command -v shasum > /dev/null; then
+      echo "$YAMLFMT_SHA256 *$YAMLFMT_BIN.tar.gz" | shasum -a 256 --check --strict
+    else
+      echo "ERROR: no sha256sum or shasum found, cannot verify download"; return 1
+    fi
+
+    tar -xzf "$YAMLFMT_BIN.tar.gz" -C "$PWD"/venv/bin/
+    chmod +x "$YAMLFMT_BIN"
+  fi
 fi
 
 echo "Running yamlfmt formatter..."
 if [ "$COMMAND" == "fix" ]; then
- yamlfmt manifests/
+ "$YAMLFMT_BIN" manifests/
 else
- yamlfmt -lint manifests/
+ "$YAMLFMT_BIN" -lint manifests/
 fi
 
 echo "Running yamllint checks..."
@@ -168,6 +184,24 @@ else
       echo "Manifest parser failed. Please fix the errors above. 💥 💔 💥"
       exit 1
     fi
+fi
+
+echo "Checking AI Guard redaction fixtures..."
+# The redaction scenarios and their VCR cassettes are generated together, and the cassettes are
+# addressed by a hash of the request body: editing one side by hand silently stops the mock backend
+# from ever matching the requests the tests send. The generator is deterministic, so it can report
+# drift on its own; --check compares against the files it owns without writing any of them.
+if [ "$COMMAND" == "check" ]; then
+  gen_redaction_args="--check"
+else
+  gen_redaction_args=""
+fi
+
+if ! gen_redaction_output="$(python utils/scripts/gen_redaction_cassettes.py $gen_redaction_args 2>&1)"; then
+  echo "$gen_redaction_output"
+  echo "AI Guard redaction fixtures are out of date or invalid. Regenerate them with"
+  echo "python utils/scripts/gen_redaction_cassettes.py 💥 💔 💥"
+  exit 1
 fi
 
 echo "Running shellcheck checks..."

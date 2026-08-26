@@ -1,3 +1,4 @@
+---
 # Docker images mirrored into registry.ddbuild.io/system-tests/mirror.
 #
 # Generated: this file lists every image required by the CI scenarios.
@@ -12,6 +13,7 @@
 - "datadog/agent:latest"
 - "datadog/dd-appsec-php-ci:php-8.0-release"
 - "datadog/dd-appsec-php-ci:php-8.2-release"
+- "datadog/serverless-init:1.10.2"
 - "datadog/system-tests:apache-mod-7.0-zts.base-b0cbb006d771"
 - "datadog/system-tests:apache-mod-7.0.base-09527acd526e"
 - "datadog/system-tests:apache-mod-7.1-zts.base-4595e6bec912"
@@ -69,8 +71,8 @@
 - "ghcr.io/datadog/images-rb/engines/ruby:3.4-gnu-gcc"
 - "ghcr.io/graalvm/native-image-community:22.0.0"
 - "ghcr.io/oras-project/oras:v1.2.3"
-- "golang:1.25"
-- "golang:1.25-alpine"
+- "golang:1.26"
+- "golang:1.26-alpine"
 - "kong/kong-gateway:3.4"
 - "localstack/localstack:4.1"
 - "maven:3.6-jdk-11"

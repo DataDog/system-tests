@@ -1,8 +1,11 @@
 import json
 import math
+import re
+from pathlib import Path
 
 from tests.appsec.utils import assert_all_spans_have_apm_disabled_marker
 from utils import context, interfaces, scenarios, weblog, features, rfc
+from utils._weblog import HttpResponse
 from utils.dd_constants import TRACE_SOURCE_PROPAGATION_KEY, SamplingMechanism, SamplingPriority, TraceSource
 from utils.dd_types import DataDogLibrarySpan, DataDogLibraryTrace, is_same_boolean
 
@@ -494,6 +497,559 @@ class Test_SDS_Findings_In_SDK_Response:
             assert _assert_key(location, "path")
 
 
+# Redaction scenarios and the matching VCR cassettes are generated together by
+# utils/scripts/gen_redaction_cassettes.py. Each entry keeps the messages we send, the exact
+# redaction_replacements the backend returns, the messages expected once redaction has been
+# applied and the expected value of the redacted tags, so the tests below and the cassettes
+# never drift. Regenerate both after editing.
+REDACTION_SCENARIOS: dict = json.loads((Path(__file__).parent / "redaction_scenarios.json").read_text())
+
+REDACTED_TAG = "ai_guard.redacted"
+
+_SEGMENT_RE = re.compile(r"^(?P<name>[A-Za-z0-9_]+)(?:\[(?P<index>[0-9]+)\])?\Z")
+
+
+def _resolve_path(messages: list, path: str) -> object:
+    """Resolve an sds_findings/redaction path (RFC path grammar) to the value it points at."""
+    obj: object = {"messages": messages}
+    for segment in path.split("."):
+        match = _SEGMENT_RE.match(segment)
+        assert match, f"Invalid path segment '{segment}' in '{path}'"
+        obj = obj[match.group("name")]  # type: ignore[index]
+        index = match.group("index")
+        if index is not None:
+            obj = obj[int(index)]  # type: ignore[index]
+    return obj
+
+
+def _post_redaction_scenario(scenario_key: str, *, block: str = "false") -> tuple[dict, HttpResponse]:
+    """Send one redaction scenario to the weblog and return it alongside the response.
+
+    Blocking defaults to off so the scenarios that evaluate to DENY still return their evaluation
+    instead of a 403, which keeps the redacted payload observable on every scenario.
+    """
+    scenario = REDACTION_SCENARIOS[scenario_key]
+    response = weblog.post("/ai_guard/evaluate", headers={BLOCKING_HEADER: block}, json=scenario["messages"])
+    return scenario, response
+
+
+def _span_tag(span: DataDogLibrarySpan, key: str) -> object | None:
+    """Read a span tag from meta or metrics, None when the tracer did not set it at all."""
+    for container in (span.get("meta") or {}, span.get("metrics") or {}):
+        if key in container:
+            return container[key]
+    return None
+
+
+def _assert_redacted_tag(span: DataDogLibrarySpan, *, expected: bool) -> None:
+    """The ai_guard.redacted span tag must state whether the evaluation redacted anything."""
+    raw = _span_tag(span, REDACTED_TAG)
+    assert raw is not None, f"'{REDACTED_TAG}' not set on the ai_guard span"
+    if isinstance(raw, (int, float)) and not isinstance(raw, bool):
+        # A tracer reporting the tag as a metric uses exactly 1 or 0: the tag is a boolean, so
+        # any other number is a bug rather than a truthy value to be coerced.
+        assert raw in (0, 1), f"'{REDACTED_TAG}' reported as a metric should be 1 or 0, got '{raw}'"
+        actual: bool | str = raw == 1
+    else:
+        assert isinstance(raw, (bool, str)), f"'{REDACTED_TAG}' should be a boolean or a string, got '{raw}'"
+        actual = raw
+    assert is_same_boolean(actual=actual, expected=expected), f"'{REDACTED_TAG}' should be '{expected}', got '{actual}'"
+
+
+def _assert_redaction_scenario(scenario: dict):
+    """Validator asserting the ai_guard span reports exactly the redaction the scenario expects.
+
+    Covers the three surfaces the RFC makes normative: the action, the ai_guard.redacted tag and
+    the messages stored in meta struct, which must be the redacted ones whenever any replacement
+    was applied and the untouched originals otherwise.
+    """
+
+    def validate(span: DataDogLibrarySpan):
+        if span["resource"] != "ai_guard":
+            return False
+
+        _assert_key(span["meta"], "ai_guard.action", scenario["action"])
+        _assert_redacted_tag(span, expected=scenario["redacted"])
+
+        ai_guard = _assert_key(span["meta_struct"], "ai_guard")
+        messages = _assert_key(ai_guard, "messages")
+        assert messages == scenario["expected_messages"], (
+            f"Messages in meta struct do not match the expected redaction outcome: "
+            f"{messages} != {scenario['expected_messages']}"
+        )
+
+        serialized = json.dumps(messages)
+        for sensitive_value in scenario["sensitive_values"]:
+            assert sensitive_value not in serialized, (
+                f"Sensitive value '{sensitive_value}' still present in redacted messages: {serialized}"
+            )
+        # The mirror image: only a path the backend sent a usable replacement for may change, so a
+        # sensitive value on a skipped path is expected to still be there, not merely unchecked.
+        for retained_value in scenario["retained_values"]:
+            assert retained_value in serialized, (
+                f"Value '{retained_value}' was redacted although no usable replacement targeted it: {serialized}"
+            )
+
+        # sds_findings are independent detection metadata: reported whether or not anything was
+        # redacted, and never a redaction signal themselves.
+        if scenario["sds_findings"]:
+            sds = _assert_key(ai_guard, "sds")
+            assert len(sds) == len(scenario["sds_findings"]), (
+                f"Expected {len(scenario['sds_findings'])} sds findings in meta struct, got {sds}"
+            )
+
+        return True
+
+    return validate
+
+
+@rfc("https://docs.google.com/document/d/1PYVAi9p8YzPSlmZDIwUuM0DZeRlyj5dNszOteRaUtH8/edit")
+@features.ai_guard
+@scenarios.ai_guard
+class Test_Redaction:
+    """AI Guard sensitive-data redaction applied to the message payload.
+
+    Each scenario exercises a different shape of redaction. The backend returns a top-level
+    redaction_replacements array (one fully redacted string per path); the tracer overwrites
+    each path verbatim, reports the evaluation as redacted and stores the redacted messages in
+    the ai_guard meta struct. We assert on the meta struct because it is the cross-language,
+    cross-provider surface for redaction.
+    """
+
+    def setup_redact_single_value(self):
+        self.scenario, self.r = _post_redaction_scenario("REDACT_ONE_MSG_ONE_FINDING")
+
+    def test_redact_single_value(self):
+        """One message with a single sensitive value is redacted (RFC baseline)."""
+        assert self.r.status_code == 200
+        interfaces.library.validate_one_span(
+            self.r, validator=_assert_redaction_scenario(self.scenario), full_trace=True
+        )
+
+    def setup_redact_multi_messages_one_finding(self):
+        self.scenario, self.r = _post_redaction_scenario("REDACT_MULTI_ONE_FINDING")
+
+    def test_redact_multi_messages_one_finding(self):
+        """Multiple messages where only one message carries sensitive data to redact."""
+        assert self.r.status_code == 200
+        interfaces.library.validate_one_span(
+            self.r, validator=_assert_redaction_scenario(self.scenario), full_trace=True
+        )
+
+    def setup_redact_one_message_multiple_findings(self):
+        self.scenario, self.r = _post_redaction_scenario("REDACT_ONE_MSG_MULTI_FINDINGS")
+
+    def test_redact_one_message_multiple_findings(self):
+        """A single message string that contains several sensitive values, all redacted in one replacement."""
+        assert self.r.status_code == 200
+        interfaces.library.validate_one_span(
+            self.r, validator=_assert_redaction_scenario(self.scenario), full_trace=True
+        )
+
+    def setup_redact_mixed_findings(self):
+        self.scenario, self.r = _post_redaction_scenario("REDACT_MIXED")
+
+    def test_redact_mixed_findings(self):
+        """Multiple messages: one string with several findings and another string with a single finding."""
+        assert self.r.status_code == 200
+        interfaces.library.validate_one_span(
+            self.r, validator=_assert_redaction_scenario(self.scenario), full_trace=True
+        )
+
+    def setup_redact_system_prompt(self):
+        self.scenario, self.r = _post_redaction_scenario("REDACT_SYSTEM_PROMPT")
+
+    def test_redact_system_prompt(self):
+        """An insecure system prompt with sensitive data baked into the system message is redacted."""
+        assert self.r.status_code == 200
+        interfaces.library.validate_one_span(
+            self.r, validator=_assert_redaction_scenario(self.scenario), full_trace=True
+        )
+
+    def setup_redact_assistant_response(self):
+        self.scenario, self.r = _post_redaction_scenario("REDACT_ASSISTANT_RESPONSE")
+
+    def test_redact_assistant_response(self):
+        """Output redaction: a sensitive value leaked by the model's own answer is redacted."""
+        assert self.r.status_code == 200
+        interfaces.library.validate_one_span(
+            self.r, validator=_assert_redaction_scenario(self.scenario), full_trace=True
+        )
+
+    def setup_redact_tool_result(self):
+        self.scenario, self.r = _post_redaction_scenario("REDACT_TOOL_RESULT")
+
+    def test_redact_tool_result(self):
+        """A conversation with tool calls where the tool result (role:tool) content carries sensitive data."""
+        assert self.r.status_code == 200
+        interfaces.library.validate_one_span(
+            self.r, validator=_assert_redaction_scenario(self.scenario), full_trace=True
+        )
+
+    def setup_redact_tool_arguments(self):
+        self.scenario, self.r = _post_redaction_scenario("REDACT_TOOL_ARGS")
+
+    def test_redact_tool_arguments(self):
+        """Tool call arguments (a JSON string) carry sensitive data and are redacted while remaining valid JSON."""
+        assert self.r.status_code == 200
+        interfaces.library.validate_one_span(
+            self.r, validator=_assert_redaction_scenario(self.scenario), full_trace=True
+        )
+        # The redacted arguments must still parse: the RFC requires the JSON structure to survive.
+        path = self.scenario["replacements"][0]["path"]
+        arguments = _resolve_path(self.scenario["expected_messages"], path)
+        assert isinstance(arguments, str), f"Path '{path}' should resolve to the arguments string"
+        json.loads(arguments)
+
+    def setup_redact_content_part_text(self):
+        self.scenario, self.r = _post_redaction_scenario("REDACT_CONTENT_PART_TEXT")
+
+    def test_redact_content_part_text(self):
+        """A multimodal message: the text content part is redacted and the image locator is untouched."""
+        assert self.r.status_code == 200
+        interfaces.library.validate_one_span(
+            self.r, validator=_assert_redaction_scenario(self.scenario), full_trace=True
+        )
+
+    def setup_redact_empty_replacement(self):
+        self.scenario, self.r = _post_redaction_scenario("REDACT_EMPTY_REPLACEMENT")
+
+    def test_redact_empty_replacement(self):
+        """An empty replacement is the customer's remove strategy, applied like any other value."""
+        assert self.r.status_code == 200
+        interfaces.library.validate_one_span(
+            self.r, validator=_assert_redaction_scenario(self.scenario), full_trace=True
+        )
+
+    def setup_redact_hashed_replacement(self):
+        self.scenario, self.r = _post_redaction_scenario("REDACT_HASHED_REPLACEMENT")
+
+    def test_redact_hashed_replacement(self):
+        """A hash-strategy replacement carries no placeholder token and is still copied verbatim."""
+        assert self.r.status_code == 200
+        interfaces.library.validate_one_span(
+            self.r, validator=_assert_redaction_scenario(self.scenario), full_trace=True
+        )
+
+    def setup_redact_non_ascii(self):
+        self.scenario, self.r = _post_redaction_scenario("REDACT_NON_ASCII")
+
+    def test_redact_non_ascii(self):
+        """Emoji and astral-plane characters around the redacted span survive: no offset math applies."""
+        assert self.r.status_code == 200
+        interfaces.library.validate_one_span(
+            self.r, validator=_assert_redaction_scenario(self.scenario), full_trace=True
+        )
+
+    def setup_redact_on_deny(self):
+        self.scenario, self.r = _post_redaction_scenario("REDACT_ON_DENY")
+
+    def test_redact_on_deny(self):
+        """A DENY evaluation still redacts: a blocked payload must never report the originals."""
+        assert self.r.status_code == 200
+        interfaces.library.validate_one_span(
+            self.r, validator=_assert_redaction_scenario(self.scenario), full_trace=True
+        )
+
+    def setup_redact_partially_applied(self):
+        self.scenario, self.r = _post_redaction_scenario("MIXED_APPLIED_AND_SKIPPED")
+
+    def test_redact_partially_applied(self):
+        """A response mixing a usable entry with unusable ones: the good path is still redacted.
+
+        A partially redacted payload is intentional per the RFC, and preferable to raising or
+        dropping the call, so the evaluation still reports itself as redacted.
+        """
+        assert self.r.status_code == 200
+        interfaces.library.validate_one_span(
+            self.r, validator=_assert_redaction_scenario(self.scenario), full_trace=True
+        )
+
+
+@rfc("https://docs.google.com/document/d/1PYVAi9p8YzPSlmZDIwUuM0DZeRlyj5dNszOteRaUtH8/edit")
+@features.ai_guard
+@scenarios.ai_guard
+class Test_NoRedaction:
+    """AI Guard leaves the payload untouched when there is nothing to redact.
+
+    The presence of a non-empty redaction_replacements array is the only redaction signal: with
+    no such array the tracer must short-circuit, keep the exact messages we sent and report
+    ai_guard.redacted as false.
+    """
+
+    def setup_no_redaction_single_message(self):
+        self.scenario, self.r = _post_redaction_scenario("NO_REDACT_ONE_MSG")
+
+    def test_no_redaction_single_message(self):
+        """A benign single message is left untouched and returns no redaction_replacements."""
+        assert self.r.status_code == 200
+        body = json.loads(self.r.text)
+        assert not body.get("redaction_replacements"), f"Unexpected redaction on benign message: {body}"
+        interfaces.library.validate_one_span(
+            self.r, validator=_assert_redaction_scenario(self.scenario), full_trace=True
+        )
+
+    def setup_no_redaction_tool_calls(self):
+        self.scenario, self.r = _post_redaction_scenario("NO_REDACT_TOOL_CALLS")
+
+    def test_no_redaction_tool_calls(self):
+        """A benign tool-call conversation (valid tool calls, no sensitive data) is left untouched."""
+        assert self.r.status_code == 200
+        body = json.loads(self.r.text)
+        assert not body.get("redaction_replacements"), f"Unexpected redaction on benign tool calls: {body}"
+        interfaces.library.validate_one_span(
+            self.r, validator=_assert_redaction_scenario(self.scenario), full_trace=True
+        )
+
+    def setup_no_redaction_findings_only(self):
+        self.scenario, self.r = _post_redaction_scenario("NO_REDACT_FINDINGS_ONLY")
+
+    def test_no_redaction_findings_only(self):
+        """sds_findings without redaction_replacements: detection metadata never drives redaction.
+
+        The findings are still reported, and the sensitive data they point at stays in place
+        because the backend did not ask for it to be redacted.
+        """
+        assert self.r.status_code == 200
+        interfaces.library.validate_one_span(
+            self.r, validator=_assert_redaction_scenario(self.scenario), full_trace=True
+        )
+
+    def setup_no_redaction_empty_replacements(self):
+        self.scenario, self.r = _post_redaction_scenario("NO_REDACT_EMPTY_ARRAY")
+
+    def test_no_redaction_empty_replacements(self):
+        """An explicitly empty redaction_replacements array is the same signal as an absent one."""
+        assert self.r.status_code == 200
+        interfaces.library.validate_one_span(
+            self.r, validator=_assert_redaction_scenario(self.scenario), full_trace=True
+        )
+
+
+@rfc("https://docs.google.com/document/d/1PYVAi9p8YzPSlmZDIwUuM0DZeRlyj5dNszOteRaUtH8/edit")
+@features.ai_guard
+@scenarios.ai_guard
+class Test_RedactionFailSafe:
+    """A malformed redaction payload skips the affected path instead of failing the evaluation.
+
+    The backend owns correctness, but the tracer must stay safe: an unresolvable path, a target
+    that is not a string, a path that breaks the segment grammar, conflicting replacements for
+    one path and structurally invalid entries are all skipped. None of them may surface as an
+    exception, and when every entry is skipped the evaluation reports ai_guard.redacted as false.
+    """
+
+    def setup_skip_path_out_of_range(self):
+        self.scenario, self.r = _post_redaction_scenario("SKIP_PATH_OUT_OF_RANGE")
+
+    def test_skip_path_out_of_range(self):
+        """A message index past the end of the list resolves to nothing and is skipped."""
+        assert self.r.status_code == 200
+        interfaces.library.validate_one_span(
+            self.r, validator=_assert_redaction_scenario(self.scenario), full_trace=True
+        )
+
+    def setup_skip_path_non_string_target(self):
+        self.scenario, self.r = _post_redaction_scenario("SKIP_PATH_NON_STRING_TARGET")
+
+    def test_skip_path_non_string_target(self):
+        """A path resolving to a list of content parts rather than a string is skipped."""
+        assert self.r.status_code == 200
+        interfaces.library.validate_one_span(
+            self.r, validator=_assert_redaction_scenario(self.scenario), full_trace=True
+        )
+
+    def setup_skip_path_malformed_segment(self):
+        self.scenario, self.r = _post_redaction_scenario("SKIP_PATH_MALFORMED_SEGMENT")
+
+    def test_skip_path_malformed_segment(self):
+        """Every segment must match the path grammar in full: a hyphen, a trailing dot and a negative index."""
+        assert self.r.status_code == 200
+        interfaces.library.validate_one_span(
+            self.r, validator=_assert_redaction_scenario(self.scenario), full_trace=True
+        )
+
+    def setup_skip_conflicting_replacements(self):
+        self.scenario, self.r = _post_redaction_scenario("SKIP_CONFLICTING_REPLACEMENTS")
+
+    def test_skip_conflicting_replacements(self):
+        """Two different replacements for one path: the tracer skips the path instead of guessing.
+
+        It must never concatenate or partially apply conflicting replacements.
+        """
+        assert self.r.status_code == 200
+        interfaces.library.validate_one_span(
+            self.r, validator=_assert_redaction_scenario(self.scenario), full_trace=True
+        )
+
+    def setup_skip_malformed_entries(self):
+        self.scenario, self.r = _post_redaction_scenario("SKIP_MALFORMED_ENTRIES")
+
+    def test_skip_malformed_entries(self):
+        """Entries with no path, no replacement, a null or a non-string replacement are all unusable."""
+        assert self.r.status_code == 200
+        interfaces.library.validate_one_span(
+            self.r, validator=_assert_redaction_scenario(self.scenario), full_trace=True
+        )
+
+
+@rfc("https://docs.google.com/document/d/1PYVAi9p8YzPSlmZDIwUuM0DZeRlyj5dNszOteRaUtH8/edit")
+@features.ai_guard
+@scenarios.ai_guard
+class Test_RedactionSkipsStructuralFields:
+    """Only message content, content-part text and tool call arguments are redactable targets.
+
+    Everything else the path grammar can reach is structural or out of scope: a role, a tool
+    call id, a tool name, an image or file locator. They are strings, so a resolver that only
+    checks "is this a string" would happily overwrite them and corrupt the conversation or
+    destroy the call/result correlation. They must be skipped instead.
+    """
+
+    def setup_skip_structural_fields(self):
+        self.scenario, self.r = _post_redaction_scenario("SKIP_PATH_STRUCTURAL_FIELD")
+
+    def test_skip_structural_fields(self):
+        """role, tool_call_id, a tool call id and a tool name are never overwritten."""
+        assert self.r.status_code == 200
+        interfaces.library.validate_one_span(
+            self.r, validator=_assert_redaction_scenario(self.scenario), full_trace=True
+        )
+
+    def setup_skip_image_locator(self):
+        self.scenario, self.r = _post_redaction_scenario("SKIP_PATH_IMAGE_LOCATOR")
+
+    def test_skip_image_locator(self):
+        """Image and file locators are out of scope for redaction and stay intact."""
+        assert self.r.status_code == 200
+        interfaces.library.validate_one_span(
+            self.r, validator=_assert_redaction_scenario(self.scenario), full_trace=True
+        )
+
+
+@rfc("https://docs.google.com/document/d/1PYVAi9p8YzPSlmZDIwUuM0DZeRlyj5dNszOteRaUtH8/edit")
+@features.ai_guard
+@scenarios.ai_guard
+class Test_RedactionOnBlock:
+    """A blocked evaluation reports the redacted messages in meta struct, never the originals.
+
+    The block path returns no evaluation to the caller, so the span is the only place the payload
+    surfaces, and the redaction must still be applied there: a blocked conversation is exactly the
+    one most likely to carry sensitive data, and it must reach the backend and the UI redacted,
+    with the ai_guard.redacted tag set alongside ai_guard.blocked.
+
+    The abort error itself deliberately carries no messages. Errors get logged and the conversation
+    is arbitrarily large, so putting the list on the error reopens the leak channel redaction just
+    closed. Meta struct is the reporting surface on this path, not the exception.
+    """
+
+    def _assert_blocked_and_redacted(self, scenario: dict):
+        redaction_validator = _assert_redaction_scenario(scenario)
+
+        def validate(span: DataDogLibrarySpan):
+            if not redaction_validator(span):
+                return False
+
+            assert span["error"] == 1, "A blocked evaluation must flag its span as an error"
+            assert is_same_boolean(actual=span["meta"].get("ai_guard.blocked"), expected="true"), (
+                f"'ai_guard.blocked' with value 'true' not found in '{span['meta']}'"
+            )
+            return True
+
+        return validate
+
+    def setup_redaction_on_block(self):
+        self.scenario, self.r = _post_redaction_scenario("REDACT_ON_DENY", block="true")
+
+    def test_redaction_on_block(self):
+        """A DENY evaluation with blocking enabled aborts the call and still redacts the span payload."""
+        assert self.r.status_code == 403
+        interfaces.library.validate_one_span(
+            self.r, validator=self._assert_blocked_and_redacted(self.scenario), full_trace=True
+        )
+
+
+@rfc("https://docs.google.com/document/d/1PYVAi9p8YzPSlmZDIwUuM0DZeRlyj5dNszOteRaUtH8/edit")
+@features.ai_guard
+@scenarios.ai_guard
+class Test_RedactedMessagesInSDKResponse:
+    """The SDK evaluate() response hands back the redacted message list.
+
+    The RFC requires the tracer to replace the original list with the redacted one and use that
+    list from then on, in particular to forward it to the LLM provider. The SDK response is how
+    a caller gets hold of it, so it must carry the redacted messages, not the originals.
+    """
+
+    def setup_redacted_messages_in_response(self):
+        self.scenario, self.r = _post_redaction_scenario("REDACT_MIXED")
+
+    def test_redacted_messages_in_response(self):
+        """The response messages are redacted on every path the backend asked for."""
+        assert self.r.status_code == 200
+        body = json.loads(self.r.text)
+
+        messages = _assert_key(body, "messages")
+        assert messages == self.scenario["expected_messages"], (
+            f"SDK response messages are not the redacted ones: {messages} != {self.scenario['expected_messages']}"
+        )
+        serialized = json.dumps(messages)
+        for sensitive_value in self.scenario["sensitive_values"]:
+            assert sensitive_value not in serialized, (
+                f"Sensitive value '{sensitive_value}' still present in the SDK response: {serialized}"
+            )
+
+    def setup_unchanged_messages_in_response(self):
+        self.scenario, self.r = _post_redaction_scenario("NO_REDACT_ONE_MSG")
+
+    def test_unchanged_messages_in_response(self):
+        """With nothing to redact the response still exposes the messages, unchanged."""
+        assert self.r.status_code == 200
+        body = json.loads(self.r.text)
+        messages = _assert_key(body, "messages")
+        assert messages == self.scenario["messages"], (
+            f"SDK response messages should be untouched: {messages} != {self.scenario['messages']}"
+        )
+
+
+@rfc("https://docs.google.com/document/d/1PYVAi9p8YzPSlmZDIwUuM0DZeRlyj5dNszOteRaUtH8/edit")
+@features.ai_guard
+@scenarios.ai_guard
+class Test_RedactionInSDKResponse:
+    """The SDK evaluate() response exposes the backend redaction_replacements contract.
+
+    Each entry is a {path, replacement} pair, independent of the sds_findings detection
+    metadata, which must still be present. This is implementation checklist item 2 of the RFC,
+    which no tracer satisfies yet: the reference Python implementation returns the redacted
+    messages but not the replacements that produced them.
+    """
+
+    def setup_redaction_in_response(self):
+        self.scenario, self.r = _post_redaction_scenario("REDACT_ONE_MSG_MULTI_FINDINGS")
+
+    def test_redaction_in_response(self):
+        """redaction_replacements is returned in the SDK response with one entry per redacted path."""
+        assert self.r.status_code == 200
+        body = json.loads(self.r.text)
+
+        expected = self.scenario["replacements"]
+        replacements = _assert_key(body, "redaction_replacements")
+        assert len(replacements) == len(expected), (
+            f"Expected {len(expected)} redaction_replacements, got {replacements}"
+        )
+        by_path = {entry["path"]: entry for entry in replacements}
+        for redaction in expected:
+            entry = _assert_key(by_path, redaction["path"])
+            # Compared explicitly rather than through _assert_key, which skips the comparison for a
+            # falsy expected value: an empty replacement is the customer's remove strategy, a value
+            # the corpus deliberately carries, not a missing expectation.
+            replacement = _assert_key(entry, "replacement")
+            assert replacement == redaction["replacement"], (
+                f"Wrong replacement for '{redaction['path']}': '{replacement}' != '{redaction['replacement']}'"
+            )
+
+        # sds_findings are independent detection metadata and must still be present.
+        sds = _assert_key(body, "sds")
+        assert len(sds) > 0, f"No sds detection metadata alongside redaction in SDK response: {body}"
+
+
 @rfc("https://datadoghq.atlassian.net/wiki/x/KIApiQE")
 @features.ai_guard
 @scenarios.ai_guard
@@ -595,6 +1151,9 @@ class Test_AIGuardEvent_Tag:
         interfaces.library.validate_one_trace(self.r, validator=self._assert_trace)
 
 
+TELEMETRY_NAMESPACE = "ai_guard"
+
+
 def _find_telemetry_series(namespace: str, metric: str) -> list[dict]:
     """Extract telemetry metric series matching the given namespace and metric name."""
     series = []
@@ -620,7 +1179,14 @@ def _sum_points(series_list: list[dict]) -> int:
     return total
 
 
-TELEMETRY_NAMESPACE = "ai_guard"
+def _series_with_tag(series_list: list[dict], tag: str) -> list[dict]:
+    """Keep the series carrying one `key:value` tag, matched case-insensitively.
+
+    Case matters for the action tag: tracers report the evaluation action either as they received
+    it (DENY) or lower-cased.
+    """
+    wanted = tag.lower()
+    return [s for s in series_list if wanted in {t.lower() for t in s["tags"]}]
 
 
 @features.ai_guard_standalone
@@ -775,3 +1341,167 @@ class Test_AIGuardTelemetryTruncated:
             tag_prefixes = {t.split(":")[0] for t in s["tags"]}
             missing = required_prefixes - tag_prefixes
             assert not missing, f"Missing required tag prefixes {missing} in {s['tags']}"
+
+
+@rfc("https://docs.google.com/document/d/1PYVAi9p8YzPSlmZDIwUuM0DZeRlyj5dNszOteRaUtH8/edit")
+@features.ai_guard
+@scenarios.ai_guard_redaction_telemetry
+class Test_AIGuardTelemetryRedacted:
+    """The ai_guard.requests telemetry metric reports whether an evaluation redacted anything.
+
+    The redacted tag sits alongside the existing action, block and error tags. It is true when at
+    least one replacement was applied and false when the response carried no replacements or
+    every entry was skipped fail-safe, which makes redaction measurable without meta struct.
+
+    This class is the only one in the AI_GUARD_REDACTION_TELEMETRY scenario, which is what makes
+    the exact counts below possible: the metric is not request-scoped. See the scenario definition
+    for why it cannot share AI_GUARD_TELEMETRY.
+
+    Every count is still scoped to the action its own setup sends, never to the redacted tag alone:
+    all setup methods in a class run before any of its tests, but a test that is skipped or
+    deselected contributes no traffic, so counting a sibling's evaluations would make each test
+    depend on the other being enabled.
+    """
+
+    def setup_telemetry_redacted(self):
+        """One evaluation that redacts, one that has nothing to redact, one where every entry is skipped."""
+        _post_redaction_scenario("REDACT_ONE_MSG_ONE_FINDING")
+        _post_redaction_scenario("NO_REDACT_ONE_MSG")
+        _post_redaction_scenario("SKIP_CONFLICTING_REPLACEMENTS")
+
+    def test_telemetry_redacted(self):
+        series = _find_telemetry_series(TELEMETRY_NAMESPACE, "requests")
+        assert len(series) > 0, "No ai_guard.requests telemetry metric found"
+
+        all_tags = [s["tags"] for s in series]
+        # All three evaluations of this setup are ALLOW, which is what keeps the counts clear of the
+        # DENY evaluation the other test sends.
+        allowed = _series_with_tag(series, "action:allow")
+        assert allowed, f"No requests series with action:ALLOW found. All series tags: {all_tags}"
+
+        redacted_series = _series_with_tag(allowed, "redacted:true")
+        assert redacted_series, f"No allowed requests series with redacted:true found. All series tags: {all_tags}"
+        # REDACT_ONE_MSG_ONE_FINDING, the only allowed evaluation here that redacts.
+        assert _sum_points(redacted_series) == 1, (
+            f"Expected exactly 1 redacted allowed evaluation to be counted, got {_sum_points(redacted_series)}"
+        )
+
+        not_redacted_series = _series_with_tag(allowed, "redacted:false")
+        assert not_redacted_series, f"No requests series with redacted:false found. All series tags: {all_tags}"
+        # The benign evaluation and the one whose entries were all skipped, and nothing else.
+        assert _sum_points(not_redacted_series) == 2, (
+            f"Expected exactly 2 non-redacted evaluations to be counted, got {_sum_points(not_redacted_series)}"
+        )
+
+    def setup_telemetry_redacted_alongside_action(self):
+        _post_redaction_scenario("REDACT_ON_DENY")
+
+    def test_telemetry_redacted_alongside_action(self):
+        """The redacted tag does not replace the existing tags: action, block and error stay.
+
+        Asserted on the DENY evaluation specifically. A filter on redacted:true alone would be
+        satisfied by the ALLOW evaluation the other setup sends, leaving the tag combination that
+        matters most, a denied evaluation that also redacted, unverified.
+        """
+        series = _find_telemetry_series(TELEMETRY_NAMESPACE, "requests")
+        redacted_series = _series_with_tag(_series_with_tag(series, "redacted:true"), "action:deny")
+        assert redacted_series, (
+            f"No requests series with both redacted:true and action:DENY found. "
+            f"All series tags: {[s['tags'] for s in series]}"
+        )
+        assert _sum_points(redacted_series) == 1, (
+            f"Expected exactly 1 denied evaluation to be counted as redacted, got {_sum_points(redacted_series)}"
+        )
+        for s in redacted_series:
+            tag_prefixes = {t.split(":")[0] for t in s["tags"]}
+            missing = {"action", "block", "error"} - tag_prefixes
+            assert not missing, f"Missing required tag prefixes {missing} in {s['tags']}"
+
+
+@rfc("https://docs.google.com/document/d/1PYVAi9p8YzPSlmZDIwUuM0DZeRlyj5dNszOteRaUtH8/edit")
+@features.ai_guard
+@scenarios.ai_guard_redaction_disabled
+class Test_RedactionDisabled:
+    """DD_AI_GUARD_REDACTION_ENABLED=false suppresses the redaction transformation entirely.
+
+    The evaluation still runs and sds_findings are still reported, but no message is modified,
+    even though the backend returned redaction_replacements. The kill-switch lets a customer
+    turn the feature off without a tracer rollback.
+    """
+
+    def _assert_unredacted_span(self, scenario: dict):
+        def validate(span: DataDogLibrarySpan):
+            if span["resource"] != "ai_guard":
+                return False
+
+            _assert_key(span["meta"], "ai_guard.action", scenario["action"])
+
+            ai_guard = _assert_key(span["meta_struct"], "ai_guard")
+            messages = _assert_key(ai_guard, "messages")
+            assert messages == scenario["messages"], (
+                f"Messages must be untouched when redaction is disabled: {messages} != {scenario['messages']}"
+            )
+
+            # Absence of the tag means "redaction is off", which the RFC keeps distinct from
+            # false, meaning "redaction is on and nothing was redacted".
+            assert _span_tag(span, REDACTED_TAG) is None, (
+                f"'{REDACTED_TAG}' must not be set when redaction is disabled, got '{_span_tag(span, REDACTED_TAG)}'"
+            )
+            return True
+
+        return validate
+
+    def setup_redaction_disabled(self):
+        self.scenario, self.r = _post_redaction_scenario("REDACT_ONE_MSG_MULTI_FINDINGS")
+
+    def test_redaction_disabled(self):
+        """redaction_replacements in the response is ignored: meta struct keeps the original messages."""
+        assert self.r.status_code == 200
+        interfaces.library.validate_one_span(
+            self.r, validator=self._assert_unredacted_span(self.scenario), full_trace=True
+        )
+
+    def setup_findings_still_reported(self):
+        self.scenario, self.r = _post_redaction_scenario("REDACT_MIXED")
+
+    def test_findings_still_reported(self):
+        """Evaluation still runs with the kill-switch off, so sds_findings are still reported."""
+        assert self.r.status_code == 200
+        body = json.loads(self.r.text)
+        sds = _assert_key(body, "sds")
+        assert len(sds) == len(self.scenario["sds_findings"]), (
+            f"Expected {len(self.scenario['sds_findings'])} sds findings with redaction disabled, got {sds}"
+        )
+        # Asserted on the response as well as on meta struct: a tracer that recorded the originals
+        # in the span but still handed the redacted list back to the caller would have applied the
+        # transformation the kill-switch is meant to suppress.
+        messages = _assert_key(body, "messages")
+        assert messages == self.scenario["messages"], (
+            f"SDK response messages must be untouched when redaction is disabled: "
+            f"{messages} != {self.scenario['messages']}"
+        )
+        interfaces.library.validate_one_span(
+            self.r, validator=self._assert_unredacted_span(self.scenario), full_trace=True
+        )
+
+
+@rfc("https://docs.google.com/document/d/1PYVAi9p8YzPSlmZDIwUuM0DZeRlyj5dNszOteRaUtH8/edit")
+@features.ai_guard
+@scenarios.ai_guard_redaction_disabled
+class Test_RedactionDisabledTelemetry:
+    """With the kill-switch off the redacted telemetry tag is not attached at all.
+
+    An absent tag means "redaction is off", which stays distinguishable from redacted:false,
+    meaning "redaction is on and this evaluation redacted nothing".
+    """
+
+    def setup_no_redacted_tag(self):
+        _post_redaction_scenario("REDACT_ONE_MSG_ONE_FINDING")
+        _post_redaction_scenario("NO_REDACT_ONE_MSG")
+
+    def test_no_redacted_tag(self):
+        series = _find_telemetry_series(TELEMETRY_NAMESPACE, "requests")
+        assert len(series) > 0, "No ai_guard.requests telemetry metric found"
+        for s in series:
+            tagged = [t for t in s["tags"] if t.split(":")[0] == "redacted"]
+            assert not tagged, f"'redacted' tag must not be emitted when redaction is disabled, found {tagged}"

@@ -10,6 +10,7 @@ manifest:
         "*": irrelevant (just one weblog is enough to test the SDK)
         "spring-boot": v1.65.0-SNAPSHOT
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone_APMDisabledMarker: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRedacted: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags:
@@ -32,6 +33,15 @@ manifest:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
         "spring-boot": v1.57.0
+  tests/ai_guard/test_ai_guard_sdk.py::Test_NoRedaction: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactedMessagesInSDKResponse: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_Redaction: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionDisabled: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionDisabledTelemetry: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionFailSafe: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionInSDKResponse: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionOnBlock: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionSkipsStructuralFields: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_RootSpanUserKeep:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
@@ -2931,6 +2941,7 @@ manifest:
   tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualProfiling::test_profiling:
     - declaration: bug (SCP-962)
       component_version: '>=1.5.0'
+  tests/cws/test_thread_context_sharing.py::Test_ThreadContextSharing: missing_feature (missing /security/thread_context_sharing endpoint on weblog)
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Line_Capture_Expressions:
     - weblog_declaration:
         "*": missing_feature
@@ -2955,6 +2966,20 @@ manifest:
         uds-spring-boot: v1.38.0
     - declaration: missing_feature (Not yet implemented)
       component_version: '<=1.54.0'
+  tests/debugger/test_debugger_capture_expressions_errors.py::Test_Debugger_Filter_Rejected_Capture_Expression_Error:
+    - weblog_declaration:
+        "*": missing_feature
+        spring-boot: v1.38.0
+        spring-boot-jetty: v1.38.0
+        spring-boot-openliberty: v1.38.0
+        spring-boot-payara: v1.38.0
+        spring-boot-undertow: v1.38.0
+        spring-boot-wildfly: v1.38.0
+        uds-spring-boot: v1.38.0
+    - declaration: missing_feature (Method capture expressions are not implemented)
+      component_version: '<=1.54.0'
+  ? tests/debugger/test_debugger_capture_expressions_errors.py::Test_Debugger_Filter_Rejected_Capture_Expression_Error::test_filter_rejected_no_error_spam
+  : bug (IDEAI-714)
   tests/debugger/test_debugger_code_origins.py::Test_Debugger_Code_Origins:
     - weblog_declaration:
         "*": missing_feature
@@ -3076,6 +3101,19 @@ manifest:
         spring-boot-undertow: v1.38.0
         spring-boot-wildfly: v1.38.0
         uds-spring-boot: v1.33.0
+  tests/debugger/test_debugger_guardrails.py::Test_Debugger_Capture_Timeout_Guardrail:
+    - weblog_declaration:
+        "*": missing_feature
+        spring-boot: v1.38.0
+        spring-boot-jetty: v1.38.0
+        spring-boot-openliberty: v1.38.0
+        spring-boot-payara: v1.38.0
+        spring-boot-undertow: v1.38.0
+        spring-boot-wildfly: v1.38.0
+        uds-spring-boot: v1.38.0
+  tests/debugger/test_debugger_guardrails.py::Test_Debugger_Evaluation_Timeout_Line_Probe: irrelevant (Line-probe variant is only used by Node.js and Ruby)
+  tests/debugger/test_debugger_guardrails.py::Test_Debugger_Evaluation_Timeout_Method_Probe: missing_feature (Debugger evaluation timeout guardrail not implemented yet)
+  tests/debugger/test_debugger_guardrails.py::Test_Debugger_Snapshot_Size_Guardrail: missing_feature (Debugger snapshot size guardrail not implemented yet)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin:
     - weblog_declaration:
         "*": missing_feature
@@ -3133,6 +3171,8 @@ manifest:
         spring-boot-undertow: v1.49.0
         spring-boot-wildfly: v1.49.0
         uds-spring-boot: v1.49.0
+  ? tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers::test_pii_redaction_log_probe_map_rendering
+  : bug (DEBUG-5958)
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets:
     - weblog_declaration:
         "*": missing_feature
@@ -3307,11 +3347,21 @@ manifest:
       weblog: [spring-boot]
     - declaration: bug (FFL-2184)
       excluded_weblog: [spring-boot]
-  tests/ffe/test_exposures.py:
+  tests/ffe/test_exposure_egress.py:
     - weblog_declaration:
         "*": irrelevant
         spring-boot: v1.56.0
-  tests/ffe/test_exposures.py::Test_FFE_EXP_5_Missing_Targeting_Key: bug (FFL-1729)
+  tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Direct: missing_feature (Not yet implemented)
+  tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Sidecar: missing_feature (Not yet implemented)
+  tests/ffe/test_exposures_datadog_agent.py:
+    - weblog_declaration:
+        "*": irrelevant
+        spring-boot: v1.56.0
+  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_EXP_5_Missing_Targeting_Key: bug (FFL-1729)
+  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Appears: missing_feature (EX-3415)
+  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Cycle: missing_feature (EX-3415)
+  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Disappears: missing_feature (EX-3415)
+  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Serial_Id: missing_feature (EX-3415)
   tests/ffe/test_flag_eval_evp.py: missing_feature (FFL-2446)
   tests/ffe/test_flag_eval_metrics.py:
     - weblog_declaration:
@@ -3321,6 +3371,7 @@ manifest:
     - weblog_declaration:
         "*": irrelevant
         spring-boot: v1.63.0
+  tests/integration_frameworks/llm/anthropic/test_anthropic_ai_guard.py: missing_feature (APPSEC-68977, AI Guard/Anthropic integration not yet wired into INTEGRATION_FRAMEWORKS)
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_error: bug (MLOB-1234)
   tests/integration_frameworks/llm/openai/test_openai_ai_guard.py: missing_feature (APPSEC-68977, AI Guard/OpenAI integration not yet wired into INTEGRATION_FRAMEWORKS)
   tests/integration_frameworks/llm/openai/test_openai_apm.py: v1.61.0
@@ -3880,9 +3931,21 @@ manifest:
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_w3c_p_inject:
     - declaration: missing_feature (Not implemented)
       component_version: <1.35.0
+  tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_empty_elements:
+    - declaration: bug (APMAPI-2293)
+      component_version: <1.66.0-SNAPSHOT
   ? tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_evicts_32_or_greater_list_members
   : - declaration: missing_feature (Implemented in 1.24.0)
       component_version: <1.24.0
+  ? tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_known_elements_not_duplicated
+  : - declaration: bug (APMAPI-2293)
+      component_version: <1.66.0-SNAPSHOT
+  tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_skips_malformed_elements:
+    - declaration: bug (APMAPI-2293)
+      component_version: <1.66.0-SNAPSHOT
+  tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_trailing_separator:
+    - declaration: bug (APMAPI-2293)
+      component_version: <1.66.0-SNAPSHOT
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_cardinality_overflow_sentinel_TS017: "missing_feature (CSS v1.2.0 Cardinality Limits: dd-trace-java does not honor DD_TRACE_STATS_CARDINALITY_LIMIT for client-side stats, so its default limit is not lowered and no overflow collapsing to the tracer_blocked_value sentinel occurs)"
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_partial_version_excluded_TS014: irrelevant (dd-trace-java excludes partial snapshots via its internal longRunningVersion field)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_sample_rate_0_TS007:  # Modified by easy win activation script
@@ -4000,18 +4063,12 @@ manifest:
   tests/parametric/test_otel_tracer.py::Test_Otel_Tracer::test_otel_force_flush:
     - declaration: missing_feature (OTel resource naming implemented in 1.24.0)
       component_version: <=1.23.0
-  tests/parametric/test_otlp_trace_metrics.py: v1.65.0-SNAPSHOT  # Easy win for all weblogs and version 1.64.2
+  tests/parametric/test_otel_tracestate_sampling.py::Test_OtelTracestateSampling: missing_feature (APMAPI-2171)
+  tests/parametric/test_otlp_trace_metrics.py: v1.66.0-SNAPSHOT
   tests/parametric/test_otlp_trace_metrics.py::Test_FR01_Enablement_Configuration::test_fr01_6_disabled_when_apm_tracing_disabled: missing_feature (OTLP trace metrics are still emitted when DD_APM_TRACING_ENABLED=false)
-  tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Resource_Attributes::test_fr06_15_default_service_on_data_point: missing_feature (service.name is omitted from the data point when the span uses the configured default service)
-  tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Span_Attributes::test_fr06_2_span_kind: missing_feature (span.kind is emitted as the raw Datadog value, e.g. "server", not the SMC's SPAN_KIND_* convention)
-  tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Span_Attributes::test_fr06_8_status_code_error: missing_feature (status.code is emitted as the bare string "ERROR" instead of the SMC's STATUS_CODE_ERROR convention, and is omitted entirely for non-error spans)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_AdditionalTags::test_fr08_10_dd_tags_tracer_tags_resource_attributes: missing_feature (DD_TAGS is not yet reported as datadog.tracer_tags on the OTLP trace metrics resource)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_AdditionalTags::test_fr08_11_otel_resource_attributes_env_tracer_tags: missing_feature (OTEL_RESOURCE_ATTRIBUTES is not yet reported as datadog.tracer_tags on the OTLP trace metrics resource)
-  tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes::test_fr08_13_is_trace_root: missing_feature (pending implementation release)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes::test_fr08_14_peer_tags: missing_feature (Blocked on test-agent support for advertising a peer_tags allowlist in /info)
-  tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes::test_fr08_15_service_source: missing_feature (pending implementation release)
-  tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes::test_fr08_8_process_tags: missing_feature (process_tags is split into per-key datadog.<key> resource attributes instead of one combined datadog.process_tags arrayValue)
-  tests/parametric/test_otlp_trace_metrics.py::Test_FR09_Red_Metric_Derivation::test_fr09_2_error_count: missing_feature (status.code is emitted as the bare string "ERROR" instead of the SMC's STATUS_CODE_ERROR convention, so the error span is not counted)
   tests/parametric/test_parametric_endpoints.py::TestRemoteConfigApplyEndpoint: incomplete_test_app (POST /trace/remote-config/apply only implemented in the python parametric app)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Add_Link: incomplete_test_app (add_link endpoint is not implemented)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Baggage:  # Modified by easy win activation script
@@ -4545,18 +4602,18 @@ manifest:
         akka-http: irrelevant (integration injects Date header after bytecode injection occurs)
         play: irrelevant (integration injects Date header after bytecode injection occurs)
   tests/test_library_logs.py::Test_NoExceptions::test_dotnet: irrelevant (only for .NET)
-  tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_01: missing_feature (APMAPI-2171)
-  tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_1: missing_feature (APMAPI-2171)
-  tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_2: missing_feature (APMAPI-2171)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_Spans_Http_ErrorStatusConfiguration: missing_feature (OTLP export of OTel HTTP semantics not implemented)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics: missing_feature (OTLP export of OTel HTTP semantics not implemented)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_SamplingRules: missing_feature (OTLP export of OTel HTTP semantics not implemented)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
   tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5: missing_feature (APMAPI-2171)
-  tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_99: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchanged: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchangedWhenDropped: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_MalformedOtHandling: missing_feature (APMAPI-2171)
-  tests/test_otel_tracestate_sampling.py::Test_PrecisionBoundaryDecision_Rate0_05: missing_feature (APMAPI-2171)
-  tests/test_otel_tracestate_sampling.py::Test_PrecisionBoundaryDecision_Rate0_1: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_PreserveDdAndOtherVendors: missing_feature (APMAPI-2171)
+  tests/test_otel_tracestate_sampling.py::Test_PreserveTracestateMemberOrder: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_SampledWithoutOtNotFabricated: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_ThOnlyDoesNotFabricateRv: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_ThOnlyDoesNotFabricateRvWhenDropped: missing_feature (APMAPI-2171)

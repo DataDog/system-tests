@@ -26,6 +26,10 @@ images:
     digest: sha256:0199e251729b25276f97049cbcd39dd1997e98413a07b10a3c7e9e755d505a42
     target: registry.ddbuild.io/system-tests/mirror/datadog/dd-appsec-php-ci:php-8.2-release
     tag: php-8.2-release
+  datadog/serverless-init:1.10.2:
+    digest: sha256:9936ccb50daa747d71a8b1148e74720a6ae60238ebdcc1793ea1834c01493bd3
+    target: registry.ddbuild.io/system-tests/mirror/datadog/serverless-init:1.10.2
+    tag: 1.10.2
   datadog/system-tests:apache-mod-7.0-zts.base-b0cbb006d771:
     digest: sha256:8956ecc58765ecc1bdda0599993d4f9428a12a8b60e6ec369109804467ae3412
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:apache-mod-7.0-zts.base-b0cbb006d771
@@ -254,14 +258,14 @@ images:
     digest: sha256:63266a046d1cf5ebebb1461733ed7548148f122e0d422096e177cfa70b521cb1
     target: registry.ddbuild.io/system-tests/mirror/ghcr.io/oras-project/oras:v1.2.3
     tag: v1.2.3
-  golang:1.25:
-    digest: sha256:00feed335fe561979f2cdcc30a5191231977c5631fe79c40f7d3ab63b4fa222f
-    target: registry.ddbuild.io/system-tests/mirror/golang:1.25
-    tag: '1.25'
-  golang:1.25-alpine:
-    digest: sha256:89f71d90dff0d7f30316963b3c3b8bfe5fb96b94641b3258963ce0c7a21dedda
-    target: registry.ddbuild.io/system-tests/mirror/golang:1.25-alpine
-    tag: 1.25-alpine
+  golang:1.26:
+    digest: sha256:45a5f7a810238aabcbad211d70b9ae082022d96f7c7259e94041ad1b933575ac
+    target: registry.ddbuild.io/system-tests/mirror/golang:1.26
+    tag: '1.26'
+  golang:1.26-alpine:
+    digest: sha256:28d89ee9cc0ff9fec75c82ca201e6bf7fdf9a679d4b7b24dfa04f2bb766bb468
+    target: registry.ddbuild.io/system-tests/mirror/golang:1.26-alpine
+    tag: 1.26-alpine
   kong/kong-gateway:3.4:
     digest: sha256:195b1dedb78d9fa4976d089af9cc2573f6bb667b2b4be40e50d9e8cef85b4b58
     target: registry.ddbuild.io/system-tests/mirror/kong/kong-gateway:3.4

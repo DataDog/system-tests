@@ -1,5 +1,7 @@
 FROM system_tests_base_nodejs_fastify
 
+COPY utils/build/docker/nodejs/fastify/debugger debugger
+
 EXPOSE 7777
 
 ENV PGUSER=system_tests_user

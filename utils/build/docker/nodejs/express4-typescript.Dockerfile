@@ -14,6 +14,7 @@ ENV DD_DATA_STREAMS_ENABLED=true
 COPY utils/build/docker/nodejs/express4-typescript/package.json utils/build/docker/nodejs/express4-typescript/bun.lock ./
 COPY utils/build/docker/nodejs/express4-typescript/app.ts app.ts
 RUN bun install --frozen-lockfile --network-concurrency 8 --linker=hoisted
+COPY utils/build/docker/nodejs/express4-typescript/debugger debugger
 
 COPY utils/build/docker/nodejs/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh && rm -rf /root/.bun

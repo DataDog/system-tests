@@ -321,6 +321,12 @@ jobs:
     - name: Run FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS"')
       run: ./run.sh FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS
+    - name: Run FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_DIRECT scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_DIRECT"')
+      run: ./run.sh FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_DIRECT
+    - name: Run FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_SERVERLESS scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_SERVERLESS"')
+      run: ./run.sh FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_SERVERLESS
     - name: Run AGENT_SUPPORTING_SPAN_EVENTS scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"AGENT_SUPPORTING_SPAN_EVENTS"')
       run: ./run.sh AGENT_SUPPORTING_SPAN_EVENTS
@@ -443,6 +449,9 @@ jobs:
     - name: Run TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED"')
       run: ./run.sh TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED
+    - name: Run DEBUGGER_CAPTURE_TIMEOUT scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"DEBUGGER_CAPTURE_TIMEOUT"')
+      run: ./run.sh DEBUGGER_CAPTURE_TIMEOUT
     - name: Run DEBUGGER_PROBES_SNAPSHOT scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"DEBUGGER_PROBES_SNAPSHOT"')
       run: ./run.sh DEBUGGER_PROBES_SNAPSHOT
@@ -530,6 +539,18 @@ jobs:
     - name: Run APPSEC_LAMBDA_INFERRED_SPANS scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_LAMBDA_INFERRED_SPANS"')
       run: ./run.sh APPSEC_LAMBDA_INFERRED_SPANS
+    - name: Run OTEL_SEMANTICS_OTLP scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_SEMANTICS_OTLP"')
+      run: ./run.sh OTEL_SEMANTICS_OTLP
+    - name: Run OTEL_SEMANTICS_OTLP_CUSTOM_ERROR_STATUSES scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_SEMANTICS_OTLP_CUSTOM_ERROR_STATUSES"')
+      run: ./run.sh OTEL_SEMANTICS_OTLP_CUSTOM_ERROR_STATUSES
+    - name: Run OTEL_SEMANTICS_OTLP_TRACE_METRICS scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_SEMANTICS_OTLP_TRACE_METRICS"')
+      run: ./run.sh OTEL_SEMANTICS_OTLP_TRACE_METRICS
+    - name: Run OTEL_SEMANTICS_OTLP_SAMPLING_RULES scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_SEMANTICS_OTLP_SAMPLING_RULES"')
+      run: ./run.sh OTEL_SEMANTICS_OTLP_SAMPLING_RULES
     - name: Run OTEL_COLLECTOR scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_COLLECTOR"')
       run: ./run.sh OTEL_COLLECTOR
@@ -549,6 +570,15 @@ jobs:
     - name: Run AI_GUARD_STANDALONE scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"AI_GUARD_STANDALONE"')
       run: ./run.sh AI_GUARD_STANDALONE
+    - name: Run AI_GUARD_REDACTION_DISABLED scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"AI_GUARD_REDACTION_DISABLED"')
+      run: ./run.sh AI_GUARD_REDACTION_DISABLED
+    - name: Run AI_GUARD_REDACTION_TELEMETRY scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"AI_GUARD_REDACTION_TELEMETRY"')
+      run: ./run.sh AI_GUARD_REDACTION_TELEMETRY
+    - name: Run THREAD_CONTEXT_SHARING scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"THREAD_CONTEXT_SHARING"')
+      run: ./run.sh THREAD_CONTEXT_SHARING
 
     - name: Run all scenarios in replay mode
       if: success() && steps.build.outcome == 'success' && inputs._enable_replay_scenarios

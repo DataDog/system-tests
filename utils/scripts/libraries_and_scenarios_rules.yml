@@ -239,6 +239,8 @@ patterns:
         scenarios: PARAMETRIC
     utils/_context/_scenarios/profiling.py:
         scenario_groups: profiling
+    utils/_context/_scenarios/thread_context_sharing.py:
+        scenario_groups: thread_context_sharing
 
 
 ############################### Script file rules ##############################
@@ -292,7 +294,8 @@ patterns:
         scenario_groups: [end_to_end, open_telemetry]
 
     utils/mocked_backend/ffe.py:
-        scenarios: [FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS, PARAMETRIC]
+        scenario_groups: agentless
+        scenarios: PARAMETRIC
 
     utils/_context/virtual_machine.py:
         scenario_groups: onboarding
