@@ -275,6 +275,35 @@ class Test_PreserveDdAndOtherVendors:
 
 @scenarios.default
 @features.w3c_headers_injection_and_extraction
+class Test_PreserveTracestateMemberOrder:
+    def setup_preserve_tracestate_member_order(self):
+        self.r = weblog.get(
+            "/make_distant_call",
+            params={"url": "http://weblog:7777"},
+            headers={
+                "traceparent": _traceparent(FORWARD_TRACE_ID, sampled=True),
+                "tracestate": "dd=s:1,foo=bar,ot=rv:6e6d1a75832a2f,something=else",
+            },
+        )
+
+    def test_preserve_tracestate_member_order(self):
+        assert self.r.status_code == 200
+
+        request_headers = json.loads(self.r.text)["request_headers"]
+        raw_tracestate = next(
+            (value for key, value in request_headers.items() if key.lower() == "tracestate"),
+            None,
+        )
+        assert raw_tracestate is not None, "tracestate header was dropped"
+
+        dd_member, separator, unmodified_members = raw_tracestate.partition(",")
+        assert separator, "tracestate did not preserve the unmodified members"
+        assert dd_member.startswith("dd="), "dd= must remain the leading tracestate member"
+        assert unmodified_members == "foo=bar,ot=rv:6e6d1a75832a2f,something=else"
+
+
+@scenarios.default
+@features.w3c_headers_injection_and_extraction
 class Test_ForceKeepClearsTh:
     """A4: a non-probability (force-keep) decision erases th but still forwards an inherited rv.
 

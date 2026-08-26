@@ -492,6 +492,7 @@ manifest:
   tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchangedWhenDropped: '>=0.5.2-dev'
   tests/test_otel_tracestate_sampling.py::Test_MalformedOtHandling: '>=0.5.2-dev'
   tests/test_otel_tracestate_sampling.py::Test_PreserveDdAndOtherVendors: '>=0.5.2-dev'
+  tests/test_otel_tracestate_sampling.py::Test_PreserveTracestateMemberOrder: bug (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_SampledWithoutOtNotFabricated: '>=0.5.2-dev'
   tests/test_otel_tracestate_sampling.py::Test_ThOnlyDoesNotFabricateRv: '>=0.5.2-dev'
   tests/test_otel_tracestate_sampling.py::Test_ThOnlyDoesNotFabricateRvWhenDropped: '>=0.5.2-dev'

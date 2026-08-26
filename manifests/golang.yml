@@ -1840,6 +1840,10 @@ manifest:
     - weblog_declaration:
         "*": missing_feature (APMAPI-2171)
         envoy, apim, haproxy: irrelevant (not applicable to proxies)
+  tests/test_otel_tracestate_sampling.py::Test_PreserveTracestateMemberOrder:
+    - weblog_declaration:
+        "*": missing_feature (APMAPI-2171)
+        envoy, apim, haproxy: irrelevant (not applicable to proxies)
   tests/test_otel_tracestate_sampling.py::Test_SampledWithoutOtNotFabricated:
     - weblog_declaration:
         "*": missing_feature (APMAPI-2171)

@@ -2928,6 +2928,12 @@ manifest:
       weblog: [express4-typescript, uds-express4, express4, express5, fastify, nextjs]
     - declaration: missing_feature (APMAPI-2171)
       excluded_weblog: [express4-typescript, uds-express4, express4, express5, fastify, nextjs]
+  tests/test_otel_tracestate_sampling.py::Test_PreserveTracestateMemberOrder:  # TODO: a lower version might be supported
+    - declaration: missing_feature (APMAPI-2171)
+      component_version: <6.8.0
+      weblog: [express4-typescript, uds-express4, express4, express5, fastify, nextjs]
+    - declaration: missing_feature (APMAPI-2171)
+      excluded_weblog: [express4-typescript, uds-express4, express4, express5, fastify, nextjs]
   tests/test_otel_tracestate_sampling.py::Test_SampledWithoutOtNotFabricated:  # TODO: a lower version might be supported
     - declaration: missing_feature (APMAPI-2171)
       component_version: <6.8.0
