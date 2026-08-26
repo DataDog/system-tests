@@ -25,6 +25,3 @@ ENTRYPOINT []
 RUN echo "#!/bin/bash\ndumb-init /entrypoint.sh" > app.sh
 RUN chmod +x app.sh
 CMD [ "./app.sh" ]
-
-# docker build --progress=plain -f utils/build/docker/php/apache-mod.base.Dockerfile -t datadog/system-tests:apache-mod-8.0.base utils/build/docker/php
-# docker push datadog/system-tests:apache-mod-8.0.base

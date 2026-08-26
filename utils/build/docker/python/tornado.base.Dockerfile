@@ -12,6 +12,3 @@ RUN pip install --upgrade pip && pip install -r /tmp/tornado-requirements.txt
 
 RUN mkdir app
 WORKDIR /app
-
-# docker build --progress=plain -f utils/build/docker/python/tornado.base.Dockerfile -t datadog/system-tests:tornado.base-v1 utils/build/docker/python
-# docker push datadog/system-tests:tornado.base-v1

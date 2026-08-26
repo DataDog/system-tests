@@ -10,7 +10,3 @@ RUN python --version && curl --version
 ENV PIP_ROOT_USER_ACTION=ignore
 COPY django/requirements-python3.12.txt /tmp/django-requirements.txt
 RUN pip install --upgrade pip && pip install -r /tmp/django-requirements.txt
-
-
-# docker build --progress=plain -f utils/build/docker/python/python3.12.base.Dockerfile -t datadog/system-tests:python3.12.base-v13 utils/build/docker/python
-# docker push datadog/system-tests:python3.12.base-v13

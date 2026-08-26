@@ -18,6 +18,3 @@ ENV DD_TRACE_ENABLED=1
 ENV DD_TRACE_GENERATE_ROOT_SPAN=1
 ENV DD_TRACE_AGENT_FLUSH_AFTER_N_REQUESTS=0
 ENV DD_TRACE_HEADER_TAGS=user-agent
-
-# docker build --progress=plain --build-arg PHP_VERSION=8.2 -f utils/build/docker/php/php-fpm.base.Dockerfile -t datadog/system-tests:php-fpm-8.2.base utils/build/docker/php
-# docker push datadog/system-tests:php-fpm-8.2.base

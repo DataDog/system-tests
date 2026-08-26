@@ -24,6 +24,3 @@ RUN bun install --frozen-lockfile --network-concurrency 8 --linker=hoisted \
       node_modules/next/dist/compiled/babel-packages \
       node_modules/next/dist/compiled/terser \
  && rm -rf .next/cache /root/.bun
-
-# docker build --progress=plain -f utils/build/docker/nodejs/nextjs.base.Dockerfile -t datadog/system-tests:nextjs.base-v3 utils/build/docker/nodejs
-# docker push datadog/system-tests:nextjs.base-v3
