@@ -1477,6 +1477,32 @@ class _Scenarios:
         "APPSEC_OTEL_COLLECTOR_DEFAULT_RULES",
     )
 
+    # DDOT with RASP enabled
+    appsec_otel_collector_rasp = AppSecOtelCollectorScenario(
+        "APPSEC_OTEL_COLLECTOR_RASP",
+        weblog_env={
+            "DD_APPSEC_RASP_ENABLED": "true",
+            "DD_APPSEC_RULES": "/appsec_rasp_ruleset.json",
+            "DD_APPSEC_RASP_COLLECT_REQUEST_BODY": "true",
+            "DD_API_SECURITY_DOWNSTREAM_BODY_ANALYSIS_SAMPLE_RATE": "1.0",
+        },
+        weblog_volumes={"./tests/appsec/rasp/rasp_ruleset.json": {"bind": "/appsec_rasp_ruleset.json", "mode": "ro"}},
+    )
+
+    # DDOT with API Security enabled
+    appsec_otel_collector_api_security = AppSecOtelCollectorScenario(
+        "APPSEC_OTEL_COLLECTOR_API_SECURITY",
+        weblog_env={
+            "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
+            "DD_API_SECURITY_ENABLED": "true",
+            "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
+            "DD_API_SECURITY_SAMPLE_DELAY": "0.0",
+            "DD_API_SECURITY_MAX_CONCURRENT_REQUESTS": "50",
+            "DD_API_SECURITY_ENDPOINT_COLLECTION_ENABLED": "true",
+            "DD_API_SECURITY_ENDPOINT_COLLECTION_MESSAGE_LIMIT": "30",
+        },
+    )
+
     integration_frameworks = IntegrationFrameworksScenario(
         "INTEGRATION_FRAMEWORKS", doc="Tests for third-party integration frameworks"
     )

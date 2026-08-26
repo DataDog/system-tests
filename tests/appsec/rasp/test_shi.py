@@ -30,6 +30,7 @@ class Test_Shi_Base:
 @scenarios.appsec_rasp
 @scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
+@scenarios.appsec_otel_collector_rasp
 class Test_Shi_UrlQuery(Test_Shi_Base):
     """Shell Injection through query parameters"""
 
@@ -54,6 +55,7 @@ class Test_Shi_UrlQuery(Test_Shi_Base):
 @scenarios.appsec_rasp
 @scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
+@scenarios.appsec_otel_collector_rasp
 class Test_Shi_BodyUrlEncoded(Test_Shi_Base):
     """Shell Injection through a url-encoded body parameter"""
 
@@ -78,6 +80,7 @@ class Test_Shi_BodyUrlEncoded(Test_Shi_Base):
 @scenarios.appsec_rasp
 @scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
+@scenarios.appsec_otel_collector_rasp
 class Test_Shi_BodyXml(Test_Shi_Base):
     """Shell Injection through an xml body parameter"""
 
@@ -103,6 +106,7 @@ class Test_Shi_BodyXml(Test_Shi_Base):
 @scenarios.appsec_rasp
 @scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
+@scenarios.appsec_otel_collector_rasp
 class Test_Shi_BodyJson(Test_Shi_Base):
     """Shell Injection through a json body parameter"""
 
@@ -129,6 +133,7 @@ class Test_Shi_BodyJson(Test_Shi_Base):
 @scenarios.appsec_rasp
 @scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
+@scenarios.appsec_otel_collector_rasp
 class Test_Shi_Mandatory_SpanTags:
     """Validate span tag generation on exploit attempts"""
 
@@ -145,6 +150,7 @@ class Test_Shi_Mandatory_SpanTags:
 @scenarios.appsec_rasp
 @scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
+@scenarios.appsec_otel_collector_rasp
 class Test_Shi_Optional_SpanTags:
     """Validate span tag generation on exploit attempts"""
 
@@ -161,6 +167,7 @@ class Test_Shi_Optional_SpanTags:
 @scenarios.appsec_rasp
 @scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
+@scenarios.appsec_otel_collector_rasp
 class Test_Shi_StackTrace:
     """Validate stack trace generation on exploit attempts"""
 
@@ -176,6 +183,7 @@ class Test_Shi_StackTrace:
 @scenarios.appsec_rasp
 @scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
+@scenarios.appsec_otel_collector_rasp
 class Test_Shi_Telemetry:
     """Validate Telemetry data on exploit attempts"""
 
@@ -201,6 +209,7 @@ class Test_Shi_Telemetry:
 @scenarios.appsec_rasp
 @scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
+@scenarios.appsec_otel_collector_rasp
 class Test_Shi_Telemetry_V2:
     """Validate Telemetry data on exploit attempts"""
 
@@ -228,6 +237,7 @@ class Test_Shi_Telemetry_V2:
 @scenarios.appsec_rasp
 @scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
+@scenarios.appsec_otel_collector_rasp
 class Test_Shi_Telemetry_Variant_Tag:
     """Validate Telemetry data variant tag on exploit attempts"""
 
