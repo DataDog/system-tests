@@ -1848,9 +1848,18 @@ manifest:
   tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Context_Bounds: missing_feature (FFL-2446)
   tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Count: missing_feature (FFL-2446)
   tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Degradation: missing_feature (FFL-2446)
-  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Egress_Agentless_Direct: irrelevant (Node.js does not emit server-side EVP flagevaluation events)
-  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Egress_Agentless_Sidecar: irrelevant (Node.js does not emit server-side EVP flagevaluation events)
-  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Egress_Datadog_Agent: irrelevant (Node.js does not emit server-side EVP flagevaluation events)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Egress_Agentless_Direct:
+    - weblog_declaration:
+        "*": irrelevant
+        express4: v7.0.0-pre
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Egress_Agentless_Sidecar:
+    - weblog_declaration:
+        "*": irrelevant
+        express4: v7.0.0-pre
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Egress_Datadog_Agent:
+    - weblog_declaration:
+        "*": irrelevant
+        express4: v7.0.0-pre
   tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_High_Cardinality_Aggregation: missing_feature (FFL-2446)
   tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Load_Aggregation: missing_feature (FFL-2446)
   tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_ObserveFullData_Absent_Hashed: missing_feature (FFL-2446)
