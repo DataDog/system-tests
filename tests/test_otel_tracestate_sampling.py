@@ -9,172 +9,16 @@ See APMAPI-2171. Landed disabled for every tracer (manifests/*.yml); each tracer
 
 import json
 
+from tests.otel.utils import (
+    FORWARD_RV,
+    FORWARD_TH,
+    FORWARD_TRACE_ID,
+    SAMPLING_RATE_0_5,
+    TH_BY_RATE,
+)
 from utils import HttpResponse, features, interfaces, scenarios, weblog
 from utils.dd_constants import SamplingPriority
 from utils.docker_fixtures.spec.tracecontext import Tracestate, get_tracestate
-
-# ---------------------------------------------------------------------------
-# Expected ot.rv / ot.th values for known trace IDs and known sample rates
-#
-# DD's sampling decision is h = (trace_id_low64 * 1111111111111111111) mod 2**64, keep if h <= rate * (2**64 - 1)
-# (dd-trace-go/ddtrace/tracer/sampler.go:114-122). The OTel-compatible pair is:
-#   rv = (~h & (2**64 - 1)) >> 8      (56-bit, 14 hex digits) -- depends only on trace_id, not on rate
-#   th = round((1 - rate) * (2**56)) (56-bit, trailing zero nibbles trimmed when formatted) -- depends only on rate
-#   These fixtures use the maximum available 14 hexadecimal digits of precision, rather than the 4 digits
-#   recommended by the OTel specification: https://opentelemetry.io/docs/specs/otel/trace/tracestate-probability-sampling/
-#
-# Trace IDs are the ones already used (and verified) in tests/fixtures/sampling_rates.csv, crossed with
-# 5 rates. Expected values below were computed with the formula above and cross-checked: at rate 0.5 they
-# reproduce the exact same keep/drop decisions as that CSV for all 23 trace IDs.
-# ---------------------------------------------------------------------------
-
-TH_BY_RATE = {
-    0.01: "fd70a3d70a3d7",
-    0.1: "e6666666666668",
-    0.2: "ccccccccccccd",
-    0.5: "8",
-    0.99: "028f5c28f5c29",
-}
-
-SAMPLING_RATE_0_01 = [
-    # (trace_id, expected_rv_hex, expected_sampled)
-    (1, "f0948a54d43b8e", False),
-    (10, "65cd67504a538e", False),
-    (100, "fa060922e7438e", False),
-    (1000, "c43c5b5d08a38e", False),
-    (18444899399302180860, "1d6aabcffddf37", False),
-    (18444899399302180861, "0dff3624d21ac5", False),
-    (18444899399302180862, "fe93c079a65653", True),
-    (18444899399302180863, "ef284ace7a91e1", False),
-    (18446744073709551615, "0f6b75ab2bc471", False),
-    (9223372036854775809, "70948a54d43b8e", False),
-    (9223372036854775807, "8f6b75ab2bc471", False),
-    (4611686018427387905, "30948a54d43b8e", False),
-    (4611686018427387903, "4f6b75ab2bc471", False),
-    (646771306295669658, "899fbcfd433be9", False),
-    (1882305164521835798, "9d38be3d27241d", False),
-    (5198373796167680436, "7188fdce730439", False),
-    (6272545487220484606, "bea00261cb73bd", False),
-    (8696342848850656916, "ca47c7b1ab2e46", False),
-    (10197320802478874805, "d29c6d21f144ee", False),
-    (10350218024687037124, "d6dc160c1c68fd", False),
-    (12078589664685934330, "3a7d76f3c5a379", False),
-    (13794769880582338323, "a6c17470cee7cd", False),
-    (14629469446186818297, "295fd564326a5f", False),
-    (83, "0028d980cf4f1c", False),
-]
-
-SAMPLING_RATE_0_1 = [
-    # (trace_id, expected_rv_hex, expected_sampled)
-    (1, "f0948a54d43b8e", True),
-    (10, "65cd67504a538e", False),
-    (100, "fa060922e7438e", True),
-    (1000, "c43c5b5d08a38e", False),
-    (18444899399302180860, "1d6aabcffddf37", False),
-    (18444899399302180861, "0dff3624d21ac5", False),
-    (18444899399302180862, "fe93c079a65653", True),
-    (18444899399302180863, "ef284ace7a91e1", True),
-    (18446744073709551615, "0f6b75ab2bc471", False),
-    (9223372036854775809, "70948a54d43b8e", False),
-    (9223372036854775807, "8f6b75ab2bc471", False),
-    (4611686018427387905, "30948a54d43b8e", False),
-    (4611686018427387903, "4f6b75ab2bc471", False),
-    (646771306295669658, "899fbcfd433be9", False),
-    (1882305164521835798, "9d38be3d27241d", False),
-    (5198373796167680436, "7188fdce730439", False),
-    (6272545487220484606, "bea00261cb73bd", False),
-    (8696342848850656916, "ca47c7b1ab2e46", False),
-    (10197320802478874805, "d29c6d21f144ee", False),
-    (10350218024687037124, "d6dc160c1c68fd", False),
-    (12078589664685934330, "3a7d76f3c5a379", False),
-    (13794769880582338323, "a6c17470cee7cd", False),
-    (14629469446186818297, "295fd564326a5f", False),
-    (83, "0028d980cf4f1c", False),
-]
-
-SAMPLING_RATE_0_2 = [
-    # (trace_id, expected_rv_hex, expected_sampled)
-    (1, "f0948a54d43b8e", True),
-    (10, "65cd67504a538e", False),
-    (100, "fa060922e7438e", True),
-    (1000, "c43c5b5d08a38e", False),
-    (18444899399302180860, "1d6aabcffddf37", False),
-    (18444899399302180861, "0dff3624d21ac5", False),
-    (18444899399302180862, "fe93c079a65653", True),
-    (18444899399302180863, "ef284ace7a91e1", True),
-    (18446744073709551615, "0f6b75ab2bc471", False),
-    (9223372036854775809, "70948a54d43b8e", False),
-    (9223372036854775807, "8f6b75ab2bc471", False),
-    (4611686018427387905, "30948a54d43b8e", False),
-    (4611686018427387903, "4f6b75ab2bc471", False),
-    (646771306295669658, "899fbcfd433be9", False),
-    (1882305164521835798, "9d38be3d27241d", False),
-    (5198373796167680436, "7188fdce730439", False),
-    (6272545487220484606, "bea00261cb73bd", False),
-    (8696342848850656916, "ca47c7b1ab2e46", False),
-    (10197320802478874805, "d29c6d21f144ee", True),
-    (10350218024687037124, "d6dc160c1c68fd", True),
-    (12078589664685934330, "3a7d76f3c5a379", False),
-    (13794769880582338323, "a6c17470cee7cd", False),
-    (14629469446186818297, "295fd564326a5f", False),
-    (83, "0028d980cf4f1c", False),
-]
-
-SAMPLING_RATE_0_5 = [
-    # (trace_id, expected_rv_hex, expected_sampled)
-    (1, "f0948a54d43b8e", True),
-    (10, "65cd67504a538e", False),
-    (100, "fa060922e7438e", True),
-    (1000, "c43c5b5d08a38e", True),
-    (18444899399302180860, "1d6aabcffddf37", False),
-    (18444899399302180861, "0dff3624d21ac5", False),
-    (18444899399302180862, "fe93c079a65653", True),
-    (18444899399302180863, "ef284ace7a91e1", True),
-    (18446744073709551615, "0f6b75ab2bc471", False),
-    (9223372036854775809, "70948a54d43b8e", False),
-    (9223372036854775807, "8f6b75ab2bc471", True),
-    (4611686018427387905, "30948a54d43b8e", False),
-    (4611686018427387903, "4f6b75ab2bc471", False),
-    (646771306295669658, "899fbcfd433be9", True),
-    (1882305164521835798, "9d38be3d27241d", True),
-    (5198373796167680436, "7188fdce730439", False),
-    (6272545487220484606, "bea00261cb73bd", True),
-    (8696342848850656916, "ca47c7b1ab2e46", True),
-    (10197320802478874805, "d29c6d21f144ee", True),
-    (10350218024687037124, "d6dc160c1c68fd", True),
-    (12078589664685934330, "3a7d76f3c5a379", False),
-    (13794769880582338323, "a6c17470cee7cd", True),
-    (14629469446186818297, "295fd564326a5f", False),
-    (83, "0028d980cf4f1c", False),
-]
-
-SAMPLING_RATE_0_99 = [
-    # (trace_id, expected_rv_hex, expected_sampled)
-    (1, "f0948a54d43b8e", True),
-    (10, "65cd67504a538e", True),
-    (100, "fa060922e7438e", True),
-    (1000, "c43c5b5d08a38e", True),
-    (18444899399302180860, "1d6aabcffddf37", True),
-    (18444899399302180861, "0dff3624d21ac5", True),
-    (18444899399302180862, "fe93c079a65653", True),
-    (18444899399302180863, "ef284ace7a91e1", True),
-    (18446744073709551615, "0f6b75ab2bc471", True),
-    (9223372036854775809, "70948a54d43b8e", True),
-    (9223372036854775807, "8f6b75ab2bc471", True),
-    (4611686018427387905, "30948a54d43b8e", True),
-    (4611686018427387903, "4f6b75ab2bc471", True),
-    (646771306295669658, "899fbcfd433be9", True),
-    (1882305164521835798, "9d38be3d27241d", True),
-    (5198373796167680436, "7188fdce730439", True),
-    (6272545487220484606, "bea00261cb73bd", True),
-    (8696342848850656916, "ca47c7b1ab2e46", True),
-    (10197320802478874805, "d29c6d21f144ee", True),
-    (10350218024687037124, "d6dc160c1c68fd", True),
-    (12078589664685934330, "3a7d76f3c5a379", True),
-    (13794769880582338323, "a6c17470cee7cd", True),
-    (14629469446186818297, "295fd564326a5f", True),
-    (83, "0028d980cf4f1c", False),
-]
 
 
 def _traceparent(trace_id: int, *, sampled: bool) -> str:
@@ -253,27 +97,6 @@ class _EmitOtOnProbabilityDecisionBase:
                 break
 
 
-@scenarios.otel_sampling_rate_0_01
-@features.w3c_headers_injection_and_extraction
-class Test_EmitOtOnProbabilityDecision_Rate0_01(_EmitOtOnProbabilityDecisionBase):
-    RATE = 0.01
-    TRACE_IDS = SAMPLING_RATE_0_01
-
-
-@scenarios.otel_sampling_rate_0_1
-@features.w3c_headers_injection_and_extraction
-class Test_EmitOtOnProbabilityDecision_Rate0_1(_EmitOtOnProbabilityDecisionBase):
-    RATE = 0.1
-    TRACE_IDS = SAMPLING_RATE_0_1
-
-
-@scenarios.otel_sampling_rate_0_2
-@features.w3c_headers_injection_and_extraction
-class Test_EmitOtOnProbabilityDecision_Rate0_2(_EmitOtOnProbabilityDecisionBase):
-    RATE = 0.2
-    TRACE_IDS = SAMPLING_RATE_0_2
-
-
 @scenarios.sampling
 @features.w3c_headers_injection_and_extraction
 class Test_EmitOtOnProbabilityDecision_Rate0_5(_EmitOtOnProbabilityDecisionBase):
@@ -281,19 +104,7 @@ class Test_EmitOtOnProbabilityDecision_Rate0_5(_EmitOtOnProbabilityDecisionBase)
     TRACE_IDS = SAMPLING_RATE_0_5
 
 
-@scenarios.otel_sampling_rate_0_99
-@features.w3c_headers_injection_and_extraction
-class Test_EmitOtOnProbabilityDecision_Rate0_99(_EmitOtOnProbabilityDecisionBase):
-    RATE = 0.99
-    TRACE_IDS = SAMPLING_RATE_0_99
-
-
 # Trace ID and rv/th below match the RFC's own verified worked example (rate 0.1, trace ID 0xfff972474538efff).
-FORWARD_TRACE_ID = 18444899399302180863
-FORWARD_RV = "ef284ace7a91e1"
-FORWARD_TH = "e6666666666668"
-
-
 @scenarios.default
 @features.w3c_headers_injection_and_extraction
 class Test_ForwardInboundOtUnchanged:
@@ -464,12 +275,40 @@ class Test_PreserveDdAndOtherVendors:
 
 @scenarios.default
 @features.w3c_headers_injection_and_extraction
+class Test_PreserveTracestateMemberOrder:
+    def setup_preserve_tracestate_member_order(self):
+        self.r = weblog.get(
+            "/make_distant_call",
+            params={"url": "http://weblog:7777"},
+            headers={
+                "traceparent": _traceparent(FORWARD_TRACE_ID, sampled=True),
+                "tracestate": "dd=s:1,foo=bar,ot=rv:6e6d1a75832a2f,something=else",
+            },
+        )
+
+    def test_preserve_tracestate_member_order(self):
+        assert self.r.status_code == 200
+
+        request_headers = json.loads(self.r.text)["request_headers"]
+        raw_tracestate = next(
+            (value for key, value in request_headers.items() if key.lower() == "tracestate"),
+            None,
+        )
+        assert raw_tracestate is not None, "tracestate header was dropped"
+
+        dd_member, separator, unmodified_members = raw_tracestate.partition(",")
+        assert separator, "tracestate did not preserve the unmodified members"
+        assert dd_member.startswith("dd="), "dd= must remain the leading tracestate member"
+        assert unmodified_members == "foo=bar,ot=rv:6e6d1a75832a2f,something=else"
+
+
+@scenarios.default
+@features.w3c_headers_injection_and_extraction
 class Test_ForceKeepClearsTh:
     """A4: a non-probability (force-keep) decision erases th but still forwards an inherited rv.
 
-    Modeled on the only existing e2e lever for a local, non-probability keep decision: an ASM /waf attack
-    detection (tests/appsec/test_traces.py::Test_RetainTraces). There is no dedicated manual-keep/drop
-    weblog endpoint today (tracked as a follow-up).
+    The manual-keep endpoint applies the decision before making its downstream request, whose propagated
+    headers are returned in the response.
     """
 
     INHERITED_RV = "1234567890abcd"
@@ -482,9 +321,8 @@ class Test_ForceKeepClearsTh:
 
     def setup_force_keep_with_no_inbound_ot(self):
         self.no_ot_request = weblog.get(
-            "/make_distant_call",
-            params={"url": "http://weblog:7777"},
-            headers={"User-Agent": "Arachni/v1"},
+            "/trace/manual_keep_drop",
+            params={"decision": "keep"},
         )
 
     def test_force_keep_with_no_inbound_ot(self):
@@ -499,12 +337,11 @@ class Test_ForceKeepClearsTh:
 
     def setup_force_keep_forwards_inherited_rv(self):
         self.rv_only_request = weblog.get(
-            "/make_distant_call",
-            params={"url": "http://weblog:7777"},
+            "/trace/manual_keep_drop",
+            params={"decision": "keep"},
             headers={
                 "traceparent": _traceparent(FORWARD_TRACE_ID, sampled=False),
                 "tracestate": f"ot=rv:{self.INHERITED_RV}",
-                "User-Agent": "Arachni/v1",
             },
         )
 
@@ -522,12 +359,11 @@ class Test_ForceKeepClearsTh:
 
     def setup_force_keep_overrides_inherited_drop_decision(self):
         self.dropped_request = weblog.get(
-            "/make_distant_call",
-            params={"url": "http://weblog:7777"},
+            "/trace/manual_keep_drop",
+            params={"decision": "keep"},
             headers={
                 "traceparent": _traceparent(self.DROPPED_TRACE_ID, sampled=False),
                 "tracestate": f"ot=rv:{self.DROPPED_RV};th:{self.DROPPED_TH}",
-                "User-Agent": "Arachni/v1",
             },
         )
 
@@ -566,7 +402,7 @@ class Test_SampledWithoutOtNotFabricated:
         assert "ot" not in tracestate, "th/rv were fabricated for an inherited sampling decision with no inbound ot="
 
 
-@scenarios.otel_sampling_rate_0_1
+@scenarios.sampling
 @features.w3c_headers_injection_and_extraction
 class Test_MalformedOtHandling:
     """A6: a malformed ot.th/ot.rv field is cleared, never re-derived; the actual sampling decision is already
@@ -619,68 +455,3 @@ class Test_MalformedOtHandling:
         ot = _parse_ot(_outbound_tracestate(req))
         assert ot.get("rv") == self.MALFORMED_TH_RV, "the well-formed inbound rv was not forwarded"
         assert "th" not in ot, "a malformed ot.th must be cleared, not replaced by a freshly-derived one"
-
-
-class _PrecisionBoundaryDecisionBase:
-    """A7: on a boundary trace ID, the 64-bit hash decision and the naive 56-bit (rv, th) pair disagree; DD must
-    adjust rv (never th) so that (rv >= th) reproduces its own keep/drop exactly.
-
-    See the RFC's "64-bit to 56-bit precision" section: DD keeps but rv < th -> rv = th;
-    DD drops but rv >= th -> rv = th - 1.
-    """
-
-    RATE: float
-    TRACE_ID: int
-    EXPECTED_TH: str
-    EXPECTED_ADJUSTED_RV: str
-    EXPECTED_SAMPLED: bool
-
-    def setup_precision_boundary_decision(self):
-        self.r = weblog.get(
-            "/make_distant_call",
-            params={"url": "http://weblog:7777"},
-            headers={"x-datadog-trace-id": str(self.TRACE_ID), "x-datadog-parent-id": str(self.TRACE_ID)},
-        )
-
-    def test_precision_boundary_decision(self):
-        assert self.r.status_code == 200
-
-        ot = _parse_ot(_outbound_tracestate(self.r))
-        assert ot.get("th") == self.EXPECTED_TH, f"th={ot.get('th')!r}, expected {self.EXPECTED_TH!r}"
-        assert ot.get("rv") == self.EXPECTED_ADJUSTED_RV, (
-            f"rv={ot.get('rv')!r}, expected the adjusted {self.EXPECTED_ADJUSTED_RV!r} "
-            "(the naive hash-derived rv disagrees with DD's own keep/drop on this boundary trace ID)"
-        )
-
-        spans = list(interfaces.library.get_spans(request=self.r))
-        assert spans, "no span found for this request: can't verify the sampling priority"
-        _, _, span = spans[0]
-        sampling_priority = span.get_sampling_priority()
-        assert sampling_priority is not None, "no sampling priority on span"
-        assert _priority_should_be_kept(sampling_priority) is self.EXPECTED_SAMPLED, (
-            f"sampling priority {sampling_priority} disagrees with the expected boundary decision"
-        )
-
-
-@scenarios.otel_sampling_rate_0_1
-@features.w3c_headers_injection_and_extraction
-class Test_PrecisionBoundaryDecision_Rate0_1(_PrecisionBoundaryDecisionBase):
-    """DD keeps (h below threshold) but the naive 56-bit rv falls just short of th; rv is bumped up to th."""
-
-    RATE = 0.1
-    TRACE_ID = 0x03A93EE8B1999F00
-    EXPECTED_TH = "e6666666666668"
-    EXPECTED_ADJUSTED_RV = "e6666666666668"
-    EXPECTED_SAMPLED = True
-
-
-@scenarios.otel_sampling_rate_0_05
-@features.w3c_headers_injection_and_extraction
-class Test_PrecisionBoundaryDecision_Rate0_05(_PrecisionBoundaryDecisionBase):
-    """DD drops (h above threshold) but the naive 56-bit rv would read as kept; rv is bumped down to th - 1."""
-
-    RATE = 0.05
-    TRACE_ID = 5401449561355763072
-    EXPECTED_TH = "f333333333333"
-    EXPECTED_ADJUSTED_RV = "f333333333332f"
-    EXPECTED_SAMPLED = False

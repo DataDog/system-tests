@@ -1,6 +1,12 @@
+import time
 from unittest import mock
-from utils import context
 
+import requests
+
+from utils import context
+from utils.docker_fixtures import TestAgentAPI
+
+from collections.abc import Callable
 from typing import TypedDict
 
 
@@ -216,3 +222,79 @@ def assert_prompt_tracking(
     assert span_event["meta"]["input"]["messages"] == expected_messages, (
         f"Expected messages {expected_messages}, got {span_event['meta']['input']['messages']}"
     )
+
+
+# AI Guard helpers shared by the provider integration suites (OpenAI, Anthropic, ...). DD_API_KEY /
+# DD_APP_KEY come from the scenario env, not library_env, which is copied into the JSON report.
+AI_GUARD_LIBRARY_ENV: dict[str, str] = {"DD_AI_GUARD_ENABLED": "true"}
+
+
+def assert_ai_guard_evaluated(test_agent: TestAgentAPI, *, target: str) -> list[dict]:
+    """Assert an ai_guard span for target was emitted and the local root span is tagged ai_guard.event:true.
+
+    The spans may land nested in the SDK trace or in their own, so poll rather than wait on a trace count.
+    """
+    spans = _wait_for(test_agent, lambda traces: _ai_guard_spans(traces, target))
+    assert spans, f"expected an ai_guard span with target '{target}'"
+
+    assert _wait_for(test_agent, _ai_guard_event_root_spans), "expected a local root span tagged ai_guard.event:true"
+
+    return spans
+
+
+def assert_assistant_tool_calls_forwarded(guard_spans: list[dict]) -> None:
+    """Assert the SDK tool-call blocks were converted and sent to AI Guard.
+
+    A target "tool" span alone is not enough: it can also come from an after-model eval.
+    """
+    assert any(
+        message.get("role") == "assistant" and message.get("tool_calls")
+        for span in guard_spans
+        for message in _guard_messages(span)
+    ), "expected the assistant tool_calls entry in the ai_guard evaluation payload"
+
+
+def _ai_guard_spans(traces: list[list[dict]], target: str | None = None) -> list[dict]:
+    return [
+        span
+        for trace in traces
+        for span in trace
+        if span.get("resource") == "ai_guard"
+        and (target is None or span.get("meta", {}).get("ai_guard.target") == target)
+    ]
+
+
+def _ai_guard_event_root_spans(traces: list[list[dict]]) -> list[dict]:
+    """Local root spans tagged ai_guard.event:true, the tracer's marker that AI Guard ran on the trace.
+
+    The _dd.ai_guard.enabled:1 facet from the Datadog UI comes from intake, so it is not in these payloads.
+    """
+    return [
+        span
+        for trace in traces
+        for span in trace
+        if span.get("parent_id") in (0, None) and span.get("meta", {}).get("ai_guard.event", False) in (True, "true")
+    ]
+
+
+def _guard_messages(span: dict) -> list[dict]:
+    """The messages AI Guard evaluated, as captured in meta_struct.ai_guard.messages."""
+    return span.get("meta_struct", {}).get("ai_guard", {}).get("messages", [])
+
+
+def _wait_for(
+    test_agent: TestAgentAPI, select: Callable[[list[list[dict]]], list[dict]], wait_loops: int = 30
+) -> list[dict]:
+    """Poll the test agent until select() matches at least one span, or give up and return []."""
+    spans: list[dict] = []
+    for _ in range(wait_loops):
+        try:
+            traces = test_agent.traces(clear=False)
+        except requests.exceptions.RequestException:
+            pass
+        else:
+            spans = select(traces)
+            if spans:
+                return spans
+        time.sleep(0.1)
+    return spans
