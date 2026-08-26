@@ -838,6 +838,51 @@ class AgentContainer(TestedContainer):
         return os.environ.get("DD_SITE", "datad0g.com")
 
 
+class ServerlessInitContainer(TestedContainer):
+    """Run serverless-init as the local trace and Feature Flags relay."""
+
+    apm_receiver_port = 8126
+
+    def __init__(self) -> None:
+        apm_receiver_port_hex = f"{self.apm_receiver_port:04X}"
+        super().__init__(
+            name="ffe-serverless-init",
+            image_name="datadog/serverless-init:1.10.2",
+            environment={
+                "DD_API_KEY": _FAKE_DD_API_KEY,
+                "DD_SITE": "mock-intake.invalid",
+                "DD_SERVICE": "ffe-system-tests-serverless-init",
+                "DD_ENV": "system-tests",
+                "DD_APM_ENABLED": "true",
+                "DD_APM_NON_LOCAL_TRAFFIC": "true",
+                "DD_PROXY_HTTPS": f"http://proxy:{ProxyPorts.datadog_sidecar}",
+                "DD_PROXY_HTTP": f"http://proxy:{ProxyPorts.datadog_sidecar}",
+                "DD_SERVERLESS_FLUSH_STRATEGY": "periodically,100",
+                "DD_SKIP_SSL_VALIDATION": "true",
+            },
+            # This image has no HTTP client. Inspect the kernel socket table instead.
+            healthcheck={
+                "test": (
+                    "/bin/sh -c 'for table in /proc/net/tcp /proc/net/tcp6; do "
+                    "while read -r _ local_address _ state _; do "
+                    f'[ "${{local_address##*:}}" = "{apm_receiver_port_hex}" ] '
+                    '&& [ "$state" = "0A" ] && exit 0; '
+                    'done < "$table"; done; exit 1'
+                    "'"
+                ),
+                "retries": 60,
+            },
+        )
+
+    @property
+    def serverless_init_version(self) -> Version:
+        """Read the serverless-init version from the image metadata."""
+        version = self.image.labels.get("org.opencontainers.image.version")
+        if not version:
+            raise ValueError("The serverless-init image has no OCI version label")
+        return Version(version)
+
+
 class BuddyContainer(TestedContainer):
     def __init__(
         self,
@@ -995,7 +1040,7 @@ class WeblogContainer(TestedContainer):
         if not library or not weblog:
             return result
 
-        if weblog in ("envoy", "haproxy"):
+        if weblog in ("envoy", "haproxy", "apim"):
             # Those are not based on a dockerfile. TODO : weblog abstraction
             return result
 
@@ -1648,7 +1693,7 @@ class EnvoyContainer(TestedContainer):
             healthcheck={
                 "test": "/bin/bash -c \"\
                     exec 3<>/dev/tcp/127.0.0.1/80 || exit 1;\
-                    echo -e 'GET / HTTP/1.1\nHost: system-tests\r\n\r\n' >&3;\
+                    echo -e 'GET / HTTP/1.1\r\nHost: system-tests\r\nUser-Agent: systemtests-healthcheck\r\n\r\n' >&3;\
                     cat <&3 | grep -q '200'\"",
                 "retries": 10,
             },
@@ -1689,6 +1734,9 @@ class ExternalProcessingContainer(GoProcessorContainer):
             "DD_AGENT_HOST": "proxy",
             "DD_TRACE_AGENT_PORT": str(ProxyPorts.weblog),
             "DD_APPSEC_WAF_TIMEOUT": "1s",
+            # The callout defaults APM tracing to false, which rate-limits ordinary traces
+            # and makes APM assertions nondeterministic.
+            "DD_APM_TRACING_ENABLED": "true",
         }
 
         if env:
@@ -1732,7 +1780,7 @@ class HAProxyContainer(TestedContainer):
             healthcheck={
                 "test": "/bin/bash -c \"\
                     exec 3<>/dev/tcp/127.0.0.1/80 || exit 1;\
-                    echo -e 'GET / HTTP/1.1\nHost: system-tests\r\n\r\n' >&3;\
+                    echo -e 'GET / HTTP/1.1\r\nHost: system-tests\r\nUser-Agent: systemtests-healthcheck\r\n\r\n' >&3;\
                     cat <&3 | grep -q '200'\"",
                 "retries": 10,
             },
@@ -1754,10 +1802,13 @@ class StreamProcessingOffloadContainer(GoProcessorContainer):
             image = "ghcr.io/datadog/dd-trace-go/haproxy-spoa:latest"
 
         environment: dict[str, str | None] = {
+            "DD_APPSEC_ENABLED": "true",
             "DD_SERVICE": "service_test",
             "DD_ENV": "system-tests",
             "DD_AGENT_HOST": "proxy",
             "DD_TRACE_AGENT_PORT": str(ProxyPorts.weblog),
+            "DD_APPSEC_WAF_TIMEOUT": "1s",
+            "DD_APM_TRACING_ENABLED": "true",
         }
 
         if env:
@@ -1773,6 +1824,99 @@ class StreamProcessingOffloadContainer(GoProcessorContainer):
             environment=environment,
             healthcheck={
                 "test": "wget -qO- http://localhost:3080/",
+                "retries": 10,
+            },
+        )
+
+
+class ApimGatewayContainer(TestedContainer):
+    """Stand-in for the Azure APIM gateway: a stdlib-only Go shim compiled at container start"""
+
+    def __init__(self) -> None:
+        super().__init__(
+            # already mirrored: mirror_images.lock.yaml:325, curated at mirror_images.yaml:90
+            image_name="golang:1.26-alpine",
+            name="apim-gateway",
+            working_dir="/app",
+            # there is no dockerfile for this weblog (build_mode: none), the shim sources are
+            # mounted and compiled on start
+            command="go run .",
+            # GOTOOLCHAIN is deliberately not set: it is already `local` in this image
+            environment={"CGO_ENABLED": "0"},
+            volumes={
+                "./utils/build/docker/golang/apim/main.go": {"bind": "/app/main.go", "mode": "ro"},
+                "./utils/build/docker/golang/apim/go.mod": {"bind": "/app/go.mod", "mode": "ro"},
+            },
+            ports={"80": ("127.0.0.1", weblog.port)},
+            healthcheck={
+                # golang:1.26-alpine ships busybox but no bash, so the /bin/bash + /dev/tcp
+                # healthcheck used by EnvoyContainer and HAProxyContainer is not usable here
+                "test": "wget -qO- http://localhost:80/",
+                # `go run .` compiles the shim on every container start, and since Go 1.20 ships
+                # no prebuilt std it rebuilds net/http and crypto/tls from source into an empty
+                # GOCACHE. That measured ~12s wall locally but ~13s of CPU, so a contended
+                # 2-vCPU runner can take substantially longer.
+                #
+                # execute_command retries until the first success and stops, so a high retry
+                # count costs nothing on a fast start but keeps a slow runner from failing the
+                # whole scenario. start_period is an unconditional sleep here, not a Docker
+                # grace period, so it is omitted: probing immediately detects a fast start
+                # sooner than any blind wait would.
+                "retries": 60,
+                "interval": 1_000_000_000,
+            },
+        )
+
+
+class ApimCalloutContainer(GoProcessorContainer):
+    """dd-trace-go apim-callout processor, driven by the apim-gateway shim"""
+
+    def __init__(
+        self,
+        env: dict[str, str | None] | None = None,
+        volumes: dict[str, dict[str, str]] | None = None,
+    ) -> None:
+        try:
+            with open("binaries/golang-apim-callout-image", encoding="utf-8") as f:
+                image = f.read().strip()
+            # never logger.stdout() from a container constructor: containers are also built by
+            # utils/scripts/get-image-list.py, whose stdout IS the compose document consumed by
+            # `docker compose` in .github/actions/pull_images. The resolved tag still reaches
+            # stdout on a real run, via GoProcessorContainer.post_start().
+            logger.info(f"apim-callout image: {image} (from binaries/golang-apim-callout-image)")
+        except FileNotFoundError:
+            image = "ghcr.io/datadog/dd-trace-go/apim-callout:latest"
+            # the downgrade is significant: without the pointer file we test released code instead
+            # of the commit under test
+            logger.warning(f"binaries/golang-apim-callout-image not found, falling back to released image {image}")
+
+        environment: dict[str, str | None] = {
+            "DD_APPSEC_ENABLED": "true",
+            "DD_SERVICE": "service_test",
+            "DD_ENV": "system-tests",
+            "DD_AGENT_HOST": "proxy",
+            "DD_TRACE_AGENT_PORT": str(ProxyPorts.weblog),
+            # not inherited: this lives in ExternalProcessingContainer, not in GoProcessorContainer
+            "DD_APPSEC_WAF_TIMEOUT": "1s",
+            # required, do not remove: the callout's own getDefaultEnvVars() defaults this to
+            # "false" whenever the variable is empty, which rate-limits ordinary traces to one per
+            # minute and makes APM assertions nondeterministic
+            "DD_APM_TRACING_ENABLED": "true",
+        }
+
+        if env:
+            environment.update(env)
+
+        if volumes is None:
+            volumes = {}
+
+        super().__init__(
+            image_name=image,
+            name="apim-callout",
+            volumes=volumes,
+            environment=environment,
+            healthcheck={
+                "test": "wget -qO- http://localhost:8081/",
                 "retries": 10,
             },
         )

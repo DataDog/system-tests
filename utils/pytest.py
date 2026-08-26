@@ -17,6 +17,7 @@ MarkDecorator = _pytest.MarkDecorator
 MonkeyPatch = _pytest.MonkeyPatch
 CaptureFixture = _pytest.CaptureFixture
 Session = _pytest.Session
+CallInfo = _pytest.CallInfo
 
 approx = _pytest.approx
 exit = _pytest.exit  # noqa: A001 - preserve the public pytest API name
@@ -25,6 +26,7 @@ fixture = _pytest.fixture
 param = _pytest.param
 raises = _pytest.raises
 skip = _pytest.skip
+hookimpl = _pytest.hookimpl
 
 
 class _AllowedMarks:
@@ -39,6 +41,7 @@ class _AllowedMarks:
 mark = _AllowedMarks()
 
 __all__ = [
+    "CallInfo",
     "Config",
     "FixtureRequest",
     "Item",
@@ -50,6 +53,7 @@ __all__ = [
     "exit",
     "fail",
     "fixture",
+    "hookimpl",
     "mark",
     "param",
     "raises",

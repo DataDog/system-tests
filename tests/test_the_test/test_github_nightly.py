@@ -166,7 +166,7 @@ class Test_GithubNightly:
                 result(),  # git config user.email
                 result(),  # gh auth setup-git
                 result(),  # git checkout main
-                result(returncode=1),  # activate_easy_wins exits 1 for no changes
+                result("No update were made\n"),  # activate_easy_wins exits 0 for no changes
                 result(""),  # no easy-win branches
             ]
         )
@@ -216,7 +216,7 @@ class Test_GithubNightly:
                 result(returncode=2, stderr="activation exploded"),  # python activation
                 result(""),  # no branches
                 result(),  # git checkout main
-                result(returncode=1),  # ruby no changes
+                result("No update were made\n"),  # ruby no changes
                 result(""),  # no branches
             ]
         )
@@ -229,7 +229,12 @@ class Test_GithubNightly:
 
         captured = capsys.readouterr()
         assert exit_code == 1
-        assert captured.out.rstrip().endswith("python: activation exploded")
+        failure_summary = captured.out.rsplit("============ Nightly activation failures ============", maxsplit=1)[
+            1
+        ].strip()
+        assert failure_summary.startswith("python: Activation command failed:")
+        assert failure_summary.endswith("activation exploded")
+        assert "ruby:" not in failure_summary
 
     def test_branch_failure_does_not_skip_other_branches(
         self,

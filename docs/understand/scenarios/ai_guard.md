@@ -112,6 +112,81 @@ The scenario sets the following environment variables on the weblog:
 | `DD_API_KEY` | `mock_api_key` | Mock key (real key not needed with VCR) |
 | `DD_APP_KEY` | `mock_app_key` | Mock key (real key not needed with VCR) |
 
+## Related scenarios
+
+Four more scenarios share the same weblog and VCR setup, and differ only by configuration:
+
+| Scenario | Extra configuration | What it covers |
+|---|---|---|
+| `AI_GUARD_STANDALONE` | `DD_APM_TRACING_ENABLED=false` | AI Guard traces still reach the backend when APM tracing is off |
+| `AI_GUARD_TELEMETRY` | `DD_AI_GUARD_MAX_MESSAGES_LENGTH=1`, `DD_AI_GUARD_MAX_CONTENT_SIZE=5` | The `ai_guard.requests` and `ai_guard.truncated` telemetry metrics |
+| `AI_GUARD_REDACTION_TELEMETRY` | low telemetry intervals, no truncation thresholds | The `redacted` tag on `ai_guard.requests` |
+| `AI_GUARD_REDACTION_DISABLED` | `DD_AI_GUARD_REDACTION_ENABLED=false` | The sensitive data redaction kill-switch: nothing is redacted and the redaction tags are not emitted |
+
+`AI_GUARD_REDACTION_TELEMETRY` exists rather than reusing `AI_GUARD_TELEMETRY` for two reasons.
+The truncation thresholds would shorten every request body, and cassettes are addressed by a hash
+of that body, so no redaction scenario would match its cassette. And the telemetry metric is not
+request-scoped: counting evaluations exactly is only possible while a single test class sends
+traffic into the scenario.
+
+## Sensitive data redaction
+
+The redaction tests are driven by a corpus shared with the cassettes, so the two cannot drift.
+`utils/scripts/gen_redaction_cassettes.py` owns both sides: for every scenario it writes the
+cassette that returns the `redaction_replacements` array and an entry in
+`tests/ai_guard/redaction_scenarios.json` describing the expected outcome (the messages after
+redaction, the sensitive values that must be gone, the ones that must survive, and whether the
+evaluation must report itself as redacted).
+
+Each of those expectations is authored per scenario, in `expect_redacted` and `expect_removed`, and
+cross-checked against a reference implementation of the RFC redaction algorithm living in the same
+script. Keeping the two independent is the point: a corpus that only recorded whatever the
+reference implementation produced would assert tracer == generator instead of tracer == RFC. The
+same applies to the values that survive redaction, which are asserted present rather than merely
+left out of the absence check, so an over-redacting tracer fails.
+
+To add or change a redaction scenario, edit `SCENARIOS` in that script and re-run it from the
+repository root:
+
+```bash
+python3 utils/scripts/gen_redaction_cassettes.py
+```
+
+`./format.sh` runs the generator too, so the fixtures in the repository are always the fixtures the
+script produces. In `--check` mode it passes `--check` through: the generator then compares the
+corpus it would write against the files it owns and reports any drift without touching the working
+tree.
+
+Cassettes are addressed by a hash of the request body, so every scenario must send a distinct
+message list. The script fails rather than overwriting a cassette owned by another AI Guard test.
+It also deletes cassettes the corpus no longer claims, but only ones it generated itself on a
+previous run (tracked through the sidecar): the cassette directory is shared with the other AI
+Guard tests, and regenerating the corpus must never remove a cassette added by one of them.
+
+### The redacted tag is tri-state
+
+`ai_guard.redacted`, and the matching `redacted` tag on the `ai_guard.requests` telemetry metric,
+carry three distinguishable states. Tracers must implement all three:
+
+| State | Meaning |
+|---|---|
+| tag absent | Redaction is off (`DD_AI_GUARD_REDACTION_ENABLED=false`), so no redaction was attempted |
+| `false` | Redaction is on and this evaluation redacted nothing: no replacement was returned, or every entry was skipped fail-safe |
+| `true` | Redaction is on and at least one replacement was applied |
+
+Reporting `false` when the feature is off would make "nobody sends sensitive data" and "nobody has
+the feature on" indistinguishable in the product. `Test_RedactionDisabled` and
+`Test_RedactionDisabledTelemetry` assert the absent case, and the other redaction classes assert
+the other two. The tag may be reported as a boolean, as the string `true`/`false`, or as a metric
+whose value is exactly `1` or `0`.
+
+The blocked path is covered too: `Test_RedactionOnBlock` sends a redacting scenario with
+`X-AI-Guard-Block: true`, so the SDK aborts instead of returning an evaluation. The abort error
+deliberately carries no messages, and the 403 the weblog answers with carries none either: errors
+get logged and a conversation is arbitrarily large, so putting the message list on the error
+reopens the very leak channel redaction closes. The span is the reporting surface on that path, and
+the redacted messages must be in its `ai_guard` meta struct.
+
 ---
 
 ## See also

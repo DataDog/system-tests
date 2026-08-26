@@ -1,0 +1,32 @@
+[
+    {
+        "language": "",
+        "type": "",
+        "id": "",
+        "version": 0,
+        "where": {
+            "typeName": "ACTUAL_TYPE_NAME",
+            "methodName": "LogProbe",
+            "sourceFile": null
+        },
+        "when": {
+            "dsl": "eq(1, 2)",
+            "json": {
+                "eq": [1, 2]
+            }
+        },
+        "captureSnapshot": false,
+        "captureExpressions": [
+            {
+                "name": "brokenExpression",
+                "expr": {
+                    "dsl": "definitelyDoesNotExist",
+                    "json": {"ref": "definitelyDoesNotExist"}
+                }
+            }
+        ],
+        "segments": [
+            {"str": "filter-rejected-with-broken-captures probe should not fire"}
+        ]
+    }
+]

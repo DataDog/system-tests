@@ -2,28 +2,11 @@ from tests.integration_frameworks.llm.utils import assert_llmobs_span_event
 from utils import features, scenarios
 from utils.docker_fixtures import FrameworkTestClientApi, TestAgentAPI
 
-from .utils import BaseAnthropicTest
+from .utils import TOOLS, BaseAnthropicTest
 
 from utils import pytest
 from unittest import mock
 import json
-
-TOOLS = [
-    {
-        "name": "get_weather",
-        "description": "Get the current weather in a given location",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "location": {
-                    "type": "string",
-                    "description": "The city and state, e.g. San Francisco, CA",
-                }
-            },
-            "required": ["location"],
-        },
-    }
-]
 
 
 @pytest.fixture

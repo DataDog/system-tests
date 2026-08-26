@@ -42,6 +42,7 @@ MIRROR_IMAGES_URL = os.environ.get(
 DEFAULT_DEST_REGISTRY = "registry.ddbuild.io/system-tests/mirror"
 
 MIRROR_YAML = REPO_ROOT / "mirror_images.yaml"
+LOCK_YAML = REPO_ROOT / "mirror_images.lock.yaml"
 BUILDKITD_TOML = REPO_ROOT / "utils" / "build" / "docker" / "buildkitd.toml"
 
 # Header written when mirror_images.yaml does not exist yet. The mirror_images.py
@@ -123,7 +124,21 @@ def _run_mirror_images(*args: str) -> None:
     subprocess.run(cmd, check=True, env=env)
 
 
-def main(excluded: set[str], *, skip_lock: bool) -> None:
+def _refresh_lock_file() -> str | None:
+    if not LOCK_YAML.exists():
+        print(f"{LOCK_YAML} does not exist; all images will be resolved.", flush=True)
+        return None
+
+    original_lock = LOCK_YAML.read_text(encoding="utf-8")
+    LOCK_YAML.unlink()
+    print(f"Removed {LOCK_YAML} before refresh; all images will be re-resolved.", flush=True)
+    return original_lock
+
+
+def main(excluded: set[str], *, skip_lock: bool, refresh: bool = False) -> None:
+    if skip_lock and refresh:
+        raise ValueError("refresh cannot be used when skip_lock is true")
+
     # get_image_list reads Dockerfiles relative to the repo root.
     os.chdir(REPO_ROOT)
 
@@ -135,7 +150,16 @@ def main(excluded: set[str], *, skip_lock: bool) -> None:
 
     _run_mirror_images("add", *images)
     if not skip_lock:
-        _run_mirror_images("lock")
+        original_lock = _refresh_lock_file() if refresh else None
+        try:
+            _run_mirror_images("lock")
+        except subprocess.CalledProcessError:
+            if refresh:
+                if original_lock is not None:
+                    LOCK_YAML.write_text(original_lock, encoding="utf-8")
+                elif LOCK_YAML.exists():
+                    LOCK_YAML.unlink()
+            raise
         _run_mirror_images("buildkitd", "--output", str(BUILDKITD_TOML))
 
 
@@ -156,5 +180,16 @@ if __name__ == "__main__":
         help="Only update mirror_images.yaml; do not resolve digests into the lock file "
         "(used by the CI drift check, which has no registry credentials)",
     )
+    parser.add_argument(
+        "--refresh",
+        action="store_true",
+        help="Delete mirror_images.lock.yaml before locking so every image is re-resolved",
+    )
     args = parser.parse_args()
-    main({name.strip() for name in args.exclude.split(",") if name.strip()}, skip_lock=args.skip_lock)
+    if args.skip_lock and args.refresh:
+        parser.error("--refresh cannot be used with --skip-lock")
+    main(
+        {name.strip() for name in args.exclude.split(",") if name.strip()},
+        skip_lock=args.skip_lock,
+        refresh=args.refresh,
+    )

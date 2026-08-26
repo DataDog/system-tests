@@ -875,7 +875,10 @@ def make_distant_call(request):
     # curl localhost:7777/make_distant_call?url=http%3A%2F%2Fweblog%3A7777 | jq
 
     url = request.GET.get("url")
-    response = requests.get(url)
+    # The method is configurable so semantic-convention tests can drive a non-standard verb
+    # through the client instrumentation. Matches the nodejs express weblog.
+    method = request.GET.get("method", "GET")
+    response = requests.request(method, url)
 
     result = {
         "url": url,
@@ -980,6 +983,10 @@ MAGIC_SESSION_KEY = "random_session_id"
 def session_new(request):
     request.session.save()
     session_id = request.session.session_key
+    # The signed_cookies backend re-derives session_key from a fresh timestamp on every save(), and
+    # SessionMiddleware saves again in process_response. Without pinning, the key we return here and
+    # the one set in the cookie differ whenever the clock second ticks in between.
+    request.session.save = lambda *args, **kwargs: None
     return HttpResponse(session_id)
 
 
