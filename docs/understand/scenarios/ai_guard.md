@@ -163,6 +163,28 @@ It also deletes cassettes the corpus no longer claims, but only ones it generate
 previous run (tracked through the sidecar): the cassette directory is shared with the other AI
 Guard tests, and regenerating the corpus must never remove a cassette added by one of them.
 
+### Redaction covers the whole context, not just the last message
+
+Attack analysis and sensitive-data scanning have deliberately different scopes. The backend may
+decide the action from the latest logical message, but SDS scans every model-visible string in the
+exact `messages` array of the current `/evaluate` call, so `redaction_replacements` may carry
+entries for the system prompt, for historical user, assistant and tool messages, and for the
+latest message at once.
+
+That distinction exists because redaction is copy-on-write: the tracer sends a redacted copy to the
+provider and leaves the caller's list alone, so an earlier message still holds its original value
+on the next turn. A tracer that only redacted the latest message would pass almost every redaction
+test here and still ship the whole history to the provider on turn 2.
+
+`Test_RedactionMultiTurnContext` is the class that closes that hole. It covers the RFC multi-turn
+example (a historical SSN plus a new email, with an already redacted assistant message that must
+survive byte for byte), a conversation whose latest message is benign while the history is not, one
+replacement per role in a single call, tool calls and content parts buried in the history,
+non-contiguous replacements across an eight-message conversation, and a value restated in a later
+turn. Paths are local to the request they arrived in, so it also replays a growing then reordered
+conversation across three calls: a tracer reusing the previous response's paths writes the wrong
+replacement into the wrong message and fails.
+
 ### The redacted tag is tri-state
 
 `ai_guard.redacted`, and the matching `redacted` tag on the `ai_guard.requests` telemetry metric,

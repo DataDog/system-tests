@@ -179,6 +179,10 @@ manifest:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
         express4: *ref_6_13_0
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionMultiTurnContext:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        express4: *ref_6_13_0
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionOnBlock:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)

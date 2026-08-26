@@ -769,6 +769,146 @@ class Test_Redaction:
 @rfc("https://docs.google.com/document/d/1PYVAi9p8YzPSlmZDIwUuM0DZeRlyj5dNszOteRaUtH8/edit")
 @features.ai_guard
 @scenarios.ai_guard
+class Test_RedactionMultiTurnContext:
+    """Redaction covers the complete provider-bound context, not just the latest message.
+
+    Attack analysis and sensitive-data scanning have intentionally different scopes: the backend
+    may decide the action from the latest logical message, while SDS inspects every model-visible
+    string in the exact messages array of the current /evaluate call. redaction_replacements may
+    therefore carry entries for system, historical user, assistant and tool messages as well as
+    the latest one, and the tracer must apply all of them.
+
+    This matters because redaction is copy-on-write: the tracer sends a redacted copy to the
+    provider and leaves the customer-owned list alone, so an earlier message still holds its
+    original value on the next turn. A tracer that only redacted the latest message would pass
+    every other redaction test here and still leak the whole history to the provider on turn 2.
+    """
+
+    def setup_redact_history_and_latest(self):
+        self.scenario, self.r = _post_redaction_scenario("REDACT_HISTORY_AND_LATEST")
+
+    def test_redact_history_and_latest(self):
+        """The RFC multi-turn example: a historical SSN and a new email are both redacted.
+
+        The assistant message was already redacted by the previous turn's output evaluation and
+        must survive byte for byte: an already applied placeholder is not redacted again.
+        """
+        assert self.r.status_code == 200
+        interfaces.library.validate_one_span(
+            self.r, validator=_assert_redaction_scenario(self.scenario), full_trace=True
+        )
+
+    def setup_redact_history_only(self):
+        self.scenario, self.r = _post_redaction_scenario("REDACT_HISTORY_ONLY")
+
+    def test_redact_history_only(self):
+        """A benign latest message does not exempt the history: the earlier message is still redacted."""
+        assert self.r.status_code == 200
+        interfaces.library.validate_one_span(
+            self.r, validator=_assert_redaction_scenario(self.scenario), full_trace=True
+        )
+
+    def setup_redact_every_role_in_history(self):
+        self.scenario, self.r = _post_redaction_scenario("REDACT_EVERY_ROLE_IN_HISTORY")
+
+    def test_redact_every_role_in_history(self):
+        """One replacement per role: system, historical user, tool call arguments, tool result, latest user."""
+        assert self.r.status_code == 200
+        interfaces.library.validate_one_span(
+            self.r, validator=_assert_redaction_scenario(self.scenario), full_trace=True
+        )
+        # The tool call buried in the history keeps parseable arguments, like any other tool call.
+        arguments = _resolve_path(self.scenario["expected_messages"], "messages[2].tool_calls[0].function.arguments")
+        assert isinstance(arguments, str), "The tool call arguments should resolve to a string"
+        json.loads(arguments)
+
+    def setup_redact_historical_tool_call(self):
+        self.scenario, self.r = _post_redaction_scenario("REDACT_HISTORICAL_TOOL_CALL")
+
+    def test_redact_historical_tool_call(self):
+        """A tool call and its result several turns back are redacted while the latest message is benign."""
+        assert self.r.status_code == 200
+        interfaces.library.validate_one_span(
+            self.r, validator=_assert_redaction_scenario(self.scenario), full_trace=True
+        )
+
+    def setup_redact_history_content_part(self):
+        self.scenario, self.r = _post_redaction_scenario("REDACT_HISTORY_CONTENT_PART")
+
+    def test_redact_history_content_part(self):
+        """A content part nested in a historical multimodal message resolves like any other path."""
+        assert self.r.status_code == 200
+        interfaces.library.validate_one_span(
+            self.r, validator=_assert_redaction_scenario(self.scenario), full_trace=True
+        )
+
+    def setup_redact_deep_history(self):
+        self.scenario, self.r = _post_redaction_scenario("REDACT_DEEP_HISTORY")
+
+    def test_redact_deep_history(self):
+        """Four replacements at non-contiguous indexes of an eight-message conversation.
+
+        Every redacted message has a benign neighbour on both sides, so an off-by-one or a
+        partially applied loop shows up as a mismatch rather than passing by coincidence.
+        """
+        assert self.r.status_code == 200
+        interfaces.library.validate_one_span(
+            self.r, validator=_assert_redaction_scenario(self.scenario), full_trace=True
+        )
+
+    def setup_redact_same_value_across_turns(self):
+        self.scenario, self.r = _post_redaction_scenario("REDACT_SAME_VALUE_ACROSS_TURNS")
+
+    def test_redact_same_value_across_turns(self):
+        """The same value restated in a later turn gets one entry per path, each applied on its own."""
+        assert self.r.status_code == 200
+        interfaces.library.validate_one_span(
+            self.r, validator=_assert_redaction_scenario(self.scenario), full_trace=True
+        )
+
+    def setup_redact_paths_are_request_local(self):
+        self.turn_1, self.r1 = _post_redaction_scenario("REDACT_TURN_1")
+        self.turn_2, self.r2 = _post_redaction_scenario("REDACT_HISTORY_AND_LATEST")
+        self.reordered, self.r3 = _post_redaction_scenario("REDACT_REORDERED_CONTEXT")
+
+    def test_redact_paths_are_request_local(self):
+        """Three calls of a growing then reordered conversation, each redacted from its own response.
+
+        Paths are local to the request they came in: the reordered call sends the same strings at
+        swapped indexes, so a tracer reusing the previous response's paths would write the SSN
+        replacement over the email message and vice versa.
+        """
+        for response, scenario in ((self.r1, self.turn_1), (self.r2, self.turn_2), (self.r3, self.reordered)):
+            assert response.status_code == 200
+            interfaces.library.validate_one_span(
+                response, validator=_assert_redaction_scenario(scenario), full_trace=True
+            )
+
+    def setup_redacted_history_in_sdk_response(self):
+        self.scenario, self.r = _post_redaction_scenario("REDACT_HISTORY_ONLY")
+
+    def test_redacted_history_in_sdk_response(self):
+        """The message list handed back to the caller, and therefore sent to the provider, has no history left.
+
+        This is the guarantee redaction exists for: no sensitive model-visible value leaves the
+        process, wherever in the conversation it sits.
+        """
+        assert self.r.status_code == 200
+        body = json.loads(self.r.text)
+        messages = _assert_key(body, "messages")
+        assert messages == self.scenario["expected_messages"], (
+            f"SDK response messages are not the redacted ones: {messages} != {self.scenario['expected_messages']}"
+        )
+        serialized = json.dumps(messages)
+        for sensitive_value in self.scenario["sensitive_values"]:
+            assert sensitive_value not in serialized, (
+                f"Sensitive value '{sensitive_value}' still present in the SDK response: {serialized}"
+            )
+
+
+@rfc("https://docs.google.com/document/d/1PYVAi9p8YzPSlmZDIwUuM0DZeRlyj5dNszOteRaUtH8/edit")
+@features.ai_guard
+@scenarios.ai_guard
 class Test_NoRedaction:
     """AI Guard leaves the payload untouched when there is nothing to redact.
 
