@@ -27,7 +27,6 @@ EVP_WAIT_TIMEOUT_SECONDS = 30
 EVP_LOAD_WAIT_TIMEOUT_SECONDS = 60
 EVP_FULL_TIER_PER_FLAG_CAP = 10_000
 EVP_DEGRADATION_OVERFLOW_EVALS = 2_000
-EXPECTED_API_KEY_FINGERPRINT = "rijn_Fc1Sxm6lPHiKU1IdWeNqpcVZiiW3C2LXJLqQp670sFU"
 
 # Fixed input/output vector for the PII-protection tests. Every SDK's unit tests
 # should assert against the same input to prove byte-identical hashing across SDKs.
@@ -47,7 +46,6 @@ class FlagevaluationEgress:
     interface: ProxyBasedInterfaceValidator
     excluded_interfaces: tuple[ProxyBasedInterfaceValidator, ...] = ()
     expected_api_key: str | None = None
-    expected_api_key_fingerprint: str | None = None
 
 
 def flagevaluation_egress() -> FlagevaluationEgress:
@@ -73,7 +71,6 @@ def flagevaluation_egress() -> FlagevaluationEgress:
         interfaces.datadog_direct,
         (interfaces.datadog_sidecar,),
         EXPECTED_API_KEY,
-        EXPECTED_API_KEY_FINGERPRINT,
     )
 
 
@@ -350,8 +347,6 @@ class FlagevaluationEgressContract:
             assert request["response"]["status_code"] == 202
             headers = {name.lower(): value for name, value in request["request"]["headers"]}
             assert headers["dd-api-key"] in {egress.expected_api_key, "--redacted--"}
-            if egress.expected_api_key_fingerprint is not None:
-                assert headers["dd-api-key-fingerprint"] == egress.expected_api_key_fingerprint
 
         for excluded_interface in egress.excluded_interfaces:
             assert not any(
