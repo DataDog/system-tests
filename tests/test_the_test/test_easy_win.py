@@ -441,17 +441,15 @@ def test_e2e_activation_does_not_crash_when_clause_has_multiple_weblogs():
         #   condition["weblog"] = ["rails70", "sinatra"]  (len == 2)
         # so is_clause=True leads to len(key_list) == 2 in the old assertion.
         (manifest_dir / "ruby.yml").write_text(
-            "\n".join(
-                [
-                    "---",
-                    "manifest:",
-                    "  tests/appsec/test_clause.py::Test_Clause:",
-                    "    - weblog_declaration:",
-                    "        'rails70, sinatra': missing_feature",
-                    "        uds-rails: missing_feature",
-                    "        other_var: v1.2.3",
-                    "",
-                ]
+            (
+                "---\n"
+                "manifest:\n"
+                "  tests/appsec/test_clause.py::Test_Clause:\n"
+                "    - weblog_declaration:\n"
+                "        'rails70, sinatra': missing_feature\n"
+                "        uds-rails: missing_feature\n"
+                "        other_var: v1.2.3\n"
+                "\n"
             ),
             encoding="utf-8",
         )
@@ -477,9 +475,7 @@ def test_e2e_activation_does_not_crash_when_clause_has_multiple_weblogs():
             "        other_var: v1.2.3\n"
             "        sinatra: missing_feature\n"
             "        rails70: v2.5.0  # TODO: a lower version might be supported\n"
-            "  tests/appsec/test_clause.py::Test_Clause::test_method2:\n"
-            "    - weblog_declaration:\n"
-            "        rails70: missing_feature"
+            "  tests/appsec/test_clause.py::Test_Clause::test_method2: missing_feature"
         )
         assert updated_manifest == expected_manifest
 

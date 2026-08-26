@@ -505,8 +505,7 @@ class ManifestEditor:
                     # split that key, remove the activated weblog, and add a new
                     # individual entry for it.
                     keys_to_split = [
-                        key for key in list(weblog_declaration)
-                        if "," in key and weblog in parse_weblogs(key)
+                        key for key in list(weblog_declaration) if "," in key and weblog in parse_weblogs(key)
                     ]
                     for key in keys_to_split:
                         original_value = weblog_declaration[key]
