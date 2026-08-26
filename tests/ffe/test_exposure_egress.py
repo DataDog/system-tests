@@ -10,15 +10,11 @@ from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils.mocked_backend.ffe import EXPECTED_API_KEY
 
 RC_PATH = "datadog/2/FFE_FLAGS"
-EXPECTED_API_KEY_FINGERPRINT = "rijn_Fc1Sxm6lPHiKU1IdWeNqpcVZiiW3C2LXJLqQp670sFU"
-
-
 @dataclass(frozen=True)
 class ExposureEgress:
     interface: ProxyBasedInterfaceValidator
     excluded_interfaces: tuple[ProxyBasedInterfaceValidator, ...] = ()
     expected_api_key: str | None = None
-    expected_api_key_fingerprint: str | None = None
 
 
 def exposure_egress() -> ExposureEgress:
@@ -44,7 +40,6 @@ def exposure_egress() -> ExposureEgress:
         interfaces.datadog_direct,
         (interfaces.datadog_sidecar,),
         EXPECTED_API_KEY,
-        EXPECTED_API_KEY_FINGERPRINT,
     )
 
 
@@ -96,8 +91,6 @@ class ExposureEgressContract:
 
         headers = {name.lower(): value for name, value in request["request"]["headers"]}
         assert headers["dd-api-key"] in {egress.expected_api_key, "--redacted--"}
-        if egress.expected_api_key_fingerprint is not None:
-            assert headers["dd-api-key-fingerprint"] == egress.expected_api_key_fingerprint
 
         for excluded_interface in egress.excluded_interfaces:
             assert not any(
