@@ -35,7 +35,6 @@ class _AllowedMarks:
     features = _pytest.mark.features
     parametrize = _pytest.mark.parametrize
     scenario = _pytest.mark.scenario
-    xfail = _pytest.mark.xfail
 
 
 mark = _AllowedMarks()
