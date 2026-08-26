@@ -4,7 +4,7 @@ root_packages =
     utils
 include_external_packages = True
 contract_types =
-    no-cross-test-imports: import_linter_contracts.NoCrossTestImportsContract
+    no-cross-test-imports: utils.format.import_linter_contracts.NoCrossTestImportsContract
 
 [importlinter:contract:pytest-facade]
 name = Tests use the approved pytest facade
