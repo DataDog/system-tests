@@ -304,7 +304,7 @@ build() {
 
                 DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
                 BASE_IMAGE_CONTEXT_ARGS=()
-                BASE_IMAGE_CONTEXTS=$(python3 utils/scripts/base_image.py --build-contexts "$DOCKERFILE")
+                BASE_IMAGE_CONTEXTS=$(python3 utils/scripts/base-image.py --build-contexts "$DOCKERFILE")
                 if [[ -n "$BASE_IMAGE_CONTEXTS" ]]; then
                     while IFS= read -r base_image_context; do
                         BASE_IMAGE_CONTEXT_ARGS+=(--build-context "$base_image_context")

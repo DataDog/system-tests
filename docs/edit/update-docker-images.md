@@ -3,7 +3,7 @@ Some of images used in system-tests are prebuild and used threw [hub.docker.com/
 For weblog base images (nodejs, python, php), publishing and consumer selection use a
 two-step lock-file workflow:
 
-1. GitLab CI's `build_base_images` job (`utils/scripts/build_base_images.py`) runs on every push, on every
+1. GitLab CI's `build_base_images` job (`utils/scripts/build-base-images.py`) runs on every push, on every
    branch. For each target in a library's `docker-bake.hcl`, it derives the target's dependencies from the
    `COPY` instructions in its `<name>.base.Dockerfile` (see `docs/understand/weblogs/weblog-metadata.md`
    for the Dockerfile rules this relies on), computes a content hash of those dependencies, and, if a base
@@ -13,7 +13,7 @@ two-step lock-file workflow:
 2. After that publish job finishes, regenerate the lock and mirror artifacts:
 
    ```sh
-   python utils/scripts/build_base_images.py --update-lock
+   python utils/scripts/build-base-images.py --update-lock
    python utils/scripts/update_mirror_images.py
    ```
 

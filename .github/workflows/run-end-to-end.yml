@@ -149,7 +149,7 @@ jobs:
 
     - name: Wait for weblog base image
       if: inputs._build_weblog_base_image
-      run: python3 ./utils/scripts/wait_for_base_image.py ${{ inputs.library }} ${{ inputs.weblog }} --timeout 900 --poll-interval 30
+      run: python3 ./utils/scripts/wait-for-base-image.py ${{ inputs.library }} ${{ inputs.weblog }} --timeout 900 --poll-interval 30
 
     - name: Pull images
       uses: ./.github/actions/pull_images

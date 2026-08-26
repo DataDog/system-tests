@@ -446,7 +446,7 @@ def _changed_libraries() -> set[str] | None:
         return None
 
     changed_paths = set(diff.splitlines())
-    if changed_paths & {"utils/scripts/build_base_images.py", "utils/scripts/base_image.py"}:
+    if changed_paths & {"utils/base_image/build_base_images.py", "utils/base_image/base_image.py"}:
         print("--changed-only: base-image tooling changed; processing all libraries")
         return None
 
@@ -521,7 +521,7 @@ def main() -> None:
 
     if drift:
         print("Base images are published, but the committed lock is stale. Regenerate and commit it:")
-        print("  python utils/scripts/build_base_images.py --update-lock")
+        print("  python utils/scripts/build-base-images.py --update-lock")
         sys.exit(1)
 
 

@@ -211,7 +211,7 @@ jobs:
         run: echo "${{ secrets.GITHUB_TOKEN }}" > "$RUNNER_TEMP/github_token.txt"
       - name: Wait for weblog base image
         if: matrix.weblog.build_weblog_base_image
-        run: python3 ./utils/scripts/wait_for_base_image.py ${{ inputs.library }} ${{ matrix.weblog.name }} --timeout 900 --poll-interval 30
+        run: python3 ./utils/scripts/wait-for-base-image.py ${{ inputs.library }} ${{ matrix.weblog.name }} --timeout 900 --poll-interval 30
       - name: Build weblog
         id: build
         run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ inputs.library }} -i weblog -w ${{ matrix.weblog.name }} -s --github-token-file "$RUNNER_TEMP/github_token.txt"

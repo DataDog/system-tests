@@ -11,14 +11,14 @@ import textwrap
 import pytest
 
 from utils import scenarios
-from utils.scripts import build_base_images
-from utils.scripts.base_image import (
+from utils.base_image import build_base_images
+from utils.base_image.base_image import (
     BaseImageLockError,
     base_image_contexts,
     base_image_ref,
     load_base_image_lock,
 )
-from utils.scripts.build_base_images import (
+from utils.base_image.build_base_images import (
     _changed_libraries,
     _dependency_paths,
     _files_under,
@@ -41,7 +41,7 @@ def _write_dockerfile(tmp_path: Path, content: str) -> Path:
 
 @scenarios.test_the_test
 class Test_ParseCopyDependencies:
-    """Unit tests for utils.scripts.build_base_images.parse_copy_dependencies, which derives
+    """Unit tests for utils.base_image.build_base_images.parse_copy_dependencies, which derives
     a base image's dependencies from the `COPY` instructions of its Dockerfile.
     """
 
@@ -246,7 +246,7 @@ class Test_ParseCopyDependencies:
 
 @scenarios.test_the_test
 class Test_BaseImageRef:
-    """Unit tests for utils.scripts.base_image.base_image_ref, the shared helper that detects the
+    """Unit tests for utils.base_image.base_image.base_image_ref, the shared helper that detects the
     `datadog/system-tests:<tag>` base image a weblog Dockerfile builds FROM (used by
     wait_for_base_image.py and WeblogMetaData.base_image_tag).
     """
@@ -364,7 +364,7 @@ class Test_BaseImageLock:
 
 @scenarios.test_the_test
 class Test_DependencyPaths:
-    """Unit tests for utils.scripts.build_base_images._dependency_paths, which resolves each
+    """Unit tests for utils.base_image.build_base_images._dependency_paths, which resolves each
     COPY source parsed by parse_copy_dependencies() against `context_root` (the Dockerfile's own
     directory), expanding glob wildcards along the way (see the module docstring, "Wildcard
     sources"), then flattens each match to its constituent non-gitignored files via
@@ -486,7 +486,7 @@ class Test_DependencyPaths:
 
 @scenarios.test_the_test
 class Test_FilesUnder:
-    """Unit tests for utils.scripts.build_base_images._files_under, which lists the files under
+    """Unit tests for utils.base_image.build_base_images._files_under, which lists the files under
     a dependency path that should actually be hashed/hardlinked: every git-tracked file, plus
     every untracked-but-not-gitignored file, but never anything gitignored (e.g. a locally
     installed, never-committed node_modules/ sitting under a dependency directory). Filtering is
@@ -549,7 +549,7 @@ class Test_FilesUnder:
 
 @scenarios.test_the_test
 class Test_MaterializeBuildContext:
-    """Unit tests for utils.scripts.build_base_images.materialize_build_context, which
+    """Unit tests for utils.base_image.build_base_images.materialize_build_context, which
     hardlinks every dependency (plus the Dockerfile itself) into an isolated build directory.
     """
 
@@ -608,7 +608,7 @@ class Test_MaterializeBuildContext:
 
 @scenarios.test_the_test
 class Test_ComputeHash:
-    """Unit tests for utils.scripts.build_base_images.compute_hash, which hashes the resolved
+    """Unit tests for utils.base_image.build_base_images.compute_hash, which hashes the resolved
     bake config (minus tags) together with the path and content of every file in an already
     materialized build directory (see materialize_build_context) — not a separate read of the
     dependency paths, so there is nothing git- or context_root-related to set up here.
@@ -775,7 +775,7 @@ class Test_ImageExists:
 
 @scenarios.test_the_test
 class Test_Main:
-    """Orchestration-layer tests for utils.scripts.build_base_images: the main() fail-propagation
+    """Orchestration-layer tests for utils.base_image.build_base_images: the main() fail-propagation
     path, the explicit --library check, and the --changed-only library mapping. All docker/git
     calls are mocked; no real image is built.
     """
@@ -847,7 +847,7 @@ class Test_Main:
         outputs = iter(
             [
                 subprocess.CompletedProcess([], 0, stdout="abc123\n"),
-                subprocess.CompletedProcess([], 0, stdout="utils/scripts/build_base_images.py\n"),
+                subprocess.CompletedProcess([], 0, stdout="utils/base_image/build_base_images.py\n"),
             ]
         )
         monkeypatch.setattr(build_base_images.subprocess, "run", lambda *_a, **_k: next(outputs))

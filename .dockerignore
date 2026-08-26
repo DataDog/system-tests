@@ -10,7 +10,7 @@ __pycache__
 scenario_groups.yml
 /binaries/**/.git/config
 
-# Materialized build context for utils/scripts/build_base_images.py
+# Materialized build context for utils/base_image/build_base_images.py
 /.base_image_build/
 
 # dotnet

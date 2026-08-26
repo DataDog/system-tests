@@ -451,7 +451,7 @@ mirror_images:
 # Rebuild weblog base images whose content changed.
 #
 # For every changed library with a docker-bake.hcl, computes a deterministic content-hash
-# tag per target and pushes it if missing (see utils/scripts/build_base_images.py).
+# tag per target and pushes it if missing (see utils/scripts/build-base-images.py).
 # Runs on every push, on every branch: it is idempotent (only pushes new tags, never
 # overwrites existing ones), so it is safe to build ahead of merge. Since new tags never
 # replace old ones. A stale committed base-images.lock.json makes the job fail after
@@ -476,6 +476,6 @@ build_base_images:
     # Needed by --changed-only for the merge-base (CI clones are shallow); fails open if missing.
     - git fetch origin main
   script:
-    - python utils/scripts/build_base_images.py --changed-only
+    - python utils/scripts/build-base-images.py --changed-only
   rules:
     - if: '$SCHEDULED_JOB == "" || $SCHEDULED_JOB == null'

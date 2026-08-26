@@ -2,7 +2,7 @@ from dataclasses import dataclass, replace, field
 from pathlib import Path
 import yaml
 
-from utils.scripts.base_image import base_image_ref
+from utils.base_image.base_image import base_image_ref
 from .constants import WeblogBuildMode, WeblogCategory
 
 
