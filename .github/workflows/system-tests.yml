@@ -210,7 +210,7 @@ jobs:
       - name: Export github token to a file
         run: echo "${{ secrets.GITHUB_TOKEN }}" > "$RUNNER_TEMP/github_token.txt"
       - name: Wait for weblog base image
-        if: matrix.weblog.build_weblog_base_image
+        if: github.repository == 'DataDog/system-tests'
         run: python3 ./utils/scripts/wait-for-base-image.py ${{ inputs.library }} ${{ matrix.weblog.name }} --timeout 900 --poll-interval 30
       - name: Build weblog
         id: build

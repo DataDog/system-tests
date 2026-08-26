@@ -148,7 +148,7 @@ jobs:
       run: ./build.sh -i lambda-proxy
 
     - name: Wait for weblog base image
-      if: inputs._build_weblog_base_image
+      if: github.repository == 'DataDog/system-tests'
       run: python3 ./utils/scripts/wait-for-base-image.py ${{ inputs.library }} ${{ inputs.weblog }} --timeout 900 --poll-interval 30
 
     - name: Pull images
