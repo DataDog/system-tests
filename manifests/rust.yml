@@ -421,6 +421,7 @@ manifest:
   tests/stats/test_stats.py: '>=0.4.0'
   tests/stats/test_stats.py::Test_Client_Stats::test_grpc_status_code: missing_feature (weblog does not implement grpc endpoint)
   tests/stats/test_stats.py::Test_Stats_Service_Source::test_srv_src: irrelevant (Only implemented for Java)
+  tests/test_agentless.py: missing_feature (Agentless mode (DD_AGENTLESS_ENABLED) is not implemented in dd-trace-rs; python-only for now)
   tests/test_baggage.py::Test_Baggage_Headers_Api_Datadog: incomplete_test_app (/otel_drop_in_baggage_api_datadog endpoint not implemented)
   tests/test_baggage.py::Test_Baggage_Headers_Api_OTel: incomplete_test_app (/otel_drop_in_baggage_api_otel endpoint not implemented)
   tests/test_baggage.py::Test_Baggage_Headers_Max_Bytes: missing_feature (baggage maximum size is not configurable)
