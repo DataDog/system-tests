@@ -232,6 +232,13 @@ manifest:
     - declaration: incomplete_test_app
     - declaration: incomplete_test_app (/trace/config endpoint is not implemented)
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_attribute_mapping: incomplete_test_app (/trace/config endpoint is not implemented)
+  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_deployment_environment_mapping:
+    - declaration: missing_feature (deployment.environment.name mapping is not released)
+      component_version: '<0.5.3-dev'
+    - declaration: incomplete_test_app (/trace/config endpoint is not implemented)
+  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_deployment_environment_mapping_on_span:
+    - declaration: missing_feature (deployment.environment.name mapping is not released)
+      component_version: '<0.5.3-dev'
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_env_vars_set: incomplete_test_app (/trace/config endpoint is not implemented)
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_log_level_env: incomplete_test_app (/trace/config endpoint is not implemented)
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_sdk_disabled_set: incomplete_test_app (/trace/config endpoint is not implemented)

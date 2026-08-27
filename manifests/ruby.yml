@@ -2470,6 +2470,12 @@ manifest:
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_otel_enabled_takes_precedence: missing_feature (does not support enabling opentelemetry via DD_TRACE_OTEL_ENABLED)
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_false: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_true: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
+  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_deployment_environment_mapping:
+    - declaration: missing_feature (deployment.environment.name mapping is not released)
+      component_version: '<2.42.0-dev'
+  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_deployment_environment_mapping_on_span:
+    - declaration: missing_feature (deployment.environment.name mapping is not released)
+      component_version: '<2.42.0-dev'
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_log_level_env: missing_feature (DD_LOG_LEVEL is not supported in ruby)
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_sdk_disabled_set: missing_feature (does not support enabling opentelemetry via DD_TRACE_OTEL_ENABLED)
   tests/parametric/test_otel_logs.py: '>=2.34.0-dev'

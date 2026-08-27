@@ -988,6 +988,12 @@ manifest:
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: v2.53.0
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_false: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_true: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
+  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_deployment_environment_mapping:
+    - declaration: missing_feature (deployment.environment.name mapping is not released)
+      component_version: '<3.53.0'
+  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_deployment_environment_mapping_on_span:
+    - declaration: missing_feature (deployment.environment.name mapping is not released)
+      component_version: '<3.53.0'
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_log_level_env: missing_feature (DD_LOG_LEVEL is not supported in .NET)
   tests/parametric/test_otel_logs.py: '>=3.36.0'  # Modified by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR01_Enable_OTLP_Log_Collection::test_otlp_logs_enabled: missing_feature  # Created by easy win activation script
