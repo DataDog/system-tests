@@ -622,12 +622,16 @@ SCENARIOS: dict[str, dict] = {
         "expect_redacted": True,
     },
     "REDACT_EVERY_ROLE_IN_HISTORY": {
-        "description": "One replacement per role: system, historical user, tool call, tool result and latest user.",
+        "description": (
+            "One replacement per model-visible surface: system, historical user, historical assistant "
+            "content, tool call arguments, tool result and latest user."
+        ),
         "messages": [
             {"role": "system", "content": "You are a bank assistant. Escalate to ops@acme.io if needed."},
             {"role": "user", "content": "My SSN is 123-45-6789, check my account."},
             {
                 "role": "assistant",
+                "content": "Looking it up. I also have the SSN 987-65-4321 on file for you.",
                 "tool_calls": [
                     {"id": "call_1", "function": {"name": "get_account", "arguments": '{"phone":"415-555-0132"}'}}
                 ],
@@ -638,6 +642,10 @@ SCENARIOS: dict[str, dict] = {
         "targets": [
             ("messages[0].content", [("ops@acme.io", "email")]),
             ("messages[1].content", [("123-45-6789", "ssn")]),
+            # Both assistant surfaces in one historical message. An assistant reply is otherwise only
+            # covered as the latest message (REDACT_ASSISTANT_RESPONSE), so without this a tracer
+            # could skip historical assistant content and still pass every other scenario.
+            ("messages[2].content", [("987-65-4321", "ssn")]),
             ("messages[2].tool_calls[0].function.arguments", [("415-555-0132", "phone")]),
             ("messages[3].content", [("000123456789", "bank")]),
             ("messages[4].content", [("4111-1111-1111-1111", "credit_card")]),
@@ -645,6 +653,7 @@ SCENARIOS: dict[str, dict] = {
         "expect_removed": [
             "ops@acme.io",
             "123-45-6789",
+            "987-65-4321",
             "415-555-0132",
             "000123456789",
             "4111-1111-1111-1111",

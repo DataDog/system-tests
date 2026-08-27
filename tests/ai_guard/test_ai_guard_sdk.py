@@ -796,10 +796,16 @@ class Test_RedactionMultiTurnContext:
     therefore carry entries for system, historical user, assistant and tool messages as well as
     the latest one, and the tracer must apply all of them.
 
-    This matters because redaction is copy-on-write: the tracer sends a redacted copy to the
-    provider and leaves the customer-owned list alone, so an earlier message still holds its
-    original value on the next turn. A tracer that only redacted the latest message would pass
-    every other redaction test here and still leak the whole history to the provider on turn 2.
+    This matters because redaction is copy-on-write: the tracer redacts a copy and forwards that
+    to the provider, so the caller's own list still holds the original value and resends it on the
+    next turn. A tracer that only redacted the latest message would pass every other redaction test
+    here and still leak the whole history to the provider on turn 2.
+
+    Scope: these tests assert what the tracer sends and reports for one call at a time. The other
+    half of copy-on-write, that the caller's list is never mutated in place, is deliberately not
+    asserted here: every weblog deserializes a fresh list per request, so an in-place mutation is
+    invisible to them. Covering it needs a weblog endpoint that holds one list across turns and
+    echoes the original back.
     """
 
     def setup_redact_history_and_latest(self):
@@ -830,7 +836,12 @@ class Test_RedactionMultiTurnContext:
         self.scenario, self.r = _post_redaction_scenario("REDACT_EVERY_ROLE_IN_HISTORY")
 
     def test_redact_every_role_in_history(self):
-        """One replacement per role: system, historical user, tool call arguments, tool result, latest user."""
+        """One replacement per model-visible surface of a single call.
+
+        System, historical user, historical assistant content, that same assistant message's tool
+        call arguments, tool result and latest user. Historical assistant content is the surface
+        REDACT_ASSISTANT_RESPONSE cannot cover: there the assistant reply is the latest message.
+        """
         assert self.r.status_code == 200
         interfaces.library.validate_one_span(
             self.r, validator=_assert_redaction_scenario(self.scenario), full_trace=True

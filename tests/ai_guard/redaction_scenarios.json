@@ -1152,7 +1152,7 @@
     "cassette": "aiguard_evaluate_post_cd60ada5.json"
   },
   "REDACT_EVERY_ROLE_IN_HISTORY": {
-    "description": "One replacement per role: system, historical user, tool call, tool result and latest user.",
+    "description": "One replacement per model-visible surface: system, historical user, historical assistant content, tool call arguments, tool result and latest user.",
     "action": "ALLOW",
     "messages": [
       {
@@ -1165,6 +1165,7 @@
       },
       {
         "role": "assistant",
+        "content": "Looking it up. I also have the SSN 987-65-4321 on file for you.",
         "tool_calls": [
           {
             "id": "call_1",
@@ -1195,6 +1196,10 @@
         "replacement": "My SSN is <REDACTED>, check my account."
       },
       {
+        "path": "messages[2].content",
+        "replacement": "Looking it up. I also have the SSN <REDACTED> on file for you."
+      },
+      {
         "path": "messages[2].tool_calls[0].function.arguments",
         "replacement": "{\"phone\":\"<REDACTED>\"}"
       },
@@ -1218,6 +1223,7 @@
       },
       {
         "role": "assistant",
+        "content": "Looking it up. I also have the SSN <REDACTED> on file for you.",
         "tool_calls": [
           {
             "id": "call_1",
@@ -1242,6 +1248,7 @@
     "sensitive_values": [
       "ops@acme.io",
       "123-45-6789",
+      "987-65-4321",
       "415-555-0132",
       "000123456789",
       "4111-1111-1111-1111"
@@ -1266,6 +1273,16 @@
           "path": "messages[1].content",
           "start_index": 10,
           "end_index_exclusive": 21
+        }
+      },
+      {
+        "rule_display_name": "US Social Security Number Scanner",
+        "rule_tag": "us_ssn",
+        "category": "ssn",
+        "location": {
+          "path": "messages[2].content",
+          "start_index": 35,
+          "end_index_exclusive": 46
         }
       },
       {
@@ -1299,7 +1316,7 @@
         }
       }
     ],
-    "cassette": "aiguard_evaluate_post_d7bf6a54.json"
+    "cassette": "aiguard_evaluate_post_55c3d321.json"
   },
   "REDACT_HISTORICAL_TOOL_CALL": {
     "description": "A historical tool call and its result are redacted while the latest message is benign.",
