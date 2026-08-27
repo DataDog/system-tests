@@ -2,7 +2,11 @@
 
 from dataclasses import dataclass
 
-from tests.ffe.utils.exposures import assert_exposure_side_effects_contract, exposure_events_from_data
+from tests.ffe.utils.exposures import (
+    EXPOSURE_WAIT_TIMEOUT_SECONDS,
+    assert_exposure_side_effects_contract,
+    exposure_events_from_data,
+)
 from tests.ffe.utils.fixtures import make_ufc_fixture
 from utils import context, features, interfaces, remote_config as rc, scenarios, weblog
 from utils._context._scenarios.agentless_endtoend import FeatureFlaggingAgentlessEndToEndScenario
@@ -71,6 +75,14 @@ class ExposureEgressContract:
             )
             for _ in range(5)
         ]
+
+        # Agentless targets are stopped immediately after setup, before test assertions run.
+        # Keep the target alive until buffered SDK writers have flushed to the selected route.
+        egress = exposure_egress()
+        assert egress.interface.wait_for(
+            lambda data: bool(exposure_events_from_data(data, {self.flag_key}, self.targeting_key)),
+            timeout=EXPOSURE_WAIT_TIMEOUT_SECONDS,
+        ), f"Timed out waiting for exposure event for {self.flag_key!r} and {self.targeting_key!r}"
 
     def test_exposure_egress(self) -> None:
         egress = exposure_egress()

@@ -26,7 +26,12 @@ RUN --mount=type=cache,target=${GOMODCACHE}                                     
 
 FROM golang:1.25-alpine
 
-RUN apk add --no-cache curl bash gcc musl-dev
+RUN apk add --no-cache curl bash gcc musl-dev ca-certificates
+
+# Agentless intake tests send HTTPS through the system-tests mitmproxy. Trust the
+# checked-in test CA so Go validates that intercepted TLS connection.
+COPY ./utils/proxy/.mitmproxy/mitmproxy-ca-cert.cer /usr/local/share/ca-certificates/system-tests-mitmproxy-ca.crt
+RUN update-ca-certificates
 
 COPY --from=build /app/weblog /app/weblog
 COPY --from=build /app/SYSTEM_TESTS_LIBRARY_VERSION /app/SYSTEM_TESTS_LIBRARY_VERSION
