@@ -114,7 +114,8 @@ def test_agentless_end_to_end_scenario_starts_backend_before_weblog() -> None:
         scenario._start_mock_backend()  # noqa: SLF001 - focused lifecycle test
 
         environment = scenario.weblog_infra.library_container.environment
-        assert "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE" not in environment
+        assert environment["DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED"] == "true"
+        assert environment["DD_FEATURE_FLAGS_CONFIGURATION_SOURCE"] == "agentless"
         assert "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT" not in environment
         base_url = environment["DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL"]
         assert isinstance(base_url, str)
