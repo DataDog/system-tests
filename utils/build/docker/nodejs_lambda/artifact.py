@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 
-from utils.target_artifacts.entry_helpers import json_entry, text_entry
+from utils.target_artifacts.entry_helpers import gha_artifact_entry, text_entry
 from utils.target_artifacts.models import (
     ArtifactEntry,
     GitHubActionsArtifactReference,
@@ -28,22 +28,7 @@ class Dev:
         self,
         resolved_inputs: dict[str, GitHubActionsArtifactReference],
     ) -> tuple[ArtifactEntry]:
-        artifact = resolved_inputs["workflow_artifact"]
-        return (
-            json_entry(
-                "nodejs-lambda-github-actions-artifact.json",
-                {
-                    "archive_download_url": artifact.archive_download_url,
-                    "artifact_id": artifact.artifact_id,
-                    "artifact_name": artifact.artifact_name,
-                    "commit_sha": artifact.commit_sha,
-                    "repository": artifact.repository,
-                    "run_id": artifact.run_id,
-                    "run_url": artifact.run_url,
-                    "workflow": artifact.workflow,
-                },
-            ),
-        )
+        return (gha_artifact_entry("nodejs-lambda-github-actions-artifact.json", resolved_inputs["workflow_artifact"]),)
 
 
 class Prod:

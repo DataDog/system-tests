@@ -5,7 +5,6 @@ import os
 import sys
 from pathlib import Path
 
-from .compat import stage_legacy_dependency
 from .models import TargetArtifactError
 from .orchestrator import stage_target
 
@@ -16,24 +15,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("environment", nargs="?", default="dev", help="dev, prod, or custom")
     parser.add_argument("--binaries-dir", default=os.environ.get("BINARIES_DIR", "binaries"))
     parser.add_argument("--repo-root", default=".")
-    parser.add_argument(
-        "--compatibility",
-        action="store_true",
-        help="Route legacy dependency or overlay targets through explicit compatibility handling",
-    )
 
     args = parser.parse_args(argv)
     repo_root = Path(args.repo_root)
     binaries_dir = Path(args.binaries_dir)
 
     try:
-        if args.compatibility and stage_legacy_dependency(
-            args.target,
-            args.environment,
-            repo_root=repo_root,
-            binaries_dir=binaries_dir,
-        ):
-            return 0
         stage_target(args.target, args.environment, repo_root=repo_root, binaries_dir=binaries_dir)
     except TargetArtifactError as exc:
         sys.stderr.write(f"{exc}\n")

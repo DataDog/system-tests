@@ -179,7 +179,7 @@ class Test_LoadBinaryC:
         assert result.returncode != 0
         assert "Unable to resolve OCI digest" in result.stderr
 
-    def test_agent_dependency_uses_explicit_compatibility_path(self, tmp_path: Path) -> None:
+    def test_agent_dependency_uses_target_artifact_staging(self, tmp_path: Path) -> None:
         result = _run_loader(
             tmp_path,
             "dev",
@@ -193,7 +193,7 @@ class Test_LoadBinaryC:
         manifest = json.loads((binaries_dir / MANIFEST_FILENAME).read_text(encoding="utf-8"))
         assert manifest["entries"]["agent-image"]["owner"] == {
             "target": "agent",
-            "environment": "dependency",
+            "environment": "dev",
         }
 
     def test_waf_rule_set_overlay_stays_outside_target_manifest(self, tmp_path: Path) -> None:

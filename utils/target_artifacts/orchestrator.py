@@ -7,7 +7,6 @@ import os
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from .env import load_environment
 from .models import (
     ArtifactEntry,
     TargetArtifactEnvironment,
@@ -28,15 +27,12 @@ def stage_target(
     repo_root: Path | None = None,
     binaries_dir: Path | None = None,
     process_env: dict[str, str] | None = None,
-    load_dotenv: bool = True,
 ) -> None:
     root = Path.cwd() if repo_root is None else repo_root
     output_dir = Path(os.environ.get("BINARIES_DIR", "binaries")) if binaries_dir is None else binaries_dir
     output_dir = output_dir if output_dir.is_absolute() else root / output_dir
 
     env = dict(os.environ if process_env is None else process_env)
-    if load_dotenv:
-        env = load_environment(root, env)
 
     if environment == "custom":
         return

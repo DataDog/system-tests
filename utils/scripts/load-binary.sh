@@ -63,7 +63,6 @@ case "$TARGET" in
         python3 utils/scripts/stage-target-artifacts.py \
             "$TARGET" "$VERSION" \
             --binaries-dir "$BINARIES_DIR" \
-            --repo-root . \
-            --compatibility
+            --repo-root .
         ;;
 esac

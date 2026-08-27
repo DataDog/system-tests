@@ -175,36 +175,6 @@ class Test_TargetArtifactStaging:
 
         assert not binaries_dir.exists()
 
-    def test_dotenv_values_are_loaded_and_process_environment_wins(self, tmp_path: Path) -> None:
-        _write_target_module(
-            tmp_path,
-            """
-from utils.target_artifacts.entry_helpers import text_entry
-from utils.target_artifacts.resolvers import EnvResolver
-
-class Dev:
-    def artifact_inputs(self, env):
-        return (EnvResolver(name="value", variable_name="STAGED_VALUE", default_value="default"),)
-
-    def artifact_entries(self, resolved_inputs):
-        return (text_entry("value", resolved_inputs["value"].value),)
-
-class Prod(Dev):
-    pass
-""",
-        )
-        (tmp_path / ".env").write_text("STAGED_VALUE=dotenv\n", encoding="utf-8")
-
-        stage_target(
-            "fake",
-            "dev",
-            repo_root=tmp_path,
-            binaries_dir=tmp_path / "binaries",
-            process_env={"STAGED_VALUE": "process"},
-        )
-
-        assert (tmp_path / "binaries" / "value").read_text(encoding="utf-8") == "process\n"
-
     def test_manifest_refreshes_owned_files_and_preserves_other_targets(self, tmp_path: Path) -> None:
         module_path = tmp_path / "utils" / "build" / "docker" / "fake"
         module_path.mkdir(parents=True)
