@@ -1,24 +1,29 @@
 import json
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal, cast
+from typing import Literal, Protocol
 
 import pytest
 
 from utils import interfaces
 from utils._context.containers import ServerlessInitContainer, TestedContainer
 from utils.docker_fixtures._core import extra_hosts_for_environment
-from utils.mocked_backend.ffe import (
-    EXPECTED_API_KEY,
-    MockFFEAgentlessBackendServer,
-    MockFFEAgentlessBackendStatus,
-)
+from utils.mocked_backend.ffe import EXPECTED_API_KEY, MockFFEAgentlessBackendServer
 from utils.proxy.ports import ProxyPorts
+from utils.proxy.tuf import get_tuf_root_json
 
 from .core import ScenarioGroup, scenario_groups as all_scenario_groups
 from .endtoend import DdTraceEndToEndScenario
 
-if TYPE_CHECKING:
-    from utils.interfaces._core import ProxyBasedInterfaceValidator
+# Reused as the mock DD_API_KEY for agentless scenarios that don't need FFE's own mock backend.
+AGENTLESS_MOCK_API_KEY = EXPECTED_API_KEY
+
+
+class AgentlessBackendServer(Protocol):
+    """Structural type for the mock backend servers plugged into `AgentlessEndToEndScenario`."""
+
+    def reset(self) -> None: ...
+    def status(self) -> object: ...
+    def close(self) -> None: ...
 
 
 class AgentlessEndToEndScenario(DdTraceEndToEndScenario):
@@ -27,8 +32,8 @@ class AgentlessEndToEndScenario(DdTraceEndToEndScenario):
     _default_scenario_groups: tuple[ScenarioGroup, ...] = ()  # exclude those scenario from tracer_release
     _mock_backend_status_filename = "mock_agentless_backend_status.json"
 
-    _mock_backend: MockFFEAgentlessBackendServer | None = None
-    _last_mock_backend_status: MockFFEAgentlessBackendStatus | None = None
+    _mock_backend: AgentlessBackendServer | None = None
+    _last_mock_backend_status: object | None = None
 
     def __init__(
         self,
@@ -38,18 +43,60 @@ class AgentlessEndToEndScenario(DdTraceEndToEndScenario):
         weblog_env: dict[str, str | None] | None = None,
         other_weblog_containers: tuple[type[TestedContainer], ...] = (),
         scenario_groups: tuple[ScenarioGroup, ...] = (),
-        use_proxy_for_weblog: bool = False,
+        capture_direct_egress: bool = True,
+        rc_api_enabled: bool = False,
+        rc_backend_enabled: bool = False,
+        library_interface_timeout: int = 0,
     ) -> None:
+        self.capture_direct_egress = capture_direct_egress
+
+        environment: dict[str, str | None] = dict(weblog_env or {})
+        if capture_direct_egress:
+            environment.setdefault(
+                # The reserved .invalid domain fails closed if a request bypasses the proxy.
+                "DD_SITE",
+                "mock-intake.invalid",
+            )
+            environment.setdefault("DD_PROXY_HTTPS", f"http://proxy:{ProxyPorts.datadog_direct}")
+            environment.setdefault("HTTPS_PROXY", f"http://proxy:{ProxyPorts.datadog_direct}")
+
+        weblog_volumes: dict | None = None
+        if capture_direct_egress:
+            # The weblog talks HTTPS directly to the proxy (CONNECT tunnel), which
+            # terminates TLS with the mitmproxy CA -- same trust anchor already
+            # mounted into AgentContainer (utils/_context/containers.py) for its
+            # own HTTP_PROXY-based backend traffic.
+            weblog_volumes = {
+                "./utils/build/docker/agent/ca-certificates.crt": {
+                    "bind": "/etc/ssl/certs/ca-certificates.crt",
+                    "mode": "ro",
+                },
+            }
+
+        if rc_backend_enabled:
+            # The native agentless RC client only trusts Datadog's real embedded
+            # production/staging/gov TUF roots by default, so it would never trust the
+            # mocked backend's test-signed response without this override -- mirrors the
+            # same env vars/root JSON already used to make the real Agent trust the test
+            # TUF key (utils/_context/containers.py::AgentContainer.__init__).
+            tuf_root_json = get_tuf_root_json()
+            environment.setdefault("DD_REMOTE_CONFIGURATION_ENABLED", "true")
+            environment.setdefault("DD_REMOTE_CONFIGURATION_CONFIG_ROOT", tuf_root_json)
+            environment.setdefault("DD_REMOTE_CONFIGURATION_DIRECTOR_ROOT", tuf_root_json)
+
         super().__init__(
             name,
             doc=doc,
             include_agent=False,
-            library_interface_timeout=0,
+            library_interface_timeout=library_interface_timeout,
             other_weblog_containers=other_weblog_containers,
             scenario_groups=[*scenario_groups, all_scenario_groups.agentless],
             use_proxy_for_agent=False,
-            use_proxy_for_weblog=use_proxy_for_weblog,
-            weblog_env=weblog_env,
+            use_proxy_for_weblog=capture_direct_egress,
+            rc_api_enabled=rc_api_enabled,
+            rc_backend_enabled=rc_backend_enabled,
+            weblog_env=environment,
+            weblog_volumes=weblog_volumes,
         )
 
     def configure(self, config: pytest.Config) -> None:
@@ -61,24 +108,36 @@ class AgentlessEndToEndScenario(DdTraceEndToEndScenario):
                 self._start_mock_backend()
 
             super().configure(config)
+
+            if self.capture_direct_egress:
+                interfaces.datadog_direct.configure(self.host_log_folder, replay=self.replay)
         except BaseException:
             self._stop_mock_backend(persist_status=False)
             raise
 
+    def _wait_for_app_readiness(self) -> None:
+        if self.capture_direct_egress:
+            # Agentless mode never sends agent-facing traffic (/v0.4/traces, etc.), so
+            # interfaces.library.ready (set only by such traffic) would never fire here.
+            # The weblog container's own healthcheck already confirms it's up.
+            return
+        super()._wait_for_app_readiness()
+
+    def _create_mock_backend(self) -> AgentlessBackendServer | None:
+        """Override in subclasses that need a mock agentless config/data backend."""
+        return None
+
     def _start_mock_backend(self) -> None:
-        assert self._mock_backend is None, "mock FFE agentless backend is already running"
+        assert self._mock_backend is None, "mock agentless backend is already running"
 
-        self._mock_backend = MockFFEAgentlessBackendServer()
-        self._mock_backend.reset()
+        backend = self._create_mock_backend()
+        if backend is None:
+            return
 
-        environment = self.weblog_infra.library_container.environment
-        environment |= {
-            "DD_API_KEY": EXPECTED_API_KEY,
-            "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL": self._mock_backend.library_config_url,
-        }
-        self.weblog_infra.library_container.extra_hosts = extra_hosts_for_environment(environment)
+        self._mock_backend = backend
+        backend.reset()
 
-    def mock_backend_status(self) -> MockFFEAgentlessBackendStatus | None:
+    def mock_backend_status(self) -> object | None:
         if self._mock_backend is not None:
             return self._mock_backend.status()
         return self._last_mock_backend_status
@@ -88,10 +147,7 @@ class AgentlessEndToEndScenario(DdTraceEndToEndScenario):
         return Path(self.host_log_folder) / self._mock_backend_status_filename
 
     def _load_mock_backend_status(self) -> None:
-        self._last_mock_backend_status = cast(
-            "MockFFEAgentlessBackendStatus",
-            json.loads(self._mock_backend_status_path.read_text(encoding="utf-8")),
-        )
+        self._last_mock_backend_status = json.loads(self._mock_backend_status_path.read_text(encoding="utf-8"))
 
     def _stop_mock_backend(self, *, persist_status: bool = True) -> None:
         backend = self._mock_backend
@@ -115,6 +171,21 @@ class AgentlessEndToEndScenario(DdTraceEndToEndScenario):
             super().close_targets()
         finally:
             self._stop_mock_backend()
+
+    def _start_interfaces_watchdog(self) -> None:
+        super()._start_interfaces_watchdog()
+        if self.capture_direct_egress:
+            self.start_interfaces_watchdog([interfaces.datadog_direct])
+
+    def _wait_and_stop_containers(self, *, is_empty_test_run: bool) -> None:
+        super()._wait_and_stop_containers(is_empty_test_run=is_empty_test_run)
+        if not self.capture_direct_egress:
+            return
+
+        if self.replay:
+            interfaces.datadog_direct.load_data_from_logs()
+
+        interfaces.datadog_direct.check_deserialization_errors()
 
 
 class FeatureFlaggingAgentlessEndToEndScenario(AgentlessEndToEndScenario):
@@ -142,14 +213,6 @@ class FeatureFlaggingAgentlessEndToEndScenario(AgentlessEndToEndScenario):
         environment.update(weblog_env or {})
 
         other_weblog_containers: tuple[type[TestedContainer], ...] = ()
-        if exposure_egress is not None:
-            environment |= {
-                # The reserved .invalid domain fails closed if a request bypasses the proxy.
-                "DD_SITE": "mock-intake.invalid",
-                "DD_PROXY_HTTPS": f"http://proxy:{ProxyPorts.datadog_direct}",
-                "HTTPS_PROXY": f"http://proxy:{ProxyPorts.datadog_direct}",
-            }
-
         if exposure_egress == "sidecar":
             serverless_init_port = str(ServerlessInitContainer.apm_receiver_port)
             environment |= {
@@ -164,7 +227,7 @@ class FeatureFlaggingAgentlessEndToEndScenario(AgentlessEndToEndScenario):
             doc=doc,
             other_weblog_containers=other_weblog_containers,
             scenario_groups=(all_scenario_groups.ffe,),
-            use_proxy_for_weblog=exposure_egress is not None,
+            capture_direct_egress=exposure_egress is not None,
             weblog_env=environment,
         )
 
@@ -174,12 +237,26 @@ class FeatureFlaggingAgentlessEndToEndScenario(AgentlessEndToEndScenario):
             for env_name in ("DD_AGENT_HOST", "DD_DOGSTATSD_HOST", "DD_TRACE_AGENT_PORT", "DD_TRACE_AGENT_URL"):
                 self.weblog_infra.library_container.environment.pop(env_name, None)
 
+    def _create_mock_backend(self) -> MockFFEAgentlessBackendServer:
+        return MockFFEAgentlessBackendServer()
+
+    def _start_mock_backend(self) -> None:
+        super()._start_mock_backend()
+        backend = self._mock_backend
+        assert isinstance(backend, MockFFEAgentlessBackendServer)
+
+        environment = self.weblog_infra.library_container.environment
+        environment |= {
+            "DD_API_KEY": EXPECTED_API_KEY,
+            "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL": backend.library_config_url,
+        }
+        self.weblog_infra.library_container.extra_hosts = extra_hosts_for_environment(environment)
+
     def configure(self, config: pytest.Config) -> None:
         try:
             super().configure(config)
             if self.exposure_egress is not None:
                 interfaces.datadog_sidecar.configure(self.host_log_folder, replay=self.replay)
-                interfaces.datadog_direct.configure(self.host_log_folder, replay=self.replay)
         except BaseException:
             self._stop_mock_backend(persist_status=False)
             raise
@@ -199,7 +276,7 @@ class FeatureFlaggingAgentlessEndToEndScenario(AgentlessEndToEndScenario):
     def _start_interfaces_watchdog(self) -> None:
         super()._start_interfaces_watchdog()
         if self.exposure_egress is not None:
-            self.start_interfaces_watchdog([interfaces.datadog_sidecar, interfaces.datadog_direct])
+            self.start_interfaces_watchdog([interfaces.datadog_sidecar])
 
     def _wait_for_app_readiness(self) -> None:
         if self.exposure_egress is not None:
@@ -217,18 +294,8 @@ class FeatureFlaggingAgentlessEndToEndScenario(AgentlessEndToEndScenario):
             return
 
         if self.replay:
-            self._load_telemetry_interfaces()
+            interfaces.datadog_sidecar.load_data_from_logs()
         elif self.exposure_egress == "sidecar":
             self.serverless_init_container.stop()
 
         interfaces.datadog_sidecar.check_deserialization_errors()
-        interfaces.datadog_direct.check_deserialization_errors()
-
-    @staticmethod
-    def _load_telemetry_interfaces() -> None:
-        telemetry_interfaces: tuple[ProxyBasedInterfaceValidator, ...] = (
-            interfaces.datadog_sidecar,
-            interfaces.datadog_direct,
-        )
-        for interface in telemetry_interfaces:
-            interface.load_data_from_logs()
