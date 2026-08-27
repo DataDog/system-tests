@@ -30,6 +30,18 @@ def _headers(request: dict) -> dict[str, str]:
     return {name.lower(): value for name, value in request["request"]["headers"]}
 
 
+def _assert_headers(headers: dict[str, str], *, exact: dict[str, str], present: tuple[str, ...]) -> None:
+    """Assert exact values for deterministic headers and mere presence for value-varying ones."""
+    for name, value in exact.items():
+        assert headers.get(name) == value, f"header {name!r}: expected {value!r}, got {headers.get(name)!r}"
+    for name in present:
+        assert name in headers, f"missing required header {name!r}"
+
+
+def _assert_api_key(headers: dict[str, str]) -> None:
+    assert headers["dd-api-key"] in {AGENTLESS_MOCK_API_KEY, "--redacted--"}
+
+
 def _requests_at(host: str, path: str) -> list[dict]:
     return [data for data in interfaces.datadog_direct.get_data(path) if data["host"] == host]
 
@@ -74,7 +86,25 @@ class Test_Agentless_Trace_Submission:
         assert request["response"]["status_code"] // 100 == 2
 
         headers = _headers(request)
-        assert headers["dd-api-key"] in {AGENTLESS_MOCK_API_KEY, "--redacted--"}
+        _assert_api_key(headers)
+        _assert_headers(
+            headers,
+            exact={
+                "content-type": "application/json",
+                "datadog-meta-lang": "python",
+                "datadog-meta-lang-interpreter": "CPython",
+                "datadog-client-computed-top-level": "true",
+            },
+            present=(
+                "user-agent",
+                "datadog-meta-lang-version",
+                "datadog-meta-tracer-version",
+                "datadog-entity-id",
+                "x-datadog-trace-count",
+                "content-length",
+            ),
+        )
+        assert headers["user-agent"].startswith("Tracer/")
 
         content = request["request"]["content"]
         assert content, "Trace submission request body is empty"
@@ -106,7 +136,26 @@ class Test_Agentless_Stats:
         assert request["response"]["status_code"] // 100 == 2
 
         headers = _headers(request)
-        assert headers["dd-api-key"] in {AGENTLESS_MOCK_API_KEY, "--redacted--"}
+        _assert_api_key(headers)
+        _assert_headers(
+            headers,
+            exact={
+                "content-type": "application/msgpack",
+                "datadog-meta-lang": "python",
+                "datadog-meta-lang-interpreter": "CPython",
+            },
+            present=(
+                "user-agent",
+                "datadog-meta-lang-version",
+                "datadog-meta-tracer-version",
+                "datadog-entity-id",
+                "content-length",
+            ),
+        )
+        assert headers["user-agent"].startswith("Tracer/")
+        # Stats has no top-level-computed/trace-count headers: those are trace-submission-only.
+        assert "datadog-client-computed-top-level" not in headers
+        assert "x-datadog-trace-count" not in headers
 
         content = request["request"]["content"]
         assert content["AgentHostname"] == "weblog"
@@ -155,5 +204,12 @@ class Test_Agentless_Remote_Config:
         assert request["method"] == "POST"
 
         headers = _headers(request)
-        assert headers["dd-api-key"] in {AGENTLESS_MOCK_API_KEY, "--redacted--"}
-        assert headers.get("content-type") == "application/x-protobuf"
+        _assert_api_key(headers)
+        _assert_headers(
+            headers,
+            exact={"content-type": "application/x-protobuf"},
+            present=("user-agent", "datadog-entity-id", "content-length"),
+        )
+        # The native RC client is driven by libdatadog directly, not the Python-level tracer,
+        # so it identifies itself distinctly (no datadog-meta-lang-* headers, unlike traces/stats).
+        assert headers["user-agent"].startswith("Libdatadog/")

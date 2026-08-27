@@ -4,14 +4,17 @@
 
 """Dynamic Instrumentation (probe upload/logs/snapshots) and Symbol DB, without a Datadog Agent.
 
-Endpoints/shapes here are derived from reading the dd-trace-py/libdatadog source on the
-(unmerged) `bob/agentless-setting` branch, not from live-captured traffic - see
-tests/debugger/utils.py::AgentlessBaseDebuggerTest and
+Endpoints and header shapes below were confirmed against a live weblog build of the
+(unmerged) `bob/agentless-setting` branch of dd-trace-py: logs/snapshots, diagnostics, and
+Symbol DB all share the same agentless debugger intake path and `dd-evp-origin: agent-debugger`
+header - the native client doesn't distinguish sub-features via evp-origin the way agent-mode
+does. See tests/debugger/utils.py::AgentlessBaseDebuggerTest and
 utils/_context/_scenarios/debugger_agentless.py for the scenario/interface wiring.
 """
 
 import tests.debugger.utils as debugger
 from utils import features, scenarios
+from utils._context._scenarios.agentless_endtoend import AGENTLESS_MOCK_API_KEY
 
 
 @features.debugger
@@ -57,7 +60,11 @@ class Test_Agentless_Debugger_Probe_Snapshot(debugger.AgentlessBaseDebuggerTest)
         request = requests[-1]
         assert request["host"] == "debugger-intake.mock-intake.invalid"
         headers = {name.lower(): value for name, value in request["request"]["headers"]}
-        assert "dd-api-key" in headers
+        assert headers["dd-api-key"] in {AGENTLESS_MOCK_API_KEY, "--redacted--"}
+        assert headers["dd-evp-origin"] == "agent-debugger"
+        assert headers["content-type"].startswith("multipart/form-data")
+        assert headers["user-agent"].startswith("Tracer/")
+        assert "datadog-entity-id" in headers
 
 
 @features.debugger_symdb
@@ -88,4 +95,10 @@ class Test_Agentless_SymbolDB(debugger.AgentlessBaseDebuggerTest):
         requests = list(self._symbols_interface.get_data(self._symbols_path))
         assert len(requests) > 0, f"No request captured on {self._symbols_path}"
         headers = {name.lower(): value for name, value in requests[-1]["request"]["headers"]}
-        assert "dd-api-key" in headers
+        assert headers["dd-api-key"] in {AGENTLESS_MOCK_API_KEY, "--redacted--"}
+        # Symbol DB shares the same debugger intake path/evp-origin as logs/snapshots/diagnostics -
+        # the native client doesn't distinguish sub-features via dd-evp-origin.
+        assert headers["dd-evp-origin"] == "agent-debugger"
+        assert headers["content-type"].startswith("multipart/form-data")
+        assert headers["user-agent"].startswith("Tracer/")
+        assert "datadog-entity-id" in headers
