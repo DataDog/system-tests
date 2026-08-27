@@ -1,8 +1,11 @@
 """Direct-to-intake delivery (DD_AGENTLESS_ENABLED), without a Datadog Agent.
 
-Endpoints below are derived from reading the tracer/libdatadog source on the (unmerged)
-`bob/agentless-setting` branch of dd-trace-py, not from live-captured traffic. Re-confirm
-against real proxy captures once the branch is buildable in this environment; see
+Endpoints and payload shapes below were confirmed against a live weblog build of the
+(unmerged) `bob/agentless-setting` branch of dd-trace-py: trace submission is plain JSON
+(not the msgpack v0.4 format `interfaces.agent.get_spans_list()` parses), keyed by
+`traces[].spans[]`, each span using the same field names as the agent-relayed format;
+stats submission reuses the msgpack `ClientStatsPayload` shape byte-for-byte. Re-confirm
+against real proxy captures if the branch's wire format changes before it merges; see
 utils/_context/_scenarios/agentless_endtoend.py and debugger_agentless.py for the scenario setup.
 """
 
@@ -20,6 +23,8 @@ STATS_HOST = "trace.agent.mock-intake.invalid"
 RC_CONFIGURATIONS_PATH = "/api/v0.1/configurations"
 RC_HOST = "config.mock-intake.invalid"
 
+ROOT_SPAN_RESOURCE = "GET /"
+
 
 def _headers(request: dict) -> dict[str, str]:
     return {name.lower(): value for name, value in request["request"]["headers"]}
@@ -27,6 +32,28 @@ def _headers(request: dict) -> dict[str, str]:
 
 def _requests_at(host: str, path: str) -> list[dict]:
     return [data for data in interfaces.datadog_direct.get_data(path) if data["host"] == host]
+
+
+def _find_root_span(resource: str) -> dict | None:
+    """Search every captured trace-submission request for a root span with this resource."""
+    for request in _requests_at(TRACE_SUBMISSION_HOST, TRACE_SUBMISSION_PATH):
+        for trace in request["request"]["content"].get("traces", []):
+            for span in trace.get("spans", []):
+                if span.get("parent_id") == "0000000000000000" and span.get("resource") == resource:
+                    return span
+    return None
+
+
+def _find_stats_entry(resource: str) -> dict | None:
+    """Search every captured stats request for a bucket entry with this resource."""
+    for request in _requests_at(STATS_HOST, STATS_PATH):
+        content = request["request"]["content"]
+        for payload in content.get("Stats", []):
+            for bucket in payload.get("Stats", []):
+                for entry in bucket.get("Stats", []):
+                    if entry.get("Resource") == resource:
+                        return entry
+    return None
 
 
 @scenarios.apm_tracing_agentless
@@ -52,6 +79,14 @@ class Test_Agentless_Trace_Submission:
         content = request["request"]["content"]
         assert content, "Trace submission request body is empty"
 
+        span = _find_root_span(ROOT_SPAN_RESOURCE)
+        assert span is not None, f"No root span with resource {ROOT_SPAN_RESOURCE!r} was captured"
+        assert span["service"] == "weblog"
+        assert span["type"] == "web"
+        assert span["error"] == 0
+        assert span["meta"]["http.method"] == "GET"
+        assert span["meta"]["http.status_code"] == "200"
+
 
 @scenarios.apm_tracing_agentless
 @features.client_side_stats_supported
@@ -73,9 +108,21 @@ class Test_Agentless_Stats:
         headers = _headers(request)
         assert headers["dd-api-key"] in {AGENTLESS_MOCK_API_KEY, "--redacted--"}
 
+        content = request["request"]["content"]
+        assert content["AgentHostname"] == "weblog"
+        assert content["ClientComputed"] is True
+
         # Stats and traces are distinct payloads on distinct hosts/paths.
         trace_requests = _requests_at(TRACE_SUBMISSION_HOST, TRACE_SUBMISSION_PATH)
         assert request not in trace_requests
+
+        entry = _find_stats_entry(ROOT_SPAN_RESOURCE)
+        assert entry is not None, f"No stats entry with resource {ROOT_SPAN_RESOURCE!r} was captured"
+        assert entry["Service"] == "weblog"
+        assert entry["Type"] == "web"
+        assert entry["Hits"] >= 1
+        assert entry["TopLevelHits"] >= 1
+        assert entry["Errors"] == 0
 
 
 @scenarios.apm_tracing_agentless
