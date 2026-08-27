@@ -722,7 +722,7 @@ SCENARIOS: dict[str, dict] = {
             ("messages[0].content", [("123-45-6789", "ssn")]),
             ("messages[2].content", [("123-45-6789", "ssn")]),
         ],
-        "expect_removed": ["123-45-6789", "123-45-6789"],
+        "expect_removed": ["123-45-6789"],
         "expect_redacted": True,
     },
     # ---------------------------------------------------------------- fail-safe skips
@@ -878,7 +878,9 @@ def build_scenario(name: str, scenario: dict) -> tuple[str, str, dict]:
     # path deliberately keeps its sensitive value, so "still there" is an expectation in its own
     # right, not a value that merely escaped the check.
     serialized = json.dumps(expected_messages)
-    declared = [value for _, sensitive in targets for value, _ in sensitive]
+    # One entry per distinct value: removed/retained are substring searches over the whole
+    # payload, so a value declared at two paths would only repeat the identical assertion.
+    declared = dict.fromkeys(value for _, sensitive in targets for value, _ in sensitive)
     removed = [value for value in declared if value not in serialized]
     retained = [value for value in declared if value in serialized]
     expect_removed = scenario.get("expect_removed", [])

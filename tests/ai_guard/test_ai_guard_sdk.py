@@ -603,6 +603,28 @@ def _assert_redaction_scenario(scenario: dict):
     return validate
 
 
+def _assert_sdk_response_redacted(response: HttpResponse, scenario: dict) -> None:
+    """The messages the SDK hands back, and therefore forwards to the provider, are the redacted ones."""
+    messages = _assert_key(json.loads(response.text), "messages")
+    assert messages == scenario["expected_messages"], (
+        f"SDK response messages are not the redacted ones: {messages} != {scenario['expected_messages']}"
+    )
+    serialized = json.dumps(messages)
+    for sensitive_value in scenario["sensitive_values"]:
+        assert sensitive_value not in serialized, (
+            f"Sensitive value '{sensitive_value}' still present in the SDK response: {serialized}"
+        )
+
+
+def _assert_tool_arguments_still_parse(scenario: dict) -> None:
+    """A redacted tool call keeps arguments that still parse: the RFC requires the JSON to survive."""
+    path = next((entry["path"] for entry in scenario["replacements"] if entry["path"].endswith(".arguments")), None)
+    assert path is not None, f"Scenario redacts no tool call arguments: {scenario['replacements']}"
+    arguments = _resolve_path(scenario["expected_messages"], path)
+    assert isinstance(arguments, str), f"Path '{path}' should resolve to the arguments string"
+    json.loads(arguments)
+
+
 @rfc("https://docs.google.com/document/d/1PYVAi9p8YzPSlmZDIwUuM0DZeRlyj5dNszOteRaUtH8/edit")
 @features.ai_guard
 @scenarios.ai_guard
@@ -695,11 +717,7 @@ class Test_Redaction:
         interfaces.library.validate_one_span(
             self.r, validator=_assert_redaction_scenario(self.scenario), full_trace=True
         )
-        # The redacted arguments must still parse: the RFC requires the JSON structure to survive.
-        path = self.scenario["replacements"][0]["path"]
-        arguments = _resolve_path(self.scenario["expected_messages"], path)
-        assert isinstance(arguments, str), f"Path '{path}' should resolve to the arguments string"
-        json.loads(arguments)
+        _assert_tool_arguments_still_parse(self.scenario)
 
     def setup_redact_content_part_text(self):
         self.scenario, self.r = _post_redaction_scenario("REDACT_CONTENT_PART_TEXT")
@@ -818,9 +836,7 @@ class Test_RedactionMultiTurnContext:
             self.r, validator=_assert_redaction_scenario(self.scenario), full_trace=True
         )
         # The tool call buried in the history keeps parseable arguments, like any other tool call.
-        arguments = _resolve_path(self.scenario["expected_messages"], "messages[2].tool_calls[0].function.arguments")
-        assert isinstance(arguments, str), "The tool call arguments should resolve to a string"
-        json.loads(arguments)
+        _assert_tool_arguments_still_parse(self.scenario)
 
     def setup_redact_historical_tool_call(self):
         self.scenario, self.r = _post_redaction_scenario("REDACT_HISTORICAL_TOOL_CALL")
@@ -894,16 +910,7 @@ class Test_RedactionMultiTurnContext:
         process, wherever in the conversation it sits.
         """
         assert self.r.status_code == 200
-        body = json.loads(self.r.text)
-        messages = _assert_key(body, "messages")
-        assert messages == self.scenario["expected_messages"], (
-            f"SDK response messages are not the redacted ones: {messages} != {self.scenario['expected_messages']}"
-        )
-        serialized = json.dumps(messages)
-        for sensitive_value in self.scenario["sensitive_values"]:
-            assert sensitive_value not in serialized, (
-                f"Sensitive value '{sensitive_value}' still present in the SDK response: {serialized}"
-            )
+        _assert_sdk_response_redacted(self.r, self.scenario)
 
 
 @rfc("https://docs.google.com/document/d/1PYVAi9p8YzPSlmZDIwUuM0DZeRlyj5dNszOteRaUtH8/edit")
@@ -1124,17 +1131,7 @@ class Test_RedactedMessagesInSDKResponse:
     def test_redacted_messages_in_response(self):
         """The response messages are redacted on every path the backend asked for."""
         assert self.r.status_code == 200
-        body = json.loads(self.r.text)
-
-        messages = _assert_key(body, "messages")
-        assert messages == self.scenario["expected_messages"], (
-            f"SDK response messages are not the redacted ones: {messages} != {self.scenario['expected_messages']}"
-        )
-        serialized = json.dumps(messages)
-        for sensitive_value in self.scenario["sensitive_values"]:
-            assert sensitive_value not in serialized, (
-                f"Sensitive value '{sensitive_value}' still present in the SDK response: {serialized}"
-            )
+        _assert_sdk_response_redacted(self.r, self.scenario)
 
     def setup_unchanged_messages_in_response(self):
         self.scenario, self.r = _post_redaction_scenario("NO_REDACT_ONE_MSG")

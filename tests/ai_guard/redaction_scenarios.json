@@ -1676,7 +1676,6 @@
     ],
     "redacted": true,
     "sensitive_values": [
-      "123-45-6789",
       "123-45-6789"
     ],
     "retained_values": [],
