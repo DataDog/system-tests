@@ -764,7 +764,20 @@ manifest:
   tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Cycle: missing_feature (EX-3416)
   tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Disappears: missing_feature (EX-3416)
   tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Serial_Id: missing_feature (EX-3416)
-  tests/ffe/test_flag_eval_evp.py: missing_feature (FFL-2446)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Basic: missing_feature (FFLSDK-28)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Burst_Aggregation: missing_feature (FFLSDK-28)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Context_Bounds: missing_feature (FFLSDK-28)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Count: missing_feature (FFLSDK-28)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Degradation: missing_feature (FFLSDK-28)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Egress_Agentless_Direct: v3.53.0
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Egress_Agentless_Sidecar: v3.53.0
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Egress_Datadog_Agent: v3.53.0
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_High_Cardinality_Aggregation: missing_feature (FFLSDK-28)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Load_Aggregation: missing_feature (FFLSDK-28)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_ObserveFullData_Absent_Hashed: missing_feature (FFLSDK-28)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_ObserveFullData_False_Hashed: missing_feature (FFLSDK-28)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_ObserveFullData_True_Unhashed: missing_feature (FFLSDK-28)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Runtime_Default: missing_feature (FFLSDK-28)
   tests/ffe/test_flag_eval_metrics.py: v3.44.0
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_error: bug (MLOB-1234)
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka: v2.0.0-prerelease
