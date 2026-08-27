@@ -7,7 +7,12 @@ from utils.tools import update_environ_with_local_env
 from .aws_lambda import LambdaScenario
 from .core import Scenario, scenario_groups
 from .default import DefaultScenario
-from .agentless_endtoend import FeatureFlaggingAgentlessEndToEndScenario
+from .agentless_endtoend import (
+    AGENTLESS_MOCK_API_KEY,
+    AgentlessEndToEndScenario,
+    FeatureFlaggingAgentlessEndToEndScenario,
+)
+from .debugger_agentless import DebuggerAgentlessScenario
 from .endtoend import (
     DockerScenario,
     DdTraceEndToEndScenario,
@@ -858,6 +863,32 @@ class _Scenarios:
         "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_SERVERLESS",
         doc="Validate exposure delivery with agentless UFC and serverless-init.",
         exposure_egress="sidecar",
+    )
+
+    apm_tracing_agentless = AgentlessEndToEndScenario(
+        "APM_TRACING_AGENTLESS",
+        doc="Validate direct-to-intake trace submission, client-side stats, and Remote "
+        "Configuration when DD_AGENTLESS_ENABLED is set, without a Datadog Agent.",
+        rc_api_enabled=True,
+        rc_backend_enabled=True,
+        weblog_env={
+            "DD_AGENTLESS_ENABLED": "true",
+            "DD_API_KEY": AGENTLESS_MOCK_API_KEY,
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",
+            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "1",
+        },
+    )
+
+    debugger_agentless = DebuggerAgentlessScenario(
+        "DEBUGGER_AGENTLESS",
+        doc="Validate agentless Dynamic Instrumentation (probe upload/logs/snapshots) and "
+        "Symbol DB, without a Datadog Agent.",
+        weblog_env={
+            "DD_AGENTLESS_ENABLED": "true",
+            "DD_API_KEY": AGENTLESS_MOCK_API_KEY,
+            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "true",
+            "_DD_SYMBOL_DATABASE_FORCE_UPLOAD": "true",
+        },
     )
 
     remote_config_mocked_backend_asm_features_nocache = DdTraceEndToEndScenario(
