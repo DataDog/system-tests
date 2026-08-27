@@ -993,6 +993,19 @@ Exception during trace in backend verification
 /var/log/datadog_weblog/journalctl_docker.log
 - **Backend intake/processing** — manually locate the trace ID `{request_uuid}` in the Datadog UI (system-tests organization) and verify ingestion.
 
+**Automatic reruns**
+
+Backend verifications that fail on the *content* of the trace (`failed to validate trace_id`,
+`Could not find runtime-id`) are re-run up to twice by the CI job, on the same already-provisioned
+VM. Each rerun issues a new weblog request, and therefore checks a brand new trace: that is what
+clears these flakes, since a trace that is already complete never gains the missing tags. A run
+that needed a rerun reports `N rerun` in the pytest summary and carries a
+`dd_tags[systest.case.reruns]` tag in Test Optimization, so keep an eye on it — a test that
+regularly needs a rerun is a real problem, only a slower one.
+
+Timeouts (no trace at all) are **not** re-run: they already fail after a 5 minute poll, and
+re-running them would risk hitting the job timeout.
+
 ---
 
 ## Case 5 — Traces appear, but **Profiling** data is missing

@@ -508,6 +508,9 @@ def pytest_fixture_setup(
         _set_outcome_properties(outcome, request.node.user_properties)
 
 
+_call_attempts_key = pytest.StashKey[int]()
+
+
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo) -> Generator[None, Result, None]:  # noqa: ARG001
     # Run all other hooks to get the report object
@@ -515,6 +518,14 @@ def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo) -> Gener
     rep: pytest.TestReport = outcome.get_result()
 
     if rep.when == "call":  # only attach outcome after test call
+        # pytest-rerunfailures re-runs the call phase of a failed test, and JUnit only records the
+        # last attempt. Tag the reruns, so that a test that passed only because it was re-run stays
+        # visible in Test Optimization instead of looking cleanly green.
+        attempts = item.stash.get(_call_attempts_key, 0) + 1
+        item.stash[_call_attempts_key] = attempts
+        if attempts > 1:
+            _set_property(item.user_properties, "dd_tags[systest.case.reruns]", str(attempts - 1))
+
         # rep.outcome is one of: passed, failed, skipped
         # but json_report also distinguishes xfailed/xpassed
         # via rep.wasxfail and outcome
@@ -538,8 +549,19 @@ def _set_outcome_properties(outcome: PytestOutcome, user_properties: list[tuple]
     else:
         raise ValueError(f"Can't translate `{outcome}` into test optim final status")
 
-    user_properties.append(("dd_tags[systest.case.outcome]", outcome))
-    user_properties.append(("dd_tags[test.final_status]", final_status))
+    _set_property(user_properties, "dd_tags[systest.case.outcome]", outcome)
+    _set_property(user_properties, "dd_tags[test.final_status]", final_status)
+
+
+def _set_property(user_properties: list[tuple], key: str, value: str) -> None:
+    """Set a JUnit property, replacing any value already set for that key.
+
+    A test item can report an outcome more than once: pytest-rerunfailures re-runs the call phase
+    of a failed test on the same item. Only the last report is the real result, so properties must
+    be replaced rather than accumulated, otherwise the reports carry a property per attempt.
+    """
+    user_properties[:] = [prop for prop in user_properties if prop[0] != key]
+    user_properties.append((key, value))
 
 
 @pytest.hookimpl(optionalhook=True)
