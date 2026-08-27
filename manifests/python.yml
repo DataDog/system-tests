@@ -2446,9 +2446,12 @@ manifest:
   ? tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_Spans_Http_ErrorStatusConfiguration::test_client_error_statuses_config_overrides
   : missing_feature (DD_TRACE_HTTP_CLIENT_ERROR_STATUSES support is outside the current Python OTel semantics implementation scope)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics: 4.15.0-dev
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics::test_trace_metric_agrees_with_client_success: missing_feature (libdatadog status.code fix is not merged)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics::test_trace_metric_agrees_with_server_success: missing_feature (libdatadog status.code fix is not merged)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_SamplingRules: 4.15.0-dev
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client: 4.15.0-dev
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server: 4.15.0-dev
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_http_endpoint_retained_from_appsec: irrelevant (The AppSec endpoint retention request is specific to .NET)
   tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchanged: missing_feature (APMAPI-2171)
