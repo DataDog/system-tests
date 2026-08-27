@@ -24,6 +24,11 @@ _TRACES_PATH = "/api/v0.2/traces"
 _SYMBOLS_PATH = "/symdb/v1/input"
 _TELEMETRY_PATH = "/api/v2/apmtelemetry"
 
+# Agentless (direct-to-intake) path: libdatadog's agentless debugger sender collapses logs,
+# snapshots, diagnostics AND symdb onto this single path on the debugger-intake host -- the
+# intake demultiplexes by payload, not path (datadog-live-debugger/src/sender.rs derive_endpoint_path).
+_AGENTLESS_DEBUGGER_PATH = "/api/v2/debugger"
+
 # Library paths
 _DEBUGGER_V2_INPUT_PATH = "/debugger/v2/input"
 
@@ -170,6 +175,16 @@ class BaseDebuggerTest:
     setup_failures: list = []
 
     use_debugger_endpoint: bool = False
+
+    # Backend interface/paths, overridden by AgentlessBaseDebuggerTest for scenarios without a
+    # Datadog Agent (data captured over interfaces.datadog_direct instead of interfaces.agent,
+    # and logs/snapshots/diagnostics/symdb all collapse onto _AGENTLESS_DEBUGGER_PATH).
+    _backend_interface = interfaces.agent
+    _snapshot_paths: tuple[str, ...] = (_LOGS_PATH, _DEBUGGER_PATH)
+    _traces_path: str = _TRACES_PATH
+    _telemetry_path: str = _TELEMETRY_PATH
+    _symbols_interface = interfaces.library
+    _symbols_path: str = _SYMBOLS_PATH
 
     def initialize_weblog_remote_config(self) -> None:
         self.setup_failures = []
@@ -478,7 +493,7 @@ class BaseDebuggerTest:
         logger.debug("Wating for all probes")
         self._wait_successful = False
         found_ids: set[str] = set()
-        interfaces.agent.wait_for(
+        self._backend_interface.wait_for(
             lambda data: self._wait_for_all_probes(data, statuses=statuses, found_ids=found_ids), timeout=timeout
         )
         return self._wait_successful
@@ -516,7 +531,7 @@ class BaseDebuggerTest:
         if log_number >= BaseDebuggerTest._last_read:
             BaseDebuggerTest._last_read = log_number
 
-        if data["path"] in [_DEBUGGER_PATH, _LOGS_PATH]:
+        if data["path"] in self._snapshot_paths:
             probe_diagnostics = self._process_diagnostics_data([data])
             logger.debug(probe_diagnostics)
 
@@ -540,13 +555,13 @@ class BaseDebuggerTest:
 
         self._snapshot_found = False
 
-        interfaces.agent.wait_for(
+        self._backend_interface.wait_for(
             lambda data: self._wait_for_snapshot_received(data, exception_snapshot=exception_snapshot), timeout=timeout
         )
         return self._snapshot_found
 
     def _wait_for_snapshot_received(self, data: dict, *, exception_snapshot: bool = False):
-        if data["path"] in [_LOGS_PATH, _DEBUGGER_PATH]:
+        if data["path"] in self._snapshot_paths:
             if exception_snapshot:
                 logger.debug("Reading " + data["log_filename"] + ", looking for '" + self._exception_message + "'")
 
@@ -598,7 +613,7 @@ class BaseDebuggerTest:
             logger.debug(f"Waiting for snapshot with exception message: {exception_message}")
             self._exception_message = exception_message
             self._snapshot_found = False
-            interfaces.agent.wait_for(
+            self._backend_interface.wait_for(
                 lambda data: self._wait_for_all_snapshots(data, exception_snapshot=True), timeout=timeout
             )
             return self._snapshot_found
@@ -606,13 +621,13 @@ class BaseDebuggerTest:
             logger.debug(f"Waiting for snapshots from all probes: {self.probe_ids}")
             self._all_snapshots_found = False
             self._found_probe_ids: set[str] = set()
-            interfaces.agent.wait_for(
+            self._backend_interface.wait_for(
                 lambda data: self._wait_for_all_snapshots(data, exception_snapshot=False), timeout=timeout
             )
             return self._all_snapshots_found
 
     def _wait_for_all_snapshots(self, data: dict, *, exception_snapshot: bool = False) -> bool:
-        if data["path"] not in [_LOGS_PATH, _DEBUGGER_PATH]:
+        if data["path"] not in self._snapshot_paths:
             return False
 
         if exception_snapshot:
@@ -670,10 +685,12 @@ class BaseDebuggerTest:
         """
         logger.debug(f"Waiting for {count} snapshots from probes: {self.probe_ids}")
         seen: set[tuple[str, int]] = set()
-        return interfaces.agent.wait_for(lambda data: self._count_snapshots(data, seen=seen) >= count, timeout=timeout)
+        return self._backend_interface.wait_for(
+            lambda data: self._count_snapshots(data, seen=seen) >= count, timeout=timeout
+        )
 
     def _count_snapshots(self, data: dict, seen: set[tuple[str, int]]) -> int:
-        if data["path"] in [_LOGS_PATH, _DEBUGGER_PATH]:
+        if data["path"] in self._snapshot_paths:
             contents = data["request"].get("content", []) or []
 
             for index, content in enumerate(_iter_snapshot_content_items(contents)):
@@ -689,11 +706,11 @@ class BaseDebuggerTest:
         self._error_message = error_message
         self._no_capture_reason_span_found = False
 
-        interfaces.agent.wait_for(self._wait_for_no_capture_reason_span, timeout=timeout)
+        self._backend_interface.wait_for(self._wait_for_no_capture_reason_span, timeout=timeout)
         return self._no_capture_reason_span_found
 
     def _wait_for_no_capture_reason_span(self, data: dict):
-        if data["path"] == _TRACES_PATH:
+        if data["path"] == self._traces_path:
             logger.debug(
                 "Reading "
                 + data["log_filename"]
@@ -701,7 +718,7 @@ class BaseDebuggerTest:
                 + self._error_message
                 + "'"
             )
-            spans = interfaces.agent.get_spans_list()
+            spans = self._backend_interface.get_spans_list()
             for span in spans:
                 meta = span.meta
                 if "_dd.debug.error.no_capture_reason" in meta:
@@ -720,16 +737,16 @@ class BaseDebuggerTest:
         self._span_found = False
         threshold = self._get_max_trace_file_number()
 
-        interfaces.agent.wait_for(
+        self._backend_interface.wait_for(
             lambda data: self._wait_for_code_origin_span(data, threshold=threshold),
             timeout=timeout,
         )
         return self._span_found
 
     def _get_max_trace_file_number(self) -> int:
-        """Get the maximum trace file number currently in the agent interface."""
+        """Get the maximum trace file number currently in the backend interface."""
         max_number = 0
-        for data in interfaces.agent.get_data(_TRACES_PATH):
+        for data in self._backend_interface.get_data(self._traces_path):
             log_filename_found = re.search(r"/(\d+)__", data["log_filename"])
             if log_filename_found:
                 file_number = int(log_filename_found.group(1))
@@ -737,7 +754,7 @@ class BaseDebuggerTest:
         return max_number
 
     def _wait_for_code_origin_span(self, data: dict, *, threshold: int) -> bool:
-        if data["path"] == _TRACES_PATH:
+        if data["path"] == self._traces_path:
             log_filename_found = re.search(r"/(\d+)__", data["log_filename"])
             if not log_filename_found:
                 return False
@@ -762,13 +779,13 @@ class BaseDebuggerTest:
 
     def wait_for_telemetry(self, telemetry_type: str, timeout: int = 5) -> dict | None:
         self._telemetry: dict | None = None
-        interfaces.agent.wait_for(
+        self._backend_interface.wait_for(
             lambda data: self._wait_for_telemetry(data, telemetry_type=telemetry_type), timeout=timeout
         )
         return self._telemetry
 
     def _wait_for_telemetry(self, data: dict, telemetry_type: str) -> bool:
-        if data["path"] != _TELEMETRY_PATH:
+        if data["path"] != self._telemetry_path:
             return False
 
         content = data.get("request", {}).get("content", {})
@@ -799,7 +816,10 @@ class BaseDebuggerTest:
 
     def _collect_probe_diagnostics(self):
         def _read_data():
-            if context.library == "java":
+            if len(self._snapshot_paths) == 1:
+                # Agentless: diagnostics, logs and snapshots all collapse onto one path.
+                path = self._snapshot_paths[0]
+            elif context.library == "java":
                 if context.library.version > "1.27.0":
                     path = _DEBUGGER_PATH
                 else:
@@ -815,7 +835,7 @@ class BaseDebuggerTest:
                 path = _LOGS_PATH  # TODO: Should the default not be _DEBUGGER_PATH?
 
             logger.debug(f"Reading data from {path}")
-            return list(interfaces.agent.get_data(path))
+            return list(self._backend_interface.get_data(path))
 
         all_data = _read_data()
         self.probe_diagnostics = self._process_diagnostics_data(all_data)
@@ -868,11 +888,11 @@ class BaseDebuggerTest:
 
             # Collect snapshots from both the logs and debugger endpoints for compatibility for when we switched
             # snapshots to the debugger endpoint.
-            if not self.use_debugger_endpoint:
-                agent_logs_endpoint_requests += list(interfaces.agent.get_data(_LOGS_PATH))
-                agent_logs_endpoint_requests += list(interfaces.agent.get_data(_DEBUGGER_PATH))
+            if len(self._snapshot_paths) == 1 or self.use_debugger_endpoint:
+                agent_logs_endpoint_requests += list(self._backend_interface.get_data(self._snapshot_paths[-1]))
             else:
-                agent_logs_endpoint_requests += list(interfaces.agent.get_data(_DEBUGGER_PATH))
+                for path in self._snapshot_paths:
+                    agent_logs_endpoint_requests += list(self._backend_interface.get_data(path))
 
             snapshot_hash: dict = {}
 
@@ -895,8 +915,9 @@ class BaseDebuggerTest:
 
     def get_snapshot_request_lengths(self, probe_id: str) -> list[int]:
         """Return decoded body lengths for backend requests containing a probe snapshot."""
-        requests = list(interfaces.agent.get_data(_LOGS_PATH))
-        requests += list(interfaces.agent.get_data(_DEBUGGER_PATH))
+        requests = []
+        for path in dict.fromkeys(self._snapshot_paths):
+            requests += list(self._backend_interface.get_data(path))
 
         lengths: list[int] = []
         for request in requests:
@@ -914,12 +935,14 @@ class BaseDebuggerTest:
     def wait_for_additional_snapshots(self, timeout: int = 5) -> bool:
         """Wait for another backend request containing a snapshot for an expected probe."""
         existing_files = {
-            data["log_filename"] for path in (_LOGS_PATH, _DEBUGGER_PATH) for data in interfaces.agent.get_data(path)
+            data["log_filename"]
+            for path in dict.fromkeys(self._snapshot_paths)
+            for data in self._backend_interface.get_data(path)
         }
         expected_probe_ids = set(self.probe_ids)
 
         def _contains_additional_snapshot(data: dict[str, Any]) -> bool:
-            if data["path"] not in (_LOGS_PATH, _DEBUGGER_PATH) or data["log_filename"] in existing_files:
+            if data["path"] not in self._snapshot_paths or data["log_filename"] in existing_files:
                 return False
 
             content = data["request"].get("content", []) or []
@@ -930,7 +953,7 @@ class BaseDebuggerTest:
 
             return False
 
-        return interfaces.agent.wait_for(_contains_additional_snapshot, timeout=timeout)
+        return self._backend_interface.wait_for(_contains_additional_snapshot, timeout=timeout)
 
     def _debugger_v2_input_snapshots_received(self):
         """Test that the library sends snapshots to the debugger/v2/input endpoint"""
@@ -954,7 +977,13 @@ class BaseDebuggerTest:
             else:
                 span_decoration_line_key = "_dd.di.spandecorationargsandlocals.probe_id"
 
-            spans_list = interfaces.agent.get_spans_list()
+            if not hasattr(self._backend_interface, "get_spans_list"):
+                # Agentless mode's backend interface (interfaces.datadog_direct) captures direct-to-intake
+                # traffic in a different wire format than the agent-relayed /v0.4/traces payloads
+                # get_spans_list() parses, so span-decoration collection is agent-only.
+                return {}
+
+            spans_list = self._backend_interface.get_spans_list()
             for span in spans_list:
                 self.all_spans.append(span)
 
@@ -1025,10 +1054,10 @@ class BaseDebuggerTest:
     def _collect_symbols(self):
         def _get_symbols():
             result: list[dict] = []
-            raw_data = list(interfaces.library.get_data(_SYMBOLS_PATH))
+            raw_data = list(self._symbols_interface.get_data(self._symbols_path))
 
             if len(raw_data) == 0:
-                logger.info(f"No request has been sent to {_SYMBOLS_PATH}")
+                logger.info(f"No request has been sent to {self._symbols_path}")
                 return result
 
             for data in raw_data:
@@ -1054,7 +1083,7 @@ class BaseDebuggerTest:
         parameter equaling "event".
         """
         events: list[dict[str, Any]] = []
-        raw_data = list(interfaces.library.get_data(_SYMBOLS_PATH))
+        raw_data = list(self._symbols_interface.get_data(self._symbols_path))
         for data in raw_data:
             if not isinstance(data, dict) or "request" not in data:
                 continue
@@ -1155,3 +1184,17 @@ class BaseDebuggerTest:
     def read_approval(self, test_name: str, suffix: str) -> dict:
         with open(self._get_path(test_name, suffix), "r", encoding="utf-8") as f:
             return json.load(f)
+
+
+class AgentlessBaseDebuggerTest(BaseDebuggerTest):
+    """Base for debugger/SymDB tests run against DEBUGGER_AGENTLESS (no Datadog Agent).
+
+    libdatadog's agentless debugger sender collapses logs, snapshots, diagnostics and SymDB
+    onto a single path on the debugger-intake host (see _AGENTLESS_DEBUGGER_PATH), captured
+    over the datadog_direct proxy interface instead of the agent.
+    """
+
+    _backend_interface = interfaces.datadog_direct
+    _snapshot_paths: tuple[str, ...] = (_AGENTLESS_DEBUGGER_PATH,)
+    _symbols_interface = interfaces.datadog_direct
+    _symbols_path: str = _AGENTLESS_DEBUGGER_PATH
