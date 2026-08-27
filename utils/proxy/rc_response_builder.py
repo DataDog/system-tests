@@ -44,7 +44,7 @@ def build_rc_configurations_protobuf(rc_state: dict | None) -> bytes:
     Args:
         rc_state: RC state dict with 'targets' (base64 signed JSON) and
                   'target_files' (list of {path, raw} dicts). If None,
-                  returns empty targets at version 0.
+                  returns empty targets at version 1.
 
     Returns:
         Protobuf-encoded LatestConfigsResponse bytes
@@ -58,9 +58,14 @@ def build_rc_configurations_protobuf(rc_state: dict | None) -> bytes:
         targets_parsed = json.loads(targets_json)
         version = targets_parsed.get("signed", {}).get("version", 1)
     else:
-        # Use version 0 for empty state so version 1 updates are accepted
-        version = 0
-        targets_content = build_targets_content(version)
+        # TUF requires metadata versions to start at 1 (0 is spec-invalid and real TUF/uptane
+        # clients reject it), so the "nothing pushed yet" placeholder uses version 1. Real
+        # pushes are shifted up by one accordingly -- see send_state() in _remote_config.py.
+        version = 1
+        # agent_refresh_interval=1: without it, the agentless native RC client defaults to a
+        # 60s poll interval (see libdd-remote-config's AgentlessFetcher), far exceeding the
+        # timeouts tests wait on.
+        targets_content = build_targets_content(version, agent_refresh_interval=1)
         targets_json = json.dumps(sign_tuf_document(targets_content), separators=(",", ":")).encode()
 
     # Build snapshot referencing targets
