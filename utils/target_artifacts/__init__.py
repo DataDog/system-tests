@@ -9,6 +9,7 @@ from .models import (
     OciImageReference,
     ReleaseAsset,
     ResolvedArtifactInput,
+    SimpleTarget,
     TargetArtifactEnvironment,
     TargetArtifactError,
 )
@@ -26,6 +27,7 @@ __all__ = [
     "OciImageReference",
     "ReleaseAsset",
     "ResolvedArtifactInput",
+    "SimpleTarget",
     "TargetArtifactEnvironment",
     "TargetArtifactError",
     "stage_target",
