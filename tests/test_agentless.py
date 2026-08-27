@@ -9,6 +9,8 @@ against real proxy captures if the branch's wire format changes before it merges
 utils/_context/_scenarios/agentless_endtoend.py and debugger_agentless.py for the scenario setup.
 """
 
+import time
+
 from utils import features, interfaces, scenarios, weblog
 from utils._context._scenarios.agentless_endtoend import AGENTLESS_MOCK_API_KEY
 from utils._remote_config import send_apm_tracing_command
@@ -68,6 +70,15 @@ def _find_stats_entry(resource: str) -> dict | None:
     return None
 
 
+def _stats_runtime_id(request: dict) -> str | None:
+    payloads = request["request"]["content"].get("Stats", [])
+    return payloads[0]["RuntimeID"] if payloads else None
+
+
+def _stats_requests_by_runtime(runtime_id: str) -> list[dict]:
+    return [r for r in _requests_at(STATS_HOST, STATS_PATH) if _stats_runtime_id(r) == runtime_id]
+
+
 @scenarios.apm_tracing_agentless
 @features.not_reported
 class Test_Agentless_Trace_Submission:
@@ -91,6 +102,7 @@ class Test_Agentless_Trace_Submission:
             headers,
             exact={
                 "content-type": "application/json",
+                "content-encoding": "zstd",
                 "datadog-meta-lang": "python",
                 "datadog-meta-lang-interpreter": "CPython",
                 "datadog-client-computed-top-level": "true",
@@ -105,6 +117,16 @@ class Test_Agentless_Trace_Submission:
             ),
         )
         assert headers["user-agent"].startswith("Tracer/")
+
+        # The proxy transparently decompresses the body for capture (request["request"]["length"]
+        # is the decompressed size); compare it against the real over-the-wire content-length
+        # header to confirm the payload was actually compressed, not just labeled as such.
+        wire_length = int(headers["content-length"])
+        decoded_length = request["request"]["length"]
+        assert wire_length < decoded_length, (
+            f"Trace submission body doesn't look compressed: {wire_length} wire bytes vs "
+            f"{decoded_length} decoded bytes"
+        )
 
         content = request["request"]["content"]
         assert content, "Trace submission request body is empty"
@@ -172,6 +194,44 @@ class Test_Agentless_Stats:
         assert entry["Hits"] >= 1
         assert entry["TopLevelHits"] >= 1
         assert entry["Errors"] == 0
+
+
+@scenarios.apm_tracing_agentless
+@features.client_side_stats_supported
+class Test_Agentless_Stats_Multi_Flush:
+    """Sequence increments by exactly 1 across successive flushes of the same runtime.
+
+    Stats buckets are 10s wide; the agent-mode writer's own re-aggregation always resets
+    Sequence to 0 on every relayed payload (see pkg/trace/stats/client_stats_aggregator.go),
+    so this monotonic-Sequence guarantee is agentless-specific - the Agent never gave a
+    real signal here to compare against, which is exactly why it's easy to get wrong.
+    """
+
+    def setup_multi_flush_stats(self):
+        runtime_id = None
+        deadline = time.time() + 60
+        while time.time() < deadline:
+            weblog.get("/")
+            requests = _requests_at(STATS_HOST, STATS_PATH)
+            if requests:
+                runtime_id = _stats_runtime_id(requests[-1])
+                if runtime_id and len(_stats_requests_by_runtime(runtime_id)) >= 2:
+                    break
+            time.sleep(2)
+        self.runtime_id = runtime_id
+
+    def test_multi_flush_stats(self):
+        assert self.runtime_id, "No stats request was ever captured"
+
+        requests = _stats_requests_by_runtime(self.runtime_id)
+        assert len(requests) >= 2, (
+            f"Expected at least 2 stats flushes for runtime {self.runtime_id!r}, got {len(requests)}"
+        )
+
+        sequences = [r["request"]["content"]["Stats"][0]["Sequence"] for r in requests]
+        assert len(set(sequences)) == len(sequences), f"Sequence numbers are not unique: {sequences}"
+        for prev, cur in zip(sequences, sequences[1:]):
+            assert cur == prev + 1, f"Sequence should increment by exactly 1 per flush, got: {sequences}"
 
 
 @scenarios.apm_tracing_agentless
