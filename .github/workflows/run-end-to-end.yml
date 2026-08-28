@@ -563,6 +563,27 @@ jobs:
         ./run.sh OTEL_COLLECTOR_E2E
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
+    - name: Run APPSEC_OTEL_API scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_OTEL_API"')
+      run: ./run.sh APPSEC_OTEL_API
+    - name: Run APPSEC_OTEL_API_DEFAULT_RULES scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_OTEL_API_DEFAULT_RULES"')
+      run: ./run.sh APPSEC_OTEL_API_DEFAULT_RULES
+    - name: Run APPSEC_OTEL_API_SECURITY scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_OTEL_API_SECURITY"')
+      run: ./run.sh APPSEC_OTEL_API_SECURITY
+    - name: Run APPSEC_OTEL_API_RASP scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_OTEL_API_RASP"')
+      run: ./run.sh APPSEC_OTEL_API_RASP
+    - name: Run APPSEC_OTEL_API_RUNTIME_ACTIVATION scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_OTEL_API_RUNTIME_ACTIVATION"')
+      run: ./run.sh APPSEC_OTEL_API_RUNTIME_ACTIVATION
+    - name: Run APPSEC_OTEL_API_BLOCKING_FULL_DENYLIST scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_OTEL_API_BLOCKING_FULL_DENYLIST"')
+      run: ./run.sh APPSEC_OTEL_API_BLOCKING_FULL_DENYLIST
+    - name: Run APPSEC_OTEL_API_RATE_LIMITER scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_OTEL_API_RATE_LIMITER"')
+      run: ./run.sh APPSEC_OTEL_API_RATE_LIMITER
     - name: Run AI_GUARD scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"AI_GUARD"')
       run: ./run.sh AI_GUARD

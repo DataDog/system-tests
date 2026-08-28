@@ -62,6 +62,7 @@ class API10:
 @rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
 @features.api10
 @scenarios.appsec_rasp
+@scenarios.appsec_otel_api_rasp
 @scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_API10_request_headers(API10):
@@ -84,6 +85,7 @@ class Test_API10_request_headers(API10):
 @rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
 @features.api10
 @scenarios.appsec_rasp
+@scenarios.appsec_otel_api_rasp
 @scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_API10_request_method(API10):
@@ -106,6 +108,7 @@ class Test_API10_request_method(API10):
 @rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
 @features.api10
 @scenarios.appsec_rasp
+@scenarios.appsec_otel_api_rasp
 @scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_API10_request_body(API10):
@@ -130,6 +133,7 @@ class Test_API10_request_body(API10):
 @rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
 @features.api10
 @scenarios.appsec_rasp
+@scenarios.appsec_otel_api_rasp
 @scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_API10_response_status(API10):
@@ -152,6 +156,7 @@ class Test_API10_response_status(API10):
 @rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
 @features.api10
 @scenarios.appsec_rasp
+@scenarios.appsec_otel_api_rasp
 @scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_API10_response_headers(API10):
@@ -174,6 +179,7 @@ class Test_API10_response_headers(API10):
 @rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
 @features.api10
 @scenarios.appsec_rasp
+@scenarios.appsec_otel_api_rasp
 @scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_API10_response_body(API10):
@@ -198,6 +204,7 @@ class Test_API10_response_body(API10):
 @rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
 @features.api10
 @scenarios.appsec_rasp
+@scenarios.appsec_otel_api_rasp
 @scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_API10_all(API10):
@@ -234,6 +241,7 @@ class Test_API10_all(API10):
 @rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
 @features.api10
 @scenarios.appsec_rasp
+@scenarios.appsec_otel_api_rasp
 @scenarios.appsec_standalone_rasp
 class Test_API10_downstream_request_tag(API10):
     """API 10 span tag validation"""
@@ -256,6 +264,7 @@ class Test_API10_downstream_request_tag(API10):
 @rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
 @features.api10
 @scenarios.appsec_rasp
+@scenarios.appsec_otel_api_rasp
 @scenarios.appsec_standalone_rasp
 class Test_API10_downstream_ssrf_telemetry(API10):
     """API 10 span telemetry validation"""
@@ -360,6 +369,7 @@ class API10ResponseBodyIgnored(API10):
 @rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
 @features.api10
 @scenarios.appsec_rasp
+@scenarios.appsec_otel_api_rasp
 class Test_API10_response_body_ignored_content_type(API10ResponseBodyIgnored):
     """Downstream response body ignored when content-type is unsupported."""
 
@@ -378,6 +388,7 @@ class Test_API10_response_body_ignored_content_type(API10ResponseBodyIgnored):
 @rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
 @features.api10
 @scenarios.appsec_rasp
+@scenarios.appsec_otel_api_rasp
 class Test_API10_response_body_ignored_content_length_missing(API10ResponseBodyIgnored):
     """Downstream response body ignored when content-length is missing."""
 
@@ -396,6 +407,7 @@ class Test_API10_response_body_ignored_content_length_missing(API10ResponseBodyI
 @rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
 @features.api10
 @scenarios.appsec_rasp
+@scenarios.appsec_otel_api_rasp
 class Test_API10_response_body_ignored_content_length_too_big(API10ResponseBodyIgnored):
     """Downstream response body ignored when content-length exceeds maxBytes."""
 
@@ -414,6 +426,7 @@ class Test_API10_response_body_ignored_content_length_too_big(API10ResponseBodyI
 @rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
 @features.api10
 @scenarios.appsec_rasp
+@scenarios.appsec_otel_api_rasp
 @scenarios.appsec_standalone_rasp
 class Test_API10_redirect(API10):
     """API 10 for multiple redirect responses"""

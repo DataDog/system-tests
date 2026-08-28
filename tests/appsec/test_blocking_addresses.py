@@ -37,7 +37,9 @@ def _assert_custom_event_tag_absence():
 
 @features.appsec_request_blocking
 @scenarios.appsec_blocking
+@scenarios.appsec_otel_api
 @scenarios.appsec_lambda_blocking
+@scenarios.appsec_otel_api
 class Test_Blocking_client_ip:
     """Test if blocking is supported on http.client_ip address"""
 
@@ -63,7 +65,9 @@ class Test_Blocking_client_ip:
 
 @features.appsec_request_blocking
 @scenarios.appsec_blocking
+@scenarios.appsec_otel_api
 @scenarios.appsec_lambda_blocking
+@scenarios.appsec_otel_api
 class Test_Blocking_client_ip_with_forwarded:
     """Test if blocking is supported on http.client_ip address"""
 
@@ -105,7 +109,9 @@ class Test_Blocking_client_ip_with_forwarded:
 
 @features.appsec_request_blocking
 @scenarios.appsec_blocking
+@scenarios.appsec_otel_api
 @scenarios.appsec_lambda_blocking
+@scenarios.appsec_otel_api
 class Test_Blocking_client_ip_with_K8_private_ip:
     """Test if blocking is supported on http.client_ip address"""
 
@@ -123,7 +129,9 @@ class Test_Blocking_client_ip_with_K8_private_ip:
 
 
 @scenarios.appsec_blocking
+@scenarios.appsec_otel_api
 @scenarios.appsec_lambda_blocking
+@scenarios.appsec_otel_api
 @features.appsec_request_blocking
 class Test_Blocking_user_id:
     """Test if blocking is supported on usr.id address"""
@@ -141,7 +149,9 @@ class Test_Blocking_user_id:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @features.appsec_request_blocking
 @scenarios.appsec_blocking
+@scenarios.appsec_otel_api
 @scenarios.appsec_lambda_blocking
+@scenarios.appsec_otel_api
 class Test_Blocking_request_method:
     """Test if blocking is supported on server.request.method address"""
 
@@ -190,7 +200,9 @@ class Test_Blocking_request_method:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @features.appsec_request_blocking
 @scenarios.appsec_blocking
+@scenarios.appsec_otel_api
 @scenarios.appsec_lambda_blocking
+@scenarios.appsec_otel_api
 class Test_Blocking_request_uri:
     """Test if blocking is supported on server.request.uri.raw address"""
 
@@ -250,7 +262,9 @@ class Test_Blocking_request_uri:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @features.appsec_request_blocking
 @scenarios.appsec_blocking
+@scenarios.appsec_otel_api
 @scenarios.appsec_lambda_blocking
+@scenarios.appsec_otel_api
 class Test_Blocking_request_path_params:
     """Test if blocking is supported on server.request.path_params address"""
 
@@ -303,7 +317,9 @@ class Test_Blocking_request_path_params:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @features.appsec_request_blocking
 @scenarios.appsec_blocking
+@scenarios.appsec_otel_api
 @scenarios.appsec_lambda_blocking
+@scenarios.appsec_otel_api
 class Test_Blocking_request_query:
     """Test if blocking is supported on server.request.query address"""
 
@@ -372,7 +388,9 @@ class Test_Blocking_request_query:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @features.appsec_request_blocking
 @scenarios.appsec_blocking
+@scenarios.appsec_otel_api
 @scenarios.appsec_lambda_blocking
+@scenarios.appsec_otel_api
 class Test_Blocking_request_headers:
     """Test if blocking is supported on server.request.headers.no_cookies address"""
 
@@ -425,7 +443,9 @@ class Test_Blocking_request_headers:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @features.appsec_request_blocking
 @scenarios.appsec_blocking
+@scenarios.appsec_otel_api
 @scenarios.appsec_lambda_blocking
+@scenarios.appsec_otel_api
 class Test_Blocking_request_cookies:
     """Test if blocking is supported on server.request.cookies address"""
 
@@ -477,7 +497,9 @@ class Test_Blocking_request_cookies:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
+@scenarios.appsec_otel_api
 @scenarios.appsec_lambda_blocking
+@scenarios.appsec_otel_api
 @features.appsec_request_blocking
 class Test_Blocking_request_body:
     """Test if blocking is supported on server.request.body address for urlencoded body"""
@@ -542,7 +564,9 @@ class Test_Blocking_request_body:
 
 
 @scenarios.appsec_blocking
+@scenarios.appsec_otel_api
 @scenarios.appsec_lambda_blocking
+@scenarios.appsec_otel_api
 @features.appsec_request_blocking
 class Test_Blocking_request_body_multipart:
     """Test if blocking is supported on server.request.body address for multipart body"""
@@ -558,7 +582,9 @@ class Test_Blocking_request_body_multipart:
 
 
 @scenarios.appsec_blocking
+@scenarios.appsec_otel_api
 @scenarios.appsec_lambda_blocking
+@scenarios.appsec_otel_api
 @features.appsec_request_blocking
 class Test_Blocking_request_body_filenames:
     """Test if blocking is supported on server.request.body.filenames address"""
@@ -582,7 +608,9 @@ class Test_Blocking_request_body_filenames:
 
 
 @scenarios.appsec_blocking
+@scenarios.appsec_otel_api
 @scenarios.appsec_lambda_blocking
+@scenarios.appsec_otel_api
 @features.appsec_request_blocking
 class Test_Blocking_request_body_files_content:
     """Test if blocking is supported on server.request.body.files_content address"""
@@ -608,7 +636,9 @@ class Test_Blocking_request_body_files_content:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @features.appsec_response_blocking
 @scenarios.appsec_blocking
+@scenarios.appsec_otel_api
 @scenarios.appsec_lambda_blocking
+@scenarios.appsec_otel_api
 class Test_Blocking_response_status:
     """Test if blocking is supported on server.response.status address"""
 
@@ -653,7 +683,9 @@ class Test_Blocking_response_status:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @features.appsec_response_blocking
 @scenarios.appsec_blocking
+@scenarios.appsec_otel_api
 @scenarios.appsec_lambda_blocking
+@scenarios.appsec_otel_api
 class Test_Blocking_response_headers:
     """Test if blocking is supported on server.response.headers.no_cookies address"""
 
@@ -687,6 +719,7 @@ class Test_Blocking_response_headers:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_lambda_blocking
 @scenarios.appsec_blocking
+@scenarios.appsec_otel_api
 @features.appsec_request_blocking
 class Test_Suspicious_Request_Blocking:
     """Test if blocking on multiple addresses with multiple rules is supported"""
