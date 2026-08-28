@@ -32,6 +32,7 @@ class _BaseTestHeaderInjectionReflectedExclusion:
         )
 
     def test_no_exclusion(self):
+        assert self.no_exclusion_request.status_code == 200
         assert_iast_vulnerability(
             request=self.no_exclusion_request, vulnerability_count=1, vulnerability_type="HEADER_INJECTION"
         )
@@ -81,6 +82,7 @@ class TestHeaderInjection_StackTrace:
         self.r = weblog.post("/iast/header_injection/test_insecure", data={"test": "dummyvalue"})
 
     def test_stack_trace(self):
+        assert self.r.status_code == 200
         validate_stack_traces(self.r)
 
 
@@ -131,4 +133,5 @@ class TestHeaderInjection_ExtendedLocation:
         self.r = weblog.post("/iast/header_injection/test_insecure", data={"test": "dummyvalue"})
 
     def test_extended_location_data(self):
+        assert self.r.status_code == 200
         validate_extended_location_data(self.r, self.vulnerability_type)
