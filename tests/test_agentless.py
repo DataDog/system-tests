@@ -25,6 +25,9 @@ STATS_HOST = "trace.agent.mock-intake.invalid"
 RC_CONFIGURATIONS_PATH = "/api/v0.1/configurations"
 RC_HOST = "config.mock-intake.invalid"
 
+TELEMETRY_PATH = "/api/v2/apmtelemetry"
+TELEMETRY_HOST = "instrumentation-telemetry-intake.mock-intake.invalid"
+
 ROOT_SPAN_RESOURCE = "GET /"
 
 
@@ -77,6 +80,27 @@ def _stats_runtime_id(request: dict) -> str | None:
 
 def _stats_requests_by_runtime(runtime_id: str) -> list[dict]:
     return [r for r in _requests_at(STATS_HOST, STATS_PATH) if _stats_runtime_id(r) == runtime_id]
+
+
+def _telemetry_events(request_type: str) -> list[dict]:
+    """Flatten every captured telemetry request into individual events, unwrapping message-batch."""
+    events = []
+    for request in _requests_at(TELEMETRY_HOST, TELEMETRY_PATH):
+        content = request["request"]["content"]
+        if content.get("request_type") == request_type:
+            events.append(content)
+        elif content.get("request_type") == "message-batch":
+            events.extend(p for p in content.get("payload", []) if p.get("request_type") == request_type)
+    return events
+
+
+def _find_metric_series(metric: str, namespace: str) -> dict | None:
+    """Search every captured generate-metrics event for a series with this metric/namespace."""
+    for event in _telemetry_events("generate-metrics"):
+        for series in event["payload"].get("series", []):
+            if series.get("metric") == metric and series.get("namespace") == namespace:
+                return series
+    return None
 
 
 @scenarios.apm_tracing_agentless
@@ -232,6 +256,69 @@ class Test_Agentless_Stats_Multi_Flush:
         assert len(set(sequences)) == len(sequences), f"Sequence numbers are not unique: {sequences}"
         for prev, cur in zip(sequences, sequences[1:]):
             assert cur == prev + 1, f"Sequence should increment by exactly 1 per flush, got: {sequences}"
+
+
+@scenarios.apm_tracing_agentless
+@features.not_reported
+class Test_Agentless_Telemetry:
+    """Instrumentation telemetry - including generate-metrics, the actual transport for internal
+    tracer metrics like spans_created/spans_finished - has no transport setting of its own and
+    simply follows the global DD_AGENTLESS_ENABLED switch, going straight to its own dedicated
+    telemetry intake host instead of through an Agent. This is distinct from (and, on this
+    branch, NOT a substitute for) DogStatsD-based runtime metrics (CPU/memory/GC), which have no
+    agentless transport at all and are silently dropped without an Agent - out of scope here.
+    """
+
+    def _trigger_and_wait_for_metrics(self):
+        self.r = weblog.get("/")
+        interfaces.datadog_direct.wait_for(
+            lambda d: d["host"] == TELEMETRY_HOST
+            and d["path"] == TELEMETRY_PATH
+            and _find_metric_series("spans_created", "tracers") is not None,
+            timeout=30,
+        )
+
+    def setup_telemetry_endpoint(self):
+        self._trigger_and_wait_for_metrics()
+
+    def test_telemetry_endpoint(self):
+        assert self.r.status_code == 200
+
+        requests = _requests_at(TELEMETRY_HOST, TELEMETRY_PATH)
+        assert len(requests) != 0, f"No request captured on {TELEMETRY_HOST}{TELEMETRY_PATH}"
+
+        request = requests[-1]
+        assert request["response"]["status_code"] // 100 == 2
+
+        content = request["request"]["content"]
+        headers = _headers(request)
+        _assert_api_key(headers)
+        _assert_headers(
+            headers,
+            exact={"content-type": "application/json", "dd-client-library-language": "python"},
+            present=(
+                "user-agent",
+                "dd-telemetry-request-type",
+                "dd-telemetry-api-version",
+                "dd-client-library-version",
+                "dd-session-id",
+                "datadog-entity-id",
+                "content-length",
+            ),
+        )
+        assert headers["user-agent"].startswith("telemetry/")
+        assert headers["dd-telemetry-request-type"] == content["request_type"]
+
+    def setup_telemetry_generate_metrics(self):
+        self._trigger_and_wait_for_metrics()
+
+    def test_telemetry_generate_metrics(self):
+        series = _find_metric_series("spans_created", "tracers")
+        assert series is not None, "No tracers.spans_created generate-metrics event was captured"
+        assert series["type"] == "count"
+        assert series["common"] is True
+        assert series["points"], "Metric series has no data points"
+        assert series["points"][0][1] > 0
 
 
 @scenarios.apm_tracing_agentless
