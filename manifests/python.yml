@@ -66,6 +66,10 @@ manifest:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
         "flask-poc": missing_feature (the evaluation exposes the redacted messages but not the redaction_replacements that produced them)
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionMultiTurnContext:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "flask-poc": v4.14.0-dev
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionOnBlock:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
