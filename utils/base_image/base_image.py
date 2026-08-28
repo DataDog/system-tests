@@ -30,7 +30,7 @@ def load_base_image_lock(lock_path: Path = LOCK_PATH) -> dict[str, str]:
     except FileNotFoundError:
         raise BaseImageLockError(
             f"base-image lock not found at {lock_path}; regenerate it with "
-            "python utils/scripts/build-base-images.py --update-lock"
+            "python utils/scripts/update-base-image-lock.py"
         ) from None
     except (OSError, json.JSONDecodeError) as exc:
         raise BaseImageLockError(f"could not read base-image lock {lock_path}: {exc}") from None

@@ -2,7 +2,7 @@
 """Wait for a weblog's base image to be available on Docker Hub.
 
 Weblog base images (e.g. `datadog/system-tests:express4.base-<tag>`) are built and
-pushed by a dedicated GitLab CI job (see `utils/scripts/build-base-images.py`), not by
+pushed by a dedicated GitLab CI job (see `utils/base_image/build_base_images.py`), not by
 GitHub Actions. There is no direct dependency mechanism between the two CI systems, so
 this script simply polls `docker manifest inspect` for the tag declared in the weblog's
 Dockerfile until it appears, or a timeout is reached.

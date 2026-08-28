@@ -125,7 +125,7 @@ produces `openai-js@6.0.0` and `openai-js@7.0.0`.
 
 ## Base image dependencies
 
-Base images (built by the `build_base_images` CI job, `utils/scripts/build-base-images.py`) are
+Base images (built by the `build_base_images` CI job, `utils/base_image/build_base_images.py`) are
 declared in each library's `utils/build/docker/<library>/docker-bake.hcl`, one target per base
 image. There is no separate dependency list to maintain: for each target, the job parses the
 target's own `<name>.base.Dockerfile` and treats every `COPY` source as a dependency. This works
@@ -164,5 +164,5 @@ GitHub Actions never builds these base images itself: `utils/scripts/wait-for-ba
 resolves the alias through the same lock and polls Docker Hub for the locked tag (with a timeout)
 before building the weblog, since GitLab CI is the only pipeline that builds and pushes them.
 After changing a base input, first let GitLab publish the prospective content tags. Then run
-`python utils/scripts/build-base-images.py --update-lock` and
+`python utils/scripts/update-base-image-lock.py` and
 `python utils/scripts/update_mirror_images.py`, and commit the lock and mirror artifacts.

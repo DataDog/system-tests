@@ -521,7 +521,7 @@ def main() -> None:
 
     if drift:
         print("Base images are published, but the committed lock is stale. Regenerate and commit it:")
-        print("  python utils/scripts/build-base-images.py --update-lock")
+        print("  python utils/scripts/update-base-image-lock.py")
         sys.exit(1)
 
 
