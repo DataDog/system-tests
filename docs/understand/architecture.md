@@ -184,7 +184,7 @@ The runner sends traffic to the weblog (published host ports) and validates mess
 
 ## Weblog
 
-The weblog (application container) is the pluggable component for each language.
+The weblog (customer application) is the pluggable component for each language.
 It is a web application that exposes consistent endpoints across all implementations.
 
 If you are introducing a new Dockerfile, or looking to modify an existing one, remember that they are built using this convention in arguments: `./utils/build/docker/{language}/{dockerfile-prefix}.Dockerfile`.
