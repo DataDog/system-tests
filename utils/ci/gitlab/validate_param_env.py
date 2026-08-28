@@ -2,6 +2,12 @@
 
 Called by .system_tests_param_base in main.yml. The caller (before_script) is
 responsible for exporting the variables into the environment before this script runs.
+
+NOTE: this script runs on the minimal CI runner image, which only ships a venv and this
+single file (see utils/ci/gitlab/docker/system-tests.Dockerfile) — it must stay
+self-contained and must not import from the `utils` package (that would trigger the
+whole package's __init__.py, none of whose dependencies are installed on that image).
+Only third-party/stdlib imports are allowed here.
 """
 
 from __future__ import annotations
@@ -9,6 +15,8 @@ from __future__ import annotations
 import os
 import re
 import sys
+
+import yaml
 
 
 def _error(name: str, value: str, msg: str) -> str:
@@ -87,6 +95,15 @@ def validate_semicolon_nonempty(name: str, value: str) -> list[str]:
     return errors
 
 
+def validate_matrix(name: str, value: str) -> list[str]:
+    """Structural validation only; full schema validation happens in compute-workflow-parameters.py."""
+    try:
+        yaml.safe_load(value)
+    except (ValueError, TypeError) as e:
+        return [_error(name, value, str(e))]
+    return []
+
+
 CHECKS: list[tuple[str, object]] = [
     ("LIBRARIES", validate_space_lower),
     ("SCENARIOS", validate_comma_upper),
@@ -101,6 +118,7 @@ CHECKS: list[tuple[str, object]] = [
     ("BINARIES_ARTIFACTS", validate_semicolon_nonempty),
     ("BINARIES_ARTIFACT_PATH", validate_path),
     ("SYSTEM_TESTS_PIPELINE_START_TIME", validate_positive_int),
+    ("MATRIX", validate_matrix),
 ]
 
 PARAM_ENV = "param.env"
