@@ -635,7 +635,10 @@ def trace_manual_keep_drop():
 @app.route("/make_distant_call")
 def make_distant_call():
     url = flask_request.args["url"]
-    response = requests.get(url)
+    # The method is configurable so semantic-convention tests can drive a non-standard verb
+    # through the client instrumentation. Matches the nodejs express weblog.
+    method = flask_request.args.get("method", "GET")
+    response = requests.request(method, url)
 
     result = {
         "url": url,

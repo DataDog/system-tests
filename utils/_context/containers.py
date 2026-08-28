@@ -22,6 +22,7 @@ from utils._context.component_version import ComponentVersion, Version
 from utils._context.docker import get_docker_client
 from utils._context._image_mirror import mirror_image
 from utils._context.constants import ContainerPorts
+from utils._context.weblog_metadata import WeblogMetaData
 from utils.docker_fixtures._core import extra_hosts_for_environment
 from utils.proxy.tuf import get_tuf_root_json
 from utils.proxy.ports import ProxyPorts
@@ -1079,6 +1080,11 @@ class WeblogContainer(TestedContainer):
 
         library = self.image.labels["system-tests-library"]
 
+        metadata = next((w for w in WeblogMetaData.load(library) if w.name == self.weblog_variant), None)
+        if metadata is not None and metadata.request_timeout is not None:
+            logger.info(f"Weblog {self.weblog_variant} declares a {metadata.request_timeout}s request timeout")
+            weblog.set_default_timeout(metadata.request_timeout)
+
         header_tags = ""
         if library in ("cpp_nginx", "cpp_httpd", "dotnet", "java", "python"):
             header_tags = "user-agent:http.request.headers.user-agent"
@@ -1693,7 +1699,7 @@ class EnvoyContainer(TestedContainer):
             healthcheck={
                 "test": "/bin/bash -c \"\
                     exec 3<>/dev/tcp/127.0.0.1/80 || exit 1;\
-                    echo -e 'GET / HTTP/1.1\nHost: system-tests\r\n\r\n' >&3;\
+                    echo -e 'GET / HTTP/1.1\r\nHost: system-tests\r\nUser-Agent: systemtests-healthcheck\r\n\r\n' >&3;\
                     cat <&3 | grep -q '200'\"",
                 "retries": 10,
             },
@@ -1734,6 +1740,9 @@ class ExternalProcessingContainer(GoProcessorContainer):
             "DD_AGENT_HOST": "proxy",
             "DD_TRACE_AGENT_PORT": str(ProxyPorts.weblog),
             "DD_APPSEC_WAF_TIMEOUT": "1s",
+            # The callout defaults APM tracing to false, which rate-limits ordinary traces
+            # and makes APM assertions nondeterministic.
+            "DD_APM_TRACING_ENABLED": "true",
         }
 
         if env:
@@ -1777,7 +1786,7 @@ class HAProxyContainer(TestedContainer):
             healthcheck={
                 "test": "/bin/bash -c \"\
                     exec 3<>/dev/tcp/127.0.0.1/80 || exit 1;\
-                    echo -e 'GET / HTTP/1.1\nHost: system-tests\r\n\r\n' >&3;\
+                    echo -e 'GET / HTTP/1.1\r\nHost: system-tests\r\nUser-Agent: systemtests-healthcheck\r\n\r\n' >&3;\
                     cat <&3 | grep -q '200'\"",
                 "retries": 10,
             },
@@ -1799,10 +1808,13 @@ class StreamProcessingOffloadContainer(GoProcessorContainer):
             image = "ghcr.io/datadog/dd-trace-go/haproxy-spoa:latest"
 
         environment: dict[str, str | None] = {
+            "DD_APPSEC_ENABLED": "true",
             "DD_SERVICE": "service_test",
             "DD_ENV": "system-tests",
             "DD_AGENT_HOST": "proxy",
             "DD_TRACE_AGENT_PORT": str(ProxyPorts.weblog),
+            "DD_APPSEC_WAF_TIMEOUT": "1s",
+            "DD_APM_TRACING_ENABLED": "true",
         }
 
         if env:

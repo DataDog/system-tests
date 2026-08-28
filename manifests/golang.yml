@@ -19,6 +19,7 @@ manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionDisabledTelemetry: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionFailSafe: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionInSDKResponse: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionMultiTurnContext: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionOnBlock: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionSkipsStructuralFields: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_RootSpanUserKeep: missing_feature
@@ -504,7 +505,9 @@ manifest:
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_APMDisabledMarker: missing_feature
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_NotEnabled:
     - weblog_declaration:
-        envoy, apim, haproxy: missing_feature
+        apim: v2.7.1
+        envoy: v1.72.0
+        haproxy: v2.4.0
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2: v1.73.0-dev
   tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2: missing_feature
   tests/appsec/test_asm_standalone.py::Test_SCAStandalone_Telemetry_V2: v2.0.0
@@ -835,10 +838,14 @@ manifest:
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules: v2.1.0-dev
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules::test_rule_with_attributes_no_keep_event:
     - weblog_declaration:
-        envoy, apim, haproxy: missing_feature
+        apim: v2.7.1
+        envoy: v1.72.0
+        haproxy: v2.4.0
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules::test_rule_with_attributes_no_keep_no_event:
     - weblog_declaration:
-        envoy, apim, haproxy: missing_feature
+        apim: v2.7.1
+        envoy: v1.72.0
+        haproxy: v2.4.0
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRulesRcCapability: v2.1.0-dev
   tests/appsec/test_traces.py:
     - weblog_declaration:
@@ -880,10 +887,14 @@ manifest:
   tests/appsec/waf/test_addresses.py::Test_BodyJson: v1.37.0
   tests/appsec/waf/test_addresses.py::Test_BodyJson::test_json_array:
     - weblog_declaration:
-        envoy, apim: missing_feature
+        apim: v2.7.1
+        envoy: v1.72.0
+        haproxy: v2.4.0
   tests/appsec/waf/test_addresses.py::Test_BodyJson::test_json_value:
     - weblog_declaration:
-        envoy, apim: missing_feature
+        apim: v2.7.1
+        envoy: v1.72.0
+        haproxy: v2.4.0
   tests/appsec/waf/test_addresses.py::Test_BodyUrlEncoded: v1.37.0
   tests/appsec/waf/test_addresses.py::Test_BodyUrlEncoded::test_body_value:
     - weblog_declaration:
@@ -1786,7 +1797,9 @@ manifest:
   tests/test_library_conf.py::Test_HeaderTags: v1.53.0
   tests/test_library_conf.py::Test_HeaderTags::test_trace_header_tags_basic:
     - weblog_declaration:
-        envoy, apim, haproxy: missing_feature
+        apim: v2.7.1
+        envoy: v1.72.0
+        haproxy: v2.4.0
   tests/test_library_conf.py::Test_HeaderTags_Colon_Leading: v1.53.0
   tests/test_library_conf.py::Test_HeaderTags_Colon_Trailing: v1.70.0
   tests/test_library_conf.py::Test_HeaderTags_DynamicConfig: v1.70.0
@@ -1802,6 +1815,12 @@ manifest:
   tests/test_library_logs.py::Test_NoExceptions::test_dotnet: irrelevant (only for .NET)
   tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)
   tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_Spans_Http_ErrorStatusConfiguration: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_SamplingRules: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_http_endpoint_retained_from_appsec: irrelevant (The AppSec endpoint retention request is specific to .NET)
   tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh:
     - weblog_declaration:
@@ -1820,6 +1839,10 @@ manifest:
         "*": missing_feature (APMAPI-2171)
         envoy, apim, haproxy: irrelevant (not applicable to proxies)
   tests/test_otel_tracestate_sampling.py::Test_PreserveDdAndOtherVendors:
+    - weblog_declaration:
+        "*": missing_feature (APMAPI-2171)
+        envoy, apim, haproxy: irrelevant (not applicable to proxies)
+  tests/test_otel_tracestate_sampling.py::Test_PreserveTracestateMemberOrder:
     - weblog_declaration:
         "*": missing_feature (APMAPI-2171)
         envoy, apim, haproxy: irrelevant (not applicable to proxies)

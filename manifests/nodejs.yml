@@ -179,6 +179,10 @@ manifest:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
         express4: *ref_6_13_0
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionMultiTurnContext:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        express4: *ref_6_13_0
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionOnBlock:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
@@ -2885,6 +2889,29 @@ manifest:
   tests/test_library_logs.py::Test_NoExceptions::test_dotnet: irrelevant (only for .NET)
   tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)
   tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_Spans_Http_ErrorStatusConfiguration: missing_feature (dd-trace-js has no HTTP status environment configuration for these client or server override tests)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics:
+    - weblog_declaration:
+        "*": missing_feature
+        express4: *ref_6_0_0
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics::test_trace_metric_agrees_with_client_success: missing_feature (successful client trace metrics still report OTel error status)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics::test_trace_metric_agrees_with_server_success: missing_feature (successful server trace metrics still report OTel error status)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_SamplingRules:
+    - weblog_declaration:
+        "*": missing_feature
+        express4: missing_feature (OTel semantic resource names are not available when sampling decisions occur)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client:
+    - weblog_declaration:
+        "*": missing_feature
+        express4: *ref_6_0_0
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client::test_peer_service_suppressed: missing_feature (peer.service default derivation remains enabled under OTel semantics)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client::test_status_500_is_error: missing_feature (OTel status description includes the HTTP status code)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server:
+    - weblog_declaration:
+        "*": missing_feature
+        express4: *ref_6_0_0
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_http_endpoint_retained_from_appsec: irrelevant (The AppSec endpoint retention request is specific to .NET)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_http_endpoint_retained_from_resource_renaming: missing_feature (http.endpoint is not retained under OTel semantics)
   tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchanged:  # TODO: a lower version might be supported
@@ -2901,6 +2928,12 @@ manifest:
       excluded_weblog: [express4-typescript, uds-express4, express4, express5, fastify, nextjs]
   tests/test_otel_tracestate_sampling.py::Test_MalformedOtHandling: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_PreserveDdAndOtherVendors:  # TODO: a lower version might be supported
+    - declaration: missing_feature (APMAPI-2171)
+      component_version: <6.8.0
+      weblog: [express4-typescript, uds-express4, express4, express5, fastify, nextjs]
+    - declaration: missing_feature (APMAPI-2171)
+      excluded_weblog: [express4-typescript, uds-express4, express4, express5, fastify, nextjs]
+  tests/test_otel_tracestate_sampling.py::Test_PreserveTracestateMemberOrder:  # TODO: a lower version might be supported
     - declaration: missing_feature (APMAPI-2171)
       component_version: <6.8.0
       weblog: [express4-typescript, uds-express4, express4, express5, fastify, nextjs]
