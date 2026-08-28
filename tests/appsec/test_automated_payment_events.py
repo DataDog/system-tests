@@ -352,6 +352,7 @@ class Test_Automated_Payment_Events_Stripe_Custom_Rules(BaseTestAutomatedPayment
 
 
 @scenarios.default
+@scenarios.appsec_otlp_export_default_rules
 @features.appsec_automated_payment_events
 @rfc("https://docs.google.com/document/d/1OzuI3DB5VTLMfdcuztG8LD1agkFVM_6sVGwSRYPf4R0")
 class Test_Automated_Payment_Events_Stripe_Default_Rules(BaseTestAutomatedPaymentEventsStripe):

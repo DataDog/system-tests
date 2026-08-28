@@ -12,6 +12,7 @@ TELEMETRY_REQUEST_TYPE_GENERATE_METRICS = "generate-metrics"
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2355333252/Environment+Variables")
 @features.threats_configuration
+@scenarios.appsec_otlp_export_default_rules
 class Test_ConfigurationVariables:
     """Configuration environment variables"""
 
@@ -95,6 +96,7 @@ class Test_ConfigurationVariables:
 @features.threats_configuration
 @scenarios.appsec_blocking
 @scenarios.appsec_lambda_blocking
+@scenarios.appsec_otlp_export
 class Test_ConfigurationVariables_New_Obfuscation:
     """Check for new obfuscation features in libddwaf 1.25.0 and later
     Requires libddwaf 1.25.0 or later and updated obfuscation regex for values
