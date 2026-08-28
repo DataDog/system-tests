@@ -147,7 +147,7 @@ class AWSPulumiProvider(VmProvider):
             return json.load(f)
 
     def _handle_provision_error(self, exception: pulumi.automation.errors.CommandError):
-        """Tear down and abort the scenario with exit code 3, whether or not the error is a known one."""
+        """If the exception is known, we will raise the exception, if not,we will store it in the vm object."""
 
         exception_message = str(exception)
         for known_message in self.aws_infra_exceptions.values():
@@ -167,10 +167,6 @@ class AWSPulumiProvider(VmProvider):
             repr(exception),
             ["operation:up", "result:fail", f"stack:{self.stack_name}"],
         )
-        # A provisioning failure is not a test result, the tests never ran. Exit 3 ("the scenario
-        # could not start") so the CI job is retried via retry:exit_codes, instead of surfacing as
-        # an assert in every test, which fails the job for good and blocks the release pipeline.
-        pytest.exit(f"Unknown infraestructure exception:: {exception_message[:500]}", returncode=3)
 
     def _download_vm_logs_after_provision_failure(self) -> None:
         """Pull /var/log from the VM while it is still up (provision may have failed mid-way)."""
