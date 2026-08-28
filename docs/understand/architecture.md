@@ -25,10 +25,10 @@ When an end-to-end scenario is running, these are the main pieces:
 
  - [Host pytest](#host-pytest) (aka "runner")
    - Runs on the host (not in a container). Sends HTTP to the weblog and asserts on captured interfaces
- - [Weblog](#weblog) (aka "application container")
+ - [Weblog](#weblog) (aka "customer application")
    - Swappable webapp language module that replicate a real customer application. Mostly a simple HTTP application in the form of a docker container.
  - [Proxy](#proxy)
-   - Single [mitmproxy](https://mitmproxy.org/) container that intercepts library and agent traffic
+   - Single [mitmdump](https://mitmproxy.org/) container that intercepts library and agent traffic
  - [Agent](#agent)
    - Datadog agent container
 
@@ -44,11 +44,11 @@ flowchart TD
 pytest on the host sends requests directly to the [weblog](weblogs/README.md).
 The weblog tracer talks to the [proxy](#proxy) (`DD_AGENT_HOST=proxy`), which forwards that traffic to the agent.
 The agent talks back through the **same** proxy (`DD_PROXY_HTTPS`).
-The proxy writes the intercepted messages as JSON under `logs_<scenario>/interfaces/` ([library](../../edit/library-interface-validation-methods.md) and [agent](../../edit/agent-interface-validation-methods.md)).
+The proxy writes the intercepted messages as JSON under `logs_<scenario>/interfaces/` ([library](../edit/library-interface-validation-methods.md) and [agent](../edit/agent-interface-validation-methods.md)).
 Tests read those files; they do not receive a live dump stream.
 
 By default the proxy mocks backend intake instead of forwarding it to Datadog.
-Some scenarios disable that mock, and some tests query Datadog APIs from the host via [`interfaces.backend`](../../edit/backend-interface-validation-methods.md). Though, it's highly discouraged to use any real backend, as our backend constraints does not guarantee time limit compatible with a test session : using the real backend will make tests sessions very unreliable.
+Some scenarios disable that mock, and some tests query Datadog APIs from the host via [`interfaces.backend`](../edit/backend-interface-validation-methods.md). Though, it's highly discouraged to use any real backend, as our backend constraints does not guarantee time limit compatible with a test session : using the real backend will make tests sessions very unreliable.
 
 ## What are system-tests bad for?
 
@@ -175,12 +175,10 @@ When debugging tests, it may be useful to only run individual tests, following t
 
 ## Host pytest
 
-Tests run on the host via [`./run.sh`](../../execute/run.md) (pytest).
+Tests run on the host via [`./run.sh`](../execute/run.md) (pytest).
 There is no tests container in the scenario topology.
 
-The runner sends traffic to the weblog (published host ports) and validates messages the [proxy](#proxy) wrote under `logs_<scenario>/interfaces/` ([log folder structure](../../execute/logs.md)).
-
-`./run.sh +d` can run pytest inside a runner image. That is an execution option, not a component of the architecture.
+The runner sends traffic to the weblog (published host ports) and validates messages the [proxy](#proxy) wrote under `logs_<scenario>/interfaces/` ([log folder structure](../execute/logs.md)).
 
 ## Weblog
 
@@ -194,7 +192,7 @@ The shared application docker file is a good place to add any configuration need
 ## Proxy
 
 There is **one** proxy container (`proxy`).
-It is a [mitmproxy](https://mitmproxy.org/) process (`python -m proxy.core`), not `mitmdump`.
+It is [mitmdump](https://mitmproxy.org/).
 
 The proxy listens on several ports and uses the listen port to know where a request came from:
 
@@ -205,9 +203,7 @@ Captured request/response pairs are written as JSON to `logs_<scenario>/interfac
 
 ## Agent
 
-All agent containers share final layers applied via this file: `./utils/build/docker/set-system-tests-agent-env.Dockerfile`
-
-The shared agent docker file is a good place to add any configuration needed across languages and variants.
+The agent container uses `datadog/agent:latest`.
 
 ## Testing a local version of the tracer
 
