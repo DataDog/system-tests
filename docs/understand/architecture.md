@@ -48,7 +48,7 @@ The proxy writes the intercepted messages as JSON under `logs_<scenario>/interfa
 Tests read those files; they do not receive a live dump stream.
 
 By default the proxy mocks backend intake instead of forwarding it to Datadog.
-Some scenarios disable that mock, and some tests query Datadog APIs from the host via [`interfaces.backend`](../../edit/backend-interface-validation-methods.md).
+Some scenarios disable that mock, and some tests query Datadog APIs from the host via [`interfaces.backend`](../../edit/backend-interface-validation-methods.md). Though, it's highly discouraged to use any real backend, as our backend constraints does not guarantee time limit compatible with a test session : using the real backend will make tests sessions very unreliable.
 
 ## What are system-tests bad for?
 
