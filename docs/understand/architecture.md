@@ -26,7 +26,7 @@ When an end-to-end scenario is running, these are the main pieces:
  - [Host pytest](#host-pytest) (aka "runner")
    - Runs on the host (not in a container). Sends HTTP to the weblog and asserts on captured interfaces
  - [Weblog](#weblog) (aka "application container")
-   - Swappable webapp language module that must meet an interface
+   - Swappable webapp language module that replicate a real customer application. Mostly a simple HTTP application in the form of a docker container.
  - [Proxy](#proxy)
    - Single [mitmproxy](https://mitmproxy.org/) container that intercepts library and agent traffic
  - [Agent](#agent)
