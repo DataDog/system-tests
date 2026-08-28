@@ -112,22 +112,9 @@ ssi_tests:
             SYSTEM_TEST_BUILD_ATTEMPTS=3 SYSTEM_TEST_BUILD_TIMEOUT=240 ./build.sh -i runner
             printf '\e[0Ksection_end:%s:build_runner\r\e[0K\n' "${BUILD_SECTION_TS}"
         - |
-            # Re-run a failed test in place, on the VM that is already provisioned, when it failed
-            # on a backend verification rather than on the injection itself. A fresh run issues a
-            # new weblog request and so queries a brand new trace, which is what actually clears
-            # these flakes: re-reading the same trace id never will, that trace is already complete.
-            # --only-rerun keeps this narrow, so a genuine injection regression still fails at once.
-            # Backend timeouts are deliberately excluded: they only fail after a 5 minute poll, and
-            # re-running those would risk blowing the 3000s budget below and turning a clean test
-            # failure into a job timeout.
-            # `=` form is required: run.sh reads any bare all-uppercase/numeric argument as a
-            # scenario name, so a detached `--reruns 2` would be parsed as the scenario "2".
-            RERUN_ARGS=(--reruns=2 --reruns-delay=15
-                        --only-rerun="failed to validate trace_id"
-                        --only-rerun="Could not find runtime-id")
             # Run the tests and capture stdout+stderr to a file
             set -o pipefail
-            timeout 3000 ./run.sh "$SCENARIO" --vm-weblog "${WEBLOG}" --vm-env "${ONBOARDING_FILTER_ENV}" --vm-library "${TEST_LIBRARY}" --vm-provider aws --vm-default-vms All --vm-only "${VM}" --report-run-url "${CI_JOB_URL}" --report-environment "${ONBOARDING_FILTER_ENV}" "${RERUN_ARGS[@]}" 2>&1 | tee "${CI_PROJECT_DIR}/run_output.log"
+            timeout 3000 ./run.sh "$SCENARIO" --vm-weblog "${WEBLOG}" --vm-env "${ONBOARDING_FILTER_ENV}" --vm-library "${TEST_LIBRARY}" --vm-provider aws --vm-default-vms All --vm-only "${VM}" --report-run-url "${CI_JOB_URL}" --report-environment "${ONBOARDING_FILTER_ENV}" 2>&1 | tee "${CI_PROJECT_DIR}/run_output.log"
     after_script: |
         # Only fetch FP params on main in system-tests repo (use default CI creds)
         if [ "$CI_COMMIT_BRANCH" = "main" ] && [ "$CI_PROJECT_NAME" = "system-tests" ]; then
@@ -186,25 +173,6 @@ ssi_tests:
               fi
             done
           done
-        fi
-
-        # Push JUnit results to Datadog Test Optimization, so that a test that only passed because
-        # it was re-run stays visible (dd_tags[systest.case.reruns]) instead of disappearing behind
-        # a green job.
-        export DATADOG_SITE="${DATADOG_SITE:-datadoghq.com}"
-        export DATADOG_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.${CI_PROJECT_NAME}.test_optimization.dd_api_key --with-decryption --query "Parameter.Value" --out text 2>/dev/null)
-        export DD_TAGS="test.configuration.ci_environment:${CI_ENVIRONMENT:-prod}"
-        if [ -z "${DATADOG_API_KEY}" ]; then
-            echo "No Test Optimization API key for ${CI_PROJECT_NAME}; skipping upload"
-        elif compgen -G "reports/logs*/reportJunit.xml" > /dev/null; then
-            datadog-ci junit upload \
-                reports/logs*/reportJunit.xml \
-                --service system-tests \
-                --env ci \
-                --verbose \
-                --xpath-tag "test.codeowners=/testcase/properties/property[@name='test.codeowners']"
-        else
-            echo "No reports/logs*/reportJunit.xml found; skipping Test Optimization upload"
         fi
 
         # Render all report logs as collapsible sections + run summary + banner.

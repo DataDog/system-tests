@@ -992,19 +992,12 @@ Exception during trace in backend verification
 - **Docker daemon issue** (if containerized) — review:
 /var/log/datadog_weblog/journalctl_docker.log
 - **Backend intake/processing** — manually locate the trace ID `{request_uuid}` in the Datadog UI (system-tests organization) and verify ingestion.
-
-**Automatic reruns**
-
-Backend verifications that fail on the *content* of the trace (`failed to validate trace_id`,
-`Could not find runtime-id`) are re-run up to twice by the CI job, on the same already-provisioned
-VM. Each rerun issues a new weblog request, and therefore checks a brand new trace: that is what
-clears these flakes, since a trace that is already complete never gains the missing tags. A run
-that needed a rerun reports `N rerun` in the pytest summary and carries a
-`dd_tags[systest.case.reruns]` tag in Test Optimization, so keep an eye on it — a test that
-regularly needs a rerun is a real problem, only a slower one.
-
-Timeouts (no trace at all) are **not** re-run: they already fail after a 5 minute poll, and
-re-running them would risk hitting the job timeout.
+- **Missing container tags** (origin detection only) — the trace arrives, but without `_dd.tags.container`.
+That tag is attached by the agent, not by the backend: the tracer sends only a container id, and the
+agent resolves it into tags through its tagger, which discovers containers asynchronously. The agent
+waits up to 12s for that and then sends the trace untagged. Origin detection tests therefore wait for
+`datadog-agent tagger-list` to know the weblog containers before sending the request they measure; if
+you see `Agent still cannot tag the weblog containers`, look at the agent logs rather than the backend.
 
 ---
 

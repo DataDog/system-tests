@@ -105,6 +105,8 @@ class AutoInjectBaseTest:
             logger.info(f"Waiting for weblog available [{vm_ip}:{vm_port}]")
             assert wait_for_port(vm_port, vm_ip, 80), "Weblog port not reachable. Is the weblog running?"
             logger.info(f"[{vm_ip}]: Weblog app is ready!")
+            if origin_detection:
+                self._wait_for_container_tags(virtual_machine)
             logger.info(f"Making a request to weblog [{vm_context_url}]")
             warmup_weblog(vm_context_url)
             request_uuid = make_get_request(vm_context_url, appsec=appsec)
@@ -149,6 +151,32 @@ class AutoInjectBaseTest:
 
         logger.error("expected 'appsec.event' to be true in trace meta or at least one rule triggered")
         return False
+
+    def _wait_for_container_tags(self, virtual_machine: _VirtualMachine, attempts: int = 30, delay: int = 2) -> None:
+        """Wait for the agent to be able to tag the weblog containers, before we measure a request.
+
+        `_dd.tags.container` is attached by the agent, not by the backend: the tracer only sends a
+        container id, and the agent resolves it into tags through its tagger, which discovers
+        containers asynchronously. The agent holds a payload for at most 12s waiting for that
+        resolution and then sends it untagged, so a container the tagger picks up late produces a
+        trace that origin detection has nothing to assert on.
+
+        Best effort: if the tagger never catches up we still send the request, so a real origin
+        detection regression fails the same way it does today.
+        """
+        logger.info("Waiting until the agent can tag the weblog containers")
+        command = (
+            f"for _ in $(seq 1 {attempts}); do "
+            "TAGS=$(sudo datadog-agent tagger-list 2>/dev/null); MISSING=0; "
+            "for CID in $(sudo docker ps -q --no-trunc 2>/dev/null); do "
+            'case "$TAGS" in *"$CID"*) ;; *) MISSING=1 ;; esac; done; '
+            f'[ "$MISSING" = 0 ] && echo READY && break; sleep {delay}; '
+            "done"
+        )
+        if "READY" in self.execute_command(virtual_machine, command):
+            logger.info("Agent can tag the weblog containers")
+        else:
+            logger.warning(f"Agent still cannot tag the weblog containers after {attempts * delay}s")
 
     def _container_tags_validator(self, _: str, trace_data: dict):
         root_id = trace_data["trace"]["root_id"]
