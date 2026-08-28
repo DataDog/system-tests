@@ -2046,6 +2046,10 @@ manifest:
   tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Disappears: missing_feature (EX-3417)
   tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Serial_Id: missing_feature (EX-3417)
   tests/ffe/test_flag_eval_evp.py: missing_feature (FFL-2446)
+  tests/ffe/test_flag_eval_evp_ruby.py:
+    - weblog_declaration:
+        "*": irrelevant
+        rails72: missing_feature (FFL-2446 pending dd-trace-rb#5896)
   tests/ffe/test_flag_eval_metrics.py:
     - weblog_declaration:
         "*": irrelevant
