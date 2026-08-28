@@ -256,38 +256,50 @@ def validate_stack_traces(request: HttpResponse) -> None:
     location_frame = None
     for frame in stack_trace["frames"]:
         # We are looking for the frame that corresponds to the location of the vulnerability, we will need to update this to cover all tracers
-        # currently support: Java, Python, Node.js
-        if (
-            (
-                stack_trace["language"] == "java"
-                and (
+        # currently support: Java, Python, Node.js, Go
+        found = False
+        match stack_trace["language"]:
+            case "java":
+                found = (
                     location["path"] in frame["class_name"]
                     and location["method"] in frame["function"]
                     and location["line"] == frame["line"]
                 )
-            )
-            or (
-                stack_trace["language"] == "nodejs"
-                and (frame.get("file", "").endswith(location["path"]) and location["line"] == frame["line"])
-            )
-            or (
-                stack_trace["language"] == "dotnet"
+            case "nodejs":
+                found = frame.get("file", "").endswith(location["path"]) and location["line"] == frame["line"]
+            case "dotnet":
                 # we are not able to ensure that other fields are available in location
-                and (location["method"] in frame["function"])
-            )
-            or (
-                stack_trace["language"] == "python"
-                and (
+                found = location["method"] in frame["function"]
+            case "python":
+                found = (
                     frame.get("file", "").endswith(location["path"])
                     and location["line"] == frame["line"]
                     and ("method" in location and location["method"] == frame["function"])
-                    # classes are not in Python stack traces and don't need to match the file so we
-                    # can't check them in Python vs the frame (and some previous versions doesn't have them)
-                    # and "class_name" in location
                 )
-            )
-        ):
+                # classes are not in Python stack traces and don't need to match the file so we
+                # can't check them in Python vs the frame (and some previous versions doesn't have them)
+                # and "class_name" in location
+            case "go":
+                class_name = frame.get("class_name", "")
+                method = frame["function"]
+                ns = frame.get("namespace", "")
+                # We append the namespace to the class name if present, otherwise to the function,
+                # so that reports for free-floating functions provide sufficient scoping context.
+                if ns != "":
+                    if class_name != "":
+                        class_name = f"{ns}.{class_name}"
+                    elif method != "":
+                        method = f"{ns}.{method}"
+                found = (
+                    location["path"] == frame["file"]
+                    and location["line"] == frame["line"]
+                    and location.get("class", "") == class_name
+                    and location["method"] == method
+                )
+
+        if found:
             location_frame = frame
+            break
     assert location_frame is not None, "location not found in stack trace"
 
 
@@ -323,7 +335,7 @@ def validate_extended_location_data(
         # If there is no stacktrace, just check for the presence of basic attributes.
         assert all(field in location for field in ["path", "line"])
 
-        if context.library.name not in ("python", "nodejs"):
+        if context.library.name not in ("python", "nodejs", "golang"):
             assert all(field in location for field in ["class", "method"])
     else:
         assert "vulnerability" in span["meta_struct"]["_dd.stack"], "'vulnerability' not found in '_dd.stack'"
@@ -347,18 +359,31 @@ def validate_extended_location_data(
 
         # Verify frame matches location
         def _norm(s: str | None) -> str | None:
-            return s if s else None
+            return s or None
 
         location_match = False
         for frame in stack_trace["frames"]:
             logger.debug(frame)
+
+            class_name = _norm(frame.get("class_name"))
+            method = _norm(frame.get("function"))
+            ns = _norm(frame.get("namespace"))
+            if stack_trace["language"] == "go" and ns is not None:
+                # Go prepends the namespace to the class name if present, and otherwise to the method
+                # name, so that location information contains sufficient scoping context.
+                if class_name is not None:
+                    class_name = f"{ns}.{class_name}"
+                elif method is not None:
+                    method = f"{ns}.{method}"
+
+
             if not frame.get("file", "").endswith(location["path"]):
                 logger.debug("path does not match")
             elif frame["line"] != location["line"]:
                 logger.debug("line does not match")
-            elif _norm(location.get("class")) != _norm(frame.get("class_name")):
+            elif _norm(location.get("class")) != class_name:
                 logger.debug("class does not match")
-            elif _norm(location.get("method")) != _norm(frame.get("function")):
+            elif _norm(location.get("method")) != method:
                 logger.debug("method does not match")
             else:
                 logger.debug("location match")
