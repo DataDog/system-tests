@@ -39,6 +39,7 @@ class CiData:
         excluded_scenarios: str,
         weblogs: str,
         parametric_job_count: int,
+        parametric_workers: str,
         desired_execution_time: int,
         explicit_binaries_artifact: str,
         system_tests_dev_mode: bool,
@@ -94,6 +95,7 @@ class CiData:
         self.data["parametric"] = {
             "job_count": parametric_job_count,
             "job_matrix": list(range(1, parametric_job_count + 1)),
+            "workers": parametric_workers,
             "enable": len(scenario_map.get("parametric", [])) > 0
             and "otel" not in library
             and library
@@ -280,6 +282,9 @@ if __name__ == "__main__":
 
     # workflow specific parameters
     parser.add_argument("--parametric-job-count", type=int, help="How may jobs must run parametric scenario", default=1)
+    parser.add_argument(
+        "--parametric-workers", type=str, help="How many pytest-xdist workers to use per parametric job", default="auto"
+    )
 
     # Misc
     parser.add_argument(
@@ -310,6 +315,7 @@ if __name__ == "__main__":
         excluded_scenarios=args.excluded_scenarios,
         weblogs=args.weblogs,
         parametric_job_count=args.parametric_job_count,
+        parametric_workers=args.parametric_workers,
         desired_execution_time=args.desired_execution_time,
         explicit_binaries_artifact=args.explicit_binaries_artifact,
         system_tests_dev_mode=args.system_tests_dev_mode == "true",

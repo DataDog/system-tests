@@ -34,6 +34,9 @@ spec:
       description: "Number of parallel jobs for the PARAMETRIC scenario"
       type: number
       default: 3
+    parametric_workers:
+      description: "Number of pytest-xdist workers to use within each PARAMETRIC job"
+      default: "auto"
     push_to_test_optimization:
       description: "Push test results to Datadog Test Optimization"
       type: boolean
@@ -127,6 +130,7 @@ system_tests_build_pipeline:
       excluded_scenarios=$(echo "$[[ inputs.excluded_scenarios ]],$EXCLUDED_SCENARIOS" | tr ',' '\n' | sed '/^$/d' | sort -u | tr '\n' ',' | sed 's/,$//')
       force_execute=$(echo "$[[ inputs.force_execute ]],$FORCE_EXECUTE" | tr ',' '\n' | sed '/^$/d' | tr '\n' ',' | sed 's/,$//')
       parametric_job_count="${SYSTEM_TESTS_PARAMETRIC_JOB_COUNT:-$[[ inputs.parametric_job_count ]]}"
+      parametric_workers="${SYSTEM_TESTS_PARAMETRIC_WORKERS:-$[[ inputs.parametric_workers ]]}"
       push_to_test_optimization="${SYSTEM_TESTS_PUSH_TO_TEST_OPTIMIZATION:-$[[ inputs.push_to_test_optimization ]]}"
       docker_auth="${SYSTEM_TESTS_DOCKER_AUTH:-$[[ inputs.docker_auth ]]}"
       skip_empty_scenario="${SYSTEM_TESTS_SKIP_EMPTY_SCENARIO:-$[[ inputs.skip_empty_scenarios ]]}"
@@ -137,13 +141,14 @@ system_tests_build_pipeline:
       echo "excluded_scenarios:     $excluded_scenarios"
       echo "force_execute:          $force_execute"
       echo "parametric_job_count:   $parametric_job_count"
+      echo "parametric_workers:     $parametric_workers"
       echo "push_to_test_opt:       $push_to_test_optimization"
       echo "skip_empty_scenario:    $skip_empty_scenario"
       printf 'SYSTEM_TESTS_FORCE_EXECUTE=%s\nSYSTEM_TESTS_SKIP_EMPTY_SCENARIO=%s\n' "$force_execute" "$skip_empty_scenario" > build_params.env
       binaries_artifacts="${BINARIES_ARTIFACTS:-$[[ inputs.binaries_artifacts ]]}"
       binaries_artifact_path="${BINARIES_ARTIFACT_PATH:-$[[ inputs.binaries_artifact_path ]]}"
       for library in $libraries; do
-        python3 utils/scripts/compute-workflow-parameters.py $library --format json --groups "$scenario_groups" --excluded-scenarios "$excluded_scenarios" --scenarios "$scenarios" --weblogs "$weblogs" --explicit-binaries-artifact "$binaries_artifacts" --parametric-job-count $parametric_job_count --output params_${library}.json
+        python3 utils/scripts/compute-workflow-parameters.py $library --format json --groups "$scenario_groups" --excluded-scenarios "$excluded_scenarios" --scenarios "$scenarios" --weblogs "$weblogs" --explicit-binaries-artifact "$binaries_artifacts" --parametric-job-count $parametric_job_count --parametric-workers "$parametric_workers" --output params_${library}.json
       done
       chunks=1
       if [ "$SYSTEM_TESTS_SPLIT_PIPELINE" = "true" ]; then chunks=3; fi

@@ -187,6 +187,10 @@ system_tests_run_{{library}}_PARAMETRIC_{{job_index}}:
   id_tokens:
     DD_STS_OIDC_TOKEN:
       aud: dd-sts
+{% if parametric.workers != "auto" %}
+  variables:
+    PYTEST_XDIST_AUTO_NUM_WORKERS: "{{parametric.workers}}"
+{% endif %}
   {% if binaries_artifacts_list %}
   needs:
     {% for artifact_job in binaries_artifacts_list %}
