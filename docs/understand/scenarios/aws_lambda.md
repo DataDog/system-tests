@@ -28,7 +28,7 @@ To replace the **AWS Managed Load Balancer**, we run a dedicated container in fr
 The **Lambda Function** runs inside the **Weblog Container** thanks to the *AWS Lambda Runtime Interface Emumlator*.
 
 
-There is no **Agent Container**, the **Datadog Extension** (equivalent to the  **Datadog Agent** in the context of lambda) needs to run inside the **Weblog Container**, the [**Application Proxy Container**](../architecture.md#application-proxy-container) therefore needs to send traces back to the **Weblog Container**.
+There is no **Agent Container**, the **Datadog Extension** (equivalent to the  **Datadog Agent** in the context of lambda) needs to run inside the **Weblog Container**, the [**proxy**](../architecture.md#proxy) therefore needs to send traces back to the **Weblog Container**.
 
 
 ```mermaid

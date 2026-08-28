@@ -21,33 +21,34 @@ This document aims to give a working understanding of the parts of system-tests,
 
 ## What are the components of a running test?
 
-When the system tests are executing, there are several main containers of concern.
- - [Tests Container](#tests-container) (aka "runner")
-   - Responsible for running the actual tests, sending traffic, and asserting results
- - [Application Container](#application-container) (aka "weblog")
+When an end-to-end scenario is running, these are the main pieces:
+
+ - [Host pytest](#host-pytest) (aka "runner")
+   - Runs on the host (not in a container). Sends HTTP to the weblog and asserts on captured interfaces
+ - [Weblog](#weblog) (aka "application container")
    - Swappable webapp language module that must meet an interface
- - [Application Proxy Container](#application-proxy-container)
-   - Mechanism to inspect payloads from the datadog libraries
- - [Agent Container](#agent-container)
-   - Basic Datadog agent image
- - [Agent Proxy Container](#agent-proxy-container)
-   - Mechanism to inspect payloads from the Agent to the Backend
+ - [Proxy](#proxy)
+   - Single [mitmproxy](https://mitmproxy.org/) container that intercepts library and agent traffic
+ - [Agent](#agent)
+   - Datadog agent container
 
 ```mermaid
 flowchart TD
-    TESTS[Tests Container] -->|Send Requests| APP
-    APP[Application Container] --> APPPROXY
-    APPPROXY[Application Proxy] --> AGENT
-    APPPROXY -->|mitmdump| TESTS
-    AGENT[Agent Container] --> AGENTPROXY
-    AGENTPROXY[Agent Proxy] -->|remote request| BACKEND
-    AGENTPROXY -->|mitmdump| TESTS
-    BACKEND[Datadog] -->|trace API| TESTS
+    HOST[Host pytest] -->|HTTP requests| WEBLOG
+    WEBLOG[Weblog] -->|library traffic| PROXY
+    PROXY[Proxy] -->|forward| AGENT
+    AGENT[Agent] -->|agent traffic| PROXY
+    PROXY -.->|JSON dumps| HOST
 ```
 
-The tests send requests directly to the application.
+pytest on the host sends requests directly to the [weblog](weblogs/README.md).
+The weblog tracer talks to the [proxy](#proxy) (`DD_AGENT_HOST=proxy`), which forwards that traffic to the agent.
+The agent talks back through the **same** proxy (`DD_PROXY_HTTPS`).
+The proxy writes the intercepted messages as JSON under `logs_<scenario>/interfaces/` ([library](../../edit/library-interface-validation-methods.md) and [agent](../../edit/agent-interface-validation-methods.md)).
+Tests read those files; they do not receive a live dump stream.
 
-The tests then wait on the results, which are available as the logs are collected from proxies.
+By default the proxy mocks backend intake instead of forwarding it to Datadog.
+Some scenarios disable that mock, and some tests query Datadog APIs from the host via [`interfaces.backend`](../../edit/backend-interface-validation-methods.md).
 
 ## What are system-tests bad for?
 
@@ -172,37 +173,41 @@ When debugging tests, it may be useful to only run individual tests, following t
  - `./run.sh tests/appsec/test_conf.py::Test_StaticRuleSet::test_basic_hardcoded_ruleset`
  - `./run.sh tests/test_traces.py::Test_Misc::test_main`
 
-## Tests Container
+## Host pytest
 
-This container shares mounted volumes with the proxy containers.
-It executes the tests via pytest.
-These tests generate traffic against the Application Container and then inspect the dumps from the proxy containers.
+Tests run on the host via [`./run.sh`](../../execute/run.md) (pytest).
+There is no tests container in the scenario topology.
 
-## Application Container
+The runner sends traffic to the weblog (published host ports) and validates messages the [proxy](#proxy) wrote under `logs_<scenario>/interfaces/` ([log folder structure](../../execute/logs.md)).
 
-The application container (aka weblog) is the pluggable component for each language.
+`./run.sh +d` can run pytest inside a runner image. That is an execution option, not a component of the architecture.
+
+## Weblog
+
+The weblog (application container) is the pluggable component for each language.
 It is a web application that exposes consistent endpoints across all implementations.
 
 If you are introducing a new Dockerfile, or looking to modify an existing one, remember that they are built using this convention in arguments: `./utils/build/docker/{language}/{dockerfile-prefix}.Dockerfile`.
 
 The shared application docker file is a good place to add any configuration needed across languages and variants.
 
-## Application Proxy Container
+## Proxy
 
-All application container traffic is sent to this container.
-This container uses mitmproxy to inspect and dump the traffic and then forwards to the Agent Container.
+There is **one** proxy container (`proxy`).
+It is a [mitmproxy](https://mitmproxy.org/) process (`python -m proxy.core`), not `mitmdump`.
 
-## Agent Container
+The proxy listens on several ports and uses the listen port to know where a request came from:
+
+- Weblog / library traffic is reverse-proxied to the agent
+- Agent intake is intercepted because the agent is configured with `DD_PROXY_HTTPS` / `DD_PROXY_HTTP`
+
+Captured request/response pairs are written as JSON to `logs_<scenario>/interfaces/<interface>/` on a volume shared with the host.
+
+## Agent
 
 All agent containers share final layers applied via this file: `./utils/build/docker/set-system-tests-agent-env.Dockerfile`
 
 The shared agent docker file is a good place to add any configuration needed across languages and variants.
-
-## Agent Proxy Container
-
-All agent container traffic egress is sent to this container.
-
-This container uses mitmproxy to inspect and dump the traffic and then forwards to the backend.
 
 ## Testing a local version of the tracer
 
