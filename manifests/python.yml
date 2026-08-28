@@ -1457,6 +1457,8 @@ manifest:
   tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Serial_Id: missing_feature (EX-3413)
   tests/ffe/test_flag_eval_evp.py: missing_feature (FFL-2446)
   tests/ffe/test_flag_eval_metrics.py: v4.7.0
+  tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Metric_Invalid_Regex_Default: v4.14.0
+  tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Metric_Invalid_Variant_Default: v4.14.0
   tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Nested_Attributes_Ignored: irrelevant (FFL-1980)
   tests/integration_frameworks/llm/anthropic/test_anthropic_ai_guard.py::TestAnthropicAiGuard: v4.11.0
   tests/integration_frameworks/llm/anthropic/test_anthropic_apm.py::TestAnthropicApmMessages: v3.16.0
