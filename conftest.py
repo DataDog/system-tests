@@ -36,6 +36,11 @@ JSONReport.pytest_terminal_summary = lambda *args, **kwargs: None  # noqa: ARG00
 _deselected_items: list[pytest.Item] = []
 setup_properties = SetupProperties()
 
+# Exit code returned by pytest when at least one test failed.
+# It is distinct from pytest's default exit codes (0-5) so that CI can tell
+# a test failure apart from other errors.
+TEST_FAIL_EXIT_CODE = 42
+
 PytestOutcome = Literal["passed", "xpassed", "failed", "xfailed", "skipped", "error"]
 
 
@@ -563,6 +568,9 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
     if session.config.option.skip_empty_scenario and exitstatus == pytest.ExitCode.NO_TESTS_COLLECTED:
         exitstatus = pytest.ExitCode.OK
         session.exitstatus = pytest.ExitCode.OK
+
+    if exitstatus == pytest.ExitCode.TESTS_FAILED:
+        session.exitstatus = TEST_FAIL_EXIT_CODE
 
     if session.config.option.collectonly:
         return
