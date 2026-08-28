@@ -1293,6 +1293,8 @@ manifest:
   tests/test_otel_http_semantics.py::Test_OtelSemantics_SamplingRules: missing_feature (HTTP server span names use Datadog semantics when sampling rules run)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client: v3.52.0
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server: missing_feature (OTel HTTP server semantics not implemented over OTLP export)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_http_endpoint_retained_from_appsec: missing_feature (OTel HTTP server semantics not implemented over OTLP export)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_http_endpoint_retained_from_resource_renaming: irrelevant (The .NET tracer creates http.endpoint from routed AppSec requests)
   tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchanged: missing_feature (APMAPI-2171)
