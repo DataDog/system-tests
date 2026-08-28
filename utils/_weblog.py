@@ -98,7 +98,7 @@ class HttpResponse:
 
 # TODO : this should be build by weblog container
 class _Weblog:
-    def __init__(self, session: requests.Session | None = None):
+    def __init__(self, session: requests.Session | None = None, default_timeout: int = 5):
         if "SYSTEM_TESTS_WEBLOG_PORT" in os.environ:
             self.port = int(os.environ["SYSTEM_TESTS_WEBLOG_PORT"])
         else:
@@ -127,8 +127,16 @@ class _Weblog:
 
         self._default_retries = 1
 
+        # Read timeout in seconds, applied when a request does not pass one explicitly.
+        # Configurable per weblog, see set_default_timeout.
+        self._default_timeout = default_timeout
+
     def set_request_default_retry(self, value: int) -> None:
         self._retries = value
+
+    def set_default_timeout(self, value: int) -> None:
+        """Set the default read timeout, in seconds, for requests that don't pass one."""
+        self._default_timeout = value
 
     def get(
         self,
@@ -137,7 +145,7 @@ class _Weblog:
         headers: dict | None = None,
         cookies: dict | None = None,
         *,
-        timeout: int = 5,
+        timeout: int | None = None,
         allow_redirects: bool = True,
         rid_in_user_agent: bool = True,
     ):
@@ -162,7 +170,7 @@ class _Weblog:
         json: dict | list | None = None,
         files: dict | None = None,
         cookies: dict | None = None,
-        timeout: int = 5,
+        timeout: int | None = None,
     ):
         return self.request(
             "POST",
@@ -183,7 +191,7 @@ class _Weblog:
         data: dict | str | None = None,
         headers: dict | None = None,
         *,
-        timeout: int = 5,
+        timeout: int | None = None,
     ):
         return self.request("TRACE", path, params=params, data=data, headers=headers, timeout=timeout)
 
@@ -203,8 +211,11 @@ class _Weblog:
         port: int | None = None,
         allow_redirects: bool = True,
         rid_in_user_agent: bool = True,
-        timeout: int = 5,
+        timeout: int | None = None,
     ):
+        if timeout is None:
+            timeout = self._default_timeout
+
         rid = "".join(random.choices(string.ascii_uppercase, k=36))
         headers = {**headers} if headers else {}  # get our own copy of headers, as we'll modify them
 
@@ -330,7 +341,7 @@ class _Weblog:
     @contextmanager
     def get_session(self) -> Generator["_Weblog", None, None]:
         with requests.Session() as session:
-            yield _Weblog(session)
+            yield _Weblog(session, default_timeout=self._default_timeout)
 
 
 weblog = _Weblog()

@@ -22,6 +22,7 @@ from utils._context.component_version import ComponentVersion, Version
 from utils._context.docker import get_docker_client
 from utils._context._image_mirror import mirror_image
 from utils._context.constants import ContainerPorts
+from utils._context.weblog_metadata import WeblogMetaData
 from utils.docker_fixtures._core import extra_hosts_for_environment
 from utils.proxy.tuf import get_tuf_root_json
 from utils.proxy.ports import ProxyPorts
@@ -1078,6 +1079,11 @@ class WeblogContainer(TestedContainer):
         self._set_aws_auth_environment()
 
         library = self.image.labels["system-tests-library"]
+
+        metadata = next((w for w in WeblogMetaData.load(library) if w.name == self.weblog_variant), None)
+        if metadata is not None and metadata.request_timeout is not None:
+            logger.info(f"Weblog {self.weblog_variant} declares a {metadata.request_timeout}s request timeout")
+            weblog.set_default_timeout(metadata.request_timeout)
 
         header_tags = ""
         if library in ("cpp_nginx", "cpp_httpd", "dotnet", "java", "python"):
