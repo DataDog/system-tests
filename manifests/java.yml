@@ -3364,10 +3364,7 @@ manifest:
   tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Disappears: missing_feature (EX-3415)
   tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Serial_Id: missing_feature (EX-3415)
   tests/ffe/test_flag_eval_evp.py: missing_feature (FFL-2446)
-  tests/ffe/test_flag_eval_metrics.py:
-    - weblog_declaration:
-        "*": irrelevant
-        spring-boot: v1.62.0
+  tests/ffe/test_flag_eval_metrics.py: bug (FFL-2339)
   tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Metric_Count::test_ffe_eval_metric_count:
     - weblog_declaration:
         "*": irrelevant
