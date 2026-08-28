@@ -431,9 +431,6 @@ class TestedContainer:
                 pytest.exit(f"Container {self.name} is not healthy, please check logs", 1)
 
     def collect_logs(self):
-        TAIL_LIMIT = 50  # noqa: N806
-        SEP = "=" * 30  # noqa: N806
-
         data = (
             ("stdout", self._container.logs(stdout=True, stderr=False)),
             ("stderr", self._container.logs(stdout=False, stderr=True)),
@@ -445,13 +442,7 @@ class TestedContainer:
 
             if not self.healthy:
                 decoded_output = raw_output.decode("utf-8")
-
-                logger.stdout(f"\n{SEP} {self.name} {output_name.upper()} last {TAIL_LIMIT} lines {SEP}")
-                logger.stdout(f"-> See {filename} for full logs")
-                logger.stdout("")
-                # print last <tail> lines in stdout
-                logger.stdout("\n".join(decoded_output.splitlines()[-TAIL_LIMIT:]))
-                logger.stdout("")
+                logger.log_file_to_stdout(filename, decoded_output.splitlines())
 
     def remove(self):
         logger.debug(f"Removing container {self.name}")
