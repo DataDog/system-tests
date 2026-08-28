@@ -25,7 +25,7 @@ When an end-to-end scenario is running, these are the main pieces:
 
  - [Host pytest](#host-pytest) (aka "runner")
    - Runs on the host (not in a container). Sends HTTP to the weblog and asserts on captured interfaces
- - [Weblog](#weblog) (aka "customer application")
+ - [Customer application](#weblog) (aka "weblog")
    - Swappable webapp language module that replicate a real customer application. Mostly a simple HTTP application in the form of a docker container.
  - [Proxy](#proxy)
    - Single [mitmdump](https://mitmproxy.org/) container that intercepts library and agent traffic
@@ -35,13 +35,13 @@ When an end-to-end scenario is running, these are the main pieces:
 ```mermaid
 flowchart TD
     HOST[Host pytest] -->|HTTP requests| WEBLOG
-    WEBLOG[Weblog] -->|library traffic| PROXY
+    WEBLOG[Customer application] -->|library traffic| PROXY
     PROXY[Proxy] -->|forward| AGENT
     AGENT[Agent] -->|agent traffic| PROXY
     PROXY -.->|JSON dumps| HOST
 ```
 
-pytest on the host sends requests directly to the [weblog](weblogs/README.md).
+pytest on the host sends requests directly to the [weblog](weblogs/README.md) (the customer application).
 The weblog tracer talks to the [proxy](#proxy) (`DD_AGENT_HOST=proxy`), which forwards that traffic to the agent.
 The agent talks back through the **same** proxy (`DD_PROXY_HTTPS`).
 The proxy writes the intercepted messages as JSON under `logs_<scenario>/interfaces/` ([library](../edit/library-interface-validation-methods.md) and [agent](../edit/agent-interface-validation-methods.md)).
