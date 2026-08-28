@@ -41,6 +41,13 @@ setup_properties = SetupProperties()
 # a test failure apart from other errors.
 TEST_FAIL_EXIT_CODE = 42
 
+# Track which test phases (setup / call / teardown) had failures, so that
+# we only use TEST_FAIL_EXIT_CODE when failures occurred exclusively during
+# the test ``call`` phase.  Setup/teardown failures are typically
+# infrastructure issues (Docker, network, ...) and should remain retryable
+# by CI (exit code 1).
+_failed_phases: set[str] = set()
+
 PytestOutcome = Literal["passed", "xpassed", "failed", "xfailed", "skipped", "error"]
 
 
@@ -533,6 +540,11 @@ def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo) -> Gener
         _set_outcome_properties(value, item.user_properties)
 
 
+def pytest_runtest_logreport(report: pytest.TestReport) -> None:
+    if report.failed:
+        _failed_phases.add(report.when)
+
+
 def _set_outcome_properties(outcome: PytestOutcome, user_properties: list[tuple]) -> None:
     if outcome in ("passed", "xpassed"):
         final_status = "pass"
@@ -570,7 +582,12 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
         session.exitstatus = pytest.ExitCode.OK
 
     if exitstatus == pytest.ExitCode.TESTS_FAILED:
-        session.exitstatus = TEST_FAIL_EXIT_CODE
+        # Only use the dedicated test-failure exit code when every failure
+        # happened during the test ``call`` phase.  If any setup or teardown
+        # phase also failed, keep the default exit code (1) so that CI can
+        # retry the job — those failures are usually infrastructure issues.
+        if _failed_phases and _failed_phases <= {"call"}:
+            session.exitstatus = TEST_FAIL_EXIT_CODE
 
     if session.config.option.collectonly:
         return
