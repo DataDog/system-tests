@@ -9,6 +9,7 @@ against real proxy captures if the branch's wire format changes before it merges
 utils/_context/_scenarios/agentless_endtoend.py and debugger_agentless.py for the scenario setup.
 """
 
+import json
 import time
 
 from utils import features, interfaces, scenarios, weblog
@@ -27,6 +28,10 @@ RC_HOST = "config.mock-intake.invalid"
 
 TELEMETRY_PATH = "/api/v2/apmtelemetry"
 TELEMETRY_HOST = "instrumentation-telemetry-intake.mock-intake.invalid"
+
+# Crash reports ride the same telemetry-intake host as everything else in this file - the
+# errors-intake endpoint is just a different path on it, not a separate host, confirmed live.
+CRASH_ERRORS_INTAKE_PATH = "/api/v2/errorsintake"
 
 ROOT_SPAN_RESOURCE = "GET /"
 
@@ -100,6 +105,22 @@ def _find_metric_series(metric: str, namespace: str) -> dict | None:
         for series in event["payload"].get("series", []):
             if series.get("metric") == metric and series.get("namespace") == namespace:
                 return series
+    return None
+
+
+def _find_crash_report_log() -> dict | None:
+    """Search captured telemetry "logs" events for the full crash report.
+
+    Crashtracker sends a lightweight "ping" log as soon as config/metadata are available,
+    then the full symbolicated report once collection finishes - distinguish them by tags
+    (only the ping carries is_crash_ping:true), matching the convention already used by
+    tests/parametric/test_crashtracking.py for the agent-mode equivalent.
+    """
+    for event in _telemetry_events("logs"):
+        for log in event["payload"].get("logs", []):
+            tags = log.get("tags", "")
+            if "is_crash:true" in tags and "is_crash_ping:true" not in tags:
+                return log
     return None
 
 
@@ -319,6 +340,77 @@ class Test_Agentless_Telemetry:
         assert series["common"] is True
         assert series["points"], "Metric series has no data points"
         assert series["points"][0][1] > 0
+
+
+@scenarios.apm_tracing_agentless
+@features.not_reported
+class Test_Agentless_Crashtracking:
+    """A real crash report reaches the intake through two parallel agentless mechanisms: a
+    dedicated errors-intake endpoint, and a "logs" telemetry event - both ride the same
+    telemetry-intake host used by Test_Agentless_Telemetry, just on different paths.
+
+    Confirmed against a fix for a real bug on the dd-trace-py branch: crash reports were
+    silently dropped agentlessly (too-short collection timeout, and the crash receiver
+    subprocess's environment not forwarding HTTP(S)_PROXY, so it could never reach the mock
+    intake through the proxy this test harness requires). If this test hangs/times out again,
+    that regression is the first thing to check.
+    """
+
+    def _trigger_crash_and_wait(self):
+        # wait_for_receiver defaults to true: the crashing child blocks in its own signal
+        # handler until the receiver finishes collecting/uploading (up to the collector
+        # timeout), and the parent's os.waitpid() - and thus this HTTP response - doesn't
+        # return until the child actually exits. Give it real headroom past the client's
+        # normal 5s default, or this legitimately times out on a slow/busy host.
+        self.r = weblog.get(
+            "/spawn_child", params={"sleep": 0, "crash": "true", "fork": "true"}, timeout=45
+        )
+        interfaces.datadog_direct.wait_for(
+            lambda d: d["host"] == TELEMETRY_HOST
+            and d["path"] == CRASH_ERRORS_INTAKE_PATH
+            and _find_crash_report_log() is not None,
+            timeout=90,
+        )
+
+    def setup_crash_report_errors_intake(self):
+        self._trigger_crash_and_wait()
+
+    def test_crash_report_errors_intake(self):
+        assert self.r.status_code == 200
+
+        requests = _requests_at(TELEMETRY_HOST, CRASH_ERRORS_INTAKE_PATH)
+        assert len(requests) != 0, f"No request captured on {TELEMETRY_HOST}{CRASH_ERRORS_INTAKE_PATH}"
+
+        request = requests[-1]
+        assert request["response"]["status_code"] // 100 == 2
+
+        headers = _headers(request)
+        _assert_api_key(headers)
+        _assert_headers(
+            headers,
+            exact={"content-type": "application/json"},
+            present=("user-agent", "datadog-entity-id", "content-length"),
+        )
+        assert headers["user-agent"].startswith("crashtracker/")
+
+        content = request["request"]["content"]
+        assert content["ddsource"] == "crashtracker"
+        assert content["error"]["is_crash"] is True
+        assert content["error"]["type"] == "SIGSEGV"
+        assert content["sig_info"]["si_signo_human_readable"] == "SIGSEGV"
+        assert content["proc_info"]["pid"] > 0
+
+    def setup_crash_report_telemetry_logs(self):
+        self._trigger_crash_and_wait()
+
+    def test_crash_report_telemetry_logs(self):
+        log = _find_crash_report_log()
+        assert log is not None, "No full crash-report telemetry logs event was captured"
+
+        message = json.loads(log["message"])
+        assert message["error"]["is_crash"] is True
+        assert message["error"]["kind"] == "UnixSignal"
+        assert "SIGSEGV" in message["error"]["message"]
 
 
 @scenarios.apm_tracing_agentless
