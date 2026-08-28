@@ -13,6 +13,17 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 
     <PackageReference Include="Datadog.Trace" Version="*" />
+
+    <!-- FFE span-enrichment L2 lane (Phase 1): the OpenFeature .NET SDK + the in-repo Datadog
+         provider drive /ffe/start and /ffe/evaluate. The provider lives in dd-trace-dotnet
+         (tracer/src/Datadog.FeatureFlags.OpenFeature) but that worktree is NOT in this Docker
+         build context, so it is consumed as its published NuGet package rather than a
+         ProjectReference. The OpenFeature version is pinned to 2.3.0 to match exactly what
+         Datadog.FeatureFlags.OpenFeature 2.3.0 targets (Datadog.FeatureFlags.OpenFeature.csproj
+         PackageReference OpenFeature 2.3.0); a version skew here surfaces as a build/binding
+         failure that looks like an SDK bug. -->
+    <PackageReference Include="OpenFeature" Version="2.3.0" />
+    <PackageReference Include="Datadog.FeatureFlags.OpenFeature" Version="2.3.0" />
   </ItemGroup>
 
 </Project>
