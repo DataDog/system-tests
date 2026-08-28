@@ -47,12 +47,14 @@ jobs:
         uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
         with:
           repository: 'DataDog/system-tests'
+          submodules: recursive
       - name: Checkout main branch
         uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
         with:
           repository: 'DataDog/system-tests'
           ref: 'main'
           path: 'original'
+          submodules: recursive
       - name: Install runner
         uses: ./.github/actions/install_runner
       - name: Get scenario map
