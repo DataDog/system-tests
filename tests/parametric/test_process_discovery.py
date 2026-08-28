@@ -10,13 +10,9 @@ from .conftest import APMLibrary
 
 
 def find_dd_memfds(test_library: APMLibrary, pid: int) -> list[str]:
-    rc, out = test_library.container_exec_run(f"find /proc/{pid}/fd -lname '/memfd:datadog-tracer-info-*'")
-    if not rc:
-        return []
-    paths = out.split()
+    paths = test_library.proc_fd_paths(pid, "memfd:datadog-tracer-info-")
     for path in paths:
-        rc, out = test_library.container_exec_run(f"readlink {path}")
-        assert rc
+        out = test_library.read_link(path)
         pattern = r"datadog-tracer-info-[a-zA-Z0-9]{8}"
         match = re.search(pattern, out)
         assert match, f"invalid file format: {out}"
@@ -36,11 +32,11 @@ def validate_schema(payload: str) -> bool:
 
 
 def read_memfd(test_library: APMLibrary, memfd_path: str):
-    rc, output = test_library.container_exec_run_raw(f"cat {memfd_path}")
-    if not rc:
-        return rc, output
-
-    return rc, msgpack.unpackb(output)
+    try:
+        output = test_library.read_file(memfd_path, binary=True)
+    except FileNotFoundError as error:
+        return False, str(error)
+    return True, msgpack.unpackb(output)
 
 
 def assert_v1(tracer_metadata: dict, test_library: APMLibrary, library_env: dict[str, str]):
@@ -81,19 +77,7 @@ asserters = {1: assert_v1, 2: assert_v2}
 
 
 def assert_metadata_content(test_library: APMLibrary, library_env: dict[str, str]):
-    # NOTE(@dmehala): the server is started on container is always pid 1.
-    # That's a strong assumption :hehe:
-    # Maybe we should use `pidof pidof parametric-http-server` instead.
-    pid = 1
-
-    if context.library.name == "java":
-        rc, out = test_library.container_exec_run("pidof java")
-        assert rc
-        pid = int(out)
-    elif context.library.name == "nodejs":
-        rc, out = test_library.container_exec_run("pidof node")
-        assert rc
-        pid = int(out)
+    pid = test_library.process_id()
     memfds = find_dd_memfds(test_library, pid)
     assert len(memfds) == 1
     rc, tracer_metadata = read_memfd(test_library, memfds[0])

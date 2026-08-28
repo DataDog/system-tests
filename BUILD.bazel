@@ -1,0 +1,26 @@
+package(default_visibility = ["//visibility:public"])
+
+exports_files(["requirements.txt"])
+
+filegroup(
+    name = "parametric_python_inputs",
+    srcs = glob(
+        [
+            "*.py",
+            "*.toml",
+            "manifests/agent.yml",
+            "manifests/golang.yml",
+            "manifests/python.yml",
+            "tests/**/*.json",
+            "tests/**/*.py",
+            "tests/**/*.yml",
+            "tests/**/*.yaml",
+            "utils/**/*.json",
+            "utils/**/*.descriptor",
+            "utils/**/*.py",
+            "utils/**/*.yml",
+            "utils/**/*.yaml",
+        ],
+        allow_empty = True,
+    ),
+)
