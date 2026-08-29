@@ -45,17 +45,17 @@ MIRROR_YAML = REPO_ROOT / "mirror_images.yaml"
 LOCK_YAML = REPO_ROOT / "mirror_images.lock.yaml"
 BUILDKITD_TOML = REPO_ROOT / "utils" / "build" / "docker" / "buildkitd.toml"
 
-# Header written when mirror_images.yaml does not exist yet. The mirror_images.py
-# `add` command preserves existing comments, so this is only used on first run.
 MIRROR_YAML_HEADER = """\
+---
 # Docker images mirrored into registry.ddbuild.io/system-tests/mirror.
 #
-# Generated: this file lists every image required by the CI scenarios.
+# This file is generated: it lists every image required by the CI scenarios.
 # Regenerate after changing scenarios or weblog Dockerfiles with:
 #
 #   python utils/scripts/update_mirror_images.py
 #
-# The `mirror_images_check` CI job fails if this file is out of date.
+# (also refreshes mirror_images.lock.yaml; commit both). The
+# `mirror_images_check` CI job fails if this file is out of date.
 """
 
 # Scenarios excluded from the GitLab end-to-end pipeline. Mirrors the
@@ -124,6 +124,15 @@ def _run_mirror_images(*args: str) -> None:
     subprocess.run(cmd, check=True, env=env)
 
 
+def _split_mirror_yaml_header(contents: str) -> tuple[str, str]:
+    lines = contents.splitlines(keepends=True)
+    for index, line in enumerate(lines):
+        stripped = line.strip()
+        if stripped not in {"", "---"} and not stripped.startswith("#"):
+            return "".join(lines[:index]), "".join(lines[index:])
+    return contents, ""
+
+
 def _refresh_lock_file() -> str | None:
     if not LOCK_YAML.exists():
         print(f"{LOCK_YAML} does not exist; all images will be resolved.", flush=True)
@@ -145,10 +154,17 @@ def main(excluded: set[str], *, skip_lock: bool, refresh: bool = False) -> None:
     images = collect_images(excluded)
     print(f"Collected {len(images)} mirrorable image(s) from the CI scenarios.", flush=True)
 
-    if not MIRROR_YAML.exists():
-        MIRROR_YAML.write_text(MIRROR_YAML_HEADER)
+    if MIRROR_YAML.exists():
+        mirror_yaml_header, _ = _split_mirror_yaml_header(MIRROR_YAML.read_text(encoding="utf-8"))
+        mirror_yaml_header = mirror_yaml_header or MIRROR_YAML_HEADER
+    else:
+        mirror_yaml_header = MIRROR_YAML_HEADER
+        MIRROR_YAML.write_text(mirror_yaml_header, encoding="utf-8")
 
     _run_mirror_images("add", *images)
+    current_header, manifest = _split_mirror_yaml_header(MIRROR_YAML.read_text(encoding="utf-8"))
+    if current_header != mirror_yaml_header:
+        MIRROR_YAML.write_text(f"{mirror_yaml_header}{manifest}", encoding="utf-8")
     if not skip_lock:
         original_lock = _refresh_lock_file() if refresh else None
         try:

@@ -109,6 +109,26 @@ class Test_UpdateMirrorImages:
 
         assert lock_path.read_text(encoding="utf-8") == original_lock
 
+    def test_main_preserves_mirror_yaml_header_after_add(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        mirror_yaml = tmp_path / "mirror_images.yaml"
+        header = "---\n# Generated manifest.\n\n"
+        mirror_yaml.write_text(f'{header}- "alpine:3.22"\n', encoding="utf-8")
+
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setattr(update_mirror_images, "REPO_ROOT", tmp_path)
+        monkeypatch.setattr(update_mirror_images, "MIRROR_YAML", mirror_yaml)
+        monkeypatch.setattr(update_mirror_images, "collect_images", lambda _excluded: ["datadog/agent:latest"])
+
+        def fake_run_mirror_images(*args: str) -> None:
+            assert args == ("add", "datadog/agent:latest")
+            mirror_yaml.write_text('- "alpine:3.22"\n- "datadog/agent:latest"\n', encoding="utf-8")
+
+        monkeypatch.setattr(update_mirror_images, "_run_mirror_images", fake_run_mirror_images)
+
+        update_mirror_images.main(set(), skip_lock=True)
+
+        assert mirror_yaml.read_text(encoding="utf-8") == (f'{header}- "alpine:3.22"\n- "datadog/agent:latest"\n')
+
     def test_main_rejects_refresh_with_skip_lock(self):
         with pytest.raises(ValueError, match="refresh cannot be used when skip_lock is true"):
             update_mirror_images.main(set(), skip_lock=True, refresh=True)
