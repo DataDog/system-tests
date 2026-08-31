@@ -2894,8 +2894,26 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         express4: *ref_6_0_0
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics::test_trace_metric_agrees_with_client_success: missing_feature (successful client trace metrics still report OTel error status)
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics::test_trace_metric_agrees_with_server_success: missing_feature (successful server trace metrics still report OTel error status)
+        nextjs: v6.13.0  # TODO: a lower version might be supported
+        express4-typescript: v6.13.0  # TODO: a lower version might be supported
+        express5: v6.13.0  # TODO: a lower version might be supported
+        uds-express4: v6.13.0  # TODO: a lower version might be supported
+        fastify: v6.13.0  # TODO: a lower version might be supported
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics::test_trace_metric_agrees_with_client_error:
+    - weblog_declaration:
+        nextjs: missing_feature
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics::test_trace_metric_agrees_with_client_success:  # TODO: a lower version might be supported
+    - declaration: missing_feature (successful client trace metrics still report OTel error status)
+      component_version: <6.13.0
+      weblog: [express4-typescript, express5, uds-express4, express4, fastify]
+    - declaration: missing_feature (successful client trace metrics still report OTel error status)
+      excluded_weblog: [express4-typescript, express5, uds-express4, express4, fastify]
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics::test_trace_metric_agrees_with_server_success:  # TODO: a lower version might be supported
+    - declaration: missing_feature (successful server trace metrics still report OTel error status)
+      component_version: <6.13.0
+      weblog: [nextjs, express4-typescript, express5, uds-express4, express4, fastify]
+    - declaration: missing_feature (successful server trace metrics still report OTel error status)
+      excluded_weblog: [nextjs, express4-typescript, express5, uds-express4, express4, fastify]
   tests/test_otel_http_semantics.py::Test_OtelSemantics_SamplingRules:
     - weblog_declaration:
         "*": missing_feature
@@ -2904,14 +2922,57 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         express4: *ref_6_0_0
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client::test_peer_service_suppressed: missing_feature (peer.service default derivation remains enabled under OTel semantics)
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client::test_status_500_is_error: missing_feature (OTel status description includes the HTTP status code)
+        nextjs: v6.13.0  # TODO: a lower version might be supported
+        express4-typescript: v6.13.0  # TODO: a lower version might be supported
+        express5: v6.13.0  # TODO: a lower version might be supported
+        uds-express4: v6.13.0  # TODO: a lower version might be supported
+        fastify: v6.13.0  # TODO: a lower version might be supported
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client::test_peer_service_suppressed:
+    - declaration: missing_feature (peer.service default derivation remains enabled under OTel semantics)
+    - weblog_declaration:
+        fastify: missing_feature
+        express5: missing_feature
+        nextjs: missing_feature
+        uds-express4: missing_feature
+        express4-typescript: missing_feature
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client::test_span_name_unknown_method:
+    - weblog_declaration:
+        nextjs: missing_feature
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client::test_status_3xx_not_error:
+    - weblog_declaration:
+        nextjs: missing_feature
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client::test_status_400_is_error:
+    - weblog_declaration:
+        nextjs: missing_feature
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client::test_status_500_is_error:
+    - declaration: missing_feature (OTel status description includes the HTTP status code)
+    - weblog_declaration:
+        fastify: missing_feature
+        express5: missing_feature
+        nextjs: missing_feature
+        uds-express4: missing_feature
+        express4-typescript: missing_feature
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client::test_url_full_query_obfuscation:
+    - weblog_declaration:
+        nextjs: missing_feature
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server:
     - weblog_declaration:
         "*": missing_feature
         express4: *ref_6_0_0
+        nextjs: v6.13.0  # TODO: a lower version might be supported
+        express4-typescript: v6.13.0  # TODO: a lower version might be supported
+        express5: v6.13.0  # TODO: a lower version might be supported
+        uds-express4: v6.13.0  # TODO: a lower version might be supported
+        fastify: v6.13.0  # TODO: a lower version might be supported
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_http_endpoint_retained_from_appsec: irrelevant (The AppSec endpoint retention request is specific to .NET)
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_http_endpoint_retained_from_resource_renaming: missing_feature (http.endpoint is not retained under OTel semantics)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_http_endpoint_retained_from_resource_renaming:
+    - declaration: missing_feature (http.endpoint is not retained under OTel semantics)
+    - weblog_declaration:
+        fastify: missing_feature
+        express5: missing_feature
+        nextjs: missing_feature
+        uds-express4: missing_feature
+        express4-typescript: missing_feature
   tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchanged:  # TODO: a lower version might be supported
