@@ -463,6 +463,8 @@ manifest:
         php-fpm-7.4: '>=1.23.3'
         apache-mod-7.0-zts: '>=1.23.3'
         php-fpm-7.2: '>=1.23.3'
+        laravel11x: v1.24.2  # TODO: a lower version might be supported
+        symfony7x: v1.24.2  # TODO: a lower version might be supported
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_NotEnabled: v1.6.2
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2: v1.8.0
   tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2: missing_feature
