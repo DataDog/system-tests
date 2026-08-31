@@ -24,6 +24,7 @@ from .otel_collector import OtelCollectorScenario
 from .parametric import ParametricScenario
 from .profiling import ProfilingScenario
 from .debugger import DebuggerScenario
+from .thread_context_sharing import ThreadContextSharingScenario
 from .test_the_test import TestTheTestScenario
 from .auto_injection import InstallerAutoInjectionScenario
 from .k8s_lib_injection import K8sScenario, K8sSparkScenario
@@ -259,6 +260,91 @@ class _Scenarios:
             "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "tracecontext",
         },
         doc="Test W3C trace style",
+    )
+
+    otel_semantics_otlp = DdTraceEndToEndScenario(
+        "OTEL_SEMANTICS_OTLP",
+        weblog_env={
+            "DD_TRACE_CLIENT_IP_ENABLED": "true",
+            "DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": "otel-sensitive-value",
+            "DD_TRACE_OTEL_SEMANTICS_ENABLED": "true",
+            # OTel semantics must override both conflicting configurations.
+            "DD_TRACE_PEER_SERVICE_DEFAULTS_ENABLED": "true",
+            "DD_TRACE_RESOURCE_RENAMING_ALWAYS_SIMPLIFIED_ENDPOINT": "true",
+            "DD_TRACE_RESOURCE_RENAMING_ENABLED": "true",
+            "DD_TRACE_SPAN_ATTRIBUTE_SCHEMA": "v1",
+            "DD_TRACE_OTEL_ENABLED": "true",
+            "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
+            "OTEL_TRACES_EXPORTER": "otlp",
+            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}/v1/traces",
+            "OTEL_EXPORTER_OTLP_TRACES_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
+        },
+        backend_interface_timeout=5,
+        include_opentelemetry=True,
+        doc="Validate HTTP spans exported directly over OTLP, including typed OpenTelemetry "
+        "attributes such as http.response.status_code and server.port",
+        scenario_groups=[scenario_groups.open_telemetry],
+    )
+
+    otel_semantics_otlp_custom_error_statuses = DdTraceEndToEndScenario(
+        "OTEL_SEMANTICS_OTLP_CUSTOM_ERROR_STATUSES",
+        weblog_env={
+            "DD_TRACE_HTTP_CLIENT_ERROR_STATUSES": "200",
+            "DD_TRACE_HTTP_SERVER_ERROR_STATUSES": "200",
+            "DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": "otel-sensitive-value",
+            "DD_TRACE_OTEL_SEMANTICS_ENABLED": "true",
+            "DD_TRACE_OTEL_ENABLED": "true",
+            "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
+            "OTEL_TRACES_EXPORTER": "otlp",
+            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}/v1/traces",
+            "OTEL_EXPORTER_OTLP_TRACES_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
+        },
+        backend_interface_timeout=5,
+        include_opentelemetry=True,
+        doc="Like OTEL_SEMANTICS_OTLP but marks HTTP status 200 as an error to verify that a custom "
+        "client and server error status configuration takes precedence over the OTel defaults",
+        scenario_groups=[scenario_groups.open_telemetry],
+    )
+
+    otel_semantics_otlp_trace_metrics = DdTraceEndToEndScenario(
+        "OTEL_SEMANTICS_OTLP_TRACE_METRICS",
+        weblog_env={
+            "DD_TRACE_OTEL_SEMANTICS_ENABLED": "true",
+            "DD_TRACE_OTEL_ENABLED": "true",
+            "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
+            "OTEL_TRACES_EXPORTER": "otlp",
+            "OTEL_TRACES_SPAN_METRICS_ENABLED": "true",
+            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}/v1/traces",
+            "OTEL_EXPORTER_OTLP_TRACES_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
+            "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": "http/json",
+            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}/v1/metrics",
+            "OTEL_EXPORTER_OTLP_METRICS_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
+            "_DD_TRACE_METRICS_OTEL_FLUSH_INTERVAL": "1000",
+        },
+        backend_interface_timeout=5,
+        include_opentelemetry=True,
+        doc="Validate that OTLP trace metrics retain the OTel HTTP method, status, name, kind, "
+        "and error decision used by the corresponding span",
+        scenario_groups=[scenario_groups.open_telemetry],
+    )
+
+    otel_semantics_otlp_sampling_rules = DdTraceEndToEndScenario(
+        "OTEL_SEMANTICS_OTLP_SAMPLING_RULES",
+        weblog_env={
+            "DD_TRACE_OTEL_SEMANTICS_ENABLED": "true",
+            "DD_TRACE_OTEL_ENABLED": "true",
+            "DD_TRACE_SAMPLING_RULES": (
+                '[{"resource":"HTTP*","sample_rate":1.0},{"resource":"GET*","sample_rate":1.0},{"sample_rate":0.0}]'
+            ),
+            "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
+            "OTEL_TRACES_EXPORTER": "otlp",
+            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}/v1/traces",
+            "OTEL_EXPORTER_OTLP_TRACES_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
+        },
+        backend_interface_timeout=5,
+        include_opentelemetry=True,
+        doc="Validate that OTel HTTP span names are available before DD_TRACE_SAMPLING_RULES are evaluated",
+        scenario_groups=[scenario_groups.open_telemetry],
     )
 
     # Telemetry scenarios
@@ -1005,6 +1091,15 @@ class _Scenarios:
             "DD_SYMBOL_DATABASE_UPLOAD_ENABLED": "1",
         },
         doc="Test scenario for checking symdb.",
+    )
+
+    thread_context_sharing = ThreadContextSharingScenario(
+        "THREAD_CONTEXT_SHARING",
+        doc=(
+            "Check that tracers share the trace_id/span_id of the currently active span with "
+            "system-probe, so that CWS (Cloud Workload Security) security events triggered on "
+            "the same thread carry them as dd.trace_id/dd.span_id."
+        ),
     )
 
     debugger_inproduct_enablement = DdTraceEndToEndScenario(

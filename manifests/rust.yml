@@ -12,6 +12,7 @@ manifest:
   tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptAppsec: missing_feature
   tests/auto_inject/test_auto_inject_install.py::TestHostAutoInjectInstallScriptAppsec: missing_feature
   tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualAppsec: missing_feature
+  tests/cws/test_thread_context_sharing.py::Test_ThreadContextSharing: missing_feature (missing /security/thread_context_sharing endpoint on weblog)
   tests/debugger/: missing_feature (Dynamic Instrumentation is not implemented in dd-trace-rs)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_firsthit: missing_feature (Implemented only for dotnet)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_outofmemory: missing_feature (Implemented only for dotnet)
@@ -187,6 +188,7 @@ manifest:
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_ows_handling: missing_feature (Invalid tracestate keys for OpenTelemetry's implementation)
   tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD: v0.0.1
   tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_propagate_propagatedtags: missing_feature (can't guarantee the order of strings in the tracestate since they came from the map.)
+  tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_ows_between_list_members: bug (APMSP-3974)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats: '>=0.2.1'  # Modified by easy win activation script
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_agent_populated_fields_empty_TS013: "missing_feature (CSS v1.2.0: dd-trace-rs has no client-side stats implementation)"
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_cardinality_overflow_sentinel_TS017: "missing_feature (CSS v1.2.0: dd-trace-rs has no client-side stats implementation)"
@@ -479,12 +481,19 @@ manifest:
   tests/test_library_logs.py::Test_NoExceptions::test_dotnet: irrelevant (only for .NET)
   tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)
   tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_Spans_Http_ErrorStatusConfiguration: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_SamplingRules: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_http_endpoint_retained_from_appsec: irrelevant (The AppSec endpoint retention request is specific to .NET)
   tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5: '>=0.5.2-dev'
   tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh: missing_feature (manual keep not honored)
   tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchanged: '>=0.5.2-dev'
   tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchangedWhenDropped: '>=0.5.2-dev'
   tests/test_otel_tracestate_sampling.py::Test_MalformedOtHandling: '>=0.5.2-dev'
   tests/test_otel_tracestate_sampling.py::Test_PreserveDdAndOtherVendors: '>=0.5.2-dev'
+  tests/test_otel_tracestate_sampling.py::Test_PreserveTracestateMemberOrder: bug (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_SampledWithoutOtNotFabricated: '>=0.5.2-dev'
   tests/test_otel_tracestate_sampling.py::Test_ThOnlyDoesNotFabricateRv: '>=0.5.2-dev'
   tests/test_otel_tracestate_sampling.py::Test_ThOnlyDoesNotFabricateRvWhenDropped: '>=0.5.2-dev'

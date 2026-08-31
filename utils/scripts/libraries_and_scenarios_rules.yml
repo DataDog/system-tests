@@ -239,6 +239,8 @@ patterns:
         scenarios: PARAMETRIC
     utils/_context/_scenarios/profiling.py:
         scenario_groups: profiling
+    utils/_context/_scenarios/thread_context_sharing.py:
+        scenario_groups: thread_context_sharing
 
 
 ############################### Script file rules ##############################

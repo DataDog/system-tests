@@ -3,6 +3,7 @@
 manifest:
   tests/ai_guard/: irrelevant (dd-trace-c does not implement AI Guard)
   tests/appsec/: irrelevant (dd-trace-c does not implement AppSec or IAST)
+  tests/cws/test_thread_context_sharing.py::Test_ThreadContextSharing: missing_feature (missing /security/thread_context_sharing endpoint on weblog)
   tests/integrations/test_dbm.py: incomplete_test_app (The Perl Mojolicious workload does not provide database endpoints)
   tests/serverless/: irrelevant (dd-trace-c does not instrument serverless runtimes)
   tests/test_config_consistency.py::Test_Config_ClientTagQueryString_Empty: missing_feature (dd-trace-c does not support configuring query-string tagging)
@@ -13,6 +14,7 @@ manifest:
   tests/test_identify.py: incomplete_test_app (User identity tagging requires an SDK endpoint)
   tests/test_library_conf.py: missing_feature (dd-trace-c does not support header-tag configuration or configurable extraction behavior)
   tests/test_library_logs.py: irrelevant (These assertions target Java and .NET logs)
+  tests/test_otel_http_semantics.py: missing_feature (dd-trace-c does not implement OTel HTTP semantic-convention mode)
   tests/test_otel_tracestate_sampling.py: missing_feature (APMAPI-2171, dd-trace-c does not implement OpenTelemetry ot.th/ot.rv sampling)
   tests/test_rum_injection.py: irrelevant (dd-trace-c does not implement RUM injection)
   tests/test_sampling_manual.py: missing_feature (dd-trace-c does not implement manual keep/drop)

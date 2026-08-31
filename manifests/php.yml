@@ -19,6 +19,7 @@ manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionDisabledTelemetry: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionFailSafe: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionInSDKResponse: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionMultiTurnContext: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionOnBlock: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionSkipsStructuralFields: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_RootSpanUserKeep: missing_feature
@@ -462,6 +463,8 @@ manifest:
         php-fpm-7.4: '>=1.23.3'
         apache-mod-7.0-zts: '>=1.23.3'
         php-fpm-7.2: '>=1.23.3'
+        laravel11x: v1.24.2  # TODO: a lower version might be supported
+        symfony7x: v1.24.2  # TODO: a lower version might be supported
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_NotEnabled: v1.6.2
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2: v1.8.0
   tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2: missing_feature
@@ -1054,6 +1057,7 @@ manifest:
   tests/auto_inject/test_auto_inject_install.py::TestHostAutoInjectInstallScriptProfiling: v1.9.0
   tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualAppsec: v1.9.0
   tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualProfiling: v1.9.0
+  tests/cws/test_thread_context_sharing.py::Test_ThreadContextSharing: missing_feature (missing /security/thread_context_sharing endpoint on weblog)
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Line_Capture_Expressions: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions:
     - weblog_declaration:
@@ -1491,13 +1495,19 @@ manifest:
     - declaration: missing_feature (Not implemented)
       component_version: <0.99.0
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_w3c_p_phase_3_extract_first: missing_feature (Not implemented)
+  tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_empty_elements: bug (APMAPI-2295)
   ? tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_evicts_32_or_greater_list_members
   : bug (APMAPI-916)
   ? tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_keeps_32_or_fewer_list_members
   : bug (APMAPI-916)
+  ? tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_known_elements_not_duplicated
+  : bug (APMAPI-2295)
   tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_propagate_propagatedtags:
     - declaration: bug (APMAPI-1539)
       component_version: '>=1.11.0'
+  tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_skips_malformed_elements: bug (APMAPI-2295)
+  tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_trailing_separator: bug (APMAPI-2295)
+  tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_ows_between_list_members: bug (APMAPI-2295)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats:  # Easy win for all weblogs and version 1.23.3
     - declaration: "missing_feature (CSS v1.2.0: dd-trace-php ships CSS since v1.19.0, but the sidecar stats exporter retains buckets younger than ~20s (buffer_len=2 * bucket_size=10s) and dd_trace_synchronous_flush passes force=false, so short-lived parametric tests never observe a /v0.6/stats request)"
       component_version: '>=1.19.0'
@@ -1844,12 +1854,19 @@ manifest:
   tests/test_library_logs.py::Test_NoExceptions::test_dotnet: irrelevant (only for .NET)
   tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)
   tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_Spans_Http_ErrorStatusConfiguration: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_SamplingRules: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_http_endpoint_retained_from_appsec: irrelevant (The AppSec endpoint retention request is specific to .NET)
   tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchanged: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchangedWhenDropped: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_MalformedOtHandling: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_PreserveDdAndOtherVendors: missing_feature (APMAPI-2171)
+  tests/test_otel_tracestate_sampling.py::Test_PreserveTracestateMemberOrder: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_SampledWithoutOtNotFabricated: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_ThOnlyDoesNotFabricateRv: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_ThOnlyDoesNotFabricateRvWhenDropped: missing_feature (APMAPI-2171)

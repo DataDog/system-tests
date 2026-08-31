@@ -29,6 +29,7 @@ manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionDisabledTelemetry: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionFailSafe: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionInSDKResponse: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionMultiTurnContext: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionOnBlock: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionSkipsStructuralFields: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_RootSpanUserKeep: missing_feature
@@ -43,6 +44,7 @@ manifest:
   tests/appsec/test_only_python.py::Test_ImportError: irrelevant (specific tests for python tracer)
   tests/appsec/test_traces.py::Test_AppSecEventSpanTags::test_header_collection: irrelevant (test)
   tests/appsec/waf/test_reports.py::Test_Monitoring::test_waf_monitoring_optional: irrelevant (optional tags)
+  tests/cws/test_thread_context_sharing.py::Test_ThreadContextSharing: missing_feature (missing /security/thread_context_sharing endpoint on weblog)
   tests/debugger/: irrelevant
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_firsthit: missing_feature (Implemented only for dotnet)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_outofmemory: missing_feature (Implemented only for dotnet)
@@ -192,6 +194,7 @@ manifest:
   tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)
   tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
   tests/test_miscs.py: irrelevant
+  tests/test_otel_http_semantics.py: missing_feature (httpd-datadog does not implement OTel HTTP semantic-convention mode)
   tests/test_otel_tracestate_sampling.py: irrelevant (library does not implement OpenTelemetry)
   tests/test_profiling.py: missing_feature (missing profiling module in weblog)
   tests/test_resource_renaming.py: missing_feature
