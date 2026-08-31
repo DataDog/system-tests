@@ -222,8 +222,12 @@ def send_state(
         return True
 
     logger.info(f"Waiting for RC version={version}, client_configs={client_configs}")
+    wait_started = time.monotonic()
     with _debug_probe_weblog_while_waiting():
         rv = library.wait_for(remote_config_applied, timeout=30)
+    # DEBUG: logged on every apply, not just on failure, so the harness can build a
+    # distribution of wait times instead of only catching the >30s tail.
+    logger.info(f"RC-WAIT version={version} elapsed={time.monotonic() - wait_started:.3f}s acknowledged={rv}")
     if not rv:
         logger.error(
             f"RC timed out. Last known state: targets_version={state.get('targets_version')}, "

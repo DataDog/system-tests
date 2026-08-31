@@ -129,11 +129,29 @@ jobs:
           done
         }
 
+        # dd-trace-py warns above 0.5s (CALLBACK_EXECUTION_WARNING_THRESHOLD), so every
+        # slow RC callback is reported, not just the >30s ones that fail the test.
+        # Harvesting both sides on every iteration gives a distribution of stall
+        # durations: a fixed timeout clusters, genuine slowness spreads out.
+        stats=logs_SAVED_stats
+        mkdir -p "$stats"
+        echo "run,elapsed_s,acknowledged,version" > "$stats/rc_wait.csv"
+        echo "run,tags" > "$stats/rc_callback_warnings.csv"
+
+        harvest() {
+          grep -rhoE "RC-WAIT version=[0-9]+ elapsed=[0-9.]+s acknowledged=(True|False)" logs_*/tests.log 2>/dev/null \
+            | sed -E "s/RC-WAIT version=([0-9]+) elapsed=([0-9.]+)s acknowledged=(True|False)/$1,\2,\3,\1/" \
+            >> "$stats/rc_wait.csv" || true
+          grep -rhoE "product:[a-z_]+,callback_type:[a-z]+,elapsed_time:[0-9.]+" logs_*/interfaces 2>/dev/null \
+            | sort -u | sed -E "s/^/$1,/" >> "$stats/rc_callback_warnings.csv" || true
+        }
+
         failed=0
         for ((i = 1; i <= RUNS_PER_JOB; i++)); do
           echo "::group::Run #$i"
           # shellcheck disable=SC2086  # PYTEST_ARGS is deliberately word-split
           if ./run.sh "$SCENARIO" $PYTEST_ARGS; then
+            harvest "$i"
             # a stall shorter than the 30s RC timeout still leaves probe lines behind
             if grep -rqs "RC-PROBE" logs_*/tests.log; then
               echo "::warning::run #$i stalled on the RC wait but still passed"
@@ -141,6 +159,7 @@ jobs:
             fi
           else
             echo "::error::run #$i failed - reproduced"
+            harvest "$i"
             save_logs "fail_$i"
             failed=1
             echo "::endgroup::"
