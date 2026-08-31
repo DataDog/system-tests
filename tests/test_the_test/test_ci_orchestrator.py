@@ -209,6 +209,14 @@ def _is_supported_legacy(weblog: WeblogMetaData, scenario: Scenario, _ci_environ
     if library == "c":
         return scenario.name in ("DEFAULT", "IPV6", "SAMPLING")
 
+    if library == "golang" and weblog_name == "go-restful-v3":
+        return scenario.name in (
+            "OTEL_SEMANTICS_OTLP",
+            "OTEL_SEMANTICS_OTLP_CUSTOM_ERROR_STATUSES",
+            "OTEL_SEMANTICS_OTLP_TRACE_METRICS",
+            "OTEL_SEMANTICS_OTLP_SAMPLING_RULES",
+        )
+
     # Only Allow Lambda scenarios for the lambda libraries
     is_lambda_library = library in (
         "python_lambda",

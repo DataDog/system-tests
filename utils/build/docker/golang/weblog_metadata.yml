@@ -27,6 +27,12 @@ uds-echo:
   excluded_scenarios: [IPV6]
 net-http:
   categories: [dd_trace]
+go-restful-v3:
+  supported_scenarios:
+    - OTEL_SEMANTICS_OTLP
+    - OTEL_SEMANTICS_OTLP_CUSTOM_ERROR_STATUSES
+    - OTEL_SEMANTICS_OTLP_TRACE_METRICS
+    - OTEL_SEMANTICS_OTLP_SAMPLING_RULES
 chi:
   categories: [dd_trace]
 net-http-orchestrion:
