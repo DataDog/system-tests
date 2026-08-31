@@ -1556,8 +1556,8 @@ manifest:
         net-http: v1.70.1
         net-http-span-pool: v1.70.1
   tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP: v2.8.0-dev
-  tests/otel/test_tracing_otlp.py::Test_Otlp_Carries_Ot: missing_feature (APMAPI-2172)
-  tests/otel/test_tracing_otlp.py::Test_Otlp_Forwards_Inherited_Ot: missing_feature (APMAPI-2172)
+  tests/otel/test_tracing_otlp.py::Test_Otlp_Carries_Ot: v2.11.0-dev
+  tests/otel/test_tracing_otlp.py::Test_Otlp_Forwards_Inherited_Ot: v2.11.0-dev
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
@@ -2040,26 +2040,26 @@ manifest:
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_http_endpoint_retained_from_appsec: irrelevant (The AppSec endpoint retention request is specific to .NET)
-  tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5: missing_feature (APMAPI-2171)
+  tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5: v2.11.0-dev
   tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh:
     - weblog_declaration:
-        "*": missing_feature (APMAPI-2171)
+        "*": v2.11.0-dev
         envoy, apim, haproxy: irrelevant (not applicable to proxies)
   tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchanged:
     - weblog_declaration:
-        "*": missing_feature (APMAPI-2171)
+        "*": v2.11.0-dev
         envoy, apim, haproxy: irrelevant (not applicable to proxies)
   tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchangedWhenDropped:
     - weblog_declaration:
-        "*": missing_feature (APMAPI-2171)
+        "*": v2.11.0-dev
         envoy, apim, haproxy: irrelevant (not applicable to proxies)
   tests/test_otel_tracestate_sampling.py::Test_MalformedOtHandling:
     - weblog_declaration:
-        "*": missing_feature (APMAPI-2171)
+        "*": v2.11.0-dev
         envoy, apim, haproxy: irrelevant (not applicable to proxies)
   tests/test_otel_tracestate_sampling.py::Test_PreserveDdAndOtherVendors:
     - weblog_declaration:
-        "*": missing_feature (APMAPI-2171)
+        "*": v2.11.0-dev
         envoy, apim, haproxy: irrelevant (not applicable to proxies)
   tests/test_otel_tracestate_sampling.py::Test_PreserveTracestateMemberOrder:
     - weblog_declaration:
@@ -2067,15 +2067,15 @@ manifest:
         envoy, apim, haproxy: irrelevant (not applicable to proxies)
   tests/test_otel_tracestate_sampling.py::Test_SampledWithoutOtNotFabricated:
     - weblog_declaration:
-        "*": missing_feature (APMAPI-2171)
+        "*": v2.11.0-dev
         envoy, apim, haproxy: irrelevant (not applicable to proxies)
   tests/test_otel_tracestate_sampling.py::Test_ThOnlyDoesNotFabricateRv:
     - weblog_declaration:
-        "*": missing_feature (APMAPI-2171)
+        "*": v2.11.0-dev
         envoy, apim, haproxy: irrelevant (not applicable to proxies)
   tests/test_otel_tracestate_sampling.py::Test_ThOnlyDoesNotFabricateRvWhenDropped:
     - weblog_declaration:
-        "*": missing_feature (APMAPI-2171)
+        "*": v2.11.0-dev
         envoy, apim, haproxy: irrelevant (not applicable to proxies)
   tests/test_otlp_runtime_metrics.py::Test_OtlpRuntimeMetrics: v2.10.0-dev
   tests/test_profiling.py::Test_Profile::test_process_tags_svc: missing_feature
