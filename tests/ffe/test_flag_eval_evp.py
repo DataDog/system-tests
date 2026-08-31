@@ -1,18 +1,24 @@
 """Test server-side feature flag evaluation counts via EVP flagevaluation."""
 
+import hashlib
 import json
 from concurrent.futures import ThreadPoolExecutor
+from dataclasses import dataclass
 from typing import cast
 
 
 from tests.ffe.utils.fixtures import JSON, make_ufc_fixture
 from utils import HttpResponse
+from utils import context
 from utils import features
 from utils import interfaces
 from utils import remote_config as rc
 from utils import scenario_crash
 from utils import scenarios
 from utils import weblog
+from utils._context._scenarios.agentless_endtoend import FeatureFlaggingAgentlessEndToEndScenario
+from utils.interfaces._core import ProxyBasedInterfaceValidator
+from utils.mocked_backend.ffe import EXPECTED_API_KEY
 
 
 RC_PRODUCT = "FFE_FLAGS"
@@ -22,7 +28,6 @@ EVP_WAIT_TIMEOUT_SECONDS = 30
 EVP_LOAD_WAIT_TIMEOUT_SECONDS = 60
 EVP_FULL_TIER_PER_FLAG_CAP = 10_000
 EVP_DEGRADATION_OVERFLOW_EVALS = 2_000
-
 # Fixed input/output vector for the PII-protection tests. Every SDK's unit tests
 # should assert against the same input to prove byte-identical hashing across SDKs.
 PII_TARGETING_KEY = "jane.doe@datadoghq.com"
@@ -34,6 +39,39 @@ PII_ATTRIBUTES: dict[str, object] = {
     "region": "us-east-1",
     "account.tier": "gold",
 }
+
+
+@dataclass(frozen=True)
+class FlagevaluationEgress:
+    interface: ProxyBasedInterfaceValidator
+    excluded_interfaces: tuple[ProxyBasedInterfaceValidator, ...] = ()
+    expected_api_key: str | None = None
+
+
+def flagevaluation_egress() -> FlagevaluationEgress:
+    """Return the capture interface and route-only expectations for this topology."""
+    scenario = context.scenario
+    if not isinstance(scenario, FeatureFlaggingAgentlessEndToEndScenario):
+        assert scenario.name == "FEATURE_FLAGGING_AND_EXPERIMENTATION"
+        return FlagevaluationEgress(interfaces.agent)
+
+    if scenario.exposure_egress == "sidecar":
+        assert "serverless-init" in scenario.components
+        expected_api_key = scenario.serverless_init_container.environment["DD_API_KEY"]
+        assert expected_api_key is not None
+        return FlagevaluationEgress(
+            interfaces.datadog_sidecar,
+            (interfaces.datadog_direct,),
+            expected_api_key,
+        )
+
+    assert scenario.exposure_egress == "direct"
+    assert "serverless-init" not in scenario.components
+    return FlagevaluationEgress(
+        interfaces.datadog_direct,
+        (interfaces.datadog_sidecar,),
+        EXPECTED_API_KEY,
+    )
 
 
 def make_multi_flag_fixture(flag_keys: list[str]) -> JSON:
@@ -65,7 +103,9 @@ def evaluate_flag(
     return weblog.post("/ffe", json=payload)
 
 
-def evp_flagevaluation_events_from_data(data: JSON, flag_key: str) -> list[tuple[JSON, JSON]]:
+def evp_flagevaluation_events_from_data(
+    data: JSON, flag_key: str, targeting_key: str | None = None
+) -> list[tuple[JSON, JSON]]:
     if data.get("path") != EVP_FLAGEVALUATIONS_PATH:
         return []
 
@@ -87,8 +127,15 @@ def evp_flagevaluation_events_from_data(data: JSON, flag_key: str) -> list[tuple
             continue
 
         flag = event.get("flag")
-        if isinstance(flag, dict) and flag.get("key") == flag_key:
-            results.append((cast("JSON", content), cast("JSON", event)))
+        if not isinstance(flag, dict) or flag.get("key") != flag_key:
+            continue
+
+        if targeting_key is not None:
+            hashed_targeting_key = f"sha256_{hashlib.sha256(targeting_key.encode()).hexdigest()}"
+            if event.get("targeting_key") not in (targeting_key, hashed_targeting_key):
+                continue
+
+        results.append((cast("JSON", content), cast("JSON", event)))
 
     return results
 
@@ -234,6 +281,97 @@ def assert_no_duplicate_visible_events(events: list[tuple[JSON, JSON]]) -> None:
         seen.add(identity)
 
     assert not duplicates, f"found duplicate serialized-visible EVP buckets in one payload: {sorted(duplicates)}"
+
+
+class FlagevaluationEgressContract:
+    """One flagevaluation contract inherited by each supported topology adapter."""
+
+    # Agentless scenarios preload flags-v1.json before the weblog starts. Use the
+    # same known fixture key in every topology; the Agent scenario installs an
+    # equivalent fixture through Remote Config below.
+    flag_key = "empty-targeting-key-flag"
+    targeting_key = "evp-egress-user"
+    evaluation_count = 5
+
+    def setup_ffe_evp_flagevaluation_egress(self) -> None:
+        if not isinstance(context.scenario, FeatureFlaggingAgentlessEndToEndScenario):
+            config_id = "ffe-evp-egress"
+            rc.tracer_rc_state.reset().set_config(
+                f"{RC_PATH}/{config_id}/config",
+                make_ufc_fixture(self.flag_key),
+            ).apply()
+
+        self.responses = [
+            evaluate_flag(self.flag_key, targeting_key=self.targeting_key, attributes={})
+            for _ in range(self.evaluation_count)
+        ]
+
+    def test_ffe_evp_flagevaluation_egress(self) -> None:
+        for index, response in enumerate(self.responses):
+            assert response.status_code == 200, f"Request {index + 1} failed: {response.text}"
+
+        egress = flagevaluation_egress()
+
+        def matcher(data: JSON) -> bool:
+            return bool(evp_flagevaluation_events_from_data(data, self.flag_key, self.targeting_key))
+
+        assert egress.interface.wait_for(
+            lambda data: matcher(cast("JSON", data)),
+            timeout=EVP_WAIT_TIMEOUT_SECONDS,
+        ), f"Timed out waiting for EVP flagevaluation event for flag {self.flag_key}"
+
+        matching_requests = [
+            cast("JSON", data)
+            for data in egress.interface.get_data(path_filters=EVP_FLAGEVALUATIONS_PATH)
+            if matcher(cast("JSON", data))
+        ]
+        assert matching_requests, f"Expected flagevaluation requests for {self.flag_key}"
+
+        events: list[tuple[JSON, JSON]] = []
+        for request in matching_requests:
+            events.extend(evp_flagevaluation_events_from_data(request, self.flag_key, self.targeting_key))
+
+        assert events, f"Expected EVP flagevaluation events for flag {self.flag_key}"
+        for _, event in events:
+            assert_event_contract(event, self.flag_key)
+            assert object_key(event.get("variant"), "variant") == "on"
+            assert object_key(event.get("allocation"), "allocation") == "default-allocation"
+
+        assert_no_duplicate_visible_events(events)
+        assert_total_evaluation_count(events, self.evaluation_count, self.flag_key)
+
+        if egress.expected_api_key is None:
+            return
+
+        for request in matching_requests:
+            assert request["host"] == "event-platform-intake.mock-intake.invalid"
+            assert request["response"]["status_code"] == 202
+            headers = {name.lower(): value for name, value in request["request"]["headers"]}
+            assert headers["dd-api-key"] in {egress.expected_api_key, "--redacted--"}
+
+        for excluded_interface in egress.excluded_interfaces:
+            assert not any(
+                evp_flagevaluation_events_from_data(cast("JSON", data), self.flag_key, self.targeting_key)
+                for data in excluded_interface.get_data(path_filters=EVP_FLAGEVALUATIONS_PATH)
+            )
+
+
+@scenarios.feature_flagging_and_experimentation
+@features.feature_flags_evp_flagevaluation
+class Test_FFE_EVP_Flagevaluation_Egress_Datadog_Agent(FlagevaluationEgressContract):
+    pass
+
+
+@scenarios.feature_flagging_and_experimentation_agentless_direct
+@features.feature_flags_evp_flagevaluation
+class Test_FFE_EVP_Flagevaluation_Egress_Agentless_Direct(FlagevaluationEgressContract):
+    pass
+
+
+@scenarios.feature_flagging_and_experimentation_agentless_serverless
+@features.feature_flags_evp_flagevaluation
+class Test_FFE_EVP_Flagevaluation_Egress_Agentless_Sidecar(FlagevaluationEgressContract):
+    pass
 
 
 @scenarios.feature_flagging_and_experimentation
