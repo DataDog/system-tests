@@ -3,6 +3,7 @@
 require 'uri'
 require 'json'
 require 'net/http'
+require 'faraday'
 require 'datadog/lambda'
 require 'datadog/appsec'
 require 'datadog/kit/appsec/events'
@@ -155,29 +156,31 @@ def handle_rasp_sqli(method, query, body)
 end
 
 def handle_external_request(method, query, headers, body)
-  status = query&.delete('status') || '200'
-  url_extra = query&.delete('url_extra') || ''
-  full_url = "http://internal_server:8089/mirror/#{status}#{url_extra}"
+  query ||= {}
+  status = query.delete('status') || '200'
+  url_extra = query.delete('url_extra') || ''
 
-  uri = URI.parse(full_url)
-  http = Net::HTTP.new(uri.host, uri.port)
-  request = case method
-            when 'POST' then Net::HTTP::Post.new(uri)
-            when 'PUT' then Net::HTTP::Put.new(uri)
-            else Net::HTTP::Get.new(uri)
-            end
+  request_headers = query.each.with_object({}) do |(key, value), hash|
+    hash[key] = value.is_a?(Array) ? value.join(',') : value.to_s
+  end
+  request_headers['Content-Type'] = headers['Content-Type'] || headers['content-type'] if body
 
-  query&.each { |k, v| request[k] = v }
-  request.body = body if body
+  url = "http://internal_server:8089/mirror/#{status}#{url_extra}"
+  downstream_response = Faraday.new.run_request(method.downcase.to_sym, url, body, request_headers)
 
-  res = http.request(request)
-  json_response(200, {
-    status: res.code.to_i,
-    headers: res.each_header.to_h,
-    payload: JSON.parse(res.body)
-  })
+  if (200..299).cover?(downstream_response.status)
+    result = {
+      status: downstream_response.status,
+      headers: downstream_response.headers,
+      payload: JSON.parse(downstream_response.body)
+    }
+  else
+    result = { status: downstream_response.status, error: 'Request failed' }
+  end
+
+  json_response(200, result)
 rescue => e
-  response(500, "External request failed: #{e}", 'Content-Type' => 'text/plain')
+  json_response(200, { status: 599, error: "#{e.class}: #{e.message}" })
 end
 
 def retrieve_arg(key, method, query, body)

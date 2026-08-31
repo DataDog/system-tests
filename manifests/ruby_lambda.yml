@@ -3,7 +3,7 @@
 manifest:
   tests/appsec/api_security/test_endpoint_fallback.py: missing_feature
   tests/appsec/api_security/test_schemas.py: v3.30.0
-  tests/appsec/rasp/test_api10.py: missing_feature
+  tests/appsec/rasp/test_api10.py: v3.30.0
   tests/appsec/rasp/test_cmdi.py: missing_feature (not implemented in tracer)
   tests/appsec/rasp/test_lfi.py: missing_feature (not implemented in tracer)
   tests/appsec/rasp/test_shi.py: missing_feature (not implemented in tracer)
