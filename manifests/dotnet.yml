@@ -755,8 +755,18 @@ manifest:
   tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: v3.36.0
   tests/ffe/test_agentless_configuration.py: missing_feature (FFL-2703 tracks .NET agentless configuration-source implementation; FFL-2731 tracks the system-tests contract)
   tests/ffe/test_dynamic_evaluation.py: v3.36.0
-  tests/ffe/test_dynamic_evaluation.py::Test_FFE_Flag_Parse_Error_Isolation: bug (FFL-2184)
-  tests/ffe/test_dynamic_evaluation.py::Test_FFE_Unknown_Operator_Tolerance: bug (FFL-2184)
+  tests/ffe/test_dynamic_evaluation.py::Test_FFE_Flag_Parse_Error_Isolation:  # TODO: a lower version might be supported
+    - declaration: bug (FFL-2184)
+      component_version: <3.52.0
+      weblog: [poc, uds]
+    - declaration: bug (FFL-2184)
+      excluded_weblog: [poc, uds]
+  tests/ffe/test_dynamic_evaluation.py::Test_FFE_Unknown_Operator_Tolerance:  # TODO: a lower version might be supported
+    - declaration: bug (FFL-2184)
+      component_version: <3.52.0
+      weblog: [poc, uds]
+    - declaration: bug (FFL-2184)
+      excluded_weblog: [poc, uds]
   tests/ffe/test_exposure_egress.py: v3.36.0
   tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Direct: missing_feature (Not yet implemented)
   tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Sidecar: missing_feature (Not yet implemented)
@@ -883,10 +893,38 @@ manifest:
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Ignore: v3.10.0
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart: incomplete_test_app (The parametric test app does not emit restart span links or preserve baggage)
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart_With_Extract_First: incomplete_test_app (The parametric test app does not emit restart span links or preserve baggage)
-  tests/parametric/test_ffe/test_configuration_sources.py: missing_feature (FFL-2703 tracks .NET agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
+  tests/parametric/test_ffe/test_configuration_sources.py:  # TODO: a lower version might be supported
+    - declaration: missing_feature (FFL-2703 tracks .NET agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
+      component_version: <3.52.0
+  tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Cold_Failure_And_Recovery: missing_feature (FFL-2703 tracks .NET agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
+  tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Poller_Concurrency: missing_feature (FFL-2703 tracks .NET agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
+  ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Selection::test_default_agentless_positive
+  : missing_feature (FFL-2703 tracks .NET agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
+  ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Selection::test_explicit_agentless_wins_over_legacy_true
+  : missing_feature (FFL-2703 tracks .NET agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
+  ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Selection::test_explicit_remote_config_wins_over_legacy_false
+  : missing_feature (FFL-2703 tracks .NET agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
+  ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Selection::test_legacy_true_preserves_remote_config
+  : missing_feature (FFL-2703 tracks .NET agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
+  ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Selection::test_provider_kill_switch_overrides_legacy_true
+  : missing_feature (FFL-2703 tracks .NET agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
+  ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Selection::test_remote_config_positive_ignores_agentless_env
+  : missing_feature (FFL-2703 tracks .NET agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
+  ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Selection::test_remote_config_without_rc_does_not_fallback_to_agentless
+  : missing_feature (FFL-2703 tracks .NET agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
+  ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Selection::test_stable_true_preserves_default_agentless
+  : missing_feature (FFL-2703 tracks .NET agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
+  tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Warm_State_Preservation: missing_feature (FFL-2703 tracks .NET agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: '>=3.36.0'  # Modified by easy win activation script
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_flag_evaluation: missing_feature  # Created by easy win activation script
-  tests/parametric/test_ffe/test_span_enrichment.py: missing_feature
+  tests/parametric/test_ffe/test_span_enrichment.py: '>=3.52.0'  # TODO: a lower version might be supported
+  tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Child_Span_Propagation: missing_feature
+  tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Default_Fallback: missing_feature
+  tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Max_Experiments_Per_Subject: missing_feature
+  tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Max_Serial_IDs: missing_feature
+  tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Max_Subjects: missing_feature
+  tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Serial_IDs: missing_feature
+  tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Subjects: missing_feature
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_migrated_extract_valid: missing_feature (Need to remove b3=b3multi alias)
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_migrated_inject_valid: missing_feature (Need to remove b3=b3multi alias)
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_migrated_propagate_invalid: missing_feature (Need to remove b3=b3multi alias)
