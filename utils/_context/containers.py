@@ -791,9 +791,9 @@ class AgentContainer(TestedContainer):
         environment: dict[str, str | None] | None = None,
     ) -> None:
         environment = environment or {}
+        environment.setdefault("DD_ENV", "system-tests")
         environment.update(
             {
-                "DD_ENV": "system-tests",
                 "DD_HOSTNAME": "test",
                 "DD_SITE": self.dd_site,
                 "DD_APM_RECEIVER_PORT": str(self.apm_receiver_port),

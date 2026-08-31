@@ -475,6 +475,9 @@ jobs:
     - name: Run DEBUGGER_INPRODUCT_ENABLEMENT scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"DEBUGGER_INPRODUCT_ENABLEMENT"')
       run: ./run.sh DEBUGGER_INPRODUCT_ENABLEMENT
+    - name: Run DEBUGGER_REMOTE_CONFIG_ENV_MISMATCH scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"DEBUGGER_REMOTE_CONFIG_ENV_MISMATCH"')
+      run: ./run.sh DEBUGGER_REMOTE_CONFIG_ENV_MISMATCH
     - name: Run DEBUGGER_TELEMETRY scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"DEBUGGER_TELEMETRY"')
       run: ./run.sh DEBUGGER_TELEMETRY

@@ -5,7 +5,7 @@ import pytest
 
 from utils import interfaces, scenarios
 from utils._context._scenarios.endtoend import DdTraceEndToEndScenario, DockerScenario
-from utils._context.containers import TestedContainer as _TestedContainer
+from utils._context.containers import AgentContainer, TestedContainer as _TestedContainer
 
 
 class FakeContainer(_TestedContainer):
@@ -50,6 +50,12 @@ def test_main():
     scenario.pytest_sessionstart(None)
 
     assert events == ["start D", "start C", "start B", "start A"]
+
+
+@scenarios.test_the_test
+def test_agent_container_preserves_explicit_env() -> None:
+    assert AgentContainer(use_proxy=False).environment["DD_ENV"] == "system-tests"
+    assert AgentContainer(use_proxy=False, environment={"DD_ENV": "prod"}).environment["DD_ENV"] == "prod"
 
 
 @scenarios.test_the_test

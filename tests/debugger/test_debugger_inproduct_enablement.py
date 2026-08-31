@@ -4,6 +4,7 @@
 
 import tests.debugger.utils as debugger
 from utils import context, features, interfaces, logger, scenarios, slow
+from utils.dd_constants import RemoteConfigApplyState
 import json
 import time
 
@@ -61,6 +62,30 @@ class Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation(debugger.BaseDe
         assert self.di_explicit_enabled, "Expected probes to be emitting after enabling dynamic instrumentation"
         assert self.di_empty_config, "Expected probes to continue emitting with empty config"
         assert self.di_explicit_disabled, "Expected probes to stop emitting after explicit disable"
+
+    def setup_apm_tracing_and_live_debugging_with_mismatched_env(self):
+        self.initialize_weblog_remote_config()
+
+        probe = json.loads(self._probe_template)
+        probe["id"] = debugger.generate_probe_id("log")
+        self.set_probes([probe])
+
+        # The backend associates the service with the Agent's environment, not the tracer's empty environment.
+        self.send_rc_apm_tracing_and_probes(dynamic_instrumentation_enabled=True, env="prod")
+        self.send_weblog_request("/debugger/log")
+        self.di_mismatched_env_emitting = self.wait_for_all_probes(statuses=["EMITTING"], timeout=TIMEOUT)
+        self.di_mismatched_env_snapshot = self.wait_for_all_snapshots(timeout=TIMEOUT)
+
+    @scenarios.debugger_remote_config_env_mismatch
+    def test_apm_tracing_and_live_debugging_with_mismatched_env(self):
+        self.assert_rc_state_not_error()
+        self.assert_all_weblog_responses_ok()
+
+        config_states = [state for result in self.rc_states for state in result.configs.values()]
+        assert {state["product"] for state in config_states} == {"APM_TRACING", "LIVE_DEBUGGING"}
+        assert all(state["apply_state"] == RemoteConfigApplyState.ACKNOWLEDGED for state in config_states)
+        assert self.di_mismatched_env_emitting, "Expected the probe to emit after APM_TRACING enabled it"
+        assert self.di_mismatched_env_snapshot, "Expected LIVE_DEBUGGING to emit a snapshot"
 
 
 @features.debugger_inproduct_enablement

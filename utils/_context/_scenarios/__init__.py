@@ -1115,6 +1115,22 @@ class _Scenarios:
         scenario_groups=[scenario_groups.debugger],
     )
 
+    debugger_remote_config_env_mismatch = DdTraceEndToEndScenario(
+        "DEBUGGER_REMOTE_CONFIG_ENV_MISMATCH",
+        rc_api_enabled=True,
+        rc_backend_enabled=True,
+        weblog_env={
+            "DD_ENV": "",
+            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "0",
+            "DD_REMOTE_CONFIG_ENABLED": "true",
+            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.1",
+        },
+        agent_env={"DD_ENV": "prod"},
+        library_interface_timeout=5,
+        doc="Test backend Remote Config when the Agent and tracer have distinct environments.",
+        scenario_groups=[scenario_groups.debugger],
+    )
+
     debugger_telemetry = DdTraceEndToEndScenario(
         "DEBUGGER_TELEMETRY",
         rc_api_enabled=True,
