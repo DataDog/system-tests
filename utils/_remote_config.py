@@ -3,16 +3,21 @@
 # Copyright 2021 Datadog, Inc.
 
 import base64
+from contextlib import contextmanager
 import hashlib
 import json
 import os
 import re
+import threading
 import time
 import uuid
 from typing import Any, Literal
 from collections.abc import Mapping
 
+import requests
+
 from utils._context.core import context
+from utils._weblog import weblog
 
 from utils.dd_constants import RemoteConfigApplyState as ApplyState
 from utils.interfaces import library
@@ -44,6 +49,73 @@ class RemoteConfigStateResults:
     @staticmethod
     def from_json(d: dict) -> "RemoteConfigStateResults":
         return RemoteConfigStateResults(version=d["version"], state=d["state"], configs=d["configs"])
+
+
+#############################################################################
+# DEBUG ONLY - do not merge. See .github/workflows/debug-harness.yml
+#
+# Investigating a rare flake where an ASM_FEATURES activation is acknowledged
+# ~30.5s late because dd-trace-py's RC callback holds the poller thread
+# (tracer telemetry: "RC callback operation exceeded threshold",
+# product:asm_features, elapsed_time:30.542).
+#
+# Open question: are the rules already live during that window, or does the
+# activation itself take 30s? Nothing probes the weblog while send_state()
+# waits, so the logs cannot tell the two apart. This probe fills that gap:
+# once the wait has clearly stalled, hit /waf/ with the blocking User-Agent
+# every second and record the status code against elapsed time.
+#
+#   403 early  -> rules applied promptly, only the ACK is late
+#   200 until the end -> the enable itself is slow
+#############################################################################
+
+_DEBUG_PROBE_DELAY = 3.0
+"""Only start probing once the wait is clearly abnormal. A healthy apply resolves in
+~0.2s, so this keeps the probe off the happy path and out of the other tests' way."""
+
+_DEBUG_PROBE_INTERVAL = 1.0
+
+
+@contextmanager
+def _debug_probe_weblog_while_waiting():
+    """Poll /waf/ with a blocking User-Agent for as long as the enclosed RC wait runs."""
+
+    # same guard wait_for() uses: in replay mode there is nothing live to probe
+    if getattr(library, "replay", False):
+        yield
+        return
+
+    url = f"http://{weblog.domain}:{weblog.port}/waf/"
+    stop = threading.Event()
+
+    def probe() -> None:
+        if stop.wait(_DEBUG_PROBE_DELAY):
+            return  # the wait resolved normally, nothing to investigate
+
+        started = time.monotonic() - _DEBUG_PROBE_DELAY
+        while True:
+            elapsed = time.monotonic() - started
+            try:
+                # a fresh connection each time, so we never reuse one the weblog
+                # may have parked, and never block longer than the probe interval
+                status: object = requests.get(
+                    url, headers={"User-Agent": "dd-test-scanner-log-block"}, timeout=5
+                ).status_code
+            except Exception as e:  # a failed probe is itself a data point
+                status = f"ERROR {type(e).__name__}: {e}"
+
+            logger.error(f"RC-PROBE t={elapsed:5.1f}s GET /waf/ -> {status}")
+
+            if stop.wait(_DEBUG_PROBE_INTERVAL):
+                return
+
+    thread = threading.Thread(target=probe, name="rc-debug-probe", daemon=True)
+    thread.start()
+    try:
+        yield
+    finally:
+        stop.set()
+        thread.join(timeout=10)
 
 
 def send_state(
@@ -150,7 +222,8 @@ def send_state(
         return True
 
     logger.info(f"Waiting for RC version={version}, client_configs={client_configs}")
-    rv = library.wait_for(remote_config_applied, timeout=30)
+    with _debug_probe_weblog_while_waiting():
+        rv = library.wait_for(remote_config_applied, timeout=30)
     if not rv:
         logger.error(
             f"RC timed out. Last known state: targets_version={state.get('targets_version')}, "

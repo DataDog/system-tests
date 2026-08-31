@@ -31,6 +31,14 @@ on:
         description: Specify an arbitrary branch of the lib (if set, dev_or_prod is ignored)
         default: ""
         type: string
+      runs_per_job:
+        description: How many iterations inside each job (each iteration restarts the containers)
+        default: "100"
+        type: string
+      pytest_args:
+        description: Extra pytest arguments, passed as-is to run.sh (e.g. -k test_block_405)
+        default: ""
+        type: string
 
 env:
   LIBRARY:                ${{ (github.event_name == 'workflow_dispatch' && inputs.library)               || 'php' }}
@@ -40,6 +48,8 @@ env:
   AGENT_IMAGE:            ${{ (github.event_name == 'workflow_dispatch' && inputs.agent_image)           || 'datadog/agent:latest' }}
   DEV_OR_PROD:            ${{ (github.event_name == 'workflow_dispatch' && inputs.dev_or_prod)           || 'prod' }}
   LIBRARY_TARGET_BRANCH:  ${{ (github.event_name == 'workflow_dispatch' && inputs.library_target_branch) || '' }}
+  RUNS_PER_JOB:           ${{ (github.event_name == 'workflow_dispatch' && inputs.runs_per_job)          || '100' }}
+  PYTEST_ARGS:            ${{ (github.event_name == 'workflow_dispatch' && inputs.pytest_args)           || '' }}
 
 jobs:
   generate-matrix:
@@ -107,12 +117,38 @@ jobs:
       run: ./build.sh ${{ env.LIBRARY }} -i weblog -w ${{ env.WEBLOG }}
 
     - run: |
-        set -e
-        for i in {1..100}
-        do
-          echo "Run #$i"
-          ./run.sh ${{ env.SCENARIO }}
+        # Keep the logs of every interesting iteration, not just the last one:
+        # each run.sh recreates logs_<scenario>/, so a run that stalled but still
+        # passed would otherwise be overwritten by the next iteration.
+        save_logs() {
+          target="logs_SAVED_$1"
+          mkdir -p "$target"
+          for d in logs_*; do
+            case "$d" in logs_SAVED*) continue ;; esac
+            cp -r "$d" "$target/" || true
+          done
+        }
+
+        failed=0
+        for ((i = 1; i <= RUNS_PER_JOB; i++)); do
+          echo "::group::Run #$i"
+          # shellcheck disable=SC2086  # PYTEST_ARGS is deliberately word-split
+          if ./run.sh "$SCENARIO" $PYTEST_ARGS; then
+            # a stall shorter than the 30s RC timeout still leaves probe lines behind
+            if grep -rqs "RC-PROBE" logs_*/tests.log; then
+              echo "::warning::run #$i stalled on the RC wait but still passed"
+              save_logs "stall_$i"
+            fi
+          else
+            echo "::error::run #$i failed - reproduced"
+            save_logs "fail_$i"
+            failed=1
+            echo "::endgroup::"
+            break
+          fi
+          echo "::endgroup::"
         done
+        exit "$failed"
 
     - name: Upload artifact
       if: steps.build.outcome == 'success' && !cancelled()
