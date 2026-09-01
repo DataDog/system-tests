@@ -86,6 +86,18 @@ while [[ $# -gt 0 ]]; do
             ;;
         --)
             shift
+            while [[ $# -gt 0 ]]; do
+                if [[ -z "$AGENT_SRC" ]]; then
+                    AGENT_SRC="$1"
+                elif [[ -z "$IMAGE" ]]; then
+                    IMAGE="$1"
+                else
+                    echo "Unexpected extra argument: $1" >&2
+                    usage >&2
+                    exit 1
+                fi
+                shift
+            done
             break
             ;;
         -*)
@@ -125,18 +137,28 @@ if [[ ! -d "$AGENT_SRC" ]]; then
     exit 1
 fi
 
+# Docker's bind-mount syntax requires an absolute host path.
+AGENT_SRC="$(cd "$AGENT_SRC" && pwd)"
+
 if [[ ! -f "$AGENT_SRC/.go-version" ]]; then
     echo "error: '$AGENT_SRC/.go-version' not found -- is this a datadog-agent checkout?" >&2
     exit 1
 fi
 
 # Docker platform of the resulting image; must match the arch your docker VM/host runs.
+# Platform is os/arch[/variant] (e.g. linux/arm/v7) -- only the arch component maps to GOARCH.
 PLATFORM="${PLATFORM:-linux/$(docker version --format '{{.Server.Arch}}')}"
-GOARCH="${PLATFORM##*/}"
+IFS='/' read -r _PLATFORM_OS GOARCH PLATFORM_VARIANT <<<"$PLATFORM"
+GOARM=""
+if [[ "$GOARCH" == "arm" && -n "$PLATFORM_VARIANT" ]]; then
+    GOARM="${PLATFORM_VARIANT#v}"
+fi
 
 WORK="$HOME/.cache/system-tests-agent-build"
-OUT="$WORK/out"
-mkdir -p "$OUT" "$WORK/gocache"
+GOCACHE_DIR="$WORK/gocache"
+OUT="$(mktemp -d "${TMPDIR:-/tmp}/system-tests-agent-build.XXXXXX")"
+trap 'rm -rf "$OUT"' EXIT
+mkdir -p "$GOCACHE_DIR"
 
 GO_VERSION="$(cat "$AGENT_SRC/.go-version")"
 TRACE_AGENT_TAGS="docker containerd datadog.no_waf kubelet otlp netcgo podman"
@@ -152,12 +174,19 @@ FULL_COMMIT="$(git -C "$AGENT_SRC" rev-parse HEAD)"
 VERSION_PKG=github.com/DataDog/datadog-agent/pkg/version
 
 echo ">> building trace-agent ($AGENT_VERSION, $COMMIT) for $PLATFORM from $AGENT_SRC"
+GOARCH_ENV=("-e" "GOARCH=$GOARCH")
+if [[ -n "$GOARM" ]]; then
+    GOARCH_ENV+=("-e" "GOARM=$GOARM")
+fi
+# Run as the caller's UID/GID so the build doesn't leave root-owned files behind in the
+# host-mounted GOMODCACHE/gocache/out directories.
 docker run --rm --platform "$PLATFORM" \
+    --user "$(id -u):$(id -g)" -e HOME=/tmp \
     -v "$AGENT_SRC:/src" \
     -v "$GOMODCACHE:/go/pkg/mod" \
     -v "$OUT:/out" \
-    -v "$WORK/gocache:/gocache" \
-    -w /src -e CGO_ENABLED=1 -e GOCACHE=/gocache -e "GOARCH=$GOARCH" \
+    -v "$GOCACHE_DIR:/gocache" \
+    -w /src -e CGO_ENABLED=1 -e GOCACHE=/gocache "${GOARCH_ENV[@]}" \
     "golang:$GO_VERSION" \
     go build -tags "$TRACE_AGENT_TAGS" \
         -ldflags "-X $VERSION_PKG.AgentVersion=$AGENT_VERSION -X $VERSION_PKG.Commit=$COMMIT -X $VERSION_PKG.FullCommit=$FULL_COMMIT" \
