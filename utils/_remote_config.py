@@ -12,7 +12,7 @@ import threading
 import time
 import uuid
 from typing import Any, Literal
-from collections.abc import Mapping
+from collections.abc import Iterator, Mapping
 
 from utils._context.core import context
 
@@ -48,8 +48,12 @@ class RemoteConfigStateResults:
         return RemoteConfigStateResults(version=d["version"], state=d["state"], configs=d["configs"])
 
 
-SLOW_APPLY_THRESHOLD = 5.0
-"""Seconds an RC apply may take before it is reported as abnormal."""
+SLOW_APPLY_THRESHOLD = 12.0
+"""Seconds an RC apply may take before it is reported as abnormal.
+
+Measured normal acknowledgement times differ a lot per library: python stays under 2s,
+while java and golang cluster around 8s and reach 10s. This sits above all of them.
+"""
 
 STACK_DUMP_AFTER = (10.0, 20.0)
 """Seconds into a stalled apply at which the weblog's thread stacks are captured.
@@ -57,17 +61,25 @@ STACK_DUMP_AFTER = (10.0, 20.0)
 Two samples are enough to tell a thread parked on one call from one that is moving.
 """
 
+STACK_DUMP_TIMEOUT = 10
+"""Seconds a stack dump command may run. Enforced inside the container."""
+
+MAX_TELEMETRY_WARNINGS = 20
+"""Most recent telemetry warnings to log, so a long run cannot flood the output."""
+
+MAX_STACK_DUMP_CHARS = 20000
+"""Longest stack dump to log, so a process with many threads cannot flood the output."""
+
 _STACK_DUMP_COMMANDS: dict[str, str] = {
-    "python": "py-spy dump --pid 1 --subprocesses",
-    "java": "jcmd 1 Thread.print",
+    # `timeout` bounds the command so a hung dump cannot extend the apply, and
+    # --nonblocking keeps py-spy from pausing the process we are measuring
+    "python": f"timeout {STACK_DUMP_TIMEOUT} py-spy dump --pid 1 --subprocesses --nonblocking",
 }
 """How to dump thread stacks, per library. Libraries absent here are not covered."""
 
-_reported_telemetry_warnings: set[str] = set()
-
 
 def _log_library_telemetry_warnings() -> None:
-    """Log warnings the library reported through telemetry, once each.
+    """Log the warnings a library reported through telemetry.
 
     Libraries report their own slow remote config callbacks this way, which is often
     what explains an apply that was not acknowledged in time. This telemetry is already
@@ -75,6 +87,7 @@ def _log_library_telemetry_warnings() -> None:
     """
     try:
         lines: list[str] = []
+        seen: set[str] = set()
         for data in library.get_telemetry_data():
             content = data["request"]["content"]
             if content.get("request_type") != "logs":
@@ -89,16 +102,31 @@ def _log_library_telemetry_warnings() -> None:
                 line = f"[{entry.get('level')}] {entry.get('message')}"
                 if entry.get("tags"):
                     line += f" ({entry['tags']})"
-                if line not in _reported_telemetry_warnings:
-                    _reported_telemetry_warnings.add(line)
+                if line not in seen:  # deduplicated within this report only
+                    seen.add(line)
                     lines.append(line)
     except Exception as e:  # diagnostics must never fail a test
         logger.info(f"Could not read library telemetry: {type(e).__name__}: {e}")
         return
 
     if lines:
-        formatted = "\n  ".join(lines)
-        logger.error(f"Library reported these telemetry warnings:\n  {formatted}")
+        shown = lines[-MAX_TELEMETRY_WARNINGS:]
+        omitted = len(lines) - len(shown)
+        formatted = "\n  ".join(shown)
+        suffix = f"\n  (+{omitted} earlier warnings not shown)" if omitted else ""
+        logger.warning(f"Library reported these telemetry warnings:\n  {formatted}{suffix}")
+
+
+def _stack_dump_supported() -> bool:
+    """Whether thread stacks can be dumped for the library and scenario in use."""
+    try:
+        # scenarios without a weblog (parametric, and others) have nothing to dump
+        return (
+            context.library.name in _STACK_DUMP_COMMANDS
+            and getattr(context.scenario, "weblog_container", None) is not None
+        )
+    except Exception:  # diagnostics must never fail a test
+        return False
 
 
 def _dump_weblog_thread_stacks(elapsed: float) -> None:
@@ -109,42 +137,62 @@ def _dump_weblog_thread_stacks(elapsed: float) -> None:
     """
     try:
         command = _STACK_DUMP_COMMANDS.get(context.library.name)
-        # scenarios without a weblog (parametric, and others) have nothing to dump
         weblog_container = getattr(context.scenario, "weblog_container", None)
         if command is None or weblog_container is None:
             return
 
         result = weblog_container.exec_run(command)
-        output = result.output.decode("utf-8", errors="replace") if result.output else "<no output>"
+        output = (result.output or b"").decode("utf-8", errors="replace").strip()
+        if result.exit_code != 0:
+            # never present a failed command as though it were a stack dump
+            logger.info(f"Thread stack dump failed (exit {result.exit_code}): {output[:500]}")
+            return
+        if len(output) > MAX_STACK_DUMP_CHARS:
+            output = output[:MAX_STACK_DUMP_CHARS] + "\n<truncated>"
     except Exception as e:  # diagnostics must never fail a test, nor kill this thread
         logger.info(f"Could not dump weblog thread stacks: {type(e).__name__}: {e}")
         return
 
-    logger.error(f"Weblog thread stacks {elapsed:.1f}s into a stalled RC apply:\n{output}")
+    logger.warning(f"Weblog thread stacks {elapsed:.1f}s into a stalled RC apply:\n{output}")
 
 
 @contextmanager
-def _dump_stacks_if_apply_stalls():
+def _dump_stacks_if_apply_stalls(started: float) -> Iterator[None]:
     """Capture the weblog's thread stacks if the enclosed wait stalls.
 
-    Nothing is captured for an apply that completes before the first deadline.
+    `started` is the caller's monotonic start time, so the deadlines measure the wait
+    rather than when this thread happened to be scheduled. Nothing is captured for an
+    apply that completes before the first deadline, nor for an unsupported library.
     """
+    if not _stack_dump_supported():
+        yield
+        return
+
     stop = threading.Event()
 
     def watch() -> None:
-        started = time.monotonic()
         for deadline in STACK_DUMP_AFTER:
-            if stop.wait(max(0.0, deadline - (time.monotonic() - started))):
+            remaining = deadline - (time.monotonic() - started)
+            if remaining <= 0:
+                continue  # deadline already missed, do not run dumps back to back
+            if stop.wait(remaining):
                 return  # the apply completed, there is nothing to look at
             _dump_weblog_thread_stacks(time.monotonic() - started)
 
     thread = threading.Thread(target=watch, name="rc-stack-dump", daemon=True)
-    thread.start()
+    try:
+        thread.start()
+    except Exception as e:  # diagnostics must never fail a test
+        logger.info(f"Could not start the stack dump watcher: {type(e).__name__}: {e}")
+        yield
+        return
+
     try:
         yield
     finally:
         stop.set()
-        thread.join(timeout=60)
+        # bounded: the command itself cannot outlive STACK_DUMP_TIMEOUT
+        thread.join(timeout=STACK_DUMP_TIMEOUT + 5)
 
 
 def send_state(
@@ -209,30 +257,29 @@ def send_state(
             "apply_error": "<No known response from the library>",
         }
 
-    state = {}
+    last_client_state: dict = {}
 
     def remote_config_applied(data: dict) -> bool:
-        nonlocal state
+        nonlocal last_client_state
         if data["path"] != "/v0.7/config":
             return False
 
-        state = data.get("request", {}).get("content", {}).get("client", {}).get("state", {})
-        targets_version = state.get("targets_version")
-        config_states = state.get("config_states", [])
+        last_client_state = data.get("request", {}).get("content", {}).get("client", {}).get("state", {})
+        targets_version = last_client_state.get("targets_version")
+        config_states = last_client_state.get("config_states", [])
         logger.info(
             f"RC poll: targets_version={targets_version} (waiting for {version}), config_states={config_states}"
         )
 
         if len(client_configs) == 0:
-            found = state["targets_version"] == state_version and state.get("config_states", []) == []
+            found = targets_version == state_version and config_states == []
             if found:
                 current_states.state = ApplyState.ACKNOWLEDGED
             return found
 
-        if state["targets_version"] != version:
+        if targets_version != version:
             return False
 
-        # `state` is the nonlocal read by the timeout diagnostic: do not rebind it here
         for reported_state in config_states:
             config_state = current_states.configs.get(reported_state["id"])
             if config_state and reported_state["product"] == config_state["product"]:
@@ -254,27 +301,33 @@ def send_state(
 
     logger.info(f"Waiting for RC version={version}, client_configs={client_configs}")
     wait_started = time.monotonic()
-    with _dump_stacks_if_apply_stalls():
+    with _dump_stacks_if_apply_stalls(wait_started):
         rv = library.wait_for(remote_config_applied, timeout=30)
-    elapsed = time.monotonic() - wait_started
+        # measured inside, so watcher teardown is not counted as part of the apply
+        elapsed = time.monotonic() - wait_started
+
+    # an apply that is never acknowledged does not always fail a test, so this is
+    # reported rather than raised, and logged before the sleep so that an outer
+    # scenario timeout cannot lose it
+    slow = elapsed > SLOW_APPLY_THRESHOLD
+    if not rv:
+        logger.warning(
+            f"RC apply version={version} was not acknowledged after {elapsed:.3f}s. "
+            f"Last seen targets_version={last_client_state.get('targets_version')}, "
+            f"awaited configs={list(current_states.configs.keys())}, "
+            f"reported config_states={last_client_state.get('config_states', [])}"
+        )
+    elif slow:
+        logger.warning(f"RC apply version={version} was acknowledged, but took {elapsed:.3f}s")
+    else:
+        logger.debug(f"RC apply version={version} acknowledged in {elapsed:.3f}s")
 
     # ensure the library has enough time to apply the config to all subprocesses,
     # and to flush the telemetry that explains a slow apply
     time.sleep(2)
 
-    if not rv:
-        logger.error(
-            f"RC apply timed out after {elapsed:.3f}s. "
-            f"Expected targets_version={version}, last seen={state.get('targets_version')}, "
-            f"awaited configs={list(current_states.configs.keys())}, "
-            f"reported config_states={state.get('config_states', [])}"
-        )
+    if not rv or slow:
         _log_library_telemetry_warnings()
-    elif elapsed > SLOW_APPLY_THRESHOLD:
-        logger.warning(f"RC apply version={version} was acknowledged, but took {elapsed:.3f}s")
-        _log_library_telemetry_warnings()
-    else:
-        logger.debug(f"RC apply version={version} acknowledged in {elapsed:.3f}s")
 
     # Opt-in fail-fast for Ruby RC timeouts (default off). Setup paths in CI
     # must not raise (.cursor/rules/pr-review.mdc §4); the default-off gate

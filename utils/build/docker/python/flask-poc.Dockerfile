@@ -7,7 +7,7 @@ RUN /binaries/install_ddtrace.sh
 
 # py-spy lets system-tests dump this weblog's thread stacks from outside the
 # process when a remote config apply stalls (see utils/_remote_config.py)
-RUN pip install py-spy==0.4.1
+RUN pip install --no-cache-dir py-spy==0.4.1
 
 # Install OTel OTLP exporter for FFE metrics
 RUN pip install opentelemetry-exporter-otlp-proto-http==1.40.0
