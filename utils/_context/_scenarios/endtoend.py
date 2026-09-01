@@ -180,7 +180,9 @@ class DockerScenario(Scenario):
                 pytest.exit(f"Container {container.name} can't be started", 1)
 
     def pytest_sessionfinish(self, session: pytest.Session, exitstatus: int):  # noqa: ARG002
-        self.close_targets()
+        for container in reversed(self._containers):
+            if not container.is_removed():
+                pytest.exit(f"INTERNALERROR> Container {container.name} hasn't be removed", 1)
 
     def close_targets(self):
         for container in reversed(self._containers):
