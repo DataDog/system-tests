@@ -174,19 +174,21 @@ def _default_config(service: str, env: str) -> dict[str, Any]:
     }
 
 
-# Only a positive observation is memoized: capabilities are static for a given library build, but
-# a library that has not registered them yet reports a partial set, which must not be cached.
+# Memoized once the capabilities are conclusive: a library that has not registered its APM_TRACING
+# capabilities yet reports a partial set, which must not be cached.
 _sdk_configuration_support: dict[str, bool] = {}
 
 
 def uses_sdk_configuration(test_agent: TestAgentAPI) -> bool:
-    """Whether the library advertises the SDK_CONFIGURATION remote config capability.
+    """Whether the library reads its APM_TRACING settings from the env-var-keyed `sdk_config`
+    field rather than the legacy `lib_config` object.
 
-    Such libraries read the settings from the env-var-keyed `sdk_config` field of an APM_TRACING
-    config instead of the legacy `lib_config` object.
+    Resolve this *before* anything that clears the recorded requests: reading the capabilities
+    waits for the next remote config request, and one recorded in the middle of an update would
+    be taken for the acknowledgement of that update.
     """
-    if _sdk_configuration_support.get("value"):
-        return True
+    if "value" in _sdk_configuration_support:
+        return _sdk_configuration_support["value"]
 
     try:
         seen_capabilities = test_agent.wait_for_rc_capabilities(_RC_WAIT_LOOPS)
@@ -195,23 +197,29 @@ def uses_sdk_configuration(test_agent: TestAgentAPI) -> bool:
         # for instance) reports no capability, and the payload shape makes no difference to it.
         return False
 
-    if Capabilities.SDK_CONFIGURATION not in seen_capabilities:
+    supported = remote_config.resolve_sdk_configuration_contract(seen_capabilities)
+    if supported is None:
         return False
 
-    _sdk_configuration_support["value"] = True
-    return True
+    _sdk_configuration_support["value"] = supported
+    return supported
 
 
 def assert_rc_capability(test_agent: TestAgentAPI, capability: Capabilities, wait_loops: int = 100) -> None:
     """Assert that the tracer advertises the capability to remotely configure one setting.
 
     A tracer that has moved to the unified SDK_CONFIGURATION contract advertises that single bit
-    for every remotely configurable setting instead of the per-setting ones, so either is accepted.
+    for every remotely configurable setting instead of the per-setting ones, so it stands in for
+    any of them. The SDK_CONFIGURATION bit on its own does not, since libdatadog gives that bit a
+    different meaning; only a tracer that has really dropped the per-setting bits qualifies.
     """
     seen_capabilities = test_agent.wait_for_rc_capabilities(wait_loops)
-    assert capability in seen_capabilities or Capabilities.SDK_CONFIGURATION in seen_capabilities, (
-        f"RemoteConfig capability missing: neither {capability.name} nor SDK_CONFIGURATION "
-        f"is advertised; seen: {seen_capabilities}"
+    if capability in seen_capabilities:
+        return
+
+    assert remote_config.resolve_sdk_configuration_contract(seen_capabilities), (
+        f"RemoteConfig capability missing: neither {capability.name} nor the SDK_CONFIGURATION "
+        f"contract that replaces it; seen: {seen_capabilities}"
     )
 
 
@@ -250,6 +258,10 @@ def set_and_wait_rc(
     config. config_id filtering matches only the ACK we just triggered.
     """
     rc_config: dict[str, Any] = _create_rc_config(config_overrides)
+    # Resolve the payload shape before clearing, not in _set_rc below: it waits for the next RC
+    # request, and one recorded between the clear and the update would be the stale ACK the clear
+    # is there to discard, which wait_for_rc_apply_state would then take for the new one.
+    uses_sdk_configuration(test_agent)
     if config_id is not None:
         # Reuse case: discard stale ACKs from prior updates at the same path
         test_agent.clear()

@@ -2,6 +2,7 @@ import base64
 import json
 
 from utils import remote_config as rc, scenarios
+from utils.dd_constants import Capabilities
 
 
 @scenarios.test_the_test
@@ -188,3 +189,47 @@ def test_build_apm_tracing_command_legacy_by_default():
     sent = json.loads(base64.b64decode(command["target_files"][0]["raw"]))
     assert "sdk_config" not in sent
     assert sent["lib_config"]["dynamic_instrumentation_enabled"] is True
+
+
+@scenarios.test_the_test
+def test_resolve_sdk_configuration_contract():
+    """The SDK_CONFIGURATION bit alone does not mean the library reads sdk_config.
+
+    Bit 49 is SDK_CONFIGURATION in the remote config source of truth, but libdatadog gives the
+    same bit to ASM_RAW_RESPONSE_BODY, so the per-setting capabilities have to be gone too.
+    """
+    # dd-trace-js with the SDK_CONFIGURATION support: the per-setting capabilities are dropped
+    assert rc.resolve_sdk_configuration_contract(
+        {
+            Capabilities.ASM_ACTIVATION,
+            Capabilities.APM_TRACING_MULTICONFIG,
+            Capabilities.SDK_CONFIGURATION,
+        }
+    )
+
+    # dd-trace-php: bit 49 is ASM_RAW_RESPONSE_BODY there, and lib_config is still what it reads
+    assert (
+        rc.resolve_sdk_configuration_contract(
+            {
+                Capabilities.APM_TRACING_CUSTOM_TAGS,
+                Capabilities.APM_TRACING_ENABLED,
+                Capabilities.APM_TRACING_HTTP_HEADER_TAGS,
+                Capabilities.APM_TRACING_LOGS_INJECTION,
+                Capabilities.APM_TRACING_SAMPLE_RATE,
+                Capabilities.APM_TRACING_SAMPLE_RULES,
+                Capabilities.APM_TRACING_MULTICONFIG,
+                Capabilities.SDK_CONFIGURATION,
+            }
+        )
+        is False
+    )
+
+    # dd-trace-java: no SDK_CONFIGURATION at all
+    assert (
+        rc.resolve_sdk_configuration_contract({Capabilities.APM_TRACING_SAMPLE_RATE, Capabilities.APM_TRACING_ENABLED})
+        is False
+    )
+
+    # Only ASM capabilities registered so far: nothing to conclude, ask again later
+    assert rc.resolve_sdk_configuration_contract({Capabilities.ASM_ACTIVATION}) is None
+    assert rc.resolve_sdk_configuration_contract(set()) is None

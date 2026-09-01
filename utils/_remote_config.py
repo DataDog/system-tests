@@ -409,9 +409,47 @@ def to_sdk_config_payload(config: dict[str, Any]) -> dict[str, Any]:
     return result
 
 
-# Only a positive observation is memoized, to skip re-scanning the whole /v0.7/config history on
-# every payload: capabilities are static for a given library build, but a library that has not
-# registered them yet reports a partial set, which must not be cached.
+# The per-setting APM_TRACING capabilities that SDK_CONFIGURATION replaces. A library on the new
+# contract advertises the single SDK_CONFIGURATION bit instead of all of these.
+LEGACY_APM_TRACING_CAPABILITIES = frozenset(
+    {
+        Capabilities.APM_TRACING_CUSTOM_TAGS,
+        Capabilities.APM_TRACING_ENABLED,
+        Capabilities.APM_TRACING_HTTP_HEADER_TAGS,
+        Capabilities.APM_TRACING_LOGS_INJECTION,
+        Capabilities.APM_TRACING_SAMPLE_RATE,
+        Capabilities.APM_TRACING_SAMPLE_RULES,
+    }
+)
+
+
+def resolve_sdk_configuration_contract(capabilities: set[Capabilities]) -> bool | None:
+    """Decide which APM_TRACING payload shape a set of advertised capabilities asks for.
+
+    Returns True for `sdk_config`, False for `lib_config`, and None when the capabilities seen so
+    far say nothing about APM_TRACING yet, so the caller should look again later.
+
+    The SDK_CONFIGURATION bit alone is not enough to decide. Bit 49 is SDK_CONFIGURATION in the
+    remote config source of truth (dd-source `remote-config/shared/libs/rc/capabilities.go`), but
+    libdatadog hands the same bit to `ASM_RAW_RESPONSE_BODY`, so a libdatadog-based library such as
+    dd-trace-php advertises it while still reading `lib_config`. Requiring the per-setting
+    capabilities to be *gone* tells the two apart: dropping them is the whole point of the unified
+    bit, and a library still advertising them still understands `lib_config`.
+    """
+    advertises_sdk_configuration = Capabilities.SDK_CONFIGURATION in capabilities
+    advertises_legacy = bool(capabilities & LEGACY_APM_TRACING_CAPABILITIES)
+
+    if advertises_sdk_configuration and not advertises_legacy:
+        return True
+    if advertises_sdk_configuration or advertises_legacy:
+        return False
+
+    return None
+
+
+# Memoized once the capabilities are conclusive, both to skip re-scanning the whole /v0.7/config
+# history on every payload and because a library that has not registered its APM_TRACING
+# capabilities yet reports a partial set, which must not be cached.
 _sdk_configuration_support: dict[str, bool] = {}
 
 
@@ -421,8 +459,8 @@ def library_supports_sdk_configuration() -> bool:
     Libraries that do read their settings from `sdk_config` instead of `lib_config`, so APM_TRACING
     payloads must be translated with `to_sdk_config_payload` before being sent to them.
     """
-    if _sdk_configuration_support.get("value"):
-        return True
+    if "value" in _sdk_configuration_support:
+        return _sdk_configuration_support["value"]
 
     # Capabilities are only observable once the library has polled /v0.7/config at least once.
     # This returns straight away when such a request has already been seen.
@@ -431,15 +469,17 @@ def library_supports_sdk_configuration() -> bool:
         return False
 
     try:
-        supported = Capabilities.SDK_CONFIGURATION in library.get_rc_capabilities()
+        supported = resolve_sdk_configuration_contract(library.get_rc_capabilities())
     except Exception as e:  # this is called from setup methods, which must never fail
         logger.error(f"Could not read the RC capabilities ({e}), assuming no SDK_CONFIGURATION support")
         return False
 
-    logger.info(f"Library {'supports' if supported else 'does not support'} the SDK_CONFIGURATION capability")
-    if supported:
-        _sdk_configuration_support["value"] = True
+    if supported is None:
+        logger.info("No APM_TRACING capability advertised yet, sending lib_config for now")
+        return False
 
+    logger.info(f"Library {'supports' if supported else 'does not support'} the SDK_CONFIGURATION capability")
+    _sdk_configuration_support["value"] = supported
     return supported
 
 
