@@ -48,6 +48,8 @@ DEFAULT_ENVVARS = {
     "CORECLR_ENABLE_PROFILING": "1",
 }
 
+LIFECYCLE_ENVVARS = {**DEFAULT_ENVVARS, "OTEL_METRIC_EXPORT_INTERVAL": "3600000"}
+
 
 @pytest.fixture
 def otlp_metrics_endpoint_library_env(
@@ -273,8 +275,8 @@ class Test_Otel_Metrics_Lifecycle:
         )
 
     @staticmethod
-    def assert_exported_once(test_agent: TestAgentAPI, metric_name: str) -> None:
-        matching_metrics = find_metrics_by_name(test_agent.metrics(), metric_name)
+    def assert_exported_once(metric_requests: list[dict], metric_name: str) -> None:
+        matching_metrics = find_metrics_by_name(metric_requests, metric_name)
         assert len(matching_metrics) == 1
         assert_sum_aggregation(
             matching_metrics[0]["sum"],
@@ -284,7 +286,7 @@ class Test_Otel_Metrics_Lifecycle:
             attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
         )
 
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @pytest.mark.parametrize("library_env", [{**LIFECYCLE_ENVVARS}])
     def test_force_flush_exports_pending_metric_before_return(
         self, test_agent: TestAgentAPI, test_library: APMLibrary, test_id: str
     ) -> None:
@@ -298,9 +300,9 @@ class Test_Otel_Metrics_Lifecycle:
             test_library.terminate()
 
         assert success
-        self.assert_exported_once(test_agent, metric_name)
+        self.assert_exported_once(test_agent.metrics(), metric_name)
 
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @pytest.mark.parametrize("library_env", [{**LIFECYCLE_ENVVARS}])
     def test_shutdown_exports_pending_metric_before_return(
         self, test_agent: TestAgentAPI, test_library: APMLibrary, test_id: str
     ) -> None:
@@ -314,7 +316,7 @@ class Test_Otel_Metrics_Lifecycle:
             test_library.terminate()
 
         assert success
-        self.assert_exported_once(test_agent, metric_name)
+        self.assert_exported_once(test_agent.metrics(), metric_name)
 
 
 @scenarios.parametric

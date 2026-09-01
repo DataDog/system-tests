@@ -2417,7 +2417,9 @@ manifest:
   ? tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint::test_otlp_metrics_custom_endpoint_grpc
   : missing_feature (Does not support grpc)
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Host_Name::test_hostname_from_dd_hostname: missing_feature (DD_HOSTNAME to host.name resource attribute mapping not yet implemented)
-  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Lifecycle: missing_feature (Public OTel metrics lifecycle API not released)
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Lifecycle:
+    - declaration: missing_feature (Implemented in 7.0.0)
+      component_version: '<=7.0.0-pre'
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_metrics_grpc: missing_feature (Does not support grpc)
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_add_event_meta_serialization:
     - declaration: missing_feature (Implemented in v5.17.0 & v4.41.0)

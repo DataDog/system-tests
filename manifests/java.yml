@@ -3989,7 +3989,9 @@ manifest:
   : incomplete_test_app (GPRC fails for system-test but works with real collector)
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Protocol::test_otlp_protocol_grpc: incomplete_test_app (GPRC fails for system-test but works with real collector)
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Host_Name::test_hostname_from_dd_hostname: irrelevant (DD_HOSTNAME is only supported in Python)
-  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Lifecycle: missing_feature (Public OTel metrics lifecycle API not released)
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Lifecycle:
+    - declaration: missing_feature (Implemented in 1.66.0)
+      component_version: '<=1.66.0-SNAPSHOT'
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry: missing_feature (not yet implemented)
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_add_event_meta_serialization:
     - declaration: missing_feature (Not implemented)

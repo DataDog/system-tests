@@ -973,12 +973,16 @@ class ParametricTestClientApi(TestClientApi):
 
     def otel_metrics_force_flush(self, seconds: int = 10, *, public_only: bool = False) -> bool:
         resp = self._session.post(
-            self._url("/metrics/otel/force_flush"), json={"seconds": seconds, "public_only": public_only}
+            self._url("/metrics/otel/force_flush"),
+            json={"seconds": seconds, "public_only": public_only},
+            timeout=seconds + 1 if public_only else None,
         ).json()
         return resp["success"]
 
     def otel_metrics_shutdown(self, seconds: int = 10) -> bool:
-        resp = self._session.post(self._url("/metrics/otel/shutdown"), json={"seconds": seconds}).json()
+        resp = self._session.post(
+            self._url("/metrics/otel/shutdown"), json={"seconds": seconds}, timeout=seconds + 1
+        ).json()
         return resp["success"]
 
     def llmobs_trace(
