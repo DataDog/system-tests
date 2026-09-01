@@ -46,6 +46,47 @@ class RemoteConfigStateResults:
         return RemoteConfigStateResults(version=d["version"], state=d["state"], configs=d["configs"])
 
 
+SLOW_APPLY_THRESHOLD = 5.0
+"""Seconds an RC apply may take before it is reported as abnormal."""
+
+_reported_telemetry_warnings: set[str] = set()
+
+
+def _log_library_telemetry_warnings() -> None:
+    """Log warnings the library reported through telemetry, once each.
+
+    Libraries report their own slow remote config callbacks this way, which is often
+    what explains an apply that was not acknowledged in time. This telemetry is already
+    collected, so nothing extra is sent, and nothing is logged if there is none.
+    """
+    try:
+        lines: list[str] = []
+        for data in library.get_telemetry_data():
+            content = data["request"]["content"]
+            if content.get("request_type") != "logs":
+                continue
+
+            payload = content.get("payload") or {}
+            entries = payload.get("logs", []) if isinstance(payload, dict) else payload
+            for entry in entries or []:
+                if str(entry.get("level", "")).upper() not in ("WARN", "WARNING", "ERROR"):
+                    continue
+
+                line = f"[{entry.get('level')}] {entry.get('message')}"
+                if entry.get("tags"):
+                    line += f" ({entry['tags']})"
+                if line not in _reported_telemetry_warnings:
+                    _reported_telemetry_warnings.add(line)
+                    lines.append(line)
+    except Exception as e:  # diagnostics must never fail a test
+        logger.info(f"Could not read library telemetry: {type(e).__name__}: {e}")
+        return
+
+    if lines:
+        formatted = "\n  ".join(lines)
+        logger.error(f"Library reported these telemetry warnings:\n  {formatted}")
+
+
 def send_state(
     raw_payload: dict,
     *,
@@ -131,18 +172,20 @@ def send_state(
         if state["targets_version"] != version:
             return False
 
-        for state in config_states:
-            config_state = current_states.configs.get(state["id"])
-            if config_state and state["product"] == config_state["product"]:
-                logger.debug(f"Remote config state: {state}")
-                config_state.update(state)
+        # `state` is the nonlocal read by the timeout diagnostic: do not rebind it here
+        for reported_state in config_states:
+            config_state = current_states.configs.get(reported_state["id"])
+            if config_state and reported_state["product"] == config_state["product"]:
+                logger.debug(f"Remote config state: {reported_state}")
+                config_state.update(reported_state)
 
         if wait_for_acknowledged_status:
-            for state in current_states.configs.values():
-                if state["apply_state"] == ApplyState.UNKNOWN:
+            for config_state in current_states.configs.values():
+                if config_state["apply_state"] == ApplyState.UNKNOWN:
                     logger.info(
-                        f"RC config {state['id']} still unacknowledged: "
-                        f"apply_state={state['apply_state']}, apply_error={state.get('apply_error')}"
+                        f"RC config {config_state['id']} still unacknowledged: "
+                        f"apply_state={config_state['apply_state']}, "
+                        f"apply_error={config_state.get('apply_error')}"
                     )
                     return False
 
@@ -150,21 +193,34 @@ def send_state(
         return True
 
     logger.info(f"Waiting for RC version={version}, client_configs={client_configs}")
+    wait_started = time.monotonic()
     rv = library.wait_for(remote_config_applied, timeout=30)
+    elapsed = time.monotonic() - wait_started
+
+    # ensure the library has enough time to apply the config to all subprocesses,
+    # and to flush the telemetry that explains a slow apply
+    time.sleep(2)
+
     if not rv:
         logger.error(
-            f"RC timed out. Last known state: targets_version={state.get('targets_version')}, "
-            f"config_states={state.get('config_states', [])}"
+            f"RC apply timed out after {elapsed:.3f}s. "
+            f"Expected targets_version={version}, last seen={state.get('targets_version')}, "
+            f"awaited configs={list(current_states.configs.keys())}, "
+            f"reported config_states={state.get('config_states', [])}"
         )
-        logger.error(f"Expected version={version}, configs={list(current_states.configs.keys())}")
+        _log_library_telemetry_warnings()
+    elif elapsed > SLOW_APPLY_THRESHOLD:
+        logger.warning(f"RC apply version={version} was acknowledged, but took {elapsed:.3f}s")
+        _log_library_telemetry_warnings()
+    else:
+        logger.debug(f"RC apply version={version} acknowledged in {elapsed:.3f}s")
+
     # Opt-in fail-fast for Ruby RC timeouts (default off). Setup paths in CI
     # must not raise (.cursor/rules/pr-review.mdc §4); the default-off gate
     # keeps that invariant while letting local debugging see the failure at
     # the timeout point.
     if not rv and context.library == "ruby" and os.environ.get("SYSTEM_TESTS_FAIL_FAST", "").lower() == "true":
         raise AssertionError("Remote config was not applied")
-    # ensure the library has enough time to apply the config to all subprocesses
-    time.sleep(2)
 
     return current_states
 
