@@ -8,6 +8,34 @@ if os.environ.get("UWSGI_ENABLED", "false") == "false":
     monkey.patch_all(thread=True)  # noqa: E402
 
 
+# DEBUG ONLY - do not merge. Off unless SYSTEM_TESTS_FAULTHANDLER_DUMP_SECONDS is set,
+# which only the APPSEC_RUNTIME_ACTIVATION scenario does on the debug branch.
+#
+# We are chasing an ASM_FEATURES remote-config callback that occasionally takes ~30s
+# while every healthy sample stays under 1.8s. Periodic stack dumps of every thread
+# tell us which of the two it is: the same frame across consecutive dumps means the
+# RC poller is parked on one call (and names it), a moving frame means it is really
+# grinding through work.
+#
+# faulthandler walks the interpreter's frames from a C signal/timer handler, so it
+# still reports while Python is blocked and the GIL is held elsewhere - which is
+# exactly the state we are trying to observe.
+#
+# Written to /var/log/system-tests (bind-mounted to logs_<scenario>/docker/weblog/logs)
+# rather than stderr: at ~200 lines a dump over 2000 runs, stderr would add millions
+# of lines to every artifact and bury the one dump that matters.
+if os.environ.get("SYSTEM_TESTS_FAULTHANDLER_DUMP_SECONDS"):
+    import faulthandler  # noqa: E402
+    from pathlib import Path  # noqa: E402
+
+    _dump_every = float(os.environ["SYSTEM_TESTS_FAULTHANDLER_DUMP_SECONDS"])
+    _dump_dir = Path("/var/log/system-tests")
+    if _dump_dir.is_dir():
+        # keep the handle open for the process lifetime; faulthandler writes to the fd
+        _dump_file = (_dump_dir / f"faulthandler-{os.getpid()}.log").open("a", buffering=1)
+        faulthandler.dump_traceback_later(_dump_every, repeat=True, file=_dump_file)
+
+
 import contextlib
 import base64
 import http.client
