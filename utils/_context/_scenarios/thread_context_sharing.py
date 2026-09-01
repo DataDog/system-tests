@@ -36,6 +36,10 @@ class ThreadContextSharingScenario(EndToEndScenario):
     def configure(self, config: pytest.Config):
         super().configure(config)
 
+        if self.weblog_infra.library_name == "java":
+            # Should be removed once java enables this with appsec
+            self.weblog_container.environment["DD_PROFILING_ENABLED"] = "true"
+
         agent = self.agent_container
 
         agent.environment["DD_RUNTIME_SECURITY_CONFIG_ENABLED"] = "true"
