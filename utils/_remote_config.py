@@ -8,6 +8,7 @@ import hashlib
 import json
 import os
 import re
+import subprocess
 import threading
 import time
 import uuid
@@ -75,6 +76,34 @@ _DEBUG_PROBE_DELAY = 3.0
 
 _DEBUG_PROBE_INTERVAL = 1.0
 
+_DEBUG_STACK_DUMP_AT = (4.0, 9.0, 15.0, 22.0)
+"""Elapsed times at which to dump the weblog's thread stacks. Spread across a ~30s
+stall so we can tell a thread parked on one call from one that is really progressing."""
+
+
+def _debug_dump_weblog_stacks(elapsed: float) -> None:
+    """Dump every weblog thread's stack, from outside the process.
+
+    py-spy reads the target's memory externally, so unlike the in-process
+    faulthandler this cannot perturb or crash the thing we are measuring - that
+    attempt segfaulted the gunicorn worker mid-dump. SYS_PTRACE is granted to all
+    system-tests containers (see containers.py), and --subprocesses covers the
+    gunicorn workers as well as the master.
+    """
+    try:
+        result = subprocess.run(
+            ["docker", "exec", "system-tests-weblog", "py-spy", "dump", "--pid", "1", "--subprocesses"],
+            capture_output=True,
+            text=True,
+            timeout=30,
+            check=False,
+        )
+        output = result.stdout or result.stderr
+    except Exception as e:  # a failed dump must never break the RC wait
+        output = f"py-spy failed: {type(e).__name__}: {e}"
+
+    logger.error(f"RC-STACKS t={elapsed:5.1f}s\n{output}")
+
 
 @contextmanager
 def _debug_probe_weblog_while_waiting():
@@ -93,8 +122,16 @@ def _debug_probe_weblog_while_waiting():
             return  # the wait resolved normally, nothing to investigate
 
         started = time.monotonic() - _DEBUG_PROBE_DELAY
+        pending_dumps = list(_DEBUG_STACK_DUMP_AT)
         while True:
             elapsed = time.monotonic() - started
+
+            # dump stacks first: we want them while the stall is still in progress
+            if pending_dumps and elapsed >= pending_dumps[0]:
+                pending_dumps.pop(0)
+                _debug_dump_weblog_stacks(elapsed)
+                elapsed = time.monotonic() - started
+
             try:
                 # a fresh connection each time, so we never reuse one the weblog
                 # may have parked, and never block longer than the probe interval

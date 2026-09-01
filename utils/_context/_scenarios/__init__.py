@@ -540,14 +540,7 @@ class _Scenarios:
         rc_api_enabled=True,
         appsec_enabled=False,
         iast_enabled=False,
-        weblog_env={
-            "DD_APPSEC_WAF_TIMEOUT": "10000000",  # 10 seconds
-            "DD_APPSEC_TRACE_RATE_LIMIT": "10000",
-            # DEBUG ONLY - do not merge. Periodic thread-stack dumps, to catch where the
-            # ASM_FEATURES RC callback is parked during a ~30s stall. 5s gives ~6 dumps
-            # across such a window. Only the python weblogs read this.
-            "SYSTEM_TESTS_FAULTHANDLER_DUMP_SECONDS": "5",
-        },
+        weblog_env={"DD_APPSEC_WAF_TIMEOUT": "10000000", "DD_APPSEC_TRACE_RATE_LIMIT": "10000"},  # 10 seconds
         doc="",
         scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_rasp],
     )

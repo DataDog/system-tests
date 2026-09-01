@@ -8,6 +8,14 @@ RUN /binaries/install_ddtrace.sh
 # Install OTel OTLP exporter for FFE metrics
 RUN pip install opentelemetry-exporter-otlp-proto-http==1.40.0
 
+# DEBUG ONLY - do not merge. py-spy lets the test runner dump the weblog's thread
+# stacks from outside the process when an RC apply stalls. The previous attempt used
+# faulthandler inside the process, which segfaulted the worker: it walks other
+# threads' frames without the GIL, and the RC thread was churning through import
+# machinery at the time. py-spy reads the target's memory externally and cannot
+# perturb or crash it. SYS_PTRACE is already granted to every system-tests container.
+RUN pip install py-spy==0.4.1
+
 COPY utils/build/docker/python/flask /app
 COPY utils/build/docker/python/iast.py /app/iast.py
 

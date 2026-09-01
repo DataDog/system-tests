@@ -99,6 +99,9 @@ jobs:
       - generate-matrix
       - build
     strategy:
+      # One job reproducing must not cancel the other 19: cancelled jobs skip the
+      # upload step, so a single hit would discard every other job's harvested data.
+      fail-fast: false
       matrix:
         n: ${{ fromJSON(needs.generate-matrix.outputs.matrix) }}
     steps:
