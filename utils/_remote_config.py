@@ -10,11 +10,11 @@ import re
 import time
 import uuid
 from typing import Any, Literal
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 
 from utils._context.core import context
 
-from utils.dd_constants import RemoteConfigApplyState as ApplyState
+from utils.dd_constants import Capabilities, RemoteConfigApplyState as ApplyState
 from utils.interfaces import library
 from utils._logger import logger
 from utils.proxy.mocked_response import (
@@ -283,6 +283,166 @@ def send_symdb_command(version: int = 1) -> RemoteConfigStateResults:
     return send_state(raw_payload, target=target)
 
 
+####################################################################################
+# SDK_CONFIGURATION payloads
+#
+# Libraries advertising the SDK_CONFIGURATION capability no longer read the legacy
+# `lib_config` object of an APM_TRACING config. They read a `sdk_config` field
+# instead, which carries the very same settings keyed by their canonical environment
+# variable name, with values in their environment variable (string) form:
+#
+#   {
+#     "schema_version": "v1.0.0",
+#     "action": "enable",
+#     "service_target": {"service": "weblog", "env": "system-tests"},
+#     "sdk_config": {
+#       "service_name": "weblog",
+#       "env": "system-tests",
+#       "config": [{"key": "DD_DYNAMIC_INSTRUMENTATION_ENABLED", "value": "true"}]
+#     }
+#   }
+#
+# `service_target` is unchanged: it still drives config matching and priority.
+####################################################################################
+
+# `lib_config` fields that describe the config itself instead of a library setting.
+_LIB_CONFIG_METADATA_KEYS = frozenset({"env", "library_language", "library_version", "service_name"})
+
+# Canonical environment variable name of each `lib_config` setting. A `None` marks a setting
+# that only ever existed as a remote config and has no environment variable counterpart, so
+# there is nothing to send for it under SDK_CONFIGURATION: it is dropped rather than guessed.
+APM_TRACING_ENV_VAR_NAMES: dict[str, str | None] = {
+    "code_origin_enabled": "DD_CODE_ORIGIN_FOR_SPANS_ENABLED",
+    "data_streams_enabled": "DD_DATA_STREAMS_ENABLED",
+    "dynamic_instrumentation_enabled": "DD_DYNAMIC_INSTRUMENTATION_ENABLED",
+    "dynamic_sampling_enabled": None,
+    "exception_replay_enabled": "DD_EXCEPTION_REPLAY_ENABLED",
+    "live_debugging_enabled": None,
+    "log_injection_enabled": "DD_LOGS_INJECTION",
+    "runtime_metrics_enabled": "DD_RUNTIME_METRICS_ENABLED",
+    "tracing_debug": "DD_TRACE_DEBUG",
+    "tracing_enabled": "DD_TRACE_ENABLED",
+    "tracing_header_tags": "DD_TRACE_HEADER_TAGS",
+    "tracing_sampling_rate": "DD_TRACE_SAMPLE_RATE",
+    "tracing_sampling_rules": "DD_TRACE_SAMPLING_RULES",
+    "tracing_service_mapping": "DD_SERVICE_MAPPING",
+    "tracing_tags": "DD_TAGS",
+}
+
+
+def _serialize_header_tags(value: Any) -> str:  # noqa: ANN401
+    """Turn [{"header": "X-Test", "tag_name": "test"}] into `X-Test:test`."""
+    return ",".join(f"{tag['header']}:{tag['tag_name']}" if tag.get("tag_name") else tag["header"] for tag in value)
+
+
+def _serialize_service_mapping(value: Any) -> str:  # noqa: ANN401
+    """Turn [{"from_key": "a", "to_name": "b"}] into `a:b`."""
+    return ",".join(f"{entry['from_key']}:{entry['to_name']}" for entry in value)
+
+
+def _serialize_sampling_rules(value: Any) -> str:  # noqa: ANN401
+    """Remote config rules use a list of tag clauses, DD_TRACE_SAMPLING_RULES uses a map."""
+    rules = []
+    for rule in value:
+        rule = dict(rule)  # noqa: PLW2901
+        if isinstance(rule.get("tags"), list):
+            rule["tags"] = {tag["key"]: tag["value_glob"] for tag in rule["tags"]}
+        rules.append(rule)
+
+    return json.dumps(rules)
+
+
+_SDK_CONFIG_SERIALIZERS: dict[str, Callable[[Any], str]] = {
+    "tracing_header_tags": _serialize_header_tags,
+    "tracing_sampling_rules": _serialize_sampling_rules,
+    "tracing_service_mapping": _serialize_service_mapping,
+    "tracing_tags": lambda value: ",".join(value),
+}
+
+
+def _serialize_sdk_config_value(key: str, value: Any) -> str:  # noqa: ANN401
+    serializer = _SDK_CONFIG_SERIALIZERS.get(key)
+    if serializer is not None:
+        return serializer(value)
+
+    # `isinstance(True, int)` is True, so booleans must be handled before numbers.
+    if isinstance(value, bool):
+        return "true" if value else "false"
+
+    return str(value)
+
+
+def to_sdk_config_payload(config: dict[str, Any]) -> dict[str, Any]:
+    """Rewrite an APM_TRACING config from the legacy `lib_config` shape to the `sdk_config` one.
+
+    Settings set to `None` are omitted: under SDK_CONFIGURATION, a setting missing from the
+    payload is what tells the library to fall back to its local value, which is exactly what a
+    `null` meant in `lib_config`.
+    """
+    service_target = config.get("service_target") or {}
+    entries: list[dict[str, str]] = []
+
+    for key, value in (config.get("lib_config") or {}).items():
+        if key in _LIB_CONFIG_METADATA_KEYS or value is None:
+            continue
+
+        if key not in APM_TRACING_ENV_VAR_NAMES:
+            logger.warning(f"No environment variable known for lib_config.{key}, not sent as SDK_CONFIGURATION")
+            continue
+
+        env_var_name = APM_TRACING_ENV_VAR_NAMES[key]
+        if env_var_name is None:
+            logger.debug(f"lib_config.{key} has no environment variable counterpart, not sent as SDK_CONFIGURATION")
+            continue
+
+        entries.append({"key": env_var_name, "value": _serialize_sdk_config_value(key, value)})
+
+    sdk_config: dict[str, Any] = {}
+    if service_target.get("service") is not None:
+        sdk_config["service_name"] = service_target["service"]
+    if service_target.get("env") is not None:
+        sdk_config["env"] = service_target["env"]
+    sdk_config["config"] = entries
+
+    result = {key: value for key, value in config.items() if key != "lib_config"}
+    result["sdk_config"] = sdk_config
+    return result
+
+
+# Only a positive observation is memoized, to skip re-scanning the whole /v0.7/config history on
+# every payload: capabilities are static for a given library build, but a library that has not
+# registered them yet reports a partial set, which must not be cached.
+_sdk_configuration_support: dict[str, bool] = {}
+
+
+def library_supports_sdk_configuration() -> bool:
+    """Whether the library under test advertises the SDK_CONFIGURATION remote config capability.
+
+    Libraries that do read their settings from `sdk_config` instead of `lib_config`, so APM_TRACING
+    payloads must be translated with `to_sdk_config_payload` before being sent to them.
+    """
+    if _sdk_configuration_support.get("value"):
+        return True
+
+    # Capabilities are only observable once the library has polled /v0.7/config at least once.
+    # This returns straight away when such a request has already been seen.
+    if not library.wait_for(lambda data: data["path"] == "/v0.7/config", timeout=30):
+        logger.warning("No remote config request seen, assuming the library does not support SDK_CONFIGURATION")
+        return False
+
+    try:
+        supported = Capabilities.SDK_CONFIGURATION in library.get_rc_capabilities()
+    except Exception as e:  # this is called from setup methods, which must never fail
+        logger.error(f"Could not read the RC capabilities ({e}), assuming no SDK_CONFIGURATION support")
+        return False
+
+    logger.info(f"Library {'supports' if supported else 'does not support'} the SDK_CONFIGURATION capability")
+    if supported:
+        _sdk_configuration_support["value"] = True
+
+    return supported
+
+
 def build_apm_tracing_command(
     version: int,
     prev_payloads: list[dict[str, Any]],
@@ -294,6 +454,7 @@ def build_apm_tracing_command(
     dynamic_sampling_enabled: bool | None = None,
     service_name: str | None = "weblog",
     env: str | None = "system-tests",
+    use_sdk_config: bool = False,
 ):
     lib_config: dict[str, str | bool] = {
         "library_language": "all",
@@ -320,10 +481,13 @@ def build_apm_tracing_command(
     }
 
     path_payloads = {}
-    for _config in prev_payloads:
-        path_payloads[f"datadog/2/APM_TRACING/{uuid.uuid4()}/config"] = _config
+    for _config in [*prev_payloads, config]:
+        path_payloads[f"datadog/2/APM_TRACING/{uuid.uuid4()}/config"] = (
+            to_sdk_config_payload(_config) if use_sdk_config else _config
+        )
 
-    path_payloads[f"datadog/2/APM_TRACING/{uuid.uuid4()}/config"] = config
+    # `prev_payloads` tracks the legacy shape: it is the input of the next command, and gets
+    # translated on its way out just like this one.
     prev_payloads.append(config)
     return _build_base_command(path_payloads, version)
 
@@ -353,6 +517,7 @@ def send_apm_tracing_command(
         dynamic_sampling_enabled=dynamic_sampling_enabled,
         service_name=service_name,
         env=env,
+        use_sdk_config=library_supports_sdk_configuration(),
     )
 
     # Use backend target for scenarios with rc_backend_enabled, tracer target otherwise
@@ -372,6 +537,7 @@ def build_combined_apm_tracing_and_debugger_command(
     dynamic_sampling_enabled: bool | None = None,
     service_name: str | None = "weblog",
     env: str | None = "system-tests",
+    use_sdk_config: bool = False,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     """Build a single RC command containing both APM_TRACING and LIVE_DEBUGGING configs.
 
@@ -381,7 +547,9 @@ def build_combined_apm_tracing_and_debugger_command(
 
     Returns:
         A tuple of (rc_command, apm_config). The caller should update prev_payloads with
-        the returned apm_config if tracking state across multiple calls.
+        the returned apm_config if tracking state across multiple calls. `apm_config` is always
+        in the legacy `lib_config` shape, whatever shape was sent, as that is what the next
+        call inherits its defaults from.
 
     """
     path_payloads: dict[str, Any] = {}
@@ -425,7 +593,9 @@ def build_combined_apm_tracing_and_debugger_command(
     }
 
     # Only send the latest APM_TRACING config, not all previous ones
-    path_payloads[f"datadog/2/APM_TRACING/{uuid.uuid4()}/config"] = apm_config
+    path_payloads[f"datadog/2/APM_TRACING/{uuid.uuid4()}/config"] = (
+        to_sdk_config_payload(apm_config) if use_sdk_config else apm_config
+    )
 
     # Add LIVE_DEBUGGING configs (probes)
     if probes:
@@ -466,6 +636,7 @@ def send_combined_apm_tracing_and_debugger_command(
         dynamic_sampling_enabled=dynamic_sampling_enabled,
         service_name=service_name,
         env=env,
+        use_sdk_config=library_supports_sdk_configuration(),
     )
 
     # Update prev_payloads with just the new config (don't accumulate)
