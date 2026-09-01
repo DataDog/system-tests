@@ -2,7 +2,6 @@
 
 require 'uri'
 require 'json'
-require 'net/http'
 require 'faraday'
 require 'datadog/lambda'
 require 'datadog/appsec'
@@ -140,8 +139,7 @@ def handle_rasp_ssrf(method, query, body)
 
   url = "http://#{domain}"
   begin
-    uri = URI.parse(url)
-    res = Net::HTTP.get_response(uri)
+    res = Faraday.get(url)
     response(200, "url #{url} open with #{res.body&.length || 0} bytes", 'Content-Type' => 'text/plain')
   rescue => e
     response(200, "url #{url} could not be open: #{e}", 'Content-Type' => 'text/plain')

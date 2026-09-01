@@ -8,7 +8,15 @@ manifest:
   tests/appsec/rasp/test_lfi.py: missing_feature (not implemented in tracer)
   tests/appsec/rasp/test_shi.py: missing_feature (not implemented in tracer)
   tests/appsec/rasp/test_sqli.py: missing_feature (needs instrumented DB driver, not available in Lambda handler)
-  tests/appsec/rasp/test_ssrf.py: missing_feature (RASP scenario unstable on Lambda RIE, pending clean run)
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyJson: v3.30.0
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyUrlEncoded: v3.30.0
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyXml: missing_feature (xml request body parsing not supported)
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Mandatory_SpanTags: v3.30.0
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Optional_SpanTags: v3.30.0
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_StackTrace: v3.30.0
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry: v3.30.0
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry_V2: v3.30.0
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_UrlQuery: v3.30.0
   tests/appsec/test_alpha.py::Test_Basic: v3.29.0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip: v3.29.0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_K8_private_ip: v3.29.0
