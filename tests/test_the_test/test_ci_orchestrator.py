@@ -209,7 +209,7 @@ def _is_supported_legacy(weblog: WeblogMetaData, scenario: Scenario, _ci_environ
     if library == "c":
         return scenario.name in ("DEFAULT", "IPV6", "SAMPLING")
 
-    if library == "golang" and weblog_name == "go-restful-v3":
+    if library == "golang" and weblog_name in ("go-restful-v3", "gorilla-mux"):
         return scenario.name in (
             "OTEL_SEMANTICS_OTLP",
             "OTEL_SEMANTICS_OTLP_CUSTOM_ERROR_STATUSES",
