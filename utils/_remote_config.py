@@ -3,10 +3,12 @@
 # Copyright 2021 Datadog, Inc.
 
 import base64
+from contextlib import contextmanager
 import hashlib
 import json
 import os
 import re
+import threading
 import time
 import uuid
 from typing import Any, Literal
@@ -49,6 +51,18 @@ class RemoteConfigStateResults:
 SLOW_APPLY_THRESHOLD = 5.0
 """Seconds an RC apply may take before it is reported as abnormal."""
 
+STACK_DUMP_AFTER = (10.0, 20.0)
+"""Seconds into a stalled apply at which the weblog's thread stacks are captured.
+
+Two samples are enough to tell a thread parked on one call from one that is moving.
+"""
+
+_STACK_DUMP_COMMANDS: dict[str, str] = {
+    "python": "py-spy dump --pid 1 --subprocesses",
+    "java": "jcmd 1 Thread.print",
+}
+"""How to dump thread stacks, per library. Libraries absent here are not covered."""
+
 _reported_telemetry_warnings: set[str] = set()
 
 
@@ -85,6 +99,52 @@ def _log_library_telemetry_warnings() -> None:
     if lines:
         formatted = "\n  ".join(lines)
         logger.error(f"Library reported these telemetry warnings:\n  {formatted}")
+
+
+def _dump_weblog_thread_stacks(elapsed: float) -> None:
+    """Log the weblog's thread stacks, read from outside the process.
+
+    A stalled apply usually means a library thread is stuck, and this says where.
+    Reading them from outside avoids perturbing the process being measured.
+    """
+    try:
+        command = _STACK_DUMP_COMMANDS.get(context.library.name)
+        # scenarios without a weblog (parametric, and others) have nothing to dump
+        weblog_container = getattr(context.scenario, "weblog_container", None)
+        if command is None or weblog_container is None:
+            return
+
+        result = weblog_container.exec_run(command)
+        output = result.output.decode("utf-8", errors="replace") if result.output else "<no output>"
+    except Exception as e:  # diagnostics must never fail a test, nor kill this thread
+        logger.info(f"Could not dump weblog thread stacks: {type(e).__name__}: {e}")
+        return
+
+    logger.error(f"Weblog thread stacks {elapsed:.1f}s into a stalled RC apply:\n{output}")
+
+
+@contextmanager
+def _dump_stacks_if_apply_stalls():
+    """Capture the weblog's thread stacks if the enclosed wait stalls.
+
+    Nothing is captured for an apply that completes before the first deadline.
+    """
+    stop = threading.Event()
+
+    def watch() -> None:
+        started = time.monotonic()
+        for deadline in STACK_DUMP_AFTER:
+            if stop.wait(max(0.0, deadline - (time.monotonic() - started))):
+                return  # the apply completed, there is nothing to look at
+            _dump_weblog_thread_stacks(time.monotonic() - started)
+
+    thread = threading.Thread(target=watch, name="rc-stack-dump", daemon=True)
+    thread.start()
+    try:
+        yield
+    finally:
+        stop.set()
+        thread.join(timeout=60)
 
 
 def send_state(
@@ -194,7 +254,8 @@ def send_state(
 
     logger.info(f"Waiting for RC version={version}, client_configs={client_configs}")
     wait_started = time.monotonic()
-    rv = library.wait_for(remote_config_applied, timeout=30)
+    with _dump_stacks_if_apply_stalls():
+        rv = library.wait_for(remote_config_applied, timeout=30)
     elapsed = time.monotonic() - wait_started
 
     # ensure the library has enough time to apply the config to all subprocesses,

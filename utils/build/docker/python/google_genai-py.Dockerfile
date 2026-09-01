@@ -18,6 +18,10 @@ COPY utils/build/docker/python/google_genai_app/system_tests_library_version.sh 
 COPY utils/build/docker/python/install_ddtrace.sh binaries* /binaries/
 
 RUN /binaries/install_ddtrace.sh
+
+# py-spy lets system-tests dump this weblog's thread stacks from outside the
+# process when a remote config apply stalls (see utils/_remote_config.py)
+RUN pip install py-spy==0.4.1
 RUN mkdir /integration-framework-tracer-logs
 
 CMD ["ddtrace-run", "python", "-m", "integration_frameworks", "google_genai"]
