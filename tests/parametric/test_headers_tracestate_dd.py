@@ -532,6 +532,112 @@ class Test_Headers_Tracestate_DD:
         assert "t.url:http://localhost" in dd_items2
 
     @temporary_enable_propagationstyle_default()
+    def test_headers_tracestate_dd_tolerates_trailing_separator(self, test_library: APMLibrary):
+        """Harness sends a request with a traceparent and a tracestate whose 'dd' member ends with a
+        trailing ';' element-separator (optionally followed by whitespace).
+        The trailing separator must be tolerated: the 'dd' member is still parsed and its sub-members
+        (sampling priority, origin, propagated tags) are extracted and re-propagated, rather than the
+        whole 'dd' member being dropped as malformed.
+        """
+        with test_library:
+            # 1) Trailing ';' after the last sub-member
+            headers1 = test_library.dd_make_child_span_and_get_headers(
+                [
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
+                    ("tracestate", "foo=1,dd=s:2;o:synthetics-browser;t.usr.id:12345;"),
+                ],
+            )
+
+            # 2) Trailing ';' followed by optional whitespace (OWS)
+            headers2 = test_library.dd_make_child_span_and_get_headers(
+                [
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
+                    ("tracestate", "foo=1,dd=s:2;o:synthetics-browser;t.usr.id:12345;  "),
+                ],
+            )
+
+            # 3) Single sub-member with a trailing ';'
+            headers3 = test_library.dd_make_child_span_and_get_headers(
+                [
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
+                    ("tracestate", "foo=1,dd=s:2;"),
+                ],
+            )
+
+        # 1) Trailing ';' after the last sub-member
+        # Result: the 'dd' member is parsed; sampling priority, origin, and the propagated tag survive
+        assert headers1["x-datadog-sampling-priority"] == "2"
+        assert headers1["x-datadog-origin"] == "synthetics-browser"
+
+        _, tracestate1 = get_tracecontext(headers1)
+        dd_items1 = tracestate1["dd"].split(";")
+        assert "traceparent" in headers1
+        assert "tracestate" in headers1
+        assert "s:2" in dd_items1
+        assert "o:synthetics-browser" in dd_items1
+        assert "t.usr.id:12345" in dd_items1
+
+        # 2) Trailing ';' followed by whitespace (OWS) -- still tolerated
+        assert headers2["x-datadog-sampling-priority"] == "2"
+        assert headers2["x-datadog-origin"] == "synthetics-browser"
+
+        _, tracestate2 = get_tracecontext(headers2)
+        dd_items2 = tracestate2["dd"].split(";")
+        assert "traceparent" in headers2
+        assert "tracestate" in headers2
+        assert "s:2" in dd_items2
+        assert "o:synthetics-browser" in dd_items2
+        assert "t.usr.id:12345" in dd_items2
+
+        # 3) Single sub-member with a trailing ';' -- sampling priority still extracted
+        assert headers3["x-datadog-sampling-priority"] == "2"
+
+        _, tracestate3 = get_tracecontext(headers3)
+        dd_items3 = tracestate3["dd"].split(";")
+        assert "traceparent" in headers3
+        assert "tracestate" in headers3
+        assert "s:2" in dd_items3
+
+    @temporary_enable_propagationstyle_default()
+    def test_headers_tracestate_dd_drops_interior_whitespace(self, test_library: APMLibrary):
+        """Harness sends a request with a traceparent and a tracestate whose 'dd' member contains
+        whitespace *between* sub-members (interior or leading OWS).
+        Unlike a trailing separator, interior whitespace is not permitted: the whole 'dd' member is
+        malformed and must be dropped. The injected sub-members must NOT be re-propagated. (A tracer
+        may still emit its own freshly-generated 'dd' member, so we assert on the distinctive injected
+        value rather than the mere presence of a 'dd' member.)
+        """
+        with test_library:
+            # 1) Whitespace after a ';' separator, before a later sub-member
+            headers1 = test_library.dd_make_child_span_and_get_headers(
+                [
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
+                    ("tracestate", "foo=1,dd=s:0;t.dm:934086a686-4;  t.x:y"),
+                ],
+            )
+
+            # 2) A single space after the first ';' separator
+            headers2 = test_library.dd_make_child_span_and_get_headers(
+                [
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
+                    ("tracestate", "foo=1,dd=s:0; t.dm:934086a686-4"),
+                ],
+            )
+
+        # 1) Interior whitespace -> the whole 'dd' member is malformed and dropped.
+        #    The injected propagated tag must not survive in either output representation.
+        assert "_dd.p.dm=934086a686-4" not in headers1.get("x-datadog-tags", "")
+
+        _, tracestate1 = get_tracecontext(headers1)
+        assert "934086a686-4" not in str(tracestate1)
+
+        # 2) Same expectation for a single interior space.
+        assert "_dd.p.dm=934086a686-4" not in headers2.get("x-datadog-tags", "")
+
+        _, tracestate2 = get_tracecontext(headers2)
+        assert "934086a686-4" not in str(tracestate2)
+
+    @temporary_enable_propagationstyle_default()
     def test_headers_tracestate_dd_keeps_32_or_fewer_list_members(self, test_library: APMLibrary):
         """Harness sends requests with both tracestate and traceparent.
         all items in the input tracestate are propagated because the resulting
