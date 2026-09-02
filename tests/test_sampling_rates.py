@@ -10,7 +10,7 @@ from typing import Any
 from urllib.parse import urlparse
 
 from utils import weblog, interfaces, context, scenarios, features, logger
-from utils.dd_constants import SamplingMechanism, SamplingPriority
+from utils.dd_constants import SamplingPriority
 from utils.dd_types import DataDogLibrarySpan, DataDogLibraryTrace
 
 """Those are the constants used by the sampling algorithm in all the tracers
