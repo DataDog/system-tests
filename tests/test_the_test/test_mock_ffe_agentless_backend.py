@@ -122,7 +122,7 @@ def test_agentless_end_to_end_scenario_starts_backend_before_weblog() -> None:
         assert scenario.weblog_infra.library_container.extra_hosts == HOST_GATEWAY_EXTRA_HOSTS
 
         status = scenario.mock_backend_status()
-        assert status is not None
+        assert isinstance(status, dict)
         assert status["requests_total"] == 0
     finally:
         scenario._stop_mock_backend()  # noqa: SLF001 - focused lifecycle test

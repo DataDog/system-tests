@@ -155,7 +155,7 @@ def build_targets_content(
         The 'signed' portion of targets metadata (not yet wrapped with signatures)
 
     """
-    custom = {"opaque_backend_state": opaque_backend_state}
+    custom: dict[str, str | int] = {"opaque_backend_state": opaque_backend_state}
     if agent_refresh_interval is not None:
         custom["agent_refresh_interval"] = agent_refresh_interval
 

@@ -13,6 +13,7 @@ from typing import Any, Literal, TypedDict
 from collections.abc import Iterator
 
 from utils import interfaces, remote_config, weblog, context, logger
+from utils.interfaces import ProxyBasedInterfaceValidator
 from utils.dd_constants import RemoteConfigApplyState as ApplyState
 from utils.dd_types import DataDogAgentSpan
 
@@ -179,11 +180,11 @@ class BaseDebuggerTest:
     # Backend interface/paths, overridden by AgentlessBaseDebuggerTest for scenarios without a
     # Datadog Agent (data captured over interfaces.datadog_direct instead of interfaces.agent,
     # and logs/snapshots/diagnostics/symdb all collapse onto _AGENTLESS_DEBUGGER_PATH).
-    _backend_interface = interfaces.agent
+    _backend_interface: ProxyBasedInterfaceValidator = interfaces.agent
     _snapshot_paths: tuple[str, ...] = (_LOGS_PATH, _DEBUGGER_PATH)
     _traces_path: str = _TRACES_PATH
     _telemetry_path: str = _TELEMETRY_PATH
-    _symbols_interface = interfaces.library
+    _symbols_interface: ProxyBasedInterfaceValidator = interfaces.library
     _symbols_path: str = _SYMBOLS_PATH
 
     def initialize_weblog_remote_config(self) -> None:
@@ -718,6 +719,12 @@ class BaseDebuggerTest:
                 + self._error_message
                 + "'"
             )
+            if not hasattr(self._backend_interface, "get_spans_list"):
+                # Agentless mode's backend interface (interfaces.datadog_direct) captures direct-to-intake
+                # traffic in a different wire format than the agent-relayed /v0.4/traces payloads
+                # get_spans_list() parses, so this check is agent-only.
+                return None
+
             spans = self._backend_interface.get_spans_list()
             for span in spans:
                 meta = span.meta

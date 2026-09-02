@@ -141,13 +141,13 @@ def send_state(
             "apply_error": "<No known response from the library>",
         }
 
-    state = {}
+    state: dict[str, Any] = {}
 
     # Agentless scenarios have no agent to relay client state via /v0.7/config: the native RC
     # client polls /api/v0.1/configurations directly and reports the same per-config apply state
     # inline on that request (LatestConfigsRequest.active_clients[0].state), instead of via a
     # separate follow-up request.
-    agentless = not context.scenario.include_agent
+    agentless = not getattr(context.scenario, "include_agent", True)
     watched_path = "/api/v0.1/configurations" if agentless else "/v0.7/config"
 
     def remote_config_applied(data: dict) -> bool:
