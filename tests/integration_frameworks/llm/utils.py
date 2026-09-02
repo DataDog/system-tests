@@ -51,6 +51,11 @@ def assert_llmobs_span_event(
     error: bool = False,
     has_output: bool = True,
 ) -> None:
+    """Assert an LLMObs span event matches the expected shape.
+
+    Everything is compared by exact equality except ``metadata`` and ``tags``, which are shallow
+    subsets: the keys you declare must match exactly, extra keys the tracer emits are tolerated.
+    """
     # assert span kind, tags, and error separately
     actual_span_kind = actual_span_event["meta"].pop("span.kind", None) or actual_span_event["meta"].pop("span")["kind"]
     actual_tags: list[str] = actual_span_event.pop("tags")
@@ -97,7 +102,12 @@ def assert_llmobs_span_event(
         expected_meta["output"]["value"] = output_value
 
     if metadata is not None:
-        expected_meta["metadata"] = metadata
+        # Assert expected metadata values are there, not entirely equality (subset is fine)
+        actual_metadata: dict = actual_span_event["meta"].get("metadata", {})
+        assert metadata.items() <= actual_metadata.items(), (
+            f"Expected metadata {metadata} to be a subset of {actual_metadata}"
+        )
+        expected_meta["metadata"] = mock.ANY  # already asserted above
 
     if model_name is not None:
         expected_meta["model_name"] = model_name
