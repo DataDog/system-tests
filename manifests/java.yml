@@ -3832,6 +3832,7 @@ manifest:
     - declaration: bug (APMLP-302)
       component_version: <1.58.2+06122213c8
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules: v1.34.0
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSdkConfiguration: missing_feature (SDK_CONFIGURATION capability not yet implemented)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled: v1.32.0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_tracing_client_tracing_disable_one_way:
     - declaration: bug (APMAPI-1225)

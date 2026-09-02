@@ -104,6 +104,7 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_trace_sampling_rules_override_env: '>=0.4.1-dev+926c77a'  # Created by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_trace_sampling_rules_override_rate: '>=0.4.1-dev+926c77a'  # Created by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_trace_sampling_rules_with_tags: '>=0.4.1-dev+926c77a'  # Created by easy win activation script
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSdkConfiguration: missing_feature (SDK_CONFIGURATION capability not yet implemented)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_capability_tracing_enabled: missing_feature  # Created by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_default_capability_completeness: missing_feature  # Created by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_tracing_client_tracing_disable_one_way: missing_feature  # Created by easy win activation script

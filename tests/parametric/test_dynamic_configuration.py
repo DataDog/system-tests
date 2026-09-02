@@ -195,6 +195,22 @@ def _create_rc_config(config_overrides: dict[str, Any]) -> dict[str, Any]:
     return rc_config
 
 
+def _create_sdk_config_rc_config(sdk_config_overrides: dict[str, str]) -> dict[str, Any]:
+    """Build an RC config carrying an sdk_config block (sibling of lib_config).
+
+    sdk_config mirrors migrated LibConfig settings as generic env-var-keyed entries so a tracer
+    can apply them via the single SDK_CONFIGURATION capability instead of bespoke per-setting
+    parsing. Shape per dd-go's apmtracing jsonapiconf.SDKConfig: {service_name, env, config: [{key, value}]}.
+    """
+    rc_config: dict[str, Any] = _default_config(TEST_SERVICE, TEST_ENV)
+    rc_config["sdk_config"] = {
+        "service_name": TEST_SERVICE,
+        "env": TEST_ENV,
+        "config": [{"key": k, "value": v} for k, v in sdk_config_overrides.items()],
+    }
+    return rc_config
+
+
 def set_and_wait_rc(
     test_agent: TestAgentAPI,
     test_library: APMLibrary,
@@ -364,6 +380,42 @@ class TestDynamicConfigTracingEnabled:
         assert True, (
             "no traces are sent after tracing_enabled: false, even after an RC response with a different setting"
         )
+
+
+@scenarios.parametric
+@features.dynamic_configuration
+class TestDynamicConfigSdkConfiguration:
+    """Proof-of-concept coverage for the generic sdk_config RC mirror.
+
+    RC settings migrated off bespoke LibConfig parsing are also mirrored into a generic
+    sdk_config block (env-var-style keys) under the SDK_CONFIGURATION capability. These tests
+    confirm a tracer that declares SDK_CONFIGURATION consumes sdk_config and produces behavior
+    identical to the equivalent lib_config delivery, starting with DD_TRACE_ENABLED.
+    """
+
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_capability_sdk_configuration(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        """Ensure the RC request contains the sdk_config capability."""
+        assert test_library.is_alive(), "library container is not alive"
+        test_agent.assert_rc_capabilities({Capabilities.SDK_CONFIGURATION})
+
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_sdk_config_tracing_enabled_matches_lib_config(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
+        """DD_TRACE_ENABLED delivered via sdk_config stops tracing, same as tracing_enabled via lib_config."""
+        with test_library, test_library.dd_start_span("allowed"):
+            pass
+        test_agent.wait_for_num_traces(num=1, clear=True)
+
+        _set_rc(test_agent, _create_sdk_config_rc_config({"DD_TRACE_ENABLED": "false"}))
+        test_agent.wait_for_telemetry_event("app-client-configuration-change", clear=True)
+        test_agent.wait_for_rc_apply_state("APM_TRACING", state=RemoteConfigApplyState.ACKNOWLEDGED, clear=True)
+
+        with test_library, test_library.dd_start_span("disabled"):
+            pass
+        with pytest.raises(ValueError):
+            test_agent.wait_for_num_traces(num=1, clear=True)
 
 
 def reverse_case(s: str) -> str:
