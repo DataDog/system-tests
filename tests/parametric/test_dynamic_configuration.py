@@ -25,7 +25,8 @@ from utils.docker_fixtures.spec.trace import (
     find_first_span_in_trace_payload,
 )
 from utils.manifest._internal.types import SemverRange
-from .conftest import APMLibrary, assert_nodejs_telemetry_config
+from .conftest import APMLibrary
+from .test_telemetry import _mapped_telemetry_name
 
 parametrize = pytest.mark.parametrize
 
@@ -208,6 +209,24 @@ def _create_sdk_config_rc_config(sdk_config_overrides: dict[str, str]) -> dict[s
         "config": [{"key": k, "value": v} for k, v in sdk_config_overrides.items()],
     }
     return rc_config
+
+
+def _assert_telemetry_config_applied(test_agent: TestAgentAPI, apm_telemetry_name: str, expected_value: str) -> None:
+    """Assert the tracer's reported telemetry config for apm_telemetry_name equals expected_value.
+
+    apm_telemetry_name is resolved to the tracer's actual reported key(s) via test_telemetry.py's
+    cross-language name mapping (e.g. "trace_header_tags" -> "DD_TRACE_HEADER_TAGS", or a
+    language-specific alias). The effective value is the highest-seq_id entry (sorted first).
+    """
+    configuration_by_name = test_agent.wait_for_telemetry_configurations()
+    names = _mapped_telemetry_name(apm_telemetry_name)
+    for name in names:
+        entries = configuration_by_name.get(name)
+        if entries:
+            actual = entries[0].get("value")
+            assert str(actual).lower() == str(expected_value).lower(), f"Expected {name}={expected_value}, got {actual}"
+            return
+    raise AssertionError(f"No telemetry configuration found for any of {names}")
 
 
 def set_and_wait_rc(
@@ -423,22 +442,45 @@ class TestDynamicConfigSdkConfiguration:
         System-tests has no signal for "the profiler is actually running": parametric has no mock
         profiling intake, and the E2E profiling tests only exercise a static env var. So, consistent
         with the existing static DD_PROFILING_ENABLED coverage in test_config_consistency.py, this
-        uses the tracer's reported config (telemetry, for nodejs) as a proxy for "the setting was
-        applied" rather than asserting real profiling activity.
+        uses the tracer's reported telemetry config as a proxy for "the setting was applied" rather
+        than asserting real profiling activity.
         """
         with test_library:
             _set_rc(test_agent, _create_sdk_config_rc_config({"DD_PROFILING_ENABLED": "true"}))
             test_agent.wait_for_telemetry_event("app-client-configuration-change", clear=True)
             test_agent.wait_for_rc_apply_state("APM_TRACING", state=RemoteConfigApplyState.ACKNOWLEDGED, clear=True)
+            _assert_telemetry_config_applied(test_agent, "profiling_enabled", "true")
 
-            if test_library.lang == "nodejs":
-                assert_nodejs_telemetry_config(test_agent, {"dd_profiling_enabled": "true"})
-            else:
-                config = test_library.config()
-                assert config.get("dd_profiling_enabled") == "true", (
-                    f"expected dd_profiling_enabled=true after sdk_config RC update, "
-                    f"got {config.get('dd_profiling_enabled')}"
-                )
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @pytest.mark.parametrize(
+        ("apm_telemetry_name", "sdk_config_key", "value"),
+        [
+            ("trace_sample_rate", "DD_TRACE_SAMPLE_RATE", "0.5"),
+            ("logs_injection_enabled", "DD_LOGS_INJECTION", "true"),
+            ("trace_header_tags", "DD_TRACE_HEADER_TAGS", "X-Test-Header:test-tag"),
+            ("trace_tags", "DD_TAGS", "sdk_config_tag:sdk_config_value"),
+            ("data_streams_enabled", "DD_DATA_STREAMS_ENABLED", "true"),
+            ("dynamic_instrumentation_enabled", "DD_DYNAMIC_INSTRUMENTATION_ENABLED", "true"),
+        ],
+    )
+    def test_sdk_config_field_is_applied(
+        self,
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+        apm_telemetry_name: str,
+        sdk_config_key: str,
+        value: str,
+    ) -> None:
+        """Each previously-migrated LibConfig setting is applied when delivered via sdk_config.
+
+        Values are chosen to differ from each setting's default, so a tracer that no-ops on
+        sdk_config (and happens to already be at the default) can't pass by accident.
+        """
+        with test_library:
+            _set_rc(test_agent, _create_sdk_config_rc_config({sdk_config_key: value}))
+            test_agent.wait_for_telemetry_event("app-client-configuration-change", clear=True)
+            test_agent.wait_for_rc_apply_state("APM_TRACING", state=RemoteConfigApplyState.ACKNOWLEDGED, clear=True)
+            _assert_telemetry_config_applied(test_agent, apm_telemetry_name, value)
 
 
 def reverse_case(s: str) -> str:
