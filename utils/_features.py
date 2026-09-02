@@ -2130,6 +2130,14 @@ class _Features:
         return _mark_test_object(test_object, feature_id=317, owner=_Owner.language_platform)
 
     @staticmethod
+    def dd_agentless_enabled(test_object):
+        """DD_AGENTLESS_ENABLED
+
+        https://feature-parity.us1.prod.dog/#/?feature=644
+        """
+        return _mark_test_object(test_object, feature_id=644, owner=_Owner.language_platform)
+
+    @staticmethod
     def rasp_shell_injection(test_object):
         """Appsec RASP rule : shell injection
 

@@ -126,7 +126,7 @@ def _find_crash_report_log() -> dict | None:
 
 
 @scenarios.apm_tracing_agentless
-@features.trace_data_integrity
+@features.dd_agentless_enabled
 class Test_Agentless_Trace_Submission:
     """Traces are sent directly to the intake, bypassing the Datadog Agent."""
 
@@ -280,7 +280,7 @@ class Test_Agentless_Stats_Multi_Flush:
 
 
 @scenarios.apm_tracing_agentless
-@features.telemetry_metrics_collected
+@features.dd_agentless_enabled
 class Test_Agentless_Telemetry:
     """Instrumentation telemetry - including generate-metrics, the actual transport for internal
     tracer metrics like spans_created/spans_finished - has no transport setting of its own and
