@@ -42,6 +42,8 @@ def test_tracer_release():
         scenarios.fuzzer,
         dormant_agentless_scenario,
         *agentless_exposure_scenarios,
+        scenarios.apm_tracing_agentless,
+        scenarios.debugger_agentless,
         scenarios.mock_the_test,
         scenarios.mock_the_test_2,
         scenarios.test_the_test,

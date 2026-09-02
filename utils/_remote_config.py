@@ -15,14 +15,14 @@ from collections.abc import Mapping
 from utils._context.core import context
 
 from utils.dd_constants import RemoteConfigApplyState as ApplyState
-from utils.interfaces import library
+from utils.interfaces import library, datadog_direct
 from utils._logger import logger
 from utils.proxy.mocked_response import (
     StaticJsonMockedTracerResponse,
     SequentialRemoteConfigJsonMockedTracerResponse,
     MockedBackendResponse,
 )
-from utils.proxy.tuf import build_signed_targets
+from utils.proxy.tuf import build_signed_targets, sign_tuf_document
 from utils.proxy.rc_response_builder import build_rc_configurations_protobuf
 
 RemoteConfigTarget = Literal["tracer", "backend"]
@@ -44,6 +44,25 @@ class RemoteConfigStateResults:
     @staticmethod
     def from_json(d: dict) -> "RemoteConfigStateResults":
         return RemoteConfigStateResults(version=d["version"], state=d["state"], configs=d["configs"])
+
+
+def _normalize_protobuf_client_state(state: dict) -> dict:
+    """Coerce uint64 fields back to int.
+
+    protobuf's JSON mapping (MessageToDict) renders uint64/int64 fields as strings (they don't
+    fit precisely in a JS number), unlike the plain-JSON client state reported over /v0.7/config
+    where these are already native ints. Comparing a str against the int constants/versions used
+    below (e.g. `state["apply_state"] == ApplyState.UNKNOWN`) would silently always be False.
+    """
+    return {
+        **state,
+        "targets_version": int(state["targets_version"]) if "targets_version" in state else 0,
+        "root_version": int(state["root_version"]) if "root_version" in state else 0,
+        "config_states": [
+            {**cs, "version": int(cs["version"]), "apply_state": int(cs.get("apply_state", 0))}
+            for cs in state.get("config_states", [])
+        ],
+    }
 
 
 def send_state(
@@ -85,6 +104,20 @@ def send_state(
 
     if target == "backend":
         assert backend_enabled, f"Remote config backend is not enabled on {context.scenario}"
+        # The backend's "no config pushed yet" placeholder occupies TUF version 1 (see
+        # rc_response_builder.build_rc_configurations_protobuf) -- 0 isn't spec-valid and
+        # real TUF/uptane clients reject it. So every real push is shifted up by one here to
+        # stay strictly greater than that placeholder.
+        targets = json.loads(base64.b64decode(raw_payload["targets"]))
+        targets["signed"]["version"] += 1
+        # Also keep the agentless client polling fast (see rc_response_builder.py for why),
+        # since real config pushes go through this same TUF targets document.
+        targets["signed"]["custom"]["agent_refresh_interval"] = 1
+        raw_payload = {**raw_payload, "targets": _json_to_base64(sign_tuf_document(targets["signed"]))}
+        if state_version != -1:
+            # Keep state_version (the caller's own global-state counter, e.g. _RemoteConfigState.version)
+            # shifted in lockstep, so the empty-client_configs comparison below still lines up.
+            state_version += 1
         # Build protobuf on test runner side, send bytes to proxy
         rc_protobuf = build_rc_configurations_protobuf(raw_payload)
         MockedBackendResponse(path="/api/v0.1/configurations", content=rc_protobuf).send()
@@ -110,12 +143,24 @@ def send_state(
 
     state = {}
 
+    # Agentless scenarios have no agent to relay client state via /v0.7/config: the native RC
+    # client polls /api/v0.1/configurations directly and reports the same per-config apply state
+    # inline on that request (LatestConfigsRequest.active_clients[0].state), instead of via a
+    # separate follow-up request.
+    agentless = not context.scenario.include_agent
+    watched_path = "/api/v0.1/configurations" if agentless else "/v0.7/config"
+
     def remote_config_applied(data: dict) -> bool:
         nonlocal state
-        if data["path"] != "/v0.7/config":
+        if data["path"] != watched_path:
             return False
 
-        state = data.get("request", {}).get("content", {}).get("client", {}).get("state", {})
+        if agentless:
+            active_clients = data.get("request", {}).get("content", {}).get("active_clients", [])
+            state = active_clients[0].get("state", {}) if active_clients else {}
+            state = _normalize_protobuf_client_state(state)
+        else:
+            state = data.get("request", {}).get("content", {}).get("client", {}).get("state", {})
         targets_version = state.get("targets_version")
         config_states = state.get("config_states", [])
         logger.info(
@@ -123,12 +168,12 @@ def send_state(
         )
 
         if len(client_configs) == 0:
-            found = state["targets_version"] == state_version and state.get("config_states", []) == []
+            found = state.get("targets_version", 0) == state_version and state.get("config_states", []) == []
             if found:
                 current_states.state = ApplyState.ACKNOWLEDGED
             return found
 
-        if state["targets_version"] != version:
+        if state.get("targets_version", 0) != version:
             return False
 
         for state in config_states:
@@ -150,7 +195,8 @@ def send_state(
         return True
 
     logger.info(f"Waiting for RC version={version}, client_configs={client_configs}")
-    rv = library.wait_for(remote_config_applied, timeout=30)
+    watched_interface = datadog_direct if agentless else library
+    rv = watched_interface.wait_for(remote_config_applied, timeout=30)
     if not rv:
         logger.error(
             f"RC timed out. Last known state: targets_version={state.get('targets_version')}, "

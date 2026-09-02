@@ -58,3 +58,32 @@ message OrgStatusResponse {
   bool enabled = 1;
   bool authorized = 2;
 }
+
+// Agent/native-client request sent when polling /api/v0.1/configurations. Needed to read back
+// the client's reported config-apply state for agentless scenarios, where there is no agent
+// relaying that state via /v0.7/config: the native RC client polls this endpoint directly, and
+// reports the same per-config apply state (ClientState.config_states) inline on the request.
+
+message LatestConfigsRequest {
+  repeated Client active_clients = 6;
+}
+
+message Client {
+  ClientState state = 1;
+}
+
+message ClientState {
+  uint64 root_version = 1;
+  uint64 targets_version = 2;
+  repeated ConfigState config_states = 3;
+  bool has_error = 4;
+  string error = 5;
+}
+
+message ConfigState {
+  string id = 1;
+  uint64 version = 2;
+  string product = 3;
+  uint64 apply_state = 4;
+  string apply_error = 5;
+}

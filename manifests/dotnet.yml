@@ -630,6 +630,7 @@ manifest:
   tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualAppsec: v3.36.0
   tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualProfiling: bug (PROF-12209)
   tests/cws/test_thread_context_sharing.py::Test_ThreadContextSharing: missing_feature (missing /security/thread_context_sharing endpoint on weblog)
+  tests/debugger/test_debugger_agentless.py: missing_feature (Agentless mode (DD_AGENTLESS_ENABLED) is not implemented for .NET; python-only for now)
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Line_Capture_Expressions: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions::test_complex_capture_expressions: missing_feature (Not yet implemented)
@@ -1261,6 +1262,7 @@ manifest:
     - weblog_declaration:
         uds: '>=3.43.0'
         poc: '>=3.43.0'
+  tests/test_agentless.py: missing_feature (Agentless mode (DD_AGENTLESS_ENABLED) is not implemented for .NET; python-only for now)
   tests/test_baggage.py::Test_Baggage_Headers_Api_Datadog: v3.6.0
   tests/test_baggage.py::Test_Baggage_Headers_Api_OTel: bug (APMAPI-1849)
   tests/test_baggage.py::Test_Baggage_Headers_Basic: v3.6.0
