@@ -198,9 +198,8 @@ def _create_rc_config(config_overrides: dict[str, Any]) -> dict[str, Any]:
 def _create_sdk_config_rc_config(sdk_config_overrides: dict[str, str]) -> dict[str, Any]:
     """Build an RC config carrying an sdk_config block (sibling of lib_config).
 
-    sdk_config mirrors migrated LibConfig settings as generic env-var-keyed entries so a tracer
-    can apply them via the single SDK_CONFIGURATION capability instead of bespoke per-setting
-    parsing. Shape per dd-go's apmtracing jsonapiconf.SDKConfig: {service_name, env, config: [{key, value}]}.
+    sdk_config carries generic env-var-keyed entries so a tracer can apply them via the single
+    SDK_CONFIGURATION capability instead of bespoke per-setting parsing.
     """
     rc_config: dict[str, Any] = _default_config(TEST_SERVICE, TEST_ENV)
     rc_config["sdk_config"] = {
@@ -385,12 +384,12 @@ class TestDynamicConfigTracingEnabled:
 @scenarios.parametric
 @features.dynamic_configuration
 class TestDynamicConfigSdkConfiguration:
-    """Proof-of-concept coverage for the generic sdk_config RC mirror.
+    """Coverage for the generic sdk_config RC delivery path.
 
-    RC settings migrated off bespoke LibConfig parsing are also mirrored into a generic
-    sdk_config block (env-var-style keys) under the SDK_CONFIGURATION capability. These tests
-    confirm a tracer that declares SDK_CONFIGURATION consumes sdk_config and produces behavior
-    identical to the equivalent lib_config delivery, starting with DD_TRACE_ENABLED.
+    sdk_config carries settings as generic env-var-keyed entries, applied via the single
+    SDK_CONFIGURATION capability instead of bespoke per-setting parsing. These tests confirm a
+    tracer that declares SDK_CONFIGURATION consumes sdk_config with no regression in behavior
+    compared to the equivalent lib_config delivery, starting with DD_TRACE_ENABLED.
     """
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
@@ -418,10 +417,8 @@ class TestDynamicConfigSdkConfiguration:
             test_agent.wait_for_num_traces(num=1, clear=True)
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_sdk_config_profiling_enabled_matches_lib_config(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary
-    ) -> None:
-        """DD_PROFILING_ENABLED delivered via sdk_config is applied the same as static env-var delivery.
+    def test_sdk_config_profiling_enabled(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        """DD_PROFILING_ENABLED delivered via sdk_config is applied.
 
         System-tests has no signal for "the profiler is actually running": parametric has no mock
         profiling intake, and the E2E profiling tests only exercise a static env var. So, consistent
