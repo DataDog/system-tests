@@ -148,11 +148,10 @@ class Test_SamplingDecisions:
 
     def setup_sampling_decision(self):
         # Generate enough traces to have a high chance to catch sampling problems
-        for _ in range(30):
-            weblog.get(f"/sample_rate_route/{next(request_id_gen)}")
+        self.requests = [weblog.get(f"/sample_rate_route/{next(request_id_gen)}") for _ in range(30)]
 
     def test_sampling_decision(self):
-        """Verify that traces are sampled following the sample rate. This test is run on every root span in the scenario."""
+        """Verify that traces are sampled following the sample rate"""
 
         def validator(trace: DataDogLibraryTrace, root_span: DataDogLibrarySpan):
             sampling_priority = root_span.get_sampling_priority()
@@ -171,9 +170,6 @@ class Test_SamplingDecisions:
                     # In this case it is most likely the Healthcheck as it is the first request
                     # and AppSec WAF always samples the first request.
                     return
-                if root_span["meta"].get("_dd.p.dm") == "-4":
-                    # Manual sampling decisions (keep, drop) override the configured probabilistic sampling rate.
-                    return
                 raise ValueError(
                     f"Trace id {root_span['trace_id']}, sampling priority {sampling_priority}, "
                     f"sampling decision {sampling_decision} differs from the expected {expected_decision}"
@@ -181,7 +177,11 @@ class Test_SamplingDecisions:
 
         # get_root_spans() yields nothing when no root span was collected, so the validator below
         # would never run without this guard
-        root_spans = list(interfaces.library.get_root_spans())
+        root_spans = [
+            (trace, root_span)
+            for request in self.requests
+            for trace, root_span in interfaces.library.get_root_spans(request=request)
+        ]
         assert root_spans, "Expected at least one root span"
 
         for trace, root_span in root_spans:
