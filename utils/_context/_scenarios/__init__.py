@@ -7,11 +7,7 @@ from utils.tools import update_environ_with_local_env
 from .aws_lambda import LambdaScenario
 from .core import Scenario, scenario_groups
 from .default import DefaultScenario
-from .agentless_endtoend import (
-    AGENTLESS_MOCK_API_KEY,
-    AgentlessEndToEndScenario,
-    FeatureFlaggingAgentlessEndToEndScenario,
-)
+from .agentless_endtoend import AgentlessEndToEndScenario, FeatureFlaggingAgentlessEndToEndScenario
 from .debugger_agentless import DebuggerAgentlessScenario
 from .endtoend import (
     DockerScenario,
@@ -873,7 +869,6 @@ class _Scenarios:
         rc_backend_enabled=True,
         weblog_env={
             "DD_AGENTLESS_ENABLED": "true",
-            "DD_API_KEY": AGENTLESS_MOCK_API_KEY,
             "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",
             "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "1",
         },
@@ -885,7 +880,6 @@ class _Scenarios:
         "Symbol DB, without a Datadog Agent.",
         weblog_env={
             "DD_AGENTLESS_ENABLED": "true",
-            "DD_API_KEY": AGENTLESS_MOCK_API_KEY,
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "true",
             "_DD_SYMBOL_DATABASE_FORCE_UPLOAD": "true",
         },

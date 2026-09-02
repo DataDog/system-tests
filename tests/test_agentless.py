@@ -9,6 +9,7 @@ against real proxy captures if the branch's wire format changes before it merges
 utils/_context/_scenarios/agentless_endtoend.py and debugger_agentless.py for the scenario setup.
 """
 
+import itertools
 import json
 import time
 
@@ -125,7 +126,7 @@ def _find_crash_report_log() -> dict | None:
 
 
 @scenarios.apm_tracing_agentless
-@features.not_reported
+@features.trace_data_integrity
 class Test_Agentless_Trace_Submission:
     """Traces are sent directly to the intake, bypassing the Datadog Agent."""
 
@@ -169,8 +170,7 @@ class Test_Agentless_Trace_Submission:
         wire_length = int(headers["content-length"])
         decoded_length = request["request"]["length"]
         assert wire_length < decoded_length, (
-            f"Trace submission body doesn't look compressed: {wire_length} wire bytes vs "
-            f"{decoded_length} decoded bytes"
+            f"Trace submission body doesn't look compressed: {wire_length} wire bytes vs {decoded_length} decoded bytes"
         )
 
         content = request["request"]["content"]
@@ -275,12 +275,12 @@ class Test_Agentless_Stats_Multi_Flush:
 
         sequences = [r["request"]["content"]["Stats"][0]["Sequence"] for r in requests]
         assert len(set(sequences)) == len(sequences), f"Sequence numbers are not unique: {sequences}"
-        for prev, cur in zip(sequences, sequences[1:]):
+        for prev, cur in itertools.pairwise(sequences):
             assert cur == prev + 1, f"Sequence should increment by exactly 1 per flush, got: {sequences}"
 
 
 @scenarios.apm_tracing_agentless
-@features.not_reported
+@features.telemetry_metrics_collected
 class Test_Agentless_Telemetry:
     """Instrumentation telemetry - including generate-metrics, the actual transport for internal
     tracer metrics like spans_created/spans_finished - has no transport setting of its own and
@@ -343,7 +343,7 @@ class Test_Agentless_Telemetry:
 
 
 @scenarios.apm_tracing_agentless
-@features.not_reported
+@features.crashtracking
 class Test_Agentless_Crashtracking:
     """A real crash report reaches the intake through two parallel agentless mechanisms: a
     dedicated errors-intake endpoint, and a "logs" telemetry event - both ride the same
@@ -362,9 +362,7 @@ class Test_Agentless_Crashtracking:
         # timeout), and the parent's os.waitpid() - and thus this HTTP response - doesn't
         # return until the child actually exits. Give it real headroom past the client's
         # normal 5s default, or this legitimately times out on a slow/busy host.
-        self.r = weblog.get(
-            "/spawn_child", params={"sleep": 0, "crash": "true", "fork": "true"}, timeout=45
-        )
+        self.r = weblog.get("/spawn_child", params={"sleep": 0, "crash": "true", "fork": "true"}, timeout=45)
         interfaces.datadog_direct.wait_for(
             lambda d: d["host"] == TELEMETRY_HOST
             and d["path"] == CRASH_ERRORS_INTAKE_PATH

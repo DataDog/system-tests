@@ -224,6 +224,8 @@ patterns:
         scenario_groups: appsec_rasp_scenario
     utils/_context/_scenarios/agentless_endtoend.py:
         scenario_groups: agentless
+    utils/_context/_scenarios/debugger_agentless.py:
+        scenario_groups: agentless
     utils/_context/_scenarios/endtoend.py:
         scenario_groups: end_to_end
     utils/_context/_scenarios/integration_frameworks.py:

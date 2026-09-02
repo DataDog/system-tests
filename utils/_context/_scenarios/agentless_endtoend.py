@@ -50,18 +50,22 @@ class AgentlessEndToEndScenario(DdTraceEndToEndScenario):
     ) -> None:
         self.capture_direct_egress = capture_direct_egress
 
-        environment: dict[str, str | None] = dict(weblog_env or {})
+        weblog_environment: dict[str, str | None] = dict(weblog_env or {})
+        # Every current caller of DD_API_KEY here wants the same mock value, so default it
+        # once instead of repeating it in each scenario declaration (an explicit weblog_env
+        # entry, like FeatureFlaggingAgentlessEndToEndScenario's, still wins).
+        weblog_environment.setdefault("DD_API_KEY", AGENTLESS_MOCK_API_KEY)
+
+        weblog_volumes: dict | None = None
         if capture_direct_egress:
-            environment.setdefault(
+            weblog_environment.setdefault(
                 # The reserved .invalid domain fails closed if a request bypasses the proxy.
                 "DD_SITE",
                 "mock-intake.invalid",
             )
-            environment.setdefault("DD_PROXY_HTTPS", f"http://proxy:{ProxyPorts.datadog_direct}")
-            environment.setdefault("HTTPS_PROXY", f"http://proxy:{ProxyPorts.datadog_direct}")
+            weblog_environment.setdefault("DD_PROXY_HTTPS", f"http://proxy:{ProxyPorts.datadog_direct}")
+            weblog_environment.setdefault("HTTPS_PROXY", f"http://proxy:{ProxyPorts.datadog_direct}")
 
-        weblog_volumes: dict | None = None
-        if capture_direct_egress:
             # The weblog talks HTTPS directly to the proxy (CONNECT tunnel), which
             # terminates TLS with the mitmproxy CA -- same trust anchor already
             # mounted into AgentContainer (utils/_context/containers.py) for its
@@ -80,9 +84,9 @@ class AgentlessEndToEndScenario(DdTraceEndToEndScenario):
             # same env vars/root JSON already used to make the real Agent trust the test
             # TUF key (utils/_context/containers.py::AgentContainer.__init__).
             tuf_root_json = get_tuf_root_json()
-            environment.setdefault("DD_REMOTE_CONFIGURATION_ENABLED", "true")
-            environment.setdefault("DD_REMOTE_CONFIGURATION_CONFIG_ROOT", tuf_root_json)
-            environment.setdefault("DD_REMOTE_CONFIGURATION_DIRECTOR_ROOT", tuf_root_json)
+            weblog_environment.setdefault("DD_REMOTE_CONFIGURATION_ENABLED", "true")
+            weblog_environment.setdefault("DD_REMOTE_CONFIGURATION_CONFIG_ROOT", tuf_root_json)
+            weblog_environment.setdefault("DD_REMOTE_CONFIGURATION_DIRECTOR_ROOT", tuf_root_json)
 
         super().__init__(
             name,
@@ -95,7 +99,7 @@ class AgentlessEndToEndScenario(DdTraceEndToEndScenario):
             use_proxy_for_weblog=capture_direct_egress,
             rc_api_enabled=rc_api_enabled,
             rc_backend_enabled=rc_backend_enabled,
-            weblog_env=environment,
+            weblog_env=weblog_environment,
             weblog_volumes=weblog_volumes,
         )
 
