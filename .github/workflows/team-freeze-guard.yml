@@ -20,9 +20,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: DataDog/team-freeze-guard@14d57d6d5a09190d8e2618417e399133bbe2658b  # v0.0.1
-        with:
-          bypass-labels: |
-            fix
-          frozen-teams: |
-            @DataDog/apm-reliability-and-performance
+      - run: echo Hello
+      # - uses: DataDog/team-freeze-guard@14d57d6d5a09190d8e2618417e399133bbe2658b  # v0.0.1
+      #   with:
+      #     bypass-labels: |
+      #       fix
+      #     frozen-teams: |
+      #       @DataDog/apm-reliability-and-performance
