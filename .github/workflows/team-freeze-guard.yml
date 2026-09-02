@@ -13,7 +13,6 @@ on:
 permissions:
   id-token: write
   contents: read
-  actions: write # required by actions/cache to write the team-membership cache
 
 jobs:
   team-freeze-guard:
