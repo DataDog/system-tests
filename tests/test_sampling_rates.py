@@ -10,7 +10,7 @@ from typing import Any
 from urllib.parse import urlparse
 
 from utils import weblog, interfaces, context, scenarios, features, logger
-from utils.dd_constants import SamplingPriority
+from utils.dd_constants import SamplingMechanism, SamplingPriority
 from utils.dd_types import DataDogLibrarySpan, DataDogLibraryTrace
 
 """Those are the constants used by the sampling algorithm in all the tracers
@@ -152,7 +152,7 @@ class Test_SamplingDecisions:
             weblog.get(f"/sample_rate_route/{next(request_id_gen)}")
 
     def test_sampling_decision(self):
-        """Verify that traces are sampled following the sample rate"""
+        """Verify that traces are sampled following the sample rate. This test is run on every root span in the scenario."""
 
         def validator(trace: DataDogLibraryTrace, root_span: DataDogLibrarySpan):
             sampling_priority = root_span.get_sampling_priority()
@@ -170,6 +170,9 @@ class Test_SamplingDecisions:
                     # to AppSec, it should not impact this test and should be ignored.
                     # In this case it is most likely the Healthcheck as it is the first request
                     # and AppSec WAF always samples the first request.
+                    return
+                if root_span["meta"].get("_dd.p.dm") == "-4":
+                    # Manual sampling decisions (keep, drop) override the configured probabilistic sampling rate.
                     return
                 raise ValueError(
                     f"Trace id {root_span['trace_id']}, sampling priority {sampling_priority}, "
