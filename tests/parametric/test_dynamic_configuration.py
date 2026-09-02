@@ -212,21 +212,23 @@ def _create_sdk_config_rc_config(sdk_config_overrides: dict[str, str]) -> dict[s
 
 
 def _assert_telemetry_config_applied(test_agent: TestAgentAPI, apm_telemetry_name: str, expected_value: str) -> None:
-    """Assert the tracer's reported telemetry config for apm_telemetry_name equals expected_value.
+    """Assert the tracer reports apm_telemetry_name as applied with origin "remote_config".
 
     apm_telemetry_name is resolved to the tracer's actual reported key(s) via test_telemetry.py's
     cross-language name mapping (e.g. "trace_header_tags" -> "DD_TRACE_HEADER_TAGS", or a
-    language-specific alias). The effective value is the highest-seq_id entry (sorted first).
+    language-specific alias). Origin is checked explicitly rather than relying on RC being the
+    highest-precedence source, so this fails if the tracer silently ignores sdk_config and only
+    happens to already be at the expected value via some other source.
     """
     configuration_by_name = test_agent.wait_for_telemetry_configurations()
     names = _mapped_telemetry_name(apm_telemetry_name)
     for name in names:
-        entries = configuration_by_name.get(name)
-        if entries:
-            actual = entries[0].get("value")
+        config_item = test_agent.get_telemetry_config_by_origin(configuration_by_name, name, "remote_config")
+        if config_item is not None:
+            actual = config_item["value"]
             assert str(actual).lower() == str(expected_value).lower(), f"Expected {name}={expected_value}, got {actual}"
             return
-    raise AssertionError(f"No telemetry configuration found for any of {names}")
+    raise AssertionError(f"No telemetry configuration with origin 'remote_config' found for any of {names}")
 
 
 def set_and_wait_rc(
