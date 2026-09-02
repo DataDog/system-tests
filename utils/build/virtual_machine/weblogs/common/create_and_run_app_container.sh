@@ -16,6 +16,8 @@ readonly SCRIPT_MARKER="create_and_run_app_container.sh diagnostics-v3"
 readonly AGENT_COMPOSE="docker-compose-agent-prod.yml"
 readonly WEBLOG_LOG_DIR="/var/log/datadog_weblog"
 readonly DOCKER_BUILD_MAX_RETRIES=3
+PULL_AGENT_IMAGE_SCRIPT="$(dirname "$0")/pull_agent_image.sh"
+readonly PULL_AGENT_IMAGE_SCRIPT
 
 # True when the Datadog Agent is installed via its own compose file.
 agent_is_enabled() {
@@ -115,6 +117,14 @@ start_agent() {
     agent_is_enabled || return 0
 
     echo "DD_API_KEY=${DD_API_KEY}" > .env
+
+    if ! bash "${PULL_AGENT_IMAGE_SCRIPT}"; then
+        echo "..:: DOCKER_PULL_FAILED (agent image) ::.." | tee -a "${DIAGNOSTICS_LOG}" >&2
+        dump_dd_agent_diagnostics
+        echo "..:: Diagnostics written to ${DIAGNOSTICS_LOG} ::.." >&2
+        exit 1
+    fi
+
     if ! sudo -E docker-compose -f "${AGENT_COMPOSE}" up -d --remove-orphans datadog --wait --wait-timeout 120; then
         echo "..:: COMPOSE_WAIT_FAILED (dd-agent unhealthy or timeout) ::.." | tee -a "${DIAGNOSTICS_LOG}" >&2
         dump_dd_agent_diagnostics
