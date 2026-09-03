@@ -52,7 +52,9 @@ retry_command "sudo ./gradlew -PdockerImageRepo=system-tests/local -PdockerImage
 
 echo "**************** RUN SERVICES*****************" 
 if [ -f docker-compose-agent-prod.yml ]; then
-    # Agent may be installed in a different way
+    # Agent may be installed in a different way. Pull with retries before compose
+    # up so GCR rate limits / timeouts do not fail the provision on the first attempt.
+    bash "$(dirname "$0")/pull_agent_image.sh"
     sudo -E docker-compose -f docker-compose-agent-prod.yml up -d --remove-orphans datadog
     sleep 30
 fi
