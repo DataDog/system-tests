@@ -487,9 +487,6 @@ class TestDynamicConfigSdkConfiguration:
     def test_sdk_config_field_is_applied(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Every LibConfig setting this tracer already reports as an APM_TRACING_* capability is applied
         the same way when delivered via sdk_config instead.
-
-        Values are chosen to differ from each setting's default, so a tracer that no-ops on
-        sdk_config (and happens to already be at the default) can't pass by accident.
         """
         expected_capabilities = get_expected_capabilities_for_version(context.library)
         applicable = [f for f in _SDK_CONFIG_FIELDS if f[2] in expected_capabilities]
