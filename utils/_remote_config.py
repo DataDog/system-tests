@@ -4,6 +4,7 @@
 
 import base64
 from contextlib import contextmanager
+from datetime import UTC, datetime, timedelta
 import hashlib
 import json
 import os
@@ -48,11 +49,15 @@ class RemoteConfigStateResults:
         return RemoteConfigStateResults(version=d["version"], state=d["state"], configs=d["configs"])
 
 
-SLOW_APPLY_THRESHOLD = 12.0
+APPLY_TIMEOUT = 30
+"""Seconds to wait for an RC apply to be acknowledged."""
+
+SLOW_APPLY_THRESHOLD = APPLY_TIMEOUT / 2
 """Seconds an RC apply may take before it is reported as abnormal.
 
-Measured normal acknowledgement times differ a lot per library: python stays under 2s,
-while java and golang cluster around 8s and reach 10s. This sits above all of them.
+Half the wait budget: past this an apply is closer to timing out than to succeeding.
+Normal acknowledgement times vary a lot per library (python under 2s, java and golang
+around 8s and reaching 10s), so a single lower value would report healthy runs.
 """
 
 STACK_DUMP_AFTER = (10.0, 20.0)
@@ -74,6 +79,13 @@ MAX_TELEMETRY_WARNINGS = 20
 MAX_STACK_DUMP_CHARS = 20000
 """Longest stack dump to log, so a process with many threads cannot flood the output."""
 
+MAX_DUMP_ERROR_CHARS = 500
+"""Longest failed-dump output to log: enough to show the error, not a whole usage message."""
+
+TELEMETRY_CLOCK_MARGIN = timedelta(seconds=2)
+"""Slack applied when selecting telemetry by arrival time, to absorb clock differences
+between the proxy that timestamps a flow and this process."""
+
 _STACK_DUMP_COMMANDS: dict[str, str] = {
     # `timeout` bounds the command so a hung dump cannot extend the apply, and
     # --nonblocking keeps py-spy from pausing the process we are measuring
@@ -82,13 +94,32 @@ _STACK_DUMP_COMMANDS: dict[str, str] = {
 """How to dump thread stacks, per library. Libraries absent here are not covered."""
 
 
-def _log_library_telemetry_warnings() -> None:
-    """Log the warnings a library reported through telemetry.
+def _arrived_since(data: dict, cutoff: datetime) -> bool:
+    """Whether a proxied flow arrived at or after `cutoff`.
+
+    A flow whose timestamp is missing or unparseable is kept: losing the evidence is
+    worse than reporting a warning from slightly earlier.
+    """
+    timestamp = data.get("request", {}).get("timestamp_start")
+    if not isinstance(timestamp, str):
+        return True
+    try:
+        return datetime.fromisoformat(timestamp) >= cutoff
+    except ValueError:
+        return True
+
+
+def _log_library_telemetry_warnings(since: datetime) -> None:
+    """Log the warnings a library reported through telemetry during this apply.
 
     Libraries report their own slow remote config callbacks this way, which is often
     what explains an apply that was not acknowledged in time. This telemetry is already
     collected, so nothing extra is sent, and nothing is logged if there is none.
+
+    Only telemetry that arrived since `since` is reported, so a slow apply late in a
+    scenario does not repeat every warning the whole session has produced.
     """
+    cutoff = since - TELEMETRY_CLOCK_MARGIN
     # collected outside the try: whatever was read is still worth logging if a later
     # entry turns out to be malformed
     lines: list[str] = []
@@ -97,6 +128,8 @@ def _log_library_telemetry_warnings() -> None:
         for data in library.get_telemetry_data():
             content = data["request"]["content"]
             if content.get("request_type") != "logs":
+                continue
+            if not _arrived_since(data, cutoff):
                 continue
 
             payload = content.get("payload") or {}
@@ -125,16 +158,20 @@ def _log_library_telemetry_warnings() -> None:
         logger.warning(f"Library reported these telemetry warnings:\n  {formatted}{suffix}")
 
 
-def _stack_dump_supported() -> bool:
-    """Whether thread stacks can be dumped for the library and scenario in use."""
+def _stack_dump_target() -> tuple[str, Any] | None:
+    """The command and container to dump stacks with, or None if unsupported.
+
+    Scenarios without a weblog (parametric, and others) have nothing to dump, and
+    libraries absent from _STACK_DUMP_COMMANDS have no way to do it.
+    """
     try:
-        # scenarios without a weblog (parametric, and others) have nothing to dump
-        return (
-            context.library.name in _STACK_DUMP_COMMANDS
-            and getattr(context.scenario, "weblog_container", None) is not None
-        )
+        command = _STACK_DUMP_COMMANDS.get(context.library.name)
+        container = getattr(context.scenario, "weblog_container", None)
+        if command is None or container is None:
+            return None
     except Exception:  # diagnostics must never fail a test
-        return False
+        return None
+    return command, container
 
 
 def _dump_weblog_thread_stacks(elapsed: float, stop: threading.Event) -> None:
@@ -143,17 +180,17 @@ def _dump_weblog_thread_stacks(elapsed: float, stop: threading.Event) -> None:
     A stalled apply usually means a library thread is stuck, and this says where.
     Reading them from outside avoids perturbing the process being measured.
     """
-    try:
-        command = _STACK_DUMP_COMMANDS.get(context.library.name)
-        weblog_container = getattr(context.scenario, "weblog_container", None)
-        if command is None or weblog_container is None:
-            return
+    target = _stack_dump_target()
+    if target is None:
+        return
+    command, weblog_container = target
 
+    try:
         result = weblog_container.exec_run(command)
         output = (result.output or b"").decode("utf-8", errors="replace").strip()
         if result.exit_code != 0:
             # never present a failed command as though it were a stack dump
-            logger.info(f"Thread stack dump failed (exit {result.exit_code}): {output[:500]}")
+            logger.info(f"Thread stack dump failed (exit {result.exit_code}): {output[:MAX_DUMP_ERROR_CHARS]}")
             return
         if len(output) > MAX_STACK_DUMP_CHARS:
             output = output[:MAX_STACK_DUMP_CHARS] + "\n<truncated>"
@@ -176,7 +213,7 @@ def _dump_stacks_if_apply_stalls(started: float) -> Iterator[None]:
     rather than when this thread happened to be scheduled. Nothing is captured for an
     apply that completes before the first deadline, nor for an unsupported library.
     """
-    if not _stack_dump_supported():
+    if _stack_dump_target() is None:
         yield
         return
 
@@ -270,7 +307,7 @@ def send_state(
             "apply_error": "<No known response from the library>",
         }
 
-    last_client_state: dict = {}
+    last_client_state: dict[str, Any] = {}
 
     def remote_config_applied(data: dict) -> bool:
         nonlocal last_client_state
@@ -317,8 +354,9 @@ def send_state(
 
     logger.info(f"Waiting for RC version={version}, client_configs={client_configs}")
     wait_started = time.monotonic()
+    wait_started_at = datetime.now(UTC)
     with _dump_stacks_if_apply_stalls(wait_started):
-        rv = library.wait_for(remote_config_applied, timeout=30)
+        rv = library.wait_for(remote_config_applied, timeout=APPLY_TIMEOUT)
         # measured inside, so watcher teardown is not counted as part of the apply
         elapsed = time.monotonic() - wait_started
 
@@ -343,7 +381,7 @@ def send_state(
     time.sleep(2)
 
     if not rv or slow:
-        _log_library_telemetry_warnings()
+        _log_library_telemetry_warnings(wait_started_at)
 
     # Opt-in fail-fast for Ruby RC timeouts (default off). Setup paths in CI
     # must not raise (.cursor/rules/pr-review.mdc §4); the default-off gate
