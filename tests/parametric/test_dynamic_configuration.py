@@ -444,9 +444,14 @@ class TestDynamicConfigSdkConfiguration:
     """Coverage for the generic sdk_config RC delivery path.
 
     sdk_config carries settings as generic env-var-keyed entries, applied via the single
-    SDK_CONFIGURATION capability instead of bespoke per-setting parsing. These tests confirm a
+    SDK_CONFIGURATION capability instead of custom per-setting parsing. These tests confirm a
     tracer that declares SDK_CONFIGURATION consumes sdk_config with no regression in behavior
     compared to the equivalent lib_config delivery, starting with DD_TRACE_ENABLED.
+
+    test_sdk_config_tracing_enabled_matches_lib_config asserts real behavior (tracing actually
+    stops) for DD_TRACE_ENABLED. test_sdk_config_field_is_applied then layers a shallower
+    telemetry-only check on top for every other field. Together they give regression confidence
+    without a custom behavioral assertion per setting.
     """
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
