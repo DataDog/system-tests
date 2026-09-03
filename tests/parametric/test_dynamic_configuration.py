@@ -470,11 +470,12 @@ class TestDynamicConfigSdkConfiguration:
     def test_sdk_config_profiling_enabled(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """DD_PROFILING_ENABLED delivered via sdk_config is applied.
 
-        System-tests has no signal for "the profiler is actually running": parametric has no mock
-        profiling intake, and the E2E profiling tests only exercise a static env var. So, consistent
-        with the existing static DD_PROFILING_ENABLED coverage in test_config_consistency.py, this
-        uses the tracer's reported telemetry config as a proxy for "the setting was applied" rather
-        than asserting real profiling activity.
+        Parametric has no signal for "the profiler is actually running": unlike the E2E
+        tests/test_profiling.py suite, which does validate real profiler payloads via
+        interfaces.agent/interfaces.library, parametric has no mock profiling intake to capture
+        such payloads from. So, consistent with the existing static DD_PROFILING_ENABLED coverage
+        in test_config_consistency.py, this uses the tracer's reported telemetry config as a proxy
+        for "the setting was applied" rather than asserting real profiling activity.
         """
         with test_library:
             _set_rc(test_agent, _create_sdk_config_rc_config({"DD_PROFILING_ENABLED": "true"}))
