@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y curl
 
 WORKDIR /app
 
-RUN python -m pip install fastapi==0.89.1 uvicorn==0.20.0 opentelemetry-exporter-otlp==1.36.0
+RUN python -m pip install fastapi==0.89.1 anyio==4.14.2 uvicorn==0.20.0 opentelemetry-exporter-otlp==1.36.0
 RUN if [ "$FRAMEWORK_VERSION" = "latest" ]; then \
         python -m pip install anthropic; \
     else \
