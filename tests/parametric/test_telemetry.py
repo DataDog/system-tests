@@ -131,28 +131,6 @@ telemetry_name_mapping: dict[str, dict[str, str | list[str]]] = {
         "golang": ["DD_TAGS", "trace_tags"],
         "ruby": "DD_TAGS",
     },
-    "tracing_sampling_rules": {
-        "java": "DD_TRACE_SAMPLING_RULES",
-        "nodejs": "DD_TRACE_SAMPLING_RULES",
-        "dotnet": "DD_TRACE_SAMPLING_RULES",
-        "cpp": "DD_TRACE_SAMPLING_RULES",
-        "golang": ["DD_TRACE_SAMPLING_RULES", "trace_sample_rules"],
-    },
-    "code_origin_enabled": {
-        "java": "DD_CODE_ORIGIN_FOR_SPANS_ENABLED",
-        "nodejs": "DD_CODE_ORIGIN_FOR_SPANS_ENABLED",
-        "dotnet": "DD_CODE_ORIGIN_FOR_SPANS_ENABLED",
-    },
-    "exception_replay_enabled": {
-        "java": "DD_EXCEPTION_REPLAY_ENABLED",
-        "dotnet": "DD_EXCEPTION_REPLAY_ENABLED",
-    },
-    "live_debugging_enabled": {
-        "java": "DD_LIVE_DEBUGGING_ENABLED",
-        "nodejs": "DD_LIVE_DEBUGGING_ENABLED",
-        "dotnet": "DD_LIVE_DEBUGGING_ENABLED",
-        "golang": "DD_LIVE_DEBUGGING_ENABLED",
-    },
     "trace_propagation_style": {
         "java": "DD_TRACE_PROPAGATION_STYLE",
         "dotnet": "DD_TRACE_PROPAGATION_STYLE",

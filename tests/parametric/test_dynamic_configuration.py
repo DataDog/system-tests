@@ -404,6 +404,14 @@ class TestDynamicConfigTracingEnabled:
 
 # Every LibConfig setting that has a corresponding APM_TRACING_* RC capability bit today, as
 # (generic telemetry name, sdk_config env-var key, legacy capability bit, non-default test value).
+#
+# TestDynamicConfigSdkConfiguration is still missing_feature-gated off for every language (see
+# manifests/*.yml), so no field below is exercised anywhere yet. tracing_sampling_rules,
+# code_origin_enabled, exception_replay_enabled, and live_debugging_enabled are deliberately left
+# out even though they have real capability bits: they also need new test_telemetry.py
+# telemetry_name_mapping entries, and adding those speculatively risks a wrong key silently
+# passing/failing rather than a missing one loudly erroring. Add each field (with its mapping
+# entry) when the language that unblocks this class actually needs it covered.
 _SDK_CONFIG_FIELDS: list[tuple[str, str, Capabilities, str]] = [
     ("trace_sample_rate", "DD_TRACE_SAMPLE_RATE", Capabilities.APM_TRACING_SAMPLE_RATE, "0.5"),
     ("logs_injection_enabled", "DD_LOGS_INJECTION", Capabilities.APM_TRACING_LOGS_INJECTION, "true"),
@@ -414,25 +422,6 @@ _SDK_CONFIG_FIELDS: list[tuple[str, str, Capabilities, str]] = [
         "dynamic_instrumentation_enabled",
         "DD_DYNAMIC_INSTRUMENTATION_ENABLED",
         Capabilities.APM_TRACING_ENABLE_DYNAMIC_INSTRUMENTATION,
-        "true",
-    ),
-    (
-        "tracing_sampling_rules",
-        "DD_TRACE_SAMPLING_RULES",
-        Capabilities.APM_TRACING_SAMPLE_RULES,
-        '[{"sample_rate":0.5}]',
-    ),
-    ("code_origin_enabled", "DD_CODE_ORIGIN_FOR_SPANS_ENABLED", Capabilities.APM_TRACING_ENABLE_CODE_ORIGIN, "true"),
-    (
-        "exception_replay_enabled",
-        "DD_EXCEPTION_REPLAY_ENABLED",
-        Capabilities.APM_TRACING_ENABLE_EXCEPTION_REPLAY,
-        "true",
-    ),
-    (
-        "live_debugging_enabled",
-        "DD_LIVE_DEBUGGING_ENABLED",
-        Capabilities.APM_TRACING_ENABLE_LIVE_DEBUGGING,
         "true",
     ),
 ]
