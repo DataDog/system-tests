@@ -488,13 +488,6 @@ class TestDynamicConfigSdkConfiguration:
         """Every LibConfig setting this tracer already reports as an APM_TRACING_* capability is applied
         the same way when delivered via sdk_config instead.
 
-        _SDK_CONFIG_FIELDS is the backend-level truth (every LibConfig-backed setting,
-        language-agnostic). Which fields actually apply to *this* tracer version is decided by
-        capabilities.yml (via get_expected_capabilities_for_version), which is version-range-based
-        and purely additive -- it records which version a capability was added in and never removes
-        that record, so it still answers "did this exact tracer version support the legacy bit" even
-        after a later version migrates to SDK_CONFIGURATION.
-
         Values are chosen to differ from each setting's default, so a tracer that no-ops on
         sdk_config (and happens to already be at the default) can't pass by accident.
         """
