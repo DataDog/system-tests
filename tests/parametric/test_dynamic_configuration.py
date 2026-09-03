@@ -221,9 +221,10 @@ def _assert_telemetry_config_applied(test_agent: TestAgentAPI, apm_telemetry_nam
     configuration_by_name = test_agent.wait_for_telemetry_configurations()
     names = _mapped_telemetry_name(apm_telemetry_name)
     for name in names:
-        config_item = test_agent.get_telemetry_config_by_origin(configuration_by_name, name, "remote_config")
-        if config_item is not None:
-            actual = config_item["value"]
+        actual = test_agent.get_telemetry_config_by_origin(
+            configuration_by_name, name, "remote_config", return_value_only=True
+        )
+        if actual is not None:
             assert str(actual).lower() == str(expected_value).lower(), f"Expected {name}={expected_value}, got {actual}"
             return
     raise AssertionError(
