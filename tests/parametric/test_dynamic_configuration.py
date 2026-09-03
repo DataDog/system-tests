@@ -438,10 +438,74 @@ _SDK_CONFIG_FIELDS: list[tuple[str, str, Capabilities, str]] = [
     ),
 ]
 
+# Frozen snapshot of capabilities.yml. capabilities.yml is expected to drift as tracers migrate
+# settings to sdk_config and drop their old APM_TRACING_* bits, so reading it live here would
+# erode this test's coverage over time instead of preserving it.
+_LEGACY_CAPABILITY_SNAPSHOT: dict[str, frozenset[Capabilities]] = {
+    "java": frozenset(
+        {
+            Capabilities.APM_TRACING_SAMPLE_RATE,
+            Capabilities.APM_TRACING_LOGS_INJECTION,
+            Capabilities.APM_TRACING_HTTP_HEADER_TAGS,
+            Capabilities.APM_TRACING_CUSTOM_TAGS,
+            Capabilities.APM_TRACING_DATA_STREAMS_ENABLED,
+            Capabilities.APM_TRACING_ENABLE_DYNAMIC_INSTRUMENTATION,
+            Capabilities.APM_TRACING_SAMPLE_RULES,
+            Capabilities.APM_TRACING_ENABLE_CODE_ORIGIN,
+            Capabilities.APM_TRACING_ENABLE_EXCEPTION_REPLAY,
+            Capabilities.APM_TRACING_ENABLE_LIVE_DEBUGGING,
+        }
+    ),
+    "nodejs": frozenset(
+        {
+            Capabilities.APM_TRACING_SAMPLE_RATE,
+            Capabilities.APM_TRACING_LOGS_INJECTION,
+            Capabilities.APM_TRACING_HTTP_HEADER_TAGS,
+            Capabilities.APM_TRACING_CUSTOM_TAGS,
+            Capabilities.APM_TRACING_ENABLE_DYNAMIC_INSTRUMENTATION,
+            Capabilities.APM_TRACING_SAMPLE_RULES,
+            Capabilities.APM_TRACING_ENABLE_CODE_ORIGIN,
+            Capabilities.APM_TRACING_ENABLE_LIVE_DEBUGGING,
+        }
+    ),
+    "dotnet": frozenset(
+        {
+            Capabilities.APM_TRACING_SAMPLE_RATE,
+            Capabilities.APM_TRACING_LOGS_INJECTION,
+            Capabilities.APM_TRACING_HTTP_HEADER_TAGS,
+            Capabilities.APM_TRACING_CUSTOM_TAGS,
+            Capabilities.APM_TRACING_SAMPLE_RULES,
+            Capabilities.APM_TRACING_ENABLE_CODE_ORIGIN,
+            Capabilities.APM_TRACING_ENABLE_DYNAMIC_INSTRUMENTATION,
+            Capabilities.APM_TRACING_ENABLE_EXCEPTION_REPLAY,
+            Capabilities.APM_TRACING_ENABLE_LIVE_DEBUGGING,
+        }
+    ),
+    "golang": frozenset(
+        {
+            Capabilities.APM_TRACING_SAMPLE_RATE,
+            Capabilities.APM_TRACING_HTTP_HEADER_TAGS,
+            Capabilities.APM_TRACING_CUSTOM_TAGS,
+            Capabilities.APM_TRACING_SAMPLE_RULES,
+            Capabilities.APM_TRACING_ENABLE_LIVE_DEBUGGING,
+        }
+    ),
+    "cpp": frozenset(
+        {
+            Capabilities.APM_TRACING_SAMPLE_RATE,
+            Capabilities.APM_TRACING_CUSTOM_TAGS,
+            Capabilities.APM_TRACING_SAMPLE_RULES,
+        }
+    ),
+    "python": frozenset(),
+    "php": frozenset(),
+    "ruby": frozenset(),
+}
+
 
 @scenarios.parametric
 @features.dynamic_configuration
-class TestDynamicConfigSdkConfiguration:
+class Test_DynamicConfigSdkConfiguration:
     """Coverage for the generic sdk_config RC delivery path.
 
     sdk_config carries settings as generic env-var-keyed entries, applied via the single
@@ -492,8 +556,8 @@ class TestDynamicConfigSdkConfiguration:
         """
         with test_library:
             _set_rc(test_agent, _create_sdk_config_rc_config({"DD_PROFILING_ENABLED": "true"}))
-            test_agent.wait_for_telemetry_event("app-client-configuration-change", clear=True)
-            test_agent.wait_for_rc_apply_state("APM_TRACING", state=RemoteConfigApplyState.ACKNOWLEDGED, clear=True)
+            test_agent.wait_for_telemetry_event("app-client-configuration-change")
+            test_agent.wait_for_rc_apply_state("APM_TRACING", state=RemoteConfigApplyState.ACKNOWLEDGED)
             _assert_telemetry_config_applied(test_agent, "profiling_enabled", "true")
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
@@ -501,17 +565,20 @@ class TestDynamicConfigSdkConfiguration:
         """Every LibConfig setting this tracer already reports as an APM_TRACING_* capability is applied
         the same way when delivered via sdk_config instead.
         """
-        expected_capabilities = get_expected_capabilities_for_version(context.library)
-        applicable = [f for f in _SDK_CONFIG_FIELDS if f[2] in expected_capabilities]
+        legacy_capabilities = _LEGACY_CAPABILITY_SNAPSHOT.get(test_library.lang, frozenset())
+        applicable = [f for f in _SDK_CONFIG_FIELDS if f[2] in legacy_capabilities]
         if not applicable:
             pytest.skip(f"Nothing to test: {test_library.lang} doesn't support any APM_TRACING_* capability bits")
 
         with test_library:
             for apm_telemetry_name, sdk_config_key, _capability, value in applicable:
                 _set_rc(test_agent, _create_sdk_config_rc_config({sdk_config_key: value}))
-                test_agent.wait_for_telemetry_event("app-client-configuration-change", clear=True)
-                test_agent.wait_for_rc_apply_state("APM_TRACING", state=RemoteConfigApplyState.ACKNOWLEDGED, clear=True)
+                test_agent.wait_for_telemetry_event("app-client-configuration-change")
+                test_agent.wait_for_rc_apply_state("APM_TRACING", state=RemoteConfigApplyState.ACKNOWLEDGED)
                 _assert_telemetry_config_applied(test_agent, apm_telemetry_name, value)
+                # Clear only after reading the config we just asserted on, so the next
+                # field's wait_for_rc_apply_state can't match this iteration's stale ACK.
+                test_agent.clear()
 
 
 def reverse_case(s: str) -> str:
