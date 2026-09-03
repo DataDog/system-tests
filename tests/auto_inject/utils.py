@@ -173,10 +173,9 @@ class AutoInjectBaseTest:
             f'[ "$MISSING" = 0 ] && echo READY && break; sleep {delay}; '
             "done"
         )
-        if "READY" in self.execute_command(virtual_machine, command):
-            logger.info("Agent can tag the weblog containers")
-        else:
-            logger.warning(f"Agent still cannot tag the weblog containers after {attempts * delay}s")
+        command_output:str = self.execute_command(virtual_machine, command)
+        assert "READY" in command_output, f"datadog-agent tagger-list failed:\n{command_output}"
+        logger.info("Agent can tag the weblog containers")
 
     def _container_tags_validator(self, _: str, trace_data: dict):
         root_id = trace_data["trace"]["root_id"]
