@@ -102,12 +102,14 @@ def assert_llmobs_span_event(
         expected_meta["output"]["value"] = output_value
 
     if metadata is not None:
-        # Assert expected metadata values are there, not entirely equality (subset is fine)
-        actual_metadata: dict = actual_span_event["meta"].get("metadata", {})
-        assert metadata.items() <= actual_metadata.items(), (
-            f"Expected metadata {metadata} to be a subset of {actual_metadata}"
-        )
-        expected_meta["metadata"] = mock.ANY  # already asserted above
+        # Assert expected metadata values are there, not entirely equality (subset is fine).
+        # metadata=mock.ANY is a wildcard for the whole dict, so there is no subset to check.
+        if isinstance(metadata, dict):
+            actual_metadata: dict = actual_span_event["meta"].get("metadata", {})
+            assert metadata.items() <= actual_metadata.items(), (
+                f"Expected metadata {metadata} to be a subset of {actual_metadata}"
+            )
+        expected_meta["metadata"] = mock.ANY
 
     if model_name is not None:
         expected_meta["model_name"] = model_name
