@@ -21,6 +21,7 @@ Config:
 
 @features.client_side_stats_supported
 @scenarios.trace_stats_computation
+@scenarios.trace_stats_computation_v1
 class Test_Client_Stats:
     """Test client-side stats are compatible with Agent implementation"""
 
@@ -447,6 +448,7 @@ class Test_Agent_Info_Endpoint:
 
 @features.client_side_stats_supported
 @scenarios.trace_stats_computation
+@scenarios.trace_stats_computation_v1
 class Test_Peer_Tags:
     """Test peer tags aggregation for Client-Side Stats"""
 
@@ -513,6 +515,7 @@ class Test_Peer_Tags:
 
 @features.client_side_stats_supported
 @scenarios.trace_stats_computation
+@scenarios.trace_stats_computation_v1
 class Test_Transport_Headers:
     """Test transport headers validation for Client-Side Stats"""
 
@@ -600,14 +603,13 @@ class Test_Client_Drop_P0s:
         stats_requests = list(interfaces.library.get_data("/v0.6/stats"))
         assert len(stats_requests) == 0, "No stats should be sent when client_drop_p0s is false"
 
-        # Check trace headers to ensure Datadog-Client-Computed-Stats is not set to true
-        trace_requests = list(interfaces.library.get_data("/v0.4/traces"))
-        if len(trace_requests) == 0:
-            trace_requests = list(interfaces.library.get_data("/v0.5/traces"))
-        if len(trace_requests) == 0:
-            trace_requests = list(interfaces.library.get_data("/v0.7/traces"))
-        if len(trace_requests) == 0:
-            trace_requests = list(interfaces.library.get_data("/v1.0/traces"))
+        # Check trace headers to ensure Datadog-Client-Computed-Stats is not set to true.
+        # Collect every trace endpoint rather than stopping at the first non-empty one: a tracer can
+        # emit on more than one (e.g. one defaulting to /v1.0/traces that also falls back to a legacy
+        # endpoint), and the header must be absent/false on all of them, not just the first we find.
+        trace_requests = list(
+            interfaces.library.get_data(["/v0.4/traces", "/v0.5/traces", "/v0.7/traces", "/v1.0/traces"])
+        )
 
         assert len(trace_requests) > 0, "Should have at least one trace request"
 
