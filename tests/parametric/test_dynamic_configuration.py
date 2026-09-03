@@ -228,7 +228,11 @@ def _assert_telemetry_config_applied(test_agent: TestAgentAPI, apm_telemetry_nam
             actual = config_item["value"]
             assert str(actual).lower() == str(expected_value).lower(), f"Expected {name}={expected_value}, got {actual}"
             return
-    raise AssertionError(f"No telemetry configuration with origin 'remote_config' found for any of {names}")
+    raise AssertionError(
+        f"No telemetry configuration with origin 'remote_config' found for any of {names}. If this "
+        f"tracer reports {apm_telemetry_name!r} under a different key, add/fix its "
+        "test_telemetry.py telemetry_name_mapping entry."
+    )
 
 
 def set_and_wait_rc(
