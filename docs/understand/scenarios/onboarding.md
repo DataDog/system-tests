@@ -996,8 +996,11 @@ Exception during trace in backend verification
 That tag is attached by the agent, not by the backend: the tracer sends only a container id, and the
 agent resolves it into tags through its tagger, which discovers containers asynchronously. The agent
 waits up to 12s for that and then sends the trace untagged. Origin detection tests therefore wait for
-`datadog-agent tagger-list` to know the weblog containers before sending the request they measure; if
-you see `Agent still cannot tag the weblog containers`, look at the agent logs rather than the backend.
+the tagger to know the weblog containers before sending the request they measure. If the test fails
+with `The agent tagger still does not know the weblog containers`, the message carries the last
+`tagger-list` output, so look at the agent rather than the backend. Note the tagger lives in a
+different place per scenario: on the host in the `HOST_*` scenarios, and in the `dd-agent` container
+in the `CONTAINER_*` ones (`docker exec dd-agent agent tagger-list`).
 
 ---
 
