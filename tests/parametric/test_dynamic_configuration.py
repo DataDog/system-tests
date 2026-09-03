@@ -402,6 +402,42 @@ class TestDynamicConfigTracingEnabled:
         )
 
 
+# Every LibConfig setting that has a corresponding APM_TRACING_* RC capability bit today, as
+# (generic telemetry name, sdk_config env-var key, legacy capability bit, non-default test value).
+_SDK_CONFIG_FIELDS: list[tuple[str, str, Capabilities, str]] = [
+    ("trace_sample_rate", "DD_TRACE_SAMPLE_RATE", Capabilities.APM_TRACING_SAMPLE_RATE, "0.5"),
+    ("logs_injection_enabled", "DD_LOGS_INJECTION", Capabilities.APM_TRACING_LOGS_INJECTION, "true"),
+    ("trace_header_tags", "DD_TRACE_HEADER_TAGS", Capabilities.APM_TRACING_HTTP_HEADER_TAGS, "X-Test-Header:test-tag"),
+    ("trace_tags", "DD_TAGS", Capabilities.APM_TRACING_CUSTOM_TAGS, "sdk_config_tag:sdk_config_value"),
+    ("data_streams_enabled", "DD_DATA_STREAMS_ENABLED", Capabilities.APM_TRACING_DATA_STREAMS_ENABLED, "true"),
+    (
+        "dynamic_instrumentation_enabled",
+        "DD_DYNAMIC_INSTRUMENTATION_ENABLED",
+        Capabilities.APM_TRACING_ENABLE_DYNAMIC_INSTRUMENTATION,
+        "true",
+    ),
+    (
+        "tracing_sampling_rules",
+        "DD_TRACE_SAMPLING_RULES",
+        Capabilities.APM_TRACING_SAMPLE_RULES,
+        '[{"sample_rate":0.5}]',
+    ),
+    ("code_origin_enabled", "DD_CODE_ORIGIN_FOR_SPANS_ENABLED", Capabilities.APM_TRACING_ENABLE_CODE_ORIGIN, "true"),
+    (
+        "exception_replay_enabled",
+        "DD_EXCEPTION_REPLAY_ENABLED",
+        Capabilities.APM_TRACING_ENABLE_EXCEPTION_REPLAY,
+        "true",
+    ),
+    (
+        "live_debugging_enabled",
+        "DD_LIVE_DEBUGGING_ENABLED",
+        Capabilities.APM_TRACING_ENABLE_LIVE_DEBUGGING,
+        "true",
+    ),
+]
+
+
 @scenarios.parametric
 @features.dynamic_configuration
 class TestDynamicConfigSdkConfiguration:
@@ -454,35 +490,31 @@ class TestDynamicConfigSdkConfiguration:
             _assert_telemetry_config_applied(test_agent, "profiling_enabled", "true")
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    @pytest.mark.parametrize(
-        ("apm_telemetry_name", "sdk_config_key", "value"),
-        [
-            ("trace_sample_rate", "DD_TRACE_SAMPLE_RATE", "0.5"),
-            ("logs_injection_enabled", "DD_LOGS_INJECTION", "true"),
-            ("trace_header_tags", "DD_TRACE_HEADER_TAGS", "X-Test-Header:test-tag"),
-            ("trace_tags", "DD_TAGS", "sdk_config_tag:sdk_config_value"),
-            ("data_streams_enabled", "DD_DATA_STREAMS_ENABLED", "true"),
-            ("dynamic_instrumentation_enabled", "DD_DYNAMIC_INSTRUMENTATION_ENABLED", "true"),
-        ],
-    )
-    def test_sdk_config_field_is_applied(
-        self,
-        test_agent: TestAgentAPI,
-        test_library: APMLibrary,
-        apm_telemetry_name: str,
-        sdk_config_key: str,
-        value: str,
-    ) -> None:
-        """Each previously-migrated LibConfig setting is applied when delivered via sdk_config.
+    def test_sdk_config_field_is_applied(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        """Every LibConfig setting this tracer already reports as an APM_TRACING_* capability is applied
+        the same way when delivered via sdk_config instead.
+
+        The full field list below is the backend-level truth (every LibConfig-backed setting,
+        language-agnostic). Which fields actually apply to *this* tracer version is decided by
+        capabilities.yml (via get_expected_capabilities_for_version), which is version-range-based
+        and purely additive -- it records which version a capability was added in and never removes
+        that record, so it still answers "did this exact tracer version support the legacy bit" even
+        after a later version migrates to SDK_CONFIGURATION.
 
         Values are chosen to differ from each setting's default, so a tracer that no-ops on
         sdk_config (and happens to already be at the default) can't pass by accident.
         """
+        expected_capabilities = get_expected_capabilities_for_version(context.library)
+        applicable = [f for f in _SDK_CONFIG_FIELDS if f[2] in expected_capabilities]
+        if not applicable:
+            pytest.skip(f"{test_library.lang} reports no legacy per-field APM_TRACING_* capability yet")
+
         with test_library:
-            _set_rc(test_agent, _create_sdk_config_rc_config({sdk_config_key: value}))
-            test_agent.wait_for_telemetry_event("app-client-configuration-change", clear=True)
-            test_agent.wait_for_rc_apply_state("APM_TRACING", state=RemoteConfigApplyState.ACKNOWLEDGED, clear=True)
-            _assert_telemetry_config_applied(test_agent, apm_telemetry_name, value)
+            for apm_telemetry_name, sdk_config_key, _capability, value in applicable:
+                _set_rc(test_agent, _create_sdk_config_rc_config({sdk_config_key: value}))
+                test_agent.wait_for_telemetry_event("app-client-configuration-change", clear=True)
+                test_agent.wait_for_rc_apply_state("APM_TRACING", state=RemoteConfigApplyState.ACKNOWLEDGED, clear=True)
+                _assert_telemetry_config_applied(test_agent, apm_telemetry_name, value)
 
 
 def reverse_case(s: str) -> str:
