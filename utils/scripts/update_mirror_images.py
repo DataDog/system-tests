@@ -135,40 +135,6 @@ def _refresh_lock_file() -> str | None:
     return original_lock
 
 
-def _read_yaml_preamble() -> str:
-    """Leading document-start and comment lines of mirror_images.yaml, if any."""
-    if not MIRROR_YAML.exists():
-        return ""
-
-    preamble: list[str] = []
-    for line in MIRROR_YAML.read_text(encoding="utf-8").splitlines(keepends=True):
-        if line.startswith(("---", "#")) or not line.strip():
-            preamble.append(line)
-        else:
-            break
-    return "".join(preamble)
-
-
-def _restore_yaml_preamble(preamble: str) -> None:
-    """Re-apply the preamble that ``add`` dropped.
-
-    ``mirror_images.py add`` rewrites the file through a YAML parser, which discards
-    comments, but only when it actually adds something. Without this, regenerating
-    after a new image silently deletes the file's own documentation.
-    """
-    if not preamble:
-        return
-
-    content = MIRROR_YAML.read_text(encoding="utf-8")
-    if content.startswith(preamble):
-        return
-
-    body = content
-    if content.startswith("---\n") and preamble.startswith("---"):
-        body = content[len("---\n") :]
-    MIRROR_YAML.write_text(preamble + body, encoding="utf-8")
-
-
 def main(excluded: set[str], *, skip_lock: bool, refresh: bool = False) -> None:
     if skip_lock and refresh:
         raise ValueError("refresh cannot be used when skip_lock is true")
@@ -182,9 +148,7 @@ def main(excluded: set[str], *, skip_lock: bool, refresh: bool = False) -> None:
     if not MIRROR_YAML.exists():
         MIRROR_YAML.write_text(MIRROR_YAML_HEADER)
 
-    preamble = _read_yaml_preamble()
     _run_mirror_images("add", *images)
-    _restore_yaml_preamble(preamble)
     if not skip_lock:
         original_lock = _refresh_lock_file() if refresh else None
         try:

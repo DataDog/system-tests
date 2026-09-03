@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y curl
 
 WORKDIR /app
 
-RUN python -m pip install fastapi==0.100.0 uvicorn==0.20.0
+RUN python -m pip install fastapi==0.100.0 uvicorn==0.20.0 py-spy==0.4.2
 RUN if [ "$FRAMEWORK_VERSION" = "latest" ]; then \
         python -m pip install google-genai; \
     else \
@@ -18,10 +18,6 @@ COPY utils/build/docker/python/google_genai_app/system_tests_library_version.sh 
 COPY utils/build/docker/python/install_ddtrace.sh binaries* /binaries/
 
 RUN /binaries/install_ddtrace.sh
-
-# py-spy lets system-tests dump this weblog's thread stacks from outside the
-# process when a remote config apply stalls (see utils/_remote_config.py)
-RUN pip install --no-cache-dir py-spy==0.4.2
 RUN mkdir /integration-framework-tracer-logs
 
 CMD ["ddtrace-run", "python", "-m", "integration_frameworks", "google_genai"]
