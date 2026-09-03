@@ -34,6 +34,13 @@ TELEMETRY_HOST = "instrumentation-telemetry-intake.mock-intake.invalid"
 # errors-intake endpoint is just a different path on it, not a separate host, confirmed live.
 CRASH_ERRORS_INTAKE_PATH = "/api/v2/errorsintake"
 
+# OpenTelemetry log/metric export are wholly separate agentless mechanisms (their own
+# DD_SITE-derived host/flags), unrelated to the DD_AGENTLESS_ENABLED trace/stats/RC/telemetry
+# paths above.
+OTLP_HOST = "otlp.mock-intake.invalid"
+OTLP_LOGS_PATH = "/v1/logs"
+OTLP_METRICS_PATH = "/v1/metrics"
+
 ROOT_SPAN_RESOURCE = "GET /"
 
 
@@ -122,6 +129,33 @@ def _find_crash_report_log() -> dict | None:
             tags = log.get("tags", "")
             if "is_crash:true" in tags and "is_crash_ping:true" not in tags:
                 return log
+    return None
+
+
+def _find_otlp_log_record(body_substring: str) -> dict | None:
+    """Search every captured OTLP log-export request for a record whose body contains this text."""
+    for request in _requests_at(OTLP_HOST, OTLP_LOGS_PATH):
+        content = request["request"]["content"]
+        for resource_log in content.get("resourceLogs", []):
+            for scope_log in resource_log.get("scopeLogs", []):
+                for record in scope_log.get("logRecords", []):
+                    if body_substring in record.get("body", {}).get("stringValue", ""):
+                        return record
+    return None
+
+
+def _find_otlp_metric_datapoint(metric_name: str) -> dict | None:
+    """Search every captured OTLP metric-export request for a data point of this metric."""
+    for request in _requests_at(OTLP_HOST, OTLP_METRICS_PATH):
+        content = request["request"]["content"]
+        for resource_metric in content.get("resourceMetrics", []):
+            for scope_metric in resource_metric.get("scopeMetrics", []):
+                for metric in scope_metric.get("metrics", []):
+                    if metric.get("name") != metric_name:
+                        continue
+                    data_points = metric.get("sum", {}).get("dataPoints", [])
+                    if data_points:
+                        return data_points[0]
     return None
 
 
@@ -409,6 +443,92 @@ class Test_Agentless_Crashtracking:
         assert message["error"]["is_crash"] is True
         assert message["error"]["kind"] == "UnixSignal"
         assert "SIGSEGV" in message["error"]["message"]
+
+
+@scenarios.apm_tracing_agentless
+@features.dd_agentless_enabled
+class Test_Agentless_OTLP_Logs:
+    """Ordinary Python `logging` calls are forwarded as OTLP log records directly to the
+    intake (https://otlp.<site>/v1/logs) when DD_LOGS_OTEL_ENABLED is set, with no Datadog
+    Agent involved.
+    """
+
+    LOG_MESSAGE_MARKER = "[DSM] Got request with integration: None"
+
+    def setup_otlp_log_export(self):
+        self.r = weblog.get("/dsm")
+        interfaces.datadog_direct.wait_for(
+            lambda d: d["host"] == OTLP_HOST
+            and d["path"] == OTLP_LOGS_PATH
+            and _find_otlp_log_record(self.LOG_MESSAGE_MARKER) is not None,
+            timeout=30,
+        )
+
+    def test_otlp_log_export(self):
+        requests = _requests_at(OTLP_HOST, OTLP_LOGS_PATH)
+        assert len(requests) != 0, f"No request captured on {OTLP_HOST}{OTLP_LOGS_PATH}"
+
+        request = requests[-1]
+        assert request["response"]["status_code"] // 100 == 2
+
+        headers = _headers(request)
+        _assert_api_key(headers)
+        _assert_headers(
+            headers,
+            exact={"content-type": "application/x-protobuf"},
+            present=("user-agent", "content-length"),
+        )
+
+        record = _find_otlp_log_record(self.LOG_MESSAGE_MARKER)
+        assert record is not None, f"No OTLP log record containing {self.LOG_MESSAGE_MARKER!r} was captured"
+        assert record["severityText"] == "INFO"
+        assert record["body"]["stringValue"] == self.LOG_MESSAGE_MARKER
+        assert "traceId" in record
+        assert "spanId" in record
+
+
+@scenarios.apm_tracing_agentless
+@features.dd_agentless_enabled
+class Test_Agentless_OTLP_Metrics:
+    """A real, user-created OTel metric (via the standard OTel Metrics API - `GET /otel_create_metric`
+    calls `opentelemetry.metrics.get_meter(...).create_counter(...).add(...)` in the weblog) is
+    exported directly to the intake (https://otlp.<site>/v1/metrics) when DD_METRICS_OTEL_ENABLED
+    is set, with no Datadog Agent involved.
+    """
+
+    METRIC_NAME = "system_tests.otel_metric"
+
+    def setup_otlp_metric_export(self):
+        self.r = weblog.get("/otel_create_metric")
+        interfaces.datadog_direct.wait_for(
+            lambda d: d["host"] == OTLP_HOST
+            and d["path"] == OTLP_METRICS_PATH
+            and _find_otlp_metric_datapoint(self.METRIC_NAME) is not None,
+            timeout=30,
+        )
+
+    def test_otlp_metric_export(self):
+        assert self.r.status_code == 200
+
+        requests = _requests_at(OTLP_HOST, OTLP_METRICS_PATH)
+        assert len(requests) != 0, f"No request captured on {OTLP_HOST}{OTLP_METRICS_PATH}"
+
+        request = requests[-1]
+        assert request["response"]["status_code"] // 100 == 2
+
+        headers = _headers(request)
+        _assert_api_key(headers)
+        _assert_headers(
+            headers,
+            exact={"content-type": "application/x-protobuf"},
+            present=("user-agent", "content-length"),
+        )
+
+        data_point = _find_otlp_metric_datapoint(self.METRIC_NAME)
+        assert data_point is not None, f"No OTLP data point for metric {self.METRIC_NAME!r} was captured"
+        assert int(data_point.get("asInt", data_point.get("asDouble", 0))) >= 1
+        attributes = {a["key"]: a["value"] for a in data_point.get("attributes", [])}
+        assert attributes.get("system_tests.metric_test", {}).get("stringValue") == "true"
 
 
 @scenarios.apm_tracing_agentless

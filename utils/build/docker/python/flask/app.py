@@ -65,6 +65,7 @@ import requests
 import stripe
 import opentelemetry.baggage
 import opentelemetry.context
+import opentelemetry.metrics
 import opentelemetry.propagate
 import opentelemetry.trace
 
@@ -1965,6 +1966,21 @@ def otel_drop_in_default_propagator_inject():
     opentelemetry.propagate.inject(result, opentelemetry.context.get_current())
 
     return jsonify(result)
+
+
+@app.route("/otel_create_metric", methods=["GET"])
+def otel_create_metric():
+    """Record a value via the standard OTel Metrics API (opentelemetry.metrics.get_meter(...)).
+
+    Unrelated to dd-trace-py's own runtime metrics (DD_RUNTIME_METRICS_ENABLED), which are never
+    fed into the OTel meter - this exercises a genuine, user-created OTel metric instead, so its
+    export can be verified independently of that gap.
+    """
+    meter = opentelemetry.metrics.get_meter("system-tests")
+    counter = meter.create_counter("system_tests.otel_metric", description="system-tests OTel metrics test")
+    counter.add(1, {"system_tests.metric_test": "true"})
+
+    return "OK"
 
 
 # From https://github.com/open-telemetry/opentelemetry-python/issues/2432#issuecomment-1742425474

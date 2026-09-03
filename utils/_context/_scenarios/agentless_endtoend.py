@@ -65,6 +65,7 @@ class AgentlessEndToEndScenario(DdTraceEndToEndScenario):
             )
             weblog_environment.setdefault("DD_PROXY_HTTPS", f"http://proxy:{ProxyPorts.datadog_direct}")
             weblog_environment.setdefault("HTTPS_PROXY", f"http://proxy:{ProxyPorts.datadog_direct}")
+            weblog_environment.setdefault("REQUESTS_CA_BUNDLE", "/etc/ssl/certs/ca-certificates.crt")
 
             # The weblog talks HTTPS directly to the proxy (CONNECT tunnel), which
             # terminates TLS with the mitmproxy CA -- same trust anchor already

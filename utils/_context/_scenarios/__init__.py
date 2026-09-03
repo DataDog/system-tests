@@ -863,14 +863,17 @@ class _Scenarios:
 
     apm_tracing_agentless = AgentlessEndToEndScenario(
         "APM_TRACING_AGENTLESS",
-        doc="Validate direct-to-intake trace submission, client-side stats, and Remote "
-        "Configuration when DD_AGENTLESS_ENABLED is set, without a Datadog Agent.",
+        doc="Validate direct-to-intake trace submission, client-side stats, Remote "
+        "Configuration, and OpenTelemetry log/metric export when DD_AGENTLESS_ENABLED is set, "
+        "without a Datadog Agent.",
         rc_api_enabled=True,
         rc_backend_enabled=True,
         weblog_env={
             "DD_AGENTLESS_ENABLED": "true",
             "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",
             "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "1",
+            "DD_LOGS_OTEL_ENABLED": "true",
+            "DD_METRICS_OTEL_ENABLED": "true",
         },
     )
 

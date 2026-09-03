@@ -189,8 +189,15 @@ def deserialize_http_message(
 
     if content_type == "application/x-protobuf":
         assert isinstance(content, bytes)
+        # dd-protocol: otlp is set by the agent's own OTLP relay path, which doesn't carry the
+        # exact /v1/{traces,metrics,logs} path this direct-to-intake capture does. Real OTLP
+        # exporters (dd-trace-py's included) never set that header themselves, so also decode
+        # as a *Request* whenever this is actually a request body on one of those exact paths -
+        # otherwise it would fall through to the unconditional (response-shaped) branches below
+        # and silently mis-decode direct-to-intake OTLP request payloads.
         dd_protocol = get_header_value("dd-protocol", message["headers"])
-        if dd_protocol == "otlp" and "traces" in path:
+        is_direct_otlp_request = key == "request" and path in ("/v1/traces", "/v1/metrics", "/v1/logs")
+        if (dd_protocol == "otlp" and "traces" in path) or (is_direct_otlp_request and path == "/v1/traces"):
             return deserialize_otlp_v1_trace(
                 MessageToDict(
                     ExportTraceServiceRequest.FromString(content),
@@ -198,13 +205,13 @@ def deserialize_http_message(
                     use_integers_for_enums=True,
                 )
             )
-        if dd_protocol == "otlp" and "metrics" in path:
+        if (dd_protocol == "otlp" and "metrics" in path) or (is_direct_otlp_request and path == "/v1/metrics"):
             return MessageToDict(
                 ExportMetricsServiceRequest.FromString(content),
                 preserving_proto_field_name=False,
                 use_integers_for_enums=True,
             )
-        if dd_protocol == "otlp" and "logs" in path:
+        if (dd_protocol == "otlp" and "logs" in path) or (is_direct_otlp_request and path == "/v1/logs"):
             return MessageToDict(
                 ExportLogsServiceRequest.FromString(content),
                 preserving_proto_field_name=False,
