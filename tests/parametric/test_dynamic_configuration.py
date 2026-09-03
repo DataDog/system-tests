@@ -488,7 +488,7 @@ class TestDynamicConfigSdkConfiguration:
         """Every LibConfig setting this tracer already reports as an APM_TRACING_* capability is applied
         the same way when delivered via sdk_config instead.
 
-        The full field list below is the backend-level truth (every LibConfig-backed setting,
+        _SDK_CONFIG_FIELDS is the backend-level truth (every LibConfig-backed setting,
         language-agnostic). Which fields actually apply to *this* tracer version is decided by
         capabilities.yml (via get_expected_capabilities_for_version), which is version-range-based
         and purely additive -- it records which version a capability was added in and never removes
