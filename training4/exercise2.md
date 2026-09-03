@@ -2,7 +2,7 @@
 
 ## Background
 
-`test_root_wrong` fails on every run. Leaving a known-failing test enabled makes the suite noisy and hides real regressions, so it needs to be deactivated.
+`test_root_wrong` fails on every run. Leaving a known-failing test enabled breaks the suite and hides real regressions, so it needs to be deactivated.
 
 System-tests gives you two mechanisms:
 
