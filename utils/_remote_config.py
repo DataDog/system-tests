@@ -61,8 +61,12 @@ STACK_DUMP_AFTER = (10.0, 20.0)
 Two samples are enough to tell a thread parked on one call from one that is moving.
 """
 
-STACK_DUMP_TIMEOUT = 10
-"""Seconds a stack dump command may run. Enforced inside the container."""
+STACK_DUMP_TIMEOUT = 5
+"""Seconds a stack dump command may run. Enforced inside the container.
+
+Kept below the gap between STACK_DUMP_AFTER deadlines so a slow dump cannot swallow
+the next one. A measured dump takes about 0.1s, so this is ample.
+"""
 
 MAX_TELEMETRY_WARNINGS = 20
 """Most recent telemetry warnings to log, so a long run cannot flood the output."""
@@ -85,9 +89,11 @@ def _log_library_telemetry_warnings() -> None:
     what explains an apply that was not acknowledged in time. This telemetry is already
     collected, so nothing extra is sent, and nothing is logged if there is none.
     """
+    # collected outside the try: whatever was read is still worth logging if a later
+    # entry turns out to be malformed
+    lines: list[str] = []
+    seen: set[str] = set()
     try:
-        lines: list[str] = []
-        seen: set[str] = set()
         for data in library.get_telemetry_data():
             content = data["request"]["content"]
             if content.get("request_type") != "logs":
@@ -96,6 +102,9 @@ def _log_library_telemetry_warnings() -> None:
             payload = content.get("payload") or {}
             entries = payload.get("logs", []) if isinstance(payload, dict) else payload
             for entry in entries or []:
+                # one entry of an unexpected shape must not hide the others
+                if not isinstance(entry, dict):
+                    continue
                 if str(entry.get("level", "")).upper() not in ("WARN", "WARNING", "ERROR"):
                     continue
 
@@ -106,8 +115,7 @@ def _log_library_telemetry_warnings() -> None:
                     seen.add(line)
                     lines.append(line)
     except Exception as e:  # diagnostics must never fail a test
-        logger.info(f"Could not read library telemetry: {type(e).__name__}: {e}")
-        return
+        logger.info(f"Could not read all library telemetry: {type(e).__name__}: {e}")
 
     if lines:
         shown = lines[-MAX_TELEMETRY_WARNINGS:]
@@ -129,7 +137,7 @@ def _stack_dump_supported() -> bool:
         return False
 
 
-def _dump_weblog_thread_stacks(elapsed: float) -> None:
+def _dump_weblog_thread_stacks(elapsed: float, stop: threading.Event) -> None:
     """Log the weblog's thread stacks, read from outside the process.
 
     A stalled apply usually means a library thread is stuck, and this says where.
@@ -151,6 +159,10 @@ def _dump_weblog_thread_stacks(elapsed: float) -> None:
             output = output[:MAX_STACK_DUMP_CHARS] + "\n<truncated>"
     except Exception as e:  # diagnostics must never fail a test, nor kill this thread
         logger.info(f"Could not dump weblog thread stacks: {type(e).__name__}: {e}")
+        return
+
+    if stop.is_set():
+        # the apply completed while the dump ran, so it no longer describes a stall
         return
 
     logger.warning(f"Weblog thread stacks {elapsed:.1f}s into a stalled RC apply:\n{output}")
@@ -177,7 +189,7 @@ def _dump_stacks_if_apply_stalls(started: float) -> Iterator[None]:
                 continue  # deadline already missed, do not run dumps back to back
             if stop.wait(remaining):
                 return  # the apply completed, there is nothing to look at
-            _dump_weblog_thread_stacks(time.monotonic() - started)
+            _dump_weblog_thread_stacks(time.monotonic() - started, stop)
 
     thread = threading.Thread(target=watch, name="rc-stack-dump", daemon=True)
     try:
@@ -191,8 +203,9 @@ def _dump_stacks_if_apply_stalls(started: float) -> Iterator[None]:
         yield
     finally:
         stop.set()
-        # bounded: the command itself cannot outlive STACK_DUMP_TIMEOUT
-        thread.join(timeout=STACK_DUMP_TIMEOUT + 5)
+        # the command cannot outlive STACK_DUMP_TIMEOUT, so this is the whole wait;
+        # a dump still running past it reports nothing, so it is safe to stop waiting
+        thread.join(timeout=STACK_DUMP_TIMEOUT)
 
 
 def send_state(
@@ -265,6 +278,9 @@ def send_state(
             return False
 
         last_client_state = data.get("request", {}).get("content", {}).get("client", {}).get("state", {})
+        # read with .get(): a poll carrying no client state used to raise KeyError from
+        # inside this callback, which is not a useful way to report a malformed payload.
+        # It now reads as "not the version we are waiting for" and the wait continues.
         targets_version = last_client_state.get("targets_version")
         config_states = last_client_state.get("config_states", [])
         logger.info(
