@@ -216,9 +216,7 @@ def _assert_telemetry_config_applied(test_agent: TestAgentAPI, apm_telemetry_nam
 
     apm_telemetry_name is resolved to the tracer's actual reported key(s) via test_telemetry.py's
     cross-language name mapping (e.g. "trace_header_tags" -> "DD_TRACE_HEADER_TAGS", or a
-    language-specific alias). Origin is checked explicitly rather than relying on RC being the
-    highest-precedence source, so this fails if the tracer silently ignores sdk_config and only
-    happens to already be at the expected value via some other source.
+    language-specific alias).
     """
     configuration_by_name = test_agent.wait_for_telemetry_configurations()
     names = _mapped_telemetry_name(apm_telemetry_name)
@@ -406,16 +404,6 @@ class TestDynamicConfigTracingEnabled:
         )
 
 
-# Every LibConfig setting that has a corresponding APM_TRACING_* RC capability bit today, as
-# (generic telemetry name, sdk_config env-var key, legacy capability bit, non-default test value).
-#
-# TestDynamicConfigSdkConfiguration is still missing_feature-gated off for every language (see
-# manifests/*.yml), so no field below is exercised anywhere yet. tracing_sampling_rules,
-# code_origin_enabled, exception_replay_enabled, and live_debugging_enabled are deliberately left
-# out even though they have real capability bits: they also need new test_telemetry.py
-# telemetry_name_mapping entries, and adding those speculatively risks a wrong key silently
-# passing/failing rather than a missing one loudly erroring. Add each field (with its mapping
-# entry) when the language that unblocks this class actually needs it covered.
 _SDK_CONFIG_FIELDS: list[tuple[str, str, Capabilities, str]] = [
     ("trace_sample_rate", "DD_TRACE_SAMPLE_RATE", Capabilities.APM_TRACING_SAMPLE_RATE, "0.5"),
     ("logs_injection_enabled", "DD_LOGS_INJECTION", Capabilities.APM_TRACING_LOGS_INJECTION, "true"),
@@ -426,6 +414,25 @@ _SDK_CONFIG_FIELDS: list[tuple[str, str, Capabilities, str]] = [
         "dynamic_instrumentation_enabled",
         "DD_DYNAMIC_INSTRUMENTATION_ENABLED",
         Capabilities.APM_TRACING_ENABLE_DYNAMIC_INSTRUMENTATION,
+        "true",
+    ),
+    (
+        "tracing_sampling_rules",
+        "DD_TRACE_SAMPLING_RULES",
+        Capabilities.APM_TRACING_SAMPLE_RULES,
+        '[{"sample_rate":0.5}]',
+    ),
+    ("code_origin_enabled", "DD_CODE_ORIGIN_FOR_SPANS_ENABLED", Capabilities.APM_TRACING_ENABLE_CODE_ORIGIN, "true"),
+    (
+        "exception_replay_enabled",
+        "DD_EXCEPTION_REPLAY_ENABLED",
+        Capabilities.APM_TRACING_ENABLE_EXCEPTION_REPLAY,
+        "true",
+    ),
+    (
+        "live_debugging_enabled",
+        "DD_LIVE_DEBUGGING_ENABLED",
+        Capabilities.APM_TRACING_ENABLE_LIVE_DEBUGGING,
         "true",
     ),
 ]
@@ -491,7 +498,7 @@ class TestDynamicConfigSdkConfiguration:
         expected_capabilities = get_expected_capabilities_for_version(context.library)
         applicable = [f for f in _SDK_CONFIG_FIELDS if f[2] in expected_capabilities]
         if not applicable:
-            pytest.skip(f"{test_library.lang} reports no legacy per-field APM_TRACING_* capability yet")
+            pytest.skip(f"Nothing to test: {test_library.lang} doesn't support any APM_TRACING_* capability bits")
 
         with test_library:
             for apm_telemetry_name, sdk_config_key, _capability, value in applicable:
