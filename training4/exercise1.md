@@ -17,12 +17,18 @@ Reminder of the end-to-end test lifecycle:
 
 The root endpoint `GET /` already exists on every end-to-end weblog and returns HTTP `200` (see `docs/understand/weblogs/end-to-end_weblog.md`).
 
+This whole lab series uses the **Node.js Express weblog**. Build it once before running anything, so `DEFAULT` doesn't fall back to whichever weblog you last built:
+
+```bash
+./build.sh nodejs -w express4
+```
+
 ## Goal
 
 Create **one** test class with **two test methods** in a new file:
 
 ```
-tests/test_training4.py
+tests/test_labs.py
 ```
 
 1. `test_root_ok` — call `GET /` and assert `status_code == 200`. Must **pass**.
@@ -43,7 +49,7 @@ from utils import weblog, features
 
 
 @features.base_service
-class Test_Training4:
+class Test_Labs:
     """Two simple tests: one passes, one fails on purpose."""
 
     def setup_root_ok(self):
@@ -62,19 +68,19 @@ class Test_Training4:
 
 ## Verification
 
-There are several valid ways to run this file — they are **not** equivalent, so it's worth comparing them:
+There are several valid ways to run this file — they are **not** equivalent, so it's worth comparing them. Make sure you built the Node.js weblog first (see Background), or `DEFAULT` will start whatever weblog you last built:
 
 ```bash
 # 1) No scenario name, scoped to the file.
 #    Since the class has no @scenarios decorator, it belongs to DEFAULT,
 #    and this runs ONLY the 2 tests in this file. Fast, safe.
-./run.sh tests/test_training4.py
+./run.sh tests/test_labs.py
 
 # 2) Scenario name + file, explicit but same result as (1) here,
 #    because "no decorator" and "@scenarios.default" are equivalent.
-./run.sh DEFAULT tests/test_training4.py
+./run.sh DEFAULT tests/test_labs.py
 
-# 3) DANGER: scenario name, no file.
+# 3) Scenario name, no file.
 #    This runs the ENTIRE DEFAULT suite (hundreds of tests), not just yours.
 ./run.sh DEFAULT
 

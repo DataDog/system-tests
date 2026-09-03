@@ -2,10 +2,10 @@
 
 ## Background
 
-`test_new_endpoint` fails because `/my_training4_endpoint` doesn't exist yet. The Java Spring Boot weblog's main controller lives at:
+`test_new_endpoint` fails because `/my_labs_endpoint` doesn't exist yet. The Node.js Express weblog's main app lives at:
 
 ```
-utils/build/docker/java/spring-boot/src/main/java/com/datadoghq/system_tests/springboot/App.java
+utils/build/docker/nodejs/express/app.js
 ```
 
 > **Important rule:** every new weblog endpoint **must** be documented in the "Endpoints" section of `docs/understand/weblogs/end-to-end_weblog.md`.
@@ -14,41 +14,41 @@ After changing weblog source, you must **rebuild** the image — the running con
 
 ## Goal
 
-Add **`GET /my_training4_endpoint`** to the Java Spring Boot weblog. It must return the plain text body `Training4!` with HTTP status `200`, so `test_new_endpoint` passes.
+Add **`GET /my_labs_endpoint`** to the Node.js Express weblog. It must return the plain text body `Labs!` with HTTP status `200`, so `test_new_endpoint` passes.
 
 ## Hints
 
-1. Follow the same pattern as other simple `@GetMapping` endpoints already in `App.java` (e.g. `home()` on `/`, or `/waf`).
-2. Returning a `String` from a `@GetMapping` method gives a `200` with that string as the body — nothing extra needed.
+1. Follow the same pattern as other simple `app.get(...)` routes already in `app.js` (e.g. the handler for `/`).
+2. Set `Content-Type` to `text/plain` and call `res.send(...)` with the body — Express defaults to `200` when you don't set a status explicitly.
 3. Don't touch any existing endpoint or import.
-4. Rebuild with the **language + weblog** form: `./build.sh java -w spring-boot`.
+4. Rebuild with the **language + weblog** form: `./build.sh nodejs -w express4`.
 
 ## Expected Result
 
-```java
-@GetMapping("/my_training4_endpoint")
-String myTraining4Endpoint() {
-    return "Training4!";
-}
+```javascript
+app.get('/my_labs_endpoint', (req, res) => {
+  res.set('Content-Type', 'text/plain')
+  res.send('Labs!')
+})
 ```
 
 And a matching entry in `docs/understand/weblogs/end-to-end_weblog.md`:
 
 ````markdown
-### GET /my_training4_endpoint
+### GET /my_labs_endpoint
 
 The following text must be written to the body of the response:
 
 ```
-Training4!
+Labs!
 ```
 ````
 
 ## Verification
 
 ```bash
-./build.sh java -w spring-boot
-./run.sh tests/test_training4.py
+./build.sh nodejs -w express4
+./run.sh tests/test_labs.py
 ```
 
 Now answer the following questions:
@@ -59,6 +59,6 @@ Now answer the following questions:
 
 ## Bonus / Follow-up Questions
 
-1. `spring-boot`, `spring-boot-jetty`, `spring-boot-undertow`, ... all share `App.java`. Why do they get the endpoint "for free"?
+1. `express4`, `express5`, `express4-typescript`, `uds-express4`, ... all share `app.js`. Why do they get the endpoint "for free"?
 2. Why must a shared endpoint be implemented in every relevant weblog, not just one, before a shared test can rely on it in CI?
-3. Which manifest marker would you use to scope `test_new_endpoint` so it only runs where the endpoint exists (Java `spring-boot*` weblogs), and how would you scope Java itself to exclude the non-Spring-Boot variants (`akka-http`, `vertx3`, ...)?
+3. Which manifest marker would you use to scope `test_new_endpoint` so it only runs where the endpoint exists (Node.js `express*` weblogs), and how would you scope Node.js itself to exclude the non-Express variants (`fastify`, `nextjs`, ...)?

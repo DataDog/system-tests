@@ -13,25 +13,25 @@ System-tests gives you two mechanisms:
 
 Available manifest markers: `bug`, `flaky`, `missing_feature`, `irrelevant`, `incomplete_test_app`. Here the test itself is intentionally wrong (not a tracer bug, not a missing feature), so `irrelevant` is the right marker.
 
-Tests are addressed by their **node ID**, e.g. `tests/test_training4.py::Test_Training4::test_root_wrong`.
+Tests are addressed by their **node ID**, e.g. `tests/test_labs.py::Test_Labs::test_root_wrong`.
 
 ## Goal
 
-Deactivate **only** `test_root_wrong` using a **manifest** entry, leaving `test_root_ok` untouched. You're working with the Java Spring Boot weblog, so add the entry to `manifests/java.yml`.
+Deactivate **only** `test_root_wrong` using a **manifest** entry, leaving `test_root_ok` untouched. You're working with the Node.js Express weblog, so add the entry to `manifests/nodejs.yml`.
 
 ## Hints
 
 1. This condition depends only on the library → **manifest**, not a decorator.
-2. Target the **method**, not the whole class, so `test_root_ok` stays enabled: `tests/test_training4.py::Test_Training4::test_root_wrong`.
+2. Target the **method**, not the whole class, so `test_root_ok` stays enabled: `tests/test_labs.py::Test_Labs::test_root_wrong`.
 3. Use the `irrelevant` marker with a short reason in parentheses.
 4. After editing, **always run `./format.sh`** — it validates syntax and re-sorts entries alphabetically.
 
 ## Expected Result (primary solution — manifest)
 
-In `manifests/java.yml`:
+In `manifests/nodejs.yml`:
 
 ```yaml
-  tests/test_training4.py::Test_Training4::test_root_wrong: irrelevant (intentional wrong assertion used in the training lab)
+  tests/test_labs.py::Test_Labs::test_root_wrong: irrelevant (intentional wrong assertion used in the training lab)
 ```
 
 `test_root_ok` has no manifest entry, so it stays enabled.
@@ -43,7 +43,7 @@ In `manifests/java.yml`:
 ## Verification
 
 ```bash
-./run.sh tests/test_training4.py
+./run.sh tests/test_labs.py
 ```
 
 Now answer the following questions:
@@ -52,7 +52,7 @@ Now answer the following questions:
 - What status does `test_root_wrong` report now?
 - Did `test_root_ok` keep passing?
 
-> **Note:** the manifest entry doesn't delete the test — it documents *why* it's off, and for whom. Anyone reading `manifests/java.yml` can see the reason without opening the test file.
+> **Note:** the manifest entry doesn't delete the test — it documents *why* it's off, and for whom. Anyone reading `manifests/nodejs.yml` can see the reason without opening the test file.
 
 ## Secondary note — the decorator alternative
 
@@ -63,7 +63,7 @@ from utils import weblog, features, irrelevant
 
 
 @features.base_service
-class Test_Training4:
+class Test_Labs:
     def setup_root_ok(self):
         self.r = weblog.get("/")
 
@@ -83,6 +83,6 @@ Keep the **manifest** version as your actual solution for this exercise; only us
 ## Bonus / Follow-up Questions
 
 1. Why is the manifest the preferred mechanism here, and what concrete condition would force you into a decorator instead?
-2. What would happen if you mistakenly put the `irrelevant` entry on `Test_Training4` (the whole class) instead of just `test_root_wrong`?
-3. The `-F` flag forces a disabled test to run anyway (see `docs/execute/run.md`). Try `./run.sh DEFAULT -F tests/test_training4.py::Test_Training4::test_root_wrong`. What happens?
+2. What would happen if you mistakenly put the `irrelevant` entry on `Test_Labs` (the whole class) instead of just `test_root_wrong`?
+3. The `-F` flag forces a disabled test to run anyway (see `docs/execute/run.md`). Try `./run.sh DEFAULT -F tests/test_labs.py::Test_Labs::test_root_wrong`. What happens?
 4. How would you re-enable `test_root_wrong` later, and what else would you need to change so it would actually pass?

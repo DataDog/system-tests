@@ -8,14 +8,14 @@ Both existing tests call the root endpoint `GET /`, which is part of the shared 
 
 ## Goal
 
-Add a **third** test method, `test_new_endpoint`, to `Test_Training4` in `tests/test_training4.py`. It calls **`/my_training4_endpoint`** and asserts the response status code is `200` and the body is exactly `Training4!`.
+Add a **third** test method, `test_new_endpoint`, to `Test_Labs` in `tests/test_labs.py`. It calls **`/my_labs_endpoint`** and asserts the response status code is `200` and the body is exactly `Labs!`.
 
 Do not implement the endpoint yet — that's Exercise 4. For now, confirm the test fails.
 
 ## Hints
 
 1. Same pattern as the other two: a `setup_*`/`test_*` pair.
-2. `weblog.get("/my_training4_endpoint")` — expect a `404` for now.
+2. `weblog.get("/my_labs_endpoint")` — expect a `404` for now.
 3. Leave `test_root_ok` and `test_root_wrong` (and its manifest entry from Exercise 2) untouched.
 
 ## Expected Result
@@ -25,7 +25,7 @@ from utils import weblog, features
 
 
 @features.base_service
-class Test_Training4:
+class Test_Labs:
     """Tests: pass, fail-on-purpose (deactivated via manifest), and a new endpoint."""
 
     def setup_root_ok(self):
@@ -38,21 +38,21 @@ class Test_Training4:
         self.r = weblog.get("/")
 
     def test_root_wrong(self):
-        # Intentionally wrong expectation, deactivated for all libraries via manifests/java.yml (and friends)
+        # Intentionally wrong expectation, deactivated for all libraries via manifests/nodejs.yml (and friends)
         assert self.r.status_code == 999, f"Expected 999, got {self.r.status_code}"
 
     def setup_new_endpoint(self):
-        self.r_new = weblog.get("/my_training4_endpoint")
+        self.r_new = weblog.get("/my_labs_endpoint")
 
     def test_new_endpoint(self):
         assert self.r_new.status_code == 200, f"Expected 200, got {self.r_new.status_code}"
-        assert self.r_new.text == "Training4!", f"Expected 'Training4!', got {self.r_new.text!r}"
+        assert self.r_new.text == "Labs!", f"Expected 'Labs!', got {self.r_new.text!r}"
 ```
 
 ## Verification
 
 ```bash
-./run.sh tests/test_training4.py
+./run.sh tests/test_labs.py
 ```
 
 Now answer the following questions:
@@ -65,5 +65,5 @@ Now answer the following questions:
 ## Bonus / Follow-up Questions
 
 1. What's the practical difference between this failure and the one from Exercise 1 (`test_root_wrong`)? Which marker (`irrelevant` vs `incomplete_test_app`) would each deserve if you had to deactivate them?
-2. If you ran this same test right now against a Python or Node.js weblog, would anything change?
-3. Where must `/my_training4_endpoint` be documented before it can be considered part of the shared weblog API?
+2. If you ran this same test right now against a Java or Python weblog, would anything change?
+3. Where must `/my_labs_endpoint` be documented before it can be considered part of the shared weblog API?
