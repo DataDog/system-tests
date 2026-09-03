@@ -125,3 +125,4 @@ jobs:
         ignored-name-patterns: |
           dd-gitlab/(?!(?:K8S_LIB|system_tests_e2e_run_pipeline_[0-2]$)).*$(?<!DOC)(?<!DO5A)
           devflow/merge
+          devflow/mergegate
