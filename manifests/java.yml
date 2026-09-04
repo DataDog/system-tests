@@ -3812,6 +3812,9 @@ manifest:
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED: v1.54.0
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_default_matches_specification: missing_feature (defaults to disabled)
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_stable_values: 'missing_feature (requires DD_*_OTEL_ENABLED)'
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids: v1.12.0
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_datadog_128_bit_generation_enabled_by_default:
     - declaration: missing_feature (Implemented in 1.24.0)
@@ -3972,7 +3975,6 @@ manifest:
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: v1.35.2
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_false: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_true: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
-  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_sdk_disabled_set: 'missing_feature (Currently DD_TRACE_OTEL_ENABLED=true is required for OTEL_SDK_DISABLED to be parsed. Revisit when the OpenTelemetry integration is enabled by default.)'
   tests/parametric/test_otel_logs.py: '>=1.62.0'
   tests/parametric/test_otel_logs.py::Test_FR06_OTLP_Protocols::test_otlp_protocols: incomplete_test_app (GPRC fails for system-test but works with real collector)
   tests/parametric/test_otel_logs.py::Test_FR07_Host_Name::test_hostname_from_dd_hostname: irrelevant (DD_HOSTNAME is only supported in Python)

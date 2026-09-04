@@ -4737,10 +4737,16 @@
   "tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_log_level_to_debug_mapping[library_env0]": [
     "PARAMETRIC"
   ],
-  "tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_otel_enabled_takes_precedence[library_env0]": [
+  "tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_stable_values[true]": [
     "PARAMETRIC"
   ],
-  "tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_sdk_disabled_set[library_env0]": [
+  "tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_stable_values[false]": [
+    "PARAMETRIC"
+  ],
+  "tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_default_matches_specification[library_env0]": [
+    "PARAMETRIC"
+  ],
+  "tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_datadog_configuration_takes_precedence[library_env0]": [
     "PARAMETRIC"
   ],
   "tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_true[library_env0]": [
