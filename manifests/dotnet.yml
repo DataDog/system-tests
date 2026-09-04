@@ -1316,7 +1316,7 @@ manifest:
   tests/test_library_conf.py::Test_HeaderTags: v2.27.0
   tests/test_library_conf.py::Test_HeaderTags_Colon_Leading: v2.1.0
   tests/test_library_conf.py::Test_HeaderTags_Colon_Trailing: v3.0.0-prerelease
-  tests/test_library_conf.py::Test_HeaderTags_DynamicConfig: missing_feature
+  tests/test_library_conf.py::Test_HeaderTags_DynamicConfig::test_tracing_client_http_header_tags: missing_feature
   tests/test_library_conf.py::Test_HeaderTags_DynamicConfig::test_tracing_client_http_header_tags_apm_multiconfig: v3.28.0
   tests/test_library_conf.py::Test_HeaderTags_Long: v2.1.0
   tests/test_library_conf.py::Test_HeaderTags_Short: v2.1.0

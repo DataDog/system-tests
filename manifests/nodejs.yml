@@ -2879,7 +2879,7 @@ manifest:
   tests/test_library_conf.py::Test_HeaderTags: *ref_4_11_0
   tests/test_library_conf.py::Test_HeaderTags_Colon_Leading: *ref_4_11_0
   tests/test_library_conf.py::Test_HeaderTags_Colon_Trailing: *ref_4_11_0
-  tests/test_library_conf.py::Test_HeaderTags_DynamicConfig: missing_feature
+  tests/test_library_conf.py::Test_HeaderTags_DynamicConfig::test_tracing_client_http_header_tags: missing_feature
   tests/test_library_conf.py::Test_HeaderTags_DynamicConfig::test_tracing_client_http_header_tags_apm_multiconfig: v6.0.0
   tests/test_library_conf.py::Test_HeaderTags_Long: *ref_4_11_0
   tests/test_library_conf.py::Test_HeaderTags_Short: *ref_4_11_0
