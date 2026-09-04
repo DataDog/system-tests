@@ -2656,7 +2656,7 @@ manifest:
     - weblog_declaration:
         '*': v1.70.0
         fiber-v2-orchestrion: missing_feature (Fiber v2 does not support header tags)
-  tests/test_library_conf.py::Test_HeaderTags_DynamicConfig::test_tracing_client_http_header_tags_apm_multiconfig: missing_feature (APM_TRACING_MULTICONFIG is not supported in any language yet)
+  tests/test_library_conf.py::Test_HeaderTags_DynamicConfig::test_tracing_client_http_header_tags_apm_multiconfig: v2.6.0
   tests/test_library_conf.py::Test_HeaderTags_Long:
     - weblog_declaration:
         '*': v1.53.0
