@@ -105,6 +105,7 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets::test_not_match_service_target: irrelevant (APMAPI-1003)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_capability_tracing_http_header_tags: irrelevant (The CPP tracer doesn't support http header tags)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_capability_tracing_logs_injection: irrelevant (Tracer doesn't support automatic logs injection)
+  tests/parametric/test_dynamic_configuration.py::Test_DynamicConfigSdkConfiguration: missing_feature (SDK_CONFIGURATION capability not yet implemented)
   tests/parametric/test_extract_behavior.py: ">2.1.1"  # Easy win for all weblogs and version 2.1.1
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Default::test_baggage: missing_feature (Automatic baggage propagation is not implemented)
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Default::test_multiple_tracecontexts: missing_feature (Terminated-context span links are not implemented)
