@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	ddmetric "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry/metric"
 	"go.opentelemetry.io/otel"
@@ -569,7 +570,7 @@ func (s *apmClientServer) otelMetricsForceFlushHandler(w http.ResponseWriter, r 
 		return
 	}
 
-	success := s.OtelMetricsForceFlush()
+	success := s.OtelMetricsForceFlush(args.Seconds)
 
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(&OtelMetricsForceFlushReturn{Success: success}); err != nil {
@@ -577,15 +578,33 @@ func (s *apmClientServer) otelMetricsForceFlushHandler(w http.ResponseWriter, r 
 	}
 }
 
-func (s *apmClientServer) OtelMetricsForceFlush() bool {
-	// Use the dd-trace-go helper to flush metrics
+func (s *apmClientServer) OtelMetricsForceFlush(seconds int) bool {
 	mp := otel.GetMeterProvider()
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(seconds)*time.Second)
+	defer cancel()
 	if err := ddmetric.ForceFlush(ctx, mp); err != nil {
 		fmt.Printf("Error flushing metrics: %v\n", err)
 		return false
 	}
 	return true
+}
+
+func (s *apmClientServer) otelMetricsShutdownHandler(w http.ResponseWriter, r *http.Request) {
+	var args OtelMetricsForceFlushArgs
+	if err := json.NewDecoder(r.Body).Decode(&args); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	mp := otel.GetMeterProvider()
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(args.Seconds)*time.Second)
+	defer cancel()
+	success := ddmetric.Shutdown(ctx, mp) == nil
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(&OtelMetricsForceFlushReturn{Success: success}); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 // Helper function to create instrument key

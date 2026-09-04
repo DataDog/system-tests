@@ -10,9 +10,12 @@ import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
 import io.opentelemetry.api.metrics.*;
+import java.lang.reflect.Method;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -214,6 +217,13 @@ public class OpenTelemetryMetricsController {
   public FlushResult forceFlush(@RequestBody FlushArgs args) {
     LOGGER.info("Flushing OTel metrics: {}", args);
     try {
+      if (invokeLifecycle("forceFlush", args.seconds())) {
+        MetricsController.skipNextFlush();
+        return new FlushResult(true);
+      }
+      if (args.publicOnly()) {
+        return new FlushResult(false);
+      }
       if (GlobalTracer.get() instanceof InternalTracer internalTracer) {
         internalTracer.flushMetrics();
         // skip the next general metrics flush, as it's covered by the same call
@@ -227,6 +237,33 @@ public class OpenTelemetryMetricsController {
       LOGGER.warn("Failed to flush OTel metrics", e);
       return new FlushResult(false);
     }
+  }
+
+  @PostMapping("shutdown")
+  public FlushResult shutdown(@RequestBody FlushArgs args) {
+    LOGGER.info("Shutting down OTel metrics: {}", args);
+    try {
+      return new FlushResult(invokeLifecycle("shutdown", args.seconds()));
+    } catch (Exception e) {
+      LOGGER.warn("Failed to shut down OTel metrics", e);
+      return new FlushResult(false);
+    }
+  }
+
+  private static boolean invokeLifecycle(String methodName, long seconds) throws Exception {
+    Class<?> lifecycleClass;
+    Method method;
+    try {
+      lifecycleClass = Class.forName("datadog.trace.api.metrics.OpenTelemetryMetrics");
+      method = lifecycleClass.getMethod(methodName);
+    } catch (ClassNotFoundException | NoSuchMethodException ignored) {
+      return false;
+    }
+    Object result = method.invoke(null);
+    if (!(result instanceof Future<?> future)) {
+      return false;
+    }
+    return Boolean.TRUE.equals(future.get(seconds, TimeUnit.SECONDS));
   }
 
   /** Builds {@link Attributes} from a map of strings. */

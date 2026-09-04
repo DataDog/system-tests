@@ -72,6 +72,26 @@ function createInstrumentKey(meterName, name, kind, unit, description) {
   return `${meterName}:${name}:${kind}:${unit}:${description}`;
 }
 
+async function waitForMetricsLifecycle (operation, seconds) {
+  let timeout
+  try {
+    await Promise.race([
+      operation,
+      new Promise((resolve, reject) => {
+        timeout = setTimeout(() => reject(new Error('Metrics lifecycle operation timed out')), seconds * 1000)
+      })
+    ])
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+
+function waitForMetricsCallback (operation, seconds) {
+  return waitForMetricsLifecycle(new Promise((resolve, reject) => {
+    operation(error => error ? reject(error) : resolve())
+  }), seconds)
+}
+
 app.post('/trace/span/inject_headers', (req, res) => {
   const request = req.body;
   const span = spans[request.span_id]
@@ -807,13 +827,33 @@ app.post('/metrics/otel/create_asynchronous_gauge', (req, res) => {
   res.json({});
 });
 
-app.post('/metrics/otel/force_flush', (req, res) => {
+app.post('/metrics/otel/force_flush', async (req, res) => {
   const meterProvider = metrics.getMeterProvider();
-  if (meterProvider.reader) {
-    meterProvider.reader.forceFlush()
+  try {
+    if (!req.body.public_only && meterProvider.reader) {
+      await waitForMetricsLifecycle(meterProvider.reader.forceFlush(), req.body.seconds || 10)
+      return res.json({ success: true });
+    }
+    if (typeof meterProvider.forceFlush === 'function') {
+      await waitForMetricsCallback(done => meterProvider.forceFlush(done), req.body.seconds || 10)
+      return res.json({ success: true });
+    }
+  } catch (error) {
+    return res.json({ success: false, message: error.message });
+  }
+  res.json({ success: false, message: 'Force flush not supported' });
+});
+
+app.post('/metrics/otel/shutdown', async (req, res) => {
+  const meterProvider = metrics.getMeterProvider();
+  if (typeof meterProvider.shutdown !== 'function') {
+    return res.json({ success: false, message: 'Shutdown not supported' });
+  }
+  try {
+    await waitForMetricsCallback(done => meterProvider.shutdown(done), req.body.seconds || 10)
     res.json({ success: true });
-  } else {
-    res.json({ success: false, message: 'Force flush not supported' });
+  } catch (error) {
+    res.json({ success: false, message: error.message });
   }
 });
 

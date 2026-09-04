@@ -1292,7 +1292,8 @@ def otel_create_asynchronous_gauge(args: OtelCreateAsynchronousGaugeArgs):
 
 
 class OtelMetricsForceFlushArgs(BaseModel):
-    pass
+    seconds: int = 10
+    public_only: bool = False
 
 
 class OtelMetricsForceFlushReturn(BaseModel):
@@ -1309,9 +1310,34 @@ def otel_metrics_force_flush(args: OtelMetricsForceFlushArgs):
     # a default _ProxyMeterProvider provided by the API which does not
     # have the method.
     if hasattr(meter_provider, "force_flush"):
-        meter_provider.force_flush()
+        try:
+            result = meter_provider.force_flush(timeout_millis=args.seconds * 1000)
+            return OtelMetricsForceFlushReturn(success=result is not False)
+        except Exception:
+            return OtelMetricsForceFlushReturn(success=False)
 
-    return OtelMetricsForceFlushReturn(success=True)
+    return OtelMetricsForceFlushReturn(success=not args.public_only)
+
+
+class OtelMetricsShutdownArgs(BaseModel):
+    seconds: int = 10
+
+
+class OtelMetricsShutdownReturn(BaseModel):
+    success: bool
+
+
+@app.post("/metrics/otel/shutdown")
+def otel_metrics_shutdown(args: OtelMetricsShutdownArgs):
+    meter_provider = get_meter_provider()
+    if not hasattr(meter_provider, "shutdown"):
+        return OtelMetricsShutdownReturn(success=False)
+
+    try:
+        meter_provider.shutdown(timeout_millis=args.seconds * 1000)
+        return OtelMetricsShutdownReturn(success=True)
+    except Exception:
+        return OtelMetricsShutdownReturn(success=False)
 
 
 class LogCreateLoggerArgs(BaseModel):

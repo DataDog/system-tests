@@ -48,6 +48,8 @@ DEFAULT_ENVVARS = {
     "CORECLR_ENABLE_PROFILING": "1",
 }
 
+LIFECYCLE_ENVVARS = {**DEFAULT_ENVVARS, "OTEL_METRIC_EXPORT_INTERVAL": "3600000"}
+
 
 @pytest.fixture
 def otlp_metrics_endpoint_library_env(
@@ -228,6 +230,17 @@ def find_metric_by_name(scope_metric: dict, name: str) -> dict:
     raise ValueError(f"Metric with name {name} not found")
 
 
+def find_metrics_by_name(metric_requests: list[dict], name: str) -> list[dict]:
+    return [
+        metric
+        for metric_request in metric_requests
+        for resource_metrics in metric_request["resource_metrics"]
+        for scope_metrics in resource_metrics["scope_metrics"]
+        for metric in scope_metrics["metrics"]
+        if metric["name"] == name
+    ]
+
+
 def get_expected_bucket_counts(entries: list[int], bucket_boundaries: list[float]) -> list[int]:
     bucket_counts = [0] * (len(bucket_boundaries) + 1)
     for entry in entries:
@@ -238,6 +251,72 @@ def get_expected_bucket_counts(entries: list[int], bucket_boundaries: list[float
         else:
             bucket_counts[-1] += 1
     return bucket_counts
+
+
+@scenarios.parametric
+@features.otel_metrics_api
+class Test_Otel_Metrics_Lifecycle:
+    @staticmethod
+    def generate_pending_counter(test_library: APMLibrary, metric_name: str) -> None:
+        test_library.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, {})
+        test_library.otel_create_counter(
+            DEFAULT_METER_NAME,
+            metric_name,
+            DEFAULT_INSTRUMENT_UNIT,
+            DEFAULT_INSTRUMENT_DESCRIPTION,
+        )
+        test_library.otel_counter_add(
+            DEFAULT_METER_NAME,
+            metric_name,
+            DEFAULT_INSTRUMENT_UNIT,
+            DEFAULT_INSTRUMENT_DESCRIPTION,
+            42,
+            DEFAULT_MEASUREMENT_ATTRIBUTES,
+        )
+
+    @staticmethod
+    def assert_exported_once(metric_requests: list[dict], metric_name: str) -> None:
+        matching_metrics = find_metrics_by_name(metric_requests, metric_name)
+        assert len(matching_metrics) == 1
+        assert_sum_aggregation(
+            matching_metrics[0]["sum"],
+            "AGGREGATION_TEMPORALITY_DELTA",
+            is_monotonic=True,
+            value=42,
+            attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
+        )
+
+    @pytest.mark.parametrize("library_env", [{**LIFECYCLE_ENVVARS}])
+    def test_force_flush_exports_pending_metric_before_return(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary, test_id: str
+    ) -> None:
+        metric_name = f"lifecycle-force-flush-{test_id}"
+        self.generate_pending_counter(test_library, metric_name)
+        assert find_metrics_by_name(test_agent.metrics(), metric_name) == []
+
+        try:
+            success = test_library.otel_metrics_force_flush(10, public_only=True)
+        finally:
+            test_library.terminate()
+
+        assert success
+        self.assert_exported_once(test_agent.metrics(), metric_name)
+
+    @pytest.mark.parametrize("library_env", [{**LIFECYCLE_ENVVARS}])
+    def test_shutdown_exports_pending_metric_before_return(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary, test_id: str
+    ) -> None:
+        metric_name = f"lifecycle-shutdown-{test_id}"
+        self.generate_pending_counter(test_library, metric_name)
+        assert find_metrics_by_name(test_agent.metrics(), metric_name) == []
+
+        try:
+            success = test_library.otel_metrics_shutdown(10)
+        finally:
+            test_library.terminate()
+
+        assert success
+        self.assert_exported_once(test_agent.metrics(), metric_name)
 
 
 @scenarios.parametric
