@@ -116,6 +116,20 @@ telemetry_name_mapping: dict[str, dict[str, str | list[str]]] = {
         "ruby": "DD_DYNAMIC_INSTRUMENTATION_ENABLED",
         "golang": ["DD_DYNAMIC_INSTRUMENTATION_ENABLED", "dynamic_instrumentation_enabled"],
     },
+    "code_origin_enabled": {
+        "nodejs": "DD_CODE_ORIGIN_FOR_SPANS_ENABLED",
+    },
+    "live_debugging_enabled": {
+        "nodejs": "DD_DYNAMIC_INSTRUMENTATION_ENABLED",
+    },
+    "tracing_sampling_rules": {
+        "dotnet": "DD_TRACE_SAMPLING_RULES",
+        "java": "DD_TRACE_SAMPLING_RULES",
+        "nodejs": "DD_TRACE_SAMPLING_RULES",
+        "python": "DD_TRACE_SAMPLING_RULES",
+        "ruby": "DD_TRACE_SAMPLING_RULES",
+        "golang": ["DD_TRACE_SAMPLING_RULES", "tracing_sampling_rules"],
+    },
     "trace_debug_enabled": {
         "php": "DD_TRACE_DEBUG",
         "java": "DD_TRACE_DEBUG",
