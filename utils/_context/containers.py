@@ -145,6 +145,14 @@ class TestedContainer:
         except FileNotFoundError:
             return default_name
 
+    def enable_ptrace(self) -> None:
+        """Allow processes in this container to be traced from outside, e.g. by py-spy"""
+
+        self.cap_add = self.cap_add if self.cap_add is not None else []
+
+        if "SYS_PTRACE" not in self.cap_add:
+            self.cap_add.append("SYS_PTRACE")
+
     def enable_core_dumps(self) -> None:
         """Modify container options to enable the possibility of core dumps"""
 
@@ -1158,6 +1166,11 @@ class WeblogContainer(TestedContainer):
 
         if library in ("php", "cpp_nginx"):
             self.enable_core_dumps()
+
+        if library == "python":
+            # py-spy dumps this weblog's thread stacks when a remote config apply
+            # stalls (see utils/_remote_config.py), and needs ptrace to do so
+            self.enable_ptrace()
 
     def warmup_request(self, timeout: int = 10):
         weblog.get("/", timeout=timeout)

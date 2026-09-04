@@ -15,3 +15,6 @@ itsdangerous
 xmltodict==0.14.2
 openfeature-sdk==0.8.3
 stripe==13.2.0
+# lets system-tests dump this weblog's thread stacks from outside the process
+# when a remote config apply stalls, see utils/_remote_config.py
+py-spy==0.4.2
