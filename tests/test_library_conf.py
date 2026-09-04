@@ -360,6 +360,7 @@ class Test_HeaderTags_DynamicConfig:
                 # The most-specific (weblog) config's tracing_header_tags replaces
                 # the less-specific (wildcard) config and the env-var DD_TRACE_HEADER_TAGS.
                 assert s["meta"].get("test_header_rc_override")
+                assert "test_header_rc" not in s["meta"], s["meta"]
                 assert TAG_SHORT not in s["meta"]
                 assert "test_header_rc2" not in s["meta"], s["meta"]
                 assert "http.request.headers.content-length" not in s["meta"], s["meta"]
