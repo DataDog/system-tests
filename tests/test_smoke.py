@@ -15,7 +15,7 @@ class Test_Backend:
     """Misc test around agent/backend communication"""
 
     def setup_good_backend(self):
-        self.dd_site = scenarios.default.dd_site # this value is not correctly handled, and can change in replay mode.
+        self.dd_site = scenarios.default.dd_site  # this value is not correctly handled, and can change in replay mode.
 
     def test_good_backend(self):
         """Agent reads and use DD_SITE env var"""
