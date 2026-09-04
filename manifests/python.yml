@@ -2442,8 +2442,8 @@ manifest:
   tests/test_library_conf.py::Test_HeaderTags: v0.53
   tests/test_library_conf.py::Test_HeaderTags_Colon_Leading: v1.2.1  # actual version unknown
   tests/test_library_conf.py::Test_HeaderTags_Colon_Trailing: v2.8.0
-  tests/test_library_conf.py::Test_HeaderTags_DynamicConfig: flaky (APMAPI-734)
-  tests/test_library_conf.py::Test_HeaderTags_DynamicConfig::test_tracing_client_http_header_tags_apm_multiconfig: missing_feature (APM_TRACING_MULTICONFIG is not supported in any language yet)
+  tests/test_library_conf.py::Test_HeaderTags_DynamicConfig::test_tracing_client_http_header_tags: flaky (APMAPI-734)
+  tests/test_library_conf.py::Test_HeaderTags_DynamicConfig::test_tracing_client_http_header_tags_apm_multiconfig: v3.15.0
   tests/test_library_conf.py::Test_HeaderTags_Long: v1.2.1
   tests/test_library_conf.py::Test_HeaderTags_Short: v3.15.0+dev36.gb57f15308
   tests/test_library_conf.py::Test_HeaderTags_Whitespace_Header: v3.15.0+dev36.gb57f15308

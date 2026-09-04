@@ -4588,8 +4588,8 @@ manifest:
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/test_library_conf.py::Test_HeaderTags_Colon_Leading: v0.102.0
   tests/test_library_conf.py::Test_HeaderTags_Colon_Trailing: v0.102.0
-  tests/test_library_conf.py::Test_HeaderTags_DynamicConfig: missing_feature
-  tests/test_library_conf.py::Test_HeaderTags_DynamicConfig::test_tracing_client_http_header_tags_apm_multiconfig: missing_feature (APM_TRACING_MULTICONFIG is not supported in any language yet)
+  tests/test_library_conf.py::Test_HeaderTags_DynamicConfig::test_tracing_client_http_header_tags: missing_feature
+  tests/test_library_conf.py::Test_HeaderTags_DynamicConfig::test_tracing_client_http_header_tags_apm_multiconfig: v1.54.0
   tests/test_library_conf.py::Test_HeaderTags_Long: v0.102.0
   tests/test_library_conf.py::Test_HeaderTags_Short: v0.102.0
   tests/test_library_conf.py::Test_HeaderTags_Whitespace_Header: v0.102.0

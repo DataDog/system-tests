@@ -324,7 +324,7 @@ class Test_HeaderTags_DynamicConfig:
 
         # Delete the config with the weblog service and env. This should use the tracing_header_tags from the first
         # config.
-        rc.tracer_rc_state.del_config(path)
+        rc.tracer_rc_state.del_config(path).apply()
 
         # Set a config with the weblog service and env.
         self.req3 = weblog.get(
@@ -357,12 +357,13 @@ class Test_HeaderTags_DynamicConfig:
         spans = [span for _, _, span in interfaces.library.get_spans(request=self.req2, full_trace=True)]
         for s in spans:
             if "/status" in s["resource"]:
-                # Headers tags set via remote config
-                assert s["meta"].get(TAG_SHORT) == HEADER_VAL_BASIC
+                # The most-specific (weblog) config's tracing_header_tags replaces
+                # the less-specific (wildcard) config and the env-var DD_TRACE_HEADER_TAGS.
                 assert s["meta"].get("test_header_rc_override")
-                # Does not have headers set via remote config
+                assert "test_header_rc" not in s["meta"], s["meta"]
+                assert TAG_SHORT not in s["meta"]
                 assert "test_header_rc2" not in s["meta"], s["meta"]
-                assert "http.request.headers.content-length" in s["meta"], s["meta"]
+                assert "http.request.headers.content-length" not in s["meta"], s["meta"]
                 break
         else:
             pytest.fail(f"A span with /status in the resource name was not found {spans}")
