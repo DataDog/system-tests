@@ -1,7 +1,7 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
-from utils import context, weblog, interfaces, features, logger
+from utils import context, weblog, interfaces, features, logger, scenarios
 
 
 # those tests are linked to unix_domain_sockets_support_for_traces only for UDS weblogs
@@ -14,9 +14,12 @@ optional_uds_feature = (
 class Test_Backend:
     """Misc test around agent/backend communication"""
 
+    def setup_good_backend(self):
+        self.dd_site = scenarios.default.dd_site # this value is not correctly handled, and can change in replay mode.
+
     def test_good_backend(self):
         """Agent reads and use DD_SITE env var"""
-        self._assert_good_backend(expected_domain=context.dd_site)
+        self._assert_good_backend(expected_domain=self.dd_site)
 
     @staticmethod
     def _assert_good_backend(expected_domain: str, excluded_sub_domains: tuple[str, ...] = ()) -> None:
@@ -30,6 +33,7 @@ class Test_Backend:
             "keys.datadoghq.com",
         )
 
+        logger.info(f"Excpected backend: {expected_domain}")
         for data in interfaces.agent.get_data():
             host: str = data["host"]
 
@@ -51,7 +55,9 @@ class Test_Backend:
 
             if not domain.endswith(expected_domain):
                 logger.error(f"{data['log_filename']} host: {host}")
-                raise ValueError(f"Message {data['log_filename']} uses domain {domain} instead of {expected_domain}")
+                raise ValueError(
+                    f"Message {data['log_filename']} uses the wrong domain for {host}, expecting {expected_domain}"
+                )
 
             logger.info(f"{data['log_filename']} host: {host}")
 
