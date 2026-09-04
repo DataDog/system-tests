@@ -1,0 +1,29 @@
+name: Team freeze guard
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - labeled
+      - unlabeled
+      - ready_for_review
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  team-freeze-guard:
+    name: Team freeze guard
+    runs-on: ubuntu-latest
+
+    steps:
+      - run: echo Hello
+      # - uses: DataDog/team-freeze-guard@14d57d6d5a09190d8e2618417e399133bbe2658b  # v0.0.1
+      #   with:
+      #     bypass-labels: |
+      #       fix
+      #     frozen-teams: |
+      #       @DataDog/apm-reliability-and-performance

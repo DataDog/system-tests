@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y curl
 
 WORKDIR /app
 
-RUN python -m pip install fastapi==0.100.0 uvicorn==0.20.0
+RUN python -m pip install fastapi==0.100.0 anyio==4.14.2 uvicorn==0.20.0 py-spy==0.4.2
 RUN if [ "$FRAMEWORK_VERSION" = "latest" ]; then \
         python -m pip install google-genai; \
     else \
