@@ -230,3 +230,37 @@ def test_resolve_sdk_configuration_contract():
     # Only ASM capabilities registered so far: nothing to conclude, ask again later
     assert rc.resolve_sdk_configuration_contract({Capabilities.ASM_ACTIVATION}) is None
     assert rc.resolve_sdk_configuration_contract(set()) is None
+
+    # A libdatadog library mid-startup: bit 49 is registered with the other AppSec capabilities,
+    # before any APM_TRACING one. The absence of the per-setting bits is not evidence of the
+    # unified contract yet, so this must stay inconclusive rather than be cached as sdk_config.
+    assert (
+        rc.resolve_sdk_configuration_contract(
+            {
+                Capabilities.ASM_ACTIVATION,
+                Capabilities.ASM_AUTO_USER_INSTRUM_MODE,
+                Capabilities.SDK_CONFIGURATION,
+            }
+        )
+        is None
+    )
+
+    # APM_TRACING registered but no SDK_CONFIGURATION: conclusively lib_config
+    assert (
+        rc.resolve_sdk_configuration_contract(
+            {Capabilities.APM_TRACING_MULTICONFIG, Capabilities.APM_TRACING_ENABLE_CODE_ORIGIN}
+        )
+        is False
+    )
+
+
+@scenarios.test_the_test
+def test_apm_tracing_capabilities_exclude_sdk_configuration():
+    """SDK_CONFIGURATION must not count as evidence that APM_TRACING capabilities registered.
+
+    It is the bit whose meaning is ambiguous, so using it as its own evidence would defeat
+    `resolve_sdk_configuration_contract`.
+    """
+    assert Capabilities.SDK_CONFIGURATION not in rc.APM_TRACING_CAPABILITIES
+    assert rc.LEGACY_APM_TRACING_CAPABILITIES <= rc.APM_TRACING_CAPABILITIES
+    assert Capabilities.APM_TRACING_MULTICONFIG in rc.APM_TRACING_CAPABILITIES

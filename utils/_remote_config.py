@@ -313,9 +313,11 @@ def send_symdb_command(version: int = 1) -> RemoteConfigStateResults:
 # `lib_config` fields that describe the config itself instead of a library setting.
 _LIB_CONFIG_METADATA_KEYS = frozenset({"env", "library_language", "library_version", "service_name"})
 
-# Canonical environment variable name of each `lib_config` setting. A `None` marks a setting
-# that only ever existed as a remote config and has no environment variable counterpart, so
-# there is nothing to send for it under SDK_CONFIGURATION: it is dropped rather than guessed.
+# Canonical environment variable name of each `lib_config` setting. `dynamic_sampling_enabled` and
+# `live_debugging_enabled` map to `None`: both are real settings with their own capability bit, but
+# they only ever existed as remote configs and have no environment variable counterpart, so there
+# is nothing to send for them under SDK_CONFIGURATION. They stay listed rather than being removed,
+# so that a setting missing from this table still reports as an unknown one.
 APM_TRACING_ENV_VAR_NAMES: dict[str, str | None] = {
     "code_origin_enabled": "DD_CODE_ORIGIN_FOR_SPANS_ENABLED",
     "data_streams_enabled": "DD_DATA_STREAMS_ENABLED",
@@ -414,6 +416,13 @@ def to_sdk_config_payload(config: dict[str, Any]) -> dict[str, Any]:
     return result
 
 
+# Every capability of the APM_TRACING family. SDK_CONFIGURATION is deliberately not one of them:
+# it is the bit whose meaning is ambiguous (see `resolve_sdk_configuration_contract`), so it cannot
+# serve as evidence that the library has registered its APM_TRACING remote config.
+APM_TRACING_CAPABILITIES = frozenset(
+    capability for capability in Capabilities if capability.name.startswith("APM_TRACING_")
+)
+
 # The per-setting APM_TRACING capabilities that SDK_CONFIGURATION replaces. A library on the new
 # contract advertises the single SDK_CONFIGURATION bit instead of all of these.
 LEGACY_APM_TRACING_CAPABILITIES = frozenset(
@@ -432,24 +441,26 @@ def resolve_sdk_configuration_contract(capabilities: set[Capabilities]) -> bool 
     """Decide which APM_TRACING payload shape a set of advertised capabilities asks for.
 
     Returns True for `sdk_config`, False for `lib_config`, and None when the capabilities seen so
-    far say nothing about APM_TRACING yet, so the caller should look again later.
+    far cannot tell, so the caller should look again later.
 
     The SDK_CONFIGURATION bit alone is not enough to decide. Bit 49 is SDK_CONFIGURATION in the
     remote config source of truth (dd-source `remote-config/shared/libs/rc/capabilities.go`), but
     libdatadog hands the same bit to `ASM_RAW_RESPONSE_BODY`, so a libdatadog-based library such as
-    dd-trace-php advertises it while still reading `lib_config`. Requiring the per-setting
-    capabilities to be *gone* tells the two apart: dropping them is the whole point of the unified
-    bit, and a library still advertising them still understands `lib_config`.
-    """
-    advertises_sdk_configuration = Capabilities.SDK_CONFIGURATION in capabilities
-    advertises_legacy = bool(capabilities & LEGACY_APM_TRACING_CAPABILITIES)
+    dd-trace-php advertises it while still reading `lib_config`.
 
-    if advertises_sdk_configuration and not advertises_legacy:
-        return True
-    if advertises_sdk_configuration or advertises_legacy:
+    Dropping the per-setting capabilities is the whole point of the unified bit, so their absence
+    is what distinguishes the two. Absence only counts once the library has actually registered its
+    APM_TRACING remote config, though: capabilities are added as products start, and AppSec ones
+    come first, so an early poll from a libdatadog library shows bit 49 with no APM_TRACING bit yet
+    and would otherwise be mistaken for the unified contract.
+    """
+    if not capabilities & APM_TRACING_CAPABILITIES:
+        return None
+
+    if capabilities & LEGACY_APM_TRACING_CAPABILITIES:
         return False
 
-    return None
+    return Capabilities.SDK_CONFIGURATION in capabilities
 
 
 # Memoized once the capabilities are conclusive, both to skip re-scanning the whole /v0.7/config
@@ -458,12 +469,38 @@ def resolve_sdk_configuration_contract(capabilities: set[Capabilities]) -> bool 
 _sdk_configuration_support: dict[str, bool] = {}
 
 
-def library_supports_sdk_configuration() -> bool:
-    """Whether the library under test advertises the SDK_CONFIGURATION remote config capability.
+def resolve_sdk_configuration_support(get_capabilities: Callable[[], set[Capabilities]]) -> bool:
+    """Whether the library reads its APM_TRACING settings from `sdk_config` instead of `lib_config`.
 
-    Libraries that do read their settings from `sdk_config` instead of `lib_config`, so APM_TRACING
-    payloads must be translated with `to_sdk_config_payload` before being sent to them.
+    `get_capabilities` returns the capabilities the library currently advertises. How to obtain
+    them, and how long to wait for them, differs between the end-to-end interface and the
+    parametric test agent, so that part stays with the caller; everything after it is shared.
+
+    Falls back to `lib_config` whenever the answer is not yet knowable, which is the safe
+    direction: a library on the unified contract ignores `lib_config` and its test fails visibly,
+    whereas the reverse would silently apply nothing.
     """
+    if "value" in _sdk_configuration_support:
+        return _sdk_configuration_support["value"]
+
+    try:
+        capabilities = get_capabilities()
+    except Exception as e:  # callers include setup methods, which must never fail
+        logger.error(f"Could not read the RC capabilities ({e}), assuming no SDK_CONFIGURATION support")
+        return False
+
+    supported = resolve_sdk_configuration_contract(capabilities)
+    if supported is None:
+        logger.info("No APM_TRACING capability advertised yet, sending lib_config for now")
+        return False
+
+    logger.info(f"Library {'supports' if supported else 'does not support'} the SDK_CONFIGURATION capability")
+    _sdk_configuration_support["value"] = supported
+    return supported
+
+
+def library_supports_sdk_configuration() -> bool:
+    """End-to-end flavour of `resolve_sdk_configuration_support`."""
     if "value" in _sdk_configuration_support:
         return _sdk_configuration_support["value"]
 
@@ -473,19 +510,7 @@ def library_supports_sdk_configuration() -> bool:
         logger.warning("No remote config request seen, assuming the library does not support SDK_CONFIGURATION")
         return False
 
-    try:
-        supported = resolve_sdk_configuration_contract(library.get_rc_capabilities())
-    except Exception as e:  # this is called from setup methods, which must never fail
-        logger.error(f"Could not read the RC capabilities ({e}), assuming no SDK_CONFIGURATION support")
-        return False
-
-    if supported is None:
-        logger.info("No APM_TRACING capability advertised yet, sending lib_config for now")
-        return False
-
-    logger.info(f"Library {'supports' if supported else 'does not support'} the SDK_CONFIGURATION capability")
-    _sdk_configuration_support["value"] = supported
-    return supported
+    return resolve_sdk_configuration_support(library.get_rc_capabilities)
 
 
 def build_apm_tracing_command(

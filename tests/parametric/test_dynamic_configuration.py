@@ -174,11 +174,6 @@ def _default_config(service: str, env: str) -> dict[str, Any]:
     }
 
 
-# Memoized once the capabilities are conclusive: a library that has not registered its APM_TRACING
-# capabilities yet reports a partial set, which must not be cached.
-_sdk_configuration_support: dict[str, bool] = {}
-
-
 def uses_sdk_configuration(test_agent: TestAgentAPI) -> bool:
     """Whether the library reads its APM_TRACING settings from the env-var-keyed `sdk_config`
     field rather than the legacy `lib_config` object.
@@ -186,23 +181,12 @@ def uses_sdk_configuration(test_agent: TestAgentAPI) -> bool:
     Resolve this *before* anything that clears the recorded requests: reading the capabilities
     waits for the next remote config request, and one recorded in the middle of an update would
     be taken for the acknowledgement of that update.
+
+    `wait_for_rc_capabilities` raises when it sees no capability at all, which is what a library
+    that does not poll remote config (tracing disabled by DD_TRACE_ENABLED, for instance) looks
+    like; the shared helper turns that into the `lib_config` default.
     """
-    if "value" in _sdk_configuration_support:
-        return _sdk_configuration_support["value"]
-
-    try:
-        seen_capabilities = test_agent.wait_for_rc_capabilities(_RC_WAIT_LOOPS)
-    except AssertionError:
-        # A library that does not poll remote config at all (tracing disabled by DD_TRACE_ENABLED,
-        # for instance) reports no capability, and the payload shape makes no difference to it.
-        return False
-
-    supported = remote_config.resolve_sdk_configuration_contract(seen_capabilities)
-    if supported is None:
-        return False
-
-    _sdk_configuration_support["value"] = supported
-    return supported
+    return remote_config.resolve_sdk_configuration_support(lambda: test_agent.wait_for_rc_capabilities(_RC_WAIT_LOOPS))
 
 
 def assert_rc_capability(test_agent: TestAgentAPI, capability: Capabilities, wait_loops: int = 100) -> None:
