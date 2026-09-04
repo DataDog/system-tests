@@ -26,7 +26,7 @@ from utils.docker_fixtures.spec.trace import (
 )
 from utils.manifest._internal.types import SemverRange
 from .conftest import APMLibrary
-from .test_telemetry import _mapped_telemetry_name
+from .utils import _mapped_telemetry_name
 
 parametrize = pytest.mark.parametrize
 
@@ -214,7 +214,7 @@ def _create_sdk_config_rc_config(sdk_config_overrides: dict[str, str]) -> dict[s
 def _assert_telemetry_config_applied(test_agent: TestAgentAPI, apm_telemetry_name: str, expected_value: str) -> None:
     """Assert the tracer reports apm_telemetry_name as applied with origin "remote_config".
 
-    apm_telemetry_name is resolved to the tracer's actual reported key(s) via test_telemetry.py's
+    apm_telemetry_name is resolved to the tracer's actual reported key(s) via utils.py's
     cross-language name mapping (e.g. "trace_header_tags" -> "DD_TRACE_HEADER_TAGS", or a
     language-specific alias).
     """
@@ -230,7 +230,7 @@ def _assert_telemetry_config_applied(test_agent: TestAgentAPI, apm_telemetry_nam
     raise AssertionError(
         f"No telemetry configuration with origin 'remote_config' found for any of {names}. If this "
         f"tracer reports {apm_telemetry_name!r} under a different key, add/fix its "
-        "test_telemetry.py telemetry_name_mapping entry."
+        "utils.py telemetry_name_mapping entry."
     )
 
 
