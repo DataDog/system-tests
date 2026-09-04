@@ -298,9 +298,14 @@ def send_symdb_command(version: int = 1) -> RemoteConfigStateResults:
 #     "sdk_config": {
 #       "service_name": "weblog",
 #       "env": "system-tests",
-#       "config": [{"key": "DD_DYNAMIC_INSTRUMENTATION_ENABLED", "value": "true"}]
+#       "config": {"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "true"}
 #     }
 #   }
+#
+# `config` is a flat map, matching `jsonconf.SDKConfig` in dd-go
+# (`remote-config/pkg/products/apmtracing/jsonconf/domain.go`). It used to be a list of
+# `{key, value}` pairs; libraries still read that shape for configs stored before dd-go#14029,
+# but the backend no longer produces it, so neither do we.
 #
 # `service_target` is unchanged: it still drives config matching and priority.
 ####################################################################################
@@ -380,7 +385,7 @@ def to_sdk_config_payload(config: dict[str, Any]) -> dict[str, Any]:
     `null` meant in `lib_config`.
     """
     service_target = config.get("service_target") or {}
-    entries: list[dict[str, str]] = []
+    settings: dict[str, str] = {}
 
     for key, value in (config.get("lib_config") or {}).items():
         if key in _LIB_CONFIG_METADATA_KEYS or value is None:
@@ -395,14 +400,14 @@ def to_sdk_config_payload(config: dict[str, Any]) -> dict[str, Any]:
             logger.debug(f"lib_config.{key} has no environment variable counterpart, not sent as SDK_CONFIGURATION")
             continue
 
-        entries.append({"key": env_var_name, "value": _serialize_sdk_config_value(key, value)})
+        settings[env_var_name] = _serialize_sdk_config_value(key, value)
 
     sdk_config: dict[str, Any] = {}
     if service_target.get("service") is not None:
         sdk_config["service_name"] = service_target["service"]
     if service_target.get("env") is not None:
         sdk_config["env"] = service_target["env"]
-    sdk_config["config"] = entries
+    sdk_config["config"] = settings
 
     result = {key: value for key, value in config.items() if key != "lib_config"}
     result["sdk_config"] = sdk_config

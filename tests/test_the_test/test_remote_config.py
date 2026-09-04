@@ -74,11 +74,11 @@ def test_to_sdk_config_payload():
         "sdk_config": {
             "service_name": "weblog",
             "env": "system-tests",
-            "config": [
-                {"key": "DD_TRACE_ENABLED", "value": "true"},
-                {"key": "DD_DYNAMIC_INSTRUMENTATION_ENABLED", "value": "false"},
-                {"key": "DD_TRACE_SAMPLE_RATE", "value": "0.5"},
-            ],
+            "config": {
+                "DD_TRACE_ENABLED": "true",
+                "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "false",
+                "DD_TRACE_SAMPLE_RATE": "0.5",
+            },
         },
     }
 
@@ -109,19 +109,16 @@ def test_to_sdk_config_payload_complex_values():
         }
     )
 
-    assert observed["sdk_config"]["config"] == [
-        {"key": "DD_TRACE_HEADER_TAGS", "value": "X-Test-Header:test_header_rc,Content-Length"},
-        {"key": "DD_TAGS", "value": "rc_key1:val1,rc_key2:val2"},
-        {"key": "DD_SERVICE_MAPPING", "value": "inbound:outbound"},
-        {
-            "key": "DD_TRACE_SAMPLING_RULES",
-            # the list of tag clauses becomes the map the environment variable expects
-            "value": (
-                '[{"sample_rate": 0.8, "service": "test_service", "resource": "*", '
-                '"tags": {"tag-a": "tag-a-val*"}, "provenance": "customer"}]'
-            ),
-        },
-    ]
+    assert observed["sdk_config"]["config"] == {
+        "DD_TRACE_HEADER_TAGS": "X-Test-Header:test_header_rc,Content-Length",
+        "DD_TAGS": "rc_key1:val1,rc_key2:val2",
+        "DD_SERVICE_MAPPING": "inbound:outbound",
+        # the list of tag clauses becomes the map the environment variable expects
+        "DD_TRACE_SAMPLING_RULES": (
+            '[{"sample_rate": 0.8, "service": "test_service", "resource": "*", '
+            '"tags": {"tag-a": "tag-a-val*"}, "provenance": "customer"}]'
+        ),
+    }
 
 
 @scenarios.test_the_test
@@ -139,7 +136,7 @@ def test_to_sdk_config_payload_drops_remote_only_settings():
         }
     )
 
-    assert observed["sdk_config"]["config"] == [{"key": "DD_EXCEPTION_REPLAY_ENABLED", "value": "true"}]
+    assert observed["sdk_config"]["config"] == {"DD_EXCEPTION_REPLAY_ENABLED": "true"}
 
 
 @scenarios.test_the_test
@@ -147,7 +144,7 @@ def test_to_sdk_config_payload_empty_lib_config():
     """An empty config resets every remotely set value, and stays empty once translated"""
     observed = rc.to_sdk_config_payload({"action": "enable", "lib_config": {"tracing_sampling_rate": None}})
 
-    assert observed == {"action": "enable", "sdk_config": {"config": []}}
+    assert observed == {"action": "enable", "sdk_config": {"config": {}}}
 
 
 @scenarios.test_the_test
@@ -175,7 +172,7 @@ def test_build_apm_tracing_command_use_sdk_config():
 
     sent = json.loads(base64.b64decode(command["target_files"][0]["raw"]))
     assert "lib_config" not in sent
-    assert {"key": "DD_DYNAMIC_INSTRUMENTATION_ENABLED", "value": "true"} in sent["sdk_config"]["config"]
+    assert sent["sdk_config"]["config"]["DD_DYNAMIC_INSTRUMENTATION_ENABLED"] == "true"
 
     # the next command inherits its defaults from prev_payloads, which stays in the legacy shape
     assert prev_payloads[-1]["lib_config"]["dynamic_instrumentation_enabled"] is True
