@@ -1,6 +1,6 @@
 from collections.abc import Generator
 from typing import Any
-import pytest
+from utils import pytest
 
 
 @pytest.hookimpl(hookwrapper=True)

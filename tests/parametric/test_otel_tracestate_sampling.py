@@ -2,7 +2,7 @@
 
 import json
 
-import pytest
+from utils import pytest
 
 from utils import features, scenarios
 from utils.dd_constants import SamplingPriority

@@ -97,6 +97,20 @@ which version contains the change.
 
 ## Decorator Rules
 
+### Pytest Facade
+
+Test modules must import pytest with `from utils import pytest`. Direct imports of
+the external `pytest` package are forbidden by Import Linter.
+
+`pytest.mark.skip_if_xfail` is an internal implementation detail and is
+intentionally absent from the facade. Never recreate an alias for it. If an
+expected failure must not execute:
+
+1. Keep its declaration in the appropriate manifest.
+2. Add `@slow` when running the test would consume excessive CI time.
+3. Add `@scenario_crash` only when running the test could crash the scenario or
+   disrupt other tests.
+
 ### Version Format
 
 **CRITICAL**: Always use `library@version` format:

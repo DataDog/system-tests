@@ -2,7 +2,7 @@
 /chat/completions request and its tool calls. After-model needs the stream path: not yet cross-language.
 """
 
-import pytest
+from utils import pytest
 
 from utils import features, scenarios
 from utils.docker_fixtures import FrameworkTestClientApi, TestAgentAPI

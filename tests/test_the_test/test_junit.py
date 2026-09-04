@@ -4,7 +4,7 @@ import re
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
 
-import pytest
+from utils import pytest
 from utils import scenarios, features, irrelevant, bug, flaky, missing_feature, slow
 
 from .utils import run_system_tests

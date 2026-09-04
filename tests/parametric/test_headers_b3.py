@@ -1,4 +1,4 @@
-import pytest
+from utils import pytest
 
 from utils.docker_fixtures.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 from utils.docker_fixtures.spec.trace import span_has_no_parent

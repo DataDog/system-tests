@@ -3,7 +3,7 @@
 from pathlib import Path
 import subprocess
 
-import pytest
+from utils import pytest
 
 from utils import scenarios
 from utils.scripts import update_mirror_images
