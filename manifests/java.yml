@@ -3972,6 +3972,12 @@ manifest:
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: v1.35.2
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_false: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_true: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
+  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_deployment_environment_mapping:
+    - declaration: missing_feature (deployment.environment.name mapping is not released)
+      component_version: '<1.66.0-SNAPSHOT'
+  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_deployment_environment_mapping_on_span:
+    - declaration: missing_feature (deployment.environment.name mapping is not released)
+      component_version: '<1.66.0-SNAPSHOT'
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_sdk_disabled_set: 'missing_feature (Currently DD_TRACE_OTEL_ENABLED=true is required for OTEL_SDK_DISABLED to be parsed. Revisit when the OpenTelemetry integration is enabled by default.)'
   tests/parametric/test_otel_logs.py: '>=1.62.0'
   tests/parametric/test_otel_logs.py::Test_FR06_OTLP_Protocols::test_otlp_protocols: incomplete_test_app (GPRC fails for system-test but works with real collector)
