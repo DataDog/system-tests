@@ -36,6 +36,10 @@ class ThreadContextSharingScenario(EndToEndScenario):
     def configure(self, config: pytest.Config):
         super().configure(config)
 
+        if self.weblog_infra.library_name == "java":
+            # Should be removed once java enables this with appsec
+            self.weblog_container.environment["DD_PROFILING_ENABLED"] = "true"
+
         agent = self.agent_container
 
         agent.environment["DD_RUNTIME_SECURITY_CONFIG_ENABLED"] = "true"
@@ -44,6 +48,15 @@ class ThreadContextSharingScenario(EndToEndScenario):
         # the readiness signal the tests wait on (see tests/cws/utils.py).
         agent.environment["DD_RUNTIME_SECURITY_CONFIG_SPAN_TRACKING_ENABLED"] = "true"
         agent.environment["DD_RUNTIME_SECURITY_CONFIG_SELF_TEST_ENABLED"] = "true"
+
+        # Temporary diagnostics for the missing CWS event on some CI runners: trace level plus
+        # a catch-all log pattern is what makes CWS log per-event (seclog's PatternLogger only
+        # emits when the level is trace *and* a pattern matches), and internal monitoring turns
+        # the otherwise silent userspace drops (no process context, broken lineage, path
+        # resolution) into abnormal_event custom events on the intake the tests already read.
+        agent.environment["DD_SYSTEM_PROBE_CONFIG_LOG_LEVEL"] = "trace"
+        agent.environment["DD_RUNTIME_SECURITY_CONFIG_LOG_PATTERNS"] = "*"
+        agent.environment["DD_RUNTIME_SECURITY_CONFIG_INTERNAL_MONITORING_ENABLED"] = "true"
 
         agent.volumes["./utils/build/docker/agent/runtime-security.d"] = {
             "bind": "/etc/datadog-agent/runtime-security.d",

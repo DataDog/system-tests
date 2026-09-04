@@ -5,4 +5,4 @@
 rules:
   - id: thread_context_sharing_smoke_test
     expression: >-
-      open.file.path =~ "/tmp/system-tests-thread-context-sharing-*"
+      open.syscall.path =~ "/tmp/system-tests-thread-context-sharing-*"
