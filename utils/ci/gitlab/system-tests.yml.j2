@@ -55,7 +55,9 @@ default:
       - unknown_failure
       - data_integrity_failure
     exit_codes:
-      - 255
+{% for code in range(1, 42) %}      - {{ code }}
+{% endfor %}{% for code in range(43, 256) %}      - {{ code }}
+{% endfor %}
 
 stages:
   - {{stage}}
