@@ -62,7 +62,16 @@ manifest:
   tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In: missing_feature (OpenTelemetry drop-in telemetry metrics are not implemented)
   tests/integrations/test_service_overrides.py::Test_SqlServiceNameSource: irrelevant (Only implemented for Java)
   tests/integrations/test_sql.py::Test_Sql: missing_feature (Endpoint is not implemented on weblog)
-  tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP: missing_feature
+  tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        axum: '>=0.5.3-dev+0a455ef'
+  tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP::test_128bit_trace_id_consistent_across_spans:
+    - weblog_declaration:
+        axum: missing_feature
+  tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP::test_single_server_trace:
+    - weblog_declaration:
+        axum: missing_feature
   tests/otel/test_tracing_otlp.py::Test_Otlp_Carries_Ot: missing_feature (APMAPI-2172)
   tests/otel/test_tracing_otlp.py::Test_Otlp_Forwards_Inherited_Ot: missing_feature (APMAPI-2172)
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
@@ -146,17 +155,17 @@ manifest:
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_get_D008: missing_feature  # Created by easy win activation script
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_get_all_D009: missing_feature  # Created by easy win activation script
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_inject_header_D004: missing_feature  # Created by easy win activation script
-  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_malformed_headers_D012: missing_feature  # Created by easy win activation script
-  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_malformed_headers_D013: missing_feature  # Created by easy win activation script
-  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_malformed_headers_D014: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_malformed_headers_D012: '>=0.5.3-dev+0a455ef'  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_malformed_headers_D013: '>=0.5.3-dev+0a455ef'  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_malformed_headers_D014: '>=0.5.3-dev+0a455ef'  # Created by easy win activation script
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_malformed_headers_D015: missing_feature  # Created by easy win activation script
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_remove_D010: missing_feature  # Created by easy win activation script
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_remove_all_D011: missing_feature  # Created by easy win activation script
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_set_D006: missing_feature  # Created by easy win activation script
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggageheader_maxbytes_inject_D017: missing_feature  # Created by easy win activation script
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggageheader_maxitems_inject_D016: missing_feature  # Created by easy win activation script
-  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_headers_baggage_default_D001: missing_feature  # Created by easy win activation script
-  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_headers_baggage_only_D002: missing_feature  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_headers_baggage_default_D001: '>=0.5.3-dev+0a455ef'  # Created by easy win activation script
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_headers_baggage_only_D002: '>=0.5.3-dev+0a455ef'  # Created by easy win activation script
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Span_Tags: '>=0.2.1'  # Modified by easy win activation script
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Span_Tags::test_baggage_span_tags_all: v0.4.0
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Span_Tags::test_baggage_span_tags_config_with_empty_keys: v0.4.0
@@ -169,7 +178,9 @@ manifest:
     - declaration: missing_feature (Org Propagation Guard RFC not yet implemented)
       component_version: <0.4.1-dev+926c77a
   tests/parametric/test_headers_opm.py::Test_HeadersOPM_AgentInfo::test_tracer_consumes_info_opm: missing_feature (Org Propagation Guard RFC not yet implemented)
-  tests/parametric/test_headers_opm.py::Test_HeadersOPM_ExtractEnabled::test_mismatch_preserves_baggage: missing_feature (Org Propagation Guard RFC not yet implemented)
+  tests/parametric/test_headers_opm.py::Test_HeadersOPM_ExtractEnabled::test_mismatch_preserves_baggage:  # TODO: a lower version might be supported
+    - declaration: missing_feature (Org Propagation Guard RFC not yet implemented)
+      component_version: <0.5.3-dev+0a455ef
   tests/parametric/test_headers_opm.py::Test_HeadersOPM_ExtractEnabled::test_mismatch_strips_dd_state: missing_feature (Org Propagation Guard RFC not yet implemented)
   tests/parametric/test_headers_opm.py::Test_HeadersOPM_ExtractEnabled::test_mismatch_strips_dd_tracestate_member: missing_feature (Org Propagation Guard RFC not yet implemented)
   tests/parametric/test_headers_opm.py::Test_HeadersOPM_ExtractEnabled::test_missing_inbound_opm_does_not_enforce: missing_feature (Org Propagation Guard RFC not yet implemented)
@@ -247,9 +258,13 @@ manifest:
   tests/parametric/test_otel_logs.py::Test_FR11_Telemetry::test_telemetry_metrics:  # TODO: a lower version might be supported
     - declaration: missing_feature (Rust telemetry metrics are not submitted in time to run tests against)
       component_version: <0.4.1-dev+926c77a
-  tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields::test_scope_attributes_field: missing_feature (OpenTelemetry Rust SDK limitation - scope attributes not exported by opentelemetry-otlp)
+  tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields::test_scope_attributes_field:  # TODO: a lower version might be supported
+    - declaration: missing_feature (OpenTelemetry Rust SDK limitation - scope attributes not exported by opentelemetry-otlp)
+      component_version: <0.5.3-dev+0a455ef
   tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields::test_scope_schema_url_field: missing_feature (OpenTelemetry Rust SDK limitation - schema_url not exported by opentelemetry-otlp)
-  tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields::test_scope_version_field: missing_feature (OpenTelemetry Rust SDK limitation - scope version not exported by opentelemetry-otlp)
+  tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields::test_scope_version_field:  # TODO: a lower version might be supported
+    - declaration: missing_feature (OpenTelemetry Rust SDK limitation - scope version not exported by opentelemetry-otlp)
+      component_version: <0.5.3-dev+0a455ef
   tests/parametric/test_otel_metrics.py: v0.3.0
   ? tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Api_Instrument::test_otel_histogram_add_non_negative_and_negative_values
   : missing_feature (OpenTelemetry Rust SDK does not filter negative values for Histogram.record(). This is a bug in the upstream SDK)
@@ -372,7 +387,8 @@ manifest:
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision::test_no_range_support: missing_feature  # Created by easy win activation script
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision::test_no_set_support: missing_feature  # Created by easy win activation script
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision::test_regex_special_chars: missing_feature  # Created by easy win activation script
-  tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_With_W3C: missing_feature
+  tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_With_W3C: '>=0.5.3-dev+0a455ef'  # TODO: a lower version might be supported
+  tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_With_W3C::test_trace_sampled_by_trace_sampling_rule_tags: missing_feature
   tests/parametric/test_tracer.py: '>=0.2.1'  # Modified by easy win activation script
   tests/parametric/test_tracer.py::Test_ProcessTags_ServiceName: missing_feature
   tests/parametric/test_tracer.py::Test_Tracer: missing_feature  # Created by easy win activation script
@@ -493,7 +509,12 @@ manifest:
   tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchangedWhenDropped: '>=0.5.2-dev'
   tests/test_otel_tracestate_sampling.py::Test_MalformedOtHandling: '>=0.5.2-dev'
   tests/test_otel_tracestate_sampling.py::Test_PreserveDdAndOtherVendors: '>=0.5.2-dev'
-  tests/test_otel_tracestate_sampling.py::Test_PreserveTracestateMemberOrder: bug (APMAPI-2171)
+  tests/test_otel_tracestate_sampling.py::Test_PreserveTracestateMemberOrder:  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-2171)
+      component_version: <0.5.3-dev+0a455ef
+      weblog: [axum]
+    - declaration: bug (APMAPI-2171)
+      excluded_weblog: [axum]
   tests/test_otel_tracestate_sampling.py::Test_SampledWithoutOtNotFabricated: '>=0.5.2-dev'
   tests/test_otel_tracestate_sampling.py::Test_ThOnlyDoesNotFabricateRv: '>=0.5.2-dev'
   tests/test_otel_tracestate_sampling.py::Test_ThOnlyDoesNotFabricateRvWhenDropped: '>=0.5.2-dev'
@@ -502,7 +523,12 @@ manifest:
   tests/test_rum_injection.py::Test_RUM_Injection::test_rum_enabled: missing_feature (/html endpoint not implemented)
   tests/test_sampling_manual.py::Test_Manual_Sampling: missing_feature (dd-trace-rs does not honor the manual.keep/manual.drop attributes)
   tests/test_sampling_rate_capping.py::Test_SamplingRateCappedIncrease: missing_feature (sampling-rate capping is not implemented)
-  tests/test_scrubbing.py::Test_UrlQuery: missing_feature (Rust does not implement query string obfuscation)
+  tests/test_scrubbing.py::Test_UrlQuery:  # TODO: a lower version might be supported
+    - declaration: missing_feature (Rust does not implement query string obfuscation)
+      component_version: <0.5.3-dev+0a455ef
+      weblog: [axum]
+    - declaration: missing_feature (Rust does not implement query string obfuscation)
+      excluded_weblog: [axum]
   tests/test_span_events.py: missing_feature (Span Events are not implemented)
   tests/test_standard_tags.py::Test_StandardTagsClientIp: missing_feature (client IP resolution from forwarded headers is a tracer feature, not implemented in dd-trace-rs)
   tests/test_standard_tags.py::Test_StandardTagsNetworkClientIp: missing_feature (client IP resolution is a tracer feature, not implemented in dd-trace-rs)
@@ -513,7 +539,24 @@ manifest:
   tests/test_standard_tags.py::Test_StandardTagsUrl::test_url_with_sensitive_query_string_legacy: missing_feature (Rust does not implement query string obfuscation)
   tests/test_telemetry.py::Test_Log_Generation::test_log_generation_enabled: missing_feature (Rust tracer does not emit telemetry log events)
   tests/test_telemetry.py::Test_Metric_Generation_Disabled: missing_feature (telemetry metric-generation configuration is not implemented)
-  tests/test_telemetry.py::Test_Metric_Generation_Enabled: missing_feature (telemetry metric generation is not implemented)
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled:  # TODO: a lower version might be supported
+    - declaration: missing_feature (telemetry metric generation is not implemented)
+      component_version: <0.5.3-dev+0a455ef
+      weblog: [axum]
+    - declaration: missing_feature (telemetry metric generation is not implemented)
+      excluded_weblog: [axum]
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_general_logs_created:
+    - weblog_declaration:
+        axum: missing_feature (telemetry metric generation is not implemented)
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_telemetry_api_requests:
+    - weblog_declaration:
+        axum: missing_feature (telemetry metric generation is not implemented)
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_telemetry_api_responses:
+    - weblog_declaration:
+        axum: missing_feature (telemetry metric generation is not implemented)
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_chunks_enqueued_for_serialization:
+    - weblog_declaration:
+        axum: missing_feature (telemetry metric generation is not implemented)
   tests/test_telemetry.py::Test_ProductsDisabled: missing_feature (product state is not reported in app-started telemetry)
   tests/test_telemetry.py::Test_Telemetry::test_api_still_v1: irrelevant
   tests/test_telemetry.py::Test_Telemetry::test_app_dependencies_loaded: missing_feature (/load_dependency endpoint not implemented)
