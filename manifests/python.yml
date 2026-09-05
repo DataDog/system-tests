@@ -1581,7 +1581,7 @@ manifest:
         uds-flask: missing_feature
   tests/integrations/test_db_integrations_sql.py::Test_MsSql::test_sql_success:
     - weblog_declaration:
-        flask-poc: bug (APMAPI-1058)
+        flask-poc: v4.14.0  # TODO: a lower version might be supported
         uds-flask: bug (APMAPI-1058)
   tests/integrations/test_db_integrations_sql.py::Test_MySql:
     - weblog_declaration:
@@ -1700,7 +1700,7 @@ manifest:
         uwsgi-poc: v2.9.0
   tests/integrations/test_dbm.py::Test_Dbm::test_trace_payload_full:
     - weblog_declaration:
-        flask-poc: bug (APMAPI-1058)
+        flask-poc: v4.14.0  # TODO: a lower version might be supported
         uds-flask: bug (APMAPI-1058)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Aiomysql:
     - weblog_declaration:
@@ -1708,7 +1708,7 @@ manifest:
         *flask : v2.9.0
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Aiomysql::test_dbm_comment:
     - weblog_declaration:
-        flask-poc: bug (APMAPI-1058)
+        flask-poc: v4.14.0  # TODO: a lower version might be supported
         uds-flask: bug (APMAPI-1058)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_MysqlConnector:
     - weblog_declaration:
@@ -1716,7 +1716,7 @@ manifest:
         *flask : v2.9.0
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_MysqlConnector::test_dbm_comment:
     - weblog_declaration:
-        flask-poc: bug (APMAPI-1058)
+        flask-poc: v4.14.0  # TODO: a lower version might be supported
         uds-flask: bug (APMAPI-1058)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Batch_Python_Mysqldb:
     - weblog_declaration:
@@ -1757,7 +1757,7 @@ manifest:
         *flask : v2.9.0
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Aiomysql::test_dbm_comment:
     - weblog_declaration:
-        flask-poc: bug (APMAPI-1058)
+        flask-poc: v4.14.0  # TODO: a lower version might be supported
         uds-flask: bug (APMAPI-1058)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Asyncpg:
     - weblog_declaration:
@@ -1765,7 +1765,7 @@ manifest:
         *flask : v2.9.0
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Asyncpg::test_dbm_comment:
     - weblog_declaration:
-        flask-poc: bug (APMAPI-1058)
+        flask-poc: v4.14.0  # TODO: a lower version might be supported
         uds-flask: bug (APMAPI-1058)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_MysqlConnector:
     - weblog_declaration:
@@ -1773,7 +1773,7 @@ manifest:
         *flask : v2.9.0
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_MysqlConnector::test_dbm_comment:
     - weblog_declaration:
-        flask-poc: bug (APMAPI-1058)
+        flask-poc: v4.14.0  # TODO: a lower version might be supported
         uds-flask: bug (APMAPI-1058)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Mysqldb:
     - weblog_declaration:
@@ -1792,7 +1792,7 @@ manifest:
         uwsgi-poc: v2.9.0
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Psycopg::test_dbm_comment:
     - weblog_declaration:
-        flask-poc: bug (APMAPI-1058)
+        flask-poc: v4.14.0  # TODO: a lower version might be supported
         uds-flask: bug (APMAPI-1058)
   tests/integrations/test_dbm.py::Test_Dbm_Comment_Python_Pymysql:
     - weblog_declaration:
@@ -1803,7 +1803,12 @@ manifest:
     - weblog_declaration:
         flask-poc: bug (APMAPI-1058)
         uds-flask: bug (APMAPI-1058)
-  tests/integrations/test_dbm.py::Test_Dbm_DynamicService_Postgres: missing_feature
+  tests/integrations/test_dbm.py::Test_Dbm_DynamicService_Postgres:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        uds-flask: '>=4.14.0'
+        uwsgi-poc: '>=4.14.0'
+        flask-poc: '>=4.14.0'
   tests/integrations/test_dbm.py::_BaseDbmComment::test_dbm_comment:
     - weblog_declaration:
         flask-poc: bug (APMAPI-1058)
@@ -1823,7 +1828,7 @@ manifest:
         flask-poc: v2.16.0
   tests/integrations/test_dsm.py::Test_DsmKafka::test_dsm_kafka:
     - weblog_declaration:
-        flask-poc: bug (APMAPI-1058)
+        flask-poc: v4.14.0  # TODO: a lower version might be supported
         uds-flask: bug (APMAPI-1058)
   tests/integrations/test_dsm.py::Test_DsmKafka::test_dsm_kafka_without_cluster_id: irrelevant
   tests/integrations/test_dsm.py::Test_DsmKinesis:
@@ -2464,8 +2469,8 @@ manifest:
   tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics::test_trace_metric_agrees_with_client_success: missing_feature (libdatadog status.code fix is not merged)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics::test_trace_metric_agrees_with_server_success: missing_feature (libdatadog status.code fix is not merged)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_SamplingRules: 4.15.0-dev
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client: 4.15.0-dev
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server: 4.15.0-dev
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client: 4.15.0-dev  # Easy win for django-poc, django-py3.13, fastapi, flask-poc, python3.12, uds-flask, uwsgi-poc and version 4.14.0
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server: 4.15.0-dev  # Easy win for django-poc, django-py3.13, fastapi, flask-poc, python3.12, tornado, uds-flask, uwsgi-poc and version 4.14.0
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_http_endpoint_retained_from_appsec: irrelevant (The AppSec endpoint retention request is specific to .NET)
   tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh: missing_feature (APMAPI-2171)
