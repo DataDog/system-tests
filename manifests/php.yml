@@ -1244,11 +1244,31 @@ manifest:
         "*": v1.21.0-dev
         laravel11x: incomplete_test_app
         symfony7x: incomplete_test_app
-  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Appears: missing_feature (EX-3425)
-  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Cycle: missing_feature (EX-3425)
-  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Disappears: missing_feature (EX-3425)
+  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Appears:  # TODO: a lower version might be supported
+    - declaration: missing_feature (EX-3425)
+      component_version: <1.25.0
+      weblog: [apache-mod-7.2, php-fpm-8.2, apache-mod-7.1, php-fpm-7.3, php-fpm-8.0, apache-mod-8.1-zts, apache-mod-7.4-zts, apache-mod-7.0, apache-mod-8.1, apache-mod-8.2-zts, php-fpm-7.2, php-fpm-8.5, apache-mod-8.0-zts, apache-mod-8.2, apache-mod-7.3-zts, php-fpm-7.1, php-fpm-7.0, apache-mod-7.4, apache-mod-7.2-zts, php-fpm-8.1, apache-mod-7.3, php-fpm-7.4, apache-mod-8.0, apache-mod-7.0-zts, apache-mod-7.1-zts]
+    - declaration: missing_feature (EX-3425)
+      excluded_weblog: [apache-mod-7.2, php-fpm-8.2, apache-mod-7.1, php-fpm-7.3, php-fpm-8.0, apache-mod-8.1-zts, apache-mod-7.4-zts, apache-mod-7.0, apache-mod-8.1, apache-mod-8.2-zts, php-fpm-7.2, php-fpm-8.5, apache-mod-8.0-zts, apache-mod-8.2, apache-mod-7.3-zts, php-fpm-7.1, php-fpm-7.0, apache-mod-7.4, apache-mod-7.2-zts, php-fpm-8.1, apache-mod-7.3, php-fpm-7.4, apache-mod-8.0, apache-mod-7.0-zts, apache-mod-7.1-zts]
+  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Cycle:  # TODO: a lower version might be supported
+    - declaration: missing_feature (EX-3425)
+      component_version: <1.25.0
+      weblog: [apache-mod-7.2, php-fpm-8.2, apache-mod-7.1, php-fpm-7.3, php-fpm-8.0, apache-mod-8.1-zts, apache-mod-7.4-zts, apache-mod-7.0, apache-mod-8.1, apache-mod-8.2-zts, php-fpm-7.2, php-fpm-8.5, apache-mod-8.0-zts, apache-mod-8.2, apache-mod-7.3-zts, php-fpm-7.1, php-fpm-7.0, apache-mod-7.4, apache-mod-7.2-zts, php-fpm-8.1, apache-mod-7.3, php-fpm-7.4, apache-mod-8.0, apache-mod-7.0-zts, apache-mod-7.1-zts]
+    - declaration: missing_feature (EX-3425)
+      excluded_weblog: [apache-mod-7.2, php-fpm-8.2, apache-mod-7.1, php-fpm-7.3, php-fpm-8.0, apache-mod-8.1-zts, apache-mod-7.4-zts, apache-mod-7.0, apache-mod-8.1, apache-mod-8.2-zts, php-fpm-7.2, php-fpm-8.5, apache-mod-8.0-zts, apache-mod-8.2, apache-mod-7.3-zts, php-fpm-7.1, php-fpm-7.0, apache-mod-7.4, apache-mod-7.2-zts, php-fpm-8.1, apache-mod-7.3, php-fpm-7.4, apache-mod-8.0, apache-mod-7.0-zts, apache-mod-7.1-zts]
+  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Disappears:  # TODO: a lower version might be supported
+    - declaration: missing_feature (EX-3425)
+      component_version: <1.25.0
+      weblog: [apache-mod-7.2, php-fpm-8.2, apache-mod-7.1, php-fpm-7.3, php-fpm-8.0, apache-mod-8.1-zts, apache-mod-7.4-zts, apache-mod-7.0, apache-mod-8.1, apache-mod-8.2-zts, php-fpm-7.2, php-fpm-8.5, apache-mod-8.0-zts, apache-mod-8.2, apache-mod-7.3-zts, php-fpm-7.1, php-fpm-7.0, apache-mod-7.4, apache-mod-7.2-zts, php-fpm-8.1, apache-mod-7.3, php-fpm-7.4, apache-mod-8.0, apache-mod-7.0-zts, apache-mod-7.1-zts]
+    - declaration: missing_feature (EX-3425)
+      excluded_weblog: [apache-mod-7.2, php-fpm-8.2, apache-mod-7.1, php-fpm-7.3, php-fpm-8.0, apache-mod-8.1-zts, apache-mod-7.4-zts, apache-mod-7.0, apache-mod-8.1, apache-mod-8.2-zts, php-fpm-7.2, php-fpm-8.5, apache-mod-8.0-zts, apache-mod-8.2, apache-mod-7.3-zts, php-fpm-7.1, php-fpm-7.0, apache-mod-7.4, apache-mod-7.2-zts, php-fpm-8.1, apache-mod-7.3, php-fpm-7.4, apache-mod-8.0, apache-mod-7.0-zts, apache-mod-7.1-zts]
   tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Events::test_ffe_multiple_remote_config_files: flaky (FFL-2676)
-  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Serial_Id: missing_feature (EX-3425)
+  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Serial_Id:  # TODO: a lower version might be supported
+    - declaration: missing_feature (EX-3425)
+      component_version: <1.25.0
+      weblog: [php-fpm-7.3, php-fpm-8.0, php-fpm-8.1, apache-mod-8.1-zts, php-fpm-7.0, apache-mod-7.4-zts, apache-mod-7.0, apache-mod-8.1, php-fpm-7.4, apache-mod-8.2-zts, php-fpm-7.2, apache-mod-7.4, apache-mod-8.0, apache-mod-7.0-zts, apache-mod-8.2, apache-mod-7.3-zts, apache-mod-7.2-zts]
+    - declaration: missing_feature (EX-3425)
+      excluded_weblog: [php-fpm-7.3, php-fpm-8.0, php-fpm-8.1, apache-mod-8.1-zts, php-fpm-7.0, apache-mod-7.4-zts, apache-mod-7.0, apache-mod-8.1, php-fpm-7.4, apache-mod-8.2-zts, php-fpm-7.2, apache-mod-7.4, apache-mod-8.0, apache-mod-7.0-zts, apache-mod-8.2, apache-mod-7.3-zts, apache-mod-7.2-zts]
   tests/ffe/test_flag_eval_evp.py: missing_feature (FFL-2446)
   tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Burst_Aggregation: bug (FFL-2676)
   tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Degradation: bug (FFL-2676)
