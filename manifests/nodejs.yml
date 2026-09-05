@@ -2768,16 +2768,24 @@ manifest:
         express4: '>=5.93.0'
         nextjs: '>=5.93.0'
         express5: '>=5.93.0'
+        express4-typescript: v6.14.0  # TODO: a lower version might be supported
   tests/test_config_consistency.py::Test_Config_HttpClientErrorStatuses_Default::test_status_code_400:
     - weblog_declaration:
-        fastify: missing_feature
+        fastify: v6.14.0  # TODO: a lower version might be supported
         nextjs: missing_feature
   tests/test_config_consistency.py::Test_Config_HttpClientErrorStatuses_Default::test_status_code_500:
     - weblog_declaration:
-        express5: missing_feature
-        express4: missing_feature
-        uds-express4: missing_feature
-  tests/test_config_consistency.py::Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature
+        express5: v6.14.0  # TODO: a lower version might be supported
+        express4: v6.14.0  # TODO: a lower version might be supported
+        uds-express4: v6.14.0  # TODO: a lower version might be supported
+  tests/test_config_consistency.py::Test_Config_HttpClientErrorStatuses_FeatureFlagCustom:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        uds-express4: '>=6.14.0'
+        express5: '>=6.14.0'
+        express4-typescript: '>=6.14.0'
+        express4: '>=6.14.0'
+        fastify: '>=6.14.0'
   tests/test_config_consistency.py::Test_Config_HttpServerErrorStatuses_Default: *ref_5_37_0
   tests/test_config_consistency.py::Test_Config_HttpServerErrorStatuses_FeatureFlagCustom:  # TODO: a lower version might be supported
     - weblog_declaration:
@@ -2916,7 +2924,20 @@ manifest:
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_http_endpoint_retained_from_appsec: irrelevant (The AppSec endpoint retention request is specific to .NET)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_http_endpoint_retained_from_resource_renaming: missing_feature (http.endpoint is not retained under OTel semantics)
   tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5: missing_feature (APMAPI-2171)
-  tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh: missing_feature (APMAPI-2171)
+  tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh:  # TODO: a lower version might be supported
+    - declaration: missing_feature (APMAPI-2171)
+      component_version: <6.14.0
+      weblog: [fastify, nextjs]
+    - declaration: missing_feature (APMAPI-2171)
+      excluded_weblog: [fastify, nextjs]
+  tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh::test_force_keep_forwards_inherited_rv:
+    - weblog_declaration:
+        fastify: missing_feature (APMAPI-2171)
+        nextjs: missing_feature (APMAPI-2171)
+  tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh::test_force_keep_overrides_inherited_drop_decision:
+    - weblog_declaration:
+        fastify: missing_feature (APMAPI-2171)
+        nextjs: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchanged:  # TODO: a lower version might be supported
     - declaration: missing_feature (APMAPI-2171)
       component_version: <6.8.0
