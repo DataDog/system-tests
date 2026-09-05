@@ -1330,13 +1330,85 @@ manifest:
   tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_Spans_Http_ErrorStatusConfiguration: v3.52.0
   tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics: v3.52.0
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics::test_trace_metric_agrees_with_client_success: missing_feature (successful client trace metrics report OTel OK status instead of leaving status unset)
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics::test_trace_metric_agrees_with_server_success: missing_feature (successful server trace metrics report OTel OK status instead of leaving status unset)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics::test_trace_metric_agrees_with_client_success:  # TODO: a lower version might be supported
+    - declaration: missing_feature (successful client trace metrics report OTel OK status instead of leaving status unset)
+      component_version: <3.52.0
+      weblog: [poc, uds]
+    - declaration: missing_feature (successful client trace metrics report OTel OK status instead of leaving status unset)
+      excluded_weblog: [poc, uds]
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics::test_trace_metric_agrees_with_server_success:  # TODO: a lower version might be supported
+    - declaration: missing_feature (successful server trace metrics report OTel OK status instead of leaving status unset)
+      component_version: <3.52.0
+      weblog: [poc, uds]
+    - declaration: missing_feature (successful server trace metrics report OTel OK status instead of leaving status unset)
+      excluded_weblog: [poc, uds]
   tests/test_otel_http_semantics.py::Test_OtelSemantics_SamplingRules: missing_feature (HTTP server span names use Datadog semantics when sampling rules run)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client: v3.52.0
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server: missing_feature (OTel HTTP server semantics not implemented over OTLP export)
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_http_endpoint_retained_from_appsec: missing_feature (OTel HTTP server semantics not implemented over OTLP export)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server:  # TODO: a lower version might be supported
+    - declaration: missing_feature (OTel HTTP server semantics not implemented over OTLP export)
+      component_version: <3.52.0
+      weblog: [poc, uds]
+    - declaration: missing_feature (OTel HTTP server semantics not implemented over OTLP export)
+      excluded_weblog: [poc, uds]
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_client_address:
+    - weblog_declaration:
+        uds: missing_feature (OTel HTTP server semantics not implemented over OTLP export)
+        poc: missing_feature (OTel HTTP server semantics not implemented over OTLP export)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_datadog_attributes_absent:
+    - weblog_declaration:
+        uds: missing_feature (OTel HTTP server semantics not implemented over OTLP export)
+        poc: missing_feature (OTel HTTP server semantics not implemented over OTLP export)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_http_endpoint_retained_from_appsec:  # TODO: a lower version might be supported
+    - declaration: missing_feature (OTel HTTP server semantics not implemented over OTLP export)
+      component_version: <3.52.0
+      weblog: [poc, uds]
+    - declaration: missing_feature (OTel HTTP server semantics not implemented over OTLP export)
+      excluded_weblog: [poc, uds]
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_http_endpoint_retained_from_resource_renaming: irrelevant (The .NET tracer creates http.endpoint from routed AppSec requests)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_network_peer_address:
+    - weblog_declaration:
+        uds: missing_feature (OTel HTTP server semantics not implemented over OTLP export)
+        poc: missing_feature (OTel HTTP server semantics not implemented over OTLP export)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_otel_attributes_present:
+    - weblog_declaration:
+        uds: missing_feature (OTel HTTP server semantics not implemented over OTLP export)
+        poc: missing_feature (OTel HTTP server semantics not implemented over OTLP export)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_server_address:
+    - weblog_declaration:
+        uds: missing_feature (OTel HTTP server semantics not implemented over OTLP export)
+        poc: missing_feature (OTel HTTP server semantics not implemented over OTLP export)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_server_port:
+    - weblog_declaration:
+        uds: missing_feature (OTel HTTP server semantics not implemented over OTLP export)
+        poc: missing_feature (OTel HTTP server semantics not implemented over OTLP export)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_span_name_route_invariance:
+    - weblog_declaration:
+        uds: missing_feature (OTel HTTP server semantics not implemented over OTLP export)
+        poc: missing_feature (OTel HTTP server semantics not implemented over OTLP export)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_span_name_unknown_method:
+    - weblog_declaration:
+        uds: missing_feature (OTel HTTP server semantics not implemented over OTLP export)
+        poc: missing_feature (OTel HTTP server semantics not implemented over OTLP export)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_span_name_with_route:
+    - weblog_declaration:
+        uds: missing_feature (OTel HTTP server semantics not implemented over OTLP export)
+        poc: missing_feature (OTel HTTP server semantics not implemented over OTLP export)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_span_name_without_route:
+    - weblog_declaration:
+        uds: missing_feature (OTel HTTP server semantics not implemented over OTLP export)
+        poc: missing_feature (OTel HTTP server semantics not implemented over OTLP export)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_url_query_obfuscation:
+    - weblog_declaration:
+        uds: missing_feature (OTel HTTP server semantics not implemented over OTLP export)
+        poc: missing_feature (OTel HTTP server semantics not implemented over OTLP export)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_url_query_present_with_query_string:
+    - weblog_declaration:
+        uds: missing_feature (OTel HTTP server semantics not implemented over OTLP export)
+        poc: missing_feature (OTel HTTP server semantics not implemented over OTLP export)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_user_agent:
+    - weblog_declaration:
+        uds: missing_feature (OTel HTTP server semantics not implemented over OTLP export)
+        poc: missing_feature (OTel HTTP server semantics not implemented over OTLP export)
   tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchanged: missing_feature (APMAPI-2171)
