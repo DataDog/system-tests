@@ -1433,6 +1433,12 @@ manifest:
         django-poc: missing_feature
         tornado: missing_feature
         python3.12: missing_feature
+    - weblog_declaration:
+        django-poc: missing_feature
+        python3.12: missing_feature
+        django-py3.13: missing_feature
+        tornado: missing_feature
+        fastapi: missing_feature
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry: v2.11.0
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry::test_telemetry_co:
     - declaration: missing_feature (DEBUG-3550)
