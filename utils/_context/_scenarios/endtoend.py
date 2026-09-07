@@ -25,6 +25,7 @@ from utils._context.containers import (
 from utils._context.weblog_infrastructure import EndToEndWeblogInfra
 from utils._context.constants import WeblogCategory
 from utils._logger import logger
+from utils.mocked_backend.backend_v2 import get_mocked_backend_v2_container_url
 
 from .core import Scenario, ScenarioGroup, scenario_groups as all_scenario_groups
 
@@ -230,6 +231,7 @@ class EndToEndScenario(DockerScenario):
         include_agent: bool = True,
         include_opentelemetry: bool = False,
         require_api_key: bool = False,
+        mocked_backend_v2: bool = False,
         other_weblog_containers: tuple[type[TestedContainer], ...] = (),
     ) -> None:
         scenario_groups = [*self._default_scenario_groups, *(scenario_groups or [])]
@@ -257,6 +259,19 @@ class EndToEndScenario(DockerScenario):
         self._use_proxy_for_agent = include_agent and use_proxy_for_agent
         self._use_proxy_for_weblog = use_proxy_for_weblog
         self._require_api_key = require_api_key
+        self._mocked_backend_v2 = mocked_backend_v2
+
+        if mocked_backend_v2 and self._use_proxy_for_agent:
+            raise ValueError(
+                "mocked_backend_v2 is not compatible with use_proxy_for_agent: the agent can't send its "
+                "traffic to both the proxy and the mocked backend. Set use_proxy_for_agent=False."
+            )
+
+        if mocked_backend_v2:
+            agent_env = dict(agent_env) if agent_env else {}
+            mocked_backend_url = get_mocked_backend_v2_container_url()
+            agent_env.setdefault("DD_DD_URL", mocked_backend_url)
+            agent_env.setdefault("DD_APM_DD_URL", mocked_backend_url)
 
         self.agent_container = AgentContainer(
             use_proxy=use_proxy_for_agent, rc_backend_enabled=rc_backend_enabled, environment=agent_env
@@ -331,6 +346,9 @@ class EndToEndScenario(DockerScenario):
             interfaces.agent.configure(self.host_log_folder, replay=self.replay)
         interfaces.library.configure(self.host_log_folder, replay=self.replay)
         interfaces.backend.configure(self.host_log_folder, replay=self.replay)
+        if self._mocked_backend_v2:
+            interfaces.backend_v2.configure(self.host_log_folder, replay=self.replay)
+            interfaces.backend_v2.start_mocked_backend()
         interfaces.library_dotnet_managed.configure(self.host_log_folder, replay=self.replay)
         interfaces.library_stdout.configure(self.host_log_folder, replay=self.replay)
         if self.include_agent:
@@ -373,6 +391,13 @@ class EndToEndScenario(DockerScenario):
             self.warmups.append(self._wait_for_app_readiness)
             self.warmups.append(self._set_weblog_domain)
         self.warmups.append(self._set_components)
+
+    def close_targets(self):
+        try:
+            super().close_targets()
+        finally:
+            if self._mocked_backend_v2:
+                interfaces.backend_v2.stop_mocked_backend()
 
     def _set_containers_dependancies(self) -> None:
         if self._use_proxy_for_agent:
@@ -564,6 +589,7 @@ class DdTraceEndToEndScenario(EndToEndScenario):
         include_opentelemetry: bool = False,
         library_interface_timeout: int | None = None,
         meta_structs_disabled: bool = False,
+        mocked_backend_v2: bool = False,
         obfuscation_version: int | None | Literal["MISSING"] = None,
         other_weblog_containers: tuple[type[TestedContainer], ...] = (),
         rc_api_enabled: bool = False,
@@ -591,6 +617,7 @@ class DdTraceEndToEndScenario(EndToEndScenario):
             include_opentelemetry=include_opentelemetry,
             library_interface_timeout=library_interface_timeout,
             meta_structs_disabled=meta_structs_disabled,
+            mocked_backend_v2=mocked_backend_v2,
             obfuscation_version=obfuscation_version,
             other_weblog_containers=other_weblog_containers,
             rc_api_enabled=rc_api_enabled,
