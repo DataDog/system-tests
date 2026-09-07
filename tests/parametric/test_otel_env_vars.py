@@ -148,16 +148,16 @@ class Test_Otel_Env_Vars:
         "library_env",
         [
             {
-                "OTEL_RESOURCE_ATTRIBUTES": "deployment.environment=test1,service.name=test2,service.version=5,foo=bar1,baz=qux1",
+                "OTEL_RESOURCE_ATTRIBUTES": "deployment.environment=legacy,service.name=test2,service.version=5,foo=bar1,baz=qux1",
                 "DD_TRACE_OTEL_ENABLED": "true",
             }
         ],
     )
-    def test_otel_attribute_mapping(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+    def test_otel_attribute_mapping(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         with test_library as t:
             if t.lang == "nodejs":
                 assert_nodejs_telemetry_config(
-                    test_agent, {"dd_service": "test2", "dd_env": "test1", "dd_version": "5"}
+                    test_agent, {"dd_service": "test2", "dd_env": "legacy", "dd_version": "5"}
                 )
                 # OTEL_RESOURCE_ATTRIBUTES tags surface on spans, not in the DD_TAGS telemetry value
                 with t.dd_start_span(name="otel_attrs"):
@@ -165,16 +165,132 @@ class Test_Otel_Env_Vars:
                 span = find_only_span(test_agent.wait_for_num_traces(1))
                 assert span["meta"]["foo"] == "bar1"
                 assert span["meta"]["baz"] == "qux1"
+                assert "deployment.environment" not in span["meta"]
+                assert "deployment.environment.name" not in span["meta"]
                 return
             resp = t.config()
 
         assert resp["dd_service"] == "test2"
-        assert resp["dd_env"] == "test1"
+        assert resp["dd_env"] == "legacy"
         assert resp["dd_version"] == "5"
         tags = resp["dd_tags"]
         assert isinstance(tags, (str, list))
         assert "foo:bar1" in tags
         assert "baz:qux1" in tags
+        tags_text = str(tags)
+        assert "deployment.environment:" not in tags_text
+        assert "deployment.environment.name:" not in tags_text
+
+    @pytest.mark.parametrize(
+        ("library_env", "expected_env"),
+        [
+            pytest.param(
+                {
+                    "OTEL_RESOURCE_ATTRIBUTES": "deployment.environment.name=stable,service.name=test2,service.version=5,foo=bar1,baz=qux1",
+                    "DD_TRACE_OTEL_ENABLED": "true",
+                },
+                "stable",
+                id="stable-only",
+            ),
+            pytest.param(
+                {
+                    "OTEL_RESOURCE_ATTRIBUTES": "deployment.environment.name=stable,deployment.environment=legacy,service.name=test2,service.version=5,foo=bar1,baz=qux1",
+                    "DD_TRACE_OTEL_ENABLED": "true",
+                },
+                "stable",
+                id="both-stable-first",
+            ),
+            pytest.param(
+                {
+                    "OTEL_RESOURCE_ATTRIBUTES": "deployment.environment=legacy,deployment.environment.name=stable,service.name=test2,service.version=5,foo=bar1,baz=qux1",
+                    "DD_TRACE_OTEL_ENABLED": "true",
+                },
+                "stable",
+                id="both-legacy-first",
+            ),
+            pytest.param(
+                {
+                    "DD_ENV": "datadog",
+                    "OTEL_RESOURCE_ATTRIBUTES": "deployment.environment.name=stable,deployment.environment=legacy,service.name=test2,service.version=5,foo=bar1,baz=qux1",
+                    "DD_TRACE_OTEL_ENABLED": "true",
+                },
+                "datadog",
+                id="dd-env-precedence",
+            ),
+        ],
+    )
+    def test_otel_deployment_environment_mapping(self, expected_env: str, test_library: APMLibrary) -> None:
+        with test_library as t:
+            resp = t.config()
+
+        assert resp["dd_service"] == "test2"
+        assert resp["dd_env"] == expected_env
+        assert resp["dd_version"] == "5"
+        tags = resp["dd_tags"]
+        assert isinstance(tags, (str, list))
+        assert "foo:bar1" in tags
+        assert "baz:qux1" in tags
+        tags_text = str(tags)
+        assert "deployment.environment:" not in tags_text
+        assert "deployment.environment.name:" not in tags_text
+
+    @pytest.mark.parametrize(
+        ("library_env", "expected_env"),
+        [
+            pytest.param(
+                {
+                    "OTEL_RESOURCE_ATTRIBUTES": "deployment.environment=legacy,foo=bar1",
+                    "DD_TRACE_OTEL_ENABLED": "true",
+                },
+                "legacy",
+                id="legacy-only",
+            ),
+            pytest.param(
+                {
+                    "OTEL_RESOURCE_ATTRIBUTES": "deployment.environment.name=stable,foo=bar1",
+                    "DD_TRACE_OTEL_ENABLED": "true",
+                },
+                "stable",
+                id="stable-only",
+            ),
+            pytest.param(
+                {
+                    "OTEL_RESOURCE_ATTRIBUTES": "deployment.environment.name=stable,deployment.environment=legacy,foo=bar1",
+                    "DD_TRACE_OTEL_ENABLED": "true",
+                },
+                "stable",
+                id="both-stable-first",
+            ),
+            pytest.param(
+                {
+                    "OTEL_RESOURCE_ATTRIBUTES": "deployment.environment=legacy,deployment.environment.name=stable,foo=bar1",
+                    "DD_TRACE_OTEL_ENABLED": "true",
+                },
+                "stable",
+                id="both-legacy-first",
+            ),
+            pytest.param(
+                {
+                    "DD_ENV": "datadog",
+                    "OTEL_RESOURCE_ATTRIBUTES": "deployment.environment.name=stable,deployment.environment=legacy,foo=bar1",
+                    "DD_TRACE_OTEL_ENABLED": "true",
+                },
+                "datadog",
+                id="dd-env-precedence",
+            ),
+        ],
+    )
+    def test_otel_deployment_environment_mapping_on_span(
+        self, expected_env: str, test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
+        with test_library as t, t.dd_start_span(name="otel_deployment_environment"):
+            pass
+
+        span = find_only_span(test_agent.wait_for_num_traces(1))
+        assert span["meta"]["env"] == expected_env
+        assert span["meta"]["foo"] == "bar1"
+        assert "deployment.environment" not in span["meta"]
+        assert "deployment.environment.name" not in span["meta"]
 
     @pytest.mark.parametrize("library_env", [{"OTEL_TRACES_SAMPLER": "always_on", "DD_TRACE_OTEL_ENABLED": "true"}])
     def test_otel_traces_always_on(self, test_agent: TestAgentAPI, test_library: APMLibrary):
