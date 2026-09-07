@@ -129,7 +129,12 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
         else:
             path_regexes = None
 
-        for data in self._data_list:
+        # snapshot under the lock: the watchdog thread appends to and re-sorts
+        # _data_list, which would make an in-place walk skip or repeat entries
+        with self._lock:
+            data_list = list(self._data_list)
+
+        for data in data_list:
             if path_regexes is not None and all(path.fullmatch(data["path"]) is None for path in path_regexes):
                 continue
 
