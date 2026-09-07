@@ -515,6 +515,8 @@ class EndToEndScenario(DockerScenario):
                 self._wait_interface(
                     interfaces.open_telemetry, 0 if is_empty_test_run else self.backend_interface_timeout
                 )
+            if self._mocked_backend_v2:
+                interfaces.backend_v2.check_deserialization_errors()
 
     def _wait_interface(self, interface: ProxyBasedInterfaceValidator, timeout: int):
         logger.terminal.write_sep("-", f"Wait for {interface} ({timeout}s)")

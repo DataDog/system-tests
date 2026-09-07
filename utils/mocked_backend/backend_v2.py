@@ -66,9 +66,14 @@ class MockBackendV2Server:
     """A local HTTP server standing in for the Datadog backend API."""
 
     def __init__(
-        self, log_folder: str, worker_id: str = "master", on_message: Callable[[dict], None] | None = None
+        self,
+        log_folder: str,
+        worker_id: str = "master",
+        on_message: Callable[[dict], None] | None = None,
+        *,
+        port: int | None = None,
     ) -> None:
-        self.port = get_mocked_backend_v2_port(worker_id)
+        self.port = get_mocked_backend_v2_port(worker_id) if port is None else port
         # Bind on every interface, not just loopback, so containers can reach it through
         # host.docker.internal.
         self._server = _MockBackendV2HTTPServer(("0.0.0.0", self.port), log_folder, on_message)  # noqa: S104
