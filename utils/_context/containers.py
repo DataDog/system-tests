@@ -1138,7 +1138,7 @@ class WeblogContainer(TestedContainer):
             except FileNotFoundError:
                 logger.info("No local dd-trace-py found, do not mount any volume or set any python path")
 
-        if library in ("php", "cpp_nginx"):
+        if library in ("php", "cpp_nginx", "nodejs"):
             self.enable_core_dumps()
 
     def warmup_request(self, timeout: int = 10):
