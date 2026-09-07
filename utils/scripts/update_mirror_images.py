@@ -46,7 +46,8 @@ LOCK_YAML = REPO_ROOT / "mirror_images.lock.yaml"
 BUILDKITD_TOML = REPO_ROOT / "utils" / "build" / "docker" / "buildkitd.toml"
 
 # Header written when mirror_images.yaml does not exist yet. The mirror_images.py
-# `add` command preserves existing comments, so this is only used on first run.
+# `add` command rewrites the file through a YAML parser and drops comments, so an
+# existing header is carried across by _restore_yaml_preamble instead.
 MIRROR_YAML_HEADER = """\
 # Docker images mirrored into registry.ddbuild.io/system-tests/mirror.
 #
@@ -149,6 +150,11 @@ def _read_yaml_preamble() -> str:
     return "".join(preamble)
 
 
+def _has_document_marker(text: str) -> bool:
+    """Whether `text` contains a YAML document start on a line of its own."""
+    return any(line.strip() == "---" for line in text.splitlines())
+
+
 def _restore_yaml_preamble(preamble: str) -> None:
     """Re-apply the preamble that ``add`` dropped.
 
@@ -164,7 +170,9 @@ def _restore_yaml_preamble(preamble: str) -> None:
         return
 
     body = content
-    if content.startswith("---\n") and preamble.startswith("---"):
+    # drop the serializer's document start if the preamble already carries one,
+    # wherever it sits in the preamble: two markers make it two YAML documents
+    if content.startswith("---\n") and _has_document_marker(preamble):
         body = content[len("---\n") :]
     MIRROR_YAML.write_text(preamble + body, encoding="utf-8")
 

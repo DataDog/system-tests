@@ -4,6 +4,7 @@ from pathlib import Path
 import subprocess
 
 import pytest
+import yaml
 
 from utils import scenarios
 from utils.scripts import update_mirror_images
@@ -108,6 +109,79 @@ class Test_UpdateMirrorImages:
             update_mirror_images.main(set(), skip_lock=False, refresh=True)
 
         assert lock_path.read_text(encoding="utf-8") == original_lock
+
+    @staticmethod
+    def _setup_mirror_yaml(
+        tmp_path: Path, monkeypatch: pytest.MonkeyPatch, *, serializer_emits_marker: bool = False
+    ) -> Path:
+        """Point the script at a temp mirror_images.yaml and fake `add` rewriting it.
+
+        The real dd-repo-tools `add` rewrites the file through a YAML parser, so it
+        drops comments, and only touches the file when it actually adds an image.
+        """
+        mirror_yaml = tmp_path / "mirror_images.yaml"
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setattr(update_mirror_images, "REPO_ROOT", tmp_path)
+        monkeypatch.setattr(update_mirror_images, "MIRROR_YAML", mirror_yaml)
+        monkeypatch.setattr(update_mirror_images, "BUILDKITD_TOML", tmp_path / "buildkitd.toml")
+        monkeypatch.setattr(update_mirror_images, "collect_images", lambda _excluded: ["redis:7"])
+
+        def fake_run_mirror_images(*args: str) -> None:
+            if args[0] != "add":
+                return
+            body = "".join(f'- "{image}"\n' for image in args[1:])
+            if serializer_emits_marker:
+                body = "---\n" + body
+            mirror_yaml.write_text(body, encoding="utf-8")  # comments dropped, as the real tool does
+
+        monkeypatch.setattr(update_mirror_images, "_run_mirror_images", fake_run_mirror_images)
+        return mirror_yaml
+
+    def test_main_keeps_the_header_when_add_rewrites_the_file(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        mirror_yaml = self._setup_mirror_yaml(tmp_path, monkeypatch)
+        header = "---\n# Docker images mirrored into the registry.\n#\n#   regenerate me\n"
+        mirror_yaml.write_text(header + '- "alpine:3.22"\n', encoding="utf-8")
+
+        update_mirror_images.main(set(), skip_lock=True)
+
+        content = mirror_yaml.read_text(encoding="utf-8")
+        assert content.startswith(header), f"header was not preserved:\n{content}"
+        assert '- "redis:7"' in content
+
+    def test_main_leaves_an_unchanged_file_byte_identical(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        mirror_yaml = self._setup_mirror_yaml(tmp_path, monkeypatch)
+        monkeypatch.setattr(update_mirror_images, "_run_mirror_images", lambda *_args: None)  # adds nothing
+        original = '---\n# a header\n- "redis:7"\n'
+        mirror_yaml.write_text(original, encoding="utf-8")
+
+        update_mirror_images.main(set(), skip_lock=True)
+
+        assert mirror_yaml.read_text(encoding="utf-8") == original
+
+    def test_main_writes_the_default_header_on_first_run(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        mirror_yaml = self._setup_mirror_yaml(tmp_path, monkeypatch)
+        assert not mirror_yaml.exists()
+
+        update_mirror_images.main(set(), skip_lock=True)
+
+        content = mirror_yaml.read_text(encoding="utf-8")
+        assert update_mirror_images.MIRROR_YAML_HEADER.splitlines()[0] in content
+        assert '- "redis:7"' in content
+
+    def test_main_does_not_produce_two_yaml_documents(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        """A marker in the preamble plus one from the serializer must stay one document.
+
+        The preamble deliberately puts a comment *before* the marker: keying off the
+        first line alone left two document starts and made the file unloadable.
+        """
+        mirror_yaml = self._setup_mirror_yaml(tmp_path, monkeypatch, serializer_emits_marker=True)
+        mirror_yaml.write_text('# a comment before the marker\n---\n- "alpine:3.22"\n', encoding="utf-8")
+
+        update_mirror_images.main(set(), skip_lock=True)
+
+        content = mirror_yaml.read_text(encoding="utf-8")
+        assert [line for line in content.splitlines() if line.strip() == "---"] == ["---"], content
+        assert yaml.safe_load(content) == ["redis:7"]
 
     def test_main_rejects_refresh_with_skip_lock(self):
         with pytest.raises(ValueError, match="refresh cannot be used when skip_lock is true"):
