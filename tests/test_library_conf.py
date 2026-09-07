@@ -294,7 +294,7 @@ class Test_HeaderTags_DynamicConfig:
             service_name="*",
             env="*",
         )
-        rc.tracer_rc_state.set_config(path, config).apply()
+        rc.tracer_rc_state.reset().set_config(path, config).apply()
         self.req1 = weblog.get(
             "/status?code=202",
             headers={
