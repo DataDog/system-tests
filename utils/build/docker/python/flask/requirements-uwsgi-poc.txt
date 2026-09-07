@@ -22,3 +22,6 @@ openfeature-sdk==0.8.3
 loguru==0.7.3
 stripe==12.5.1
 openai==2.41.1
+# lets system-tests dump this weblog's thread stacks from outside the process
+# when a remote config apply stalls, see utils/_remote_config.py
+py-spy==0.4.2

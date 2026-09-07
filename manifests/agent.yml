@@ -103,6 +103,9 @@ manifest:
     - component_version: "<7.77.0-0"
       declaration: irrelevant (APM Standalone option was added in 7.77.0)
   tests/test_sampling_rates.py::Test_SamplingRates: v7.33.0
+  tests/test_smoke.py::Test_Backend::test_good_backend:
+    - declaration: bug (APMSP-3994)
+      component_version: '>=7.84.0-devel'
   tests/test_telemetry.py::Test_APMOnboardingInstallID: v7.50.0
   tests/test_telemetry.py::Test_Telemetry::test_proxy_forwarding:
     - declaration: bug (APMAPI-926)
