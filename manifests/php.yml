@@ -1168,6 +1168,8 @@ manifest:
         "*": v1.20.0
         laravel11x: incomplete_test_app
         symfony7x: incomplete_test_app
+  ? tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation::test_inproduct_enablement_dynamic_instrumentation_apm_multiconfig
+  : v1.18.0
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature (blocked by exception replay throwable gap)
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction:
     - weblog_declaration:

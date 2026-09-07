@@ -3137,6 +3137,8 @@ manifest:
         spring-boot-undertow: v1.48.0
         spring-boot-wildfly: v1.48.0
         uds-spring-boot: v1.48.0
+  ? tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation::test_inproduct_enablement_dynamic_instrumentation_apm_multiconfig
+  : v1.54.0
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay:
     - weblog_declaration:
         "*": missing_feature

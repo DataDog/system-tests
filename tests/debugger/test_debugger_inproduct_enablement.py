@@ -62,6 +62,66 @@ class Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation(debugger.BaseDe
         assert self.di_empty_config, "Expected probes to continue emitting with empty config"
         assert self.di_explicit_disabled, "Expected probes to stop emitting after explicit disable"
 
+    def setup_inproduct_enablement_dynamic_instrumentation_apm_multiconfig(self):
+        def _send_config(
+            *,
+            enabled: bool | None = None,
+            service_name: str = "weblog",
+            env: str = "system-tests",
+            reset: bool = True,
+        ):
+            probe = json.loads(self._probe_template)
+            probe["id"] = debugger.generate_probe_id("log")
+            self.set_probes([probe])
+
+            self.send_rc_apm_tracing_and_probes_multiconfig(
+                dynamic_instrumentation_enabled=enabled, service_name=service_name, env=env, reset=reset
+            )
+            self.send_weblog_request("/debugger/log", reset=False)
+
+        self.start_time = int(time.time() * 1000)
+        self.initialize_weblog_remote_config()
+        self.weblog_responses = []
+        self.rc_states = []
+
+        # Wildcard service/env, DI=false -> probes not emitting
+        _send_config(enabled=False, service_name="*", env="*")
+        self.di_multiconfig_initial_disabled = not self.wait_for_all_probes(statuses=["EMITTING"], timeout=TIMEOUT)
+
+        # Wildcard service/env, DI=true -> probes emitting
+        _send_config(enabled=True, service_name="*", env="*", reset=False)
+        self.di_multiconfig_enabled = self.wait_for_all_probes(statuses=["EMITTING"], timeout=TIMEOUT)
+
+        # Weblog service/env, DI=false -> probes stop (most-specific wins)
+        _send_config(enabled=False, service_name="weblog", env="system-tests", reset=False)
+        self.di_multiconfig_disabled_by_service = not self.wait_for_all_probes(
+            statuses=["EMITTING"], timeout=TIMEOUT
+        )
+
+        # Wildcard service/env, DI=true -> still disabled (service+env false wins over org-wide true)
+        _send_config(enabled=True, service_name="*", env="*", reset=False)
+        self.di_multiconfig_still_disabled = not self.wait_for_all_probes(
+            statuses=["EMITTING"], timeout=TIMEOUT
+        )
+
+    @slow
+    def test_inproduct_enablement_dynamic_instrumentation_apm_multiconfig(self):
+        self.assert_rc_state_not_error()
+        self.assert_all_weblog_responses_ok()
+
+        assert self.di_multiconfig_initial_disabled, (
+            "Expected probes to not emit when DI is disabled by the wildcard config"
+        )
+        assert self.di_multiconfig_enabled, (
+            "Expected probes to emit after enabling DI via the wildcard config"
+        )
+        assert self.di_multiconfig_disabled_by_service, (
+            "Expected probes to stop after the service+env config disables DI"
+        )
+        assert self.di_multiconfig_still_disabled, (
+            "Expected probes to stay disabled with the service+env false overriding the wildcard true"
+        )
+
 
 @features.debugger_inproduct_enablement
 @scenarios.debugger_inproduct_enablement
