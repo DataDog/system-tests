@@ -5,14 +5,13 @@ from utils import features, scenarios
 from utils.docker_fixtures import TestAgentAPI
 
 
-def _otel_sdk_disabled(test_agent: TestAgentAPI, test_library: APMLibrary) -> bool:
-    with test_library as library:
-        if library.lang == "nodejs":
-            value = nodejs_telemetry_value(test_agent, "otel_sdk_disabled")
-            assert isinstance(value, bool)
-            return value
+def _otel_sdk_disabled(test_agent: TestAgentAPI, library: APMLibrary) -> bool:
+    if library.lang == "nodejs":
+        value = nodejs_telemetry_value(test_agent, "otel_sdk_disabled")
+        assert isinstance(value, bool)
+        return value
 
-        otel_enabled = library.config()["dd_trace_otel_enabled"]
+    otel_enabled = library.config()["dd_trace_otel_enabled"]
 
     assert otel_enabled in ("true", "false")
     return otel_enabled == "false"
@@ -65,11 +64,13 @@ class Test_OTEL_SDK_DISABLED:
         *,
         expected: bool,
     ):
-        assert _otel_sdk_disabled(test_agent, test_library) is expected
+        with test_library as library:
+            assert _otel_sdk_disabled(test_agent, library) is expected
 
     @pytest.mark.parametrize("library_env", UNSET_AND_EMPTY_VALUES)
     def test_default_matches_specification(self, test_agent: TestAgentAPI, test_library: APMLibrary):
-        assert _otel_sdk_disabled(test_agent, test_library) is False
+        with test_library as library:
+            assert _otel_sdk_disabled(test_agent, library) is False
 
     @pytest.mark.parametrize(
         "library_env",
@@ -80,8 +81,13 @@ class Test_OTEL_SDK_DISABLED:
             }
         ],
     )
-    def test_datadog_configuration_takes_precedence(self, test_library: APMLibrary):
+    def test_datadog_configuration_takes_precedence(
+        self,
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+    ):
         with test_library as library:
+            assert _otel_sdk_disabled(test_agent, library) is False
             config = library.config()
 
         assert config["dd_trace_otel_enabled"] == "true"
