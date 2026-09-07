@@ -94,15 +94,11 @@ class Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation(debugger.BaseDe
 
         # Weblog service/env, DI=false -> probes stop (most-specific wins)
         _send_config(enabled=False, service_name="weblog", env="system-tests", reset=False)
-        self.di_multiconfig_disabled_by_service = not self.wait_for_all_probes(
-            statuses=["EMITTING"], timeout=TIMEOUT
-        )
+        self.di_multiconfig_disabled_by_service = not self.wait_for_all_probes(statuses=["EMITTING"], timeout=TIMEOUT)
 
         # Wildcard service/env, DI=true -> still disabled (service+env false wins over org-wide true)
         _send_config(enabled=True, service_name="*", env="*", reset=False)
-        self.di_multiconfig_still_disabled = not self.wait_for_all_probes(
-            statuses=["EMITTING"], timeout=TIMEOUT
-        )
+        self.di_multiconfig_still_disabled = not self.wait_for_all_probes(statuses=["EMITTING"], timeout=TIMEOUT)
 
     @slow
     def test_inproduct_enablement_dynamic_instrumentation_apm_multiconfig(self):
@@ -112,9 +108,7 @@ class Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation(debugger.BaseDe
         assert self.di_multiconfig_initial_disabled, (
             "Expected probes to not emit when DI is disabled by the wildcard config"
         )
-        assert self.di_multiconfig_enabled, (
-            "Expected probes to emit after enabling DI via the wildcard config"
-        )
+        assert self.di_multiconfig_enabled, "Expected probes to emit after enabling DI via the wildcard config"
         assert self.di_multiconfig_disabled_by_service, (
             "Expected probes to stop after the service+env config disables DI"
         )
