@@ -348,7 +348,8 @@ class EndToEndScenario(DockerScenario):
         interfaces.backend.configure(self.host_log_folder, replay=self.replay)
         if self._mocked_backend_v2:
             interfaces.backend_v2.configure(self.host_log_folder, replay=self.replay)
-            interfaces.backend_v2.start_mocked_backend()
+            if not self.replay:
+                interfaces.backend_v2.start_mocked_backend()
         interfaces.library_dotnet_managed.configure(self.host_log_folder, replay=self.replay)
         interfaces.library_stdout.configure(self.host_log_folder, replay=self.replay)
         if self.include_agent:
