@@ -266,12 +266,7 @@ jobs:
         DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
     - name: Run APM_TRACING_E2E_SINGLE_SPAN scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APM_TRACING_E2E_SINGLE_SPAN"')
-      run: |
-        [[ -z "$DD_API_KEY" ]] && echo "Skipping: DD_API_KEY is not set" && exit 0
-        ./run.sh APM_TRACING_E2E_SINGLE_SPAN
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-        DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
+      run: ./run.sh APM_TRACING_E2E_SINGLE_SPAN
     - name: Run APM_TRACING_OTLP scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APM_TRACING_OTLP"')
       run: ./run.sh APM_TRACING_OTLP
