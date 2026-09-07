@@ -3663,7 +3663,7 @@ manifest:
     - weblog_declaration:
         aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_library_conf.py::Test_HeaderTags_DynamicConfig::test_tracing_client_http_header_tags: flaky (APMAPI-734)
-  tests/test_library_conf.py::Test_HeaderTags_DynamicConfig::test_tracing_client_http_header_tags_apm_multiconfig: v3.15.0
+  tests/test_library_conf.py::Test_HeaderTags_DynamicConfig::test_tracing_client_http_header_tags_apm_multiconfig: "missing_feature (tracing_header_tags multiconfig: env-var DD_TRACE_HEADER_TAGS is not replaced by the wildcard RC config)"
   tests/test_library_conf.py::Test_HeaderTags_Long: v1.2.1
   tests/test_library_conf.py::Test_HeaderTags_Short: v3.15.0+dev36.gb57f15308
   tests/test_library_conf.py::Test_HeaderTags_Whitespace_Header: v3.15.0+dev36.gb57f15308
