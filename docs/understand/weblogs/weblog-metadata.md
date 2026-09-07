@@ -136,6 +136,8 @@ unambiguous:
 - Every `COPY` has exactly one source: `COPY [flags] <source> <dest>`.
 - The bake target's `context` is always the Dockerfile's own directory, so every `COPY` source
   is a plain path relative to that directory.
+- A source may be a file, a glob, or a directory; glob sources are expanded, and directory
+  sources include every file beneath the directory.
 - No `RUN --mount` — a bind/cache/secret mount reads from a path the script can't see, so it
   would silently escape the derived dependency list.
 
