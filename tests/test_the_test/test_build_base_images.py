@@ -31,6 +31,7 @@ from utils.base_image.build_base_images import (
     materialize_build_context,
     parse_copy_dependencies,
 )
+from utils.base_image import wait_for_base_image
 
 
 def _write_dockerfile(tmp_path: Path, content: str) -> Path:
@@ -771,6 +772,53 @@ class Test_ImageExists:
 
         with pytest.raises(RuntimeError, match="after 3 attempts"):
             image_exists("datadog/system-tests:test", retry_delay_seconds=0)
+
+
+@scenarios.test_the_test
+class Test_WaitForBaseImage:
+    def test_missing_manifest_retries_until_timeout(self, monkeypatch: pytest.MonkeyPatch):
+        calls = 0
+
+        def missing(*_args: object, **_kwargs: object) -> subprocess.CompletedProcess:
+            nonlocal calls
+            calls += 1
+            return subprocess.CompletedProcess([], 1, stdout="", stderr="no such manifest")
+
+        monkeypatch.setattr(wait_for_base_image.subprocess, "run", missing)
+        monkeypatch.setattr(wait_for_base_image.time, "sleep", lambda _seconds: None)
+        monkeypatch.setattr(
+            sys,
+            "argv",
+            ["wait_for_base_image.py", "nodejs", "express4", "--timeout", "0", "--poll-interval", "0"],
+        )
+
+        with pytest.raises(SystemExit) as exit_info:
+            wait_for_base_image.main()
+
+        assert exit_info.value.code == 1
+        assert calls == 1
+
+    def test_non_missing_error_fails_immediately(self, monkeypatch: pytest.MonkeyPatch):
+        calls = 0
+
+        def unauthorized(*_args: object, **_kwargs: object) -> subprocess.CompletedProcess:
+            nonlocal calls
+            calls += 1
+            return subprocess.CompletedProcess([], 1, stdout="", stderr="unauthorized")
+
+        monkeypatch.setattr(wait_for_base_image.subprocess, "run", unauthorized)
+        monkeypatch.setattr(wait_for_base_image.time, "sleep", lambda _seconds: None)
+        monkeypatch.setattr(
+            sys,
+            "argv",
+            ["wait_for_base_image.py", "nodejs", "express4", "--timeout", "900", "--poll-interval", "30"],
+        )
+
+        with pytest.raises(SystemExit) as exit_info:
+            wait_for_base_image.main()
+
+        assert exit_info.value.code == 1
+        assert calls == 1
 
 
 @scenarios.test_the_test

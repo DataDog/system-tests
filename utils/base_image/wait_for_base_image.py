@@ -21,7 +21,9 @@ import sys
 import time
 from pathlib import Path
 
-from base_image import base_image_ref
+from utils.base_image.base_image import base_image_ref
+
+_MISSING_MANIFEST_ERRORS = ("manifest unknown", "no such manifest")
 
 
 def _base_image_tag(library: str, weblog: str) -> str | None:
@@ -58,19 +60,26 @@ def main() -> None:
             capture_output=True,
             text=True,
         )
+        error = "\n".join(part.strip() for part in (result.stdout, result.stderr) if part.strip())
         if result.returncode == 0:
             print(f"{image_tag} is available")
             return
 
+        if not any(missing_manifest_error in error.lower() for missing_manifest_error in _MISSING_MANIFEST_ERRORS):
+            print(f"Error: failed to inspect {image_tag}")
+            if error:
+                print(error)
+            sys.exit(1)
+
         if time.monotonic() >= deadline:
             print(f"Error: timed out waiting for {image_tag}")
-            if result.stderr:
-                print(result.stderr.strip())
+            if error:
+                print(error)
             sys.exit(1)
 
         print(f"{image_tag} not found yet, retrying in {args.poll_interval}s...")
-        if result.stderr:
-            print(result.stderr.strip())
+        if error:
+            print(error)
         time.sleep(args.poll_interval)
 
 
