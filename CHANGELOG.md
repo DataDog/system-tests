@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+### 2026-08 (158 PR merged)
+
+* 2026-08-24 [chore: add system-tests-reviewers to CODEOWNERS](https://github.com/DataDog/system-tests/pull/7564) by @brettlangdon
+* 2026-08-12 [Ew auto merge per team lang](https://github.com/DataDog/system-tests/pull/7475) by @nccatoni
+
+
 ### 2026-07 (150 PR merged)
 
 * 2026-07-01 [feat: add per-weblog metadata to control CI build requirement](https://github.com/DataDog/system-tests/pull/7130) by @rochdev
