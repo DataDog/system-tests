@@ -46,7 +46,7 @@ try:
 except ImportError:  # pragma: no cover - direct script execution
     from base_image import ALIAS_PREFIX, LOCK_PATH, LOCK_VERSION, load_base_image_lock
 
-BUILD_CONTEXT_ROOT = REPO_ROOT / ".base_image_build"
+BUILD_CONTEXT_ROOT = REPO_ROOT / ".base_images_build"
 
 _SOURCE_AND_DEST_TOKEN_COUNT = 2
 _CONTENT_HASH_LENGTH = 12
@@ -446,7 +446,7 @@ def _changed_libraries() -> set[str] | None:
         return None
 
     changed_paths = set(diff.splitlines())
-    if changed_paths & {"utils/base_image/build_base_images.py", "utils/base_image/base_image.py"}:
+    if changed_paths & {"utils/base_images/build_base_images.py", "utils/base_images/base_image.py"}:
         print("--changed-only: base-image tooling changed; processing all libraries")
         return None
 
@@ -521,7 +521,7 @@ def main() -> None:
 
     if drift:
         print("Base images are published, but the committed lock is stale. Regenerate and commit it:")
-        print("  python utils/scripts/update-base-image-lock.py")
+        print("  python utils/scripts/update-base-images-lock.py")
         sys.exit(1)
 
 

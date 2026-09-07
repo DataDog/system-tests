@@ -144,7 +144,7 @@ jobs:
 
     - name: Wait for weblog base image
       if: github.repository == 'DataDog/system-tests'
-      run: python3 ./utils/scripts/wait-for-base-image.py ${{ inputs.library }} ${{ inputs.weblog }} --timeout 900 --poll-interval 30
+      run: python3 ./utils/scripts/wait-for-base-images.py ${{ inputs.library }} ${{ inputs.weblog }} --timeout 900 --poll-interval 30
 
     - name: Pull images
       uses: ./.github/actions/pull_images
