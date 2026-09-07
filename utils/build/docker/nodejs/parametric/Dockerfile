@@ -1,9 +1,8 @@
-FROM node:18.10-slim
+FROM node:18.20.8-bookworm-slim
 
 COPY --from=oven/bun:1.3.13 /usr/local/bin/bun /usr/local/bin/bun
 
-RUN apt-get update && apt-get -y install bash curl git jq \
-  || sleep 60 && apt-get update && apt-get -y install bash curl git jq
+RUN apt-get update && apt-get -y install bash curl git jq
 
 RUN node --version && npm --version && bun --version && curl --version
 
