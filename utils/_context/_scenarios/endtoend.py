@@ -482,6 +482,10 @@ class EndToEndScenario(DockerScenario):
 
             interfaces.backend.load_data_from_logs()
 
+            if self._mocked_backend_v2:
+                interfaces.backend_v2.load_data_from_logs()
+                interfaces.backend_v2.check_deserialization_errors()
+
             if self.include_opentelemetry:
                 interfaces.open_telemetry.load_data_from_logs()
                 interfaces.open_telemetry.check_deserialization_errors()

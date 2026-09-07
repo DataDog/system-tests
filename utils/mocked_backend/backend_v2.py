@@ -75,7 +75,7 @@ class MockBackendV2Server:
         self.port = self._server.server_port
         self._thread = threading.Thread(target=self._server.serve_forever, name="mock-backend-v2", daemon=True)
         self._thread.start()
-        logger.debug(f"Mocked backend v2 server started on {self.base_url}, logging into {log_folder}/files")
+        logger.debug(f"Mocked backend v2 server started on {self.base_url}, logging into {log_folder}")
 
     @property
     def base_url(self) -> str:
@@ -125,7 +125,7 @@ class _MockBackendV2RequestHandler(BaseHTTPRequestHandler):
             message_count = self.server.message_count
             self.server.message_count += 1
 
-        log_filename = f"{self.server.log_folder}/files/{message_count:03d}_{path_without_query.replace('/', '_')}.json"
+        log_filename = f"{self.server.log_folder}/{message_count:03d}_{path_without_query.replace('/', '_')}.json"
 
         data: dict[str, Any] = {
             "log_filename": log_filename,
@@ -143,9 +143,16 @@ class _MockBackendV2RequestHandler(BaseHTTPRequestHandler):
                 data,
                 key="request",
                 content=content,
-                interface="backend_v2",
+                interface="agent",
                 export_content_files_to=f"{self.server.log_folder}/files",
             )
+
+        response_payload: dict[str, Any] = {}
+        data["response"] = {
+            "status_code": int(HTTPStatus.OK),
+            "headers": [("Content-Type", "application/json")],
+            "content": response_payload,
+        }
 
         logger.debug(f"Mocked backend v2 received {self.command} {self.path}, logging into {log_filename}")
         with open(log_filename, mode="w", encoding="utf-8") as f:
@@ -154,7 +161,7 @@ class _MockBackendV2RequestHandler(BaseHTTPRequestHandler):
         if self.server.on_message is not None:
             self.server.on_message(data)
 
-        self._write_json(HTTPStatus.OK, {})
+        self._write_json(HTTPStatus.OK, response_payload)
 
     def _write_json(self, status_code: HTTPStatus, payload: dict[str, Any]) -> None:
         body = json.dumps(payload).encode("utf-8")
