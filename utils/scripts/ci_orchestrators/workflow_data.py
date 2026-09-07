@@ -237,10 +237,6 @@ class Job:
             "scenarios": sorted(self.scenarios),
             "expected_job_time": self.expected_job_time + self.build_time,
             "binaries_artifact": self.weblog.artifact_name,
-            # only local weblogs build their base image inline; prebuild weblogs wait for it
-            # once in the dedicated build_end_to_end job (see _get_weblog_build_job).
-            "build_weblog_base_image": self.weblog.build_mode == BuildMode.local
-            and self.weblog.base_image_tag is not None,
         }
 
     @property
@@ -384,7 +380,6 @@ def _get_weblog_build_job(weblog: Weblog) -> dict:
     return {
         "name": weblog.name,
         "artifact_name": weblog.artifact_name,
-        "build_weblog_base_image": weblog.base_image_tag is not None,
     }
 
 

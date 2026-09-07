@@ -95,32 +95,6 @@ def test_weblog_build_mode_is_resolved_from_metadata():
 
 
 @scenarios.test_the_test
-def test_nodejs_build_base_image():
-    scenario_map = {"endtoend": [scenarios.default, scenarios.integration_frameworks]}
-    defs = get_endtoend_definitions("nodejs", scenario_map, [], "dev", 200000, 256, "123", "")
-
-    assert defs["endtoend_defs"]["parallel_weblogs"] == []
-
-    jobs = {job["weblog"]: job for job in defs["endtoend_defs"]["parallel_jobs"]}
-
-    # express4 has a base image tag → should wait for it
-    assert jobs["express4"]["build_weblog_base_image"] is True
-
-    # openai-js has no base image tag → should not wait for a base image
-    assert jobs["openai-js@6.0.0"]["build_weblog_base_image"] is False
-
-
-@scenarios.test_the_test
-def test_python_build_base_image():
-    scenario_map = {"endtoend": [scenarios.default, scenarios.integration_frameworks]}
-    defs = get_endtoend_definitions("python", scenario_map, [], "dev", 200000, 256, "123", "")
-
-    # all python weblogs with a base image tag should wait for it in the build job
-    for job in defs["endtoend_defs"]["parallel_weblogs"]:
-        assert job["build_weblog_base_image"] is True, job
-
-
-@scenarios.test_the_test
 def test_otel_collector():
     scenario_map = {"endtoend": [scenarios.otel_collector]}
     defs = get_endtoend_definitions("otel_collector", scenario_map, [], "prod", 200000, 256, "123", "")
@@ -128,7 +102,6 @@ def test_otel_collector():
     assert defs["endtoend_defs"]["parallel_jobs"] == [
         {
             "binaries_artifact": "",
-            "build_weblog_base_image": False,
             "expected_job_time": 74.34217318962216,
             "library": "otel_collector",
             "runs_on": "ubuntu-latest",

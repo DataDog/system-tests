@@ -62,11 +62,6 @@ on:
         default: false
         required: false
         type: boolean
-      _build_weblog_base_image:
-        description: "Shall we wait for the weblog base image to be pushed by GitLab CI before building the weblog"
-        default: false
-        required: false
-        type: boolean
       skip_empty_scenarios:
         description: "Skip scenarios that contains only xfail or irrelevant tests"
         default: false
