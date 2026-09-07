@@ -125,7 +125,8 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
         self._data_list.append(data)
 
     def get_data(self, path_filters: Iterable[str] | str | None = None):
-        assert self._configured, f"{self} hasn't be configured, you can't use it"
+        if not self._configured:
+            raise RuntimeError(f"{self} hasn't been configured; you can't use it")
 
         if path_filters is not None:
             if isinstance(path_filters, str):
