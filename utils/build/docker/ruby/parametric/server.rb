@@ -714,11 +714,15 @@ class OtelCreateAsynchronousGaugeReturn
 end
 
 class OtelMetricsForceFlushArgs
-  attr_reader :seconds, :public_only
+  def initialize(params)
+  end
+end
+
+class OtelMetricsShutdownArgs
+  attr_reader :seconds
 
   def initialize(params)
     @seconds = params.fetch('seconds', 10)
-    @public_only = params.fetch('public_only', false)
   end
 end
 
@@ -1595,21 +1599,15 @@ class MyApp
 
     meter_provider = OpenTelemetry.meter_provider
 
-    unless args.public_only
-      meter_provider.force_flush if meter_provider.respond_to?(:force_flush)
-      return res.write(OtelMetricsForceFlushReturn.new(true).to_json)
+    if meter_provider.respond_to?(:force_flush)
+      meter_provider.force_flush
     end
 
-    success = meter_provider.respond_to?(:force_flush)
-    result = meter_provider.force_flush(timeout: args.seconds) if success
-    success &&= result == OpenTelemetry::SDK::Metrics::Export::SUCCESS
-    res.write(OtelMetricsForceFlushReturn.new(success).to_json)
-  rescue
-    res.write(OtelMetricsForceFlushReturn.new(false).to_json)
+    res.write(OtelMetricsForceFlushReturn.new(true).to_json)
   end
 
   def handle_metrics_otel_shutdown(req, res)
-    args = OtelMetricsForceFlushArgs.new(JSON.parse(req.body.read))
+    args = OtelMetricsShutdownArgs.new(JSON.parse(req.body.read))
     meter_provider = OpenTelemetry.meter_provider
     success = meter_provider.respond_to?(:shutdown)
     result = meter_provider.shutdown(timeout: args.seconds) if success

@@ -14,7 +14,6 @@ import java.lang.reflect.Method;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -217,13 +216,6 @@ public class OpenTelemetryMetricsController {
   public FlushResult forceFlush(@RequestBody FlushArgs args) {
     LOGGER.info("Flushing OTel metrics: {}", args);
     try {
-      if (invokeLifecycle("forceFlush", args.seconds())) {
-        MetricsController.skipNextFlush();
-        return new FlushResult(true);
-      }
-      if (args.publicOnly()) {
-        return new FlushResult(false);
-      }
       if (GlobalTracer.get() instanceof InternalTracer internalTracer) {
         internalTracer.flushMetrics();
         // skip the next general metrics flush, as it's covered by the same call
@@ -243,27 +235,28 @@ public class OpenTelemetryMetricsController {
   public FlushResult shutdown(@RequestBody FlushArgs args) {
     LOGGER.info("Shutting down OTel metrics: {}", args);
     try {
-      return new FlushResult(invokeLifecycle("shutdown", args.seconds()));
+      return new FlushResult(invokeShutdown(args.seconds()));
     } catch (Exception e) {
       LOGGER.warn("Failed to shut down OTel metrics", e);
       return new FlushResult(false);
     }
   }
 
-  private static boolean invokeLifecycle(String methodName, long seconds) throws Exception {
+  private static boolean invokeShutdown(long seconds) throws Exception {
     Class<?> lifecycleClass;
-    Method method;
     try {
-      lifecycleClass = Class.forName("datadog.trace.api.metrics.OpenTelemetryMetrics");
-      method = lifecycleClass.getMethod(methodName);
-    } catch (ClassNotFoundException | NoSuchMethodException ignored) {
+      lifecycleClass = Class.forName("datadog.trace.api.metrics.DatadogMeterProvider");
+    } catch (ClassNotFoundException ignored) {
       return false;
     }
-    Object result = method.invoke(null);
-    if (!(result instanceof Future<?> future)) {
+    Object meterProvider = GlobalOpenTelemetry.get().getMeterProvider();
+    if (!lifecycleClass.isInstance(meterProvider)) {
       return false;
     }
-    return Boolean.TRUE.equals(future.get(seconds, TimeUnit.SECONDS));
+    Object result = lifecycleClass.getMethod("shutdown").invoke(meterProvider);
+    Method join = result.getClass().getMethod("join", long.class, TimeUnit.class);
+    join.invoke(result, seconds, TimeUnit.SECONDS);
+    return Boolean.TRUE.equals(result.getClass().getMethod("isSuccess").invoke(result));
   }
 
   /** Builds {@link Attributes} from a map of strings. */

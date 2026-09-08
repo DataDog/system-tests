@@ -284,10 +284,17 @@ type OtelCreateAsynchronousGaugeArgs struct {
 }
 
 type OtelMetricsForceFlushArgs struct {
+}
+
+type OtelMetricsShutdownArgs struct {
 	Seconds int `json:"seconds"`
 }
 
 type OtelMetricsForceFlushReturn struct {
+	Success bool `json:"success"`
+}
+
+type OtelMetricsShutdownReturn struct {
 	Success bool `json:"success"`
 }
 

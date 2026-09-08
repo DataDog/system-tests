@@ -827,21 +827,14 @@ app.post('/metrics/otel/create_asynchronous_gauge', (req, res) => {
   res.json({});
 });
 
-app.post('/metrics/otel/force_flush', async (req, res) => {
+app.post('/metrics/otel/force_flush', (req, res) => {
   const meterProvider = metrics.getMeterProvider();
-  try {
-    if (!req.body.public_only && meterProvider.reader) {
-      await waitForMetricsLifecycle(meterProvider.reader.forceFlush(), req.body.seconds || 10)
-      return res.json({ success: true });
-    }
-    if (typeof meterProvider.forceFlush === 'function') {
-      await waitForMetricsCallback(done => meterProvider.forceFlush(done), req.body.seconds || 10)
-      return res.json({ success: true });
-    }
-  } catch (error) {
-    return res.json({ success: false, message: error.message });
+  if (meterProvider.reader) {
+    meterProvider.reader.forceFlush()
+    res.json({ success: true });
+  } else {
+    res.json({ success: false, message: 'Force flush not supported' });
   }
-  res.json({ success: false, message: 'Force flush not supported' });
 });
 
 app.post('/metrics/otel/shutdown', async (req, res) => {

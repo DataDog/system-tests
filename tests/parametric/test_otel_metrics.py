@@ -287,22 +287,6 @@ class Test_Otel_Metrics_Lifecycle:
         )
 
     @pytest.mark.parametrize("library_env", [{**LIFECYCLE_ENVVARS}])
-    def test_force_flush_exports_pending_metric_before_return(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary, test_id: str
-    ) -> None:
-        metric_name = f"lifecycle-force-flush-{test_id}"
-        self.generate_pending_counter(test_library, metric_name)
-        assert find_metrics_by_name(test_agent.metrics(), metric_name) == []
-
-        try:
-            success = test_library.otel_metrics_force_flush(10, public_only=True)
-        finally:
-            test_library.terminate()
-
-        assert success
-        self.assert_exported_once(test_agent.metrics(), metric_name)
-
-    @pytest.mark.parametrize("library_env", [{**LIFECYCLE_ENVVARS}])
     def test_shutdown_exports_pending_metric_before_return(
         self, test_agent: TestAgentAPI, test_library: APMLibrary, test_id: str
     ) -> None:

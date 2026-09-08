@@ -570,7 +570,7 @@ func (s *apmClientServer) otelMetricsForceFlushHandler(w http.ResponseWriter, r 
 		return
 	}
 
-	success := s.OtelMetricsForceFlush(args.Seconds)
+	success := s.OtelMetricsForceFlush()
 
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(&OtelMetricsForceFlushReturn{Success: success}); err != nil {
@@ -578,10 +578,10 @@ func (s *apmClientServer) otelMetricsForceFlushHandler(w http.ResponseWriter, r 
 	}
 }
 
-func (s *apmClientServer) OtelMetricsForceFlush(seconds int) bool {
+func (s *apmClientServer) OtelMetricsForceFlush() bool {
+	// Use the dd-trace-go helper to flush metrics
 	mp := otel.GetMeterProvider()
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(seconds)*time.Second)
-	defer cancel()
+	ctx := context.Background()
 	if err := ddmetric.ForceFlush(ctx, mp); err != nil {
 		fmt.Printf("Error flushing metrics: %v\n", err)
 		return false
@@ -590,7 +590,7 @@ func (s *apmClientServer) OtelMetricsForceFlush(seconds int) bool {
 }
 
 func (s *apmClientServer) otelMetricsShutdownHandler(w http.ResponseWriter, r *http.Request) {
-	var args OtelMetricsForceFlushArgs
+	var args OtelMetricsShutdownArgs
 	if err := json.NewDecoder(r.Body).Decode(&args); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -602,7 +602,7 @@ func (s *apmClientServer) otelMetricsShutdownHandler(w http.ResponseWriter, r *h
 	success := ddmetric.Shutdown(ctx, mp) == nil
 
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(&OtelMetricsForceFlushReturn{Success: success}); err != nil {
+	if err := json.NewEncoder(w).Encode(&OtelMetricsShutdownReturn{Success: success}); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }

@@ -1,6 +1,4 @@
 package com.datadoghq.trace.opentelemetry.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-public record FlushArgs(long seconds, @JsonProperty("public_only") boolean publicOnly) {
+public record FlushArgs(long seconds) {
 }

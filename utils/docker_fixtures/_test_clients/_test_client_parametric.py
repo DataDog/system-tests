@@ -971,12 +971,8 @@ class ParametricTestClientApi(TestClientApi):
             },
         )
 
-    def otel_metrics_force_flush(self, seconds: int = 10, *, public_only: bool = False) -> bool:
-        resp = self._session.post(
-            self._url("/metrics/otel/force_flush"),
-            json={"seconds": seconds, "public_only": public_only},
-            timeout=seconds + 1 if public_only else None,
-        ).json()
+    def otel_metrics_force_flush(self) -> bool:
+        resp = self._session.post(self._url("/metrics/otel/force_flush"), json={}).json()
         return resp["success"]
 
     def otel_metrics_shutdown(self, seconds: int = 10) -> bool:
@@ -1227,8 +1223,8 @@ class APMLibrary:
     ) -> None:
         self._client.otel_create_asynchronous_gauge(meter_name, name, unit, description, value, attributes)
 
-    def otel_metrics_force_flush(self, seconds: int = 10, *, public_only: bool = False) -> bool:
-        return self._client.otel_metrics_force_flush(seconds, public_only=public_only)
+    def otel_metrics_force_flush(self) -> bool:
+        return self._client.otel_metrics_force_flush()
 
     def otel_metrics_shutdown(self, seconds: int = 10) -> bool:
         return self._client.otel_metrics_shutdown(seconds)

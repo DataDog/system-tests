@@ -1292,8 +1292,7 @@ def otel_create_asynchronous_gauge(args: OtelCreateAsynchronousGaugeArgs):
 
 
 class OtelMetricsForceFlushArgs(BaseModel):
-    seconds: int = 10
-    public_only: bool = False
+    pass
 
 
 class OtelMetricsForceFlushReturn(BaseModel):
@@ -1310,13 +1309,9 @@ def otel_metrics_force_flush(args: OtelMetricsForceFlushArgs):
     # a default _ProxyMeterProvider provided by the API which does not
     # have the method.
     if hasattr(meter_provider, "force_flush"):
-        try:
-            result = meter_provider.force_flush(timeout_millis=args.seconds * 1000)
-            return OtelMetricsForceFlushReturn(success=result is not False)
-        except Exception:
-            return OtelMetricsForceFlushReturn(success=False)
+        meter_provider.force_flush()
 
-    return OtelMetricsForceFlushReturn(success=not args.public_only)
+    return OtelMetricsForceFlushReturn(success=True)
 
 
 class OtelMetricsShutdownArgs(BaseModel):
