@@ -68,6 +68,7 @@ manifest:
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED: missing_feature
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids: v0.0.1
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3multi_128_bit_generation_disabled: missing_feature (propagation style not supported)
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3multi_128_bit_generation_enabled: missing_feature (propagation style not supported)
@@ -222,7 +223,6 @@ manifest:
     - declaration: incomplete_test_app (/trace/config endpoint is not implemented)
       component_version: <0.4.1-dev+926c77a
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_env_var_take_precedence: incomplete_test_app (/trace/config endpoint is not implemented)
-  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_otel_enabled_takes_precedence: incomplete_test_app (/trace/config endpoint is not implemented)
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_false:
     - declaration: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
     - declaration: incomplete_test_app
@@ -234,7 +234,6 @@ manifest:
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_attribute_mapping: incomplete_test_app (/trace/config endpoint is not implemented)
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_env_vars_set: incomplete_test_app (/trace/config endpoint is not implemented)
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_log_level_env: incomplete_test_app (/trace/config endpoint is not implemented)
-  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_sdk_disabled_set: incomplete_test_app (/trace/config endpoint is not implemented)
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_traces_always_off: incomplete_test_app (/trace/config endpoint is not implemented)
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_traces_always_on: incomplete_test_app (/trace/config endpoint is not implemented)
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_traces_exporter_none: incomplete_test_app (/trace/config endpoint is not implemented)
