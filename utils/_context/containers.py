@@ -145,6 +145,14 @@ class TestedContainer:
         except FileNotFoundError:
             return default_name
 
+    def enable_ptrace(self) -> None:
+        """Allow processes in this container to be traced from outside, e.g. by py-spy"""
+
+        self.cap_add = self.cap_add if self.cap_add is not None else []
+
+        if "SYS_PTRACE" not in self.cap_add:
+            self.cap_add.append("SYS_PTRACE")
+
     def enable_core_dumps(self) -> None:
         """Modify container options to enable the possibility of core dumps"""
 
@@ -425,7 +433,15 @@ class TestedContainer:
                 self.healthy = False
                 pytest.exit(f"Container {self.name} is not running ({self._container.status}), please check logs", 1)
 
-            self._container.stop()
+            try:
+                self._container.stop()
+            except requests.exceptions.Timeout as e:
+                pytest.exit(
+                    f"Container {self.name} failed to stop: the docker client timed out waiting for a response "
+                    f"from the daemon. This may mean the container's process did not exit within the stop grace "
+                    f"period, or that the docker daemon/host is overloaded and unresponsive. ({e})",
+                    1,
+                )
 
             if not self.healthy:
                 pytest.exit(f"Container {self.name} is not healthy, please check logs", 1)
@@ -469,6 +485,10 @@ class TestedContainer:
 
         if self.stdout_interface is not None:
             self.stdout_interface.load_data()
+
+    def is_removed(self) -> bool:
+        """Check that the container has been removed."""
+        return self.get_existing_container() is None
 
     def _set_aws_auth_environment(self):
         # Set default AWS values
@@ -1146,6 +1166,11 @@ class WeblogContainer(TestedContainer):
 
         if library in ("php", "cpp_nginx"):
             self.enable_core_dumps()
+
+        if library == "python":
+            # py-spy dumps this weblog's thread stacks when a remote config apply
+            # stalls (see utils/_remote_config.py), and needs ptrace to do so
+            self.enable_ptrace()
 
     def warmup_request(self, timeout: int = 10):
         weblog.get("/", timeout=timeout)
