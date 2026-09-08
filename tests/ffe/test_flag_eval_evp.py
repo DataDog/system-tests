@@ -23,6 +23,11 @@ EVP_LOAD_WAIT_TIMEOUT_SECONDS = 60
 EVP_FULL_TIER_PER_FLAG_CAP = 10_000
 EVP_DEGRADATION_OVERFLOW_EVALS = 2_000
 
+# SDK-generated numeric fields: millisecond clock values and a counter. They are excluded from
+# the raw-PII substring scan in assert_no_raw_pii_in_event, since they cannot carry evaluation
+# context but do contain digit sequences that collide with short numeric PII values.
+EVENT_NUMERIC_FIELDS = frozenset({"timestamp", "first_evaluation", "last_evaluation", "evaluation_count"})
+
 # Fixed input/output vector for the PII-protection tests. Every SDK's unit tests
 # should assert against the same input to prove byte-identical hashing across SDKs.
 PII_TARGETING_KEY = "jane.doe@datadoghq.com"
@@ -212,15 +217,25 @@ def _assert_hashed_targeting_key(event: JSON) -> None:
 
 
 def assert_no_raw_pii_in_event(event: JSON, forbidden_values: list[str]) -> None:
-    """Walk the entire serialized event and assert none of the raw PII strings appear anywhere.
+    """Walk the serialized event and assert none of the raw PII strings appear anywhere.
 
     Guards against SDK bugs that route unhashed values into unexpected fields (e.g., a raw
     email leaking into ``context.user_email`` even when ``context.evaluation`` is correctly
     omitted).
+
+    EVENT_NUMERIC_FIELDS are excluded before serializing. They are SDK-generated clock and
+    counter values that cannot carry evaluation context, and scanning them produces false
+    positives: a short numeric PII value such as ``org_id=1234`` occurs by chance inside a
+    13-digit millisecond timestamp (e.g. ``1788901234711``) about 0.3% of the time, which made
+    these tests flake on an unrelated schedule.
     """
-    serialized = json.dumps(event, default=str)
+    scanned = {key: value for key, value in event.items() if key not in EVENT_NUMERIC_FIELDS}
+    serialized = json.dumps(scanned, default=str)
     for value in forbidden_values:
-        assert value not in serialized, f"raw PII value {value!r} must not appear anywhere in event: {event}"
+        assert value not in serialized, (
+            f"raw PII value {value!r} must not appear anywhere in event (excluding "
+            f"{sorted(EVENT_NUMERIC_FIELDS)}): {event}"
+        )
 
 
 def assert_no_duplicate_visible_events(events: list[tuple[JSON, JSON]]) -> None:
