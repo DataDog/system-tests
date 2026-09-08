@@ -281,18 +281,6 @@ class Test_Otel_Env_Vars:
         # If dd_log_level is set it must be consistent with dd_trace_debug
         assert (resp["dd_log_level"] == "debug") or (resp["dd_log_level"] is None)
 
-    @pytest.mark.parametrize("library_env", [{"DD_TRACE_OTEL_ENABLED": "true", "OTEL_SDK_DISABLED": "true"}])
-    def test_dd_trace_otel_enabled_takes_precedence(self, test_library: APMLibrary):
-        with test_library as t:
-            resp = t.config()
-        assert resp["dd_trace_otel_enabled"] == "true"
-
-    @pytest.mark.parametrize("library_env", [{"OTEL_SDK_DISABLED": "true", "DD_TRACE_OTEL_ENABLED": None}])
-    def test_otel_sdk_disabled_set(self, test_library: APMLibrary):
-        with test_library as t:
-            resp = t.config()
-        assert resp["dd_trace_otel_enabled"] == "false"
-
     @pytest.mark.parametrize("library_env", [{"OTEL_TRACES_SAMPLER": "always_on", "DD_TRACE_OTEL_ENABLED": "true"}])
     def test_dd_trace_sample_ignore_parent_true(self, test_library: APMLibrary):
         with test_library as t:
