@@ -204,6 +204,7 @@ jobs:
         with:
           repository: 'DataDog/system-tests'
           ref: ${{ steps.compute_ref.outputs.ref }}
+          submodules: recursive
       - name: Get binaries artifact
         if : ${{ needs.compute_parameters.outputs.binaries_artifact != '' }}
         uses: ./.github/actions/download_artifact
