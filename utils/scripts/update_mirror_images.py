@@ -45,18 +45,19 @@ MIRROR_YAML = REPO_ROOT / "mirror_images.yaml"
 LOCK_YAML = REPO_ROOT / "mirror_images.lock.yaml"
 BUILDKITD_TOML = REPO_ROOT / "utils" / "build" / "docker" / "buildkitd.toml"
 
-# Header written when mirror_images.yaml does not exist yet. The mirror_images.py
-# `add` command rewrites the file through a YAML parser and drops comments, so an
-# existing header is carried across by _restore_yaml_preamble instead.
+# Canonical header for mirror_images.yaml. The mirror_images.py `add` command
+# rewrites the file through a YAML parser and drops comments, so the script
+# restores this header after every run.
 MIRROR_YAML_HEADER = """\
 # Docker images mirrored into registry.ddbuild.io/system-tests/mirror.
 #
-# Generated: this file lists every image required by the CI scenarios.
+# This file is generated: it lists every image required by the CI scenarios.
 # Regenerate after changing scenarios or weblog Dockerfiles with:
 #
 #   python utils/scripts/update_mirror_images.py
 #
-# The `mirror_images_check` CI job fails if this file is out of date.
+# (also refreshes mirror_images.lock.yaml; commit both). The
+# `mirror_images_check` CI job fails if this file is out of date.
 """
 
 # Scenarios excluded from the GitLab end-to-end pipeline. Mirrors the
@@ -136,45 +137,17 @@ def _refresh_lock_file() -> str | None:
     return original_lock
 
 
-def _read_yaml_preamble() -> str:
-    """Leading document-start and comment lines of mirror_images.yaml, if any."""
-    if not MIRROR_YAML.exists():
-        return ""
+def _restore_yaml_header() -> None:
+    """Apply the canonical header after ``add`` drops the existing one.
 
-    preamble: list[str] = []
-    for line in MIRROR_YAML.read_text(encoding="utf-8").splitlines(keepends=True):
-        if line.startswith(("---", "#")) or not line.strip():
-            preamble.append(line)
-        else:
-            break
-    return "".join(preamble)
-
-
-def _has_document_marker(text: str) -> bool:
-    """Whether `text` contains a YAML document start on a line of its own."""
-    return any(line.strip() == "---" for line in text.splitlines())
-
-
-def _restore_yaml_preamble(preamble: str) -> None:
-    """Re-apply the preamble that ``add`` dropped.
-
-    ``mirror_images.py add`` rewrites the file through a YAML parser, which discards
-    comments, but only when it actually adds something. Without this, regenerating
-    after a new image silently deletes the file's own documentation.
+    The mirror_images.py serializer may emit a document-start marker. Remove it so
+    the generated file always starts with the canonical header and remains one
+    YAML document.
     """
-    if not preamble:
-        return
-
     content = MIRROR_YAML.read_text(encoding="utf-8")
-    if content.startswith(preamble):
-        return
-
-    body = content
-    # drop the serializer's document start if the preamble already carries one,
-    # wherever it sits in the preamble: two markers make it two YAML documents
-    if content.startswith("---\n") and _has_document_marker(preamble):
-        body = content[len("---\n") :]
-    MIRROR_YAML.write_text(preamble + body, encoding="utf-8")
+    if content.startswith("---\n"):
+        content = content[len("---\n") :]
+    MIRROR_YAML.write_text(MIRROR_YAML_HEADER + content, encoding="utf-8")
 
 
 def main(excluded: set[str], *, skip_lock: bool, refresh: bool = False) -> None:
@@ -190,9 +163,8 @@ def main(excluded: set[str], *, skip_lock: bool, refresh: bool = False) -> None:
     if not MIRROR_YAML.exists():
         MIRROR_YAML.write_text(MIRROR_YAML_HEADER)
 
-    preamble = _read_yaml_preamble()
     _run_mirror_images("add", *images)
-    _restore_yaml_preamble(preamble)
+    _restore_yaml_header()
     if not skip_lock:
         original_lock = _refresh_lock_file() if refresh else None
         try:

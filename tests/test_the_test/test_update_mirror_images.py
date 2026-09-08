@@ -137,26 +137,27 @@ class Test_UpdateMirrorImages:
         monkeypatch.setattr(update_mirror_images, "_run_mirror_images", fake_run_mirror_images)
         return mirror_yaml
 
-    def test_main_keeps_the_header_when_add_rewrites_the_file(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    def test_main_normalizes_to_the_canonical_header(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
         mirror_yaml = self._setup_mirror_yaml(tmp_path, monkeypatch)
-        header = "---\n# Docker images mirrored into the registry.\n#\n#   regenerate me\n"
-        mirror_yaml.write_text(header + '- "alpine:3.22"\n', encoding="utf-8")
+        mirror_yaml.write_text('# manually edited header\n- "alpine:3.22"\n', encoding="utf-8")
 
         update_mirror_images.main(set(), skip_lock=True)
 
         content = mirror_yaml.read_text(encoding="utf-8")
-        assert content.startswith(header), f"header was not preserved:\n{content}"
+        expected_header = update_mirror_images.MIRROR_YAML_HEADER
+        assert content.startswith(expected_header), f"canonical header was not applied:\n{content}"
         assert '- "redis:7"' in content
 
-    def test_main_leaves_an_unchanged_file_byte_identical(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    def test_main_canonicalizes_an_unchanged_file(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
         mirror_yaml = self._setup_mirror_yaml(tmp_path, monkeypatch)
         monkeypatch.setattr(update_mirror_images, "_run_mirror_images", lambda *_args: None)  # adds nothing
-        original = '---\n# a header\n- "redis:7"\n'
+        original = '# manually edited header\n- "redis:7"\n'
         mirror_yaml.write_text(original, encoding="utf-8")
 
         update_mirror_images.main(set(), skip_lock=True)
 
-        assert mirror_yaml.read_text(encoding="utf-8") == original
+        content = mirror_yaml.read_text(encoding="utf-8")
+        assert content == update_mirror_images.MIRROR_YAML_HEADER + '- "redis:7"\n'
 
     def test_main_writes_the_default_header_on_first_run(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
         mirror_yaml = self._setup_mirror_yaml(tmp_path, monkeypatch)
@@ -165,22 +166,18 @@ class Test_UpdateMirrorImages:
         update_mirror_images.main(set(), skip_lock=True)
 
         content = mirror_yaml.read_text(encoding="utf-8")
-        assert update_mirror_images.MIRROR_YAML_HEADER.splitlines()[0] in content
+        assert content.startswith(update_mirror_images.MIRROR_YAML_HEADER)
         assert '- "redis:7"' in content
 
     def test_main_does_not_produce_two_yaml_documents(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
-        """A marker in the preamble plus one from the serializer must stay one document.
-
-        The preamble deliberately puts a comment *before* the marker: keying off the
-        first line alone left two document starts and made the file unloadable.
-        """
+        """The canonical header plus a serializer marker must stay one document."""
         mirror_yaml = self._setup_mirror_yaml(tmp_path, monkeypatch, serializer_emits_marker=True)
-        mirror_yaml.write_text('# a comment before the marker\n---\n- "alpine:3.22"\n', encoding="utf-8")
+        mirror_yaml.write_text('# manually edited header\n- "alpine:3.22"\n', encoding="utf-8")
 
         update_mirror_images.main(set(), skip_lock=True)
 
         content = mirror_yaml.read_text(encoding="utf-8")
-        assert [line for line in content.splitlines() if line.strip() == "---"] == ["---"], content
+        assert not any(line.strip() == "---" for line in content.splitlines()), content
         assert yaml.safe_load(content) == ["redis:7"]
 
     def test_main_rejects_refresh_with_skip_lock(self):
