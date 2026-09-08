@@ -117,7 +117,7 @@ capabilities:
       - APM_TRACING_ENABLE_LIVE_DEBUGGING
       - APM_TRACING_MULTICONFIG
 
-    '>=3.53.0':
+    '>=3.54.0':
       - FFE_FLAG_CONFIGURATION_RULES
 
   cpp:
