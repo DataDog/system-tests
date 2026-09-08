@@ -125,6 +125,26 @@ Update every tracer manifest for the new path.
 Do not infer support from an old test that passes accidentally because the
 observed configuration already has the expected default.
 
+### Group related bug tickets
+
+When issue creation is in scope and several languages have semantically
+similar gaps for the same variable, prefer one Story under the OTel audit bugs
+epic `APMAPI-2411`, with one Sub-task per affected language, instead of one
+top-level Bug per language. This keeps the epic compact while preserving
+language ownership.
+
+- Put the shared variable, specification, evidence, and definition of done on
+  the Story.
+- Put the exact failing cases and language-specific acceptance criteria on each
+  Sub-task.
+- Reference the language Sub-task from that language's `bug` manifest
+  declaration.
+- Use separate top-level Bugs only when the gaps are not semantically related
+  enough to share a Story.
+
+Before any Jira mutation, show the complete proposed hierarchy and wait for
+the user's explicit approval.
+
 ## Prepare a pull request
 
 Find the variable's ticket in
