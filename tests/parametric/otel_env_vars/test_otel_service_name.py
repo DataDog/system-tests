@@ -1,16 +1,18 @@
 import pytest
 
-from tests.parametric.conftest import APMLibrary, nodejs_telemetry_value
+from tests.parametric.conftest import APMLibrary
 from utils import features, scenarios
 from utils.docker_fixtures import TestAgentAPI
+from utils.docker_fixtures.spec.trace import find_span_in_traces
 
 
-def _service_name(test_agent: TestAgentAPI, library: APMLibrary) -> str:
-    if library.lang == "nodejs":
-        value = nodejs_telemetry_value(test_agent, "dd_service")
-    else:
-        value = library.config()["dd_service"]
+def _service_name(test_agent: TestAgentAPI, test_library: APMLibrary) -> str:
+    with test_library, test_library.dd_start_span("operation") as root:
+        pass
 
+    traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
+    span = find_span_in_traces(traces, root.trace_id, root.span_id)
+    value = span["service"]
     assert isinstance(value, str)
     return value
 
@@ -69,8 +71,7 @@ class Test_OTEL_SERVICE_NAME:
         *,
         expected: str,
     ) -> None:
-        with test_library as library:
-            assert _service_name(test_agent, library) == expected
+        assert _service_name(test_agent, test_library) == expected
 
     @pytest.mark.parametrize("library_env", UNSET_VALUE)
     def test_default_matches_specification(
@@ -78,8 +79,7 @@ class Test_OTEL_SERVICE_NAME:
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ) -> None:
-        with test_library as library:
-            assert _service_name(test_agent, library) == "resource-service"
+        assert _service_name(test_agent, test_library) == "resource-service"
 
     @pytest.mark.parametrize("library_env", EMPTY_VALUE)
     def test_empty_is_treated_as_unset(
@@ -87,8 +87,7 @@ class Test_OTEL_SERVICE_NAME:
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ) -> None:
-        with test_library as library:
-            assert _service_name(test_agent, library) == "resource-service"
+        assert _service_name(test_agent, test_library) == "resource-service"
 
     @pytest.mark.parametrize(
         "library_env",
@@ -108,8 +107,7 @@ class Test_OTEL_SERVICE_NAME:
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ) -> None:
-        with test_library as library:
-            assert _service_name(test_agent, library) == "otel-service"
+        assert _service_name(test_agent, test_library) == "otel-service"
 
     @pytest.mark.parametrize(
         "library_env",
@@ -128,5 +126,4 @@ class Test_OTEL_SERVICE_NAME:
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ) -> None:
-        with test_library as library:
-            assert _service_name(test_agent, library) == "datadog-service"
+        assert _service_name(test_agent, test_library) == "datadog-service"
