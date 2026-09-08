@@ -18,7 +18,9 @@ from utils._context._scenarios.agentless_endtoend import AGENTLESS_MOCK_API_KEY
 from utils._remote_config import send_apm_tracing_command
 from utils.dd_constants import RemoteConfigApplyState as ApplyState
 
-TRACE_SUBMISSION_PATH = "/v1/input"
+# dd-trace-py's agentless branch posts JSON traces to /v1/input; dd-trace-js posts the same
+# shape to /api/v2/spans
+TRACE_SUBMISSION_PATHS = ("/v1/input", "/api/v2/spans")
 TRACE_SUBMISSION_HOST = "browser-intake-mock-intake.invalid"
 
 STATS_PATH = "/api/v0.2/stats"
@@ -63,13 +65,13 @@ def _assert_api_key(headers: dict[str, str]) -> None:
     assert headers["dd-api-key"] in {AGENTLESS_MOCK_API_KEY, "--redacted--"}
 
 
-def _requests_at(host: str, path: str) -> list[dict]:
+def _requests_at(host: str, path: str | tuple[str, ...]) -> list[dict]:
     return [data for data in interfaces.datadog_direct.get_data(path) if data["host"] == host]
 
 
 def _find_root_span(resource: str) -> dict | None:
     """Search every captured trace-submission request for a root span with this resource."""
-    for request in _requests_at(TRACE_SUBMISSION_HOST, TRACE_SUBMISSION_PATH):
+    for request in _requests_at(TRACE_SUBMISSION_HOST, TRACE_SUBMISSION_PATHS):
         for trace in request["request"]["content"].get("traces", []):
             for span in trace.get("spans", []):
                 if span.get("parent_id") == "0000000000000000" and span.get("resource") == resource:
@@ -180,8 +182,8 @@ class Test_Agentless_Trace_Submission:
     def test_trace_submission(self):
         assert self.r.status_code == 200
 
-        requests = _requests_at(TRACE_SUBMISSION_HOST, TRACE_SUBMISSION_PATH)
-        assert len(requests) != 0, f"No request captured on {TRACE_SUBMISSION_HOST}{TRACE_SUBMISSION_PATH}"
+        requests = _requests_at(TRACE_SUBMISSION_HOST, TRACE_SUBMISSION_PATHS)
+        assert len(requests) != 0, f"No request captured on {TRACE_SUBMISSION_HOST}{TRACE_SUBMISSION_PATHS}"
 
         request = requests[-1]
         assert request["response"]["status_code"] // 100 == 2
@@ -277,7 +279,7 @@ class Test_Agentless_Stats:
         assert content["ClientComputed"] is True
 
         # Stats and traces are distinct payloads on distinct hosts/paths.
-        trace_requests = _requests_at(TRACE_SUBMISSION_HOST, TRACE_SUBMISSION_PATH)
+        trace_requests = _requests_at(TRACE_SUBMISSION_HOST, TRACE_SUBMISSION_PATHS)
         assert request not in trace_requests
 
         entry = _find_stats_entry(ROOT_SPAN_RESOURCE)
