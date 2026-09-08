@@ -1,3 +1,4 @@
+---
 # Docker images mirrored into registry.ddbuild.io/system-tests/mirror.
 #
 # This file is generated: it lists every image required by the CI scenarios.

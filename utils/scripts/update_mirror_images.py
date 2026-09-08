@@ -49,6 +49,7 @@ BUILDKITD_TOML = REPO_ROOT / "utils" / "build" / "docker" / "buildkitd.toml"
 # rewrites the file through a YAML parser and drops comments, so the script
 # restores this header after every run.
 MIRROR_YAML_HEADER = """\
+---
 # Docker images mirrored into registry.ddbuild.io/system-tests/mirror.
 #
 # This file is generated: it lists every image required by the CI scenarios.
