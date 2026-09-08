@@ -33,9 +33,13 @@ spec:
     parametric_job_count:
       description: "Number of parallel jobs for the PARAMETRIC scenario"
       type: number
-      default: 1
+      default: 3
     push_to_test_optimization:
       description: "Push test results to Datadog Test Optimization"
+      type: boolean
+      default: false
+    allow_failure:
+      description: "Allow system-tests e2e jobs to fail without failing the parent pipeline"
       type: boolean
       default: false
     auto_cancel_on_new_commit:
@@ -75,23 +79,33 @@ variables:
   # Tag = first 12 chars of sha256(utils/ci/gitlab/docker/system-tests.Dockerfile + requirements.txt)
   # Update this when either file changes:
   #   cat utils/ci/gitlab/docker/system-tests.Dockerfile requirements.txt | sha256sum | cut -c1-12
-  CI_IMAGE: "registry.ddbuild.io/system-tests/ci-runner:6ac2184fe943"
+  CI_IMAGE: "registry.ddbuild.io/system-tests/ci-runner:75a57a4b6391"
   SYSTEM_TESTS_SPLIT_PIPELINE: "$[[ inputs.split_pipeline ]]"
 
 .system_tests_param_base:
   image: $CI_IMAGE
+  allow_failure: $[[ inputs.allow_failure ]]
   tags:
     - arch:amd64
+  id_tokens:
+    DD_STS_OIDC_TOKEN:
+      aud: dd-sts
   script:
+    - dd-sts exchange --policy system-tests-gitlab -- datadog-ci tag --level job --tags "system-tests.job_type:setup"
     - python3 /system-tests/utils/ci/gitlab/validate_param_env.py
+    - echo "SYSTEM_TESTS_PIPELINE_START_TIME=$(date +%s)" >> param.env
   artifacts:
     reports:
       dotenv: param.env
 
 system_tests_build_pipeline:
   extends: .system_tests_base
+  allow_failure: $[[ inputs.allow_failure ]]
   tags:
     - arch:amd64
+  id_tokens:
+    DD_STS_OIDC_TOKEN:
+      aud: dd-sts
   rules:
     - if: $[[ inputs.condition ]]
     - when: never
@@ -103,6 +117,7 @@ system_tests_build_pipeline:
       optional: true
       artifacts: true
   script:
+    - dd-sts exchange --policy system-tests-gitlab -- datadog-ci tag --level job --tags "system-tests.job_type:generate-pipeline"
     - |
       libraries=$(echo "$[[ inputs.libraries ]],$LIBRARIES" | tr ',' ' ' | xargs)
       touch build_params.env
@@ -132,7 +147,7 @@ system_tests_build_pipeline:
       done
       chunks=1
       if [ "$SYSTEM_TESTS_SPLIT_PIPELINE" = "true" ]; then chunks=3; fi
-      python3 utils/ci/gitlab/build_pipeline.py --stage $[[ inputs.stage ]] --ci-image "$CI_IMAGE" --ref "$[[ inputs.ref ]]" --push-to-test-optimization "$push_to_test_optimization" --libraries "$libraries" --params-dir . --output-dir . --chunks $chunks --docker-auth "$docker_auth" --binaries-artifact-path "$binaries_artifact_path" --binaries-artifacts "$binaries_artifacts"
+      python3 utils/ci/gitlab/build_pipeline.py --stage $[[ inputs.stage ]] --ci-image "$CI_IMAGE" --ref "$[[ inputs.ref ]]" --push-to-test-optimization "$push_to_test_optimization" --libraries "$libraries" --params-dir . --output-dir . --chunks $chunks --docker-auth "$docker_auth" --binaries-artifact-path "$binaries_artifact_path" --binaries-artifacts "$binaries_artifacts" --pipeline-start-time "$SYSTEM_TESTS_PIPELINE_START_TIME"
   artifacts:
     paths:
       - system-tests/generated-pipeline-chunk-*.yml
@@ -141,6 +156,7 @@ system_tests_build_pipeline:
 
 .run_test_pipeline_base:
   interruptible: true
+  allow_failure: $[[ inputs.allow_failure ]]
   stage: $[[ inputs.stage ]]
   rules:
     - if: $[[ inputs.condition ]]
@@ -161,7 +177,7 @@ system_tests_build_pipeline:
     LIBRARIES: $LIBRARIES
     UPSTREAM_PIPELINE_ID: $CI_PIPELINE_ID
 
-system_tests_run_pipeline_0:
+system_tests_e2e_run_pipeline_0:
   extends: .run_test_pipeline_base
   trigger:
     include:
@@ -169,7 +185,7 @@ system_tests_run_pipeline_0:
         job: system_tests_build_pipeline
     strategy: depend
 
-system_tests_run_pipeline_1:
+system_tests_e2e_run_pipeline_1:
   extends: .run_test_pipeline_base
   rules:
     - if: $SYSTEM_TESTS_SPLIT_PIPELINE != "true"
@@ -182,7 +198,7 @@ system_tests_run_pipeline_1:
         job: system_tests_build_pipeline
     strategy: depend
 
-system_tests_run_pipeline_2:
+system_tests_e2e_run_pipeline_2:
   extends: .run_test_pipeline_base
   rules:
     - if: $SYSTEM_TESTS_SPLIT_PIPELINE != "true"

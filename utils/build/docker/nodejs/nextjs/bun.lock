@@ -5,6 +5,8 @@
     "": {
       "name": "nextjs",
       "dependencies": {
+        "@openfeature/core": "^1.9.0",
+        "@openfeature/server-sdk": "~1.19.0",
         "@opentelemetry/api": "^1.9.0",
         "axios": "^1.5.1",
         "next": "^14.0.4",
@@ -71,6 +73,10 @@
     "@nodelib/fs.stat": ["@nodelib/fs.stat@2.0.5", "", {}, ""],
 
     "@nodelib/fs.walk": ["@nodelib/fs.walk@1.2.8", "", { "dependencies": { "@nodelib/fs.scandir": "2.1.5", "fastq": "^1.6.0" } }, ""],
+
+    "@openfeature/core": ["@openfeature/core@1.12.0", "", {}, "sha512-7PCPzyd1OC19begz30+CRknFB0ChtyaZUhk7YWrk+Bov1fpVw0HYkTXtoxxsvPfDZB9P9WsT7uixN+Z8f9+bcA=="],
+
+    "@openfeature/server-sdk": ["@openfeature/server-sdk@1.19.0", "", { "peerDependencies": { "@openfeature/core": "^1.9.0" } }, "sha512-sxmYKkBCpWWkKX2xJt6bFK15dorfR2lH27lkeKduTFPXRMV+pO7eORUelI9gctXhxvfXbDGK94ybq5fiso3/vg=="],
 
     "@opentelemetry/api": ["@opentelemetry/api@1.9.1", "", {}, "sha512-gLyJlPHPZYdAk1JENA9LeHejZe1Ti77/pTeFm/nMXmQH/HFZlcS/O2XJB+L8fkbrNSqhdtlvjBVjxwUYanNH5Q=="],
 

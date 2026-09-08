@@ -198,6 +198,9 @@ patterns:
     .github/workflows/stale-prs.yml:
         scenario_groups: null
         libraries: null
+    .github/workflows/team-freeze-guard.yml:
+        scenario_groups: null
+        libraries: null
     .github/workflows/update-agent-protobuf.yml:
         scenario_groups: null
         libraries: null
@@ -222,6 +225,8 @@ patterns:
         scenario_groups: docker_fixtures
     utils/_context/_scenarios/appsec_rasp.py:
         scenario_groups: appsec_rasp_scenario
+    utils/_context/_scenarios/agentless_endtoend.py:
+        scenario_groups: agentless
     utils/_context/_scenarios/endtoend.py:
         scenario_groups: end_to_end
     utils/_context/_scenarios/integration_frameworks.py:
@@ -237,6 +242,8 @@ patterns:
         scenarios: PARAMETRIC
     utils/_context/_scenarios/profiling.py:
         scenario_groups: profiling
+    utils/_context/_scenarios/thread_context_sharing.py:
+        scenario_groups: thread_context_sharing
 
 
 ############################### Script file rules ##############################
@@ -250,6 +257,9 @@ patterns:
         scenario_groups: null
     utils/scripts/ai/*:
         scenario_groups: null
+    utils/scripts/build-local-agent-image.sh:
+        scenario_groups: null
+        libraries: null
     utils/scripts/check_version.sh:
         scenario_groups: null
     utils/scripts/compute_libraries_and_scenarios.py:
@@ -288,6 +298,10 @@ patterns:
 
     utils/interfaces/_library/*:
         scenario_groups: [end_to_end, open_telemetry]
+
+    utils/mocked_backend/ffe.py:
+        scenario_groups: agentless
+        scenarios: PARAMETRIC
 
     utils/_context/virtual_machine.py:
         scenario_groups: onboarding
@@ -340,6 +354,12 @@ patterns:
     utils/build/docker/vcr/cassettes/aiguard/*:
       scenario_groups: ai_guard
 
+    utils/ci/github/nightly.py:
+      scenario_groups: null
+      libraries: null
+    utils/ci/github/*:
+      scenarios: DEFAULT
+
 ############################ Library-specific rules ############################
 # This section contains rules to apply to library-related files. It follows the
 # template below for each language:
@@ -354,6 +374,13 @@ patterns:
 # utils/build/build_{library}_base_images.sh:
 #     libraries: {library}
 ################################################################################
+
+    manifests/c.yml:
+        scenario_groups: null  # already handled by the manifest comparison
+        libraries: c
+    utils/build/docker/c/*:
+        libraries: c
+        scenario_groups: [ end_to_end, ]
 
     manifests/cpp.yml:
         scenario_groups: null  # already handled by the manifest comparison
@@ -546,6 +573,12 @@ patterns:
     tests/test_the_test/*:
         scenario_groups: null
         libraries: null
+
+    # This helper has no test items of its own, so it's invisible to the scenario map that
+    # drives dynamic selection below. List its consumers' scenarios explicitly.
+    tests/test_telemetry_heartbeat_utils.py:
+        scenario_groups: null
+        scenarios: [DEFAULT, TEST_THE_TEST]
 
     tests/fuzzer/*:
         scenario_groups: exotics

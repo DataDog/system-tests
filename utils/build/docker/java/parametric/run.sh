@@ -2,6 +2,15 @@
 
 DD_JAVA_AGENT=/client/tracer/dd-java-agent.jar
 
+# Translate the shared parametric trace API setting to the Java tracer configuration.
+if [[ -z "${DD_TRACE_AGENT_PROTOCOL_VERSION:-}" ]]; then
+  case "${DD_TRACE_API_VERSION:-}" in
+    v0.4 | v0.5 | v1.0)
+      export DD_TRACE_AGENT_PROTOCOL_VERSION="${DD_TRACE_API_VERSION#v}"
+      ;;
+  esac
+fi
+
 # Enable application debug level if tracer debug flag is enabled
 case $(echo "${DD_TRACE_DEBUG:-false}" | tr '[:upper:]' '[:lower:]') in
   "true" | "1") export APM_TEST_CLIENT_LOG_LEVEL=debug;;

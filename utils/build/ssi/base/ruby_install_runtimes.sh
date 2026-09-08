@@ -100,6 +100,6 @@ case "$RB_VERSION" in
         gem update --system '3.7.2'
         ;;
     4.0.*)
-        gem update --system '3.7.2'
+        gem update --system '4.0.14'
         ;;
 esac

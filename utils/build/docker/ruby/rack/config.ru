@@ -152,6 +152,43 @@ module Status
   end
 end
 
+# /trace/manual_keep_drop
+module TraceManualKeepDrop
+  module_function
+
+  def run(request)
+    decision = request.params['decision']
+
+    unless %w[keep drop].include?(decision)
+      return [400, { 'Content-Type' => 'text/plain' }, ['decision must be keep or drop']]
+    end
+
+    trace = Datadog::Tracing.active_trace
+    decision == 'keep' ? trace.keep! : trace.reject!
+
+    # Call downstream so that tests can assert on the sampling decision that gets propagated
+    url = 'http://localhost:7777/'
+    uri = URI(url)
+    downstream_request = nil
+    response = nil
+
+    Net::HTTP.start(uri.host, uri.port) do |http|
+      downstream_request = Net::HTTP::Get.new(uri)
+
+      response = http.request(downstream_request)
+    end
+
+    result = {
+      url: url,
+      status_code: response.code.to_i,
+      request_headers: downstream_request.each_header.to_h,
+      response_headers: response.each_header.to_h
+    }
+
+    [200, { 'Content-Type' => 'application/json' }, [result.to_json]]
+  end
+end
+
 # /make_distant_call
 module MakeDistantCall
   module_function
@@ -538,6 +575,8 @@ app = proc do |env|
     Identify.run
   elsif request.path.include?('/status')
     Status.run(request)
+  elsif request.path == '/trace/manual_keep_drop'
+    TraceManualKeepDrop.run(request)
   elsif request.path == '/make_distant_call'
     MakeDistantCall.run(request)
   elsif request.path == '/user_login_success_event'

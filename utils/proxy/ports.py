@@ -17,6 +17,12 @@ class ProxyPorts(IntEnum):
 
     agent = 8200
 
+    datadog_sidecar = 8201
+    """Datadog traffic from the serverless-init sidecar."""
+
+    datadog_direct = 8202
+    """Datadog traffic sent directly by the SDK."""
+
     python_buddy = 9001
     nodejs_buddy = 9002
     java_buddy = 9003

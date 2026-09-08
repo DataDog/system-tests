@@ -1,0 +1,63 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://api.openai.com/v1/chat/completions",
+    "headers": {
+      "Accept-Encoding": "gzip, deflate",
+      "Connection": "keep-alive",
+      "Accept": "application/json",
+      "Content-Type": "application/json",
+      "User-Agent": "OpenAI/Python 2.0.0",
+      "X-Stainless-Lang": "python",
+      "X-Stainless-Package-Version": "2.0.0",
+      "X-Stainless-OS": "Linux",
+      "X-Stainless-Arch": "x64",
+      "X-Stainless-Runtime": "CPython",
+      "X-Stainless-Runtime-Version": "3.11.15",
+      "X-Stainless-Async": "false",
+      "x-stainless-retry-count": "0",
+      "x-stainless-read-timeout": "600",
+      "Content-Length": "112",
+      "x-datadog-trace-id": "11307714882692163746",
+      "x-datadog-parent-id": "2798732504086163091",
+      "x-datadog-sampling-priority": "2",
+      "x-datadog-tags": "_dd.p.dm=-4,_dd.p.tid=6a47cc1100000000",
+      "traceparent": "00-6a47cc11000000009ced12c66443a8a2-26d7186257652e93-01",
+      "tracestate": "dd=p:26d7186257652e93;s:2;t.dm:-4;t.tid:6a47cc1100000000"
+    },
+    "body": "{\"messages\":[{\"role\":\"user\",\"content\":\"What is the weather like today?\"}],\"model\":\"gpt-4o-mini\",\"max_tokens\":35}"
+  },
+  "response": {
+    "status": {
+      "code": 200,
+      "message": "OK"
+    },
+    "headers": {
+      "Date": "Fri, 03 Jul 2026 14:49:58 GMT",
+      "Content-Type": "application/json",
+      "Transfer-Encoding": "chunked",
+      "Connection": "keep-alive",
+      "CF-Ray": "a156b3111ac3ae85-MAD",
+      "CF-Cache-Status": "DYNAMIC",
+      "Server": "cloudflare",
+      "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
+      "X-Content-Type-Options": "nosniff",
+      "access-control-expose-headers": "X-Request-ID, CF-Ray, CF-Ray",
+      "openai-processing-ms": "1215",
+      "openai-project": "proj_gt6TQZPRbZfoY2J9AQlEJMpd",
+      "openai-version": "2020-10-01",
+      "x-openai-proxy-wasm": "v0.1",
+      "x-ratelimit-limit-requests": "30000",
+      "x-ratelimit-limit-tokens": "150000000",
+      "x-ratelimit-remaining-requests": "29999",
+      "x-ratelimit-remaining-tokens": "149999990",
+      "x-ratelimit-reset-requests": "2ms",
+      "x-ratelimit-reset-tokens": "0s",
+      "x-request-id": "req_9263056278434d2696c121eb01e0a54f",
+      "set-cookie": "__cf_bm=Lg_OtVyDALy0TiXdy_TD_RwWwe69PHvFgttVvQIfG3M-1783090194.0993586-1.0.1.1-KoSSM0CzYR9uaV2VpejfgbplM9KWTnym3Z2bra1WakC0HAaN3YJpAZQT8DX__hhXuwI3ce1Va7ppxNf4OEeBgpJLoHRzP_4oHta5ndbd7L.IAwnCIz2Ba0jRF2cCLS.5; HttpOnly; SameSite=None; Secure; Path=/; Domain=api.openai.com; Expires=Fri, 03 Jul 2026 15:19:58 GMT",
+      "Content-Encoding": "gzip",
+      "alt-svc": "h3=\":443\"; ma=86400"
+    },
+    "body": "{\n  \"id\": \"chatcmpl-DxZVFdYaeYYcW0e9vLEFWDoRazh3p\",\n  \"object\": \"chat.completion\",\n  \"created\": 1783090197,\n  \"model\": \"gpt-4o-mini-2024-07-18\",\n  \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\": \"assistant\",\n        \"content\": \"I'm unable to provide real-time information, including current weather updates. I recommend checking a reliable weather website or app for the most accurate and up-to-date information about today's weather in\",\n        \"refusal\": null,\n        \"annotations\": []\n      },\n      \"logprobs\": null,\n      \"finish_reason\": \"length\"\n    }\n  ],\n  \"usage\": {\n    \"prompt_tokens\": 14,\n    \"completion_tokens\": 35,\n    \"total_tokens\": 49,\n    \"prompt_tokens_details\": {\n      \"cached_tokens\": 0,\n      \"audio_tokens\": 0\n    },\n    \"completion_tokens_details\": {\n      \"reasoning_tokens\": 0,\n      \"audio_tokens\": 0,\n      \"accepted_prediction_tokens\": 0,\n      \"rejected_prediction_tokens\": 0\n    }\n  },\n  \"service_tier\": \"default\",\n  \"system_fingerprint\": \"fp_b4b9deb02a\"\n}\n"
+  }
+}

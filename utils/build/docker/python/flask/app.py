@@ -100,6 +100,8 @@ if os.environ.get("CONFIG_CHAINING_TEST", "").lower() == "true":
     config._logs_injection = True
 
 from ddtrace.appsec import trace_utils as appsec_trace_utils
+from ddtrace.constants import MANUAL_DROP_KEY
+from ddtrace.constants import MANUAL_KEEP_KEY
 from ddtrace.internal.datastreams import data_streams_processor
 from ddtrace.internal.datastreams.processor import DsmPathwayCodec
 from ddtrace.data_streams import set_consume_checkpoint
@@ -609,10 +611,34 @@ def stats_unique():
     return Response("OK, probably", status=code)
 
 
+@app.route("/trace/manual_keep_drop")
+def trace_manual_keep_drop():
+    decision = flask_request.args.get("decision")
+    if decision not in ("keep", "drop"):
+        return Response("decision must be keep or drop", status=400)
+
+    span = tracer.current_span()
+    span.set_tag(MANUAL_KEEP_KEY if decision == "keep" else MANUAL_DROP_KEY)
+
+    # Call downstream so that tests can assert on the sampling decision that gets propagated
+    url = "http://localhost:7777/"
+    response = requests.get(url)
+
+    return {
+        "url": url,
+        "status_code": response.status_code,
+        "request_headers": dict(response.request.headers),
+        "response_headers": dict(response.headers),
+    }
+
+
 @app.route("/make_distant_call")
 def make_distant_call():
     url = flask_request.args["url"]
-    response = requests.get(url)
+    # The method is configurable so semantic-convention tests can drive a non-standard verb
+    # through the client instrumentation. Matches the nodejs express weblog.
+    method = flask_request.args.get("method", "GET")
+    response = requests.request(method, url)
 
     result = {
         "url": url,
@@ -2231,13 +2257,22 @@ def external_request_redirect():
 @app.route("/ai_guard/evaluate", methods=["POST"])
 def ai_guard_evaluate():
     """AI Guard evaluation endpoint."""
-    from ddtrace.internal.settings.asm import ai_guard_config
+    # AI Guard was moved from `ddtrace.appsec.ai_guard` to the top-level `ddtrace.aiguard`
+    # package (dd-trace-py#18754, #19110). Import the new location first and fall back to
+    # the old one to stay compatible with every tracer version under test.
+    try:
+        from ddtrace.internal.settings.aiguard import aiguard_config
+    except ImportError:
+        from ddtrace.internal.settings.asm import ai_guard_config as aiguard_config
 
-    if not ai_guard_config._ai_guard_enabled:
+    if not aiguard_config._ai_guard_enabled:
         return jsonify({"action": "ALLOW", "reason": "AI Guard not enabled"}), 200
 
     try:
-        from ddtrace.appsec.ai_guard import new_ai_guard_client, Options, AIGuardAbortError
+        try:
+            from ddtrace.aiguard import new_ai_guard_client, Options, AIGuardAbortError
+        except ImportError:
+            from ddtrace.appsec.ai_guard import new_ai_guard_client, Options, AIGuardAbortError
         from ddtrace.appsec.track_user_sdk import track_user_id
 
         should_block = flask_request.headers.get("X-AI-Guard-Block", "false").lower() == "true"

@@ -7,7 +7,12 @@ from utils.tools import update_environ_with_local_env
 from .aws_lambda import LambdaScenario
 from .core import Scenario, scenario_groups
 from .default import DefaultScenario
-from .endtoend import DockerScenario, DdTraceEndToEndScenario, GraphQlEndToEndScenario
+from .agentless_endtoend import FeatureFlaggingAgentlessEndToEndScenario
+from .endtoend import (
+    DockerScenario,
+    DdTraceEndToEndScenario,
+    GraphQlEndToEndScenario,
+)
 from .integrations import (
     CrossedTracingLibraryScenario,
     DbmDynamicServiceScenario,
@@ -19,6 +24,7 @@ from .otel_collector import OtelCollectorScenario
 from .parametric import ParametricScenario
 from .profiling import ProfilingScenario
 from .debugger import DebuggerScenario
+from .thread_context_sharing import ThreadContextSharingScenario
 from .test_the_test import TestTheTestScenario
 from .auto_injection import InstallerAutoInjectionScenario
 from .k8s_lib_injection import K8sScenario, K8sSparkScenario
@@ -43,6 +49,18 @@ from utils._context.containers import (
 )
 
 update_environ_with_local_env()
+
+# Shared by every AI Guard scenario: the SDK on, AppSec and IAST off so nothing else drives the
+# spans under test, and the endpoint pointed at the VCR container with keys the mock backend
+# ignores. Each scenario adds only what it is there to exercise.
+_AI_GUARD_WEBLOG_ENV = {
+    "DD_APPSEC_ENABLED": "false",
+    "DD_IAST_ENABLED": "false",
+    "DD_AI_GUARD_ENABLED": "true",
+    "DD_AI_GUARD_ENDPOINT": f"http://vcr_cassettes:{ContainerPorts.vcr_cassettes}/vcr/aiguard",
+    "DD_API_KEY": "mock_api_key",
+    "DD_APP_KEY": "mock_app_key",
+}
 
 
 class _Scenarios:
@@ -222,6 +240,8 @@ class _Scenarios:
 
     sampling = DdTraceEndToEndScenario(
         "SAMPLING",
+        appsec_enabled=False,
+        iast_enabled=False,
         tracer_sampling_rate=0.5,
         weblog_env={"DD_TRACE_RATE_LIMIT": "10000000", "DD_TRACE_STATS_COMPUTATION_ENABLED": "false"},
         doc="Test sampling mechanism. Not included in default scenario because it's a little bit too flaky",
@@ -244,6 +264,91 @@ class _Scenarios:
         doc="Test W3C trace style",
     )
 
+    otel_semantics_otlp = DdTraceEndToEndScenario(
+        "OTEL_SEMANTICS_OTLP",
+        weblog_env={
+            "DD_TRACE_CLIENT_IP_ENABLED": "true",
+            "DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": "otel-sensitive-value",
+            "DD_TRACE_OTEL_SEMANTICS_ENABLED": "true",
+            # OTel semantics must override both conflicting configurations.
+            "DD_TRACE_PEER_SERVICE_DEFAULTS_ENABLED": "true",
+            "DD_TRACE_RESOURCE_RENAMING_ALWAYS_SIMPLIFIED_ENDPOINT": "true",
+            "DD_TRACE_RESOURCE_RENAMING_ENABLED": "true",
+            "DD_TRACE_SPAN_ATTRIBUTE_SCHEMA": "v1",
+            "DD_TRACE_OTEL_ENABLED": "true",
+            "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
+            "OTEL_TRACES_EXPORTER": "otlp",
+            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}/v1/traces",
+            "OTEL_EXPORTER_OTLP_TRACES_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
+        },
+        backend_interface_timeout=5,
+        include_opentelemetry=True,
+        doc="Validate HTTP spans exported directly over OTLP, including typed OpenTelemetry "
+        "attributes such as http.response.status_code and server.port",
+        scenario_groups=[scenario_groups.open_telemetry],
+    )
+
+    otel_semantics_otlp_custom_error_statuses = DdTraceEndToEndScenario(
+        "OTEL_SEMANTICS_OTLP_CUSTOM_ERROR_STATUSES",
+        weblog_env={
+            "DD_TRACE_HTTP_CLIENT_ERROR_STATUSES": "200",
+            "DD_TRACE_HTTP_SERVER_ERROR_STATUSES": "200",
+            "DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": "otel-sensitive-value",
+            "DD_TRACE_OTEL_SEMANTICS_ENABLED": "true",
+            "DD_TRACE_OTEL_ENABLED": "true",
+            "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
+            "OTEL_TRACES_EXPORTER": "otlp",
+            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}/v1/traces",
+            "OTEL_EXPORTER_OTLP_TRACES_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
+        },
+        backend_interface_timeout=5,
+        include_opentelemetry=True,
+        doc="Like OTEL_SEMANTICS_OTLP but marks HTTP status 200 as an error to verify that a custom "
+        "client and server error status configuration takes precedence over the OTel defaults",
+        scenario_groups=[scenario_groups.open_telemetry],
+    )
+
+    otel_semantics_otlp_trace_metrics = DdTraceEndToEndScenario(
+        "OTEL_SEMANTICS_OTLP_TRACE_METRICS",
+        weblog_env={
+            "DD_TRACE_OTEL_SEMANTICS_ENABLED": "true",
+            "DD_TRACE_OTEL_ENABLED": "true",
+            "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
+            "OTEL_TRACES_EXPORTER": "otlp",
+            "OTEL_TRACES_SPAN_METRICS_ENABLED": "true",
+            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}/v1/traces",
+            "OTEL_EXPORTER_OTLP_TRACES_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
+            "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": "http/json",
+            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}/v1/metrics",
+            "OTEL_EXPORTER_OTLP_METRICS_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
+            "_DD_TRACE_METRICS_OTEL_FLUSH_INTERVAL": "1000",
+        },
+        backend_interface_timeout=5,
+        include_opentelemetry=True,
+        doc="Validate that OTLP trace metrics retain the OTel HTTP method, status, name, kind, "
+        "and error decision used by the corresponding span",
+        scenario_groups=[scenario_groups.open_telemetry],
+    )
+
+    otel_semantics_otlp_sampling_rules = DdTraceEndToEndScenario(
+        "OTEL_SEMANTICS_OTLP_SAMPLING_RULES",
+        weblog_env={
+            "DD_TRACE_OTEL_SEMANTICS_ENABLED": "true",
+            "DD_TRACE_OTEL_ENABLED": "true",
+            "DD_TRACE_SAMPLING_RULES": (
+                '[{"resource":"HTTP*","sample_rate":1.0},{"resource":"GET*","sample_rate":1.0},{"sample_rate":0.0}]'
+            ),
+            "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
+            "OTEL_TRACES_EXPORTER": "otlp",
+            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}/v1/traces",
+            "OTEL_EXPORTER_OTLP_TRACES_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
+        },
+        backend_interface_timeout=5,
+        include_opentelemetry=True,
+        doc="Validate that OTel HTTP span names are available before DD_TRACE_SAMPLING_RULES are evaluated",
+        scenario_groups=[scenario_groups.open_telemetry],
+    )
+
     # Telemetry scenarios
     telemetry_dependency_loaded_test_for_dependency_collection_disabled = DdTraceEndToEndScenario(
         "TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED",
@@ -258,6 +363,9 @@ class _Scenarios:
             "DD_APPSEC_ENABLED": "false",
             "DD_PROFILING_ENABLED": "false",
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "false",
+            # RFC-1113: agentic-onboarding flag set while AppSec is disabled. The value is
+            # reported verbatim ("true"), decoupled from AppSec state (no derived boolean).
+            "DD_APPSEC_AGENTIC_ONBOARDING": "true",
         },
         appsec_enabled=False,
         doc="Disable all tracers products",
@@ -270,6 +378,11 @@ class _Scenarios:
             "DD_LOGS_INJECTION": "false",
             "CONFIG_CHAINING_TEST": "true",
             "DD_TRACE_CONFIG": "/app/ConfigChaining.properties",
+            # RFC-1113: agentic-onboarding flag set while AppSec is enabled. The value is
+            # reported verbatim; a mixed-case arbitrary value is intentional to prove it is a
+            # pass-through of the configured value (not a boolean derived from AppSec being
+            # active, and not lowercased/normalized by the tracer).
+            "DD_APPSEC_AGENTIC_ONBOARDING": "MiXeD-Value_42",
         },
         doc="Test telemetry for environment variable configurations",
         scenario_groups=[scenario_groups.telemetry],
@@ -316,7 +429,10 @@ class _Scenarios:
     )
     appsec_custom_rules = DdTraceEndToEndScenario(
         "APPSEC_CUSTOM_RULES",
-        weblog_env={"DD_APPSEC_RULES": "/appsec_custom_rules.json"},
+        weblog_env={
+            "DD_APPSEC_RULES": "/appsec_custom_rules.json",
+            "DD_APPSEC_RAW_RESPONSE_BODY_ENABLED": "1",
+        },
         weblog_volumes={"./tests/appsec/custom_rules.json": {"bind": "/appsec_custom_rules.json", "mode": "ro"}},
         doc="Test custom appsec rules file",
         scenario_groups=[scenario_groups.appsec],
@@ -545,7 +661,10 @@ class _Scenarios:
             "DD_APPSEC_HEADER_COLLECTION_REDACTION_ENABLED": "false",
             "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
         },
-        doc="Appsec standalone mode (APM opt out)",
+        agent_env={
+            "DD_INFRASTRUCTURE_MODE": "none",
+        },
+        doc="Appsec standalone mode (APM opt out), with the infra product disabled on the agent",
         scenario_groups=[scenario_groups.appsec],
     )
 
@@ -611,7 +730,10 @@ class _Scenarios:
             "DD_IAST_VULNERABILITIES_PER_REQUEST": "10",
             "DD_IAST_MAX_CONTEXT_OPERATIONS": "10",
         },
-        doc="Source code vulnerability standalone mode (APM opt out)",
+        agent_env={
+            "DD_INFRASTRUCTURE_MODE": "none",
+        },
+        doc="Source code vulnerability standalone mode (APM opt out), with the infra product disabled on the agent",
         scenario_groups=[scenario_groups.appsec],
     )
 
@@ -625,7 +747,10 @@ class _Scenarios:
             "DD_TELEMETRY_DEPENDENCY_RESOLUTION_PERIOD_MILLIS": "1",
             "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
         },
-        doc="SCA standalone mode (APM opt out)",
+        agent_env={
+            "DD_INFRASTRUCTURE_MODE": "none",
+        },
+        doc="SCA standalone mode (APM opt out), with the infra product disabled on the agent",
         scenario_groups=[scenario_groups.appsec],
     )
 
@@ -720,6 +845,22 @@ class _Scenarios:
         },
         doc="",
         scenario_groups=[scenario_groups.ffe],
+    )
+
+    feature_flagging_and_experimentation_agentless = FeatureFlaggingAgentlessEndToEndScenario(
+        "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS"
+    )
+
+    feature_flagging_and_experimentation_agentless_direct = FeatureFlaggingAgentlessEndToEndScenario(
+        "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_DIRECT",
+        doc="Validate direct exposure delivery with agentless UFC and no local receiver.",
+        exposure_egress="direct",
+    )
+
+    feature_flagging_and_experimentation_agentless_serverless = FeatureFlaggingAgentlessEndToEndScenario(
+        "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_SERVERLESS",
+        doc="Validate exposure delivery with agentless UFC and serverless-init.",
+        exposure_egress="sidecar",
     )
 
     remote_config_mocked_backend_asm_features_nocache = DdTraceEndToEndScenario(
@@ -893,6 +1034,17 @@ class _Scenarios:
         doc="Test scenario for checking if debugger successfully generates snapshots for probes",
     )
 
+    debugger_capture_timeout = DebuggerScenario(
+        "DEBUGGER_CAPTURE_TIMEOUT",
+        weblog_env={
+            "DD_DYNAMIC_INSTRUMENTATION_CAPTURE_TIMEOUT": "10",
+            "DD_DYNAMIC_INSTRUMENTATION_CAPTURE_TIMEOUT_MS": "10",
+            "DD_DYNAMIC_INSTRUMENTATION_MAX_TIME_TO_SERIALIZE": "10",
+            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
+        },
+        doc="Test that debugger snapshot capture reports when its time budget is exceeded",
+    )
+
     debugger_probes_snapshot_with_scm = DebuggerScenario(
         "DEBUGGER_PROBES_SNAPSHOT_WITH_SCM",
         weblog_env={
@@ -941,6 +1093,15 @@ class _Scenarios:
             "DD_SYMBOL_DATABASE_UPLOAD_ENABLED": "1",
         },
         doc="Test scenario for checking symdb.",
+    )
+
+    thread_context_sharing = ThreadContextSharingScenario(
+        "THREAD_CONTEXT_SHARING",
+        doc=(
+            "Check that tracers share the trace_id/span_id of the currently active span with "
+            "system-probe, so that CWS (Cloud Workload Security) security events triggered on "
+            "the same thread carry them as dd.trace_id/dd.span_id."
+        ),
     )
 
     debugger_inproduct_enablement = DdTraceEndToEndScenario(
@@ -1363,14 +1524,7 @@ class _Scenarios:
         "AI_GUARD",
         other_weblog_containers=(VCRCassettesContainer,),
         appsec_enabled=False,
-        weblog_env={
-            "DD_APPSEC_ENABLED": "false",
-            "DD_IAST_ENABLED": "false",
-            "DD_AI_GUARD_ENABLED": "true",
-            "DD_AI_GUARD_ENDPOINT": f"http://vcr_cassettes:{ContainerPorts.vcr_cassettes}/vcr/aiguard",
-            "DD_API_KEY": "mock_api_key",
-            "DD_APP_KEY": "mock_app_key",
-        },
+        weblog_env=_AI_GUARD_WEBLOG_ENV,
         doc="AI Guard SDK tests",
         scenario_groups=[scenario_groups.ai_guard],
     )
@@ -1380,16 +1534,14 @@ class _Scenarios:
         other_weblog_containers=(VCRCassettesContainer,),
         appsec_enabled=False,
         weblog_env={
-            "DD_APPSEC_ENABLED": "false",
-            "DD_IAST_ENABLED": "false",
-            "DD_AI_GUARD_ENABLED": "true",
-            "DD_AI_GUARD_ENDPOINT": f"http://vcr_cassettes:{ContainerPorts.vcr_cassettes}/vcr/aiguard",
-            "DD_API_KEY": "mock_api_key",
-            "DD_APP_KEY": "mock_app_key",
+            **_AI_GUARD_WEBLOG_ENV,
             "DD_APM_TRACING_ENABLED": "false",
             "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
         },
-        doc="AI Guard standalone mode",
+        agent_env={
+            "DD_INFRASTRUCTURE_MODE": "none",
+        },
+        doc="AI Guard standalone mode, with the infra product disabled on the agent",
         scenario_groups=[scenario_groups.ai_guard],
     )
 
@@ -1398,16 +1550,38 @@ class _Scenarios:
         other_weblog_containers=(VCRCassettesContainer,),
         appsec_enabled=False,
         weblog_env={
-            "DD_APPSEC_ENABLED": "false",
-            "DD_IAST_ENABLED": "false",
-            "DD_AI_GUARD_ENABLED": "true",
-            "DD_AI_GUARD_ENDPOINT": f"http://vcr_cassettes:{ContainerPorts.vcr_cassettes}/vcr/aiguard",
-            "DD_API_KEY": "mock_api_key",
-            "DD_APP_KEY": "mock_app_key",
+            **_AI_GUARD_WEBLOG_ENV,
             "DD_AI_GUARD_MAX_MESSAGES_LENGTH": "1",
             "DD_AI_GUARD_MAX_CONTENT_SIZE": "5",
         },
         doc="AI Guard telemetry tests with low truncation thresholds",
+        scenario_groups=[scenario_groups.ai_guard],
+    )
+
+    ai_guard_redaction_telemetry = AIGuardScenario(
+        "AI_GUARD_REDACTION_TELEMETRY",
+        other_weblog_containers=(VCRCassettesContainer,),
+        appsec_enabled=False,
+        # Deliberately without the truncation thresholds AI_GUARD_TELEMETRY sets: the redaction
+        # corpus is replayed from cassettes addressed by a hash of the request body, so a truncated
+        # payload matches no cassette and never comes back with any replacement. The telemetry
+        # flush intervals need no override, WeblogContainer already puts both at 2s.
+        weblog_env=_AI_GUARD_WEBLOG_ENV,
+        doc="AI Guard redaction telemetry tests, with untruncated payloads and exact metric counts",
+        scenario_groups=[scenario_groups.ai_guard],
+    )
+
+    ai_guard_redaction_disabled = AIGuardScenario(
+        "AI_GUARD_REDACTION_DISABLED",
+        other_weblog_containers=(VCRCassettesContainer,),
+        appsec_enabled=False,
+        weblog_env={
+            **_AI_GUARD_WEBLOG_ENV,
+            # Global kill-switch: evaluations still run and findings are still reported, but the
+            # redaction_replacements returned by the backend are never applied.
+            "DD_AI_GUARD_REDACTION_ENABLED": "false",
+        },
+        doc="AI Guard with the sensitive data redaction kill-switch turned off",
         scenario_groups=[scenario_groups.ai_guard],
     )
 

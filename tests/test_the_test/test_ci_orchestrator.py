@@ -206,6 +206,9 @@ def _is_supported_legacy(weblog: WeblogMetaData, scenario: Scenario, _ci_environ
     library = weblog.library
     weblog_name = weblog.name
 
+    if library == "c":
+        return scenario.name in ("DEFAULT", "IPV6", "SAMPLING")
+
     # Only Allow Lambda scenarios for the lambda libraries
     is_lambda_library = library in (
         "python_lambda",
@@ -283,7 +286,7 @@ def _is_supported_legacy(weblog: WeblogMetaData, scenario: Scenario, _ci_environ
             return False
 
     # Go proxies
-    if weblog.name in ("envoy", "haproxy"):
+    if weblog.name in ("envoy", "haproxy", "apim"):
         if scenario.name not in ("DEFAULT", "APPSEC_BLOCKING"):
             return False
 

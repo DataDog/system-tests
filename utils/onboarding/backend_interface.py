@@ -1,8 +1,9 @@
 from collections.abc import Callable
+from datetime import UTC, datetime, timedelta
+from http import HTTPStatus
 import json
 import os
 import time
-from datetime import datetime, timedelta, timezone
 import requests
 import random
 from utils._logger import logger
@@ -12,7 +13,7 @@ API_HOST = "https://dd.datadoghq.com"
 _json_meta_values = frozenset(["_dd.appsec.json", "_dd.iast.json"])
 
 
-def wait_backend_trace_id(trace_id: str, profile: bool = False, validator: Callable | None = None):
+def wait_backend_trace_id(trace_id: str, *, profile: bool = False, validator: Callable | None = None) -> None:
     logger.info(f"Waiting for backend trace with trace_id: {trace_id}")
     results = _query_for_trace_id(trace_id, validator=validator)
     runtime_id = results["runtime_id"]
@@ -76,8 +77,8 @@ def _query_for_trace_id(trace_id: str, validator: Callable | None = None):
     root_id = trace_data["trace"]["root_id"]
     root_span = trace_data["trace"]["spans"][root_id]
     start_time = root_span["start"]
-    start_date = datetime.fromtimestamp(start_time)
-    if (datetime.now() - start_date).days > 1:
+    start_date = datetime.fromtimestamp(start_time, tz=UTC)
+    if (datetime.now(tz=UTC) - start_date).days > 1:
         logger.info("Backend trace is too old")
         results["runtime_id"] = None
     else:
@@ -109,18 +110,21 @@ def _make_request(
     max_retries: int = 30,
     validator: Callable | None = None,
 ):
-    """Make a request to the backend with retries and backoff. With the defaults, this will retry for approximately 5 minutes."""
+    """Make a request to the backend with retries and backoff.
+
+    With the defaults, this will retry for approximately 5 minutes.
+    """
     start_time = time.perf_counter()
     for _attempt in range(max_retries):
         try:
             r = requests.request(method=method, url=url, headers=headers, json=json, timeout=request_timeout)
             logger.debug(f" Backend response status for url [{url}]: [{r.status_code}]")
-            if r.status_code == 200:
+            if r.status_code == HTTPStatus.OK:
                 response_json = r.json()
                 if not validator or validator(response_json):
                     return response_json
                 logger.debug(f" Backend response does not meet expectation for url [{url}]: [{r.text}]")
-            if r.status_code == 429:
+            if r.status_code == HTTPStatus.TOO_MANY_REQUESTS:
                 retry_after = _parse_retry_after(r.headers)
                 logger.debug(f" Received 429 for url [{url}], rate limit reset in: [{retry_after}]")
                 if retry_after > 0:
@@ -152,7 +156,8 @@ def _parse_retry_after(headers: dict[str, str]):
     name = headers.get("X-RateLimit-Name")
 
     logger.info(
-        f" Rate limit information: X-RateLimit-Name={name} X-RateLimit-Limit={limit} X-RateLimit-period={period} X-RateLimit-Ramaining={remaining} X-RateLimit-Reset={reset}"
+        f" Rate limit information: X-RateLimit-Name={name} X-RateLimit-Limit={limit} "
+        f"X-RateLimit-period={period} X-RateLimit-Ramaining={remaining} X-RateLimit-Reset={reset}"
     )
 
     try:
@@ -171,10 +176,10 @@ def _query_for_profile(runtime_id: str):
     headers = _headers()
     headers["Content-Type"] = "application/json"
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(tz=UTC)
     time_to = now + timedelta(minutes=6)
     time_from = now - timedelta(minutes=6)
-    queryJson = {
+    query_json = {
         "track": "profile",
         "filter": {
             "query": f"-_dd.hotdog:* runtime-id:{runtime_id}",
@@ -183,8 +188,8 @@ def _query_for_profile(runtime_id: str):
         },
     }
 
-    logger.debug(f"Posting to {url} with query: {queryJson}")
-    profileId = _make_request(
-        url, headers=headers, method="post", json=queryJson, validator=_validate_profiler_response
+    logger.debug(f"Posting to {url} with query: {query_json}")
+    profile_id = _make_request(
+        url, headers=headers, method="post", json=query_json, validator=_validate_profiler_response
     )["data"][0]["id"]
-    logger.debug(f"Found profile in the backend with ID: {profileId}")
+    logger.debug(f"Found profile in the backend with ID: {profile_id}")

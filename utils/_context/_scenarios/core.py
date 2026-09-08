@@ -37,6 +37,7 @@ class _ScenarioGroups:
     2. select a set of scenario to execute in the official system-tests workflow
     """
 
+    agentless = ScenarioGroup()
     all = ScenarioGroup()
     ai_guard = ScenarioGroup()
     appsec = ScenarioGroup()
@@ -71,6 +72,7 @@ class _ScenarioGroups:
     tracer_release = ScenarioGroup()
     appsec_low_waf_timeout = ScenarioGroup()
     ffe = ScenarioGroup()
+    thread_context_sharing = ScenarioGroup()
 
     def __getitem__(self, key: str) -> ScenarioGroup:
         key = key.replace("-", "_").lower()

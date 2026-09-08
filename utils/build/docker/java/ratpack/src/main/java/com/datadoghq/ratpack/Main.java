@@ -7,6 +7,7 @@ import static ratpack.jackson.Jackson.json;
 import com.datadoghq.system_tests.iast.infra.SqlServer;
 import com.datadoghq.system_tests.iast.utils.CryptoExamples;
 import datadog.appsec.api.login.EventTrackerV2;
+import datadog.trace.api.DDTags;
 import datadog.trace.api.interceptor.MutableSpan;
 import datadog.trace.api.internal.InternalTracer;
 import io.opentracing.Span;
@@ -172,6 +173,60 @@ public class Main {
                                 }
                                 response.getHeaders().add("content-language", "en-US");
                                 response.send("text/plain", "Response with more than 50 headers");
+                            })
+                            .get("trace/manual_keep_drop", ctx -> {
+                                String decision = ctx.getRequest().getQueryParams().get("decision");
+                                if (!"keep".equals(decision) && !"drop".equals(decision)) {
+                                    ctx.getResponse().status(400).send("decision must be keep or drop");
+                                    return;
+                                }
+
+                                final Span span = GlobalTracer.get().activeSpan();
+                                if (span != null) {
+                                    span.setTag("keep".equals(decision) ? DDTags.MANUAL_KEEP : DDTags.MANUAL_DROP, true);
+                                }
+
+                                // Call downstream so that tests can assert on the sampling decision that gets propagated
+                                final Promise<String> downstream = Blocking.get(() -> {
+                                    String url = "http://localhost:7777/";
+
+                                    URL urlObject = new URL(url);
+
+                                    HttpURLConnection con = (HttpURLConnection) urlObject.openConnection();
+                                    con.setRequestMethod("GET");
+
+                                    // Save request headers
+                                    HashMap<String, String> request_headers = new HashMap<String, String>();
+                                    for (Map.Entry<String, List<String>> header : con.getRequestProperties().entrySet()) {
+                                        if (header.getKey() == null) {
+                                            continue;
+                                        }
+
+                                        request_headers.put(header.getKey(), header.getValue().get(0));
+                                    }
+
+                                    // Save response headers and status code
+                                    int status_code = con.getResponseCode();
+                                    HashMap<String, String> response_headers = new HashMap<String, String>();
+                                    for (Map.Entry<String, List<String>> header : con.getHeaderFields().entrySet()) {
+                                        if (header.getKey() == null) {
+                                            continue;
+                                        }
+
+                                        response_headers.put(header.getKey(), header.getValue().get(0));
+                                    }
+
+                                    DistantCallResponse result = new DistantCallResponse();
+                                    result.url = url;
+                                    result.status_code = status_code;
+                                    result.request_headers = request_headers;
+                                    result.response_headers = response_headers;
+
+                                    return (new ObjectMapper()).writeValueAsString(result);
+                                });
+                                downstream.then((r) -> {
+                                    ctx.getResponse().send("application/json", r);
+                                });
                             })
                             .get("make_distant_call", ctx -> {
                                 final Promise<String> res = Blocking.get(() -> {

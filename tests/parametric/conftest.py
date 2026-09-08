@@ -4,13 +4,14 @@ import json
 from pathlib import Path
 import shutil
 import subprocess
-import uuid
 
 import pytest
 import yaml
 
 from utils import scenarios, logger
-from utils.docker_fixtures import TestAgentAPI, ParametricTestClientApi as APMLibrary
+from utils.docker_fixtures import TestAgentAPI, ParametricTestClientApi as APMLibrary, new_test_id
+from utils.docker_fixtures._test_agent import DEFAULT_OTLP_HTTP_PORT, DEFAULT_OTLP_GRPC_PORT
+from utils.docker_fixtures._test_agent_pool import WorkerAgentPool
 
 
 # Max timeout in seconds to keep a container running
@@ -19,7 +20,7 @@ default_subprocess_run_timeout = 300
 
 @pytest.fixture
 def test_id(request: pytest.FixtureRequest) -> str:
-    result = str(uuid.uuid4())[0:6]
+    result = new_test_id()
     logger.info(f"Test {request.node.nodeid} ID: {result}")
     return result
 
@@ -66,12 +67,20 @@ def docker() -> str | None:
 
 @pytest.fixture
 def test_agent_otlp_http_port() -> int:
-    return 4318
+    return DEFAULT_OTLP_HTTP_PORT
 
 
 @pytest.fixture
 def test_agent_otlp_grpc_port() -> int:
-    return 4317
+    return DEFAULT_OTLP_GRPC_PORT
+
+
+@pytest.fixture(scope="session")
+def test_agent_pool(worker_id: str) -> Generator[WorkerAgentPool, None, None]:
+    # scope="session" under pytest-xdist == once per worker. The pool is a context
+    # manager: exiting it tears down every pooled agent this worker created.
+    with scenarios.parametric.get_agent_pool(worker_id) as pool:
+        yield pool
 
 
 @pytest.fixture
@@ -82,7 +91,27 @@ def test_agent(
     agent_env: dict[str, str],
     test_agent_otlp_http_port: int,
     test_agent_otlp_grpc_port: int,
+    test_agent_pool: WorkerAgentPool,
 ) -> Generator[TestAgentAPI, None, None]:
+    # POC: pool only default-agent_env, default-OTLP-port, non-snapshot tests.
+    # Snapshot-marked tests need per-test snapshot_context lifecycle; non-default
+    # agent_env would require a second pooled agent per worker (worker-keyed host ports
+    # would collide); a parametrized custom container OTLP port needs an agent listening
+    # on that port, which the pool's fixed-port agent cannot serve. All fall back to the
+    # fresh-per-test path. Pooled agents are reset with clear() between tests.
+    poolable = (
+        request.node.get_closest_marker("snapshot") is None
+        and not agent_env
+        and test_agent_otlp_http_port == DEFAULT_OTLP_HTTP_PORT
+        and test_agent_otlp_grpc_port == DEFAULT_OTLP_GRPC_PORT
+    )
+    if poolable:
+        # agent_env is empty here (poolable requires `not agent_env`); pass the default
+        # explicitly rather than the always-falsy variable.
+        api = test_agent_pool.acquire(request=request, agent_env={})
+        yield api
+        return  # REQUIRED: do not fall through into the fresh-path agent below
+
     with scenarios.parametric.get_test_agent_api(
         request=request,
         worker_id=worker_id,

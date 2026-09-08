@@ -1,0 +1,26 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://app.datadoghq.com/api/v2/ai-guard/evaluate",
+    "headers": {
+      "Accept-Encoding": "identity",
+      "Content-Length": "132",
+      "Content-Type": "application/json",
+      "DD-AI-GUARD-VERSION": "4.14.0rc1",
+      "DD-AI-GUARD-SOURCE": "SDK",
+      "DD-AI-GUARD-LANGUAGE": "python"
+    },
+    "body": "{\"data\": {\"attributes\": {\"messages\": [{\"role\": \"user\", \"content\": \"What is 2+2?\"}], \"meta\": {\"service\": \"anthropic\", \"env\": null}}}}"
+  },
+  "response": {
+    "status": {
+      "code": 200,
+      "message": "OK"
+    },
+    "headers": {
+      "content-type": "application/vnd.api+json",
+      "content-length": "221"
+    },
+    "body": "{\"data\":{\"id\":\"3f1c0a54-6f2b-4d0e-9f6a-1b7c5a2d9e30\",\"type\":\"evaluations\",\"attributes\":{\"action\":\"ALLOW\",\"global_prob\":0.0021820068359375,\"is_blocking_enabled\":false,\"reason\":\"No rule match.\",\"tag_probs\":null,\"tags\":[]}}}"
+  }
+}

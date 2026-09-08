@@ -2,208 +2,53 @@
   "$schema": "http://json-schema.org/draft-07/schema",
   "$id": "/miscs/telemetry/v2/telemetry_request.json",
   "description": "Instrumentation telemetry schema",
+  "type": "object",
   "allOf": [
     {
-      "properties": {
-        "header": {
-          "$ref": "/miscs/telemetry/v2/objects/header.json"
-        }
-      },
-      "request_type": {
-        "enum": [
-          "app-started",
-          "app-extended-heartbeat",
-          "app-integrations-change",
-          "app-dependencies-loaded",
-          "app-client-configuration-change",
-          "app-product-change",
-          "generate-metrics",
-          "app-heartbeat",
-          "app-closing",
-          "apm-onboarding-event",
-          "message-batch",
-          "distributions",
-          "logs"
-        ]
-      }
+      "required": ["api_version", "request_type"]
     },
     {
+      "$ref": "/miscs/telemetry/v2/objects/request_type.json"
+    },
+    {
+      "$comment": "Request types only ever emitted by a tracer (never by the agent's own telemetry, which uses an event_time/host-only header) must carry the full tracer header.",
       "if": {
+        "required": ["request_type"],
         "properties": {
           "request_type": {
-            "const": "app-started"
+            "enum": [
+              "app-started",
+              "app-extended-heartbeat",
+              "app-integrations-change",
+              "app-dependencies-loaded",
+              "app-client-configuration-change",
+              "app-product-change",
+              "app-endpoints",
+              "app-heartbeat",
+              "app-closing",
+              "generate-metrics",
+              "distributions",
+              "sketches",
+              "logs"
+            ]
           }
         }
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "/miscs/telemetry/v2/events/app-started.json"
-          }
-        }
+        "required": ["application"]
       }
     },
     {
+      "$comment": "Applied only when `application` is present, so the agent's own telemetry (agent-metrics/agent-bsod, and message-batches wrapping them) and apm-onboarding-event - which legitimately carry no application/runtime_id/seq_id - are not held to the tracer header shape. The branch above guarantees tracer payloads do reach this.",
       "if": {
-        "properties": {
-          "request_type": {
-            "const": "app-extended-heartbeat"
-          }
-        }
+        "required": ["application"]
       },
       "then": {
-        "properties": {
-          "payload": {
-            "$ref": "/miscs/telemetry/v2/events/extended-heartbeat.json"
-          }
-        }
+        "$ref": "/miscs/telemetry/v2/objects/header.json"
       }
     },
     {
-      "if": {
-        "properties": {
-          "request_type": {
-            "const": "app-integrations-change"
-          }
-        }
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "/miscs/telemetry/common/events/integrations-change.json"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "request_type": {
-            "const": "app-dependencies-loaded"
-          }
-        }
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "/miscs/telemetry/common/events/dependencies-loaded.json"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "request_type": {
-            "const": "app-client-configuration-change"
-          }
-        }
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "/miscs/telemetry/v2/events/client-configuration-change.json"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "request_type": {
-            "const": "app-product-change"
-          }
-        }
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "/miscs/telemetry/v2/events/product-change.json"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "request_type": {
-            "const": "generate-metrics"
-          }
-        }
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "/miscs/telemetry/common/events/generate-metrics.json"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "type": "object",
-        "properties": {
-          "request_type": {
-            "const": "apm-onboarding-event"
-          }
-        }
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "/miscs/telemetry/common/events/apm-onboarding.json"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "request_type": {
-            "const": "message-batch"
-          }
-        }
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "/miscs/telemetry/v2/events/message-batch.json"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "type": "object",
-        "properties": {
-          "request_type": {
-            "const": "distributions"
-          }
-        }
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "/miscs/telemetry/common/events/distributions.json"
-          }
-        }
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "request_type": {
-            "const": "logs"
-          }
-        }
-      },
-      "then": {
-        "properties": {
-          "payload": {
-            "$ref": "/miscs/telemetry/v2/events/logs.json"
-          }
-        }
-      }
+      "$ref": "/miscs/telemetry/v2/objects/payload_dispatch.json"
     }
   ]
 }

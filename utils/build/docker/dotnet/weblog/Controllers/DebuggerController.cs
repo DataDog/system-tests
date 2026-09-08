@@ -57,11 +57,13 @@ namespace weblog
         [Consumes("application/json", "application/xml")]
         public async Task<IActionResult> Pii()
         {
-            PiiBase? pii = await Task.FromResult<PiiBase>(new Pii());
-            PiiBase? customPii = await Task.FromResult<PiiBase>(new CustomPii());
+            Pii? pii = await Task.FromResult(new Pii());
+            CustomPii? customPii = await Task.FromResult(new CustomPii());
             var value = pii?.TestValue;
             var customValue = customPii?.TestValue;
-            return Content($"PII {value}. CustomPII {customValue}"); // must be line 64
+            var password = "DIRECT_SECRET_VALUE";
+            var user = CreatePiiUser();
+            return Content($"PII {value}. CustomPII {customValue}. Data size {password.Length + user.Count}"); // must be line 66
         }
 
         [HttpGet("expression")]
@@ -147,7 +149,38 @@ namespace weblog
             var manyFields = data["manyFields"];
             var largeCollection = data["largeCollection"];
             var longString = data["longString"];
-            return Content("Capture limits probe"); // must be line 150
+            return Content("Capture limits probe"); // must be line 152
+        }
+
+        [HttpGet("snapshot/capture-timeout")]
+        public IActionResult CaptureTimeout(int collectionSize = 0, int nestingDepth = 0)
+        {
+            return Content(CaptureTimeoutFixture(collectionSize, nestingDepth));
+        }
+
+        private static string CaptureTimeoutFixture(int collectionSize, int nestingDepth)
+        {
+            var largeCollection = new List<NestedObject>();
+            for (var i = 0; i < collectionSize; i++)
+            {
+                var nested = new NestedObject { level = i };
+                for (var level = nestingDepth; level > 0; level--)
+                {
+                    nested = new NestedObject { level = level, nested = nested };
+                }
+                largeCollection.Add(nested);
+            }
+            return "Capture timeout probe"; // must be line 173
+        }
+
+        private static Dictionary<string, string> CreatePiiUser()
+        {
+            return new Dictionary<string, string>
+            {
+                ["password"] = "MAP_SECRET_VALUE",
+                ["_2fa"] = "EXCLUDED_IDENTIFIER_VALUE",
+                ["name"] = "NON_SENSITIVE_VALUE",
+            };
         }
     }
 }

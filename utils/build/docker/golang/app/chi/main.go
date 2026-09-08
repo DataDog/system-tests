@@ -56,6 +56,10 @@ func main() {
 	}
 	defer profiler.Stop()
 
+	// Chi rejects non-standard HTTP methods before route middleware runs.
+	// Register PROPFIND because it is the method used by semantic-convention coverage;
+	// global tracing middleware is not an alternative because it breaks AppSec.
+	chi.RegisterMethod("PROPFIND")
 	mux := chi.NewRouter().With(chitrace.Middleware())
 
 	mux.HandleFunc("/stats-unique", func(w http.ResponseWriter, r *http.Request) {
@@ -150,6 +154,8 @@ func main() {
 		}
 		w.Write([]byte("OK"))
 	})
+
+	mux.HandleFunc("/trace/manual_keep_drop", common.ManualKeepDrop)
 
 	mux.HandleFunc("/make_distant_call", func(w http.ResponseWriter, r *http.Request) {
 		url := r.URL.Query().Get("url")

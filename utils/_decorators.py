@@ -1,17 +1,13 @@
 import inspect
 import os
-import re
 from functools import partial
 from types import FunctionType, MethodType
 from typing import Any
 
 import pytest
 
-from utils.manifest import TestDeclaration
+from utils.manifest import TestDeclaration, validate_declaration_reason
 from utils._context.core import context
-
-
-_jira_ticket_pattern = re.compile(r"([A-Z]{3,}-\d+)(, [A-Z]{3,}-\d+)*")
 
 
 def configure(config: pytest.Config):
@@ -21,14 +17,17 @@ def configure(config: pytest.Config):
 _MANIFEST_ERROR_MESSAGE = "Please use manifest file, See docs/edit/manifest.md"
 
 
-def _is_jira_ticket(declaration_details: str | None) -> bool:
-    return declaration_details is not None and _jira_ticket_pattern.fullmatch(declaration_details) is not None
-
-
-def _ensure_jira_ticket_as_reason(item: type[Any] | FunctionType | MethodType, declaration_details: str | None) -> None:
+def _ensure_valid_declaration_reason(
+    item: type[Any] | FunctionType | MethodType,
+    declaration: TestDeclaration,
+    declaration_details: str | None,
+) -> None:
     if isinstance(item, pytest.Function):
         item = item.function
-    if not _is_jira_ticket(declaration_details):
+
+    try:
+        validate_declaration_reason(declaration, declaration_details)
+    except ValueError:
         path = inspect.getfile(item)
         rel_path = os.path.relpath(path)
         nodeid = f"{rel_path}::{item.__name__ if inspect.isclass(item) else item.__qualname__}"
@@ -49,8 +48,7 @@ def add_pytest_marker(
     ):
         raise ValueError(f"Unexpected skipped object: {item}")
 
-    if declaration in (TestDeclaration.BUG, TestDeclaration.FLAKY):
-        _ensure_jira_ticket_as_reason(item, declaration_details)
+    _ensure_valid_declaration_reason(item, declaration, declaration_details)
 
     if declaration in (TestDeclaration.IRRELEVANT, TestDeclaration.FLAKY):
         marker = pytest.mark.skip
@@ -86,6 +84,7 @@ def _expected_to_fail(
 
     if library is not None:
         if library not in (
+            "c",
             "cpp",
             "cpp_httpd",
             "cpp_kong",

@@ -2,24 +2,47 @@ package common
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
+	"sync"
 
 	ddof "github.com/DataDog/dd-trace-go/v2/openfeature"
 	of "github.com/open-feature/go-sdk/openfeature"
 )
 
 func FFeEval() func(writer http.ResponseWriter, request *http.Request) {
-	ddProvider, err := ddof.NewDatadogProvider(ddof.ProviderConfig{})
-	if err != nil {
-		log.Fatalf("failed to create Datadog OpenFeature provider: %v", err)
-	}
-
-	if err := of.SetProvider(ddProvider); err != nil {
-		log.Fatalf("failed to set Datadog OpenFeature provider: %v", err)
-	}
-
 	ofClient := of.NewClient("system-tests-weblog-client")
+	var providerMutex sync.Mutex
+	providerInitialized := false
+
+	initializeProvider := func() error {
+		providerMutex.Lock()
+		defer providerMutex.Unlock()
+
+		if providerInitialized {
+			return nil
+		}
+
+		ddProvider, err := ddof.NewDatadogProvider(ddof.ProviderConfig{})
+		if err != nil {
+			return fmt.Errorf("create Datadog OpenFeature provider: %w", err)
+		}
+
+		if err := of.SetProvider(ddProvider); err != nil {
+			return fmt.Errorf("set Datadog OpenFeature provider: %w", err)
+		}
+
+		providerInitialized = true
+		return nil
+	}
+
+	// Subscribe eagerly so Agent-backed scenarios can deliver Remote Config before their first evaluation.
+	// FFE is optional in this shared weblog, so an unavailable provider must not prevent the app from starting.
+	if err := initializeProvider(); err != nil {
+		log.Printf("failed to initialize Datadog OpenFeature provider; will retry on request: %v", err)
+	}
+
 	return func(writer http.ResponseWriter, request *http.Request) {
 		var body struct {
 			Flag          string         `json:"flag"`
@@ -31,6 +54,13 @@ func FFeEval() func(writer http.ResponseWriter, request *http.Request) {
 		}
 		if err := json.NewDecoder(request.Body).Decode(&body); err != nil {
 			http.Error(writer, "invalid request body", http.StatusBadRequest)
+			return
+		}
+
+		// Retry after a startup failure so temporarily unavailable providers can recover.
+		if err := initializeProvider(); err != nil {
+			log.Printf("failed to initialize Datadog OpenFeature provider: %v", err)
+			http.Error(writer, "Datadog OpenFeature provider unavailable", http.StatusServiceUnavailable)
 			return
 		}
 

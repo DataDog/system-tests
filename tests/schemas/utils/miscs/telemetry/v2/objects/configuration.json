@@ -21,10 +21,29 @@
         "type": "string"
       },
       "error": {
-        "$ref": "/miscs/telemetry/common/objects/error.json"
+        "anyOf": [
+          {
+            "$ref": "/miscs/telemetry/common/objects/error.json"
+          },
+          {
+            "type": "null"
+          }
+        ]
       },
       "is_overridden": {
         "type": "boolean"
+      },
+      "config_id": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "seq_id": {
+        "type": [
+          "integer",
+          "null"
+        ]
       }
     },
     "required": [

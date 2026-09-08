@@ -307,6 +307,10 @@ def _get_endtoend_weblogs(
             else binaries_artifact
         )
 
+    # skipping dd-trace-go span pool weblog while it's not released
+    if ci_environment == "prod":
+        weblogs = [w for w in weblogs if w.name != "net-http-span-pool"]
+
     return sorted(weblogs, key=lambda w: w.name)
 
 

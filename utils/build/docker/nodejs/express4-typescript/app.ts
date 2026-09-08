@@ -1,10 +1,13 @@
 'use strict'
 
 import { Request, Response } from "express";
+import type { Client } from '@openfeature/server-sdk'
 import http from 'http';
 
 const tracer = require('dd-trace').init();
+const { tags: { MANUAL_KEEP, MANUAL_DROP } } = require('dd-trace/ext');
 
+const { OpenFeature } = require('@openfeature/server-sdk')
 const { promisify } = require('util')
 const app = require('express')()
 const axios = require('axios')
@@ -146,20 +149,48 @@ app.get('/status', (req: Request, res: Response) => {
   res.status(parseInt('' + req.query.code)).send('OK');
 });
 
+app.get("/trace/manual_keep_drop", (req: Request, res: Response) => {
+  const decision = req.query.decision
+
+  if (decision !== 'keep' && decision !== 'drop') {
+    return res.status(400).send('decision must be keep or drop');
+  }
+
+  tracer.scope().active().setTag(decision === 'keep' ? MANUAL_KEEP : MANUAL_DROP, true);
+
+  // Call downstream so that tests can assert on the sampling decision that gets propagated
+  const url = 'http://localhost:7777/'
+  const request = http.request({ hostname: 'localhost', port: 7777, path: '/', method: 'GET' }, (response: http.IncomingMessage) => {
+    response.on('data', () => {})
+
+    response.on('end', () => {
+      res.json({
+        url,
+        status_code: response.statusCode,
+        request_headers: request.getHeaders(),
+        response_headers: response.headers
+      })
+    })
+  })
+
+  request.on('error', (error: Error) => {
+    console.log(error)
+    res.status(500).send(error.message)
+  })
+
+  request.end()
+});
+
 app.get("/make_distant_call", (req: Request, res: Response) => {
   const url = req.query.url
   console.log(url)
 
   const parsedUrl = new URL(url as string)
+  const method = String(req.query.method || 'GET')
 
-  const options = {
-    hostname: parsedUrl.hostname,
-    port: parsedUrl.port || 80, // Use default port if not provided
-    path: parsedUrl.pathname,
-    method: 'GET'
-  }
-
-  const request = http.request(options, (response: http.IncomingMessage) => {
+  // Passing the URL object preserves query strings and credentials. This endpoint is used by
+  // semantic-convention tests that need the tracer to observe the complete outbound request.
+  const request = http.request(parsedUrl, { method }, (response: http.IncomingMessage) => {
     let responseBody = ''
     response.on('data', (chunk) => {
       responseBody += chunk
@@ -521,6 +552,74 @@ app.get('/external_request/redirect', (req: Request, res: Response) => {
 })
 
 require('./rasp')(app)
+
+let openFeatureClient: Client | null = null
+let openFeatureClientPromise: Promise<Client> | null = null
+
+async function getOpenFeatureClient (): Promise<Client | null> {
+  if (openFeatureClient) {
+    return openFeatureClient
+  }
+
+  if (process.env.DD_FEATURE_FLAGS_ENABLED === 'false') {
+    return null
+  }
+
+  if (!openFeatureClientPromise) {
+    openFeatureClientPromise = OpenFeature.setProviderAndWait(tracer.openfeature)
+      .then(() => {
+        openFeatureClient = OpenFeature.getClient()
+        return openFeatureClient
+      })
+      .catch((error: unknown) => {
+        openFeatureClientPromise = null
+        throw error
+      })
+  }
+
+  return openFeatureClientPromise
+}
+
+app.post('/ffe', async (req: Request, res: Response) => {
+  try {
+    const { flag, variationType, defaultValue, targetingKey, targetingKeys, attributes } = req.body
+    const client = await getOpenFeatureClient()
+
+    if (!client) {
+      return res.status(500).json({ error: 'FFE provider not initialized' })
+    }
+
+    let value
+    const keys = Array.isArray(targetingKeys) && targetingKeys.length > 0 ? targetingKeys : [targetingKey]
+
+    for (const key of keys) {
+      const context = { targetingKey: key, ...attributes }
+
+      switch (variationType) {
+        case 'BOOLEAN':
+          value = await client.getBooleanValue(flag, defaultValue, context)
+          break
+        case 'STRING':
+          value = await client.getStringValue(flag, defaultValue, context)
+          break
+        case 'INTEGER':
+        case 'NUMERIC':
+          value = await client.getNumberValue(flag, defaultValue, context)
+          break
+        case 'JSON':
+          value = await client.getObjectValue(flag, defaultValue, context)
+          break
+        default:
+          return res.status(400).json({ error: `Unknown variation type: ${variationType}` })
+      }
+    }
+
+    return res.status(200).json({ value, count: keys.length })
+  } catch (error: any) {
+    console.error('[FFE] Error:', error)
+    return res.status(500).json({ error: error.message })
+  }
+})
 
 const startServer = () => {
   return new Promise((resolve) => {

@@ -23,10 +23,16 @@ def make_ufc_fixture(
     enabled: bool = True,
     allocation_key: str = "default-allocation",
     variation_values: dict[str, VariationValue] | None = None,
+    observe_full_evaluation_data: bool | None = None,
+    serial_id: int | None = None,
 ) -> JSON:
     values = variation_values or DEFAULT_VARIATION_VALUES[variation_type]
 
-    return {
+    split: JSON = {"variationKey": variant_key, "shards": []}
+    if serial_id is not None:
+        split["serialId"] = serial_id
+
+    ufc: JSON = {
         "createdAt": "2024-04-17T19:40:53.716Z",
         "format": "SERVER",
         "environment": {"name": "Test"},
@@ -40,23 +46,28 @@ def make_ufc_fixture(
                     {
                         "key": allocation_key,
                         "rules": [],
-                        "splits": [{"variationKey": variant_key, "shards": []}],
+                        "splits": [split],
                         "doLog": True,
                     }
                 ],
             }
         },
     }
+    if observe_full_evaluation_data is not None:
+        ufc["observeFullEvaluationData"] = observe_full_evaluation_data
+    return ufc
 
 
 def make_exposure_ufc_fixture(
     flag_key: str,
     variant_key: str = "variant-a",
     allocation_key: str = "default-allocation",
+    serial_id: int | None = None,
 ) -> JSON:
     return make_ufc_fixture(
         flag_key,
         variant_key,
         allocation_key=allocation_key,
         variation_values={"variant-a": "value-a", "variant-b": "value-b"},
+        serial_id=serial_id,
     )

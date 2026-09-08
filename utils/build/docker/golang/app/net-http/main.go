@@ -193,6 +193,8 @@ func main() {
 
 	mux.HandleFunc("/spawn_child", common.SpawnChild)
 
+	mux.HandleFunc("/trace/manual_keep_drop", common.ManualKeepDrop)
+
 	mux.HandleFunc("/make_distant_call", func(w http.ResponseWriter, r *http.Request) {
 		url := r.URL.Query().Get("url")
 		if url == "" {
@@ -200,8 +202,17 @@ func main() {
 			return
 		}
 
+		method := r.URL.Query().Get("method")
+		if method == "" {
+			method = http.MethodGet
+		}
 		client := httptrace.WrapClient(http.DefaultClient)
-		req, _ := http.NewRequestWithContext(r.Context(), http.MethodGet, url, nil)
+		req, err := http.NewRequestWithContext(r.Context(), method, url, nil)
+		if err != nil {
+			logrus.WithError(err).Error("can't build distant call request")
+			http.Error(w, "Can't build distant call request", http.StatusBadRequest)
+			return
+		}
 		// Inject the current span's context into req.Header so headers are
 		// visible after client.Do (the wrapped client injects into a cloned request).
 		if span, ok := tracer.SpanFromContext(r.Context()); ok {

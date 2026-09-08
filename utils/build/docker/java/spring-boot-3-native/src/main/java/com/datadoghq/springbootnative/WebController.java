@@ -3,6 +3,9 @@ package com.datadoghq.springbootnative;
 import static datadog.appsec.api.user.User.setUser;
 
 import datadog.appsec.api.login.EventTrackerV2;
+import datadog.trace.api.DDTags;
+import io.opentracing.Span;
+import io.opentracing.util.GlobalTracer;
 import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -172,6 +175,21 @@ public class WebController {
     metadata.put("scope", "usr.scope");
     setUser("usr.id", metadata);
     return "OK";
+  }
+
+  @RequestMapping("/trace/manual_keep_drop")
+  ResponseEntity<?> traceManualKeepDrop(@RequestParam String decision) throws Exception {
+    if (!"keep".equals(decision) && !"drop".equals(decision)) {
+      return ResponseEntity.badRequest().body("decision must be keep or drop");
+    }
+
+    final Span span = GlobalTracer.get().activeSpan();
+    if (span != null) {
+      span.setTag("keep".equals(decision) ? DDTags.MANUAL_KEEP : DDTags.MANUAL_DROP, true);
+    }
+
+    // Call downstream so that tests can assert on the sampling decision that gets propagated
+    return ResponseEntity.ok(make_distant_call("http://localhost:7777/"));
   }
 
   @RequestMapping("/make_distant_call")

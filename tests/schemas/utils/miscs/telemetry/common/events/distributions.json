@@ -1,19 +1,51 @@
 {
-    "$schema": "http://json-schema.org/draft-07/schema",
-    "$id": "/miscs/telemetry/common/events/distributions.json",
-    "description": "distributions schema",
-    "title": "distributions",
-    "type": "object",
-    "properties": {
-        "namespace": {
-            "type": "string"
-        },
-        "series": {
-            "type": "array",
-            "items": {
-                "$ref": "/miscs/telemetry/common/objects/distribution.json"
-            }
-        }
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "/miscs/telemetry/common/events/distributions.json",
+  "description": "distributions schema",
+  "title": "distributions",
+  "$comment": "A namespace must be resolvable for every serie: the intake requires it per-serie and rejects the whole payload otherwise. It may be given once at the payload level or repeated on each serie.",
+  "type": "object",
+  "properties": {
+    "namespace": {
+      "type": "string"
     },
-    "required": ["namespace", "series"]
+    "series": {
+      "type": "array"
+    }
+  },
+  "if": {
+    "required": [
+      "namespace"
+    ]
+  },
+  "then": {
+    "properties": {
+      "series": {
+        "items": {
+          "$ref": "/miscs/telemetry/common/objects/distribution.json"
+        }
+      }
+    }
+  },
+  "else": {
+    "properties": {
+      "series": {
+        "items": {
+          "allOf": [
+            {
+              "$ref": "/miscs/telemetry/common/objects/distribution.json"
+            },
+            {
+              "required": [
+                "namespace"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  },
+  "required": [
+    "series"
+  ]
 }

@@ -1,0 +1,9 @@
+eval_gemfile File.expand_path("common.gemfile", __dir__)
+
+gem "bigdecimal", "~> 1.2", ">= 1.2.7"
+group :development, :test do
+  # Newer debug releases require psych versions that do not build on Ruby 3.0.2.
+  gem "debug", "~> 1.7.0", platforms: %i[mri mingw x64_mingw]
+  # Avoid the modern rdoc and psych dependency chain on Ruby 3.0.2.
+  gem "irb", "~> 1.6.0"
+end

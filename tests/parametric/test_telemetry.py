@@ -487,7 +487,6 @@ class Test_Environment:
         "library_env",
         [
             {
-                "DD_TRACE_AGENT_PORT": "agent.port",
                 "DD_TRACE_OTEL_ENABLED": 1,
                 "DD_TELEMETRY_HEARTBEAT_INTERVAL": 1,
                 "TIMEOUT": 1500,
@@ -572,7 +571,6 @@ class Test_Environment:
         "library_env",
         [
             {
-                "DD_TRACE_AGENT_PORT": "agent.port",
                 "DD_TELEMETRY_HEARTBEAT_INTERVAL": 1,
                 "TIMEOUT": 1500,
                 "OTEL_SERVICE_NAME": "otel_service",

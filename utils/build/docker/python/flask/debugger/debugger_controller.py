@@ -61,7 +61,9 @@ def pii():
     customPii = CustomPii()
     value = pii.test_value
     custom_value = customPii.test_value
-    return f"PII {value}. CustomPII {custom_value}"  # must be line 64
+    password = "DIRECT_SECRET_VALUE"
+    user = {"password": "MAP_SECRET_VALUE", "_2fa": "EXCLUDED_IDENTIFIER_VALUE", "name": "NON_SENSITIVE_VALUE"}
+    return f"PII {value}. CustomPII {custom_value}. Data size {len(password) + len(user)}"  # must be line 66
 
 
 @debugger_blueprint.route("/expression", methods=["GET"])

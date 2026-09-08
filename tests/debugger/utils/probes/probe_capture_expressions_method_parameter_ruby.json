@@ -1,0 +1,29 @@
+[
+    {
+        "language": "",
+        "type": "",
+        "id": "",
+        "version": 0,
+        "where": {
+            "typeName": "ACTUAL_TYPE_NAME",
+            "methodName": "Expression",
+            "sourceFile": null
+        },
+        "captureSnapshot": false,
+        "capture": {
+            "maxReferenceDepth": 3
+        },
+        "captureExpressions": [
+            {
+                "name": "inputValue",
+                "expr": {
+                    "dsl": "arg1",
+                    "json": {"ref": "arg1"}
+                },
+                "capture": {
+                    "maxReferenceDepth": 1
+                }
+            }
+        ]
+    }
+]

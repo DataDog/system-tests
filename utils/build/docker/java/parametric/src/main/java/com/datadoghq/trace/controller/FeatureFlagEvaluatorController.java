@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/ffe")
@@ -42,10 +43,14 @@ public class FeatureFlagEvaluatorController {
         @Bean
         public Client client() {
             final OpenFeatureAPI api = OpenFeatureAPI.getInstance();
-            final String envProperty = System.getenv("DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED");
+            final boolean featureFlaggingConfigured =
+                    System.getenv("DD_FEATURE_FLAGS_ENABLED") != null
+                            || System.getenv("DD_FEATURE_FLAGS_CONFIGURATION_SOURCE") != null
+                            || System.getenv("DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL") != null
+                            || Boolean.parseBoolean(System.getenv("DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED"));
             final FeatureProvider provider;
-            if (Boolean.parseBoolean(envProperty)) {
-                provider = new Provider();
+            if (featureFlaggingConfigured) {
+                provider = new Provider(new Provider.Options().initTimeout(100, TimeUnit.MILLISECONDS));
             } else {
                 provider = new NoOpProvider() {
                     @Override

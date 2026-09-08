@@ -17,12 +17,14 @@ from utils._context.containers import (
     DummyServerContainer,
     EnvoyContainer,
     HAProxyContainer,
+    ApimGatewayContainer,
+    ApimCalloutContainer,
     ExternalProcessingContainer,
     StreamProcessingOffloadContainer,
     GoProcessorContainer,
 )
 
-GoProxyWeblogs = Literal["envoy", "haproxy"]
+GoProxyWeblogs = Literal["envoy", "haproxy", "apim"]
 
 
 class WeblogInfra(ABC):
@@ -33,7 +35,7 @@ class WeblogInfra(ABC):
         """Perform any configuration. Executed only if the weblog will be used"""
 
     @abstractmethod
-    def stop(self) -> None:
+    def stop(self, *, flush: bool = True) -> None:
         """Stop the tested infra"""
 
 
@@ -44,12 +46,13 @@ class EndToEndWeblogInfra(WeblogInfra):
 
     _go_proxy_weblog: GoProxyWeblogs | None = None
     _processor_container: GoProcessorContainer
-    """the Datadog library under test, running as an Envoy external processor
-    or an HAProxy SPOA agent. It intercepts HTTP traffic from the proxy runtime to apply
-    AppSec rules and emit traces. This is the "weblog" from the library's point of view."""
+    """the Datadog library under test, running as a proxy-side callout: an Envoy external
+    processor, an HAProxy SPOA agent or an Azure APIM callout. It intercepts HTTP traffic from the
+    proxy runtime to apply AppSec rules and emit traces. This is the "weblog" from the library's
+    point of view."""
 
-    _proxy_runtime_container: EnvoyContainer | HAProxyContainer
-    """the reverse proxy (Envoy or HAProxy) that sits in front of the
+    _proxy_runtime_container: EnvoyContainer | HAProxyContainer | ApimGatewayContainer
+    """the proxy runtime (Envoy, HAProxy or the APIM gateway) that sits in front of the
     dummy HTTP server and forwards requests through the processor. It is the actual HTTP
     entry point for test requests, exposing the weblog port to the test suite."""
 
@@ -124,6 +127,9 @@ class EndToEndWeblogInfra(WeblogInfra):
         elif self._go_proxy_weblog == "haproxy":
             self._processor_container = StreamProcessingOffloadContainer()
             self._proxy_runtime_container = HAProxyContainer()
+        elif self._go_proxy_weblog == "apim":
+            self._processor_container = ApimCalloutContainer()
+            self._proxy_runtime_container = ApimGatewayContainer()
 
         self._processor_container.environment |= self._environment
         self._processor_container.volumes |= self._volumes
@@ -133,13 +139,14 @@ class EndToEndWeblogInfra(WeblogInfra):
         self._proxy_runtime_container.depends_on = [self._processor_container, self._dummy_server_container]
 
     def set_weblog_dependencies(
-        self, agent_container: TestedContainer, proxy_container: TestedContainer | None
+        self, agent_container: TestedContainer | None, proxy_container: TestedContainer | None
     ) -> None:
         """Wire container start-order dependencies for all weblog containers.
 
         Handles both the standard weblog topology and the go-proxies one transparently.
         """
-        self.library_container.depends_on.append(agent_container)
+        if agent_container is not None:
+            self.library_container.depends_on.append(agent_container)
         if proxy_container is not None:
             self.library_container.depends_on.append(proxy_container)
 
@@ -207,7 +214,7 @@ class EndToEndWeblogInfra(WeblogInfra):
             )
         return (self.http_container, *self._other_containers)
 
-    def stop(self) -> None:
+    def stop(self, *, flush: bool = True) -> None:
         if self._is_proxy_weblog:
             if self._proxy_runtime_container:
                 self._proxy_runtime_container.stop()
@@ -216,7 +223,8 @@ class EndToEndWeblogInfra(WeblogInfra):
             if self._dummy_server_container:
                 self._dummy_server_container.stop()
         else:
-            self.http_container.flush()
+            if flush:
+                self.http_container.flush()
             self.http_container.stop()
 
     @property

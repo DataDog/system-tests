@@ -6,7 +6,7 @@ import requests
 from utils.virtual_machine.virtual_machines import _VirtualMachine
 
 
-def make_get_request(app_url: str, appsec: bool = False):
+def make_get_request(app_url: str, *, appsec: bool = False) -> str:
     generated_uuid = str(randint(1, 100000000000000000))
     headers = {
         "x-datadog-trace-id": generated_uuid,
@@ -25,7 +25,7 @@ def make_get_request(app_url: str, appsec: bool = False):
     return generated_uuid
 
 
-def warmup_weblog(app_url: str):
+def warmup_weblog(app_url: str) -> None:
     for _ in range(15):
         try:
             requests.get(app_url, timeout=10)
@@ -34,7 +34,7 @@ def warmup_weblog(app_url: str):
             time.sleep(5)
 
 
-def make_internal_get_request(stdin_file: str, vm_port: int, appsec: bool = False):
+def make_internal_get_request(stdin_file: str, vm_port: int, *, appsec: bool = False) -> str:
     """Exclusively for testing through KrunVm microVM.
     It is used to make a request to the weblog application inside the VM, using stdin file
     """

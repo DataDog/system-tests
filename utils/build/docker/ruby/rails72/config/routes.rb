@@ -30,6 +30,7 @@ Rails.application.routes.draw do
   get '/spans' => 'system_test#generate_spans'
   get '/status' => 'system_test#status'
   get '/read_file' => 'system_test#read_file'
+  get '/trace/manual_keep_drop' => 'system_test#trace_manual_keep_drop'
   get '/make_distant_call' => 'system_test#make_distant_call'
   get '/log/library' => 'system_test#log_library'
 
@@ -72,7 +73,7 @@ Rails.application.routes.draw do
   get '/debugger/log' => 'debugger#log_probe'
   get '/debugger/mix/:string_arg/:int_arg' => 'debugger#mix_probe'
   get '/debugger/snapshot/limits' => 'debugger#snapshot_limits'
-  get '/debugger/expression' => 'debugger#expression'
+  get '/debugger/expression' => 'debugger#run_expression'
   %w(operators strings collections null exception).each do |sub|
     get "/debugger/expression/#{sub}" => "debugger#expression_#{sub}"
   end

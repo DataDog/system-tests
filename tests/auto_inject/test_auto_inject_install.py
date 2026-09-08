@@ -112,6 +112,10 @@ class TestContainerAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
         context.weblog_variant == "test-app-nodejs-container-25",
         reason="PROF-12765",
     )
+    @bug(
+        context.weblog_variant == "test-app-java-multialpine",
+        reason="PROF-15664",
+    )
     def test_profiling(self):
         self._test_install(context.virtual_machine, profile=True)
 

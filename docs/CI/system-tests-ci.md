@@ -1,6 +1,6 @@
 ## CI Workflow: Github Actions
 
-Our System-tests repository is fully integrated with Github Actions, which helps us build, execute and report tests results automatically.
+Our System-tests repository uses GitHub Actions to build, execute, and report most test results automatically. Native C end-to-end coverage runs in GitLab CI on DinD runners.
 
 The System-tests repository contains **one main workflow**: `ci.yml`. It is triggered in these cases:
 

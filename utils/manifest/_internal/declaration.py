@@ -1,7 +1,20 @@
+import re
+
 from utils._context.component_version import ComponentVersion
+
 from .const import skip_declaration_regex, full_regex, TestDeclaration
 from .types import SemverRange
-import re
+
+
+_jira_ticket_pattern = re.compile(r"([A-Z]{3,}-\d+)(, [A-Z]{3,}-\d+)*")
+
+
+def validate_declaration_reason(declaration: TestDeclaration, reason: str | None) -> None:
+    if declaration not in (TestDeclaration.BUG, TestDeclaration.FLAKY):
+        return
+
+    if reason is None or _jira_ticket_pattern.fullmatch(reason) is None:
+        raise ValueError(f"Please set a jira ticket instead of reason: {reason}")
 
 
 class Declaration:
@@ -41,10 +54,8 @@ class Declaration:
         elements = re.fullmatch(skip_declaration_regex, self.raw, re.ASCII)
         if elements:
             self.is_skip = True
-            skip_declaration = _parse_skip_declaration(self.raw)
-            self.value = skip_declaration[0]
-            if elements[1]:
-                self.reason = skip_declaration[1]
+            self.value, self.reason = _parse_skip_declaration(self.raw)
+            validate_declaration_reason(self.value, self.reason)
             return
         if not self.is_inline:
             raise ValueError(f"Wrong declaration format: {self.raw} (is inline: {self.is_inline})")

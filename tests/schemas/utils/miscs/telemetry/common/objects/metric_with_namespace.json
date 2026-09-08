@@ -4,79 +4,72 @@
   "description": "Metric Object With Namespace",
   "title": "Instrumentation Telemetry Metric",
   "type": "object",
+  "properties": {
+    "namespace": {
+      "type": "string"
+    },
+    "common": {
+      "type": "boolean"
+    },
+    "metric": {
+      "type": "string"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "type": {
+      "description": "Metric type variant",
+      "enum": [
+        "gauge",
+        "count",
+        "rate",
+        "distribution"
+      ],
+      "example": "gauge"
+    },
+    "points": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        }
+      }
+    },
+    "interval": {
+      "description": "Set for gauge and rate metric types",
+      "type": "number",
+      "format": "double"
+    }
+  },
+  "required": [
+    "namespace",
+    "metric",
+    "points"
+  ],
   "allOf": [
     {
-      "properties": {
-        "namespace": {
-          "type": "string"
-        },
-        "common": {
-          "type": "boolean"
-        },
-        "metric": {
-          "type": "string"
-        },
-        "tags": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "type": {
-          "description": "Metric type variant",
-          "enum": ["gauge", "count", "rate"],
-          "example": "gauge"
-        },
-        "points": {
-          "type": "array",
-          "items": {
-            "type": "array",
-            "items": {
-              "type": "number"
-            }
-          }
-        },
-        "interval": {
-          "description": "Set for gauge and rate metric types",
-          "type": "number",
-          "format": "double"
-        }
-      }
-    },
-    {
+      "$comment": "gauge and rate are the metric types that carry an interval (see the field's description): a rate is only interpretable relative to the period it was measured over, and a gauge reports the value observed over the flush interval.",
       "if": {
+        "required": [
+          "type"
+        ],
         "properties": {
           "type": {
-            "enum": ["gauge", "rate"]
+            "enum": [
+              "gauge",
+              "rate"
+            ]
           }
         }
       },
       "then": {
-        "required": ["namespace", "metric", "points", "interval"]
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "type": {
-            "const": "count"
-          }
-        }
-      },
-      "then": {
-        "required": ["namespace", "metric", "points"]
-      }
-    },
-    {
-      "if": {
-        "properties": {
-          "type": {
-            "const": "gauge"
-          }
-        }
-      },
-      "then": {
-        "required": ["namespace", "metric", "points", "tags", "common", "type"]
+        "required": [
+          "interval"
+        ]
       }
     }
   ]
