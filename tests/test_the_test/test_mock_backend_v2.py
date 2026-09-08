@@ -15,7 +15,6 @@ from utils.mocked_backend.backend_v2 import MockBackendV2Server
 
 @pytest.fixture
 def server(tmp_path: Path) -> Generator[MockBackendV2Server, None, None]:
-    (tmp_path / "files").mkdir(parents=True, exist_ok=True)
     server = MockBackendV2Server(str(tmp_path), port=0)
 
     yield server
@@ -113,7 +112,6 @@ def test_undecodable_content_is_logged_without_crashing_the_server(server: MockB
 @scenarios.test_the_test
 def test_on_message_callback_is_invoked_with_the_logged_data(tmp_path: Path):
     received: list[dict] = []
-    (tmp_path / "files").mkdir(parents=True, exist_ok=True)
     server = MockBackendV2Server(str(tmp_path), on_message=received.append, port=0)
 
     try:
