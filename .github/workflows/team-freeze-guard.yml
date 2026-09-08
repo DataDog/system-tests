@@ -24,4 +24,5 @@ jobs:
         with:
           bypass-labels: |
             fix
-          frozen-teams: ""
+          frozen-teams: |
+            @DataDog/apm-reliability-and-performance
