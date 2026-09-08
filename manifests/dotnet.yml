@@ -889,6 +889,7 @@ manifest:
     - declaration: bug (APMRP-360)
       component_version: <=2.53.2
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled: v2.49.0
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_default_capability_completeness: missing_feature (FFL-2703 declares FFE_FLAG_CONFIGURATION_RULES for dotnet from 3.54.0)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_tracing_client_tracing_disable_one_way: irrelevant (dotnet tracer supports re-enabling over RC)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1: v2.33.0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1::test_trace_sampling_rate_override_default:
