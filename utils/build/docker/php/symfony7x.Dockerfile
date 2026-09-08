@@ -3,6 +3,17 @@ ARG VARIANT=release
 
 FROM datadog/dd-appsec-php-ci:php-$PHP_VERSION-$VARIANT
 
+# Debian 11 LTS ended 2026-08-31; live deb.debian.org/security.debian.org repos 404 now, and
+# archive.debian.org doesn't mirror bullseye-security yet — pin to a snapshot.debian.org
+# timestamp instead (deb11u2 was only published there on 2026-08-16, so pick a date after that).
+# Check-Valid-Until is disabled because snapshot Release files carry an already-past Valid-Until.
+RUN set -ex && \
+  sed -i \
+    -e 's|http://deb.debian.org/debian |http://snapshot.debian.org/archive/debian/20260901T000000Z |g' \
+    -e 's|http://security.debian.org/debian-security |http://snapshot.debian.org/archive/debian-security/20260901T000000Z |g' \
+    /etc/apt/sources.list && \
+  echo 'Acquire::Check-Valid-Until "false";' > /etc/apt/apt.conf.d/99no-check-valid-until
+
 ENV PHP_VERSION=8.2
 ENV DD_TRACE_ENABLED=1
 ENV DD_TRACE_GENERATE_ROOT_SPAN=1
