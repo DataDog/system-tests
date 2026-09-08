@@ -43,7 +43,8 @@ def _decode_content(raw_body: bytes, content_encoding: str) -> bytes:
     if content_encoding == "zstd":
         # stream_reader().read() consumes every concatenated frame, unlike decompress(),
         # which only decodes the first one (see utils.proxy.core.get_decoded_content).
-        return zstandard.ZstdDecompressor().stream_reader(io.BytesIO(raw_body)).read()
+        with zstandard.ZstdDecompressor().stream_reader(io.BytesIO(raw_body)) as reader:
+            return reader.read()
     return raw_body
 
 

@@ -3,7 +3,7 @@
 set -e
 
 
-# scenario getting backedn data are not yet supported
+# scenarios getting backend data are not yet supported
 NOT_SUPPORTED=("APM_TRACING_E2E_OTEL" "PARAMETRIC" "OTEL_INTEGRATIONS" "OTEL_LOG_E2E" "OTEL_METRIC_E2E" "OTEL_TRACING_E2E" "INTEGRATION_FRAMEWORKS")
 
 if [ -d "logs/" ]; then
@@ -18,7 +18,7 @@ if dirs=( "$log_folder_prefix"*/ ) && [[ -d ${dirs[0]} ]]; then
     do
         scenario=${dir#"$log_folder_prefix"}
         scenario=$(echo "$scenario" | tr '[:lower:]' '[:upper:]')
-        if [[ ${NOT_SUPPORTED[*]} =~ $scenario ]]
+        if [[ " ${NOT_SUPPORTED[*]} " == *" $scenario "* ]]
         then
             echo "[$scenario] Replay mode not supported "
         else
