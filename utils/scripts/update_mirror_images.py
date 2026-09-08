@@ -145,8 +145,7 @@ def _restore_yaml_header() -> None:
     YAML document.
     """
     content = MIRROR_YAML.read_text(encoding="utf-8")
-    if content.startswith("---\n"):
-        content = content[len("---\n") :]
+    content = content.removeprefix("---\n")
     MIRROR_YAML.write_text(MIRROR_YAML_HEADER + content, encoding="utf-8")
 
 
