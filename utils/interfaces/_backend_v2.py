@@ -54,6 +54,12 @@ class _BackendV2InterfaceValidator(ProxyBasedInterfaceValidator):
         for data in self.get_data(path_filters="/api/v0.2/traces"):
             logger.debug(f"Looking at backend_v2 data {data['log_filename']}")
 
+            if "content" not in data["request"]:
+                raise ValueError(
+                    f"backend_v2 request in {data['log_filename']} could not be deserialized: "
+                    f"{data['request'].get('traceback', data['request'].get('raw_content'))}"
+                )
+
             builder: Callable[[dict, dict], DataDogAgentTrace]
 
             if "tracerPayloads" in data["request"]["content"]:

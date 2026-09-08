@@ -22,7 +22,7 @@ import brotli
 import zstandard
 
 from utils._logger import logger
-from utils.docker_fixtures._core import HOST_DOCKER_INTERNAL, get_host_port
+from utils.docker_fixtures._core import HOST_DOCKER_INTERNAL
 from utils.proxy._deserializer import deserialize
 
 if TYPE_CHECKING:
@@ -50,16 +50,16 @@ def _decode_content(raw_body: bytes, content_encoding: str) -> bytes:
 _PORT_BASE = 4901
 
 
-def get_mocked_backend_v2_port(worker_id: str = "master") -> int:
+def get_mocked_backend_v2_port() -> int:
     """The port MockBackendV2Server listens on, computable ahead of starting it (e.g. to
     configure a container's environment before the server is actually running).
     """
-    return get_host_port(worker_id, _PORT_BASE)
+    return _PORT_BASE
 
 
-def get_mocked_backend_v2_container_url(worker_id: str = "master") -> str:
+def get_mocked_backend_v2_container_url() -> str:
     """The URL a container can use to reach the mock server on the docker host."""
-    return f"http://{HOST_DOCKER_INTERNAL}:{get_mocked_backend_v2_port(worker_id)}"
+    return f"http://{HOST_DOCKER_INTERNAL}:{get_mocked_backend_v2_port()}"
 
 
 class MockBackendV2Server:
@@ -68,12 +68,11 @@ class MockBackendV2Server:
     def __init__(
         self,
         log_folder: str,
-        worker_id: str = "master",
         on_message: Callable[[dict], None] | None = None,
         *,
         port: int | None = None,
     ) -> None:
-        self.port = get_mocked_backend_v2_port(worker_id) if port is None else port
+        self.port = get_mocked_backend_v2_port() if port is None else port
         # Bind on every interface, not just loopback, so containers can reach it through
         # host.docker.internal.
         self._server = _MockBackendV2HTTPServer(("0.0.0.0", self.port), log_folder, on_message)  # noqa: S104
