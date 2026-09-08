@@ -20,6 +20,9 @@ const fs = require('fs')
 const crypto = require('crypto')
 const winston = require('winston')
 const api = require('@opentelemetry/api')
+const otelLogs = require('@opentelemetry/api-logs')
+
+const OTEL_LOG_MESSAGE_MARKER = '[otel_create_log] test log record'
 
 const iast = require('./iast')
 const dsm = require('./dsm')
@@ -96,7 +99,11 @@ function subprocessAndExitHandler (req, res) {
   const useFork = forkStr === 'true'
 
   if (useFork) {
-    const child = require('child_process').fork(path.join(__dirname, 'fork_child.js'), [sleep, crashStr])
+    // fork()'s default stdio is piped (not inherited); without forwarding it, the child's
+    // console output - including any crashtracker diagnostics - is silently discarded.
+    const child = require('child_process').fork(path.join(__dirname, 'fork_child.js'), [sleep, crashStr], {
+      stdio: ['inherit', 'inherit', 'inherit', 'ipc']
+    })
     child.on('close', (code, signal) => {
       res.send(`Child process ${child.pid} exited with code ${code}, signal ${signal}`)
     })
@@ -639,6 +646,29 @@ app.get('/otel_drop_in_default_propagator_inject', (req, res) => {
   api.propagation.inject(
     api.trace.setSpanContext(api.ROOT_CONTEXT, span.spanContext()), result, api.defaultTextMapSetter)
   res.json(result)
+})
+
+app.get('/otel_create_metric', (req, res) => {
+  // Record a value via the standard OTel Metrics API (@opentelemetry/api's `metrics` namespace).
+  // Unrelated to dd-trace-js's own runtime metrics (DD_RUNTIME_METRICS_ENABLED), which are never
+  // fed into the OTel meter - this exercises a genuine, user-created OTel metric instead, so its
+  // export can be verified independently of that gap.
+  const meter = api.metrics.getMeter('system-tests')
+  const counter = meter.createCounter('system_tests.otel_metric', { description: 'system-tests OTel metrics test' })
+  counter.add(1, { 'system_tests.metric_test': 'true' })
+
+  res.send('OK')
+})
+
+app.get('/otel_create_log', (req, res) => {
+  // Emit a log record via the standard OTel Logs Bridge API (@opentelemetry/api-logs), the
+  // language-agnostic equivalent of /otel_create_metric above for logs: dd-trace-js only
+  // exports log records emitted through this API, unlike languages whose OTel logs integration
+  // bridges the standard logging module automatically.
+  const logger = otelLogs.logs.getLogger('system-tests')
+  logger.emit({ severityText: 'INFO', body: OTEL_LOG_MESSAGE_MARKER })
+
+  res.send('OK')
 })
 
 app.post('/shell_execution', (req, res) => {

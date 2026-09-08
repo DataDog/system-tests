@@ -876,6 +876,16 @@ class _Scenarios:
             "DD_METRICS_OTEL_ENABLED": "true",
         },
     )
+    apm_tracing_agentless_fast_heartbeat = AgentlessEndToEndScenario(
+        "APM_TRACING_AGENTLESS_FAST_HEARTBEAT",
+        doc="Validate the generate-metrics telemetry event under DD_AGENTLESS_ENABLED with a "
+        "shortened telemetry heartbeat - split out from apm_tracing_agentless so the fast "
+        "heartbeat doesn't flood every other test in that (much larger) scenario.",
+        weblog_env={
+            "DD_AGENTLESS_ENABLED": "true",
+            "DD_TELEMETRY_HEARTBEAT_INTERVAL": "2",
+        },
+    )
 
     debugger_agentless = DebuggerAgentlessScenario(
         "DEBUGGER_AGENTLESS",

@@ -30,8 +30,11 @@ RC_HOST = "config.mock-intake.invalid"
 TELEMETRY_PATH = "/api/v2/apmtelemetry"
 TELEMETRY_HOST = "instrumentation-telemetry-intake.mock-intake.invalid"
 
-# Crash reports ride the same telemetry-intake host as everything else in this file - the
-# errors-intake endpoint is just a different path on it, not a separate host, confirmed live.
+# Only the full crash report itself rides the telemetry intake (as a "logs" event, see
+# Test_Agentless_Crashtracking below); the separate errors-intake upload goes to its own
+# dedicated host, independently derived (not from whatever endpoint the telemetry path uses) -
+# see PROD_ERRORS_INTAKE_SUBDOMAIN in libdd-crashtracker/src/crash_info/errors_intake.rs.
+CRASH_ERRORS_INTAKE_HOST = "error-tracking-intake.mock-intake.invalid"
 CRASH_ERRORS_INTAKE_PATH = "/api/v2/errorsintake"
 
 # OpenTelemetry log/metric export are wholly separate agentless mechanisms (their own
@@ -108,10 +111,17 @@ def _telemetry_events(request_type: str) -> list[dict]:
 
 
 def _find_metric_series(metric: str, namespace: str) -> dict | None:
-    """Search every captured generate-metrics event for a series with this metric/namespace."""
+    """Search every captured generate-metrics event for a series with this metric/namespace.
+
+    The namespace lives on the payload itself (one namespace per generate-metrics event), not
+    on each individual series entry - confirmed against a live proxy capture.
+    """
     for event in _telemetry_events("generate-metrics"):
-        for series in event["payload"].get("series", []):
-            if series.get("metric") == metric and series.get("namespace") == namespace:
+        payload = event["payload"]
+        if payload.get("namespace") != namespace:
+            continue
+        for series in payload.get("series", []):
+            if series.get("metric") == metric:
                 return series
     return None
 
@@ -183,12 +193,14 @@ class Test_Agentless_Trace_Submission:
             exact={
                 "content-type": "application/json",
                 "content-encoding": "zstd",
-                "datadog-meta-lang": "python",
-                "datadog-meta-lang-interpreter": "CPython",
                 "datadog-client-computed-top-level": "true",
             },
             present=(
                 "user-agent",
+                # Language-identifying headers vary per tracer (e.g. "python"/"CPython" vs.
+                # "nodejs"/"v8"); only their presence is invariant across languages.
+                "datadog-meta-lang",
+                "datadog-meta-lang-interpreter",
                 "datadog-meta-lang-version",
                 "datadog-meta-tracer-version",
                 "datadog-entity-id",
@@ -242,11 +254,13 @@ class Test_Agentless_Stats:
             headers,
             exact={
                 "content-type": "application/msgpack",
-                "datadog-meta-lang": "python",
-                "datadog-meta-lang-interpreter": "CPython",
             },
             present=(
                 "user-agent",
+                # Language-identifying headers vary per tracer (e.g. "python"/"CPython" vs.
+                # "nodejs"/"v8"); only their presence is invariant across languages.
+                "datadog-meta-lang",
+                "datadog-meta-lang-interpreter",
                 "datadog-meta-lang-version",
                 "datadog-meta-tracer-version",
                 "datadog-entity-id",
@@ -350,12 +364,13 @@ class Test_Agentless_Telemetry:
         _assert_api_key(headers)
         _assert_headers(
             headers,
-            exact={"content-type": "application/json", "dd-client-library-language": "python"},
+            exact={"content-type": "application/json"},
             present=(
                 "user-agent",
                 "dd-telemetry-request-type",
                 "dd-telemetry-api-version",
                 "dd-client-library-version",
+                "dd-client-library-language",
                 "dd-session-id",
                 "datadog-entity-id",
                 "content-length",
@@ -363,9 +378,29 @@ class Test_Agentless_Telemetry:
         )
         assert headers["user-agent"].startswith("telemetry/")
         assert headers["dd-telemetry-request-type"] == content["request_type"]
+        # dd-client-library-language varies per tracer; check it's self-consistent with the
+        # payload's own declared language instead of hardcoding one language.
+        application = content.get("application", {})
+        assert headers["dd-client-library-language"] == application.get("language_name")
+
+
+@scenarios.apm_tracing_agentless_fast_heartbeat
+@features.dd_agentless_enabled
+class Test_Agentless_Telemetry_Generate_Metrics:
+    """generate-metrics events only flush on the telemetry heartbeat. The default interval
+    (60s, see DD_TELEMETRY_HEARTBEAT_INTERVAL) exceeds what's practical to wait for in a single
+    test, so this runs under its own scenario with a shortened heartbeat instead of forcing one
+    on the whole (much larger) apm_tracing_agentless suite - mirrors telemetry_extended_heartbeat.
+    """
 
     def setup_telemetry_generate_metrics(self):
-        self._trigger_and_wait_for_metrics()
+        self.r = weblog.get("/")
+        interfaces.datadog_direct.wait_for(
+            lambda d: d["host"] == TELEMETRY_HOST
+            and d["path"] == TELEMETRY_PATH
+            and _find_metric_series("spans_created", "tracers") is not None,
+            timeout=30,
+        )
 
     def test_telemetry_generate_metrics(self):
         series = _find_metric_series("spans_created", "tracers")
@@ -379,9 +414,12 @@ class Test_Agentless_Telemetry:
 @scenarios.apm_tracing_agentless
 @features.crashtracking
 class Test_Agentless_Crashtracking:
-    """A real crash report reaches the intake through two parallel agentless mechanisms: a
-    dedicated errors-intake endpoint, and a "logs" telemetry event - both ride the same
-    telemetry-intake host used by Test_Agentless_Telemetry, just on different paths.
+    """A real crash report reaches the intake through two independent agentless mechanisms:
+    a dedicated errors-intake endpoint (its own host, error-tracking-intake.<site>, derived
+    independently of the telemetry path - see PROD_ERRORS_INTAKE_SUBDOMAIN in libdd-crashtracker's
+    errors_intake.rs), and a "logs" telemetry event on the telemetry-intake host used by
+    Test_Agentless_Telemetry. These are NOT the same host with two paths - only the full crash
+    report itself rides the telemetry intake; the errors-intake upload is fully separate.
 
     Confirmed against a fix for a real bug on the dd-trace-py branch: crash reports were
     silently dropped agentlessly (too-short collection timeout, and the crash receiver
@@ -397,9 +435,11 @@ class Test_Agentless_Crashtracking:
         # return until the child actually exits. Give it real headroom past the client's
         # normal 5s default, or this legitimately times out on a slow/busy host.
         self.r = weblog.get("/spawn_child", params={"sleep": 0, "crash": "true", "fork": "true"}, timeout=45)
+        # Don't gate on a single incoming event's host/path: the errors-intake request and the
+        # telemetry crash-report log are two independent async events that can arrive in either
+        # order, so check both conditions globally rather than on whatever `d` triggered this.
         interfaces.datadog_direct.wait_for(
-            lambda d: d["host"] == TELEMETRY_HOST
-            and d["path"] == CRASH_ERRORS_INTAKE_PATH
+            lambda _: bool(_requests_at(CRASH_ERRORS_INTAKE_HOST, CRASH_ERRORS_INTAKE_PATH))
             and _find_crash_report_log() is not None,
             timeout=90,
         )
@@ -410,8 +450,8 @@ class Test_Agentless_Crashtracking:
     def test_crash_report_errors_intake(self):
         assert self.r.status_code == 200
 
-        requests = _requests_at(TELEMETRY_HOST, CRASH_ERRORS_INTAKE_PATH)
-        assert len(requests) != 0, f"No request captured on {TELEMETRY_HOST}{CRASH_ERRORS_INTAKE_PATH}"
+        requests = _requests_at(CRASH_ERRORS_INTAKE_HOST, CRASH_ERRORS_INTAKE_PATH)
+        assert len(requests) != 0, f"No request captured on {CRASH_ERRORS_INTAKE_HOST}{CRASH_ERRORS_INTAKE_PATH}"
 
         request = requests[-1]
         assert request["response"]["status_code"] // 100 == 2
@@ -448,15 +488,18 @@ class Test_Agentless_Crashtracking:
 @scenarios.apm_tracing_agentless
 @features.dd_agentless_enabled
 class Test_Agentless_OTLP_Logs:
-    """Ordinary Python `logging` calls are forwarded as OTLP log records directly to the
-    intake (https://otlp.<site>/v1/logs) when DD_LOGS_OTEL_ENABLED is set, with no Datadog
-    Agent involved.
+    """A log record emitted via the standard OTel Logs API (`GET /otel_create_log` in the
+    weblog - dd-trace-py bridges its standard `logging` module automatically, other tracers
+    without such a bridge call the explicit OTel Logs API instead, mirroring how
+    /otel_create_metric already handles the same language-asymmetry for metrics) is exported
+    directly to the intake (https://otlp.<site>/v1/logs) when DD_LOGS_OTEL_ENABLED is set, with
+    no Datadog Agent involved.
     """
 
-    LOG_MESSAGE_MARKER = "[DSM] Got request with integration: None"
+    LOG_MESSAGE_MARKER = "[otel_create_log] test log record"
 
     def setup_otlp_log_export(self):
-        self.r = weblog.get("/dsm")
+        self.r = weblog.get("/otel_create_log")
         interfaces.datadog_direct.wait_for(
             lambda d: d["host"] == OTLP_HOST
             and d["path"] == OTLP_LOGS_PATH

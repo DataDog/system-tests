@@ -1983,6 +1983,24 @@ def otel_create_metric():
     return "OK"
 
 
+OTEL_LOG_MESSAGE_MARKER = "[otel_create_log] test log record"
+
+
+@app.route("/otel_create_log", methods=["GET"])
+def otel_create_log():
+    """Emit a log record via the standard `logging` module, which dd-trace-py's OTel logs
+    integration bridges automatically. The language-agnostic equivalent of /otel_create_metric
+    above for logs - other tracers without an automatic bridge use the explicit OTel Logs API
+    instead to produce the same marker record.
+    """
+    logging.basicConfig(
+        format="%(asctime)s %(levelname)-8s %(message)s", level=logging.INFO, datefmt="%Y-%m-%d %H:%M:%S"
+    )
+    logging.info(OTEL_LOG_MESSAGE_MARKER)
+
+    return "OK"
+
+
 # From https://github.com/open-telemetry/opentelemetry-python/issues/2432#issuecomment-1742425474
 # This context manager handles correctly managing context with repeated baggage operations
 @contextlib.contextmanager

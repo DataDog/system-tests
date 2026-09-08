@@ -66,6 +66,13 @@ class AgentlessEndToEndScenario(DdTraceEndToEndScenario):
             weblog_environment.setdefault("DD_PROXY_HTTPS", f"http://proxy:{ProxyPorts.datadog_direct}")
             weblog_environment.setdefault("HTTPS_PROXY", f"http://proxy:{ProxyPorts.datadog_direct}")
             weblog_environment.setdefault("REQUESTS_CA_BUNDLE", "/etc/ssl/certs/ca-certificates.crt")
+            # Node.js doesn't honor REQUESTS_CA_BUNDLE (a Python-requests convention); it needs
+            # this instead to trust the mitmproxy CA terminating the CONNECT tunnel above.
+            weblog_environment.setdefault("NODE_EXTRA_CA_CERTS", "/etc/ssl/certs/ca-certificates.crt")
+            # The crash-tracking receiver (and other native/libdatadog components) is a separate
+            # OpenSSL-based subprocess that doesn't inherit Node's or Python-requests' CA
+            # conventions either; it needs the standard OpenSSL env vars to trust the same CA.
+            weblog_environment.setdefault("SSL_CERT_FILE", "/etc/ssl/certs/ca-certificates.crt")
 
             # The weblog talks HTTPS directly to the proxy (CONNECT tunnel), which
             # terminates TLS with the mitmproxy CA -- same trust anchor already
