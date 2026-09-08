@@ -44,7 +44,7 @@ class _BackendV2InterfaceValidator(ProxyBasedInterfaceValidator):
         When a valid request is given, then we filter the spans to the ones sampled
         during that request's execution, and only return those.
 
-        Returns data, trace and trace_format
+        Yields (data, trace) tuples.
         """
 
         rid = request.get_rid() if request else None
@@ -89,7 +89,7 @@ class _BackendV2InterfaceValidator(ProxyBasedInterfaceValidator):
         When a valid request is given, then we filter the spans to the ones sampled
         during that request's execution, and only return those.
 
-        Returns data, span and trace_format
+        Yields (data, span) tuples.
         """
 
         rid = request.get_rid() if request else None
