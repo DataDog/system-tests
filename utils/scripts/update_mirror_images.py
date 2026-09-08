@@ -117,6 +117,7 @@ def _run_mirror_images(*args: str) -> None:
         "uv",
         "run",
         "--no-config",
+        "--no-project",
         "--script",
         MIRROR_IMAGES_URL,
         "--mirror-yaml",
