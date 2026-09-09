@@ -45,14 +45,8 @@ Datadog.configure do |c|
   c.logger.instance = Logger.new(STDOUT) # Make sure logs are available for inspection from outside the container.
 end
 
-if Datadog::Core::Remote.active_remote
-  # TODO: Remove this whole `if` condition if remote configuration is started by default.
-  if Datadog::Core::Remote.active_remote.started?
-    raise 'Remote Configuration worker already started! Remove this check and `Datadog::Core::Remote.active_remote.start` below.'
-  end
-
-  Datadog::Core::Remote.active_remote.start
-end
+remote = Datadog::Core::Remote.active_remote
+remote&.start unless remote&.started?
 
 def otel_tracer
   OpenTelemetry.tracer_provider.tracer('otel-tracer')
@@ -842,22 +836,12 @@ def extract_http_headers(headers)
   end
 end
 
-def handle_ffe_start(req, res)
-  OpenFeature::SDK.set_provider(Datadog::OpenFeature::Provider.new)
-
-  # NOTE: There is no set_provider_and_wait in Ruby OpenFeature::SDK, but this is
-  #       a subject to change.
-  #
-  #       Remote Configuration will be received at this point because of the short
-  #       polling delay.
-  10.times do
-    evaluator = Datadog::OpenFeature.engine.instance_variable_get(:@evaluator)
-    break unless evaluator.instance_variable_get(:@configuration).nil?
-
-    sleep 0.5
-  end
-
+def handle_ffe_start(_req, res)
+  OpenFeature::SDK.set_provider_and_wait(Datadog::OpenFeature::Provider.new)
   res.write({}.to_json)
+rescue => e
+  res.status = 500
+  res.write({error: e.message}.to_json)
 end
 
 def handle_ffe_evaluation(req, res)
