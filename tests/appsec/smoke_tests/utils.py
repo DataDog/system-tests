@@ -337,7 +337,7 @@ class BaseUserEventsSmokeTests:
     def test_login_success_smoke(self) -> None:
         for _, span in interfaces.agent.get_spans(self.r):
             meta = span.meta
-            if meta.get("_dd.appsec.usr.login") or meta.get("appsec.events.users.login.success.usr.login"):
+            if meta.get("appsec.events.users.login.success.usr.login"):
                 return
 
         raise AssertionError("Agent spans should include user login event tags")
