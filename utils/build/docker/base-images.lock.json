@@ -31,12 +31,12 @@
     "system_tests_base_php_php_fpm_8_1": "datadog/system-tests:php-fpm-8.1.base-cee123be07e6",
     "system_tests_base_php_php_fpm_8_2": "datadog/system-tests:php-fpm-8.2.base-3426b927b3bc",
     "system_tests_base_php_php_fpm_8_5": "datadog/system-tests:php-fpm-8.5.base-beb0821ff533",
-    "system_tests_base_python_django_poc": "datadog/system-tests:django-poc.base-2911010f8055",
-    "system_tests_base_python_django_py3_13": "datadog/system-tests:django-py3.13.base-d0ed772a5246",
-    "system_tests_base_python_fastapi": "datadog/system-tests:fastapi.base-45ae1d3ae864",
-    "system_tests_base_python_flask_poc": "datadog/system-tests:flask-poc.base-7d87bce94ecf",
-    "system_tests_base_python_python3_12": "datadog/system-tests:python3.12.base-4965616bf22e",
-    "system_tests_base_python_tornado": "datadog/system-tests:tornado.base-d5a3e2373206",
-    "system_tests_base_python_uwsgi_poc": "datadog/system-tests:uwsgi-poc.base-61bd9887ff82"
+    "system_tests_base_python_django_poc": "datadog/system-tests:django-poc.base-78e2159815b1",
+    "system_tests_base_python_django_py3_13": "datadog/system-tests:django-py3.13.base-d8262a2c816c",
+    "system_tests_base_python_fastapi": "datadog/system-tests:fastapi.base-7907e0bc9fc2",
+    "system_tests_base_python_flask_poc": "datadog/system-tests:flask-poc.base-fa81f4f89ea4",
+    "system_tests_base_python_python3_12": "datadog/system-tests:python3.12.base-604705958847",
+    "system_tests_base_python_tornado": "datadog/system-tests:tornado.base-f378644cba7d",
+    "system_tests_base_python_uwsgi_poc": "datadog/system-tests:uwsgi-poc.base-24176640f4fe"
   }
 }
