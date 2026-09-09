@@ -240,6 +240,8 @@ class _Scenarios:
 
     sampling = DdTraceEndToEndScenario(
         "SAMPLING",
+        appsec_enabled=False,
+        iast_enabled=False,
         tracer_sampling_rate=0.5,
         weblog_env={"DD_TRACE_RATE_LIMIT": "10000000", "DD_TRACE_STATS_COMPUTATION_ENABLED": "false"},
         doc="Test sampling mechanism. Not included in default scenario because it's a little bit too flaky",
@@ -270,6 +272,7 @@ class _Scenarios:
             "DD_TRACE_OTEL_SEMANTICS_ENABLED": "true",
             # OTel semantics must override both conflicting configurations.
             "DD_TRACE_PEER_SERVICE_DEFAULTS_ENABLED": "true",
+            "DD_TRACE_RESOURCE_RENAMING_ALWAYS_SIMPLIFIED_ENDPOINT": "true",
             "DD_TRACE_RESOURCE_RENAMING_ENABLED": "true",
             "DD_TRACE_SPAN_ATTRIBUTE_SCHEMA": "v1",
             "DD_TRACE_OTEL_ENABLED": "true",

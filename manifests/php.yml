@@ -19,6 +19,7 @@ manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionDisabledTelemetry: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionFailSafe: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionInSDKResponse: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionMultiTurnContext: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionOnBlock: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionSkipsStructuralFields: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_RootSpanUserKeep: missing_feature
@@ -462,6 +463,8 @@ manifest:
         php-fpm-7.4: '>=1.23.3'
         apache-mod-7.0-zts: '>=1.23.3'
         php-fpm-7.2: '>=1.23.3'
+        laravel11x: v1.24.2  # TODO: a lower version might be supported
+        symfony7x: v1.24.2  # TODO: a lower version might be supported
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_NotEnabled: v1.6.2
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2: v1.8.0
   tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2: missing_feature
@@ -1372,6 +1375,7 @@ manifest:
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED: missing_feature
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids: v0.84.0
   tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd: v1.9.0
   tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd::test_dogstatsd_default: incomplete_test_app (PHP parameteric app can not access the dogstatsd default values, this logic is internal to the tracer)
@@ -1856,6 +1860,7 @@ manifest:
   tests/test_otel_http_semantics.py::Test_OtelSemantics_SamplingRules: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_http_endpoint_retained_from_appsec: irrelevant (The AppSec endpoint retention request is specific to .NET)
   tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchanged: missing_feature (APMAPI-2171)

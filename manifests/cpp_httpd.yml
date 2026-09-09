@@ -29,6 +29,7 @@ manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionDisabledTelemetry: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionFailSafe: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionInSDKResponse: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionMultiTurnContext: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionOnBlock: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionSkipsStructuralFields: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_RootSpanUserKeep: missing_feature

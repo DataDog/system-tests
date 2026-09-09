@@ -504,15 +504,23 @@ class Test_OtelSemantics_Spans_Http_Server:
         assert _attributes(span).get("server.address"), "server.port is required once server.address is set"
         _assert_int_attribute(span, "server.port", 7777)
 
-    def setup_http_endpoint_retained(self) -> None:
-        # http.endpoint is the endpoint-aggregation fallback for requests the framework
-        # resolved no route for, so use an unmatched path.
-        self.response = weblog.get("/no_such_route_xyz")
+    def setup_http_endpoint_retained_from_resource_renaming(self) -> None:
+        self.response = weblog.get("/resource_renaming/int/123")
 
-    def test_http_endpoint_retained(self) -> None:
+    def test_http_endpoint_retained_from_resource_renaming(self) -> None:
+        """``http.endpoint`` created by resource renaming is retained."""
+        span = _server_span(self.response)
+        endpoint = _attributes(span).get("http.endpoint")
+        assert endpoint, "http.endpoint must be retained on the OTLP span"
+
+    def setup_http_endpoint_retained_from_appsec(self) -> None:
+        self.response = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
+
+    def test_http_endpoint_retained_from_appsec(self) -> None:
         """``http.endpoint`` is Datadog-only with no OTel equivalent, so it is retained."""
         span = _server_span(self.response)
-        assert _attributes(span).get("http.endpoint"), "http.endpoint must be retained on the OTLP span"
+        endpoint = _attributes(span).get("http.endpoint")
+        assert endpoint, "http.endpoint must be retained on the OTLP span"
 
     def setup_span_kind_is_server(self) -> None:
         self.response = weblog.get("/")
@@ -732,7 +740,7 @@ class Test_OtelSemantics_OTLP_TraceMetrics:
         attrs = _metric_attributes(_client_trace_metric(span))
         assert attrs.get("http.request.method") == "GET"
         assert attrs.get("http.response.status_code") == 201
-        assert "status.code" not in attrs, "successful HTTP trace metrics must leave OTel status unset"
+        assert _status_code(attrs.get("status.code")) == StatusCode.STATUS_CODE_OK.value
 
     def setup_trace_metric_agrees_with_server_error(self) -> None:
         self.response = weblog.get("/status?code=503")
@@ -756,7 +764,7 @@ class Test_OtelSemantics_OTLP_TraceMetrics:
         attrs = _metric_attributes(_server_trace_metric(span))
         assert attrs.get("http.request.method") == "GET"
         assert attrs.get("http.response.status_code") == 202
-        assert "status.code" not in attrs, "successful HTTP trace metrics must leave OTel status unset"
+        assert _status_code(attrs.get("status.code")) == StatusCode.STATUS_CODE_OK.value
 
 
 @rfc("https://docs.google.com/document/d/1SONUGEa38eLumE5b6gnNhykFhzZL9uQpsnMFq06uDMY/edit")
