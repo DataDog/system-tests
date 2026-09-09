@@ -32,6 +32,7 @@ def get_span_meta(request: HttpResponse, key: str):
 
 @rfc("https://docs.google.com/document/d/1GnWwiaw6dkVtgn5f1wcHJETND_Svqd-sJl6FSVVuCkI")
 @scenarios.appsec_api_security_with_sampling
+@scenarios.appsec_otel_api_security
 @features.api_security_configuration
 class Test_Endpoint_Fallback_With_Route:
     """Test Requirement 1: If http.route is present, use it for sampling"""
@@ -59,6 +60,7 @@ class Test_Endpoint_Fallback_With_Route:
 
 @rfc("https://docs.google.com/document/d/1GnWwiaw6dkVtgn5f1wcHJETND_Svqd-sJl6FSVVuCkI")
 @scenarios.appsec_api_security_with_sampling
+@scenarios.appsec_otel_api_security
 @features.api_security_configuration
 class Test_Endpoint_Fallback_With_Endpoint:
     """Test Requirement 2a: If http.route is absent and http.endpoint is present (non-404), use http.endpoint"""
@@ -91,6 +93,7 @@ class Test_Endpoint_Fallback_With_Endpoint:
 
 @rfc("https://docs.google.com/document/d/1GnWwiaw6dkVtgn5f1wcHJETND_Svqd-sJl6FSVVuCkI")
 @scenarios.appsec_api_security_with_sampling
+@scenarios.appsec_otel_api_security
 @features.api_security_configuration
 class Test_Endpoint_Fallback_404:
     """Test Requirement 2b: If http.route is absent, http.endpoint is present, but status is 404, should NOT sample"""
@@ -114,6 +117,7 @@ class Test_Endpoint_Fallback_404:
 
 @rfc("https://docs.google.com/document/d/1GnWwiaw6dkVtgn5f1wcHJETND_Svqd-sJl6FSVVuCkI")
 @scenarios.appsec_api_security_with_sampling
+@scenarios.appsec_otel_api_security
 @features.api_security_configuration
 class Test_Endpoint_Fallback_Computed:
     """Test Requirement 3: If neither http.route nor http.endpoint present, compute endpoint on-demand"""

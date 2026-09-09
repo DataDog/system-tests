@@ -100,7 +100,9 @@ class Test_Fingerprinting_Session:
 @rfc("https://docs.google.com/document/d/1DivOa9XsCggmZVzMI57vyxH2_EBJ0-qqIkRHm_sEvSs/edit#heading=h.88xvn2cvs9dt")
 @features.fingerprinting
 @scenarios.appsec_blocking
+@scenarios.appsec_otel_api
 @scenarios.appsec_lambda_blocking
+@scenarios.appsec_otel_api
 class Test_Fingerprinting_Endpoint_Preprocessor:
     endpoint_fingerprint_regex = r"http-[^-]*-[^-]*-[^-]*-[^-]*"
 
@@ -130,7 +132,9 @@ class Test_Fingerprinting_Endpoint_Preprocessor:
 @rfc("https://docs.google.com/document/d/1DivOa9XsCggmZVzMI57vyxH2_EBJ0-qqIkRHm_sEvSs/edit#heading=h.88xvn2cvs9dt")
 @features.fingerprinting
 @scenarios.appsec_blocking
+@scenarios.appsec_otel_api
 @scenarios.appsec_lambda_blocking
+@scenarios.appsec_otel_api
 class Test_Fingerprinting_Header_And_Network_Preprocessor:
     network_fingerprint_regex = r"net-[^-]*-[^-]*"
     header_fingerprint_regex = r"hdr-[^-]*-[^-]*-[^-]*-[^-]*"
@@ -185,7 +189,9 @@ class Test_Fingerprinting_Header_And_Network_Preprocessor:
 @rfc("https://docs.google.com/document/d/1DivOa9XsCggmZVzMI57vyxH2_EBJ0-qqIkRHm_sEvSs/edit#heading=h.88xvn2cvs9dt")
 @features.fingerprinting
 @scenarios.appsec_blocking
+@scenarios.appsec_otel_api
 @scenarios.appsec_lambda_blocking
+@scenarios.appsec_otel_api
 class Test_Fingerprinting_Session_Preprocessor:
     session_fingerprint_regex = r"ssn-[^-]*-[^-]*-[^-]*-[^-]*"
 

@@ -11,6 +11,7 @@ from utils.dd_constants import SamplingPriority
 
 @rfc("https://docs.google.com/document/d/1X64XQOk3N-aS_F0bJuZLkUiJqlYneDxo_b8WnkfFy_0")
 @scenarios.appsec_rate_limiter
+@scenarios.appsec_otel_api_rate_limiter
 @features.appsec_rate_limiter
 class Test_Main:
     """Basic tests for rate limiter"""

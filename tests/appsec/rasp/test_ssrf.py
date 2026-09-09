@@ -35,6 +35,7 @@ class SlashInsensitiveStr(str):
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.3r1lwuv4y2g3")
 @features.rasp_server_side_request_forgery
 @scenarios.appsec_rasp
+@scenarios.appsec_otel_api_rasp
 @scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_Ssrf_UrlQuery:
@@ -61,6 +62,7 @@ class Test_Ssrf_UrlQuery:
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.3r1lwuv4y2g3")
 @features.rasp_server_side_request_forgery
 @scenarios.appsec_rasp
+@scenarios.appsec_otel_api_rasp
 @scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_Ssrf_BodyUrlEncoded:
@@ -93,6 +95,7 @@ class Test_Ssrf_BodyUrlEncoded:
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.3r1lwuv4y2g3")
 @features.rasp_server_side_request_forgery
 @scenarios.appsec_rasp
+@scenarios.appsec_otel_api_rasp
 @scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_Ssrf_BodyXml:
@@ -126,6 +129,7 @@ class Test_Ssrf_BodyXml:
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.3r1lwuv4y2g3")
 @features.rasp_server_side_request_forgery
 @scenarios.appsec_rasp
+@scenarios.appsec_otel_api_rasp
 @scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_Ssrf_BodyJson:
@@ -160,6 +164,7 @@ class Test_Ssrf_BodyJson:
 @features.rasp_span_tags
 @features.rasp_server_side_request_forgery
 @scenarios.appsec_rasp
+@scenarios.appsec_otel_api_rasp
 @scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_Ssrf_Mandatory_SpanTags:
@@ -176,6 +181,7 @@ class Test_Ssrf_Mandatory_SpanTags:
 @features.rasp_span_tags
 @features.rasp_server_side_request_forgery
 @scenarios.appsec_rasp
+@scenarios.appsec_otel_api_rasp
 @scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_Ssrf_Optional_SpanTags:
@@ -198,6 +204,7 @@ class Test_Ssrf_Optional_SpanTags:
 @features.rasp_stack_trace
 @features.rasp_server_side_request_forgery
 @scenarios.appsec_rasp
+@scenarios.appsec_otel_api_rasp
 @scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_Ssrf_StackTrace:
@@ -213,6 +220,7 @@ class Test_Ssrf_StackTrace:
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.96mezjnqf46y")
 @features.rasp_server_side_request_forgery
 @scenarios.appsec_rasp
+@scenarios.appsec_otel_api_rasp
 @scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_Ssrf_Telemetry:
@@ -238,6 +246,7 @@ class Test_Ssrf_Telemetry:
 @rfc("https://docs.google.com/document/d/1D4hkC0jwwUyeo0hEQgyKP54kM1LZU98GL8MaP60tQrA")
 @features.rasp_server_side_request_forgery
 @scenarios.appsec_rasp
+@scenarios.appsec_otel_api_rasp
 @scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_Ssrf_Telemetry_V2:

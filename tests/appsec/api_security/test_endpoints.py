@@ -17,6 +17,7 @@ def assert_llm_span(request: HttpResponse, model: str) -> None:
 # injecting hardcoded rules for now. Once LLM rules are merged we can revisit the right
 # scenario for these tests. More info: https://github.com/DataDog/system-tests/pull/6339/changes#r2827405239
 @scenarios.appsec_rasp
+@scenarios.appsec_otel_api_rasp
 @features.api_llm_endpoint
 class Test_LLM_Endpoint:
     """Tests for the /llm endpoint capturing LLM interaction metadata."""
