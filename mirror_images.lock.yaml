@@ -15,15 +15,15 @@ images:
     target: registry.ddbuild.io/system-tests/mirror/cassandra:latest
     tag: 5.0.9
   datadog/agent:latest:
-    digest: sha256:abb3279b6465f8641eff1ee7cc2bea293221accafc8f0a9a256e4e4835dc8e17
+    digest: sha256:ed0bd588e955d82f661d1b8dd1cdf179c1023e74a2817e7a812c99d52f05c319
     target: registry.ddbuild.io/system-tests/mirror/datadog/agent:latest
-    tag: 7.82.3
+    tag: 7.83.1
   datadog/dd-appsec-php-ci:php-8.0-release:
-    digest: sha256:f6c7557c63d9da34d081bc681768798bc4f70d8be36c565c526e57cecd6c2249
+    digest: sha256:e463bd5d1986da902008a48ef1fda3e7652354f1b14a4eab7ad6777d1a550327
     target: registry.ddbuild.io/system-tests/mirror/datadog/dd-appsec-php-ci:php-8.0-release
     tag: php-8.0-release
   datadog/dd-appsec-php-ci:php-8.2-release:
-    digest: sha256:0199e251729b25276f97049cbcd39dd1997e98413a07b10a3c7e9e755d505a42
+    digest: sha256:deb4d6f51367a1cdc4de3066184117a99eabb107a53a4bc0dace9f38d06fce03
     target: registry.ddbuild.io/system-tests/mirror/datadog/dd-appsec-php-ci:php-8.2-release
     tag: php-8.2-release
   datadog/serverless-init:1.10.2:
@@ -259,11 +259,11 @@ images:
     target: registry.ddbuild.io/system-tests/mirror/ghcr.io/oras-project/oras:v1.2.3
     tag: v1.2.3
   golang:1.26:
-    digest: sha256:dc2521c2a906db43073b8b4d99f491b6341cf15610b6ebbab187c45153f9959e
+    digest: sha256:9d2f36f06329b2a141b9db99ffa32765cf695ee57b813ca29e245e8670bcbfff
     target: registry.ddbuild.io/system-tests/mirror/golang:1.26
     tag: '1.26'
   golang:1.26-alpine:
-    digest: sha256:28d89ee9cc0ff9fec75c82ca201e6bf7fdf9a679d4b7b24dfa04f2bb766bb468
+    digest: sha256:ce864e7223ac17b1775e6fd0b4c0db580c2eb50e7953a427916379e4b92a1628
     target: registry.ddbuild.io/system-tests/mirror/golang:1.26-alpine
     tag: 1.26-alpine
   kong/kong-gateway:3.4:
@@ -299,21 +299,21 @@ images:
     target: registry.ddbuild.io/system-tests/mirror/maven:3.9.9-eclipse-temurin-17-focal
     tag: 3.9.9-eclipse-temurin-17-focal
   mcr.microsoft.com/dotnet/aspnet:8.0:
-    digest: sha256:787c228ea85457bec43c8b084e6ac360b26ea43b5c2fcbe861f721f2e8670dd3
+    digest: sha256:9a464e9a7e8c6144631020975f703c89034fe386417cb740620df69c2c6cfe24
     target: registry.ddbuild.io/system-tests/mirror/mcr.microsoft.com/dotnet/aspnet:8.0
     tag: '8.0'
   mcr.microsoft.com/dotnet/sdk:8.0:
-    digest: sha256:bb32ba3ba3ea36e38572d9d8db76fa15f7cbf722f3f886e06bca6d528bd4fba8
+    digest: sha256:5ef85cc12cb25be6ec319a7392d1e9efd53c3bc8abb971c53d8058a473f09053
     target: registry.ddbuild.io/system-tests/mirror/mcr.microsoft.com/dotnet/sdk:8.0
     tag: '8.0'
   mcr.microsoft.com/mssql/server:2022-latest:
-    digest: sha256:ba4c8329f48fb8f02e1416be6a930ebfd71268caee78aa985f3af4315e457c89
+    digest: sha256:97b448857967be55e005424a660056fe6d51814435804dc07e8f79f028bab5fb
     target: registry.ddbuild.io/system-tests/mirror/mcr.microsoft.com/mssql/server:2022-latest
     tag: 2022-latest
   mongo:latest:
-    digest: sha256:e0ce8c35124d4a9f9785532d1f268f39e9728ffa1cb38f46fa482436424c4bd3
+    digest: sha256:613a7cc66be5bbf1796252660b43c9b8969a5ad1dab6180c9d917b7472867e64
     target: registry.ddbuild.io/system-tests/mirror/mongo:latest
-    tag: 8.2.12
+    tag: 8.3.9
   mysql/mysql-server:8.0.32:
     digest: sha256:d6c8301b7834c5b9c2b733b10b7e630f441af7bc917c74dba379f24eeeb6a313
     target: registry.ddbuild.io/system-tests/mirror/mysql/mysql-server:8.0.32
@@ -339,7 +339,7 @@ images:
     target: registry.ddbuild.io/system-tests/mirror/postgres:alpine
     tag: alpine
   public.ecr.aws/lambda/java:17:
-    digest: sha256:0002ca3b89427822682815e2f8564ce784e247e2c59a974eb9a426b53cf73370
+    digest: sha256:85671f095736874b394bc08fe13eadd8166e739bb51db3de8fa1551cd39d5790
     target: registry.ddbuild.io/system-tests/mirror/public.ecr.aws/lambda/java:17
     tag: '17'
   public.ecr.aws/lambda/nodejs:18:
@@ -347,27 +347,27 @@ images:
     target: registry.ddbuild.io/system-tests/mirror/public.ecr.aws/lambda/nodejs:18
     tag: '18'
   public.ecr.aws/lambda/python:3.13:
-    digest: sha256:f0ad11f18a9e28d987059d232ea3fe2179845b36ad75859a45762b1d09fc6e10
+    digest: sha256:9bf53dd1f76a85319f030a89b4c31a82d4b8027df738f296b47147220783bb81
     target: registry.ddbuild.io/system-tests/mirror/public.ecr.aws/lambda/python:3.13
     tag: '3.13'
   public.ecr.aws/lambda/ruby:3.4:
-    digest: sha256:266d0609600759d62c2f02dca22814ab61f7fcd95878e2c863a413265a4f878c
+    digest: sha256:123b53e6224d413e526c10f4324d85ead69278b94e8dfc4d32d476ea63cdad71
     target: registry.ddbuild.io/system-tests/mirror/public.ecr.aws/lambda/ruby:3.4
     tag: '3.4'
   python:3.11-slim:
-    digest: sha256:be1575ed968de893bd54f4c56315ff7c4736ce522c1bca08fd521731aafc0d76
+    digest: sha256:9534e5a8e315485d4061ed659af0fd78a284c015f9b73661b41d6bab25604534
     target: registry.ddbuild.io/system-tests/mirror/python:3.11-slim
     tag: 3.11-slim
   python:3.12-slim:
-    digest: sha256:7a8b475003c4fe15a2cd4e55e5cfc2f3560bdc9333d624f24cdd6d4340fd7a17
+    digest: sha256:78387bc3881b8273120a12ebe6c1ab22b018ccc2c9adf565ae1ac9b536e184ea
     target: registry.ddbuild.io/system-tests/mirror/python:3.12-slim
     tag: 3.12-slim
   python:3.13-slim:
-    digest: sha256:7e3a6aca9d74f93cca21a91d86a8dad8c34749afd5b4a98ee481c9c47b9f5ed4
+    digest: sha256:9d2e5553305c7c7b0097999bb17187c69b921ccd6bc9d40e4bb5ebe652c00285
     target: registry.ddbuild.io/system-tests/mirror/python:3.13-slim
     tag: 3.13-slim
   python:3.14-slim:
-    digest: sha256:83ff1d245a3d57d04152252d3ef9cb361494d0b3395abd65a5ebe91c401c8e83
+    digest: sha256:cad9a2c871761c413caa6fdd6441c783451e740a48aaeba60ae62a8b53525ef6
     target: registry.ddbuild.io/system-tests/mirror/python:3.14-slim
     tag: 3.14-slim
   rabbitmq:3.12-management-alpine:
