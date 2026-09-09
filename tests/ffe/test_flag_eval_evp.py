@@ -23,11 +23,6 @@ EVP_LOAD_WAIT_TIMEOUT_SECONDS = 60
 EVP_FULL_TIER_PER_FLAG_CAP = 10_000
 EVP_DEGRADATION_OVERFLOW_EVALS = 2_000
 
-# SDK-generated numeric fields: millisecond clock values and a counter. They are excluded from
-# the raw-PII substring scan in assert_no_raw_pii_in_event, since they cannot carry evaluation
-# context but do contain digit sequences that collide with short numeric PII values.
-EVENT_NUMERIC_FIELDS = frozenset({"timestamp", "first_evaluation", "last_evaluation", "evaluation_count"})
-
 # Fixed input/output vector for the PII-protection tests. Every SDK's unit tests
 # should assert against the same input to prove byte-identical hashing across SDKs.
 PII_TARGETING_KEY = "jane.doe@datadoghq.com"
@@ -216,26 +211,40 @@ def _assert_hashed_targeting_key(event: JSON) -> None:
     )
 
 
-def assert_no_raw_pii_in_event(event: JSON, forbidden_values: list[str]) -> None:
-    """Walk the serialized event and assert none of the raw PII strings appear anywhere.
+def _is_numeric(value: object) -> bool:
+    return isinstance(value, (int, float)) and not isinstance(value, bool)
 
-    Guards against SDK bugs that route unhashed values into unexpected fields (e.g., a raw
-    email leaking into ``context.user_email`` even when ``context.evaluation`` is correctly
-    omitted).
 
-    EVENT_NUMERIC_FIELDS are excluded before serializing. They are SDK-generated clock and
-    counter values that cannot carry evaluation context, and scanning them produces false
-    positives: a short numeric PII value such as ``org_id=1234`` occurs by chance inside a
-    13-digit millisecond timestamp (e.g. ``1788901234711``) about 0.3% of the time, which made
-    these tests flake on an unrelated schedule.
+def _assert_no_raw_pii(value: object, forbidden_values: list[object], path: str) -> None:
+    if isinstance(value, dict):
+        for key, child in value.items():
+            _assert_no_raw_pii(str(key), forbidden_values, f"{path} (dictionary key)")
+            _assert_no_raw_pii(child, forbidden_values, f"{path}.{key}")
+    elif isinstance(value, list):
+        for index, child in enumerate(value):
+            _assert_no_raw_pii(child, forbidden_values, f"{path}[{index}]")
+    elif isinstance(value, str):
+        for forbidden_value in forbidden_values:
+            assert str(forbidden_value) not in value, (
+                f"raw PII value {forbidden_value!r} must not appear in string at {path}: {value!r}"
+            )
+    elif _is_numeric(value):
+        for forbidden_value in forbidden_values:
+            if _is_numeric(forbidden_value):
+                assert value != forbidden_value, (
+                    f"raw PII value {forbidden_value!r} must not appear as a numeric value at {path}"
+                )
+
+
+def assert_no_raw_pii_in_event(event: JSON, forbidden_values: list[object]) -> None:
+    """Recursively assert that an event has no raw PII in any key or value.
+
+    String leaves and dictionary keys are scanned for every forbidden value as a substring, so
+    numeric PII converted to or embedded in a string is still detected. Numeric leaves compare
+    only with numeric forbidden values, avoiding substring collisions with larger timestamps or
+    counters while preserving exact numeric PII detection in every field.
     """
-    scanned = {key: value for key, value in event.items() if key not in EVENT_NUMERIC_FIELDS}
-    serialized = json.dumps(scanned, default=str)
-    for value in forbidden_values:
-        assert value not in serialized, (
-            f"raw PII value {value!r} must not appear anywhere in event (excluding "
-            f"{sorted(EVENT_NUMERIC_FIELDS)}): {event}"
-        )
+    _assert_no_raw_pii(event, forbidden_values, "$")
 
 
 def assert_no_duplicate_visible_events(events: list[tuple[JSON, JSON]]) -> None:
@@ -566,7 +575,7 @@ class Test_FFE_EVP_Flagevaluation_ObserveFullData_Absent_Hashed:
         events = find_evp_flagevaluation_events(self.flag_key)
         assert events, f"Expected EVP flagevaluation event for flag {self.flag_key}"
 
-        forbidden_raw_values = [PII_TARGETING_KEY, *[str(v) for v in PII_ATTRIBUTES.values()]]
+        forbidden_raw_values = [PII_TARGETING_KEY, *PII_ATTRIBUTES.values()]
 
         for batch, event in events:
             assert_batch_context(batch)
@@ -608,7 +617,7 @@ class Test_FFE_EVP_Flagevaluation_ObserveFullData_False_Hashed:
         events = find_evp_flagevaluation_events(self.flag_key)
         assert events, f"Expected EVP flagevaluation event for flag {self.flag_key}"
 
-        forbidden_raw_values = [PII_TARGETING_KEY, *[str(v) for v in PII_ATTRIBUTES.values()]]
+        forbidden_raw_values = [PII_TARGETING_KEY, *PII_ATTRIBUTES.values()]
 
         for batch, event in events:
             assert_batch_context(batch)
