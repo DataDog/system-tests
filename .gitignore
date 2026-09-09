@@ -22,6 +22,7 @@ logs*/
 .DS_store
 
 # Build results
+/bazel-*
 [Dd]ebug/
 [Dd]ebugPublic/
 [Rr]elease/

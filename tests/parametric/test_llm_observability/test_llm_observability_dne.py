@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 @pytest.fixture
 def llmobs_override_origin(test_agent: TestAgentAPI) -> str:
-    return f"http://{test_agent.container_name}:{test_agent.container_port}/vcr/datadog"
+    return f"{test_agent.apm_url}/vcr/datadog"
 
 
 @pytest.fixture

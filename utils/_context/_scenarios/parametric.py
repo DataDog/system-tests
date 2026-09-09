@@ -1,8 +1,10 @@
 from collections.abc import Generator
 import contextlib
+from dataclasses import dataclass
 import glob
 import json
 import os
+from pathlib import Path
 from typing import Any
 
 import pytest
@@ -17,6 +19,9 @@ from utils.docker_fixtures import (
     ParametricTestClientFactory,
     ParametricTestClientApi,
 )
+from utils.docker_fixtures._test_agent import DEFAULT_OTLP_GRPC_PORT, DEFAULT_OTLP_HTTP_PORT
+from utils.docker_fixtures._test_agent_pool import WorkerAgentPool
+from utils.parametric.process import ProcessLaunchSpec, ProcessParametricTestClientFactory, ProcessTestAgentFactory
 
 from ._docker_fixtures import DockerFixturesScenario
 
@@ -25,8 +30,45 @@ from ._docker_fixtures import DockerFixturesScenario
 default_subprocess_run_timeout = 300
 
 
+@dataclass(frozen=True)
+class ProcessLibraryConfiguration:
+    artifact_environment_variable: str
+    archive_entrypoint: str | None
+    default_version: str
+    environment: tuple[tuple[str, str], ...]
+    version_environment_variable: str
+
+
+_PROCESS_LIBRARY_CONFIGURATIONS = {
+    "golang": ProcessLibraryConfiguration(
+        artifact_environment_variable="SYSTEM_TESTS_GO_PARAMETRIC_SERVER",
+        archive_entrypoint=None,
+        default_version="v2.4.0",
+        environment=(),
+        version_environment_variable="SYSTEM_TESTS_GO_LIBRARY_VERSION",
+    ),
+    "python": ProcessLibraryConfiguration(
+        artifact_environment_variable="SYSTEM_TESTS_PYTHON_PARAMETRIC_ARCHIVE",
+        archive_entrypoint="bazel/parametric/python_server.py",
+        default_version="4.13.1",
+        environment=(("DD_PATCH_MODULES", "fastapi:false,startlette:false"),),
+        version_environment_variable="SYSTEM_TESTS_PYTHON_LIBRARY_VERSION",
+    ),
+}
+
+
+def process_library_configuration(library: str) -> ProcessLibraryConfiguration:
+    try:
+        return _PROCESS_LIBRARY_CONFIGURATIONS[library]
+    except KeyError as error:
+        supported = ", ".join(sorted(_PROCESS_LIBRARY_CONFIGURATIONS))
+        raise ValueError(f"The process parametric runtime supports only: {supported}") from error
+
+
 class ParametricScenario(DockerFixturesScenario):
-    _test_client_factory: ParametricTestClientFactory
+    _agent_pool: WorkerAgentPool | None
+    _test_client_factory: Any
+    _test_agent_factory: Any
 
     class PersistentParametricTestConf(dict):
         """Parametric tests are executed in multiple thread, we need a mechanism to persist
@@ -69,6 +111,16 @@ class ParametricScenario(DockerFixturesScenario):
         )
         self._parametric_tests_confs = ParametricScenario.PersistentParametricTestConf(self)
 
+    def pytest_configure(self, config: pytest.Config) -> None:
+        self._runtime = config.option.parametric_runtime
+        super().pytest_configure(config)
+
+    @property
+    def host_log_folder(self) -> str:
+        if getattr(self, "_runtime", "docker") == "process" and os.environ.get("TEST_UNDECLARED_OUTPUTS_DIR"):
+            return str(Path(os.environ["TEST_UNDECLARED_OUTPUTS_DIR"]) / "system-tests")
+        return super().host_log_folder
+
     @property
     def parametrized_tests_metadata(self):
         return self._parametric_tests_confs
@@ -78,6 +130,10 @@ class ParametricScenario(DockerFixturesScenario):
             pytest.exit("No library specified, please set -L option or use TEST_LIBRARY env var", 1)
 
         library: str = config.option.library
+
+        if self._runtime == "process":
+            self._configure_process(library, config)
+            return
 
         volumes = {
             "golang": {"./utils/build/docker/golang/parametric": "/client"},
@@ -155,6 +211,109 @@ class ParametricScenario(DockerFixturesScenario):
         if self.is_main_worker:
             self.warmups.append(lambda: logger.stdout(f"Library: {self.library}"))
         self.warmups.append(self._set_components)
+
+    def _configure_process(self, library: str, config: pytest.Config) -> None:
+        try:
+            library_configuration = process_library_configuration(library)
+        except ValueError as error:
+            pytest.exit(str(error), 1)
+
+        artifact = os.environ.get(library_configuration.artifact_environment_variable)
+        proot = os.environ.get("SYSTEM_TESTS_PROOT")
+        test_agent = os.environ.get("SYSTEM_TESTS_TEST_AGENT_BIN")
+        if not artifact or not proot or not test_agent:
+            pytest.exit(
+                "The process runtime requires "
+                f"{library_configuration.artifact_environment_variable}, SYSTEM_TESTS_PROOT, "
+                "and SYSTEM_TESTS_TEST_AGENT_BIN",
+                1,
+            )
+        assert artifact is not None
+        assert proot is not None
+        assert test_agent is not None
+
+        try:
+            default_ports = (
+                int(os.environ["SYSTEM_TESTS_TEST_AGENT_APM_PORT"]),
+                int(os.environ["SYSTEM_TESTS_TEST_AGENT_OTLP_HTTP_PORT"]),
+                int(os.environ["SYSTEM_TESTS_TEST_AGENT_OTLP_GRPC_PORT"]),
+            )
+        except (KeyError, ValueError):
+            pytest.exit("rules_itest did not provide the default test-agent port mapping", 1)
+
+        if library_configuration.archive_entrypoint is None:
+            launch = ProcessLaunchSpec.executable(Path(artifact))
+        else:
+            launch = ProcessLaunchSpec.archive(
+                Path(artifact),
+                entrypoint=library_configuration.archive_entrypoint,
+            )
+        self._test_client_factory = ProcessParametricTestClientFactory(
+            launch=launch,
+            proot=Path(proot),
+            library=library,
+            server_environment=dict(library_configuration.environment),
+        )
+        self._test_agent_factory = ProcessTestAgentFactory(
+            executable=Path(test_agent),
+            default_ports=default_ports,
+        )
+        self._test_client_factory.configure(self.host_log_folder, config)
+        self._test_agent_factory.configure(self.host_log_folder)
+        version = os.environ.get(
+            library_configuration.version_environment_variable,
+            library_configuration.default_version,
+        )
+        self._library = ComponentVersion(library, version)
+        if self.is_main_worker:
+            self.warmups.append(lambda: logger.stdout(f"Library: {self.library}"))
+        self.warmups.append(self._set_components)
+
+    def get_agent_pool(self, worker_id: str) -> WorkerAgentPool:
+        if getattr(self, "_runtime", "docker") == "docker":
+            return super().get_agent_pool(worker_id)
+        if self._agent_pool is None:
+
+            @contextlib.contextmanager
+            def _creator(
+                request: pytest.FixtureRequest, agent_env: dict[str, str]
+            ) -> Generator[TestAgentAPI, None, None]:
+                del agent_env
+                with self._test_agent_factory.default_agent(request) as api:
+                    yield api
+
+            self._agent_pool = WorkerAgentPool(_creator)
+        return self._agent_pool
+
+    @contextlib.contextmanager
+    def get_test_agent_api(
+        self,
+        worker_id: str,
+        request: pytest.FixtureRequest,
+        test_id: str,
+        agent_env: dict[str, str],
+        container_otlp_http_port: int = DEFAULT_OTLP_HTTP_PORT,
+        container_otlp_grpc_port: int = DEFAULT_OTLP_GRPC_PORT,
+    ) -> Generator[TestAgentAPI, None, None]:
+        if getattr(self, "_runtime", "docker") == "docker":
+            with super().get_test_agent_api(
+                worker_id=worker_id,
+                request=request,
+                test_id=test_id,
+                agent_env=agent_env,
+                container_otlp_http_port=container_otlp_http_port,
+                container_otlp_grpc_port=container_otlp_grpc_port,
+            ) as api:
+                yield api
+            return
+        del worker_id, test_id
+        with self._test_agent_factory.get_test_agent_api(
+            request=request,
+            agent_env=agent_env,
+            container_otlp_http_port=container_otlp_http_port,
+            container_otlp_grpc_port=container_otlp_grpc_port,
+        ) as api:
+            yield api
 
     def _set_components(self):
         self.components["library"] = self.library.version

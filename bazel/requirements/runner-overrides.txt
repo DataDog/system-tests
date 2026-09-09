@@ -1,0 +1,7 @@
+# mitmproxy 9 pins Brotli below 1.1, before CPython 3.12 wheels existed.
+# Brotli 1.1 keeps the imported API and makes the Bazel Linux runner hermetic.
+brotli==1.1.0
+
+# zstandard 0.19 also predates CPython 3.12 wheels. The public API used by
+# mitmproxy remains available in 0.23.
+zstandard==0.23.0

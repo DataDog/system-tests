@@ -1,7 +1,9 @@
 import contextlib
 from collections.abc import Generator, Iterable
+import base64
 from dataclasses import asdict
 from http import HTTPStatus
+from pathlib import Path
 from types import TracebackType
 from typing import TypedDict, cast
 
@@ -52,7 +54,7 @@ class ParametricTestClientFactory(TestClientFactory):
         env.update(
             {
                 "DD_TRACE_DEBUG": "true",
-                "DD_TRACE_AGENT_URL": f"http://{test_agent.container_name}:{test_agent.container_port}",
+                "DD_TRACE_AGENT_URL": test_agent.apm_url,
                 "DD_AGENT_HOST": test_agent.container_name,
                 "DD_TRACE_AGENT_PORT": str(test_agent.container_port),
                 "APM_TEST_CLIENT_SERVER_PORT": str(container_port),
@@ -291,6 +293,74 @@ class ParametricTestClientApi(TestClientApi):
 
     def get_logs(self) -> str:
         return self.container.logs().decode("utf-8")
+
+    def get_stderr_logs(self) -> str:
+        return self.container.logs(stderr=True, stdout=False).decode("utf-8")
+
+    def restart(self) -> None:
+        self.container_restart()
+
+    def wait_for_exit(self, timeout: float) -> None:
+        self.container.wait(timeout=timeout)
+
+    def write_file(self, path: str, content: str) -> None:
+        writer = getattr(self.container, "write_file", None)
+        if writer is not None:
+            writer(path, content)
+            return
+        encoded = base64.b64encode(content.encode()).decode()
+        command = f'bash -c "mkdir -p {Path(path).parent!s} && echo {encoded} | base64 -d > {path}"'
+        if self.lang == "php":
+            command = "sudo " + command
+        success, message = self.container_exec_run(command)
+        if not success:
+            raise RuntimeError(message)
+
+    def list_files(self, path: str, pattern: str = "*") -> list[str]:
+        lister = getattr(self.container, "list_files", None)
+        if lister is not None:
+            return cast("list[str]", lister(path, pattern))
+        success, output = self.container_exec_run(f"sh -c 'find {path} -name \"{pattern}\" -type f 2>/dev/null'")
+        return output.splitlines() if success else []
+
+    def read_file(self, path: str, *, binary: bool = False) -> str | bytes:
+        reader = getattr(self.container, "read_file", None)
+        if reader is not None:
+            return cast("str | bytes", reader(path, binary=binary))
+        success, output = self.container_exec_run_raw(f"cat {path}")
+        if not success:
+            raise FileNotFoundError(path)
+        if binary:
+            return output
+        return output.decode() if isinstance(output, bytes) else output
+
+    def process_id(self) -> int:
+        getter = getattr(self.container, "process_id", None)
+        if getter is not None:
+            return int(getter())
+        process_name = {"java": "java", "nodejs": "node"}.get(self.lang)
+        if process_name is None:
+            return 1
+        success, output = self.container_exec_run(f"pidof {process_name}")
+        if not success:
+            raise RuntimeError(output)
+        return int(output)
+
+    def proc_fd_paths(self, pid: int, target_prefix: str) -> list[str]:
+        finder = getattr(self.container, "proc_fd_paths", None)
+        if finder is not None:
+            return cast("list[str]", finder(pid, target_prefix))
+        success, output = self.container_exec_run(f"find /proc/{pid}/fd -lname '/{target_prefix}*'")
+        return output.split() if success else []
+
+    def read_link(self, path: str) -> str:
+        reader = getattr(self.container, "read_link", None)
+        if reader is not None:
+            return str(reader(path))
+        success, output = self.container_exec_run(f"readlink {path}")
+        if not success:
+            raise FileNotFoundError(path)
+        return output
 
     def container_exec_run_raw(self, command: str) -> tuple[bool, str]:
         try:
@@ -1049,6 +1119,33 @@ class APMLibrary:
 
     def get_logs(self) -> str:
         return self._client.get_logs()
+
+    def get_stderr_logs(self) -> str:
+        return self._client.get_stderr_logs()
+
+    def restart(self) -> None:
+        self._client.restart()
+
+    def wait_for_exit(self, timeout: float) -> None:
+        self._client.wait_for_exit(timeout)
+
+    def write_file(self, path: str, content: str) -> None:
+        self._client.write_file(path, content)
+
+    def list_files(self, path: str, pattern: str = "*") -> list[str]:
+        return self._client.list_files(path, pattern)
+
+    def read_file(self, path: str, *, binary: bool = False) -> str | bytes:
+        return self._client.read_file(path, binary=binary)
+
+    def process_id(self) -> int:
+        return self._client.process_id()
+
+    def proc_fd_paths(self, pid: int, target_prefix: str) -> list[str]:
+        return self._client.proc_fd_paths(pid, target_prefix)
+
+    def read_link(self, path: str) -> str:
+        return self._client.read_link(path)
 
     @contextlib.contextmanager
     def dd_start_span(

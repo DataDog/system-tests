@@ -1,0 +1,11 @@
+load("@python_parametric_pip//:requirements.bzl", "all_requirements")
+load("@rules_python//python:defs.bzl", "py_library")
+
+package(default_visibility = ["//visibility:public"])
+
+py_library(
+    name = "apm_test_client",
+    srcs = glob(["apm_test_client/*.py"]),
+    imports = ["."],
+    deps = all_requirements,
+)

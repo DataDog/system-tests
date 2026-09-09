@@ -138,7 +138,7 @@ DEFAULT_ENVVARS_OTLP = {**DEFAULT_ENVVARS, "OTEL_TRACES_EXPORTER": "otlp"}
 @pytest.fixture
 def otlp_trace_metrics_library_env(library_env: dict[str, str], test_agent: TestAgentAPI):
     """Point the OTLP metrics exporter at the test agent's OTLP HTTP receiver."""
-    library_env["OTEL_EXPORTER_OTLP_METRICS_ENDPOINT"] = f"http://{test_agent.container_name}:4318/v1/metrics"
+    library_env["OTEL_EXPORTER_OTLP_METRICS_ENDPOINT"] = f"{test_agent.otlp_http_url}/v1/metrics"
     return library_env
 
 
@@ -149,8 +149,8 @@ def otlp_traces_and_metrics_library_env(library_env: dict[str, str], test_agent:
     Used for tests that exercise the OTLP trace export path (OTEL_TRACES_EXPORTER=otlp) alongside
     OTLP trace metrics, so both signal types are observable in the same test.
     """
-    library_env["OTEL_EXPORTER_OTLP_METRICS_ENDPOINT"] = f"http://{test_agent.container_name}:4318/v1/metrics"
-    library_env["OTEL_EXPORTER_OTLP_TRACES_ENDPOINT"] = f"http://{test_agent.container_name}:4318/v1/traces"
+    library_env["OTEL_EXPORTER_OTLP_METRICS_ENDPOINT"] = f"{test_agent.otlp_http_url}/v1/metrics"
+    library_env["OTEL_EXPORTER_OTLP_TRACES_ENDPOINT"] = f"{test_agent.otlp_http_url}/v1/traces"
     return library_env
 
 
