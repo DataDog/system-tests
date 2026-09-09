@@ -1906,6 +1906,9 @@ manifest:
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
+  tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT: v4.11.0
+  ? tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT::test_default_matches_specification
+  : irrelevant (Datadog intentionally defaults to 7500 ms)
   tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED: v4.11.0
   tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_default_matches_specification: missing_feature (defaults to disabled)
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids: v2.6.0
