@@ -776,6 +776,21 @@ class Test_ImageExists:
 
 @scenarios.test_the_test
 class Test_WaitForBaseImage:
+    def test_script_invocation_uses_repository_as_import_root(self, tmp_path: Path):
+        wrapper = Path(__file__).resolve().parents[2] / "utils" / "scripts" / "wait-for-base-images.py"
+        result = subprocess.run(
+            [sys.executable, str(wrapper), "bogus", "bogus", "--timeout", "0", "--poll-interval", "0"],
+            check=False,
+            capture_output=True,
+            text=True,
+            cwd=tmp_path,
+            env={**os.environ, "PYTHONPATH": ""},
+        )
+
+        assert result.returncode == 1
+        assert "No module named 'utils'" not in result.stderr
+        assert "no Dockerfile found" in result.stdout
+
     def test_missing_manifest_retries_until_timeout(self, monkeypatch: pytest.MonkeyPatch):
         calls = 0
 

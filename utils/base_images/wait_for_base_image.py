@@ -16,12 +16,22 @@ can run as a plain CI step before the runner virtualenv is built.
 """
 
 import argparse
+import importlib.util
 import subprocess
 import sys
 import time
 from pathlib import Path
 
-from utils.base_images.base_image import base_image_ref
+# Import the sibling stdlib-only helper without importing the utils package,
+# which would initialize unrelated scenarios before the runner venv exists.
+_BASE_IMAGE_MODULE = Path(__file__).resolve().parent / "base_image.py"
+_BASE_IMAGE_SPEC = importlib.util.spec_from_file_location("base_image", _BASE_IMAGE_MODULE)
+if _BASE_IMAGE_SPEC is None or _BASE_IMAGE_SPEC.loader is None:
+    raise ImportError(f"Could not load {_BASE_IMAGE_MODULE}")
+_BASE_IMAGE = importlib.util.module_from_spec(_BASE_IMAGE_SPEC)
+_BASE_IMAGE_SPEC.loader.exec_module(_BASE_IMAGE)
+
+base_image_ref = _BASE_IMAGE.base_image_ref
 
 _MISSING_MANIFEST_ERRORS = ("manifest unknown", "no such manifest")
 
