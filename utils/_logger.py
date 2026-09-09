@@ -27,6 +27,25 @@ class Logger(logging.Logger):
                 # so directly print in stdout
                 print(message)  # noqa: T201
 
+    def log_file_to_stdout(self, logfile: str, lines: list[str], tail_limit: int = 50) -> None:
+        """When some important informations is stored inside a log file, it can be very handy to also print it
+        in stdout. This function does not print in inside test.logs, as the data already exists in another log file
+        """
+
+        SEP = "=" * 30  # noqa: N806
+
+        # if the logger is not yet be configured with the pytest terminal, directly use print in stdout
+        print_method = self.terminal.write_line if hasattr(self, "terminal") else print
+
+        print_method(f"\n{SEP} {logfile} last {tail_limit} lines {SEP}")
+        print_method("")
+        # print last <tail> lines in stdout
+        print_method("".join(lines[-tail_limit:]))
+        print_method("")
+
+        if hasattr(self, "terminal"):
+            self.terminal.flush()
+
 
 logging.setLoggerClass(Logger)
 logging.getLogger("requests").setLevel(logging.WARNING)
