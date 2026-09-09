@@ -48,7 +48,7 @@ CONFIG_PATH = "/api/v2/feature-flagging/config/rules-based/server"
 EXPECTED_DD_ENV = "test"
 CONFIG_QUERY = urlencode({"dd_env": EXPECTED_DD_ENV})
 REPO_ROOT = Path(__file__).parents[2]
-UFC_FIXTURE_PATH = REPO_ROOT / "tests" / "parametric" / "test_ffe" / "flags-v1.json"
+UFC_FIXTURE_PATH = REPO_ROOT / "tests" / "parametric" / "test_ffe" / "ffe-system-test-data" / "ufc-config.json"
 MALFORMED_UFC_BYTES = b'{"flags": ['
 UFC_RESPONSE_TYPE = "universal-flag-configuration"
 

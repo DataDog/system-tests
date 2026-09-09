@@ -34,7 +34,7 @@ from utils.mocked_backend.ffe import (
 parametrize = pytest.mark.parametrize
 pytest_plugins = ["utils.mocked_backend.ffe"]
 
-UFC_VALID_FIXTURE = Path(__file__).parent / "flags-v1.json"
+UFC_VALID_FIXTURE = Path(__file__).parent / "ffe-system-test-data" / "ufc-config.json"
 RC_PRODUCT = "FFE_FLAGS"
 TEST_API_KEY = "system-tests-mock-api-key"
 MOCK_STATUS_ATTEMPTS = 25

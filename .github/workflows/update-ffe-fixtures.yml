@@ -1,0 +1,73 @@
+name: Update FFE fixtures
+
+on:
+  workflow_dispatch:
+    inputs:
+      fixture_ref:
+        description: Branch, tag, or commit from DataDog/ffe-system-test-data
+        required: true
+        default: main
+        type: string
+  schedule:
+    - cron: "0 0 * * 0"
+
+concurrency:
+  group: update-ffe-fixtures
+  cancel-in-progress: false
+
+jobs:
+  update-ffe-fixtures:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
+        with:
+          persist-credentials: false
+
+      - name: Update fixture snapshot
+        id: fixtures
+        env:
+          FFE_FIXTURE_REF: ${{ inputs.fixture_ref || 'main' }}
+        run: python3 utils/scripts/update_ffe_fixtures.py --ref "$FFE_FIXTURE_REF"
+
+      - uses: DataDog/dd-octo-sts-action@96a25462dbcb10ebf0bfd6e2ccc917d2ab235b9a # v1.0.4
+        if: steps.fixtures.outputs.changed == 'true'
+        id: octo-sts
+        with:
+          scope: DataDog/system-tests
+          policy: self.update-ffe-fixtures.create-pr
+
+      - name: Create Pull Request
+        if: steps.fixtures.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          token: ${{ steps.octo-sts.outputs.token }}
+          branch: actions/update-ffe-fixtures
+          base: main
+          commit-message: "test(ffe): update canonical fixtures"
+          title: "test(ffe): update canonical fixtures"
+          draft: true
+          sign-commits: true
+          add-paths: tests/parametric/test_ffe/ffe-system-test-data
+          body: |
+            ## Motivation
+
+            Keep system-tests synchronized with the canonical FFE evaluator fixtures. New fixtures may intentionally make tests fail when they expose downstream evaluator bugs that should be addressed before merging the update.
+
+            Canonical source: https://github.com/DataDog/ffe-system-test-data
+            Source commit: ${{ steps.fixtures.outputs.source_commit }}
+
+            ## Changes
+
+            - Refresh the checked-in FFE fixture snapshot.
+            - Load ${{ steps.fixtures.outputs.fixture_count }} canonical evaluation cases.
+
+            ## Decisions
+
+            The snapshot remains checked in so local and CI tests work from a normal clone. The update script applies a client-owned disallow list, and the workflow opens a signed draft PR only when fixture contents change.
+
+            ## Verification
+
+            The existing FFE parametric tests run against the refreshed snapshot. Treat new failures as useful downstream conformance signals and fix or classify them in this update PR before merging it.
