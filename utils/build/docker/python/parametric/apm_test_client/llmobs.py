@@ -199,6 +199,13 @@ class DatasetDeleteRequestModel(BaseModel):
     dataset_id: str
 
 
+class PromptConfigLifecycleRequestModel(BaseModel):
+    prompt_id: str
+    template: list[dict[str, str]]
+    initial_config: dict[str, Any]
+    next_config: dict[str, Any]
+
+
 @router.post("/llm_observability/dataset/create")
 def llmobs_dataset_create(request: DatasetCreateRequestModel):
     records = None
@@ -235,3 +242,18 @@ def llmobs_dataset_create(request: DatasetCreateRequestModel):
 def llmobs_dataset_delete(request: DatasetDeleteRequestModel):
     LLMObs._delete_dataset(dataset_id=request.dataset_id)
     return {"success": True}
+
+
+@router.post("/llm_observability/prompt/config_lifecycle")
+def llmobs_prompt_config_lifecycle(request: PromptConfigLifecycleRequestModel):
+    LLMObs.create_prompt(request.prompt_id, request.template, config=request.initial_config)
+    try:
+        initial = LLMObs.get_prompt(request.prompt_id, version=1)
+        LLMObs.create_prompt_version(request.prompt_id, request.template, config=request.next_config)
+        next_version = LLMObs.get_prompt(request.prompt_id, version=2)
+        return {
+            "initial": {"version": initial.version, "template": initial.template, "config": initial.config},
+            "next": {"version": next_version.version, "template": next_version.template, "config": next_version.config},
+        }
+    finally:
+        LLMObs.delete_prompt(request.prompt_id)

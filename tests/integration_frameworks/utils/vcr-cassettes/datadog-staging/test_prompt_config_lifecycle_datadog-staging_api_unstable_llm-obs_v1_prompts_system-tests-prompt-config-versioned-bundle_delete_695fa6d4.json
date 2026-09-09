@@ -1,0 +1,29 @@
+{
+  "request": {
+    "method": "DELETE",
+    "url": "https://api.datad0g.com/api/unstable/llm-obs/v1/prompts/system-tests-prompt-config-versioned-bundle",
+    "headers": {
+      "x-datadog-sdk-language": "python",
+      "Content-Type": "application/json",
+      "datadog-entity-id": "in-2516"
+    },
+    "body": ""
+  },
+  "response": {
+    "status": {
+      "code": 200,
+      "message": "OK"
+    },
+    "headers": {
+      "content-type": "application/json",
+      "dd-test-drive-name": "prompt-config-achoura-0909",
+      "vary": "Accept-Encoding",
+      "x-frame-options": "SAMEORIGIN",
+      "content-length": "146",
+      "date": "Wed, 09 Sep 2026 19:22:21 GMT",
+      "x-content-type-options": "nosniff",
+      "strict-transport-security": "max-age=31536000; includeSubDomains; preload"
+    },
+    "body": "{\"ID\":\"eec1ded6-ae45-5b04-bac7-ecdeaf04b84e\",\"prompt_id\":\"system-tests-prompt-config-versioned-bundle\",\"deleted_at\":\"2026-09-09T19:22:21.814637Z\"}"
+  }
+}

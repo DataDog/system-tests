@@ -79,3 +79,21 @@ class DatasetResponse(TypedDict, total=False):
     version: int
     latest_version: int
     records: list[dict[str, Any]]
+
+
+class PromptConfigLifecycleRequest(TypedDict):
+    prompt_id: str
+    template: list[dict[str, str]]
+    initial_config: dict[str, Any]
+    next_config: dict[str, Any]
+
+
+class PromptBundle(TypedDict):
+    version: str
+    template: list[dict[str, str]]
+    config: dict[str, Any]
+
+
+class PromptConfigLifecycleResponse(TypedDict):
+    initial: PromptBundle
+    next: PromptBundle

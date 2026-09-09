@@ -8,6 +8,7 @@ from ..conftest import APMLibrary  # noqa: TID252
 
 if TYPE_CHECKING:
     from utils.docker_fixtures.spec.llm_observability import DatasetCreateRequest
+    from utils.docker_fixtures.spec.llm_observability import PromptConfigLifecycleRequest
 
 
 @pytest.fixture
@@ -49,3 +50,29 @@ class Test_Dataset:
 
             result = test_library.llmobs_dataset_delete(dataset_id=dataset["dataset_id"])
             assert result.get("success") is True
+
+
+@features.llm_observability_prompts
+@scenarios.parametric
+class Test_Prompt_Config:
+    @pytest.fixture
+    def llmobs_override_origin(self, test_agent: TestAgentAPI) -> str:
+        return f"http://{test_agent.container_name}:{test_agent.container_port}/vcr/datadog-staging"
+
+    def test_prompt_config_lifecycle(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        """Test that template and config stay paired across prompt versions."""
+        template = [{"role": "user", "content": "Hello {name}"}]
+        request: PromptConfigLifecycleRequest = {
+            "prompt_id": "system-tests-prompt-config-versioned-bundle",
+            "template": template,
+            "initial_config": {"model": {"temperature": 0.2}, "unknown": {"nested": [1, True]}},
+            "next_config": {"model": {"temperature": 0.8}, "unknown": {"nested": [2, False]}},
+        }
+
+        with test_agent.vcr_context():
+            result = test_library.llmobs_prompt_config_lifecycle(request)
+
+        assert result == {
+            "initial": {"version": "1", "template": template, "config": request["initial_config"]},
+            "next": {"version": "2", "template": template, "config": request["next_config"]},
+        }

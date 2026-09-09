@@ -1,0 +1,30 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://api.datad0g.com/api/unstable/llm-obs/v1/prompts/system-tests-prompt-config-versioned-bundle/versions",
+    "headers": {
+      "x-datadog-sdk-language": "python",
+      "Content-Type": "application/json",
+      "datadog-entity-id": "in-2516",
+      "Content-Length": "137"
+    },
+    "body": "{\"template\": [{\"role\": \"user\", \"content\": \"Hello {name}\"}], \"config\": {\"model\": {\"temperature\": 0.8}, \"unknown\": {\"nested\": [2, false]}}}"
+  },
+  "response": {
+    "status": {
+      "code": 200,
+      "message": "OK"
+    },
+    "headers": {
+      "content-type": "application/json",
+      "dd-test-drive-name": "prompt-config-achoura-0909",
+      "vary": "Accept-Encoding",
+      "x-frame-options": "SAMEORIGIN",
+      "content-length": "440",
+      "date": "Wed, 09 Sep 2026 19:22:19 GMT",
+      "x-content-type-options": "nosniff",
+      "strict-transport-security": "max-age=31536000; includeSubDomains; preload"
+    },
+    "body": "{\"ID\":\"a05f9f7b-4338-59f5-8322-639176adc143\",\"prompt_uuid\":\"eec1ded6-ae45-5b04-bac7-ecdeaf04b84e\",\"prompt_id\":\"system-tests-prompt-config-versioned-bundle\",\"template\":[{\"role\":\"user\",\"content\":\"Hello {name}\"}],\"config\":{\"model\":{\"temperature\":0.8},\"unknown\":{\"nested\":[2,false]}},\"version\":2,\"created_at\":\"2026-09-09T19:22:19.733642999Z\",\"version_created_at\":\"2026-09-09T19:22:19.733642999Z\",\"author\":\"c5e19e5a-ad6b-11ed-ab4f-927130d31ef9\"}"
+  }
+}

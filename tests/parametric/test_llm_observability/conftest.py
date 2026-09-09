@@ -88,6 +88,7 @@ def library_env(
 def agent_env(request: pytest.FixtureRequest) -> dict[str, object]:
     agent_env: dict[str, object] = {
         "VCR_IGNORE_HEADERS": "content-security-policy",
+        "VCR_PROVIDER_MAP": "datadog-staging=https://api.datad0g.com/",
     }
 
     if not request.config.option.generate_cassettes:

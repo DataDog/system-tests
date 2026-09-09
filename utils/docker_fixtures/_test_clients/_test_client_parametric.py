@@ -18,6 +18,8 @@ from utils.docker_fixtures.spec.llm_observability import (
     DatasetCreateRequest,
     DatasetResponse,
     LlmObsAnnotationContextRequest,
+    PromptConfigLifecycleRequest,
+    PromptConfigLifecycleResponse,
     SpanRequest,
 )
 from utils.docker_fixtures.spec.otel_trace import OtelSpanContext
@@ -1011,6 +1013,11 @@ class ParametricTestClientApi(TestClientApi):
 
         return resp.json()
 
+    def llmobs_prompt_config_lifecycle(self, request: PromptConfigLifecycleRequest) -> PromptConfigLifecycleResponse:
+        resp = self._session.post(self._url("/llm_observability/prompt/config_lifecycle"), json=request)
+        resp.raise_for_status()
+        return cast("PromptConfigLifecycleResponse", resp.json())
+
 
 class APMLibrary:
     def __init__(self, client: ParametricTestClientApi, lang: str):
@@ -1263,6 +1270,9 @@ class APMLibrary:
 
     def llmobs_dataset_delete(self, dataset_id: str) -> dict | str | None:
         return self._client.llmobs_dataset_delete(dataset_id=dataset_id)
+
+    def llmobs_prompt_config_lifecycle(self, request: PromptConfigLifecycleRequest) -> PromptConfigLifecycleResponse:
+        return self._client.llmobs_prompt_config_lifecycle(request)
 
     @property
     def container(self) -> Container:
