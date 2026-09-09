@@ -1,7 +1,7 @@
 import time
 import requests
 
-from utils import scenarios, features
+from utils import scenarios, features, context, bug
 from tests.k8s_lib_injection.utils import get_cluster_info, K8sClusterInfo
 
 
@@ -41,6 +41,10 @@ class TestK8sLibInjectioProfilingDisabledByDefault(_TestK8sLibInjectionProfiling
 class TestK8sLibInjectioProfilingClusterEnabled(_TestK8sLibInjectionProfiling):
     """Test K8s lib injection with profiling enabled."""
 
+    @bug(
+        context.library == "java",
+        reason="PROF-15664",
+    )
     def test_profiling_admission_controller(self):
         profiling_request_found = self._check_profiling_request_sent(get_cluster_info())
         assert profiling_request_found, "No profiling request found"
@@ -51,6 +55,10 @@ class TestK8sLibInjectioProfilingClusterEnabled(_TestK8sLibInjectionProfiling):
 class TestK8sLibInjectioProfilingClusterOverride(_TestK8sLibInjectionProfiling):
     """Test K8s lib injection with profiling enabled, overriting cluster agent config."""
 
+    @bug(
+        context.library == "java",
+        reason="PROF-15664",
+    )
     def test_profiling_override_cluster_env(self):
         profiling_request_found = self._check_profiling_request_sent(get_cluster_info())
         assert profiling_request_found, "No profiling request found"

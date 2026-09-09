@@ -209,6 +209,9 @@ jobs:
     - name: Run TRACE_STATS_COMPUTATION_CLIENT_DROP_P0S_FALSE scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACE_STATS_COMPUTATION_CLIENT_DROP_P0S_FALSE"')
       run: ./run.sh TRACE_STATS_COMPUTATION_CLIENT_DROP_P0S_FALSE
+    - name: Run TRACE_STATS_COMPUTATION_V1 scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACE_STATS_COMPUTATION_V1"')
+      run: ./run.sh TRACE_STATS_COMPUTATION_V1
     - name: Run IAST_STANDALONE scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"IAST_STANDALONE"')
       run: ./run.sh IAST_STANDALONE
@@ -278,6 +281,9 @@ jobs:
     - name: Run APM_TRACING_EFFICIENT_PAYLOAD scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APM_TRACING_EFFICIENT_PAYLOAD"')
       run: ./run.sh APM_TRACING_EFFICIENT_PAYLOAD
+    - name: Run APM_TRACING_EFFICIENT_PAYLOAD_STATS_DISABLED scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APM_TRACING_EFFICIENT_PAYLOAD_STATS_DISABLED"')
+      run: ./run.sh APM_TRACING_EFFICIENT_PAYLOAD_STATS_DISABLED
     - name: Run LIBRARY_CONF_CUSTOM_HEADER_TAGS scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"LIBRARY_CONF_CUSTOM_HEADER_TAGS"')
       run: ./run.sh LIBRARY_CONF_CUSTOM_HEADER_TAGS

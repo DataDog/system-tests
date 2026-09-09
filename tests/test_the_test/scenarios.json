@@ -611,6 +611,9 @@
   "tests/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_propagated": [
     "DEFAULT"
   ],
+  "tests/test_v1_payloads.py::Test_V1PayloadWithStatsDisabled::test_v1_used_with_stats_disabled": [
+    "APM_TRACING_EFFICIENT_PAYLOAD_STATS_DISABLED"
+  ],
   "tests/test_v1_payloads.py::Test_V1Payloads::test_field_changes": [
     "APM_TRACING_EFFICIENT_PAYLOAD"
   ],
@@ -5645,13 +5648,16 @@
     "DEFAULT"
   ],
   "tests/stats/test_stats.py::Test_Client_Stats::test_client_stats": [
-    "TRACE_STATS_COMPUTATION"
+    "TRACE_STATS_COMPUTATION",
+    "TRACE_STATS_COMPUTATION_V1"
   ],
   "tests/stats/test_stats.py::Test_Client_Stats::test_obfuscation": [
-    "TRACE_STATS_COMPUTATION"
+    "TRACE_STATS_COMPUTATION",
+    "TRACE_STATS_COMPUTATION_V1"
   ],
   "tests/stats/test_stats.py::Test_Client_Stats::test_is_trace_root": [
-    "TRACE_STATS_COMPUTATION"
+    "TRACE_STATS_COMPUTATION",
+    "TRACE_STATS_COMPUTATION_V1"
   ],
   "tests/stats/test_stats.py::Test_Client_Stats::test_disable": [
     "DEFAULT"
@@ -5660,13 +5666,16 @@
     "TRACE_STATS_COMPUTATION"
   ],
   "tests/stats/test_stats.py::Test_Peer_Tags::test_peer_tags": [
-    "TRACE_STATS_COMPUTATION"
+    "TRACE_STATS_COMPUTATION",
+    "TRACE_STATS_COMPUTATION_V1"
   ],
   "tests/stats/test_stats.py::Test_Transport_Headers::test_transport_headers": [
-    "TRACE_STATS_COMPUTATION"
+    "TRACE_STATS_COMPUTATION",
+    "TRACE_STATS_COMPUTATION_V1"
   ],
   "tests/stats/test_stats.py::Test_Transport_Headers::test_container_id_header": [
-    "TRACE_STATS_COMPUTATION"
+    "TRACE_STATS_COMPUTATION",
+    "TRACE_STATS_COMPUTATION_V1"
   ],
   "tests/stats/test_stats.py::Test_Time_Bucketing::test_client_side_stats": [
     "TRACE_STATS_COMPUTATION"
