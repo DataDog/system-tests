@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from utils import interfaces, scenarios
-from utils._context._scenarios.endtoend import DdTraceEndToEndScenario, DockerScenario
+from utils._context._scenarios.endtoend import DdTraceEndToEndScenario, DockerScenario, _load_environment_overrides
 from utils._context.containers import TestedContainer as _TestedContainer
 
 
@@ -22,6 +22,17 @@ class FakeContainer(_TestedContainer):
 
     def remove(self):
         pass
+
+
+@scenarios.test_the_test
+def test_load_environment_overrides(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("SYSTEM_TESTS_WEBLOG_ENV", '{"DD_TRACE_AGENT_PROTOCOL_VERSION": "1.0"}')
+
+    assert _load_environment_overrides("SYSTEM_TESTS_WEBLOG_ENV") == {"DD_TRACE_AGENT_PROTOCOL_VERSION": "1.0"}
+
+    monkeypatch.setenv("SYSTEM_TESTS_WEBLOG_ENV", '["not", "an", "object"]')
+    with pytest.raises(ValueError, match="must be a JSON object"):
+        _load_environment_overrides("SYSTEM_TESTS_WEBLOG_ENV")
 
 
 @scenarios.test_the_test

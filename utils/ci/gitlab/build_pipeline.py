@@ -43,8 +43,15 @@ def render_library(
     parallel_weblogs = params.get("endtoend_defs", {}).get("parallel_weblogs", [])
     parallel_jobs = params.get("endtoend_defs", {}).get("parallel_jobs", [])
     weblog_variants = [w["name"] for w in parallel_weblogs]
-    scenario_pairs = [
-        (job["weblog"], scenario, job.get("weblog_build_required", True))
+    scenario_jobs = [
+        {
+            "weblog": job["weblog"],
+            "scenario": scenario,
+            "build_required": job.get("weblog_build_required", True),
+            "weblog_instance": job.get("weblog_instance", 1),
+            "job_name_suffix": f"_{job['weblog_instance']}" if isinstance(job.get("weblog_instance"), str) else "",
+            "weblog_env": job.get("weblog_env", {}),
+        }
         for job in parallel_jobs
         for scenario in job.get("scenarios", [])
     ]
@@ -59,7 +66,7 @@ def render_library(
     else:
         binaries_artifacts_list = []
     return _template.render(
-        scenario_pairs=scenario_pairs,
+        scenario_jobs=scenario_jobs,
         stage=stage,
         library=library,
         weblog_variants=weblog_variants,

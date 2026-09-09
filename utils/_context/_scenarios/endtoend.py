@@ -1,3 +1,4 @@
+import json
 import os
 from typing import Literal
 
@@ -27,6 +28,15 @@ from utils._context.constants import WeblogCategory
 from utils._logger import logger
 
 from .core import Scenario, ScenarioGroup, scenario_groups as all_scenario_groups
+
+
+def _load_environment_overrides(variable_name: str) -> dict[str, str]:
+    value: object = json.loads(os.environ.get(variable_name, "{}"))
+    if not isinstance(value, dict) or not all(
+        isinstance(key, str) and isinstance(item, str) for key, item in value.items()
+    ):
+        raise ValueError(f"{variable_name} must be a JSON object with string keys and values")
+    return value
 
 
 class DockerScenario(Scenario):
@@ -322,6 +332,7 @@ class EndToEndScenario(DockerScenario):
             pytest.exit("DD_API_KEY is required for this scenario", 1)
 
         self.weblog_infra.configure(config)
+        self.weblog_infra.library_container.environment.update(_load_environment_overrides("SYSTEM_TESTS_WEBLOG_ENV"))
         self._containers += list(self.weblog_infra.get_containers())
 
         self._set_containers_dependancies()
