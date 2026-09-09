@@ -6,4 +6,4 @@ import sys
 from pathlib import Path
 
 _REAL = Path(__file__).resolve().parents[1] / "base_images" / "base_image.py"
-os.execv(sys.executable, [sys.executable, str(_REAL), *sys.argv[1:]])
+os.execv(sys.executable, [sys.executable, str(_REAL), *sys.argv[1:]])  # noqa: S606
