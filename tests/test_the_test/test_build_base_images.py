@@ -789,7 +789,49 @@ class Test_WaitForBaseImage:
 
         assert result.returncode == 1
         assert "No module named 'utils'" not in result.stderr
-        assert "no Dockerfile found" in result.stdout
+        assert "no library found at utils/build/docker/bogus" in result.stdout
+
+    def test_weblog_without_dockerfile_has_nothing_to_wait_for(self, monkeypatch: pytest.MonkeyPatch):
+        monkeypatch.setattr(
+            sys,
+            "argv",
+            ["wait_for_base_image.py", "golang", "envoy", "--timeout", "0", "--poll-interval", "0"],
+        )
+
+        wait_for_base_image.main()
+
+    def test_unknown_weblog_without_dockerfile_fails(self, monkeypatch: pytest.MonkeyPatch):
+        monkeypatch.setattr(
+            sys,
+            "argv",
+            ["wait_for_base_image.py", "golang", "unknown", "--timeout", "0", "--poll-interval", "0"],
+        )
+
+        with pytest.raises(SystemExit) as exit_info:
+            wait_for_base_image.main()
+
+        assert exit_info.value.code == 1
+
+    def test_framework_version_weblog_has_nothing_to_wait_for(self, monkeypatch: pytest.MonkeyPatch):
+        monkeypatch.setattr(
+            sys,
+            "argv",
+            ["wait_for_base_image.py", "nodejs", "openai-js@6.0.0", "--timeout", "0", "--poll-interval", "0"],
+        )
+
+        wait_for_base_image.main()
+
+    def test_unknown_framework_version_fails(self, monkeypatch: pytest.MonkeyPatch):
+        monkeypatch.setattr(
+            sys,
+            "argv",
+            ["wait_for_base_image.py", "nodejs", "openai-js@bad", "--timeout", "0", "--poll-interval", "0"],
+        )
+
+        with pytest.raises(SystemExit) as exit_info:
+            wait_for_base_image.main()
+
+        assert exit_info.value.code == 1
 
     def test_missing_manifest_retries_until_timeout(self, monkeypatch: pytest.MonkeyPatch):
         calls = 0

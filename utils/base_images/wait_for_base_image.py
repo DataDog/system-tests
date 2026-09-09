@@ -17,6 +17,7 @@ can run as a plain CI step before the runner virtualenv is built.
 
 import argparse
 import importlib.util
+import re
 import subprocess
 import sys
 import time
@@ -36,12 +37,52 @@ base_image_ref = _BASE_IMAGE.base_image_ref
 _MISSING_MANIFEST_ERRORS = ("manifest unknown", "no such manifest")
 
 
+def _metadata_weblogs(metadata_lines: list[str]) -> tuple[set[str], dict[str, set[str]]]:
+    weblogs: set[str] = set()
+    framework_versions: dict[str, set[str]] = {}
+    current_weblog: str | None = None
+
+    for line in metadata_lines:
+        if not line or line.startswith("#"):
+            continue
+
+        if not line.startswith(" "):
+            name = line.split(":", 1)[0]
+            if f"{name}:" not in line:
+                continue
+
+            current_weblog = name
+            weblogs.add(name)
+            continue
+
+        match = re.search(r"^\s+framework_versions:\s*\[([^]]*)\]", line)
+        if match and current_weblog:
+            versions = set(re.findall(r"[\"']([^\"']+)[\"']", match.group(1)))
+            framework_versions[current_weblog] = versions
+
+    return weblogs, framework_versions
+
+
 def _base_image_tag(library: str, weblog: str) -> str | None:
     """system-tests base image the weblog Dockerfile builds FROM (see base_image.py)."""
     dockerfile = Path(f"utils/build/docker/{library}/{weblog}.Dockerfile")
     if not dockerfile.exists():
-        print(f"Error: no Dockerfile found for weblog '{weblog}' in library '{library}'")
-        sys.exit(1)
+        metadata = Path(f"utils/build/docker/{library}/weblog_metadata.yml")
+        if not metadata.exists():
+            print(f"Error: no library found at utils/build/docker/{library}")
+            sys.exit(1)
+
+        weblogs, framework_versions = _metadata_weblogs(metadata.read_text().splitlines())
+        weblog_name, separator, version = weblog.partition("@")
+        is_known_weblog = weblog in weblogs or (
+            separator and weblog_name in weblogs and version in framework_versions.get(weblog_name, set())
+        )
+        if not is_known_weblog:
+            print(f"Error: no Dockerfile found for weblog '{weblog}' in library '{library}'")
+            sys.exit(1)
+
+        print(f"{weblog} has no Dockerfile, nothing to wait for")
+        return None
 
     return base_image_ref(dockerfile.read_text())
 
@@ -57,7 +98,6 @@ def main() -> None:
     image_tag = _base_image_tag(args.library, args.weblog)
 
     if image_tag is None:
-        print(f"{args.weblog} does not use a system-tests base image, nothing to wait for")
         return
 
     print(f"Waiting for {image_tag} to be available on Docker Hub (timeout: {args.timeout}s)")
