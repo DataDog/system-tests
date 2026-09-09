@@ -81,6 +81,16 @@ class V1AnyValueKeys(IntEnum):
 
 
 # Keys that are strings so may arrive as indexes into the strings list
+_trace_key_strings = [
+    "container_id",
+    "language_name",
+    "language_version",
+    "tracer_version",
+    "runtime_id",
+    "env",
+    "hostname",
+    "app_version",
+]
 _chunk_key_strings = ["origin"]
 _span_key_strings = [
     "service",
@@ -148,7 +158,10 @@ def _uncompress_keys(trace_payload: dict, strings: list[str]) -> dict:
             if k == V1TracePayloadKeys.chunks:
                 uncompressed_payload[V1TracePayloadKeys.chunks.name] = _uncompress_chunks(v, strings)
             else:
-                uncompressed_payload[enum_key.name] = v
+                value = v
+                if enum_key.name in _trace_key_strings and isinstance(value, int):
+                    value = strings[value]
+                uncompressed_payload[enum_key.name] = value
         except ValueError as e:
             raise ValueError(f"Unknown V1TracePayloadKey: {k}") from e
 
@@ -161,7 +174,10 @@ def _uncompress_values(trace_payload: dict, strings: list[str]) -> dict:
         if k == V1TracePayloadKeys.chunks.name:
             uncompressed_payload[k] = _uncompress_chunks_values(v, strings)
         else:
-            uncompressed_payload[k] = v
+            value = v
+            if k in _trace_key_strings and isinstance(value, int):
+                value = strings[value]
+            uncompressed_payload[k] = value
 
     return uncompressed_payload
 
@@ -330,9 +346,9 @@ def _uncompress_chunks(chunks: list, strings: list[str]) -> list:
             try:
                 # Check if k is a valid enum value by trying to create the enum
                 enum_key = V1ChunkKeys(k)
+                if enum_key.name in _chunk_key_strings and isinstance(value, int):
+                    value = strings[value]
                 if k == V1ChunkKeys.spans:
-                    if enum_key.name in _chunk_key_strings and isinstance(value, int):
-                        value = strings[v]
                     uncompressed_chunk[V1ChunkKeys.spans.name] = _uncompress_spans(value, strings)
                 else:
                     uncompressed_chunk[enum_key.name] = value
@@ -348,9 +364,9 @@ def _uncompress_chunks_values(chunks: list, strings: list[str]) -> list:
         uncompressed_chunk = {}
         for k, v in chunk.items():
             value = v
+            if k in _chunk_key_strings and isinstance(value, int):
+                value = strings[value]
             if k == V1ChunkKeys.spans.name:
-                if k in _chunk_key_strings and isinstance(value, int):
-                    value = strings[v]
                 uncompressed_chunk[k] = _uncompress_spans_values(value, strings)
             else:
                 uncompressed_chunk[k] = value
