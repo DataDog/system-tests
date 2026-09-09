@@ -2251,6 +2251,9 @@ manifest:
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED: v5.83.0
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_datadog_configuration_takes_precedence: incomplete_test_app (config is not exposed)
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_default_matches_specification: missing_feature (defaults to true)
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids: *ref_3_0_0
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_datadog_128_bit_generation_enabled_by_default:
     - declaration: missing_feature (Implemented in 4.19.0 & 3.40.0)
@@ -2395,10 +2398,8 @@ manifest:
   tests/parametric/test_llm_observability/test_llm_observability_dne.py::Test_Dataset: missing_feature
   tests/parametric/test_otel_api_interoperability.py: missing_feature
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: v5.11.0  #implemented in v5.11.0, v4.35.0, &v3.56.0
-  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_otel_enabled_takes_precedence: missing_feature (this setting is not exposed in the Node.js config object)
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_false: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_true: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
-  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_sdk_disabled_set: missing_feature (this setting is not exposed in the Node.js config object)
   tests/parametric/test_otel_logs.py::Test_FR01_Enable_OTLP_Log_Collection: *ref_5_72_0
   tests/parametric/test_otel_logs.py::Test_FR03_Resource_Attributes: *ref_5_72_0
   tests/parametric/test_otel_logs.py::Test_FR04_Trace_Span_IDs: *ref_5_72_0

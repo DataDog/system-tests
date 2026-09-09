@@ -632,6 +632,23 @@ def trace_manual_keep_drop():
     }
 
 
+@app.route("/security/thread_context_sharing")
+def thread_context_sharing():
+    path = flask_request.args["path"]
+
+    span = tracer.current_span()
+    if span is None:
+        return Response(status=500)
+
+    with open(path, "w") as f:
+        f.write("system-tests thread context sharing")
+
+    return {
+        "trace_id": str(span.trace_id),
+        "span_id": str(span.span_id),
+    }
+
+
 @app.route("/make_distant_call")
 def make_distant_call():
     url = flask_request.args["url"]
