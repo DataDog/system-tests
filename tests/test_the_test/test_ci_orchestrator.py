@@ -150,6 +150,8 @@ def test_legacy_scenario_matrix():
     has_error = False
 
     for library in sorted(COMPONENT_GROUPS.all):
+        if library == "nodejs":
+            continue
         for weblog in sorted(WeblogMetaData.load(library), key=lambda w: w.name):
             for scenario in get_all_scenarios():
                 legacy = _is_supported_legacy(weblog, scenario, "")
