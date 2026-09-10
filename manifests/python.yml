@@ -1272,8 +1272,13 @@ manifest:
       component_version: <3.0.0
   tests/cws/test_thread_context_sharing.py::Test_ThreadContextSharing:
     - weblog_declaration:
-        "*": missing_feature (missing /security/thread_context_sharing endpoint on weblog)
-        *flask : v4.14.0
+        "*": v4.14.0
+        django-poc: v4.15.0rc1
+        django-py3.13: v4.15.0rc1
+        fastapi: v4.15.0rc2
+        flask-poc: v4.15.0rc1
+        python3.12: v4.15.0rc1
+        uds-flask: v4.15.0rc1
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Line_Capture_Expressions: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_capture_expressions_errors.py::Test_Debugger_Filter_Rejected_Capture_Expression_Error:  # TODO: a lower version might be supported

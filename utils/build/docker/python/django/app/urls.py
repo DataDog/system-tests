@@ -1,4 +1,5 @@
 # pages/urls.py
+import asyncio
 import base64
 import json
 import os
@@ -7,6 +8,7 @@ import shlex
 import subprocess
 import xmltodict
 import sys
+from pathlib import Path
 import boto3
 import django
 import httpx
@@ -333,6 +335,47 @@ def status_code(request, *args, **kwargs):
 
 def stats_unique(request, *args, **kwargs):
     return HttpResponse("OK, probably", status=int(request.GET.get("code", "200")))
+
+
+def _write_thread_context(path):
+    span = tracer.current_span()
+    if span is None:
+        return None
+
+    with Path(path).open("w") as f:
+        f.write("system-tests thread context sharing")
+
+    return {
+        "trace_id": str(span.trace_id),
+        "span_id": str(span.span_id),
+    }
+
+
+def thread_context_sharing(request):
+    result = _write_thread_context(request.GET["path"])
+    if result is None:
+        return HttpResponse(status=500)
+    return JsonResponse(result)
+
+
+async def async_thread_context_sharing(request):
+    path = request.GET["path"]
+
+    # python3.12 yields the request task; django-py3.13 additionally offloads the
+    # file operation and active-context lookup to a worker thread.
+    if sys.version_info >= (3, 13):
+        result = await asyncio.to_thread(_write_thread_context, path)
+    else:
+        await asyncio.sleep(0)
+        result = _write_thread_context(path)
+
+    if result is None:
+        return HttpResponse(status=500)
+    return JsonResponse(result)
+
+
+# django-poc on Python 3.11 remains the synchronous Django baseline.
+thread_context_sharing_view = async_thread_context_sharing if sys.version_info >= (3, 12) else thread_context_sharing
 
 
 def identify(request):
@@ -1243,6 +1286,7 @@ urlpatterns = [
     path("api_security/optional-params/<str:id>", api_security_optional_params),
     path("sample_rate_route/<int:i>", sample_rate),
     path("healthcheck", healthcheck),
+    path("security/thread_context_sharing", thread_context_sharing_view),
     path("waf", waf),
     path("waf/", waf),
     path("waf/<url>", waf),
