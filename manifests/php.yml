@@ -1172,6 +1172,8 @@ manifest:
         "*": v1.20.0
         laravel11x: incomplete_test_app
         symfony7x: incomplete_test_app
+  ? tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation::test_inproduct_enablement_dynamic_instrumentation_apm_multiconfig
+  : v1.18.0
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature (blocked by exception replay throwable gap)
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction:
     - weblog_declaration:
@@ -1849,8 +1851,8 @@ manifest:
   tests/test_library_conf.py::Test_HeaderTags: v0.68.2
   tests/test_library_conf.py::Test_HeaderTags_Colon_Leading: v0.74.0
   tests/test_library_conf.py::Test_HeaderTags_Colon_Trailing: v0.74.0
-  tests/test_library_conf.py::Test_HeaderTags_DynamicConfig: missing_feature
-  tests/test_library_conf.py::Test_HeaderTags_DynamicConfig::test_tracing_client_http_header_tags_apm_multiconfig: missing_feature (APM_TRACING_MULTICONFIG is not supported in any language yet)
+  tests/test_library_conf.py::Test_HeaderTags_DynamicConfig::test_tracing_client_http_header_tags: missing_feature
+  tests/test_library_conf.py::Test_HeaderTags_DynamicConfig::test_tracing_client_http_header_tags_apm_multiconfig: "missing_feature (tracing_header_tags multiconfig: wildcard RC config is not applied)"
   tests/test_library_conf.py::Test_HeaderTags_Long: v1.5.0
   tests/test_library_conf.py::Test_HeaderTags_Short: v0.74.0
   tests/test_library_conf.py::Test_HeaderTags_Whitespace_Header: v0.74.0

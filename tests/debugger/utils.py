@@ -458,6 +458,49 @@ class BaseDebuggerTest:
             probe_ids = ",".join(p["id"] for p in self.probe_definitions if "id" in p)
             weblog.get(f"/debugger/init?probes={probe_ids}")
 
+    def send_rc_apm_tracing_and_probes_multiconfig(
+        self,
+        *,
+        dynamic_instrumentation_enabled: bool | None = None,
+        exception_replay_enabled: bool | None = None,
+        live_debugging_enabled: bool | None = None,
+        code_origin_enabled: bool | None = None,
+        dynamic_sampling_enabled: bool | None = None,
+        service_name: str | None = "weblog",
+        env: str | None = "system-tests",
+        reset: bool = True,
+    ) -> None:
+        """Send a combined RC command accumulating multiple APM_TRACING configs with LIVE_DEBUGGING probes.
+
+        With reset=False, every previously-sent APM_TRACING config is re-sent alongside the
+        new one, so several service_target scopes are active at the same time and the tracer
+        merges them (most-specific wins per lib_config field).
+        """
+        BaseDebuggerTest._rc_version += 1
+
+        if reset:
+            self.rc_states = []
+            self.prev_payloads = []
+
+        self.rc_states.append(
+            remote_config.send_combined_apm_tracing_and_debugger_command_multiconfig(
+                prev_payloads=self.prev_payloads,
+                probes=self.probe_definitions,
+                dynamic_instrumentation_enabled=dynamic_instrumentation_enabled,
+                exception_replay_enabled=exception_replay_enabled,
+                live_debugging_enabled=live_debugging_enabled,
+                code_origin_enabled=code_origin_enabled,
+                dynamic_sampling_enabled=dynamic_sampling_enabled,
+                version=BaseDebuggerTest._rc_version,
+                service_name=service_name,
+                env=env,
+            )
+        )
+
+        if context.library == "php":
+            probe_ids = ",".join(p["id"] for p in self.probe_definitions if "id" in p)
+            weblog.get(f"/debugger/init?probes={probe_ids}")
+
     def send_rc_symdb(self, *, reset: bool = True) -> None:
         BaseDebuggerTest._rc_version += 1
         if reset:

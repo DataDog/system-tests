@@ -1863,6 +1863,8 @@ manifest:
         rails72: v2.39.0-dev
         rails80: v2.39.0-dev
         uds-rails: v2.39.0-dev
+  ? tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation::test_inproduct_enablement_dynamic_instrumentation_apm_multiconfig
+  : v2.42.0
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction:
     - weblog_declaration:
@@ -2991,8 +2993,8 @@ manifest:
   tests/test_library_conf.py::Test_HeaderTags: v1.13.0
   tests/test_library_conf.py::Test_HeaderTags_Colon_Leading: v1.13.0
   tests/test_library_conf.py::Test_HeaderTags_Colon_Trailing: v1.13.0
-  tests/test_library_conf.py::Test_HeaderTags_DynamicConfig: bug (APMAPI-867)  # theorical version is v2.0.0
-  tests/test_library_conf.py::Test_HeaderTags_DynamicConfig::test_tracing_client_http_header_tags_apm_multiconfig: missing_feature (APM_TRACING_MULTICONFIG is not supported in any language yet)
+  tests/test_library_conf.py::Test_HeaderTags_DynamicConfig::test_tracing_client_http_header_tags: bug (APMAPI-867)  # theorical version is v2.0.0
+  tests/test_library_conf.py::Test_HeaderTags_DynamicConfig::test_tracing_client_http_header_tags_apm_multiconfig: v2.42.0
   tests/test_library_conf.py::Test_HeaderTags_Long: v1.13.0
   tests/test_library_conf.py::Test_HeaderTags_Short: v1.13.0
   tests/test_library_conf.py::Test_HeaderTags_Whitespace_Header: v1.13.0
