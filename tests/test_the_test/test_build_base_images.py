@@ -789,7 +789,7 @@ class Test_WaitForBaseImage:
 
         assert result.returncode == 1
         assert "No module named 'utils'" not in result.stderr
-        assert "no library found at utils/build/docker/bogus" in result.stdout
+        assert "no library found at utils/build/docker/bogus" in result.stderr
 
     def test_weblog_without_dockerfile_has_nothing_to_wait_for(self, monkeypatch: pytest.MonkeyPatch):
         monkeypatch.setattr(

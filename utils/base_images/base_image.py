@@ -6,9 +6,17 @@ before the runner virtualenv exists.
 
 import argparse
 import json
+import logging
 import re
 import sys
 from pathlib import Path
+
+_LOGGER = logging.getLogger("base_image")
+_STDERR_HANDLER = logging.StreamHandler(sys.stderr)
+_STDERR_HANDLER.setFormatter(logging.Formatter("%(levelname)-8s %(message)s"))
+_LOGGER.addHandler(_STDERR_HANDLER)
+_LOGGER.setLevel(logging.INFO)
+logger = _LOGGER
 
 LOCK_VERSION = 1
 LOCK_PATH = Path(__file__).resolve().parents[1] / "build" / "docker" / "base-images.lock.json"
@@ -106,12 +114,13 @@ def main() -> None:
 
     try:
         contexts = base_image_contexts(args.build_contexts.read_text())
-    except (OSError, BaseImageLockError) as exc:
-        print(f"Error: {exc}", file=sys.stderr)
+    except (OSError, BaseImageLockError):
+        logger.exception("Error resolving base-image contexts")
         sys.exit(1)
 
     for alias, image in contexts.items():
-        print(f"{alias}=docker-image://{image}")
+        # Docker buildx parses this command's stdout as machine-readable context metadata.
+        sys.stdout.write(f"{alias}=docker-image://{image}\n")
 
 
 if __name__ == "__main__":

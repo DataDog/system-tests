@@ -28,6 +28,7 @@ import argparse
 import concurrent.futures
 import hashlib
 import json
+import logging
 import os
 import shutil
 import stat
@@ -47,6 +48,12 @@ except ImportError:  # pragma: no cover - direct script execution
     from base_image import ALIAS_PREFIX, LOCK_PATH, LOCK_VERSION, load_base_image_lock
 
 BUILD_CONTEXT_ROOT = REPO_ROOT / ".base_images_build"
+_LOGGER = logging.getLogger("build_base_images")
+_STDERR_HANDLER = logging.StreamHandler(sys.stderr)
+_STDERR_HANDLER.setFormatter(logging.Formatter("%(levelname)-8s %(message)s"))
+_LOGGER.addHandler(_STDERR_HANDLER)
+_LOGGER.setLevel(logging.INFO)
+logger = _LOGGER
 
 _SOURCE_AND_DEST_TOKEN_COUNT = 2
 _CONTENT_HASH_LENGTH = 12
@@ -71,11 +78,11 @@ def _run(cmd: list[str], *, cwd: Path = REPO_ROOT) -> subprocess.CompletedProces
     """Run a command and print its output if it fails."""
     result = subprocess.run(cmd, cwd=cwd, check=False, capture_output=True, text=True)
     if result.returncode != 0:
-        print(f"Error: command failed: {' '.join(cmd)}")
+        logger.error("Error: command failed: %s", " ".join(cmd))
         if result.stdout:
-            print(result.stdout)
+            logger.error("%s", result.stdout)
         if result.stderr:
-            print(result.stderr)
+            logger.error("%s", result.stderr)
         result.check_returncode()
     return result
 
@@ -84,7 +91,7 @@ def _run_streaming(cmd: list[str], *, cwd: Path = REPO_ROOT) -> subprocess.Compl
     """Run a command while streaming its output to the parent process."""
     result = subprocess.run(cmd, cwd=cwd, check=False)
     if result.returncode != 0:
-        print(f"Error: command failed: {' '.join(cmd)}")
+        logger.error("Error: command failed: %s", " ".join(cmd))
         result.check_returncode()
     return result
 
@@ -258,20 +265,20 @@ def _lock_drift(prospective: dict[str, str], lock_path: Path = LOCK_PATH, *, ful
     """Report whether the committed lock differs from a prospective mapping."""
     try:
         committed = load_base_image_lock(lock_path)
-    except ValueError as exc:
-        print(f"Base-image lock drift: {exc}")
+    except ValueError:
+        logger.exception("Base-image lock drift")
         return True
 
     compared_committed = committed if full else {alias: committed.get(alias) for alias in prospective}
     if compared_committed == prospective:
-        print("Base-image lock is up to date")
+        logger.info("Base-image lock is up to date")
         return False
 
-    print("Base-image lock is stale:")
+    logger.info("Base-image lock is stale:")
     aliases = (set(committed) | set(prospective)) if full else set(prospective)
     for alias in sorted(aliases):
         if committed.get(alias) != prospective.get(alias):
-            print(f"  {alias}: {committed.get(alias, '(missing)')} -> {prospective.get(alias, '(removed)')}")
+            logger.info("  %s: %s -> %s", alias, committed.get(alias, "(missing)"), prospective.get(alias, "(removed)"))
     return True
 
 
@@ -309,10 +316,10 @@ def materialize_build_context(
 
     _link_or_copy(dockerfile, build_dir / dockerfile.relative_to(context_root))
 
-    print(f"Build context for {library}/{target} ({build_dir}):")
+    logger.info("Build context for %s/%s (%s):", library, target, build_dir)
     for file in sorted(build_dir.rglob("*")):
         if file.is_file():
-            print(f"  {file.relative_to(build_dir)}")
+            logger.info("  %s", file.relative_to(build_dir))
 
     return build_dir
 
@@ -341,13 +348,13 @@ def image_exists(
         error = "\n".join(part.strip() for part in (result.stdout, result.stderr) if part.strip())
         if any(missing_error in error.lower() for missing_error in _MISSING_MANIFEST_ERRORS):
             if error:
-                print(error)
+                logger.info("%s", error)
             return False
 
         if error:
-            print(error)
+            logger.info("%s", error)
         if attempt < attempts:
-            print(f"Warning: failed to inspect {tag}; retrying in {retry_delay_seconds}s")
+            logger.warning("Warning: failed to inspect %s; retrying in %ss", tag, retry_delay_seconds)
             time.sleep(retry_delay_seconds)
             continue
 
@@ -357,7 +364,7 @@ def image_exists(
 
 
 def build_and_push(bake_file: Path, target: str, tag: str, build_dir: Path, dockerfile_name: str) -> None:
-    print(f"Building and pushing {tag}")
+    logger.info("Building and pushing %s", tag)
     _run_streaming(
         [
             "docker",
@@ -383,11 +390,11 @@ def process_target(
 ) -> None:
     if dry_run:
         state = "exists" if image_exists(tag) else "missing"
-        print(f"{library}/{target}: {tag} ({state})")
+        logger.info("%s/%s: %s (%s)", library, target, tag, state)
         return
 
     if image_exists(tag):
-        print(f"{tag} already exists, skipping")
+        logger.info("%s already exists, skipping", tag)
         return
 
     build_and_push(bake_file, target, tag, build_dir, dockerfile)
@@ -442,12 +449,12 @@ def _changed_libraries() -> set[str] | None:
             text=True,
         ).stdout
     except subprocess.CalledProcessError as exc:
-        print(f"Warning: could not determine changed libraries ({exc}); processing all libraries")
+        logger.warning("Warning: could not determine changed libraries (%s); processing all libraries", exc)
         return None
 
     changed_paths = set(diff.splitlines())
     if changed_paths & {"utils/base_images/build_base_images.py", "utils/base_images/base_image.py"}:
-        print("--changed-only: base-image tooling changed; processing all libraries")
+        logger.info("--changed-only: base-image tooling changed; processing all libraries")
         return None
 
     prefix = "utils/build/docker/"
@@ -480,7 +487,7 @@ def main() -> None:
 
     if args.library:
         if not _bake_file(args.library).exists():
-            print(f"Error: unknown library {args.library!r}: no bake file at {_bake_file(args.library)}")
+            logger.error("Error: unknown library %r: no bake file at %s", args.library, _bake_file(args.library))
             sys.exit(1)
         libraries = [args.library]
     else:
@@ -489,7 +496,7 @@ def main() -> None:
             changed = _changed_libraries()
             if changed is not None:
                 libraries = [lib for lib in libraries if lib in changed]
-                print(f"--changed-only: processing {libraries or '(no changed libraries)'}")
+                logger.info("--changed-only: processing %s", libraries or "(no changed libraries)")
 
     targets = []
     for library in libraries:
@@ -498,7 +505,7 @@ def main() -> None:
     prospective = lock_images(targets)
     if args.update_lock:
         _write_lock(prospective)
-        print(f"Updated {LOCK_PATH} with {len(prospective)} base images")
+        logger.info("Updated %s with %d base images", LOCK_PATH, len(prospective))
         return
 
     drift = _lock_drift(prospective, full=not args.library and not args.changed_only)
@@ -509,19 +516,19 @@ def main() -> None:
             library, target = futures[future]
             try:
                 future.result()
-            except Exception as exc:  # surface any target failure as a non-zero exit
-                print(f"Error: {library}/{target} failed to build/push: {exc}")
+            except Exception:  # surface any target failure as a non-zero exit
+                logger.exception("Error: %s/%s failed to build/push", library, target)
                 failures.append(f"{library}/{target}")
 
     if failures:
-        print("The following targets failed to build/push:")
+        logger.error("The following targets failed to build/push:")
         for failure in failures:
-            print(f"  {failure}")
+            logger.error("  %s", failure)
         sys.exit(1)
 
     if drift:
-        print("Base images are published, but the committed lock is stale. Regenerate and commit it:")
-        print("  python utils/scripts/update-base-images-lock.py")
+        logger.error("Base images are published, but the committed lock is stale. Regenerate and commit it:")
+        logger.error("  python utils/scripts/update-base-images-lock.py")
         sys.exit(1)
 
 

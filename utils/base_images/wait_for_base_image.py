@@ -17,6 +17,7 @@ can run as a plain CI step before the runner virtualenv is built.
 
 import argparse
 import importlib.util
+import logging
 import re
 import subprocess
 import sys
@@ -33,6 +34,12 @@ _BASE_IMAGE = importlib.util.module_from_spec(_BASE_IMAGE_SPEC)
 _BASE_IMAGE_SPEC.loader.exec_module(_BASE_IMAGE)
 
 base_image_ref = _BASE_IMAGE.base_image_ref
+_LOGGER = logging.getLogger("wait_for_base_image")
+_STDERR_HANDLER = logging.StreamHandler(sys.stderr)
+_STDERR_HANDLER.setFormatter(logging.Formatter("%(levelname)-8s %(message)s"))
+_LOGGER.addHandler(_STDERR_HANDLER)
+_LOGGER.setLevel(logging.INFO)
+logger = _LOGGER
 
 _MISSING_MANIFEST_ERRORS = ("manifest unknown", "no such manifest")
 
@@ -69,7 +76,7 @@ def _base_image_tag(library: str, weblog: str) -> str | None:
     if not dockerfile.exists():
         metadata = Path(f"utils/build/docker/{library}/weblog_metadata.yml")
         if not metadata.exists():
-            print(f"Error: no library found at utils/build/docker/{library}")
+            logger.error("Error: no library found at utils/build/docker/%s", library)
             sys.exit(1)
 
         weblogs, framework_versions = _metadata_weblogs(metadata.read_text().splitlines())
@@ -78,10 +85,10 @@ def _base_image_tag(library: str, weblog: str) -> str | None:
             separator and weblog_name in weblogs and version in framework_versions.get(weblog_name, set())
         )
         if not is_known_weblog:
-            print(f"Error: no Dockerfile found for weblog '{weblog}' in library '{library}'")
+            logger.error("Error: no Dockerfile found for weblog '%s' in library '%s'", weblog, library)
             sys.exit(1)
 
-        print(f"{weblog} has no Dockerfile, nothing to wait for")
+        logger.info("%s has no Dockerfile, nothing to wait for", weblog)
         return None
 
     return base_image_ref(dockerfile.read_text())
@@ -100,7 +107,7 @@ def main() -> None:
     if image_tag is None:
         return
 
-    print(f"Waiting for {image_tag} to be available on Docker Hub (timeout: {args.timeout}s)")
+    logger.info("Waiting for %s to be available on Docker Hub (timeout: %ss)", image_tag, args.timeout)
 
     deadline = time.monotonic() + args.timeout
     while True:
@@ -112,24 +119,24 @@ def main() -> None:
         )
         error = "\n".join(part.strip() for part in (result.stdout, result.stderr) if part.strip())
         if result.returncode == 0:
-            print(f"{image_tag} is available")
+            logger.info("%s is available", image_tag)
             return
 
         if not any(missing_manifest_error in error.lower() for missing_manifest_error in _MISSING_MANIFEST_ERRORS):
-            print(f"Error: failed to inspect {image_tag}")
+            logger.error("Error: failed to inspect %s", image_tag)
             if error:
-                print(error)
+                logger.error("%s", error)
             sys.exit(1)
 
         if time.monotonic() >= deadline:
-            print(f"Error: timed out waiting for {image_tag}")
+            logger.error("Error: timed out waiting for %s", image_tag)
             if error:
-                print(error)
+                logger.error("%s", error)
             sys.exit(1)
 
-        print(f"{image_tag} not found yet, retrying in {args.poll_interval}s...")
+        logger.info("%s not found yet, retrying in %ss...", image_tag, args.poll_interval)
         if error:
-            print(error)
+            logger.error("%s", error)
         time.sleep(args.poll_interval)
 
 
