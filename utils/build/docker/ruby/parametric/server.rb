@@ -837,7 +837,22 @@ def extract_http_headers(headers)
 end
 
 def handle_ffe_start(_req, res)
-  OpenFeature::SDK.set_provider_and_wait(Datadog::OpenFeature::Provider.new)
+  provider = Datadog::OpenFeature::Provider.new
+  feature_flagging_configured = %w[
+    DD_FEATURE_FLAGS_ENABLED
+    DD_FEATURE_FLAGS_CONFIGURATION_SOURCE
+    DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL
+    DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_POLL_INTERVAL_SECONDS
+    DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_REQUEST_TIMEOUT_SECONDS
+    DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED
+    DD_EXPERIMENTAL_FLAGGING_PROVIDER_INITIALIZATION_TIMEOUT_MS
+  ].any? { |name| ENV.key?(name) }
+
+  if feature_flagging_configured
+    OpenFeature::SDK.set_provider_and_wait(provider)
+  else
+    OpenFeature::SDK.set_provider(provider)
+  end
   res.write({}.to_json)
 rescue => e
   res.status = 500
