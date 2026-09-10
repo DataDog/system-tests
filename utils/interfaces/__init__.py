@@ -4,6 +4,7 @@
 
 from ._agent import AgentInterfaceValidator
 from ._backend import _BackendInterfaceValidator
+from ._backend_v2 import _BackendV2InterfaceValidator
 from ._library.core import LibraryInterfaceValidator
 from ._core import ProxyBasedInterfaceValidator
 from ._logs import (
@@ -24,6 +25,7 @@ library_stdout = _LibraryStdout()
 agent_stdout = _AgentStdout()
 library_dotnet_managed = _LibraryDotnetManaged()
 backend = _BackendInterfaceValidator(library_interface=library)
+backend_v2 = _BackendV2InterfaceValidator()
 open_telemetry = OpenTelemetryInterfaceValidator()
 otel_collector = ProxyBasedInterfaceValidator("otel_collector")
 datadog_sidecar = ProxyBasedInterfaceValidator("datadog_sidecar")
@@ -43,6 +45,7 @@ __all__ = [
     "agent",
     "agent_stdout",
     "backend",
+    "backend_v2",
     "datadog_direct",
     "datadog_sidecar",
     "golang_buddy",

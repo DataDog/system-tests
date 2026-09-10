@@ -13,7 +13,7 @@ spec:
       default: ""
     excluded_scenarios:
       description: "Comma-separated list of scenarios not to run"
-      default: "APM_TRACING_E2E_OTEL,APM_TRACING_E2E_SINGLE_SPAN,OTEL_TRACING_E2E,OTEL_METRIC_E2E,OTEL_LOG_E2E,INTEGRATION_FRAMEWORKS"
+      default: "APM_TRACING_E2E_OTEL,OTEL_TRACING_E2E,OTEL_METRIC_E2E,OTEL_LOG_E2E,INTEGRATION_FRAMEWORKS"
     weblogs:
       description: "Comma-separated list of weblogs to run (all weblogs if empty)"
       default: ""
@@ -79,7 +79,7 @@ variables:
   # Tag = first 12 chars of sha256(utils/ci/gitlab/docker/system-tests.Dockerfile + requirements.txt)
   # Update this when either file changes:
   #   cat utils/ci/gitlab/docker/system-tests.Dockerfile requirements.txt | sha256sum | cut -c1-12
-  CI_IMAGE: "registry.ddbuild.io/system-tests/ci-runner:75a57a4b6391"
+  CI_IMAGE: "registry.ddbuild.io/system-tests/ci-runner:813eb4e6b7b2"
   SYSTEM_TESTS_SPLIT_PIPELINE: "$[[ inputs.split_pipeline ]]"
 
 .system_tests_param_base:
