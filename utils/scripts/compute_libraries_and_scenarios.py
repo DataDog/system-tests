@@ -165,10 +165,13 @@ class LibraryProcessor:
         ]
 
         libraries_with_dev = [item["library"] for item in populated_result if item["version"] == "dev"]
+        single_library_execution_time = 300 if self.selected == {"nodejs"} else 600
+        desired_execution_time = single_library_execution_time if len(self.selected) == 1 else 3600
+
         return {
             "library_matrix": populated_result,
             "libraries_with_dev": libraries_with_dev,
-            "desired_execution_time": 600 if len(self.selected) == 1 else 3600,
+            "desired_execution_time": desired_execution_time,
         }
 
 
