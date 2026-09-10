@@ -3816,6 +3816,7 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_default_matches_specification: missing_feature (defaults to disabled)
   tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_stable_values: 'missing_feature (Currently DD_TRACE_OTEL_ENABLED=true is required for OTEL_SDK_DISABLED to be parsed. Revisit when the OpenTelemetry integration is enabled by default.)'
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME: v1.54.0
+  tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_default_follows_otel_spec: irrelevant
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_default_matches_specification: v1.57.0
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_empty_is_treated_as_unset: bug (APMAPI-2412)
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_otel_service_name_takes_precedence: v1.57.0

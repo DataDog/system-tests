@@ -43,6 +43,7 @@ UNSET_VALUE = [
         {
             "DD_SERVICE": None,
             "OTEL_RESOURCE_ATTRIBUTES": "service.name=resource-service",
+            "OTEL_SERVICE_NAME": None,
         },
         id="unset",
     )
@@ -56,6 +57,17 @@ EMPTY_VALUE = [
             "OTEL_SERVICE_NAME": "",
         },
         id="empty",
+    ),
+]
+
+DEFAULT_VALUE = [
+    pytest.param(
+        {
+            "DD_SERVICE": None,
+            "OTEL_RESOURCE_ATTRIBUTES": None,
+            "OTEL_SERVICE_NAME": None,
+        },
+        id="default",
     ),
 ]
 
@@ -88,6 +100,14 @@ class Test_OTEL_SERVICE_NAME:
         test_library: APMLibrary,
     ) -> None:
         assert _service_name(test_agent, test_library) == "resource-service"
+
+    @pytest.mark.parametrize("library_env", DEFAULT_VALUE)
+    def test_default_follows_otel_spec(
+        self,
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+    ) -> None:
+        assert _service_name(test_agent, test_library).startswith("unknown_service")
 
     @pytest.mark.parametrize(
         "library_env",
