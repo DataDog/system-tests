@@ -155,6 +155,8 @@ class DockerSSIScenario(Scenario):
     def _start_containers(self):
         for container in self._required_containers:
             container.start(self._network)
+            if container.healthy is False:
+                pytest.exit(f"Container {container.name} can't be started, please check logs", 1)
 
     def fix_gitlab_network(self):
         old_weblog_url = self.weblog_url
