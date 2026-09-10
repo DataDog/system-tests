@@ -2314,7 +2314,6 @@ manifest:
   tests/stats/test_stats.py::Test_Client_Stats_Missing_Obfuscation_Version: '>=4.11.0'
   tests/stats/test_stats.py::Test_Client_Stats_Obfuscation_Version_Zero: '>=4.11.0'
   tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation: '>=4.11.0'
-  tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation_Disabled: '>=4.11.0'
   tests/stats/test_stats.py::Test_Stats_Service_Source: irrelevant (Only implemented for Java)
   tests/stats/test_stats.py::Test_Time_Bucketing::test_client_side_stats_bucket_alignment:  # Modified by easy win activation script
     - weblog_declaration:

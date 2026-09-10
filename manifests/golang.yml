@@ -1848,7 +1848,6 @@ manifest:
   tests/stats/test_stats.py::Test_Client_Stats_Missing_Obfuscation_Version: v2.9.1
   tests/stats/test_stats.py::Test_Client_Stats_Obfuscation_Version_Zero: v2.9.1
   tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation: v2.9.1
-  tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation_Disabled: missing_feature
   tests/stats/test_stats.py::Test_Stats_Service_Source: irrelevant (Only implemented for Java)
   tests/test_baggage.py::Test_Baggage_Headers_Api_Datadog: incomplete_test_app (/otel_drop_in_baggage_api_datadog endpoint is not implemented)
   tests/test_baggage.py::Test_Baggage_Headers_Api_OTel: incomplete_test_app (/otel_drop_in_baggage_api_otel endpoint is not implemented)
