@@ -32,6 +32,31 @@ def test_gitlab_component_allow_failure_input_is_wired() -> None:
 
 
 @scenarios.test_the_test
+def test_gitlab_parametric_workers_input_is_wired(tmp_path: Path) -> None:
+    spec, _ = yaml.safe_load_all(Path("utils/ci/gitlab/main.yml").read_text())
+    assert spec["spec"]["inputs"]["parametric_workers"]["default"] == "auto"
+
+    params = {
+        "endtoend_defs": {"parallel_weblogs": [], "parallel_jobs": []},
+        "miscs": {"binaries_artifact": ""},
+        "parametric": {"enable": True, "job_count": 2, "job_matrix": [1, 2], "workers": "4"},
+    }
+    (tmp_path / "params_nodejs.json").write_text(json.dumps(params))
+    out = tmp_path / "out"
+    build(["nodejs"], tmp_path, out, stage="e2e", ci_image="img", chunks=1)
+
+    chunk = yaml.safe_load((out / "generated-pipeline-chunk-0.yml").read_text())
+    parametric_jobs = [
+        job
+        for name, job in chunk.items()
+        if isinstance(job, dict) and name.startswith("system_tests_run_nodejs_PARAMETRIC")
+    ]
+    assert parametric_jobs
+    for job in parametric_jobs:
+        assert job["variables"]["PYTEST_XDIST_AUTO_NUM_WORKERS"] == "4"
+
+
+@scenarios.test_the_test
 def test_generated_chunk_jobs_have_required_keys(tmp_path: Path):
     (tmp_path / "params_python.json").write_text(json.dumps(MINIMAL_PARAMS))
     out = tmp_path / "out"
