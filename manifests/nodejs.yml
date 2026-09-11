@@ -2719,14 +2719,6 @@ manifest:
         fastify: missing_feature
         express4-typescript: missing_feature
         nextjs: missing_feature
-  tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation_Disabled:
-    - weblog_declaration:
-        express4: missing_feature
-        express5: missing_feature
-        uds-express4: missing_feature
-        fastify: missing_feature
-        express4-typescript: missing_feature
-        nextjs: missing_feature
   tests/stats/test_stats.py::Test_Peer_Tags:
     - weblog_declaration:
         express4: missing_feature
