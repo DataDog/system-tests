@@ -1,4 +1,5 @@
 'use strict'
+/* eslint-disable camelcase */
 
 const opts = {}
 
@@ -142,6 +143,20 @@ app.get('/api_security_sampling/:i', (req, res) => {
   res.send('OK')
 })
 
+// RFC-1103: two mandatory params in the same segment (rule 5 intra-segment combining)
+app.get('/api_security/multi-params-in-segment/:id.:format', (req, res) => {
+  res.send('ok')
+})
+
+// RFC-1103: optional intra-segment param (rules 5 + 6); more-specific route first
+app.get('/api_security/optional-params/:id.:format', (req, res) => {
+  res.send('ok')
+})
+
+app.get('/api_security/optional-params/:id', (req, res) => {
+  res.send('ok')
+})
+
 app.get('/params/:value', (req, res) => {
   res.send('OK')
 })
@@ -249,17 +264,12 @@ app.get('/trace/manual_keep_drop', (req, res) => {
 
 app.get('/make_distant_call', (req, res) => {
   const url = req.query.url
-
   const parsedUrl = new URL(url)
+  const method = req.query.method || 'GET'
 
-  const options = {
-    hostname: parsedUrl.hostname,
-    port: parsedUrl.port || 80, // Use default port if not provided
-    path: parsedUrl.pathname,
-    method: 'GET'
-  }
-
-  const request = http.request(options, (response) => {
+  // Passing the URL object preserves query strings and credentials. This endpoint is used by
+  // semantic-convention tests that need the tracer to observe the complete outbound request.
+  const request = http.request(parsedUrl, { method }, (response) => {
     let responseBody = ''
     response.on('data', (chunk) => {
       responseBody += chunk
@@ -845,8 +855,15 @@ app.get('/external_request/redirect', (req, res) => {
 require('./rasp')(app)
 
 app.post('/ai_guard/evaluate', async (req, res) => {
-  // eslint-disable-next-line camelcase
-  const renameAttrs = ({ tagProbabilities: tag_probs, ...rest }) => ({ ...rest, tag_probs })
+  const renameAttrs = ({
+    tagProbabilities: tag_probs,
+    redactionReplacements: redaction_replacements,
+    ...rest
+  }) => ({
+    ...rest,
+    tag_probs,
+    redaction_replacements
+  })
   const block = req.headers['x-ai-guard-block'] === 'true'
   const messages = req.body
   const userId = req.headers['x-user-id']

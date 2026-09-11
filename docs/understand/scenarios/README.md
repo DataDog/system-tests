@@ -70,7 +70,7 @@ Please note that it requires the docker daemon to support IPv6. It should be ok 
 
 A user has seen his network function altered after running it on a linux laptop (to be investigated). If it happen, `docker network prune` may solve the issue.
 
-### Go proxies (Envoy and HAProxy) scenario
+### Go proxies (Envoy, HAProxy, and APIM) scenario
 
 ```mermaid
 flowchart LR
@@ -78,17 +78,25 @@ flowchart LR
     A("Test runner")
     B("Proxy (Envoy or HAProxy)")
     C("Go security processor")
-    D("HTTP app")
-    E("Proxy")
-    F("Agent")
-    G("Backend")
+    D("http-app<br/>:8080")
+    E("apim-gateway<br/>(shim, :80 -> host 127.0.0.1:7777)")
+    F("apim-callout<br/>(POST :8080, health :8081)<br/>library under test")
+    G("Proxy")
+    H("Agent")
+    I("Backend")
 
 %% Edge connections between nodes
     A --> B --> D
     B --> C --> B
-    C --> E --> F --> G
+    A --> E
+    E --> D
+    E --> F
+    C --> G
+    F --> G --> H --> I
     %% D -- Mermaid js --> I --> J
 ```
+
+For a proxy variant with `build_mode: none`, there is nothing to build: run `./utils/scripts/load-binary.sh golang` to write the image pointers, then `./run.sh <SCENARIO> --weblog <variant>`.
 
 ## Scenario lifecycle
 

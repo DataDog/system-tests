@@ -20,6 +20,7 @@ public class IastSinkResource {
     private final SqlExamples sql = new SqlExamples(DATA_SOURCE) ;
     private final LDAPExamples ldap = new LDAPExamples(LDAP_CONTEXT);
     private final CmdExamples cmd = new CmdExamples();
+    private final CodeInjectionExamples codeInjection = new CodeInjectionExamples();
     private final PathExamples path = new PathExamples();
     private final SsrfExamples ssrf = new SsrfExamples();
     private final WeakRandomnessExamples weakRandomness = new WeakRandomnessExamples();
@@ -79,6 +80,18 @@ public class IastSinkResource {
     @Path("/cmdi/test_insecure")
     public String insecureCmd(@FormParam("cmd") final String cmd) {
         return this.cmd.insecureCmd(cmd);
+    }
+
+    @POST
+    @Path("/code_injection/test_insecure")
+    public String insecureCodeInjection(@FormParam("code") final String code) {
+        return this.codeInjection.insecureCodeInjection(code);
+    }
+
+    @POST
+    @Path("/code_injection/test_secure")
+    public String secureCodeInjection() {
+        return this.codeInjection.secureCodeInjection();
     }
 
     @POST

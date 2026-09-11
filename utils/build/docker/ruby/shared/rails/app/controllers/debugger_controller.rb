@@ -61,7 +61,9 @@ class DebuggerController < ActionController::Base
     customPii = CustomPii.new
     value = pii.test_value
     custom_value = customPii.test_value
-    render inline: "PII #{value}. CustomPII #{custom_value}" # must be line 64
+    password = "DIRECT_SECRET_VALUE"
+    user = { "password" => "MAP_SECRET_VALUE", "_2fa" => "EXCLUDED_IDENTIFIER_VALUE", "name" => "NON_SENSITIVE_VALUE" }
+    render inline: "PII #{value}. CustomPII #{custom_value}. Data size #{password.length + user.length}" # must be line 66
   end
 
   # Padding
@@ -69,8 +71,6 @@ class DebuggerController < ActionController::Base
   def run_expression
     expression(params[:inputValue])
   end
-  # Padding
-  # Padding
   # Padding
 
   def expression(inputValue)

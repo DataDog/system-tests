@@ -19,7 +19,7 @@ from mitmproxy.connection import Client
 from mitmproxy.flow import Error as FlowError
 from mitmproxy.http import HTTPFlow, Request
 
-from ._deserializer import deserialize
+from ._deserializer import deserialize, Interface
 from .ports import ProxyPorts
 from .mocked_response import (
     MOCKED_TRACER_RESPONSES_PATH,
@@ -39,6 +39,8 @@ messages_counts: dict[str, int] = defaultdict(int)
 
 # Used to create the stub TLS server cert (mitmproxy CA is always present at startup).
 _MITMPROXY_CA_PEM = "/app/utils/proxy/.mitmproxy/mitmproxy-ca.pem"
+
+_MOCKED_BACKEND_PORTS = (ProxyPorts.agent, ProxyPorts.datadog_sidecar, ProxyPorts.datadog_direct)
 
 
 class _UDPForwarder(asyncio.DatagramProtocol):
@@ -188,7 +190,7 @@ class _RequestLogger:
     def http_connect(self, flow: HTTPFlow) -> None:
         proxy_port = flow.client_conn.sockname[1]
         logger.info(f"Flow {flow.id}: CONNECT {flow.request.host}:{flow.request.port} using proxy port {proxy_port}")
-        if proxy_port == ProxyPorts.agent and self.mocked_backend:
+        if proxy_port in _MOCKED_BACKEND_PORTS and self.mocked_backend:
             # Redirect to local stub TLS server so mitmproxy can always complete tunnel setup.
             # Without this, CONNECT handshake is performed to the backend, and if ever it fails,
             # request() never fires.
@@ -269,7 +271,7 @@ class _RequestLogger:
             )
             flow.request.scheme = "http"
             logger.info(f"Flow {flow.id}: reverse proxy to {flow.request.pretty_url}")
-        elif proxy_port == ProxyPorts.agent and self.mocked_backend:
+        elif proxy_port in _MOCKED_BACKEND_PORTS and self.mocked_backend:
             # Since we are faking the backend (generating responses from
             # scratch), the logic is that the first mock satisfying the
             # condition wins. Consequently, we check runtime mocks (controlled
@@ -310,6 +312,7 @@ class _RequestLogger:
         self._modify_response(flow)
 
         # get the interface name
+        interface: Interface
         if proxy_port == ProxyPorts.otel_collector:
             interface = "otel_collector"
         elif proxy_port == ProxyPorts.open_telemetry_weblog:
@@ -328,6 +331,10 @@ class _RequestLogger:
             interface = "golang_buddy"
         elif proxy_port == ProxyPorts.agent:  # HTTPS port, as the agent use the proxy with HTTP_PROXY env var
             interface = "agent"
+        elif proxy_port == ProxyPorts.datadog_sidecar:
+            interface = "datadog_sidecar"
+        elif proxy_port == ProxyPorts.datadog_direct:
+            interface = "datadog_direct"
         else:
             raise ValueError(f"Unknown port provenance for {flow.request}: {proxy_port}")
 
@@ -416,6 +423,8 @@ def start_proxy() -> None:
         f"regular@{ProxyPorts.golang_buddy}",  # golang_buddy
         f"regular@{ProxyPorts.open_telemetry_weblog}",  # Open telemetry weblog
         f"regular@{ProxyPorts.agent}",  # from agent to backend
+        f"regular@{ProxyPorts.datadog_sidecar}",  # Datadog sidecar traffic
+        f"regular@{ProxyPorts.datadog_direct}",  # Datadog direct intake traffic
         f"regular@{ProxyPorts.otel_collector}",  # from otel collector to backend
     ]
 

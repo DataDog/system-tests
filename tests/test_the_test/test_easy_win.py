@@ -1,4 +1,6 @@
 import json
+import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
@@ -7,6 +9,7 @@ import pytest
 import yaml
 
 from utils.manifest._internal.types import Condition, SkipDeclaration, SemverRange
+from utils.scripts.activate_easy_wins import __main__ as activate_easy_wins_main
 from utils.scripts.activate_easy_wins._internal.test_artifact import (
     ActivationStatus,
     parse_artifact_data,
@@ -43,6 +46,17 @@ def create_manifest_yaml(rules: dict[str, str]) -> str:
     for rule, declaration in sorted(rules.items()):
         lines.append(f"  {rule}: {declaration}")
     return "\n".join(lines) + "\n"
+
+
+class FakeCompletedProcess:
+    def __init__(self, args: list[str], *, returncode: int = 0, stdout: str = "") -> None:
+        self.args = args
+        self.returncode = returncode
+        self.stdout = stdout
+
+    def check_returncode(self) -> None:
+        if self.returncode != 0:
+            raise subprocess.CalledProcessError(self.returncode, self.args)
 
 
 # =============================================================================
@@ -390,6 +404,140 @@ def test_e2e_activation_modifies_manifest():
         # Verify activation occurred
         assert logger.tests_per_language.get("ruby", 0) > 0
         assert logger.total_modified_rules > 0 or len(manifest_editor.added_rules) > 0
+
+
+def test_e2e_activation_does_not_crash_when_clause_has_multiple_weblogs():
+    """Regression test for ManifestEditor.get_matches() clause resolution.
+
+    When a weblog_declaration key contains comma-separated weblogs (e.g. 'rails70, sinatra'),
+    the manifest parser expands it into a single condition with weblog=['rails70', 'sinatra']
+    (length > 1).  When compute_edit_loc determines is_clause=True for that condition,
+    the unpatched code asserted len(key_list) == 1 and crashed with AssertionError.
+
+    This test reproduces that exact scenario: a comma-separated weblog_declaration key
+    where the test xpasses for one of the listed weblogs.
+    """
+    with tempfile.TemporaryDirectory() as tmpdir:
+        data_dir = Path(tmpdir) / "data"
+        manifest_dir = Path(tmpdir) / "manifests"
+        data_dir.mkdir()
+        manifest_dir.mkdir()
+
+        scenario_dir = data_dir / "ruby_run" / "scenario1"
+        scenario_dir.mkdir(parents=True)
+        report = create_report_json(
+            library_name="ruby",
+            library_version="2.5.0",
+            weblog_variant="rails70",
+            tests=[
+                {"nodeid": "tests/appsec/test_clause.py::Test_Clause::test_method", "outcome": "xpassed"},
+                {"nodeid": "tests/appsec/test_clause.py::Test_Clause::test_method2", "outcome": "xfailed"},
+            ],
+        )
+        with (scenario_dir / "report.json").open("w") as f:
+            json.dump(report, f)
+
+        # Comma-separated weblog key: the parser splits this into
+        #   condition["weblog"] = ["rails70", "sinatra"]  (len == 2)
+        # so is_clause=True leads to len(key_list) == 2 in the old assertion.
+        (manifest_dir / "ruby.yml").write_text(
+            (
+                "---\n"
+                "manifest:\n"
+                "  tests/appsec/test_clause.py::Test_Clause:\n"
+                "    - weblog_declaration:\n"
+                "        'rails70, sinatra': missing_feature\n"
+                "        uds-rails: missing_feature\n"
+                "        other_var: v1.2.3\n"
+                "\n"
+            ),
+            encoding="utf-8",
+        )
+
+        test_data, weblogs, _ = parse_artifact_data(data_dir, ["ruby"])
+        manifest_editor = ManifestEditor(weblogs, manifests_path=manifest_dir, components=["ruby"])
+
+        # This used to crash with: AssertionError (len(key_list) == 1)
+        logger = update_manifest(manifest_editor, test_data)
+        manifest_editor.write(output_dir=manifest_dir)
+
+        # Should record an activation for the xpassed test.
+        assert logger.tests_per_language.get("ruby", 0) > 0
+
+        updated_manifest = (manifest_dir / "ruby.yml").read_text(encoding="utf-8")
+        expected_manifest = (
+            "# yaml-language-server: $schema=https://raw.githubusercontent.com/DataDog/system-tests/refs/heads/main/utils/manifest/schema.json\n"
+            "---\n"
+            "manifest:\n"
+            "  tests/appsec/test_clause.py::Test_Clause:\n"
+            "    - weblog_declaration:\n"
+            "        uds-rails: missing_feature\n"
+            "        other_var: v1.2.3\n"
+            "        sinatra: missing_feature\n"
+            "        rails70: v2.5.0  # TODO: a lower version might be supported\n"
+            "  tests/appsec/test_clause.py::Test_Clause::test_method2:\n"
+            "    - weblog_declaration:\n"
+            "        rails70: missing_feature"
+        )
+        assert updated_manifest == expected_manifest
+
+
+def test_split_code_owner_activation_skips_commit_when_manifest_write_has_no_diff(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    skipped_nodes_file = tmp_path / "skip.yml"
+    skipped_nodes_file.write_text("{}\n", encoding="utf-8")
+    recorded_commands: list[list[str]] = []
+
+    class NoDiffManifestEditor:
+        def __init__(self, *_: object, **__: object) -> None:
+            self.added_rules: dict[str, set[object]] = {}
+
+        def write(self) -> None:
+            pass
+
+    class MatchedActivationLogger:
+        total_tests_activated = 1
+        total_modified_rules = 1
+
+    def fake_parse_artifact_data(
+        *_: object, **__: object
+    ) -> tuple[dict[object, object], dict[str, set[str]], set[str]]:
+        return {object(): object()}, {"python": {"flask"}}, {"@DataDog/team-a"}
+
+    def fake_update_manifest(*_: object, **__: object) -> MatchedActivationLogger:
+        return MatchedActivationLogger()
+
+    def fake_subprocess_run(
+        args: list[str],
+        *,
+        check: bool = False,
+        capture_output: bool = False,
+        text: bool = False,
+    ) -> FakeCompletedProcess:
+        del capture_output, text
+        recorded_commands.append(args)
+        if args == ["git", "rev-parse", "--abbrev-ref", "HEAD"]:
+            return FakeCompletedProcess(args, stdout="main\n")
+        if args[:2] == ["git", "commit"]:
+            raise subprocess.CalledProcessError(returncode=1, cmd=args)
+        process = FakeCompletedProcess(args)
+        if check:
+            process.check_returncode()
+        return process
+
+    monkeypatch.setattr(sys, "argv", ["activate_easy_wins", "--no-download", "--split-co", "--components", "python"])
+    monkeypatch.setattr(activate_easy_wins_main, "SKIPPED_NODES_FILE", skipped_nodes_file)
+    monkeypatch.setattr(activate_easy_wins_main, "ManifestEditor", NoDiffManifestEditor)
+    monkeypatch.setattr(activate_easy_wins_main, "parse_artifact_data", fake_parse_artifact_data)
+    monkeypatch.setattr(activate_easy_wins_main, "update_manifest", fake_update_manifest)
+    monkeypatch.setattr(activate_easy_wins_main.subprocess, "run", fake_subprocess_run)
+
+    activate_easy_wins_main.main()
+
+    captured = capsys.readouterr()
+    assert "No update were made" in captured.out
+    assert ["git", "commit", "-m", "chore: activate easy wins for @DataDog/team-a"] not in recorded_commands
 
 
 def test_e2e_activation_filters_by_component():

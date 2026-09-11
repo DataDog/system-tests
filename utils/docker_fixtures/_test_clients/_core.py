@@ -165,12 +165,15 @@ class TestClientApi:
 
     def _wait(self, timeout: float):
         delay = 0.01
+        logger.debug(f"Waiting for {self.container.name} being ready")
         for _ in range(int(timeout / delay)):
             try:
                 if self._is_alive():
+                    logger.debug(f"{self.container.name} is ready")
                     break
-            except Exception as e:
-                logger.debug(f"Error while checking if {self.container.name} is alive: {e}")
+            except Exception:
+                # don't log anything here, it makes the ouput very noisy
+                ...
 
             # _is_alive() swallows a non-running container status and returns False instead of
             # raising, so the check must be repeated here on every iteration (not only in the

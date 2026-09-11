@@ -130,8 +130,14 @@ class VmProvider:
                 last_task = self.commander.remote_command(
                     vm,
                     "checkout_branch",
-                    "cd system-tests && git reset --hard HEAD && git stash && git pull && git stash "
-                    f"&& git checkout {ci_commit_branch}",
+                    # The VM's system-tests clone comes from a cached image and may be stale/dirty
+                    # (eg: CRLF renormalization can make git consider a file locally modified even
+                    # right after a reset). Force-checkout and hard-reset to the remote branch instead
+                    # of reset/stash/pull, so a falsely "dirty" tree never blocks the sync.
+                    "cd system-tests && git fetch origin "
+                    f"&& git checkout -f {ci_commit_branch} "
+                    f"&& git reset --hard origin/{ci_commit_branch} "
+                    "&& git clean -fd",
                     vm.get_command_environment(),
                     server_connection,
                     last_task,
