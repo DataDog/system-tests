@@ -3362,7 +3362,12 @@ manifest:
   tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Cycle: missing_feature (EX-3415)
   tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Disappears: missing_feature (EX-3415)
   tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Serial_Id: missing_feature (EX-3415)
-  tests/ffe/test_flag_eval_evp.py: missing_feature (FFL-2446)
+  tests/ffe/test_flag_eval_evp.py:  # TODO: a lower version might be supported
+    - declaration: missing_feature (FFL-2446)
+      component_version: <1.66.0
+      weblog: [spring-boot-undertow, spring-boot-wildfly, spring-boot-jetty, spring-boot, uds-spring-boot, spring-boot-openliberty, spring-boot-payara]
+    - declaration: missing_feature (FFL-2446)
+      excluded_weblog: [spring-boot-undertow, spring-boot-wildfly, spring-boot-jetty, spring-boot, uds-spring-boot, spring-boot-openliberty, spring-boot-payara]
   tests/ffe/test_flag_eval_metrics.py:
     - weblog_declaration:
         "*": irrelevant
