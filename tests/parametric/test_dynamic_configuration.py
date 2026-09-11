@@ -12,6 +12,7 @@ import yaml
 from utils import (
     context,
     features,
+    remote_config,
     rfc,
     scenarios,
 )
@@ -173,6 +174,39 @@ def _default_config(service: str, env: str) -> dict[str, Any]:
     }
 
 
+def uses_sdk_configuration(test_agent: TestAgentAPI) -> bool:
+    """Whether the library reads its APM_TRACING settings from the env-var-keyed `sdk_config`
+    field rather than the legacy `lib_config` object.
+
+    Resolve this *before* anything that clears the recorded requests: reading the capabilities
+    waits for the next remote config request, and one recorded in the middle of an update would
+    be taken for the acknowledgement of that update.
+
+    `wait_for_rc_capabilities` raises when it sees no capability at all, which is what a library
+    that does not poll remote config (tracing disabled by DD_TRACE_ENABLED, for instance) looks
+    like; the shared helper turns that into the `lib_config` default.
+    """
+    return remote_config.resolve_sdk_configuration_support(lambda: test_agent.wait_for_rc_capabilities(_RC_WAIT_LOOPS))
+
+
+def assert_rc_capability(test_agent: TestAgentAPI, capability: Capabilities, wait_loops: int = 100) -> None:
+    """Assert that the tracer advertises the capability to remotely configure one setting.
+
+    A tracer that has moved to the unified SDK_CONFIGURATION contract advertises that single bit
+    for every remotely configurable setting instead of the per-setting ones, so it stands in for
+    any of them. The SDK_CONFIGURATION bit on its own does not, since libdatadog gives that bit a
+    different meaning; only a tracer that has really dropped the per-setting bits qualifies.
+    """
+    seen_capabilities = test_agent.wait_for_rc_capabilities(wait_loops)
+    if capability in seen_capabilities:
+        return
+
+    assert remote_config.resolve_sdk_configuration_contract(seen_capabilities), (
+        f"RemoteConfig capability missing: neither {capability.name} nor the SDK_CONFIGURATION "
+        f"contract that replaces it; seen: {seen_capabilities}"
+    )
+
+
 def _set_rc(
     test_agent: TestAgentAPI,
     config: dict[str, Any],
@@ -183,7 +217,8 @@ def _set_rc(
     # payloads and recreate the stale-ACK race, especially when tests reuse config_id.
     resolved_id: str = str(config_id) if config_id is not None else str(uuid.uuid4())
     config["id"] = resolved_id
-    test_agent.set_remote_config(path=f"datadog/2/APM_TRACING/{resolved_id}/config", payload=config)
+    payload = remote_config.to_sdk_config_payload(config) if uses_sdk_configuration(test_agent) else config
+    test_agent.set_remote_config(path=f"datadog/2/APM_TRACING/{resolved_id}/config", payload=payload)
 
     return resolved_id
 
@@ -207,6 +242,10 @@ def set_and_wait_rc(
     config. config_id filtering matches only the ACK we just triggered.
     """
     rc_config: dict[str, Any] = _create_rc_config(config_overrides)
+    # Resolve the payload shape before clearing, not in _set_rc below: it waits for the next RC
+    # request, and one recorded between the clear and the update would be the stale ACK the clear
+    # is there to discard, which wait_for_rc_apply_state would then take for the new one.
+    uses_sdk_configuration(test_agent)
     if config_id is not None:
         # Reuse case: discard stale ACKs from prior updates at the same path
         test_agent.clear()
@@ -309,7 +348,7 @@ class TestDynamicConfigTracingEnabled:
     def test_capability_tracing_enabled(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Ensure the RC request contains the tracing enabled capability."""
         assert test_library.is_alive(), "library container is not alive"
-        test_agent.assert_rc_capabilities({Capabilities.APM_TRACING_ENABLED})
+        assert_rc_capability(test_agent, Capabilities.APM_TRACING_ENABLED)
 
     @parametrize(
         "library_env",
@@ -733,25 +772,25 @@ class TestDynamicConfigV2:
     def test_capability_tracing_sampling_rate(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Ensure the RC request contains the trace sampling rate capability."""
         assert test_library.is_alive(), "library container is not alive"
-        test_agent.assert_rc_capabilities({Capabilities.APM_TRACING_SAMPLE_RATE})
+        assert_rc_capability(test_agent, Capabilities.APM_TRACING_SAMPLE_RATE)
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_capability_tracing_logs_injection(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Ensure the RC request contains the logs injection capability."""
         assert test_library.is_alive(), "library container is not alive"
-        test_agent.assert_rc_capabilities({Capabilities.APM_TRACING_LOGS_INJECTION})
+        assert_rc_capability(test_agent, Capabilities.APM_TRACING_LOGS_INJECTION)
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_capability_tracing_http_header_tags(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Ensure the RC request contains the http header tags capability."""
         assert test_library.is_alive(), "library container is not alive"
-        test_agent.assert_rc_capabilities({Capabilities.APM_TRACING_HTTP_HEADER_TAGS})
+        assert_rc_capability(test_agent, Capabilities.APM_TRACING_HTTP_HEADER_TAGS)
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_capability_tracing_custom_tags(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Ensure the RC request contains the custom tags capability."""
         assert test_library.is_alive(), "library container is not alive"
-        test_agent.assert_rc_capabilities({Capabilities.APM_TRACING_CUSTOM_TAGS})
+        assert_rc_capability(test_agent, Capabilities.APM_TRACING_CUSTOM_TAGS)
 
 
 @scenarios.parametric
@@ -762,7 +801,7 @@ class TestDynamicConfigSamplingRules:
     def test_capability_tracing_sample_rules(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Ensure the RC request contains the trace sampling rules capability."""
         assert test_library.is_alive(), "library container is not alive"
-        test_agent.assert_rc_capabilities({Capabilities.APM_TRACING_SAMPLE_RULES}, wait_loops=_RC_WAIT_LOOPS)
+        assert_rc_capability(test_agent, Capabilities.APM_TRACING_SAMPLE_RULES, wait_loops=_RC_WAIT_LOOPS)
 
     @parametrize(
         "library_env",
