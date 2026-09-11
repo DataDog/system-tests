@@ -177,7 +177,7 @@ class Test_UpdateMirrorImages:
         update_mirror_images.main(set(), skip_lock=True)
 
         content = mirror_yaml.read_text(encoding="utf-8")
-        assert not any(line.strip() == "---" for line in content.splitlines()), content
+        assert [line for line in content.splitlines() if line.strip() == "---"] == ["---"], content
         assert yaml.safe_load(content) == ["redis:7"]
 
     def test_main_rejects_refresh_with_skip_lock(self):

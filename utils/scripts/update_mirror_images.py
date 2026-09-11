@@ -139,15 +139,21 @@ def _refresh_lock_file() -> str | None:
 
 
 def _restore_yaml_header() -> None:
-    """Apply the canonical header after ``add`` drops the existing one.
+    """Apply the canonical header, replacing whatever preamble the file has.
 
-    The mirror_images.py serializer may emit a document-start marker. Remove it so
-    the generated file always starts with the canonical header and remains one
-    YAML document.
+    ``mirror_images.py add`` rewrites the file through a YAML parser and drops
+    comments, but only when it actually adds an image, and its serializer may emit
+    a document-start marker of its own. Replacing the whole preamble rather than
+    just that marker keeps the file a single YAML document and makes repeated runs
+    idempotent, which the mirror_images_check CI job depends on: it runs this
+    script and fails if mirror_images.yaml then differs from what is committed.
     """
-    content = MIRROR_YAML.read_text(encoding="utf-8")
-    content = content.removeprefix("---\n")
-    MIRROR_YAML.write_text(MIRROR_YAML_HEADER + content, encoding="utf-8")
+    lines = MIRROR_YAML.read_text(encoding="utf-8").splitlines(keepends=True)
+    body_starts = next(
+        (i for i, line in enumerate(lines) if line.strip() and not line.startswith(("---", "#"))),
+        len(lines),
+    )
+    MIRROR_YAML.write_text(MIRROR_YAML_HEADER + "".join(lines[body_starts:]), encoding="utf-8")
 
 
 def main(excluded: set[str], *, skip_lock: bool, refresh: bool = False) -> None:
