@@ -18,6 +18,8 @@ from utils.docker_fixtures.spec.llm_observability import (
     DatasetCreateRequest,
     DatasetResponse,
     LlmObsAnnotationContextRequest,
+    LlmObsExportRequest,
+    LlmObsExportResponse,
     SpanRequest,
 )
 from utils.docker_fixtures.spec.otel_trace import OtelSpanContext
@@ -993,6 +995,14 @@ class ParametricTestClientApi(TestClientApi):
 
         return cast("dict", resp.json()) if resp.ok else resp.text
 
+    def llmobs_export(self, export_request: LlmObsExportRequest) -> LlmObsExportResponse:
+        resp = self._session.post(
+            self._url("/llm_observability/export"),
+            json=asdict(export_request),
+        )
+        resp.raise_for_status()
+        return cast("LlmObsExportResponse", resp.json())
+
     def llmobs_dataset_create(self, dataset_create_request: DatasetCreateRequest) -> DatasetResponse:
         resp = self._session.post(
             self._url("/llm_observability/dataset/create"),
@@ -1257,6 +1267,9 @@ class APMLibrary:
         self, trace_structure_request: SpanRequest | LlmObsAnnotationContextRequest, *, raise_on_error: bool = True
     ) -> dict | str | None:
         return self._client.llmobs_trace(trace_structure_request, raise_on_error=raise_on_error)
+
+    def llmobs_export(self, export_request: LlmObsExportRequest) -> LlmObsExportResponse:
+        return self._client.llmobs_export(export_request)
 
     def llmobs_dataset_create(self, dataset_create_request: DatasetCreateRequest) -> DatasetResponse:
         return self._client.llmobs_dataset_create(dataset_create_request)
