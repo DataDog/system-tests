@@ -1,38 +1,58 @@
+# Default
 * @DataDog/system-tests-core
 
 # Can be approved by anyone, unless overridden below
 /utils/build/docker/ @DataDog/system-tests-reviewers
 /manifests/ @DataDog/system-tests-reviewers
+/tests/ @DataDog/system-tests-reviewers
 
+# FFE
+/utils/docker_fixtures/_mock_ffe_agentless_backend.py @DataDog/feature-flagging-and-experimentation-sdk @DataDog/system-tests-core
+/tests/ffe/ @DataDog/feature-flagging-and-experimentation-sdk
+/tests/test_the_test/test_mock_ffe_agentless_backend.py @DataDog/feature-flagging-and-experimentation-sdk
+/tests/parametric/test_ffe/ @DataDog/feature-flagging-and-experimentation-sdk
+
+# SDK cap
+/utils/telemetry/intake/ @DataDog/apm-sdk-capabilities @DataDog/system-tests-core
+/utils/telemetry/intake/static/ @DataDog/apm-sdk @DataDog/system-tests-core
+/tests/parametric/ @DataDog/apm-sdk-capabilities
+/tests/parametric/test_config_consistency.py @DataDog/apm-sdk-capabilities
+
+# ML Obs
+/utils/docker_fixtures/spec/llm_observability.py @DataDog/ml-observability @DataDog/system-tests-core
+/tests/parametric/test_llm_observability @DataDog/ml-observability
+
+# Otel
+/tests/otel_tracing_e2e/ @DataDog/opentelemetry
+
+# Remote config
+/tests/remote_config/ @DataDog/remote-config
+
+# Appsec
+/docs/understand/scenarios/ai_guard.md @DataDog/k9-ai-guard
 /utils/build/docker/vcr/cassettes/aiguard @DataDog/k9-ai-guard @DataDog/system-tests-core
 /utils/scripts/generate-ai-guard-cassettes.sh @DataDog/k9-ai-guard @DataDog/system-tests-core
-/utils/docker_fixtures/spec/llm_observability.py @DataDog/ml-observability @DataDog/system-tests-core
-/utils/docker_fixtures/_mock_ffe_agentless_backend.py @DataDog/feature-flagging-and-experimentation-sdk @DataDog/system-tests-core
-/utils/telemetry/intake/ @DataDog/apm-sdk-capabilities @DataDog/system-tests-core
-/utils/telemetry/intake/static/ @DataDog/apm-sdk
+/tests/appsec/ @DataDog/asm-libraries
+/tests/ai_guard/ @DataDog/k9-ai-guard
+/tests/external_processing/ @DataDog/asm-libraries
+/tests/stream_processing_offload/ @DataDog/asm-libraries
 
-/tests/ffe/ @DataDog/feature-flagging-and-experimentation-sdk @DataDog/system-tests-core
-/tests/test_the_test/test_mock_ffe_agentless_backend.py @DataDog/feature-flagging-and-experimentation-sdk @DataDog/system-tests-core
-/tests/parametric/ @DataDog/system-tests-core @DataDog/apm-sdk-capabilities
-/tests/parametric/test_config_consistency.py @DataDog/apm-sdk-capabilities
-/tests/parametric/test_ffe/ @DataDog/feature-flagging-and-experimentation-sdk @DataDog/system-tests-core
-/tests/parametric/test_llm_observability @DataDog/ml-observability @DataDog/system-tests-core
-/tests/otel_tracing_e2e/ @DataDog/opentelemetry @DataDog/system-tests-core
-/tests/remote_config/ @DataDog/remote-config @DataDog/system-tests-core
-/tests/appsec/ @DataDog/asm-libraries @DataDog/system-tests-core
-/tests/ai_guard/ @DataDog/k9-ai-guard @DataDog/system-tests-core
+# injection platform
 /tests/k8s_lib_injection/ @DataDog/injection-platform
 /tests/auto_inject/ @DataDog/injection-platform
 /tests/docker_ssi/ @DataDog/injection-platform
-/docs/understand/scenarios/ai_guard.md @DataDog/k9-ai-guard @DataDog/system-tests-core
-/tests/debugger/ @DataDog/debugger @DataDog/system-tests-core
-/tests/test_telemetry.py @DataDog/libdatadog-telemetry @DataDog/apm-sdk-capabilities @DataDog/system-tests-core
-/tests/serverless @DataDog/serverless @DataDog/system-tests-core
-/tests/external_processing/ @DataDog/asm-libraries @DataDog/system-tests-core
-/tests/stream_processing_offload/ @DataDog/asm-libraries @DataDog/system-tests-core
+
+# Debugger
+/tests/debugger/ @DataDog/debugger
+
+# serverless
+/tests/serverless @DataDog/serverless
+
+# Shared tests
+/tests/test_telemetry.py @DataDog/libdatadog-telemetry @DataDog/apm-sdk-capabilities
 /tests/integration_frameworks/llm/ @DataDog/ml-observability
 
-/.github/chainguard/** @DataDog/system-tests-core # Security sensitive
-
+# system-tests-core (keep it in last)
 /*.nix @DataDog/nix-guild @DataDog/system-tests-core
 /flake.lock @DataDog/nix-guild @DataDog/system-tests-core
+/.github/chainguard/** @DataDog/system-tests-core # Security sensitive
