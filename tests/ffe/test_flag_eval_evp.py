@@ -340,12 +340,14 @@ class Test_FFE_EVP_Flagevaluation_Egress_Datadog_Agent(FlagevaluationEgressContr
     pass
 
 
+@scenario_crash
 @scenarios.feature_flagging_and_experimentation_agentless_direct
 @features.feature_flags_evp_flagevaluation
 class Test_FFE_EVP_Flagevaluation_Egress_Agentless_Direct(FlagevaluationEgressContract):
     pass
 
 
+@scenario_crash
 @scenarios.feature_flagging_and_experimentation_agentless_serverless
 @features.feature_flags_evp_flagevaluation
 class Test_FFE_EVP_Flagevaluation_Egress_Agentless_Sidecar(FlagevaluationEgressContract):

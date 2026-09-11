@@ -14,7 +14,7 @@ from tests.ffe.utils.exposures import (
     exposure_events_from_data,
 )
 from tests.ffe.utils.fixtures import make_ufc_fixture
-from utils import context, features, remote_config as rc, scenarios, weblog
+from utils import context, features, remote_config as rc, scenario_crash, scenarios, weblog
 from utils._context._scenarios.agentless_endtoend import FeatureFlaggingAgentlessEndToEndScenario
 
 RC_PATH = "datadog/2/FFE_FLAGS"
@@ -87,12 +87,14 @@ class Test_FFE_Exposure_Egress_Datadog_Agent(ExposureEgressContract):
     pass
 
 
+@scenario_crash
 @scenarios.feature_flagging_and_experimentation_agentless_direct
 @features.feature_flags_exposures
 class Test_FFE_Exposure_Egress_Agentless_Direct(ExposureEgressContract):
     pass
 
 
+@scenario_crash
 @scenarios.feature_flagging_and_experimentation_agentless_direct
 @features.feature_flags_exposures
 class Test_FFE_Exposure_Egress_Agentless_Direct_Shutdown:
@@ -161,6 +163,7 @@ class Test_FFE_Exposure_Egress_Agentless_Direct_Shutdown:
             )
 
 
+@scenario_crash
 @scenarios.feature_flagging_and_experimentation_agentless_serverless
 @features.feature_flags_exposures
 class Test_FFE_Exposure_Egress_Agentless_Sidecar(ExposureEgressContract):

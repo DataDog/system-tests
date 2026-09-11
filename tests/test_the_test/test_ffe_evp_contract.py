@@ -5,6 +5,8 @@ from typing import Any, Literal
 
 import pytest
 
+from tests.ffe import test_exposure_egress as exposure_egress_tests
+from tests.ffe import test_flag_eval_evp as flag_eval_evp_tests
 from tests.ffe.utils.evp import (
     EVP_ORIGINS,
     FeatureFlaggingEVPEgress,
@@ -21,6 +23,15 @@ from utils._context._scenarios.agentless_endtoend import (
     DIRECT_EVP_CA_BUNDLE_CONTAINER_PATH,
     DIRECT_EVP_CA_BUNDLE_SOURCE,
     FeatureFlaggingAgentlessEndToEndScenario,
+)
+
+
+AGENTLESS_EVP_CAPTURE_CONTRACTS = (
+    exposure_egress_tests.Test_FFE_Exposure_Egress_Agentless_Direct,
+    exposure_egress_tests.Test_FFE_Exposure_Egress_Agentless_Direct_Shutdown,
+    exposure_egress_tests.Test_FFE_Exposure_Egress_Agentless_Sidecar,
+    flag_eval_evp_tests.Test_FFE_EVP_Flagevaluation_Egress_Agentless_Direct,
+    flag_eval_evp_tests.Test_FFE_EVP_Flagevaluation_Egress_Agentless_Sidecar,
 )
 
 
@@ -164,6 +175,15 @@ def _direct_capture(*, path: str = "/api/v2/exposures", headers: list[list[str]]
         },
         "response": {"status_code": 202, "content": "Ok"},
     }
+
+
+@pytest.mark.parametrize("contract", AGENTLESS_EVP_CAPTURE_CONTRACTS)
+@scenarios.test_the_test
+@features.not_reported
+def test_agentless_evp_capture_contracts_skip_manifest_xfails_before_setup(contract: type[Any]) -> None:
+    marker_names = {marker.name for marker in getattr(contract, "pytestmark", ())}
+
+    assert "skip_if_xfail" in marker_names
 
 
 @pytest.mark.parametrize(("library_name", "origin"), sorted(EVP_ORIGINS.items()))
