@@ -19,6 +19,15 @@ RUN /binaries/install_drop_in.sh
 FROM eclipse-temurin:11-jre
 
 WORKDIR /app
+
+# Agentless intake tests send HTTPS through the system-tests mitmproxy. Trust the
+# checked-in test CA so Java validates that intercepted TLS connection.
+COPY ./utils/proxy/.mitmproxy/mitmproxy-ca-cert.cer /tmp/system-tests-mitmproxy-ca.cer
+RUN keytool -importcert -noprompt -cacerts -storepass changeit \
+    -alias system-tests-mitmproxy \
+    -file /tmp/system-tests-mitmproxy-ca.cer \
+    && rm /tmp/system-tests-mitmproxy-ca.cer
+
 COPY --from=build /binaries/SYSTEM_TESTS_LIBRARY_VERSION SYSTEM_TESTS_LIBRARY_VERSION
 
 COPY --from=build /app/target/myproject-0.0.1-SNAPSHOT.jar /app/app.jar

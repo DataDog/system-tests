@@ -3390,6 +3390,15 @@
   "tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Sidecar::test_exposure_egress": [
     "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_SERVERLESS"
   ],
+  "tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Egress_Agentless_Direct::test_ffe_evp_flagevaluation_egress": [
+    "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_DIRECT"
+  ],
+  "tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Egress_Agentless_Sidecar::test_ffe_evp_flagevaluation_egress": [
+    "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_SERVERLESS"
+  ],
+  "tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Egress_Datadog_Agent::test_ffe_evp_flagevaluation_egress": [
+    "FEATURE_FLAGGING_AND_EXPERIMENTATION"
+  ],
   "tests/integrations/test_cassandra.py::Test_Cassandra::test_main": [
     "INTEGRATIONS"
   ],
