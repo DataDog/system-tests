@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	ddmetric "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry/metric"
 	"go.opentelemetry.io/otel"
@@ -586,6 +587,24 @@ func (s *apmClientServer) OtelMetricsForceFlush() bool {
 		return false
 	}
 	return true
+}
+
+func (s *apmClientServer) otelMetricsShutdownHandler(w http.ResponseWriter, r *http.Request) {
+	var args OtelMetricsShutdownArgs
+	if err := json.NewDecoder(r.Body).Decode(&args); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	mp := otel.GetMeterProvider()
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(args.Seconds)*time.Second)
+	defer cancel()
+	success := ddmetric.Shutdown(ctx, mp) == nil
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(&OtelMetricsShutdownReturn{Success: success}); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 // Helper function to create instrument key
