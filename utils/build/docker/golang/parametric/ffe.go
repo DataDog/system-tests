@@ -20,7 +20,10 @@ func (s *apmClientServer) ffeStart(writer http.ResponseWriter, request *http.Req
 			return
 		}
 
-		if err := of.SetProvider(provider); err != nil {
+		// AndWait: plain SetProvider returns before Init, so /ffe/start would
+		// answer 200 with no configuration and the next evaluation gets the
+		// default. Other SDKs block on initialize inside set_provider.
+		if err := of.SetProviderAndWait(provider); err != nil {
 			startErr = err
 			return
 		}

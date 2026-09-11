@@ -69,8 +69,12 @@ func newServer() *apmClientServer {
 			log.Fatalf("failed to create Datadog OpenFeature provider: %v", err)
 		}
 
+		// Async on purpose, unlike /ffe/start: this runs for every parametric
+		// test that sets no Feature Flagging variable, and waiting would add the
+		// 10s DD_EXPERIMENTAL_FLAGGING_PROVIDER_INITIALIZATION_TIMEOUT_MS to each
+		// container start.
 		if err := of.SetProvider(s.ddProvider); err != nil {
-			log.Fatalf("failed to set Datadog OpenFeature provider and wait for initialization: %v", err)
+			log.Fatalf("failed to set Datadog OpenFeature provider: %v", err)
 		}
 
 		s.ofClient = of.NewClient("system-tests-weblog-client")
