@@ -158,6 +158,10 @@ images:
     digest: sha256:f6fd2afc484b4162397363c679beef4f42b7679deba94d25d44dcde5632053c2
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:fastapi.base-v10
     tag: fastapi.base-v10
+  datadog/system-tests:fastapi.base-v11:
+    digest: sha256:b01ed79f836d48e731ae24af3462ee6da9f1da3d1fd462b8c0ec77512d6e08f8
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:fastapi.base-v11
+    tag: fastapi.base-v11
   datadog/system-tests:fastapi.base-v9:
     digest: sha256:92c5d4256ed9fa7fd28e93f9ec04d1ebc0f8c39a220a8ce13ec9ec56e0b3554d
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:fastapi.base-v9
