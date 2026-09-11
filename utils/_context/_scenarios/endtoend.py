@@ -221,6 +221,7 @@ class EndToEndScenario(DockerScenario):
         use_proxy_for_agent: bool = True,
         rc_api_enabled: bool = False,
         rc_backend_enabled: bool = False,
+        rc_apply_settle_seconds: dict[str, float] | None = None,
         meta_structs_disabled: bool = False,
         span_events: bool = True,
         client_drop_p0s: bool | None = None,
@@ -325,6 +326,7 @@ class EndToEndScenario(DockerScenario):
         self.agent_interface_timeout = agent_interface_timeout
         self.backend_interface_timeout = backend_interface_timeout
         self._library_interface_timeout = library_interface_timeout
+        self.rc_apply_settle_seconds = dict(rc_apply_settle_seconds or {})
         self.include_opentelemetry = include_opentelemetry
 
     def get_image_list(self, library: str, weblog: str) -> list[str]:
@@ -601,6 +603,7 @@ class DdTraceEndToEndScenario(EndToEndScenario):
         other_weblog_containers: tuple[type[TestedContainer], ...] = (),
         rc_api_enabled: bool = False,
         rc_backend_enabled: bool = False,
+        rc_apply_settle_seconds: dict[str, float] | None = None,
         require_api_key: bool = False,
         runtime_metrics_enabled: bool = False,
         scenario_groups: list[ScenarioGroup] | None = None,
@@ -629,6 +632,7 @@ class DdTraceEndToEndScenario(EndToEndScenario):
             other_weblog_containers=other_weblog_containers,
             rc_api_enabled=rc_api_enabled,
             rc_backend_enabled=rc_backend_enabled,
+            rc_apply_settle_seconds=rc_apply_settle_seconds,
             require_api_key=require_api_key,
             runtime_metrics_enabled=runtime_metrics_enabled,
             scenario_groups=scenario_groups,
