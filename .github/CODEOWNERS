@@ -25,6 +25,7 @@
 
 # ML Obs
 /utils/docker_fixtures/spec/llm_observability.py @DataDog/ml-observability @DataDog/system-tests-core
+/tests/integration_frameworks/llm/ @DataDog/ml-observability
 /tests/parametric/test_llm_observability @DataDog/ml-observability
 
 # Otel
@@ -55,7 +56,6 @@
 
 # Shared tests
 /tests/test_telemetry.py @DataDog/libdatadog-telemetry @DataDog/apm-sdk-capabilities
-/tests/integration_frameworks/llm/ @DataDog/ml-observability
 
 # system-tests-core (keep it in last)
 /*.nix @DataDog/nix-guild @DataDog/system-tests-core
