@@ -189,21 +189,22 @@ class BaseDebuggerTest:
     def method_and_language_to_line_number(self, method: str, language: str) -> list:
         """method_and_language_to_line_number returns the respective line number given the method and language"""
         definitions: dict[str, dict[str, list[int]]] = {
-            "Budgets": {"java": [138], "dotnet": [136], "python": [142], "golang": [117]},
+            "Budgets": {"java": [140], "dotnet": [138], "python": [144], "golang": [117]},
             "LogProbe": {"nodejs": [20]},
-            "Expression": {"java": [71], "dotnet": [74], "python": [72], "ruby": [82], "nodejs": [82], "golang": [71]},
+            "Pii": {"java": [66], "dotnet": [66], "python": [66], "ruby": [66], "nodejs": [64]},
+            "Expression": {"java": [73], "dotnet": [76], "python": [74], "ruby": [82], "nodejs": [82], "golang": [71]},
             # In-scope line for the probe_capture_expressions_line line probe. Kept separate
             # from "Expression" because Node.js captures at a different line (71) than its
             # expression-language probe (82); Ruby's weblog layout puts the line at 82, not 71.
-            "CaptureExpressionsLine": {"java": [71], "nodejs": [71], "golang": [71], "ruby": [82]},
+            "CaptureExpressionsLine": {"java": [73], "nodejs": [71], "golang": [71], "ruby": [82]},
             # The `@exception` variable is not available in the context of line probes.
             "ExpressionException": {},
-            "ExpressionOperators": {"java": [82], "dotnet": [90], "python": [87], "ruby": [102], "nodejs": [90]},
-            "StringOperations": {"java": [87], "dotnet": [97], "python": [96], "ruby": [122], "nodejs": [96]},
-            "CollectionOperations": {"java": [114], "dotnet": [114], "python": [123], "ruby": [162], "nodejs": [120]},
-            "Nulls": {"java": [130], "dotnet": [127], "python": [136], "ruby": [192], "nodejs": [126]},
-            "SnapshotLimits": {"java": [153], "python": [172], "nodejs": [136], "ruby": [233], "dotnet": [150]},
-            "CaptureTimeout": {"java": [172], "nodejs": [155], "dotnet": [171]},
+            "ExpressionOperators": {"java": [84], "dotnet": [92], "python": [89], "ruby": [102], "nodejs": [90]},
+            "StringOperations": {"java": [89], "dotnet": [99], "python": [98], "ruby": [122], "nodejs": [96]},
+            "CollectionOperations": {"java": [116], "dotnet": [116], "python": [125], "ruby": [162], "nodejs": [120]},
+            "Nulls": {"java": [132], "dotnet": [129], "python": [138], "ruby": [192], "nodejs": [126]},
+            "SnapshotLimits": {"java": [155], "python": [174], "nodejs": [136], "ruby": [233], "dotnet": [152]},
+            "CaptureTimeout": {"java": [174], "nodejs": [155], "dotnet": [173]},
         }
 
         return definitions.get(method, {}).get(language, [])
@@ -736,26 +737,28 @@ class BaseDebuggerTest:
         return max_number
 
     def _wait_for_code_origin_span(self, data: dict, *, threshold: int) -> bool:
-        if data["path"] == _TRACES_PATH:
-            log_filename_found = re.search(r"/(\d+)__", data["log_filename"])
+        if data["path"] != _TRACES_PATH:
+            return False
+
+        # Iterate through the agent interface rather than the raw payload, so that both the legacy
+        # (tracerPayloads) and the v1 (idxTracerPayloads) trace formats are handled.
+        for span_data, span in interfaces.agent.get_spans():
+            log_filename_found = re.search(r"/(\d+)__", span_data["log_filename"])
             if not log_filename_found:
-                return False
+                continue
 
-            log_number = int(log_filename_found.group(1))
-            if log_number > threshold:
-                content = data["request"]["content"]
-                if content:
-                    for payload in content["tracerPayloads"]:
-                        for chunk in payload["chunks"]:
-                            for span in chunk["spans"]:
-                                resource, resource_type = span.get("resource", ""), span.get("type")
+            if int(log_filename_found.group(1)) <= threshold:
+                continue
 
-                                if resource.startswith("GET") and resource_type == "web":
-                                    code_origin_type = span["meta"].get("_dd.code_origin.type", "")
+            if span.get_span_type() != "web":
+                continue
 
-                                    if code_origin_type == "entry":
-                                        self._span_found = True
-                                        return True
+            if not span.get_span_resource().startswith("GET"):
+                continue
+
+            if span.meta.get("_dd.code_origin.type", "") == "entry":
+                self._span_found = True
+                return True
 
         return False
 

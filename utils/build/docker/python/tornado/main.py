@@ -310,9 +310,12 @@ class TraceManualKeepDropHandler(BaseHandler):
 class MakeDistantCallHandler(BaseHandler):
     async def get(self) -> None:
         url = self.get_argument("url")
+        # The method is configurable so semantic-convention tests can drive a non-standard verb
+        # through the client instrumentation. Matches the nodejs express weblog.
+        method = self.get_argument("method", "GET")
 
         async with httpx.AsyncClient() as client:
-            response = await client.get(url)
+            response = await client.request(method, url)
 
         result = {
             "url": url,

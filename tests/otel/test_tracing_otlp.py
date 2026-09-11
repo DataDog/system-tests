@@ -5,11 +5,20 @@
 import base64
 import binascii
 import re
+from typing import Any
 
+from tests.otel.utils import (
+    FORWARD_RV,
+    FORWARD_TH,
+    FORWARD_TRACE_ID,
+)
 from utils import context, features, interfaces, scenarios, weblog
 from utils._context._scenarios.endtoend import EndToEndScenario
 from utils.dd_constants import SpanKind, StatusCode
 from utils.docker_fixtures.spec.tracecontext import Tracestate
+
+
+type OtelSpanRecord = tuple[Any, Any, Any]
 
 
 def _trace_id_to_hex(tid: str | None) -> str:
@@ -32,6 +41,24 @@ def _trace_id_to_hex(tid: str | None) -> str:
     return decoded.hex()
 
 
+def _server_span_by_request_id(data: list[OtelSpanRecord], request_id: str) -> OtelSpanRecord:
+    matching_server_spans = []
+    for entry in data:
+        span = entry[2]
+        attributes = span.get("attributes", {})
+        user_agent = " ".join(
+            str(attributes.get(key, ""))
+            for key in ("user_agent.original", "http.useragent", "http.request.headers.user-agent")
+        )
+        if span.get("kind") == SpanKind.SERVER.value and request_id in user_agent:
+            matching_server_spans.append(entry)
+
+    assert len(matching_server_spans) == 1, (
+        f"expected exactly one SERVER span correlated to request {request_id}, found {len(matching_server_spans)}"
+    )
+    return matching_server_spans[0]
+
+
 # @scenarios.apm_tracing_e2e_otel
 @features.otel_api
 @scenarios.apm_tracing_otlp
@@ -50,10 +77,7 @@ class Test_Otel_Tracing_OTLP:
     def test_single_server_trace(self):
         """Validates the required elements of the OTLP payload for a single trace"""
         data = list(interfaces.open_telemetry.get_otel_spans(self.req))
-
-        # Assert that there is only one OTLP request containing the desired server span
-        assert len(data) == 1
-        request, content, span = data[0]
+        request, content, span = _server_span_by_request_id(data, self.req.get_rid())
 
         # Determine if JSON Protobuf Encoding was used for the OTLP request (rather than Binary Protobuf)
         # We need to assert that we match the OTLP specification, which has some odd encoding rules when using JSON: https://opentelemetry.io/docs/specs/otlp/#json-protobuf-encoding
@@ -147,9 +171,7 @@ class Test_Otel_Tracing_OTLP:
         """
         data = list(interfaces.open_telemetry.get_otel_spans(self.req))
 
-        # `get_otel_spans` yields the server span, identified by the user-agent header
-        assert len(data) >= 1, f"Expected at least one matching OTLP span, got {data}"
-        _, content, server_span = data[0]
+        _, _, server_span = _server_span_by_request_id(data, self.req.get_rid())
 
         root_span_tid = server_span.get("traceId")
         root_span_hex_id = _trace_id_to_hex(root_span_tid)
@@ -165,16 +187,15 @@ class Test_Otel_Tracing_OTLP:
             f"server traceId upper 64 bits are zero (expected a 128-bit ID): {root_span_tid!r}"
         )
 
-        # Group every span in the OTLP payload by the lower 64 bits of its traceId.
-        # If spans have a matching lower 64 bits, we expect them to have a matching full 128-bit traceId
+        # Group every correlated span by the lower 64 bits of its traceId. Correlated descendants
+        # can be exported in separate OTLP payloads, so inspect every span yielded by the interface.
+        # If spans have matching lower 64 bits, they must have matching full 128-bit trace IDs.
         anchor_lower_hex = root_span_hex_id[16:]
         single_trace_spans = []
-        for resource_span in content.get("resourceSpans", []):
-            for scope_span in resource_span.get("scopeSpans", []):
-                for s in scope_span.get("spans", []):
-                    hex_tid = _trace_id_to_hex(s.get("traceId"))
-                    if hex_tid and hex_tid[16:] == anchor_lower_hex:
-                        single_trace_spans.append((s, hex_tid))
+        for _, _, span in data:
+            hex_tid = _trace_id_to_hex(span.get("traceId"))
+            if hex_tid and hex_tid[16:] == anchor_lower_hex:
+                single_trace_spans.append((span, hex_tid))
 
         # The /make_distant_call trace produces a server entry span plus at least one child span.
         # (the outbound HTTP client span).
@@ -211,11 +232,6 @@ def _parse_ot_from_trace_state(trace_state: str) -> dict[str, str]:
 
 # Trace ID, rv and th match the RFC's own verified worked example (rate 0.1, trace ID 0xfff972474538efff),
 # also used in tests/test_otel_tracestate_sampling.py. rv only depends on the trace ID, not the sample rate.
-OTLP_TRACE_ID = 18444899399302180863
-OTLP_RV = "ef284ace7a91e1"
-OTLP_TH = "e6666666666668"
-
-
 @features.otel_api
 @scenarios.apm_tracing_otlp
 class Test_Otlp_Carries_Ot:
@@ -226,7 +242,7 @@ class Test_Otlp_Carries_Ot:
 
     def setup_otlp_carries_ot(self):
         self.req = weblog.get(
-            "/", headers={"x-datadog-trace-id": str(OTLP_TRACE_ID), "x-datadog-parent-id": str(OTLP_TRACE_ID)}
+            "/", headers={"x-datadog-trace-id": str(FORWARD_TRACE_ID), "x-datadog-parent-id": str(FORWARD_TRACE_ID)}
         )
 
     def test_otlp_carries_ot(self):
@@ -235,7 +251,7 @@ class Test_Otlp_Carries_Ot:
         _, _, span = data[0]
 
         ot = _parse_ot_from_trace_state(span.get("traceState", ""))
-        assert ot.get("rv") == OTLP_RV, f"rv={ot.get('rv')!r}, expected {OTLP_RV!r}"
+        assert ot.get("rv") == FORWARD_RV, f"rv={ot.get('rv')!r}, expected {FORWARD_RV!r}"
         assert "th" in ot, "no th on the exported span's tracestate for a probability sampling decision"
 
 
@@ -251,8 +267,8 @@ class Test_Otlp_Forwards_Inherited_Ot:
         self.req = weblog.get(
             "/",
             headers={
-                "traceparent": f"00-{OTLP_TRACE_ID:032x}-0000000000000001-01",
-                "tracestate": f"dd=s:2;t.dm:-3,ot=rv:{OTLP_RV};th:{OTLP_TH}",
+                "traceparent": f"00-{FORWARD_TRACE_ID:032x}-0000000000000001-01",
+                "tracestate": f"dd=s:2;t.dm:-3,ot=rv:{FORWARD_RV};th:{FORWARD_TH}",
             },
         )
 
@@ -262,5 +278,5 @@ class Test_Otlp_Forwards_Inherited_Ot:
         _, _, span = data[0]
 
         ot = _parse_ot_from_trace_state(span.get("traceState", ""))
-        assert ot.get("rv") == OTLP_RV, "inherited rv was not forwarded unchanged onto the exported OTLP span"
-        assert ot.get("th") == OTLP_TH, "inherited th was not forwarded unchanged onto the exported OTLP span"
+        assert ot.get("rv") == FORWARD_RV, "inherited rv was not forwarded unchanged onto the exported OTLP span"
+        assert ot.get("th") == FORWARD_TH, "inherited th was not forwarded unchanged onto the exported OTLP span"

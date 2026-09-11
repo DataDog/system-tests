@@ -19,7 +19,7 @@ from mitmproxy.connection import Client
 from mitmproxy.flow import Error as FlowError
 from mitmproxy.http import HTTPFlow, Request
 
-from ._deserializer import deserialize
+from ._deserializer import deserialize, Interface
 from .ports import ProxyPorts
 from .mocked_response import (
     MOCKED_TRACER_RESPONSES_PATH,
@@ -312,6 +312,7 @@ class _RequestLogger:
         self._modify_response(flow)
 
         # get the interface name
+        interface: Interface
         if proxy_port == ProxyPorts.otel_collector:
             interface = "otel_collector"
         elif proxy_port == ProxyPorts.open_telemetry_weblog:
