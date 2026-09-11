@@ -1562,6 +1562,8 @@ manifest:
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
   tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED: missing_feature
+  tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME: v2.6.0
+  tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_default_follows_otel_spec: irrelevant
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids: v1.50.0
   tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd: v1.72.0-dev
   tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd::test_dogstatsd_default: incomplete_test_app (PHP parameteric app can not access the dogstatsd default values, this logic is internal to the tracer)
@@ -1846,7 +1848,6 @@ manifest:
   tests/stats/test_stats.py::Test_Client_Stats_Missing_Obfuscation_Version: v2.9.1
   tests/stats/test_stats.py::Test_Client_Stats_Obfuscation_Version_Zero: v2.9.1
   tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation: v2.9.1
-  tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation_Disabled: missing_feature
   tests/stats/test_stats.py::Test_Stats_Service_Source: irrelevant (Only implemented for Java)
   tests/test_baggage.py::Test_Baggage_Headers_Api_Datadog: incomplete_test_app (/otel_drop_in_baggage_api_datadog endpoint is not implemented)
   tests/test_baggage.py::Test_Baggage_Headers_Api_OTel: incomplete_test_app (/otel_drop_in_baggage_api_otel endpoint is not implemented)

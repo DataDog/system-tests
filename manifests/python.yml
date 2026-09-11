@@ -1908,6 +1908,9 @@ manifest:
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
   tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED: v4.11.0
   tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_default_matches_specification: bug (APMAPI-2416)
+  tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME: v4.11.0
+  tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_default_follows_otel_spec: irrelevant
+  tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_empty_is_treated_as_unset: bug (APMAPI-2414)
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids: v2.6.0
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3single_128_bit_generation_disabled: irrelevant (Supports the value `b3` instead of the deprecated `B3 single header`)
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3single_128_bit_generation_enabled: irrelevant (Supports the value `b3` instead of the deprecated `B3 single header`)
@@ -2311,7 +2314,6 @@ manifest:
   tests/stats/test_stats.py::Test_Client_Stats_Missing_Obfuscation_Version: '>=4.11.0'
   tests/stats/test_stats.py::Test_Client_Stats_Obfuscation_Version_Zero: '>=4.11.0'
   tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation: '>=4.11.0'
-  tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation_Disabled: '>=4.11.0'
   tests/stats/test_stats.py::Test_Stats_Service_Source: irrelevant (Only implemented for Java)
   tests/stats/test_stats.py::Test_Time_Bucketing::test_client_side_stats_bucket_alignment:  # Modified by easy win activation script
     - weblog_declaration:
