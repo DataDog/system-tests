@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from datetime import UTC, datetime
+import hashlib
 import json
 from pathlib import Path
 import time
@@ -30,7 +31,9 @@ if TYPE_CHECKING:
 
 DIRECT_EVP_CA_BUNDLE_SOURCE = "./utils/build/docker/agent/ca-certificates.crt"
 DIRECT_EVP_CA_BUNDLE_CONTAINER_PATH = "/etc/ssl/certs/ca-certificates.crt"
-DIRECT_EVP_SIGNAL_PATHS = frozenset({"/api/v2/exposures", "/api/v2/flagevaluation"})
+DIRECT_EVP_EXPOSURES_PATH = "/api/v2/exposures"
+DIRECT_EVP_FLAGEVALUATIONS_PATH = "/api/v2/flagevaluation"
+DIRECT_EVP_SIGNAL_PATHS = frozenset({DIRECT_EVP_EXPOSURES_PATH, DIRECT_EVP_FLAGEVALUATIONS_PATH})
 DIRECT_EVP_CAPTURE_WAIT_SECONDS = 30
 DIRECT_EVP_CAPTURE_SETTLE_SECONDS = 3
 DIRECT_EVP_RUNTIME_EVIDENCE_FILENAME = "direct_evp_runtime.json"
@@ -434,19 +437,34 @@ class FeatureFlaggingAgentlessEndToEndScenario(AgentlessEndToEndScenario):
         content = data.get("request", {}).get("content")
         if not isinstance(content, dict):
             return False
-        events = content.get("exposures")
-        if not isinstance(events, list):
+
+        if evaluation.signal_path == DIRECT_EVP_EXPOSURES_PATH:
+            events = content.get("exposures")
+        elif evaluation.signal_path == DIRECT_EVP_FLAGEVALUATIONS_PATH:
             events = content.get("flagEvaluations")
+        else:
+            return False
         if not isinstance(events, list):
             return False
-        return any(
-            isinstance(event, dict)
+
+        matching_events = [
+            event
+            for event in events
+            if isinstance(event, dict)
             and isinstance(event.get("flag"), dict)
             and event["flag"].get("key") == evaluation.flag_key
-            and isinstance(event.get("subject"), dict)
-            and event["subject"].get("id") == evaluation.subject_id
-            for event in events
-        )
+        ]
+        if evaluation.signal_path == DIRECT_EVP_EXPOSURES_PATH:
+            return any(
+                isinstance(event.get("subject"), dict) and event["subject"].get("id") == evaluation.subject_id
+                for event in matching_events
+            )
+
+        expected_targeting_keys = {
+            evaluation.subject_id,
+            f"sha256_{hashlib.sha256(evaluation.subject_id.encode()).hexdigest()}",
+        }
+        return any(event.get("targeting_key") in expected_targeting_keys for event in matching_events)
 
     @staticmethod
     def _stopped_container_state(container: Container) -> dict[str, Any]:
@@ -612,7 +630,9 @@ class FeatureFlaggingAgentlessEndToEndScenario(AgentlessEndToEndScenario):
         if self.replay or self.exposure_egress is None or is_empty_test_run:
             return
         if not self._expected_evp_capture_paths and self._shutdown_evp_evaluation is None:
-            raise RuntimeError("A non-empty Feature Flags EVP run registered no expected capture paths")
+            # Manifest-deactivated tests remain collected when --skip-empty-scenario is disabled,
+            # but their setup methods never run and therefore register no capture expectations.
+            return
 
         interface = interfaces.datadog_sidecar if self.exposure_egress == "sidecar" else interfaces.datadog_direct
         missing_paths: list[str] = []
@@ -636,7 +656,12 @@ class FeatureFlaggingAgentlessEndToEndScenario(AgentlessEndToEndScenario):
         try:
             self._wait_for_expected_evp_captures(is_empty_test_run=is_empty_test_run)
         finally:
-            if self.replay and self.exposure_egress == "direct":
+            if (
+                self.replay
+                and self.exposure_egress == "direct"
+                and not is_empty_test_run
+                and self._direct_evp_runtime_evidence_path.exists()
+            ):
                 self._last_direct_evp_runtime_evidence = json.loads(
                     self._direct_evp_runtime_evidence_path.read_text(encoding="utf-8")
                 )

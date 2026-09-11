@@ -1,6 +1,7 @@
 """Unit coverage for the mock FFE agentless backend test fixture."""
 
 from collections.abc import Callable
+import hashlib
 from pathlib import Path
 from typing import Any, Literal
 from unittest.mock import MagicMock
@@ -189,15 +190,16 @@ def test_agentless_exposure_scenario_has_no_agent_and_two_capture_routes(
 
 @scenarios.test_the_test
 @features.not_reported
-def test_agentless_evp_capture_registry_rejects_missing_and_unknown_paths() -> None:
+def test_agentless_evp_capture_registry_allows_unregistered_and_rejects_unknown_paths() -> None:
     scenario = FeatureFlaggingAgentlessEndToEndScenario(
         "MOCK_FFE_AGENTLESS_DIRECT_CAPTURE_REGISTRY",
         doc="test",
         exposure_egress="direct",
     )
 
-    with pytest.raises(RuntimeError, match="registered no expected capture paths"):
-        scenario._wait_for_expected_evp_captures(is_empty_test_run=False)  # noqa: SLF001
+    # Manifest-deactivated items are still collected without --skip-empty-scenario, but their
+    # setup methods do not run and therefore register no capture expectations.
+    scenario._wait_for_expected_evp_captures(is_empty_test_run=False)  # noqa: SLF001
 
     # Empty selections and replay runs have no live setup phase and therefore need no registration.
     scenario._wait_for_expected_evp_captures(is_empty_test_run=True)  # noqa: SLF001
@@ -206,6 +208,42 @@ def test_agentless_evp_capture_registry_rejects_missing_and_unknown_paths() -> N
 
     with pytest.raises(ValueError, match="Unsupported Feature Flags EVP path"):
         scenario.register_expected_evp_capture("/api/v2/not-a-signal")
+
+
+@pytest.mark.parametrize(
+    "captured_targeting_key",
+    [
+        "shutdown-user",
+        f"sha256_{hashlib.sha256(b'shutdown-user').hexdigest()}",
+    ],
+)
+@scenarios.test_the_test
+@features.not_reported
+def test_direct_evp_shutdown_matcher_supports_flagevaluation_targeting_keys(
+    captured_targeting_key: str,
+) -> None:
+    evaluation = agentless_endtoend_scenarios.DirectEVPShutdownEvaluation(
+        signal_path="/api/v2/flagevaluation",
+        request_path="/ffe",
+        body={},
+        flag_key="shutdown-flag",
+        subject_id="shutdown-user",
+    )
+    capture = {
+        "path": "/api/v2/flagevaluation",
+        "request": {
+            "content": {
+                "flagEvaluations": [
+                    {
+                        "flag": {"key": "shutdown-flag"},
+                        "targeting_key": captured_targeting_key,
+                    }
+                ]
+            }
+        },
+    }
+
+    assert FeatureFlaggingAgentlessEndToEndScenario._capture_has_shutdown_evaluation(capture, evaluation)  # noqa: SLF001
 
 
 @scenarios.test_the_test
@@ -264,6 +302,42 @@ def test_agentless_evp_capture_wait_happens_before_container_stop(monkeypatch: p
     scenario._wait_and_stop_containers(is_empty_test_run=False)  # noqa: SLF001
 
     assert lifecycle == ["capture", "stop"]
+
+
+@scenarios.test_the_test
+@features.not_reported
+@pytest.mark.parametrize("run_selection", ["manifest-deactivated", "empty"])
+def test_direct_evp_replay_skips_missing_runtime_evidence(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    run_selection: Literal["manifest-deactivated", "empty"],
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    scenario = FeatureFlaggingAgentlessEndToEndScenario(
+        "MOCK_FFE_AGENTLESS_DIRECT_EMPTY_REPLAY",
+        doc="test",
+        exposure_egress="direct",
+    )
+    Path(scenario.host_log_folder).mkdir()
+    scenario.replay = True
+    is_empty_test_run = run_selection == "empty"
+
+    stop_containers = MagicMock()
+    load_interfaces = MagicMock()
+    sidecar_errors = MagicMock()
+    direct_errors = MagicMock()
+    monkeypatch.setattr(endtoend_scenarios.DdTraceEndToEndScenario, "_wait_and_stop_containers", stop_containers)
+    monkeypatch.setattr(scenario, "_load_telemetry_interfaces", load_interfaces)
+    monkeypatch.setattr(interfaces.datadog_sidecar, "check_deserialization_errors", sidecar_errors)
+    monkeypatch.setattr(interfaces.datadog_direct, "check_deserialization_errors", direct_errors)
+
+    scenario._wait_and_stop_containers(is_empty_test_run=is_empty_test_run)  # noqa: SLF001
+
+    assert scenario._last_direct_evp_runtime_evidence is None  # noqa: SLF001
+    stop_containers.assert_called_once_with(is_empty_test_run=is_empty_test_run)
+    load_interfaces.assert_called_once_with()
+    sidecar_errors.assert_called_once_with()
+    direct_errors.assert_called_once_with()
 
 
 @scenarios.test_the_test
