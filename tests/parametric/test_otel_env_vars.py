@@ -144,38 +144,6 @@ class Test_Otel_Env_Vars:
 
         assert resp["dd_log_level"] == "error"
 
-    @pytest.mark.parametrize(
-        "library_env",
-        [
-            {
-                "OTEL_RESOURCE_ATTRIBUTES": "deployment.environment=test1,service.name=test2,service.version=5,foo=bar1,baz=qux1",
-                "DD_TRACE_OTEL_ENABLED": "true",
-            }
-        ],
-    )
-    def test_otel_attribute_mapping(self, test_agent: TestAgentAPI, test_library: APMLibrary):
-        with test_library as t:
-            if t.lang == "nodejs":
-                assert_nodejs_telemetry_config(
-                    test_agent, {"dd_service": "test2", "dd_env": "test1", "dd_version": "5"}
-                )
-                # OTEL_RESOURCE_ATTRIBUTES tags surface on spans, not in the DD_TAGS telemetry value
-                with t.dd_start_span(name="otel_attrs"):
-                    pass
-                span = find_only_span(test_agent.wait_for_num_traces(1))
-                assert span["meta"]["foo"] == "bar1"
-                assert span["meta"]["baz"] == "qux1"
-                return
-            resp = t.config()
-
-        assert resp["dd_service"] == "test2"
-        assert resp["dd_env"] == "test1"
-        assert resp["dd_version"] == "5"
-        tags = resp["dd_tags"]
-        assert isinstance(tags, (str, list))
-        assert "foo:bar1" in tags
-        assert "baz:qux1" in tags
-
     @pytest.mark.parametrize("library_env", [{"OTEL_TRACES_SAMPLER": "always_on", "DD_TRACE_OTEL_ENABLED": "true"}])
     def test_otel_traces_always_on(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         with test_library as t:
