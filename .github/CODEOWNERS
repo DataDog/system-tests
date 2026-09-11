@@ -1,3 +1,8 @@
+# Rule of thumb:
+#
+# * any file in tests *should* be owned by a feature team, @DataDog/system-tests-reviewers is the default
+# * any file in utils *must* be co-owned by @DataDog/system-tests-core
+
 # Default
 * @DataDog/system-tests-core
 
