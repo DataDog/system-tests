@@ -176,82 +176,6 @@ class Test_Otel_Env_Vars:
         assert "foo:bar1" in tags
         assert "baz:qux1" in tags
 
-    @pytest.mark.parametrize("library_env", [{"OTEL_TRACES_SAMPLER": "always_on", "DD_TRACE_OTEL_ENABLED": "true"}])
-    def test_otel_traces_always_on(self, test_agent: TestAgentAPI, test_library: APMLibrary):
-        with test_library as t:
-            if t.lang == "nodejs":
-                assert float(str(nodejs_telemetry_value(test_agent, "dd_trace_sample_rate"))) == 1.0
-                return
-            resp = t.config()
-            assert isinstance(resp["dd_trace_sample_rate"], (float, str, bool, int))
-            assert float(resp["dd_trace_sample_rate"]) == 1.0
-
-    @pytest.mark.parametrize("library_env", [{"OTEL_TRACES_SAMPLER": "always_off", "DD_TRACE_OTEL_ENABLED": "true"}])
-    def test_otel_traces_always_off(self, test_agent: TestAgentAPI, test_library: APMLibrary):
-        with test_library as t:
-            if t.lang == "nodejs":
-                assert float(str(nodejs_telemetry_value(test_agent, "dd_trace_sample_rate"))) == 0.0
-                return
-            resp = t.config()
-        assert isinstance(resp["dd_trace_sample_rate"], (float, str, bool, int))
-        assert float(resp["dd_trace_sample_rate"]) == 0.0
-
-    @pytest.mark.parametrize(
-        "library_env",
-        [{"OTEL_TRACES_SAMPLER": "traceidratio", "OTEL_TRACES_SAMPLER_ARG": "0.1", "DD_TRACE_OTEL_ENABLED": "true"}],
-    )
-    def test_otel_traces_traceidratio(self, test_agent: TestAgentAPI, test_library: APMLibrary):
-        with test_library as t:
-            if t.lang == "nodejs":
-                assert float(str(nodejs_telemetry_value(test_agent, "dd_trace_sample_rate"))) == 0.1
-                return
-            resp = t.config()
-        assert isinstance(resp["dd_trace_sample_rate"], (float, str, bool, int))
-        assert float(resp["dd_trace_sample_rate"]) == 0.1
-
-    @pytest.mark.parametrize(
-        "library_env", [{"OTEL_TRACES_SAMPLER": "parentbased_always_on", "DD_TRACE_OTEL_ENABLED": "true"}]
-    )
-    def test_otel_traces_parentbased_on(self, test_agent: TestAgentAPI, test_library: APMLibrary):
-        with test_library as t:
-            if t.lang == "nodejs":
-                assert float(str(nodejs_telemetry_value(test_agent, "dd_trace_sample_rate"))) == 1.0
-                return
-            resp = t.config()
-        assert isinstance(resp["dd_trace_sample_rate"], (float, str, bool, int))
-        assert float(resp["dd_trace_sample_rate"]) == 1.0
-
-    @pytest.mark.parametrize(
-        "library_env", [{"OTEL_TRACES_SAMPLER": "parentbased_always_off", "DD_TRACE_OTEL_ENABLED": "true"}]
-    )
-    def test_otel_traces_parentbased_off(self, test_agent: TestAgentAPI, test_library: APMLibrary):
-        with test_library as t:
-            if t.lang == "nodejs":
-                assert float(str(nodejs_telemetry_value(test_agent, "dd_trace_sample_rate"))) == 0.0
-                return
-            resp = t.config()
-        assert isinstance(resp["dd_trace_sample_rate"], (float, str, bool, int))
-        assert float(resp["dd_trace_sample_rate"]) == 0.0
-
-    @pytest.mark.parametrize(
-        "library_env",
-        [
-            {
-                "OTEL_TRACES_SAMPLER": "parentbased_traceidratio",
-                "OTEL_TRACES_SAMPLER_ARG": "0.1",
-                "DD_TRACE_OTEL_ENABLED": "true",
-            }
-        ],
-    )
-    def test_otel_traces_parentbased_ratio(self, test_agent: TestAgentAPI, test_library: APMLibrary):
-        with test_library as t:
-            if t.lang == "nodejs":
-                assert float(str(nodejs_telemetry_value(test_agent, "dd_trace_sample_rate"))) == 0.1
-                return
-            resp = t.config()
-        assert isinstance(resp["dd_trace_sample_rate"], (float, str, bool, int))
-        assert float(resp["dd_trace_sample_rate"]) == 0.1
-
     @pytest.mark.parametrize(
         "library_env",
         [{"OTEL_LOG_LEVEL": "debug", "DD_TRACE_OTEL_ENABLED": "true", "DD_TRACE_STARTUP_LOGS": "true"}],
@@ -267,17 +191,3 @@ class Test_Otel_Env_Vars:
         assert resp["dd_trace_debug"] == "true"
         # If dd_log_level is set it must be consistent with dd_trace_debug
         assert (resp["dd_log_level"] == "debug") or (resp["dd_log_level"] is None)
-
-    @pytest.mark.parametrize("library_env", [{"OTEL_TRACES_SAMPLER": "always_on", "DD_TRACE_OTEL_ENABLED": "true"}])
-    def test_dd_trace_sample_ignore_parent_true(self, test_library: APMLibrary):
-        with test_library as t:
-            resp = t.config()
-        assert resp["dd_trace_sample_ignore_parent"] == "true"
-
-    @pytest.mark.parametrize(
-        "library_env", [{"OTEL_TRACES_SAMPLER": "parentbased_always_off", "DD_TRACE_OTEL_ENABLED": "true"}]
-    )
-    def test_dd_trace_sample_ignore_parent_false(self, test_library: APMLibrary):
-        with test_library as t:
-            resp = t.config()
-        assert resp["dd_trace_sample_ignore_parent"] == "false"
