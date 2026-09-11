@@ -8,6 +8,7 @@ import sqlite3
 import subprocess
 import sys
 from http import HTTPStatus
+from pathlib import Path
 from typing import Any, ClassVar
 from urllib.parse import parse_qs
 
@@ -203,6 +204,37 @@ class StatsUniqueHandler(BaseHandler):
         self.set_status(code)
         if code != HTTPStatus.NO_CONTENT:
             self.write("OK, probably")
+
+
+def write_thread_context(path: str) -> dict[str, str] | None:
+    span = tracer.current_span()
+    if span is None:
+        return None
+
+    with Path(path).open("w") as f:
+        f.write("system-tests thread context sharing")
+
+    return {
+        "trace_id": str(span.trace_id),
+        "span_id": str(span.span_id),
+    }
+
+
+async def write_thread_context_after_yield(path: str) -> dict[str, str] | None:
+    # Force a task switch before the syscall so Tornado validates child-task context restoration.
+    await asyncio.sleep(0)
+    return write_thread_context(path)
+
+
+class ThreadContextSharingHandler(BaseHandler):
+    async def get(self) -> None:
+        result = await asyncio.create_task(write_thread_context_after_yield(self.get_argument("path")))
+        if result is None:
+            self.set_status(HTTPStatus.INTERNAL_SERVER_ERROR)
+            return
+
+        self.set_header("Content-Type", "application/json")
+        self.write(json.dumps(result))
 
 
 class HealthcheckHandler(BaseHandler):
@@ -1060,6 +1092,7 @@ def make_app() -> Application:
             (r"/status", StatusHandler),
             (r"/stats-unique", StatsUniqueHandler),
             (r"/healthcheck", HealthcheckHandler),
+            (r"/security/thread_context_sharing", ThreadContextSharingHandler),
             # WAF endpoints
             (r"/waf/?", WafHandler),
             (r"/waf/(.+)", WafHandler),
