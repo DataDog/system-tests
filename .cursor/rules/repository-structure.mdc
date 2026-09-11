@@ -120,3 +120,10 @@ system-tests/
       ...
   ```
 - Never define a setup method without a matching test method.
+
+## 6. No Cross-Test-File Imports
+
+- A test file (`test_*.py`) must never import anything from another test file, whether through an absolute import such as `from tests.xxx.test_yyy import ...` or a relative import such as `from .test_yyy import ...`.
+- If logic needs to be shared between test files, move it into a non-test utility module and have both test files import from there.
+- Existing exceptions are explicitly listed in `.importlinter`. Do not add a new exception; refactor the shared logic instead.
+- This is enforced by the `Test files do not import other test files` Import Linter contract run by `./format.sh`.

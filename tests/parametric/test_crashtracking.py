@@ -2,7 +2,7 @@
 
 import base64
 import json
-import pytest
+from utils import pytest
 
 from utils import features, scenarios, logger
 from utils.docker_fixtures import TestAgentAPI, ParametricTestClientApi as APMLibrary

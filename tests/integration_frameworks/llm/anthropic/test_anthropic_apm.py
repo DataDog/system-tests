@@ -1,7 +1,7 @@
 from utils import context, scenarios, features
 from utils.docker_fixtures import FrameworkTestClientApi, TestAgentAPI
 
-import pytest
+from utils import pytest
 
 from .utils import BaseAnthropicTest
 

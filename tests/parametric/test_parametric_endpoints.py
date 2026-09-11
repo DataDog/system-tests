@@ -8,7 +8,7 @@ the OpenAPI schema: https://github.com/DataDog/system-tests/blob/44281005e9d2dde
 
 from typing import Any
 
-import pytest
+from utils import pytest
 import time
 
 from opentelemetry.trace import SpanKind

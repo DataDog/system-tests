@@ -6,7 +6,7 @@ import uuid
 from pathlib import Path
 from typing import Any
 
-import pytest
+from utils import pytest
 import yaml
 
 from utils import (

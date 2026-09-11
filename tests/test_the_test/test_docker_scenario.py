@@ -1,7 +1,7 @@
 from threading import RLock
 from unittest.mock import MagicMock
 
-import pytest
+from utils import pytest
 
 from utils import interfaces, scenarios
 from utils._context._scenarios.endtoend import DdTraceEndToEndScenario, DockerScenario

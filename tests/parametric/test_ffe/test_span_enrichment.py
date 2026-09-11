@@ -20,7 +20,7 @@ This module tests:
 """
 
 import json
-import pytest
+from utils import pytest
 from pathlib import Path
 from typing import Any
 

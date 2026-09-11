@@ -3,7 +3,7 @@ from tests.integration_frameworks.llm.utils import assert_llmobs_span_event
 from utils import features, scenarios
 from utils.docker_fixtures import FrameworkTestClientApi, TestAgentAPI
 
-import pytest
+from utils import pytest
 from unittest import mock
 from typing import Any
 

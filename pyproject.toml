@@ -247,4 +247,3 @@ ignore = [
     "S506",    # unsafe-yaml-load: TODO
 ]
 "utils/waf_rules.py" = ["N801"]  # generated file
-
