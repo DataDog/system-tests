@@ -887,8 +887,8 @@ class _Scenarios:
             ),
             "DD_TRACE_SAMPLE_RATE": "0",
         },
-        backend_interface_timeout=5,
-        require_api_key=True,
+        mocked_backend_v2=True,
+        use_proxy_for_agent=False,
         doc="",
     )
     apm_tracing_otlp = DdTraceEndToEndScenario(

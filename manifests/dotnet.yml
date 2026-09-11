@@ -864,6 +864,11 @@ manifest:
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED: v3.37.0
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_default_matches_specification: bug (APMAPI-2417)
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_stable_false: bug (APMAPI-2417)
+  tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME: v3.37.0
+  tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_default_follows_otel_spec: irrelevant
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids: v2.42.0
   tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd: missing_feature (does not support hostname)
   tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd::test_dogstatsd_default:
@@ -886,6 +891,7 @@ manifest:
     - declaration: bug (APMRP-360)
       component_version: <=2.53.2
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled: v2.49.0
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_default_capability_completeness: missing_feature (FFL-2703 declares FFE_FLAG_CONFIGURATION_RULES for dotnet from 3.54.0)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_tracing_client_tracing_disable_one_way: irrelevant (dotnet tracer supports re-enabling over RC)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1: v2.33.0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1::test_trace_sampling_rate_override_default:
@@ -1229,7 +1235,6 @@ manifest:
     - weblog_declaration:
         uds: '>=3.43.0'
         poc: '>=3.43.0'
-  tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation_Disabled: missing_feature
   tests/stats/test_stats.py::Test_Error_Sampler:
     - weblog_declaration:
         uds: '>=3.43.0'
