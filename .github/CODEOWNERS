@@ -20,7 +20,6 @@
 # SDK cap
 /utils/telemetry/intake/ @DataDog/apm-sdk-capabilities @DataDog/system-tests-core
 /utils/telemetry/intake/static/ @DataDog/apm-sdk @DataDog/system-tests-core
-/tests/parametric/ @DataDog/apm-sdk-capabilities
 /tests/parametric/test_config_consistency.py @DataDog/apm-sdk-capabilities
 
 # ML Obs
