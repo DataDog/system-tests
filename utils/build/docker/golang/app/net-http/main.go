@@ -41,6 +41,7 @@ import (
 	_ "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry/metric"
 	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 	"github.com/DataDog/dd-trace-go/v2/profiler"
+	of "github.com/open-feature/go-sdk/openfeature"
 )
 
 func main() {
@@ -813,10 +814,29 @@ func main() {
 	signal.Notify(c, syscall.SIGTERM)
 	<-c
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	if err := srv.Shutdown(ctx); err != nil {
-		logrus.Fatalf("HTTP shutdown error: %v", err)
+	httpShutdownCtx, httpShutdownCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	httpShutdownErr := srv.Shutdown(httpShutdownCtx)
+	httpShutdownCancel()
+	if httpShutdownErr != nil {
+		logrus.Fatalf("HTTP shutdown error: %v", httpShutdownErr)
+	}
+
+	// The direct-EVP shutdown test proves the normal OpenFeature lifecycle: stop
+	// accepting evaluations, record that boundary, then let the provider drain its
+	// buffered events before the process exits. Keep this opt-in so unrelated
+	// scenarios retain the weblog's historical shutdown behavior.
+	if os.Getenv("SYSTEM_TESTS_FFE_SHUTDOWN_FLUSH_ENABLED") == "true" {
+		if err := json.NewEncoder(os.Stdout).Encode(map[string]string{
+			"event":     "system_tests.ffe.shutdown.server_closed",
+			"timestamp": time.Now().UTC().Format(time.RFC3339Nano),
+		}); err != nil {
+			logrus.Fatalf("shutdown marker error: %v", err)
+		}
+		providerShutdownCtx, providerShutdownCancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer providerShutdownCancel()
+		if err := of.ShutdownWithContext(providerShutdownCtx); err != nil {
+			logrus.Fatalf("OpenFeature shutdown error: %v", err)
+		}
 	}
 }
 
