@@ -76,9 +76,14 @@ if [ "$(printf '%s\n' "7.1" "$PHP_VERSION" | sort -V | head -n1)" = "7.1" ]; the
   # Only enable profiling if the bundle actually contains a profiling extension.
   # When installing from a local package that was built without profiling support,
   # passing --enable-profiling causes datadog-setup.php to exit with an error.
+  # Older packages ship a separate "datadog-profiling[.-]*" binary; newer combined
+  # (tracer+profiling in one ddtrace.so) packages instead ship a per-API-version
+  # marker file named ".ddtrace[-zts|-debug].profiling" (see datadog-setup.php's
+  # $shouldInstallProfiling). Check for either so this works regardless of which
+  # package format is being installed.
   PKG_HAS_PROFILING=0
   if [ -n "${PKG:-}" ]; then
-    if tar -tzf "$PKG" 2>/dev/null | grep -q "datadog-profiling"; then
+    if tar -tzf "$PKG" 2>/dev/null | grep -q -e "datadog-profiling" -e '\.ddtrace\(-zts\|-debug\)\?\.profiling$'; then
       PKG_HAS_PROFILING=1
     fi
   else
