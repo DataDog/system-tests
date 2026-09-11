@@ -20,6 +20,10 @@ stages:
 
 variables:
     TEST: 1
+    # dd-repo-tools mirror_images.py (pinned). Used by the mirror_images_* jobs, and
+    # picked up by update_mirror_images.py, which reads it from the environment.
+    # Keep in sync with the default in utils/scripts/update_mirror_images.py.
+    MIRROR_IMAGES_URL: "https://binaries.ddbuild.io/dd-repo-tools/default/ca/457b58d8c5ae7dad8ce0cba3c5d99171a843d678/mirror_images.py"
     # Destination registry for mirrored CI images.
     MIRROR_DEST_REGISTRY: "registry.ddbuild.io/system-tests/mirror"
 
