@@ -1911,6 +1911,7 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME: v4.11.0
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_default_follows_otel_spec: irrelevant
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_empty_is_treated_as_unset: bug (APMAPI-2414)
+  tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER: v4.11.0
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids: v2.6.0
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3single_128_bit_generation_disabled: irrelevant (Supports the value `b3` instead of the deprecated `B3 single header`)
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3single_128_bit_generation_enabled: irrelevant (Supports the value `b3` instead of the deprecated `B3 single header`)

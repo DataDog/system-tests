@@ -252,19 +252,6 @@ class Test_Otel_Env_Vars:
         assert isinstance(resp["dd_trace_sample_rate"], (float, str, bool, int))
         assert float(resp["dd_trace_sample_rate"]) == 0.1
 
-    @pytest.mark.parametrize("library_env", [{"OTEL_TRACES_EXPORTER": "none", "DD_TRACE_OTEL_ENABLED": "true"}])
-    def test_otel_traces_exporter_none(self, test_agent: TestAgentAPI, test_library: APMLibrary):
-        with test_library as t:
-            if t.lang == "nodejs":
-                # OTEL_TRACES_EXPORTER=none disables tracing; assert no trace is produced
-                with t.dd_start_span(name="disabled"):
-                    pass
-                with pytest.raises(ValueError):
-                    test_agent.wait_for_num_traces(num=1)
-                return
-            resp = t.config()
-        assert resp["dd_trace_enabled"] == "false"
-
     @pytest.mark.parametrize(
         "library_env",
         [{"OTEL_LOG_LEVEL": "debug", "DD_TRACE_OTEL_ENABLED": "true", "DD_TRACE_STARTUP_LOGS": "true"}],

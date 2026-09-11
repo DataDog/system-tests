@@ -869,6 +869,7 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_stable_false: bug (APMAPI-2417)
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME: v3.37.0
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_default_follows_otel_spec: irrelevant
+  tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER: v3.41.0
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids: v2.42.0
   tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd: missing_feature (does not support hostname)
   tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd::test_dogstatsd_default:
