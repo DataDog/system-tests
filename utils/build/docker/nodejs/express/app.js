@@ -972,6 +972,25 @@ const startServer = () => {
       }
     })
 
+    // Direct-EVP shutdown coverage needs Docker's SIGTERM to reach the ordinary Node
+    // process and let dd-trace's beforeExit hooks flush. Keep this opt-in so other
+    // scenarios retain the weblog's historical signal behavior.
+    if (process.env.SYSTEM_TESTS_FFE_SHUTDOWN_FLUSH_ENABLED === 'true') {
+      process.once('SIGTERM', () => {
+        server.close(error => {
+          if (error) {
+            console.error('Failed to close server during SIGTERM:', error)
+            process.exitCode = 1
+            return
+          }
+          console.log(JSON.stringify({
+            event: 'system_tests.ffe.shutdown.server_closed',
+            timestamp: new Date().toISOString()
+          }))
+        })
+      })
+    }
+
     server.listen(7777, '0.0.0.0', () => {
       tracer.trace('init.service', () => {})
       console.log('listening')
