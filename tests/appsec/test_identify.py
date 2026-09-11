@@ -2,11 +2,12 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, interfaces, features
+from utils import weblog, interfaces, features, scenarios
 from utils.dd_types import DataDogLibrarySpan
 
 
 @features.user_monitoring
+@scenarios.appsec_otlp_export_default_rules
 class Test_Basic:
     """Basic tests for Identify SDK for AppSec"""
 

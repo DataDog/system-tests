@@ -7,6 +7,7 @@ from utils.dd_types import is_same_boolean
 
 @rfc("https://docs.google.com/document/d/1iWQsOfT6Lg_IFyvQeqry9wVmXOE2Yav0X4MgOTk7mks")
 @features.security_events_metastruct
+@scenarios.appsec_otlp_export_default_rules
 class Test_SecurityEvents_Appsec_Metastruct_Enabled:
     """Test to verify that appsec events are correctly set in meta struct when supported by the agent."""
 
@@ -29,6 +30,7 @@ class Test_SecurityEvents_Appsec_Metastruct_Enabled:
 
 
 @features.security_events_metastruct
+@scenarios.appsec_otlp_export_default_rules
 class Test_SecurityEvents_Iast_Metastruct_Enabled:
     """Test to verify that IAST events are correctly set in meta struct when supported by the agent."""
 

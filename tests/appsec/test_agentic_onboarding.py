@@ -22,6 +22,7 @@ def _effective_config() -> dict[str, object] | None:
 
 @rfc("https://docs.google.com/document/d/1q1ZnDLFiKlLhGKljOCE8xTUOqdz325Rc3BcKjVan0VY/edit")
 @features.appsec_agentic_onboarding
+@scenarios.appsec_otlp_export_default_rules
 class Test_AppsecAgenticOnboarding:
     """RFC-1113: agentic-onboarding runtime signal (supersedes RFC-1110).
 
