@@ -2276,6 +2276,9 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME: v2.22.0
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_default_follows_otel_spec: irrelevant
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_empty_is_treated_as_unset: bug (APMAPI-2413)
+  tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER: v2.22.0
+  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER: v2.22.0
+  tests/parametric/otel_env_vars/test_otel_traces_sampler_arg.py::Test_OTEL_TRACES_SAMPLER_ARG: v2.22.0
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids: v1.17.0
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3single_128_bit_generation_disabled: irrelevant (Supports the value `b3` instead of the deprecated `B3 single header`)
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3single_128_bit_generation_enabled: irrelevant (Supports the value `b3` instead of the deprecated `B3 single header`)
@@ -2472,8 +2475,6 @@ manifest:
   tests/parametric/test_llm_observability/: irrelevant (library does not implement LLM Observability)
   tests/parametric/test_otel_api_interoperability.py: missing_feature
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: v2.1.0
-  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_false: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
-  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_true: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_log_level_env: missing_feature (DD_LOG_LEVEL is not supported in ruby)
   tests/parametric/test_otel_logs.py: '>=2.34.0-dev'
   tests/parametric/test_otel_logs.py::Test_FR08_Custom_Headers: missing_feature (Ruby net/http titlecases header names; test checks lowercase; fix requires overriding OTLP exporter HTTP headers)

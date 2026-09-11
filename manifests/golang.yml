@@ -1564,6 +1564,9 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED: missing_feature
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME: v2.6.0
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_default_follows_otel_spec: irrelevant
+  tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER: v2.6.0
+  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER: v2.6.0
+  tests/parametric/otel_env_vars/test_otel_traces_sampler_arg.py::Test_OTEL_TRACES_SAMPLER_ARG: v2.3.0
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids: v1.50.0
   tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd: v1.72.0-dev
   tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd::test_dogstatsd_default: incomplete_test_app (PHP parameteric app can not access the dogstatsd default values, this logic is internal to the tracer)
@@ -1696,8 +1699,6 @@ manifest:
   tests/parametric/test_llm_observability/: incomplete_test_app
   tests/parametric/test_otel_api_interoperability.py: missing_feature
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: v1.66.0
-  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_false: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
-  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_true: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_log_level_env: missing_feature (DD_LOG_LEVEL is not supported in go)
   tests/parametric/test_otel_logs.py: '>=2.5.0'  # Modified by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR01_Enable_OTLP_Log_Collection::test_otlp_logs_enabled: missing_feature  # Created by easy win activation script

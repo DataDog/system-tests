@@ -869,6 +869,9 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_stable_false: bug (APMAPI-2417)
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME: v3.37.0
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_default_follows_otel_spec: irrelevant
+  tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER: v3.41.0
+  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER: v3.37.0
+  tests/parametric/otel_env_vars/test_otel_traces_sampler_arg.py::Test_OTEL_TRACES_SAMPLER_ARG: v3.37.0
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids: v2.42.0
   tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd: missing_feature (does not support hostname)
   tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd::test_dogstatsd_default:
@@ -1025,8 +1028,6 @@ manifest:
   tests/parametric/test_llm_observability/: irrelevant (library does not implement LLM Observability)
   tests/parametric/test_otel_api_interoperability.py: missing_feature
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: v2.53.0
-  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_false: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
-  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_true: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_log_level_env: missing_feature (DD_LOG_LEVEL is not supported in .NET)
   tests/parametric/test_otel_logs.py: '>=3.36.0'  # Modified by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR01_Enable_OTLP_Log_Collection::test_otlp_logs_enabled: missing_feature  # Created by easy win activation script
