@@ -186,15 +186,11 @@ app.get("/make_distant_call", (req: Request, res: Response) => {
   console.log(url)
 
   const parsedUrl = new URL(url as string)
+  const method = String(req.query.method || 'GET')
 
-  const options = {
-    hostname: parsedUrl.hostname,
-    port: parsedUrl.port || 80, // Use default port if not provided
-    path: parsedUrl.pathname,
-    method: 'GET'
-  }
-
-  const request = http.request(options, (response: http.IncomingMessage) => {
+  // Passing the URL object preserves query strings and credentials. This endpoint is used by
+  // semantic-convention tests that need the tracer to observe the complete outbound request.
+  const request = http.request(parsedUrl, { method }, (response: http.IncomingMessage) => {
     let responseBody = ''
     response.on('data', (chunk) => {
       responseBody += chunk

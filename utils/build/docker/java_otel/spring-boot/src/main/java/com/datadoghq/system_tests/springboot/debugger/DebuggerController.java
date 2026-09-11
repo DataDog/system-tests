@@ -57,11 +57,13 @@ public class DebuggerController {
 // Dummy line
     @GetMapping("/pii")
     public String pii() {
-        PiiBase pii = new Pii();
-        PiiBase customPii = new CustomPii();
+        Pii pii = new Pii();
+        CustomPii customPii = new CustomPii();
         String value = pii.TestValue;
         String customValue = customPii.TestValue;
-        return "PII " + value + ". CustomPII" + customValue; // must be line 64
+        String password = "DIRECT_SECRET_VALUE";
+        Map<String, String> user = createPiiUser();
+        return "PII " + value + ". CustomPII" + customValue + ". Data size " + (password.length() + user.size()); // must be line 66
     }
 
     @GetMapping("/expression")
@@ -154,5 +156,13 @@ public class DebuggerController {
         } catch (ResponseStatusException ex) {
             throw new ResponseStatusException(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR, "Outer exception", ex);
         }
+    }
+
+    private static Map<String, String> createPiiUser() {
+        Map<String, String> user = new HashMap<>();
+        user.put("password", "MAP_SECRET_VALUE");
+        user.put("_2fa", "EXCLUDED_IDENTIFIER_VALUE");
+        user.put("name", "NON_SENSITIVE_VALUE");
+        return user;
     }
 }

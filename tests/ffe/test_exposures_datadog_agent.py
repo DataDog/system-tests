@@ -726,6 +726,283 @@ class Test_FFE_Exposure_Caching_Variant_Cycle:
 
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_exposures
+class Test_FFE_Exposure_Serial_Id:
+    """Test that the split serial id is reported on the exposure event.
+
+    The compiler rewrites a holdout into an ordinary allocation before an SDK receives the
+    configuration, so an exposure records no holdout. The serial id of the split the subject
+    landed in is the only link back to it. A split without a serial id is normal, and the
+    field must then be absent from the event rather than sent as null or zero.
+
+    Both flags are asserted in one test. An SDK that never sends the field would satisfy the
+    absent case on its own, so the two only discriminate together.
+    """
+
+    def setup_ffe_exposure_serial_id(self) -> None:
+        """Evaluate one flag whose split carries a serial id and one whose split does not."""
+        self.flag_with = "serial-id-present-flag"
+        self.flag_without = "serial-id-absent-flag"
+        self.targeting_key = "serial-id-user"
+
+        rc.tracer_rc_state.reset().set_config(
+            f"{RC_PATH}/ffe-serial-id-present/config",
+            make_ufc_fixture(self.flag_with, serial_id=340132),
+        ).apply()
+
+        self.response_with = weblog.post(
+            "/ffe",
+            json={
+                "flag": self.flag_with,
+                "variationType": "STRING",
+                "defaultValue": "default",
+                "targetingKey": self.targeting_key,
+                "attributes": {},
+            },
+        )
+
+        rc.tracer_rc_state.set_config(
+            f"{RC_PATH}/ffe-serial-id-absent/config",
+            make_ufc_fixture(self.flag_without),
+        ).apply()
+
+        self.response_without = weblog.post(
+            "/ffe",
+            json={
+                "flag": self.flag_without,
+                "variationType": "STRING",
+                "defaultValue": "default",
+                "targetingKey": self.targeting_key,
+                "attributes": {},
+            },
+        )
+
+    def test_ffe_exposure_serial_id(self) -> None:
+        """Test that serial_id carries the split value, and is omitted when the split has none."""
+        assert self.response_with.status_code == 200, f"Flag evaluation failed: {self.response_with.text}"
+        assert self.response_without.status_code == 200, f"Flag evaluation failed: {self.response_without.text}"
+
+        # Wait for each flag separately. A combined wait releases on whichever payload
+        # arrives first, and the two evaluations straddle a configuration refresh.
+        wait_for_exposure_event({self.flag_with}, self.targeting_key)
+        wait_for_exposure_event({self.flag_without}, self.targeting_key)
+
+        events_with = find_exposure_events(self.flag_with, self.targeting_key)
+        assert len(events_with) == 1, (
+            f"Expected exactly 1 exposure event for {self.flag_with}, found {len(events_with)}"
+        )
+        assert "serial_id" in events_with[0], f"Exposure event is missing 'serial_id': {events_with[0]}"
+        assert events_with[0]["serial_id"] == 340132, f"Expected serial_id 340132, got {events_with[0]['serial_id']!r}"
+
+        events_without = find_exposure_events(self.flag_without, self.targeting_key)
+        assert len(events_without) == 1, (
+            f"Expected exactly 1 exposure event for {self.flag_without}, found {len(events_without)}"
+        )
+        assert "serial_id" not in events_without[0], (
+            f"Expected 'serial_id' to be absent when the split carries none, got {events_without[0]!r}"
+        )
+
+
+@scenarios.feature_flagging_and_experimentation
+@features.feature_flags_exposures
+class Test_FFE_Exposure_Caching_Serial_Id_Appears:
+    """Test that a serial id appearing on an unchanged assignment generates a new exposure.
+
+    A split can gain a serial id on a later configuration refresh while the allocation and the
+    variant stay the same. That is a new assignment and must be reported. An exposure cache
+    keyed on (allocation_key, variant) alone suppresses it, which loses the only link back to
+    the holdout.
+
+    The serial id that appears is 0. Serial ids start at 0 for each organization, so 0 is a
+    valid value held by the oldest allocation in every organization. An SDK that tests the
+    value for truthiness, or that omits an empty value when it serializes, treats 0 as no
+    serial id: it reports no second exposure here, and it drops the field from the payload.
+    """
+
+    def setup_ffe_exposure_caching_serial_id_appears(self) -> None:
+        """Set up an FFE exposure test where the serial id appears on a refresh."""
+        config_id = "ffe-serial-id-appears-test"
+        self.flag_key = "serial-id-appears-flag"
+        self.targeting_key = "serial-id-appears-user"
+
+        # Step 1: same allocation and variant, no serial id
+        rc.tracer_rc_state.reset().set_config(
+            f"{RC_PATH}/{config_id}/config",
+            make_ufc_fixture(self.flag_key, "variant-a", allocation_key="default-allocation"),
+        ).apply()
+
+        self.response_1 = weblog.post(
+            "/ffe",
+            json={
+                "flag": self.flag_key,
+                "variationType": "STRING",
+                "defaultValue": "default",
+                "targetingKey": self.targeting_key,
+                "attributes": {},
+            },
+        )
+
+        # Step 2: same allocation and variant, serial id of 0 now present
+        rc.tracer_rc_state.set_config(
+            f"{RC_PATH}/{config_id}/config",
+            make_ufc_fixture(self.flag_key, "variant-a", allocation_key="default-allocation", serial_id=0),
+        ).apply()
+
+        self.response_2 = weblog.post(
+            "/ffe",
+            json={
+                "flag": self.flag_key,
+                "variationType": "STRING",
+                "defaultValue": "default",
+                "targetingKey": self.targeting_key,
+                "attributes": {},
+            },
+        )
+
+    def test_ffe_exposure_caching_serial_id_appears(self) -> None:
+        """Test that no serial id then a serial id generates 2 exposures."""
+        assert self.response_1.status_code == 200, f"Request 1 failed: {self.response_1.text}"
+        assert self.response_2.status_code == 200, f"Request 2 failed: {self.response_2.text}"
+
+        exposure_count = wait_for_min_exposure_count(self.flag_key, 2, self.targeting_key)
+
+        assert exposure_count == 2, (
+            f"Expected exactly 2 exposure events for subject '{self.targeting_key}' "
+            f"(no serial id, then serial id 0, with the allocation and variant unchanged), "
+            f"but found {exposure_count} events"
+        )
+
+        events = find_exposure_events(self.flag_key, self.targeting_key)
+        assert "serial_id" not in events[0], f"First exposure should carry no serial id, got {events[0]!r}"
+        assert events[1].get("serial_id") == 0, f"Second exposure should carry serial id 0, got {events[1]!r}"
+
+
+@scenarios.feature_flagging_and_experimentation
+@features.feature_flags_exposures
+class Test_FFE_Exposure_Caching_Serial_Id_Disappears:
+    """Test that a serial id removed from an unchanged assignment generates a new exposure.
+
+    A split can lose its serial id on a later configuration refresh while the allocation and
+    the variant stay the same. The subject is no longer in the holdout that the serial id
+    identified, so that is a new assignment and must be reported. This is the reverse of the
+    case where a serial id appears, and an SDK that only compares a present value against
+    another present value misses it.
+    """
+
+    def setup_ffe_exposure_caching_serial_id_disappears(self) -> None:
+        """Set up an FFE exposure test where the serial id is removed on a refresh."""
+        config_id = "ffe-serial-id-disappears-test"
+        self.flag_key = "serial-id-disappears-flag"
+        self.targeting_key = "serial-id-disappears-user"
+
+        # Step 1: same allocation and variant, serial id present
+        rc.tracer_rc_state.reset().set_config(
+            f"{RC_PATH}/{config_id}/config",
+            make_ufc_fixture(self.flag_key, "variant-a", allocation_key="default-allocation", serial_id=340132),
+        ).apply()
+
+        self.response_1 = weblog.post(
+            "/ffe",
+            json={
+                "flag": self.flag_key,
+                "variationType": "STRING",
+                "defaultValue": "default",
+                "targetingKey": self.targeting_key,
+                "attributes": {},
+            },
+        )
+
+        # Step 2: same allocation and variant, serial id removed
+        rc.tracer_rc_state.set_config(
+            f"{RC_PATH}/{config_id}/config",
+            make_ufc_fixture(self.flag_key, "variant-a", allocation_key="default-allocation"),
+        ).apply()
+
+        self.response_2 = weblog.post(
+            "/ffe",
+            json={
+                "flag": self.flag_key,
+                "variationType": "STRING",
+                "defaultValue": "default",
+                "targetingKey": self.targeting_key,
+                "attributes": {},
+            },
+        )
+
+    def test_ffe_exposure_caching_serial_id_disappears(self) -> None:
+        """Test that a serial id then no serial id generates 2 exposures."""
+        assert self.response_1.status_code == 200, f"Request 1 failed: {self.response_1.text}"
+        assert self.response_2.status_code == 200, f"Request 2 failed: {self.response_2.text}"
+
+        exposure_count = wait_for_min_exposure_count(self.flag_key, 2, self.targeting_key)
+
+        assert exposure_count == 2, (
+            f"Expected exactly 2 exposure events for subject '{self.targeting_key}' "
+            f"(serial id 340132, then no serial id, with the allocation and variant unchanged), "
+            f"but found {exposure_count} events"
+        )
+
+        events = find_exposure_events(self.flag_key, self.targeting_key)
+        assert events[0].get("serial_id") == 340132, f"First exposure should carry serial id 340132, got {events[0]!r}"
+        assert "serial_id" not in events[1], f"Second exposure should carry no serial id, got {events[1]!r}"
+
+
+@scenarios.feature_flagging_and_experimentation
+@features.feature_flags_exposures
+class Test_FFE_Exposure_Caching_Serial_Id_Cycle:
+    """Test that cycling through serial ids generates an exposure for each change.
+
+    When a subject keeps the same allocation and variant but the serial id goes 340132, then
+    340133, then 340132 again, each change is a new assignment and generates a new exposure
+    event (3 total). Returning to a previous serial id still generates one, the same way the
+    allocation and variant cycles behave.
+    """
+
+    def setup_ffe_exposure_caching_serial_id_cycle(self) -> None:
+        """Set up an FFE exposure test that cycles through serial ids."""
+        config_id = "ffe-serial-id-cycle-test"
+        self.flag_key = "serial-id-cycle-flag"
+        self.targeting_key = "serial-id-cycle-user"
+
+        self.responses = []
+        for step, serial_id in enumerate((340132, 340133, 340132)):
+            state = rc.tracer_rc_state.reset() if step == 0 else rc.tracer_rc_state
+            state.set_config(
+                f"{RC_PATH}/{config_id}/config",
+                make_ufc_fixture(self.flag_key, "variant-a", allocation_key="default-allocation", serial_id=serial_id),
+            ).apply()
+
+            self.responses.append(
+                weblog.post(
+                    "/ffe",
+                    json={
+                        "flag": self.flag_key,
+                        "variationType": "STRING",
+                        "defaultValue": "default",
+                        "targetingKey": self.targeting_key,
+                        "attributes": {},
+                    },
+                )
+            )
+
+    def test_ffe_exposure_caching_serial_id_cycle(self) -> None:
+        """Test that 340132 -> 340133 -> 340132 generates 3 exposures."""
+        for step, response in enumerate(self.responses, start=1):
+            assert response.status_code == 200, f"Request {step} failed: {response.text}"
+
+        exposure_count = wait_for_min_exposure_count(self.flag_key, 3, self.targeting_key)
+
+        assert exposure_count == 3, (
+            f"Expected exactly 3 exposure events for subject '{self.targeting_key}' "
+            f"(serial id 340132 -> 340133 -> 340132, with the allocation and variant unchanged), "
+            f"but found {exposure_count} events"
+        )
+
+        serial_ids = [event.get("serial_id") for event in find_exposure_events(self.flag_key, self.targeting_key)]
+        assert serial_ids == [340132, 340133, 340132], f"Expected serial ids [340132, 340133, 340132], got {serial_ids}"
+
+
+@scenarios.feature_flagging_and_experimentation
+@features.feature_flags_exposures
 class Test_FFE_Exposure_Missing_Flag:
     """Test that evaluating a missing/non-existent flag does not generate exposure events.
 

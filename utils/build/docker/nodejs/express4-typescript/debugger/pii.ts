@@ -104,3 +104,25 @@ export class Pii {
     })
   }
 }
+
+class CustomPii {
+  customkey = VALUE
+}
+
+export function createPiiLocals (): {
+  pii: Pii
+  customPii: CustomPii
+  password: string
+  user: Record<string, string>
+} {
+  return {
+    pii: new Pii(),
+    customPii: new CustomPii(),
+    password: 'DIRECT_SECRET_VALUE',
+    user: {
+      password: 'MAP_SECRET_VALUE',
+      _2fa: 'EXCLUDED_IDENTIFIER_VALUE',
+      name: 'NON_SENSITIVE_VALUE'
+    }
+  }
+}

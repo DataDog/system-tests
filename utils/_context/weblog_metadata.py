@@ -19,6 +19,9 @@ class WeblogMetaData:
 
     categories: list[WeblogCategory] = field(default_factory=list)
 
+    request_timeout: int | None = None
+    """ Read timeout in seconds for HTTP requests sent to this weblog. None means use the default. """
+
     def __post_init__(self):
         # cast enums
         self.build_mode = WeblogBuildMode(self.build_mode)

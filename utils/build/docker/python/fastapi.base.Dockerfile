@@ -13,5 +13,5 @@ RUN pip install --upgrade pip && pip install -r /tmp/fastapi-requirements.txt
 RUN mkdir app
 WORKDIR /app
 
-# docker build --progress=plain -f utils/build/docker/python/fastapi.base.Dockerfile -t datadog/system-tests:fastapi.base-v8 .
-# docker push datadog/system-tests:fastapi.base-v8
+# docker build --progress=plain -f utils/build/docker/python/fastapi.base.Dockerfile -t datadog/system-tests:fastapi.base-v10 .
+# docker push datadog/system-tests:fastapi.base-v10
