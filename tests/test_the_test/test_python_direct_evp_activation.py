@@ -33,7 +33,7 @@ def test_python_direct_evp_activation_is_scoped_to_agentless_egress() -> None:
     manifest = Path("manifests/python.yml").read_text(encoding="utf-8")
     contract = Path("tests/ffe/test_flag_eval_evp.py").read_text(encoding="utf-8")
 
-    assert "tests/ffe/test_flag_eval_evp.py: missing_feature (FFL-2446)" in manifest
+    assert "tests/ffe/test_flag_eval_evp.py: v4.15.0-dev" in manifest
     for enabled_contract in (
         "Test_FFE_EVP_Flagevaluation_Egress_Agentless_Direct",
         "Test_FFE_EVP_Flagevaluation_Egress_Agentless_Sidecar",
@@ -41,5 +41,10 @@ def test_python_direct_evp_activation_is_scoped_to_agentless_egress() -> None:
         assert f"tests/ffe/test_flag_eval_evp.py::{enabled_contract}: v4.15.0-dev" in manifest
         assert enabled_contract in contract
 
-    assert "Test_FFE_EVP_Flagevaluation_ObserveFullData_Absent_Hashed: v4.15.0-dev" not in manifest
-    assert "Test_FFE_EVP_Flagevaluation_ObserveFullData_False_Hashed: v4.15.0-dev" not in manifest
+    for deferred_contract in (
+        "Test_FFE_EVP_Flagevaluation_Egress_Datadog_Agent",
+        "Test_FFE_EVP_Flagevaluation_Basic",
+        "Test_FFE_EVP_Flagevaluation_ObserveFullData_Absent_Hashed",
+        "Test_FFE_EVP_Flagevaluation_ObserveFullData_False_Hashed",
+    ):
+        assert f"tests/ffe/test_flag_eval_evp.py::{deferred_contract}: missing_feature (FFL-2446)" in manifest
