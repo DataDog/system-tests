@@ -180,6 +180,7 @@ def test_agentless_exposure_scenario_has_no_agent_and_two_capture_routes(
     serverless_init = scenario.serverless_init_container
     assert serverless_init_containers == (serverless_init,)
     assert isinstance(serverless_init, ServerlessInitContainer)
+    assert serverless_init.image.original_name == "datadog/serverless-init:1.10.4"
     assert environment["DD_TRACE_AGENT_PORT"] == str(serverless_init.apm_receiver_port)
     assert environment["DD_TRACE_AGENT_URL"] == f"http://ffe-serverless-init:{serverless_init.apm_receiver_port}"
     assert serverless_init.healthcheck is not None
