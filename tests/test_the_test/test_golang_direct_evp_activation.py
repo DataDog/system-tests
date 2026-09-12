@@ -9,29 +9,26 @@ from utils import features, scenarios
 
 @scenarios.test_the_test
 @features.not_reported
-def test_golang_direct_evp_activation_is_scoped_to_direct_egress() -> None:
+def test_golang_evp_activation_covers_direct_and_sidecar_egress() -> None:
     manifest = yaml.safe_load(Path("manifests/golang.yml").read_text(encoding="utf-8"))["manifest"]
 
-    assert manifest["tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Direct"] == "v2.11.0-dev"
+    assert manifest["tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Direct"] == "v2.12.0-dev"
     assert manifest["tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Direct_Shutdown"] == [
         {
             "weblog_declaration": {
                 "*": "missing_feature (Shutdown lifecycle hook is implemented only by net-http)",
-                "net-http": "v2.11.0-dev",
+                "net-http": "v2.12.0-dev",
             }
         }
     ]
-    assert (
-        manifest["tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Sidecar"]
-        == "missing_feature (Not yet implemented)"
-    )
+    assert manifest["tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Sidecar"] == "v2.12.0-dev"
     assert (
         manifest["tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Egress_Agentless_Direct"]
-        == "v2.11.0-dev"
+        == "v2.12.0-dev"
     )
     assert (
         manifest["tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Egress_Agentless_Sidecar"]
-        == "missing_feature (Not yet implemented)"
+        == "v2.12.0-dev"
     )
 
 
