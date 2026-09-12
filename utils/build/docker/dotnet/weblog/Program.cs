@@ -1,6 +1,8 @@
 using System;
+using System.Text.Json;
 using System.Threading;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Http;
 using Datadog.Trace;
@@ -37,7 +39,21 @@ namespace weblog
                 settings.LogsInjectionEnabled = true;
                 Tracer.Configure(settings);
             }
-            CreateHostBuilder(args).Build().Run();
+            var host = CreateHostBuilder(args).Build();
+            if (Environment.GetEnvironmentVariable("SYSTEM_TESTS_FFE_SHUTDOWN_FLUSH_ENABLED") == "true")
+            {
+                host.Services.GetRequiredService<IHostApplicationLifetime>().ApplicationStopped.Register(() =>
+                {
+                    Console.WriteLine(JsonSerializer.Serialize(new
+                    {
+                        @event = "system_tests.ffe.shutdown.server_closed",
+                        timestamp = DateTimeOffset.UtcNow.ToString("O")
+                    }));
+                    Console.Out.Flush();
+                });
+            }
+
+            host.Run();
         }
         public static IHostBuilder CreateHostBuilder(string[] args)
         {
