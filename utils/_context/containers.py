@@ -422,7 +422,14 @@ class TestedContainer:
 
         self.volumes = result
 
-    def stop(self):
+    @property
+    def runtime_container(self) -> Container:
+        """Return the live Docker object backing this configured container."""
+        if self._container is None:
+            raise RuntimeError(f"Container {self.name} has not been started")
+        return self._container
+
+    def stop(self, *, timeout: int | None = None) -> None:
         self._starting_thread = None
 
         logger.debug(f"Stopping container {self.name}")
@@ -434,7 +441,10 @@ class TestedContainer:
                 pytest.exit(f"Container {self.name} is not running ({self._container.status}), please check logs", 1)
 
             try:
-                self._container.stop()
+                if timeout is None:
+                    self._container.stop()
+                else:
+                    self._container.stop(timeout=timeout)
             except requests.exceptions.Timeout as e:
                 pytest.exit(
                     f"Container {self.name} failed to stop: the docker client timed out waiting for a response "
@@ -869,7 +879,7 @@ class ServerlessInitContainer(TestedContainer):
         apm_receiver_port_hex = f"{self.apm_receiver_port:04X}"
         super().__init__(
             name="ffe-serverless-init",
-            image_name="datadog/serverless-init:1.10.2",
+            image_name="datadog/serverless-init:1.10.4",
             environment={
                 "DD_API_KEY": _FAKE_DD_API_KEY,
                 "DD_SITE": "mock-intake.invalid",
