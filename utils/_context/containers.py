@@ -879,7 +879,7 @@ class ServerlessInitContainer(TestedContainer):
         apm_receiver_port_hex = f"{self.apm_receiver_port:04X}"
         super().__init__(
             name="ffe-serverless-init",
-            image_name="datadog/serverless-init:1.10.2",
+            image_name="datadog/serverless-init:1.10.4",
             environment={
                 "DD_API_KEY": _FAKE_DD_API_KEY,
                 "DD_SITE": "mock-intake.invalid",
