@@ -29,18 +29,17 @@ def test_python_direct_evp_shutdown_uses_opt_in_gunicorn_worker_exit_hook() -> N
 
 @scenarios.test_the_test
 @features.not_reported
-def test_python_direct_evp_activation_preserves_full_data_privacy_contract() -> None:
+def test_python_direct_evp_activation_is_scoped_to_agentless_egress() -> None:
     manifest = Path("manifests/python.yml").read_text(encoding="utf-8")
     contract = Path("tests/ffe/test_flag_eval_evp.py").read_text(encoding="utf-8")
 
-    assert "tests/ffe/test_flag_eval_evp.py: v4.15.0-dev" in manifest
-    for required_contract in (
-        "Test_FFE_EVP_Flagevaluation_ObserveFullData_Absent_Hashed",
-        "Test_FFE_EVP_Flagevaluation_ObserveFullData_False_Hashed",
-        "Test_FFE_EVP_Flagevaluation_ObserveFullData_True_Unhashed",
-        'PII_TARGETING_KEY_HASHED = "sha256_',
-        'assert "evaluation" not in context',
-        "assert targeting_key == PII_TARGETING_KEY",
-        "for key, expected_value in PII_ATTRIBUTES.items()",
+    assert "tests/ffe/test_flag_eval_evp.py: missing_feature (FFL-2446)" in manifest
+    for enabled_contract in (
+        "Test_FFE_EVP_Flagevaluation_Egress_Agentless_Direct",
+        "Test_FFE_EVP_Flagevaluation_Egress_Agentless_Sidecar",
     ):
-        assert required_contract in contract
+        assert f"tests/ffe/test_flag_eval_evp.py::{enabled_contract}: v4.15.0-dev" in manifest
+        assert enabled_contract in contract
+
+    assert "Test_FFE_EVP_Flagevaluation_ObserveFullData_Absent_Hashed: v4.15.0-dev" not in manifest
+    assert "Test_FFE_EVP_Flagevaluation_ObserveFullData_False_Hashed: v4.15.0-dev" not in manifest
