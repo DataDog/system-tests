@@ -58,7 +58,12 @@ manifest:
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
   tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED: missing_feature
-  tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME: missing_feature
+  tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME: '>=2.2.0'  # TODO: a lower version might be supported
+  tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_default_follows_otel_spec: missing_feature
+  tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_default_matches_specification: missing_feature
+  tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_empty_is_treated_as_unset: missing_feature
+  tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_otel_service_name_takes_precedence: missing_feature
+  tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_stable_values: missing_feature
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids: ">1.0.0"
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3single_128_bit_generation_disabled: missing_feature (propagation style not supported)
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3single_128_bit_generation_enabled: missing_feature (propagation style not supported)
@@ -239,7 +244,7 @@ manifest:
   tests/parametric/test_otel_span_with_baggage.py::Test_Otel_Span_With_Baggage: missing_feature
   tests/parametric/test_otel_tracer.py::Test_Otel_Tracer::test_otel_force_flush: irrelevant (library does not implement OpenTelemetry)
   tests/parametric/test_otel_tracer.py::Test_Otel_Tracer::test_otel_simple_trace: irrelevant (library does not implement OpenTelemetry)
-  tests/parametric/test_otel_tracestate_sampling.py::Test_OtelTracestateSampling: ">2.2.0"
+  tests/parametric/test_otel_tracestate_sampling.py::Test_OtelTracestateSampling: ">2.2.0"  # Easy win for all weblogs and version 2.2.0
   tests/parametric/test_otlp_trace_metrics.py: '>=2.1.1'  # TODO: a lower version might be supported
   tests/parametric/test_otlp_trace_metrics.py::Test_FR01_Enablement_Configuration::test_fr01_1_enabled_explicit: missing_feature
   tests/parametric/test_otlp_trace_metrics.py::Test_FR01_Enablement_Configuration::test_fr01_3_enabled_by_default: missing_feature
@@ -352,7 +357,9 @@ manifest:
       component_version: <2.0.0
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision::test_metric_existence: missing_feature (No metric interface)
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision::test_metric_matching: missing_feature (No metric interface)
-  tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_With_W3C::test_distributed_headers_synthetics_sampling_decision: bug (APMAPI-1563)
+  tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_With_W3C::test_distributed_headers_synthetics_sampling_decision:  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-1563)
+      component_version: <2.2.0
   tests/parametric/test_tracer.py::Test_ProcessTags_ServiceName: missing_feature
   tests/parametric/test_tracer.py::Test_Tracer::test_tracer_span_top_level_attributes:  # TODO: a lower version might be supported
     - declaration: missing_feature (metrics cannot be set manually)
