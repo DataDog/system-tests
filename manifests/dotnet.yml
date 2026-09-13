@@ -1335,12 +1335,32 @@ manifest:
   tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_Spans_Http_ErrorStatusConfiguration: v3.52.0
   tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics: v3.52.0
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics::test_trace_metric_agrees_with_client_success: missing_feature (successful client trace metrics report OTel OK status instead of leaving status unset)
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics::test_trace_metric_agrees_with_server_success: missing_feature (successful server trace metrics report OTel OK status instead of leaving status unset)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics::test_trace_metric_agrees_with_client_success:  # TODO: a lower version might be supported
+    - declaration: missing_feature (successful client trace metrics report OTel OK status instead of leaving status unset)
+      component_version: <3.53.0
+      weblog: [uds, poc]
+    - declaration: missing_feature (successful client trace metrics report OTel OK status instead of leaving status unset)
+      excluded_weblog: [uds, poc]
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics::test_trace_metric_agrees_with_server_success:  # TODO: a lower version might be supported
+    - declaration: missing_feature (successful server trace metrics report OTel OK status instead of leaving status unset)
+      component_version: <3.53.0
+      weblog: [uds, poc]
+    - declaration: missing_feature (successful server trace metrics report OTel OK status instead of leaving status unset)
+      excluded_weblog: [uds, poc]
   tests/test_otel_http_semantics.py::Test_OtelSemantics_SamplingRules: missing_feature (HTTP server span names use Datadog semantics when sampling rules run)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client: v3.52.0
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server: missing_feature (OTel HTTP server semantics not implemented over OTLP export)
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_http_endpoint_retained_from_appsec: missing_feature (OTel HTTP server semantics not implemented over OTLP export)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server:  # TODO: a lower version might be supported
+    - declaration: missing_feature (OTel HTTP server semantics not implemented over OTLP export)
+      component_version: <3.53.0
+      weblog: [uds, poc]
+    - declaration: missing_feature (OTel HTTP server semantics not implemented over OTLP export)
+      excluded_weblog: [uds, poc]
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_http_endpoint_retained_from_appsec:  # TODO: a lower version might be supported
+    - declaration: missing_feature (OTel HTTP server semantics not implemented over OTLP export)
+      component_version: <3.53.0
+      weblog: [uds, poc]
+    - declaration: missing_feature (OTel HTTP server semantics not implemented over OTLP export)
+      excluded_weblog: [uds, poc]
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_http_endpoint_retained_from_resource_renaming: irrelevant (The .NET tracer creates http.endpoint from routed AppSec requests)
   tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh: missing_feature (APMAPI-2171)
