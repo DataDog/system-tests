@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"sync"
 
@@ -23,9 +24,15 @@ func (s *apmClientServer) ffeStart(writer http.ResponseWriter, request *http.Req
 		// AndWait: plain SetProvider returns before Init, so /ffe/start would
 		// answer 200 with no configuration and the next evaluation gets the
 		// default. Other SDKs block on initialize inside set_provider.
+		//
+		// PROVIDER_NOT_READY is not a start failure: the provider is registered
+		// and evaluations return defaults until configuration arrives.
 		if err := of.SetProviderAndWait(provider); err != nil {
-			startErr = err
-			return
+			var initErr *of.ProviderInitError
+			if !errors.As(err, &initErr) || initErr.ErrorCode != of.ProviderNotReadyCode {
+				startErr = err
+				return
+			}
 		}
 
 		s.ddProvider = provider
