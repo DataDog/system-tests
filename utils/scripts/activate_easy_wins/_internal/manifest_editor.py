@@ -437,8 +437,22 @@ class ManifestEditor:
                     self.manifest.data[rule] = []
                 self.manifest.data[rule].append(condition)
 
+    def detect_skipped_views(self) -> None:
+        for view in self.poked_views:
+            if view.is_inline:
+                continue
+            raw_data = self.raw_data[view.condition["component"]]["manifest"][view.rule]
+            raw_condition = raw_data[view.condition_index]
+            if "weblog_declaration" not in raw_condition:
+                continue
+            if any(re.match(r"\*\w", weblog) for weblog in raw_condition["weblog_declaration"]):
+                self.skipped_views.add(view)
+
     def write_poke(self) -> None:
+        self.detect_skipped_views()
         for view, contexts in self.poked_views.items():
+            if view in self.skipped_views:
+                continue
             raw_data = self.raw_data[view.condition["component"]]["manifest"][view.rule]
             component_version, weblogs = ManifestEditor.compress_pokes(contexts)
             all_weblogs = set(weblogs) == self.component_weblogs(view.condition["component"]) or "parametric-" in next(
@@ -496,9 +510,6 @@ class ManifestEditor:
                     raw_data[0]["weblog"].fa.set_flow_style()
 
             elif "weblog_declaration" in raw_data[view.condition_index]:
-                if any(re.match(r"\*\w", weblog) for weblog in raw_data[view.condition_index]["weblog_declaration"]):
-                    self.skipped_views.add(view)
-                    continue
                 weblog_declaration = raw_data[view.condition_index]["weblog_declaration"]
                 # Add comments to the individual weblog lines that were modified
                 for weblog in weblogs:
@@ -551,8 +562,9 @@ class ManifestEditor:
                     raw_data[-1]["weblog"].fa.set_flow_style()
 
     def write(self, output_dir: Path = Path("manifests/"), *, dry_run: bool = False) -> None:
-        self.write_poke()
+        self.detect_skipped_views()
         self.write_new_rules()
+        self.write_poke()
         if dry_run:
             return
         for component, data in self.raw_data.items():
