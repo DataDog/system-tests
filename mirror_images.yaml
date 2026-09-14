@@ -87,6 +87,7 @@
 - "datadog/system-tests:ruby_buddy-v2"
 - "datadog/system-tests:tornado.base-v2"
 - "datadog/system-tests:tornado.base-v3"
+- "datadog/system-tests:tornado.base-v4"
 - "datadog/system-tests:uwsgi-poc.base-v10"
 - "datadog/system-tests:uwsgi-poc.base-v11"
 - "datadog/system-tests:uwsgi-poc.base-v12"
