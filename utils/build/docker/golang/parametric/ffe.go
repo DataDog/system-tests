@@ -1,14 +1,21 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
 	"sync"
+	"time"
 
 	ddof "github.com/DataDog/dd-trace-go/v2/openfeature"
 	of "github.com/open-feature/go-sdk/openfeature"
 )
+
+// ffeStartTimeout bounds the wait for the first configuration. Above the 10s
+// DD_EXPERIMENTAL_FLAGGING_PROVIDER_INITIALIZATION_TIMEOUT_MS default, so the
+// tracer's own timeout governs whenever it applies one.
+const ffeStartTimeout = 15 * time.Second
 
 var ffeStartOnce sync.Once
 
@@ -21,13 +28,19 @@ func (s *apmClientServer) ffeStart(writer http.ResponseWriter, request *http.Req
 			return
 		}
 
-		// AndWait: plain SetProvider returns before Init, so /ffe/start would
+		// Wait for Init: plain SetProvider returns before it, so /ffe/start would
 		// answer 200 with no configuration and the next evaluation gets the
 		// default. Other SDKs block on initialize inside set_provider.
 		//
+		// The deadline is ours rather than SetProviderAndWait's background
+		// context, so tracers that only bound Init still cannot hang the suite.
+		//
 		// PROVIDER_NOT_READY is not a start failure: the provider is registered
 		// and evaluations return defaults until configuration arrives.
-		if err := of.SetProviderAndWait(provider); err != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), ffeStartTimeout)
+		defer cancel()
+
+		if err := of.SetProviderWithContextAndWait(ctx, provider); err != nil {
 			var initErr *of.ProviderInitError
 			if !errors.As(err, &initErr) || initErr.ErrorCode != of.ProviderNotReadyCode {
 				startErr = err
