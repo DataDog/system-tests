@@ -585,6 +585,15 @@ manifest:
 
     with (manifest_dir / "python.yml").open(encoding="utf-8") as file:
         result = yaml.safe_load(file)
+    assert result["manifest"][test_class] == [
+        {
+            "weblog_declaration": {
+                "*": "missing_feature",
+                "flask-poc": ">=4.12.0",
+                "tornado": ">=4.12.0",
+            }
+        }
+    ]
     assert result["manifest"][failing_test] == [
         {"weblog_declaration": {"*": "missing_feature", "flask-poc": ">=4.12.0"}}
     ]
