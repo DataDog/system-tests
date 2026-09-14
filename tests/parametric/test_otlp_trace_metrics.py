@@ -1542,7 +1542,16 @@ class Test_FR15_Client_Computed_Stats_Header:
             f"Expected Datadog-Client-Computed-Stats truthy on every trace request, got: {stats_headers}"
         )
 
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS, "OTEL_TRACES_SPAN_METRICS_ENABLED": "false", "DD_TRACE_STATS_COMPUTATION_ENABLED": "false"}])
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                **DEFAULT_ENVVARS,
+                "OTEL_TRACES_SPAN_METRICS_ENABLED": "false",
+                "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
+            }
+        ],
+    )
     def test_fr15_2_header_absent_when_disabled(
         self,
         otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002
