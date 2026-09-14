@@ -3,6 +3,10 @@
 
 set -e
 
+readonly AGENT_COMPOSE="docker-compose-agent-prod.yml"
+PULL_AGENT_IMAGE_SCRIPT="$(dirname "$0")/pull_agent_image.sh"
+readonly PULL_AGENT_IMAGE_SCRIPT
+
 # shellcheck disable=SC2035
 sudo chmod -R 755 *
 
@@ -15,9 +19,11 @@ sudo rm -rf system-tests || true
 #Build apps
 sudo docker-compose -f docker-compose.yml build  --parallel
 
-if [ -f docker-compose-agent-prod.yml ]; then
-    # Agent may be installed in a different way
-    sudo -E docker-compose -f docker-compose-agent-prod.yml up -d --remove-orphans datadog --wait --wait-timeout 120
+if [ -f "${AGENT_COMPOSE}" ]; then
+    # Agent may be installed in a different way. Pull with retries before compose up
+    # so GCR rate limits / timeouts do not fail the provision on the first attempt.
+    bash "${PULL_AGENT_IMAGE_SCRIPT}"
+    sudo -E docker-compose -f "${AGENT_COMPOSE}" up -d --remove-orphans datadog --wait --wait-timeout 120
 fi
 
 #Env variables set on the scenario definition. Write to file and load  

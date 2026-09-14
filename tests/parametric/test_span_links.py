@@ -84,6 +84,33 @@ class Test_Span_Links:
         assert link["attributes"].get("array.1") == "b"
         assert link["attributes"].get("array.2") == "c"
 
+    @pytest.mark.parametrize("library_env", [{"DD_TRACE_API_VERSION": "v0.5"}])
+    def test_span_started_with_link_v05_span_id_padding(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        """_dd.span_links span_id must be zero-padded to 16 hex chars, per the RFC.
+
+        Uses a fixed span_id with a zero leading nibble (unlike test_span_started_with_link_v05,
+        which relies on a tracer-generated random id and only has a ~1/16 chance of catching this).
+        """
+        linked_span_id = 0x0123456789ABCDEF  # leading nibble 0 -> unpadded hex would be 15 chars
+
+        with test_library, test_library.dd_start_span("root") as rs:
+            parent_id = test_library.dd_extract_headers(
+                http_headers=[
+                    ("x-datadog-trace-id", "1"),
+                    ("x-datadog-parent-id", str(linked_span_id)),
+                    ("x-datadog-sampling-priority", "2"),
+                ]
+            )
+            rs.add_link(parent_id=parent_id)
+
+        traces = test_agent.wait_for_num_traces(1)
+        trace = find_trace(traces, rs.trace_id)
+        span = find_span(trace, rs.span_id)
+
+        span_links = json.loads(span.get("meta", {}).get("_dd.span_links"))
+        assert len(span_links) == 1
+        assert span_links[0].get("span_id") == f"{linked_span_id:016x}"
+
     def test_span_link_from_distributed_datadog_headers(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Properly inject datadog distributed tracing information into span links when trace_api is v0.4.
         Testing the conversion of x-datadog-* headers to tracestate for

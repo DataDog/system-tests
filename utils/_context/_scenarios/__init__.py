@@ -240,6 +240,8 @@ class _Scenarios:
 
     sampling = DdTraceEndToEndScenario(
         "SAMPLING",
+        appsec_enabled=False,
+        iast_enabled=False,
         tracer_sampling_rate=0.5,
         weblog_env={"DD_TRACE_RATE_LIMIT": "10000000", "DD_TRACE_STATS_COMPUTATION_ENABLED": "false"},
         doc="Test sampling mechanism. Not included in default scenario because it's a little bit too flaky",
@@ -885,8 +887,8 @@ class _Scenarios:
             ),
             "DD_TRACE_SAMPLE_RATE": "0",
         },
-        backend_interface_timeout=5,
-        require_api_key=True,
+        mocked_backend_v2=True,
+        use_proxy_for_agent=False,
         doc="",
     )
     apm_tracing_otlp = DdTraceEndToEndScenario(

@@ -1,4 +1,4 @@
-from utils import scenario_groups, features, context, interfaces, scenarios, auxiliary_test
+from utils import scenario_groups, features, context, interfaces, scenarios, auxiliary_test, irrelevant
 
 
 from .utils.schemas_validators import SchemaBug, assert_no_schema_error
@@ -7,6 +7,7 @@ from .utils.schemas_validators import SchemaBug, assert_no_schema_error
 @features.not_reported
 @scenario_groups.end_to_end
 @auxiliary_test
+@irrelevant(context.scenario.name == "OTEL_COLLECTOR", reason="This scenario does not use library/agent interfaces")
 class Test_DdtraceSchemas:
     def test_library(self):
         known_bugs = [

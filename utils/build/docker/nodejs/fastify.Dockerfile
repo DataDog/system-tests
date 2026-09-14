@@ -1,4 +1,4 @@
-FROM datadog/system-tests:fastify.base-v3
+FROM datadog/system-tests:fastify.base-v4
 
 COPY utils/build/docker/nodejs/fastify/debugger debugger
 

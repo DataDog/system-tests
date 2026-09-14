@@ -89,7 +89,8 @@ indent-style = "space"
 exclude = [ 
     "docs/*", # ignore docs. But may be a good idea to enable rules here
     "utils/grpc/{weblog_pb2_grpc.py,weblog_pb2.py}", # generated files
-    "lib-injection/build/docker/python/dd-lib-python-init-test-protobuf-old/addressbook_pb2.py", # generated file
+    "lib-injection/build/docker/python/dd-lib-python-init-test-protobuf-old/addressbook_pb2.py", # generated file,
+    "pyproject.toml"
 ]
 select = ["ALL"]
 
