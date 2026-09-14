@@ -31,6 +31,7 @@ RUN clean-apt install \
     ca-certificates \
     curl \
     git \
+    gh \
     python3.12 \
     python3.12-venv
 

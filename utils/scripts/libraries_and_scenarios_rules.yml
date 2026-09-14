@@ -286,6 +286,9 @@ patterns:
         libraries: null
     utils/scripts/ssi_wizards/*:
         scenario_groups: null
+    utils/scripts/update_agent_version.py:
+        scenario_groups: null
+        libraries: null
     utils/scripts/update_change_log.sh:
         scenario_groups: null
         libraries: null
