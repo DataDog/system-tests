@@ -5,6 +5,7 @@ import hashlib
 
 import paramiko
 
+from utils.installer_versions import set_injector_version_from_lock
 from utils.virtual_machine.virtual_machine_provisioner import Provision, _DeployedWeblog
 
 # The AWS AMI name is limited to 128 characters (119 usable + 9 added by AWS).
@@ -21,6 +22,7 @@ class AWSInfraConfig:
 
 class DataDogConfig:
     def __init__(self) -> None:
+        set_injector_version_from_lock()
         self.dd_api_key = os.getenv("DD_API_KEY_ONBOARDING")
         self.dd_app_key = os.getenv("DD_APP_KEY_ONBOARDING")
         self.docker_login = os.getenv("DOCKER_LOGIN")
