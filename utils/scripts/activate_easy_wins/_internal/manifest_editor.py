@@ -28,6 +28,7 @@ class ManifestEditor:
     round_trip_parser: YAML
     context: Context
     poked_views: dict[View, set[Context]]
+    skipped_views: set[View]
     added_rules: dict[str, set[tuple[View, Context]]]
 
     @dataclass
@@ -59,6 +60,7 @@ class ManifestEditor:
 
         self.manifest = Manifest(path=manifests_path)
         self.poked_views = {}
+        self.skipped_views = set()
         self.added_rules = {}
         self.weblogs = weblogs
 
@@ -273,11 +275,13 @@ class ManifestEditor:
     def build_new_rules(self) -> dict[str, list[Condition]]:
         ret: dict[str, list[Condition]] = {}
         for rule, sources in self.added_rules.items():
-            for source in sources:
-                condition = source[0].condition
+            for parent, context in sources:
+                if parent in self.skipped_views:
+                    continue
+                condition = parent.condition
                 if rule not in ret:
                     ret[rule] = []
-                ret[rule].append(ManifestEditor.specialize(condition, source[1]))
+                ret[rule].append(ManifestEditor.specialize(condition, context))
         return ret
 
     @staticmethod
@@ -416,7 +420,8 @@ class ManifestEditor:
         output_entry = sanitize_original(original_raw, original_conditions)
 
         condition_dict = ManifestEditor.serialize_condition(condition)
-        output_entry.append(condition_dict)
+        if condition_dict not in output_entry:
+            output_entry.append(condition_dict)
         return compress_output(output_entry)
 
     def write_new_rules(self) -> None:
@@ -491,11 +496,8 @@ class ManifestEditor:
                     raw_data[0]["weblog"].fa.set_flow_style()
 
             elif "weblog_declaration" in raw_data[view.condition_index]:
-                skip = False
-                for weblog in raw_data[view.condition_index]["weblog_declaration"]:
-                    if re.match(r"\*\w", weblog):
-                        skip = True
-                if skip:
+                if any(re.match(r"\*\w", weblog) for weblog in raw_data[view.condition_index]["weblog_declaration"]):
+                    self.skipped_views.add(view)
                     continue
                 weblog_declaration = raw_data[view.condition_index]["weblog_declaration"]
                 # Add comments to the individual weblog lines that were modified
@@ -549,8 +551,8 @@ class ManifestEditor:
                     raw_data[-1]["weblog"].fa.set_flow_style()
 
     def write(self, output_dir: Path = Path("manifests/"), *, dry_run: bool = False) -> None:
-        self.write_new_rules()
         self.write_poke()
+        self.write_new_rules()
         if dry_run:
             return
         for component, data in self.raw_data.items():
