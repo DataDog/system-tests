@@ -525,6 +525,55 @@ manifest:
     assert "tests/debugger/test_symdb.py::Test_SymDb::test_fails" not in result["manifest"]
 
 
+def test_e2e_activation_keeps_child_rule_from_non_skipped_parent(tmp_path: Path) -> None:
+    data_dir = tmp_path / "data"
+    manifest_dir = tmp_path / "manifests"
+    scenario_dir = data_dir / "python_run" / "scenario1"
+    scenario_dir.mkdir(parents=True)
+    manifest_dir.mkdir()
+
+    test_file = "tests/debugger/test_symdb.py"
+    test_class = f"{test_file}::Test_SymDb"
+    failing_test = f"{test_class}::test_fails"
+    report = create_report_json(
+        library_name="python",
+        library_version="4.12.0",
+        weblog_variant="tornado",
+        tests=[
+            {"nodeid": f"{test_class}::test_passes", "outcome": "xpassed"},
+            {"nodeid": failing_test, "outcome": "xfailed"},
+        ],
+    )
+    with (scenario_dir / "report.json").open("w", encoding="utf-8") as file:
+        json.dump(report, file)
+
+    (manifest_dir / "python.yml").write_text(
+        f"""---
+refs:
+  - &flask "flask-poc, uwsgi-poc, uds-flask"
+manifest:
+  {test_file}:
+    - weblog_declaration:
+        "*": missing_feature
+        *flask : v2.11.0
+  {test_class}: bug (TEST-123)
+""",
+        encoding="utf-8",
+    )
+
+    test_data, weblogs, _ = parse_artifact_data(data_dir, ["python"])
+    manifest_editor = ManifestEditor(weblogs, manifests_path=manifest_dir, components=["python"])
+    update_manifest(manifest_editor, test_data)
+
+    assert {parent.rule for parent, _ in manifest_editor.added_rules[failing_test]} == {test_file, test_class}
+
+    manifest_editor.write(manifest_dir)
+
+    with (manifest_dir / "python.yml").open(encoding="utf-8") as file:
+        result = yaml.safe_load(file)
+    assert result["manifest"][failing_test] == [{"weblog_declaration": {"tornado": "bug (TEST-123)"}}]
+
+
 def test_split_code_owner_activation_skips_commit_when_manifest_write_has_no_diff(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
