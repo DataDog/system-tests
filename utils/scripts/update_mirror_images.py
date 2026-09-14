@@ -35,7 +35,7 @@ from utils._context._scenarios import get_all_scenarios, DockerScenario  # noqa:
 # Pinned dd-repo-tools mirror_images.py (override with $MIRROR_IMAGES_URL).
 MIRROR_IMAGES_URL = os.environ.get(
     "MIRROR_IMAGES_URL",
-    "https://binaries.ddbuild.io/dd-repo-tools/default/ca/9d4911e4cf0e0fba6093854cb8bbfe0ae5fd9752/mirror_images.py",
+    "https://binaries.ddbuild.io/dd-repo-tools/default/ca/457b58d8c5ae7dad8ce0cba3c5d99171a843d678/mirror_images.py",
 )
 
 # Destination registry for the mirrored images (override with $MIRROR_DEST_REGISTRY).
@@ -45,17 +45,20 @@ MIRROR_YAML = REPO_ROOT / "mirror_images.yaml"
 LOCK_YAML = REPO_ROOT / "mirror_images.lock.yaml"
 BUILDKITD_TOML = REPO_ROOT / "utils" / "build" / "docker" / "buildkitd.toml"
 
-# Header written when mirror_images.yaml does not exist yet. The mirror_images.py
-# `add` command preserves existing comments, so this is only used on first run.
+# Canonical header for mirror_images.yaml. The mirror_images.py `add` command
+# rewrites the file through a YAML parser and drops comments, so the script
+# restores this header after every run.
 MIRROR_YAML_HEADER = """\
+---
 # Docker images mirrored into registry.ddbuild.io/system-tests/mirror.
 #
-# Generated: this file lists every image required by the CI scenarios.
+# This file is generated: it lists every image required by the CI scenarios.
 # Regenerate after changing scenarios or weblog Dockerfiles with:
 #
 #   python utils/scripts/update_mirror_images.py
 #
-# The `mirror_images_check` CI job fails if this file is out of date.
+# (also refreshes mirror_images.lock.yaml; commit both). The
+# `mirror_images_check` CI job fails if this file is out of date.
 """
 
 # Scenarios excluded from the GitLab end-to-end pipeline. Mirrors the
@@ -113,6 +116,7 @@ def _run_mirror_images(*args: str) -> None:
         "uv",
         "run",
         "--no-config",
+        "--no-project",
         "--script",
         MIRROR_IMAGES_URL,
         "--mirror-yaml",
@@ -134,6 +138,24 @@ def _refresh_lock_file() -> str | None:
     return original_lock
 
 
+def _restore_yaml_header() -> None:
+    """Apply the canonical header, replacing whatever preamble the file has.
+
+    ``mirror_images.py add`` rewrites the file through a YAML parser and drops
+    comments, but only when it actually adds an image, and its serializer may emit
+    a document-start marker of its own. Replacing the whole preamble rather than
+    just that marker keeps the file a single YAML document and makes repeated runs
+    idempotent, which the mirror_images_check CI job depends on: it runs this
+    script and fails if mirror_images.yaml then differs from what is committed.
+    """
+    lines = MIRROR_YAML.read_text(encoding="utf-8").splitlines(keepends=True)
+    body_starts = next(
+        (i for i, line in enumerate(lines) if line.strip() and not line.startswith(("---", "#"))),
+        len(lines),
+    )
+    MIRROR_YAML.write_text(MIRROR_YAML_HEADER + "".join(lines[body_starts:]), encoding="utf-8")
+
+
 def main(excluded: set[str], *, skip_lock: bool, refresh: bool = False) -> None:
     if skip_lock and refresh:
         raise ValueError("refresh cannot be used when skip_lock is true")
@@ -148,6 +170,7 @@ def main(excluded: set[str], *, skip_lock: bool, refresh: bool = False) -> None:
         MIRROR_YAML.write_text(MIRROR_YAML_HEADER)
 
     _run_mirror_images("add", *images)
+    _restore_yaml_header()
     if not skip_lock:
         original_lock = _refresh_lock_file() if refresh else None
         try:
