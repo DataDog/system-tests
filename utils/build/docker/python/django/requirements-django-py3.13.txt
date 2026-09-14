@@ -1,7 +1,7 @@
 django==5.2.7
 pycryptodome==3.23.0
 gunicorn==23.0.0
-gevent==25.9.1
+gevent==26.8.0
 requests==2.32.4
 httpx==0.28.1
 boto3==1.40.64
@@ -11,3 +11,6 @@ zope.event==6.0
 zope.interface==8.0.1
 openfeature-sdk==0.8.3
 stripe==14.2.0
+# lets system-tests dump this weblog's thread stacks from outside the process
+# when a remote config apply stalls, see utils/_remote_config.py
+py-spy==0.4.2

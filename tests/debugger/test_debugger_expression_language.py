@@ -6,11 +6,12 @@ import re
 import json
 
 import tests.debugger.utils as debugger
-from utils import scenarios, features
+from utils import scenarios, features, slow
 
 
 @features.debugger_expression_language
 @scenarios.debugger_expression_language
+@slow
 class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
     message_map: dict = {}
 

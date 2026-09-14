@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars, camelcase */
 
 import type { Express, Request, Response } from 'express'
-import { Pii } from './pii'
+import { Pii, createPiiLocals } from './pii'
 import { dataGenerator } from './data_generator'
 
 export function initRoutes (app: Express) {
@@ -60,7 +60,7 @@ export function initRoutes (app: Express) {
   // Padding
 
   app.get('/debugger/pii', (req: Request, res: Response) => {
-    const pii = new Pii()
+    const { pii, password, user, customPii } = createPiiLocals()
     res.send('Hello World') // This needs to be line 64
   })
 

@@ -39,7 +39,7 @@ namespace weblog
                 span?.SetTag(decision == "keep" ? Tags.ManualKeep : Tags.ManualDrop, "true");
 
                 // Call downstream so that tests can assert on the sampling decision that gets propagated
-                var response = await HttpClientWrapper.LocalGetRequest(DownstreamUrl);
+                var response = await HttpClientWrapper.LocalRequest(DownstreamUrl, "GET");
                 var endpointResponse = new EndpointResponse()
                 {
                     Url = DownstreamUrl,

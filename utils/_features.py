@@ -3037,5 +3037,621 @@ class _Features:
         """
         return _mark_test_object(test_object, feature_id=565, owner=_Owner.asm)
 
+    @staticmethod
+    def otel_attribute_count_limit(test_object):
+        """OTEL_ATTRIBUTE_COUNT_LIMIT
+
+        https://feature-parity.us1.prod.dog/#/?feature=567
+        """
+        return _mark_test_object(test_object, feature_id=567, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_attribute_value_length_limit(test_object):
+        """OTEL_ATTRIBUTE_VALUE_LENGTH_LIMIT
+
+        https://feature-parity.us1.prod.dog/#/?feature=568
+        """
+        return _mark_test_object(test_object, feature_id=568, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_blrp_export_timeout(test_object):
+        """OTEL_BLRP_EXPORT_TIMEOUT
+
+        https://feature-parity.us1.prod.dog/#/?feature=569
+        """
+        return _mark_test_object(test_object, feature_id=569, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_blrp_max_export_batch_size(test_object):
+        """OTEL_BLRP_MAX_EXPORT_BATCH_SIZE
+
+        https://feature-parity.us1.prod.dog/#/?feature=570
+        """
+        return _mark_test_object(test_object, feature_id=570, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_blrp_max_queue_size(test_object):
+        """OTEL_BLRP_MAX_QUEUE_SIZE
+
+        https://feature-parity.us1.prod.dog/#/?feature=571
+        """
+        return _mark_test_object(test_object, feature_id=571, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_blrp_schedule_delay(test_object):
+        """OTEL_BLRP_SCHEDULE_DELAY
+
+        https://feature-parity.us1.prod.dog/#/?feature=572
+        """
+        return _mark_test_object(test_object, feature_id=572, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_bsp_export_timeout(test_object):
+        """OTEL_BSP_EXPORT_TIMEOUT
+
+        https://feature-parity.us1.prod.dog/#/?feature=573
+        """
+        return _mark_test_object(test_object, feature_id=573, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_bsp_max_export_batch_size(test_object):
+        """OTEL_BSP_MAX_EXPORT_BATCH_SIZE
+
+        https://feature-parity.us1.prod.dog/#/?feature=574
+        """
+        return _mark_test_object(test_object, feature_id=574, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_bsp_max_queue_size(test_object):
+        """OTEL_BSP_MAX_QUEUE_SIZE
+
+        https://feature-parity.us1.prod.dog/#/?feature=575
+        """
+        return _mark_test_object(test_object, feature_id=575, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_bsp_schedule_delay(test_object):
+        """OTEL_BSP_SCHEDULE_DELAY
+
+        https://feature-parity.us1.prod.dog/#/?feature=576
+        """
+        return _mark_test_object(test_object, feature_id=576, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_config_file(test_object):
+        """OTEL_CONFIG_FILE
+
+        https://feature-parity.us1.prod.dog/#/?feature=577
+        """
+        return _mark_test_object(test_object, feature_id=577, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_entities(test_object):
+        """OTEL_ENTITIES
+
+        https://feature-parity.us1.prod.dog/#/?feature=578
+        """
+        return _mark_test_object(test_object, feature_id=578, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_event_attribute_count_limit(test_object):
+        """OTEL_EVENT_ATTRIBUTE_COUNT_LIMIT
+
+        https://feature-parity.us1.prod.dog/#/?feature=579
+        """
+        return _mark_test_object(test_object, feature_id=579, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_experimental_config_file(test_object):
+        """OTEL_EXPERIMENTAL_CONFIG_FILE
+
+        https://feature-parity.us1.prod.dog/#/?feature=580
+        """
+        return _mark_test_object(test_object, feature_id=580, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_certificate(test_object):
+        """OTEL_EXPORTER_OTLP_CERTIFICATE
+
+        https://feature-parity.us1.prod.dog/#/?feature=581
+        """
+        return _mark_test_object(test_object, feature_id=581, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_client_certificate(test_object):
+        """OTEL_EXPORTER_OTLP_CLIENT_CERTIFICATE
+
+        https://feature-parity.us1.prod.dog/#/?feature=582
+        """
+        return _mark_test_object(test_object, feature_id=582, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_client_key(test_object):
+        """OTEL_EXPORTER_OTLP_CLIENT_KEY
+
+        https://feature-parity.us1.prod.dog/#/?feature=583
+        """
+        return _mark_test_object(test_object, feature_id=583, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_compression(test_object):
+        """OTEL_EXPORTER_OTLP_COMPRESSION
+
+        https://feature-parity.us1.prod.dog/#/?feature=584
+        """
+        return _mark_test_object(test_object, feature_id=584, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_endpoint(test_object):
+        """OTEL_EXPORTER_OTLP_ENDPOINT
+
+        https://feature-parity.us1.prod.dog/#/?feature=585
+        """
+        return _mark_test_object(test_object, feature_id=585, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_headers(test_object):
+        """OTEL_EXPORTER_OTLP_HEADERS
+
+        https://feature-parity.us1.prod.dog/#/?feature=586
+        """
+        return _mark_test_object(test_object, feature_id=586, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_insecure(test_object):
+        """OTEL_EXPORTER_OTLP_INSECURE
+
+        https://feature-parity.us1.prod.dog/#/?feature=587
+        """
+        return _mark_test_object(test_object, feature_id=587, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_logs_certificate(test_object):
+        """OTEL_EXPORTER_OTLP_LOGS_CERTIFICATE
+
+        https://feature-parity.us1.prod.dog/#/?feature=588
+        """
+        return _mark_test_object(test_object, feature_id=588, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_logs_client_certificate(test_object):
+        """OTEL_EXPORTER_OTLP_LOGS_CLIENT_CERTIFICATE
+
+        https://feature-parity.us1.prod.dog/#/?feature=589
+        """
+        return _mark_test_object(test_object, feature_id=589, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_logs_client_key(test_object):
+        """OTEL_EXPORTER_OTLP_LOGS_CLIENT_KEY
+
+        https://feature-parity.us1.prod.dog/#/?feature=590
+        """
+        return _mark_test_object(test_object, feature_id=590, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_logs_compression(test_object):
+        """OTEL_EXPORTER_OTLP_LOGS_COMPRESSION
+
+        https://feature-parity.us1.prod.dog/#/?feature=591
+        """
+        return _mark_test_object(test_object, feature_id=591, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_logs_endpoint(test_object):
+        """OTEL_EXPORTER_OTLP_LOGS_ENDPOINT
+
+        https://feature-parity.us1.prod.dog/#/?feature=592
+        """
+        return _mark_test_object(test_object, feature_id=592, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_logs_headers(test_object):
+        """OTEL_EXPORTER_OTLP_LOGS_HEADERS
+
+        https://feature-parity.us1.prod.dog/#/?feature=593
+        """
+        return _mark_test_object(test_object, feature_id=593, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_logs_insecure(test_object):
+        """OTEL_EXPORTER_OTLP_LOGS_INSECURE
+
+        https://feature-parity.us1.prod.dog/#/?feature=594
+        """
+        return _mark_test_object(test_object, feature_id=594, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_logs_protocol(test_object):
+        """OTEL_EXPORTER_OTLP_LOGS_PROTOCOL
+
+        https://feature-parity.us1.prod.dog/#/?feature=595
+        """
+        return _mark_test_object(test_object, feature_id=595, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_logs_timeout(test_object):
+        """OTEL_EXPORTER_OTLP_LOGS_TIMEOUT
+
+        https://feature-parity.us1.prod.dog/#/?feature=596
+        """
+        return _mark_test_object(test_object, feature_id=596, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_metrics_certificate(test_object):
+        """OTEL_EXPORTER_OTLP_METRICS_CERTIFICATE
+
+        https://feature-parity.us1.prod.dog/#/?feature=597
+        """
+        return _mark_test_object(test_object, feature_id=597, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_metrics_client_certificate(test_object):
+        """OTEL_EXPORTER_OTLP_METRICS_CLIENT_CERTIFICATE
+
+        https://feature-parity.us1.prod.dog/#/?feature=598
+        """
+        return _mark_test_object(test_object, feature_id=598, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_metrics_client_key(test_object):
+        """OTEL_EXPORTER_OTLP_METRICS_CLIENT_KEY
+
+        https://feature-parity.us1.prod.dog/#/?feature=599
+        """
+        return _mark_test_object(test_object, feature_id=599, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_metrics_compression(test_object):
+        """OTEL_EXPORTER_OTLP_METRICS_COMPRESSION
+
+        https://feature-parity.us1.prod.dog/#/?feature=600
+        """
+        return _mark_test_object(test_object, feature_id=600, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_metrics_endpoint(test_object):
+        """OTEL_EXPORTER_OTLP_METRICS_ENDPOINT
+
+        https://feature-parity.us1.prod.dog/#/?feature=601
+        """
+        return _mark_test_object(test_object, feature_id=601, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_metrics_headers(test_object):
+        """OTEL_EXPORTER_OTLP_METRICS_HEADERS
+
+        https://feature-parity.us1.prod.dog/#/?feature=602
+        """
+        return _mark_test_object(test_object, feature_id=602, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_metrics_insecure(test_object):
+        """OTEL_EXPORTER_OTLP_METRICS_INSECURE
+
+        https://feature-parity.us1.prod.dog/#/?feature=603
+        """
+        return _mark_test_object(test_object, feature_id=603, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_metrics_protocol(test_object):
+        """OTEL_EXPORTER_OTLP_METRICS_PROTOCOL
+
+        https://feature-parity.us1.prod.dog/#/?feature=604
+        """
+        return _mark_test_object(test_object, feature_id=604, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_metrics_timeout(test_object):
+        """OTEL_EXPORTER_OTLP_METRICS_TIMEOUT
+
+        https://feature-parity.us1.prod.dog/#/?feature=605
+        """
+        return _mark_test_object(test_object, feature_id=605, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_metric_insecure(test_object):
+        """OTEL_EXPORTER_OTLP_METRIC_INSECURE
+
+        https://feature-parity.us1.prod.dog/#/?feature=606
+        """
+        return _mark_test_object(test_object, feature_id=606, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_protocol(test_object):
+        """OTEL_EXPORTER_OTLP_PROTOCOL
+
+        https://feature-parity.us1.prod.dog/#/?feature=607
+        """
+        return _mark_test_object(test_object, feature_id=607, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_span_insecure(test_object):
+        """OTEL_EXPORTER_OTLP_SPAN_INSECURE
+
+        https://feature-parity.us1.prod.dog/#/?feature=608
+        """
+        return _mark_test_object(test_object, feature_id=608, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_timeout(test_object):
+        """OTEL_EXPORTER_OTLP_TIMEOUT
+
+        https://feature-parity.us1.prod.dog/#/?feature=609
+        """
+        return _mark_test_object(test_object, feature_id=609, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_traces_certificate(test_object):
+        """OTEL_EXPORTER_OTLP_TRACES_CERTIFICATE
+
+        https://feature-parity.us1.prod.dog/#/?feature=610
+        """
+        return _mark_test_object(test_object, feature_id=610, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_traces_client_certificate(test_object):
+        """OTEL_EXPORTER_OTLP_TRACES_CLIENT_CERTIFICATE
+
+        https://feature-parity.us1.prod.dog/#/?feature=611
+        """
+        return _mark_test_object(test_object, feature_id=611, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_traces_client_key(test_object):
+        """OTEL_EXPORTER_OTLP_TRACES_CLIENT_KEY
+
+        https://feature-parity.us1.prod.dog/#/?feature=612
+        """
+        return _mark_test_object(test_object, feature_id=612, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_traces_compression(test_object):
+        """OTEL_EXPORTER_OTLP_TRACES_COMPRESSION
+
+        https://feature-parity.us1.prod.dog/#/?feature=613
+        """
+        return _mark_test_object(test_object, feature_id=613, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_traces_endpoint(test_object):
+        """OTEL_EXPORTER_OTLP_TRACES_ENDPOINT
+
+        https://feature-parity.us1.prod.dog/#/?feature=614
+        """
+        return _mark_test_object(test_object, feature_id=614, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_traces_headers(test_object):
+        """OTEL_EXPORTER_OTLP_TRACES_HEADERS
+
+        https://feature-parity.us1.prod.dog/#/?feature=615
+        """
+        return _mark_test_object(test_object, feature_id=615, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_traces_insecure(test_object):
+        """OTEL_EXPORTER_OTLP_TRACES_INSECURE
+
+        https://feature-parity.us1.prod.dog/#/?feature=616
+        """
+        return _mark_test_object(test_object, feature_id=616, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_traces_protocol(test_object):
+        """OTEL_EXPORTER_OTLP_TRACES_PROTOCOL
+
+        https://feature-parity.us1.prod.dog/#/?feature=617
+        """
+        return _mark_test_object(test_object, feature_id=617, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_traces_timeout(test_object):
+        """OTEL_EXPORTER_OTLP_TRACES_TIMEOUT
+
+        https://feature-parity.us1.prod.dog/#/?feature=618
+        """
+        return _mark_test_object(test_object, feature_id=618, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_prometheus_host(test_object):
+        """OTEL_EXPORTER_PROMETHEUS_HOST
+
+        https://feature-parity.us1.prod.dog/#/?feature=619
+        """
+        return _mark_test_object(test_object, feature_id=619, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_prometheus_port(test_object):
+        """OTEL_EXPORTER_PROMETHEUS_PORT
+
+        https://feature-parity.us1.prod.dog/#/?feature=620
+        """
+        return _mark_test_object(test_object, feature_id=620, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_zipkin_endpoint(test_object):
+        """OTEL_EXPORTER_ZIPKIN_ENDPOINT
+
+        https://feature-parity.us1.prod.dog/#/?feature=621
+        """
+        return _mark_test_object(test_object, feature_id=621, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_zipkin_protocol(test_object):
+        """OTEL_EXPORTER_ZIPKIN_PROTOCOL
+
+        https://feature-parity.us1.prod.dog/#/?feature=622
+        """
+        return _mark_test_object(test_object, feature_id=622, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_zipkin_timeout(test_object):
+        """OTEL_EXPORTER_ZIPKIN_TIMEOUT
+
+        https://feature-parity.us1.prod.dog/#/?feature=623
+        """
+        return _mark_test_object(test_object, feature_id=623, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_link_attribute_count_limit(test_object):
+        """OTEL_LINK_ATTRIBUTE_COUNT_LIMIT
+
+        https://feature-parity.us1.prod.dog/#/?feature=624
+        """
+        return _mark_test_object(test_object, feature_id=624, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_logrecord_attribute_count_limit(test_object):
+        """OTEL_LOGRECORD_ATTRIBUTE_COUNT_LIMIT
+
+        https://feature-parity.us1.prod.dog/#/?feature=625
+        """
+        return _mark_test_object(test_object, feature_id=625, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_logrecord_attribute_value_length_limit(test_object):
+        """OTEL_LOGRECORD_ATTRIBUTE_VALUE_LENGTH_LIMIT
+
+        https://feature-parity.us1.prod.dog/#/?feature=626
+        """
+        return _mark_test_object(test_object, feature_id=626, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_logs_exporter(test_object):
+        """OTEL_LOGS_EXPORTER
+
+        https://feature-parity.us1.prod.dog/#/?feature=627
+        """
+        return _mark_test_object(test_object, feature_id=627, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_log_level(test_object):
+        """OTEL_LOG_LEVEL
+
+        https://feature-parity.us1.prod.dog/#/?feature=628
+        """
+        return _mark_test_object(test_object, feature_id=628, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_metrics_exemplar_filter(test_object):
+        """OTEL_METRICS_EXEMPLAR_FILTER
+
+        https://feature-parity.us1.prod.dog/#/?feature=629
+        """
+        return _mark_test_object(test_object, feature_id=629, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_metrics_exporter(test_object):
+        """OTEL_METRICS_EXPORTER
+
+        https://feature-parity.us1.prod.dog/#/?feature=630
+        """
+        return _mark_test_object(test_object, feature_id=630, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_metric_export_interval(test_object):
+        """OTEL_METRIC_EXPORT_INTERVAL
+
+        https://feature-parity.us1.prod.dog/#/?feature=631
+        """
+        return _mark_test_object(test_object, feature_id=631, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_metric_export_timeout(test_object):
+        """OTEL_METRIC_EXPORT_TIMEOUT
+
+        https://feature-parity.us1.prod.dog/#/?feature=632
+        """
+        return _mark_test_object(test_object, feature_id=632, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_propagators(test_object):
+        """OTEL_PROPAGATORS
+
+        https://feature-parity.us1.prod.dog/#/?feature=633
+        """
+        return _mark_test_object(test_object, feature_id=633, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_resource_attributes(test_object):
+        """OTEL_RESOURCE_ATTRIBUTES
+
+        https://feature-parity.us1.prod.dog/#/?feature=634
+        """
+        return _mark_test_object(test_object, feature_id=634, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_sdk_disabled(test_object):
+        """OTEL_SDK_DISABLED
+
+        https://feature-parity.us1.prod.dog/#/?feature=635
+        """
+        return _mark_test_object(test_object, feature_id=635, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_service_name(test_object):
+        """OTEL_SERVICE_NAME
+
+        https://feature-parity.us1.prod.dog/#/?feature=566
+        """
+        return _mark_test_object(test_object, feature_id=566, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_span_attribute_count_limit(test_object):
+        """OTEL_SPAN_ATTRIBUTE_COUNT_LIMIT
+
+        https://feature-parity.us1.prod.dog/#/?feature=636
+        """
+        return _mark_test_object(test_object, feature_id=636, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_span_attribute_value_length_limit(test_object):
+        """OTEL_SPAN_ATTRIBUTE_VALUE_LENGTH_LIMIT
+
+        https://feature-parity.us1.prod.dog/#/?feature=637
+        """
+        return _mark_test_object(test_object, feature_id=637, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_span_event_count_limit(test_object):
+        """OTEL_SPAN_EVENT_COUNT_LIMIT
+
+        https://feature-parity.us1.prod.dog/#/?feature=638
+        """
+        return _mark_test_object(test_object, feature_id=638, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_span_link_count_limit(test_object):
+        """OTEL_SPAN_LINK_COUNT_LIMIT
+
+        https://feature-parity.us1.prod.dog/#/?feature=639
+        """
+        return _mark_test_object(test_object, feature_id=639, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_traces_exporter(test_object):
+        """OTEL_TRACES_EXPORTER
+
+        https://feature-parity.us1.prod.dog/#/?feature=640
+        """
+        return _mark_test_object(test_object, feature_id=640, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_traces_sampler(test_object):
+        """OTEL_TRACES_SAMPLER
+
+        https://feature-parity.us1.prod.dog/#/?feature=641
+        """
+        return _mark_test_object(test_object, feature_id=641, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_traces_sampler_arg(test_object):
+        """OTEL_TRACES_SAMPLER_ARG
+
+        https://feature-parity.us1.prod.dog/#/?feature=642
+        """
+        return _mark_test_object(test_object, feature_id=642, owner=_Owner.sdk_capabilities)
+
 
 features = _Features()

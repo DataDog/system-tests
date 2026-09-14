@@ -1,0 +1,8 @@
+# Smoke-test trigger for the THREAD_CONTEXT_SHARING scenario: fires on any open()
+# of /tmp/system-tests-thread-context-sharing-*, which is what the weblog's
+# `GET /security/thread_context_sharing` endpoint does (see
+# docs/understand/weblogs/end-to-end_weblog.md).
+rules:
+  - id: thread_context_sharing_smoke_test
+    expression: >-
+      open.file.path =~ "/tmp/system-tests-thread-context-sharing-*"

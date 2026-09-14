@@ -11,7 +11,10 @@ def _flatten_otlp_attributes(attributes: list[dict]) -> Iterator[tuple[str, Any]
         elif v.get("boolValue") is not None:
             yield key_value["key"], v["boolValue"]
         elif v.get("intValue") is not None:
-            yield key_value["key"], v["intValue"]
+            # OTLP int64 is serialized as a JSON string in JSON-protobuf encoding and as a number
+            # in binary; coerce to a Python int so attribute types are comparable regardless of
+            # the export encoding.
+            yield key_value["key"], int(v["intValue"])
         elif v.get("doubleValue") is not None:
             yield key_value["key"], v["doubleValue"]
         elif v.get("arrayValue") is not None:

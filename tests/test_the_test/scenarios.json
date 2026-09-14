@@ -3267,6 +3267,21 @@
   "tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers::test_pii_redaction_excluded_identifiers": [
     "TRACING_CONFIG_NONDEFAULT_4"
   ],
+  "tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers::test_pii_redaction_log_probe_computed_key": [
+    "TRACING_CONFIG_NONDEFAULT_4"
+  ],
+  "tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers::test_pii_redaction_log_probe_identifiers": [
+    "TRACING_CONFIG_NONDEFAULT_4"
+  ],
+  "tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers::test_pii_redaction_log_probe_map_key": [
+    "TRACING_CONFIG_NONDEFAULT_4"
+  ],
+  "tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers::test_pii_redaction_log_probe_map_rendering": [
+    "TRACING_CONFIG_NONDEFAULT_4"
+  ],
+  "tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers::test_pii_redaction_log_probe_sensitive_type": [
+    "TRACING_CONFIG_NONDEFAULT_4"
+  ],
   "tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_log_line_budgets": [
     "DEBUGGER_PROBES_SNAPSHOT"
   ],
