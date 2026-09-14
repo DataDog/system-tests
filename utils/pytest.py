@@ -18,6 +18,7 @@ MonkeyPatch = _pytest.MonkeyPatch
 CaptureFixture = _pytest.CaptureFixture
 Session = _pytest.Session
 CallInfo = _pytest.CallInfo
+TempPathFactory = _pytest.TempPathFactory
 
 approx = _pytest.approx
 exit = _pytest.exit  # noqa: A001 - preserve the public pytest API name
