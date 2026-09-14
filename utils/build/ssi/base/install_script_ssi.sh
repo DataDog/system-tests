@@ -54,7 +54,13 @@ if [ ! -s "install_script_agent7.sh" ]; then
     exit 1
 fi
 
-DD_REPO_URL=${DD_injection_repo_url} DD_INSTALL_ONLY=true DD_APM_INSTRUMENTATION_ENABLED=host bash ./install_script_agent7.sh
+run_with_retry \
+    "Datadog Agent installer" \
+    env \
+    "DD_REPO_URL=${DD_injection_repo_url}" \
+    DD_INSTALL_ONLY=true \
+    DD_APM_INSTRUMENTATION_ENABLED=host \
+    bash ./install_script_agent7.sh || exit 1
 
 if [ -f /etc/debian_version ] || [ "$DISTRIBUTION" == "Debian" ] || [ "$DISTRIBUTION" == "Ubuntu" ]; then
     OS="Debian"

@@ -18,3 +18,26 @@ download_with_retry() {
     echo "[ERROR] ${output} is missing or empty after ${max_attempts} attempts" >&2
     return 1
 }
+
+run_with_retry() {
+    local description="$1"
+    shift
+
+    local max_attempts=3
+    local retry_delay=5
+    local attempt
+    for (( attempt = 1; attempt <= max_attempts; attempt++ )); do
+        echo "[TRACE] running ${description} (attempt ${attempt}/${max_attempts})"
+        if "$@"; then
+            return 0
+        fi
+
+        if (( attempt < max_attempts )); then
+            echo "[WARN] ${description} failed; retrying in ${retry_delay} seconds" >&2
+            sleep "$retry_delay"
+        fi
+    done
+
+    echo "[ERROR] ${description} failed after ${max_attempts} attempts" >&2
+    return 1
+}
