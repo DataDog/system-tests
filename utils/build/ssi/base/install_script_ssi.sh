@@ -56,6 +56,8 @@ fi
 
 run_with_retry \
     "Datadog Agent installer" \
+    3 \
+    5 \
     env \
     "DD_REPO_URL=${DD_injection_repo_url}" \
     DD_INSTALL_ONLY=true \

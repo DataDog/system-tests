@@ -7,6 +7,8 @@ download_with_retry https://dd-agent.s3.amazonaws.com/scripts/install_script_age
 
 run_with_retry \
     "Datadog Agent installer" \
+    3 \
+    5 \
     env \
     DD_INSTALL_ONLY=true \
     DD_INSTALLER=true \

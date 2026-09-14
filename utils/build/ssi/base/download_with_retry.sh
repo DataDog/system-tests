@@ -1,30 +1,11 @@
 #!/bin/bash
 
-download_with_retry() {
-    local url="$1"
-    local output
-    output="$(basename "$url")"
-
-    local max_attempts=5
-    local attempt
-    for (( attempt = 1; attempt <= max_attempts; attempt++ )); do
-        echo "[TRACE] downloading ${output} (attempt ${attempt}/${max_attempts})"
-        if curl --fail --retry 3 -sSL -o "$output" "$url" && [ -s "$output" ]; then
-            return 0
-        fi
-        rm -f "$output"
-    done
-
-    echo "[ERROR] ${output} is missing or empty after ${max_attempts} attempts" >&2
-    return 1
-}
-
 run_with_retry() {
     local description="$1"
-    shift
+    local max_attempts="$2"
+    local retry_delay="$3"
+    shift 3
 
-    local max_attempts=3
-    local retry_delay=5
     local attempt
     for (( attempt = 1; attempt <= max_attempts; attempt++ )); do
         echo "[TRACE] running ${description} (attempt ${attempt}/${max_attempts})"
@@ -40,4 +21,24 @@ run_with_retry() {
 
     echo "[ERROR] ${description} failed after ${max_attempts} attempts" >&2
     return 1
+}
+
+_download_once() {
+    local url="$1"
+    local output="$2"
+
+    if curl --fail --retry 3 -sSL -o "$output" "$url" && [ -s "$output" ]; then
+        return 0
+    fi
+
+    rm -f "$output"
+    return 1
+}
+
+download_with_retry() {
+    local url="$1"
+    local output
+    output="$(basename "$url")"
+
+    run_with_retry "download ${output}" 5 0 _download_once "$url" "$output"
 }
