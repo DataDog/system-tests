@@ -21,7 +21,7 @@ target "django-py3_13" {
 target "fastapi" {
   context    = "."
   dockerfile = "utils/build/docker/python/fastapi.base.Dockerfile"
-  tags       = ["datadog/system-tests:fastapi.base-v10"]
+  tags       = ["datadog/system-tests:fastapi.base-v11"]
 }
 
 target "python3_12" {
