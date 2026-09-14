@@ -31,9 +31,8 @@ elif [ -f cpp-load-from-git ]; then
   echo "Build libdd_trace_c.so from cpp-load-from-git"
   TARGET=$(cat cpp-load-from-git)
   URL=$(echo "$TARGET" | cut -d "@" -f 1)
-  REF=$(echo "$TARGET" | cut -d "@" -f 2)
-  git clone "$URL" dd-trace-cpp
-  git -C dd-trace-cpp checkout "$REF"
+  BRANCH=$(echo "$TARGET" | cut -d "@" -f 2)
+  git clone --depth 1 --branch "$BRANCH" "$URL" dd-trace-cpp
   cd dd-trace-cpp
   cmake -S . -B build \
       -DDD_TRACE_BUILD_C_BINDING=ON \
@@ -97,19 +96,8 @@ if [ -n "$rock_file" ]; then
 elif [ -d kong-plugin-ddtrace ]; then
   echo "Using Kong plugin from binaries/kong-plugin-ddtrace"
 
-elif [ -f cpp-kong-plugin-git ]; then
-  TARGET=$(cat cpp-kong-plugin-git)
-  URL=$(echo "$TARGET" | cut -d "@" -f 1)
-  REF=$(echo "$TARGET" | cut -d "@" -f 2)
-  git clone "$URL" kong-plugin-ddtrace
-  git -C kong-plugin-ddtrace checkout "$REF"
-
 else
-  if [ -f cpp-kong-load-from-release ]; then
-    TAG=$(cat cpp-kong-load-from-release)
-  else
-    TAG=$(get_latest_release "DataDog/kong-plugin-ddtrace")
-  fi
+  TAG=$(get_latest_release "DataDog/kong-plugin-ddtrace")
   echo "Installing kong-plugin-ddtrace from latest release ${TAG}"
   curl -sL "https://github.com/DataDog/kong-plugin-ddtrace/archive/refs/tags/${TAG}.tar.gz" \
       | tar -xz

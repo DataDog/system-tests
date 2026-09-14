@@ -31,7 +31,7 @@ OTEL_LIBRARIES = COMPONENT_GROUPS.otel - {"nodejs_otel"}  # nodejs_otel intentio
 ALL_LIBRARIES = LIBRARIES | OTEL_LIBRARIES
 GITHUB_EXCLUDED_LIBRARIES = {"c"}
 GITLAB_PR_LIBRARIES = {"c"}
-GITLAB_MAIN: set[str] = {"python"}
+GITLAB_MAIN = {"python"}
 
 
 def check_scenarios(scenarios: set[str]) -> bool:

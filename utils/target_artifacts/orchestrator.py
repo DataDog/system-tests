@@ -76,6 +76,9 @@ def write_artifact_entries(
     new_entries = _dedupe_entries(entries)
     owner = {"target": target, "environment": environment}
 
+    for filename in manifest_entries:
+        _validate_filename(filename)
+
     for filename in new_entries:
         _validate_filename(filename)
         existing_owner = manifest_entries.get(filename, {}).get("owner")
@@ -125,7 +128,10 @@ def _read_manifest(binaries_dir: Path) -> dict[str, Any]:
     path = binaries_dir / MANIFEST_FILENAME
     if not path.exists():
         return {"version": MANIFEST_VERSION, "entries": {}}
-    payload = json.loads(path.read_text(encoding="utf-8"))
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise TargetArtifactError(f"Unable to read artifact manifest {path}") from exc
     if not isinstance(payload, dict):
         raise TargetArtifactError(f"Artifact manifest {path} is not an object")
     if payload.get("version") != MANIFEST_VERSION:
@@ -157,7 +163,7 @@ def _dedupe_entries(entries: tuple[ArtifactEntry, ...]) -> dict[str, ArtifactEnt
 
 def _validate_filename(filename: str) -> None:
     path = Path(filename)
-    if path.is_absolute() or ".." in path.parts or filename == MANIFEST_FILENAME:
+    if not filename or path.name != filename or filename == MANIFEST_FILENAME:
         raise TargetArtifactError(f"Invalid artifact entry filename '{filename}'")
 
 

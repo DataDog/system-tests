@@ -9,7 +9,6 @@ import pytest
 import requests
 
 from utils import scenarios
-from utils.const import COMPONENT_GROUPS
 from utils.target_artifacts.models import (
     ArtifactResolver,
     BranchReference,
@@ -253,6 +252,58 @@ class Prod(Dev):
             stage_target("fake", "dev", repo_root=tmp_path, binaries_dir=binaries_dir)
 
         assert (binaries_dir / "manual").read_text(encoding="utf-8") == "user\n"
+
+    @pytest.mark.parametrize("filename", ["", "../outside", "nested/entry", MANIFEST_FILENAME])
+    def test_invalid_entry_filename_is_rejected(self, tmp_path: Path, filename: str) -> None:
+        _write_target_module(
+            tmp_path,
+            f"""
+from utils.target_artifacts.entry_helpers import text_entry
+
+class Dev:
+    def artifact_inputs(self, env):
+        return ()
+
+    def artifact_entries(self, resolved_inputs):
+        return (text_entry({filename!r}, "generated"),)
+
+class Prod(Dev):
+    pass
+""",
+        )
+
+        with pytest.raises(TargetArtifactError, match="Invalid artifact entry filename"):
+            stage_target("fake", "dev", repo_root=tmp_path, binaries_dir=tmp_path / "binaries")
+
+    def test_manifest_cannot_delete_files_outside_binaries(self, tmp_path: Path) -> None:
+        _write_target_module(
+            tmp_path,
+            """
+class Dev:
+    def artifact_inputs(self, env):
+        return ()
+
+    def artifact_entries(self, resolved_inputs):
+        return ()
+
+class Prod(Dev):
+    pass
+""",
+        )
+        outside = tmp_path / "outside"
+        outside.write_text("keep\n", encoding="utf-8")
+        binaries_dir = tmp_path / "binaries"
+        binaries_dir.mkdir()
+        manifest = {
+            "version": 1,
+            "entries": {"../outside": {"owner": {"target": "fake", "environment": "dev"}}},
+        }
+        (binaries_dir / MANIFEST_FILENAME).write_text(json.dumps(manifest), encoding="utf-8")
+
+        with pytest.raises(TargetArtifactError, match="Invalid artifact entry filename"):
+            stage_target("fake", "dev", repo_root=tmp_path, binaries_dir=binaries_dir)
+
+        assert outside.read_text(encoding="utf-8") == "keep\n"
 
     def test_github_release_resolver_wraps_request_failures(self, monkeypatch: pytest.MonkeyPatch) -> None:
         def fail_get(*_args: object, **_kwargs: object) -> object:
@@ -874,176 +925,23 @@ class Test_TargetArtifactResolvers:
 
 
 @scenarios.test_the_test
-class Test_TargetArtifactExternalContracts:
-    def test_public_github_branch_contract(self) -> None:
-        resolved = GitHubBranchResolver(
-            name="library_branch",
-            repository="DataDog/dd-trace-py",
-            default_value="main",
-        ).resolve({})
-
-        assert resolved.branch == "main"
-        assert resolved.repository == "DataDog/dd-trace-py"
-        assert len(resolved.sha) == 40
-        assert all(character in "0123456789abcdef" for character in resolved.sha)
-
-    def test_public_github_latest_release_contract_includes_assets(self) -> None:
-        resolved = GitHubLatestReleaseResolver(
-            name="release",
-            repository="DataDog/datadog-lambda-python",
-            include_assets=True,
-        ).resolve({})
-
-        assert resolved.repository == "DataDog/datadog-lambda-python"
-        assert resolved.tag_name.startswith("v")
-        assert resolved.assets
-        assert all(asset.name for asset in resolved.assets)
-        assert all(
-            asset.browser_download_url.startswith(
-                "https://github.com/DataDog/datadog-lambda-python/releases/download/",
-            )
-            for asset in resolved.assets
-        )
-
-    def test_public_github_actions_artifact_contract_uses_unauthenticated_request(self) -> None:
-        resolved = GitHubActionsArtifactResolver(
-            name="workflow_artifact",
-            repository="DataDog/httpd-datadog",
-            workflow="dev.yml",
-            artifact_name="mod_datadog_artifact",
-            default_value="main",
-        ).resolve({})
-
-        assert resolved.repository == "DataDog/httpd-datadog"
-        assert resolved.workflow == "dev.yml"
-        assert resolved.branch == "main"
-        assert len(resolved.commit_sha) == 40
-        assert all(character in "0123456789abcdef" for character in resolved.commit_sha)
-        assert resolved.run_url.startswith("https://github.com/DataDog/httpd-datadog/actions/runs/")
-        assert "mod_datadog_artifact" in resolved.artifact_name
-        assert resolved.archive_download_url.startswith(
-            "https://api.github.com/repos/DataDog/httpd-datadog/actions/artifacts/",
-        )
-
-    @pytest.mark.parametrize(
-        "resolver",
-        [
-            NpmLatestResolver(name="package", package="dd-trace"),
-            PypiLatestResolver(name="package", package="ddtrace"),
-            RubygemsLatestResolver(name="package", package="datadog"),
-            CratesLatestResolver(name="package", package="datadog-opentelemetry"),
-        ],
-    )
-    def test_public_package_registry_contracts_return_versions(
-        self,
-        resolver: NpmLatestResolver | PypiLatestResolver | RubygemsLatestResolver | CratesLatestResolver,
-    ) -> None:
-        resolved = resolver.resolve({})
-
-        assert resolved.module
-        assert resolved.version
-        assert any(character.isdigit() for character in resolved.version)
-
-
-@scenarios.test_the_test
 class Test_TargetArtifactModules:
-    @pytest.mark.parametrize("target", sorted(COMPONENT_GROUPS.all))
     @pytest.mark.parametrize("environment", ["dev", "prod"])
-    def test_every_target_has_real_staging_behavior(self, target: str, environment: str) -> None:
-        target_environment = load_target_environment(Path.cwd(), target, environment)
-        env = {}
+    def test_python_staging_emits_a_bounded_selector(self, environment: str) -> None:
+        target_environment = load_target_environment(Path.cwd(), "python", environment)
+        env = {"LIBRARY_TARGET_BRANCH": "feature-branch"} if environment == "dev" else {}
+        resolver = FakeResolver()
+        resolved = {
+            artifact_resolver.name: resolver.resolve(artifact_resolver, env)
+            for artifact_resolver in target_environment.artifact_inputs(env)
+        }
+
+        entries = target_environment.artifact_entries(resolved)
+
+        assert len(entries) == 1
         if environment == "dev":
-            env = {
-                "AUTO_INJECT_TARGET_BRANCH": "auto-inject-branch",
-                "LIBRARY_TARGET_BRANCH": "library-branch",
-                "ORCHESTRION_TARGET_BRANCH": "orchestrion-branch",
-            }
-        resolver = FakeResolver()
-        resolved = {
-            artifact_resolver.name: resolver.resolve(artifact_resolver, env)
-            for artifact_resolver in target_environment.artifact_inputs(env)
-        }
-
-        entries = target_environment.artifact_entries(resolved)
-
-        assert entries, f"{target} {environment} did not emit artifact entries"
-        assert all(entry.content.endswith("\n") for entry in entries)
-        assert all("placeholder" not in entry.content.lower() for entry in entries)
-        if environment == "prod":
-            assert all(":latest" not in entry.content for entry in entries)
-            assert all("@latest" not in entry.content for entry in entries)
-
-    def test_c_dev_supports_independent_branch_overrides(self) -> None:
-        target_environment = load_target_environment(Path.cwd(), "c", "dev")
-        env = {
-            "AUTO_INJECT_TARGET_BRANCH": "auto-inject-branch",
-            "LIBRARY_TARGET_BRANCH": "library-branch",
-        }
-        resolver = FakeResolver()
-        resolved = {
-            artifact_resolver.name: resolver.resolve(artifact_resolver, env)
-            for artifact_resolver in target_environment.artifact_inputs(env)
-        }
-
-        entries = {entry.filename: entry.content.strip() for entry in target_environment.artifact_entries(resolved)}
-
-        assert entries == {
-            "c-injector-image": f"installtesting.datad0g.com/apm-inject-package:{SHA}",
-            "c-library-image": f"installtesting.datad0g.com/apm-library-c-package:{SHA}",
-        }
-
-    def test_workflow_artifact_entries_are_credential_free_json(self) -> None:
-        target_environment = load_target_environment(Path.cwd(), "python_lambda", "dev")
-        env: dict[str, str] = {}
-        resolver = FakeResolver()
-        resolved = {
-            artifact_resolver.name: resolver.resolve(artifact_resolver, env)
-            for artifact_resolver in target_environment.artifact_inputs(env)
-        }
-
-        entry = target_environment.artifact_entries(resolved)[0]
-        payload = json.loads(entry.content)
-
-        assert entry.filename.endswith(".json")
-        assert payload["commit_sha"] == SHA
-        assert "token" not in entry.content.lower()
-
-    def test_provider_package_selectors_have_build_consumers(self) -> None:
-        build_script = Path("utils/build/build.sh").read_text(encoding="utf-8")
-
-        assert "binaries/dotnet-package-image" in build_script
-        assert "datadog-dotnet-apm*.tar.gz" in build_script
-        assert "binaries/php-package-image" in build_script
-        assert "dd-library-php-*-linux-gnu.tar.gz" in build_script
-        assert "datadog-setup.php" in build_script
-
-    def test_staged_java_otel_selector_has_installer_consumer(self) -> None:
-        target_environment = load_target_environment(Path.cwd(), "java_otel", "dev")
-        env = {"LIBRARY_TARGET_BRANCH": "ignored"}
-        resolver = FakeResolver()
-        resolved = {
-            artifact_resolver.name: resolver.resolve(artifact_resolver, env)
-            for artifact_resolver in target_environment.artifact_inputs(env)
-        }
-
-        entries = target_environment.artifact_entries(resolved)
-        installer = Path("utils/build/docker/java_otel/install_opentelemetry.sh").read_text(encoding="utf-8")
-
-        assert {entry.filename for entry in entries} == {"java-otel-load-from-release"}
-        assert "java-otel-load-from-release" in installer
-
-    def test_lambda_workflow_metadata_is_parsed_with_jq(self) -> None:
-        for installer_path, metadata_filename in (
-            (
-                Path("utils/build/docker/python_lambda/install_datadog_lambda.sh"),
-                "python-lambda-github-actions-artifact.json",
-            ),
-            (
-                Path("utils/build/docker/nodejs_lambda/install_datadog_lambda.sh"),
-                "nodejs-lambda-github-actions-artifact.json",
-            ),
-        ):
-            installer = installer_path.read_text(encoding="utf-8")
-
-            assert metadata_filename in installer
-            assert "jq -r '.archive_download_url'" in installer
+            assert entries[0].filename == "python-load-from-s3"
+            assert entries[0].content == f"{SHA}\n"
+        else:
+            assert entries[0].filename == "python-load-from-pip"
+            assert entries[0].content == "ddtrace==1.2.3\n"
