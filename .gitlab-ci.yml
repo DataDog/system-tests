@@ -20,8 +20,10 @@ stages:
 
 variables:
     TEST: 1
-    # dd-repo-tools mirror_images.py (pinned). Used by the mirror_images_* jobs.
-    MIRROR_IMAGES_URL: "https://binaries.ddbuild.io/dd-repo-tools/default/ca/385a670d8fafd57f8c3c9872823aa8dcd65b53cc/mirror_images.py"
+    # dd-repo-tools mirror_images.py (pinned). Used by the mirror_images_* jobs, and
+    # picked up by update_mirror_images.py, which reads it from the environment.
+    # Keep in sync with the default in utils/scripts/update_mirror_images.py.
+    MIRROR_IMAGES_URL: "https://binaries.ddbuild.io/dd-repo-tools/default/ca/457b58d8c5ae7dad8ce0cba3c5d99171a843d678/mirror_images.py"
     # Destination registry for mirrored CI images.
     MIRROR_DEST_REGISTRY: "registry.ddbuild.io/system-tests/mirror"
 
@@ -440,6 +442,6 @@ mirror_images:
       fi
     # Push any locked image missing from the mirror (already-present images are skipped),
     # then sign the images copied during this run with ddsign.
-    - uv run --no-config --script "$MIRROR_IMAGES_URL" mirror --sign
+    - uv run --no-config --no-project --script "$MIRROR_IMAGES_URL" mirror --sign
   rules:
     - if: '$SCHEDULED_JOB == "" || $SCHEDULED_JOB == null'
