@@ -24,22 +24,31 @@ BASE_ENV = {
     "OTEL_EXPORTER_OTLP_TRACES_PROTOCOL": "http/protobuf",
 }
 
-STABLE_VALUES = [
+OTLP_VALUE = [
     pytest.param(
         {**BASE_ENV, "OTEL_TRACES_EXPORTER": OTLP_EXPORTER},
         OTLP_EXPORTER,
         id=OTLP_EXPORTER,
     ),
+]
+
+ZIPKIN_VALUE = [
     pytest.param(
         {**BASE_ENV, "OTEL_TRACES_EXPORTER": ZIPKIN_EXPORTER},
         ZIPKIN_EXPORTER,
         id=ZIPKIN_EXPORTER,
     ),
+]
+
+CONSOLE_VALUE = [
     pytest.param(
         {**BASE_ENV, "OTEL_TRACES_EXPORTER": CONSOLE_EXPORTER},
         CONSOLE_EXPORTER,
         id=CONSOLE_EXPORTER,
     ),
+]
+
+NONE_VALUE = [
     pytest.param(
         {**BASE_ENV, "OTEL_TRACES_EXPORTER": NONE_EXPORTER},
         NONE_EXPORTER,
@@ -171,8 +180,38 @@ def _assert_exporter(exporter: str, test_agent: TestAgentAPI, test_library: APML
 @scenarios.parametric
 @features.otel_traces_exporter
 class Test_OTEL_TRACES_EXPORTER:
-    @pytest.mark.parametrize(("library_env", "exporter"), STABLE_VALUES)
-    def test_stable_values(
+    @pytest.mark.parametrize(("library_env", "exporter"), OTLP_VALUE)
+    def test_otlp_exporter(
+        self,
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+        *,
+        exporter: str,
+    ) -> None:
+        _assert_exporter(exporter, test_agent, test_library)
+
+    @pytest.mark.parametrize(("library_env", "exporter"), ZIPKIN_VALUE)
+    def test_zipkin_exporter(
+        self,
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+        *,
+        exporter: str,
+    ) -> None:
+        _assert_exporter(exporter, test_agent, test_library)
+
+    @pytest.mark.parametrize(("library_env", "exporter"), CONSOLE_VALUE)
+    def test_console_exporter(
+        self,
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+        *,
+        exporter: str,
+    ) -> None:
+        _assert_exporter(exporter, test_agent, test_library)
+
+    @pytest.mark.parametrize(("library_env", "exporter"), NONE_VALUE)
+    def test_none_exporter(
         self,
         test_agent: TestAgentAPI,
         test_library: APMLibrary,

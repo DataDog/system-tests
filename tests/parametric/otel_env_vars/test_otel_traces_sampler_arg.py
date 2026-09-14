@@ -63,7 +63,7 @@ VALID_RATIO_ARGUMENTS = [
     ),
 ]
 
-INVALID_RATIO_ARGUMENTS = [
+BELOW_RANGE_ARGUMENT = [
     pytest.param(
         {
             "DD_TRACE_SAMPLE_RATE": None,
@@ -74,6 +74,9 @@ INVALID_RATIO_ARGUMENTS = [
         },
         id="below-range",
     ),
+]
+
+ABOVE_RANGE_ARGUMENT = [
     pytest.param(
         {
             "DD_TRACE_SAMPLE_RATE": None,
@@ -84,6 +87,9 @@ INVALID_RATIO_ARGUMENTS = [
         },
         id="above-range",
     ),
+]
+
+NONNUMERIC_ARGUMENT = [
     pytest.param(
         {
             "DD_TRACE_SAMPLE_RATE": None,
@@ -136,8 +142,24 @@ class Test_OTEL_TRACES_SAMPLER_ARG:
     ) -> None:
         assert _trace_sample_rate(test_agent, test_library) == expected
 
-    @pytest.mark.parametrize("library_env", INVALID_RATIO_ARGUMENTS)
-    def test_invalid_values_are_ignored(
+    @pytest.mark.parametrize("library_env", BELOW_RANGE_ARGUMENT)
+    def test_below_range_is_ignored(
+        self,
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+    ) -> None:
+        assert _trace_sample_rate(test_agent, test_library) == 1.0
+
+    @pytest.mark.parametrize("library_env", ABOVE_RANGE_ARGUMENT)
+    def test_above_range_is_ignored(
+        self,
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+    ) -> None:
+        assert _trace_sample_rate(test_agent, test_library) == 1.0
+
+    @pytest.mark.parametrize("library_env", NONNUMERIC_ARGUMENT)
+    def test_nonnumeric_is_ignored(
         self,
         test_agent: TestAgentAPI,
         test_library: APMLibrary,

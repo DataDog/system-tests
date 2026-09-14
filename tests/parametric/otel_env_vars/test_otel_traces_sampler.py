@@ -13,7 +13,7 @@ SAMPLER_ENV = {
 
 JAEGER_REMOTE_ARGUMENT = "endpoint=http://localhost:14250,pollingIntervalMs=5000,initialSamplingRate=0.25"
 
-STABLE_VALUES = [
+RATE_VALUES = [
     pytest.param(
         {**SAMPLER_ENV, "OTEL_TRACES_SAMPLER": "always_on"},
         1.0,
@@ -52,6 +52,9 @@ STABLE_VALUES = [
         0.25,
         id="parentbased_traceidratio",
     ),
+]
+
+JAEGER_REMOTE_VALUES = [
     pytest.param(
         {
             **SAMPLER_ENV,
@@ -128,8 +131,19 @@ def _sample_rate(test_agent: TestAgentAPI, library: APMLibrary) -> float:
 @scenarios.parametric
 @features.otel_traces_sampler
 class Test_OTEL_TRACES_SAMPLER:
-    @pytest.mark.parametrize(("library_env", "expected"), STABLE_VALUES)
-    def test_stable_values(
+    @pytest.mark.parametrize(("library_env", "expected"), RATE_VALUES)
+    def test_rate_values(
+        self,
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+        *,
+        expected: float,
+    ) -> None:
+        with test_library as library:
+            assert _sample_rate(test_agent, library) == expected
+
+    @pytest.mark.parametrize(("library_env", "expected"), JAEGER_REMOTE_VALUES)
+    def test_jaeger_remote_values(
         self,
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
