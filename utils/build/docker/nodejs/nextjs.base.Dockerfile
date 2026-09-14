@@ -1,6 +1,6 @@
 FROM node:20-alpine
 
-COPY --from=oven/bun:1.3.13-alpine /usr/local/bin/bun /usr/local/bin/bun
+COPY --from=oven/bun:1.4.0-alpine /usr/local/bin/bun /usr/local/bin/bun
 
 RUN apk add --no-cache bash curl git jq
 
