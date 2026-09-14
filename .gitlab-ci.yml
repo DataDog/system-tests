@@ -293,41 +293,8 @@ update_agent_version:
     - job: build_ci_image
       artifacts: false
       optional: true
-  before_script:
-    - dd-octo-sts version
-    - dd-octo-sts debug --scope DataDog/system-tests --policy self.gitlab-update-agent-version
-    - dd-octo-sts token --scope DataDog/system-tests --policy self.gitlab-update-agent-version > token.txt
-    - export GH_TOKEN="$(cat token.txt)"
-    - gh auth setup-git
-    - git remote set-url origin https://github.com/DataDog/system-tests.git
   script:
-    - export LATEST_AGENT_VERSION="$(gh api repos/DataDog/datadog-agent/releases/latest --jq .tag_name)"
-    - python3 utils/scripts/update_agent_version.py "$LATEST_AGENT_VERSION"
-    - |
-      if git diff --quiet; then
-        echo "Agent pins are already up to date"
-        exit 0
-      fi
-    - export BRANCH_NAME="apmsp-3752/update-agent-version"
-    - git switch --force-create "$BRANCH_NAME"
-    - git add utils/build/virtual_machine/provisions/auto-inject/auto-inject_installer_manual.yml utils/build/virtual_machine/provisions/auto-inject/docker/docker-compose-agent-prod.yml
-    - git config user.name "github-actions[bot]"
-    - git config user.email "github-actions[bot]@users.noreply.github.com"
-    - git commit -m "APMSP-3752 update Agent to ${LATEST_AGENT_VERSION#v}"
-    - git push --force --set-upstream origin "$BRANCH_NAME"
-    - |
-      PR_NUMBER="$(gh pr list --head "$BRANCH_NAME" --state open --json number --jq '.[0].number')"
-      if [ -z "$PR_NUMBER" ]; then
-        PR_URL="$(gh pr create \
-          --base main \
-          --head "$BRANCH_NAME" \
-          --title "APMSP-3752 Update Agent to ${LATEST_AGENT_VERSION#v}" \
-          --body "Automated daily update of the Agent version pinned by SSI tests. The PR will merge automatically after all required checks pass.")"
-        PR_NUMBER="${PR_URL##*/}"
-      fi
-      gh pr merge "$PR_NUMBER" --auto --squash
-  after_script:
-    - if [ -f token.txt ]; then dd-octo-sts revoke -t "$(cat token.txt)"; fi
+    - python3 utils/scripts/update_agent_version.py
   rules:
     - if: '$SCHEDULED_JOB == "update_agent_version" && $CI_PIPELINE_SOURCE == "schedule" && $CI_COMMIT_BRANCH == "main"'
 

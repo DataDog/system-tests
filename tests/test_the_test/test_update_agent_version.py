@@ -1,11 +1,16 @@
+import subprocess
 from pathlib import Path
 
 import pytest
 
 from utils.scripts.update_agent_version import (
+    AUTOMATION_BRANCH,
     DOCKER_COMPOSE_PROVISION,
     INSTALLER_PROVISION,
+    automate_update,
     normalize_version,
+    publish_update,
+    run_automation,
     update_agent_version,
 )
 
@@ -53,3 +58,104 @@ def test_update_agent_version_fails_when_a_pin_is_missing(tmp_path: Path) -> Non
 
     with pytest.raises(RuntimeError, match="exactly one Agent version pin"):
         update_agent_version(tmp_path, "7.82.3")
+
+
+def test_automate_update_publishes_latest_version(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    write_pins(tmp_path)
+    published: list[tuple[Path, str]] = []
+    monkeypatch.setattr("utils.scripts.update_agent_version.latest_agent_version", lambda _root, _env: "7.82.3")
+    monkeypatch.setattr(
+        "utils.scripts.update_agent_version.publish_update",
+        lambda root, version, _env: published.append((root, version)),
+    )
+
+    assert automate_update(tmp_path)
+    assert published == [(tmp_path, "7.82.3")]
+
+
+def test_automate_update_skips_publish_when_current(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    write_pins(tmp_path)
+    update_agent_version(tmp_path, "7.82.3")
+    monkeypatch.setattr(
+        "utils.scripts.update_agent_version.publish_update",
+        lambda _root, _version, _env: pytest.fail("publish should not run"),
+    )
+
+    assert not automate_update(tmp_path, "7.82.3")
+
+
+@pytest.mark.parametrize("existing_pr", ["", "1234"])
+def test_publish_update_creates_only_missing_pr(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, existing_pr: str
+) -> None:
+    commands: list[list[str]] = []
+
+    def fake_run(
+        _root: Path,
+        args: list[str],
+        *,
+        capture_output: bool = False,
+        env: dict[str, str] | None = None,
+    ) -> subprocess.CompletedProcess[str]:
+        assert env == {"GH_TOKEN": "token"}
+        commands.append(args)
+        stdout = existing_pr if capture_output and args[:3] == ["gh", "pr", "list"] else ""
+        return subprocess.CompletedProcess(args, 0, stdout=stdout)
+
+    monkeypatch.setattr("utils.scripts.update_agent_version.run_command", fake_run)
+
+    publish_update(tmp_path, "7.82.3", {"GH_TOKEN": "token"})
+
+    assert ["git", "push", "--force", "--set-upstream", "origin", AUTOMATION_BRANCH] in commands
+    assert any(command[:3] == ["gh", "pr", "create"] for command in commands) is (not existing_pr)
+    assert commands[-1] == ["gh", "pr", "merge", AUTOMATION_BRANCH, "--auto", "--squash"]
+
+
+def test_run_automation_revokes_token_after_failure(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    commands: list[list[str]] = []
+
+    def fake_run(
+        _root: Path,
+        args: list[str],
+        *,
+        capture_output: bool = False,
+        env: dict[str, str] | None = None,
+    ) -> subprocess.CompletedProcess[str]:
+        assert env is None
+        commands.append(args)
+        stdout = "secret-token" if capture_output else ""
+        return subprocess.CompletedProcess(args, 0, stdout=stdout)
+
+    def fail_update(_root: Path, _version: str | None, env: dict[str, str]) -> bool:
+        assert env["GH_TOKEN"] == "secret-token"
+        raise RuntimeError("publish failed")
+
+    monkeypatch.setattr("utils.scripts.update_agent_version.run_command", fake_run)
+    monkeypatch.setattr("utils.scripts.update_agent_version.automate_update", fail_update)
+
+    with pytest.raises(RuntimeError, match="publish failed"):
+        run_automation(tmp_path)
+
+    assert commands[-1] == ["dd-octo-sts", "revoke", "-t", "secret-token"]
+
+
+def test_run_automation_rejects_empty_token(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    commands: list[list[str]] = []
+
+    def fake_run(
+        _root: Path,
+        args: list[str],
+        *,
+        capture_output: bool = False,
+        env: dict[str, str] | None = None,
+    ) -> subprocess.CompletedProcess[str]:
+        assert env is None
+        commands.append(args)
+        return subprocess.CompletedProcess(args, 0, stdout="" if capture_output else None)
+
+    monkeypatch.setattr("utils.scripts.update_agent_version.run_command", fake_run)
+
+    with pytest.raises(RuntimeError, match="empty GitHub token"):
+        run_automation(tmp_path)
+
+    assert not any(command[:2] == ["dd-octo-sts", "revoke"] for command in commands)
