@@ -45,9 +45,14 @@ class AWSPulumiProvider(VmProvider):
         self.pulumi_ssh = None
         self.datadog_event_sender = DatadogEventSender()
         self.stack_name = "system-tests_dev_onboarding"
+        self._subnet_ids: list[str] = []
+        self._subnet_index = 0
 
     def configure(self, virtual_machine: _VirtualMachine) -> None:
         super().configure(virtual_machine)
+        self._subnet_ids = virtual_machine.aws_config.aws_infra_config.subnet_id.copy()
+        random.shuffle(self._subnet_ids)
+        self._subnet_index = 0
         # Configure the ssh connection for the VMs
         self.pulumi_ssh = PulumiSSH()
         self.pulumi_ssh.load(virtual_machine)
@@ -82,7 +87,7 @@ class AWSPulumiProvider(VmProvider):
             )
             if os.getenv("ONBOARDING_LOCAL_TEST") is None:
                 self.stack.set_config("aws:SkipMetadataApiCheck", auto.ConfigValue("false"))
-            self._stack_up_with_idempotency_retry()
+            self._stack_up_with_transient_retry()
             self.datadog_event_sender.send_event_to_datadog(
                 f"[E2E] Stack {self.stack_name}  : success on Pulumi stack up",
                 "",
@@ -117,21 +122,32 @@ class AWSPulumiProvider(VmProvider):
             )
             self._handle_provision_error(pulumi_exception)
 
-    def _stack_up_with_idempotency_retry(self, attempts: int = 3) -> None:
-        """Retry the stack up in-process on IdempotentParameterMismatch.
+    def _stack_up_with_transient_retry(self, idempotency_attempts: int = 3) -> None:
+        """Retry transient EC2 launch failures without restarting the CI job.
 
-        This is a transient AWS-side token collision (see _start_vm's ec2_resource_id comment).
-        A fresh attempt gets a new idempotency token, so it's worth retrying here rather than
-        immediately failing the whole CI job (which is a much more expensive way to retry).
+        IdempotentParameterMismatch gets a fresh idempotency token. InsufficientInstanceCapacity
+        moves the launch to the next configured subnet, allowing AWS to use another availability
+        zone. Each subnet is attempted at most once for a capacity failure.
         """
-        for attempt in range(1, attempts + 1):
+        idempotency_retries = idempotency_attempts - 1
+        subnet_retries = len(self._subnet_ids) - 1
+
+        while True:
             try:
                 self.stack.up(on_output=logger.info)
                 return
             except pulumi.automation.errors.CommandError as pulumi_command_exception:
-                if "IdempotentParameterMismatch" not in str(pulumi_command_exception) or attempt == attempts:
+                exception_message = str(pulumi_command_exception)
+                if "IdempotentParameterMismatch" in exception_message and idempotency_retries > 0:
+                    idempotency_retries -= 1
+                    retry_reason = "IdempotentParameterMismatch"
+                elif "InsufficientInstanceCapacity" in exception_message and subnet_retries > 0:
+                    subnet_retries -= 1
+                    self._subnet_index += 1
+                    retry_reason = "InsufficientInstanceCapacity in the selected availability zone"
+                else:
                     raise
-                logger.stdout(f"⚠️ IdempotentParameterMismatch on attempt {attempt}/{attempts}, retrying stack up ⚠️")
+                logger.stdout(f"⚠️ {retry_reason}, retrying stack up ⚠️")
                 self.stack_destroy()
 
     def get_windows_user_data(self) -> str:
@@ -198,6 +214,8 @@ class AWSPulumiProvider(VmProvider):
         logger.info(
             f"Starting VM: {vm.name} with iam_instance_profile: {vm.aws_config.aws_infra_config.iam_instance_profile}"
         )
+        if not self._subnet_ids:
+            raise ValueError("ONBOARDING_AWS_INFRA_SUBNET_ID must contain at least one subnet ID")
         # Startup VM and prepare connection
         # The resource name (not the "Name" tag) must be unique per CI job: several parallel jobs
         # (one per weblog) can provision the same vm.name at the same time, and a shared resource
@@ -208,7 +226,7 @@ class AWSPulumiProvider(VmProvider):
             ec2_resource_id,
             instance_type=vm.aws_config.ami_instance_type,
             vpc_security_group_ids=vm.aws_config.aws_infra_config.vpc_security_group_ids,
-            subnet_id=random.choice(vm.aws_config.aws_infra_config.subnet_id),
+            subnet_id=self._subnet_ids[self._subnet_index],
             key_name=self.pulumi_ssh.keypair_name,
             ami=vm.aws_config.ami_id,
             tags=self._get_ec2_tags(vm),
