@@ -6,6 +6,7 @@ import pytest
 from utils.scripts.update_agent_version import (
     AUTOMATION_BRANCH,
     DOCKER_COMPOSE_PROVISION,
+    GitHubApi,
     INSTALLER_PROVISION,
     automate_update,
     normalize_version,
@@ -13,6 +14,8 @@ from utils.scripts.update_agent_version import (
     run_automation,
     update_agent_version,
 )
+
+pytestmark = pytest.mark.scenario("TEST_THE_TEST")
 
 
 def write_pins(root: Path) -> None:
@@ -63,25 +66,27 @@ def test_update_agent_version_fails_when_a_pin_is_missing(tmp_path: Path) -> Non
 def test_automate_update_publishes_latest_version(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     write_pins(tmp_path)
     published: list[tuple[Path, str]] = []
-    monkeypatch.setattr("utils.scripts.update_agent_version.latest_agent_version", lambda _root, _env: "7.82.3")
+    github = GitHubApi("token")
+    monkeypatch.setattr("utils.scripts.update_agent_version.latest_agent_version", lambda _github: "7.82.3")
     monkeypatch.setattr(
         "utils.scripts.update_agent_version.publish_update",
-        lambda root, version, _env: published.append((root, version)),
+        lambda root, version, _github, _env: published.append((root, version)),
     )
 
-    assert automate_update(tmp_path)
+    assert automate_update(tmp_path, github, {})
     assert published == [(tmp_path, "7.82.3")]
 
 
 def test_automate_update_skips_publish_when_current(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     write_pins(tmp_path)
     update_agent_version(tmp_path, "7.82.3")
+    github = GitHubApi("token")
     monkeypatch.setattr(
         "utils.scripts.update_agent_version.publish_update",
-        lambda _root, _version, _env: pytest.fail("publish should not run"),
+        lambda _root, _version, _github, _env: pytest.fail("publish should not run"),
     )
 
-    assert not automate_update(tmp_path, "7.82.3")
+    assert not automate_update(tmp_path, github, {}, "7.82.3")
 
 
 @pytest.mark.parametrize("existing_pr", ["", "1234"])
@@ -89,6 +94,21 @@ def test_publish_update_creates_only_missing_pr(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, existing_pr: str
 ) -> None:
     commands: list[list[str]] = []
+
+    class FakeGitHubApi(GitHubApi):
+        def __init__(self) -> None:
+            super().__init__("token")
+            self.calls: list[tuple[str, str]] = []
+
+        def request(self, method: str, path: str, data: dict[str, object] | None = None) -> object:
+            self.calls.append((method, path))
+            if method == "GET":
+                return [{"node_id": "PR_node_id"}] if existing_pr else []
+            if path.endswith("/pulls"):
+                return {"node_id": "PR_node_id"}
+            assert path == "/graphql"
+            assert data is not None
+            return {"data": {}}
 
     def fake_run(
         _root: Path,
@@ -99,16 +119,17 @@ def test_publish_update_creates_only_missing_pr(
     ) -> subprocess.CompletedProcess[str]:
         assert env == {"GH_TOKEN": "token"}
         commands.append(args)
-        stdout = existing_pr if capture_output and args[:3] == ["gh", "pr", "list"] else ""
-        return subprocess.CompletedProcess(args, 0, stdout=stdout)
+        return subprocess.CompletedProcess(args, 0, stdout="" if capture_output else None)
 
     monkeypatch.setattr("utils.scripts.update_agent_version.run_command", fake_run)
 
-    publish_update(tmp_path, "7.82.3", {"GH_TOKEN": "token"})
+    github = FakeGitHubApi()
+    publish_update(tmp_path, "7.82.3", github, {"GH_TOKEN": "token"})
 
     assert ["git", "push", "--force", "--set-upstream", "origin", AUTOMATION_BRANCH] in commands
-    assert any(command[:3] == ["gh", "pr", "create"] for command in commands) is (not existing_pr)
-    assert commands[-1] == ["gh", "pr", "merge", AUTOMATION_BRANCH, "--auto", "--squash"]
+    assert not any(command[0] == "gh" for command in commands)
+    assert any(method == "POST" and path.endswith("/pulls") for method, path in github.calls) is (not existing_pr)
+    assert github.calls[-1] == ("POST", "/graphql")
 
 
 def test_run_automation_revokes_token_after_failure(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -126,7 +147,7 @@ def test_run_automation_revokes_token_after_failure(tmp_path: Path, monkeypatch:
         stdout = "secret-token" if capture_output else ""
         return subprocess.CompletedProcess(args, 0, stdout=stdout)
 
-    def fail_update(_root: Path, _version: str | None, env: dict[str, str]) -> bool:
+    def fail_update(_root: Path, _github: GitHubApi, env: dict[str, str], _version: str | None) -> bool:
         assert env["GH_TOKEN"] == "secret-token"
         raise RuntimeError("publish failed")
 
