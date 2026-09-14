@@ -1,7 +1,5 @@
-import json
 import os
-from pathlib import Path
-from typing import Literal, cast
+from typing import Literal
 
 import pytest
 
@@ -25,14 +23,9 @@ from utils._context.containers import (
     TestedContainer,
 )
 from utils._context.weblog_infrastructure import EndToEndWeblogInfra
-from utils.docker_fixtures._core import extra_hosts_for_environment
-from utils.mocked_backend.ffe import (
-    EXPECTED_API_KEY,
-    MockFFEAgentlessBackendServer,
-    MockFFEAgentlessBackendStatus,
-)
 from utils._context.constants import WeblogCategory
 from utils._logger import logger
+from utils.mocked_backend.backend_v2 import get_mocked_backend_v2_container_url
 
 from .core import Scenario, ScenarioGroup, scenario_groups as all_scenario_groups
 
@@ -188,7 +181,9 @@ class DockerScenario(Scenario):
                 pytest.exit(f"Container {container.name} can't be started", 1)
 
     def pytest_sessionfinish(self, session: pytest.Session, exitstatus: int):  # noqa: ARG002
-        self.close_targets()
+        for container in reversed(self._containers):
+            if not container.is_removed():
+                pytest.exit(f"INTERNALERROR> Container {container.name} hasn't be removed", 1)
 
     def close_targets(self):
         for container in reversed(self._containers):
@@ -236,6 +231,7 @@ class EndToEndScenario(DockerScenario):
         include_agent: bool = True,
         include_opentelemetry: bool = False,
         require_api_key: bool = False,
+        mocked_backend_v2: bool = False,
         other_weblog_containers: tuple[type[TestedContainer], ...] = (),
     ) -> None:
         scenario_groups = [*self._default_scenario_groups, *(scenario_groups or [])]
@@ -263,6 +259,19 @@ class EndToEndScenario(DockerScenario):
         self._use_proxy_for_agent = include_agent and use_proxy_for_agent
         self._use_proxy_for_weblog = use_proxy_for_weblog
         self._require_api_key = require_api_key
+        self._mocked_backend_v2 = mocked_backend_v2
+
+        if mocked_backend_v2 and self._use_proxy_for_agent:
+            raise ValueError(
+                "mocked_backend_v2 is not compatible with use_proxy_for_agent: the agent can't send its "
+                "traffic to both the proxy and the mocked backend. Set use_proxy_for_agent=False."
+            )
+
+        if mocked_backend_v2:
+            agent_env = dict(agent_env) if agent_env else {}
+            mocked_backend_url = get_mocked_backend_v2_container_url()
+            agent_env.setdefault("DD_DD_URL", mocked_backend_url)
+            agent_env.setdefault("DD_APM_DD_URL", mocked_backend_url)
 
         self.agent_container = AgentContainer(
             use_proxy=use_proxy_for_agent, rc_backend_enabled=rc_backend_enabled, environment=agent_env
@@ -337,6 +346,10 @@ class EndToEndScenario(DockerScenario):
             interfaces.agent.configure(self.host_log_folder, replay=self.replay)
         interfaces.library.configure(self.host_log_folder, replay=self.replay)
         interfaces.backend.configure(self.host_log_folder, replay=self.replay)
+        if self._mocked_backend_v2:
+            interfaces.backend_v2.configure(self.host_log_folder, replay=self.replay)
+            if not self.replay:
+                interfaces.backend_v2.start_mocked_backend()
         interfaces.library_dotnet_managed.configure(self.host_log_folder, replay=self.replay)
         interfaces.library_stdout.configure(self.host_log_folder, replay=self.replay)
         if self.include_agent:
@@ -379,6 +392,13 @@ class EndToEndScenario(DockerScenario):
             self.warmups.append(self._wait_for_app_readiness)
             self.warmups.append(self._set_weblog_domain)
         self.warmups.append(self._set_components)
+
+    def close_targets(self):
+        try:
+            super().close_targets()
+        finally:
+            if self._mocked_backend_v2:
+                interfaces.backend_v2.stop_mocked_backend()
 
     def _set_containers_dependancies(self) -> None:
         if self._use_proxy_for_agent:
@@ -462,6 +482,10 @@ class EndToEndScenario(DockerScenario):
 
             interfaces.backend.load_data_from_logs()
 
+            if self._mocked_backend_v2:
+                interfaces.backend_v2.load_data_from_logs()
+                interfaces.backend_v2.check_deserialization_errors()
+
             if self.include_opentelemetry:
                 interfaces.open_telemetry.load_data_from_logs()
                 interfaces.open_telemetry.check_deserialization_errors()
@@ -491,6 +515,8 @@ class EndToEndScenario(DockerScenario):
                 self._wait_interface(
                     interfaces.open_telemetry, 0 if is_empty_test_run else self.backend_interface_timeout
                 )
+            if self._mocked_backend_v2:
+                interfaces.backend_v2.check_deserialization_errors()
 
     def _wait_interface(self, interface: ProxyBasedInterfaceValidator, timeout: int):
         logger.terminal.write_sep("-", f"Wait for {interface} ({timeout}s)")
@@ -570,6 +596,7 @@ class DdTraceEndToEndScenario(EndToEndScenario):
         include_opentelemetry: bool = False,
         library_interface_timeout: int | None = None,
         meta_structs_disabled: bool = False,
+        mocked_backend_v2: bool = False,
         obfuscation_version: int | None | Literal["MISSING"] = None,
         other_weblog_containers: tuple[type[TestedContainer], ...] = (),
         rc_api_enabled: bool = False,
@@ -597,6 +624,7 @@ class DdTraceEndToEndScenario(EndToEndScenario):
             include_opentelemetry=include_opentelemetry,
             library_interface_timeout=library_interface_timeout,
             meta_structs_disabled=meta_structs_disabled,
+            mocked_backend_v2=mocked_backend_v2,
             obfuscation_version=obfuscation_version,
             other_weblog_containers=other_weblog_containers,
             rc_api_enabled=rc_api_enabled,
@@ -612,105 +640,6 @@ class DdTraceEndToEndScenario(EndToEndScenario):
             weblog_env=weblog_env,
             weblog_volumes=weblog_volumes,
         )
-
-
-class FeatureFlaggingAgentlessEndToEndScenario(DdTraceEndToEndScenario):
-    """FFE end-to-end scenario with UFC available before the weblog starts."""
-
-    _default_scenario_groups: tuple[ScenarioGroup, ...] = ()
-    _mock_backend_status_filename = "mock_ffe_agentless_backend_status.json"
-
-    _mock_backend: MockFFEAgentlessBackendServer | None = None
-    _last_mock_backend_status: MockFFEAgentlessBackendStatus | None = None
-
-    def __init__(
-        self,
-        name: str,
-        *,
-        doc: str = "Validate default agentless UFC delivery and evaluation without a Datadog Agent.",
-        weblog_env: dict[str, str | None] | None = None,
-    ) -> None:
-        environment: dict[str, str | None] = {
-            "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_POLL_INTERVAL_SECONDS": "0.2",
-            "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_REQUEST_TIMEOUT_SECONDS": "2",
-            "DD_REMOTE_CONFIGURATION_ENABLED": "false",
-        }
-        environment.update(weblog_env or {})
-
-        super().__init__(
-            name,
-            doc=doc,
-            include_agent=False,
-            library_interface_timeout=0,
-            scenario_groups=[all_scenario_groups.ffe],
-            use_proxy_for_agent=False,
-            use_proxy_for_weblog=False,
-            weblog_env=environment,
-        )
-
-    def configure(self, config: pytest.Config) -> None:
-        try:
-            if self.replay:
-                self._load_mock_backend_status()
-            else:
-                self._last_mock_backend_status = None
-                self._start_mock_backend()
-
-            super().configure(config)
-        except BaseException:
-            self._stop_mock_backend(persist_status=False)
-            raise
-
-    def _start_mock_backend(self) -> None:
-        assert self._mock_backend is None, "mock FFE agentless backend is already running"
-
-        self._mock_backend = MockFFEAgentlessBackendServer()
-        self._mock_backend.reset()
-
-        environment = self.weblog_infra.library_container.environment
-        environment |= {
-            "DD_API_KEY": EXPECTED_API_KEY,
-            "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL": self._mock_backend.library_config_url,
-        }
-        self.weblog_infra.library_container.extra_hosts = extra_hosts_for_environment(environment)
-
-    def mock_backend_status(self) -> MockFFEAgentlessBackendStatus | None:
-        if self._mock_backend is not None:
-            return self._mock_backend.status()
-        return self._last_mock_backend_status
-
-    @property
-    def _mock_backend_status_path(self) -> Path:
-        return Path(self.host_log_folder) / self._mock_backend_status_filename
-
-    def _load_mock_backend_status(self) -> None:
-        self._last_mock_backend_status = cast(
-            "MockFFEAgentlessBackendStatus",
-            json.loads(self._mock_backend_status_path.read_text(encoding="utf-8")),
-        )
-
-    def _stop_mock_backend(self, *, persist_status: bool = True) -> None:
-        backend = self._mock_backend
-        if backend is None:
-            return
-
-        self._mock_backend = None
-        try:
-            if persist_status:
-                self._last_mock_backend_status = backend.status()
-                self._mock_backend_status_path.parent.mkdir(parents=True, exist_ok=True)
-                self._mock_backend_status_path.write_text(
-                    json.dumps(self._last_mock_backend_status, indent=2) + "\n",
-                    encoding="utf-8",
-                )
-        finally:
-            backend.close()
-
-    def close_targets(self) -> None:
-        try:
-            super().close_targets()
-        finally:
-            self._stop_mock_backend()
 
 
 class GraphQlEndToEndScenario(EndToEndScenario):

@@ -117,9 +117,9 @@ class DockerFixturesScenario(Scenario):
                         # since a parametrized custom OTLP port needs an agent listening on it.
                         container_otlp_http_port=DEFAULT_OTLP_HTTP_PORT,
                         container_otlp_grpc_port=DEFAULT_OTLP_GRPC_PORT,
-                        agent_port_base=5000,
-                        otlp_http_port_base=5100,
-                        otlp_grpc_port_base=5200,
+                        agent_port_base=5600,
+                        otlp_http_port_base=5700,
+                        otlp_grpc_port_base=5800,
                     ) as api:
                         yield api
                 finally:

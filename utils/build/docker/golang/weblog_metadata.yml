@@ -1,3 +1,4 @@
+---
 # docs/understand/weblogs/weblog-metadata.md
 
 haproxy:
@@ -6,14 +7,20 @@ haproxy:
 envoy:
   build_mode: none
   supported_scenarios: [APPSEC_BLOCKING, DEFAULT]
+apim:
+  build_mode: none
+  supported_scenarios: [APPSEC_BLOCKING, DEFAULT]
 graphql-go:
   categories: [dd_trace_graphql]
+  supported_scenarios: [THREAD_CONTEXT_SHARING]
   excluded_scenarios: [GRAPHQL_ERROR_TRACKING]  # why ???
 gqlgen:
   categories: [dd_trace_graphql]
+  supported_scenarios: [THREAD_CONTEXT_SHARING]
   excluded_scenarios: [GRAPHQL_ERROR_TRACKING]  # why ???
 graph-gophers:
   categories: [dd_trace_graphql]
+  supported_scenarios: [THREAD_CONTEXT_SHARING]
   excluded_scenarios: [GRAPHQL_ERROR_TRACKING]  # why ???
 echo:
   categories: [dd_trace]

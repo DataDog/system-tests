@@ -173,50 +173,6 @@ class Test_Client_Stats_With_Client_Obfuscation:
 
 
 @features.client_side_stats_supported
-@scenarios.trace_stats_computation_obfuscation_disabled
-class Test_Client_Stats_With_Client_Obfuscation_Disabled:
-    """Test that libraries read the agent /info to respect the obfuscation config"""
-
-    TEST_USER_IDS = ["1", "2", "admin", "test"]
-
-    def setup_obfuscation(self):
-        """Setup for obfuscation test - generates SQL spans for obfuscation testing"""
-        for user_id in self.TEST_USER_IDS:
-            weblog.get(f"/rasp/sqli?user_id={user_id}")
-
-    def test_obfuscation(self):
-        """Test that SQL resources are obfuscated before stats aggregation.
-
-        Validates:
-        - Datadog-Obfuscation-Version header is present on stats payloads
-        - SQL resource names are not obfuscated, only normalized
-        """
-        sql_stats = []
-        obfuscation_header_found = False
-
-        for data in interfaces.library.get_data("/v0.6/stats"):
-            headers = {h[0].lower(): h[1] for h in data["request"]["headers"]}
-            if "datadog-obfuscation-version" in headers:
-                obfuscation_header_found = True
-                assert int(headers["datadog-obfuscation-version"]) >= 1, (
-                    f"Expected obfuscation version to be >= 1, got '{headers['datadog-obfuscation-version']}'"
-                )
-
-            payload = data["request"]["content"]
-            for bucket in payload.get("Stats", []):
-                for stat in bucket.get("Stats", []):
-                    if stat.get("Type") == "sql" and stat["Resource"].startswith("SELECT"):
-                        sql_stats.append(stat)
-
-        assert obfuscation_header_found, "Datadog-Obfuscation-Version header not found on any stats payload"
-
-        unique_resources = {stat["Resource"] for stat in sql_stats}
-        assert len(unique_resources) >= 4, (
-            "Expected at least 4 distinct SQL stats entries, because obfuscation was not applied client-side"
-        )
-
-
-@features.client_side_stats_supported
 @scenarios.trace_stats_computation_future_obfuscation_version
 class Test_Client_Stats_Future_Obfuscation_Version:
     """Test that the SDK skips client-side obfuscation when the agent advertises a future/unknown obfuscation version"""

@@ -1,0 +1,38 @@
+[
+    {
+        "language": "",
+        "type": "",
+        "id": "",
+        "version": 0,
+        "where": {
+            "typeName": "ACTUAL_TYPE_NAME",
+            "methodName": "SnapshotLimits",
+            "sourceFile": null
+        },
+        "when": {
+            "dsl": "largeCollection.filter(@it >= 0).length > 0",
+            "json": {
+                "gt": [
+                    {
+                        "len": {
+                            "filter": [
+                                {"ref": "largeCollection"},
+                                {
+                                    "ge": [
+                                        {"ref": "@it"},
+                                        0
+                                    ]
+                                }
+                            ]
+                        }
+                    },
+                    0
+                ]
+            }
+        },
+        "captureSnapshot": true,
+        "segments": [
+            {"str": "collection evaluation timeout probe fired"}
+        ]
+    }
+]
