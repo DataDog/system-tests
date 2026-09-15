@@ -13,6 +13,13 @@ _NODEJS_V6_MAJOR = 6
 _NODEJS_V6_MINIMUM_RUNTIME_MAJOR = 22
 _NODEJS_PRE_V6_MINIMUM_RUNTIME_MAJOR = 18
 _NODEJS_MULTICONTAINER_WEBLOG = "test-app-nodejs-multicontainer"
+_AGENT_CONTAINER_NAME = "dd-agent"
+# The agent is installed on the host in the HOST_* scenarios and runs as the `dd-agent` container in
+# the CONTAINER_* ones, so ask whichever CLI is there. Both print their own errors on stdout, which
+# is what we want in the assertion message when we give up.
+_TAGGER_LIST_COMMAND = (
+    f"sudo docker exec {_AGENT_CONTAINER_NAME} agent tagger-list 2>&1 || sudo datadog-agent tagger-list 2>&1"
+)
 
 
 def _unsupported_nodejs_multicontainer_runtime(runtime_version: str | None) -> bool:
@@ -105,6 +112,8 @@ class AutoInjectBaseTest:
             logger.info(f"Waiting for weblog available [{vm_ip}:{vm_port}]")
             assert wait_for_port(vm_port, vm_ip, 80), "Weblog port not reachable. Is the weblog running?"
             logger.info(f"[{vm_ip}]: Weblog app is ready!")
+            if origin_detection:
+                self._wait_for_container_tags(virtual_machine)
             logger.info(f"Making a request to weblog [{vm_context_url}]")
             warmup_weblog(vm_context_url)
             request_uuid = make_get_request(vm_context_url, appsec=appsec)
@@ -149,6 +158,52 @@ class AutoInjectBaseTest:
 
         logger.error("expected 'appsec.event' to be true in trace meta or at least one rule triggered")
         return False
+
+    def _wait_for_container_tags(self, virtual_machine: _VirtualMachine, attempts: int = 10, delay: int = 5) -> None:
+        """Wait until the agent's tagger knows the weblog containers, before we make the request we measure.
+
+        `_dd.tags.container` is attached by the agent, not by the backend: the tracer only sends a
+        container id, and the agent resolves it into tags through its tagger, which discovers
+        containers asynchronously. The agent holds a payload for at most 12s waiting for that
+        resolution and then ships it untagged, so a container the tagger picks up late produces a
+        trace that origin detection has nothing to assert on.
+        """
+        container_ids = self._running_weblog_container_ids(virtual_machine)
+        if not container_ids:
+            logger.info("The weblog does not run in containers, no container tags to wait for")
+            return
+
+        logger.info(f"Waiting until the agent tagger knows the weblog containers {container_ids}")
+        missing = container_ids
+        tagger_output = ""
+        for attempt in range(1, attempts + 1):
+            tagger_output = self.execute_command(virtual_machine, _TAGGER_LIST_COMMAND)
+            missing = [container_id for container_id in container_ids if container_id not in tagger_output]
+            if not missing:
+                logger.info("The agent tagger knows the weblog containers")
+                return
+            logger.info(f"Attempt {attempt}/{attempts}: the tagger does not know {missing} yet")
+            time.sleep(delay)
+
+        raise AssertionError(
+            f"The agent tagger still does not know the weblog containers {missing} after {attempts * delay}s, "
+            f"so the trace we are about to send would have no container tags to assert on. "
+            f"Last tagger-list output:\n{tagger_output}"
+        )
+
+    def _running_weblog_container_ids(self, virtual_machine: _VirtualMachine) -> list[str]:
+        """Ids of the running containers, without the agent's own container.
+
+        Returns an empty list when the weblog is not containerized, so the caller has nothing to wait for.
+        """
+        output = self.execute_command(virtual_machine, "sudo docker ps --no-trunc --format '{{.ID}} {{.Names}}'")
+        container_ids = []
+        for line in output.splitlines():
+            fields = line.split()
+            # Any other shape is docker telling us it cannot list containers, e.g. it is not installed.
+            if len(fields) == 2 and fields[1] != _AGENT_CONTAINER_NAME:
+                container_ids.append(fields[0])
+        return container_ids
 
     def _container_tags_validator(self, _: str, trace_data: dict):
         root_id = trace_data["trace"]["root_id"]
