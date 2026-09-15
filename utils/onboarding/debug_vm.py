@@ -15,11 +15,50 @@ if [ -f "$HOME/dd-agent-diagnostics.log" ]; then
   sudo cp "$HOME/dd-agent-diagnostics.log" /var/log/datadog_weblog/dd-agent-diagnostics.log 2>/dev/null || true;
 fi'"""
 
+# Collect core dumps into /var/log/datadog_weblog so SFTP download can retrieve them.
+# Host PHP apps (profiling in particular) can segfault; cores may land in cwd, systemd-coredump,
+# or the weblog log dir depending on kernel.core_pattern.
+_COLLECT_CORE_DUMPS_CMD = r"""bash -lc '
+set +e
+dest=/var/log/datadog_weblog
+sudo mkdir -p "$dest"
+sudo chmod 777 "$dest"
+{
+  echo "core_pattern: $(cat /proc/sys/kernel/core_pattern 2>/dev/null || echo unknown)"
+  echo "suid_dumpable: $(cat /proc/sys/fs/suid_dumpable 2>/dev/null || echo unknown)"
+  echo "core ulimit: $(ulimit -c)"
+} | sudo tee "$dest/core-diagnostics.txt" >/dev/null
+if command -v coredumpctl >/dev/null 2>&1; then
+  sudo coredumpctl list > "$dest/coredumpctl-list.txt" 2>&1 || true
+  sudo coredumpctl -1 dump --output="$dest/systemd-coredump" >/dev/null 2>&1 || true
+fi
+for dir in /var/log/datadog_weblog /home/datadog /tmp /var/crash /var/lib/systemd/coredump "$HOME"; do
+  [ -d "$dir" ] || continue
+  find "$dir" -maxdepth 1 -type f \( -name core -o -name "core.*" -o -name "core-*" \) 2>/dev/null |
+    while read -r core; do
+      case "$core" in
+        /var/log/datadog_weblog/*)
+          sudo chmod a+r "$core" 2>/dev/null || true
+          echo "found $core" | sudo tee -a "$dest/core-diagnostics.txt" >/dev/null
+          continue
+          ;;
+      esac
+      target="$dest/$(basename "$core")"
+      sudo cp "$core" "$target" 2>/dev/null || true
+      sudo chmod a+r "$target" 2>/dev/null || true
+      echo "copied $core -> $target" | sudo tee -a "$dest/core-diagnostics.txt" >/dev/null
+    done
+done
+sudo journalctl -xeu test-app.service > "$dest/journalctl_test-app.log" 2>&1 || true
+sudo chmod -R a+rX /var/log/datadog_weblog 2>/dev/null || true
+'"""
+
 # Remote commands that collect host/docker/agent logs into /var/log/datadog_weblog before download.
 # Mirrors utils/build/virtual_machine/provisions/auto-inject/auto-inject-vm_logs.yml.
 _LOG_COLLECTION_COMMANDS = [
     "sudo mkdir -p /var/log/datadog_weblog || true",
     "sudo chmod 777 /var/log/datadog_weblog || true",
+    _COLLECT_CORE_DUMPS_CMD,
     _COLLECT_DD_AGENT_DIAGNOSTICS_CMD,
     "bash -lc 'cd ~ && sudo docker-compose ps > /var/log/datadog_weblog/docker_proccess.log 2>&1 || true'",
     "bash -lc 'cd ~ && sudo docker-compose logs > /var/log/datadog_weblog/docker_logs.log 2>&1 || true'",

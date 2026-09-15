@@ -819,8 +819,11 @@ Located in: **var/log/datadog_weblog/**
 * **docker_list_dependencies.log:** Docker dependencies listing.
 * **docker_proccess.log:** Docker process information.
 * **journalctl_docker.log:** Systemd journal logs related to Docker.
+* **journalctl_test-app.log:** Systemd journal logs for the host weblog service (`test-app.service`).
 * **system.timers.log:** System timer logs.
 * **dd-agent-diagnostics.log:** Datadog Agent container diagnostics. Only present in container-based scenarios that start the agent via `docker-compose-agent-prod.yml`.
+* **core-diagnostics.txt:** Kernel `core_pattern`, `ulimit -c`, and the core files found/copied after a host crash.
+* **core.\* / systemd-coredump:** Process core dumps (for example PHP host segfaults, often with profiling). Use these with `gdb` when investigating a `Segmentation fault` / exit status 139.
 
 ## How to read VM log markers (`[vm_name].log`)
 
@@ -946,6 +949,7 @@ Exception launching aws provision step remote command
    grep -n "Diagnostics:" [vm_name].log
    ~~~
 4. Identify the failing command (package install, Docker/runtime setup, agent install, SSI packages, or test app build) and fix accordingly.
+5. If the failing step is the host weblog start (`test-app-php` or `test-app.service`) and you see `Segmentation fault` / exit status 139, check the downloaded cores under `var/log/datadog_weblog/` (`core*`, `core-diagnostics.txt`, `journalctl_test-app.log`). This is common on PHP host apps in profiling scenarios.
 
 ---
 
@@ -1013,6 +1017,8 @@ Exception during trace in backend verification: Reached overall timeout of 300 f
 - **Backend processing** — in the Datadog UI (system-tests org), locate the trace ID `{request_uuid}` and verify associated profiling data is present or delayed.
 
 > **Note:** Make sure profiling is actually enabled for the application (per language tracer guidance) before investigating backend intake.
+
+If the PHP **host** weblog never starts (`Segmentation fault` / exit status 139 during `php --version` or `test-app.service`), this is a tracer/profiler crash, not a missing-profile timeout. Use the core dump under `var/log/datadog_weblog/` (see [Case 2](#case-2--vm-provisioning-failure-remote-command)).
 
 ---
 
