@@ -4,6 +4,7 @@ import hashlib
 import importlib.util
 import json
 import os
+import sys
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -34,16 +35,21 @@ def stage_target(
 
     env = dict(os.environ if process_env is None else process_env)
 
-    if environment == "custom":
-        return
     if environment not in {"dev", "prod"}:
+        if environment == "custom":
+            manifest_path = output_dir / MANIFEST_FILENAME
+            if manifest_path.exists() or manifest_path.is_symlink():
+                write_artifact_entries(output_dir, target, environment, ())
+            return
         raise TargetArtifactError(f"Unknown target artifact environment: {environment}")
 
     target_environment = load_target_environment(root, target, environment)
-    resolved_inputs = {
-        artifact_resolver.name: artifact_resolver.resolve(env)
-        for artifact_resolver in target_environment.artifact_inputs(env)
-    }
+    artifact_inputs = target_environment.artifact_inputs(env)
+    input_names = [artifact_resolver.name for artifact_resolver in artifact_inputs]
+    duplicate_names = sorted({name for name in input_names if input_names.count(name) > 1})
+    if duplicate_names:
+        raise TargetArtifactError(f"Duplicate artifact input name(s): {', '.join(duplicate_names)}")
+    resolved_inputs = {artifact_resolver.name: artifact_resolver.resolve(env) for artifact_resolver in artifact_inputs}
     entries = target_environment.artifact_entries(resolved_inputs)
     write_artifact_entries(output_dir, target, environment, entries)
 
@@ -79,10 +85,16 @@ def write_artifact_entries(
     for filename in manifest_entries:
         _validate_filename(filename)
 
-    for filename in new_entries:
+    for filename, metadata in manifest_entries.items():
+        if _same_target(metadata.get("owner"), target):
+            _validate_owned_file(binaries_dir / filename, filename, metadata)
+
+    for filename, entry in new_entries.items():
         _validate_filename(filename)
         existing_owner = manifest_entries.get(filename, {}).get("owner")
         path = binaries_dir / filename
+        if path.is_symlink():
+            raise TargetArtifactError(f"Refusing to write artifact entry through symlink '{filename}'")
         if existing_owner is not None and not _same_target(existing_owner, target):
             owner_target = (
                 existing_owner.get("target", "<unknown>") if isinstance(existing_owner, dict) else "<unknown>"
@@ -90,6 +102,25 @@ def write_artifact_entries(
             raise TargetArtifactError(f"Artifact entry '{filename}' is already owned by target '{owner_target}'")
         if path.exists() and existing_owner is None:
             raise TargetArtifactError(f"Refusing to overwrite unowned artifact entry '{filename}'")
+        for conflicting_filename in entry.conflicting_filenames:
+            _validate_filename(conflicting_filename)
+            if conflicting_filename in new_entries:
+                raise TargetArtifactError(
+                    f"Artifact entries '{filename}' and '{conflicting_filename}' conflict with each other"
+                )
+            conflicting_path = binaries_dir / conflicting_filename
+            if conflicting_path.is_symlink():
+                raise TargetArtifactError(
+                    f"Refusing artifact entry '{filename}' because conflicting selector "
+                    f"'{conflicting_filename}' is a symlink"
+                )
+            if conflicting_path.exists():
+                conflicting_owner = manifest_entries.get(conflicting_filename, {}).get("owner")
+                if not _same_target(conflicting_owner, target):
+                    raise TargetArtifactError(
+                        f"Refusing artifact entry '{filename}' because conflicting selector "
+                        f"'{conflicting_filename}' is not owned by target '{target}'"
+                    )
 
     for filename, metadata in list(manifest_entries.items()):
         owner_data = metadata.get("owner")
@@ -120,12 +151,23 @@ def _load_module(module_path: Path, module_name: str) -> ModuleType:
     if spec is None or spec.loader is None:
         raise TargetArtifactError(f"Unable to import target artifact module at {module_path}")
     module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
+    previous_module = sys.modules.get(module_name)
+    sys.modules[module_name] = module
+    try:
+        spec.loader.exec_module(module)
+    except BaseException:
+        if previous_module is None:
+            del sys.modules[module_name]
+        else:
+            sys.modules[module_name] = previous_module
+        raise
     return module
 
 
 def _read_manifest(binaries_dir: Path) -> dict[str, Any]:
     path = binaries_dir / MANIFEST_FILENAME
+    if path.is_symlink():
+        raise TargetArtifactError(f"Artifact manifest {path} must not be a symlink")
     if not path.exists():
         return {"version": MANIFEST_VERSION, "entries": {}}
     try:
@@ -165,6 +207,22 @@ def _validate_filename(filename: str) -> None:
     path = Path(filename)
     if not filename or path.name != filename or filename == MANIFEST_FILENAME:
         raise TargetArtifactError(f"Invalid artifact entry filename '{filename}'")
+
+
+def _validate_owned_file(path: Path, filename: str, metadata: dict[str, Any]) -> None:
+    if path.is_symlink():
+        raise TargetArtifactError(f"Refusing to modify owned artifact entry symlink '{filename}'")
+    if not path.exists():
+        return
+    expected_hash = metadata.get("sha256")
+    if not isinstance(expected_hash, str):
+        raise TargetArtifactError(f"Owned artifact entry '{filename}' has no valid recorded hash")
+    try:
+        actual_hash = hashlib.sha256(path.read_bytes()).hexdigest()
+    except OSError as exc:
+        raise TargetArtifactError(f"Unable to verify owned artifact entry '{filename}'") from exc
+    if actual_hash != expected_hash:
+        raise TargetArtifactError(f"Refusing to modify changed artifact entry '{filename}'")
 
 
 def _same_target(owner: object, target: str) -> bool:

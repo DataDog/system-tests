@@ -9,8 +9,17 @@ from .models import (
 )
 
 
-def text_entry(filename: str, content: str) -> ArtifactEntry:
-    return ArtifactEntry(filename=filename, content=f"{content.rstrip()}\n")
+def text_entry(
+    filename: str,
+    content: str,
+    *,
+    conflicting_filenames: tuple[str, ...] = (),
+) -> ArtifactEntry:
+    return ArtifactEntry(
+        filename=filename,
+        content=f"{content.rstrip()}\n",
+        conflicting_filenames=conflicting_filenames,
+    )
 
 
 def json_entry(filename: str, payload: dict[str, object]) -> ArtifactEntry:

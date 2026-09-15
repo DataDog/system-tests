@@ -14,17 +14,20 @@ The shared orchestrator owns external lookups and writes the generated entries. 
 also maintains `binaries/.target-artifacts-manifest.json`, which records the owner
 and content hash of every generated file. Staging:
 
+- verifies that previously generated entries still match their recorded hashes;
 - refreshes entries previously owned by the same target;
 - removes stale entries owned by that target;
 - preserves entries owned by other targets; and
-- refuses to overwrite unowned files or entries owned by another target.
+- refuses to overwrite unowned files, changed generated entries, symlinks, conflicting
+  selectors, or entries owned by another target.
 
 Selectors should be bounded, such as a commit SHA, release tag, package version, or
 OCI digest. If an installer must consume a mutable provider selector, the target must
 also emit a bounded selection marker with `provider_fetch_entries`.
 
-The `custom` environment is a no-op because an upstream or local artifact bundle is
-already the source of truth.
+The `custom` environment does not resolve or create selectors because an upstream or
+local artifact bundle is already the source of truth. It removes unchanged generated
+selectors previously owned by the target so they cannot override that custom payload.
 
 ## Commands
 

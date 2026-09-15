@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any
 import pytest
 import requests
 
-from utils import scenarios
+from utils import features, scenarios
 from utils.target_artifacts.models import (
     ArtifactResolver,
     BranchReference,
@@ -160,6 +160,7 @@ def _manifest_entries(binaries_dir: Path) -> dict[str, object]:
 
 
 @scenarios.test_the_test
+@features.not_reported
 class Test_TargetArtifactStaging:
     def test_custom_environment_is_noop(self, tmp_path: Path) -> None:
         binaries_dir = tmp_path / "binaries"
@@ -173,6 +174,33 @@ class Test_TargetArtifactStaging:
         )
 
         assert not binaries_dir.exists()
+
+    def test_custom_environment_clears_owned_selectors(self, tmp_path: Path) -> None:
+        _write_target_module(
+            tmp_path,
+            """
+from utils.target_artifacts.entry_helpers import text_entry
+
+class Dev:
+    def artifact_inputs(self, env):
+        return ()
+
+    def artifact_entries(self, resolved_inputs):
+        return (text_entry("generated", "selector"),)
+
+class Prod(Dev):
+    pass
+""",
+        )
+        binaries_dir = tmp_path / "binaries"
+        stage_target("fake", "dev", repo_root=tmp_path, binaries_dir=binaries_dir)
+        (binaries_dir / "manual.whl").write_text("payload", encoding="utf-8")
+
+        stage_target("fake", "custom", repo_root=tmp_path, binaries_dir=binaries_dir)
+
+        assert not (binaries_dir / "generated").exists()
+        assert (binaries_dir / "manual.whl").read_text(encoding="utf-8") == "payload"
+        assert _manifest_entries(binaries_dir) == {}
 
     def test_manifest_refreshes_owned_files_and_preserves_other_targets(self, tmp_path: Path) -> None:
         module_path = tmp_path / "utils" / "build" / "docker" / "fake"
@@ -252,6 +280,158 @@ class Prod(Dev):
             stage_target("fake", "dev", repo_root=tmp_path, binaries_dir=binaries_dir)
 
         assert (binaries_dir / "manual").read_text(encoding="utf-8") == "user\n"
+
+    @pytest.mark.parametrize("next_environment", ["dev", "custom"])
+    def test_changed_owned_file_is_not_replaced_or_removed(self, tmp_path: Path, next_environment: str) -> None:
+        _write_target_module(
+            tmp_path,
+            """
+from utils.target_artifacts.entry_helpers import text_entry
+
+class Dev:
+    def artifact_inputs(self, env):
+        return ()
+
+    def artifact_entries(self, resolved_inputs):
+        return (text_entry("generated", "original"),)
+
+class Prod(Dev):
+    pass
+""",
+        )
+        binaries_dir = tmp_path / "binaries"
+        stage_target("fake", "dev", repo_root=tmp_path, binaries_dir=binaries_dir)
+        generated = binaries_dir / "generated"
+        generated.write_text("changed\n", encoding="utf-8")
+
+        with pytest.raises(TargetArtifactError, match="Refusing to modify changed artifact entry 'generated'"):
+            stage_target(
+                "fake",
+                next_environment,
+                repo_root=tmp_path,
+                binaries_dir=binaries_dir,
+            )
+
+        assert generated.read_text(encoding="utf-8") == "changed\n"
+
+    @pytest.mark.parametrize("link_target", ["existing", "broken"])
+    def test_artifact_entry_symlink_is_rejected(self, tmp_path: Path, link_target: str) -> None:
+        _write_target_module(
+            tmp_path,
+            """
+from utils.target_artifacts.entry_helpers import text_entry
+
+class Dev:
+    def artifact_inputs(self, env):
+        return ()
+
+    def artifact_entries(self, resolved_inputs):
+        return (text_entry("selector", "generated"),)
+
+class Prod(Dev):
+    pass
+""",
+        )
+        binaries_dir = tmp_path / "binaries"
+        binaries_dir.mkdir()
+        external = tmp_path / "external"
+        if link_target == "existing":
+            external.write_text("outside\n", encoding="utf-8")
+        (binaries_dir / "selector").symlink_to(external)
+
+        with pytest.raises(TargetArtifactError, match="symlink"):
+            stage_target("fake", "dev", repo_root=tmp_path, binaries_dir=binaries_dir)
+
+        assert link_target != "broken" or not external.exists()
+        if link_target == "existing":
+            assert external.read_text(encoding="utf-8") == "outside\n"
+
+    def test_duplicate_resolver_names_fail_before_resolution(
+        self,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        _write_target_module(
+            tmp_path,
+            """
+from utils.target_artifacts.resolvers import EnvResolver
+
+class Dev:
+    def artifact_inputs(self, env):
+        return (EnvResolver(name="duplicate"), EnvResolver(name="duplicate"))
+
+    def artifact_entries(self, resolved_inputs):
+        return ()
+
+class Prod(Dev):
+    pass
+""",
+        )
+        resolve_calls = 0
+
+        def fake_resolve(_resolver: EnvResolver, _env: dict[str, str]) -> LiteralValue:
+            nonlocal resolve_calls
+            resolve_calls += 1
+            return LiteralValue(name="duplicate", value="value")
+
+        monkeypatch.setattr(EnvResolver, "resolve", fake_resolve)
+
+        with pytest.raises(TargetArtifactError, match=r"Duplicate artifact input name.*duplicate"):
+            stage_target("fake", "dev", repo_root=tmp_path, binaries_dir=tmp_path / "binaries")
+
+        assert resolve_calls == 0
+
+    def test_dynamic_target_module_supports_dataclasses(self, tmp_path: Path) -> None:
+        _write_target_module(
+            tmp_path,
+            """
+from __future__ import annotations
+from dataclasses import dataclass
+
+@dataclass
+class Dev:
+    value: str = "selector"
+
+    def artifact_inputs(self, env):
+        return ()
+
+    def artifact_entries(self, resolved_inputs):
+        return ()
+
+class Prod(Dev):
+    pass
+""",
+        )
+
+        target_environment = load_target_environment(tmp_path, "fake", "dev")
+
+        assert target_environment.value == "selector"  # type: ignore[attr-defined]
+
+    def test_conflicting_unowned_selector_is_rejected(self, tmp_path: Path) -> None:
+        _write_target_module(
+            tmp_path,
+            """
+from utils.target_artifacts.entry_helpers import text_entry
+
+class Dev:
+    def artifact_inputs(self, env):
+        return ()
+
+    def artifact_entries(self, resolved_inputs):
+        return (text_entry("prod-selector", "prod", conflicting_filenames=("dev-selector",)),)
+
+class Prod(Dev):
+    pass
+""",
+        )
+        binaries_dir = tmp_path / "binaries"
+        binaries_dir.mkdir()
+        (binaries_dir / "dev-selector").write_text("manual\n", encoding="utf-8")
+
+        with pytest.raises(TargetArtifactError, match="conflicting selector 'dev-selector' is not owned"):
+            stage_target("fake", "prod", repo_root=tmp_path, binaries_dir=binaries_dir)
+
+        assert not (binaries_dir / "prod-selector").exists()
 
     @pytest.mark.parametrize("filename", ["", "../outside", "nested/entry", MANIFEST_FILENAME])
     def test_invalid_entry_filename_is_rejected(self, tmp_path: Path, filename: str) -> None:
@@ -347,6 +527,7 @@ class Prod(Dev):
 
 
 @scenarios.test_the_test
+@features.not_reported
 class Test_TargetArtifactResolvers:
     def test_github_requests_include_auth_header_when_token_is_provided(
         self,
@@ -925,6 +1106,7 @@ class Test_TargetArtifactResolvers:
 
 
 @scenarios.test_the_test
+@features.not_reported
 class Test_TargetArtifactModules:
     @pytest.mark.parametrize("environment", ["dev", "prod"])
     def test_python_staging_emits_a_bounded_selector(self, environment: str) -> None:
@@ -942,6 +1124,8 @@ class Test_TargetArtifactModules:
         if environment == "dev":
             assert entries[0].filename == "python-load-from-s3"
             assert entries[0].content == f"{SHA}\n"
+            assert entries[0].conflicting_filenames == ("python-load-from-pip",)
         else:
             assert entries[0].filename == "python-load-from-pip"
             assert entries[0].content == "ddtrace==1.2.3\n"
+            assert entries[0].conflicting_filenames == ("python-load-from-s3",)

@@ -10,6 +10,7 @@ class TargetArtifactError(Exception):
 class ArtifactEntry:
     filename: str
     content: str
+    conflicting_filenames: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -126,6 +127,10 @@ class SimpleTarget:
 
     def artifact_entries(self, resolved_inputs: dict[str, ResolvedArtifactInput]) -> tuple[ArtifactEntry, ...]:
         return tuple(
-            ArtifactEntry(filename=entry.filename, content=entry.content.format(**resolved_inputs))
+            ArtifactEntry(
+                filename=entry.filename,
+                content=entry.content.format(**resolved_inputs),
+                conflicting_filenames=entry.conflicting_filenames,
+            )
             for entry in self.entries
         )
