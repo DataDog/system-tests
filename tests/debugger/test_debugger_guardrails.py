@@ -13,6 +13,7 @@ MAX_SNAPSHOT_BYTES = 1024 * 1024
 # characters already blow past any evaluation-time budget. Keep it small so the value fits
 # comfortably in the request URL.
 REDOS_INPUT_LENGTH = 25
+EVALUATION_TIMEOUT_COLLECTION_SIZE = 1_000_000
 GUARDRAILS_RFC = "https://docs.google.com/document/d/1OhCH3SMuS_B4Ickays94GpqDlqKcc9b9gLos1T85F-Q/edit?usp=sharing"
 
 
@@ -63,7 +64,7 @@ class _DebuggerEvaluationTimeoutTest(debugger.BaseDebuggerTest):
         self._setup_evaluation_timeout(
             "probe_evaluation_timeout_collection_filter",
             "SnapshotLimits",
-            "/debugger/snapshot/limits?collectionSize=100000",
+            f"/debugger/snapshot/limits?collectionSize={EVALUATION_TIMEOUT_COLLECTION_SIZE}",
         )
 
     def test_evaluation_timeout_collection_filter(self) -> None:
@@ -100,7 +101,7 @@ class _DebuggerEvaluationTimeoutTest(debugger.BaseDebuggerTest):
 
 @rfc(GUARDRAILS_RFC)
 @features.debugger_expression_language
-@scenarios.debugger_probes_snapshot
+@scenarios.debugger_evaluation_timeout
 @slow
 class Test_Debugger_Evaluation_Timeout_Method_Probe(_DebuggerEvaluationTimeoutTest):
     pass
@@ -108,7 +109,7 @@ class Test_Debugger_Evaluation_Timeout_Method_Probe(_DebuggerEvaluationTimeoutTe
 
 @rfc(GUARDRAILS_RFC)
 @features.debugger_expression_language
-@scenarios.debugger_probes_snapshot
+@scenarios.debugger_evaluation_timeout
 @slow
 class Test_Debugger_Evaluation_Timeout_Line_Probe(_DebuggerEvaluationTimeoutTest):
     def _prepare_probe(self, probe: dict[str, Any], method: str) -> None:

@@ -442,6 +442,9 @@ jobs:
     - name: Run DEBUGGER_CAPTURE_TIMEOUT scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"DEBUGGER_CAPTURE_TIMEOUT"')
       run: ./run.sh DEBUGGER_CAPTURE_TIMEOUT
+    - name: Run DEBUGGER_EVALUATION_TIMEOUT scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"DEBUGGER_EVALUATION_TIMEOUT"')
+      run: ./run.sh DEBUGGER_EVALUATION_TIMEOUT
     - name: Run DEBUGGER_PROBES_SNAPSHOT scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"DEBUGGER_PROBES_SNAPSHOT"')
       run: ./run.sh DEBUGGER_PROBES_SNAPSHOT

@@ -1045,6 +1045,16 @@ class _Scenarios:
         doc="Test that debugger snapshot capture reports when its time budget is exceeded",
     )
 
+    debugger_evaluation_timeout = DebuggerScenario(
+        "DEBUGGER_EVALUATION_TIMEOUT",
+        weblog_env={
+            "DD_DYNAMIC_INSTRUMENTATION_EVALUATION_TIMEOUT": "1",
+            "DD_DYNAMIC_INSTRUMENTATION_EVALUATION_TIMEOUT_MS": "1",
+            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
+        },
+        doc="Test that debugger expression evaluation reports when its time budget is exceeded",
+    )
+
     debugger_probes_snapshot_with_scm = DebuggerScenario(
         "DEBUGGER_PROBES_SNAPSHOT_WITH_SCM",
         weblog_env={
