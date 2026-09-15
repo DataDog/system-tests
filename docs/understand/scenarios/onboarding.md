@@ -16,6 +16,7 @@
      * [Configure the environment variables](#Configure-the-environment-variables)
    * [Run the scenario using the wizard](#run-the-scenario-using-the-wizard)
    * [Run the scenario manually](#run-the-scenario-manually)
+   * [Run SSI jobs for one language in GitLab CI](#run-ssi-jobs-for-one-language-in-gitlab-ci)
 3. [How to develop tests](#How-to-develop-a-test-case)
    * [Folders and Files structure](#Folders-and-Files-structure)
    * [Define a new virtual machine](#Create-a-new-virtual-machine)
@@ -441,6 +442,27 @@ The following line shows an example of command line to run the tests on a secure
 ```bash
  aws-vault exec sso-sandbox-account-admin -- ./run.sh SIMPLE_INSTALLER_AUTO_INJECTION --vm-weblog test-app-nodejs --vm-env dev --vm-library nodejs --vm-provider aws --vm-only Ubuntu_22_amd64
  ```
+
+## Run SSI jobs for one language in GitLab CI
+
+A scheduled or [manual pipeline](https://gitlab.ddbuild.io/DataDog/system-tests/-/pipelines/new) can target a single SSI language. Do **not** set `SCHEDULED_JOB` (that variable is only for cleanup jobs such as `delete_amis` and it skips SSI).
+
+Set these variables (lowercase language name):
+
+| Variable | Example | Purpose |
+|---|---|---|
+| `SYSTEM_TESTS_LIBRARY` | `php` | Run only that SSI child pipeline (`nodejs`, `java`, `dotnet`, `python`, `php`, `ruby`) |
+| `SYSTEM_TESTS_SCENARIOS` | `SIMPLE_AUTO_INJECTION_PROFILING` | Optional. Force those SSI scenarios |
+| `SYSTEM_TESTS_SCENARIOS_GROUPS` | `onboarding` | Optional. Force those SSI scenario groups |
+
+Example for PHP host profiling only:
+
+```text
+SYSTEM_TESTS_LIBRARY=php
+SYSTEM_TESTS_SCENARIOS=SIMPLE_AUTO_INJECTION_PROFILING
+```
+
+Without `SYSTEM_TESTS_LIBRARY`, GitLab still generates and runs the six language child pipelines in sequence.
 
 # How to develop tests
 

@@ -20,6 +20,10 @@ stages:
 
 variables:
     TEST: 1
+    # Optional SSI language filter for manual / scheduled pipelines:
+    # nodejs | java | dotnet | python | php | ruby
+    # Empty = all SSI languages (sequential). Do not set SCHEDULED_JOB when using this.
+    SYSTEM_TESTS_LIBRARY: ""
     # dd-repo-tools mirror_images.py (pinned). Used by the mirror_images_* jobs, and
     # picked up by update_mirror_images.py, which reads it from the environment.
     # Keep in sync with the default in utils/scripts/update_mirror_images.py.
@@ -87,9 +91,13 @@ compute_pipeline:
       - php_ssi_gitlab_pipeline.yml
       - ruby_ssi_gitlab_pipeline.yml
 
+# SSI child pipelines. Sequential by default; previous-language needs are
+# optional so a SYSTEM_TESTS_LIBRARY filter can skip langs without blocking
+# the one you asked for. Valid values: nodejs, java, dotnet, python, php, ruby.
 nodejs_ssi_pipeline:
   stage: nodejs
-  needs: ["compute_pipeline"]
+  needs:
+    - job: compute_pipeline
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
   trigger:
@@ -98,13 +106,19 @@ nodejs_ssi_pipeline:
         job: compute_pipeline
     strategy: depend
   rules:
-    - if: '$SCHEDULED_JOB == ""'
-    - if: '$SCHEDULED_JOB == null'
-  when: always
+    - if: '$SCHEDULED_JOB != "" && $SCHEDULED_JOB != null'
+      when: never
+    - if: '$SYSTEM_TESTS_LIBRARY == "nodejs"'
+      when: always
+    - if: '$SYSTEM_TESTS_LIBRARY == "" || $SYSTEM_TESTS_LIBRARY == null'
+      when: always
 
 java_ssi_pipeline:
   stage: java
-  needs: ["compute_pipeline", "nodejs_ssi_pipeline"]
+  needs:
+    - job: compute_pipeline
+    - job: nodejs_ssi_pipeline
+      optional: true
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
   trigger:
@@ -113,13 +127,19 @@ java_ssi_pipeline:
         job: compute_pipeline
     strategy: depend
   rules:
-    - if: '$SCHEDULED_JOB == ""'
-    - if: '$SCHEDULED_JOB == null'
-  when: always
+    - if: '$SCHEDULED_JOB != "" && $SCHEDULED_JOB != null'
+      when: never
+    - if: '$SYSTEM_TESTS_LIBRARY == "java"'
+      when: always
+    - if: '$SYSTEM_TESTS_LIBRARY == "" || $SYSTEM_TESTS_LIBRARY == null'
+      when: always
 
 dotnet_ssi_pipeline:
   stage: dotnet
-  needs: ["compute_pipeline", "java_ssi_pipeline"]
+  needs:
+    - job: compute_pipeline
+    - job: java_ssi_pipeline
+      optional: true
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
   trigger:
@@ -128,13 +148,19 @@ dotnet_ssi_pipeline:
         job: compute_pipeline
     strategy: depend
   rules:
-    - if: '$SCHEDULED_JOB == ""'
-    - if: '$SCHEDULED_JOB == null'
-  when: always
+    - if: '$SCHEDULED_JOB != "" && $SCHEDULED_JOB != null'
+      when: never
+    - if: '$SYSTEM_TESTS_LIBRARY == "dotnet"'
+      when: always
+    - if: '$SYSTEM_TESTS_LIBRARY == "" || $SYSTEM_TESTS_LIBRARY == null'
+      when: always
 
 python_ssi_pipeline:
   stage: python
-  needs: ["compute_pipeline", "dotnet_ssi_pipeline"]
+  needs:
+    - job: compute_pipeline
+    - job: dotnet_ssi_pipeline
+      optional: true
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
   trigger:
@@ -143,13 +169,19 @@ python_ssi_pipeline:
         job: compute_pipeline
     strategy: depend
   rules:
-    - if: '$SCHEDULED_JOB == ""'
-    - if: '$SCHEDULED_JOB == null'
-  when: always
+    - if: '$SCHEDULED_JOB != "" && $SCHEDULED_JOB != null'
+      when: never
+    - if: '$SYSTEM_TESTS_LIBRARY == "python"'
+      when: always
+    - if: '$SYSTEM_TESTS_LIBRARY == "" || $SYSTEM_TESTS_LIBRARY == null'
+      when: always
 
 php_ssi_pipeline:
   stage: php
-  needs: ["compute_pipeline", "python_ssi_pipeline"]
+  needs:
+    - job: compute_pipeline
+    - job: python_ssi_pipeline
+      optional: true
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
   trigger:
@@ -158,13 +190,19 @@ php_ssi_pipeline:
         job: compute_pipeline
     strategy: depend
   rules:
-    - if: '$SCHEDULED_JOB == ""'
-    - if: '$SCHEDULED_JOB == null'
-  when: always
+    - if: '$SCHEDULED_JOB != "" && $SCHEDULED_JOB != null'
+      when: never
+    - if: '$SYSTEM_TESTS_LIBRARY == "php"'
+      when: always
+    - if: '$SYSTEM_TESTS_LIBRARY == "" || $SYSTEM_TESTS_LIBRARY == null'
+      when: always
 
 ruby_ssi_pipeline:
   stage: ruby
-  needs: ["compute_pipeline", "php_ssi_pipeline"]
+  needs:
+    - job: compute_pipeline
+    - job: php_ssi_pipeline
+      optional: true
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
   trigger:
@@ -173,9 +211,12 @@ ruby_ssi_pipeline:
         job: compute_pipeline
     strategy: depend
   rules:
-    - if: '$SCHEDULED_JOB == ""'
-    - if: '$SCHEDULED_JOB == null'
-  when: always
+    - if: '$SCHEDULED_JOB != "" && $SCHEDULED_JOB != null'
+      when: never
+    - if: '$SYSTEM_TESTS_LIBRARY == "ruby"'
+      when: always
+    - if: '$SYSTEM_TESTS_LIBRARY == "" || $SYSTEM_TESTS_LIBRARY == null'
+      when: always
 
 delete_amis:
   extends: .base_job_onboarding
@@ -358,6 +399,10 @@ system_tests_param:
       source set_vars.sh
     - export EXCLUDED_SCENARIOS='DEBUGGER_EXPRESSION_LANGUAGE,APM_TRACING_E2E_OTEL,OTEL_COLLECTOR_E2E'
     - export SYSTEM_TESTS_PUSH_TO_TEST_OPTIMIZATION=true
+  rules:
+    - if: '$SYSTEM_TESTS_LIBRARY != "" && $SYSTEM_TESTS_LIBRARY != null'
+      when: never
+    - when: on_success
 
 build_ci_image:
   image: registry.ddbuild.io/system-tests/image-builder:496bc0863a74
@@ -447,6 +492,8 @@ mirror_images:
     # then sign the images copied during this run with ddsign.
     - uv run --no-config --no-project --script "$MIRROR_IMAGES_URL" mirror --sign
   rules:
+    - if: '$SYSTEM_TESTS_LIBRARY != "" && $SYSTEM_TESTS_LIBRARY != null'
+      when: never
     - if: '$SCHEDULED_JOB == "" || $SCHEDULED_JOB == null'
 
 # ──────────────────────────────────────────────
@@ -480,4 +527,6 @@ build_base_images:
   script:
     - python utils/base_images/build_base_images.py --changed-only
   rules:
+    - if: '$SYSTEM_TESTS_LIBRARY != "" && $SYSTEM_TESTS_LIBRARY != null'
+      when: never
     - if: '$SCHEDULED_JOB == "" || $SCHEDULED_JOB == null'
