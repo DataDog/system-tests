@@ -17,15 +17,25 @@ import (
 // tracer's own timeout governs whenever it applies one.
 const ffeStartTimeout = 15 * time.Second
 
-var ffeStartOnce sync.Once
+// ffeStartMu guards ffeStarted, which records a *successful* start. sync.Once
+// would burn its one shot on a failed attempt and then report 200 with no
+// client, so a retry could never recover.
+var (
+	ffeStartMu sync.Mutex
+	ffeStarted bool
+)
 
 func (s *apmClientServer) ffeStart(writer http.ResponseWriter, request *http.Request) {
-	var startErr error
-	ffeStartOnce.Do(func() {
+	startErr := func() error {
+		ffeStartMu.Lock()
+		defer ffeStartMu.Unlock()
+		if ffeStarted {
+			return nil
+		}
+
 		provider, err := ddof.NewDatadogProvider(ddof.ProviderConfig{})
 		if err != nil {
-			startErr = err
-			return
+			return err
 		}
 
 		// Wait for Init: plain SetProvider returns before it, so /ffe/start would
@@ -43,14 +53,15 @@ func (s *apmClientServer) ffeStart(writer http.ResponseWriter, request *http.Req
 		if err := of.SetProviderWithContextAndWait(ctx, provider); err != nil {
 			var initErr *of.ProviderInitError
 			if !errors.As(err, &initErr) || initErr.ErrorCode != of.ProviderNotReadyCode {
-				startErr = err
-				return
+				return err
 			}
 		}
 
 		s.ddProvider = provider
 		s.ofClient = of.NewClient("system-tests-weblog-client")
-	})
+		ffeStarted = true
+		return nil
+	}()
 
 	if startErr != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
@@ -104,61 +115,43 @@ func (s *apmClientServer) ffeEval(writer http.ResponseWriter, request *http.Requ
 			}
 		}()
 
+		// The SDK returns evaluation details alongside an error, and the retry
+		// helper keys on errorCode PROVIDER_NOT_READY, so the details have to
+		// survive the error path rather than collapsing to a bare "ERROR".
+		var (
+			details of.EvaluationDetails
+			err     error
+		)
+
 		switch body.VariationType {
 		case "BOOLEAN":
 			defaultValue, _ := body.DefaultValue.(bool)
-			details, err := s.ofClient.BooleanValueDetails(evalCtx, body.Flag, defaultValue, ctx)
-			if err != nil {
-				value = body.DefaultValue
-				reason = "ERROR"
-				return
-			}
-			value = details.Value
-			reason = string(details.Reason)
-			errorCode = string(details.ErrorCode)
+			d, e := s.ofClient.BooleanValueDetails(evalCtx, body.Flag, defaultValue, ctx)
+			value, details, err = d.Value, d.EvaluationDetails, e
 		case "STRING":
 			defaultValue, _ := body.DefaultValue.(string)
-			details, err := s.ofClient.StringValueDetails(evalCtx, body.Flag, defaultValue, ctx)
-			if err != nil {
-				value = body.DefaultValue
-				reason = "ERROR"
-				return
-			}
-			value = details.Value
-			reason = string(details.Reason)
-			errorCode = string(details.ErrorCode)
+			d, e := s.ofClient.StringValueDetails(evalCtx, body.Flag, defaultValue, ctx)
+			value, details, err = d.Value, d.EvaluationDetails, e
 		case "INTEGER":
 			defaultValue, _ := toInt64(body.DefaultValue)
-			details, err := s.ofClient.IntValueDetails(evalCtx, body.Flag, defaultValue, ctx)
-			if err != nil {
-				value = body.DefaultValue
-				reason = "ERROR"
-				return
-			}
-			value = details.Value
-			reason = string(details.Reason)
-			errorCode = string(details.ErrorCode)
+			d, e := s.ofClient.IntValueDetails(evalCtx, body.Flag, defaultValue, ctx)
+			value, details, err = d.Value, d.EvaluationDetails, e
 		case "NUMERIC":
 			defaultValue, _ := toFloat64(body.DefaultValue)
-			details, err := s.ofClient.FloatValueDetails(evalCtx, body.Flag, defaultValue, ctx)
-			if err != nil {
-				value = body.DefaultValue
-				reason = "ERROR"
-				return
-			}
-			value = details.Value
-			reason = string(details.Reason)
-			errorCode = string(details.ErrorCode)
+			d, e := s.ofClient.FloatValueDetails(evalCtx, body.Flag, defaultValue, ctx)
+			value, details, err = d.Value, d.EvaluationDetails, e
 		case "JSON":
-			details, err := s.ofClient.ObjectValueDetails(evalCtx, body.Flag, body.DefaultValue, ctx)
-			if err != nil {
-				value = body.DefaultValue
+			d, e := s.ofClient.ObjectValueDetails(evalCtx, body.Flag, body.DefaultValue, ctx)
+			value, details, err = d.Value, d.EvaluationDetails, e
+		}
+
+		reason = string(details.Reason)
+		errorCode = string(details.ErrorCode)
+		if err != nil {
+			value = body.DefaultValue
+			if reason == "" {
 				reason = "ERROR"
-				return
 			}
-			value = details.Value
-			reason = string(details.Reason)
-			errorCode = string(details.ErrorCode)
 		}
 	}()
 
