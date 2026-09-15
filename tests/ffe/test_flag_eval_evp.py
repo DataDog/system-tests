@@ -212,16 +212,40 @@ def _assert_hashed_targeting_key(event: JSON) -> None:
     )
 
 
-def assert_no_raw_pii_in_event(event: JSON, forbidden_values: list[str]) -> None:
-    """Walk the entire serialized event and assert none of the raw PII strings appear anywhere.
+def _is_numeric(value: object) -> bool:
+    return isinstance(value, (int, float)) and not isinstance(value, bool)
 
-    Guards against SDK bugs that route unhashed values into unexpected fields (e.g., a raw
-    email leaking into ``context.user_email`` even when ``context.evaluation`` is correctly
-    omitted).
+
+def _assert_no_raw_pii(value: object, forbidden_values: list[object], path: str) -> None:
+    if isinstance(value, dict):
+        for key, child in value.items():
+            _assert_no_raw_pii(str(key), forbidden_values, f"{path} (dictionary key)")
+            _assert_no_raw_pii(child, forbidden_values, f"{path}.{key}")
+    elif isinstance(value, list):
+        for index, child in enumerate(value):
+            _assert_no_raw_pii(child, forbidden_values, f"{path}[{index}]")
+    elif isinstance(value, str):
+        for forbidden_value in forbidden_values:
+            assert str(forbidden_value) not in value, (
+                f"raw PII value {forbidden_value!r} must not appear in string at {path}: {value!r}"
+            )
+    elif _is_numeric(value):
+        for forbidden_value in forbidden_values:
+            if _is_numeric(forbidden_value):
+                assert value != forbidden_value, (
+                    f"raw PII value {forbidden_value!r} must not appear as a numeric value at {path}"
+                )
+
+
+def assert_no_raw_pii_in_event(event: JSON, forbidden_values: list[object]) -> None:
+    """Recursively assert that an event has no raw PII in any key or value.
+
+    String leaves and dictionary keys are scanned for every forbidden value as a substring, so
+    numeric PII converted to or embedded in a string is still detected. Numeric leaves compare
+    only with numeric forbidden values, avoiding substring collisions with larger timestamps or
+    counters while preserving exact numeric PII detection in every field.
     """
-    serialized = json.dumps(event, default=str)
-    for value in forbidden_values:
-        assert value not in serialized, f"raw PII value {value!r} must not appear anywhere in event: {event}"
+    _assert_no_raw_pii(event, forbidden_values, "$")
 
 
 def assert_no_duplicate_visible_events(events: list[tuple[JSON, JSON]]) -> None:
@@ -558,7 +582,7 @@ class Test_FFE_EVP_Flagevaluation_ObserveFullData_Absent_Hashed:
         events = find_evp_flagevaluation_events(self.flag_key)
         assert events, f"Expected EVP flagevaluation event for flag {self.flag_key}"
 
-        forbidden_raw_values = [PII_TARGETING_KEY, *[str(v) for v in PII_ATTRIBUTES.values()]]
+        forbidden_raw_values = [PII_TARGETING_KEY, *PII_ATTRIBUTES.values()]
 
         for batch, event in events:
             assert_batch_context(batch)
@@ -601,7 +625,7 @@ class Test_FFE_EVP_Flagevaluation_ObserveFullData_False_Hashed:
         events = find_evp_flagevaluation_events(self.flag_key)
         assert events, f"Expected EVP flagevaluation event for flag {self.flag_key}"
 
-        forbidden_raw_values = [PII_TARGETING_KEY, *[str(v) for v in PII_ATTRIBUTES.values()]]
+        forbidden_raw_values = [PII_TARGETING_KEY, *PII_ATTRIBUTES.values()]
 
         for batch, event in events:
             assert_batch_context(batch)
