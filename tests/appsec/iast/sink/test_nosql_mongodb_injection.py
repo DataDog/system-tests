@@ -47,6 +47,7 @@ class TestNoSqlMongodbInjection_StackTrace:
         self.r = weblog.post("/iast/mongodb-nosql-injection/test_insecure", data={"key": "somevalue"})
 
     def test_stack_trace(self):
+        assert self.r.status_code == 200
         validate_stack_traces(self.r)
 
 
@@ -62,4 +63,5 @@ class TestNoSqlMongodbInjection_ExtendedLocation:
         self.r = weblog.post("/iast/mongodb-nosql-injection/test_insecure", data={"key": "somevalue"})
 
     def test_extended_location_data(self):
+        assert self.r.status_code == 200
         validate_extended_location_data(self.r, self.vulnerability_type)

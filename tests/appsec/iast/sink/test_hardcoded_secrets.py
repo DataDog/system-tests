@@ -77,6 +77,7 @@ class Test_HardcodedSecrets_StackTrace:
         self.r = weblog.get("/iast/hardcoded_secrets/test_insecure")
 
     def test_stack_trace(self):
+        assert self.r.status_code == 200
         validate_stack_traces(self.r)
 
 
@@ -89,6 +90,7 @@ class Test_HardcodedSecrets_ExtendedLocation:
         self.r = weblog.get("/iast/hardcoded_secrets/test_insecure")
 
     def test_extended_location_data(self):
+        assert self.r.status_code == 200
         hardcode_secrets = get_hardcoded_vulnerabilities("HARDCODED_SECRET")
         hardcode_secrets = [v for v in hardcode_secrets if v["evidence"]["value"] == "aws-access-token"]
         # Deduplicate by hash in case the tracer reports the same secret multiple times

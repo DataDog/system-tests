@@ -75,6 +75,7 @@ class TestUnvalidatedRedirect_StackTrace:
         )
 
     def test_stack_trace(self):
+        assert self.r.status_code == 200
         validate_stack_traces(self.r)
 
 
@@ -91,6 +92,7 @@ class TestUnvalidatedHeader_StackTrace:
         )
 
     def test_stack_trace(self):
+        assert self.r.status_code == 200
         validate_stack_traces(self.r)
 
 
@@ -107,6 +109,7 @@ class TestUnvalidatedRedirect_ExtendedLocation:
         )
 
     def test_extended_location_data(self):
+        assert self.r.status_code == 200
         validate_extended_location_data(self.r, self.vulnerability_type)
 
 
@@ -123,4 +126,5 @@ class TestUnvalidatedHeader_ExtendedLocation:
         )
 
     def test_extended_location_data(self):
+        assert self.r.status_code == 200
         validate_extended_location_data(self.r, self.vulnerability_type)

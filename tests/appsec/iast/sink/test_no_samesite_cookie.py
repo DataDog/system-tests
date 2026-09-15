@@ -59,6 +59,7 @@ class TestNoSamesiteCookie_StackTrace:
         self.r = weblog.get("/iast/no-samesite-cookie/test_insecure")
 
     def test_stack_trace(self):
+        assert self.r.status_code == 200
         validate_stack_traces(self.r)
 
 
@@ -73,4 +74,5 @@ class TestNoSamesiteCookie_ExtendedLocation:
         self.r = weblog.get("/iast/no-samesite-cookie/test_insecure")
 
     def test_extended_location_data(self):
+        assert self.r.status_code == 200
         validate_extended_location_data(self.r, self.vulnerability_type)

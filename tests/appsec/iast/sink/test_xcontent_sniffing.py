@@ -34,6 +34,7 @@ class Test_XContentSniffing_StackTrace:
         self.r = weblog.get("/iast/xcontent-missing-header/test_insecure")
 
     def test_stack_trace(self):
+        assert self.r.status_code == 200
         validate_stack_traces(self.r)
 
 
@@ -48,4 +49,5 @@ class Test_XContentSniffing_ExtendedLocation:
         self.r = weblog.get("/iast/xcontent-missing-header/test_insecure")
 
     def test_extended_location_data(self):
+        assert self.r.status_code == 200
         validate_extended_location_data(self.r, self.vulnerability_type, is_expected_location_required=False)

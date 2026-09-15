@@ -36,6 +36,7 @@ class TestUntrustedDeserialization_StackTrace:
         self.r = weblog.get("/iast/untrusted_deserialization/test_insecure?name=example")
 
     def test_stack_trace(self):
+        assert self.r.status_code == 200
         validate_stack_traces(self.r)
 
 
@@ -50,4 +51,5 @@ class TestUntrustedDeserialization_ExtendedLocation:
         self.r = weblog.get("/iast/untrusted_deserialization/test_insecure?name=example")
 
     def test_extended_location_data(self):
+        assert self.r.status_code == 200
         validate_extended_location_data(self.r, self.vulnerability_type)
