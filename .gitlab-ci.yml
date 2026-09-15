@@ -280,6 +280,24 @@ check_merge_labels:
   rules:
     - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"
 
+update_agent_version:
+  image: $CI_IMAGE
+  tags:
+    - arch:amd64
+  stage: system-tests-utils
+  resource_group: update-agent-version
+  id_tokens:
+    DDOCTOSTS_ID_TOKEN:
+      aud: dd-octo-sts
+  needs:
+    - job: build_ci_image
+      artifacts: false
+      optional: true
+  script:
+    - python3 utils/scripts/update_agent_version.py
+  rules:
+    - if: '$SCHEDULED_JOB == "nightly" && $CI_PIPELINE_SOURCE == "schedule" && $CI_COMMIT_BRANCH == "main"'
+
 generate_system_tests_lambda_proxy_image:
   image: registry.ddbuild.io/ci/libdatadog-build/ci_docker_base:100425777
   tags: ["docker-in-docker:amd64"]
