@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 import subprocess
 
-from utils import features, scenarios
+from utils import scenarios
 from utils.target_artifacts.orchestrator import MANIFEST_FILENAME
 
 
@@ -163,7 +163,6 @@ class Test_LoadBinaryC:
 
 
 @scenarios.test_the_test
-@features.not_reported
 class Test_LoadBinaryPython:
     def test_development_branch_uses_target_artifact_staging(self, tmp_path: Path) -> None:
         binaries_dir = tmp_path / "binaries"

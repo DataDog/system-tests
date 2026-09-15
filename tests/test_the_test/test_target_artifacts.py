@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any
 import pytest
 import requests
 
-from utils import features, scenarios
+from utils import scenarios
 from utils.target_artifacts.models import (
     ArtifactResolver,
     BranchReference,
@@ -160,7 +160,6 @@ def _manifest_entries(binaries_dir: Path) -> dict[str, object]:
 
 
 @scenarios.test_the_test
-@features.not_reported
 class Test_TargetArtifactStaging:
     def test_custom_environment_is_noop(self, tmp_path: Path) -> None:
         binaries_dir = tmp_path / "binaries"
@@ -527,7 +526,6 @@ class Prod(Dev):
 
 
 @scenarios.test_the_test
-@features.not_reported
 class Test_TargetArtifactResolvers:
     def test_github_requests_include_auth_header_when_token_is_provided(
         self,
@@ -1106,7 +1104,6 @@ class Test_TargetArtifactResolvers:
 
 
 @scenarios.test_the_test
-@features.not_reported
 class Test_TargetArtifactModules:
     @pytest.mark.parametrize("environment", ["dev", "prod"])
     def test_python_staging_emits_a_bounded_selector(self, environment: str) -> None:
