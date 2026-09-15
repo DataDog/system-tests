@@ -129,6 +129,7 @@ func main() {
 	http.HandleFunc("/metrics/otel/create_asynchronous_updowncounter", s.otelCreateAsynchronousUpDownCounterHandler)
 	http.HandleFunc("/metrics/otel/create_asynchronous_gauge", s.otelCreateAsynchronousGaugeHandler)
 	http.HandleFunc("/metrics/otel/force_flush", s.otelMetricsForceFlushHandler)
+	http.HandleFunc("/metrics/otel/shutdown", s.otelMetricsShutdownHandler)
 
 	err = http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
 	if err != nil {
