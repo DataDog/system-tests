@@ -2,8 +2,14 @@
 echo "START RUN APP"
 
 #Create folder for app logs
-sudo mkdir /var/log/datadog_weblog
+sudo mkdir -p /var/log/datadog_weblog
 sudo chmod 777 /var/log/datadog_weblog
+
+# Enable core dumps for host-app crashes (e.g. PHP + profiling segfaults).
+# LimitCORE=infinity on test-app.service also applies once systemd starts the app.
+ulimit -c unlimited || true
+echo 1 | sudo tee /proc/sys/fs/suid_dumpable >/dev/null || true
+echo "/var/log/datadog_weblog/core.%e.%p" | sudo tee /proc/sys/kernel/core_pattern >/dev/null || true
 
 COMMAND_LINE=$1
 APP_ENV="${2:-''}"

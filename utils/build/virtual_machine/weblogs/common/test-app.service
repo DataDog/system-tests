@@ -8,6 +8,7 @@ SuccessExitStatus=143
 User=datadog
 
 Type=simple
+LimitCORE=infinity
 
 Environment=DD_CONFIG_SOURCES=LOCAL:/etc/datadog-agent/inject/debug_config.yaml
 Environment=DD_APM_INSTRUMENTATION_DEBUG=TRUE
