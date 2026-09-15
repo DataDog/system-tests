@@ -17,4 +17,4 @@ RUN mkdir /parametric-tracer-logs
 
 RUN go install
 
-CMD ["main"]
+CMD ["sh", "-c", "main; status=$?; sleep 2; exit $status"]
