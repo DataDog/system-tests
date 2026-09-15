@@ -14,8 +14,16 @@ _MAX_CACHE_NAME_LENGTH = 120
 class AWSInfraConfig:
     def __init__(self) -> None:
         # Mandatory parameters
-        self.subnet_id = os.getenv("ONBOARDING_AWS_INFRA_SUBNET_ID", "").split(",")
-        self.vpc_security_group_ids = os.getenv("ONBOARDING_AWS_INFRA_SECURITY_GROUPS_ID", "").split(",")
+        self.subnet_id = [
+            subnet_id.strip()
+            for subnet_id in os.getenv("ONBOARDING_AWS_INFRA_SUBNET_ID", "").split(",")
+            if subnet_id.strip()
+        ]
+        self.vpc_security_group_ids = [
+            security_group_id.strip()
+            for security_group_id in os.getenv("ONBOARDING_AWS_INFRA_SECURITY_GROUPS_ID", "").split(",")
+            if security_group_id.strip()
+        ]
         self.iam_instance_profile = os.getenv("ONBOARDING_AWS_INFRA_IAM_INSTANCE_PROFILE")
 
 
