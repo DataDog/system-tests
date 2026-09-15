@@ -49,7 +49,6 @@ def _get_exe_from_log_line(line: str) -> str | None:
 
 def _parse_command(command: str):
     command_args = command.split()
-    command = None
     # Remove SUDO -E option
     if "sudo" in command_args:
         command_args.remove("sudo")
