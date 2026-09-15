@@ -268,8 +268,8 @@ check_merge_labels:
     - dd-octo-sts version
     - dd-octo-sts debug --scope DataDog/system-tests --policy self.gitlab-read
     - dd-octo-sts token --scope DataDog/system-tests --policy self.gitlab-read > token.txt
-    - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
-    - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
+    - export DOCKER_LOGIN=$(vault kv get -field=username kv/k8s/gitlab-runner/system-tests/docker-login)
+    - export DOCKER_LOGIN_PASS=$(vault kv get -field=password kv/k8s/gitlab-runner/system-tests/docker-login)
   script:
     - docker buildx version
     - export GITHUB_TOKEN=$(cat token.txt)
@@ -287,8 +287,8 @@ generate_system_tests_lambda_proxy_image:
   stage: system-tests-utils
   allow_failure: false
   before_script:
-    - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
-    - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
+    - export DOCKER_LOGIN=$(vault kv get -field=username kv/k8s/gitlab-runner/system-tests/docker-login)
+    - export DOCKER_LOGIN_PASS=$(vault kv get -field=password kv/k8s/gitlab-runner/system-tests/docker-login)
     - echo "$DOCKER_LOGIN_PASS" | docker login --username "$DOCKER_LOGIN" --password-stdin
   script:
       - SYSTEM_TEST_BUILD_ATTEMPTS=3 SYSTEM_TEST_BUILD_TIMEOUT=240 ./build.sh -i lambda-proxy
@@ -420,8 +420,8 @@ mirror_images:
     - curl -sSL "https://github.com/google/go-containerregistry/releases/download/${CRANE_VERSION}/go-containerregistry_Linux_x86_64.tar.gz" | tar -xz -C /usr/local/bin crane
     # This is the only job that pulls from Docker Hub (the mirror sources), so it
     # is the only one that needs Docker Hub auth (avoids unauthenticated rate limits).
-    - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
-    - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
+    - export DOCKER_LOGIN=$(vault kv get -field=username kv/k8s/gitlab-runner/system-tests/docker-login)
+    - export DOCKER_LOGIN_PASS=$(vault kv get -field=password kv/k8s/gitlab-runner/system-tests/docker-login)
     - echo "$DOCKER_LOGIN_PASS" | crane auth login index.docker.io --username "$DOCKER_LOGIN" --password-stdin
   script:
     # Shares its CI_IMAGE-vs-computed-tag check with the build_ci_image job.
@@ -470,8 +470,8 @@ build_base_images:
       optional: true
   stage: e2e
   before_script:
-    - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
-    - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
+    - export DOCKER_LOGIN=$(vault kv get -field=username kv/k8s/gitlab-runner/system-tests/docker-login)
+    - export DOCKER_LOGIN_PASS=$(vault kv get -field=password kv/k8s/gitlab-runner/system-tests/docker-login)
     - echo "$DOCKER_LOGIN_PASS" | docker login --username "$DOCKER_LOGIN" --password-stdin
     - ln -sf /system-tests/venv venv
     - source venv/bin/activate
