@@ -14,6 +14,7 @@ from utils import (
     scenarios,
     features,
     remote_config as rc,
+    slow,
 )
 
 
@@ -1137,6 +1138,7 @@ class Test_FFE_Exposure_DoLog_False:
 
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_exposures
+@slow
 class Test_FFE_EXP_5_Missing_Targeting_Key:
     """EXP.5: Treat missing targeting key as empty string.
 

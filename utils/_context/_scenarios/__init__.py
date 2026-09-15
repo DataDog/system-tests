@@ -825,6 +825,7 @@ class _Scenarios:
     feature_flagging_and_experimentation = DdTraceEndToEndScenario(
         "FEATURE_FLAGGING_AND_EXPERIMENTATION",
         rc_api_enabled=True,
+        rc_apply_settle_seconds={"nodejs": 0},
         weblog_env={
             "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
             "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE": "remote_config",
