@@ -1,7 +1,7 @@
 import base64
 
 import msgpack
-import pytest
+from utils import pytest
 
 
 from utils.docker_fixtures.spec.trace import SPAN_MEASURED_KEY

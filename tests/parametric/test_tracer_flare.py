@@ -7,7 +7,7 @@ from io import BytesIO
 from typing import Any
 from uuid import uuid4
 
-import pytest
+from utils import pytest
 
 from utils import rfc, scenarios, features, context
 from utils.dd_constants import RemoteConfigApplyState

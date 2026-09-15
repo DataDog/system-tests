@@ -6,7 +6,7 @@ The span shapes they tolerate (parent_id absent vs 0, ai_guard.event bool vs str
 import re
 from typing import Any
 
-import pytest
+from utils import pytest
 import requests
 
 from tests.integration_frameworks.llm import utils as llm_utils
