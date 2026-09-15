@@ -141,6 +141,8 @@ module.exports = {
       const nestingDepth = parseInt(request.query.nestingDepth, 10) || 0
       return captureTimeoutFixture(collectionSize, nestingDepth)
     })
+
+    fastify.get('/debugger/budgets/:loops', budgets)
   }
 }
 
@@ -152,5 +154,13 @@ function captureTimeoutFixture (collectionSize, nestingDepth) {
     }
     return nested
   })
-  return 'Capture timeout probe' // This needs to be line 155
+  return 'Capture timeout probe' // This needs to be line 157
+}
+
+function budgets (request, reply) {
+  const loops = Number(request.params.loops)
+  for (let iteration = 0; iteration < loops; iteration++) {
+    const currentIteration = iteration // This needs to be line 163
+  }
+  return reply.send('Budgets')
 }
