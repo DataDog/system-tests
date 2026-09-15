@@ -152,6 +152,7 @@ fi
 
 TARGET=$1
 VERSION=${2:-'dev'}
+BINARIES_DIR=${BINARIES_DIR:-binaries}
 
 GITHUB_TOKEN="${GITHUB_TOKEN:-}"
 GITHUB_AUTH_HEADER=()
@@ -161,7 +162,15 @@ fi
 
 echo "Load $VERSION binary for $TARGET"
 
-cd "${BINARIES_DIR:-binaries}/"
+if [ "$TARGET" = "python" ]; then
+    python3 utils/scripts/stage-target-artifacts.py \
+        "$TARGET" "$VERSION" \
+        --binaries-dir "$BINARIES_DIR" \
+        --repo-root .
+    exit 0
+fi
+
+cd "$BINARIES_DIR/"
 
 if [ "$TARGET" = "c" ]; then
     if [ "$VERSION" = "prod" ]; then
@@ -217,13 +226,6 @@ elif [ "$TARGET" = "dotnet" ]; then
     ghcr_login_if_token_set
 
     ../utils/scripts/docker_base_image.sh "ghcr.io/datadog/dd-trace-dotnet/dd-trace-dotnet:${NORMALIZED_BRANCH}" .
-
-elif [ "$TARGET" = "python" ]; then
-    assert_version_is_dev
-
-    LIBRARY_TARGET_BRANCH="${LIBRARY_TARGET_BRANCH:-main}"
-    echo "Using $LIBRARY_TARGET_BRANCH in S3 for DataDog/dd-trace-py"
-    echo "$LIBRARY_TARGET_BRANCH" > python-load-from-s3
 
 elif [ "$TARGET" = "ruby" ]; then
     assert_version_is_dev

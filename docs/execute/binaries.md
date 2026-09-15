@@ -2,6 +2,28 @@ By default, system tests will build a [weblog](../edit/weblog.md) image that shi
 
 But we often want to run system tests against unmerged changes. The general approach is to identify the git commit hash that contains your changes and use this commit hash to download a targeted build of the tracer. Note: ensure that the commit is pushed to a remote branch first, and when taking the commit hash, ensure you use the full hash. You can identify the commit hash using `git log` or from the github UI.
 
+## Target artifact staging
+
+Python is the first target using the target artifact staging framework. The existing
+compatibility command continues to work:
+
+```bash
+./utils/scripts/load-binary.sh python <dev|prod|custom>
+```
+
+The equivalent direct command is:
+
+```bash
+python3 utils/scripts/stage-target-artifacts.py python <dev|prod|custom>
+```
+
+Staging writes bounded text selectors and records generated-file ownership in
+`binaries/.target-artifacts-manifest.json`. It refuses to overwrite manual files,
+changed generated entries, symlinks, or conflicting selectors in `binaries/`.
+Switching to `custom` removes unchanged generated Python selectors while preserving
+manual payloads. Other targets continue to use their existing loading behavior until
+they are migrated separately.
+
 
 ## Agent
 
