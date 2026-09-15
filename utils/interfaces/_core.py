@@ -35,11 +35,15 @@ class InterfaceValidator:
 
     def __init__(self, name: str):
         self.name = name
+        self._configured: bool = False
+        """ Useful to prevent using an interface that has not been configured """
 
     def configure(self, host_log_folder: str, *, replay: bool):
         self.replay = replay
         self.log_folder = f"{host_log_folder}/interfaces/{self.name}"
         self.host_log_folder = host_log_folder
+
+        self._configured = True
 
     def __repr__(self):
         return f"{self.__class__.__name__}('{self.name}')"
@@ -121,6 +125,9 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
         self._data_list.append(data)
 
     def get_data(self, path_filters: Iterable[str] | str | None = None):
+        if not self._configured:
+            raise RuntimeError(f"{self} hasn't been configured; you can't use it")
+
         if path_filters is not None:
             if isinstance(path_filters, str):
                 path_filters = [path_filters]
