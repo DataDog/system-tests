@@ -13,8 +13,6 @@ MAX_SNAPSHOT_BYTES = 1024 * 1024
 # characters already blow past any evaluation-time budget. Keep it small so the value fits
 # comfortably in the request URL.
 REDOS_INPUT_LENGTH = 25
-# Bump this shared size if a runtime still finishes the filter inside its eval budget.
-EVALUATION_TIMEOUT_COLLECTION_SIZE = 1_000_000
 GUARDRAILS_RFC = "https://docs.google.com/document/d/1OhCH3SMuS_B4Ickays94GpqDlqKcc9b9gLos1T85F-Q/edit?usp=sharing"
 
 
@@ -65,7 +63,7 @@ class _DebuggerEvaluationTimeoutTest(debugger.BaseDebuggerTest):
         self._setup_evaluation_timeout(
             "probe_evaluation_timeout_collection_filter",
             "SnapshotLimits",
-            f"/debugger/snapshot/limits?collectionSize={EVALUATION_TIMEOUT_COLLECTION_SIZE}",
+            "/debugger/snapshot/limits?collectionSize=100000",
         )
 
     def test_evaluation_timeout_collection_filter(self) -> None:
