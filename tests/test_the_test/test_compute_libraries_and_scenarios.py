@@ -187,6 +187,19 @@ class Test_ComputeLibrariesAndScenarios:
             "end_to_end,open_telemetry",
         )
 
+    def test_nodejs_docker_file(self):
+        inputs = build_inputs(["utils/build/docker/nodejs/express5.Dockerfile"])
+
+        assert_github_processor(
+            inputs,
+            ["nodejs"],
+            ["nodejs"],
+            300,
+            "false",
+            "DEFAULT",
+            "end_to_end,open_telemetry",
+        )
+
     def test_c_docker_file(self):
         inputs = build_inputs(["utils/build/docker/c/perl-mojolicious.Dockerfile"])
 
