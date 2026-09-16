@@ -9,6 +9,7 @@
 # use `>1.0.0` to indicate that requirement.
 # NOTE: only parametric tests are run for cpp, there is no need to mark other tests as "missing_feature" here.
 manifest:
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_compression.py::Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION: missing_feature
   tests/appsec/api_security/test_endpoints.py: irrelevant (language not implementing this feature)
   tests/appsec/iast/source/test_parameter_value.py::TestParameterValue::test_source_reported: irrelevant
   tests/appsec/test_agentic_onboarding.py::Test_AppsecAgenticOnboarding: missing_feature

@@ -4,6 +4,7 @@ refs:
   - &django "django-poc, django-py3.13, python3.12"
   - &flask "flask-poc, uwsgi-poc, uds-flask"
 manifest:
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_compression.py::Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION: v4.11.0
   tests/:  # Easy win for tornado and version 4.3.1
     - weblog_declaration:
         tornado: v4.4.0-rc2
