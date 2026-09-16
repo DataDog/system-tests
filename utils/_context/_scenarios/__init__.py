@@ -875,8 +875,8 @@ class _Scenarios:
     apm_tracing_e2e_otel = DdTraceEndToEndScenario(
         "APM_TRACING_E2E_OTEL",
         weblog_env={"DD_TRACE_OTEL_ENABLED": "true"},
-        backend_interface_timeout=5,
-        require_api_key=True,
+        mocked_backend_v2=True,
+        use_proxy_for_agent=False,
         doc="",
     )
     apm_tracing_e2e_single_span = DdTraceEndToEndScenario(

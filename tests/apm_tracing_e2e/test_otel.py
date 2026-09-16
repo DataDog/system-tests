@@ -45,10 +45,6 @@ class Test_Otel_Span:
         assert child.get("duration") == "1000000000"
         assert child_meta.get("span.kind") == "internal"
 
-        # Assert the spans received from the backend!
-        spans = interfaces.backend.assert_request_spans_exist(self.req, query_filter="", retries=10)
-        assert len(spans) == 2
-
     def setup_distributed_otel_trace(self):
         self.req = weblog.get(
             "/e2e_otel_span/mixed_contrib", {"shouldIndex": 1, "parentName": "root-otel-name.dd-resource"}
@@ -75,10 +71,6 @@ class Test_Otel_Span:
         handler_span = _get_span_by_name(spans, "server.request")
         assert handler_span.get_span_resource() == "testOperation"
         assert handler_span.get("parentID") == roundtrip_span.get("spanID")
-
-        # Assert the spans received from the backend!
-        spans = interfaces.backend.assert_request_spans_exist(self.req, query_filter="", retries=10)
-        assert len(spans) == 3
 
 
 def _get_span_by_name(spans: list[DataDogAgentSpan], span_name: str) -> DataDogAgentSpan:
