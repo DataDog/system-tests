@@ -1,4 +1,4 @@
-FROM datadog/system-tests:express5.base-v3
+FROM system_tests_base_nodejs_express5
 
 # Refresh the application code and dependencies baked into the base image.
 COPY utils/build/docker/nodejs/express/app.js app.js

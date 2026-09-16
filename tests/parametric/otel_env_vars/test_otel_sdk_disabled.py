@@ -17,25 +17,6 @@ def _otel_sdk_disabled(test_agent: TestAgentAPI, library: APMLibrary) -> bool:
     return otel_enabled == "false"
 
 
-STABLE_VALUES = [
-    pytest.param(
-        {
-            "OTEL_SDK_DISABLED": "true",
-            "DD_TRACE_OTEL_ENABLED": None,
-        },
-        True,
-        id="true",
-    ),
-    pytest.param(
-        {
-            "OTEL_SDK_DISABLED": "false",
-            "DD_TRACE_OTEL_ENABLED": None,
-        },
-        False,
-        id="false",
-    ),
-]
-
 UNSET_AND_EMPTY_VALUES = [
     pytest.param(
         {
@@ -56,16 +37,39 @@ UNSET_AND_EMPTY_VALUES = [
 @scenarios.parametric
 @features.otel_sdk_disabled
 class Test_OTEL_SDK_DISABLED:
-    @pytest.mark.parametrize(("library_env", "expected"), STABLE_VALUES)
-    def test_stable_values(
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                "OTEL_SDK_DISABLED": "true",
+                "DD_TRACE_OTEL_ENABLED": None,
+            }
+        ],
+    )
+    def test_stable_true(
         self,
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
-        *,
-        expected: bool,
     ):
         with test_library as library:
-            assert _otel_sdk_disabled(test_agent, library) is expected
+            assert _otel_sdk_disabled(test_agent, library) is True
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                "OTEL_SDK_DISABLED": "false",
+                "DD_TRACE_OTEL_ENABLED": None,
+            }
+        ],
+    )
+    def test_stable_false(
+        self,
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+    ):
+        with test_library as library:
+            assert _otel_sdk_disabled(test_agent, library) is False
 
     @pytest.mark.parametrize("library_env", UNSET_AND_EMPTY_VALUES)
     def test_default_matches_specification(self, test_agent: TestAgentAPI, test_library: APMLibrary):

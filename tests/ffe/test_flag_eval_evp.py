@@ -12,6 +12,7 @@ from utils import interfaces
 from utils import remote_config as rc
 from utils import scenario_crash
 from utils import scenarios
+from utils import slow
 from utils import weblog
 
 
@@ -238,6 +239,7 @@ def assert_no_duplicate_visible_events(events: list[tuple[JSON, JSON]]) -> None:
 
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_evp_flagevaluation
+@slow
 class Test_FFE_EVP_Flagevaluation_Basic:
     """Test that flag evaluation produces an EVP flagevaluation payload."""
 
@@ -264,6 +266,7 @@ class Test_FFE_EVP_Flagevaluation_Basic:
 
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_evp_flagevaluation
+@slow
 class Test_FFE_EVP_Flagevaluation_Count:
     """Test that repeated evaluations are counted in EVP flagevaluation payloads."""
 
@@ -294,6 +297,7 @@ class Test_FFE_EVP_Flagevaluation_Count:
 
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_evp_flagevaluation
+@slow
 class Test_FFE_EVP_Flagevaluation_Context_Bounds:
     """Test that EVP evaluation context is bounded before it reaches payloads."""
 
@@ -339,6 +343,7 @@ class Test_FFE_EVP_Flagevaluation_Context_Bounds:
 
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_evp_flagevaluation
+@slow
 class Test_FFE_EVP_Flagevaluation_Runtime_Default:
     """Test that runtime defaults are surfaced without OpenFeature reason."""
 
@@ -365,6 +370,7 @@ class Test_FFE_EVP_Flagevaluation_Runtime_Default:
 
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_evp_flagevaluation
+@slow
 class Test_FFE_EVP_Flagevaluation_Load_Aggregation:
     """Test CI-safe load aggregation without treating system-tests as a perf test."""
 
@@ -527,6 +533,7 @@ class Test_FFE_EVP_Flagevaluation_Degradation:
 
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_evp_flagevaluation
+@slow
 class Test_FFE_EVP_Flagevaluation_ObserveFullData_Absent_Hashed:
     """Test that when observeFullEvaluationData is absent from UFC, targeting_key is hashed and context.evaluation is omitted (default PII-protection)."""
 
@@ -569,6 +576,7 @@ class Test_FFE_EVP_Flagevaluation_ObserveFullData_Absent_Hashed:
 
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_evp_flagevaluation
+@slow
 class Test_FFE_EVP_Flagevaluation_ObserveFullData_False_Hashed:
     """Test that when observeFullEvaluationData=false in UFC, targeting_key is hashed and context.evaluation is omitted."""
 
@@ -611,6 +619,7 @@ class Test_FFE_EVP_Flagevaluation_ObserveFullData_False_Hashed:
 
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_evp_flagevaluation
+@slow
 class Test_FFE_EVP_Flagevaluation_ObserveFullData_True_Unhashed:
     """Test that when observeFullEvaluationData=true in UFC, targeting_key is raw and context.evaluation is populated."""
 
