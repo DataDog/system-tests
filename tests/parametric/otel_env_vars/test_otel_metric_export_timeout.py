@@ -22,6 +22,11 @@ STABLE_VALUES = [
     ),
 ]
 
+INVALID_VALUES = [
+    pytest.param({**DEFAULT_ENVIRONMENT, "OTEL_METRIC_EXPORT_TIMEOUT": "-1"}, id="negative"),
+    pytest.param({**DEFAULT_ENVIRONMENT, "OTEL_METRIC_EXPORT_TIMEOUT": "not-a-timeout"}, id="not-an-integer"),
+]
+
 
 def _metric_export_timeout_configuration(
     test_agent: TestAgentAPI,
@@ -57,6 +62,16 @@ class Test_OTEL_METRIC_EXPORT_TIMEOUT:
     ) -> None:
         config = _metric_export_timeout_configuration(test_agent, test_library)
         assert _metric_export_timeout(config) == expected
+
+    @pytest.mark.parametrize("library_env", INVALID_VALUES)
+    def test_invalid_values_use_default(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        config = _metric_export_timeout_configuration(test_agent, test_library)
+        assert _metric_export_timeout(config) >= 0
+
+    @pytest.mark.parametrize("library_env", [pytest.param(DEFAULT_ENVIRONMENT, id="unset")])
+    def test_unset_uses_default(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        config = _metric_export_timeout_configuration(test_agent, test_library)
+        assert _metric_export_timeout(config) >= 0
 
     # All DD SDKs but PHP intentionally default to 7500 ms,
     # which is not the OTel specification default of 30000 ms. This test is irrelevant for them.
