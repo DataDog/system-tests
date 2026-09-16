@@ -27,6 +27,7 @@ from utils._context.weblog_metadata import WeblogMetaData
 from utils.docker_fixtures._core import extra_hosts_for_environment
 from utils.proxy.tuf import get_tuf_root_json
 from utils.proxy.ports import ProxyPorts
+from utils.mocked_backend.backend_v2 import get_mocked_backend_v2_container_url
 from utils.proxy.mocked_response import (
     RemoveMetaStructsSupport,
     MockedTracerResponse,
@@ -797,8 +798,15 @@ class AgentContainer(TestedContainer):
         *,
         use_proxy: bool = True,
         rc_backend_enabled: bool = False,
+        mocked_backend_v2: bool = False,
         environment: dict[str, str | None] | None = None,
     ) -> None:
+        if use_proxy and mocked_backend_v2:
+            raise ValueError(
+                "mocked_backend_v2 is not compatible with use_proxy: the agent can't send its "
+                "traffic to both the proxy and the mocked backend. Set use_proxy=False."
+            )
+
         environment = environment or {}
         environment.update(
             {
@@ -814,6 +822,11 @@ class AgentContainer(TestedContainer):
         if use_proxy:
             environment["DD_PROXY_HTTPS"] = f"http://proxy:{ProxyPorts.agent}"
             environment["DD_PROXY_HTTP"] = f"http://proxy:{ProxyPorts.agent}"
+
+        if mocked_backend_v2:
+            mocked_backend_url = get_mocked_backend_v2_container_url()
+            environment.setdefault("DD_DD_URL", mocked_backend_url)
+            environment.setdefault("DD_APM_DD_URL", mocked_backend_url)
 
         # Configure backend mode via environment variables
         # Agent uses HTTP_PROXY to reach backend, TUF roots validate RC responses

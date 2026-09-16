@@ -9,6 +9,7 @@ import json
 import os
 import time
 import types
+import warnings
 import xml.etree.ElementTree as ET
 from collections.abc import Generator, Sequence
 from typing import Any, Literal, TypedDict
@@ -166,6 +167,12 @@ def pytest_addoption(parser: pytest.Parser) -> None:
 
 
 def pytest_configure(config: pytest.Config) -> None:
+    # pytest inserts its own default warning filter ahead of ours after conftest.py is imported,
+    # so (re-)apply this one here to make sure it takes precedence.
+    # docker-py leaks the unix socket opened for its API version negotiation instead of closing it
+    # (upstream bug, still open: https://github.com/docker/docker-py/issues/3268)
+    warnings.filterwarnings("ignore", message=r"unclosed <socket\.socket.*family=1", category=ResourceWarning)
+
     if not config.option.force_dd_trace_debug and os.environ.get("SYSTEM_TESTS_FORCE_DD_TRACE_DEBUG") == "true":
         config.option.force_dd_trace_debug = True
 

@@ -49,9 +49,12 @@ class OpenTelemetryScenario(DockerScenario):
             use_proxy=True,
             mocked_backend=mocked_backend,
             extra_containers=extra_containers,
+            mocked_backend_v2=True,
         )
         if include_agent:
-            self.agent_container = AgentContainer(use_proxy=True)
+            # mocked_backend_v2 is not compatible with use_proxy: the agent can't send its traffic to
+            # both the proxy and the mocked backend.
+            self.agent_container = AgentContainer(use_proxy=False, mocked_backend_v2=True)
             self._containers.append(self.agent_container)
         if include_collector:
             self.collector_container = OpenTelemetryCollectorContainer()
