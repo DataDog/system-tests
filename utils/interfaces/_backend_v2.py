@@ -103,3 +103,12 @@ class _BackendV2InterfaceValidator(ProxyBasedInterfaceValidator):
 
     def get_spans_list(self, request: HttpResponse | None = None) -> list[DataDogAgentSpan]:
         return [span for _, span in self.get_spans(request)]
+
+    def assert_otlp_trace_exist(self, request: HttpResponse, dd_trace_id:int, dd_api_key:str) -> dict:
+        raise NotImplementedError
+
+    def query_timeseries(self, start:int, end:int, rid:str, metric:str, dd_api_key:str) -> dict:
+        raise NotImplementedError
+
+    def get_logs(self, query:str, rid:str, dd_api_key:str) -> dict:
+        raise NotImplementedError
