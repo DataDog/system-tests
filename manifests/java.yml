@@ -4894,16 +4894,86 @@ manifest:
         play: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
         uds-spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
         spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-  tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5: v1.67.0-SNAPSHOT
-  tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh: v1.67.0-SNAPSHOT
-  tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchanged: v1.67.0-SNAPSHOT
-  tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchangedWhenDropped: v1.67.0-SNAPSHOT
-  tests/test_otel_tracestate_sampling.py::Test_MalformedOtHandling: v1.67.0-SNAPSHOT
-  tests/test_otel_tracestate_sampling.py::Test_PreserveDdAndOtherVendors: v1.67.0-SNAPSHOT
-  tests/test_otel_tracestate_sampling.py::Test_PreserveTracestateMemberOrder: v1.67.0-SNAPSHOT
-  tests/test_otel_tracestate_sampling.py::Test_SampledWithoutOtNotFabricated: v1.67.0-SNAPSHOT
-  tests/test_otel_tracestate_sampling.py::Test_ThOnlyDoesNotFabricateRv: v1.67.0-SNAPSHOT
-  tests/test_otel_tracestate_sampling.py::Test_ThOnlyDoesNotFabricateRvWhenDropped: v1.67.0-SNAPSHOT
+  tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5:
+    - weblog_declaration:
+        "*": v1.67.0-SNAPSHOT
+        akka-http: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        jersey-grizzly2: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        ratpack: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+  tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh:
+    - weblog_declaration:
+        "*": v1.67.0-SNAPSHOT
+        akka-http: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        jersey-grizzly2: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        ratpack: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+  tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchanged:
+    - weblog_declaration:
+        "*": v1.67.0-SNAPSHOT
+        akka-http: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        jersey-grizzly2: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        ratpack: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+  tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchangedWhenDropped:
+    - weblog_declaration:
+        "*": v1.67.0-SNAPSHOT
+        akka-http: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        jersey-grizzly2: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        ratpack: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+  tests/test_otel_tracestate_sampling.py::Test_MalformedOtHandling:
+    - weblog_declaration:
+        "*": v1.67.0-SNAPSHOT
+        akka-http: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        jersey-grizzly2: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        ratpack: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+  tests/test_otel_tracestate_sampling.py::Test_PreserveDdAndOtherVendors:
+    - weblog_declaration:
+        "*": v1.67.0-SNAPSHOT
+        akka-http: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        jersey-grizzly2: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        ratpack: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+  tests/test_otel_tracestate_sampling.py::Test_PreserveTracestateMemberOrder:
+    - weblog_declaration:
+        "*": v1.67.0-SNAPSHOT
+        akka-http: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        jersey-grizzly2: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        ratpack: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+  tests/test_otel_tracestate_sampling.py::Test_SampledWithoutOtNotFabricated:
+    - weblog_declaration:
+        "*": v1.67.0-SNAPSHOT
+        akka-http: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        jersey-grizzly2: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        ratpack: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+  tests/test_otel_tracestate_sampling.py::Test_ThOnlyDoesNotFabricateRv:
+    - weblog_declaration:
+        "*": v1.67.0-SNAPSHOT
+        akka-http: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        jersey-grizzly2: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        ratpack: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+  tests/test_otel_tracestate_sampling.py::Test_ThOnlyDoesNotFabricateRvWhenDropped:
+    - weblog_declaration:
+        "*": v1.67.0-SNAPSHOT
+        akka-http: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        jersey-grizzly2: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        ratpack: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/test_otlp_runtime_metrics.py::Test_OtlpRuntimeMetrics::test_dd_metrics_are_absent: bug (APMAPI-1952)
   tests/test_otlp_runtime_metrics.py::Test_OtlpRuntimeMetrics::test_otel_metrics_are_present_and_attributed:
     - weblog_declaration:
