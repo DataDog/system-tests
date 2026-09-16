@@ -10,7 +10,7 @@
             "sourceFile": null
         },
         "when": {
-            "dsl": "len(filter(largeCollection, {@it >= 0})) == len(largeCollection)",
+            "dsl": "len(filter(largeCollection, {len(filter(largeCollection, {@it >= 0})) == len(largeCollection)})) == len(largeCollection)",
             "json": {
                 "eq": [
                     {
@@ -18,9 +18,23 @@
                             "filter": [
                                 {"ref": "largeCollection"},
                                 {
-                                    "ge": [
-                                        {"ref": "@it"},
-                                        0
+                                    "eq": [
+                                        {
+                                            "len": {
+                                                "filter": [
+                                                    {"ref": "largeCollection"},
+                                                    {
+                                                        "ge": [
+                                                            {"ref": "@it"},
+                                                            0
+                                                        ]
+                                                    }
+                                                ]
+                                            }
+                                        },
+                                        {
+                                            "len": {"ref": "largeCollection"}
+                                        }
                                     ]
                                 }
                             ]

@@ -13,7 +13,7 @@ MAX_SNAPSHOT_BYTES = 1024 * 1024
 # characters already blow past any evaluation-time budget. Keep it small so the value fits
 # comfortably in the request URL.
 REDOS_INPUT_LENGTH = 25
-EVALUATION_TIMEOUT_COLLECTION_SIZE = 1_000_000
+EVALUATION_TIMEOUT_COLLECTION_SIZE = 10_000
 GUARDRAILS_RFC = "https://docs.google.com/document/d/1OhCH3SMuS_B4Ickays94GpqDlqKcc9b9gLos1T85F-Q/edit?usp=sharing"
 
 
