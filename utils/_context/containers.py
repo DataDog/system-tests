@@ -800,7 +800,7 @@ class AgentContainer(TestedContainer):
         rc_backend_enabled: bool = False,
         mocked_backend_v2: bool = False,
         environment: dict[str, str | None] | None = None,
-        dd_api_key:str = _FAKE_DD_API_KEY
+        dd_api_key: str = _FAKE_DD_API_KEY,
     ) -> None:
         if use_proxy and mocked_backend_v2:
             raise ValueError(
