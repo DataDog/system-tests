@@ -10,7 +10,7 @@
             "sourceFile": null
         },
         "when": {
-            "dsl": "largeCollection.filter(@it >= 0).length == largeCollection.length",
+            "dsl": "len(filter(largeCollection, {@it >= 0})) == len(largeCollection)",
             "json": {
                 "eq": [
                     {
