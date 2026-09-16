@@ -2,6 +2,7 @@
 
 import base64
 import json
+import time
 import pytest
 
 from utils import features, scenarios, logger
@@ -14,6 +15,10 @@ class Test_Crashtracking:
     @pytest.mark.parametrize("library_env", [{"DD_CRASHTRACKING_ENABLED": "true"}])
     def test_report_crash(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         test_library.crash()
+
+        if test_library.lang == "golang":
+            self.assert_go_crash_report(self.wait_for_go_crash_report(test_agent))
+            return
 
         while True:
             event = test_agent.wait_for_telemetry_event("logs", wait_loops=400)
@@ -31,10 +36,21 @@ class Test_Crashtracking:
     def test_disable_crashtracking(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         test_library.crash()
 
+        if test_library.lang == "golang":
+            test_library.container.wait(timeout=10)
+            for _ in range(100):
+                assert self.get_go_crash_reports(test_agent) == []
+                time.sleep(0.01)
+            test_agent.clear()
+            return
+
         requests = test_agent.raw_telemetry(clear=True)
 
         for req in requests:
-            event = json.loads(base64.b64decode(req["body"]))
+            try:
+                event = json.loads(base64.b64decode(req["body"]))
+            except (TypeError, ValueError) as e:
+                raise AssertionError(f"Invalid telemetry request body: {req}") from e
 
             if event["request_type"] == "logs":
                 if isinstance(event.get("payload"), list):
@@ -55,6 +71,38 @@ class Test_Crashtracking:
             test_library.container.wait(timeout=10)
         finally:
             test_agent.set_trace_delay(0)
+
+    def get_go_crash_reports(self, test_agent: TestAgentAPI, *, clear: bool = False) -> list[dict]:
+        reports = []
+        for req in test_agent.requests():
+            if req["url"].endswith("/evp_proxy/v4/api/v2/errorsintake"):
+                try:
+                    reports.append(json.loads(base64.b64decode(req["body"])))
+                except (TypeError, ValueError) as e:
+                    raise AssertionError(f"Invalid Go crash report body: {req}") from e
+        if clear:
+            test_agent.clear()
+        return reports
+
+    def wait_for_go_crash_report(self, test_agent: TestAgentAPI) -> dict:
+        for _ in range(400):
+            reports = self.get_go_crash_reports(test_agent)
+            if reports:
+                return reports[-1]
+            time.sleep(0.01)
+        raise AssertionError("Go crash report not found")
+
+    def assert_go_crash_report(self, report: dict) -> None:
+        logger.debug(f"report: {json.dumps(report, indent=2)}")
+
+        assert report["ddsource"] == "crashtracker"
+        assert bool(report["error"]["is_crash"])
+        assert "system-tests crash" in report["error"]["message"]
+
+        tags = dict(item.split(":", 1) for item in report["ddtags"].split(",") if ":" in item)
+        assert tags["language"] == "go"
+        assert "go.version" in tags
+        assert "library_version" in tags
 
     def assert_crash_report_v1(self, test_library: APMLibrary, event: dict):
         logger.debug(f"event: {json.dumps(event, indent=2)}")
