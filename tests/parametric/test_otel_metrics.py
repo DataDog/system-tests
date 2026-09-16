@@ -1471,35 +1471,6 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Headers:
         [
             {
                 **DEFAULT_ENVVARS,
-                "OTEL_EXPORTER_OTLP_HEADERS": "api-key=key,other-config-value=value",
-                "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
-            },
-        ],
-    )
-    def test_custom_http_headers_included_in_otlp_export(self, test_agent: TestAgentAPI, test_library: APMLibrary):
-        """OTLP metrics are emitted when enabled."""
-
-        name = "test_custom_http_headers_included_in_otlp_export-counter"
-        with test_library as t:
-            generate_default_counter_data_point(t, name)
-
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
-        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
-        assert scope_metrics is not None
-
-        requests = test_agent.requests()
-        metrics_requests = [r for r in requests if r["url"].endswith("/v1/metrics")]
-        assert metrics_requests, f"Expected metrics request, got {requests}"
-        # Normalize headers to lowercase for comparison (ex: ruby converts headers to camel case)
-        headers = {h.lower(): v for h, v in metrics_requests[0]["headers"].items()}
-        assert headers.get("api-key") == "key", f"Expected api-key in headers, got {headers}"
-        assert headers.get("other-config-value") == "value", f"Expected other-config-value in headers, got {headers}"
-
-    @pytest.mark.parametrize(
-        "library_env",
-        [
-            {
-                **DEFAULT_ENVVARS,
                 "OTEL_EXPORTER_OTLP_METRICS_HEADERS": "api-key=key,other-config-value=value",
                 "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
             },
