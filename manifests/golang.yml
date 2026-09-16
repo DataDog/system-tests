@@ -32,8 +32,6 @@ manifest:
         "*": missing_feature (missing /e2e_otel_span endpoint on weblog)
         net-http: v0.1  # real version not known
         net-http-span-pool: v0.1  # real version not known
-  tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span::test_datadog_otel_span: flaky (APMAPI-178)
-  tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span::test_distributed_otel_trace: flaky (APMAPI-178)
   tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_remote_config_process_tags_svc: missing_feature
   tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_telemetry_process_tags_svc: missing_feature
   tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_tracing_process_tags_svc: missing_feature
