@@ -122,8 +122,8 @@ def test_to_sdk_config_payload_complex_values():
 
 
 @scenarios.test_the_test
-def test_to_sdk_config_payload_drops_remote_only_settings():
-    """Settings without an environment variable counterpart can't be expressed as sdk_config"""
+def test_to_sdk_config_payload_handles_projected_and_non_projected_settings():
+    """Only settings with an environment-variable projection are included in sdk_config."""
     observed = rc.to_sdk_config_payload(
         {
             "service_target": {"service": "weblog", "env": "system-tests"},
@@ -136,7 +136,10 @@ def test_to_sdk_config_payload_drops_remote_only_settings():
         }
     )
 
-    assert observed["sdk_config"]["config"] == {"DD_EXCEPTION_REPLAY_ENABLED": "true"}
+    assert observed["sdk_config"]["config"] == {
+        "DD_EXCEPTION_REPLAY_ENABLED": "true",
+        "DD_LIVE_DEBUGGING_ENABLED": "true",
+    }
 
 
 @scenarios.test_the_test

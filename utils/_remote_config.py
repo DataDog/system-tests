@@ -537,18 +537,16 @@ def send_symdb_command(version: int = 1) -> RemoteConfigStateResults:
 # `lib_config` fields that describe the config itself instead of a library setting.
 _LIB_CONFIG_METADATA_KEYS = frozenset({"env", "library_language", "library_version", "service_name"})
 
-# Canonical environment variable name of each `lib_config` setting. `dynamic_sampling_enabled` and
-# `live_debugging_enabled` map to `None`: both are real settings with their own capability bit, but
-# they only ever existed as remote configs and have no environment variable counterpart, so there
-# is nothing to send for them under SDK_CONFIGURATION. They stay listed rather than being removed,
-# so that a setting missing from this table still reports as an unknown one.
+# Canonical environment variable name of each `lib_config` setting. `dynamic_sampling_enabled`
+# maps to `None` because it has no environment variable counterpart. Keeping known non-projected
+# settings in the table distinguishes them from unknown settings.
 APM_TRACING_ENV_VAR_NAMES: dict[str, str | None] = {
     "code_origin_enabled": "DD_CODE_ORIGIN_FOR_SPANS_ENABLED",
     "data_streams_enabled": "DD_DATA_STREAMS_ENABLED",
     "dynamic_instrumentation_enabled": "DD_DYNAMIC_INSTRUMENTATION_ENABLED",
     "dynamic_sampling_enabled": None,
     "exception_replay_enabled": "DD_EXCEPTION_REPLAY_ENABLED",
-    "live_debugging_enabled": None,
+    "live_debugging_enabled": "DD_LIVE_DEBUGGING_ENABLED",
     "log_injection_enabled": "DD_LOGS_INJECTION",
     "runtime_metrics_enabled": "DD_RUNTIME_METRICS_ENABLED",
     "tracing_debug": "DD_TRACE_DEBUG",
