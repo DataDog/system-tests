@@ -184,6 +184,8 @@ system_tests_run_{{library}}_PARAMETRIC_{{job_index}}:
 {% if push_to_test_optimization %}
     - .push_to_test_optimization
 {% endif %}
+  variables:
+    PYTEST_XDIST_AUTO_NUM_WORKERS: "4"
   id_tokens:
     DD_STS_OIDC_TOKEN:
       aud: dd-sts
