@@ -184,8 +184,6 @@ system_tests_run_{{library}}_PARAMETRIC_{{job_index}}:
 {% if push_to_test_optimization %}
     - .push_to_test_optimization
 {% endif %}
-  variables:
-    PYTEST_XDIST_AUTO_NUM_WORKERS: "4"
   id_tokens:
     DD_STS_OIDC_TOKEN:
       aud: dd-sts
@@ -203,7 +201,7 @@ system_tests_run_{{library}}_PARAMETRIC_{{job_index}}:
     {% if binaries_artifacts_list and binaries_artifact_path %}
     {{ copy_binaries(binaries_artifact_path) }}
     {% endif %}
-    - {{ trace("run " ~ library ~ " PARAMETRIC " ~ job_index, "./run.sh PARAMETRIC -L " ~ library ~ " --splits=" ~ parametric.job_count ~ " --group=" ~ job_index, library, scenario="PARAMETRIC") }}
+    - {{ trace("run " ~ library ~ " PARAMETRIC " ~ job_index, "./run.sh PARAMETRIC -L " ~ library ~ " --maxprocesses=" ~ parametric.workers ~ " --splits=" ~ parametric.job_count ~ " --group=" ~ job_index, library, scenario="PARAMETRIC") }}
     - section_end "run"
     {{ emit_execution_time_metric() }}
   artifacts:
