@@ -107,6 +107,8 @@ refs:
   - &ref_6_10_0 '>=6.10.0 || ^5.121.0'
   - &ref_6_13_0 '>=6.13.0 || ^5.124.0'
 manifest:
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_headers.py::Test_OTEL_EXPORTER_OTLP_LOGS_HEADERS::test_logs_percent_encoded_value
+  : bug (APMAPI-2450)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_headers.py::Test_OTEL_EXPORTER_OTLP_LOGS_HEADERS: v5.88.0
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag:
     - weblog_declaration:
