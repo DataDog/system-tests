@@ -141,6 +141,8 @@ export function initRoutes (app: Express) {
     const nestingDepth = parseInt(req.query.nestingDepth as string, 10) || 0
     res.send(captureTimeoutFixture(collectionSize, nestingDepth))
   })
+
+  app.get('/debugger/budgets/:loops', budgets)
 }
 
 function captureTimeoutFixture (collectionSize: number, nestingDepth: number): string {
@@ -152,5 +154,13 @@ function captureTimeoutFixture (collectionSize: number, nestingDepth: number): s
     return nested
   })
 
-  return 'Capture timeout probe' // This needs to be line 155
+  return 'Capture timeout probe' // This needs to be line 157
+}
+
+function budgets (request: Request, reply: Response): Response {
+  const loops = Number(request.params.loops)
+  for (let iteration = 0; iteration < loops; iteration++) {
+    const currentIteration = iteration // This needs to be line 163
+  }
+  return reply.send('Budgets')
 }

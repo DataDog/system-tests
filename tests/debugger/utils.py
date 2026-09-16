@@ -189,7 +189,7 @@ class BaseDebuggerTest:
     def method_and_language_to_line_number(self, method: str, language: str) -> list:
         """method_and_language_to_line_number returns the respective line number given the method and language"""
         definitions: dict[str, dict[str, list[int]]] = {
-            "Budgets": {"java": [140], "dotnet": [138], "python": [144], "golang": [117]},
+            "Budgets": {"java": [140], "dotnet": [138], "python": [144], "golang": [117], "nodejs": [163]},
             "LogProbe": {"nodejs": [20]},
             "Pii": {"java": [66], "dotnet": [66], "python": [66], "ruby": [66], "nodejs": [64]},
             "Expression": {"java": [73], "dotnet": [76], "python": [74], "ruby": [82], "nodejs": [82], "golang": [71]},
@@ -204,7 +204,7 @@ class BaseDebuggerTest:
             "CollectionOperations": {"java": [116], "dotnet": [116], "python": [125], "ruby": [162], "nodejs": [120]},
             "Nulls": {"java": [132], "dotnet": [129], "python": [138], "ruby": [192], "nodejs": [126]},
             "SnapshotLimits": {"java": [155], "python": [174], "nodejs": [136], "ruby": [233], "dotnet": [152]},
-            "CaptureTimeout": {"java": [174], "nodejs": [155], "dotnet": [173]},
+            "CaptureTimeout": {"java": [174], "nodejs": [157], "dotnet": [173]},
         }
 
         return definitions.get(method, {}).get(language, [])
