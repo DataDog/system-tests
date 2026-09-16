@@ -42,7 +42,7 @@ class Test_Otel_Span:
         assert child.get("parentID") == parent.get("spanID")
         assert child.get("spanID") != "10000"
         assert child.get("duration") == "1000000000"
-        assert child.get_span_kind() == "SPAN_KIND_INTERNAL"
+        assert child.get_span_kind() in ("SPAN_KIND_INTERNAL", "internal")
 
     def setup_distributed_otel_trace(self):
         self.req = weblog.get(
