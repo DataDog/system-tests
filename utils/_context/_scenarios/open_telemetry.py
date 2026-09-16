@@ -74,7 +74,8 @@ class OpenTelemetryScenario(DockerScenario):
     def configure(self, config: pytest.Config):
         super().configure(config)
 
-        dd_site = get_mocked_backend_v2_container_url().replace("http://", "")
+        mocked_backend_url = get_mocked_backend_v2_container_url()
+        dd_site = mocked_backend_url.replace("http://", "")
         if self.include_intake:
             self.weblog_container.environment["OTEL_SYSTEST_INCLUDE_INTAKE"] = "True"
             self.weblog_container.environment["DD_API_KEY"] = self.intake_api_key
@@ -83,6 +84,9 @@ class OpenTelemetryScenario(DockerScenario):
             self.weblog_container.environment["OTEL_SYSTEST_INCLUDE_COLLECTOR"] = "True"
             self.collector_container.environment["DD_API_KEY"] = self.collector_api_key
             self.collector_container.environment["DD_SITE"] = dd_site
+            # the datadog exporter otherwise derives its endpoints as https://<prefix>.<site>, but our
+            # mocked backend only serves plain HTTP.
+            self.collector_container.environment["DD_URL"] = mocked_backend_url
         if self.include_agent:
             self.weblog_container.environment["OTEL_SYSTEST_INCLUDE_AGENT"] = "True"
             interfaces.agent.configure(self.host_log_folder, replay=self.replay)

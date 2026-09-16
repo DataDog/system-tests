@@ -8,14 +8,18 @@ exporters:
   datadog:
     traces:
       span_name_as_resource_name: true
+      endpoint: ${DD_URL}/api/v0.2/traces
     api:
       key: ${DD_API_KEY}
       site: ${DD_SITE}
-      fail_on_invalid_key: true
+      fail_on_invalid_key: false
     metrics:
+      endpoint: ${DD_URL}/api/v2/series
       histograms:
         mode: distributions
         send_aggregation_metrics: true
+    logs:
+      endpoint: ${DD_URL}/api/v2/logs
   debug:
     verbosity: detailed
 
