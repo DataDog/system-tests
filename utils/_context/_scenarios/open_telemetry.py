@@ -25,9 +25,9 @@ from .endtoend import DockerScenario
 class OpenTelemetryScenario(DockerScenario):
     """Scenario for testing opentelemetry"""
 
-    intake_api_key = "123456789_intake"
-    collector_api_key = "123456789_collector"
-    agent_api_key = "123456789_agent"
+    intake_api_key = "01234567890123456789012345678901"
+    collector_api_key = "01234567890123456789012345678901"
+    agent_api_key = "01234567890123456789012345678901"
 
     def __init__(
         self,
@@ -54,7 +54,7 @@ class OpenTelemetryScenario(DockerScenario):
         if include_agent:
             # mocked_backend_v2 is not compatible with use_proxy: the agent can't send its traffic to
             # both the proxy and the mocked backend.
-            self.agent_container = AgentContainer(use_proxy=False, mocked_backend_v2=True)
+            self.agent_container = AgentContainer(use_proxy=False, mocked_backend_v2=True, dd_api_key=self.agent_api_key)
             self._containers.append(self.agent_container)
         if include_collector:
             self.collector_container = OpenTelemetryCollectorContainer()
@@ -72,7 +72,7 @@ class OpenTelemetryScenario(DockerScenario):
     def configure(self, config: pytest.Config):
         super().configure(config)
 
-        dd_site = get_mocked_backend_v2_container_url()
+        dd_site = get_mocked_backend_v2_container_url().replace("http://", "")
         if self.include_intake:
             self.weblog_container.environment["OTEL_SYSTEST_INCLUDE_INTAKE"] = "True"
             self.weblog_container.environment["DD_API_KEY"] = self.intake_api_key

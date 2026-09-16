@@ -800,6 +800,7 @@ class AgentContainer(TestedContainer):
         rc_backend_enabled: bool = False,
         mocked_backend_v2: bool = False,
         environment: dict[str, str | None] | None = None,
+        dd_api_key:str = _FAKE_DD_API_KEY
     ) -> None:
         if use_proxy and mocked_backend_v2:
             raise ValueError(
@@ -815,7 +816,7 @@ class AgentContainer(TestedContainer):
                 "DD_SITE": self.dd_site,
                 "DD_APM_RECEIVER_PORT": str(self.apm_receiver_port),
                 "DD_DOGSTATSD_PORT": str(self.dogstatsd_port),
-                "DD_API_KEY": os.environ.get("DD_API_KEY", _FAKE_DD_API_KEY),
+                "DD_API_KEY": dd_api_key,
             }
         )
 
