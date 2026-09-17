@@ -120,8 +120,25 @@ class _BackendV2InterfaceValidator(ProxyBasedInterfaceValidator):
 
         raise ValueError(f"Trace {dd_trace_id} not found")
 
-    def query_timeseries(self, start: int, end: int, rid: str, metric: str, dd_api_key: str) -> dict:
-        raise NotImplementedError
+    def query_timeseries(self, rid: str, metric: str, dd_api_key: str) -> dict:
+        logger.info(f"Look for time serie {metric} for {rid}")
+
+        for data in self.get_data("/api/v2/series"):
+            headers = dict(data["request"]["headers"])
+
+            if dd_api_key is not None and headers["Dd-Api-Key"] != dd_api_key:
+                logger.debug(f"API key does not match in {data['log_filename']}")
+                continue
+
+            logger.info(f"Look in {data['log_filename']}")
+            for serie in data["request"]["content"]["series"]:
+                if f"rid:{rid}" not in serie.get("tags", []):
+                    continue
+
+                if serie["metric"] == metric:
+                    return serie
+
+        raise ValueError("Serie not found")
 
     def get_logs(self, query: str, rid: str, dd_api_key: str) -> dict:
         raise NotImplementedError

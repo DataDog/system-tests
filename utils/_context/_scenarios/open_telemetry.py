@@ -25,9 +25,9 @@ from .endtoend import DockerScenario
 class OpenTelemetryScenario(DockerScenario):
     """Scenario for testing opentelemetry"""
 
-    intake_api_key = "01234567890123456789012345678901"
-    collector_api_key = "01234567890123456789012345678901"
-    agent_api_key = "01234567890123456789012345678901"
+    intake_api_key = "0123456789012345678901234_intake"
+    collector_api_key = "0123456789012345678901_collector"
+    agent_api_key = "01234567890123456789012345_agent"
 
     def __init__(
         self,

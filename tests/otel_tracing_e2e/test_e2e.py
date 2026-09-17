@@ -1,6 +1,5 @@
 import base64
 import dictdiffer
-import time
 
 from utils import weblog, interfaces, scenarios, features, logger
 from utils.otel_validators.validator_trace import validate_all_traces
@@ -103,7 +102,6 @@ class Test_OTelTracingE2E:
 @features.not_reported  # FPD does not support otel libs
 class Test_OTelMetricE2E:
     def setup_main(self):
-        self.start = int(time.time())
         self.r = weblog.get(path="/basic/metric")
         self.expected_metrics = [
             "example.counter",
@@ -115,14 +113,11 @@ class Test_OTelMetricE2E:
         ]
 
     def test_main(self):
-        end = int(time.time())
         rid = self.r.get_rid().lower()
         try:
             # The 1st account has metrics sent by DD Agent
             metrics_agent = [
                 interfaces.backend_v2.query_timeseries(
-                    start=self.start,
-                    end=end,
                     rid=rid,
                     metric=metric,
                     dd_api_key=scenarios.otel_metric_e2e.agent_api_key,
@@ -133,8 +128,6 @@ class Test_OTelMetricE2E:
             # The 2nd account has metrics via the backend OTLP intake endpoint
             metrics_intake = [
                 interfaces.backend_v2.query_timeseries(
-                    start=self.start,
-                    end=end,
                     rid=rid,
                     metric=metric,
                     dd_api_key=scenarios.otel_tracing_e2e.intake_api_key,
@@ -145,8 +138,6 @@ class Test_OTelMetricE2E:
             # The 3rd account has metrics sent by OTel Collector
             metrics_collector = [
                 interfaces.backend_v2.query_timeseries(
-                    start=self.start,
-                    end=end,
                     rid=rid,
                     metric=metric,
                     dd_api_key=scenarios.otel_tracing_e2e.collector_api_key,
