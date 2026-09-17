@@ -1,11 +1,11 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/DataDog/system-tests/refs/heads/main/utils/manifest/schema.json
 ---
 manifest:
-  tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_logs_override: v2.7.0
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_logs_override: incomplete_test_app (APMAPI-2470, Parametric logger creation and write endpoints are not implemented)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS: v2.6.0
-  tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_logs_headers: v2.7.0
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_logs_headers: incomplete_test_app (APMAPI-2470, Parametric logger creation and write endpoints are not implemented)
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_logs_percent_encoded_value
-  : v2.7.0
+  : incomplete_test_app (APMAPI-2470, Parametric logger creation and write endpoints are not implemented)
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag: missing_feature (APPSEC-62216)
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone_APMDisabledMarker: missing_feature

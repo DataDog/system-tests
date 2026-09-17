@@ -1,6 +1,12 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/DataDog/system-tests/refs/heads/main/utils/manifest/schema.json
 ---
 manifest:
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_metrics_percent_encoded_value
+  : bug (APMAPI-2468)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_logs_override: incomplete_test_app (APMAPI-2469, Parametric logger creation and write endpoints are not implemented)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_logs_headers: incomplete_test_app (APMAPI-2469, Parametric logger creation and write endpoints are not implemented)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_logs_percent_encoded_value
+  : incomplete_test_app (APMAPI-2469, Parametric logger creation and write endpoints are not implemented)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS: v3.37.0
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone: missing_feature
