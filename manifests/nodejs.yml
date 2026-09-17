@@ -1895,9 +1895,9 @@ manifest:
   tests/integration_frameworks/llm/google_genai/test_google_genai_apm.py::TestGoogleGenAiEmbedContent: *ref_5_81_0
   tests/integration_frameworks/llm/google_genai/test_google_genai_apm.py::TestGoogleGenAiGenerateContent: *ref_5_81_0
   tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiEmbedContent: bug (MLOB-5070)  # does not record metadata
-  tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiGenerateContent: *ref_5_81_0
-  tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiGenerateContentReasoning: *ref_5_81_0
-  tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiGenerateContentWithTools: *ref_5_81_0
+  tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiGenerateContent: bug (MLOB-5070)
+  tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiGenerateContentReasoning: bug (MLOB-5070)
+  tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiGenerateContentWithTools: bug (MLOB-5070)
   ? tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiGenerateContentWithTools::test_generate_content_executable_code
   : bug (MLOB-5070)
   ? tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiGenerateContentWithTools::test_generate_content_with_tools
