@@ -23,7 +23,7 @@ def protocol(signal: str) -> str:
     """An uppercase transport distinguishable from this SDK's default."""
     if context.library == "nodejs" or (context.library == "php" and signal == "logs"):
         return "HTTP/JSON"
-    if context.library in ("python", "dotnet", "rust"):
+    if context.library in ("python", "rust") or (context.library == "dotnet" and signal == "logs"):
         return "HTTP/PROTOBUF"
     return "GRPC"
 
@@ -34,7 +34,7 @@ def expected_protocol(protocol: str | None, signal: str) -> str:
         return protocol.lower()
     # OTel permits retaining a historical gRPC default. These defaults are
     # published by the SDKs; never derive the expectation from the tested input.
-    if context.library in ("python", "dotnet", "rust"):
+    if context.library in ("python", "rust") or (context.library == "dotnet" and signal == "logs"):
         return "grpc"
     if context.library == "golang" and signal == "logs":
         return "http/json"
