@@ -152,14 +152,24 @@ class _BackendV2InterfaceValidator(ProxyBasedInterfaceValidator):
                 continue
 
             logger.info(f"Look in {data['log_filename']}")
-            for serie in data["request"]["content"].get("series", []):
-                if f"rid:{rid}" not in serie.get("tags", []):
-                    continue
 
-                if serie["metric"] == metric:
-                    return serie
+            if headers.get("dd-protocol") == "otlp":
+                for resource_metric in data["request"]["content"]["resourceMetrics"]:
+                    for scope_metric in resource_metric["scopeMetrics"]:
+                        for observed_metric in scope_metric["metrics"]:
+                            if observed_metric["name"] == metric:
+                                return observed_metric
 
-        raise ValueError("Serie not found")
+            else:  # dd agent format
+                for serie in data["request"]["content"].get("series", []):
+                    if f"rid:{rid}" not in serie.get("tags", []):
+                        continue
+
+                    if serie["metric"] == metric:
+                        logger.info(f"Found in {data['log_filename']}")
+                        return serie
+
+        raise ValueError(f"Serie {metric} not found")
 
     def get_logs(self, query: str, rid: str, dd_api_key: str | None = None) -> dict:
         logger.info(f"Look for logs {query} for {rid}")

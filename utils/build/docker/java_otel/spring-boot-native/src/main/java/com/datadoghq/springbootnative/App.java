@@ -106,7 +106,7 @@ public class App {
         if (isIntakeEnabled()) {
             metricExporters.add(
                     OtlpHttpMetricExporter.builder()
-                            .setEndpoint("http://proxy:8127/api/intake/otlp/v1/metrics")  // port is defined in utils/proxy/ports.py
+                            .setEndpoint("http://host.docker.internal:4901/api/v2/series")
                             .addHeader("dd-protocol", "otlp")
                             .addHeader("dd-api-key", System.getenv("DD_API_KEY"))
                             .addHeader("dd-otlp-path", "intake-metrics")

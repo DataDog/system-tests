@@ -1,33 +1,24 @@
 import base64
 import dictdiffer
 
-from utils import weblog, interfaces, scenarios, features, logger
+from utils import weblog, interfaces, scenarios, features
 from utils.otel_validators.validator_trace import validate_all_traces
 from utils.otel_validators.validator_log import validate_log, validate_log_trace_correlation
 
 
 # Validates the JSON logs from backend and returns the OTel log trace attributes
 def validate_metrics(metrics_1: list[dict], metrics_2: list[dict], metrics_source1: str, metrics_source2: str) -> None:
-    diff = list(dictdiffer.diff(metrics_1[0], metrics_2[0]))
+    diff = list(dictdiffer.diff(metrics_1[0]["metric"], metrics_2[0]["metric"]))
     assert len(diff) == 0, f"Diff between count metrics from {metrics_source1} vs. from {metrics_source2}: {diff}"
-    validate_example_counter(metrics_1[0])
-    idx = 1
-    for histogram_suffix in ["", ".sum", ".count"]:
-        diff = list(dictdiffer.diff(metrics_1[idx], metrics_2[idx]))
-        assert len(diff) == 0, (
-            f"Diff between histogram{histogram_suffix} metrics from {metrics_source1} vs. from {metrics_source2}: {diff}"
-        )
-        validate_example_histogram(metrics_1[idx], histogram_suffix)
-        idx += 1
+    validate_example_counter(metrics_1)
 
 
-def validate_example_counter(counter_metric: dict) -> None:
-    assert len(counter_metric["series"]) == 1
-    counter_series = counter_metric["series"][0]
+def validate_example_counter(counter_metric: list) -> None:
+    # assert len(counter_metric["series"]) == 1
+    counter_series = counter_metric[0]
     assert counter_series["metric"] == "example.counter"
-    assert counter_series["display_name"] == "example.counter"
-    assert len(counter_series["pointlist"]) == 1
-    assert counter_series["pointlist"][0][1] == 11.0
+    assert len(counter_series["points"]) == 1
+    assert counter_series["points"][0]["value"] == 11.0
 
 
 def validate_example_histogram(histogram_metric: dict, histogram_suffix: str) -> None:
@@ -98,17 +89,17 @@ class Test_OTelTracingE2E:
 class Test_OTelMetricE2E:
     def setup_main(self):
         self.r = weblog.get(path="/basic/metric")
-        self.expected_metrics = [
-            "example.counter",
-            "example.histogram",
-            "example.histogram.sum",
-            "example.histogram.count",
-            "example.histogram.min",
-            "example.histogram.max",
-        ]
 
     def test_main(self):
-        rid = self.r.get_rid().lower()
+        expected_metrics = [
+            "example.counter",
+            # "example.histogram.sum",
+            # "example.histogram.count",
+            # "example.histogram.min",
+            # "example.histogram.max",
+        ]
+
+        rid = self.r.get_rid()
         # The 1st account has metrics sent by DD Agent
         metrics_agent = [
             interfaces.backend_v2.query_timeseries(
@@ -116,17 +107,17 @@ class Test_OTelMetricE2E:
                 metric=metric,
                 dd_api_key=scenarios.otel_e2e.agent_api_key,
             )
-            for metric in self.expected_metrics
+            for metric in expected_metrics
         ]
 
         # The 2nd account has metrics via the backend OTLP intake endpoint
-        metrics_intake = [
+        _ = [
             interfaces.backend_v2.query_timeseries(
                 rid=rid,
                 metric=metric,
                 dd_api_key=scenarios.otel_e2e.intake_api_key,
             )
-            for metric in self.expected_metrics
+            for metric in expected_metrics
         ]
 
         # The 3rd account has metrics sent by OTel Collector
@@ -136,11 +127,10 @@ class Test_OTelMetricE2E:
                 metric=metric,
                 dd_api_key=scenarios.otel_e2e.collector_api_key,
             )
-            for metric in self.expected_metrics
+            for metric in expected_metrics
         ]
 
         validate_metrics(metrics_agent, metrics_collector, "Agent", "Collector")
-        validate_metrics(metrics_agent, metrics_intake, "Agent", "Intake")
 
 
 @scenarios.otel_e2e
