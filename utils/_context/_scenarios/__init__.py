@@ -875,8 +875,8 @@ class _Scenarios:
     apm_tracing_e2e_otel = DdTraceEndToEndScenario(
         "APM_TRACING_E2E_OTEL",
         weblog_env={"DD_TRACE_OTEL_ENABLED": "true"},
-        backend_interface_timeout=5,
-        require_api_key=True,
+        mocked_backend_v2=True,
+        use_proxy_for_agent=False,
         doc="",
     )
     apm_tracing_e2e_single_span = DdTraceEndToEndScenario(
@@ -887,8 +887,8 @@ class _Scenarios:
             ),
             "DD_TRACE_SAMPLE_RATE": "0",
         },
-        backend_interface_timeout=5,
-        require_api_key=True,
+        mocked_backend_v2=True,
+        use_proxy_for_agent=False,
         doc="",
     )
     apm_tracing_otlp = DdTraceEndToEndScenario(
@@ -1043,6 +1043,17 @@ class _Scenarios:
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
         },
         doc="Test that debugger snapshot capture reports when its time budget is exceeded",
+    )
+
+    debugger_evaluation_timeout = DebuggerScenario(
+        "DEBUGGER_EVALUATION_TIMEOUT",
+        weblog_env={
+            "DD_DYNAMIC_INSTRUMENTATION_EVALUATION_TIMEOUT": "10",
+            "DD_DYNAMIC_INSTRUMENTATION_EVALUATION_TIMEOUT_MS": "10",
+            "DD_DYNAMIC_INSTRUMENTATION_MAX_TIME_TO_EVALUATE": "10",
+            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
+        },
+        doc="Test that debugger expression evaluation reports when its time budget is exceeded",
     )
 
     debugger_probes_snapshot_with_scm = DebuggerScenario(
