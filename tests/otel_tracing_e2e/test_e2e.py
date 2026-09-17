@@ -98,7 +98,7 @@ class Test_OTelTracingE2E:
         )
 
 
-@scenarios.otel_metric_e2e
+@scenarios.otel_log_e2e
 @features.not_reported  # FPD does not support otel libs
 class Test_OTelMetricE2E:
     def setup_main(self):
@@ -120,7 +120,7 @@ class Test_OTelMetricE2E:
                 interfaces.backend_v2.query_timeseries(
                     rid=rid,
                     metric=metric,
-                    dd_api_key=scenarios.otel_metric_e2e.agent_api_key,
+                    dd_api_key=scenarios.otel_log_e2e.agent_api_key,
                 )
                 for metric in self.expected_metrics
             ]
@@ -130,7 +130,7 @@ class Test_OTelMetricE2E:
                 interfaces.backend_v2.query_timeseries(
                     rid=rid,
                     metric=metric,
-                    dd_api_key=scenarios.otel_tracing_e2e.intake_api_key,
+                    dd_api_key=scenarios.otel_log_e2e.intake_api_key,
                 )
                 for metric in self.expected_metrics
             ]

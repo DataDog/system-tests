@@ -472,9 +472,6 @@ jobs:
     - name: Run OTEL_TRACING_E2E scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_TRACING_E2E"')
       run: ./run.sh OTEL_TRACING_E2E
-    - name: Run OTEL_METRIC_E2E scenario
-      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_METRIC_E2E"')
-      run: ./run.sh OTEL_METRIC_E2E
     - name: Run OTEL_LOG_E2E scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_LOG_E2E"')
       run: ./run.sh OTEL_LOG_E2E

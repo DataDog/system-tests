@@ -140,12 +140,12 @@ class _BackendV2InterfaceValidator(ProxyBasedInterfaceValidator):
         for data in self.get_data("/api/v2/series"):
             headers = {k.lower(): v for k, v in data["request"]["headers"]}
 
-            if dd_api_key is not None and headers["Dd-Api-Key"] != dd_api_key:
+            if dd_api_key is not None and headers["dd-api-key"] != dd_api_key:
                 logger.debug(f"API key does not match in {data['log_filename']}")
                 continue
 
             logger.info(f"Look in {data['log_filename']}")
-            for serie in data["request"]["content"]["series"]:
+            for serie in data["request"]["content"].get("series", []):
                 if f"rid:{rid}" not in serie.get("tags", []):
                     continue
 

@@ -919,7 +919,6 @@ class _Scenarios:
 
     # can be merged.
     otel_tracing_e2e = OpenTelemetryScenario("OTEL_TRACING_E2E", doc="")
-    otel_metric_e2e = OpenTelemetryScenario("OTEL_METRIC_E2E", doc="")
     otel_log_e2e = OpenTelemetryScenario("OTEL_LOG_E2E", doc="")
 
     library_conf_custom_header_tags = DdTraceEndToEndScenario(

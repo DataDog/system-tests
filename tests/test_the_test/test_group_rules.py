@@ -49,7 +49,6 @@ def test_tracer_release():
         # targetting OTEL
         scenarios.otel_integrations,
         scenarios.otel_log_e2e,
-        scenarios.otel_metric_e2e,
         scenarios.otel_tracing_e2e,
         scenarios.otel_collector,
         # to be added once stability is proven
