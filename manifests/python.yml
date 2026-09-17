@@ -238,7 +238,7 @@ manifest:
         "*": v2.1.0
         fastapi: v2.5.0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_on_Block: v3.10.0.dev
-  tests/appsec/api_security/test_schemas_auth.py: missing_feature
+  tests/appsec/api_security/test_schemas_auth.py: v4.14.0-rc1
   tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders: v4.11.0-rc1
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute:
     - weblog_declaration:
@@ -1473,6 +1473,9 @@ manifest:
   tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Appears: missing_feature (EX-3413)
   tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Cycle: missing_feature (EX-3413)
   tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Disappears: missing_feature (EX-3413)
+  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_DoLog_False::test_ffe_exposure_dolog_false:
+    - declaration: flaky (FFL-3293)
+      component_version: 4.14.1
   tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Serial_Id: missing_feature (EX-3413)
   tests/ffe/test_flag_eval_evp.py: missing_feature (FFL-2446)
   tests/ffe/test_flag_eval_metrics.py: v4.7.0
@@ -1916,6 +1919,25 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME: v4.11.0
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_default_follows_otel_spec: irrelevant
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_empty_is_treated_as_unset: bug (APMAPI-2414)
+  tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER: v4.11.0
+  tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_console_exporter: missing_feature (Console trace export is not implemented)
+  tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_default_matches_specification: missing_feature (The default OTLP exporter is not implemented)
+  tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_deprecated_values: missing_feature (Logging trace export is not implemented)
+  tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_development_values: missing_feature (OTLP stdout trace export is not implemented)
+  tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_empty_is_treated_as_unset: missing_feature (The default OTLP exporter is not implemented)
+  tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_invalid_is_ignored: missing_feature (The default OTLP exporter is not implemented)
+  tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_zipkin_exporter: missing_feature (Zipkin trace export is not implemented)
+  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER: v4.11.0
+  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER::test_dd_trace_sample_ignore_parent_false: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
+  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER::test_dd_trace_sample_ignore_parent_true: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
+  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER::test_default_matches_specification: missing_feature (OTel default sampler semantics are not implemented)
+  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER::test_empty_is_treated_as_unset: missing_feature (OTel default sampler semantics are not implemented)
+  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER::test_invalid_value_is_ignored: missing_feature (OTel default sampler semantics are not implemented)
+  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER::test_jaeger_remote_values: missing_feature (Jaeger remote sampling is not implemented)
+  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER::test_third_party_values: missing_feature (X-Ray sampling is not implemented)
+  tests/parametric/otel_env_vars/test_otel_traces_sampler_arg.py::Test_OTEL_TRACES_SAMPLER_ARG: v4.11.0
+  tests/parametric/otel_env_vars/test_otel_traces_sampler_arg.py::Test_OTEL_TRACES_SAMPLER_ARG::test_above_range_is_ignored: missing_feature (Out-of-range sampler arguments are not ignored)
+  tests/parametric/otel_env_vars/test_otel_traces_sampler_arg.py::Test_OTEL_TRACES_SAMPLER_ARG::test_below_range_is_ignored: missing_feature (Out-of-range sampler arguments are not ignored)
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids: v2.6.0
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3single_128_bit_generation_disabled: irrelevant (Supports the value `b3` instead of the deprecated `B3 single header`)
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3single_128_bit_generation_enabled: irrelevant (Supports the value `b3` instead of the deprecated `B3 single header`)
@@ -2085,8 +2107,6 @@ manifest:
   tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability::test_span_links_add: missing_feature  # Created by easy win activation script
   tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability::test_update_resource: missing_feature  # Created by easy win activation script
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: v2.9.0
-  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_false: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
-  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_true: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_log_level_env: missing_feature (DD_LOG_LEVEL is not supported in Python)
   tests/parametric/test_otel_logs.py::Test_FR01_Enable_OTLP_Log_Collection: v3.13.0.dev
   tests/parametric/test_otel_logs.py::Test_FR03_Resource_Attributes: v3.13.0.dev
