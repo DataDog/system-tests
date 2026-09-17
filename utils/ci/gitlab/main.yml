@@ -13,7 +13,7 @@ spec:
       default: ""
     excluded_scenarios:
       description: "Comma-separated list of scenarios not to run"
-      default: "APM_TRACING_E2E_OTEL,INTEGRATION_FRAMEWORKS"
+      default: "INTEGRATION_FRAMEWORKS"
     weblogs:
       description: "Comma-separated list of weblogs to run (all weblogs if empty)"
       default: ""

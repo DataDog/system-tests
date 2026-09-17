@@ -630,10 +630,26 @@ manifest:
   tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualAppsec: v3.36.0
   tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualProfiling: bug (PROF-12209)
   tests/cws/test_thread_context_sharing.py::Test_ThreadContextSharing: missing_feature (missing /security/thread_context_sharing endpoint on weblog)
-  tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Line_Capture_Expressions: missing_feature (Not yet implemented)
-  tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions: missing_feature (Not yet implemented)
-  tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions::test_complex_capture_expressions: missing_feature (Not yet implemented)
-  tests/debugger/test_debugger_capture_expressions_errors.py::Test_Debugger_Filter_Rejected_Capture_Expression_Error: missing_feature (Not yet implemented)
+  tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Line_Capture_Expressions:  # DEBUG-4260: line probe uses Expression() return (line 76)
+    - weblog_declaration:
+        '*': missing_feature (Not yet implemented)
+        poc: v3.44.0
+        uds: v3.44.0
+  tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions:  # DEBUG-4260: capture expressions on log probes (#8621)
+    - weblog_declaration:
+        '*': missing_feature (Not yet implemented)
+        poc: v3.44.0
+        uds: v3.44.0
+  tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions::test_complex_capture_expressions:  # DEBUG-4260: capture expressions on log probes (#8621)
+    - weblog_declaration:
+        '*': missing_feature (Not yet implemented)
+        poc: v3.44.0
+        uds: v3.44.0
+  tests/debugger/test_debugger_capture_expressions_errors.py::Test_Debugger_Filter_Rejected_Capture_Expression_Error:  # ProbeProcessor skips captureExpressions when `when` is false; #8725 rate-limits eval-error snapshots to 1/5min
+    - weblog_declaration:
+        '*': missing_feature (Not yet implemented)
+        poc: v3.46.0
+        uds: v3.46.0
   tests/debugger/test_debugger_code_origins.py::Test_Debugger_Code_Origins:  # Modified by easy win activation script
     - weblog_declaration:
         '*': missing_feature
@@ -706,11 +722,9 @@ manifest:
   tests/debugger/test_debugger_guardrails.py::Test_Debugger_Capture_Timeout_Guardrail: v2.53.0
   tests/debugger/test_debugger_guardrails.py::Test_Debugger_Evaluation_Timeout_Line_Probe: irrelevant (Line-probe variant is only used by Node.js and Ruby)
   tests/debugger/test_debugger_guardrails.py::Test_Debugger_Evaluation_Timeout_Method_Probe: v3.52.0
-  ? tests/debugger/test_debugger_guardrails.py::Test_Debugger_Evaluation_Timeout_Method_Probe::test_evaluation_timeout_collection_filter
-  : missing_feature (Collection-filter fixture does not exceed the default eval budget)
   tests/debugger/test_debugger_guardrails.py::Test_Debugger_Snapshot_Size_Guardrail: v3.52.0
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin: bug (DEBUG-4637)
-  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin_Default_On: missing_feature (Temporarily disabled; enable from v3.42.0 later)
+  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin_Default_On: v3.45.0  # DEBUG-4174: code origin on by default (#8272)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: bug (DEBUG-4637)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay: v3.29.0
   ? tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay::test_inproduct_enablement_exception_replay_apm_multiconfig
@@ -866,6 +880,9 @@ manifest:
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
+  tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES: v3.37.0
+  tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES::test_invalid_value_is_discarded: bug (APMAPI-2452)
+  tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES::test_percent_encoded_separators: bug (APMAPI-2424)
   tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED: v3.37.0
   tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_default_matches_specification: bug (APMAPI-2417)
   tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_stable_false: bug (APMAPI-2417)
