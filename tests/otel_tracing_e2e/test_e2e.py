@@ -204,4 +204,4 @@ class Test_OTelLogE2E:
             dd_api_key=scenarios.otel_tracing_e2e.collector_api_key,
         )
 
-        validate_log_trace_correlation(otel_log_trace_attrs, trace_collector)
+        validate_log_trace_correlation(otel_log_trace_attrs, trace_collector, "datadog_exporter")

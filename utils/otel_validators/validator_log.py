@@ -24,7 +24,7 @@ def validate_log(log: dict, rid: str, otel_source: str) -> dict:
 
 
 def validate_log_trace_correlation(otel_log_trace_attrs: dict, trace: dict, otel_source: str) -> None:
-    if otel_source == "datadog_agent":
+    if otel_source in ("datadog_agent", "datadog_exporter"):
         assert len(trace["spans"]) == 1
         span = trace["spans"][0]
         assert span is not None
