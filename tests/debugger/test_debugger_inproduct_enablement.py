@@ -234,8 +234,14 @@ class Test_Debugger_InProduct_Enablement_Code_Origin_Default_On(debugger.BaseDeb
         self.send_weblog_request("/")
         self.wait_for_code_origin_span(timeout=self._WARMUP_TIMEOUT)
 
+        # Capture the threshold before sending the request, otherwise a trace
+        # that arrives before wait_for_code_origin_span() is called would be
+        # discarded as pre-existing data, causing a false failure.
+        threshold = self._get_max_trace_file_number()
         self.send_weblog_request("/")
-        self.code_origin_enabled_by_default = self.wait_for_code_origin_span(timeout=self._CODE_ORIGIN_TIMEOUT)
+        self.code_origin_enabled_by_default = self.wait_for_code_origin_span(
+            timeout=self._CODE_ORIGIN_TIMEOUT, threshold=threshold
+        )
 
     def test_code_origin_enabled_by_default(self):
         self.assert_setup_ok()
