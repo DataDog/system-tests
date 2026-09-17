@@ -19,13 +19,13 @@ def _non_default_protocol(signal: str) -> str:
     """An uppercase transport distinguishable from this SDK's default."""
     if context.library == "nodejs" or (context.library == "php" and signal == "logs"):
         return "HTTP/JSON"
-    if context.library in ("python", "dotnet", "rust"):
+    if context.library in ("python", "rust"):
         return "HTTP/PROTOBUF"
     return "GRPC"
 
 
 def _default_protocol(signal: str) -> str:
-    if context.library in ("python", "dotnet", "rust"):
+    if context.library in ("python", "rust"):
         return "grpc"
     if context.library == "golang" and signal == "logs":
         return "http/json"
