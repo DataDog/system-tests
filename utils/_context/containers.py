@@ -27,7 +27,7 @@ from utils._context.weblog_metadata import WeblogMetaData
 from utils.docker_fixtures._core import extra_hosts_for_environment
 from utils.proxy.tuf import get_tuf_root_json
 from utils.proxy.ports import ProxyPorts
-from utils.mocked_backend.backend_v2 import get_mocked_backend_v2_container_url
+from utils.mocked_backend.backend_v2 import get_mocked_backend_v2_container_site, get_mocked_backend_v2_container_url
 from utils.proxy.mocked_response import (
     RemoveMetaStructsSupport,
     MockedTracerResponse,
@@ -813,7 +813,7 @@ class AgentContainer(TestedContainer):
             {
                 "DD_ENV": "system-tests",
                 "DD_HOSTNAME": "test",
-                "DD_SITE": self.dd_site,
+                "DD_SITE": "datad0g.com",
                 "DD_APM_RECEIVER_PORT": str(self.apm_receiver_port),
                 "DD_DOGSTATSD_PORT": str(self.dogstatsd_port),
                 "DD_API_KEY": dd_api_key,
@@ -826,8 +826,14 @@ class AgentContainer(TestedContainer):
 
         if mocked_backend_v2:
             mocked_backend_url = get_mocked_backend_v2_container_url()
-            environment.setdefault("DD_DD_URL", mocked_backend_url)
-            environment.setdefault("DD_APM_DD_URL", mocked_backend_url)
+            mocked_backend_site = get_mocked_backend_v2_container_site()
+            environment["DD_SITE"] = mocked_backend_site
+            environment["DD_DD_URL"] = mocked_backend_url
+            environment["DD_APM_DD_URL"] = mocked_backend_url
+            # the logs intake endpoint is derived from DD_SITE as https://agent-http-intake.logs.<site>
+            # rather than from DD_DD_URL, so it needs its own override to reach our plain-HTTP mock.
+            environment["DD_LOGS_CONFIG_LOGS_DD_URL"] = mocked_backend_site
+            environment["DD_LOGS_CONFIG_LOGS_NO_SSL"] = "true"
 
         # Configure backend mode via environment variables
         # Agent uses HTTP_PROXY to reach backend, TUF roots validate RC responses
@@ -872,7 +878,7 @@ class AgentContainer(TestedContainer):
 
     @property
     def dd_site(self):
-        return os.environ.get("DD_SITE", "datad0g.com")
+        return self.environment["DD_SITE"]
 
 
 class ServerlessInitContainer(TestedContainer):

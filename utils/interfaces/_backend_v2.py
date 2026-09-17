@@ -8,6 +8,7 @@ utils/mocked_backend/backend_v2.py.
 """
 
 from collections.abc import Callable, Generator
+import json
 
 from utils._logger import logger
 from utils._weblog import HttpResponse
@@ -105,17 +106,19 @@ class _BackendV2InterfaceValidator(ProxyBasedInterfaceValidator):
         return [span for _, span in self.get_spans(request)]
 
     def assert_otlp_trace_exist(self, dd_trace_id: int, dd_api_key: str) -> dict:
+        logger.info(f"Look for otel trace {dd_trace_id}")
         for data in self.get_data("/api/v0.2/traces"):
             headers = dict(data["request"]["headers"])
 
             if dd_api_key is not None and headers["Dd-Api-Key"] != dd_api_key:
-                logger.debug("API key does not match")
+                logger.debug(f"API key does not match in {data['log_filename']}")
                 continue
 
+            logger.info(f"Look in {data['log_filename']}")
             for payload in data["request"]["content"]["tracerPayloads"]:
                 for trace in payload.get("chunks", []):
                     observed_trace_id = trace["spans"][0]["traceID"]
-                    if observed_trace_id == dd_trace_id:
+                    if observed_trace_id == dd_trace_id or observed_trace_id == str(dd_trace_id):
                         return trace
 
         raise ValueError(f"Trace {dd_trace_id} not found")
@@ -141,4 +144,19 @@ class _BackendV2InterfaceValidator(ProxyBasedInterfaceValidator):
         raise ValueError("Serie not found")
 
     def get_logs(self, query: str, rid: str, dd_api_key: str) -> dict:
-        raise NotImplementedError
+        logger.info(f"Look for logs {query} for {rid}")
+        for data in self.get_data("/api/v2/logs"):
+            headers = dict(data["request"]["headers"])
+
+            if dd_api_key is not None and headers["Dd-Api-Key"] != dd_api_key:
+                logger.debug(f"API key does not match in {data['log_filename']}")
+                continue
+
+            logger.debug(f"Look in {data['log_filename']}")
+
+            for item in data["request"]["content"]:
+                item["message"] = json.loads(item["message"])
+                if item["message"]["http.request.headers.user-agent"] == f"system_tests rid/{rid}":
+                    return item
+
+        raise ValueError("log not found")

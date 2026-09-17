@@ -167,52 +167,41 @@ class Test_OTelLogE2E:
         dd_trace_id = _get_dd_trace_id(list(otel_trace_ids)[0], use_128_bits_trace_id=self.use_128_bits_trace_id)
 
         # The 1st account has logs and traces sent by Agent
-        try:
-            log_agent = interfaces.backend_v2.get_logs(
-                query=f"trace_id:{dd_trace_id}",
-                rid=rid,
-                dd_api_key=scenarios.otel_log_e2e.agent_api_key,
-            )
-            otel_log_trace_attrs = validate_log(log_agent, rid, "datadog_agent")
-            trace_agent = interfaces.backend_v2.assert_otlp_trace_exist(
-                dd_trace_id=dd_trace_id,
-                dd_api_key=scenarios.otel_log_e2e.agent_api_key,
-            )
-        except ValueError:
-            logger.warning("Backend does not provide logs")
-            return
+        log_agent = interfaces.backend_v2.get_logs(
+            query=f"trace_id:{dd_trace_id}",
+            rid=rid,
+            dd_api_key=scenarios.otel_log_e2e.agent_api_key,
+        )
+        otel_log_trace_attrs = validate_log(log_agent, rid, "datadog_agent")
+        trace_agent = interfaces.backend_v2.assert_otlp_trace_exist(
+            dd_trace_id=dd_trace_id,
+            dd_api_key=scenarios.otel_log_e2e.agent_api_key,
+        )
         validate_log_trace_correlation(otel_log_trace_attrs, trace_agent)
 
         # The 2nd account has logs and traces sent via the backend OTLP intake endpoint
-        try:
-            log_intake = interfaces.backend_v2.get_logs(
-                query=f"trace_id:{dd_trace_id}",
-                rid=rid,
-                dd_api_key=scenarios.otel_tracing_e2e.intake_api_key,
-            )
-            otel_log_trace_attrs = validate_log(log_intake, rid, "backend_endpoint")
-            trace_intake = interfaces.backend_v2.assert_otlp_trace_exist(
-                dd_trace_id=dd_trace_id,
-                dd_api_key=scenarios.otel_tracing_e2e.intake_api_key,
-            )
-        except ValueError:
-            logger.warning("Backend does not provide logs")
-            return
+        log_intake = interfaces.backend_v2.get_logs(
+            query=f"trace_id:{dd_trace_id}",
+            rid=rid,
+            dd_api_key=scenarios.otel_tracing_e2e.intake_api_key,
+        )
+        otel_log_trace_attrs = validate_log(log_intake, rid, "backend_endpoint")
+        trace_intake = interfaces.backend_v2.assert_otlp_trace_exist(
+            dd_trace_id=dd_trace_id,
+            dd_api_key=scenarios.otel_tracing_e2e.intake_api_key,
+        )
         validate_log_trace_correlation(otel_log_trace_attrs, trace_intake)
 
         # The 3rd account has logs and traces sent by OTel Collector
-        try:
-            log_collector = interfaces.backend_v2.get_logs(
-                query=f"trace_id:{dd_trace_id}",
-                rid=rid,
-                dd_api_key=scenarios.otel_tracing_e2e.collector_api_key,
-            )
-            otel_log_trace_attrs = validate_log(log_collector, rid, "datadog_exporter")
-            trace_collector = interfaces.backend_v2.assert_otlp_trace_exist(
-                dd_trace_id=dd_trace_id,
-                dd_api_key=scenarios.otel_tracing_e2e.collector_api_key,
-            )
-        except ValueError:
-            logger.warning("Backend does not provide traces")
-            return
+        log_collector = interfaces.backend_v2.get_logs(
+            query=f"trace_id:{dd_trace_id}",
+            rid=rid,
+            dd_api_key=scenarios.otel_tracing_e2e.collector_api_key,
+        )
+        otel_log_trace_attrs = validate_log(log_collector, rid, "datadog_exporter")
+        trace_collector = interfaces.backend_v2.assert_otlp_trace_exist(
+            dd_trace_id=dd_trace_id,
+            dd_api_key=scenarios.otel_tracing_e2e.collector_api_key,
+        )
+
         validate_log_trace_correlation(otel_log_trace_attrs, trace_collector)
