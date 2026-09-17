@@ -630,10 +630,26 @@ manifest:
   tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualAppsec: v3.36.0
   tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualProfiling: bug (PROF-12209)
   tests/cws/test_thread_context_sharing.py::Test_ThreadContextSharing: missing_feature (missing /security/thread_context_sharing endpoint on weblog)
-  tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Line_Capture_Expressions: missing_feature (Not yet implemented)
-  tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions: missing_feature (Not yet implemented)
-  tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions::test_complex_capture_expressions: missing_feature (Not yet implemented)
-  tests/debugger/test_debugger_capture_expressions_errors.py::Test_Debugger_Filter_Rejected_Capture_Expression_Error: missing_feature (Not yet implemented)
+  tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Line_Capture_Expressions:  # DEBUG-4260: capture expressions on log probes (#8621)
+    - weblog_declaration:
+        '*': missing_feature (Not yet implemented)
+        poc: v3.44.0
+        uds: v3.44.0
+  tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions:  # DEBUG-4260: capture expressions on log probes (#8621)
+    - weblog_declaration:
+        '*': missing_feature (Not yet implemented)
+        poc: v3.44.0
+        uds: v3.44.0
+  tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions::test_complex_capture_expressions:  # DEBUG-4260: capture expressions on log probes (#8621)
+    - weblog_declaration:
+        '*': missing_feature (Not yet implemented)
+        poc: v3.44.0
+        uds: v3.44.0
+  tests/debugger/test_debugger_capture_expressions_errors.py::Test_Debugger_Filter_Rejected_Capture_Expression_Error:  # ProbeProcessor skips captureExpressions when `when` is false; #8725 rate-limits eval-error snapshots to 1/5min
+    - weblog_declaration:
+        '*': missing_feature (Not yet implemented)
+        poc: v3.46.0
+        uds: v3.46.0
   tests/debugger/test_debugger_code_origins.py::Test_Debugger_Code_Origins:  # Modified by easy win activation script
     - weblog_declaration:
         '*': missing_feature
@@ -687,7 +703,9 @@ manifest:
   tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_hash_key_value:  # TODO: a lower version might be supported
     - declaration: missing_feature (DEBUG-3374)
       component_version: '<3.45.0'
-  tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_hash_operations: bug (DEBUG-2602)
+  tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_hash_operations:  # DEBUG-2602 collection expressions (#6087)
+    - declaration: bug (DEBUG-2602)
+      component_version: '<3.10.0'
   tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_instance_of:  # TODO: a lower version might be supported
     - declaration: bug (DEBUG-2530)
       component_version: <3.51.1
@@ -708,7 +726,7 @@ manifest:
   tests/debugger/test_debugger_guardrails.py::Test_Debugger_Evaluation_Timeout_Method_Probe: v3.52.0
   tests/debugger/test_debugger_guardrails.py::Test_Debugger_Snapshot_Size_Guardrail: v3.52.0
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin: bug (DEBUG-4637)
-  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin_Default_On: missing_feature (Temporarily disabled; enable from v3.42.0 later)
+  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin_Default_On: v3.45.0  # DEBUG-4174: code origin on by default (#8272)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: bug (DEBUG-4637)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay: v3.29.0
   ? tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay::test_inproduct_enablement_exception_replay_apm_multiconfig
@@ -734,7 +752,7 @@ manifest:
       excluded_weblog: [uds, poc]
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_span_probe_expression_budgets: irrelevant (Dotnet emits evaluation errors as span tags, not error snapshots to the debugger endpoint)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots: v2.53.0
-  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_default_max_length: bug (DEBUG-4669)
+  tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_default_max_length: v3.52.0  # DEBUG-4669: DebuggerSettings.DefaultMaxStringLength = 255 (#9065)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_process_tags_snapshot:
     - declaration: missing_feature (Not implemented in older versions)
       component_version: '<3.32.0'
@@ -748,8 +766,12 @@ manifest:
     - declaration: bug (DEBUG-5104)
       component_version: '<3.45.0'
   ? tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses::test_probe_status_log_line_with_unknown_path_prefix
-  : bug (DEBUG-5101)
-  tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses::test_probe_status_log_line_with_windows_path: bug (DEBUG-5108)
+  :  # DEBUG-5101: LineProbeResolver two-segment fallback (#8543)
+    - declaration: bug (DEBUG-5101)
+      component_version: '<3.45.0'
+  tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses::test_probe_status_log_line_with_windows_path:  # DEBUG-5108: FilePathLookup matches / and \
+    - declaration: bug (DEBUG-5108)
+      component_version: '<3.45.0'
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Method_Probe_Statuses: v2.53.0
   tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb: v2.53.0
   tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb::test_event_metadata: v3.44.0
