@@ -64,7 +64,7 @@ public class App {
         if (isIntakeEnabled()) {
             spanExporters.add(
                 OtlpHttpSpanExporter.builder()
-                    .setEndpoint("http://proxy:8127/api/v0.2/traces")  // port is defined in utils/proxy/ports.py
+                    .setEndpoint("http://host.docker.internal:4901/api/v0.2/traces")
                     .addHeader("dd-protocol", "otlp")
                     .addHeader("dd-api-key", System.getenv("DD_API_KEY"))
                     .addHeader("dd-otlp-path", "intake-traces")
@@ -147,7 +147,7 @@ public class App {
         if (isIntakeEnabled()) {
             logRecordExporters.add(
                     OtlpHttpLogRecordExporter.builder()
-                            .setEndpoint("http://proxy:8127/api/v2/logs")  // port is defined in utils/proxy/ports.py
+                            .setEndpoint("http://host.docker.internal:4901/api/v2/logs")
                             .addHeader("dd-protocol", "otlp")
                             .addHeader("dd-api-key", System.getenv("DD_API_KEY"))
                             .addHeader("dd-otlp-path", "intake-logs")

@@ -177,7 +177,7 @@ class Test_OTelLogE2E:
             dd_trace_id=dd_trace_id,
             dd_api_key=scenarios.otel_log_e2e.agent_api_key,
         )
-        validate_log_trace_correlation(otel_log_trace_attrs, trace_agent)
+        validate_log_trace_correlation(otel_log_trace_attrs, trace_agent, "datadog_agent")
 
         # The 2nd account has logs and traces sent via the backend OTLP intake endpoint
         log_intake = interfaces.backend_v2.get_logs(
@@ -190,7 +190,7 @@ class Test_OTelLogE2E:
             dd_trace_id=dd_trace_id,
             dd_api_key=scenarios.otel_tracing_e2e.intake_api_key,
         )
-        validate_log_trace_correlation(otel_log_trace_attrs, trace_intake)
+        validate_log_trace_correlation(otel_log_trace_attrs, trace_intake, "backend_endpoint")
 
         # The 3rd account has logs and traces sent by OTel Collector
         log_collector = interfaces.backend_v2.get_logs(
