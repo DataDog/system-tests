@@ -11,3 +11,6 @@ zope.event==6.0
 zope.interface==8.0.1
 openfeature-sdk==0.8.3
 stripe==14.2.0
+# lets system-tests dump this weblog's thread stacks from outside the process
+# when a remote config apply stalls, see utils/_remote_config.py
+py-spy==0.4.2

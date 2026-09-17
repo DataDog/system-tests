@@ -119,6 +119,7 @@ class Test_Debugger_InProduct_Enablement_Exception_Replay(debugger.BaseDebuggerT
             "/exceptionreplay/multiframe", "multiple stack frames exception"
         )
 
+    @slow
     def test_inproduct_enablement_exception_replay(self):
         self.assert_rc_state_not_error()
         self.assert_all_weblog_responses_ok(expected_code=500)

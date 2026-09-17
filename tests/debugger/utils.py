@@ -196,7 +196,7 @@ class BaseDebuggerTest:
             # In-scope line for the probe_capture_expressions_line line probe. Kept separate
             # from "Expression" because Node.js captures at a different line (71) than its
             # expression-language probe (82); Ruby's weblog layout puts the line at 82, not 71.
-            "CaptureExpressionsLine": {"java": [73], "nodejs": [71], "golang": [71], "ruby": [82]},
+            "CaptureExpressionsLine": {"java": [73], "dotnet": [76], "nodejs": [71], "golang": [71], "ruby": [82]},
             # The `@exception` variable is not available in the context of line probes.
             "ExpressionException": {},
             "ExpressionOperators": {"java": [84], "dotnet": [92], "python": [89], "ruby": [102], "nodejs": [90]},
