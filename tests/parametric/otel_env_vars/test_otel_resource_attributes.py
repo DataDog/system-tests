@@ -13,6 +13,7 @@ type ResourceAttributes = str | list[str] | dict[str, str]
 def _finished_span(test_agent: TestAgentAPI, library: APMLibrary) -> Span:
     with library.dd_start_span(name="otel_resource_attributes"):
         pass
+    assert library.dd_flush()
     return find_only_span(test_agent.wait_for_num_traces(1))
 
 
@@ -39,6 +40,8 @@ def _assert_resource_attributes(attributes: ResourceAttributes, expected: dict[s
 def _assert_resource_attribute_absent(attributes: ResourceAttributes, key: str) -> None:
     if isinstance(attributes, dict):
         assert key not in attributes
+    elif isinstance(attributes, list):
+        assert not any(attribute.startswith(f"{key}:") for attribute in attributes)
     else:
         assert f"{key}:" not in attributes
 
@@ -194,11 +197,9 @@ class Test_OTEL_RESOURCE_ATTRIBUTES:
                     )
                 span = _finished_span(test_agent, library)
                 assert span["service"] == "test2"
-                assert span["meta"]["env"] == "test1"
-                assert span["meta"]["version"] == "5"
                 _assert_resource_attributes(
                     span["meta"],
-                    {"foo": "bar1", "baz": "qux1"},
+                    {"env": "test1", "version": "5", "foo": "bar1", "baz": "qux1"},
                 )
                 return
 
