@@ -74,9 +74,7 @@ public class App {
         if (isCollectorEnabled()) {
             spanExporters.add(
                 OtlpHttpSpanExporter.builder()
-                    .setEndpoint("http://proxy:8127/v1/traces")  // port is defined in utils/proxy/ports.py
-                    .addHeader("dd-protocol", "otlp")
-                    .addHeader("dd-otlp-path", "collector")
+                    .setEndpoint("http://collector:4318/v1/traces")
                     .build());
         }
 
