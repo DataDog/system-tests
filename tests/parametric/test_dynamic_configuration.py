@@ -218,7 +218,12 @@ def _set_rc(
     # payloads and recreate the stale-ACK race, especially when tests reuse config_id.
     resolved_id: str = str(config_id) if config_id is not None else str(uuid.uuid4())
     config["id"] = resolved_id
-    payload = remote_config.to_sdk_config_payload(config) if uses_sdk_configuration(test_agent) else config
+    use_sdk_config = uses_sdk_configuration(test_agent)
+    if "sdk_config" in config:
+        assert use_sdk_config, "Cannot send an sdk_config payload to a library using the legacy lib_config contract"
+        payload = config
+    else:
+        payload = remote_config.to_sdk_config_payload(config) if use_sdk_config else config
     test_agent.set_remote_config(path=f"datadog/2/APM_TRACING/{resolved_id}/config", payload=payload)
 
     return resolved_id
@@ -232,16 +237,17 @@ def _create_rc_config(config_overrides: dict[str, Any]) -> dict[str, Any]:
 
 
 def _create_sdk_config_rc_config(sdk_config_overrides: dict[str, str]) -> dict[str, Any]:
-    """Build an RC config carrying an sdk_config block (sibling of lib_config).
+    """Build an RC config carrying settings that have no legacy lib_config equivalent.
 
     sdk_config carries generic env-var-keyed entries so a tracer can apply them via the single
     SDK_CONFIGURATION capability instead of bespoke per-setting parsing.
     """
     rc_config: dict[str, Any] = _default_config(TEST_SERVICE, TEST_ENV)
+    del rc_config["lib_config"]
     rc_config["sdk_config"] = {
         "service_name": TEST_SERVICE,
         "env": TEST_ENV,
-        "config": [{"key": k, "value": v} for k, v in sdk_config_overrides.items()],
+        "config": sdk_config_overrides,
     }
     return rc_config
 
@@ -444,35 +450,63 @@ class TestDynamicConfigTracingEnabled:
         )
 
 
-_SDK_CONFIG_FIELDS: list[tuple[str, str, Capabilities, str]] = [
-    ("trace_sample_rate", "DD_TRACE_SAMPLE_RATE", Capabilities.APM_TRACING_SAMPLE_RATE, "0.5"),
-    ("logs_injection_enabled", "DD_LOGS_INJECTION", Capabilities.APM_TRACING_LOGS_INJECTION, "true"),
-    ("trace_header_tags", "DD_TRACE_HEADER_TAGS", Capabilities.APM_TRACING_HTTP_HEADER_TAGS, "X-Test-Header:test-tag"),
-    ("trace_tags", "DD_TAGS", Capabilities.APM_TRACING_CUSTOM_TAGS, "sdk_config_tag:sdk_config_value"),
-    ("data_streams_enabled", "DD_DATA_STREAMS_ENABLED", Capabilities.APM_TRACING_DATA_STREAMS_ENABLED, "true"),
+_SDK_CONFIG_FIELDS: list[tuple[str, str, Capabilities, Any, str]] = [
+    ("trace_sample_rate", "tracing_sampling_rate", Capabilities.APM_TRACING_SAMPLE_RATE, 0.5, "0.5"),
+    ("logs_injection_enabled", "log_injection_enabled", Capabilities.APM_TRACING_LOGS_INJECTION, True, "true"),
+    (
+        "trace_header_tags",
+        "tracing_header_tags",
+        Capabilities.APM_TRACING_HTTP_HEADER_TAGS,
+        [{"header": "X-Test-Header", "tag_name": "test-tag"}],
+        "X-Test-Header:test-tag",
+    ),
+    (
+        "trace_tags",
+        "tracing_tags",
+        Capabilities.APM_TRACING_CUSTOM_TAGS,
+        ["sdk_config_tag:sdk_config_value"],
+        "sdk_config_tag:sdk_config_value",
+    ),
+    (
+        "data_streams_enabled",
+        "data_streams_enabled",
+        Capabilities.APM_TRACING_DATA_STREAMS_ENABLED,
+        True,
+        "true",
+    ),
     (
         "dynamic_instrumentation_enabled",
-        "DD_DYNAMIC_INSTRUMENTATION_ENABLED",
+        "dynamic_instrumentation_enabled",
         Capabilities.APM_TRACING_ENABLE_DYNAMIC_INSTRUMENTATION,
+        True,
         "true",
     ),
     (
         "tracing_sampling_rules",
-        "DD_TRACE_SAMPLING_RULES",
+        "tracing_sampling_rules",
         Capabilities.APM_TRACING_SAMPLE_RULES,
-        '[{"sample_rate":0.5}]',
+        [{"sample_rate": 0.5}],
+        '[{"sample_rate": 0.5}]',
     ),
-    ("code_origin_enabled", "DD_CODE_ORIGIN_FOR_SPANS_ENABLED", Capabilities.APM_TRACING_ENABLE_CODE_ORIGIN, "true"),
+    (
+        "code_origin_enabled",
+        "code_origin_enabled",
+        Capabilities.APM_TRACING_ENABLE_CODE_ORIGIN,
+        True,
+        "true",
+    ),
     (
         "exception_replay_enabled",
-        "DD_EXCEPTION_REPLAY_ENABLED",
+        "exception_replay_enabled",
         Capabilities.APM_TRACING_ENABLE_EXCEPTION_REPLAY,
+        True,
         "true",
     ),
     (
         "live_debugging_enabled",
-        "DD_LIVE_DEBUGGING_ENABLED",
+        "live_debugging_enabled",
         Capabilities.APM_TRACING_ENABLE_LIVE_DEBUGGING,
+        True,
         "true",
     ),
 ]
@@ -573,7 +607,7 @@ class Test_DynamicConfigSdkConfiguration:
             pass
         test_agent.wait_for_num_traces(num=1, clear=True)
 
-        _set_rc(test_agent, _create_sdk_config_rc_config({"DD_TRACE_ENABLED": "false"}))
+        _set_rc(test_agent, _create_rc_config({"tracing_enabled": False}))
         test_agent.wait_for_telemetry_event("app-client-configuration-change", clear=True)
         test_agent.wait_for_rc_apply_state("APM_TRACING", state=RemoteConfigApplyState.ACKNOWLEDGED, clear=True)
 
@@ -607,11 +641,11 @@ class Test_DynamicConfigSdkConfiguration:
             pytest.skip(f"Nothing to test: {test_library.lang} doesn't support any APM_TRACING_* capability bits")
 
         with test_library:
-            for apm_telemetry_name, sdk_config_key, _capability, value in applicable:
-                _set_rc(test_agent, _create_sdk_config_rc_config({sdk_config_key: value}))
+            for apm_telemetry_name, lib_config_key, _capability, value, expected_value in applicable:
+                _set_rc(test_agent, _create_rc_config({lib_config_key: value}))
                 test_agent.wait_for_telemetry_event("app-client-configuration-change")
                 test_agent.wait_for_rc_apply_state("APM_TRACING", state=RemoteConfigApplyState.ACKNOWLEDGED)
-                _assert_telemetry_config_applied(test_agent, apm_telemetry_name, value)
+                _assert_telemetry_config_applied(test_agent, apm_telemetry_name, expected_value)
                 # Clear only after reading the config we just asserted on, so the next
                 # field's wait_for_rc_apply_state can't match this iteration's stale ACK.
                 test_agent.clear()
