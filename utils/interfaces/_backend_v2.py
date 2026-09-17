@@ -130,7 +130,14 @@ class _BackendV2InterfaceValidator(ProxyBasedInterfaceValidator):
                         # OTel trace IDs are 128-bit, Datadog trace IDs are the low 64 bits of that.
                         trace_id = int.from_bytes(base64.b64decode(trace_id_base64)[-8:], "big")
                         if trace_id == dd_trace_id:
-                            return {"spans": [span]}
+                            # Unlike the tracerPayloads branch, this is raw OTLP: the real backend
+                            # would convert it to the Datadog span shape, ours doesn't, so carry
+                            # the resource/scope context along too, needed to do that conversion.
+                            return {
+                                "spans": [span],
+                                "resource": resource_span.get("resource", {}),
+                                "scope": scope_span.get("scope", {}),
+                            }
 
         raise ValueError(f"Trace {dd_trace_id} not found")
 

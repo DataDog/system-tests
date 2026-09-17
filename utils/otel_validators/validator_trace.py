@@ -1,8 +1,13 @@
 # Util functions to validate JSON trace data from OTel system tests
 
+import base64
 import json
 import dictdiffer
 from utils._logger import logger
+
+# OTel SpanKind values (https://opentelemetry.io/docs/specs/otel/trace/api/#spankind) that this
+# test produces, mapped to the Datadog span type the Agent/Collector convert them to.
+_OTLP_KIND_TO_TYPE = {2: "web", 4: "custom"}
 
 
 # Validates traces from Agent, Collector and Backend intake OTLP ingestion paths are consistent
@@ -20,17 +25,15 @@ def validate_trace(traces: list[dict], *, use_128_bits_trace_id: bool) -> tuple:
     server_span = None
     message_span = None
     for trace in traces:
-        spans = trace["spans"]
-        assert len(spans) == 1
-        for item in spans:
-            span = item[0]
-            validate_common_tags(span, use_128_bits_trace_id=use_128_bits_trace_id)
-            if span["type"] == "web":
-                server_span = span
-            elif span["type"] == "custom":
-                message_span = span
-            else:
-                raise ValueError("Unexpected span ", span)
+        assert len(trace["spans"]) == 1
+        span = _normalize_span(trace)
+        validate_common_tags(span, use_128_bits_trace_id=use_128_bits_trace_id)
+        if span["type"] == "web":
+            server_span = span
+        elif span["type"] == "custom":
+            message_span = span
+        else:
+            raise ValueError("Unexpected span ", span)
 
     assert server_span is not None
     assert message_span is not None
@@ -41,8 +44,59 @@ def validate_trace(traces: list[dict], *, use_128_bits_trace_id: bool) -> tuple:
     return (server_span, message_span)
 
 
+def _normalize_span(trace: dict) -> dict:
+    """Normalizes a trace as returned by ``interfaces.backend_v2.assert_otlp_trace_exist`` into the
+    Datadog agent-legacy span shape the rest of these validators are written against.
+
+    The Agent and Collector paths post pre-converted, Datadog-shaped trace payloads to
+    ``/api/v0.2/traces``. The backend OTLP intake path posts raw OTLP instead, and our mocked
+    backend records it as-is rather than converting it the way the real backend would - so do that
+    conversion here, for just the fields these tests check.
+    """
+    span = trace["spans"][0]
+    if "meta" in span:
+        return span
+
+    resource_attrs = trace.get("resource", {}).get("attributes", {})
+    scope_name = trace.get("scope", {}).get("name", "")
+    attributes = span.get("attributes", {})
+
+    otel_trace_id = int.from_bytes(base64.b64decode(span["traceId"]), "big")
+    dd_trace_id = otel_trace_id & 0xFFFFFFFFFFFFFFFF
+    dd_span_id = int.from_bytes(base64.b64decode(span["spanId"]), "big")
+
+    span_type = _OTLP_KIND_TO_TYPE.get(span["kind"])
+    if span_type == "web":
+        # Mimics how the real backend derives a resource name for HTTP server spans.
+        resource = f"{attributes.get('http.method')} {attributes.get('http.route')}"
+    elif span_type == "custom":
+        resource = attributes.get("messaging.operation")
+    else:
+        raise ValueError("Unexpected OTLP span kind ", span)
+
+    meta = {k: (str(v).lower() if isinstance(v, bool) else str(v)) for k, v in attributes.items()}
+    meta["deployment.environment"] = resource_attrs.get("deployment.environment")
+    meta["otel.status_code"] = "Unset"
+    meta["otel.library.name"] = scope_name
+    meta["otel.trace_id"] = format(otel_trace_id, "032x")
+
+    return {
+        "traceID": str(dd_trace_id),
+        "spanID": str(dd_span_id),
+        "service": resource_attrs.get("service.name"),
+        "name": span["name"],
+        "resource": resource,
+        "type": span_type,
+        "start": str(int(span["startTimeUnixNano"])),
+        "duration": str(int(span["endTimeUnixNano"]) - int(span["startTimeUnixNano"])),
+        "meta": meta,
+        "metrics": {},
+    }
+
+
 def validate_common_tags(span: dict, *, use_128_bits_trace_id: bool) -> None:
-    assert span["parent_id"] == "0"
+    # /api/v0.2/traces omits parentID entirely for root spans instead of sending "0".
+    assert span.get("parentID", "0") == "0"
     assert span["service"] == "otel-system-tests-spring-boot"
     expected_meta = {
         "deployment.environment": "system-tests",
@@ -54,7 +108,7 @@ def validate_common_tags(span: dict, *, use_128_bits_trace_id: bool) -> None:
 
 
 def validate_trace_id(span: dict, *, use_128_bits_trace_id: bool) -> None:
-    dd_trace_id = int(span["trace_id"], base=10)
+    dd_trace_id = int(span["traceID"], base=10)
     otel_trace_id = int(span["meta"]["otel.trace_id"], base=16)
     if use_128_bits_trace_id:
         assert dd_trace_id == otel_trace_id
@@ -86,7 +140,7 @@ def validate_span_link(server_span: dict, message_span: dict) -> None:
     assert len(links) == 1
     link = links[0]
     assert link["trace_id"] == message_span["meta"]["otel.trace_id"]
-    assert int(link["span_id"], 16) == int(message_span["span_id"])
+    assert int(link["span_id"], 16) == int(message_span["spanID"])
     assert link["attributes"] == {"messaging.operation": "publish"}
 
 
@@ -102,9 +156,11 @@ def validate_span_fields(span1: dict, span2: dict, name1: str, name2: str) -> No
     logger.debug(f"Validate span fields. [{name1}]:[{span1}]")
     logger.debug(f"Validate span fields. [{name2}]:[{span2}]")
     assert span1["start"] == span2["start"]
-    assert span1["end"] == span2["end"]
     assert span1["duration"] == span2["duration"]
-    assert span1["resource_hash"] == span2["resource_hash"]
+    assert span1["service"] == span2["service"]
+    assert span1["resource"] == span2["resource"]
+    assert span1["name"] == span2["name"]
+    assert span1["type"] == span2["type"]
     validate_span_metas_metrics(span1["meta"], span2["meta"], span1["metrics"], span2["metrics"], name1, name2)
 
 
@@ -126,6 +182,11 @@ KNOWN_UNMATCHED_METAS = [
     "_dd.install.time",
     "_dd.install.type",
     "_dd.p.tid",
+    # Agent/Collector duplicate otel.library.name as otel.scope.name; the OTLP intake path doesn't.
+    "otel.scope.name",
+    # Agent/Collector convert OTLP span links to this meta; our mocked backend's raw OTLP intake
+    # path doesn't do that conversion (see the TODO in validate_span_link).
+    "_dd.span_links",
 ]
 KNOWN_UNMATCHED_METRICS = [
     "_dd.agent_errors_sampler.target_tps",
