@@ -109,40 +109,35 @@ class Test_OTelMetricE2E:
 
     def test_main(self):
         rid = self.r.get_rid().lower()
-        try:
-            # The 1st account has metrics sent by DD Agent
-            metrics_agent = [
-                interfaces.backend_v2.query_timeseries(
-                    rid=rid,
-                    metric=metric,
-                    dd_api_key=scenarios.otel_e2e.agent_api_key,
-                )
-                for metric in self.expected_metrics
-            ]
+        # The 1st account has metrics sent by DD Agent
+        metrics_agent = [
+            interfaces.backend_v2.query_timeseries(
+                rid=rid,
+                metric=metric,
+                dd_api_key=scenarios.otel_e2e.agent_api_key,
+            )
+            for metric in self.expected_metrics
+        ]
 
-            # The 2nd account has metrics via the backend OTLP intake endpoint
-            metrics_intake = [
-                interfaces.backend_v2.query_timeseries(
-                    rid=rid,
-                    metric=metric,
-                    dd_api_key=scenarios.otel_e2e.intake_api_key,
-                )
-                for metric in self.expected_metrics
-            ]
+        # The 2nd account has metrics via the backend OTLP intake endpoint
+        metrics_intake = [
+            interfaces.backend_v2.query_timeseries(
+                rid=rid,
+                metric=metric,
+                dd_api_key=scenarios.otel_e2e.intake_api_key,
+            )
+            for metric in self.expected_metrics
+        ]
 
-            # The 3rd account has metrics sent by OTel Collector
-            metrics_collector = [
-                interfaces.backend_v2.query_timeseries(
-                    rid=rid,
-                    metric=metric,
-                    dd_api_key=scenarios.otel_e2e.collector_api_key,
-                )
-                for metric in self.expected_metrics
-            ]
-
-        except ValueError:
-            logger.warning("Backend does not provide series")
-            return
+        # The 3rd account has metrics sent by OTel Collector
+        metrics_collector = [
+            interfaces.backend_v2.query_timeseries(
+                rid=rid,
+                metric=metric,
+                dd_api_key=scenarios.otel_e2e.collector_api_key,
+            )
+            for metric in self.expected_metrics
+        ]
 
         validate_metrics(metrics_agent, metrics_collector, "Agent", "Collector")
         validate_metrics(metrics_agent, metrics_intake, "Agent", "Intake")
