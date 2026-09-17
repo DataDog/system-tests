@@ -18,6 +18,8 @@ RC_PRODUCT = "FFE_FLAGS"
 RC_PATH = f"datadog/2/{RC_PRODUCT}"
 FFE_READY_RETRY_ATTEMPTS = 10
 FFE_READY_RETRY_INTERVAL_SECONDS = 0.2
+FFE_SYSTEM_TEST_DATA_DIR = Path(__file__).parent / "ffe-system-test-data"
+FFE_EVALUATION_CASES_DIR = FFE_SYSTEM_TEST_DATA_DIR / "evaluation-cases"
 
 parametrize = pytest.mark.parametrize
 
@@ -25,10 +27,12 @@ parametrize = pytest.mark.parametrize
 # Load the UFC fixture file at module level
 def _load_ufc_fixture() -> dict[str, Any]:
     """Load the UFC fixture file."""
-    fixture_path = Path(__file__).parent / "flags-v1.json"
+    fixture_path = FFE_SYSTEM_TEST_DATA_DIR / "ufc-config.json"
 
     if not fixture_path.exists():
-        pytest.skip(f"Fixture file not found: {fixture_path}")
+        raise FileNotFoundError(
+            f"Fixture file not found: {fixture_path}. Run `python3 utils/scripts/update_ffe_fixtures.py`."
+        )
 
     with fixture_path.open() as f:
         return json.load(f)
@@ -36,13 +40,17 @@ def _load_ufc_fixture() -> dict[str, Any]:
 
 def _get_test_case_files() -> list[str]:
     """Get all test case files from the fixtures directory."""
-    test_data_dir = Path(__file__).parent
-    if not test_data_dir.exists():
-        return []
+    if not FFE_EVALUATION_CASES_DIR.exists():
+        raise FileNotFoundError(
+            f"Fixture directory not found: {FFE_EVALUATION_CASES_DIR}. "
+            "Run `python3 utils/scripts/update_ffe_fixtures.py`."
+        )
 
-    # Exclude base fixtures that aren't test cases
-    excluded = {"flags-v1.json", "span-enrichment-flags.json"}
-    return [f.name for f in test_data_dir.iterdir() if f.suffix == ".json" and f.name not in excluded]
+    test_case_files = sorted(f.name for f in FFE_EVALUATION_CASES_DIR.iterdir() if f.suffix == ".json")
+    if not test_case_files:
+        raise AssertionError(f"No FFE JSON fixtures found in {FFE_EVALUATION_CASES_DIR}")
+
+    return test_case_files
 
 
 # Load fixture at module level for reuse across tests
@@ -153,7 +161,7 @@ class Test_Feature_Flag_Dynamic_Evaluation:
 
         """
         # Load the test case file
-        test_case_path = Path(__file__).parent / test_case_file
+        test_case_path = FFE_EVALUATION_CASES_DIR / test_case_file
 
         if not test_case_path.exists():
             pytest.skip(f"Test case file not found: {test_case_path}")
@@ -197,3 +205,20 @@ class Test_Feature_Flag_Dynamic_Evaluation:
                 f"flag='{flag}', targetingKey='{targeting_key}', "
                 f"expected={expected_result}, actual={actual_value}"
             )
+
+            expected_reason = test_case["result"]["reason"]
+            actual_reason = result.get("reason")
+            assert actual_reason == expected_reason, (
+                f"Test case {i} in {test_case_file} failed: "
+                f"flag='{flag}', targetingKey='{targeting_key}', "
+                f"expected reason={expected_reason}, actual reason={actual_reason}"
+            )
+
+            expected_error_code = test_case["result"].get("errorCode")
+            if expected_error_code is not None:
+                actual_error_code = result.get("errorCode")
+                assert actual_error_code == expected_error_code, (
+                    f"Test case {i} in {test_case_file} failed: "
+                    f"flag='{flag}', targetingKey='{targeting_key}', "
+                    f"expected errorCode={expected_error_code}, actual errorCode={actual_error_code}"
+                )
