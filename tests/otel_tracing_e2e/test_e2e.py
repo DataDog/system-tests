@@ -66,7 +66,6 @@ class Test_OTelTracingE2E:
             # The 1st account has traces sent by DD Agent
             traces_agent = [
                 interfaces.backend_v2.assert_otlp_trace_exist(
-                    request=self.r,
                     dd_trace_id=dd_trace_id,
                     dd_api_key=scenarios.otel_tracing_e2e.agent_api_key,
                 )
@@ -76,7 +75,6 @@ class Test_OTelTracingE2E:
             # The 2nd account has traces via the backend OTLP intake endpoint
             traces_intake = [
                 interfaces.backend_v2.assert_otlp_trace_exist(
-                    request=self.r,
                     dd_trace_id=dd_trace_id,
                     dd_api_key=scenarios.otel_tracing_e2e.intake_api_key,
                 )
@@ -86,7 +84,6 @@ class Test_OTelTracingE2E:
             # The 3rd account has traces sent by OTel Collector
             traces_collector = [
                 interfaces.backend_v2.assert_otlp_trace_exist(
-                    request=self.r,
                     dd_trace_id=dd_trace_id,
                     dd_api_key=scenarios.otel_tracing_e2e.collector_api_key,
                 )
@@ -187,7 +184,6 @@ class Test_OTelLogE2E:
             )
             otel_log_trace_attrs = validate_log(log_agent, rid, "datadog_agent")
             trace_agent = interfaces.backend_v2.assert_otlp_trace_exist(
-                request=self.r,
                 dd_trace_id=dd_trace_id,
                 dd_api_key=scenarios.otel_log_e2e.agent_api_key,
             )
@@ -205,7 +201,6 @@ class Test_OTelLogE2E:
             )
             otel_log_trace_attrs = validate_log(log_intake, rid, "backend_endpoint")
             trace_intake = interfaces.backend_v2.assert_otlp_trace_exist(
-                request=self.r,
                 dd_trace_id=dd_trace_id,
                 dd_api_key=scenarios.otel_tracing_e2e.intake_api_key,
             )
@@ -223,7 +218,6 @@ class Test_OTelLogE2E:
             )
             otel_log_trace_attrs = validate_log(log_collector, rid, "datadog_exporter")
             trace_collector = interfaces.backend_v2.assert_otlp_trace_exist(
-                request=self.r,
                 dd_trace_id=dd_trace_id,
                 dd_api_key=scenarios.otel_tracing_e2e.collector_api_key,
             )

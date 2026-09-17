@@ -104,8 +104,21 @@ class _BackendV2InterfaceValidator(ProxyBasedInterfaceValidator):
     def get_spans_list(self, request: HttpResponse | None = None) -> list[DataDogAgentSpan]:
         return [span for _, span in self.get_spans(request)]
 
-    def assert_otlp_trace_exist(self, request: HttpResponse, dd_trace_id: int, dd_api_key: str) -> dict:
-        raise NotImplementedError
+    def assert_otlp_trace_exist(self, dd_trace_id: int, dd_api_key: str) -> dict:
+        for data in self.get_data("/api/v0.2/traces"):
+            headers = dict(data["request"]["headers"])
+
+            if dd_api_key is not None and headers["Dd-Api-Key"] != dd_api_key:
+                logger.debug("API key does not match")
+                continue
+
+            for payload in data["request"]["content"]["tracerPayloads"]:
+                for trace in payload.get("chunks", []):
+                    observed_trace_id = trace["spans"][0]["traceID"]
+                    if observed_trace_id == dd_trace_id:
+                        return trace
+
+        raise ValueError(f"Trace {dd_trace_id} not found")
 
     def query_timeseries(self, start: int, end: int, rid: str, metric: str, dd_api_key: str) -> dict:
         raise NotImplementedError
