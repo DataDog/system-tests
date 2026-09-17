@@ -51,8 +51,7 @@ class Test_Crashtracking:
         test_library.crash()
 
         try:
-            # container.wait will throw if the application doesn't exit in time
-            test_library.container.wait(timeout=10)
+            test_library.wait_for_exit(timeout=10)
         finally:
             test_agent.set_trace_delay(0)
 

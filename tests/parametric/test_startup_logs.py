@@ -19,20 +19,18 @@ def _get_dotnet_startup_logs(test_library: APMLibrary, *, required: bool = True)
     If required is True, fails the test when the file is not found or empty.
     If required is False, returns None when the file is not found or empty.
     """
-    success, log_files = test_library.container_exec_run(
-        "sh -c 'find / -name \"dotnet-tracer-managed*\" -type f 2>/dev/null | head -1'"
-    )
-    if not success or not log_files or not log_files.strip():
+    log_files = test_library.list_files("/", "dotnet-tracer-managed*")
+    if not log_files:
         if required:
             pytest.fail("Failed to find .NET startup log file: no file matching 'dotnet-tracer-managed*' found")
         return None
-    log_file = log_files.strip()
-    success, logs = test_library.container_exec_run(f"sh -c 'cat {log_file} 2>/dev/null || true'")
-    if not success or not logs:
+    log_file = log_files[0]
+    logs = test_library.read_file(log_file)
+    if not logs:
         if required:
             pytest.fail(f"Failed to read .NET startup log file: {log_file}")
         return None
-    return logs
+    return logs.decode() if isinstance(logs, bytes) else logs
 
 
 def _get_startup_logs(test_library: APMLibrary, *, required: bool = True) -> str | None:
@@ -53,7 +51,7 @@ def _get_startup_logs(test_library: APMLibrary, *, required: bool = True) -> str
         return _get_dotnet_startup_logs(test_library, required=required)
     else:
         try:
-            logs = test_library.container.logs(stderr=True, stdout=False).decode("utf-8")
+            logs = test_library.get_stderr_logs()
         except Exception as e:
             if required:
                 pytest.fail(f"Failed to retrieve container logs: {e}")

@@ -61,9 +61,8 @@ class Test_Config_TraceLogDirectory:
         with test_library, test_library.dd_start_span("allowed"):
             pass
 
-        success, message = test_library.container_exec_run("ls /parametric-tracer-logs")
-        assert success, message
-        assert len(message.splitlines()) > 0, "No tracer logs detected"
+        log_files = test_library.list_files("/parametric-tracer-logs")
+        assert log_files, "No tracer logs detected"
 
 
 def set_service_version_tags():
@@ -537,7 +536,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
                 path,
                 test_library,
             )
-            test_library.container_restart()
+            test_library.restart()
             if test_library.lang == "nodejs":
                 assert_nodejs_telemetry_config(test_agent, expected)
             else:
@@ -597,7 +596,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
                 path,
                 test_library,
             )
-            test_library.container_restart()
+            test_library.restart()
             if test_library.lang == "nodejs":
                 assert_nodejs_telemetry_config(test_agent, expected)
                 return
@@ -656,7 +655,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
                 path,
                 test_library,
             )
-            test_library.container_restart()
+            test_library.restart()
             if test_library.lang == "nodejs":
                 assert_nodejs_telemetry_config(test_agent, test["expected"])
             else:
@@ -677,7 +676,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
                 path,
                 test_library,
             )
-            test_library.container_restart()
+            test_library.restart()
             if test_library.lang == "nodejs":
                 assert_nodejs_telemetry_config(test_agent, SDK_DEFAULT_STABLE_CONFIG)
             else:
@@ -750,7 +749,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
                 test_library,
             )
 
-            test_library.container_restart()
+            test_library.restart()
             if test_library.lang == "nodejs":
                 assert_nodejs_telemetry_config(test_agent, expected)
                 return
@@ -790,7 +789,7 @@ class Test_Stable_Config_Rules(StableConfigWriter):
                 path,
                 test_library,
             )
-            test_library.container_restart()
+            test_library.restart()
             if test_library.lang == "nodejs":
                 assert_nodejs_telemetry_config(test_agent, {"dd_service": "my-service"})
             else:
@@ -826,7 +825,7 @@ class Test_Stable_Config_Rules(StableConfigWriter):
             # Use custom dumper for this specific test
             stable_config_content = yaml.dump(config, Dumper=CustomDumper)
             self.write_stable_config_content(stable_config_content, path, test_library)
-            test_library.container_restart()
+            test_library.restart()
             if test_library.lang == "nodejs":
                 assert_nodejs_telemetry_config(test_agent, {"dd_service": "value"})
             else:

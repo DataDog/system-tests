@@ -139,6 +139,12 @@ def pytest_addoption(parser: pytest.Parser) -> None:
             "(faster re-runs when only test code changes)"
         ),
     )
+    parser.addoption(
+        "--parametric-runtime",
+        choices=("docker", "process"),
+        default=os.environ.get("SYSTEM_TESTS_PARAMETRIC_RUNTIME", "docker"),
+        help="Runtime used by PARAMETRIC fixtures (default: docker)",
+    )
 
     # Integration frameworks scenario options
     parser.addoption(
