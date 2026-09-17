@@ -917,7 +917,7 @@ class _Scenarios:
         doc="End-to-end testing scenario focused on efficient payload handling and v1 trace format validation",
     )
 
-    otel_log_e2e = OpenTelemetryScenario("OTEL_LOG_E2E", doc="")
+    otel_e2e = OpenTelemetryScenario("OTEL_E2E", doc="")
 
     library_conf_custom_header_tags = DdTraceEndToEndScenario(
         "LIBRARY_CONF_CUSTOM_HEADER_TAGS",

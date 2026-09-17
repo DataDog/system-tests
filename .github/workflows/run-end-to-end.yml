@@ -469,12 +469,9 @@ jobs:
     - name: Run OTEL_INTEGRATIONS scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_INTEGRATIONS"')
       run: ./run.sh OTEL_INTEGRATIONS
-    - name: Run OTEL_TRACING_E2E scenario
-      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_TRACING_E2E"')
-      run: ./run.sh OTEL_TRACING_E2E
-    - name: Run OTEL_LOG_E2E scenario
-      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_LOG_E2E"')
-      run: ./run.sh OTEL_LOG_E2E
+    - name: Run OTEL_E2E scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_E2E"')
+      run: ./run.sh OTEL_E2E
     - name: Run APPSEC_LAMBDA_DEFAULT scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_LAMBDA_DEFAULT"')
       run: ./run.sh APPSEC_LAMBDA_DEFAULT
