@@ -64,7 +64,7 @@ class Test_OTEL_METRIC_EXPORT_TIMEOUT:
         assert _metric_export_timeout(config) == expected
 
     @pytest.mark.parametrize("library_env", INVALID_VALUES)
-    def test_invalid_values_use_default(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+    def test_invalid_values(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         config = _metric_export_timeout_configuration(test_agent, test_library)
         assert _metric_export_timeout(config) >= 0
 
