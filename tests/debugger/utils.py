@@ -716,9 +716,18 @@ class BaseDebuggerTest:
         logger.debug(f"No capture reason span found: {self._no_capture_reason_span_found}")
         return self._no_capture_reason_span_found
 
-    def wait_for_code_origin_span(self, timeout: int = 5) -> bool:
+    def wait_for_code_origin_span(self, timeout: int = 5, threshold: int | None = None) -> bool:
+        """Wait for a code origin span.
+
+        By default, the threshold used to filter out pre-existing trace files
+        is computed when this method is called. If the request being checked
+        was already sent before calling this method, pass the threshold
+        captured just before sending it, otherwise a fast trace may be
+        discarded as pre-existing data.
+        """
         self._span_found = False
-        threshold = self._get_max_trace_file_number()
+        if threshold is None:
+            threshold = self._get_max_trace_file_number()
 
         interfaces.agent.wait_for(
             lambda data: self._wait_for_code_origin_span(data, threshold=threshold),
