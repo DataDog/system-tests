@@ -22,8 +22,8 @@ def validate_trace(traces: list[dict], *, use_128_bits_trace_id: bool) -> tuple:
     for trace in traces:
         spans = trace["spans"]
         assert len(spans) == 1
-        for item in spans.items():
-            span = item[1]
+        for item in spans:
+            span = item[0]
             validate_common_tags(span, use_128_bits_trace_id=use_128_bits_trace_id)
             if span["type"] == "web":
                 server_span = span

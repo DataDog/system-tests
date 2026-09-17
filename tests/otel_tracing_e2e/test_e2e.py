@@ -46,7 +46,7 @@ def _get_dd_trace_id(otel_trace_id: str, *, use_128_bits_trace_id: bool) -> int:
     return int.from_bytes(otel_trace_id_bytes[8:], "big")
 
 
-@scenarios.otel_tracing_e2e
+@scenarios.otel_log_e2e
 @features.not_reported  # FPD does not support otel libs
 class Test_OTelTracingE2E:
     def setup_main(self):
@@ -61,37 +61,32 @@ class Test_OTelTracingE2E:
             for otel_trace_id in otel_trace_ids
         ]
 
-        try:
-            # The 1st account has traces sent by DD Agent
-            traces_agent = [
-                interfaces.backend_v2.assert_otlp_trace_exist(
-                    dd_trace_id=dd_trace_id,
-                    dd_api_key=scenarios.otel_tracing_e2e.agent_api_key,
-                )
-                for dd_trace_id in dd_trace_ids
-            ]
+        # The 1st account has traces sent by DD Agent
+        traces_agent = [
+            interfaces.backend_v2.assert_otlp_trace_exist(
+                dd_trace_id=dd_trace_id,
+                dd_api_key=scenarios.otel_log_e2e.agent_api_key,
+            )
+            for dd_trace_id in dd_trace_ids
+        ]
 
-            # The 2nd account has traces via the backend OTLP intake endpoint
-            traces_intake = [
-                interfaces.backend_v2.assert_otlp_trace_exist(
-                    dd_trace_id=dd_trace_id,
-                    dd_api_key=scenarios.otel_tracing_e2e.intake_api_key,
-                )
-                for dd_trace_id in dd_trace_ids
-            ]
+        # The 2nd account has traces via the backend OTLP intake endpoint
+        traces_intake = [
+            interfaces.backend_v2.assert_otlp_trace_exist(
+                dd_trace_id=dd_trace_id,
+                dd_api_key=scenarios.otel_log_e2e.intake_api_key,
+            )
+            for dd_trace_id in dd_trace_ids
+        ]
 
-            # The 3rd account has traces sent by OTel Collector
-            traces_collector = [
-                interfaces.backend_v2.assert_otlp_trace_exist(
-                    dd_trace_id=dd_trace_id,
-                    dd_api_key=scenarios.otel_tracing_e2e.collector_api_key,
-                )
-                for dd_trace_id in dd_trace_ids
-            ]
-
-        except ValueError:
-            logger.warning("Backend does not provide traces")
-            return
+        # The 3rd account has traces sent by OTel Collector
+        traces_collector = [
+            interfaces.backend_v2.assert_otlp_trace_exist(
+                dd_trace_id=dd_trace_id,
+                dd_api_key=scenarios.otel_log_e2e.collector_api_key,
+            )
+            for dd_trace_id in dd_trace_ids
+        ]
 
         validate_all_traces(
             traces_agent, traces_intake, traces_collector, use_128_bits_trace_id=self.use_128_bits_trace_id
@@ -140,7 +135,7 @@ class Test_OTelMetricE2E:
                 interfaces.backend_v2.query_timeseries(
                     rid=rid,
                     metric=metric,
-                    dd_api_key=scenarios.otel_tracing_e2e.collector_api_key,
+                    dd_api_key=scenarios.otel_log_e2e.collector_api_key,
                 )
                 for metric in self.expected_metrics
             ]
@@ -183,12 +178,12 @@ class Test_OTelLogE2E:
         log_intake = interfaces.backend_v2.get_logs(
             query=f"trace_id:{dd_trace_id}",
             rid=rid,
-            dd_api_key=scenarios.otel_tracing_e2e.intake_api_key,
+            dd_api_key=scenarios.otel_log_e2e.intake_api_key,
         )
         otel_log_trace_attrs = validate_log(log_intake, rid, "backend_endpoint")
         trace_intake = interfaces.backend_v2.assert_otlp_trace_exist(
             dd_trace_id=dd_trace_id,
-            dd_api_key=scenarios.otel_tracing_e2e.intake_api_key,
+            dd_api_key=scenarios.otel_log_e2e.intake_api_key,
         )
         validate_log_trace_correlation(otel_log_trace_attrs, trace_intake, "backend_endpoint")
 
@@ -196,12 +191,12 @@ class Test_OTelLogE2E:
         log_collector = interfaces.backend_v2.get_logs(
             query=f"trace_id:{dd_trace_id}",
             rid=rid,
-            dd_api_key=scenarios.otel_tracing_e2e.collector_api_key,
+            dd_api_key=scenarios.otel_log_e2e.collector_api_key,
         )
         otel_log_trace_attrs = validate_log(log_collector, rid, "datadog_exporter")
         trace_collector = interfaces.backend_v2.assert_otlp_trace_exist(
             dd_trace_id=dd_trace_id,
-            dd_api_key=scenarios.otel_tracing_e2e.collector_api_key,
+            dd_api_key=scenarios.otel_log_e2e.collector_api_key,
         )
 
         validate_log_trace_correlation(otel_log_trace_attrs, trace_collector, "datadog_exporter")
