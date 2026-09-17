@@ -289,7 +289,9 @@ class BaseDebuggerTest:
                     source_file = ""
 
                     if language == "dotnet":
-                        source_file = "DebuggerController.cs"
+                        # Include Controllers/ so prefix-stripping and Windows-separator
+                        # tests exercise trailing-segment matching (DEBUG-5101 / DEBUG-5108).
+                        source_file = "Controllers/DebuggerController.cs"
                     elif language == "java":
                         source_file = "com/datadoghq/system_tests/springboot/debugger/DebuggerController.java"
                     elif language == "python":
