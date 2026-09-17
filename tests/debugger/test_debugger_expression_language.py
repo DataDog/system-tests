@@ -16,10 +16,11 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
 
     ############ setup ############
     def _setup(self, probes: list[dict], request_path: str):
+        self.initialize_weblog_remote_config()
         self.set_probes(probes)
         self.send_rc_probes()
         if not self.wait_for_all_probes(statuses=["INSTALLED"], timeout=60):
-            self.setup_failures.append("Probes did not reach INSTALLED status")
+            self.setup_failures = ["Probes did not reach INSTALLED status"]
             # Stop the test if the probes did not reach INSTALLED status since the probe won't exist
             # to send a snapshot.
             return
