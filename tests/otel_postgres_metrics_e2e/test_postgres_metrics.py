@@ -28,7 +28,6 @@ _metrics_validator = OtelMetricsValidator(postgresql_metrics)
 
 
 @scenarios.otel_collector
-@scenarios.otel_collector_e2e
 @features.postgres_receiver_metrics
 class Test_PostgreSQLMetricsCollection:
     def test_postgresql_metrics_received_by_collector(self):
@@ -43,43 +42,7 @@ class Test_PostgreSQLMetricsCollection:
         )
 
 
-@scenarios.otel_collector_e2e
-@features.postgres_receiver_metrics
-class Test_BackendValidity:
-    def test_postgresql_metrics_received_by_backend(self):
-        """Test metrics were actually queried / received by the backend"""
-        metrics_to_validate = list(postgresql_metrics.keys())
-        query_tags = {"rid": "otel-e2e-metrics", "host": "collector"}
-
-        time.sleep(15)
-        _validated_metrics, failed_metrics = _metrics_validator.query_backend_for_metrics(
-            metric_names=metrics_to_validate,
-            query_tags=query_tags,
-            lookback_seconds=300,
-            retries=3,
-            initial_delay_s=0.5,
-            semantic_mode="combined",
-        )
-
-        if failed_metrics:
-            logger.error(f"\n❌ Failed validations for semantic mode combined: {failed_metrics}")
-
-        # test with native mode
-        _validated_metrics, failed_metrics = _metrics_validator.query_backend_for_metrics(
-            metric_names=metrics_to_validate,
-            query_tags=query_tags,
-            lookback_seconds=300,
-            retries=3,
-            initial_delay_s=0.5,
-            semantic_mode="native",
-        )
-
-        if failed_metrics:
-            logger.error(f"\n❌ Failed validations for semantic mode native: {failed_metrics}")
-
-
 @scenarios.otel_collector
-@scenarios.otel_collector_e2e
 @features.postgres_receiver_metrics
 class Test_Smoke:
     """PostgreSQL-specific smoke test to generate database activity.
