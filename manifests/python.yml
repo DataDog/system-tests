@@ -1326,7 +1326,7 @@ manifest:
         "*": missing_feature
         *flask : v4.9.0-dev
     - component_version: v4.13.1
-      declaration: flaky (APMRP-360)
+      declaration: flaky (APMRP-378)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation:
     - weblog_declaration:
         "*": missing_feature
