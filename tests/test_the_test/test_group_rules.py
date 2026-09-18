@@ -48,9 +48,7 @@ def test_tracer_release():
         scenarios.todo,
         # targetting OTEL
         scenarios.otel_integrations,
-        scenarios.otel_log_e2e,
-        scenarios.otel_metric_e2e,
-        scenarios.otel_tracing_e2e,
+        scenarios.otel_e2e,
         scenarios.otel_collector,
         # to be added once stability is proven
         scenarios.chaos_installer_auto_injection,
@@ -83,7 +81,6 @@ def test_tracer_release():
         scenarios.simple_auto_injection_profiling,
         scenarios.simple_installer_auto_injection,
         scenarios.multi_installer_auto_injection,
-        scenarios.otel_collector_e2e,
     ]
 
     for scenario in get_all_scenarios():

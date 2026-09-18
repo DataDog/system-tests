@@ -58,9 +58,14 @@ def get_mocked_backend_v2_port() -> int:
     return _PORT_BASE
 
 
+def get_mocked_backend_v2_container_site() -> str:
+    """The DD_SITE a container can use to reach the mock server on the docker host."""
+    return f"{HOST_DOCKER_INTERNAL}:{get_mocked_backend_v2_port()}"
+
+
 def get_mocked_backend_v2_container_url() -> str:
     """The URL a container can use to reach the mock server on the docker host."""
-    return f"http://{HOST_DOCKER_INTERNAL}:{get_mocked_backend_v2_port()}"
+    return f"http://{get_mocked_backend_v2_container_site()}"
 
 
 class MockBackendV2Server:

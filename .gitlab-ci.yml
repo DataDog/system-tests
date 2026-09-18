@@ -356,7 +356,7 @@ system_tests_param:
               elif key == 'scenarios_groups': print('export SCENARIO_GROUPS=' + shlex.quote(str(val)))
       " > set_vars.sh
       source set_vars.sh
-    - export EXCLUDED_SCENARIOS='DEBUGGER_EXPRESSION_LANGUAGE,OTEL_COLLECTOR_E2E'
+    - export EXCLUDED_SCENARIOS='DEBUGGER_EXPRESSION_LANGUAGE'
     - export SYSTEM_TESTS_PUSH_TO_TEST_OPTIMIZATION=true
 
 build_ci_image:

@@ -127,7 +127,6 @@ def test_end_to_end_scenario_only_flushes_agent_backed_non_empty_test_runs(
     monkeypatch.setattr(scenario, "_wait_interface", MagicMock())
 
     monkeypatch.setattr(interfaces.library, "check_deserialization_errors", MagicMock())
-    monkeypatch.setattr(interfaces.backend, "check_deserialization_errors", MagicMock())
 
     scenario._wait_and_stop_containers(  # noqa: SLF001 - focused lifecycle test
         is_empty_test_run=is_empty_test_run
