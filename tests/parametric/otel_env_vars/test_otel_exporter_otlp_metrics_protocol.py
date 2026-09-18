@@ -174,8 +174,15 @@ class Test_OTEL_EXPORTER_OTLP_METRICS_PROTOCOL:
         _assert_export(test_library, test_agent, signal, expected_protocol)
 
     @pytest.mark.parametrize("generic_protocol", [pytest.param("nondefault", id="generic-nondefault")], indirect=True)
-    @pytest.mark.parametrize("protocol", [pytest.param(None, id="unset"), pytest.param("", id="empty")])
+    @pytest.mark.parametrize("protocol", [pytest.param(None, id="unset")])
     def test_generic_fallback(
+        self, test_library: APMLibrary, test_agent: TestAgentAPI, signal: str, expected_protocol: str
+    ) -> None:
+        _assert_export(test_library, test_agent, signal, expected_protocol)
+
+    @pytest.mark.parametrize("generic_protocol", [pytest.param("nondefault", id="generic-nondefault")], indirect=True)
+    @pytest.mark.parametrize("protocol", [pytest.param("", id="empty")])
+    def test_empty_generic_fallback(
         self, test_library: APMLibrary, test_agent: TestAgentAPI, signal: str, expected_protocol: str
     ) -> None:
         _assert_export(test_library, test_agent, signal, expected_protocol)
