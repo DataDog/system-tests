@@ -4,7 +4,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
-import pytest
+from utils import pytest
 
 from utils import scenarios
 from utils.ci.github import nightly

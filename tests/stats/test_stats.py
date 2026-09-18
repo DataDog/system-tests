@@ -1,5 +1,5 @@
 import contextlib
-import pytest
+from utils import pytest
 
 from utils import features, interfaces, logger, scenarios, weblog
 

@@ -1,5 +1,5 @@
 from urllib.parse import urlparse
-import pytest
+from utils import pytest
 
 from utils import features, scenarios
 
