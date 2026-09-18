@@ -26,7 +26,12 @@ def write_pins(root: Path) -> None:
         "    # Pinned Agent version, updated automatically\n"
         "    export DD_AGENT_MAJOR_VERSION=7\n"
         "    export DD_AGENT_MINOR_VERSION=78.4\n"
-        "    echo install\n"
+        '    if [ -f "install_script_agent7.sh" ]; then\n'
+        "        cp install_script_agent7.sh install_script.sh\n"
+        "    else\n"
+        '        # bash -c "$(curl -L https://example.test/install_script_agent7.sh)"\n'
+        "        curl -L https://example.test/install_script_agent7.sh -o install_script.sh\n"
+        "    fi\n"
     )
     compose = root / DOCKER_COMPOSE_PROVISION
     compose.parent.mkdir(parents=True)
@@ -46,6 +51,8 @@ def test_update_agent_version_updates_both_ssi_pins(tmp_path: Path) -> None:
     installer_content = (tmp_path / INSTALLER_PROVISION).read_text()
     assert "DD_AGENT_MAJOR_VERSION=8" in installer_content
     assert "DD_AGENT_MINOR_VERSION=0.1" in installer_content
+    assert installer_content.count("install_script_agent8.sh") == 4
+    assert "install_script_agent7.sh" not in installer_content
     assert "gcr.io/datadoghq/agent:8.0.1" in (tmp_path / DOCKER_COMPOSE_PROVISION).read_text()
     assert "Pinned Agent version, updated automatically" in installer_content
 
@@ -66,6 +73,16 @@ def test_update_agent_version_fails_when_a_pin_is_missing(tmp_path: Path) -> Non
 
     with pytest.raises(RuntimeError, match="exactly one Agent version pin"):
         update_agent_version(tmp_path, "7.82.3")
+
+
+@scenarios.test_the_test
+def test_update_agent_version_fails_when_an_install_script_reference_is_missing(tmp_path: Path) -> None:
+    write_pins(tmp_path)
+    installer = tmp_path / INSTALLER_PROVISION
+    installer.write_text(installer.read_text().replace("install_script_agent7.sh", "install_script.sh", 1))
+
+    with pytest.raises(RuntimeError, match="exactly 4 Agent install script references"):
+        update_agent_version(tmp_path, "8.0.1")
 
 
 @scenarios.test_the_test
