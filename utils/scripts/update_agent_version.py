@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 
 PIN_COMMENT = "Pinned Agent version, updated automatically by APMSP-3752"
 PIN_COMMENT_PATTERN = rf"(?:Pin to .* agent release\. APMSP-[0-9]+|{re.escape(PIN_COMMENT)})"
-VERSION_PATTERN = re.compile(r"^7\.[0-9]+\.[0-9]+$")
+VERSION_PATTERN = re.compile(r"^[0-9]+\.[0-9]+\.[0-9]+$")
 AUTOMATION_BRANCH = "apmsp-3752/update-agent-version"
 REPOSITORY = "DataDog/system-tests"
 OCTO_STS_POLICY = "self.gitlab-update-agent-version"
@@ -33,7 +33,7 @@ DOCKER_COMPOSE_PROVISION = Path(
 def normalize_version(version: str) -> str:
     normalized = version.removeprefix("v")
     if VERSION_PATTERN.fullmatch(normalized) is None:
-        raise ValueError(f"Expected a stable Agent 7 version, got: {version}")
+        raise ValueError(f"Expected a stable Agent version, got: {version}")
     return normalized
 
 
@@ -50,7 +50,7 @@ def _replace_once(path: Path, pattern: re.Pattern[str], replacement: str) -> boo
 
 def update_agent_version(root: Path, version: str) -> bool:
     normalized = normalize_version(version)
-    minor_version = normalized.removeprefix("7.")
+    major_version, minor_version = normalized.split(".", maxsplit=1)
 
     installer_changed = _replace_once(
         root / INSTALLER_PROVISION,
@@ -59,7 +59,9 @@ def update_agent_version(root: Path, version: str) -> bool:
             r"    export DD_AGENT_MAJOR_VERSION=[^\n]+\n"
             r"    export DD_AGENT_MINOR_VERSION=[^\n]+$"
         ),
-        f"    # {PIN_COMMENT}\n    export DD_AGENT_MAJOR_VERSION=7\n    export DD_AGENT_MINOR_VERSION={minor_version}",
+        f"    # {PIN_COMMENT}\n"
+        f"    export DD_AGENT_MAJOR_VERSION={major_version}\n"
+        f"    export DD_AGENT_MINOR_VERSION={minor_version}",
     )
     compose_changed = _replace_once(
         root / DOCKER_COMPOSE_PROVISION,
@@ -195,7 +197,7 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Publish an automated update of the Agent version pinned by SSI scenarios"
     )
-    parser.add_argument("--version", help="Override the latest stable Agent 7 version")
+    parser.add_argument("--version", help="Override the latest stable Agent version")
     parser.add_argument("--root", type=Path, default=Path.cwd(), help=argparse.SUPPRESS)
     return parser.parse_args(argv)
 

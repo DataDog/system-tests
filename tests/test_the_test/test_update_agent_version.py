@@ -42,18 +42,20 @@ def write_pins(root: Path) -> None:
 def test_update_agent_version_updates_both_ssi_pins(tmp_path: Path) -> None:
     write_pins(tmp_path)
 
-    assert update_agent_version(tmp_path, "v7.82.3")
-    assert "DD_AGENT_MINOR_VERSION=82.3" in (tmp_path / INSTALLER_PROVISION).read_text()
-    assert "gcr.io/datadoghq/agent:7.82.3" in (tmp_path / DOCKER_COMPOSE_PROVISION).read_text()
+    assert update_agent_version(tmp_path, "v8.0.1")
+    installer_content = (tmp_path / INSTALLER_PROVISION).read_text()
+    assert "DD_AGENT_MAJOR_VERSION=8" in installer_content
+    assert "DD_AGENT_MINOR_VERSION=0.1" in installer_content
+    assert "gcr.io/datadoghq/agent:8.0.1" in (tmp_path / DOCKER_COMPOSE_PROVISION).read_text()
     assert "updated automatically by APMSP-3752" in (tmp_path / INSTALLER_PROVISION).read_text()
 
-    assert not update_agent_version(tmp_path, "7.82.3")
+    assert not update_agent_version(tmp_path, "8.0.1")
 
 
 @scenarios.test_the_test
-@pytest.mark.parametrize("version", ["8.0.0", "7.82", "7.82.3-rc.1", "latest"])
+@pytest.mark.parametrize("version", ["7.82", "7.82.3-rc.1", "latest"])
 def test_normalize_version_rejects_unsupported_versions(version: str) -> None:
-    with pytest.raises(ValueError, match="Expected a stable Agent 7 version"):
+    with pytest.raises(ValueError, match="Expected a stable Agent version"):
         normalize_version(version)
 
 
@@ -71,14 +73,14 @@ def test_automate_update_publishes_latest_version(tmp_path: Path, monkeypatch: p
     write_pins(tmp_path)
     published: list[tuple[Path, str]] = []
     github = GitHubApi("token")
-    monkeypatch.setattr("utils.scripts.update_agent_version.latest_agent_version", lambda _github: "7.82.3")
+    monkeypatch.setattr("utils.scripts.update_agent_version.latest_agent_version", lambda _github: "8.0.1")
     monkeypatch.setattr(
         "utils.scripts.update_agent_version.publish_update",
         lambda root, version, _github, _env: published.append((root, version)),
     )
 
     assert automate_update(tmp_path, github, {})
-    assert published == [(tmp_path, "7.82.3")]
+    assert published == [(tmp_path, "8.0.1")]
 
 
 @scenarios.test_the_test
