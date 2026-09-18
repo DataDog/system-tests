@@ -167,6 +167,13 @@ def automate_update(root: Path, github: GitHubApi, env: Mapping[str, str], versi
     return True
 
 
+def revoke_token(root: Path, token: str) -> None:
+    try:
+        run_command(root, ["dd-octo-sts", "revoke", "-t", token], capture_output=True)
+    except subprocess.CalledProcessError as error:
+        raise RuntimeError(f"dd-octo-sts token revocation failed with exit code {error.returncode}") from None
+
+
 def run_automation(root: Path, version: str | None = None) -> bool:
     scope_args = ["--scope", REPOSITORY, "--policy", OCTO_STS_POLICY]
     run_command(root, ["dd-octo-sts", "version"])
@@ -181,7 +188,7 @@ def run_automation(root: Path, version: str | None = None) -> bool:
     try:
         return automate_update(root, github, github_env, version)
     finally:
-        run_command(root, ["dd-octo-sts", "revoke", "-t", token])
+        revoke_token(root, token)
 
 
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:

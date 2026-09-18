@@ -12,6 +12,7 @@ from utils.scripts.update_agent_version import (
     automate_update,
     normalize_version,
     publish_update,
+    revoke_token,
     run_automation,
     update_agent_version,
 )
@@ -164,6 +165,39 @@ def test_run_automation_revokes_token_after_failure(tmp_path: Path, monkeypatch:
         run_automation(tmp_path)
 
     assert commands[-1] == ["dd-octo-sts", "revoke", "-t", "secret-token"]
+
+
+@scenarios.test_the_test
+def test_revoke_token_hides_token_and_command_output(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    token = "secret-token"
+
+    def fail_run(
+        _root: Path,
+        args: list[str],
+        *,
+        capture_output: bool = False,
+        env: dict[str, str] | None = None,
+    ) -> subprocess.CompletedProcess[str]:
+        assert capture_output
+        assert env is None
+        raise subprocess.CalledProcessError(
+            1,
+            args,
+            output=f"stdout containing {token}",
+            stderr=f"stderr containing {token}",
+        )
+
+    monkeypatch.setattr("utils.scripts.update_agent_version.run_command", fail_run)
+
+    with pytest.raises(RuntimeError, match="token revocation failed with exit code 1") as error:
+        revoke_token(tmp_path, token)
+
+    captured = capsys.readouterr()
+    assert token not in str(error.value)
+    assert captured.out == ""
+    assert captured.err == ""
 
 
 @scenarios.test_the_test
