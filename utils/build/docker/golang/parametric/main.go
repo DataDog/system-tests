@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"sync"
 
 	ddotel "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry"
 	ddlog "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry/log"
@@ -30,8 +29,7 @@ type apmClientServer struct {
 	ofClient     *of.Client
 	ddProvider   of.FeatureProvider
 	// OTel Logs
-	loggers   map[string]otelLogger
-	loggersMu sync.RWMutex
+	loggers map[string]otelLogger
 	// OTel Metrics
 	mp          metric.MeterProvider
 	meters      map[string]metric.Meter

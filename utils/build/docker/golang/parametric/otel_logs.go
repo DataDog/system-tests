@@ -74,8 +74,6 @@ func (s *apmClientServer) otelCreateLoggerHandler(w http.ResponseWriter, r *http
 		return
 	}
 
-	s.loggersMu.Lock()
-	defer s.loggersMu.Unlock()
 	if _, exists := s.loggers[args.Name]; exists {
 		writeLogResponse(w, OtelLogReturn{Success: false})
 		return
@@ -111,9 +109,7 @@ func (s *apmClientServer) otelWriteLogHandler(w http.ResponseWriter, r *http.Req
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	s.loggersMu.RLock()
 	logger, exists := s.loggers[args.LoggerName]
-	s.loggersMu.RUnlock()
 	if !exists {
 		http.Error(w, "logger not found", http.StatusBadRequest)
 		return
