@@ -169,6 +169,14 @@ class FeatureFlaggingAgentlessEndToEndScenario(AgentlessEndToEndScenario):
         )
 
         if exposure_egress == "direct":
+            # Node.js does not load the system-test proxy CA by default. Other
+            # runtimes ignore this Node-only variable.
+            proxy_ca_path = "/etc/system-tests/mitmproxy-ca.pem"
+            self.weblog_infra.library_container.volumes["./utils/build/docker/agent/ca-certificates.crt"] = {
+                "bind": proxy_ca_path,
+                "mode": "ro",
+            }
+            self.weblog_infra.library_container.environment["NODE_EXTRA_CA_CERTS"] = proxy_ca_path
             # Direct mode uses the proxy only to capture HTTPS intake requests.
             # Do not advertise the proxy as a local Agent endpoint.
             for env_name in ("DD_AGENT_HOST", "DD_DOGSTATSD_HOST", "DD_TRACE_AGENT_PORT", "DD_TRACE_AGENT_URL"):
