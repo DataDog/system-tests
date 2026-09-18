@@ -16,6 +16,7 @@
      * [Configure the environment variables](#Configure-the-environment-variables)
    * [Run the scenario using the wizard](#run-the-scenario-using-the-wizard)
    * [Run the scenario manually](#run-the-scenario-manually)
+   * [Run SSI jobs for one language in GitLab CI](#run-ssi-jobs-for-one-language-in-gitlab-ci)
 3. [How to develop tests](#How-to-develop-a-test-case)
    * [Folders and Files structure](#Folders-and-Files-structure)
    * [Define a new virtual machine](#Create-a-new-virtual-machine)
@@ -442,6 +443,27 @@ The following line shows an example of command line to run the tests on a secure
  aws-vault exec sso-sandbox-account-admin -- ./run.sh SIMPLE_INSTALLER_AUTO_INJECTION --vm-weblog test-app-nodejs --vm-env dev --vm-library nodejs --vm-provider aws --vm-only Ubuntu_22_amd64
  ```
 
+## Run SSI jobs for one language in GitLab CI
+
+A scheduled or [manual pipeline](https://gitlab.ddbuild.io/DataDog/system-tests/-/pipelines/new) can target a single SSI language. Do **not** set `SCHEDULED_JOB` (that variable is only for cleanup jobs such as `delete_amis` and it skips SSI).
+
+Set these variables (lowercase language name):
+
+| Variable | Example | Purpose |
+|---|---|---|
+| `SYSTEM_TESTS_LIBRARY` | `php` | Run only that SSI child pipeline (`nodejs`, `java`, `dotnet`, `python`, `php`, `ruby`) |
+| `SYSTEM_TESTS_SCENARIOS` | `SIMPLE_AUTO_INJECTION_PROFILING` | Optional. Force those SSI scenarios |
+| `SYSTEM_TESTS_SCENARIOS_GROUPS` | `onboarding` | Optional. Force those SSI scenario groups |
+
+Example for PHP host profiling only:
+
+```text
+SYSTEM_TESTS_LIBRARY=php
+SYSTEM_TESTS_SCENARIOS=SIMPLE_AUTO_INJECTION_PROFILING
+```
+
+Without `SYSTEM_TESTS_LIBRARY`, GitLab still generates and runs the six language child pipelines in sequence.
+
 # How to develop tests
 
 Developing new tests might involve one or several operations:
@@ -819,8 +841,11 @@ Located in: **var/log/datadog_weblog/**
 * **docker_list_dependencies.log:** Docker dependencies listing.
 * **docker_proccess.log:** Docker process information.
 * **journalctl_docker.log:** Systemd journal logs related to Docker.
+* **journalctl_test-app.log:** Systemd journal logs for the host weblog service (`test-app.service`).
 * **system.timers.log:** System timer logs.
 * **dd-agent-diagnostics.log:** Datadog Agent container diagnostics. Only present in container-based scenarios that start the agent via `docker-compose-agent-prod.yml`.
+* **core-diagnostics.txt:** Kernel `core_pattern`, `ulimit -c`, and the core files found/copied after a host crash.
+* **core.\* / systemd-coredump:** Process core dumps (for example PHP host segfaults, often with profiling). Use these with `gdb` when investigating a `Segmentation fault` / exit status 139.
 
 ## How to read VM log markers (`[vm_name].log`)
 
@@ -946,6 +971,7 @@ Exception launching aws provision step remote command
    grep -n "Diagnostics:" [vm_name].log
    ~~~
 4. Identify the failing command (package install, Docker/runtime setup, agent install, SSI packages, or test app build) and fix accordingly.
+5. If the failing step is the host weblog start (`test-app-php` or `test-app.service`) and you see `Segmentation fault` / exit status 139, check the downloaded cores under `var/log/datadog_weblog/` (`core*`, `core-diagnostics.txt`, `journalctl_test-app.log`). This is common on PHP host apps in profiling scenarios.
 
 ---
 
@@ -1013,6 +1039,8 @@ Exception during trace in backend verification: Reached overall timeout of 300 f
 - **Backend processing** — in the Datadog UI (system-tests org), locate the trace ID `{request_uuid}` and verify associated profiling data is present or delayed.
 
 > **Note:** Make sure profiling is actually enabled for the application (per language tracer guidance) before investigating backend intake.
+
+If the PHP **host** weblog never starts (`Segmentation fault` / exit status 139 during `php --version` or `test-app.service`), this is a tracer/profiler crash, not a missing-profile timeout. Use the core dump under `var/log/datadog_weblog/` (see [Case 2](#case-2--vm-provisioning-failure-remote-command)).
 
 ---
 
