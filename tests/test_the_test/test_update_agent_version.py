@@ -3,6 +3,7 @@ from pathlib import Path
 
 import pytest
 
+from utils import scenarios
 from utils.scripts.update_agent_version import (
     AUTOMATION_BRANCH,
     DOCKER_COMPOSE_PROVISION,
@@ -14,8 +15,6 @@ from utils.scripts.update_agent_version import (
     run_automation,
     update_agent_version,
 )
-
-pytestmark = pytest.mark.scenario("TEST_THE_TEST")
 
 
 def write_pins(root: Path) -> None:
@@ -38,6 +37,7 @@ def write_pins(root: Path) -> None:
     )
 
 
+@scenarios.test_the_test
 def test_update_agent_version_updates_both_ssi_pins(tmp_path: Path) -> None:
     write_pins(tmp_path)
 
@@ -49,12 +49,14 @@ def test_update_agent_version_updates_both_ssi_pins(tmp_path: Path) -> None:
     assert not update_agent_version(tmp_path, "7.82.3")
 
 
+@scenarios.test_the_test
 @pytest.mark.parametrize("version", ["8.0.0", "7.82", "7.82.3-rc.1", "latest"])
 def test_normalize_version_rejects_unsupported_versions(version: str) -> None:
     with pytest.raises(ValueError, match="Expected a stable Agent 7 version"):
         normalize_version(version)
 
 
+@scenarios.test_the_test
 def test_update_agent_version_fails_when_a_pin_is_missing(tmp_path: Path) -> None:
     write_pins(tmp_path)
     (tmp_path / INSTALLER_PROVISION).write_text("remote-command: |\n    echo install\n")
@@ -63,6 +65,7 @@ def test_update_agent_version_fails_when_a_pin_is_missing(tmp_path: Path) -> Non
         update_agent_version(tmp_path, "7.82.3")
 
 
+@scenarios.test_the_test
 def test_automate_update_publishes_latest_version(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     write_pins(tmp_path)
     published: list[tuple[Path, str]] = []
@@ -77,6 +80,7 @@ def test_automate_update_publishes_latest_version(tmp_path: Path, monkeypatch: p
     assert published == [(tmp_path, "7.82.3")]
 
 
+@scenarios.test_the_test
 def test_automate_update_skips_publish_when_current(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     write_pins(tmp_path)
     update_agent_version(tmp_path, "7.82.3")
@@ -89,6 +93,7 @@ def test_automate_update_skips_publish_when_current(tmp_path: Path, monkeypatch:
     assert not automate_update(tmp_path, github, {}, "7.82.3")
 
 
+@scenarios.test_the_test
 @pytest.mark.parametrize("existing_pr", ["", "1234"])
 def test_publish_update_creates_only_missing_pr(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, existing_pr: str
@@ -132,6 +137,7 @@ def test_publish_update_creates_only_missing_pr(
     assert github.calls[-1] == ("POST", "/graphql")
 
 
+@scenarios.test_the_test
 def test_run_automation_revokes_token_after_failure(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     commands: list[list[str]] = []
 
@@ -160,6 +166,7 @@ def test_run_automation_revokes_token_after_failure(tmp_path: Path, monkeypatch:
     assert commands[-1] == ["dd-octo-sts", "revoke", "-t", "secret-token"]
 
 
+@scenarios.test_the_test
 def test_run_automation_rejects_empty_token(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     commands: list[list[str]] = []
 
