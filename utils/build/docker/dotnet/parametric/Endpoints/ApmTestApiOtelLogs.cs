@@ -10,17 +10,6 @@ public abstract partial class ApmTestApiOtel
     private static readonly ConcurrentDictionary<string, (ILogger Logger, LogLevel MinimumLevel)> OtelLoggers = new();
     private static ILoggerFactory? _otelLoggerFactory;
 
-    private static void MapOtelLogEndpoints(WebApplication app)
-    {
-        // Datadog instruments ILoggerFactory and installs its own log provider. Do not
-        // configure an upstream OTel SDK/exporter, which would bypass the tracer under test.
-        _otelLoggerFactory = LoggerFactory.Create(builder => builder.SetMinimumLevel(LogLevel.Trace).AddConsole());
-        app.Lifetime.ApplicationStopped.Register(_otelLoggerFactory.Dispose);
-        app.MapPost("/otel/logger/create", OtelCreateLogger);
-        app.MapPost("/otel/logger/write", OtelWriteLog);
-        app.MapPost("/log/otel/flush", OtelFlushLogs);
-    }
-
     private static LogLevel ParseLogLevel(string? level) => level?.ToUpperInvariant() switch
     {
         "DEBUG" => LogLevel.Debug,
