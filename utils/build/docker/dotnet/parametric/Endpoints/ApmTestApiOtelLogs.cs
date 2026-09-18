@@ -29,10 +29,15 @@ public abstract partial class ApmTestApiOtel
         }
 
         var level = ParseLogLevel(args.Value<string>("level"));
+        if (OtelLoggers.ContainsKey(name))
+        {
+            return Results.Ok(new { success = false });
+        }
+
         // ILogger has a category name but no instrumentation version, schema URL, or
         // scope attributes API. Accept those optional fields without fabricating them.
-        OtelLoggers.GetOrAdd(name, loggerName => (_otelLoggerFactory!.CreateLogger(loggerName), level));
-        return Results.Ok(new { success = true });
+        var success = OtelLoggers.TryAdd(name, (_otelLoggerFactory!.CreateLogger(name), level));
+        return Results.Ok(new { success });
     }
 
     private static async Task<IResult> OtelWriteLog(HttpRequest request)
