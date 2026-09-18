@@ -1597,6 +1597,8 @@ manifest:
   tests/parametric/test_otel_logs.py::Test_FR10_Timeout_Configuration: missing_feature (OTel config telemetry tracking out of scope for initial PR)
   tests/parametric/test_otel_logs.py::Test_FR11_Telemetry: missing_feature (OTel config telemetry tracking out of scope for initial PR)
   tests/parametric/test_otel_metrics.py: missing_feature
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Api_MeterProvider: v1.17.0
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Configuration_Enabled: v1.17.0
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods: v0.94.0
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_add_event_meta_serialization:
     - declaration: missing_feature (Not implemented)
