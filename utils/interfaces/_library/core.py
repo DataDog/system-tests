@@ -12,6 +12,7 @@ from utils.tools import get_rid_from_user_agent
 from utils._logger import logger
 from utils.dd_constants import RemoteConfigApplyState, Capabilities
 from utils.dd_types import DataDogLibrarySpan, DataDogLibraryTrace
+from utils.dd_types._datadog_library_trace_otlp import DataDogLibraryTraceOTLP
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils.interfaces._library.appsec import _WafAttack, _ReportedHeader
 from utils.interfaces._library.miscs import _SpanTagValidator
@@ -122,7 +123,37 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
                 raise ValueError(f"Unkown trace path: {data['path']}")
 
         if not trace_found:
+            # Fallback: try OTLP data from interfaces.open_telemetry
+            # This allows tests to work when traces are exported via OTLP instead of Datadog agent protocol
+            yield from self._get_traces_from_otlp(rid)
+            return
+
+        if not trace_found:
             logger.warning("No trace found")
+
+    def _get_traces_from_otlp(self, rid: str | None) -> Generator[tuple[dict, DataDogLibraryTraceOTLP], None, None]:
+        """Fallback: read traces from interfaces.open_telemetry (OTLP format)."""
+        from utils import interfaces  # noqa: PLC0415
+
+        otel = interfaces.open_telemetry
+        if not otel._data_list:  # noqa: SLF001
+            return
+
+        for data in otel.get_data(path_filters=["/v1/traces", "/api/v0.2/traces"]):
+            content = data.get("request", {}).get("content", {})
+            resource_spans = content.get("resourceSpans") or []
+
+            for resource_span in resource_spans:
+                result = DataDogLibraryTraceOTLP(data, resource_span)
+
+                if rid is None:
+                    yield data, result
+                else:
+                    for span in result.spans:
+                        if rid == span.get_rid():
+                            logger.debug(f"Found a trace (OTLP) in {result.log_filename}")
+                            yield data, result
+                            break
 
     def get_spans(self, request: HttpResponse | None = None, *, full_trace: bool = False):
         """Iterate over all spans reported by the tracer to the agent.
@@ -160,20 +191,50 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         assert len(spans) == 1, "More than one root span found"
         return spans[0]
 
+    @staticmethod
+    def _decode_appsec_data(appsec_data: object) -> object:
+        """Decode appsec data if it is a base64-encoded string (OTLP format)."""
+        if isinstance(appsec_data, dict):
+            return appsec_data
+        if isinstance(appsec_data, str):
+            try:
+                import base64  # noqa: PLC0415
+
+                decoded = base64.b64decode(appsec_data)
+                try:
+                    return json.loads(decoded)
+                except (json.JSONDecodeError, UnicodeDecodeError):
+                    text = decoded.decode("utf-8", errors="replace")
+                    if "triggers" in text:
+                        try:
+                            import msgpack  # noqa: PLC0415
+
+                            return msgpack.unpackb(decoded, raw=False)
+                        except ImportError:
+                            logger.warning("msgpack not available, appsec data may not be fully parsed")
+                            return {"_raw": text}
+                    return {"_raw": text}
+            except Exception as e:
+                logger.debug(f"Failed to decode appsec data: {e}")
+                return None
+        return appsec_data
+
     def get_appsec_events(self, request: HttpResponse | None = None, *, full_trace: bool = False):
         for data, trace, span in self.get_spans(request=request, full_trace=full_trace):
             if "appsec" in span.get("meta_struct", {}):
                 if request:  # do not spam log if all data are sent to the validator
                     logger.debug(f"Try to find relevant appsec data in {data['log_filename']}; span #{span['span_id']}")
 
-                appsec_data = span["meta_struct"]["appsec"]
-                yield data, trace, span, appsec_data
+                appsec_data = self._decode_appsec_data(span["meta_struct"]["appsec"])
+                if appsec_data is not None:
+                    yield data, trace, span, appsec_data
             elif "_dd.appsec.json" in span.get("meta", {}):
                 if request:  # do not spam log if all data are sent to the validator
                     logger.debug(f"Try to find relevant appsec data in {data['log_filename']}; span #{span['span_id']}")
 
-                appsec_data = span["meta"]["_dd.appsec.json"]
-                yield data, trace, span, appsec_data
+                appsec_data = self._decode_appsec_data(span["meta"]["_dd.appsec.json"])
+                if appsec_data is not None:
+                    yield data, trace, span, appsec_data
 
     def get_legacy_appsec_events(self, request: HttpResponse | None = None):
         paths_with_appsec_events = ["/appsec/proxy/v1/input", "/appsec/proxy/api/v2/appsecevts"]

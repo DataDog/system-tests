@@ -7,6 +7,7 @@ from utils import interfaces, features, scenarios
 
 @features.appsec_miscs_internals
 @scenarios.default
+@scenarios.appsec_otlp_export
 @scenarios.appsec_lambda_default
 class Test_Events:
     """AppSec events uses events in span"""
