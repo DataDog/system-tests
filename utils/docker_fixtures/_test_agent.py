@@ -706,21 +706,22 @@ class TestAgentAPI:
         raise AssertionError(f"Telemetry event {event_name} not found")
 
     def wait_for_telemetry_configurations(
-        self, *, service: str | None = None, clear: bool = False, wait_loops: int = 100
-    ) -> dict[str, list[dict]]:
+        self,
+        *,
+        service: str | None = None,
+        runtime_id: str | None = None,
+        clear: bool = False,
+        wait_loops: int = 100,
+    ) -> dict[str, list[dict[str, Any]]]:
         """Waits for and returns configurations captured in telemetry events.
 
         Telemetry events can be found in `app-started` or `app-client-configuration-change` events.
-        The function ensures that at least one telemetry event is captured before processing.
         Returns a dictionary where keys are configuration names and values are lists of
         configuration dictionaries, allowing for multiple entries per configuration name
         with different origins.
         """
-        events = []
-        configurations: dict[str, list[dict]] = {}
-        # Poll until telemetry is captured instead of sleeping a fixed delay: returns as soon as
-        # app-started arrives (usually within a heartbeat) and retries the empty-read window that
-        # a single fixed-delay read can land in.
+        events: list[dict[str, Any]] = []
+        configurations: dict[str, list[dict[str, Any]]] = {}
         for _ in range(wait_loops):
             with contextlib.suppress(requests.exceptions.RequestException):
                 events = self.telemetry(clear=False)
@@ -730,32 +731,42 @@ class TestAgentAPI:
         else:
             raise AssertionError("No telemetry events were found. Ensure the application is sending telemetry events.")
 
-        # Sort events by tracer_time to ensure configurations are processed in order
-        events.sort(key=lambda r: r["tracer_time"])
-
-        # Extract configuration data from relevant telemetry events
+        events.sort(key=lambda event: event["tracer_time"])
         for event in events:
+            if runtime_id is not None and event.get("runtime_id") != runtime_id:
+                continue
             if service is not None and event["application"]["service_name"] != service:
                 continue
             for event_type in ["app-started", "app-client-configuration-change"]:
                 telemetry_event = self._get_telemetry_event(event, event_type)
                 if telemetry_event:
                     for config in telemetry_event.get("payload", {}).get("configuration", []):
-                        # Store all configurations, allowing multiple entries per name with different origins
-                        config_name = config["name"]
-                        if config_name not in configurations:
-                            configurations[config_name] = []
-                        configurations[config_name].append(config)
-        if configurations:
-            # Checking if we need to sort due to multiple sources being sent for the same config
-            sample_key = next(iter(configurations))
-            if "seq_id" in configurations[sample_key][0] and configurations[sample_key][0]["seq_id"] is not None:
-                # Sort seq_id for each config from highest to lowest
-                for payload in configurations.values():
-                    payload.sort(key=lambda item: item["seq_id"], reverse=True)
+                        configurations.setdefault(config["name"], []).append(config)
+        for payload in configurations.values():
+            payload.sort(key=lambda item: item.get("seq_id") or 0, reverse=True)
         if clear:
             self.clear()
         return configurations
+
+    def wait_for_telemetry_runtime_id(self, *, exclude: str | None = None, wait_loops: int = 200) -> str:
+        observed_runtime_ids: set[str] = set()
+        for _ in range(wait_loops):
+            events: list[dict[str, Any]] = []
+            with contextlib.suppress(requests.exceptions.RequestException):
+                events = self.telemetry(clear=False)
+            events.sort(key=lambda event: event["tracer_time"], reverse=True)
+            for event in events:
+                telemetry_event = self._get_telemetry_event(event, "app-started")
+                if telemetry_event is None:
+                    continue
+                runtime_id = telemetry_event.get("runtime_id") or event.get("runtime_id")
+                if runtime_id is None:
+                    continue
+                observed_runtime_ids.add(runtime_id)
+                if runtime_id != exclude:
+                    return runtime_id
+            time.sleep(0.01)
+        raise AssertionError(f"No telemetry runtime ID found excluding {exclude}. Observed: {observed_runtime_ids}")
 
     def get_telemetry_config_by_origin(
         self,
