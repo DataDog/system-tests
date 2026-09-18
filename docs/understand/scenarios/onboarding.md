@@ -1065,6 +1065,7 @@ Whenever possible, please follow up by opening an issue or PR to properly addres
 Make sure to check the machine logs and confirm that the issue is not caused by your own software (such as the Agent, Installer, Injector, or any of the Tracers).
 You should only apply this workaround if the root cause is one of the following:
 * Issues with the original AMI on AWS.
+* A cached AMI that was generated incorrectly (for example the Docker daemon failed to install).
 * Problems with third-party repositories.
 * Failures when installing a third-party dependency required to run the tests.
 
@@ -1076,7 +1077,39 @@ If this kind of problem occurs, it could affect multiple components:
 * auto_inject: Could block merges to the main branch or delay releases.
 
 **Quick Solution:**
-  Open `utils/virtual_machine/virtual_machines.json` and set the `"enabled"` field to `false` for the problematic virtual machine to temporarily exclude it from test runs.
+
+1. **Temporarily exclude the VM.** Open `utils/virtual_machine/virtual_machines.json` and set `"disabled": true` for the problematic virtual machine.
+2. **Or delete the cached AMI** if the VM itself is fine but the snapshot is broken (see below). The next test run recreates it automatically.
+
+### Cached AMI is incorrect
+
+Cacheable provision steps (Docker, language runtime, …) are baked into an AMI. If that snapshot is wrong, every later run of the same VM + weblog reuses it.
+
+**Typical symptom:** Docker daemon failed during AMI creation. Tests fail with errors such as *Cannot connect to the Docker daemon* or *docker daemon does not exist*.
+
+**Find the AMI name** in the GitLab job stdout or in `tests.log` (near the start of the run):
+
+```
+14:14:56.472 STDOUT   We found an existing AMI  name:[CentOS_7_amd64_container-auto-inject-install-script_test-app-php-container-83_83cba9f5a8ae3b342e10f0a48ee1d6d5-3f871b1], ID:[ami-0b27aa90064f6603e], status:[available], expiration:[], created:[2026-08-18T09:56:10.000Z]
+```
+
+**Delete the AMI:**
+
+* **GitLab job `delete_amis_by_name_or_lang`** — targeted cleanup. Run a pipeline on [system-tests GitLab](https://gitlab.ddbuild.io/DataDog/system-tests/-/pipelines/new) with:
+  * `SCHEDULED_JOB=delete_amis_by_name_or_lang`
+  * `AMI_NAME` and/or `AMI_LANG` (at least one is required)
+
+  Matching rules (only AMIs tagged `CI=system-tests`):
+  * Both set → the AMI name must contain **both** substrings.
+  * One set → any AMI whose name contains that substring is deleted.
+
+  Use a precise value (VM name + weblog, or the unique hash from the log) so you do not delete unrelated AMIs.
+
+  Example: `AMI_NAME=CentOS_7_amd64` and `AMI_LANG=php`
+
+* **GitLab job `delete_amis`** — scheduled periodic cleanup of old AMIs (retention: 10 days / last launched: 10 days). It does **not** target a specific AMI.
+
+* **AWS console** — EC2 → AMIs → search by name → **Deregister**.
 
 ---
 

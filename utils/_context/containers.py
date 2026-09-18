@@ -22,6 +22,8 @@ from utils._context.component_version import ComponentVersion, Version
 from utils._context.docker import get_docker_client
 from utils._context._image_mirror import mirror_image
 from utils._context.constants import ContainerPorts
+from utils.base_images.base_image import base_image_contexts
+from utils._context.weblog_metadata import WeblogMetaData
 from utils.docker_fixtures._core import extra_hosts_for_environment
 from utils.proxy.tuf import get_tuf_root_json
 from utils.proxy.ports import ProxyPorts
@@ -143,6 +145,14 @@ class TestedContainer:
                 return f.read().strip()
         except FileNotFoundError:
             return default_name
+
+    def enable_ptrace(self) -> None:
+        """Allow processes in this container to be traced from outside, e.g. by py-spy"""
+
+        self.cap_add = self.cap_add if self.cap_add is not None else []
+
+        if "SYS_PTRACE" not in self.cap_add:
+            self.cap_add.append("SYS_PTRACE")
 
     def enable_core_dumps(self) -> None:
         """Modify container options to enable the possibility of core dumps"""
@@ -424,7 +434,15 @@ class TestedContainer:
                 self.healthy = False
                 pytest.exit(f"Container {self.name} is not running ({self._container.status}), please check logs", 1)
 
-            self._container.stop()
+            try:
+                self._container.stop()
+            except requests.exceptions.Timeout as e:
+                pytest.exit(
+                    f"Container {self.name} failed to stop: the docker client timed out waiting for a response "
+                    f"from the daemon. This may mean the container's process did not exit within the stop grace "
+                    f"period, or that the docker daemon/host is overloaded and unresponsive. ({e})",
+                    1,
+                )
 
             if not self.healthy:
                 pytest.exit(f"Container {self.name} is not healthy, please check logs", 1)
@@ -468,6 +486,10 @@ class TestedContainer:
 
         if self.stdout_interface is not None:
             self.stdout_interface.load_data()
+
+    def is_removed(self) -> bool:
+        """Check that the container has been removed."""
+        return self.get_existing_container() is None
 
     def _set_aws_auth_environment(self):
         # Set default AWS values
@@ -809,6 +831,7 @@ class AgentContainer(TestedContainer):
             image_name="datadog/agent:latest",
             binary_file_name="agent-image",
             environment=environment,
+            extra_hosts=extra_hosts_for_environment(environment),
             healthcheck={
                 "test": f"curl --fail --silent --show-error --max-time 2 http://localhost:{self.apm_receiver_port}/info",
                 "retries": 60,
@@ -1046,20 +1069,23 @@ class WeblogContainer(TestedContainer):
 
         args = {}
 
-        pattern = re.compile(r"^FROM\s+(?P<image_name>[^\s]+)")
+        pattern = re.compile(r"^FROM\s+(?:--\S+\s+)*(?P<image_name>\S+)", re.IGNORECASE)
         arg_pattern = re.compile(r"^ARG\s+(?P<arg_name>[^\s]+)\s*=\s*(?P<arg_value>[^\s]+)")
-        with open(f"utils/build/docker/{library}/{weblog}.Dockerfile", encoding="utf-8") as f:
-            for line in f:
-                if match := arg_pattern.match(line):
-                    args[match.group("arg_name")] = match.group("arg_value")
+        dockerfile = Path(f"utils/build/docker/{library}/{weblog}.Dockerfile")
+        dockerfile_text = dockerfile.read_text()
+        base_contexts = base_image_contexts(dockerfile_text)
+        for line in dockerfile_text.splitlines():
+            if match := arg_pattern.match(line):
+                args[match.group("arg_name")] = match.group("arg_value")
 
-                if match := pattern.match(line):
-                    image_name = match.group("image_name")
+            if match := pattern.match(line):
+                image_name = match.group("image_name")
+                image_name = base_contexts.get(image_name, image_name)
 
-                    for name, value in args.items():
-                        image_name = image_name.replace(f"${name}", value)
+                for name, value in args.items():
+                    image_name = image_name.replace(f"${name}", value)
 
-                    result.append(image_name)
+                result.append(image_name)
 
         return result
 
@@ -1078,6 +1104,11 @@ class WeblogContainer(TestedContainer):
         self._set_aws_auth_environment()
 
         library = self.image.labels["system-tests-library"]
+
+        metadata = next((w for w in WeblogMetaData.load(library) if w.name == self.weblog_variant), None)
+        if metadata is not None and metadata.request_timeout is not None:
+            logger.info(f"Weblog {self.weblog_variant} declares a {metadata.request_timeout}s request timeout")
+            weblog.set_default_timeout(metadata.request_timeout)
 
         header_tags = ""
         if library in ("cpp_nginx", "cpp_httpd", "dotnet", "java", "python"):
@@ -1140,6 +1171,11 @@ class WeblogContainer(TestedContainer):
 
         if library in ("php", "cpp_nginx"):
             self.enable_core_dumps()
+
+        if library == "python":
+            # py-spy dumps this weblog's thread stacks when a remote config apply
+            # stalls (see utils/_remote_config.py), and needs ptrace to do so
+            self.enable_ptrace()
 
     def warmup_request(self, timeout: int = 10):
         weblog.get("/", timeout=timeout)

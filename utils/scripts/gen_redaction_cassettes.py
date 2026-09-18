@@ -560,6 +560,180 @@ SCENARIOS: dict[str, dict] = {
         "expect_removed": ["123-45-6789"],
         "expect_redacted": True,
     },
+    # ------------------------------------------------------- full-context (multi-turn) redaction
+    # SDS scans every model-visible string of the messages array sent to /evaluate, while attack
+    # analysis only targets the latest logical message. The scenarios below are the ones a
+    # "redact the last message only" implementation would pass every other test with: they put
+    # sensitive data in the history and require it to be redacted just the same. Redaction is
+    # copy-on-write, so the customer-owned list still holds the original values from earlier
+    # turns, and paths are local to the current request: nothing may be cached across calls.
+    "REDACT_TURN_1": {
+        "description": "RFC multi-turn example, turn 1: the SSN is in the latest user message.",
+        "messages": [
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": "My SSN is 123-45-6789"},
+        ],
+        "targets": [("messages[1].content", [("123-45-6789", "ssn")])],
+        "expect_removed": ["123-45-6789"],
+        "expect_redacted": True,
+    },
+    "REDACT_HISTORY_AND_LATEST": {
+        "description": "RFC multi-turn example, turn 2: a historical SSN and a new email, both redacted.",
+        "messages": [
+            {"role": "system", "content": "You are a helpful assistant."},
+            # Turn 1 redacted a copy, so the list the application reuses still holds the original.
+            {"role": "user", "content": "My SSN is 123-45-6789"},
+            # Already redacted by the turn-1 output evaluation: it must survive byte for byte.
+            {"role": "assistant", "content": f"Your SSN is {PLACEHOLDER}."},
+            {"role": "user", "content": "my email is paco@paco.es"},
+        ],
+        "targets": [
+            ("messages[1].content", [("123-45-6789", "ssn")]),
+            ("messages[3].content", [("paco@paco.es", "email")]),
+        ],
+        "expect_removed": ["123-45-6789", "paco@paco.es"],
+        "expect_redacted": True,
+    },
+    "REDACT_REORDERED_CONTEXT": {
+        "description": "The turn-2 context reordered by the application: replacements follow the new indexes.",
+        "messages": [
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": "my email is paco@paco.es"},
+            {"role": "assistant", "content": f"Your SSN is {PLACEHOLDER}."},
+            {"role": "user", "content": "My SSN is 123-45-6789"},
+        ],
+        "targets": [
+            ("messages[1].content", [("paco@paco.es", "email")]),
+            ("messages[3].content", [("123-45-6789", "ssn")]),
+        ],
+        "expect_removed": ["paco@paco.es", "123-45-6789"],
+        "expect_redacted": True,
+    },
+    "REDACT_HISTORY_ONLY": {
+        "description": "Sensitive data only in the history: the latest message is benign, the history still redacts.",
+        "messages": [
+            {"role": "system", "content": "You are a support assistant."},
+            {"role": "user", "content": "My SSN is 123-45-6789, open a ticket."},
+            {"role": "assistant", "content": "Ticket TCK-4127 created."},
+            {"role": "user", "content": "Can you summarise what I told you?"},
+        ],
+        "targets": [("messages[1].content", [("123-45-6789", "ssn")])],
+        "expect_removed": ["123-45-6789"],
+        "expect_redacted": True,
+    },
+    "REDACT_EVERY_ROLE_IN_HISTORY": {
+        "description": (
+            "One replacement per model-visible surface: system, historical user, historical assistant "
+            "content, tool call arguments, tool result and latest user."
+        ),
+        "messages": [
+            {"role": "system", "content": "You are a bank assistant. Escalate to ops@acme.io if needed."},
+            {"role": "user", "content": "My SSN is 123-45-6789, check my account."},
+            {
+                "role": "assistant",
+                "content": "Looking it up. I also have the SSN 987-65-4321 on file for you.",
+                "tool_calls": [
+                    {"id": "call_1", "function": {"name": "get_account", "arguments": '{"phone":"415-555-0132"}'}}
+                ],
+            },
+            {"role": "tool", "tool_call_id": "call_1", "content": "Account 000123456789 balance 100"},
+            {"role": "user", "content": "Charge it to 4111-1111-1111-1111"},
+        ],
+        "targets": [
+            ("messages[0].content", [("ops@acme.io", "email")]),
+            ("messages[1].content", [("123-45-6789", "ssn")]),
+            # Both assistant surfaces in one historical message. An assistant reply is otherwise only
+            # covered as the latest message (REDACT_ASSISTANT_RESPONSE), so without this a tracer
+            # could skip historical assistant content and still pass every other scenario.
+            ("messages[2].content", [("987-65-4321", "ssn")]),
+            ("messages[2].tool_calls[0].function.arguments", [("415-555-0132", "phone")]),
+            ("messages[3].content", [("000123456789", "bank")]),
+            ("messages[4].content", [("4111-1111-1111-1111", "credit_card")]),
+        ],
+        "expect_removed": [
+            "ops@acme.io",
+            "123-45-6789",
+            "987-65-4321",
+            "415-555-0132",
+            "000123456789",
+            "4111-1111-1111-1111",
+        ],
+        "expect_redacted": True,
+    },
+    "REDACT_HISTORICAL_TOOL_CALL": {
+        "description": "A historical tool call and its result are redacted while the latest message is benign.",
+        "messages": [
+            {"role": "user", "content": "Look up my account."},
+            {
+                "role": "assistant",
+                "tool_calls": [
+                    {"id": "call_1", "function": {"name": "get_account", "arguments": '{"ssn":"123-45-6789"}'}}
+                ],
+            },
+            {"role": "tool", "tool_call_id": "call_1", "content": "Account 000123456789 balance 100"},
+            {"role": "assistant", "content": "Your balance is 100."},
+            {"role": "user", "content": "Thanks, what are your opening hours?"},
+        ],
+        "targets": [
+            ("messages[1].tool_calls[0].function.arguments", [("123-45-6789", "ssn")]),
+            ("messages[2].content", [("000123456789", "bank")]),
+        ],
+        "expect_removed": ["123-45-6789", "000123456789"],
+        "expect_redacted": True,
+    },
+    "REDACT_HISTORY_CONTENT_PART": {
+        "description": "A text content part in a historical multimodal message, with the latest message benign.",
+        "messages": [
+            {"role": "user", "content": "Here is the card I mentioned."},
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": "The number is 4111-1111-1111-1111"},
+                    {"type": "image_url", "image_url": {"url": _IMAGE_DATA_URL}},
+                ],
+            },
+            {"role": "assistant", "content": "Thank you."},
+            {"role": "user", "content": "Which bank issued it?"},
+        ],
+        "targets": [("messages[1].content[0].text", [("4111-1111-1111-1111", "credit_card")])],
+        "expect_removed": ["4111-1111-1111-1111"],
+        "expect_redacted": True,
+    },
+    "REDACT_DEEP_HISTORY": {
+        "description": "Non-contiguous replacements in an eight-message context: no off-by-one, no last-message bias.",
+        "messages": [
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": "My SSN is 123-45-6789"},
+            {"role": "assistant", "content": "Noted."},
+            {"role": "user", "content": "Also file it under my email paco@gmail.com"},
+            {"role": "assistant", "content": "Filed."},
+            {"role": "user", "content": "My phone is 415-555-0132"},
+            {"role": "assistant", "content": "Got it."},
+            {"role": "user", "content": "Charge my card 4111-1111-1111-1111"},
+        ],
+        "targets": [
+            ("messages[1].content", [("123-45-6789", "ssn")]),
+            ("messages[3].content", [("paco@gmail.com", "email")]),
+            ("messages[5].content", [("415-555-0132", "phone")]),
+            ("messages[7].content", [("4111-1111-1111-1111", "credit_card")]),
+        ],
+        "expect_removed": ["123-45-6789", "paco@gmail.com", "415-555-0132", "4111-1111-1111-1111"],
+        "expect_redacted": True,
+    },
+    "REDACT_SAME_VALUE_ACROSS_TURNS": {
+        "description": "One value restated in a later turn: one entry per path, each applied on its own.",
+        "messages": [
+            {"role": "user", "content": "My SSN is 123-45-6789"},
+            {"role": "assistant", "content": "Could you confirm it?"},
+            {"role": "user", "content": "Yes, it is 123-45-6789"},
+        ],
+        "targets": [
+            ("messages[0].content", [("123-45-6789", "ssn")]),
+            ("messages[2].content", [("123-45-6789", "ssn")]),
+        ],
+        "expect_removed": ["123-45-6789"],
+        "expect_redacted": True,
+    },
     # ---------------------------------------------------------------- fail-safe skips
     "SKIP_PATH_OUT_OF_RANGE": {
         "description": "A message index past the end of the list resolves to nothing and is skipped.",
@@ -713,7 +887,9 @@ def build_scenario(name: str, scenario: dict) -> tuple[str, str, dict]:
     # path deliberately keeps its sensitive value, so "still there" is an expectation in its own
     # right, not a value that merely escaped the check.
     serialized = json.dumps(expected_messages)
-    declared = [value for _, sensitive in targets for value, _ in sensitive]
+    # One entry per distinct value: removed/retained are substring searches over the whole
+    # payload, so a value declared at two paths would only repeat the identical assertion.
+    declared = dict.fromkeys(value for _, sensitive in targets for value, _ in sensitive)
     removed = [value for value in declared if value not in serialized]
     retained = [value for value in declared if value in serialized]
     expect_removed = scenario.get("expect_removed", [])

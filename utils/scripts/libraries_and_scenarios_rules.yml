@@ -198,6 +198,9 @@ patterns:
     .github/workflows/stale-prs.yml:
         scenario_groups: null
         libraries: null
+    .github/workflows/team-freeze-guard.yml:
+        scenario_groups: null
+        libraries: null
     .github/workflows/update-agent-protobuf.yml:
         scenario_groups: null
         libraries: null
@@ -254,6 +257,9 @@ patterns:
         scenario_groups: null
     utils/scripts/ai/*:
         scenario_groups: null
+    utils/scripts/build-local-agent-image.sh:
+        scenario_groups: null
+        libraries: null
     utils/scripts/check_version.sh:
         scenario_groups: null
     utils/scripts/compute_libraries_and_scenarios.py:
@@ -464,9 +470,6 @@ patterns:
         libraries: nodejs
     lib-injection/build/docker/nodejs/*:
         libraries: nodejs
-    utils/build/build_nodejs_base_images.sh:
-        libraries: nodejs
-
     manifests/nodejs_lambda.yml:
         scenario_groups: null  # already handled by the manifest comparison
         libraries: nodejs_lambda
@@ -482,9 +485,6 @@ patterns:
         libraries: php
     lib-injection/build/docker/php/*:
         libraries: php
-    utils/build/build_php_base_images.sh:
-        libraries: php
-
     manifests/python.yml:
         scenario_groups: null  # already handled by the manifest comparison
         libraries: python
@@ -493,9 +493,6 @@ patterns:
         scenario_groups: [ end_to_end, open_telemetry]
     lib-injection/build/docker/python/*:
         libraries: python
-    utils/build/build_python_base_images.sh:
-        libraries: python
-
     manifests/ruby.yml:
         scenario_groups: null  # already handled by the manifest comparison
         libraries: ruby

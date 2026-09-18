@@ -1,8 +1,12 @@
+import contextlib
+import json
 import pathlib
 import threading
-import json
+import time
+from typing import Any
 
 import ddapm_test_agent.client as agent_client
+import requests
 
 from utils.interfaces._core import InterfaceValidator
 from utils._logger import logger
@@ -15,20 +19,30 @@ class _TestAgentInterfaceValidator(InterfaceValidator):
         super().__init__("test_agent")
         self.ready = threading.Event()
         self._data_traces_list = []
-        self._data_telemetry_list = []
+        self._data_telemetry_list: list[dict[str, Any]] = []
+        self._client: agent_client.TestAgentClient | None = None
+        self._interface_folder: pathlib.Path | None = None
 
-    def collect_data(self, interface_folder: str, agent_host: str = "localhost", agent_port: int = 8126):
+    def collect_data(self, interface_folder: str, agent_host: str = "localhost", agent_port: int = 8126) -> None:
         logger.debug("Collecting data from test agent")
-        client = agent_client.TestAgentClient(base_url=f"http://{agent_host}:{agent_port}")
-        self._data_traces_list = client.traces(clear=False)
+        self._client = agent_client.TestAgentClient(base_url=f"http://{agent_host}:{agent_port}")
+        self._interface_folder = pathlib.Path(interface_folder)
+        self._data_traces_list = self._client.traces(clear=False)
         if self._data_traces_list:
-            pathlib.Path(f"{interface_folder}/00_traces.json").write_text(
+            (self._interface_folder / "00_traces.json").write_text(
                 json.dumps(self._data_traces_list, indent=2), encoding="utf-8"
             )
 
-        self._data_telemetry_list = client.telemetry(clear=False)
+        self._refresh_telemetry_data()
+
+    def _refresh_telemetry_data(self, request_timeout: float | None = None) -> None:
+        if self._client is None or self._interface_folder is None:
+            raise RuntimeError("Test agent data must be collected before refreshing telemetry")
+
+        request_options = {"timeout": request_timeout} if request_timeout is not None else {}
+        self._data_telemetry_list = self._client.telemetry(clear=False, **request_options)
         if self._data_telemetry_list:
-            pathlib.Path(f"{interface_folder}/00_telemetry.json").write_text(
+            (self._interface_folder / "00_telemetry.json").write_text(
                 json.dumps(self._data_telemetry_list, indent=2), encoding="utf-8"
             )
 
@@ -88,13 +102,13 @@ class _TestAgentInterfaceValidator(InterfaceValidator):
         logger.debug("Try to find injection metadata related to autoinject")
         return [t["payload"] for t in self._data_telemetry_list if t["request_type"] == "injection-metadata"]
 
-    def get_telemetry_logs(self):
+    def get_telemetry_logs(self) -> list[dict[str, Any]]:
         logger.debug("Try to find telemetry data related to logs")
         return [t for t in self._data_telemetry_list if t["request_type"] == "logs"]
 
-    def get_crash_reports(self):
+    def get_crash_reports(self) -> list[dict[str, Any]]:
         logger.debug("Try to find telemetry data related to crash reports")
-        crash_reports: list = []
+        crash_reports: list[dict[str, Any]] = []
 
         for t in self.get_telemetry_logs():
             payload = t["payload"]
@@ -132,6 +146,56 @@ class _TestAgentInterfaceValidator(InterfaceValidator):
         # Filter for crash reports only; ignoring crash pings
         # Crash pings have is_crash_ping:true
         return [r for r in crash_reports if "is_crash_ping" not in r.get("tags", "")]
+
+    def wait_for_crash_reports(
+        self, timeout: float = 10, poll_interval: float = 0.1, settle_time: float = 1
+    ) -> list[dict[str, Any]]:
+        deadline = time.monotonic() + timeout
+        last_refresh_error: str | None = None
+        crash_reports: list[dict[str, Any]] = []
+        while True:
+            crash_reports = self.get_crash_reports()
+            if crash_reports:
+                break
+
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                break
+
+            try:
+                self._refresh_telemetry_data(request_timeout=remaining)
+            except requests.exceptions.RequestException as error:
+                last_refresh_error = str(error)
+
+            crash_reports = self.get_crash_reports()
+            if crash_reports:
+                break
+
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                break
+            time.sleep(min(poll_interval, remaining))
+
+        if not crash_reports:
+            request_types = sorted(
+                {str(telemetry.get("request_type", "<missing>")) for telemetry in self._data_telemetry_list}
+            )
+            refresh_error_diagnostic = f"; last refresh error: {last_refresh_error}" if last_refresh_error else ""
+            raise AssertionError(
+                f"No crash report received within {timeout:g} seconds; "
+                f"collected {len(self._data_telemetry_list)} telemetry request(s) with types: "
+                f"{', '.join(request_types) or '<none>'}{refresh_error_diagnostic}"
+            )
+
+        # A crash report was found, but a tracer may still be flushing an additional
+        # (e.g. duplicate) report. Let the snapshot settle before returning so callers
+        # asserting an exact report count aren't fooled by returning too early.
+        if settle_time > 0:
+            time.sleep(settle_time)
+            with contextlib.suppress(requests.exceptions.RequestException):
+                self._refresh_telemetry_data(request_timeout=settle_time)
+
+        return self.get_crash_reports()
 
     def get_telemetry_configurations(self, service_name: str | None = None, runtime_id: str | None = None) -> dict:
         """Get telemetry configurations for a given runtime ID and service name."""

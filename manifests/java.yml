@@ -40,6 +40,7 @@ manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionDisabledTelemetry: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionFailSafe: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionInSDKResponse: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionMultiTurnContext: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionOnBlock: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionSkipsStructuralFields: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_RootSpanUserKeep:
@@ -98,8 +99,7 @@ manifest:
         spring-boot-3-native: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
         vertx3: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
         vertx4: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
-        ? "spring-boot, spring-boot-jetty, spring-boot-payara, spring-boot-openliberty, spring-boot-undertow, uds-spring-boot, spring-boot-wildfly"
-        : missing_feature
+        "spring-boot-jetty, spring-boot-payara, spring-boot-openliberty, spring-boot-undertow, uds-spring-boot, spring-boot-wildfly": missing_feature
   tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_processors:
     - weblog_declaration:
         "*": v1.38.0
@@ -2941,7 +2941,7 @@ manifest:
   tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualProfiling::test_profiling:
     - declaration: bug (SCP-962)
       component_version: '>=1.5.0'
-  tests/cws/test_thread_context_sharing.py::Test_ThreadContextSharing: missing_feature (missing /security/thread_context_sharing endpoint on weblog)
+  tests/cws/test_thread_context_sharing.py::Test_ThreadContextSharing: missing_feature (thread context sharing not enabled for appsec yet)
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Line_Capture_Expressions:
     - weblog_declaration:
         "*": missing_feature
@@ -3811,6 +3811,43 @@ manifest:
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
+  tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT: v1.56.0
+  tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT::test_invalid_values: bug (APMAPI-2462)
+  tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT::test_spec_default: irrelevant (Datadog intentionally defaults to 7500 ms)
+  tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT::test_stable_values: bug (APMAPI-2462)
+  tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT::test_unset_uses_default: bug (APMAPI-2462)
+  tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES: v1.57.0
+  tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES::test_invalid_value_is_discarded: bug (APMAPI-2433)
+  tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES::test_percent_encoded_separators: bug (APMAPI-2426)
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED: v1.54.0
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_stable_true: bug (APMAPI-2419)
+  tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME: v1.54.0
+  tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_default_follows_otel_spec: irrelevant
+  tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_default_matches_specification: v1.57.0
+  tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_empty_is_treated_as_unset: bug (APMAPI-2412)
+  tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_otel_service_name_takes_precedence: v1.57.0
+  tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER: v1.57.0
+  tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_console_exporter: missing_feature (Console trace export is not implemented)
+  tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_default_matches_specification: missing_feature (The default OTLP exporter is not implemented)
+  tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_deprecated_values: missing_feature (Logging trace export is not implemented)
+  tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_development_values: missing_feature (OTLP stdout trace export is not implemented)
+  tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_empty_is_treated_as_unset: missing_feature (The default OTLP exporter is not implemented)
+  tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_invalid_is_ignored: missing_feature (The default OTLP exporter is not implemented)
+  tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_zipkin_exporter: missing_feature (Zipkin trace export is not implemented)
+  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER: v1.57.0
+  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER::test_dd_trace_sample_ignore_parent_false: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
+  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER::test_dd_trace_sample_ignore_parent_true: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
+  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER::test_default_matches_specification: missing_feature (OTel default sampler semantics are not implemented)
+  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER::test_empty_is_treated_as_unset: missing_feature (OTel default sampler semantics are not implemented)
+  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER::test_invalid_value_is_ignored: missing_feature (OTel default sampler semantics are not implemented)
+  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER::test_jaeger_remote_values: missing_feature (Jaeger remote sampling is not implemented)
+  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER::test_third_party_values: missing_feature (X-Ray sampling is not implemented)
+  tests/parametric/otel_env_vars/test_otel_traces_sampler_arg.py::Test_OTEL_TRACES_SAMPLER_ARG: v1.57.0
+  tests/parametric/otel_env_vars/test_otel_traces_sampler_arg.py::Test_OTEL_TRACES_SAMPLER_ARG::test_above_range_is_ignored: missing_feature (Out-of-range sampler arguments are not ignored)
+  tests/parametric/otel_env_vars/test_otel_traces_sampler_arg.py::Test_OTEL_TRACES_SAMPLER_ARG::test_below_range_is_ignored: missing_feature (Out-of-range sampler arguments are not ignored)
+  tests/parametric/otel_env_vars/test_otel_traces_sampler_arg.py::Test_OTEL_TRACES_SAMPLER_ARG::test_default_matches_specification: missing_feature (Unset sampler arguments do not default to 1.0)
+  tests/parametric/otel_env_vars/test_otel_traces_sampler_arg.py::Test_OTEL_TRACES_SAMPLER_ARG::test_empty_is_treated_as_unset: missing_feature (Empty sampler arguments do not default to 1.0)
+  tests/parametric/otel_env_vars/test_otel_traces_sampler_arg.py::Test_OTEL_TRACES_SAMPLER_ARG::test_nonnumeric_is_ignored: missing_feature (Nonnumeric sampler arguments are not ignored)
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids: v1.12.0
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_datadog_128_bit_generation_enabled_by_default:
     - declaration: missing_feature (Implemented in 1.24.0)
@@ -3969,9 +4006,6 @@ manifest:
   tests/parametric/test_llm_observability/test_llm_observability_dne.py::Test_Dataset::test_dataset_create_delete: incomplete_test_app (Java parametric app does not implement /llm_observability/dataset endpoints)
   tests/parametric/test_otel_api_interoperability.py: missing_feature
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: v1.35.2
-  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_false: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
-  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_true: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
-  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_sdk_disabled_set: 'missing_feature (Currently DD_TRACE_OTEL_ENABLED=true is required for OTEL_SDK_DISABLED to be parsed. Revisit when the OpenTelemetry integration is enabled by default.)'
   tests/parametric/test_otel_logs.py: '>=1.62.0'
   tests/parametric/test_otel_logs.py::Test_FR06_OTLP_Protocols::test_otlp_protocols: incomplete_test_app (GPRC fails for system-test but works with real collector)
   tests/parametric/test_otel_logs.py::Test_FR07_Host_Name::test_hostname_from_dd_hostname: irrelevant (DD_HOSTNAME is only supported in Python)
@@ -4259,7 +4293,6 @@ manifest:
         vertx3: '>=1.64.2'
         spring-boot-payara: '>=1.64.2'
   tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation: missing_feature
-  tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation_Disabled: missing_feature
   tests/stats/test_stats.py::Test_Error_Sampler:
     - weblog_declaration:
         "*": v1.54.0
@@ -4606,13 +4639,276 @@ manifest:
   tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics: missing_feature (OTLP export of OTel HTTP semantics not implemented)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_SamplingRules: missing_feature (OTLP export of OTel HTTP semantics not implemented)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server:  # TODO: a lower version might be supported
+    - declaration: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+      component_version: <1.65.1
+      weblog: [spring-boot-openliberty, spring-boot-wildfly, spring-boot-jetty, vertx4, akka-http, ratpack, resteasy-netty3, spring-boot, jersey-grizzly2, vertx3, spring-boot-payara, play, spring-boot-undertow, uds-spring-boot]
+    - declaration: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+      excluded_weblog: [spring-boot-openliberty, spring-boot-wildfly, spring-boot-jetty, vertx4, akka-http, ratpack, resteasy-netty3, spring-boot, jersey-grizzly2, vertx3, spring-boot-payara, play, spring-boot-undertow, uds-spring-boot]
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_client_address:
+    - weblog_declaration:
+        ratpack: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-payara: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-jetty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        jersey-grizzly2: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-openliberty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        vertx3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-wildfly: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        resteasy-netty3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-undertow: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        vertx4: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        akka-http: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        play: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        uds-spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_datadog_attributes_absent:
+    - weblog_declaration:
+        ratpack: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-payara: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-jetty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        jersey-grizzly2: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-openliberty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        vertx3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-wildfly: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        resteasy-netty3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-undertow: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        vertx4: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        akka-http: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        play: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        uds-spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_http_endpoint_retained_from_appsec: irrelevant (The AppSec endpoint retention request is specific to .NET)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_network_peer_address:
+    - weblog_declaration:
+        ratpack: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-payara: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-jetty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        jersey-grizzly2: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-openliberty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        vertx3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-wildfly: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        resteasy-netty3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-undertow: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        vertx4: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        akka-http: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        play: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        uds-spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_otel_attributes_present:
+    - weblog_declaration:
+        ratpack: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-payara: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-jetty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        jersey-grizzly2: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-openliberty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        vertx3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-wildfly: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        resteasy-netty3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-undertow: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        vertx4: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        akka-http: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        play: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        uds-spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_server_address:
+    - weblog_declaration:
+        ratpack: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-payara: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-jetty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        jersey-grizzly2: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-openliberty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        vertx3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-wildfly: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        resteasy-netty3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-undertow: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        vertx4: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        akka-http: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        play: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        uds-spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_server_port:
+    - weblog_declaration:
+        ratpack: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-payara: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-jetty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        jersey-grizzly2: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-openliberty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        vertx3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-wildfly: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        resteasy-netty3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-undertow: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        vertx4: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        akka-http: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        play: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        uds-spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_span_name_route_invariance:
+    - weblog_declaration:
+        ratpack: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-payara: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-jetty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        jersey-grizzly2: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-openliberty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        vertx3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-wildfly: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        resteasy-netty3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-undertow: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        vertx4: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        akka-http: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        play: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        uds-spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_span_name_unknown_method:
+    - weblog_declaration:
+        ratpack: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-payara: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-jetty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        jersey-grizzly2: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-openliberty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        vertx3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-wildfly: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        resteasy-netty3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-undertow: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        vertx4: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        akka-http: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        play: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        uds-spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_span_name_with_route:
+    - weblog_declaration:
+        ratpack: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-payara: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-jetty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        jersey-grizzly2: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-openliberty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        vertx3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-wildfly: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        resteasy-netty3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-undertow: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        vertx4: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        akka-http: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        play: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        uds-spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_span_name_without_route:
+    - weblog_declaration:
+        ratpack: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-payara: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-jetty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        jersey-grizzly2: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-openliberty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        vertx3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-wildfly: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        resteasy-netty3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-undertow: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        vertx4: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        akka-http: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        play: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        uds-spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_status_3xx_is_not_error:
+    - weblog_declaration:
+        ratpack: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-payara: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-jetty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        jersey-grizzly2: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-openliberty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        vertx3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-wildfly: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        resteasy-netty3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-undertow: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        vertx4: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        akka-http: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        play: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        uds-spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_status_400_is_not_error:
+    - weblog_declaration:
+        ratpack: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-payara: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-jetty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        jersey-grizzly2: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-openliberty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        vertx3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-wildfly: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        resteasy-netty3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-undertow: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        vertx4: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        akka-http: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        play: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        uds-spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_status_500_no_exception_is_status_code_error:
+    - weblog_declaration:
+        ratpack: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-payara: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-jetty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        jersey-grizzly2: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-openliberty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        vertx3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-wildfly: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        resteasy-netty3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-undertow: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        vertx4: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        akka-http: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        play: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        uds-spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_url_query_obfuscation:
+    - weblog_declaration:
+        ratpack: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-payara: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-jetty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        jersey-grizzly2: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-openliberty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        vertx3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-wildfly: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        resteasy-netty3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-undertow: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        vertx4: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        akka-http: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        play: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        uds-spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_url_query_present_with_query_string:
+    - weblog_declaration:
+        ratpack: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-payara: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-jetty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        jersey-grizzly2: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-openliberty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        vertx3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-wildfly: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        resteasy-netty3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-undertow: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        vertx4: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        akka-http: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        play: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        uds-spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_user_agent:
+    - weblog_declaration:
+        ratpack: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-payara: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-jetty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        jersey-grizzly2: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-openliberty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        vertx3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-wildfly: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        resteasy-netty3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-undertow: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        vertx4: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        akka-http: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        play: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        uds-spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
   tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchanged: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchangedWhenDropped: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_MalformedOtHandling: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_PreserveDdAndOtherVendors: missing_feature (APMAPI-2171)
+  tests/test_otel_tracestate_sampling.py::Test_PreserveTracestateMemberOrder: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_SampledWithoutOtNotFabricated: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_ThOnlyDoesNotFabricateRv: missing_feature (APMAPI-2171)
   tests/test_otel_tracestate_sampling.py::Test_ThOnlyDoesNotFabricateRvWhenDropped: missing_feature (APMAPI-2171)
