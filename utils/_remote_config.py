@@ -376,9 +376,10 @@ def send_state(
     else:
         logger.debug(f"RC apply version={version} acknowledged in {elapsed:.3f}s")
 
-    # ensure the library has enough time to apply the config to all subprocesses,
-    # and to flush the telemetry that explains a slow apply
-    time.sleep(2)
+    # By default, give subprocesses time to apply the config and flush telemetry.
+    # Scenarios can remove this delay for libraries that acknowledge only after
+    # the configuration has been fully applied.
+    time.sleep(context.scenario.rc_apply_settle_seconds.get(context.library.name, 2))
 
     if not rv or slow:
         _log_library_telemetry_warnings(wait_started_at)
