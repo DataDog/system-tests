@@ -1,3 +1,4 @@
+---
 name: Run multiple times a scenario to trigger a flake
 
 on:
@@ -33,13 +34,13 @@ on:
         type: string
 
 env:
-  LIBRARY:                ${{ (github.event_name == 'workflow_dispatch' && inputs.library)               || 'php' }}
-  WEBLOG:                 ${{ (github.event_name == 'workflow_dispatch' && inputs.weblog)                || 'apache-mod-8.1' }}
-  SCENARIO:               ${{ (github.event_name == 'workflow_dispatch' && inputs.scenario)              || 'DEBUGGER_EXPRESSION_LANGUAGE' }}
-  JOB_COUNT:              ${{ (github.event_name == 'workflow_dispatch' && inputs.job_count)             || '10' }}
-  AGENT_IMAGE:            ${{ (github.event_name == 'workflow_dispatch' && inputs.agent_image)           || 'datadog/agent:latest' }}
-  DEV_OR_PROD:            ${{ (github.event_name == 'workflow_dispatch' && inputs.dev_or_prod)           || 'prod' }}
-  LIBRARY_TARGET_BRANCH:  ${{ (github.event_name == 'workflow_dispatch' && inputs.library_target_branch) || '' }}
+  LIBRARY: ${{ (github.event_name == 'workflow_dispatch' && inputs.library)               || 'php' }}
+  WEBLOG: ${{ (github.event_name == 'workflow_dispatch' && inputs.weblog)                || 'apache-mod-8.1' }}
+  SCENARIO: ${{ (github.event_name == 'workflow_dispatch' && inputs.scenario)              || 'DEBUGGER_EXPRESSION_LANGUAGE' }}
+  JOB_COUNT: ${{ (github.event_name == 'workflow_dispatch' && inputs.job_count)             || '10' }}
+  AGENT_IMAGE: ${{ (github.event_name == 'workflow_dispatch' && inputs.agent_image)           || 'datadog/agent:latest' }}
+  DEV_OR_PROD: ${{ (github.event_name == 'workflow_dispatch' && inputs.dev_or_prod)           || 'prod' }}
+  LIBRARY_TARGET_BRANCH: ${{ (github.event_name == 'workflow_dispatch' && inputs.library_target_branch) || '' }}
 
 jobs:
   generate-matrix:
@@ -89,34 +90,38 @@ jobs:
       - generate-matrix
       - build
     strategy:
+      fail-fast: false
       matrix:
         n: ${{ fromJSON(needs.generate-matrix.outputs.matrix) }}
     steps:
-    - name: Checkout
-      uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
-    - name: Install runner
-      uses: ./.github/actions/install_runner
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4.3.1
+      - name: Install runner
+        uses: ./.github/actions/install_runner
 
-    - name: Get binaries artifact
-      uses: ./.github/actions/download_artifact
-      with:
-        name: weblog
-        path: binaries/
-    - name: Build weblog
-      id: build
-      run: ./build.sh ${{ env.LIBRARY }} -i weblog -w ${{ env.WEBLOG }}
+      - name: Get binaries artifact
+        uses: ./.github/actions/download_artifact
+        with:
+          name: weblog
+          path: binaries/
+      - name: Build weblog
+        id: build
+        run: ./build.sh ${{ env.LIBRARY }} -i weblog -w ${{ env.WEBLOG }}
 
-    - run: |
-        set -e
-        for i in {1..100}
-        do
-          echo "Run #$i"
-          ./run.sh ${{ env.SCENARIO }}
-        done
+      - run: |
+          set -e
+          for i in {1..100}
+          do
+            echo "Run #$i"
+            ./run.sh ${{ env.SCENARIO }}
+          done
 
-    - name: Upload artifact
-      if: steps.build.outcome == 'success' && !cancelled()
-      uses: ./.github/actions/upload_artifact
-      with:
-        name: logs_${{ matrix.n }}
-        path: logs_*
+      - name: Upload artifact
+        if: steps.build.outcome == 'success' && !cancelled()
+        uses: ./.github/actions/upload_artifact
+        with:
+          name: logs_${{ matrix.n }}
+          path: |
+            logs/
+            logs_*/
+          if-no-files-found: error
