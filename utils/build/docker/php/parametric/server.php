@@ -29,6 +29,8 @@ use OpenTelemetry\Contrib\Otlp\LogsExporterFactory;
 use OpenTelemetry\SDK\Common\Time\ClockFactory;
 use OpenTelemetry\SDK\Logs\LoggerProvider as SDKLoggerProvider;
 use OpenTelemetry\SDK\Logs\Processor\BatchLogRecordProcessor;
+use OpenTelemetry\SDK\Metrics\MeterProviderFactory;
+use OpenTelemetry\SDK\Metrics\NoopMeterProvider;
 use OpenTelemetry\SDK\Resource\ResourceInfoFactory;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanKind;
@@ -208,6 +210,16 @@ $activeSpan = null;
 $spansDistributedTracingHeaders = [];
 /** @var Logger[] $loggerDict */
 $loggerDict = [];
+/** @var \OpenTelemetry\API\Metrics\MeterInterface[] $otelMeters */
+$otelMeters = [];
+/** @var \OpenTelemetry\API\Metrics\CounterInterface[] $otelCounters */
+$otelCounters = [];
+// Use the SDK's configuration factory so exporter selection, protocol, headers,
+// and Datadog's configuration/resource hooks follow the application's settings.
+$sdkMeterProvider = new NoopMeterProvider();
+if (\dd_trace_env_config('DD_METRICS_OTEL_ENABLED')) {
+    $sdkMeterProvider = (new MeterProviderFactory())->create();
+}
 /** @var ?\DDTrace\FeatureFlags\Client $ffeClient */
 $ffeClient = null;
 
@@ -238,6 +250,45 @@ if (\dd_trace_env_config('DD_LOGS_OTEL_ENABLED')) {
 }
 
 $router = new Router($server, $logger, $errorHandler);
+$router->addRoute('POST', '/metrics/otel/get_meter', new ClosureRequestHandler(function (Request $req) use (&$otelMeters, $sdkMeterProvider) {
+    $name = arg($req, 'name');
+    if (!isset($otelMeters[$name])) {
+        $otelMeters[$name] = $sdkMeterProvider->getMeter(
+            $name,
+            arg($req, 'version'),
+            arg($req, 'schema_url'),
+            arg($req, 'attributes') ?? []
+        );
+    }
+    return jsonResponse(new stdClass());
+}));
+$router->addRoute('POST', '/metrics/otel/create_counter', new ClosureRequestHandler(function (Request $req) use (&$otelMeters, &$otelCounters) {
+    $meterName = arg($req, 'meter_name');
+    if (!isset($otelMeters[$meterName])) {
+        return new Response(status: 400, headers: ['content-type' => 'application/json'], body: json_encode([
+            'success' => false, 'message' => 'Unknown meter: ' . $meterName,
+        ]));
+    }
+    $name = arg($req, 'name');
+    $unit = arg($req, 'unit');
+    $description = arg($req, 'description');
+    $key = json_encode([$meterName, $name, $unit, $description]);
+    $otelCounters[$key] = $otelMeters[$meterName]->createCounter($name, $unit, $description);
+    return jsonResponse(new stdClass());
+}));
+$router->addRoute('POST', '/metrics/otel/counter_add', new ClosureRequestHandler(function (Request $req) use (&$otelCounters) {
+    $key = json_encode([arg($req, 'meter_name'), arg($req, 'name'), arg($req, 'unit'), arg($req, 'description')]);
+    if (!isset($otelCounters[$key])) {
+        return new Response(status: 400, headers: ['content-type' => 'application/json'], body: json_encode([
+            'success' => false, 'message' => 'Unknown counter: ' . $key,
+        ]));
+    }
+    $otelCounters[$key]->add(arg($req, 'value'), arg($req, 'attributes') ?? []);
+    return jsonResponse(new stdClass());
+}));
+$router->addRoute('POST', '/metrics/otel/force_flush', new ClosureRequestHandler(function () use ($sdkMeterProvider) {
+    return jsonResponse(['success' => $sdkMeterProvider->forceFlush()]);
+}));
 $router->addRoute('POST', '/ffe/start', new ClosureRequestHandler(function (Request $req) use (&$ffeClient) {
     if (!class_exists('\\DDTrace\\FeatureFlags\\Client')) {
         return new Response(status: 500, headers: ['content-type' => 'application/json'], body: json_encode([
@@ -872,3 +923,4 @@ $signal = trapSignal([SIGINT, SIGTERM]);
 $logger->info("Caught signal $signal, stopping server");
 
 $server->stop();
+$sdkMeterProvider->shutdown();
