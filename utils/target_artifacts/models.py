@@ -10,7 +10,6 @@ class TargetArtifactError(Exception):
 class ArtifactEntry:
     filename: str
     content: str
-    conflicting_filenames: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -95,6 +94,10 @@ class ArtifactResolver(Protocol):
 
 @runtime_checkable
 class TargetArtifactEnvironment(Protocol):
+    def artifact_entry_filenames(self) -> tuple[str, ...]:
+        """Declare every artifact entry filename this environment can emit."""
+        ...
+
     def artifact_inputs(
         self,
         env: dict[str, str],
@@ -125,12 +128,14 @@ class SimpleTarget:
     def artifact_inputs(self, _env: dict[str, str]) -> tuple[ArtifactResolver, ...]:
         return self.inputs
 
+    def artifact_entry_filenames(self) -> tuple[str, ...]:
+        return tuple(entry.filename for entry in self.entries)
+
     def artifact_entries(self, resolved_inputs: dict[str, ResolvedArtifactInput]) -> tuple[ArtifactEntry, ...]:
         return tuple(
             ArtifactEntry(
                 filename=entry.filename,
                 content=entry.content.format(**resolved_inputs),
-                conflicting_filenames=entry.conflicting_filenames,
             )
             for entry in self.entries
         )

@@ -7,8 +7,9 @@ targets continue to use `utils/scripts/load-binary.sh` until migrated separately
 ## Contract
 
 Each migrated target provides `utils/build/docker/<target>/artifact.py` with `Dev`
-and `Prod` implementations. They declare resolver inputs and map the resolved values
-to text entries without performing network or filesystem side effects themselves.
+and `Prod` implementations. They declare every filename they may emit, declare
+resolver inputs, and map the resolved values to text entries without performing
+network or filesystem side effects themselves.
 
 The shared orchestrator owns external lookups and writes the generated entries. It
 also maintains `binaries/.target-artifacts-manifest.json`, which records the owner
@@ -20,6 +21,12 @@ and content hash of every generated file. Staging:
 - preserves entries owned by other targets; and
 - refuses to overwrite unowned files, changed generated entries, symlinks, conflicting
   selectors, or entries owned by another target.
+
+The filenames declared by a target's `Dev` and `Prod` implementations define its
+selector family. Staging rejects any manual selector in that family that the selected
+environment did not emit, while allowing multiple entries emitted together to coexist.
+Individual entries do not need to name their conflicts, and declaring filenames does
+not resolve the inactive environment's external inputs.
 
 Selectors should be bounded, such as a commit SHA, release tag, package version, or
 OCI digest. If an installer must consume a mutable provider selector, the target must

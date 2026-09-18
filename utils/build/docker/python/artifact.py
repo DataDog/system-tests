@@ -15,21 +15,9 @@ class Dev(SimpleTarget):
             default_value="main",
         ),
     )
-    entries = (
-        text_entry(
-            "python-load-from-s3",
-            "{library_branch.sha}",
-            conflicting_filenames=("python-load-from-pip",),
-        ),
-    )
+    entries = (text_entry("python-load-from-s3", "{library_branch.sha}"),)
 
 
 class Prod(SimpleTarget):
     inputs = (PypiLatestResolver(name="ddtrace", package="ddtrace"),)
-    entries = (
-        text_entry(
-            "python-load-from-pip",
-            "ddtrace=={ddtrace.version}",
-            conflicting_filenames=("python-load-from-s3",),
-        ),
-    )
+    entries = (text_entry("python-load-from-pip", "ddtrace=={ddtrace.version}"),)

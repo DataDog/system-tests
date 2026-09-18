@@ -181,6 +181,9 @@ class Test_TargetArtifactStaging:
 from utils.target_artifacts.entry_helpers import text_entry
 
 class Dev:
+    def artifact_entry_filenames(self):
+        return ("generated",)
+
     def artifact_inputs(self, env):
         return ()
 
@@ -210,6 +213,9 @@ class Prod(Dev):
 from utils.target_artifacts.entry_helpers import text_entry
 
 class Dev:
+    def artifact_entry_filenames(self):
+        return ("kept", "stale")
+
     def artifact_inputs(self, env):
         return ()
 
@@ -217,6 +223,9 @@ class Dev:
         return (text_entry("kept", "one"), text_entry("stale", "old"))
 
 class Prod:
+    def artifact_entry_filenames(self):
+        return ("kept",)
+
     def artifact_inputs(self, env):
         return ()
 
@@ -232,6 +241,9 @@ class Prod:
 from utils.target_artifacts.entry_helpers import text_entry
 
 class Dev:
+    def artifact_entry_filenames(self):
+        return ("other",)
+
     def artifact_inputs(self, env):
         return ()
 
@@ -261,6 +273,9 @@ class Prod(Dev):
 from utils.target_artifacts.entry_helpers import text_entry
 
 class Dev:
+    def artifact_entry_filenames(self):
+        return ("manual",)
+
     def artifact_inputs(self, env):
         return ()
 
@@ -288,6 +303,9 @@ class Prod(Dev):
 from utils.target_artifacts.entry_helpers import text_entry
 
 class Dev:
+    def artifact_entry_filenames(self):
+        return ("generated",)
+
     def artifact_inputs(self, env):
         return ()
 
@@ -321,6 +339,9 @@ class Prod(Dev):
 from utils.target_artifacts.entry_helpers import text_entry
 
 class Dev:
+    def artifact_entry_filenames(self):
+        return ("selector",)
+
     def artifact_inputs(self, env):
         return ()
 
@@ -356,6 +377,9 @@ class Prod(Dev):
 from utils.target_artifacts.resolvers import EnvResolver
 
 class Dev:
+    def artifact_entry_filenames(self):
+        return ()
+
     def artifact_inputs(self, env):
         return (EnvResolver(name="duplicate"), EnvResolver(name="duplicate"))
 
@@ -391,6 +415,9 @@ from dataclasses import dataclass
 class Dev:
     value: str = "selector"
 
+    def artifact_entry_filenames(self):
+        return ()
+
     def artifact_inputs(self, env):
         return ()
 
@@ -406,31 +433,158 @@ class Prod(Dev):
 
         assert target_environment.value == "selector"  # type: ignore[attr-defined]
 
-    def test_conflicting_unowned_selector_is_rejected(self, tmp_path: Path) -> None:
+    def test_manual_dev_selector_blocks_prod_without_resolving_dev(self, tmp_path: Path) -> None:
         _write_target_module(
             tmp_path,
             """
 from utils.target_artifacts.entry_helpers import text_entry
 
 class Dev:
+    def artifact_entry_filenames(self):
+        return ("dev-selector",)
+
+    def artifact_inputs(self, env):
+        raise AssertionError("dev inputs must not be inspected while staging prod")
+
+    def artifact_entries(self, resolved_inputs):
+        raise AssertionError("dev entries must not be produced while staging prod")
+
+class Prod:
+    def artifact_entry_filenames(self):
+        return ("prod-selector",)
+
     def artifact_inputs(self, env):
         return ()
 
     def artifact_entries(self, resolved_inputs):
-        return (text_entry("prod-selector", "prod", conflicting_filenames=("dev-selector",)),)
-
-class Prod(Dev):
-    pass
+        return (text_entry("prod-selector", "prod"),)
 """,
         )
         binaries_dir = tmp_path / "binaries"
         binaries_dir.mkdir()
         (binaries_dir / "dev-selector").write_text("manual\n", encoding="utf-8")
 
-        with pytest.raises(TargetArtifactError, match="conflicting selector 'dev-selector' is not owned"):
+        with pytest.raises(TargetArtifactError, match=r"conflicting selector 'dev-selector'.*not owned"):
             stage_target("fake", "prod", repo_root=tmp_path, binaries_dir=binaries_dir)
 
         assert not (binaries_dir / "prod-selector").exists()
+
+    def test_manual_prod_selector_blocks_dev_without_resolving_prod(self, tmp_path: Path) -> None:
+        _write_target_module(
+            tmp_path,
+            """
+from utils.target_artifacts.entry_helpers import text_entry
+
+class Dev:
+    def artifact_entry_filenames(self):
+        return ("dev-selector",)
+
+    def artifact_inputs(self, env):
+        return ()
+
+    def artifact_entries(self, resolved_inputs):
+        return (text_entry("dev-selector", "dev"),)
+
+class Prod:
+    def artifact_entry_filenames(self):
+        return ("prod-selector",)
+
+    def artifact_inputs(self, env):
+        raise AssertionError("prod inputs must not be inspected while staging dev")
+
+    def artifact_entries(self, resolved_inputs):
+        raise AssertionError("prod entries must not be produced while staging dev")
+""",
+        )
+        binaries_dir = tmp_path / "binaries"
+        binaries_dir.mkdir()
+        (binaries_dir / "prod-selector").write_text("manual\n", encoding="utf-8")
+
+        with pytest.raises(TargetArtifactError, match=r"conflicting selector 'prod-selector'.*not owned"):
+            stage_target("fake", "dev", repo_root=tmp_path, binaries_dir=binaries_dir)
+
+        assert not (binaries_dir / "dev-selector").exists()
+
+    def test_selected_environment_can_emit_multiple_entries(self, tmp_path: Path) -> None:
+        _write_target_module(
+            tmp_path,
+            """
+from utils.target_artifacts.entry_helpers import text_entry
+
+class Dev:
+    def artifact_entry_filenames(self):
+        return ("dev-selector", "dev-marker")
+
+    def artifact_inputs(self, env):
+        return ()
+
+    def artifact_entries(self, resolved_inputs):
+        return (text_entry("dev-selector", "dev"), text_entry("dev-marker", "bounded"))
+
+class Prod:
+    def artifact_entry_filenames(self):
+        return ("prod-selector",)
+
+    def artifact_inputs(self, env):
+        return ()
+
+    def artifact_entries(self, resolved_inputs):
+        return (text_entry("prod-selector", "prod"),)
+""",
+        )
+        binaries_dir = tmp_path / "binaries"
+
+        stage_target("fake", "dev", repo_root=tmp_path, binaries_dir=binaries_dir)
+
+        assert (binaries_dir / "dev-selector").read_text(encoding="utf-8") == "dev\n"
+        assert (binaries_dir / "dev-marker").read_text(encoding="utf-8") == "bounded\n"
+
+    @pytest.mark.parametrize("filename", ["", "../outside", "nested/entry", MANIFEST_FILENAME])
+    def test_invalid_declared_filename_is_rejected_before_resolution(self, tmp_path: Path, filename: str) -> None:
+        _write_target_module(
+            tmp_path,
+            f"""
+class Dev:
+    def artifact_entry_filenames(self):
+        return ({filename!r},)
+
+    def artifact_inputs(self, env):
+        raise AssertionError("invalid declarations must fail before resolution")
+
+    def artifact_entries(self, resolved_inputs):
+        return ()
+
+class Prod(Dev):
+    pass
+""",
+        )
+
+        with pytest.raises(TargetArtifactError, match="Invalid artifact entry filename"):
+            stage_target("fake", "dev", repo_root=tmp_path, binaries_dir=tmp_path / "binaries")
+
+    def test_undeclared_emitted_filename_is_rejected(self, tmp_path: Path) -> None:
+        _write_target_module(
+            tmp_path,
+            """
+from utils.target_artifacts.entry_helpers import text_entry
+
+class Dev:
+    def artifact_entry_filenames(self):
+        return ("declared",)
+
+    def artifact_inputs(self, env):
+        return ()
+
+    def artifact_entries(self, resolved_inputs):
+        return (text_entry("undeclared", "value"),)
+
+class Prod(Dev):
+    pass
+""",
+        )
+
+        with pytest.raises(TargetArtifactError, match=r"emitted undeclared artifact entry filename.*undeclared"):
+            stage_target("fake", "dev", repo_root=tmp_path, binaries_dir=tmp_path / "binaries")
 
     @pytest.mark.parametrize("filename", ["", "../outside", "nested/entry", MANIFEST_FILENAME])
     def test_invalid_entry_filename_is_rejected(self, tmp_path: Path, filename: str) -> None:
@@ -440,6 +594,9 @@ class Prod(Dev):
 from utils.target_artifacts.entry_helpers import text_entry
 
 class Dev:
+    def artifact_entry_filenames(self):
+        return ({filename!r},)
+
     def artifact_inputs(self, env):
         return ()
 
@@ -459,6 +616,9 @@ class Prod(Dev):
             tmp_path,
             """
 class Dev:
+    def artifact_entry_filenames(self):
+        return ()
+
     def artifact_inputs(self, env):
         return ()
 
@@ -1118,11 +1278,10 @@ class Test_TargetArtifactModules:
         entries = target_environment.artifact_entries(resolved)
 
         assert len(entries) == 1
+        assert target_environment.artifact_entry_filenames() == (entries[0].filename,)
         if environment == "dev":
             assert entries[0].filename == "python-load-from-s3"
             assert entries[0].content == f"{SHA}\n"
-            assert entries[0].conflicting_filenames == ("python-load-from-pip",)
         else:
             assert entries[0].filename == "python-load-from-pip"
             assert entries[0].content == "ddtrace==1.2.3\n"
-            assert entries[0].conflicting_filenames == ("python-load-from-s3",)

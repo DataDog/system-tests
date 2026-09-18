@@ -20,6 +20,8 @@ python3 utils/scripts/stage-target-artifacts.py python <dev|prod|custom>
 Staging writes bounded text selectors and records generated-file ownership in
 `binaries/.target-artifacts-manifest.json`. It refuses to overwrite manual files,
 changed generated entries, symlinks, or conflicting selectors in `binaries/`.
+Development and production selectors for the same target are treated as mutually
+exclusive automatically.
 Switching to `custom` removes unchanged generated Python selectors while preserving
 manual payloads. Other targets continue to use their existing loading behavior until
 they are migrated separately.

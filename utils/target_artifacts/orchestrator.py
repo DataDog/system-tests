@@ -43,7 +43,12 @@ def stage_target(
             return
         raise TargetArtifactError(f"Unknown target artifact environment: {environment}")
 
-    target_environment = load_target_environment(root, target, environment)
+    target_environments = load_target_environments(root, target)
+    target_environment = target_environments[environment]
+    environment_filenames = {
+        name: _validate_declared_filenames(target, name, target_env.artifact_entry_filenames())
+        for name, target_env in target_environments.items()
+    }
     artifact_inputs = target_environment.artifact_inputs(env)
     input_names = [artifact_resolver.name for artifact_resolver in artifact_inputs]
     duplicate_names = sorted({name for name in input_names if input_names.count(name) > 1})
@@ -51,24 +56,36 @@ def stage_target(
         raise TargetArtifactError(f"Duplicate artifact input name(s): {', '.join(duplicate_names)}")
     resolved_inputs = {artifact_resolver.name: artifact_resolver.resolve(env) for artifact_resolver in artifact_inputs}
     entries = target_environment.artifact_entries(resolved_inputs)
-    write_artifact_entries(output_dir, target, environment, entries)
+    undeclared_filenames = sorted({entry.filename for entry in entries} - set(environment_filenames[environment]))
+    if undeclared_filenames:
+        raise TargetArtifactError(
+            f"{target}.{environment} emitted undeclared artifact entry filename(s): {', '.join(undeclared_filenames)}"
+        )
+    selector_filenames = tuple(filename for filenames in environment_filenames.values() for filename in filenames)
+    write_artifact_entries(output_dir, target, environment, entries, selector_filenames=selector_filenames)
 
 
 def load_target_environment(repo_root: Path, target: str, environment: str) -> TargetArtifactEnvironment:
+    return load_target_environments(repo_root, target)[environment]
+
+
+def load_target_environments(repo_root: Path, target: str) -> dict[str, TargetArtifactEnvironment]:
     module_path = repo_root / "utils" / "build" / "docker" / target / "artifact.py"
     if not module_path.exists():
         raise TargetArtifactError(f"No target artifact module found for '{target}' at {module_path}")
 
     module = _load_module(module_path, f"system_tests_target_artifacts_{target}")
-    class_name = "Dev" if environment == "dev" else "Prod"
-    environment_class = getattr(module, class_name, None)
-    if environment_class is None:
-        raise TargetArtifactError(f"Target artifact module for '{target}' does not define {class_name}")
+    result: dict[str, TargetArtifactEnvironment] = {}
+    for environment, class_name in (("dev", "Dev"), ("prod", "Prod")):
+        environment_class = getattr(module, class_name, None)
+        if environment_class is None:
+            raise TargetArtifactError(f"Target artifact module for '{target}' does not define {class_name}")
 
-    instance = environment_class()
-    if not isinstance(instance, TargetArtifactEnvironment):
-        raise TargetArtifactError(f"{target}.{class_name} does not implement TargetArtifactEnvironment")
-    return instance
+        instance = environment_class()
+        if not isinstance(instance, TargetArtifactEnvironment):
+            raise TargetArtifactError(f"{target}.{class_name} does not implement TargetArtifactEnvironment")
+        result[environment] = instance
+    return result
 
 
 def write_artifact_entries(
@@ -76,6 +93,8 @@ def write_artifact_entries(
     target: str,
     environment: str,
     entries: tuple[ArtifactEntry, ...],
+    *,
+    selector_filenames: tuple[str, ...] = (),
 ) -> None:
     manifest = _read_manifest(binaries_dir)
     manifest_entries = _manifest_entries(manifest)
@@ -85,11 +104,14 @@ def write_artifact_entries(
     for filename in manifest_entries:
         _validate_filename(filename)
 
+    for filename in selector_filenames:
+        _validate_filename(filename)
+
     for filename, metadata in manifest_entries.items():
         if _same_target(metadata.get("owner"), target):
             _validate_owned_file(binaries_dir / filename, filename, metadata)
 
-    for filename, entry in new_entries.items():
+    for filename in new_entries:
         _validate_filename(filename)
         existing_owner = manifest_entries.get(filename, {}).get("owner")
         path = binaries_dir / filename
@@ -102,25 +124,17 @@ def write_artifact_entries(
             raise TargetArtifactError(f"Artifact entry '{filename}' is already owned by target '{owner_target}'")
         if path.exists() and existing_owner is None:
             raise TargetArtifactError(f"Refusing to overwrite unowned artifact entry '{filename}'")
-        for conflicting_filename in entry.conflicting_filenames:
-            _validate_filename(conflicting_filename)
-            if conflicting_filename in new_entries:
+
+    for selector_filename in set(selector_filenames) - set(new_entries):
+        selector_path = binaries_dir / selector_filename
+        if selector_path.is_symlink():
+            raise TargetArtifactError(f"Refusing conflicting selector symlink '{selector_filename}'")
+        if selector_path.exists():
+            selector_owner = manifest_entries.get(selector_filename, {}).get("owner")
+            if not _same_target(selector_owner, target):
                 raise TargetArtifactError(
-                    f"Artifact entries '{filename}' and '{conflicting_filename}' conflict with each other"
+                    f"Refusing conflicting selector '{selector_filename}' because it is not owned by target '{target}'"
                 )
-            conflicting_path = binaries_dir / conflicting_filename
-            if conflicting_path.is_symlink():
-                raise TargetArtifactError(
-                    f"Refusing artifact entry '{filename}' because conflicting selector "
-                    f"'{conflicting_filename}' is a symlink"
-                )
-            if conflicting_path.exists():
-                conflicting_owner = manifest_entries.get(conflicting_filename, {}).get("owner")
-                if not _same_target(conflicting_owner, target):
-                    raise TargetArtifactError(
-                        f"Refusing artifact entry '{filename}' because conflicting selector "
-                        f"'{conflicting_filename}' is not owned by target '{target}'"
-                    )
 
     for filename, metadata in list(manifest_entries.items()):
         owner_data = metadata.get("owner")
@@ -201,6 +215,17 @@ def _dedupe_entries(entries: tuple[ArtifactEntry, ...]) -> dict[str, ArtifactEnt
             raise TargetArtifactError(f"Duplicate artifact entry '{entry.filename}'")
         result[entry.filename] = entry
     return result
+
+
+def _validate_declared_filenames(target: str, environment: str, filenames: tuple[str, ...]) -> tuple[str, ...]:
+    duplicates = sorted({filename for filename in filenames if filenames.count(filename) > 1})
+    if duplicates:
+        raise TargetArtifactError(
+            f"{target}.{environment} declares duplicate artifact entry filename(s): {', '.join(duplicates)}"
+        )
+    for filename in filenames:
+        _validate_filename(filename)
+    return filenames
 
 
 def _validate_filename(filename: str) -> None:
