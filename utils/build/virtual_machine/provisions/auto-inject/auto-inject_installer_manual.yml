@@ -5,6 +5,10 @@
       local_path: utils/build/virtual_machine/provisions/auto-inject/tracer_debug/debug_config.yaml
     - name: copy-docker-config
       local_path: utils/build/virtual_machine/provisions/auto-inject/docker/docker_config.yaml
+    - name: copy-installer-versions-script
+      local_path: utils/scripts/installer_versions.sh
+    - name: copy-auto-inject-lock
+      local_path: auto_inject.lock
     - name: copy-binaries
       local_path: binaries/
 
@@ -73,6 +77,8 @@
        export "DD_INSTALLER_REGISTRY_URL_APM_LIBRARY_$(echo "$DD_LANG" | tr "[:lower:]" "[:upper:]")_PACKAGE"='installtesting.datad0g.com'
        export "DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_LIBRARY_$(echo "$DD_LANG" | tr "[:lower:]" "[:upper:]")"="${DD_INSTALLER_LIBRARY_VERSION}"
     fi
+
+    source ./installer_versions.sh
 
     if [ "${DD_LANG}" == "js" ] && [ "${DD_env}" == "dev" ] && [ -z "${DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_LIBRARY_JS}" ]; then
         # Special case for Node.js, the staging major version is 1 above the prod major (7 here)

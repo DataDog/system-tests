@@ -2,7 +2,6 @@ import yaml
 import os
 
 from utils.const import COMPONENT_GROUPS
-from utils.scripts.installer_versions import set_injector_version_from_lock
 
 # List of allowed variables
 ALLOWED_VARIABLES = [
@@ -57,8 +56,6 @@ def main(language: str | None = None) -> None:
         language (str): The language to filter the pipeline for.
         if it's None or not a language, the pipeline will be generated for all languages
     """
-    set_injector_version_from_lock()
-
     # Filter environment variables
     new_variables = {var: os.getenv(var) for var in ALLOWED_VARIABLES if os.getenv(var) is not None}
 

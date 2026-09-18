@@ -18,7 +18,6 @@ from utils._context.containers import (
 )
 from utils._context.docker import get_docker_client
 from utils.docker_ssi.docker_ssi_matrix_utils import resolve_runtime_version
-from utils.scripts.installer_versions import set_injector_version_from_lock
 from utils._logger import logger
 from utils.virtual_machine.vm_logger import vm_logger
 
@@ -73,12 +72,7 @@ class DockerSSIScenario(Scenario):
         self._env = "prod" if config.option.ssi_env is None or config.option.ssi_env == "prod" else "dev"
         self.configuration["env"] = self._env
         self._custom_library_version = config.option.ssi_library_version
-        set_injector_version_from_lock()
-        self._custom_injector_version = (
-            os.getenv("DD_INSTALLER_INJECTOR_VERSION")
-            if os.getenv("DD_INSTALLER_LIBRARY_VERSION")
-            else config.option.ssi_injector_version
-        )
+        self._custom_injector_version = config.option.ssi_injector_version
 
         # The runtime that we want to install on the base image. it could be empty if we don't need to install a runtime
         self._installable_runtime = (
@@ -516,8 +510,8 @@ class DockerSSIImageBuilder:
         try:
             # Install the ssi to run the auto instrumentation
             _, build_logs = get_docker_client().images.build(
-                path="utils/build/ssi/",
-                dockerfile="base/base_ssi.Dockerfile",
+                path=".",
+                dockerfile="utils/build/ssi/base/base_ssi.Dockerfile",
                 platform=self._arch,
                 nocache=self._force_build or self.should_push_base_images,
                 tag=self.ssi_all_docker_tag,
