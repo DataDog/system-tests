@@ -55,6 +55,7 @@ pub fn app() -> Router<AppState> {
         .route("/metrics/otel/create_asynchronous_updowncounter", post(otel_create_asynchronous_updowncounter))
         .route("/metrics/otel/create_asynchronous_gauge", post(otel_create_asynchronous_gauge))
         .route("/metrics/otel/force_flush", post(otel_metrics_force_flush))
+        .route("/metrics/otel/shutdown", post(otel_metrics_shutdown))
         .route("/otel/logger/create", post(otel_create_logger))
         .route("/otel/logger/write", post(otel_write_log))
 }
@@ -780,6 +781,19 @@ async fn otel_metrics_force_flush(
     let meter_provider_guard = state.meter_provider.lock().unwrap();
     let result = if let Some(meter_provider) = meter_provider_guard.as_ref() {
         meter_provider.force_flush().is_ok()
+    } else {
+        false
+    };
+    Json(OtelMetricsForceFlushReturn { success: result })
+}
+
+async fn otel_metrics_shutdown(
+    State(state): State<AppState>,
+    Json(_args): Json<OtelMetricsForceFlushArgs>,
+) -> Json<OtelMetricsForceFlushReturn> {
+    let meter_provider_guard = state.meter_provider.lock().unwrap();
+    let result = if let Some(meter_provider) = meter_provider_guard.as_ref() {
+        meter_provider.shutdown().is_ok()
     } else {
         false
     };
