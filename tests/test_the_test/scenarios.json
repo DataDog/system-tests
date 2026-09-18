@@ -3232,16 +3232,16 @@
     "DEBUGGER_CAPTURE_TIMEOUT"
   ],
   "tests/debugger/test_debugger_guardrails.py::Test_Debugger_Evaluation_Timeout_Line_Probe::test_evaluation_timeout_collection_filter": [
-    "DEBUGGER_PROBES_SNAPSHOT"
+    "DEBUGGER_EVALUATION_TIMEOUT"
   ],
   "tests/debugger/test_debugger_guardrails.py::Test_Debugger_Evaluation_Timeout_Line_Probe::test_evaluation_timeout_regex": [
-    "DEBUGGER_PROBES_SNAPSHOT"
+    "DEBUGGER_EVALUATION_TIMEOUT"
   ],
   "tests/debugger/test_debugger_guardrails.py::Test_Debugger_Evaluation_Timeout_Method_Probe::test_evaluation_timeout_collection_filter": [
-    "DEBUGGER_PROBES_SNAPSHOT"
+    "DEBUGGER_EVALUATION_TIMEOUT"
   ],
   "tests/debugger/test_debugger_guardrails.py::Test_Debugger_Evaluation_Timeout_Method_Probe::test_evaluation_timeout_regex": [
-    "DEBUGGER_PROBES_SNAPSHOT"
+    "DEBUGGER_EVALUATION_TIMEOUT"
   ],
   "tests/debugger/test_debugger_guardrails.py::Test_Debugger_Snapshot_Size_Guardrail::test_snapshot_size_cap": [
     "DEBUGGER_PROBES_SNAPSHOT"

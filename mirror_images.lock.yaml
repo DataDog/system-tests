@@ -11,7 +11,7 @@ images:
     target: registry.ddbuild.io/system-tests/mirror/apache/kafka:3.7.1
     tag: 3.7.1
   cassandra:latest:
-    digest: sha256:d35e159439b302146f964919904f84fd3c2cebf347272b8cb8c4368c1cf200e5
+    digest: sha256:da9dad3aaf67c4e5126c6aafa769460d75f27c1716951c48896ff5c4e97d2af3
     target: registry.ddbuild.io/system-tests/mirror/cassandra:latest
     tag: 5.0.9
   datadog/agent:latest:
@@ -118,6 +118,10 @@ images:
     digest: sha256:bf65195d25f6e0d663c0f414590471fba7f18b1a0e3d284dda0cbd1896bea9a0
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:fastapi.base-1795d4d88178
     tag: fastapi.base-1795d4d88178
+  datadog/system-tests:fastapi.base-2917769b3665:
+    digest: sha256:f72a31702ffaabc1ba5e43042963e9cea965d1be6256d9d8a58e7e2381090d40
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:fastapi.base-2917769b3665
+    tag: fastapi.base-2917769b3665
   datadog/system-tests:fastify.base-bce27c61b3f5:
     digest: sha256:984e566d8eb604d53c1532a55559549f4c443ac73caf41664bb73241e529357c
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:fastify.base-bce27c61b3f5
@@ -198,6 +202,10 @@ images:
     digest: sha256:939d3828d85666a598c0349a6dd933fe1d92c5daa5d01438512d950ea3ccc258
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:ruby_buddy-v2
     tag: ruby_buddy-v2
+  datadog/system-tests:tornado.base-301b798ae137:
+    digest: sha256:f70f19529017e592b05be0f49669dda059c91ef608f53bdf460a2a437dc93bd8
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:tornado.base-301b798ae137
+    tag: tornado.base-301b798ae137
   datadog/system-tests:tornado.base-f378644cba7d:
     digest: sha256:0028e35812ed41a7df9b4e11d66ff399df0ecd71028e5f0297adf6344442d77c
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:tornado.base-f378644cba7d
@@ -219,11 +227,11 @@ images:
     target: registry.ddbuild.io/system-tests/mirror/demisto/fastapi:0.116.1.4266494
     tag: 0.116.1.4266494
   eclipse-temurin:11-jre:
-    digest: sha256:e9aa18936347d6496697b2b2698b7ec1e228ee3d8d0871302d6a8ccd0ce8db38
+    digest: sha256:36d9ed86b75e03d756fd4f3b9fdcf952451ddce4a4c451d23cf457ef2d591920
     target: registry.ddbuild.io/system-tests/mirror/eclipse-temurin:11-jre
     tag: 11-jre
   eclipse-temurin:17-jre:
-    digest: sha256:13cc28a6cc72a38ce1f00c906be3580c1a3e604b8984d694f369a96742abc93b
+    digest: sha256:c6f2875c05ea10f16398bdc5f73405c384991506f2f1ead8bcc6582ae8adea79
     target: registry.ddbuild.io/system-tests/mirror/eclipse-temurin:17-jre
     tag: 17-jre
   ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.64.1:
@@ -231,23 +239,23 @@ images:
     target: registry.ddbuild.io/system-tests/mirror/ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.64.1
     tag: v1.64.1
   ghcr.io/datadog/images-rb/engines/ruby:2.5-gnu-gcc:
-    digest: sha256:c015b2a31139657639fefeed0185315b421f4732ae1aaa92c3d01fbcff205b75
+    digest: sha256:9cb908874c97382ac64f6c6ea58d9bad24e6dc6fdea795ab264652e83b41c966
     target: registry.ddbuild.io/system-tests/mirror/ghcr.io/datadog/images-rb/engines/ruby:2.5-gnu-gcc
     tag: 2.5-gnu-gcc
   ghcr.io/datadog/images-rb/engines/ruby:2.7-gnu-gcc:
-    digest: sha256:eb13e91535aa787e299f37770c84e8d09c016fe9d7d218e98bae3026bdf1c0cc
+    digest: sha256:acf65aea9479be89a9ad4efd0134b37e1f3201daef77239c59f8a66c2a7a1ec3
     target: registry.ddbuild.io/system-tests/mirror/ghcr.io/datadog/images-rb/engines/ruby:2.7-gnu-gcc
     tag: 2.7-gnu-gcc
   ghcr.io/datadog/images-rb/engines/ruby:3.0-gnu-gcc:
-    digest: sha256:a91ff5af41a9e21a502f5e048c0c85f84cfe90d4382edee5be1b2cbd784dc543
+    digest: sha256:9501a95807a5a53d704e043adca705dd1e604b44c2887b35024e655b32e1c01d
     target: registry.ddbuild.io/system-tests/mirror/ghcr.io/datadog/images-rb/engines/ruby:3.0-gnu-gcc
     tag: 3.0-gnu-gcc
   ghcr.io/datadog/images-rb/engines/ruby:3.1-gnu-gcc:
-    digest: sha256:e50c7a470f75c8eb6f48b494369dc2926b89e10e1ff93106a6fcaa86cff5b4a3
+    digest: sha256:01370848d4587e3ffb36ccce6030900868e8022d3d77a4507b5b50d41e113a1d
     target: registry.ddbuild.io/system-tests/mirror/ghcr.io/datadog/images-rb/engines/ruby:3.1-gnu-gcc
     tag: 3.1-gnu-gcc
   ghcr.io/datadog/images-rb/engines/ruby:3.4-gnu-gcc:
-    digest: sha256:05599f751608ecec945cc1eb1b23b2fba0646431e05e5dee5156d40becbc2da1
+    digest: sha256:4739546bda4addb0a8a7d2236e598310457a45cd315d508094bee72a00ef3e19
     target: registry.ddbuild.io/system-tests/mirror/ghcr.io/datadog/images-rb/engines/ruby:3.4-gnu-gcc
     tag: 3.4-gnu-gcc
   ghcr.io/graalvm/native-image-community:22.0.0:
@@ -259,7 +267,7 @@ images:
     target: registry.ddbuild.io/system-tests/mirror/ghcr.io/oras-project/oras:v1.2.3
     tag: v1.2.3
   golang:1.26:
-    digest: sha256:9d2f36f06329b2a141b9db99ffa32765cf695ee57b813ca29e245e8670bcbfff
+    digest: sha256:3c3e25a4da13fd0478eed2df1eb35a0e667094a7124d3993a6a1d30f71c17e79
     target: registry.ddbuild.io/system-tests/mirror/golang:1.26
     tag: '1.26'
   golang:1.26-alpine:
@@ -283,11 +291,11 @@ images:
     target: registry.ddbuild.io/system-tests/mirror/maven:3.8-jdk-11
     tag: 3.8-jdk-11
   maven:3.9-eclipse-temurin-11:
-    digest: sha256:c46b31057b9eb90e3ec855f6db35fc99108cadcdd1a03336bfb6516ba12212ef
+    digest: sha256:68656cc571525f3bde1a0a5d3be1b63a4320ee8784292ebbde0a4eaaa47bd2e2
     target: registry.ddbuild.io/system-tests/mirror/maven:3.9-eclipse-temurin-11
     tag: 3.9-eclipse-temurin-11
   maven:3.9-eclipse-temurin-17:
-    digest: sha256:a8746f15d5bb26b5b8bacb056cc76211553850f4c71d16aff845cfa004cbc197
+    digest: sha256:880934ae394bf91bc3e57d573e4fc04774f064f3c4df7ccd7cc10b3b126737bf
     target: registry.ddbuild.io/system-tests/mirror/maven:3.9-eclipse-temurin-17
     tag: 3.9-eclipse-temurin-17
   maven:3.9.14-eclipse-temurin-17:
@@ -311,7 +319,7 @@ images:
     target: registry.ddbuild.io/system-tests/mirror/mcr.microsoft.com/mssql/server:2022-latest
     tag: 2022-latest
   mongo:latest:
-    digest: sha256:613a7cc66be5bbf1796252660b43c9b8969a5ad1dab6180c9d917b7472867e64
+    digest: sha256:81a1c8842a09589fc8d5f285266f3340bf4abdf66700ba22988f14cc9b2b3118
     target: registry.ddbuild.io/system-tests/mirror/mongo:latest
     tag: 8.3.9
   mysql/mysql-server:8.0.32:
@@ -339,7 +347,7 @@ images:
     target: registry.ddbuild.io/system-tests/mirror/postgres:alpine
     tag: alpine
   public.ecr.aws/lambda/java:17:
-    digest: sha256:85671f095736874b394bc08fe13eadd8166e739bb51db3de8fa1551cd39d5790
+    digest: sha256:264b892e3c7283a7fbe670730209e70d9e834ac3579c88fe6b58c7166e54f10d
     target: registry.ddbuild.io/system-tests/mirror/public.ecr.aws/lambda/java:17
     tag: '17'
   public.ecr.aws/lambda/nodejs:18:
@@ -347,11 +355,11 @@ images:
     target: registry.ddbuild.io/system-tests/mirror/public.ecr.aws/lambda/nodejs:18
     tag: '18'
   public.ecr.aws/lambda/python:3.13:
-    digest: sha256:9bf53dd1f76a85319f030a89b4c31a82d4b8027df738f296b47147220783bb81
+    digest: sha256:0fc65c4c9bace18ce7cb5b670119b847140a9c1c45f2b24d06ce4e35bef0a9be
     target: registry.ddbuild.io/system-tests/mirror/public.ecr.aws/lambda/python:3.13
     tag: '3.13'
   public.ecr.aws/lambda/ruby:3.4:
-    digest: sha256:123b53e6224d413e526c10f4324d85ead69278b94e8dfc4d32d476ea63cdad71
+    digest: sha256:e53101ec45c836b6e5544c3cab5e46051fd87efe402fd83048970cbe3c17c5ae
     target: registry.ddbuild.io/system-tests/mirror/public.ecr.aws/lambda/ruby:3.4
     tag: '3.4'
   python:3.11-slim:
@@ -387,6 +395,6 @@ images:
     target: registry.ddbuild.io/system-tests/mirror/softwaremill/elasticmq-native:1.6.11
     tag: 1.6.11
   ubuntu:24.04:
-    digest: sha256:33ceb71981b602c1a7443a53469e4dba065f7503eab3078a2d7a57a2ab987517
+    digest: sha256:224a1869083a311ef3f13648a154ba79832fbef6364d31493642ca03082da254
     target: registry.ddbuild.io/system-tests/mirror/ubuntu:24.04
     tag: '24.04'

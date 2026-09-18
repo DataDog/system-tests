@@ -58,17 +58,46 @@ func newServer() *apmClientServer {
 		instruments:  make(map[string]interface{}),
 	}
 
-	s.ddProvider, err = ddof.NewDatadogProvider(ddof.ProviderConfig{})
-	if err != nil {
-		log.Fatalf("failed to create Datadog OpenFeature provider: %v", err)
+	// The configuration-source contract requires lazy activation: no configuration
+	// delivery may happen before the provider is accessed through /ffe/start. When any
+	// Feature Flagging configuration variable is set, skip this eager initialization and
+	// leave provider setup to /ffe/start. Tests that predate that contract keep the
+	// original eager behavior.
+	if !ffeConfigurationEnvVarsSet() {
+		s.ddProvider, err = ddof.NewDatadogProvider(ddof.ProviderConfig{})
+		if err != nil {
+			log.Fatalf("failed to create Datadog OpenFeature provider: %v", err)
+		}
+
+		// Async on purpose, unlike /ffe/start: this runs for every parametric
+		// test that sets no Feature Flagging variable, and waiting would add the
+		// 10s DD_EXPERIMENTAL_FLAGGING_PROVIDER_INITIALIZATION_TIMEOUT_MS to each
+		// container start.
+		if err := of.SetProvider(s.ddProvider); err != nil {
+			log.Fatalf("failed to set Datadog OpenFeature provider: %v", err)
+		}
+
+		s.ofClient = of.NewClient("system-tests-weblog-client")
 	}
 
-	if err := of.SetProvider(s.ddProvider); err != nil {
-		log.Fatalf("failed to set Datadog OpenFeature provider and wait for initialization: %v", err)
-	}
-
-	s.ofClient = of.NewClient("system-tests-weblog-client")
 	return s
+}
+
+var ffeConfigurationEnvVars = []string{
+	"DD_FEATURE_FLAGS_ENABLED",
+	"DD_FEATURE_FLAGS_CONFIGURATION_SOURCE",
+	"DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL",
+	"DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_POLL_INTERVAL_SECONDS",
+	"DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_REQUEST_TIMEOUT_SECONDS",
+}
+
+func ffeConfigurationEnvVarsSet() bool {
+	for _, name := range ffeConfigurationEnvVars {
+		if _, ok := os.LookupEnv(name); ok {
+			return true
+		}
+	}
+	return false
 }
 
 func main() {

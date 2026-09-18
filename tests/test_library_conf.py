@@ -389,6 +389,8 @@ class Test_HeaderTags_DynamicConfig:
             "lib_config": header_tags,
         }
         rc_id = hash(json.dumps(config))
+        if rc.library_supports_sdk_configuration():
+            config = rc.to_sdk_config_payload(config)
         return f"datadog/2/APM_TRACING/{rc_id}/config", config
 
 
