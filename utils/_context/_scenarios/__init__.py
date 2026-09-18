@@ -540,6 +540,7 @@ class _Scenarios:
     appsec_runtime_activation = DdTraceEndToEndScenario(
         "APPSEC_RUNTIME_ACTIVATION",
         rc_api_enabled=True,
+        rc_apply_settle_seconds={"nodejs": 0},
         appsec_enabled=False,
         iast_enabled=False,
         weblog_env={"DD_APPSEC_WAF_TIMEOUT": "10000000", "DD_APPSEC_TRACE_RATE_LIMIT": "10000"},  # 10 seconds
