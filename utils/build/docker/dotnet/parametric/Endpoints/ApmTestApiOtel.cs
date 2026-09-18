@@ -6,7 +6,7 @@ using Newtonsoft.Json.Linq;
 
 namespace ApmTestApi.Endpoints;
 
-public abstract class ApmTestApiOtel : ApmTestApi
+public abstract partial class ApmTestApiOtel : ApmTestApi
 {
     private static readonly ActivitySource ApmTestApiActivitySource = new("ApmTestApi");
     private static readonly Dictionary<ulong, Activity> Activities = new();
@@ -17,6 +17,11 @@ public abstract class ApmTestApiOtel : ApmTestApi
     public static void MapApmOtelEndpoints(WebApplication app, ILogger logger)
     {
         _logger = logger;
+
+        // Datadog instruments ILoggerFactory and installs its own log provider. Do not
+        // configure an upstream OTel SDK/exporter, which would bypass the tracer under test.
+        _otelLoggerFactory = LoggerFactory.Create(builder => builder.SetMinimumLevel(LogLevel.Trace).AddConsole());
+        app.Lifetime.ApplicationStopped.Register(_otelLoggerFactory.Dispose);
 
         app.MapPost("/trace/otel/start_span", OtelStartSpan);
         app.MapPost("/trace/otel/end_span", OtelEndSpan);
@@ -29,6 +34,11 @@ public abstract class ApmTestApiOtel : ApmTestApi
         app.MapPost("/trace/otel/add_event", OtelAddEvent);
         app.MapPost("/trace/otel/record_exception", OtelRecordException);
         app.MapPost("/trace/stats/flush", OtelFlushTraceStats);
+
+        // Logs endpoints
+        app.MapPost("/otel/logger/create", OtelCreateLogger);
+        app.MapPost("/otel/logger/write", OtelWriteLog);
+        app.MapPost("/log/otel/flush", OtelFlushLogs);
 
         // Metrics endpoints
         app.MapPost("/metrics/otel/get_meter", OtelGetMeter);
