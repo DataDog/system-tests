@@ -18,6 +18,11 @@ public abstract partial class ApmTestApiOtel : ApmTestApi
     {
         _logger = logger;
 
+        // Datadog instruments ILoggerFactory and installs its own log provider. Do not
+        // configure an upstream OTel SDK/exporter, which would bypass the tracer under test.
+        _otelLoggerFactory = LoggerFactory.Create(builder => builder.SetMinimumLevel(LogLevel.Trace).AddConsole());
+        app.Lifetime.ApplicationStopped.Register(_otelLoggerFactory.Dispose);
+
         app.MapPost("/trace/otel/start_span", OtelStartSpan);
         app.MapPost("/trace/otel/end_span", OtelEndSpan);
         app.MapPost("/trace/otel/flush", OtelFlushSpans);
@@ -29,11 +34,6 @@ public abstract partial class ApmTestApiOtel : ApmTestApi
         app.MapPost("/trace/otel/add_event", OtelAddEvent);
         app.MapPost("/trace/otel/record_exception", OtelRecordException);
         app.MapPost("/trace/stats/flush", OtelFlushTraceStats);
-
-        // Datadog instruments ILoggerFactory and installs its own log provider. Do not
-        // configure an upstream OTel SDK/exporter, which would bypass the tracer under test.
-        _otelLoggerFactory = LoggerFactory.Create(builder => builder.SetMinimumLevel(LogLevel.Trace).AddConsole());
-        app.Lifetime.ApplicationStopped.Register(_otelLoggerFactory.Dispose);
 
         // Logs endpoints
         app.MapPost("/otel/logger/create", OtelCreateLogger);
