@@ -57,11 +57,13 @@ public class DebuggerController {
 // Dummy line
     @GetMapping("/pii")
     public String pii() {
-        PiiBase pii = new Pii();
-        PiiBase customPii = new CustomPii();
+        Pii pii = new Pii();
+        CustomPii customPii = new CustomPii();
         String value = pii.TestValue;
         String customValue = customPii.TestValue;
-        return "PII " + value + ". CustomPII" + customValue; // must be line 64
+        String password = "DIRECT_SECRET_VALUE";
+        java.util.Map<String, String> user = createPiiUser();
+        return "PII " + value + ". CustomPII" + customValue + ". Data size " + (password.length() + user.size()); // must be line 66
     }
 
     @GetMapping("/expression")
@@ -169,6 +171,14 @@ public class DebuggerController {
             }
             largeCollection.add(nested);
         }
-        return "Capture timeout probe"; // Line probe is instrumented here (line 172).
+        return "Capture timeout probe"; // Line probe is instrumented here (line 174).
+    }
+
+    private static Map<String, String> createPiiUser() {
+        Map<String, String> user = new HashMap<>();
+        user.put("password", "MAP_SECRET_VALUE");
+        user.put("_2fa", "EXCLUDED_IDENTIFIER_VALUE");
+        user.put("name", "NON_SENSITIVE_VALUE");
+        return user;
     }
 }

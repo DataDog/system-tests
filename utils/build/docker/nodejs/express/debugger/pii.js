@@ -105,4 +105,23 @@ class Pii {
   }
 }
 
-module.exports = Pii
+class CustomPii {
+  constructor () {
+    this.customkey = VALUE
+  }
+}
+
+function createPiiLocals () {
+  return {
+    pii: new Pii(),
+    customPii: new CustomPii(),
+    password: 'DIRECT_SECRET_VALUE',
+    user: {
+      password: 'MAP_SECRET_VALUE',
+      _2fa: 'EXCLUDED_IDENTIFIER_VALUE',
+      name: 'NON_SENSITIVE_VALUE'
+    }
+  }
+}
+
+module.exports = { Pii, createPiiLocals }

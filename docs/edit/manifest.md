@@ -39,13 +39,12 @@ Each component has its own manifest file in the `manifests/` directory.
 - `manifests/python_lambda.yml` - Python AWS Lambda
 - `manifests/python_otel.yml` - Python OpenTelemetry
 - `manifests/ruby.yml` - Ruby library
+- `manifests/ruby_lambda.yml` - Ruby AWS Lambda
 - `manifests/rust.yml` - Rust library
 
 ### Infrastructure Manifests
 - `manifests/agent.yml` - Datadog Agent version conditions
 - `manifests/k8s_cluster_agent.yml` - Kubernetes Cluster Agent
-- `manifests/envoy.yml` - Envoy proxy
-- `manifests/haproxy.yml` - HAProxy
 
 **Note:** Do not create new manifest files without consulting the team in **#apm-shared-testing** Slack channel first.
 

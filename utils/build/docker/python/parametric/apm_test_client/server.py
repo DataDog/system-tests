@@ -444,19 +444,6 @@ class TraceStatsFlushReturn(BaseModel):
 
 @app.post("/trace/stats/flush")
 def trace_stats_flush(args: TraceStatsFlushArgs) -> TraceStatsFlushReturn:
-    # Legacy path: older dd-trace-py versions used a Python-side SpanStatsProcessorV06.
-    if hasattr(ddtrace.internal.processor, "stats"):
-        stats_proc = [
-            p
-            for p in ddtrace.tracer._span_processors
-            if isinstance(p, ddtrace.internal.processor.stats.SpanStatsProcessorV06)
-        ]
-        if stats_proc:
-            stats_proc[0].periodic()
-            return TraceStatsFlushReturn()
-
-    # Modern path: dd-trace-py >= 3.x delegates CSS to libdatadog's native TraceExporter.
-    # The exporter only emits /v0.6/stats on its internal 10-second timer or on shutdown.
     span_aggregator = getattr(ddtrace.tracer, "_span_aggregator", None)
     writer = getattr(span_aggregator, "writer", None)
     if writer is None:

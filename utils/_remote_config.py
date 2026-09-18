@@ -3,18 +3,21 @@
 # Copyright 2021 Datadog, Inc.
 
 import base64
+from contextlib import contextmanager
+from datetime import UTC, datetime, timedelta
 import hashlib
 import json
 import os
 import re
+import threading
 import time
 import uuid
 from typing import Any, Literal
-from collections.abc import Mapping
+from collections.abc import Callable, Iterator, Mapping
 
 from utils._context.core import context
 
-from utils.dd_constants import RemoteConfigApplyState as ApplyState
+from utils.dd_constants import Capabilities, RemoteConfigApplyState as ApplyState
 from utils.interfaces import library
 from utils._logger import logger
 from utils.proxy.mocked_response import (
@@ -44,6 +47,202 @@ class RemoteConfigStateResults:
     @staticmethod
     def from_json(d: dict) -> "RemoteConfigStateResults":
         return RemoteConfigStateResults(version=d["version"], state=d["state"], configs=d["configs"])
+
+
+APPLY_TIMEOUT = 30
+"""Seconds to wait for an RC apply to be acknowledged."""
+
+SLOW_APPLY_THRESHOLD = APPLY_TIMEOUT / 2
+"""Seconds an RC apply may take before it is reported as abnormal.
+
+Half the wait budget: past this an apply is closer to timing out than to succeeding.
+Normal acknowledgement times vary a lot per library (python under 2s, java and golang
+around 8s and reaching 10s), so a single lower value would report healthy runs.
+"""
+
+STACK_DUMP_AFTER = (10.0, 20.0)
+"""Seconds into a stalled apply at which the weblog's thread stacks are captured.
+
+Two samples are enough to tell a thread parked on one call from one that is moving.
+"""
+
+STACK_DUMP_TIMEOUT = 5
+"""Seconds a stack dump command may run. Enforced inside the container.
+
+Kept below the gap between STACK_DUMP_AFTER deadlines so a slow dump cannot swallow
+the next one. A measured dump takes about 0.1s, so this is ample.
+"""
+
+MAX_TELEMETRY_WARNINGS = 20
+"""Most recent telemetry warnings to log, so a long run cannot flood the output."""
+
+MAX_STACK_DUMP_CHARS = 20000
+"""Longest stack dump to log, so a process with many threads cannot flood the output."""
+
+MAX_DUMP_ERROR_CHARS = 500
+"""Longest failed-dump output to log: enough to show the error, not a whole usage message."""
+
+TELEMETRY_CLOCK_MARGIN = timedelta(seconds=2)
+"""Slack applied when selecting telemetry by arrival time, to absorb clock differences
+between the proxy that timestamps a flow and this process."""
+
+_STACK_DUMP_COMMANDS: dict[str, str] = {
+    # `timeout` bounds the command so a hung dump cannot extend the apply, and
+    # --nonblocking keeps py-spy from pausing the process we are measuring
+    "python": f"timeout {STACK_DUMP_TIMEOUT} py-spy dump --pid 1 --subprocesses --nonblocking",
+}
+"""How to dump thread stacks, per library. Libraries absent here are not covered."""
+
+
+def _arrived_since(data: dict, cutoff: datetime) -> bool:
+    """Whether a proxied flow arrived at or after `cutoff`.
+
+    A flow whose timestamp is missing or unparseable is kept: losing the evidence is
+    worse than reporting a warning from slightly earlier.
+    """
+    timestamp = data.get("request", {}).get("timestamp_start")
+    if not isinstance(timestamp, str):
+        return True
+    try:
+        return datetime.fromisoformat(timestamp) >= cutoff
+    except ValueError:
+        return True
+
+
+def _log_library_telemetry_warnings(since: datetime) -> None:
+    """Log the warnings a library reported through telemetry during this apply.
+
+    Libraries report their own slow remote config callbacks this way, which is often
+    what explains an apply that was not acknowledged in time. This telemetry is already
+    collected, so nothing extra is sent, and nothing is logged if there is none.
+
+    Only telemetry that arrived since `since` is reported, so a slow apply late in a
+    scenario does not repeat every warning the whole session has produced.
+    """
+    cutoff = since - TELEMETRY_CLOCK_MARGIN
+    # collected outside the try: whatever was read is still worth logging if a later
+    # entry turns out to be malformed
+    lines: list[str] = []
+    seen: set[str] = set()
+    try:
+        for data in library.get_telemetry_data():
+            content = data["request"]["content"]
+            if content.get("request_type") != "logs":
+                continue
+            if not _arrived_since(data, cutoff):
+                continue
+
+            payload = content.get("payload") or {}
+            entries = payload.get("logs", []) if isinstance(payload, dict) else payload
+            for entry in entries or []:
+                # one entry of an unexpected shape must not hide the others
+                if not isinstance(entry, dict):
+                    continue
+                if str(entry.get("level", "")).upper() not in ("WARN", "WARNING", "ERROR"):
+                    continue
+
+                line = f"[{entry.get('level')}] {entry.get('message')}"
+                if entry.get("tags"):
+                    line += f" ({entry['tags']})"
+                if line not in seen:  # deduplicated within this report only
+                    seen.add(line)
+                    lines.append(line)
+    except Exception as e:  # diagnostics must never fail a test
+        logger.info(f"Could not read all library telemetry: {type(e).__name__}: {e}")
+
+    if lines:
+        shown = lines[-MAX_TELEMETRY_WARNINGS:]
+        omitted = len(lines) - len(shown)
+        formatted = "\n  ".join(shown)
+        suffix = f"\n  (+{omitted} earlier warnings not shown)" if omitted else ""
+        logger.warning(f"Library reported these telemetry warnings:\n  {formatted}{suffix}")
+
+
+def _stack_dump_target() -> tuple[str, Any] | None:
+    """The command and container to dump stacks with, or None if unsupported.
+
+    Scenarios without a weblog (parametric, and others) have nothing to dump, and
+    libraries absent from _STACK_DUMP_COMMANDS have no way to do it.
+    """
+    try:
+        command = _STACK_DUMP_COMMANDS.get(context.library.name)
+        container = getattr(context.scenario, "weblog_container", None)
+        if command is None or container is None:
+            return None
+    except Exception:  # diagnostics must never fail a test
+        return None
+    return command, container
+
+
+def _dump_weblog_thread_stacks(elapsed: float, stop: threading.Event) -> None:
+    """Log the weblog's thread stacks, read from outside the process.
+
+    A stalled apply usually means a library thread is stuck, and this says where.
+    Reading them from outside avoids perturbing the process being measured.
+    """
+    target = _stack_dump_target()
+    if target is None:
+        return
+    command, weblog_container = target
+
+    try:
+        result = weblog_container.exec_run(command)
+        output = (result.output or b"").decode("utf-8", errors="replace").strip()
+        if result.exit_code != 0:
+            # never present a failed command as though it were a stack dump
+            logger.info(f"Thread stack dump failed (exit {result.exit_code}): {output[:MAX_DUMP_ERROR_CHARS]}")
+            return
+        if len(output) > MAX_STACK_DUMP_CHARS:
+            output = output[:MAX_STACK_DUMP_CHARS] + "\n<truncated>"
+    except Exception as e:  # diagnostics must never fail a test, nor kill this thread
+        logger.info(f"Could not dump weblog thread stacks: {type(e).__name__}: {e}")
+        return
+
+    if stop.is_set():
+        # the apply completed while the dump ran, so it no longer describes a stall
+        return
+
+    logger.warning(f"Weblog thread stacks {elapsed:.1f}s into a stalled RC apply:\n{output}")
+
+
+@contextmanager
+def _dump_stacks_if_apply_stalls(started: float) -> Iterator[None]:
+    """Capture the weblog's thread stacks if the enclosed wait stalls.
+
+    `started` is the caller's monotonic start time, so the deadlines measure the wait
+    rather than when this thread happened to be scheduled. Nothing is captured for an
+    apply that completes before the first deadline, nor for an unsupported library.
+    """
+    if _stack_dump_target() is None:
+        yield
+        return
+
+    stop = threading.Event()
+
+    def watch() -> None:
+        for deadline in STACK_DUMP_AFTER:
+            remaining = deadline - (time.monotonic() - started)
+            if remaining <= 0:
+                continue  # deadline already missed, do not run dumps back to back
+            if stop.wait(remaining):
+                return  # the apply completed, there is nothing to look at
+            _dump_weblog_thread_stacks(time.monotonic() - started, stop)
+
+    thread = threading.Thread(target=watch, name="rc-stack-dump", daemon=True)
+    try:
+        thread.start()
+    except Exception as e:  # diagnostics must never fail a test
+        logger.info(f"Could not start the stack dump watcher: {type(e).__name__}: {e}")
+        yield
+        return
+
+    try:
+        yield
+    finally:
+        stop.set()
+        # the command cannot outlive STACK_DUMP_TIMEOUT, so this is the whole wait;
+        # a dump still running past it reports nothing, so it is safe to stop waiting
+        thread.join(timeout=STACK_DUMP_TIMEOUT)
 
 
 def send_state(
@@ -108,41 +307,45 @@ def send_state(
             "apply_error": "<No known response from the library>",
         }
 
-    state = {}
+    last_client_state: dict[str, Any] = {}
 
     def remote_config_applied(data: dict) -> bool:
-        nonlocal state
+        nonlocal last_client_state
         if data["path"] != "/v0.7/config":
             return False
 
-        state = data.get("request", {}).get("content", {}).get("client", {}).get("state", {})
-        targets_version = state.get("targets_version")
-        config_states = state.get("config_states", [])
+        last_client_state = data.get("request", {}).get("content", {}).get("client", {}).get("state", {})
+        # read with .get(): a poll carrying no client state used to raise KeyError from
+        # inside this callback, which is not a useful way to report a malformed payload.
+        # It now reads as "not the version we are waiting for" and the wait continues.
+        targets_version = last_client_state.get("targets_version")
+        config_states = last_client_state.get("config_states", [])
         logger.info(
             f"RC poll: targets_version={targets_version} (waiting for {version}), config_states={config_states}"
         )
 
         if len(client_configs) == 0:
-            found = state["targets_version"] == state_version and state.get("config_states", []) == []
+            found = targets_version == state_version and config_states == []
             if found:
                 current_states.state = ApplyState.ACKNOWLEDGED
             return found
 
-        if state["targets_version"] != version:
+        if targets_version != version:
             return False
 
-        for state in config_states:
-            config_state = current_states.configs.get(state["id"])
-            if config_state and state["product"] == config_state["product"]:
-                logger.debug(f"Remote config state: {state}")
-                config_state.update(state)
+        for reported_state in config_states:
+            config_state = current_states.configs.get(reported_state["id"])
+            if config_state and reported_state["product"] == config_state["product"]:
+                logger.debug(f"Remote config state: {reported_state}")
+                config_state.update(reported_state)
 
         if wait_for_acknowledged_status:
-            for state in current_states.configs.values():
-                if state["apply_state"] == ApplyState.UNKNOWN:
+            for config_state in current_states.configs.values():
+                if config_state["apply_state"] == ApplyState.UNKNOWN:
                     logger.info(
-                        f"RC config {state['id']} still unacknowledged: "
-                        f"apply_state={state['apply_state']}, apply_error={state.get('apply_error')}"
+                        f"RC config {config_state['id']} still unacknowledged: "
+                        f"apply_state={config_state['apply_state']}, "
+                        f"apply_error={config_state.get('apply_error')}"
                     )
                     return False
 
@@ -150,21 +353,42 @@ def send_state(
         return True
 
     logger.info(f"Waiting for RC version={version}, client_configs={client_configs}")
-    rv = library.wait_for(remote_config_applied, timeout=30)
+    wait_started = time.monotonic()
+    wait_started_at = datetime.now(UTC)
+    with _dump_stacks_if_apply_stalls(wait_started):
+        rv = library.wait_for(remote_config_applied, timeout=APPLY_TIMEOUT)
+        # measured inside, so watcher teardown is not counted as part of the apply
+        elapsed = time.monotonic() - wait_started
+
+    # an apply that is never acknowledged does not always fail a test, so this is
+    # reported rather than raised, and logged before the sleep so that an outer
+    # scenario timeout cannot lose it
+    slow = elapsed > SLOW_APPLY_THRESHOLD
     if not rv:
-        logger.error(
-            f"RC timed out. Last known state: targets_version={state.get('targets_version')}, "
-            f"config_states={state.get('config_states', [])}"
+        logger.warning(
+            f"RC apply version={version} was not acknowledged after {elapsed:.3f}s. "
+            f"Last seen targets_version={last_client_state.get('targets_version')}, "
+            f"awaited configs={list(current_states.configs.keys())}, "
+            f"reported config_states={last_client_state.get('config_states', [])}"
         )
-        logger.error(f"Expected version={version}, configs={list(current_states.configs.keys())}")
+    elif slow:
+        logger.warning(f"RC apply version={version} was acknowledged, but took {elapsed:.3f}s")
+    else:
+        logger.debug(f"RC apply version={version} acknowledged in {elapsed:.3f}s")
+
+    # ensure the library has enough time to apply the config to all subprocesses,
+    # and to flush the telemetry that explains a slow apply
+    time.sleep(2)
+
+    if not rv or slow:
+        _log_library_telemetry_warnings(wait_started_at)
+
     # Opt-in fail-fast for Ruby RC timeouts (default off). Setup paths in CI
     # must not raise (.cursor/rules/pr-review.mdc §4); the default-off gate
     # keeps that invariant while letting local debugging see the failure at
     # the timeout point.
     if not rv and context.library == "ruby" and os.environ.get("SYSTEM_TESTS_FAIL_FAST", "").lower() == "true":
         raise AssertionError("Remote config was not applied")
-    # ensure the library has enough time to apply the config to all subprocesses
-    time.sleep(2)
 
     return current_states
 
@@ -283,6 +507,234 @@ def send_symdb_command(version: int = 1) -> RemoteConfigStateResults:
     return send_state(raw_payload, target=target)
 
 
+####################################################################################
+# SDK_CONFIGURATION payloads
+#
+# Libraries advertising the SDK_CONFIGURATION capability no longer read the legacy
+# `lib_config` object of an APM_TRACING config. They read a `sdk_config` field
+# instead, which carries the very same settings keyed by their canonical environment
+# variable name, with values in their environment variable (string) form:
+#
+#   {
+#     "schema_version": "v1.0.0",
+#     "action": "enable",
+#     "service_target": {"service": "weblog", "env": "system-tests"},
+#     "sdk_config": {
+#       "service_name": "weblog",
+#       "env": "system-tests",
+#       "config": {"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "true"}
+#     }
+#   }
+#
+# `config` is a flat map, matching `jsonconf.SDKConfig` in dd-go
+# (`remote-config/pkg/products/apmtracing/jsonconf/domain.go`). It used to be a list of
+# `{key, value}` pairs; libraries still read that shape for configs stored before dd-go#14029,
+# but the backend no longer produces it, so neither do we.
+#
+# `service_target` is unchanged: it still drives config matching and priority.
+####################################################################################
+
+# `lib_config` fields that describe the config itself instead of a library setting.
+_LIB_CONFIG_METADATA_KEYS = frozenset({"env", "library_language", "library_version", "service_name"})
+
+# Canonical environment variable name of each `lib_config` setting. `dynamic_sampling_enabled`
+# maps to `None` because it has no environment variable counterpart. Keeping known non-projected
+# settings in the table distinguishes them from unknown settings.
+APM_TRACING_ENV_VAR_NAMES: dict[str, str | None] = {
+    "code_origin_enabled": "DD_CODE_ORIGIN_FOR_SPANS_ENABLED",
+    "data_streams_enabled": "DD_DATA_STREAMS_ENABLED",
+    "dynamic_instrumentation_enabled": "DD_DYNAMIC_INSTRUMENTATION_ENABLED",
+    "dynamic_sampling_enabled": None,
+    "exception_replay_enabled": "DD_EXCEPTION_REPLAY_ENABLED",
+    "live_debugging_enabled": "DD_LIVE_DEBUGGING_ENABLED",
+    "log_injection_enabled": "DD_LOGS_INJECTION",
+    "runtime_metrics_enabled": "DD_RUNTIME_METRICS_ENABLED",
+    "tracing_debug": "DD_TRACE_DEBUG",
+    "tracing_enabled": "DD_TRACE_ENABLED",
+    "tracing_header_tags": "DD_TRACE_HEADER_TAGS",
+    "tracing_sampling_rate": "DD_TRACE_SAMPLE_RATE",
+    "tracing_sampling_rules": "DD_TRACE_SAMPLING_RULES",
+    "tracing_service_mapping": "DD_SERVICE_MAPPING",
+    "tracing_tags": "DD_TAGS",
+}
+
+
+def _serialize_header_tags(value: Any) -> str:  # noqa: ANN401
+    """Turn [{"header": "X-Test", "tag_name": "test"}] into `X-Test:test`."""
+    return ",".join(f"{tag['header']}:{tag['tag_name']}" if tag.get("tag_name") else tag["header"] for tag in value)
+
+
+def _serialize_service_mapping(value: Any) -> str:  # noqa: ANN401
+    """Turn [{"from_key": "a", "to_name": "b"}] into `a:b`."""
+    return ",".join(f"{entry['from_key']}:{entry['to_name']}" for entry in value)
+
+
+def _serialize_sampling_rules(value: Any) -> str:  # noqa: ANN401
+    """Remote config rules use a list of tag clauses, DD_TRACE_SAMPLING_RULES uses a map."""
+    rules = []
+    for rule in value:
+        rule = dict(rule)  # noqa: PLW2901
+        if isinstance(rule.get("tags"), list):
+            rule["tags"] = {tag["key"]: tag["value_glob"] for tag in rule["tags"]}
+        rules.append(rule)
+
+    return json.dumps(rules)
+
+
+_SDK_CONFIG_SERIALIZERS: dict[str, Callable[[Any], str]] = {
+    "tracing_header_tags": _serialize_header_tags,
+    "tracing_sampling_rules": _serialize_sampling_rules,
+    "tracing_service_mapping": _serialize_service_mapping,
+    "tracing_tags": lambda value: ",".join(value),
+}
+
+
+def _serialize_sdk_config_value(key: str, value: Any) -> str:  # noqa: ANN401
+    serializer = _SDK_CONFIG_SERIALIZERS.get(key)
+    if serializer is not None:
+        return serializer(value)
+
+    # `isinstance(True, int)` is True, so booleans must be handled before numbers.
+    if isinstance(value, bool):
+        return "true" if value else "false"
+
+    return str(value)
+
+
+def to_sdk_config_payload(config: dict[str, Any]) -> dict[str, Any]:
+    """Rewrite an APM_TRACING config from the legacy `lib_config` shape to the `sdk_config` one.
+
+    Settings set to `None` are omitted: under SDK_CONFIGURATION, a setting missing from the
+    payload is what tells the library to fall back to its local value, which is exactly what a
+    `null` meant in `lib_config`.
+    """
+    service_target = config.get("service_target") or {}
+    settings: dict[str, str] = {}
+
+    for key, value in (config.get("lib_config") or {}).items():
+        if key in _LIB_CONFIG_METADATA_KEYS or value is None:
+            continue
+
+        if key not in APM_TRACING_ENV_VAR_NAMES:
+            logger.warning(f"No environment variable known for lib_config.{key}, not sent as SDK_CONFIGURATION")
+            continue
+
+        env_var_name = APM_TRACING_ENV_VAR_NAMES[key]
+        if env_var_name is None:
+            logger.debug(f"lib_config.{key} has no environment variable counterpart, not sent as SDK_CONFIGURATION")
+            continue
+
+        settings[env_var_name] = _serialize_sdk_config_value(key, value)
+
+    sdk_config: dict[str, Any] = {}
+    if service_target.get("service") is not None:
+        sdk_config["service_name"] = service_target["service"]
+    if service_target.get("env") is not None:
+        sdk_config["env"] = service_target["env"]
+    sdk_config["config"] = settings
+
+    result = {key: value for key, value in config.items() if key != "lib_config"}
+    result["sdk_config"] = sdk_config
+    return result
+
+
+# Every capability of the APM_TRACING family. SDK_CONFIGURATION is deliberately not one of them:
+# it is the bit whose meaning is ambiguous (see `resolve_sdk_configuration_contract`), so it cannot
+# serve as evidence that the library has registered its APM_TRACING remote config.
+APM_TRACING_CAPABILITIES = frozenset(
+    capability for capability in Capabilities if capability.name.startswith("APM_TRACING_")
+)
+
+# The per-setting APM_TRACING capabilities that SDK_CONFIGURATION replaces. A library on the new
+# contract advertises the single SDK_CONFIGURATION bit instead of all of these.
+LEGACY_APM_TRACING_CAPABILITIES = frozenset(
+    {
+        Capabilities.APM_TRACING_CUSTOM_TAGS,
+        Capabilities.APM_TRACING_ENABLED,
+        Capabilities.APM_TRACING_HTTP_HEADER_TAGS,
+        Capabilities.APM_TRACING_LOGS_INJECTION,
+        Capabilities.APM_TRACING_SAMPLE_RATE,
+        Capabilities.APM_TRACING_SAMPLE_RULES,
+    }
+)
+
+
+def resolve_sdk_configuration_contract(capabilities: set[Capabilities]) -> bool | None:
+    """Decide which APM_TRACING payload shape a set of advertised capabilities asks for.
+
+    Returns True for `sdk_config`, False for `lib_config`, and None when the capabilities seen so
+    far cannot tell, so the caller should look again later.
+
+    The SDK_CONFIGURATION bit alone is not enough to decide. Bit 49 is SDK_CONFIGURATION in the
+    remote config source of truth (dd-source `remote-config/shared/libs/rc/capabilities.go`), but
+    libdatadog hands the same bit to `ASM_RAW_RESPONSE_BODY`, so a libdatadog-based library such as
+    dd-trace-php advertises it while still reading `lib_config`.
+
+    Dropping the per-setting capabilities is the whole point of the unified bit, so their absence
+    is what distinguishes the two. Absence only counts once the library has actually registered its
+    APM_TRACING remote config, though: capabilities are added as products start, and AppSec ones
+    come first, so an early poll from a libdatadog library shows bit 49 with no APM_TRACING bit yet
+    and would otherwise be mistaken for the unified contract.
+    """
+    if not capabilities & APM_TRACING_CAPABILITIES:
+        return None
+
+    if capabilities & LEGACY_APM_TRACING_CAPABILITIES:
+        return False
+
+    return Capabilities.SDK_CONFIGURATION in capabilities
+
+
+# Memoized once the capabilities are conclusive, both to skip re-scanning the whole /v0.7/config
+# history on every payload and because a library that has not registered its APM_TRACING
+# capabilities yet reports a partial set, which must not be cached.
+_sdk_configuration_support: dict[str, bool] = {}
+
+
+def resolve_sdk_configuration_support(get_capabilities: Callable[[], set[Capabilities]]) -> bool:
+    """Whether the library reads its APM_TRACING settings from `sdk_config` instead of `lib_config`.
+
+    `get_capabilities` returns the capabilities the library currently advertises. How to obtain
+    them, and how long to wait for them, differs between the end-to-end interface and the
+    parametric test agent, so that part stays with the caller; everything after it is shared.
+
+    Falls back to `lib_config` whenever the answer is not yet knowable, which is the safe
+    direction: a library on the unified contract ignores `lib_config` and its test fails visibly,
+    whereas the reverse would silently apply nothing.
+    """
+    if "value" in _sdk_configuration_support:
+        return _sdk_configuration_support["value"]
+
+    try:
+        capabilities = get_capabilities()
+    except Exception as e:  # callers include setup methods, which must never fail
+        logger.error(f"Could not read the RC capabilities ({e}), assuming no SDK_CONFIGURATION support")
+        return False
+
+    supported = resolve_sdk_configuration_contract(capabilities)
+    if supported is None:
+        logger.info("No APM_TRACING capability advertised yet, sending lib_config for now")
+        return False
+
+    logger.info(f"Library {'supports' if supported else 'does not support'} the SDK_CONFIGURATION capability")
+    _sdk_configuration_support["value"] = supported
+    return supported
+
+
+def library_supports_sdk_configuration() -> bool:
+    """End-to-end flavour of `resolve_sdk_configuration_support`."""
+    if "value" in _sdk_configuration_support:
+        return _sdk_configuration_support["value"]
+
+    # Capabilities are only observable once the library has polled /v0.7/config at least once.
+    # This returns straight away when such a request has already been seen.
+    if not library.wait_for(lambda data: data["path"] == "/v0.7/config", timeout=30):
+        logger.warning("No remote config request seen, assuming the library does not support SDK_CONFIGURATION")
+        return False
+
+    return resolve_sdk_configuration_support(library.get_rc_capabilities)
+
+
 def build_apm_tracing_command(
     version: int,
     prev_payloads: list[dict[str, Any]],
@@ -294,6 +746,7 @@ def build_apm_tracing_command(
     dynamic_sampling_enabled: bool | None = None,
     service_name: str | None = "weblog",
     env: str | None = "system-tests",
+    use_sdk_config: bool = False,
 ):
     lib_config: dict[str, str | bool] = {
         "library_language": "all",
@@ -320,10 +773,13 @@ def build_apm_tracing_command(
     }
 
     path_payloads = {}
-    for _config in prev_payloads:
-        path_payloads[f"datadog/2/APM_TRACING/{uuid.uuid4()}/config"] = _config
+    for _config in [*prev_payloads, config]:
+        path_payloads[f"datadog/2/APM_TRACING/{uuid.uuid4()}/config"] = (
+            to_sdk_config_payload(_config) if use_sdk_config else _config
+        )
 
-    path_payloads[f"datadog/2/APM_TRACING/{uuid.uuid4()}/config"] = config
+    # `prev_payloads` tracks the legacy shape: it is the input of the next command, and gets
+    # translated on its way out just like this one.
     prev_payloads.append(config)
     return _build_base_command(path_payloads, version)
 
@@ -353,6 +809,7 @@ def send_apm_tracing_command(
         dynamic_sampling_enabled=dynamic_sampling_enabled,
         service_name=service_name,
         env=env,
+        use_sdk_config=library_supports_sdk_configuration(),
     )
 
     # Use backend target for scenarios with rc_backend_enabled, tracer target otherwise
@@ -372,6 +829,7 @@ def build_combined_apm_tracing_and_debugger_command(
     dynamic_sampling_enabled: bool | None = None,
     service_name: str | None = "weblog",
     env: str | None = "system-tests",
+    use_sdk_config: bool = False,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     """Build a single RC command containing both APM_TRACING and LIVE_DEBUGGING configs.
 
@@ -381,7 +839,9 @@ def build_combined_apm_tracing_and_debugger_command(
 
     Returns:
         A tuple of (rc_command, apm_config). The caller should update prev_payloads with
-        the returned apm_config if tracking state across multiple calls.
+        the returned apm_config if tracking state across multiple calls. `apm_config` is always
+        in the legacy `lib_config` shape, whatever shape was sent, as that is what the next
+        call inherits its defaults from.
 
     """
     path_payloads: dict[str, Any] = {}
@@ -425,7 +885,9 @@ def build_combined_apm_tracing_and_debugger_command(
     }
 
     # Only send the latest APM_TRACING config, not all previous ones
-    path_payloads[f"datadog/2/APM_TRACING/{uuid.uuid4()}/config"] = apm_config
+    path_payloads[f"datadog/2/APM_TRACING/{uuid.uuid4()}/config"] = (
+        to_sdk_config_payload(apm_config) if use_sdk_config else apm_config
+    )
 
     # Add LIVE_DEBUGGING configs (probes)
     if probes:
@@ -466,6 +928,7 @@ def send_combined_apm_tracing_and_debugger_command(
         dynamic_sampling_enabled=dynamic_sampling_enabled,
         service_name=service_name,
         env=env,
+        use_sdk_config=library_supports_sdk_configuration(),
     )
 
     # Update prev_payloads with just the new config (don't accumulate)
