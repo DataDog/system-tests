@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-import pytest
+from utils import pytest
 import requests
 
 from utils.interfaces import _test_agent
