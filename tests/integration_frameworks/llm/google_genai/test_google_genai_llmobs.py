@@ -42,6 +42,9 @@ GET_WEATHER_TOOL_DEFINITION_SCHEMA = {
 def format_expected_metadata(**metadata: Any) -> dict[str, Any]:  # noqa: ANN401
     metadata = {key: value for key, value in metadata.items() if value is not None}
 
+    # node.js does not encode null or None values in its metadata payloads.
+    # due to ending up on meta_struct, for which the node.js tracer skips
+    # null values in 0.4 encoding.
     if context.library == "nodejs":
         return metadata
 
