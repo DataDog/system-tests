@@ -1,7 +1,7 @@
 services:
   datadog:
     container_name: dd-agent
-    # Pin to 7.78.4 agent release. APMSP-3059
+    # Pinned Agent version, updated automatically
     image: gcr.io/datadoghq/agent:7.78.4
     environment:
       - DD_API_KEY=${DD_API_KEY}

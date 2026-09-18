@@ -9,7 +9,7 @@
       local_path: binaries/
 
   remote-command: |
-    # Pin to 7.78.4 agent release. APMSP-3059
+    # Pinned Agent version, updated automatically
     export DD_AGENT_MAJOR_VERSION=7
     export DD_AGENT_MINOR_VERSION=78.4
     # Check if Docker is installed and ensure it's running
