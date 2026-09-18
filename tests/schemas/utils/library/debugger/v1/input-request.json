@@ -2,62 +2,302 @@
   "$id": "/library/debugger/v1/input-request.json",
   "type": "array",
   "items": {
+    "type": "object",
     "properties": {
-      "dd.span_id": { "type": "string" },
-      "dd.trace_id": { "type": "string" },
-      "ddsource": { "type": "string" },
-      "duration": { "type": "number" },
-      "logger.method": { "type": "string" },
+      "ddsource": { "const": "dd_debugger" },
+      "service": { "type": "string", "minLength": 1 },
+      "timestamp": { "type": "integer", "minimum": 0 },
+      "duration": { "type": "number", "minimum": 0 },
+      "host": { "type": ["string", "null"] },
+      "message": { "type": ["string", "null"] },
+      "process_tags": { "type": "string", "minLength": 1 },
+      "ddtags": { "type": "string" },
+      "type": { "const": "snapshot" },
+
+      "dd": {
+        "type": "object",
+        "properties": {
+          "trace_id": { "type": ["string", "null"], "minLength": 1 },
+          "span_id": { "type": ["string", "null"], "minLength": 1 }
+        },
+        "required": ["trace_id", "span_id"],
+        "additionalProperties": false
+      },
+      "dd.trace_id": { "type": ["string", "null"], "minLength": 1 },
+      "dd.span_id": { "type": ["string", "null"], "minLength": 1 },
+
+      "logger": {
+        "type": "object",
+        "properties": {
+          "name": { "type": ["string", "null"] },
+          "method": { "type": ["string", "null"] },
+          "thread_id": { "type": ["string", "number", "null"] },
+          "thread_name": { "type": ["string", "null"] },
+          "version": { "type": ["string", "number"] }
+        },
+        "additionalProperties": false
+      },
       "logger.name": { "type": "string" },
+      "logger.method": { "type": "string" },
       "logger.thread_id": { "type": "number" },
       "logger.thread_name": { "type": "string" },
-      "logger.version": { "type": "number" },
-      "service": { "type": "string" },
-      "timestamp": { "type": "number" },
+      "logger.version": { "type": ["number", "string"] },
+
       "debugger": {
         "type": "object",
         "properties": {
-          "snapshot": {
-            "type": "object",
-            "properties": {
-              "captures": { "type": "object" },
-              "id": { "type": "string" },
-              "language": { "type": "string" },
-              "timestamp": { "type": "number" },
-              "probe": {
-                "type": "object",
-                "properties": {
-                  "id": { "type": "string" },
-                  "version": { "type": "number" },
-
-                  "location": {
-                    "type": "object",
-                    "properties": {
-                      "file": { "type": "string" },
-                      "lines": {
-                        "type": "array",
-                        "items": { "type": "string" }
-                      },
-                      "method": { "type": "string" },
-                      "type": { "type": "string" }
-                    }
-                  }
-                }
-              },
-              "stack": {
-                "type": "array",
-                "items": {
-                  "properties": {
-                    "fileName": { "type": "string" },
-                    "lineNumber": { "type": "number" },
-                    "function": { "type": "string" }
-                  }
-                }
-              }
-            }
+          "snapshot": { "$ref": "#/definitions/snapshot" },
+          "product": { "type": "string", "enum": ["di", "er", "ld"] },
+          "type": { "const": "snapshot" }
+        }
+      },
+      "debugger.snapshot": { "$ref": "#/definitions/snapshot" },
+      "debugger.product": { "type": "string", "enum": ["di", "er", "ld"] },
+      "debugger.type": { "const": "snapshot" }
+    },
+    "additionalProperties": false,
+    "required": ["ddsource", "service"],
+    "dependencies": {
+      "dd.trace_id": {
+        "$comment": "Flat-dotted `dd.*` fields go in pairs: if either is present, the other must be too. (For the nested `dd` form, the same constraint is enforced via `required` on the object.)",
+        "required": ["dd.span_id"]
+      },
+      "dd.span_id": { "required": ["dd.trace_id"] }
+    },
+    "allOf": [
+      {
+        "$comment": "Trace correlation: either nested `dd: { trace_id, span_id }` (Python, Node.js) OR flat-dotted `dd.trace_id`/`dd.span_id` (Java, .NET, Ruby), never both.",
+        "if": { "required": ["dd"] },
+        "then": {
+          "properties": {
+            "dd.trace_id": false,
+            "dd.span_id": false
           }
         }
+      },
+      {
+        "$comment": "Logger metadata: either nested `logger: { ... }` (Python, Node.js, Ruby, .NET) OR flat-dotted `logger.*` (Java), never both.",
+        "if": { "required": ["logger"] },
+        "then": {
+          "properties": {
+            "logger.name": false,
+            "logger.method": false,
+            "logger.thread_id": false,
+            "logger.thread_name": false,
+            "logger.version": false
+          }
+        }
+      },
+      {
+        "$comment": "Debugger envelope: either nested `debugger: { snapshot, product, type }` OR flat-dotted `debugger.snapshot`/`debugger.product`/`debugger.type` \u2014 exactly one form, never both.",
+        "if": { "required": ["debugger"] },
+        "then": {
+          "properties": {
+            "debugger.snapshot": false,
+            "debugger.product": false,
+            "debugger.type": false
+          }
+        },
+        "else": { "required": ["debugger.snapshot"] }
       }
+    ]
+  },
+  "definitions": {
+    "snapshot": {
+      "$comment": "Closed property set: any unknown property surfaces as a schema error (intentional, to catch tracer wire-format drift). For `process_tags` specifically: the canonical placement is at the root of the payload-array item, NOT here \u2014 the DI backend only reads it from the root.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+        },
+        "language": {
+          "type": "string",
+          "enum": ["python", "java", "javascript", "dotnet", "ruby", "php", "go"]
+        },
+        "timestamp": { "type": "integer", "minimum": 0 },
+        "duration": { "type": ["number", "null"], "minimum": 0 },
+        "type": { "const": "snapshot" },
+        "exceptionId": { "type": "string" },
+        "exceptionHash": { "type": "string" },
+        "frameIndex": { "type": ["string", "integer"] },
+        "probe": { "$ref": "#/definitions/probe" },
+        "captures": { "$ref": "#/definitions/captures" },
+        "stack": {
+          "type": ["array", "null"],
+          "items": { "$ref": "#/definitions/stackFrame" }
+        },
+        "evaluationErrors": {
+          "type": ["array", "null"],
+          "items": { "$ref": "#/definitions/evaluationError" }
+        }
+      },
+      "required": ["id", "language", "timestamp", "probe"],
+      "additionalProperties": false
+    },
+    "probe": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "version": { "type": "integer", "minimum": 0 },
+        "location": { "$ref": "#/definitions/probeLocation" }
+      },
+      "required": ["id", "location"],
+      "additionalProperties": false
+    },
+    "probeLocation": {
+      "type": "object",
+      "properties": {
+        "file": { "type": ["string", "null"], "minLength": 1 },
+        "lines": {
+          "type": ["array", "null"],
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "method": { "type": "string", "minLength": 1 },
+        "type": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "captures": {
+      "type": "object",
+      "properties": {
+        "entry": { "$ref": "#/definitions/capturedContext" },
+        "return": { "$ref": "#/definitions/capturedContext" },
+        "lines": {
+          "type": ["object", "null"],
+          "patternProperties": {
+            "^[0-9]+$": { "$ref": "#/definitions/capturedContext" }
+          }
+        },
+        "caughtExceptions": {
+          "type": ["array", "null"],
+          "items": { "$ref": "#/definitions/throwable" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "capturedContext": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "properties": {
+            "arguments": {
+              "type": "object",
+              "additionalProperties": { "$ref": "#/definitions/capturedValue" }
+            },
+            "locals": {
+              "type": "object",
+              "additionalProperties": { "$ref": "#/definitions/capturedValue" }
+            },
+            "staticFields": {
+              "type": "object",
+              "additionalProperties": { "$ref": "#/definitions/capturedValue" }
+            },
+            "fields": {
+              "type": "object",
+              "additionalProperties": { "$ref": "#/definitions/capturedValue" }
+            },
+            "captureExpressions": {
+              "type": "object",
+              "additionalProperties": { "$ref": "#/definitions/capturedValue" }
+            },
+            "watches": {
+              "type": "object",
+              "additionalProperties": { "$ref": "#/definitions/capturedValue" }
+            },
+            "throwable": { "$ref": "#/definitions/throwable" },
+            "notCapturedReason": { "type": "string" },
+            "pruned": { "type": "boolean" }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "capturedValue": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": { "pruned": { "const": true } },
+          "required": ["pruned"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "type": { "type": "string", "minLength": 1 },
+            "value": { "type": ["string", "null"] },
+            "isNull": { "type": ["boolean", "string"] },
+            "truncated": { "type": "boolean" },
+            "size": { "type": ["string", "integer", "number"] },
+            "notCapturedReason": { "type": "string" },
+            "fields": {
+              "type": "object",
+              "additionalProperties": { "$ref": "#/definitions/capturedValue" }
+            },
+            "staticFields": {
+              "type": "object",
+              "additionalProperties": { "$ref": "#/definitions/capturedValue" }
+            },
+            "elements": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/capturedValue" }
+            },
+            "entries": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": { "$ref": "#/definitions/capturedValue" },
+                "minItems": 2,
+                "maxItems": 2
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "throwable": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "properties": {
+            "type": { "type": "string", "minLength": 1 },
+            "message": { "type": ["string", "null"] },
+            "stacktrace": {
+              "oneOf": [
+                {
+                  "type": "array",
+                  "items": { "$ref": "#/definitions/stackFrame" }
+                },
+                { "type": "string" }
+              ]
+            }
+          },
+          "required": ["type"],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "stackFrame": {
+      "type": "object",
+      "properties": {
+        "fileName": { "type": "string" },
+        "function": { "type": "string" },
+        "lineNumber": { "type": "integer" },
+        "columnNumber": { "type": "integer" }
+      },
+      "additionalProperties": false
+    },
+    "evaluationError": {
+      "type": "object",
+      "properties": {
+        "expr": { "type": "string" },
+        "message": { "type": "string" }
+      },
+      "required": ["expr", "message"],
+      "additionalProperties": false
     }
   }
 }
