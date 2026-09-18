@@ -65,7 +65,9 @@ public abstract partial class ApmTestApiOtel
         var previousActivity = Activity.Current;
         try
         {
-            var spanId = args.Value<ulong?>("span_id");
+            // JSON integers above Int64.MaxValue are stored as BigInteger. The
+            // JToken cast supports those unsigned span IDs; Value<T> does not.
+            var spanId = (ulong?)args["span_id"];
             if (spanId is not null && spanId != 0)
             {
                 Activity.Current = FindActivity(spanId.Value);
