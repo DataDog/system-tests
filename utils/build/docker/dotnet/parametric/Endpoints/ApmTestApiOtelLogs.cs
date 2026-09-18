@@ -31,7 +31,7 @@ public abstract partial class ApmTestApiOtel
         var level = ParseLogLevel(args.Value<string>("level"));
         // ILogger has a category name but no instrumentation version, schema URL, or
         // scope attributes API. Accept those optional fields without fabricating them.
-        OtelLoggers[name] = (_otelLoggerFactory!.CreateLogger(name), level);
+        OtelLoggers.GetOrAdd(name, loggerName => (_otelLoggerFactory!.CreateLogger(loggerName), level));
         return Results.Ok(new { success = true });
     }
 
