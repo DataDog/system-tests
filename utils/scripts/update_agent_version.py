@@ -18,6 +18,8 @@ if TYPE_CHECKING:
 
 PIN_COMMENT = "Pinned Agent version, updated automatically"
 VERSION_PATTERN = re.compile(r"^[0-9]+\.[0-9]+\.[0-9]+$")
+INSTALL_SCRIPT_REFERENCE_PATTERN = re.compile(r"install_script_agent[0-9]+\.sh")
+INSTALL_SCRIPT_REFERENCE_COUNT = 4
 AUTOMATION_BRANCH = "apmsp-3752/update-agent-version"
 REPOSITORY = "DataDog/system-tests"
 OCTO_STS_POLICY = "self.gitlab-update-agent-version"
@@ -47,12 +49,29 @@ def _replace_once(path: Path, pattern: re.Pattern[str], replacement: str) -> boo
     return True
 
 
+def _replace_install_script_references(path: Path, major_version: str) -> bool:
+    content = path.read_text()
+    updated, replacement_count = INSTALL_SCRIPT_REFERENCE_PATTERN.subn(
+        f"install_script_agent{major_version}.sh", content
+    )
+    if replacement_count != INSTALL_SCRIPT_REFERENCE_COUNT:
+        raise RuntimeError(
+            f"Expected exactly {INSTALL_SCRIPT_REFERENCE_COUNT} Agent install script references in {path}, "
+            f"found {replacement_count}"
+        )
+    if updated == content:
+        return False
+    path.write_text(updated)
+    return True
+
+
 def update_agent_version(root: Path, version: str) -> bool:
     normalized = normalize_version(version)
     major_version, minor_version = normalized.split(".", maxsplit=1)
+    installer_path = root / INSTALLER_PROVISION
 
     installer_changed = _replace_once(
-        root / INSTALLER_PROVISION,
+        installer_path,
         re.compile(
             rf"(?m)^    # {re.escape(PIN_COMMENT)}\n"
             r"    export DD_AGENT_MAJOR_VERSION=[^\n]+\n"
@@ -62,6 +81,7 @@ def update_agent_version(root: Path, version: str) -> bool:
         f"    export DD_AGENT_MAJOR_VERSION={major_version}\n"
         f"    export DD_AGENT_MINOR_VERSION={minor_version}",
     )
+    install_script_changed = _replace_install_script_references(installer_path, major_version)
     compose_changed = _replace_once(
         root / DOCKER_COMPOSE_PROVISION,
         re.compile(
@@ -70,7 +90,7 @@ def update_agent_version(root: Path, version: str) -> bool:
         ),
         f"    # {PIN_COMMENT}\n    image: gcr.io/datadoghq/agent:{normalized}",
     )
-    return installer_changed or compose_changed
+    return installer_changed or install_script_changed or compose_changed
 
 
 def run_command(
