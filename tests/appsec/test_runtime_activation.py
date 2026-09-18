@@ -25,6 +25,7 @@ def _send_config(config: dict | None):
 
 
 @scenarios.appsec_runtime_activation
+@scenarios.appsec_otel_api_runtime_activation
 @bug(context.library < "java@1.8.0" and context.appsec_rules_file is not None, reason="APMRP-360")
 @features.changing_rules_using_rc
 class Test_RuntimeActivation:
@@ -46,6 +47,7 @@ class Test_RuntimeActivation:
 
 
 @scenarios.appsec_runtime_activation
+@scenarios.appsec_otel_api_runtime_activation
 @features.changing_rules_using_rc
 class Test_RuntimeDeactivation:
     """A library should stop blocking after Appsec is deactivated."""
@@ -85,6 +87,7 @@ BLOCKING_CAPABILITIES = {
 
 
 @scenarios.appsec_runtime_activation
+@scenarios.appsec_otel_api_runtime_activation
 @features.changing_rules_using_rc
 class Test_RuntimeActivationCapabilities:
     """The blocking RC capabilities must be advertised after one-click (remote) activation.
@@ -114,6 +117,7 @@ class Test_RuntimeActivationCapabilities:
 
 
 @scenarios.appsec_runtime_activation
+@scenarios.appsec_otel_api_runtime_activation
 @features.changing_rules_using_rc
 class Test_RuntimeActivationCapabilitiesCleared:
     """The blocking RC capabilities must track the live activation state.
