@@ -173,6 +173,10 @@ class FeatureFlaggingAgentlessEndToEndScenario(AgentlessEndToEndScenario):
             # Do not advertise the proxy as a local Agent endpoint.
             for env_name in ("DD_AGENT_HOST", "DD_DOGSTATSD_HOST", "DD_TRACE_AGENT_PORT", "DD_TRACE_AGENT_URL"):
                 self.weblog_infra.library_container.environment.pop(env_name, None)
+            self.weblog_infra.library_container.volumes["./utils/build/docker/agent/ca-certificates.crt"] = {
+                "bind": "/etc/ssl/certs/ca-certificates.crt",
+                "mode": "ro",
+            }
 
     def configure(self, config: pytest.Config) -> None:
         try:
