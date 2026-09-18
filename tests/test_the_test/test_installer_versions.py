@@ -3,8 +3,8 @@ from pathlib import Path
 
 import pytest
 
-from utils import installer_versions
 from utils import scenarios
+from utils.scripts import installer_versions
 
 
 @scenarios.test_the_test

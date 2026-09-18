@@ -2,7 +2,7 @@ import yaml
 import os
 
 from utils.const import COMPONENT_GROUPS
-from utils.installer_versions import set_injector_version_from_lock
+from utils.scripts.installer_versions import set_injector_version_from_lock
 
 # List of allowed variables
 ALLOWED_VARIABLES = [

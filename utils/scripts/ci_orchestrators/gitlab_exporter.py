@@ -4,7 +4,7 @@ import hashlib
 import json
 from utils._context._scenarios import get_all_scenarios
 from utils._context._scenarios.core import Scenario
-from utils.installer_versions import set_injector_version_from_lock
+from utils.scripts.installer_versions import set_injector_version_from_lock
 from utils.k8s.k8s_components_parser import K8sComponentsParser
 
 

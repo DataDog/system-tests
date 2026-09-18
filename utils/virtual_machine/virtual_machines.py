@@ -5,7 +5,7 @@ import hashlib
 
 import paramiko
 
-from utils.installer_versions import set_injector_version_from_lock
+from utils.scripts.installer_versions import set_injector_version_from_lock
 from utils.virtual_machine.virtual_machine_provisioner import Provision, _DeployedWeblog
 
 # The AWS AMI name is limited to 128 characters (119 usable + 9 added by AWS).

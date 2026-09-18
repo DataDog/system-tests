@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 
 
-AUTO_INJECT_LOCK = Path(__file__).resolve().parents[1] / "auto_inject.lock"
+AUTO_INJECT_LOCK = Path(__file__).resolve().parents[2] / "auto_inject.lock"
 
 
 def set_injector_version_from_lock() -> None:
