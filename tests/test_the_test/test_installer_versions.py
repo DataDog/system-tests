@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -13,23 +14,29 @@ class Test_InstallerVersions:
         lock = tmp_path / "auto_inject.lock"
         lock.write_text("pinned-version\n", encoding="utf-8")
         monkeypatch.setattr(installer_versions, "AUTO_INJECT_LOCK", lock)
+        stdout = MagicMock()
+        monkeypatch.setattr(installer_versions.logger, "stdout", stdout)
         monkeypatch.setenv("DD_INSTALLER_LIBRARY_VERSION", "custom-library")
         monkeypatch.delenv("DD_INSTALLER_INJECTOR_VERSION", raising=False)
 
         installer_versions.set_injector_version_from_lock()
 
         assert os.environ["DD_INSTALLER_INJECTOR_VERSION"] == "pinned-version"
+        stdout.assert_called_once_with("Using pinned injector version from auto_inject.lock: pinned-version")
 
     def test_custom_injector_is_not_overridden(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         lock = tmp_path / "auto_inject.lock"
         lock.write_text("pinned-version\n", encoding="utf-8")
         monkeypatch.setattr(installer_versions, "AUTO_INJECT_LOCK", lock)
+        stdout = MagicMock()
+        monkeypatch.setattr(installer_versions.logger, "stdout", stdout)
         monkeypatch.setenv("DD_INSTALLER_LIBRARY_VERSION", "custom-library")
         monkeypatch.setenv("DD_INSTALLER_INJECTOR_VERSION", "custom-injector")
 
         installer_versions.set_injector_version_from_lock()
 
         assert os.environ["DD_INSTALLER_INJECTOR_VERSION"] == "custom-injector"
+        stdout.assert_not_called()
 
     def test_default_library_does_not_set_injector(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         lock = tmp_path / "auto_inject.lock"

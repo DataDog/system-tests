@@ -1139,6 +1139,10 @@ Next, update your GitLab CI configuration file to include the variable `DD_INSTA
 You can see an example in the `dd-trace-java` repository:
 🔗 [GitLab CI example line](https://github.com/DataDog/dd-trace-java/blob/d2f5bb4248ea6ed459374919b357ac93c7d3a810/.gitlab-ci.yml#L961)
 
+When `DD_INSTALLER_LIBRARY_VERSION` is set for Docker SSI, AWS SSI, or AWS SSI container apps, system-tests
+automatically sets `DD_INSTALLER_INJECTOR_VERSION` to the version in the root `auto_inject.lock` file. An
+explicit, non-empty `DD_INSTALLER_INJECTOR_VERSION` takes precedence over the pinned version.
+
 Here’s how the modified section would look:
 
 ```yaml
@@ -1310,5 +1314,4 @@ A failure in the GitLab runners can propagate across all repositories that rely 
 
 1. If the problem persists, report it in the #ci-infra-support channel so the CI infrastructure team can investigate and assist.
 2. The runners used for SSI tests in system-tests can be found at: https://github.com/DataDog/libdatadog-build/tree/main/docker
-
 
