@@ -16,8 +16,7 @@ if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
 
 
-PIN_COMMENT = "Pinned Agent version, updated automatically by APMSP-3752"
-PIN_COMMENT_PATTERN = rf"(?:Pin to .* agent release\. APMSP-[0-9]+|{re.escape(PIN_COMMENT)})"
+PIN_COMMENT = "Pinned Agent version, updated automatically"
 VERSION_PATTERN = re.compile(r"^[0-9]+\.[0-9]+\.[0-9]+$")
 AUTOMATION_BRANCH = "apmsp-3752/update-agent-version"
 REPOSITORY = "DataDog/system-tests"
@@ -55,7 +54,7 @@ def update_agent_version(root: Path, version: str) -> bool:
     installer_changed = _replace_once(
         root / INSTALLER_PROVISION,
         re.compile(
-            rf"(?m)^    # {PIN_COMMENT_PATTERN}\n"
+            rf"(?m)^    # {re.escape(PIN_COMMENT)}\n"
             r"    export DD_AGENT_MAJOR_VERSION=[^\n]+\n"
             r"    export DD_AGENT_MINOR_VERSION=[^\n]+$"
         ),
@@ -66,7 +65,7 @@ def update_agent_version(root: Path, version: str) -> bool:
     compose_changed = _replace_once(
         root / DOCKER_COMPOSE_PROVISION,
         re.compile(
-            rf"(?m)^    # {PIN_COMMENT_PATTERN}\n"
+            rf"(?m)^    # {re.escape(PIN_COMMENT)}\n"
             r"    image: gcr\.io/datadoghq/agent:[^\n]+$"
         ),
         f"    # {PIN_COMMENT}\n    image: gcr.io/datadoghq/agent:{normalized}",

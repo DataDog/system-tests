@@ -23,7 +23,7 @@ def write_pins(root: Path) -> None:
     installer.parent.mkdir(parents=True)
     installer.write_text(
         "remote-command: |\n"
-        "    # Pin to 7.78.4 agent release. APMSP-3059\n"
+        "    # Pinned Agent version, updated automatically\n"
         "    export DD_AGENT_MAJOR_VERSION=7\n"
         "    export DD_AGENT_MINOR_VERSION=78.4\n"
         "    echo install\n"
@@ -33,7 +33,7 @@ def write_pins(root: Path) -> None:
     compose.write_text(
         "services:\n"
         "  datadog:\n"
-        "    # Pin to 7.78.4 agent release. APMSP-3059\n"
+        "    # Pinned Agent version, updated automatically\n"
         "    image: gcr.io/datadoghq/agent:7.78.4\n"
     )
 
@@ -47,7 +47,7 @@ def test_update_agent_version_updates_both_ssi_pins(tmp_path: Path) -> None:
     assert "DD_AGENT_MAJOR_VERSION=8" in installer_content
     assert "DD_AGENT_MINOR_VERSION=0.1" in installer_content
     assert "gcr.io/datadoghq/agent:8.0.1" in (tmp_path / DOCKER_COMPOSE_PROVISION).read_text()
-    assert "updated automatically by APMSP-3752" in (tmp_path / INSTALLER_PROVISION).read_text()
+    assert "Pinned Agent version, updated automatically" in installer_content
 
     assert not update_agent_version(tmp_path, "8.0.1")
 
