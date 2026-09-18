@@ -1,3 +1,4 @@
+import os
 import subprocess
 from pathlib import Path
 
@@ -5,10 +6,9 @@ import pytest
 
 from utils import scenarios
 from utils.scripts.update_agent_version import (
+    AGENT_VERSION_LOCK,
     AUTOMATION_BRANCH,
-    DOCKER_COMPOSE_PROVISION,
     GitHubApi,
-    INSTALLER_PROVISION,
     automate_update,
     normalize_version,
     publish_update,
@@ -18,43 +18,20 @@ from utils.scripts.update_agent_version import (
 )
 
 
-def write_pins(root: Path) -> None:
-    installer = root / INSTALLER_PROVISION
-    installer.parent.mkdir(parents=True)
-    installer.write_text(
-        "remote-command: |\n"
-        "    # Pinned Agent version, updated automatically\n"
-        "    export DD_AGENT_MAJOR_VERSION=7\n"
-        "    export DD_AGENT_MINOR_VERSION=78.4\n"
-        '    if [ -f "install_script_agent7.sh" ]; then\n'
-        "        cp install_script_agent7.sh install_script.sh\n"
-        "    else\n"
-        '        # bash -c "$(curl -L https://example.test/install_script_agent7.sh)"\n'
-        "        curl -L https://example.test/install_script_agent7.sh -o install_script.sh\n"
-        "    fi\n"
-    )
-    compose = root / DOCKER_COMPOSE_PROVISION
-    compose.parent.mkdir(parents=True)
-    compose.write_text(
-        "services:\n"
-        "  datadog:\n"
-        "    # Pinned Agent version, updated automatically\n"
-        "    image: gcr.io/datadoghq/agent:7.78.4\n"
-    )
+def write_lock(root: Path) -> None:
+    lock = root / AGENT_VERSION_LOCK
+    lock.parent.mkdir(parents=True)
+    lock.write_text("# Pinned Agent version, updated automatically\nDD_AGENT_VERSION=7.78.4\n")
 
 
 @scenarios.test_the_test
-def test_update_agent_version_updates_both_ssi_pins(tmp_path: Path) -> None:
-    write_pins(tmp_path)
+def test_update_agent_version_updates_lock(tmp_path: Path) -> None:
+    write_lock(tmp_path)
 
     assert update_agent_version(tmp_path, "v8.0.1")
-    installer_content = (tmp_path / INSTALLER_PROVISION).read_text()
-    assert "DD_AGENT_MAJOR_VERSION=8" in installer_content
-    assert "DD_AGENT_MINOR_VERSION=0.1" in installer_content
-    assert installer_content.count("install_script_agent8.sh") == 4
-    assert "install_script_agent7.sh" not in installer_content
-    assert "gcr.io/datadoghq/agent:8.0.1" in (tmp_path / DOCKER_COMPOSE_PROVISION).read_text()
-    assert "Pinned Agent version, updated automatically" in installer_content
+    assert (tmp_path / AGENT_VERSION_LOCK).read_text() == (
+        "# Pinned Agent version, updated automatically\nDD_AGENT_VERSION=8.0.1\n"
+    )
 
     assert not update_agent_version(tmp_path, "8.0.1")
 
@@ -68,26 +45,93 @@ def test_normalize_version_rejects_unsupported_versions(version: str) -> None:
 
 @scenarios.test_the_test
 def test_update_agent_version_fails_when_a_pin_is_missing(tmp_path: Path) -> None:
-    write_pins(tmp_path)
-    (tmp_path / INSTALLER_PROVISION).write_text("remote-command: |\n    echo install\n")
+    write_lock(tmp_path)
+    (tmp_path / AGENT_VERSION_LOCK).write_text("# Missing Agent version\n")
 
     with pytest.raises(RuntimeError, match="exactly one Agent version pin"):
         update_agent_version(tmp_path, "7.82.3")
 
 
 @scenarios.test_the_test
-def test_update_agent_version_fails_when_an_install_script_reference_is_missing(tmp_path: Path) -> None:
-    write_pins(tmp_path)
-    installer = tmp_path / INSTALLER_PROVISION
-    installer.write_text(installer.read_text().replace("install_script_agent7.sh", "install_script.sh", 1))
+def test_agent_version_consumers_load_lock() -> None:
+    root = Path(__file__).resolve().parents[2]
+    auto_inject = root / "utils/build/virtual_machine/provisions/auto-inject"
 
-    with pytest.raises(RuntimeError, match="exactly 4 Agent install script references"):
-        update_agent_version(tmp_path, "8.0.1")
+    lock_lines = (auto_inject / "agent.lock").read_text().splitlines()
+    assert lock_lines[0] == "# Pinned Agent version, updated automatically"
+    assert len(lock_lines) == 2
+    locked_version = lock_lines[1].removeprefix("DD_AGENT_VERSION=")
+    assert lock_lines[1] == f"DD_AGENT_VERSION={normalize_version(locked_version)}"
+    assert "agent:${DD_AGENT_VERSION}" in (auto_inject / "docker/docker-compose-agent-prod.yml").read_text()
+
+    compose_path = "utils/build/virtual_machine/provisions/auto-inject/docker/docker-compose-agent-prod.yml"
+    lock_path = "utils/build/virtual_machine/provisions/auto-inject/agent.lock"
+    provision_root = root / "utils/build/virtual_machine"
+    compose_copy_points = [path for path in provision_root.rglob("*.yml") if compose_path in path.read_text()]
+    assert compose_copy_points
+    for copy_point in compose_copy_points:
+        assert lock_path in copy_point.read_text()
+
+    lock_consumers = (
+        auto_inject / "auto-inject_installer_manual.yml",
+        auto_inject / "repositories/autoinstall/execute_install_script.sh",
+        root / "utils/build/virtual_machine/provisions/local-auto-inject-install-script/provision.yml",
+        root / "utils/build/virtual_machine/weblogs/common/pull_agent_image.sh",
+    )
+    for consumer in lock_consumers:
+        content = consumer.read_text()
+        assert "agent.lock" in content
+        assert "DD_AGENT_VERSION" in content
+        assert "install_script_agent7.sh" not in content
+
+    compose_launchers = (
+        root / "utils/build/virtual_machine/weblogs/common/create_and_run_app_container.sh",
+        root / "utils/build/virtual_machine/weblogs/common/create_and_run_app_multicontainer.sh",
+        root / "utils/build/virtual_machine/weblogs/java/test-app-java-buildpack/"
+        "test-app-java_docker_compose_run_buildpack.sh",
+    )
+    for launcher in compose_launchers:
+        content = launcher.read_text()
+        assert 'AGENT_LOCK="agent.lock"' in content
+        assert '. "./${AGENT_LOCK}"' in content
+
+
+@scenarios.test_the_test
+def test_pull_agent_image_resolves_version_from_lock(tmp_path: Path) -> None:
+    root = Path(__file__).resolve().parents[2]
+    (tmp_path / "agent.lock").write_text("DD_AGENT_VERSION=8.0.1\n")
+    (tmp_path / "docker-compose-agent-prod.yml").write_text(
+        "services:\n  datadog:\n    image: gcr.io/datadoghq/agent:${DD_AGENT_VERSION}\n"
+    )
+
+    fake_bin = tmp_path / "bin"
+    fake_bin.mkdir()
+    call_log = tmp_path / "sudo.log"
+    fake_sudo = fake_bin / "sudo"
+    fake_sudo.write_text('#!/bin/sh\nprintf "%s\\n" "$*" >> "$CALL_LOG"\n')
+    fake_sudo.chmod(0o755)
+    env = os.environ.copy()
+    env.update(
+        {
+            "CALL_LOG": str(call_log),
+            "DOCKER_PULL_MAX_RETRIES": "1",
+            "PATH": f"{fake_bin}:{env['PATH']}",
+        }
+    )
+
+    subprocess.run(
+        ["bash", str(root / "utils/build/virtual_machine/weblogs/common/pull_agent_image.sh")],
+        cwd=tmp_path,
+        check=True,
+        env=env,
+    )
+
+    assert call_log.read_text() == "docker pull gcr.io/datadoghq/agent:8.0.1\n"
 
 
 @scenarios.test_the_test
 def test_automate_update_publishes_latest_version(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    write_pins(tmp_path)
+    write_lock(tmp_path)
     published: list[tuple[Path, str]] = []
     github = GitHubApi("token")
     monkeypatch.setattr("utils.scripts.update_agent_version.latest_agent_version", lambda _github: "8.0.1")
@@ -102,7 +146,7 @@ def test_automate_update_publishes_latest_version(tmp_path: Path, monkeypatch: p
 
 @scenarios.test_the_test
 def test_automate_update_skips_publish_when_current(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    write_pins(tmp_path)
+    write_lock(tmp_path)
     update_agent_version(tmp_path, "7.82.3")
     github = GitHubApi("token")
     monkeypatch.setattr(
@@ -151,6 +195,7 @@ def test_publish_update_creates_only_missing_pr(
     github = FakeGitHubApi()
     publish_update(tmp_path, "7.82.3", github, {"GH_TOKEN": "token"})
 
+    assert ["git", "add", str(AGENT_VERSION_LOCK)] in commands
     assert ["git", "push", "--force", "--set-upstream", "origin", AUTOMATION_BRANCH] in commands
     assert not any(command[0] == "gh" for command in commands)
     assert any(method == "POST" and path.endswith("/pulls") for method, path in github.calls) is (not existing_pr)

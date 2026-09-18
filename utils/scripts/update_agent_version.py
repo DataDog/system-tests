@@ -16,19 +16,13 @@ if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
 
 
-PIN_COMMENT = "Pinned Agent version, updated automatically"
 VERSION_PATTERN = re.compile(r"^[0-9]+\.[0-9]+\.[0-9]+$")
-INSTALL_SCRIPT_REFERENCE_PATTERN = re.compile(r"install_script_agent[0-9]+\.sh")
-INSTALL_SCRIPT_REFERENCE_COUNT = 4
 AUTOMATION_BRANCH = "apmsp-3752/update-agent-version"
 REPOSITORY = "DataDog/system-tests"
 OCTO_STS_POLICY = "self.gitlab-update-agent-version"
 GITHUB_API_URL = "https://api.github.com"
 
-INSTALLER_PROVISION = Path("utils/build/virtual_machine/provisions/auto-inject/auto-inject_installer_manual.yml")
-DOCKER_COMPOSE_PROVISION = Path(
-    "utils/build/virtual_machine/provisions/auto-inject/docker/docker-compose-agent-prod.yml"
-)
+AGENT_VERSION_LOCK = Path("utils/build/virtual_machine/provisions/auto-inject/agent.lock")
 
 
 def normalize_version(version: str) -> str:
@@ -49,48 +43,13 @@ def _replace_once(path: Path, pattern: re.Pattern[str], replacement: str) -> boo
     return True
 
 
-def _replace_install_script_references(path: Path, major_version: str) -> bool:
-    content = path.read_text()
-    updated, replacement_count = INSTALL_SCRIPT_REFERENCE_PATTERN.subn(
-        f"install_script_agent{major_version}.sh", content
-    )
-    if replacement_count != INSTALL_SCRIPT_REFERENCE_COUNT:
-        raise RuntimeError(
-            f"Expected exactly {INSTALL_SCRIPT_REFERENCE_COUNT} Agent install script references in {path}, "
-            f"found {replacement_count}"
-        )
-    if updated == content:
-        return False
-    path.write_text(updated)
-    return True
-
-
 def update_agent_version(root: Path, version: str) -> bool:
     normalized = normalize_version(version)
-    major_version, minor_version = normalized.split(".", maxsplit=1)
-    installer_path = root / INSTALLER_PROVISION
-
-    installer_changed = _replace_once(
-        installer_path,
-        re.compile(
-            rf"(?m)^    # {re.escape(PIN_COMMENT)}\n"
-            r"    export DD_AGENT_MAJOR_VERSION=[^\n]+\n"
-            r"    export DD_AGENT_MINOR_VERSION=[^\n]+$"
-        ),
-        f"    # {PIN_COMMENT}\n"
-        f"    export DD_AGENT_MAJOR_VERSION={major_version}\n"
-        f"    export DD_AGENT_MINOR_VERSION={minor_version}",
+    return _replace_once(
+        root / AGENT_VERSION_LOCK,
+        re.compile(r"(?m)^DD_AGENT_VERSION=[^\n]+$"),
+        f"DD_AGENT_VERSION={normalized}",
     )
-    install_script_changed = _replace_install_script_references(installer_path, major_version)
-    compose_changed = _replace_once(
-        root / DOCKER_COMPOSE_PROVISION,
-        re.compile(
-            rf"(?m)^    # {re.escape(PIN_COMMENT)}\n"
-            r"    image: gcr\.io/datadoghq/agent:[^\n]+$"
-        ),
-        f"    # {PIN_COMMENT}\n    image: gcr.io/datadoghq/agent:{normalized}",
-    )
-    return installer_changed or install_script_changed or compose_changed
 
 
 def run_command(
@@ -133,7 +92,7 @@ def latest_agent_version(github: GitHubApi) -> str:
 def publish_update(root: Path, version: str, github: GitHubApi, env: Mapping[str, str]) -> None:
     run_command(root, ["git", "remote", "set-url", "origin", f"https://github.com/{REPOSITORY}.git"], env=env)
     run_command(root, ["git", "switch", "--force-create", AUTOMATION_BRANCH], env=env)
-    run_command(root, ["git", "add", str(INSTALLER_PROVISION), str(DOCKER_COMPOSE_PROVISION)], env=env)
+    run_command(root, ["git", "add", str(AGENT_VERSION_LOCK)], env=env)
     run_command(root, ["git", "config", "user.name", "github-actions[bot]"], env=env)
     run_command(root, ["git", "config", "user.email", "github-actions[bot]@users.noreply.github.com"], env=env)
     run_command(

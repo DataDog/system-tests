@@ -41,9 +41,10 @@ install-agent:
       copy_files:
           - name: copy-agent-docker-compose
             local_path: utils/build/virtual_machine/provisions/auto-inject/docker/docker-compose-agent-prod.yml
+          - name: copy-agent-version-lock
+            local_path: utils/build/virtual_machine/provisions/auto-inject/agent.lock
       remote-command: cat docker-compose-agent-prod.yml
 
 autoinjection_install_script:
   install: !include utils/build/virtual_machine/provisions/container-auto-inject-install-script/auto-inject_container_script.yml
-
 
