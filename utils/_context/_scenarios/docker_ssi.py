@@ -510,8 +510,8 @@ class DockerSSIImageBuilder:
         try:
             # Install the ssi to run the auto instrumentation
             _, build_logs = get_docker_client().images.build(
-                path="utils/build/ssi/",
-                dockerfile="base/base_ssi.Dockerfile",
+                path=".",
+                dockerfile="utils/build/ssi/base/base_ssi.Dockerfile",
                 platform=self._arch,
                 nocache=self._force_build or self.should_push_base_images,
                 tag=self.ssi_all_docker_tag,
