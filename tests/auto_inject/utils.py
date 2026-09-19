@@ -246,15 +246,9 @@ class AutoInjectBaseTest:
 
         request_uuids = []
         assert wait_for_port(vm_port, vm_ip, 40.0), "Weblog port not reachable. Is the weblog running?"
-        response_json = warmup_weblog(f"http://{vm_ip}:{vm_port}/")
-        if response_json is not None:
-            logger.info(f"There is a multicontainer app: {response_json}")
-            for app in response_json["apps"]:
-                logger.info(f"Making a request to weblog [http://{vm_ip}:{vm_port}{app['url']}]")
-                request_uuids.append(make_get_request(f"http://{vm_ip}:{vm_port}{app['url']}"))
-        else:
-            logger.info(f"Making a request to weblog {weblog_url}")
-            request_uuids.append(make_get_request(weblog_url))
+        warmup_weblog(f"http://{vm_ip}:{vm_port}/")
+        logger.info(f"Making a request to weblog {weblog_url}")
+        request_uuids.append(make_get_request(weblog_url))
 
         try:
             for request_uuid in request_uuids:

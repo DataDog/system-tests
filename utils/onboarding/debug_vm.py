@@ -120,7 +120,7 @@ def _download_folder_recursive(sftp: SFTPClient, remote_dir: str, local_dir: str
             remote_path = f"{remote_dir}/{item.filename}"
             local_path = Path(local_dir) / item.filename
 
-            if stat.S_ISDIR(item.st_mode):
+            if item.st_mode is not None and stat.S_ISDIR(item.st_mode):
                 local_path.mkdir(exist_ok=True)
                 logger.info("Created directory: %s", local_path)
                 if _download_folder_recursive(sftp, remote_path, str(local_path)):

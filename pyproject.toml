@@ -52,7 +52,6 @@ exclude = [
     # TODO
     "utils/_context/_scenarios/auto_injection.py",
     "utils/k8s_lib_injection/.*",
-    "utils/onboarding/.*",
     "utils/virtual_machine/.*",
 ]
 ignore_missing_imports = true
