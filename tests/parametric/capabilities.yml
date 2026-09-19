@@ -66,24 +66,33 @@ capabilities:
 
   nodejs:
     base:
+      - ASM_ACTIVATION
+      - ASM_AUTO_USER_INSTRUM_MODE
+
+    # Superseded by SDK_CONFIGURATION in 7.0.0: one capability now covers every remotely
+    # configurable setting, so the per-setting APM_TRACING bits are no longer advertised.
+    # SDK_CONFIGURATION itself is not listed as expected yet, because 7.0.0-pre does not
+    # advertise it either until the library side lands; a pre-release is allowed to report
+    # capabilities beyond the expected set, which covers both sides of that transition.
+    '<7.0.0-0':
       - APM_TRACING_CUSTOM_TAGS
       - APM_TRACING_ENABLED
       - APM_TRACING_HTTP_HEADER_TAGS
       - APM_TRACING_LOGS_INJECTION
       - APM_TRACING_SAMPLE_RATE
       - APM_TRACING_SAMPLE_RULES
-      - ASM_ACTIVATION
-      - ASM_AUTO_USER_INSTRUM_MODE
 
     '>=5.72.0':
       - FFE_FLAG_CONFIGURATION_RULES
 
     '>=5.83.0':
-      - APM_TRACING_ENABLE_CODE_ORIGIN
-      - APM_TRACING_ENABLE_DYNAMIC_INSTRUMENTATION
       - APM_TRACING_MULTICONFIG
 
-    '>=5.84.0':
+    '>=5.83.0 <7.0.0-0':
+      - APM_TRACING_ENABLE_CODE_ORIGIN
+      - APM_TRACING_ENABLE_DYNAMIC_INSTRUMENTATION
+
+    '>=5.84.0 <7.0.0-0':
       - APM_TRACING_ENABLE_LIVE_DEBUGGING
 
   python:

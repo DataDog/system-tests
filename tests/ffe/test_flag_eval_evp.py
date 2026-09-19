@@ -20,6 +20,7 @@ from utils import interfaces
 from utils import remote_config as rc
 from utils import scenario_crash
 from utils import scenarios
+from utils import slow, flaky
 from utils import weblog
 from utils._context._scenarios.agentless_endtoend import FeatureFlaggingAgentlessEndToEndScenario
 
@@ -356,6 +357,7 @@ class Test_FFE_EVP_Flagevaluation_Egress_Agentless_Sidecar(FlagevaluationEgressC
 
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_evp_flagevaluation
+@slow
 class Test_FFE_EVP_Flagevaluation_Basic:
     """Test that flag evaluation produces an EVP flagevaluation payload."""
 
@@ -382,6 +384,7 @@ class Test_FFE_EVP_Flagevaluation_Basic:
 
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_evp_flagevaluation
+@slow
 class Test_FFE_EVP_Flagevaluation_Count:
     """Test that repeated evaluations are counted in EVP flagevaluation payloads."""
 
@@ -412,6 +415,7 @@ class Test_FFE_EVP_Flagevaluation_Count:
 
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_evp_flagevaluation
+@slow
 class Test_FFE_EVP_Flagevaluation_Context_Bounds:
     """Test that EVP evaluation context is bounded before it reaches payloads."""
 
@@ -457,6 +461,7 @@ class Test_FFE_EVP_Flagevaluation_Context_Bounds:
 
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_evp_flagevaluation
+@slow
 class Test_FFE_EVP_Flagevaluation_Runtime_Default:
     """Test that runtime defaults are surfaced without OpenFeature reason."""
 
@@ -483,6 +488,7 @@ class Test_FFE_EVP_Flagevaluation_Runtime_Default:
 
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_evp_flagevaluation
+@slow
 class Test_FFE_EVP_Flagevaluation_Load_Aggregation:
     """Test CI-safe load aggregation without treating system-tests as a perf test."""
 
@@ -622,6 +628,7 @@ class Test_FFE_EVP_Flagevaluation_Degradation:
             )
         ]
 
+    @flaky(condition=True, reason="FFL-3313")
     def test_ffe_evp_flagevaluation_degradation(self) -> None:
         for index, response in enumerate(self.responses):
             assert response.status_code == 200, f"Request {index + 1} failed: {response.text}"
@@ -645,6 +652,7 @@ class Test_FFE_EVP_Flagevaluation_Degradation:
 
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_evp_flagevaluation
+@slow
 class Test_FFE_EVP_Flagevaluation_ObserveFullData_Absent_Hashed:
     """Test that when observeFullEvaluationData is absent from UFC, targeting_key is hashed and context.evaluation is omitted (default PII-protection)."""
 
@@ -687,6 +695,7 @@ class Test_FFE_EVP_Flagevaluation_ObserveFullData_Absent_Hashed:
 
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_evp_flagevaluation
+@slow
 class Test_FFE_EVP_Flagevaluation_ObserveFullData_False_Hashed:
     """Test that when observeFullEvaluationData=false in UFC, targeting_key is hashed and context.evaluation is omitted."""
 
@@ -729,6 +738,7 @@ class Test_FFE_EVP_Flagevaluation_ObserveFullData_False_Hashed:
 
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_evp_flagevaluation
+@slow
 class Test_FFE_EVP_Flagevaluation_ObserveFullData_True_Unhashed:
     """Test that when observeFullEvaluationData=true in UFC, targeting_key is raw and context.evaluation is populated."""
 

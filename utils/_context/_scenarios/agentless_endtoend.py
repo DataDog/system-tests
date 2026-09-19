@@ -181,7 +181,6 @@ class FeatureFlaggingAgentlessEndToEndScenario(AgentlessEndToEndScenario):
             # configuration source selects how the provider receives flags; it does not make the
             # application adopt the provider on its own.
             "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
-            "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE": "agentless",
             # Both variables are integer seconds across the SDKs: Java parses them with
             # getInteger, and the shared configuration registry declares them "int" with an
             # allowed pattern of [1-9]\d*. A fractional value only ever worked on Node, which
@@ -196,6 +195,8 @@ class FeatureFlaggingAgentlessEndToEndScenario(AgentlessEndToEndScenario):
         other_weblog_containers: tuple[type[TestedContainer], ...] = ()
         if exposure_egress is not None:
             environment |= {
+                # Keep the original scenario's default-source selection implicit.
+                "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE": "agentless",
                 # The reserved .invalid domain fails closed if a request bypasses the proxy.
                 "DD_SITE": "mock-intake.invalid",
                 "DD_PROXY_HTTPS": f"http://proxy:{ProxyPorts.datadog_direct}",

@@ -2,22 +2,70 @@
 
 express4:
   build_mode: local
-  categories: [dd_trace, dd_trace_graphql]
+  supported_scenarios:
+    - DEFAULT
+    - GRAPHQL_APPSEC
+    - GRAPHQL_ERROR_TRACKING
 express4-typescript:
   build_mode: local
-  categories: [dd_trace, dd_trace_graphql]
+  supported_scenarios:
+    - DEFAULT
+    - DEBUGGER_CAPTURE_TIMEOUT
+    - DEBUGGER_EXCEPTION_REPLAY
+    - DEBUGGER_EXPRESSION_LANGUAGE
+    - DEBUGGER_INPRODUCT_ENABLEMENT
+    - DEBUGGER_PII_REDACTION
+    - DEBUGGER_PROBES_SNAPSHOT
+    - DEBUGGER_PROBES_SNAPSHOT_WITH_SCM
+    - DEBUGGER_SYMDB
+    - DEBUGGER_TELEMETRY
+    - IAST_DEDUPLICATION
+    - IAST_STANDALONE
 express5:
   build_mode: local
-  categories: [dd_trace, dd_trace_graphql]
+  categories: [dd_trace]
 fastify:
   build_mode: local
-  categories: [dd_trace]
+  supported_scenarios: &framework_scenarios
+    - DEFAULT
+    - APPSEC_API_SECURITY
+    - APPSEC_API_SECURITY_NO_RESPONSE_BODY
+    - APPSEC_API_SECURITY_RC
+    - APPSEC_API_SECURITY_WITH_SAMPLING
+    - APPSEC_APM_STANDALONE
+    - APPSEC_ATO_SDK
+    - APPSEC_AUTO_EVENTS_EXTENDED
+    - APPSEC_AUTO_EVENTS_RC
+    - APPSEC_BLOCKING
+    - APPSEC_BLOCKING_FULL_DENYLIST
+    - APPSEC_LOW_WAF_TIMEOUT
+    - APPSEC_RASP
+    - APPSEC_RASP_NON_BLOCKING
+    - APPSEC_RASP_WITHOUT_DOWNSTREAM_BODY_ANALYSIS_USING_MAX
+    - APPSEC_RASP_WITHOUT_DOWNSTREAM_BODY_ANALYSIS_USING_SAMPLE_RATE
+    - APPSEC_RATE_LIMITER
+    - APPSEC_RUNTIME_ACTIVATION
+    - APPSEC_STANDALONE
+    - APPSEC_STANDALONE_API_SECURITY
+    - APPSEC_STANDALONE_APM_STANDALONE
+    - APPSEC_STANDALONE_RASP
+    - IAST_DEDUPLICATION
+    - IAST_STANDALONE
 nextjs:
   build_mode: local
-  categories: [dd_trace]
+  supported_scenarios: *framework_scenarios
 uds-express4:
   build_mode: local
-  categories: [dd_trace, dd_trace_graphql]
+  supported_scenarios:
+    - DEFAULT
+    - AGENT_NOT_SUPPORTING_SPAN_EVENTS
+    - AGENT_SUPPORTING_SPAN_EVENTS
+    - TELEMETRY_APP_STARTED_PRODUCTS_DISABLED
+    - TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED
+    - TELEMETRY_ENHANCED_CONFIG_REPORTING
+    - TELEMETRY_EXTENDED_HEARTBEAT
+    - TELEMETRY_LOG_GENERATION_DISABLED
+    - TELEMETRY_METRIC_GENERATION_DISABLED
   excluded_scenarios: [IPV6]
 openai-js:
   build_mode: none
