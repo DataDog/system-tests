@@ -482,6 +482,123 @@ def test_e2e_activation_does_not_crash_when_clause_has_multiple_weblogs():
         assert updated_manifest == expected_manifest
 
 
+def test_e2e_activation_skips_child_rules_when_parent_anchor_poke_is_skipped(tmp_path: Path) -> None:
+    data_dir = tmp_path / "data"
+    manifest_dir = tmp_path / "manifests"
+    scenario_dir = data_dir / "python_run" / "scenario1"
+    scenario_dir.mkdir(parents=True)
+    manifest_dir.mkdir()
+
+    report = create_report_json(
+        library_name="python",
+        library_version="4.12.0",
+        weblog_variant="tornado",
+        tests=[
+            {"nodeid": "tests/debugger/test_symdb.py::Test_SymDb::test_passes", "outcome": "xpassed"},
+            {"nodeid": "tests/debugger/test_symdb.py::Test_SymDb::test_fails", "outcome": "xfailed"},
+        ],
+    )
+    with (scenario_dir / "report.json").open("w", encoding="utf-8") as file:
+        json.dump(report, file)
+
+    (manifest_dir / "python.yml").write_text(
+        """---
+refs:
+  - &flask "flask-poc, uwsgi-poc, uds-flask"
+manifest:
+  tests/debugger/test_symdb.py::Test_SymDb:
+    - weblog_declaration:
+        "*": missing_feature
+        *flask : v2.11.0
+""",
+        encoding="utf-8",
+    )
+
+    test_data, weblogs, _ = parse_artifact_data(data_dir, ["python"])
+    manifest_editor = ManifestEditor(weblogs, manifests_path=manifest_dir, components=["python"])
+    update_manifest(manifest_editor, test_data)
+
+    manifest_editor.write(manifest_dir)
+
+    with (manifest_dir / "python.yml").open(encoding="utf-8") as file:
+        result = yaml.safe_load(file)
+    assert "tests/debugger/test_symdb.py::Test_SymDb::test_fails" not in result["manifest"]
+
+
+def test_e2e_activation_merges_child_rule_before_poke_when_one_parent_is_skipped(tmp_path: Path) -> None:
+    data_dir = tmp_path / "data"
+    manifest_dir = tmp_path / "manifests"
+    manifest_dir.mkdir()
+
+    test_file = "tests/debugger/test_symdb.py"
+    test_class = f"{test_file}::Test_SymDb"
+    failing_test = f"{test_class}::test_fails"
+    tornado_scenario_dir = data_dir / "python_tornado_run" / "scenario1"
+    tornado_scenario_dir.mkdir(parents=True)
+    tornado_report = create_report_json(
+        library_name="python",
+        library_version="4.12.0",
+        weblog_variant="tornado",
+        tests=[
+            {"nodeid": f"{test_class}::test_passes", "outcome": "xpassed"},
+            {"nodeid": failing_test, "outcome": "xfailed"},
+        ],
+    )
+    with (tornado_scenario_dir / "report.json").open("w", encoding="utf-8") as file:
+        json.dump(tornado_report, file)
+
+    flask_scenario_dir = data_dir / "python_flask_run" / "scenario1"
+    flask_scenario_dir.mkdir(parents=True)
+    flask_report = create_report_json(
+        library_name="python",
+        library_version="4.12.0",
+        weblog_variant="flask-poc",
+        tests=[{"nodeid": failing_test, "outcome": "xpassed"}],
+    )
+    with (flask_scenario_dir / "report.json").open("w", encoding="utf-8") as file:
+        json.dump(flask_report, file)
+
+    (manifest_dir / "python.yml").write_text(
+        f"""---
+refs:
+  - &flask "flask-poc, uwsgi-poc, uds-flask"
+manifest:
+  {test_file}:
+    - weblog_declaration:
+        "*": bug (TEST-123)
+        *flask : v2.11.0
+  {test_class}: missing_feature
+  {failing_test}: missing_feature
+""",
+        encoding="utf-8",
+    )
+
+    test_data, weblogs, _ = parse_artifact_data(data_dir, ["python"])
+    manifest_editor = ManifestEditor(weblogs, manifests_path=manifest_dir, components=["python"])
+    update_manifest(manifest_editor, test_data)
+
+    assert {
+        parent.rule: str(parent.condition["declaration"]) for parent, _ in manifest_editor.added_rules[failing_test]
+    } == {test_file: "bug (TEST-123)", test_class: "missing_feature"}
+
+    manifest_editor.write(manifest_dir)
+
+    with (manifest_dir / "python.yml").open(encoding="utf-8") as file:
+        result = yaml.safe_load(file)
+    assert result["manifest"][test_class] == [
+        {
+            "weblog_declaration": {
+                "*": "missing_feature",
+                "flask-poc": ">=4.12.0",
+                "tornado": ">=4.12.0",
+            }
+        }
+    ]
+    assert result["manifest"][failing_test] == [
+        {"weblog_declaration": {"*": "missing_feature", "flask-poc": ">=4.12.0"}}
+    ]
+
+
 def test_split_code_owner_activation_skips_commit_when_manifest_write_has_no_diff(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
@@ -1078,6 +1195,29 @@ def test_build_manifest_entry_appends_to_existing_list():
     assert len(result) == 2
     assert result[0] == existing_raw[0]
     assert result[1] == {"weblog_declaration": {"rails70": "missing_feature"}}
+
+
+def test_build_manifest_entry_deduplicates_reordered_weblog_declaration() -> None:
+    rule = "tests/debugger/test_symdb.py::Test_SymDb::test_upload"
+    existing_raw = [
+        {
+            "weblog_declaration": {
+                "python3.12": "missing_feature",
+                "django-poc": "missing_feature",
+                "fastapi": "missing_feature",
+            }
+        }
+    ]
+    condition: Condition = {
+        "component": "python",
+        "declaration": SkipDeclaration("missing_feature"),
+        "weblog": ["fastapi", "django-poc", "python3.12"],
+    }
+
+    result = ManifestEditor.build_manifest_entry(rule, condition, {rule: existing_raw}, [])
+
+    assert result == existing_raw
+    assert len(result) == 1
 
 
 def test_build_manifest_entry_compress_to_inline_string():
