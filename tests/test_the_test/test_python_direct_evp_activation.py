@@ -2,7 +2,11 @@
 
 from pathlib import Path
 
+import pytest
+
 from utils import features, scenarios
+from utils._context.component_version import Version
+from utils.manifest import Manifest, TestDeclaration
 
 
 @scenarios.test_the_test
@@ -33,12 +37,12 @@ def test_python_direct_evp_activation_is_scoped_to_agentless_egress() -> None:
     manifest = Path("manifests/python.yml").read_text(encoding="utf-8")
     contract = Path("tests/ffe/test_flag_eval_evp.py").read_text(encoding="utf-8")
 
-    assert "tests/ffe/test_flag_eval_evp.py: v4.15.0-dev" in manifest
+    assert "tests/ffe/test_flag_eval_evp.py: v4.16.0-dev" in manifest
     for enabled_contract in (
         "Test_FFE_EVP_Flagevaluation_Egress_Agentless_Direct",
         "Test_FFE_EVP_Flagevaluation_Egress_Agentless_Sidecar",
     ):
-        assert f"tests/ffe/test_flag_eval_evp.py::{enabled_contract}: v4.15.0-dev" in manifest
+        assert f"tests/ffe/test_flag_eval_evp.py::{enabled_contract}:" in manifest
         assert enabled_contract in contract
 
     for deferred_contract in (
@@ -48,3 +52,30 @@ def test_python_direct_evp_activation_is_scoped_to_agentless_egress() -> None:
         "Test_FFE_EVP_Flagevaluation_ObserveFullData_False_Hashed",
     ):
         assert f"tests/ffe/test_flag_eval_evp.py::{deferred_contract}: missing_feature (FFL-2446)" in manifest
+
+
+@pytest.mark.parametrize(
+    "weblog",
+    ["flask-poc", "uds-flask", "uwsgi-poc", "django-poc", "django-py3.13", "python3.12", "fastapi", "tornado"],
+)
+@pytest.mark.parametrize("version", ["4.15.1", "4.16.0-rc1", "4.16.0"])
+@scenarios.test_the_test
+@features.not_reported
+def test_python_evp_activation_requires_supported_version_and_weblog(weblog: str, version: str) -> None:
+    manifest = Manifest({"python": Version(version)}, weblog)
+    expected_enabled = weblog == "flask-poc" and version != "4.15.1"
+    for nodeid in (
+        "tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Direct",
+        "tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Direct_Shutdown",
+        "tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Sidecar",
+        "tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Egress_Agentless_Direct",
+        "tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Egress_Agentless_Sidecar",
+    ):
+        declarations = manifest.get_declarations(nodeid)
+        if expected_enabled:
+            assert declarations == [], (nodeid, declarations)
+        else:
+            assert any(declaration.value == TestDeclaration.MISSING_FEATURE for declaration in declarations), (
+                nodeid,
+                declarations,
+            )
