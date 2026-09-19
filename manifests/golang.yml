@@ -1621,7 +1621,7 @@ manifest:
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Ignore: incomplete_test_app (The parametric test app does not apply DD_TRACE_PROPAGATION_BEHAVIOR_EXTRACT=ignore)
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart: incomplete_test_app (The parametric test app does not emit restart span links or preserve baggage)
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart_With_Extract_First: missing_feature (DD_TRACE_PROPAGATION_EXTRACT_FIRST=true is unsupported; dd-trace-go panics when extraction fails)
-  tests/parametric/test_ffe/test_configuration_sources.py: v2.11.0-dev
+  tests/parametric/test_ffe/test_configuration_sources.py: v2.11.0-dev  # Easy win for all weblogs and version 2.10.1
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v2.5.0-dev
   tests/parametric/test_ffe/test_span_enrichment.py: '>=2.10.0'  # TODO: a lower version might be supported
   tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Child_Span_Propagation: missing_feature
