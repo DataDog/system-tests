@@ -100,7 +100,10 @@ manifest:
         net-http: v2.1.0-dev  # Using SDK-style
         net-http-span-pool: v2.1.0-dev  # Using SDK-style
         uds-echo: v2.5.0  # Modified by easy win activation script
-  tests/appsec/api_security/test_schemas_auth.py: missing_feature
+  tests/appsec/api_security/test_schemas_auth.py:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        net-http-orchestrion: '>=2.10.1'
   tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders:
     - weblog_declaration:
         "*": v2.10.0-dev
