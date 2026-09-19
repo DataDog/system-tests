@@ -17,10 +17,30 @@ manifest:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
         "flask-poc": v4.13.0-dev
-  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone_APMDisabledMarker: missing_feature
-  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRedacted: bug (APPSEC-69627)
-  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests: bug (APPSEC-69627)
-  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated: bug (APPSEC-69627)
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone_APMDisabledMarker:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        uwsgi-poc: '>=4.15.1'
+        flask-poc: '>=4.15.1'
+        uds-flask: '>=4.15.1'
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRedacted:  # TODO: a lower version might be supported
+    - declaration: bug (APPSEC-69627)
+      component_version: <4.15.1
+      weblog: [uwsgi-poc, flask-poc, uds-flask]
+    - declaration: bug (APPSEC-69627)
+      excluded_weblog: [uwsgi-poc, flask-poc, uds-flask]
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests:  # TODO: a lower version might be supported
+    - declaration: bug (APPSEC-69627)
+      component_version: <4.15.1
+      weblog: [uwsgi-poc, flask-poc, uds-flask]
+    - declaration: bug (APPSEC-69627)
+      excluded_weblog: [uwsgi-poc, flask-poc, uds-flask]
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated:  # TODO: a lower version might be supported
+    - declaration: bug (APPSEC-69627)
+      component_version: <4.15.1
+      weblog: [uwsgi-poc, flask-poc, uds-flask]
+    - declaration: bug (APPSEC-69627)
+      excluded_weblog: [uwsgi-poc, flask-poc, uds-flask]
   tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
@@ -57,7 +77,12 @@ manifest:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
         "flask-poc": v4.14.0-dev
-  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionDisabledTelemetry: bug (APPSEC-69627)
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionDisabledTelemetry:  # TODO: a lower version might be supported
+    - declaration: bug (APPSEC-69627)
+      component_version: <4.15.1
+      weblog: [uwsgi-poc, flask-poc, uds-flask]
+    - declaration: bug (APPSEC-69627)
+      excluded_weblog: [uwsgi-poc, flask-poc, uds-flask]
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionFailSafe:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
