@@ -279,7 +279,10 @@ manifest:
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_AdditionalTags: missing_feature
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes: missing_feature
   tests/parametric/test_otlp_trace_metrics.py::Test_FR09_Red_Metric_Derivation: missing_feature
-  tests/parametric/test_otlp_trace_metrics.py::Test_FR15_Client_Computed_Stats_Header: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR15_Client_Computed_Stats_Header: '>=0.5.3-dev+5fbbf96'  # TODO: a lower version might be supported
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR15_Client_Computed_Stats_Header::test_fr15_1_header_set_when_enabled: missing_feature
+  ? tests/parametric/test_otlp_trace_metrics.py::Test_FR15_Client_Computed_Stats_Header::test_fr15_3_stats_computed_resource_attr_on_otlp_traces
+  : missing_feature
   tests/parametric/test_parametric_endpoints.py::TestRemoteConfigApplyEndpoint: incomplete_test_app (POST /trace/remote-config/apply only implemented in the python parametric app)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Add_Link: missing_feature
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Finish: v0.0.1
