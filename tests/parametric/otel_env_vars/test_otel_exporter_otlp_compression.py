@@ -8,9 +8,11 @@ from utils import features, scenarios
 from utils.docker_fixtures import TestAgentAPI
 
 
+# Pin HTTP/protobuf because compression is asserted through Content-Encoding
+# on the original HTTP request. Some SDKs default to gRPC; routing to its
+# collector works, but forwarded HTTP requests do not expose gRPC compression.
 @pytest.fixture
 def library_env(compression_env: dict[str, str]) -> dict[str, str]:
-    # Enable the observed signal and use HTTP to inspect its Content-Encoding.
     return {
         "DD_METRICS_OTEL_ENABLED": "true",
         "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": "http/protobuf",
