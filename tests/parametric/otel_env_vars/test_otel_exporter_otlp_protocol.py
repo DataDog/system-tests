@@ -41,6 +41,9 @@ def expected_protocol(protocol: str | None, signal: str) -> str:
     return "http/protobuf"
 
 
+# The test matrix supplies the protocol value to exercise protocol selection.
+# Default cases leave it unset; the endpoint selects the expected HTTP/gRPC
+# listener so delivery proves the transport, including SDKs that default to gRPC.
 @pytest.fixture
 def library_env(
     protocol: str | None,
@@ -52,7 +55,6 @@ def library_env(
 ) -> dict[str, str | None]:
     port = test_agent_otlp_grpc_port if expected_protocol == "grpc" else test_agent_otlp_http_port
     path = "" if expected_protocol == "grpc" else f"/v1/{signal}"
-    # Enable the observed signal and select the HTTP or gRPC listener for its expected protocol.
     return {
         f"DD_{signal.upper()}_OTEL_ENABLED": "true",
         f"OTEL_EXPORTER_OTLP_{signal.upper()}_ENDPOINT": f"http://{test_agent.container_name}:{port}{path}",
