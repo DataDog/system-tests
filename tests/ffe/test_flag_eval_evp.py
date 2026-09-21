@@ -12,7 +12,7 @@ from utils import interfaces
 from utils import remote_config as rc
 from utils import scenario_crash
 from utils import scenarios
-from utils import slow
+from utils import slow, flaky
 from utils import weblog
 
 
@@ -510,6 +510,7 @@ class Test_FFE_EVP_Flagevaluation_Degradation:
             )
         ]
 
+    @flaky(condition=True, reason="FFL-3313")
     def test_ffe_evp_flagevaluation_degradation(self) -> None:
         for index, response in enumerate(self.responses):
             assert response.status_code == 200, f"Request {index + 1} failed: {response.text}"

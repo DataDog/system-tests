@@ -32,8 +32,6 @@ manifest:
         "*": missing_feature (missing /e2e_otel_span endpoint on weblog)
         net-http: v0.1  # real version not known
         net-http-span-pool: v0.1  # real version not known
-  tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span::test_datadog_otel_span: flaky (APMAPI-178)
-  tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span::test_distributed_otel_trace: flaky (APMAPI-178)
   tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_remote_config_process_tags_svc: missing_feature
   tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_telemetry_process_tags_svc: missing_feature
   tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_tracing_process_tags_svc: missing_feature
@@ -1327,7 +1325,7 @@ manifest:
   tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb::test_event_metadata: missing_feature (extended event schema not yet shipped)
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry: missing_feature
   tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: v2.0.0
-  tests/ffe/test_agentless_configuration.py: missing_feature (FFL-2695 tracks Go agentless configuration-source implementation; FFL-2731 tracks the system-tests contract)
+  tests/ffe/test_agentless_configuration.py: v2.11.0-dev
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_Flag_Parse_Error_Isolation::test_valid_flag_unaffected:  # TODO: a lower version might be supported
     - declaration: bug (FFL-2184)
       component_version: <2.10.0
@@ -1561,9 +1559,35 @@ manifest:
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
+  tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT: v2.5.0
+  tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT::test_invalid_values: bug (APMAPI-2460)
+  tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT::test_spec_default: irrelevant (Datadog intentionally defaults to 7500 ms)
+  tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES: v2.3.0
+  tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES::test_invalid_value_is_discarded: bug (APMAPI-2432)
+  tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES::test_percent_encoded_separators: bug (APMAPI-2425)
   tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED: missing_feature
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME: v2.6.0
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_default_follows_otel_spec: irrelevant
+  tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER: v2.6.0
+  tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_console_exporter: missing_feature (Console trace export is not implemented)
+  tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_default_matches_specification: missing_feature (The default OTLP exporter is not implemented)
+  tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_deprecated_values: missing_feature (Logging trace export is not implemented)
+  tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_development_values: missing_feature (OTLP stdout trace export is not implemented)
+  tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_empty_is_treated_as_unset: missing_feature (The default OTLP exporter is not implemented)
+  tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_invalid_is_ignored: missing_feature (The default OTLP exporter is not implemented)
+  tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_zipkin_exporter: missing_feature (Zipkin trace export is not implemented)
+  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER: v2.6.0
+  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER::test_dd_trace_sample_ignore_parent_false: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
+  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER::test_dd_trace_sample_ignore_parent_true: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
+  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER::test_default_matches_specification: missing_feature (OTel default sampler semantics are not implemented)
+  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER::test_empty_is_treated_as_unset: missing_feature (OTel default sampler semantics are not implemented)
+  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER::test_invalid_value_is_ignored: missing_feature (OTel default sampler semantics are not implemented)
+  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER::test_jaeger_remote_values: missing_feature (Jaeger remote sampling is not implemented)
+  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER::test_third_party_values: missing_feature (X-Ray sampling is not implemented)
+  tests/parametric/otel_env_vars/test_otel_traces_sampler_arg.py::Test_OTEL_TRACES_SAMPLER_ARG: v2.3.0
+  tests/parametric/otel_env_vars/test_otel_traces_sampler_arg.py::Test_OTEL_TRACES_SAMPLER_ARG::test_above_range_is_ignored: missing_feature (Out-of-range sampler arguments are not ignored)
+  tests/parametric/otel_env_vars/test_otel_traces_sampler_arg.py::Test_OTEL_TRACES_SAMPLER_ARG::test_below_range_is_ignored: missing_feature (Out-of-range sampler arguments are not ignored)
+  tests/parametric/otel_env_vars/test_otel_traces_sampler_arg.py::Test_OTEL_TRACES_SAMPLER_ARG::test_nonnumeric_is_ignored: missing_feature (Nonnumeric sampler arguments are not ignored)
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids: v1.50.0
   tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd: v1.72.0-dev
   tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd::test_dogstatsd_default: incomplete_test_app (PHP parameteric app can not access the dogstatsd default values, this logic is internal to the tracer)
@@ -1597,28 +1621,7 @@ manifest:
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Ignore: incomplete_test_app (The parametric test app does not apply DD_TRACE_PROPAGATION_BEHAVIOR_EXTRACT=ignore)
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart: incomplete_test_app (The parametric test app does not emit restart span links or preserve baggage)
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart_With_Extract_First: missing_feature (DD_TRACE_PROPAGATION_EXTRACT_FIRST=true is unsupported; dd-trace-go panics when extraction fails)
-  tests/parametric/test_ffe/test_configuration_sources.py:  # TODO: a lower version might be supported
-    - declaration: missing_feature (FFL-2695 tracks Go agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
-      component_version: <2.10.0
-  tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Cold_Failure_And_Recovery: missing_feature (FFL-2695 tracks Go agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
-  tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Poller_Concurrency: missing_feature (FFL-2695 tracks Go agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
-  ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Selection::test_default_agentless_positive
-  : missing_feature (FFL-2695 tracks Go agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
-  ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Selection::test_explicit_agentless_wins_over_legacy_true
-  : missing_feature (FFL-2695 tracks Go agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
-  ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Selection::test_explicit_remote_config_wins_over_legacy_false
-  : missing_feature (FFL-2695 tracks Go agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
-  ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Selection::test_legacy_true_preserves_remote_config
-  : missing_feature (FFL-2695 tracks Go agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
-  ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Selection::test_provider_kill_switch_overrides_legacy_true
-  : missing_feature (FFL-2695 tracks Go agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
-  ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Selection::test_remote_config_positive_ignores_agentless_env
-  : missing_feature (FFL-2695 tracks Go agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
-  ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Selection::test_remote_config_without_rc_does_not_fallback_to_agentless
-  : missing_feature (FFL-2695 tracks Go agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
-  ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Selection::test_stable_true_preserves_default_agentless
-  : missing_feature (FFL-2695 tracks Go agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
-  tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Warm_State_Preservation: missing_feature (FFL-2695 tracks Go agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
+  tests/parametric/test_ffe/test_configuration_sources.py: v2.11.0-dev
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v2.5.0-dev
   tests/parametric/test_ffe/test_span_enrichment.py: '>=2.10.0'  # TODO: a lower version might be supported
   tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Child_Span_Propagation: missing_feature
@@ -1696,8 +1699,6 @@ manifest:
   tests/parametric/test_llm_observability/: incomplete_test_app
   tests/parametric/test_otel_api_interoperability.py: missing_feature
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: v1.66.0
-  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_false: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
-  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_true: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_log_level_env: missing_feature (DD_LOG_LEVEL is not supported in go)
   tests/parametric/test_otel_logs.py: '>=2.5.0'  # Modified by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR01_Enable_OTLP_Log_Collection::test_otlp_logs_enabled: missing_feature  # Created by easy win activation script

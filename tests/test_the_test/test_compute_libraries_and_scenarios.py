@@ -187,6 +187,19 @@ class Test_ComputeLibrariesAndScenarios:
             "end_to_end,open_telemetry",
         )
 
+    def test_nodejs_docker_file(self):
+        inputs = build_inputs(["utils/build/docker/nodejs/express5.Dockerfile"])
+
+        assert_github_processor(
+            inputs,
+            ["nodejs"],
+            ["nodejs"],
+            300,
+            "false",
+            "DEFAULT",
+            "end_to_end,open_telemetry",
+        )
+
     def test_c_docker_file(self):
         inputs = build_inputs(["utils/build/docker/c/perl-mojolicious.Dockerfile"])
 
@@ -554,7 +567,7 @@ class Test_ComputeLibrariesAndScenarios:
             default_libs_with_dev,
             3600,
             "false",
-            "DEBUGGER_CAPTURE_TIMEOUT,DEBUGGER_EXCEPTION_REPLAY,DEBUGGER_EXPRESSION_LANGUAGE,DEBUGGER_INPRODUCT_ENABLEMENT,DEBUGGER_PII_REDACTION,DEBUGGER_PROBES_SNAPSHOT,DEBUGGER_PROBES_SNAPSHOT_WITH_SCM,DEBUGGER_SYMDB,DEBUGGER_TELEMETRY,DEFAULT,TRACING_CONFIG_NONDEFAULT_4",
+            "DEBUGGER_CAPTURE_TIMEOUT,DEBUGGER_EVALUATION_TIMEOUT,DEBUGGER_EXCEPTION_REPLAY,DEBUGGER_EXPRESSION_LANGUAGE,DEBUGGER_INPRODUCT_ENABLEMENT,DEBUGGER_PII_REDACTION,DEBUGGER_PROBES_SNAPSHOT,DEBUGGER_PROBES_SNAPSHOT_WITH_SCM,DEBUGGER_SYMDB,DEBUGGER_TELEMETRY,DEFAULT,TRACING_CONFIG_NONDEFAULT_4",
             "",
         )
 
