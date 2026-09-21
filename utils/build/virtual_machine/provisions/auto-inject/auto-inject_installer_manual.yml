@@ -6,7 +6,7 @@
     - name: copy-docker-config
       local_path: utils/build/virtual_machine/provisions/auto-inject/docker/docker_config.yaml
     - name: copy-agent-version-lock
-      local_path: utils/build/virtual_machine/provisions/auto-inject/agent.lock
+      local_path: utils/build/virtual_machine/agent.lock
     - name: copy-binaries
       local_path: binaries/
 

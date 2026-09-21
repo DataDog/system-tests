@@ -12,7 +12,7 @@ vm_logs:
 #Mandatory: Steps to install provision
 provision_steps:
   - init-config #Very first machine actions, like disable auto updates
-  - install-agent #Install the agent (version pinned in provisions/auto-inject/agent.lock)
+  - install-agent #Install the agent (version pinned in utils/build/virtual_machine/agent.lock)
   - autoinjection_install_script #Install the auto-injection softaware 'datadog-apm-inject' and 'datadog-apm-library-$DD_LANG' using the agent install script
   - install-local-apm-library
 
@@ -26,7 +26,7 @@ install-agent:
     - os_type: linux
       copy_files:
         - name: copy-agent-version-lock
-          local_path: utils/build/virtual_machine/provisions/auto-inject/agent.lock
+          local_path: utils/build/virtual_machine/agent.lock
       remote-command: |
         . ./agent.lock
         export DD_AGENT_MAJOR_VERSION="${DD_AGENT_VERSION%%.*}"

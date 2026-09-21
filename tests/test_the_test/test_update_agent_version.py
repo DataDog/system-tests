@@ -48,9 +48,10 @@ def test_normalize_version_rejects_unsupported_versions(version: str) -> None:
 @scenarios.test_the_test
 def test_agent_version_consumers_load_lock() -> None:
     root = Path(__file__).resolve().parents[2]
+    virtual_machine = root / "utils/build/virtual_machine"
     auto_inject = root / "utils/build/virtual_machine/provisions/auto-inject"
 
-    lock_lines = (auto_inject / "agent.lock").read_text().splitlines()
+    lock_lines = (virtual_machine / "agent.lock").read_text().splitlines()
     assert lock_lines[0] == "# Pinned Agent version, updated automatically"
     assert len(lock_lines) == 2
     locked_version = lock_lines[1].removeprefix("DD_AGENT_VERSION=")
@@ -58,8 +59,8 @@ def test_agent_version_consumers_load_lock() -> None:
     assert "agent:${DD_AGENT_VERSION}" in (auto_inject / "docker/docker-compose-agent-prod.yml").read_text()
 
     compose_path = "utils/build/virtual_machine/provisions/auto-inject/docker/docker-compose-agent-prod.yml"
-    lock_path = "utils/build/virtual_machine/provisions/auto-inject/agent.lock"
-    provision_root = root / "utils/build/virtual_machine"
+    lock_path = "utils/build/virtual_machine/agent.lock"
+    provision_root = virtual_machine
     compose_copy_points = [path for path in provision_root.rglob("*.yml") if compose_path in path.read_text()]
     assert compose_copy_points
     for copy_point in compose_copy_points:

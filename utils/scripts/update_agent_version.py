@@ -23,7 +23,7 @@ OCTO_STS_POLICY = "self.gitlab-update-agent-version"
 GITHUB_API_URL = "https://api.github.com"
 AUTO_MERGE_ALREADY_ENABLED = "auto merge is already enabled"
 
-AGENT_VERSION_LOCK = Path("utils/build/virtual_machine/provisions/auto-inject/agent.lock")
+AGENT_VERSION_LOCK = Path("utils/build/virtual_machine/agent.lock")
 
 
 def normalize_version(version: str) -> str:
