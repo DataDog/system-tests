@@ -20,6 +20,8 @@ use DDTrace\Configuration;
 use DDTrace\Tag;
 use Monolog\Logger;
 use Monolog\Processor\PsrLogMessageProcessor;
+use OpenTelemetry\API\Globals;
+use OpenTelemetry\API\Metrics\Noop\NoopMeterProvider;
 use OpenTelemetry\API\Logs\LogRecord;
 use OpenTelemetry\API\Logs\LoggerInterface as OtelLoggerInterface;
 use OpenTelemetry\API\Logs\LoggerProviderInterface as OtelLoggerProviderInterface;
@@ -29,8 +31,6 @@ use OpenTelemetry\Contrib\Otlp\LogsExporterFactory;
 use OpenTelemetry\SDK\Common\Time\ClockFactory;
 use OpenTelemetry\SDK\Logs\LoggerProvider as SDKLoggerProvider;
 use OpenTelemetry\SDK\Logs\Processor\BatchLogRecordProcessor;
-use OpenTelemetry\SDK\Metrics\MeterProviderFactory;
-use OpenTelemetry\SDK\Metrics\NoopMeterProvider;
 use OpenTelemetry\SDK\Resource\ResourceInfoFactory;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanKind;
@@ -214,12 +214,9 @@ $loggerDict = [];
 $otelMeters = [];
 /** @var \OpenTelemetry\API\Metrics\CounterInterface[] $otelCounters */
 $otelCounters = [];
-// Use the SDK's configuration factory so exporter selection, protocol, headers,
-// and Datadog's configuration/resource hooks follow the application's settings.
-$sdkMeterProvider = new NoopMeterProvider();
-if (\dd_trace_env_config('DD_METRICS_OTEL_ENABLED')) {
-    $sdkMeterProvider = (new MeterProviderFactory())->create();
-}
+// Composer bootstraps the SDK with OTEL_PHP_AUTOLOAD_ENABLED. The SDK owns
+// provider selection and shutdown; the app always uses the configured provider.
+$sdkMeterProvider = Globals::meterProvider();
 /** @var ?\DDTrace\FeatureFlags\Client $ffeClient */
 $ffeClient = null;
 
@@ -287,6 +284,10 @@ $router->addRoute('POST', '/metrics/otel/counter_add', new ClosureRequestHandler
     return jsonResponse(new stdClass());
 }));
 $router->addRoute('POST', '/metrics/otel/force_flush', new ClosureRequestHandler(function () use ($sdkMeterProvider) {
+    // The API no-op provider has no buffered metrics or flush method.
+    if ($sdkMeterProvider instanceof NoopMeterProvider) {
+        return jsonResponse(['success' => true]);
+    }
     return jsonResponse(['success' => $sdkMeterProvider->forceFlush()]);
 }));
 $router->addRoute('POST', '/ffe/start', new ClosureRequestHandler(function (Request $req) use (&$ffeClient) {
@@ -923,4 +924,3 @@ $signal = trapSignal([SIGINT, SIGTERM]);
 $logger->info("Caught signal $signal, stopping server");
 
 $server->stop();
-$sdkMeterProvider->shutdown();
