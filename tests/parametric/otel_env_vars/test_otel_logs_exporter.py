@@ -14,15 +14,10 @@ from utils.docker_fixtures.parametric import LogLevel
 @pytest.fixture
 def library_env(
     exporter_env: dict[str, str], test_agent: TestAgentAPI, test_agent_otlp_http_port: int
-) -> dict[str, str | None]:
+) -> dict[str, str]:
     return {
-        "DD_TRACE_DEBUG": None,
-        "DD_TRACE_OTEL_ENABLED": "true",
         # This enables the logs integration; OTEL_LOGS_EXPORTER must still select its exporter.
         "DD_LOGS_OTEL_ENABLED": "true",
-        "DD_METRICS_OTEL_ENABLED": "false",
-        "OTEL_METRICS_EXPORTER": "none",
-        "OTEL_LOGS_EXPORTER": None,
         "OTEL_EXPORTER_OTLP_LOGS_PROTOCOL": "http/protobuf",
         "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT": f"http://{test_agent.container_name}:{test_agent_otlp_http_port}/v1/logs",
         **exporter_env,
