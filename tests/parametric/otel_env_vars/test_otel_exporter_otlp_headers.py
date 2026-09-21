@@ -16,8 +16,10 @@ from utils.docker_fixtures.parametric import LogLevel
 VARIABLE = "OTEL_EXPORTER_OTLP_HEADERS"
 
 
+# Pin HTTP/protobuf in library_env so captured headers belong to the exporter request.
+# Some SDKs default to gRPC; the collector forwards decoded gRPC payloads over
+# HTTP, whose headers do not represent the original request.
 def _environment(signal: str, value: str | None) -> dict[str, str | None]:
-    # Enable the observed signal and use HTTP so its request headers are visible.
     return {
         f"DD_{signal.upper()}_OTEL_ENABLED": "true",
         "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
