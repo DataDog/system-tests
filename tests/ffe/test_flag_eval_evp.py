@@ -288,11 +288,8 @@ class FlagevaluationEgressContract:
         def matcher(data: JSON) -> bool:
             return bool(evp_flagevaluation_events_from_data(data, self.flag_key, self.targeting_key))
 
-        assert egress.interface.wait_for(
-            lambda data: matcher(cast("JSON", data)),
-            timeout=EVP_WAIT_TIMEOUT_SECONDS,
-        ), f"Timed out waiting for EVP flagevaluation event for flag {self.flag_key}"
-
+        # Scenario teardown already waits for delivery while containers are running.
+        # Validation only inspects the completed capture, including in replay mode.
         matching_requests = [
             cast("JSON", data)
             for data in egress.interface.get_data(path_filters=EVP_FLAGEVALUATIONS_PATH)

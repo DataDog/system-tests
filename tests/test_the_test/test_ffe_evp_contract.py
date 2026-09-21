@@ -2,6 +2,7 @@
 
 from copy import deepcopy
 from typing import Any, Literal
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -33,6 +34,48 @@ AGENTLESS_EVP_CAPTURE_CONTRACTS = (
     flag_eval_evp_tests.Test_FFE_EVP_Flagevaluation_Egress_Agentless_Direct,
     flag_eval_evp_tests.Test_FFE_EVP_Flagevaluation_Egress_Agentless_Sidecar,
 )
+
+
+@pytest.mark.parametrize("has_capture", [True, False])
+@scenarios.test_the_test
+@features.not_reported
+def test_flagevaluation_egress_validates_captured_data_without_waiting(
+    monkeypatch: pytest.MonkeyPatch, *, has_capture: bool
+) -> None:
+    contract = flag_eval_evp_tests.FlagevaluationEgressContract()
+    contract.responses = [MagicMock(status_code=200)] * contract.evaluation_count
+    capture = {
+        "path": flag_eval_evp_tests.EVP_FLAGEVALUATIONS_PATH,
+        "request": {
+            "content": {
+                "flagEvaluations": [
+                    {
+                        "flag": {"key": contract.flag_key},
+                        "targeting_key": contract.targeting_key,
+                        "variant": {"key": "on"},
+                        "allocation": {"key": "default-allocation"},
+                        "timestamp": 1,
+                        "first_evaluation": 1,
+                        "last_evaluation": 1,
+                        "evaluation_count": contract.evaluation_count,
+                    }
+                ]
+            }
+        },
+    }
+    interface = MagicMock()
+    interface.get_data.return_value = [capture] if has_capture else []
+    interface.wait_for.side_effect = AssertionError("Validation must not wait after containers have stopped")
+    monkeypatch.setattr(
+        flag_eval_evp_tests, "feature_flagging_evp_egress", lambda: FeatureFlaggingEVPEgress(interface, "agent")
+    )
+
+    if has_capture:
+        contract.test_ffe_evp_flagevaluation_egress()
+    else:
+        with pytest.raises(AssertionError, match="Expected flagevaluation requests"):
+            contract.test_ffe_evp_flagevaluation_egress()
+    interface.wait_for.assert_not_called()
 
 
 def _direct_runtime_evidence(library_name: str = "nodejs") -> dict[str, Any]:
