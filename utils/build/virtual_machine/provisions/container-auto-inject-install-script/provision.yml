@@ -15,7 +15,7 @@ provision_steps:
   - prepare-docker #Prepare the docker environment
   - amazon-ecr-credential-helper # Install AWS ECR helper to download images from ECR
   - patch-docker-daemon #Patch the docker daemon to avoid networking issues/ip conflicts incident-31160
-  - install-agent #Install the agent (allways latest release)
+  - install-agent #Install the agent (version pinned in provisions/auto-inject/agent.lock)
   - autoinjection_install_script #Install the auto-injection softaware 'datadog-apm-inject' and 'datadog-apm-library-$DD_LANG'
 
 init-config:

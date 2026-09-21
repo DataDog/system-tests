@@ -137,7 +137,10 @@ def test_automate_update_publishes_latest_version(tmp_path: Path, monkeypatch: p
 
 
 @scenarios.test_the_test
-def test_automate_update_skips_publish_when_current(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.mark.parametrize("version", ["7.82.3", "7.82.2", "6.53.4"])
+def test_automate_update_skips_publish_when_not_newer(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, version: str
+) -> None:
     write_lock(tmp_path)
     update_agent_version(tmp_path, "7.82.3")
     github = GitHubApi("token")
@@ -146,7 +149,8 @@ def test_automate_update_skips_publish_when_current(tmp_path: Path, monkeypatch:
         lambda _root, _version, _github, _env: pytest.fail("publish should not run"),
     )
 
-    assert not automate_update(tmp_path, github, {}, "7.82.3")
+    assert not automate_update(tmp_path, github, {}, version)
+    assert (tmp_path / AGENT_VERSION_LOCK).read_text().endswith("DD_AGENT_VERSION=7.82.3\n")
 
 
 @scenarios.test_the_test
@@ -160,16 +164,18 @@ def test_publish_update_creates_only_missing_pr(
         def __init__(self) -> None:
             super().__init__("token")
             self.calls: list[tuple[str, str]] = []
+            self.descriptions: list[dict[str, object]] = []
 
         def request(self, method: str, path: str, data: dict[str, object] | None = None) -> object:
             self.calls.append((method, path))
             if method == "GET":
-                return [{"node_id": "PR_node_id"}] if existing_pr else []
-            if path.endswith("/pulls"):
-                return {"node_id": "PR_node_id"}
-            assert path == "/graphql"
+                return [{"node_id": "PR_node_id", "number": int(existing_pr)}] if existing_pr else []
+            if path == "/graphql":
+                assert data is not None
+                return {"data": {}}
             assert data is not None
-            return {"data": {}}
+            self.descriptions.append(data)
+            return {"node_id": "PR_node_id"}
 
     def fake_run(
         _root: Path,
@@ -191,6 +197,10 @@ def test_publish_update_creates_only_missing_pr(
     assert ["git", "push", "--force", "--set-upstream", "origin", AUTOMATION_BRANCH] in commands
     assert not any(command[0] == "gh" for command in commands)
     assert any(method == "POST" and path.endswith("/pulls") for method, path in github.calls) is (not existing_pr)
+    if existing_pr:
+        assert ("PATCH", f"/repos/DataDog/system-tests/pulls/{existing_pr}") in github.calls
+    # Whether it is created or refreshed, the PR describes the version that was just pushed.
+    assert [description["title"] for description in github.descriptions] == ["APMSP-3752 Update Agent to 7.82.3"]
     assert github.calls[-1] == ("POST", "/graphql")
 
 

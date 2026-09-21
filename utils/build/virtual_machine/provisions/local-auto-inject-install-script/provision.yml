@@ -12,7 +12,7 @@ vm_logs:
 #Mandatory: Steps to install provision
 provision_steps:
   - init-config #Very first machine actions, like disable auto updates
-  - install-agent #Install the agent (allways latest release)
+  - install-agent #Install the agent (version pinned in provisions/auto-inject/agent.lock)
   - autoinjection_install_script #Install the auto-injection softaware 'datadog-apm-inject' and 'datadog-apm-library-$DD_LANG' using the agent install script
   - install-local-apm-library
 
