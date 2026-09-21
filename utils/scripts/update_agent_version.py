@@ -21,6 +21,7 @@ AUTOMATION_BRANCH = "apmsp-3752/update-agent-version"
 REPOSITORY = "DataDog/system-tests"
 OCTO_STS_POLICY = "self.gitlab-update-agent-version"
 GITHUB_API_URL = "https://api.github.com"
+AUTO_MERGE_ALREADY_ENABLED = "auto merge is already enabled"
 
 AGENT_VERSION_LOCK = Path("utils/build/virtual_machine/provisions/auto-inject/agent.lock")
 
@@ -91,6 +92,29 @@ def latest_agent_version(github: GitHubApi) -> str:
     return normalize_version(release["tag_name"])
 
 
+def enable_auto_merge(github: GitHubApi, pull_request_node_id: str) -> None:
+    result = github.request(
+        "POST",
+        "/graphql",
+        {
+            "query": "mutation($pullRequestId: ID!) { enablePullRequestAutoMerge(input: {"
+            "pullRequestId: $pullRequestId, mergeMethod: SQUASH}) { pullRequest { number } } }",
+            "variables": {"pullRequestId": pull_request_node_id},
+        },
+    )
+    if not isinstance(result, dict):
+        raise TypeError("GitHub returned an invalid auto-merge response")
+    errors = result.get("errors") or []
+    if not isinstance(errors, list):
+        raise TypeError("GitHub returned an invalid auto-merge response")
+    # A refreshed PR keeps the auto-merge enabled by a previous run, and GitHub rejects enabling it twice.
+    if any(
+        not isinstance(error, dict) or AUTO_MERGE_ALREADY_ENABLED not in str(error.get("message", "")).lower()
+        for error in errors
+    ):
+        raise RuntimeError("GitHub failed to enable pull request auto-merge")
+
+
 def publish_update(root: Path, version: str, github: GitHubApi, env: Mapping[str, str]) -> None:
     run_command(root, ["git", "remote", "set-url", "origin", f"https://github.com/{REPOSITORY}.git"], env=env)
     run_command(root, ["git", "switch", "--force-create", AUTOMATION_BRANCH], env=env)
@@ -128,17 +152,7 @@ def publish_update(root: Path, version: str, github: GitHubApi, env: Mapping[str
         )
     if not isinstance(pull_request, dict) or not isinstance(pull_request.get("node_id"), str):
         raise TypeError("GitHub returned an invalid pull request")
-    auto_merge_result = github.request(
-        "POST",
-        "/graphql",
-        {
-            "query": "mutation($pullRequestId: ID!) { enablePullRequestAutoMerge(input: {"
-            "pullRequestId: $pullRequestId, mergeMethod: SQUASH}) { pullRequest { number } } }",
-            "variables": {"pullRequestId": pull_request["node_id"]},
-        },
-    )
-    if not isinstance(auto_merge_result, dict) or auto_merge_result.get("errors"):
-        raise RuntimeError("GitHub failed to enable pull request auto-merge")
+    enable_auto_merge(github, pull_request["node_id"])
 
 
 def automate_update(root: Path, github: GitHubApi, env: Mapping[str, str], version: str | None = None) -> bool:

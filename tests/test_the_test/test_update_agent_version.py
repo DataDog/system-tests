@@ -10,6 +10,7 @@ from utils.scripts.update_agent_version import (
     AUTOMATION_BRANCH,
     GitHubApi,
     automate_update,
+    enable_auto_merge,
     normalize_version,
     publish_update,
     revoke_token,
@@ -172,7 +173,13 @@ def test_publish_update_creates_only_missing_pr(
                 return [{"node_id": "PR_node_id", "number": int(existing_pr)}] if existing_pr else []
             if path == "/graphql":
                 assert data is not None
-                return {"data": {}}
+                # GitHub rejects enabling auto-merge on a PR that already has it, i.e. on every refresh.
+                if existing_pr:
+                    return {
+                        "data": {"enablePullRequestAutoMerge": None},
+                        "errors": [{"message": "Pull request Auto merge is already enabled."}],
+                    }
+                return {"data": {"enablePullRequestAutoMerge": {"pullRequest": {"number": 42}}}}
             assert data is not None
             self.descriptions.append(data)
             return {"node_id": "PR_node_id"}
@@ -202,6 +209,39 @@ def test_publish_update_creates_only_missing_pr(
     # Whether it is created or refreshed, the PR describes the version that was just pushed.
     assert [description["title"] for description in github.descriptions] == ["APMSP-3752 Update Agent to 7.82.3"]
     assert github.calls[-1] == ("POST", "/graphql")
+
+
+def fake_github(result: object) -> GitHubApi:
+    class FakeGitHubApi(GitHubApi):
+        def request(self, method: str, path: str, data: dict[str, object] | None = None) -> object:  # noqa: ARG002
+            return result
+
+    return FakeGitHubApi("token")
+
+
+@scenarios.test_the_test
+@pytest.mark.parametrize(
+    "result",
+    [
+        {"errors": [{"message": "Pull request Auto merge is not allowed for this repository"}]},
+        {
+            "errors": [
+                {"message": "Pull request Auto merge is already enabled."},
+                {"message": "Something else went wrong"},
+            ]
+        },
+    ],
+)
+def test_enable_auto_merge_reports_real_failures(result: object) -> None:
+    with pytest.raises(RuntimeError, match="failed to enable pull request auto-merge"):
+        enable_auto_merge(fake_github(result), "PR_node_id")
+
+
+@scenarios.test_the_test
+@pytest.mark.parametrize("result", [[], {"errors": "boom"}])
+def test_enable_auto_merge_rejects_invalid_responses(result: object) -> None:
+    with pytest.raises(TypeError, match="invalid auto-merge response"):
+        enable_auto_merge(fake_github(result), "PR_node_id")
 
 
 @scenarios.test_the_test
