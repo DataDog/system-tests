@@ -10,9 +10,18 @@ manifest:
         "*": irrelevant (just one weblog is enough to test the SDK)
         "spring-boot": v1.65.0-SNAPSHOT
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone_APMDisabledMarker: missing_feature
-  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRedacted: missing_feature
-  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests: missing_feature
-  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRedacted:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "spring-boot": v1.67.0-SNAPSHOT
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "spring-boot": v1.67.0-SNAPSHOT
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "spring-boot": v1.67.0-SNAPSHOT
   tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
@@ -36,43 +45,43 @@ manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_NoRedaction:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
-        "spring-boot": v1.66.0-SNAPSHOT
+        "spring-boot": v1.67.0-SNAPSHOT
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactedMessagesInSDKResponse:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
-        "spring-boot": v1.66.0-SNAPSHOT
+        "spring-boot": v1.67.0-SNAPSHOT
   tests/ai_guard/test_ai_guard_sdk.py::Test_Redaction:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
-        "spring-boot": v1.66.0-SNAPSHOT
+        "spring-boot": v1.67.0-SNAPSHOT
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionDisabled:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
-        "spring-boot": v1.66.0-SNAPSHOT
+        "spring-boot": v1.67.0-SNAPSHOT
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionDisabledTelemetry:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
-        "spring-boot": v1.66.0-SNAPSHOT
+        "spring-boot": v1.67.0-SNAPSHOT
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionFailSafe:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
-        "spring-boot": v1.66.0-SNAPSHOT
+        "spring-boot": v1.67.0-SNAPSHOT
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionInSDKResponse:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
-        "spring-boot": v1.66.0-SNAPSHOT
+        "spring-boot": v1.67.0-SNAPSHOT
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionMultiTurnContext:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
-        "spring-boot": v1.66.0-SNAPSHOT
+        "spring-boot": v1.67.0-SNAPSHOT
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionOnBlock:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
-        "spring-boot": v1.66.0-SNAPSHOT
+        "spring-boot": v1.67.0-SNAPSHOT
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionSkipsStructuralFields:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
-        "spring-boot": v1.66.0-SNAPSHOT
+        "spring-boot": v1.67.0-SNAPSHOT
   tests/ai_guard/test_ai_guard_sdk.py::Test_RootSpanUserKeep:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
