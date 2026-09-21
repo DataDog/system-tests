@@ -9,21 +9,11 @@ from utils.docker_fixtures import TestAgentAPI
 
 
 @pytest.fixture
-def library_env(
-    compression_env: dict[str, str], test_agent: TestAgentAPI, test_agent_otlp_http_port: int
-) -> dict[str, str | None]:
+def library_env(compression_env: dict[str, str]) -> dict[str, str]:
+    # Enable the observed signal and use HTTP to inspect its Content-Encoding.
     return {
-        "DD_TRACE_DEBUG": None,
-        "DD_TRACE_OTEL_ENABLED": "true",
         "DD_METRICS_OTEL_ENABLED": "true",
-        "DD_LOGS_OTEL_ENABLED": "false",
-        "DD_RUNTIME_METRICS_ENABLED": "false",
-        "OTEL_METRICS_EXPORTER": "otlp",
-        "OTEL_LOGS_EXPORTER": "none",
         "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": "http/protobuf",
-        "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT": f"http://{test_agent.container_name}:{test_agent_otlp_http_port}/v1/metrics",
-        "OTEL_EXPORTER_OTLP_COMPRESSION": None,
-        "OTEL_EXPORTER_OTLP_METRICS_COMPRESSION": None,
         **compression_env,
     }
 
