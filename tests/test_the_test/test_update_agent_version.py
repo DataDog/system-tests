@@ -27,6 +27,7 @@ def write_lock(root: Path) -> None:
 @scenarios.test_the_test
 def test_update_agent_version_updates_lock(tmp_path: Path) -> None:
     write_lock(tmp_path)
+    (tmp_path / AGENT_VERSION_LOCK).write_text("This content is replaced completely.\n")
 
     assert update_agent_version(tmp_path, "v8.0.1")
     assert (tmp_path / AGENT_VERSION_LOCK).read_text() == (
@@ -41,15 +42,6 @@ def test_update_agent_version_updates_lock(tmp_path: Path) -> None:
 def test_normalize_version_rejects_unsupported_versions(version: str) -> None:
     with pytest.raises(ValueError, match="Expected a stable Agent version"):
         normalize_version(version)
-
-
-@scenarios.test_the_test
-def test_update_agent_version_fails_when_a_pin_is_missing(tmp_path: Path) -> None:
-    write_lock(tmp_path)
-    (tmp_path / AGENT_VERSION_LOCK).write_text("# Missing Agent version\n")
-
-    with pytest.raises(RuntimeError, match="exactly one Agent version pin"):
-        update_agent_version(tmp_path, "7.82.3")
 
 
 @scenarios.test_the_test

@@ -32,24 +32,14 @@ def normalize_version(version: str) -> str:
     return normalized
 
 
-def _replace_once(path: Path, pattern: re.Pattern[str], replacement: str) -> bool:
-    content = path.read_text()
-    updated, replacement_count = pattern.subn(replacement, content)
-    if replacement_count != 1:
-        raise RuntimeError(f"Expected exactly one Agent version pin in {path}, found {replacement_count}")
-    if updated == content:
-        return False
-    path.write_text(updated)
-    return True
-
-
 def update_agent_version(root: Path, version: str) -> bool:
     normalized = normalize_version(version)
-    return _replace_once(
-        root / AGENT_VERSION_LOCK,
-        re.compile(r"(?m)^DD_AGENT_VERSION=[^\n]+$"),
-        f"DD_AGENT_VERSION={normalized}",
-    )
+    lock_path = root / AGENT_VERSION_LOCK
+    updated = f"# Pinned Agent version, updated automatically\nDD_AGENT_VERSION={normalized}\n"
+    if lock_path.read_text() == updated:
+        return False
+    lock_path.write_text(updated)
+    return True
 
 
 def run_command(
