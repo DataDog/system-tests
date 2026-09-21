@@ -825,6 +825,8 @@ class _Scenarios:
     feature_flagging_and_experimentation = DdTraceEndToEndScenario(
         "FEATURE_FLAGGING_AND_EXPERIMENTATION",
         rc_api_enabled=True,
+        # Allow final EVP batches to reach the backend after the weblog flushes and stops.
+        agent_interface_timeout=15,
         weblog_env={
             "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
             "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE": "remote_config",
