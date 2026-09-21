@@ -52,25 +52,12 @@ def library_env(
 ) -> dict[str, str | None]:
     port = test_agent_otlp_grpc_port if expected_protocol == "grpc" else test_agent_otlp_http_port
     path = "" if expected_protocol == "grpc" else f"/v1/{signal}"
-    env: dict[str, str | None] = {
-        "DD_TRACE_DEBUG": None,
-        "DD_TRACE_OTEL_ENABLED": "true",
-        "DD_LOGS_OTEL_ENABLED": "true" if signal == "logs" else "false",
-        "DD_METRICS_OTEL_ENABLED": "true" if signal == "metrics" else "false",
-        "DD_RUNTIME_METRICS_ENABLED": "false",
-        "CORECLR_ENABLE_PROFILING": "1",
-        "OTEL_TRACES_EXPORTER": None,
-        "OTEL_LOGS_EXPORTER": "otlp" if signal == "logs" else "none",
-        "OTEL_METRICS_EXPORTER": "otlp" if signal == "metrics" else "none",
-        "OTEL_METRIC_EXPORT_INTERVAL": "60000",
-        "OTEL_EXPORTER_OTLP_PROTOCOL": None,
-        "OTEL_EXPORTER_OTLP_LOGS_PROTOCOL": None,
-        "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": None,
-        "OTEL_EXPORTER_OTLP_ENDPOINT": None,
+    # Enable the observed signal and select the HTTP or gRPC listener for its expected protocol.
+    return {
+        f"DD_{signal.upper()}_OTEL_ENABLED": "true",
         f"OTEL_EXPORTER_OTLP_{signal.upper()}_ENDPOINT": f"http://{test_agent.container_name}:{port}{path}",
+        VARIABLE: protocol,
     }
-    env[VARIABLE] = protocol
-    return env
 
 
 def _assert_export(test_library: APMLibrary, test_agent: TestAgentAPI, signal: str, expected_protocol: str) -> None:
