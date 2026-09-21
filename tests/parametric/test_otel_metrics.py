@@ -1,7 +1,7 @@
 from urllib.parse import urlparse
 import pytest
 
-from utils import features, scenarios
+from utils import context, features, scenarios
 
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary
@@ -62,9 +62,11 @@ def otlp_metrics_endpoint_library_env(
 
     protocol = library_env.get("OTEL_EXPORTER_OTLP_METRICS_PROTOCOL", library_env.get("OTEL_EXPORTER_OTLP_PROTOCOL"))
     if protocol is None:
-        raise ValueError(
-            "One of the following environment variables must be set in library_env: OTEL_EXPORTER_OTLP_METRICS_PROTOCOL, OTEL_EXPORTER_OTLP_PROTOCOL"
-        )
+        # Match the SDK's default transport without setting the protocol under test.
+        if context.library in ("python", "rust"):
+            protocol = "grpc"
+        else:
+            protocol = "http/protobuf"
 
     port = test_agent_otlp_grpc_port if protocol == "grpc" else test_agent_otlp_http_port
     path = "/" if protocol == "grpc" or endpoint_env == "OTEL_EXPORTER_OTLP_ENDPOINT" else "/v1/metrics"
@@ -249,8 +251,8 @@ class Test_Otel_Metrics_Configuration_Enabled:
     - DD_METRICS_OTEL_ENABLED
     - OTEL_METRICS_EXPORTER
 
-    Use an explicit, reachable collector so disabling Datadog endpoint defaults
-    cannot be mistaken for disabling export.
+    Use the SDK's default transport with a reachable collector so disabling
+    Datadog endpoint defaults cannot be mistaken for disabling export.
     """
 
     @pytest.mark.parametrize(
@@ -258,7 +260,6 @@ class Test_Otel_Metrics_Configuration_Enabled:
         [
             {
                 "DD_METRICS_OTEL_ENABLED": "true",
-                "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": "http/protobuf",
                 "OTEL_METRIC_EXPORT_INTERVAL": "60000",
                 "CORECLR_ENABLE_PROFILING": "1",
             },
@@ -280,7 +281,6 @@ class Test_Otel_Metrics_Configuration_Enabled:
         [
             {
                 "DD_METRICS_OTEL_ENABLED": "false",
-                "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": "http/protobuf",
                 "OTEL_METRIC_EXPORT_INTERVAL": "60000",
                 "CORECLR_ENABLE_PROFILING": "1",
             },
@@ -300,7 +300,6 @@ class Test_Otel_Metrics_Configuration_Enabled:
             {
                 "DD_METRICS_OTEL_ENABLED": "true",
                 "OTEL_METRICS_EXPORTER": "none",
-                "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": "http/protobuf",
                 "OTEL_METRIC_EXPORT_INTERVAL": "60000",
                 "CORECLR_ENABLE_PROFILING": "1",
             },
