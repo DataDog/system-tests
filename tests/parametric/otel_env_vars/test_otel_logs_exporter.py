@@ -11,6 +11,9 @@ from utils.docker_fixtures import TestAgentAPI
 from utils.docker_fixtures.parametric import LogLevel
 
 
+# Pin HTTP/protobuf to test exporter selection with a consistent transport
+# across SDKs. This avoids coupling log presence/absence assertions to
+# SDK-specific gRPC defaults and gRPC exporter/test-app support.
 @pytest.fixture
 def library_env(exporter_env: dict[str, str]) -> dict[str, str]:
     return {
