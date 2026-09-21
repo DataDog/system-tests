@@ -10,7 +10,7 @@ import (
 	"strconv"
 
 	ddotel "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry"
-	ddlog "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry/log"
+	otlog "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry/log"
 	ddmetric "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry/metric"
 	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 	ddof "github.com/DataDog/dd-trace-go/v2/openfeature"
@@ -29,7 +29,7 @@ type apmClientServer struct {
 	ofClient     *of.Client
 	ddProvider   of.FeatureProvider
 	// OTel Logs
-	loggers map[string]otelLogger
+	otelLoggers map[string]otelLogger
 	// OTel Metrics
 	mp          metric.MeterProvider
 	meters      map[string]metric.Meter
@@ -51,13 +51,13 @@ func newServer() *apmClientServer {
 	}
 	otel.SetMeterProvider(mp)
 
-	if err := ddlog.Start(context.Background()); err != nil {
+	if err := otlog.Start(context.Background()); err != nil {
 		log.Fatalf("failed to start Datadog OTel LoggerProvider: %v", err)
 	}
 
 	s := &apmClientServer{
 		spans:        make(map[uint64]*tracer.Span),
-		loggers:      make(map[string]otelLogger),
+		otelLoggers:  make(map[string]otelLogger),
 		spanContexts: make(map[uint64]*tracer.SpanContext),
 		otelSpans:    make(map[uint64]spanContext),
 		tp:           tp,
