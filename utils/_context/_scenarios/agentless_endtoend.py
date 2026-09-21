@@ -177,10 +177,6 @@ class FeatureFlaggingAgentlessEndToEndScenario(AgentlessEndToEndScenario):
         self._last_direct_evp_runtime_evidence: dict[str, Any] | None = None
         self._last_direct_evp_shutdown_evidence: dict[str, Any] | None = None
         environment: dict[str, str | None] = {
-            # The shared weblogs use this switch to install their OpenFeature provider. The
-            # configuration source selects how the provider receives flags; it does not make the
-            # application adopt the provider on its own.
-            "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
             # Both variables are integer seconds across the SDKs: Java parses them with
             # getInteger, and the shared configuration registry declares them "int" with an
             # allowed pattern of [1-9]\d*. A fractional value only ever worked on Node, which
@@ -195,7 +191,10 @@ class FeatureFlaggingAgentlessEndToEndScenario(AgentlessEndToEndScenario):
         other_weblog_containers: tuple[type[TestedContainer], ...] = ()
         if exposure_egress is not None:
             environment |= {
-                # Keep the original scenario's default-source selection implicit.
+                # Some shared weblogs need the legacy switch to install their provider.
+                # Pair it with an explicit source only in egress scenarios: with the source
+                # unset, the legacy switch selects Remote Config instead of default agentless.
+                "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
                 "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE": "agentless",
                 # The reserved .invalid domain fails closed if a request bypasses the proxy.
                 "DD_SITE": "mock-intake.invalid",
