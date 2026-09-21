@@ -32,6 +32,18 @@ def normalize_version(version: str) -> str:
     return normalized
 
 
+def version_key(version: str) -> tuple[int, int, int]:
+    major, minor, patch = normalize_version(version).split(".")
+    return int(major), int(minor), int(patch)
+
+
+def locked_agent_version(root: Path) -> str:
+    for line in (root / AGENT_VERSION_LOCK).read_text().splitlines():
+        if line.startswith("DD_AGENT_VERSION="):
+            return normalize_version(line.removeprefix("DD_AGENT_VERSION="))
+    raise ValueError(f"No DD_AGENT_VERSION found in {AGENT_VERSION_LOCK}")
+
+
 def update_agent_version(root: Path, version: str) -> bool:
     normalized = normalize_version(version)
     lock_path = root / AGENT_VERSION_LOCK
@@ -97,19 +109,22 @@ def publish_update(root: Path, version: str, github: GitHubApi, env: Mapping[str
     pull_requests = github.request("GET", f"/repos/{REPOSITORY}/pulls?head={head}&state=open")
     if not isinstance(pull_requests, list):
         raise TypeError("GitHub returned an invalid pull request list")
+    description: dict[str, object] = {
+        "title": f"APMSP-3752 Update Agent to {version}",
+        "body": "Automated daily update of the Agent version pinned by SSI tests. "
+        "The PR will merge automatically after all required checks pass.",
+    }
     if pull_requests:
-        pull_request = pull_requests[0]
+        # The branch is force-pushed, so the open PR now describes the previous version: overwrite it.
+        existing = pull_requests[0]
+        if not isinstance(existing, dict) or not isinstance(existing.get("number"), int):
+            raise TypeError("GitHub returned an invalid pull request list")
+        pull_request = github.request("PATCH", f"/repos/{REPOSITORY}/pulls/{existing['number']}", description)
     else:
         pull_request = github.request(
             "POST",
             f"/repos/{REPOSITORY}/pulls",
-            {
-                "base": "main",
-                "head": AUTOMATION_BRANCH,
-                "title": f"APMSP-3752 Update Agent to {version}",
-                "body": "Automated daily update of the Agent version pinned by SSI tests. "
-                "The PR will merge automatically after all required checks pass.",
-            },
+            {"base": "main", "head": AUTOMATION_BRANCH, **description},
         )
     if not isinstance(pull_request, dict) or not isinstance(pull_request.get("node_id"), str):
         raise TypeError("GitHub returned an invalid pull request")
@@ -128,6 +143,13 @@ def publish_update(root: Path, version: str, github: GitHubApi, env: Mapping[str
 
 def automate_update(root: Path, github: GitHubApi, env: Mapping[str, str], version: str | None = None) -> bool:
     normalized = normalize_version(version) if version is not None else latest_agent_version(github)
+    locked = locked_agent_version(root)
+    if version_key(normalized) <= version_key(locked):
+        # GitHub reports the most recently published release as the latest one, not the highest
+        # version: a patch released on an older branch must not roll the pin backward.
+        print(f"Agent pin {locked} is not older than {normalized}")
+        return False
+
     if not update_agent_version(root, normalized):
         print(f"Agent pins already current: {normalized}")
         return False
