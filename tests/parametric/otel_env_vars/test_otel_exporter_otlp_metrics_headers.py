@@ -15,19 +15,10 @@ VARIABLE = "OTEL_EXPORTER_OTLP_METRICS_HEADERS"
 
 
 def _environment(value: str | None) -> dict[str, str | None]:
+    # Enable the observed signal and use HTTP so its request headers are visible.
     return {
-        "DD_TRACE_DEBUG": None,
-        "DD_LOGS_OTEL_ENABLED": "false",
         "DD_METRICS_OTEL_ENABLED": "true",
-        "DD_RUNTIME_METRICS_ENABLED": "false",
-        "CORECLR_ENABLE_PROFILING": "1",
-        "OTEL_LOGS_EXPORTER": "none",
-        "OTEL_METRICS_EXPORTER": "otlp",
-        "OTEL_METRIC_EXPORT_INTERVAL": "60000",
         "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
-        "OTEL_EXPORTER_OTLP_HEADERS": None,
-        "OTEL_EXPORTER_OTLP_LOGS_HEADERS": None,
-        "OTEL_EXPORTER_OTLP_METRICS_HEADERS": None,
         VARIABLE: value,
     }
 
