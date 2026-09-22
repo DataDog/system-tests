@@ -42,7 +42,7 @@ Build images used for system tests.
 
 * For `c`: `perl-mojolicious` (default)
 * For `dotnet`: `poc` (default), `uds`
-* For `golang`: `net-http` (default), `gin`, `echo`, `chi`
+* For `golang`: `net-http` (default), `gin`, `echo`, `chi`, `net-http-orchestrion`, `fiber-v2-orchestrion`
   + Specific to the `GRAPHQL_APPSEC` scenario: `gqlgen`, `graph-gophers`, `graphql-go`
 * For `java`: `spring-boot` (default),`akka-http`,`jersey-grizzly2`,`play`,`ratpack`,`resteasy-netty3`,`spring-boot-3-native`,`spring-boot-jetty`,`spring-boot-openliberty`,`spring-boot-payara`,`spring-boot-undertow`,`spring-boot-wildfly`,`uds-spring-boot`,`vertx3`,`vertx4`
 * For `nodejs`: `express4` (default), `express4-typescript`, `express5`, `nextjs`, `fastify`
@@ -50,6 +50,23 @@ Build images used for system tests.
 * For `python`: `flask-poc` (default), `fastapi`, `uwsgi-poc`, `django-poc`, `python3.12`
 * For `ruby`: `rails70` (default), `rack`, `sinatra21`, and lot of other sinatra/rails versions
 * For `rust`: `axum` (default)
+
+### Go with Orchestrion
+
+The `fiber-v2-orchestrion` variant uses Fiber v2 with build-time instrumentation:
+
+```bash
+./build.sh golang -w fiber-v2-orchestrion
+```
+
+It provides the HTTP, tracing, AppSec SDK, and shared integration endpoints used
+by the Gin and Echo weblogs. Orchestrion adds the Fiber middleware and starts the
+tracer and profiler; the application does not install tracing middleware itself.
+The tracer's Fiber integration does not yet support HTTP AppSec protection. The
+Go manifest records this limit; AppSec SDK tag and telemetry tests remain enabled
+where they do not need HTTP protection. The weblog uses a test-only
+`system_tests.request.user_agent` span tag for request correlation. It does not
+supply missing tracer HTTP tags.
 
 ### dd-trace-c packages
 
