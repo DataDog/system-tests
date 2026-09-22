@@ -8,7 +8,6 @@ namespace ApmTestApi.Endpoints;
 public abstract partial class ApmTestApiOtel
 {
     private static readonly ConcurrentDictionary<string, (ILogger Logger, LogLevel MinimumLevel)> OtelLoggers = new();
-    private static ILoggerFactory? _otelLoggerFactory;
 
     private static LogLevel ParseLogLevel(string? level) => level?.ToUpperInvariant() switch
     {
@@ -19,7 +18,7 @@ public abstract partial class ApmTestApiOtel
         _ => throw new ArgumentException($"Unsupported log level: {level}"),
     };
 
-    private static async Task<IResult> OtelCreateLogger(HttpRequest request)
+    private static async Task<IResult> OtelCreateLogger(HttpRequest request, ILoggerFactory loggerFactory)
     {
         var args = await JObject.LoadAsync(new Newtonsoft.Json.JsonTextReader(new StreamReader(request.Body)));
         var name = args.Value<string>("name");
@@ -36,7 +35,7 @@ public abstract partial class ApmTestApiOtel
 
         // ILogger has a category name but no instrumentation version, schema URL, or
         // scope attributes API. Accept those optional fields without fabricating them.
-        var success = OtelLoggers.TryAdd(name, (_otelLoggerFactory!.CreateLogger(name), level));
+        var success = OtelLoggers.TryAdd(name, (loggerFactory.CreateLogger(name), level));
         return Results.Ok(new { success });
     }
 
