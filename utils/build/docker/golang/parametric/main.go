@@ -10,6 +10,7 @@ import (
 	"strconv"
 
 	ddotel "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry"
+	otlog "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry/log"
 	ddmetric "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry/metric"
 	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 	ddof "github.com/DataDog/dd-trace-go/v2/openfeature"
@@ -27,6 +28,8 @@ type apmClientServer struct {
 	tracer       otel_trace.Tracer
 	ofClient     *of.Client
 	ddProvider   of.FeatureProvider
+	// OTel Logs
+	otelLoggers map[string]otelLogger
 	// OTel Metrics
 	mp          metric.MeterProvider
 	meters      map[string]metric.Meter
@@ -48,8 +51,13 @@ func newServer() *apmClientServer {
 	}
 	otel.SetMeterProvider(mp)
 
+	if err := otlog.Start(context.Background()); err != nil {
+		log.Fatalf("failed to start Datadog OTel LoggerProvider: %v", err)
+	}
+
 	s := &apmClientServer{
 		spans:        make(map[uint64]*tracer.Span),
+		otelLoggers:  make(map[string]otelLogger),
 		spanContexts: make(map[uint64]*tracer.SpanContext),
 		otelSpans:    make(map[uint64]spanContext),
 		tp:           tp,
@@ -143,6 +151,11 @@ func main() {
 	http.HandleFunc("/trace/otel/span_context", s.otelSpanContextHandler)
 	http.HandleFunc("/trace/otel/add_event", s.otelAddEventHandler)
 	http.HandleFunc("/trace/otel/set_status", s.otelSetStatusHandler)
+
+	// otel-logs endpoints:
+	http.HandleFunc("/otel/logger/create", s.otelCreateLoggerHandler)
+	http.HandleFunc("/otel/logger/write", s.otelWriteLogHandler)
+	http.HandleFunc("/log/otel/flush", s.otelFlushLogsHandler)
 
 	// otel-metrics endpoints:
 	http.HandleFunc("/metrics/otel/get_meter", s.otelGetMeterHandler)
