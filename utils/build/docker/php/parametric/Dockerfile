@@ -1,6 +1,6 @@
 
 FROM datadog/dd-trace-ci:php-8.2_bookworm-6
-RUN switch-php nts
+RUN switch-php nts && echo 'extension=grpc' > /opt/php/nts/conf.d/grpc.ini
 WORKDIR /binaries
 ENV DD_TRACE_CLI_ENABLED=1
 ADD utils/build/docker/php/parametric/composer.json .
