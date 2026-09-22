@@ -174,12 +174,18 @@ class Test_Debugger_InProduct_Enablement_Exception_Replay(debugger.BaseDebuggerT
 @slow
 class Test_Debugger_InProduct_Enablement_Code_Origin(debugger.BaseDebuggerTest):
     ########### code origin ############
+    _WARMUP_TIMEOUT = 10
     _CODE_ORIGIN_TIMEOUT = 30
 
     def _check_code_origin(self):
         """Send a request and check if code origin spans are present."""
         request = self.send_weblog_request("/")
         return self.wait_for_code_origin_span(request, self._CODE_ORIGIN_TIMEOUT)
+
+    def _warmup_code_origin(self):
+        """Send a request and wait until the tracer has instrumented the view function."""
+        request = self.send_weblog_request("/")
+        self.wait_for_code_origin_span(request, self._WARMUP_TIMEOUT, stop_when_absent=False)
 
     def _set_code_origin_and_check(self, *, enabled: bool | None):
         """Set code origin via remote config and check if spans are present."""
@@ -193,7 +199,7 @@ class Test_Debugger_InProduct_Enablement_Code_Origin(debugger.BaseDebuggerTest):
         # Node.js starts code origin asynchronously. Let it instrument the view
         # function before checking the default-on state with a fresh request.
         if context.library == "nodejs":
-            self._check_code_origin()
+            self._warmup_code_origin()
 
         # Check initial state (default varies by language)
         self.co_initial_state = self._check_code_origin()
@@ -240,7 +246,7 @@ class Test_Debugger_InProduct_Enablement_Code_Origin_Default_On(debugger.BaseDeb
         # may be served before the code origin metadata is attached. Send a
         # warmup request to let instrumentation complete before the real check.
         warmup_request = self.send_weblog_request("/")
-        self.wait_for_code_origin_span(warmup_request, timeout=self._WARMUP_TIMEOUT)
+        self.wait_for_code_origin_span(warmup_request, timeout=self._WARMUP_TIMEOUT, stop_when_absent=False)
 
         # Correlate the trace lookup to this request so that stale traces cannot
         # satisfy the check and a fast trace cannot be discarded.

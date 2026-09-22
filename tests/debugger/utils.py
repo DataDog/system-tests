@@ -723,34 +723,45 @@ class BaseDebuggerTest:
         logger.debug(f"No capture reason span found: {self._no_capture_reason_span_found}")
         return self._no_capture_reason_span_found
 
-    def wait_for_code_origin_span(self, request: HttpResponse, timeout: int = 5) -> bool:
-        """Wait for the request's trace and report whether it contains a code origin span."""
+    def wait_for_code_origin_span(
+        self, request: HttpResponse, timeout: int = 5, *, stop_when_absent: bool = True
+    ) -> bool:
+        """Wait for the request's trace and report whether it contains a code origin span.
+
+        By default the wait ends as soon as the correlated trace arrives, even without code
+        origin metadata, so that disabled-state checks do not wait for the whole timeout. Pass
+        stop_when_absent=False for warmup requests, so that the wait keeps running until the
+        tracer has finished its asynchronous instrumentation.
+        """
         self._span_found = False
 
         interfaces.agent.wait_for(
-            lambda data: self._wait_for_code_origin_span(data, request=request),
+            lambda data: self._wait_for_code_origin_span(data, request=request, stop_when_absent=stop_when_absent),
             timeout=timeout,
         )
         return self._span_found
 
-    def _wait_for_code_origin_span(self, data: dict, *, request: HttpResponse) -> bool:
+    def _wait_for_code_origin_span(self, data: dict, *, request: HttpResponse, stop_when_absent: bool) -> bool:
         if data["path"] != _TRACES_PATH:
             return False
 
         # Select the trace using the request ID, then inspect every span because the code origin
         # entry span is not guaranteed to carry the request ID itself.
+        trace_found = False
         for _, trace in interfaces.agent.get_traces(request=request):
-            self._span_found = any(
+            trace_found = True
+            if any(
                 span.get_span_type() == "web"
                 and span.get_span_resource().startswith("GET")
                 and span.meta.get("_dd.code_origin.type", "") == "entry"
                 for span in trace.spans
-            )
-            # The correlated trace arrived. Return even when it lacks code origin metadata so
-            # disabled-state checks do not wait for a timeout.
-            return True
+            ):
+                self._span_found = True
+                return True
 
-        return False
+        # The correlated trace arrived without code origin metadata: that is a conclusive answer
+        # for a state check, but a warmup must keep waiting for instrumentation to complete.
+        return trace_found and stop_when_absent
 
     def wait_for_telemetry(self, telemetry_type: str, timeout: int = 5) -> dict | None:
         self._telemetry: dict | None = None
