@@ -15,11 +15,14 @@ from utils.docker_fixtures.parametric import LogLevel
 # across SDKs. This avoids coupling log presence/absence assertions to
 # SDK-specific gRPC defaults and gRPC exporter/test-app support.
 @pytest.fixture
-def library_env(exporter_env: dict[str, str]) -> dict[str, str]:
+def library_env(
+    exporter_env: dict[str, str], test_agent: TestAgentAPI, test_agent_otlp_http_port: int
+) -> dict[str, str]:
     return {
         # This enables the logs integration; OTEL_LOGS_EXPORTER must still select its exporter.
         "DD_LOGS_OTEL_ENABLED": "true",
         "OTEL_EXPORTER_OTLP_LOGS_PROTOCOL": "http/protobuf",
+        "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT": f"http://{test_agent.container_name}:{test_agent_otlp_http_port}/v1/logs",
         **exporter_env,
     }
 
@@ -27,15 +30,14 @@ def library_env(exporter_env: dict[str, str]) -> dict[str, str]:
 @scenarios.parametric
 @features.otel_logs_exporter
 class Test_OTEL_LOGS_EXPORTER:
-    @pytest.mark.parametrize(
-        ("exporter_env", "exporter"),
-        [
-            pytest.param({"OTEL_LOGS_EXPORTER": "otlp"}, "otlp", id="otlp"),
-            pytest.param({"OTEL_LOGS_EXPORTER": "none"}, "none", id="none"),
-        ],
-    )
-    def test_stable_values(self, test_agent: TestAgentAPI, test_library: APMLibrary, exporter: str) -> None:
-        self._assert_exporter(test_agent, test_library, exporter)
+    # Keep OTLP and none separate so app limitations cannot disable the OTLP control.
+    @pytest.mark.parametrize("exporter_env", [pytest.param({"OTEL_LOGS_EXPORTER": "otlp"}, id="otlp")])
+    def test_otlp(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        self._assert_exporter(test_agent, test_library, "otlp")
+
+    @pytest.mark.parametrize("exporter_env", [pytest.param({"OTEL_LOGS_EXPORTER": "none"}, id="none")])
+    def test_none(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        self._assert_exporter(test_agent, test_library, "none")
 
     # Console support is independent of the OTLP pipeline, so declare it separately.
     @pytest.mark.parametrize("exporter_env", [pytest.param({"OTEL_LOGS_EXPORTER": "console"}, id="console")])
