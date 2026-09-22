@@ -6,7 +6,11 @@ WORKDIR /app
 ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
 
 # dotnet restore
-COPY utils/build/docker/dotnet/parametric/ApmTestApi.csproj utils/build/docker/dotnet/parametric/nuget.config ./
+# The enrichment-aware Datadog.FeatureFlags.OpenFeature 2.3.0 nupkg is shipped in the build
+# context. The nuget.org-published 2.3.0 predates span enrichment and lacks SpanEnrichmentHook /
+# the FeatureFlagsSdk.AccumulateSpanEnrichment stub, so restoring it attaches NO ffe_* tags.
+# Copy it before restore so the local nuget source (ordered first in nuget.config) wins.
+COPY utils/build/docker/dotnet/parametric/ApmTestApi.csproj utils/build/docker/dotnet/parametric/nuget.config utils/build/docker/dotnet/parametric/Datadog.FeatureFlags.OpenFeature.2.3.0.nupkg ./
 RUN dotnet restore "./ApmTestApi.csproj"
 
 # dotnet publish
