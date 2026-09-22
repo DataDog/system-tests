@@ -25,6 +25,19 @@ if grep -qx "SYSTEM_TESTS_PROFILING_DEBUG=1" "$HOME/scenario_app.env" 2>/dev/nul
     sudo docker inspect dd-agent --format "{{json .State.Health}}" 2>&1 || true;
     sudo docker logs --since 15m --timestamps dd-agent 2>&1 || true;
   } | sudo tee -a /var/log/datadog_weblog/dd-agent-diagnostics.log >/dev/null;
+elif grep -qx "SYSTEM_TESTS_PROFILING_DEBUG=1" "$HOME/scenario_app.env" 2>/dev/null; then
+  {
+    echo "..:: DD-AGENT FINAL DIAGNOSTICS (HOST) ::..";
+    date -u "+%Y-%m-%dT%H:%M:%SZ";
+    sudo systemctl status datadog-agent --no-pager 2>&1 || true;
+    sudo journalctl -u datadog-agent --since "15 minutes ago" --no-pager 2>&1 || true;
+    for agent_log in /var/log/datadog/agent.log /var/log/datadog/trace-agent.log; do
+      if sudo test -r "${agent_log}"; then
+        echo "..:: ${agent_log} ::..";
+        sudo cat "${agent_log}" 2>&1 || true;
+      fi
+    done
+  } | sudo tee -a /var/log/datadog_weblog/dd-agent-diagnostics.log >/dev/null;
 fi
 sudo chmod 644 /var/log/datadog_weblog/dd-agent-diagnostics.log 2>/dev/null || true;
 '"""

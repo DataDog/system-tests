@@ -843,7 +843,7 @@ Located in: **var/log/datadog_weblog/**
 * **journalctl_docker.log:** Systemd journal logs related to Docker.
 * **journalctl_test-app.log:** Systemd journal logs for the host weblog service (`test-app.service`).
 * **system.timers.log:** System timer logs.
-* **dd-agent-diagnostics.log:** Datadog Agent container diagnostics captured at application startup. Profiling-debug scenarios append a final section covering delayed profiler uploads. Only present in container-based scenarios that start the agent via `docker-compose-agent-prod.yml`.
+* **dd-agent-diagnostics.log:** Datadog Agent diagnostics captured at application startup when available. Profiling-debug scenarios append a final section covering delayed profiler uploads from either the Agent container or the host Agent service.
 * **php-process-diagnostics.log:** State of the real PHP server process when profiling debug is enabled, including its Datadog environment, loaded Datadog libraries, profiler threads, and mounted stable configuration. Secrets are redacted.
 * **core-diagnostics.txt:** Kernel `core_pattern`, `ulimit -c`, and the core files found/copied after a host crash.
 * **core.\* / systemd-coredump:** Process core dumps (for example PHP host segfaults, often with profiling). Use these with `gdb` when investigating a `Segmentation fault` / exit status 139.
