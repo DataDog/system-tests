@@ -66,6 +66,9 @@ MIRROR_YAML_HEADER = """\
 # what actually runs in CI. Override with --exclude when the CI list changes.
 DEFAULT_EXCLUDED = (
     "DEBUGGER_EXPRESSION_LANGUAGE",
+    "DEBUGGER_EXPRESSION_LANGUAGE_2",
+    "DEBUGGER_EXCEPTION_REPLAY",
+    "DEBUGGER_EXCEPTION_REPLAY_2",
     "OTEL_COLLECTOR_E2E",
 )
 

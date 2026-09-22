@@ -39,6 +39,80 @@ setup_properties = SetupProperties()
 PytestOutcome = Literal["passed", "xpassed", "failed", "xfailed", "skipped", "error"]
 
 
+def _scenario_is_empty_precheck(session: pytest.Session) -> bool:
+    """Check if the scenario is empty for the current weblog without starting containers.
+
+    Uses the library version from SYSTEM_TESTS_LIBRARY_VERSION env var (or a
+    dummy high version if not set) so that manifest conditions can be
+    evaluated. Tests marked as @auxiliary_test are excluded because they
+    don't count toward must_pass_item_count.
+    Returns True if zero non-auxiliary tests would be selected.
+    """
+    from pathlib import Path
+    from utils._context.component_version import Version
+    from utils.manifest import Manifest
+
+    weblog = session.config.option.weblog
+    scenario_name = context.scenario.name
+
+    # Load the scenarios.json file which maps test nodeids to scenarios
+    scenarios_file = Path("tests/test_the_test/scenarios.json")
+    if not scenarios_file.exists():
+        logger.info("Pre-check: scenarios.json not found — assuming not empty")
+        return False
+
+    with open(scenarios_file) as f:
+        scenarios_map = json.load(f)
+
+    scenario_tests = [
+        nodeid for nodeid, scenarios in scenarios_map.items()
+        if scenario_name in scenarios
+    ]
+
+    if not scenario_tests:
+        logger.info(f"Pre-check: no tests found for scenario {scenario_name} — assuming not empty")
+        return False
+
+    # Load the auxiliary_tests.json file which lists test classes that are
+    # @auxiliary_test (they don't count toward must_pass_item_count).
+    auxiliary_file = Path("tests/test_the_test/auxiliary_tests.json")
+    auxiliary_classes = set()
+    if auxiliary_file.exists():
+        with open(auxiliary_file) as f:
+            auxiliary_classes = set(json.load(f))
+
+    # Use the real library version if provided via env var, otherwise use a
+    # dummy high version (optimistic: assumes all version-gated features are enabled).
+    lib_name = os.environ.get("TEST_LIBRARY", "python")
+    lib_version = os.environ.get("SYSTEM_TESTS_LIBRARY_VERSION", "999.0.0")
+    components = {
+        lib_name: Version(lib_version),
+        "library": Version(lib_version),
+        "agent": Version("999.0.0"),  # agent version doesn't affect test selection
+    }
+    manifest = Manifest(components, weblog)
+
+    # Check if ALL non-auxiliary tests for this scenario are skipped.
+    for nodeid in scenario_tests:
+        is_auxiliary = any(
+            nodeid.startswith(cls + "::") for cls in auxiliary_classes
+        )
+        if is_auxiliary:
+            continue
+
+        declarations = manifest.get_declarations(nodeid)
+        has_skip = any(
+            d.value in ("missing_feature", "irrelevant")
+            for d in declarations
+        )
+        if not has_skip:
+            logger.info(f"Pre-check: {nodeid} is not skipped — scenario is not empty for {weblog}")
+            return False
+
+    logger.info(f"Pre-check: all non-auxiliary tests are skipped — scenario is empty for {weblog}")
+    return True
+
+
 def pytest_addoption(parser: pytest.Parser) -> None:
     parser.addoption(
         "--scenario", "-S", type=str, action="store", default="DEFAULT", help="Unique identifier of scenario"
@@ -232,6 +306,29 @@ def pytest_sessionstart(session: pytest.Session) -> None:
     # get the terminal to allow logging directly in stdout
     logger.terminal = session.config.pluginmanager.get_plugin("terminalreporter")
 
+    # Pre-check: when skip_empty_scenario is set, check if the scenario is empty
+    # for the current weblog without starting containers. If it is, skip
+    # container startup entirely.
+    if (
+        not session.config.option.collectonly
+        and session.config.option.skip_empty_scenario
+        and not session.config.option.replay
+    ):
+        if _scenario_is_empty_precheck(session):
+            logger.info("Pre-check determined scenario is empty — skipping container startup")
+            context.scenario._warmups_done = True
+            # Set dummy components so the manifest in pytest_collection_modifyitems
+            # can evaluate conditions even though containers were never started.
+            from utils._context.component_version import ComponentVersion
+            lib_name = os.environ.get("TEST_LIBRARY", "python")
+            lib_version = os.environ.get("SYSTEM_TESTS_LIBRARY_VERSION", "0.0.0")
+            if hasattr(context.scenario, "weblog_infra"):
+                context.scenario.weblog_infra.http_container._library = ComponentVersion(lib_name, lib_version)
+            context.scenario.components[lib_name] = ComponentVersion(lib_version)
+            context.scenario.components["library"] = ComponentVersion(lib_version)
+            context.scenario.components["agent"] = ComponentVersion("999.0.0")
+            return
+
     # if only collect tests, do not start the scenario
     if not session.config.option.collectonly:
         context.scenario.pytest_sessionstart(session)
@@ -240,10 +337,13 @@ def pytest_sessionstart(session: pytest.Session) -> None:
     # Workaround to tackle this issue
     # https://github.com/pytest-dev/pytest/issues/7767#issuecomment-698560400
     xml = session.config._store.get(xml_key, None)  # noqa: SLF001
-    if xml:
-        properties = context.scenario.get_junit_properties()
-        for key, value in properties.items():
-            xml.add_global_property(key, value or "")
+    if xml and not getattr(context.scenario, "_warmups_done", False):
+        try:
+            properties = context.scenario.get_junit_properties()
+            for key, value in properties.items():
+                xml.add_global_property(key, value or "")
+        except Exception:
+            pass  # containers not started, properties unavailable
 
     if session.config.option.sleep:
         logger.terminal.write("\n ********************************************************** \n")
@@ -486,7 +586,10 @@ def pytest_collection_finish(session: pytest.Session) -> None:
     if not session.config.option.replay:
         setup_properties.dump(context.scenario.host_log_folder)
 
-    context.scenario.post_setup(session)
+    # If warmups were skipped (empty scenario), don't call post_setup
+    # which would try to stop containers that were never started.
+    if not getattr(context.scenario, "_warmups_done", False) or len(session.items) > 0:
+        context.scenario.post_setup(session)
 
 
 def pytest_runtest_call(item: pytest.Item) -> None:

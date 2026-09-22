@@ -1089,6 +1089,14 @@ class _Scenarios:
         doc="Check expression language",
     )
 
+    debugger_expression_language_2 = DebuggerScenario(
+        "DEBUGGER_EXPRESSION_LANGUAGE_2",
+        weblog_env={
+            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
+        },
+        doc="Check expression language (part 2)",
+    )
+
     debugger_exception_replay = DebuggerScenario(
         "DEBUGGER_EXCEPTION_REPLAY",
         weblog_env={
@@ -1097,6 +1105,16 @@ class _Scenarios:
             "DD_EXCEPTION_REPLAY_CAPTURE_MAX_FRAMES": "10",
         },
         doc="Check exception replay",
+    )
+
+    debugger_exception_replay_2 = DebuggerScenario(
+        "DEBUGGER_EXCEPTION_REPLAY_2",
+        weblog_env={
+            "DD_EXCEPTION_REPLAY_ENABLED": "1",
+            "DD_CODE_ORIGIN_FOR_SPANS_ENABLED": "0",
+            "DD_EXCEPTION_REPLAY_CAPTURE_MAX_FRAMES": "10",
+        },
+        doc="Check exception replay (part 2)",
     )
 
     debugger_symdb = DebuggerScenario(

@@ -1170,3 +1170,176 @@ class BaseDebuggerTest:
     def read_approval(self, test_name: str, suffix: str) -> dict:
         with open(self._get_path(test_name, suffix), "r", encoding="utf-8") as f:
             return json.load(f)
+# Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
+# This product includes software developed at Datadog (https://www.datadoghq.com/).
+# Copyright 2021 Datadog, Inc.
+
+"""Shared helpers for DEBUGGER_EXPRESSION_LANGUAGE and DEBUGGER_EXPRESSION_LANGUAGE_2 scenarios."""
+
+import json
+
+import tests.debugger.utils as debugger
+
+
+class Segment:
+    def __init__(self):
+        self.segments = []
+
+    def add_str(self, string: str):
+        self.segments.append({"str": string})
+        return self
+
+    def add_dsl(self, dsl_creator: "Segment"):
+        self.segments.append({"dsl": "", "json": dsl_creator.to_dict()})
+        return self
+
+    def to_dict(self) -> list:
+        return self.segments
+
+    def to_json(self) -> str:
+        return json.dumps(self.to_dict())
+
+
+class Dsl:
+    def __init__(self, operator: str, value: "list|str|Dsl"):
+        self.data = {}
+
+        if isinstance(value, Dsl):
+            self.data[operator] = value.to_dict()
+        elif isinstance(value, list):
+            self.data[operator] = [v.to_dict() if isinstance(v, Dsl) else v for v in value]
+        else:
+            self.data[operator] = value
+
+    def to_dict(self):
+        return self.data
+
+    def to_json(self):
+        return json.dumps(self.to_dict())
+
+
+def get_type(language: str, value_type: str) -> str:
+    """Map a logical type name to the language-specific type string."""
+    instance_type = ""
+
+    if language == "dotnet":
+        if value_type == "int":
+            instance_type = "System.Int32"
+        elif value_type == "float":
+            instance_type = "System.Single"
+        elif value_type == "string":
+            instance_type = "System.String"
+        elif value_type == "pii":
+            instance_type = "weblog.Models.Debugger.Pii"
+        elif value_type == "pii_base":
+            instance_type = "weblog.Models.Debugger.PiiBase"
+        else:
+            instance_type = value_type
+    elif language == "java":
+        if value_type == "int":
+            instance_type = "java.lang.Integer"
+        elif value_type == "float":
+            instance_type = "java.lang.Float"
+        elif value_type == "string":
+            instance_type = "java.lang.String"
+        elif value_type == "pii":
+            instance_type = "com.datadoghq.system_tests.springboot.debugger.PiiBase"
+        else:
+            instance_type = value_type
+    elif language == "python":
+        if value_type == "int":
+            instance_type = "int"
+        elif value_type == "float":
+            instance_type = "float"
+        elif value_type == "string":
+            instance_type = "str"
+        elif value_type == "pii":
+            instance_type = "debugger.pii.Pii"
+        else:
+            instance_type = value_type
+    elif language == "ruby":
+        if value_type == "int":
+            instance_type = "Integer"
+        elif value_type == "float":
+            instance_type = "Float"
+        elif value_type == "string":
+            instance_type = "String"
+        elif value_type == "pii":
+            instance_type = "Pii"
+        else:
+            instance_type = value_type
+    elif language == "nodejs":
+        if value_type in ("int", "float"):
+            instance_type = "number"
+        elif value_type == "string":
+            instance_type = "string"
+        elif value_type == "pii":
+            instance_type = "Pii"
+        else:
+            instance_type = value_type
+    else:
+        instance_type = value_type
+
+    return instance_type
+
+
+def create_expression_probes(
+    language: str,
+    method_name: str,
+    expressions: list[list],
+    lines: list | tuple = (),
+) -> tuple[dict, list]:
+    """Create expression probes for the given language and expressions.
+
+    Returns (expected_message_map, probes).
+    """
+    probes = []
+    expected_message_map = {}
+    prob_types = []
+    # Method probes do not capture locals in Ruby, therefore in Ruby
+    # we set line probes.
+    # The exception is the test case testing @exception capture
+    # which requires a method probe (and this case does not capture
+    # local variables).
+    if language == "ruby":
+        if method_name == "Expression" and not lines:
+            prob_types.append("method")
+            method_name = "expression"
+        elif method_name == "ExpressionException":
+            prob_types.append("method")
+            method_name = "expression_exception"
+        else:
+            prob_types.append("line")
+    elif language != "nodejs":  # Method probes are not supported in Node.js
+        prob_types.append("method")
+    if len(lines) > 0 and "line" not in prob_types:
+        prob_types.append("line")
+
+    for probe_type in prob_types:
+        for expression in expressions:
+            expression_to_test, expected_result, dsl = expression
+            message = f"Expression to test: '{expression_to_test}'. Result is: "
+
+            if isinstance(expected_result, bool):
+                expected_result = "[Tt]rue" if expected_result else "[Ff]alse"
+            elif isinstance(expected_result, str) and expected_result and expected_result != "":
+                expected_result = f"[']?{expected_result}[']?"
+            else:
+                expected_result = str(expected_result)
+
+            probe = debugger.read_probes("expression_probe_base")[0]
+            probe["id"] = debugger.generate_probe_id("log")
+            if probe_type == "method":
+                probe["where"]["methodName"] = method_name
+            if probe_type == "line":
+                del probe["where"]["methodName"]
+                probe["where"]["lines"] = lines
+                probe["where"]["sourceFile"] = "ACTUAL_SOURCE_FILE"
+                probe["where"]["typeName"] = None
+
+            probe["segments"] = Segment().add_str(message).add_dsl(dsl).to_dict()
+            probes.append(probe)
+
+            expected_message_map[probe["id"]] = message + expected_result
+
+    return expected_message_map, probes
