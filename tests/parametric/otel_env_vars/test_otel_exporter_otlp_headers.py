@@ -82,7 +82,6 @@ class Test_OTEL_EXPORTER_OTLP_HEADERS:
         ("library_env", "expected"),
         [
             pytest.param(_environment("logs", None), {}, id="unset"),
-            pytest.param(_environment("logs", ""), {}, id="empty"),
             pytest.param(_environment("logs", "api-key=key"), {"api-key": "key"}, id="one-pair"),
             pytest.param(
                 _environment("logs", "api-key=key,other-config-value=value"),
@@ -92,8 +91,13 @@ class Test_OTEL_EXPORTER_OTLP_HEADERS:
         ],
     )
     def test_logs_headers(self, expected: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
-        """Unset and empty add no custom headers; configured pairs reach the exporter."""
+        """Unset adds no custom headers; configured pairs reach the exporter."""
         _assert_headers("logs", expected, test_agent, test_library)
+
+    @pytest.mark.parametrize("library_env", [_environment("logs", "")], ids=["empty"])
+    def test_logs_empty_headers(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        """An explicitly empty generic header setting behaves as unset."""
+        _assert_headers("logs", {}, test_agent, test_library)
 
     @pytest.mark.parametrize(
         "library_env", [_environment("logs", "api-key=hello%20world%2Cvalue%3D1")], ids=["percent-encoded-value"]
