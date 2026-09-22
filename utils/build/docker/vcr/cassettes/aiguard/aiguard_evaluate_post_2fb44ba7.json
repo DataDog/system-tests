@@ -1,0 +1,22 @@
+{
+ "request": {
+  "method": "POST",
+  "url": "https://app.datadoghq.com/api/v2/ai-guard/evaluate",
+  "headers": {
+   "Content-Type": "application/json",
+   "DD-AI-GUARD-SOURCE": "SDK"
+  },
+  "body": "{\"data\": {\"attributes\": {\"messages\": [{\"role\": \"system\", \"content\": \"You are a helpful assistant.\"}, {\"role\": \"user\", \"content\": \"My SSN is 123-45-6789\"}, {\"role\": \"assistant\", \"content\": \"Noted.\"}, {\"role\": \"user\", \"content\": \"Also file it under my email paco@gmail.com\"}, {\"role\": \"assistant\", \"content\": \"Filed.\"}, {\"role\": \"user\", \"content\": \"My phone is 415-555-0132\"}, {\"role\": \"assistant\", \"content\": \"Got it.\"}, {\"role\": \"user\", \"content\": \"Charge my card 4111-1111-1111-1111\"}], \"meta\": {\"service\": \"weblog\", \"env\": \"system-tests\"}}}}"
+ },
+ "response": {
+  "status": {
+   "code": 200,
+   "message": "OK"
+  },
+  "headers": {
+   "content-type": "application/vnd.api+json",
+   "content-length": "1667"
+  },
+  "body": "{\"data\": {\"id\": \"redaction-fixture\", \"type\": \"evaluations\", \"attributes\": {\"action\": \"ALLOW\", \"is_blocking_enabled\": true, \"reason\": \"Sensitive data detected; configured categories will be redacted.\", \"redaction_replacements\": [{\"path\": \"messages[1].content\", \"replacement\": \"My SSN is <REDACTED>\"}, {\"path\": \"messages[3].content\", \"replacement\": \"Also file it under my email <REDACTED>\"}, {\"path\": \"messages[5].content\", \"replacement\": \"My phone is <REDACTED>\"}, {\"path\": \"messages[7].content\", \"replacement\": \"Charge my card <REDACTED>\"}], \"sds_findings\": [{\"rule_display_name\": \"US Social Security Number Scanner\", \"rule_tag\": \"us_ssn\", \"category\": \"ssn\", \"location\": {\"path\": \"messages[1].content\", \"start_index\": 10, \"end_index_exclusive\": 21}}, {\"rule_display_name\": \"Standard Email Address Scanner\", \"rule_tag\": \"email_address\", \"category\": \"email_address\", \"location\": {\"path\": \"messages[3].content\", \"start_index\": 28, \"end_index_exclusive\": 42}}, {\"rule_display_name\": \"Phone Number Scanner\", \"rule_tag\": \"phone_number\", \"category\": \"phone_number\", \"location\": {\"path\": \"messages[5].content\", \"start_index\": 12, \"end_index_exclusive\": 24}}, {\"rule_display_name\": \"Credit Card Scanner\", \"rule_tag\": \"credit_card\", \"category\": \"credit_card\", \"location\": {\"path\": \"messages[7].content\", \"start_index\": 15, \"end_index_exclusive\": 34}}], \"tag_probs\": {\"authority-override\": 0.0, \"data-exfiltration\": 0.0, \"denial-of-service-tool-call\": 0.0, \"destructive-tool-call\": 0.0, \"indirect-prompt-injection\": 0.0, \"instruction-override\": 0.0, \"jailbreak\": 0.0, \"obfuscation\": 0.0, \"role-play\": 0.0, \"security-exploit\": 0.0, \"system-prompt-extraction\": 0.0}, \"tags\": []}}}"
+ }
+}

@@ -237,16 +237,12 @@ fastify.get('/make_distant_call', async (request, reply) => {
   console.log(url)
 
   const parsedUrl = new URL(url)
-
-  const options = {
-    hostname: parsedUrl.hostname,
-    port: parsedUrl.port || 80, // Use default port if not provided
-    path: parsedUrl.pathname,
-    method: 'GET'
-  }
+  const method = request.query.method || 'GET'
 
   return new Promise((resolve, reject) => {
-    const httpRequest = http.request(options, (response) => {
+    // Passing the URL object preserves query strings and credentials. This endpoint is used by
+    // semantic-convention tests that need the tracer to observe the complete outbound request.
+    const httpRequest = http.request(parsedUrl, { method }, (response) => {
       let responseBody = ''
       response.on('data', (chunk) => {
         responseBody += chunk
@@ -803,6 +799,8 @@ fastify.get('/flush', async (request, reply) => {
   tracer.dogstatsd?.flush?.()
   tracer._pluginManager?._pluginsByName?.openai?.metrics?.flush?.()
   tracer._tracer?._processor?._stats?.onInterval()
+  // force FFE exposure events out immediately instead of waiting for the writer's periodic flush
+  require('node:diagnostics_channel').channel('ffe:writers:flush').publish()
 
   // does have a callback :)
   const promises = []

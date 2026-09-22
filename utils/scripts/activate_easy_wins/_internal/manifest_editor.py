@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from pathlib import Path
 import ruamel.yaml
 from utils.manifest._internal.const import TestDeclaration
+from utils.manifest._internal.parser import parse_weblogs
 from utils.manifest import Manifest
 from ruamel.yaml import CommentedMap, YAML, CommentedSeq
 
@@ -27,6 +28,7 @@ class ManifestEditor:
     round_trip_parser: YAML
     context: Context
     poked_views: dict[View, set[Context]]
+    skipped_views: set[View]
     added_rules: dict[str, set[tuple[View, Context]]]
 
     @dataclass
@@ -58,8 +60,27 @@ class ManifestEditor:
 
         self.manifest = Manifest(path=manifests_path)
         self.poked_views = {}
+        self.skipped_views = set()
         self.added_rules = {}
         self.weblogs = weblogs
+
+    def component_weblogs(self, component: str) -> set[str]:
+        """All weblogs known for a component, derived from the manifest itself.
+
+        ``self.weblogs`` only reflects the weblogs present in the test artifacts,
+        which is not enough to decide whether an activation covers every weblog of
+        a component.  Using the manifest-derived set avoids collapsing weblog-scoped
+        rules into unconditional ones that would override weblogs already activated
+        in the manifest (e.g. ``other_var``).
+        """
+        weblogs: set[str] = set(self.weblogs.get(component, set()))
+        for conditions in self.manifest.data.values():
+            for condition in conditions:
+                if condition.get("component") != component:
+                    continue
+                weblogs.update(condition.get("weblog", []))
+                weblogs.update(condition.get("excluded_weblog", []))
+        return weblogs
 
     def wrap_key_anchors(self, file: Path) -> str:
         """Wrap anchor references used as keys in quotes for ruamel.yaml parsing.
@@ -175,8 +196,14 @@ class ManifestEditor:
                 if is_clause:
                     key_list = parsed_condition.get("weblog", ["*"])
                     assert key_list
-                    assert len(key_list) == 1
-                    clause_key = key_list[0]
+                    # When a rule is expanded into multiple weblog clauses, the manifest
+                    # parser may report a "clause" match but still return a condition
+                    # with multiple weblogs. In that case, we can't reliably map back
+                    # to a single weblog key, so fall back to editing the parent rule.
+                    if len(key_list) == 1:
+                        clause_key = key_list[0]
+                    else:
+                        is_clause = False
 
                 ret.add(
                     ManifestEditor.View(
@@ -248,11 +275,13 @@ class ManifestEditor:
     def build_new_rules(self) -> dict[str, list[Condition]]:
         ret: dict[str, list[Condition]] = {}
         for rule, sources in self.added_rules.items():
-            for source in sources:
-                condition = source[0].condition
+            for parent, context in sources:
+                if parent in self.skipped_views:
+                    continue
+                condition = parent.condition
                 if rule not in ret:
                     ret[rule] = []
-                ret[rule].append(ManifestEditor.specialize(condition, source[1]))
+                ret[rule].append(ManifestEditor.specialize(condition, context))
         return ret
 
     @staticmethod
@@ -300,7 +329,9 @@ class ManifestEditor:
                 ret[rule] = []
             for condition_key, weblogs in weblog_conditions.items():
                 condition = non_var_conditions[condition_key].copy()
-                if set(weblogs) != self.weblogs[condition["component"]] and "parametric-" not in next(iter(weblogs)):
+                if set(weblogs) != self.component_weblogs(condition["component"]) and "parametric-" not in next(
+                    iter(weblogs)
+                ):
                     condition["weblog"] = list(weblogs)
                 ret[rule].append(condition)
         return ret
@@ -389,7 +420,8 @@ class ManifestEditor:
         output_entry = sanitize_original(original_raw, original_conditions)
 
         condition_dict = ManifestEditor.serialize_condition(condition)
-        output_entry.append(condition_dict)
+        if condition_dict not in output_entry:
+            output_entry.append(condition_dict)
         return compress_output(output_entry)
 
     def write_new_rules(self) -> None:
@@ -405,11 +437,25 @@ class ManifestEditor:
                     self.manifest.data[rule] = []
                 self.manifest.data[rule].append(condition)
 
+    def detect_skipped_views(self) -> None:
+        for view in self.poked_views:
+            if view.is_inline:
+                continue
+            raw_data = self.raw_data[view.condition["component"]]["manifest"][view.rule]
+            raw_condition = raw_data[view.condition_index]
+            if "weblog_declaration" not in raw_condition:
+                continue
+            if any(re.match(r"\*\w", weblog) for weblog in raw_condition["weblog_declaration"]):
+                self.skipped_views.add(view)
+
     def write_poke(self) -> None:
+        self.detect_skipped_views()
         for view, contexts in self.poked_views.items():
+            if view in self.skipped_views:
+                continue
             raw_data = self.raw_data[view.condition["component"]]["manifest"][view.rule]
             component_version, weblogs = ManifestEditor.compress_pokes(contexts)
-            all_weblogs = set(weblogs) == self.weblogs[view.condition["component"]] or "parametric-" in next(
+            all_weblogs = set(weblogs) == self.component_weblogs(view.condition["component"]) or "parametric-" in next(
                 iter(weblogs)
             )
 
@@ -464,15 +510,22 @@ class ManifestEditor:
                     raw_data[0]["weblog"].fa.set_flow_style()
 
             elif "weblog_declaration" in raw_data[view.condition_index]:
-                skip = False
-                for weblog in raw_data[view.condition_index]["weblog_declaration"]:
-                    if re.match(r"\*\w", weblog):
-                        skip = True
-                if skip:
-                    continue
                 weblog_declaration = raw_data[view.condition_index]["weblog_declaration"]
                 # Add comments to the individual weblog lines that were modified
                 for weblog in weblogs:
+                    # The weblog may be part of a comma-separated key in the raw
+                    # weblog_declaration (e.g. 'rails70, sinatra').  We need to
+                    # split that key, remove the activated weblog, and add a new
+                    # individual entry for it.
+                    keys_to_split = [
+                        key for key in list(weblog_declaration) if "," in key and weblog in parse_weblogs(key)
+                    ]
+                    for key in keys_to_split:
+                        original_value = weblog_declaration[key]
+                        remaining = [w for w in parse_weblogs(key) if w != weblog]
+                        del weblog_declaration[key]
+                        if remaining:
+                            weblog_declaration[", ".join(remaining)] = original_value
                     weblog_declaration[weblog] = f"v{component_version}"
                     # Add comment to the specific weblog key that was modified
                     # weblog_declaration is a dict loaded from YAML, so it should be a CommentedMap
@@ -509,6 +562,7 @@ class ManifestEditor:
                     raw_data[-1]["weblog"].fa.set_flow_style()
 
     def write(self, output_dir: Path = Path("manifests/"), *, dry_run: bool = False) -> None:
+        self.detect_skipped_views()
         self.write_new_rules()
         self.write_poke()
         if dry_run:

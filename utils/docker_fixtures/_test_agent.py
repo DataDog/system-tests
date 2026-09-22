@@ -159,11 +159,12 @@ class TestAgentFactory:
             )
             time.sleep(0.2)  # the trace agent takes ~200ms to start
             expected_version = agent_env.get("TEST_AGENT_VERSION", "test")
+            logger.debug("Wait for the test agent to be ready...")
             for _ in range(100):
                 try:
                     resp = client.info()
-                except Exception as e:
-                    logger.debug(f"Wait for 0.1s for the test agent to be ready {e}")
+                except Exception:
+                    # no log here, as it's noisy
                     time.sleep(0.1)
                 else:
                     if resp["version"] != expected_version:

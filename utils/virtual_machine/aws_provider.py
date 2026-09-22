@@ -82,7 +82,7 @@ class AWSPulumiProvider(VmProvider):
             )
             if os.getenv("ONBOARDING_LOCAL_TEST") is None:
                 self.stack.set_config("aws:SkipMetadataApiCheck", auto.ConfigValue("false"))
-            self.stack.up(on_output=logger.info)
+            self._stack_up_with_idempotency_retry()
             self.datadog_event_sender.send_event_to_datadog(
                 f"[E2E] Stack {self.stack_name}  : success on Pulumi stack up",
                 "",
@@ -116,6 +116,23 @@ class AWSPulumiProvider(VmProvider):
                 "📖 Learn more about how to understand the logs: https://github.com/DataDog/system-tests/blob/main/docs/understand/scenarios/onboarding.md#how-to-debug-your-environment-and-tests-results"
             )
             self._handle_provision_error(pulumi_exception)
+
+    def _stack_up_with_idempotency_retry(self, attempts: int = 3) -> None:
+        """Retry the stack up in-process on IdempotentParameterMismatch.
+
+        This is a transient AWS-side token collision (see _start_vm's ec2_resource_id comment).
+        A fresh attempt gets a new idempotency token, so it's worth retrying here rather than
+        immediately failing the whole CI job (which is a much more expensive way to retry).
+        """
+        for attempt in range(1, attempts + 1):
+            try:
+                self.stack.up(on_output=logger.info)
+                return
+            except pulumi.automation.errors.CommandError as pulumi_command_exception:
+                if "IdempotentParameterMismatch" not in str(pulumi_command_exception) or attempt == attempts:
+                    raise
+                logger.stdout(f"⚠️ IdempotentParameterMismatch on attempt {attempt}/{attempts}, retrying stack up ⚠️")
+                self.stack_destroy()
 
     def get_windows_user_data(self) -> str:
         windows_user_data_path = "utils/build/virtual_machine/provisions/windows_userdata/setup_ssh.ps1"
@@ -182,8 +199,13 @@ class AWSPulumiProvider(VmProvider):
             f"Starting VM: {vm.name} with iam_instance_profile: {vm.aws_config.aws_infra_config.iam_instance_profile}"
         )
         # Startup VM and prepare connection
+        # The resource name (not the "Name" tag) must be unique per CI job: several parallel jobs
+        # (one per weblog) can provision the same vm.name at the same time, and a shared resource
+        # identity can make AWS reuse the same RunInstances idempotency token for those concurrent,
+        # differently-tagged requests, causing IdempotentParameterMismatch.
+        ec2_resource_id = f"{vm.name}-{os.getenv('CI_JOB_ID', uuid.uuid4())}"
         ec2_server = aws.ec2.Instance(
-            vm.name,
+            ec2_resource_id,
             instance_type=vm.aws_config.ami_instance_type,
             vpc_security_group_ids=vm.aws_config.aws_infra_config.vpc_security_group_ids,
             subnet_id=random.choice(vm.aws_config.aws_infra_config.subnet_id),

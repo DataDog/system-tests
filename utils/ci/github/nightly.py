@@ -209,9 +209,6 @@ def activate_library(config: ActivationConfig, runner: CommandRunner) -> list[st
 
     activation = runner.run(command)
     branches = _list_activation_branches(config.library, runner)
-    if activation.returncode == 1 and not branches and not activation.stderr.strip():
-        print(f"No activation changes for {config.library}")  # noqa: T201
-        return []
     if activation.returncode != 0:
         raise RuntimeError(_command_error("Activation command failed", activation))
     return branches

@@ -27,7 +27,7 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
         # serialized into the JSON report) and that a missing key fails fast at configure()
         # time instead of surfacing as a silent xfail during cassette generation.
         "openai": ["OPENAI_API_KEY", "DD_API_KEY", "DD_APP_KEY"],
-        "anthropic": ["ANTHROPIC_API_KEY"],
+        "anthropic": ["ANTHROPIC_API_KEY", "DD_API_KEY", "DD_APP_KEY"],
         "google_genai": ["GEMINI_API_KEY"],
     }
 

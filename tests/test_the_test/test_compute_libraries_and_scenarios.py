@@ -187,6 +187,19 @@ class Test_ComputeLibrariesAndScenarios:
             "end_to_end,open_telemetry",
         )
 
+    def test_nodejs_docker_file(self):
+        inputs = build_inputs(["utils/build/docker/nodejs/express5.Dockerfile"])
+
+        assert_github_processor(
+            inputs,
+            ["nodejs"],
+            ["nodejs"],
+            300,
+            "false",
+            "DEFAULT",
+            "end_to_end,open_telemetry",
+        )
+
     def test_c_docker_file(self):
         inputs = build_inputs(["utils/build/docker/c/perl-mojolicious.Dockerfile"])
 
@@ -495,6 +508,20 @@ class Test_ComputeLibrariesAndScenarios:
             "",
         )
 
+    def test_exposure_egress_test_file(self):
+        inputs = build_inputs(modified_files=["tests/ffe/test_exposure_egress.py"])
+        assert_github_processor(
+            inputs,
+            default_libs_with_prod,
+            default_libs_with_dev,
+            3600,
+            "false",
+            "DEFAULT,FEATURE_FLAGGING_AND_EXPERIMENTATION,"
+            "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_DIRECT,"
+            "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_SERVERLESS",
+            "",
+        )
+
     def test_agentless_ffe_mocked_backend_file(self):
         inputs = build_inputs(modified_files=["utils/mocked_backend/ffe.py"])
         assert_github_processor(
@@ -503,8 +530,8 @@ class Test_ComputeLibrariesAndScenarios:
             default_libs_with_dev,
             3600,
             "false",
-            "DEFAULT,FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS,PARAMETRIC",
-            "",
+            "DEFAULT,PARAMETRIC",
+            "agentless",
         )
 
     def test_end_to_end_scenario_framework_file(self):
@@ -540,7 +567,7 @@ class Test_ComputeLibrariesAndScenarios:
             default_libs_with_dev,
             3600,
             "false",
-            "DEBUGGER_EXCEPTION_REPLAY,DEBUGGER_EXPRESSION_LANGUAGE,DEBUGGER_INPRODUCT_ENABLEMENT,DEBUGGER_PII_REDACTION,DEBUGGER_PROBES_SNAPSHOT,DEBUGGER_PROBES_SNAPSHOT_WITH_SCM,DEBUGGER_SYMDB,DEBUGGER_TELEMETRY,DEFAULT,TRACING_CONFIG_NONDEFAULT_4",
+            "DEBUGGER_CAPTURE_TIMEOUT,DEBUGGER_EVALUATION_TIMEOUT,DEBUGGER_EXCEPTION_REPLAY,DEBUGGER_EXPRESSION_LANGUAGE,DEBUGGER_INPRODUCT_ENABLEMENT,DEBUGGER_PII_REDACTION,DEBUGGER_PROBES_SNAPSHOT,DEBUGGER_PROBES_SNAPSHOT_WITH_SCM,DEBUGGER_SYMDB,DEBUGGER_TELEMETRY,DEFAULT,TRACING_CONFIG_NONDEFAULT_4",
             "",
         )
 
