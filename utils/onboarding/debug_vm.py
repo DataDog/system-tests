@@ -5,15 +5,74 @@ from paramiko.sftp_client import SFTPClient
 from utils._logger import logger
 from utils.virtual_machine.virtual_machines import _VirtualMachine
 
-# Preserve the dd-agent diagnostics into /var/log/datadog_weblog (runs from VM user home).
-# create_and_run_app_container.sh writes diagnostics to $HOME/dd-agent-diagnostics.log on every run
-# (and on failure); here we only copy that snapshot so it gets downloaded with the rest of the VM logs.
+# Preserve the startup diagnostics and append a fresh Agent snapshot at log-download time.
+# The final snapshot covers delayed profiler uploads that happen after the app provision completes.
 _COLLECT_DD_AGENT_DIAGNOSTICS_CMD = r"""bash -lc '
+set +e
 sudo mkdir -p /var/log/datadog_weblog && sudo chmod 777 /var/log/datadog_weblog;
 cd ~;
 if [ -f "$HOME/dd-agent-diagnostics.log" ]; then
   sudo cp "$HOME/dd-agent-diagnostics.log" /var/log/datadog_weblog/dd-agent-diagnostics.log 2>/dev/null || true;
-fi'"""
+else
+  sudo touch /var/log/datadog_weblog/dd-agent-diagnostics.log;
+fi
+if grep -qx "SYSTEM_TESTS_PROFILING_DEBUG=1" "$HOME/scenario_app.env" 2>/dev/null &&
+  sudo docker inspect dd-agent >/dev/null 2>&1; then
+  {
+    echo "..:: DD-AGENT FINAL DIAGNOSTICS ::..";
+    date -u "+%Y-%m-%dT%H:%M:%SZ";
+    sudo docker-compose -f docker-compose-agent-prod.yml ps 2>&1 || true;
+    sudo docker inspect dd-agent --format "{{json .State.Health}}" 2>&1 || true;
+    sudo docker logs --since 15m --timestamps dd-agent 2>&1 || true;
+  } | sudo tee -a /var/log/datadog_weblog/dd-agent-diagnostics.log >/dev/null;
+fi
+sudo chmod 644 /var/log/datadog_weblog/dd-agent-diagnostics.log 2>/dev/null || true;
+'"""
+
+# Capture evidence from the real PHP server process rather than from a helper `php -v` process.
+_COLLECT_PHP_PROCESS_DIAGNOSTICS_CMD = r"""bash -lc '
+set +e
+dest=/var/log/datadog_weblog
+sudo mkdir -p "$dest"
+sudo chmod 777 "$dest"
+if ! grep -qx "SYSTEM_TESTS_PROFILING_DEBUG=1" "$HOME/scenario_app.env" 2>/dev/null; then
+  exit 0
+fi
+if ! sudo docker inspect test-app >/dev/null 2>&1; then
+  exit 0
+fi
+process_table="$(sudo docker top test-app -eo pid,ppid,comm,args 2>&1)"
+php_pid="$(printf "%s\n" "${process_table}" | awk "NR > 1 && \$3 ~ /^php/ {print \$1; exit}")"
+if [ -z "${php_pid}" ]; then
+  exit 0
+fi
+{
+  echo "..:: PHP SERVER PROCESS DIAGNOSTICS ::.."
+  date -u "+%Y-%m-%dT%H:%M:%SZ"
+  echo "..:: CONTAINER STATE ::.."
+  sudo docker inspect test-app --format "{{json .State}}" 2>&1 || true
+  echo "..:: PROCESS TABLE ::.."
+  printf "%s\n" "${process_table}"
+  echo "..:: PHP PID ::.."
+  printf "%s\n" "${php_pid}"
+  echo "..:: COMMAND LINE ::.."
+  sudo sh -c "tr '\\0' ' ' < /proc/${php_pid}/cmdline" 2>/dev/null
+  printf "\n"
+  echo "..:: DD ENVIRONMENT (SECRETS REDACTED) ::.."
+  sudo sh -c "tr '\\0' '\\n' < /proc/${php_pid}/environ" 2>/dev/null |
+    awk -F= "/^DD_/ {key=\$1; if (key ~ /(KEY|TOKEN|PASS|SECRET)/) print key \"=<redacted>\"; else print}" |
+    sort
+  echo "..:: PROFILER THREADS ::.."
+  for comm in /proc/"${php_pid}"/task/*/comm; do
+    [ -r "${comm}" ] && sudo cat "${comm}"
+  done | sort -u
+  echo "..:: DATADOG LIBRARY MAPPINGS ::.."
+  sudo grep -E "datadog-profiling|libdatadog_php|ddtrace" "/proc/${php_pid}/maps" 2>/dev/null || true
+  echo "..:: APPLICATION MONITORING CONFIG ::.."
+  sudo docker exec test-app cat /etc/datadog-agent/application_monitoring.yaml 2>&1 || true
+} > "$dest/php-process-diagnostics.log" 2>&1
+sudo chmod 644 "$dest/php-process-diagnostics.log" 2>/dev/null || true
+'"""
 
 # Collect core dumps into /var/log/datadog_weblog so SFTP download can retrieve them.
 # Host PHP apps (profiling in particular) can segfault; cores may land in cwd, systemd-coredump,
@@ -59,6 +118,7 @@ _LOG_COLLECTION_COMMANDS = [
     "sudo mkdir -p /var/log/datadog_weblog || true",
     "sudo chmod 777 /var/log/datadog_weblog || true",
     _COLLECT_CORE_DUMPS_CMD,
+    _COLLECT_PHP_PROCESS_DIAGNOSTICS_CMD,
     _COLLECT_DD_AGENT_DIAGNOSTICS_CMD,
     "bash -lc 'cd ~ && sudo docker-compose ps > /var/log/datadog_weblog/docker_proccess.log 2>&1 || true'",
     "bash -lc 'cd ~ && sudo docker-compose logs > /var/log/datadog_weblog/docker_logs.log 2>&1 || true'",
