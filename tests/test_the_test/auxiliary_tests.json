@@ -1,0 +1,4 @@
+[
+  "tests/schemas/test_schemas.py::Test_DdtraceSchemas",
+  "tests/schemas/test_schemas.py::Test_OtelSchemas"
+]

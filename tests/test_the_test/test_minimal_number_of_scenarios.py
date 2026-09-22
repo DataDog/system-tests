@@ -45,6 +45,11 @@ FAILED tests/appsec/test_suspicious_attacker_blocking.py::Test_Suspicious_Attack
     ("REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD", "APPSEC_REQUEST_BLOCKING"): "TODO",
     ("REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES", "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE"): "TODO",
     ("TRACING_CONFIG_EMPTY", "TRACE_PROPAGATION_STYLE_DEFAULT"): "TODO",
+    # DEBUGGER_EXPRESSION_LANGUAGE was split into two scenarios for CI parallelism.
+    # They are intentionally identical so the bin-packing algorithm can distribute
+    # the test methods across two separate jobs.
+    ("DEBUGGER_EXPRESSION_LANGUAGE", "DEBUGGER_EXPRESSION_LANGUAGE_2"): "Intentionally split for parallelism",
+    ("DEBUGGER_EXCEPTION_REPLAY", "DEBUGGER_EXCEPTION_REPLAY_2"): "Intentionally split for parallelism",
 }
 
 

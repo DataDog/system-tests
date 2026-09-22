@@ -76,10 +76,10 @@ _timeout_first = 5
 _timeout_next = 30
 
 
-@features.debugger_exception_replay
-@scenarios.debugger_exception_replay
+@features.debugger_exception_replay_2
+@scenarios.debugger_exception_replay_2
 @slow
-class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
+class Test_Debugger_Exception_Replay_2(debugger.BaseDebuggerTest):
     snapshots: list[dict] = []
     spans: dict = {}
 
@@ -616,46 +616,83 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
         version = self._get_approval_version()
         return debugger.read_approval(test_name, suffix, version)
 
-    ########### test ############
-    ########### Simple ############
-    def setup_exception_replay_simple(self):
-        self._setup("/exceptionreplay/simple", "simple exception")
 
-    def test_exception_replay_simple(self):
-        self._assert("exception_replay_simple", ["simple exception"])
+    ############ Rock Paper Scissors ############
+    def setup_exception_replay_rockpaperscissors(self):
+        self.weblog_responses: list[object] = []
 
-    ########### Recursion ############
-    def setup_exception_replay_recursion_3(self):
-        self._setup("/exceptionreplay/recursion?depth=3", "recursion exception depth 3")
+        retries = 0
+        timeout = _timeout_first
 
-    def test_exception_replay_recursion_3(self):
-        self._assert("exception_replay_recursion_3", ["recursion exception depth 3"])
-        self._validate_recursion_snapshots(self.snapshots, 4)
+        shapes: dict[str, bool] = {"rock": False, "paper": False, "scissors": False}
 
-    def setup_exception_replay_recursion_5(self):
-        self._setup("/exceptionreplay/recursion?depth=5", "recursion exception depth 5")
+        while not all(shapes.values()) and retries < _max_retries:
+            for shape, shape_found in shapes.items():
+                logger.debug(f"{shape} found: {shape_found}, retry #{retries}")
 
-    def test_exception_replay_recursion_5(self):
-        self._assert("exception_replay_recursion_5", ["recursion exception depth 5"])
-        self._validate_recursion_snapshots(self.snapshots, 6)
+                if shape_found:
+                    continue
 
-    def setup_exception_replay_recursion_20(self):
-        self._setup("/exceptionreplay/recursion?depth=20", "recursion exception depth 20")
+                logger.debug(f"Waiting for snapshot for shape: {shape}, retry #{retries}")
+                self.send_weblog_request(f"/exceptionreplay/rps?shape={shape}", reset=False)
 
-    def test_exception_replay_recursion_20(self):
-        self._assert("exception_replay_recursion_20", ["recursion exception depth 20"])
-        self._validate_recursion_snapshots(self.snapshots, 9)
+                shapes[shape] = self.wait_for_all_snapshots(shape, timeout)
+                if self.get_tracer()["language"] == "python":
+                    time.sleep(1)
 
-    def setup_exception_replay_recursion_inlined(self):
-        self._setup("/exceptionreplay/recursion_inline?depth=4", "recursion exception depth 4")
+                timeout = _timeout_next
 
-    def test_exception_replay_recursion_inlined(self):
-        self._assert("exception_replay_recursion_4", ["recursion exception depth 4"])
-        self._validate_recursion_snapshots(self.snapshots, 4)
+            retries += 1
 
-    ############ Inner ############
-    def setup_exception_replay_inner(self):
-        self._setup("/exceptionreplay/inner", "outer exception")
+    def test_exception_replay_rockpaperscissors(self):
+        self._assert("exception_replay_rockpaperscissors", ["rock", "paper", "scissors"])
 
-    def test_exception_replay_inner(self):
-        self._assert("exception_replay_inner", ["outer exception"])
+    ############ Multiple Stack Frames ############
+    def setup_exception_replay_multiframe(self):
+        self._setup("/exceptionreplay/multiframe", "multiple stack frames exception")
+
+    def test_exception_replay_multiframe(self):
+        self._assert("exception_replay_multiframe", ["multiple stack frames exception"])
+
+    ############ Async ############
+    def setup_exception_replay_async(self):
+        self._setup("/exceptionreplay/async", "async exception")
+
+    def test_exception_replay_async(self):
+        self._assert("exception_replay_async", ["async exception"])
+
+    ############ No capture reason ############
+    no_capture_reason_span_found = False
+
+    def _setup_no_capture_exception(self, exception_key: str):
+        self.send_weblog_request(f"/exceptionreplay/{exception_key}")
+        self.wait_for_no_capture_reason_span(exception_key, _timeout_next)
+
+    def _test_no_capture_exception(self, exception_key: str, expected_reason: str):
+        self.collect()
+        self.assert_all_weblog_responses_ok(expected_code=500)
+        self._validate_no_capture_reason(exception_key, expected_reason)
+
+    ############ dotnet OutOfMemoryException Test ############
+    def setup_exception_replay_outofmemory(self):
+        self._setup_no_capture_exception("outofmemory")
+
+    @slow
+    def test_exception_replay_outofmemory(self):
+        self._test_no_capture_exception("outofmemory", "NonSupportedExceptionType")
+
+    ############ .NET StackOverflowException Test ############
+    def setup_exception_replay_stackoverflow(self):
+        self._setup_no_capture_exception("stackoverflow")
+
+    @slow
+    def test_exception_replay_stackoverflow(self):
+        self._test_no_capture_exception("stackoverflow", "NonSupportedExceptionType")
+
+    ############ .NET First Hit Exception Test ############
+    def setup_exception_replay_firsthit(self):
+        self._setup_no_capture_exception("firsthit")
+
+    @slow
+    def test_exception_replay_firsthit(self):
+        self._test_no_capture_exception("firsthit", "FirstOccurrence")

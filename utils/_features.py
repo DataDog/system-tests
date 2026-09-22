@@ -1976,6 +1976,14 @@ class _Features:
         return _mark_test_object(test_object, feature_id=303, owner=_Owner.debugger)
 
     @staticmethod
+    def debugger_expression_language_2(test_object):
+        """Expression Language (part 2)
+
+        https://feature-parity.us1.prod.dog/#/?feature=303
+        """
+        return _mark_test_object(test_object, feature_id=303, owner=_Owner.debugger)
+
+    @staticmethod
     def auto_instrumentation_profiling(test_object):
         """auto-instrumentation with profiling
 
@@ -2148,6 +2156,14 @@ class _Features:
     @staticmethod
     def debugger_exception_replay(test_object):
         """Exception replay
+
+        https://feature-parity.us1.prod.dog/#/?feature=321
+        """
+        return _mark_test_object(test_object, feature_id=321, owner=_Owner.debugger)
+
+    @staticmethod
+    def debugger_exception_replay_2(test_object):
+        """Exception replay (part 2)
 
         https://feature-parity.us1.prod.dog/#/?feature=321
         """
