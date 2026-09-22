@@ -703,7 +703,9 @@ manifest:
   tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_hash_key_value:  # TODO: a lower version might be supported
     - declaration: missing_feature (DEBUG-3374)
       component_version: '<3.45.0'
-  tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_hash_operations: bug (DEBUG-2602)
+  tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_hash_operations:  # DEBUG-2602: box value-type dictionary keys (#9274)
+    - declaration: bug (DEBUG-2602)
+      component_version: '<3.55.0'
   tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_instance_of:  # TODO: a lower version might be supported
     - declaration: bug (DEBUG-2530)
       component_version: <3.51.1
