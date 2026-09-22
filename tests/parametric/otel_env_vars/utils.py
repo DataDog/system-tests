@@ -38,9 +38,9 @@ def assert_blrp_configuration(
         library.create_logger(TEST_LOGGER_NAME, LogLevel.INFO)
         library.write_log(TEST_LOGGER_NAME, LogLevel.INFO, TEST_LOG_MESSAGE)
 
-    configuration_name = JAVA_TELEMETRY_NAMES.get(variable_name, variable_name)
-    if test_library.lang != "java":
-        configuration_name = variable_name
+    configuration_name = variable_name
+    if test_library.lang == "java":
+        configuration_name = JAVA_TELEMETRY_NAMES.get(variable_name, variable_name)
 
     configurations = test_agent.wait_for_telemetry_configurations()
     entries = configurations.get(configuration_name)
