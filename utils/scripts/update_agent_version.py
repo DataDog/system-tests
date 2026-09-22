@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 
 VERSION_PATTERN = re.compile(r"^[0-9]+\.[0-9]+\.[0-9]+$")
-AUTOMATION_BRANCH = "apmsp-3752/update-agent-version"
+AUTOMATION_BRANCH = "update-agent-version"
 REPOSITORY = "DataDog/system-tests"
 OCTO_STS_POLICY = "self.gitlab-update-agent-version"
 GITHUB_API_URL = "https://api.github.com"
@@ -126,7 +126,7 @@ def publish_update(root: Path, version: str, github: GitHubApi, env: Mapping[str
         ["git", "config", "credential.helper", "!f() { echo username=x-access-token; echo password=$GH_TOKEN; }; f"],
         env=env,
     )
-    run_command(root, ["git", "commit", "-m", f"APMSP-3752 update Agent to {version}"], env=env)
+    run_command(root, ["git", "commit", "-m", f"Update Agent to {version}"], env=env)
     run_command(root, ["git", "push", "--force", "--set-upstream", "origin", AUTOMATION_BRANCH], env=env)
 
     head = urllib.parse.quote(f"DataDog:{AUTOMATION_BRANCH}", safe="")
@@ -134,7 +134,7 @@ def publish_update(root: Path, version: str, github: GitHubApi, env: Mapping[str
     if not isinstance(pull_requests, list):
         raise TypeError("GitHub returned an invalid pull request list")
     description: dict[str, object] = {
-        "title": f"APMSP-3752 Update Agent to {version}",
+        "title": f"Update Agent to {version}",
         "body": "Automated daily update of the Agent version pinned by SSI tests. "
         "The PR will merge automatically after all required checks pass.",
     }
