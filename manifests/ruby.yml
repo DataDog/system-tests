@@ -94,7 +94,21 @@ manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_NoRedaction: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactedMessagesInSDKResponse: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Redaction: missing_feature
-  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionDisabled: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionDisabled:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        uds-rails: '>=2.41.0'
+        rails52: '>=2.41.0'
+        rails72: '>=2.41.0'
+        rails80: '>=2.41.0'
+        rails61: '>=2.41.0'
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionDisabled::test_findings_still_reported:
+    - weblog_declaration:
+        rails80: missing_feature
+        rails61: missing_feature
+        uds-rails: missing_feature
+        rails52: missing_feature
+        rails72: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionDisabledTelemetry: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionFailSafe: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionInSDKResponse: missing_feature
@@ -2286,10 +2300,38 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY: v2.34.0
   tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY::test_empty_is_treated_as_unset: bug (APMAPI-2413)
   tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY::test_invalid_value_is_ignored: bug (APMAPI-2445)
+  tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT: v2.23.0
+  tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT::test_invalid_values: bug (APMAPI-2445)
+  tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT::test_spec_default: irrelevant (Datadog intentionally defaults to 7500 ms)
+  tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES: v2.22.0
+  tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES::test_invalid_value_is_discarded: bug (APMAPI-2435)
+  tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES::test_percent_encoded_separators: bug (APMAPI-2430)
   tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED: missing_feature
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME: v2.22.0
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_default_follows_otel_spec: irrelevant
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_empty_is_treated_as_unset: bug (APMAPI-2413)
+  tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER: v2.22.0
+  tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_console_exporter: missing_feature (Console trace export is not implemented)
+  tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_default_matches_specification: missing_feature (The default OTLP exporter is not implemented)
+  tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_deprecated_values: missing_feature (Logging trace export is not implemented)
+  tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_development_values: missing_feature (OTLP stdout trace export is not implemented)
+  tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_empty_is_treated_as_unset: missing_feature (The default OTLP exporter is not implemented)
+  tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_invalid_is_ignored: missing_feature (The default OTLP exporter is not implemented)
+  tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_otlp_exporter: missing_feature (OTLP trace export is not implemented)
+  tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_zipkin_exporter: missing_feature (Zipkin trace export is not implemented)
+  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER: v2.22.0
+  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER::test_dd_trace_sample_ignore_parent_false: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
+  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER::test_dd_trace_sample_ignore_parent_true: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
+  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER::test_default_matches_specification: missing_feature (OTel default sampler semantics are not implemented)
+  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER::test_empty_is_treated_as_unset: missing_feature (OTel default sampler semantics are not implemented)
+  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER::test_invalid_value_is_ignored: missing_feature (OTel default sampler semantics are not implemented)
+  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER::test_jaeger_remote_values: missing_feature (Jaeger remote sampling is not implemented)
+  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER::test_third_party_values: missing_feature (X-Ray sampling is not implemented)
+  tests/parametric/otel_env_vars/test_otel_traces_sampler_arg.py::Test_OTEL_TRACES_SAMPLER_ARG: v2.22.0
+  tests/parametric/otel_env_vars/test_otel_traces_sampler_arg.py::Test_OTEL_TRACES_SAMPLER_ARG::test_above_range_is_ignored: missing_feature (Out-of-range sampler arguments are not ignored)
+  tests/parametric/otel_env_vars/test_otel_traces_sampler_arg.py::Test_OTEL_TRACES_SAMPLER_ARG::test_below_range_is_ignored: missing_feature (Out-of-range sampler arguments are not ignored)
+  tests/parametric/otel_env_vars/test_otel_traces_sampler_arg.py::Test_OTEL_TRACES_SAMPLER_ARG::test_empty_is_treated_as_unset: missing_feature (Empty sampler arguments do not default to 1.0)
+  tests/parametric/otel_env_vars/test_otel_traces_sampler_arg.py::Test_OTEL_TRACES_SAMPLER_ARG::test_nonnumeric_is_ignored: missing_feature (Nonnumeric sampler arguments are not ignored)
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids: v1.17.0
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3single_128_bit_generation_disabled: irrelevant (Supports the value `b3` instead of the deprecated `B3 single header`)
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3single_128_bit_generation_enabled: irrelevant (Supports the value `b3` instead of the deprecated `B3 single header`)
@@ -2356,6 +2398,7 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2: '>=2.27.0'  # Modified by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_capability_tracing_custom_tags: missing_feature  # Created by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_tracing_client_tracing_tags: missing_feature  # Created by easy win activation script
+  tests/parametric/test_dynamic_configuration.py::Test_DynamicConfigSdkConfiguration: missing_feature (SDK_CONFIGURATION capability not yet implemented)
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Default::test_multiple_tracecontexts: missing_feature (conflicting trace contexts should generate span link)
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Default::test_single_tracecontext:  # TODO: a lower version might be supported
     - declaration: incomplete_test_app (The parametric test app emits a span link for a single extracted context)
@@ -2486,8 +2529,6 @@ manifest:
   tests/parametric/test_llm_observability/: irrelevant (library does not implement LLM Observability)
   tests/parametric/test_otel_api_interoperability.py: missing_feature
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: v2.1.0
-  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_false: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
-  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_true: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_log_level_env: missing_feature (DD_LOG_LEVEL is not supported in ruby)
   tests/parametric/test_otel_logs.py: '>=2.34.0-dev'
   tests/parametric/test_otel_logs.py::Test_FR08_Custom_Headers: missing_feature (Ruby net/http titlecases header names; test checks lowercase; fix requires overriding OTLP exporter HTTP headers)
@@ -2512,6 +2553,7 @@ manifest:
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Api_MeterProvider::test_otel_get_meter_by_distinct_schema_url: missing_feature
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Api_MeterProvider::test_otel_get_meter_by_distinct_scope_attributes: missing_feature (Not supported by Ruby's OpenTelemetry API)
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Api_MeterProvider::test_otel_get_meter_by_distinct_version: missing_feature
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Configuration_Enabled::test_otlp_metrics_disabled: bug (APMAPI-2495)
   ? tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint::test_otlp_custom_endpoint_grpc
   : missing_feature (Does not support grpc)
   ? tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint::test_otlp_metrics_custom_endpoint_grpc

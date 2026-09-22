@@ -61,8 +61,13 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_blrp_max_export_batch_size.py::Test_OTEL_BLRP_MAX_EXPORT_BATCH_SIZE: missing_feature
   tests/parametric/otel_env_vars/test_otel_blrp_max_queue_size.py::Test_OTEL_BLRP_MAX_QUEUE_SIZE: missing_feature
   tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY: missing_feature
+  tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT: missing_feature
+  tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES: missing_feature
   tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED: missing_feature
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME: missing_feature
+  tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER: missing_feature
+  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER: missing_feature
+  tests/parametric/otel_env_vars/test_otel_traces_sampler_arg.py::Test_OTEL_TRACES_SAMPLER_ARG: missing_feature
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids: ">1.0.0"
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3single_128_bit_generation_disabled: missing_feature (propagation style not supported)
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3single_128_bit_generation_enabled: missing_feature (propagation style not supported)
@@ -111,6 +116,7 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets::test_not_match_service_target: irrelevant (APMAPI-1003)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_capability_tracing_http_header_tags: irrelevant (The CPP tracer doesn't support http header tags)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_capability_tracing_logs_injection: irrelevant (Tracer doesn't support automatic logs injection)
+  tests/parametric/test_dynamic_configuration.py::Test_DynamicConfigSdkConfiguration: missing_feature (SDK_CONFIGURATION capability not yet implemented)
   tests/parametric/test_extract_behavior.py: ">2.1.1"  # Easy win for all weblogs and version 2.1.1
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Default::test_baggage: missing_feature (Automatic baggage propagation is not implemented)
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Default::test_multiple_tracecontexts: missing_feature (Terminated-context span links are not implemented)
@@ -221,8 +227,6 @@ manifest:
   tests/parametric/test_llm_observability/: irrelevant (library does not implement LLM Observability)
   tests/parametric/test_otel_api_interoperability.py: irrelevant (library does not implement OpenTelemetry)
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: missing_feature
-  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_false: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
-  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_trace_sample_ignore_parent_true: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
   tests/parametric/test_otel_logs.py: '>=2.0.0'  # Modified by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR01_Enable_OTLP_Log_Collection::test_otlp_logs_enabled: missing_feature  # Created by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR03_Resource_Attributes: missing_feature  # Created by easy win activation script

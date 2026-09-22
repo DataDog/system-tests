@@ -10,6 +10,7 @@ ADD utils/build/docker/php/parametric/../common/install_ddtrace.sh .
 COPY binaries /binaries
 RUN NO_EXTRACT_VERSION=Y ./install_ddtrace.sh
 RUN php -d error_reporting='' -r 'echo phpversion("ddtrace");' > SYSTEM_TESTS_LIBRARY_VERSION
+ENV OTEL_PHP_AUTOLOAD_ENABLED=true
 ADD utils/build/docker/php/parametric/server.php .
 # RUN mkdir /parametric-tracer-logs
 
