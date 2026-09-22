@@ -1314,6 +1314,27 @@ def otel_metrics_force_flush(args: OtelMetricsForceFlushArgs):
     return OtelMetricsForceFlushReturn(success=True)
 
 
+class OtelMetricsShutdownArgs(BaseModel):
+    seconds: int = 10
+
+
+class OtelMetricsShutdownReturn(BaseModel):
+    success: bool
+
+
+@app.post("/metrics/otel/shutdown")
+def otel_metrics_shutdown(args: OtelMetricsShutdownArgs):
+    meter_provider = get_meter_provider()
+    if not hasattr(meter_provider, "shutdown"):
+        return OtelMetricsShutdownReturn(success=False)
+
+    try:
+        meter_provider.shutdown(timeout_millis=args.seconds * 1000)
+        return OtelMetricsShutdownReturn(success=True)
+    except Exception:
+        return OtelMetricsShutdownReturn(success=False)
+
+
 class LogCreateLoggerArgs(BaseModel):
     name: str
     level: str

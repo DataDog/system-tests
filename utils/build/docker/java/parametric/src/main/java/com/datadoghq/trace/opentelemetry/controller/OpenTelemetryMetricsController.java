@@ -10,9 +10,11 @@ import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
 import io.opentelemetry.api.metrics.*;
+import java.lang.reflect.Method;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -227,6 +229,34 @@ public class OpenTelemetryMetricsController {
       LOGGER.warn("Failed to flush OTel metrics", e);
       return new FlushResult(false);
     }
+  }
+
+  @PostMapping("shutdown")
+  public FlushResult shutdown(@RequestBody FlushArgs args) {
+    LOGGER.info("Shutting down OTel metrics: {}", args);
+    try {
+      return new FlushResult(invokeShutdown(args.seconds()));
+    } catch (Exception e) {
+      LOGGER.warn("Failed to shut down OTel metrics", e);
+      return new FlushResult(false);
+    }
+  }
+
+  private static boolean invokeShutdown(long seconds) throws Exception {
+    Class<?> lifecycleClass;
+    try {
+      lifecycleClass = Class.forName("datadog.trace.api.metrics.DatadogMeterProvider");
+    } catch (ClassNotFoundException ignored) {
+      return false;
+    }
+    Object meterProvider = GlobalOpenTelemetry.get().getMeterProvider();
+    if (!lifecycleClass.isInstance(meterProvider)) {
+      return false;
+    }
+    Object result = lifecycleClass.getMethod("shutdown").invoke(meterProvider);
+    Method join = result.getClass().getMethod("join", long.class, TimeUnit.class);
+    join.invoke(result, seconds, TimeUnit.SECONDS);
+    return Boolean.TRUE.equals(result.getClass().getMethod("isSuccess").invoke(result));
   }
 
   /** Builds {@link Attributes} from a map of strings. */

@@ -718,6 +718,14 @@ class OtelMetricsForceFlushArgs
   end
 end
 
+class OtelMetricsShutdownArgs
+  attr_reader :seconds
+
+  def initialize(params)
+    @seconds = params.fetch('seconds', 10)
+  end
+end
+
 class OtelMetricsForceFlushReturn
   attr_accessor :success
 
@@ -1030,6 +1038,8 @@ class MyApp
       handle_metrics_otel_create_asynchronous_gauge(req, res)
     when '/metrics/otel/force_flush'
       handle_metrics_otel_force_flush(req, res)
+    when '/metrics/otel/shutdown'
+      handle_metrics_otel_shutdown(req, res)
     when '/trace/crash'
       handle_trace_crash(req, res)
     when '/otel/logger/create'
@@ -1594,6 +1604,17 @@ class MyApp
     end
 
     res.write(OtelMetricsForceFlushReturn.new(true).to_json)
+  end
+
+  def handle_metrics_otel_shutdown(req, res)
+    args = OtelMetricsShutdownArgs.new(JSON.parse(req.body.read))
+    meter_provider = OpenTelemetry.meter_provider
+    success = meter_provider.respond_to?(:shutdown)
+    result = meter_provider.shutdown(timeout: args.seconds) if success
+    success &&= result == OpenTelemetry::SDK::Metrics::Export::SUCCESS
+    res.write(OtelMetricsForceFlushReturn.new(success).to_json)
+  rescue
+    res.write(OtelMetricsForceFlushReturn.new(false).to_json)
   end
 
   def handle_otel_logger_create(req, res)
