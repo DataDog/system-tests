@@ -1089,6 +1089,7 @@ manifest:
   tests/parametric/test_otel_logs.py::Test_FR07_Host_Name::test_hostname_from_otel_resources: missing_feature  # Created by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR08_Custom_Headers: missing_feature  # Created by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR09_Log_Injection: missing_feature  # Created by easy win activation script
+  tests/parametric/test_otel_logs.py::Test_FR10_Timeout_Configuration: missing_feature  # Created by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR11_Telemetry: missing_feature  # Created by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR12_Log_Levels: missing_feature  # Created by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields: missing_feature  # Created by easy win activation script

@@ -1608,6 +1608,7 @@ manifest:
   tests/parametric/test_otel_logs.py: v1.20.0
   tests/parametric/test_otel_logs.py::Test_FR06_OTLP_Protocols: missing_feature (gRPC requires user-installed open-telemetry/transport-grpc + ext-grpc; http/protobuf is exercised via FR01/FR05/FR08)
   tests/parametric/test_otel_logs.py::Test_FR07_Host_Name::test_hostname_from_dd_hostname: irrelevant (DD_HOSTNAME is only supported in Python)
+  tests/parametric/test_otel_logs.py::Test_FR10_Timeout_Configuration: missing_feature (OTel config telemetry tracking out of scope for initial PR)
   tests/parametric/test_otel_logs.py::Test_FR11_Telemetry: missing_feature (OTel config telemetry tracking out of scope for initial PR)
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Api_Instrument: missing_feature
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Api_Meter: missing_feature

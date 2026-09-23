@@ -2446,6 +2446,7 @@ manifest:
   tests/parametric/test_otel_logs.py::Test_FR07_Host_Name::test_hostname_from_dd_hostname: irrelevant (DD_HOSTNAME is only supported in Python)
   tests/parametric/test_otel_logs.py::Test_FR08_Custom_Headers: *ref_5_72_0
   tests/parametric/test_otel_logs.py::Test_FR09_Log_Injection: *ref_5_72_0
+  tests/parametric/test_otel_logs.py::Test_FR10_Timeout_Configuration: *ref_5_72_0
   tests/parametric/test_otel_logs.py::Test_FR11_Telemetry: *ref_5_72_0
   tests/parametric/test_otel_logs.py::Test_FR12_Log_Levels: *ref_5_72_0
   tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields::test_scope_attributes_field: missing_feature (dd-trace-js does not support scope attributes - hardcoded to empty array in otlp_transformer.js)

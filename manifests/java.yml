@@ -4067,6 +4067,7 @@ manifest:
   tests/parametric/test_otel_logs.py: '>=1.62.0'
   tests/parametric/test_otel_logs.py::Test_FR06_OTLP_Protocols::test_otlp_protocols: incomplete_test_app (GPRC fails for system-test but works with real collector)
   tests/parametric/test_otel_logs.py::Test_FR07_Host_Name::test_hostname_from_dd_hostname: irrelevant (DD_HOSTNAME is only supported in Python)
+  tests/parametric/test_otel_logs.py::Test_FR10_Timeout_Configuration: missing_feature (OTel config reported under internal alias)
   tests/parametric/test_otel_logs.py::Test_FR11_Telemetry: missing_feature (not yet implemented)
   tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields::test_scope_attributes_field: irrelevant (OTel API does not support scope attributes on Java)
   tests/parametric/test_otel_metrics.py: '>=1.62.0'
