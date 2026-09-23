@@ -113,8 +113,13 @@ LIBRARIES: tuple[ActivationConfig, ...] = tuple(
     ActivationConfig(library, use_dev=library == "rust") for library in sorted(COMPONENT_GROUPS.easy_win)
 )
 
-AUTO_MERGE_OPT_INS: tuple[AutoMergeOptIn, ...] = (
-    # AutoMergeOptIn(owner="asm-libraries", library="python"),
+AUTO_MERGE_OPT_INS_OWNERS: tuple[str, ...] = ("apm-sdk-capabilities",)
+"""Teams that opted in for auto-merge of their easy win PRs, on every easy win library"""
+
+AUTO_MERGE_OPT_INS: tuple[AutoMergeOptIn, ...] = tuple(
+    AutoMergeOptIn(owner=owner, library=library)
+    for owner in AUTO_MERGE_OPT_INS_OWNERS
+    for library in sorted(COMPONENT_GROUPS.easy_win)
 )
 
 MIN_ACTIVATION_BRANCH_PARTS = 3
