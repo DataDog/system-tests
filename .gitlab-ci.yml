@@ -44,9 +44,24 @@ compute_pipeline:
         git fetch --all  # Ensure all branches are available
         git branch --track $CI_COMMIT_REF_NAME origin/$CI_COMMIT_REF_NAME || true  # Track branch if not tracked
         git checkout $CI_COMMIT_REF_NAME  # Ensure the branch is checked out
-        BASE_COMMIT=$(git merge-base origin/main $CI_COMMIT_REF_NAME)  # Get the base commit
+        if [ "$CI_COMMIT_REF_NAME" = "main" ]; then
+          # merge-base with origin/main is the tip itself, so that diff is empty.
+          # Diff the commits introduced by this push.
+          if [ -n "${CI_COMMIT_BEFORE_SHA:-}" ] && [ "$CI_COMMIT_BEFORE_SHA" != "0000000000000000000000000000000000000000" ]; then
+            git cat-file -e "${CI_COMMIT_BEFORE_SHA}^{commit}" 2>/dev/null || git fetch --deepen=50 origin main
+            if git cat-file -e "${CI_COMMIT_BEFORE_SHA}^{commit}" 2>/dev/null; then
+              BASE_COMMIT="$CI_COMMIT_BEFORE_SHA"
+            else
+              BASE_COMMIT="$(git rev-parse "${CI_COMMIT_SHA}^")"
+            fi
+          else
+            BASE_COMMIT="$(git rev-parse "${CI_COMMIT_SHA}^")"
+          fi
+        else
+          BASE_COMMIT=$(git merge-base origin/main "$CI_COMMIT_REF_NAME")
+        fi
         echo "Branch was created from commit--> $BASE_COMMIT"
-        git diff --name-only $BASE_COMMIT $CI_COMMIT_SHA  >> modified_files.txt # List modified files
+        git diff --name-only "$BASE_COMMIT" "$CI_COMMIT_SHA" >> modified_files.txt # List modified files
         cat modified_files.txt
         python utils/scripts/compute_libraries_and_scenarios.py >> impacted_scenarios.txt
         cat impacted_scenarios.txt

@@ -657,13 +657,23 @@ class Test_GitLabMode:
 
         assert 'libraries="python"' not in process(inputs)
 
-    def test_main_pipelines_select_python(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
+    def test_main_push_selects_only_impacted_scenarios(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setenv("GITLAB_CI", "true")
         monkeypatch.setenv("CI_PIPELINE_SOURCE", "push")
         monkeypatch.setenv("CI_COMMIT_REF_NAME", "main")
-        inputs = build_inputs()
+        inputs = build_inputs(modified_files=["utils/virtual_machine/virtual_machines.json"])
 
-        assert 'libraries="python"' in process(inputs)
+        output = process(inputs)
+        assert 'libraries="python"' in output
+        assert 'scenarios_groups="onboarding"' in output
+        assert 'scenarios_groups="all"' not in output
+
+    def test_scheduled_main_still_selects_all_scenarios(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setenv("GITLAB_CI", "true")
+        monkeypatch.setenv("CI_PIPELINE_SOURCE", "schedule")
+        monkeypatch.setenv("CI_COMMIT_REF_NAME", "main")
+        inputs = build_inputs(modified_files=["utils/virtual_machine/virtual_machines.json"])
+
+        output = process(inputs)
+        assert 'scenarios_groups="all"' in output
+        assert not any(line.startswith("libraries=") for line in output)

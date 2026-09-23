@@ -349,11 +349,23 @@ class Inputs:
             for pattern, parameters in raw_impacts.items():
                 self.impacts[pattern] = Param(pattern, parameters) if parameters else default_param
 
+    def selects_scenarios_from_diff(self) -> bool:
+        """Select scenarios from the changed files, instead of the full matrix.
+
+        Scheduled pipelines keep the full matrix. GitHub pushes to main also keep
+        it: that workflow does not write modified_files.txt. GitLab pushes to main
+        use the same diff selection as pull requests.
+        """
+        if self.event_name not in ("pull_request", "push"):
+            return False
+        return not (self.ref == "refs/heads/main" and not self.is_gitlab)
+
     def load_modified_files(self) -> None:
-        if self.ref != "refs/heads/main":
-            # Gets the modified files. Computed with gh in a previous ci step.
-            with open("modified_files.txt", "r", encoding="utf-8") as f:
-                self.modified_files = [line.strip() for line in f]
+        if not self.selects_scenarios_from_diff():
+            return
+        # Gets the modified files. Computed with gh in a previous ci step.
+        with open("modified_files.txt", "r", encoding="utf-8") as f:
+            self.modified_files = [line.strip() for line in f]
 
     def load_scenario_mappings(self) -> None:
         if self.event_name in ("pull_request", "push"):
@@ -396,7 +408,7 @@ def process(inputs: Inputs) -> list[str]:
 
     rebuild_lambda_proxy = False
 
-    if inputs.event_name not in ("pull_request", "push") or inputs.ref == "refs/heads/main":
+    if not inputs.selects_scenarios_from_diff():
         scenario_processor = ScenarioProcessor({all_scenario_groups.all.name})
         library_processor = LibraryProcessor(LIBRARIES)
 
