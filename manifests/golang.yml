@@ -1994,6 +1994,7 @@ manifest:
   tests/test_config_consistency.py::Test_Config_LogInjection_128Bit_TraceId_Disabled:
     - weblog_declaration:
         "*": v2.1.0-dev
+        fiber-v2-orchestrion: bug (APMLP-659)
         net-http-orchestrion: bug (APMLP-659)
   tests/test_config_consistency.py::Test_Config_LogInjection_128Bit_TraceId_Enabled:  # Modified by easy win activation script
     - declaration: bug (APMLP-659)
