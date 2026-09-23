@@ -71,7 +71,7 @@ class Test_SamplingRateCappedIncrease:
         interfaces.library.wait_for(wait_for_low_rate, timeout=30)
 
         # Record how many spans exist before the ramp-up phase
-        self._spans_before_ramp = sum(1 for _ in interfaces.library.get_root_spans())
+        self.spans_before_ramp = sum(1 for _ in interfaces.library.get_root_spans())
 
         # Generate traffic in bursts to trigger multiple flush cycles during ramp-up
         # Each burst sends requests, then sleeps to allow the tracer to flush and receive
@@ -86,7 +86,7 @@ class Test_SamplingRateCappedIncrease:
         # Wait for a span with the high rate that appeared AFTER the low-rate phase
         def wait_for_high_rate_after_ramp(_data: dict) -> bool:
             for idx, (_, span) in enumerate(interfaces.library.get_root_spans()):
-                if idx < self._spans_before_ramp:
+                if idx < self.spans_before_ramp:
                     continue
                 agent_psr = span.get("metrics", {}).get("_dd.agent_psr")
                 if agent_psr is not None and abs(agent_psr - HIGH_RATE) < 0.01:
@@ -101,7 +101,7 @@ class Test_SamplingRateCappedIncrease:
         agent_psr_values = set()
 
         for idx, (_, span) in enumerate(interfaces.library.get_root_spans()):
-            if idx < self._spans_before_ramp:
+            if idx < self.spans_before_ramp:
                 continue
             agent_psr = span.get("metrics", {}).get("_dd.agent_psr")
             if agent_psr is not None:
