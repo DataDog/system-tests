@@ -4995,7 +4995,6 @@ manifest:
         resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
         spring-boot-3-native: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
   tests/test_sampling_rate_capping.py::Test_SamplingRateCappedIncrease: v1.60.0-SNAPSHOT+c95286e6a5
-  tests/test_sampling_rate_capping.py::Test_SamplingRateCappedIncrease::test_sampling_rate_capped_increase: missing_feature
   tests/test_sampling_rates.py::Test_SampleRateFunction:
     - weblog_declaration:
         "*": v1.49.0
