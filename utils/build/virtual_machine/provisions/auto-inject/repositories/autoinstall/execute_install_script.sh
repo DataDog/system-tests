@@ -40,7 +40,7 @@ if [ -n "${DD_INSTALLER_LIBRARY_VERSION}" ]; then
    export "DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_LIBRARY_$(echo "$DD_LANG" | tr "[:lower:]" "[:upper:]")"="${DD_INSTALLER_LIBRARY_VERSION}"
 fi
 
-# shellcheck source=utils/scripts/installer_versions.sh
+# shellcheck source=utils/build/ssi/base/installer_versions.sh
 source ./installer_versions.sh
 
 if [ "${DD_LANG}" == "js" ] && [ "${DD_env}" == "dev" ] && [ -z "${DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_LIBRARY_JS}" ]; then

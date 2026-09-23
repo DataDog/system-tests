@@ -4,7 +4,7 @@ from pathlib import Path
 
 from utils import scenarios
 
-INSTALLER_VERSIONS_SCRIPT = Path("utils/scripts/installer_versions.sh").resolve()
+INSTALLER_VERSIONS_SCRIPT = Path("utils/build/ssi/base/installer_versions.sh").resolve()
 AUTO_INJECT_LOCK = Path("auto_inject.lock")
 
 
@@ -48,6 +48,19 @@ class Test_InstallerVersions:
         result = _run_installer_versions_script(tmp_path, env)
 
         assert result.stdout == "RESULT=custom-injector\n"
+
+    def test_docker_build_argument_supplies_pinned_injector(self, tmp_path: Path) -> None:
+        env = os.environ.copy()
+        env["DD_INSTALLER_LIBRARY_VERSION"] = "custom-library"
+        env["DD_INSTALLER_PINNED_INJECTOR_VERSION"] = "docker-pinned-version"
+        env.pop("DD_INSTALLER_INJECTOR_VERSION", None)
+
+        result = _run_installer_versions_script(tmp_path, env)
+
+        assert result.stdout.splitlines() == [
+            "Using pinned injector version from auto_inject.lock: docker-pinned-version",
+            "RESULT=docker-pinned-version",
+        ]
 
     def test_default_library_does_not_set_injector(self, tmp_path: Path) -> None:
         env = os.environ.copy()

@@ -4,8 +4,7 @@ FROM ${BASE_IMAGE}
 
 WORKDIR /workdir
 
-COPY utils/build/ssi/base/install_script_ssi.sh utils/build/ssi/base/download_with_retry.sh utils/build/ssi/base/binaries/* ./
-COPY utils/scripts/installer_versions.sh auto_inject.lock ./
+COPY ./base/install_script_ssi.sh ./base/download_with_retry.sh ./base/installer_versions.sh ./base/binaries/* ./
 
 ARG DD_API_KEY=deadbeef
 
@@ -20,6 +19,9 @@ ENV DD_INSTALLER_LIBRARY_VERSION=${DD_INSTALLER_LIBRARY_VERSION}
 
 ARG DD_INSTALLER_INJECTOR_VERSION
 ENV DD_INSTALLER_INJECTOR_VERSION=${DD_INSTALLER_INJECTOR_VERSION}
+
+ARG DD_INSTALLER_PINNED_INJECTOR_VERSION
+ENV DD_INSTALLER_PINNED_INJECTOR_VERSION=${DD_INSTALLER_PINNED_INJECTOR_VERSION}
 
 ARG DD_APPSEC_ENABLED
 ENV DD_APPSEC_ENABLED=${DD_APPSEC_ENABLED}

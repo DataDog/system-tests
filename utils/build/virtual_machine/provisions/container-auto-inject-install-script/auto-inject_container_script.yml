@@ -4,7 +4,7 @@
       - name: copy-auto-install-script
         local_path: utils/build/virtual_machine/provisions/auto-inject/repositories/autoinstall/execute_install_script.sh
       - name: copy-installer-versions-script
-        local_path: utils/scripts/installer_versions.sh
+        local_path: utils/build/ssi/base/installer_versions.sh
       - name: copy-auto-inject-lock
         local_path: auto_inject.lock
       - name: copy-docker-config
