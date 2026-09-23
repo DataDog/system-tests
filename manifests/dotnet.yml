@@ -877,7 +877,7 @@ manifest:
         uds: v3.46.0
         poc: v3.41.0
   tests/otel/test_tracing_otlp.py::Test_Otlp_Carries_Ot: missing_feature (agent sampling decision happens after export)
-  tests/otel/test_tracing_otlp.py::Test_Otlp_Forwards_Inherited_Ot: v3.54.0
+  tests/otel/test_tracing_otlp.py::Test_Otlp_Forwards_Inherited_Ot: v3.55.0-dev
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
