@@ -40,7 +40,6 @@ def _timeout_value(test_agent: TestAgentAPI, test_library: APMLibrary) -> int:
 
 
 @scenarios.parametric
-@features.otel_logs_enabled
 @features.otel_exporter_otlp_timeout
 class Test_OTEL_EXPORTER_OTLP_TIMEOUT:
     @pytest.mark.parametrize(("library_env", "expected_value"), STABLE_VALUES)
