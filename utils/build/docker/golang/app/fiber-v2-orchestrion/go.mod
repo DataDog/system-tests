@@ -5,6 +5,7 @@ go 1.26.0
 replace systemtests.weblog => ..
 
 require (
+	github.com/DataDog/dd-trace-go/contrib/valyala/fasthttp/v2 v2.0.0
 	github.com/DataDog/dd-trace-go/orchestrion/all/v2 v2.0.0
 	github.com/DataDog/dd-trace-go/v2 v2.7.0-dev
 	github.com/DataDog/orchestrion v1.4.0

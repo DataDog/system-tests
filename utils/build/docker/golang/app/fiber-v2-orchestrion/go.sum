@@ -117,6 +117,8 @@ github.com/DataDog/dd-trace-go/contrib/twitchtv/twirp/v2 v2.0.0 h1:O+R8Nd0YPzpns
 github.com/DataDog/dd-trace-go/contrib/twitchtv/twirp/v2 v2.0.0/go.mod h1:nvAqJwB2dJyZQxl557KjGzqC6smTXX2ae7GqB+aaRc4=
 github.com/DataDog/dd-trace-go/contrib/valkey-io/valkey-go/v2 v2.0.0 h1:OrJS33H/Su+51fCX15NLb336tTRZEeUEB2Jo9jipiCY=
 github.com/DataDog/dd-trace-go/contrib/valkey-io/valkey-go/v2 v2.0.0/go.mod h1:0oTonRzv2Y5xzAusI3pUwmnGBu4uQb4VI4F1UPYSyVw=
+github.com/DataDog/dd-trace-go/contrib/valyala/fasthttp/v2 v2.0.0 h1:gJAQ7afLpY6Ys/xa0eEAkH82gXwzGfN2NKXe3Lq/0gU=
+github.com/DataDog/dd-trace-go/contrib/valyala/fasthttp/v2 v2.0.0/go.mod h1:W0XSaNqE4OlVHpABhT+/B39gkiotS2xt30t8foOBr+4=
 github.com/DataDog/dd-trace-go/instrumentation/testutils/grpc/v2 v2.7.0-dev h1:EzUfoEL/W2/WpCaOMLDTnralvL+jD6x6E1YGiMBdDY0=
 github.com/DataDog/dd-trace-go/instrumentation/testutils/grpc/v2 v2.7.0-dev/go.mod h1:PCYRj0JQvZfV5B+6bRwiqeTw7UpK5Q0DjPnYRfH4Iw8=
 github.com/DataDog/dd-trace-go/orchestrion/all/v2 v2.0.0 h1:k7fXyKMoOWpMoAMUS0CiF+rilLB03kvBtg2J4+QPYHk=
