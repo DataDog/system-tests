@@ -1,4 +1,4 @@
-"""Unit coverage for the shared Feature Flags EVP wire contract."""
+"""Opt-in unit coverage for the shared Feature Flags EVP test contract."""
 
 from copy import deepcopy
 from typing import Any, Literal
@@ -37,7 +37,7 @@ AGENTLESS_EVP_CAPTURE_CONTRACTS = (
 
 
 @pytest.mark.parametrize("has_capture", [True, False])
-@scenarios.test_the_test
+@scenarios.feature_flagging_contract_tests
 @features.not_reported
 def test_flagevaluation_egress_validates_captured_data_without_waiting(
     monkeypatch: pytest.MonkeyPatch, *, has_capture: bool
@@ -221,7 +221,7 @@ def _direct_capture(*, path: str = "/api/v2/exposures", headers: list[list[str]]
 
 
 @pytest.mark.parametrize("contract", AGENTLESS_EVP_CAPTURE_CONTRACTS)
-@scenarios.test_the_test
+@scenarios.feature_flagging_contract_tests
 @features.not_reported
 def test_agentless_evp_capture_contracts_skip_manifest_xfails_before_setup(contract: type[Any]) -> None:
     marker_names = {marker.name for marker in getattr(contract, "pytestmark", ())}
@@ -230,13 +230,13 @@ def test_agentless_evp_capture_contracts_skip_manifest_xfails_before_setup(contr
 
 
 @pytest.mark.parametrize(("library_name", "origin"), sorted(EVP_ORIGINS.items()))
-@scenarios.test_the_test
+@scenarios.feature_flagging_contract_tests
 @features.not_reported
 def test_feature_flagging_evp_origin_contract(library_name: str, origin: str) -> None:
     assert expected_evp_origin(library_name) == origin
 
 
-@scenarios.test_the_test
+@scenarios.feature_flagging_contract_tests
 @features.not_reported
 def test_feature_flagging_agentless_evp_wire_contract_accepts_exact_identity() -> None:
     assert_agentless_evp_intake_request(
@@ -249,7 +249,7 @@ def test_feature_flagging_agentless_evp_wire_contract_accepts_exact_identity() -
     )
 
 
-@scenarios.test_the_test
+@scenarios.feature_flagging_contract_tests
 @features.not_reported
 def test_feature_flagging_agentless_evp_wire_contract_accepts_canonical_go_version() -> None:
     capture = _direct_capture(
@@ -282,7 +282,7 @@ def test_feature_flagging_agentless_evp_wire_contract_accepts_canonical_go_versi
         )
 
 
-@scenarios.test_the_test
+@scenarios.feature_flagging_contract_tests
 @features.not_reported
 def test_feature_flagging_agentless_evp_wire_contract_rejects_missing_identity() -> None:
     capture = _direct_capture(
@@ -303,7 +303,7 @@ def test_feature_flagging_agentless_evp_wire_contract_rejects_missing_identity()
         )
 
 
-@scenarios.test_the_test
+@scenarios.feature_flagging_contract_tests
 @features.not_reported
 def test_feature_flagging_agentless_evp_wire_contract_rejects_proxy_header() -> None:
     capture = _direct_capture()
@@ -320,7 +320,7 @@ def test_feature_flagging_agentless_evp_wire_contract_rejects_proxy_header() -> 
         )
 
 
-@scenarios.test_the_test
+@scenarios.feature_flagging_contract_tests
 @features.not_reported
 def test_feature_flagging_agentless_evp_wire_contract_scopes_producer_identity_to_direct_route() -> None:
     capture = _direct_capture(
@@ -351,7 +351,7 @@ def test_feature_flagging_agentless_evp_wire_contract_scopes_producer_identity_t
         )
 
 
-@scenarios.test_the_test
+@scenarios.feature_flagging_contract_tests
 @features.not_reported
 def test_feature_flagging_direct_capture_rejects_local_proxy_routes() -> None:
     with pytest.raises(AssertionError, match="local EVP proxy requests"):
@@ -364,7 +364,7 @@ def test_feature_flagging_direct_capture_rejects_local_proxy_routes() -> None:
 
 
 @pytest.mark.parametrize("route", ["direct", "sidecar"])
-@scenarios.test_the_test
+@scenarios.feature_flagging_contract_tests
 @features.not_reported
 def test_feature_flagging_agentless_evp_topology_supports_both_routes(
     route: Literal["direct", "sidecar"],
@@ -407,14 +407,14 @@ def test_feature_flagging_agentless_evp_topology_supports_both_routes(
         assert DIRECT_EVP_CA_BUNDLE_SOURCE not in scenario.weblog_infra.library_container.volumes
 
 
-@scenarios.test_the_test
+@scenarios.feature_flagging_contract_tests
 @features.not_reported
 def test_feature_flagging_direct_runtime_evidence_accepts_live_minimal_topology() -> None:
     assert_direct_evp_runtime_evidence(_direct_runtime_evidence(), library_name="nodejs")
 
 
 @pytest.mark.parametrize("executable", ["python3.11", "python3.12"])
-@scenarios.test_the_test
+@scenarios.feature_flagging_contract_tests
 @features.not_reported
 def test_feature_flagging_direct_runtime_evidence_accepts_versioned_python(executable: str) -> None:
     evidence = _direct_runtime_evidence("python")
@@ -425,7 +425,7 @@ def test_feature_flagging_direct_runtime_evidence_accepts_versioned_python(execu
 
 
 @pytest.mark.parametrize("executable", ["python3.x", "python3.11-wrapper"])
-@scenarios.test_the_test
+@scenarios.feature_flagging_contract_tests
 @features.not_reported
 def test_feature_flagging_direct_runtime_evidence_rejects_python_prefix_wrappers(executable: str) -> None:
     evidence = _direct_runtime_evidence("python")
@@ -448,7 +448,7 @@ def test_feature_flagging_direct_runtime_evidence_rejects_python_prefix_wrappers
         ("failed_top", "docker top failed"),
     ],
 )
-@scenarios.test_the_test
+@scenarios.feature_flagging_contract_tests
 @features.not_reported
 def test_feature_flagging_direct_runtime_evidence_rejects_false_proofs(
     mutation: str,
@@ -480,7 +480,7 @@ def test_feature_flagging_direct_runtime_evidence_rejects_false_proofs(
         assert_direct_evp_runtime_evidence(evidence, library_name="nodejs")
 
 
-@scenarios.test_the_test
+@scenarios.feature_flagging_contract_tests
 @features.not_reported
 def test_feature_flagging_direct_shutdown_evidence_accepts_bounded_post_stop_delivery() -> None:
     assert_direct_evp_shutdown_evidence(_direct_shutdown_evidence())
@@ -504,7 +504,7 @@ def test_feature_flagging_direct_shutdown_evidence_accepts_bounded_post_stop_del
         ("same_prime_subject", "subject distinct"),
     ],
 )
-@scenarios.test_the_test
+@scenarios.feature_flagging_contract_tests
 @features.not_reported
 def test_feature_flagging_direct_shutdown_evidence_rejects_false_proofs(
     mutation: str,
