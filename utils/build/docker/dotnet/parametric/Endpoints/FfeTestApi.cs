@@ -8,7 +8,7 @@ namespace ApmTestApi.Endpoints;
 
 public abstract class FfeTestApi
 {
-    private static Client? _client;
+    private static FeatureClient? _client;
     private static ILogger? _logger;
 
     public static void MapFfeEndpoints(WebApplication app, ILogger logger)
@@ -25,7 +25,7 @@ public abstract class FfeTestApi
         {
             _logger?.LogInformation("Initializing FFE provider");
 
-            var provider = new DatadogProvider();
+            var provider = new Datadog.FeatureFlags.OpenFeature.DatadogProvider();
 
             // Only the async call runs InitializeAsync, which waits for the first configuration.
             await Api.Instance.SetProviderAsync(provider);
@@ -72,20 +72,28 @@ public abstract class FfeTestApi
                 }
             }
 
-            var context = EvaluationContext.Builder()
-                .SetTargetingKey(targetingKey)
-                .Build();
+            var contextBuilder = EvaluationContext.Builder().SetTargetingKey(targetingKey);
 
-            foreach (var (key, value) in attributes)
+            foreach (var (key, attribute) in attributes)
             {
-                context = context.Set(key, value switch
+                switch (attribute)
                 {
-                    string s => s,
-                    double d => d,
-                    bool b => b,
-                    _ => value?.ToString() ?? string.Empty
-                });
+                    case string s:
+                        contextBuilder.Set(key, s);
+                        break;
+                    case double d:
+                        contextBuilder.Set(key, d);
+                        break;
+                    case bool b:
+                        contextBuilder.Set(key, b);
+                        break;
+                    default:
+                        contextBuilder.Set(key, attribute?.ToString() ?? string.Empty);
+                        break;
+                }
             }
+
+            var context = contextBuilder.Build();
 
             object? value;
             string? errorCode = null;
@@ -97,42 +105,42 @@ public abstract class FfeTestApi
                 {
                     case "BOOLEAN":
                         {
-                            var details = await _client.ResolveBooleanValueAsync(flag, root.GetProperty("defaultValue").GetBoolean(), context);
+                            var details = await _client.GetBooleanDetailsAsync(flag, root.GetProperty("defaultValue").GetBoolean(), context);
                             value = details.Value;
                             reason = details.Reason ?? "DEFAULT";
-                            errorCode = ErrorTypeToString(details.ErrorCode);
+                            errorCode = ErrorTypeToString(details.ErrorType);
                         }
                         break;
                     case "STRING":
                         {
-                            var details = await _client.ResolveStringValueAsync(flag, root.GetProperty("defaultValue").GetString()!, context);
+                            var details = await _client.GetStringDetailsAsync(flag, root.GetProperty("defaultValue").GetString()!, context);
                             value = details.Value;
                             reason = details.Reason ?? "DEFAULT";
-                            errorCode = ErrorTypeToString(details.ErrorCode);
+                            errorCode = ErrorTypeToString(details.ErrorType);
                         }
                         break;
                     case "INTEGER":
                         {
-                            var details = await _client.ResolveIntegerValueAsync(flag, root.GetProperty("defaultValue").GetInt32(), context);
+                            var details = await _client.GetIntegerDetailsAsync(flag, root.GetProperty("defaultValue").GetInt32(), context);
                             value = details.Value;
                             reason = details.Reason ?? "DEFAULT";
-                            errorCode = ErrorTypeToString(details.ErrorCode);
+                            errorCode = ErrorTypeToString(details.ErrorType);
                         }
                         break;
                     case "NUMERIC":
                         {
-                            var details = await _client.ResolveDoubleValueAsync(flag, root.GetProperty("defaultValue").GetDouble(), context);
+                            var details = await _client.GetDoubleDetailsAsync(flag, root.GetProperty("defaultValue").GetDouble(), context);
                             value = details.Value;
                             reason = details.Reason ?? "DEFAULT";
-                            errorCode = ErrorTypeToString(details.ErrorCode);
+                            errorCode = ErrorTypeToString(details.ErrorType);
                         }
                         break;
                     case "JSON":
                         {
-                            var details = await _client.ResolveStructureValueAsync(flag, new Value(root.GetProperty("defaultValue").GetRawText()), context);
+                            var details = await _client.GetObjectDetailsAsync(flag, new Value(root.GetProperty("defaultValue").GetRawText()), context);
                             value = details.Value;
                             reason = details.Reason ?? "DEFAULT";
-                            errorCode = ErrorTypeToString(details.ErrorCode);
+                            errorCode = ErrorTypeToString(details.ErrorType);
                         }
                         break;
                     default:
