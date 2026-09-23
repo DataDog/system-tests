@@ -19,14 +19,16 @@ public abstract class FfeTestApi
         app.MapPost("/ffe/evaluate", EvaluateFfe);
     }
 
-    private static IResult StartFfe()
+    private static async Task<IResult> StartFfe()
     {
         try
         {
             _logger?.LogInformation("Initializing FFE provider");
 
             var provider = new DatadogProvider();
-            Api.Instance.SetProvider(provider);
+
+            // Only the async call runs InitializeAsync, which waits for the first configuration.
+            await Api.Instance.SetProviderAsync(provider);
             _client = Api.Instance.GetClient();
 
             return Results.Ok();
