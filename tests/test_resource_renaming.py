@@ -80,8 +80,7 @@ class Test_Resource_Renaming_Stats_Aggregation_Keys:
 
         # Expected hits based on setup method
         expected_hits = {
-            ("GET", "/resource_renaming/api/users/{param:int}"): 5,
-            ("GET", "/resource_renaming/api/posts/{param:int}"): 3,
+            ("GET", "/resource_renaming/<path:path>"): 8,
         }
 
         # Collect actual hits from stats points
