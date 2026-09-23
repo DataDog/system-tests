@@ -4079,6 +4079,10 @@ manifest:
     - declaration: bug (APMAPI-1937)
       component_version: <1.63.0-SNAPSHOT
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Api_MeterProvider::test_otel_get_meter_by_distinct_scope_attributes: irrelevant (OTel API does not support scope attributes on Java)
+  ? tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint::test_otlp_custom_endpoint_grpc
+  : incomplete_test_app (GPRC fails for system-test but works with real collector)
+  ? tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint::test_otlp_metrics_custom_endpoint_grpc
+  : incomplete_test_app (GPRC fails for system-test but works with real collector)
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Protocol::test_otlp_protocol_grpc: incomplete_test_app (GPRC fails for system-test but works with real collector)
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Host_Name::test_hostname_from_dd_hostname: irrelevant (DD_HOSTNAME is only supported in Python)
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry: missing_feature (not yet implemented)

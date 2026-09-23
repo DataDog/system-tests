@@ -2125,6 +2125,7 @@ manifest:
   tests/parametric/test_otel_logs.py::Test_FR01_Enable_OTLP_Log_Collection: v3.13.0.dev
   tests/parametric/test_otel_logs.py::Test_FR03_Resource_Attributes: v3.13.0.dev
   tests/parametric/test_otel_logs.py::Test_FR04_Trace_Span_IDs: v3.13.0.dev
+  tests/parametric/test_otel_logs.py::Test_FR05_Custom_Endpoints: v3.13.0.dev
   tests/parametric/test_otel_logs.py::Test_FR06_OTLP_Protocols: v3.13.0.dev
   tests/parametric/test_otel_logs.py::Test_FR07_Host_Name: v3.13.0.dev
   tests/parametric/test_otel_logs.py::Test_FR08_Custom_Headers: v3.13.0.dev

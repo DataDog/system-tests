@@ -1,5 +1,7 @@
 import base64
 from collections.abc import Generator
+from urllib.parse import urlparse
+
 import pytest
 
 from utils import scenarios, features, logger
@@ -240,6 +242,45 @@ class Test_FR04_Trace_Span_IDs:
         span_id = f"{root['span_id']:016x}"
         assert expected_span_id == span_id, f"Expected span_id {expected_span_id}, got {span_id}, span: {root}"
         assert expected_trace_id == trace_id, f"Expected trace_id {expected_trace_id}, got {trace_id}, span: {root}"
+
+
+@features.otel_logs_enabled
+@scenarios.parametric
+class Test_FR05_Custom_Endpoints:
+    """FR05: Custom OTLP Endpoint Tests"""
+
+    @pytest.mark.parametrize(
+        ("library_env", "endpoint_env", "test_agent_otlp_http_port"),
+        [
+            (
+                {
+                    "DD_LOGS_OTEL_ENABLED": "true",
+                    "DD_TRACE_DEBUG": None,
+                    "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
+                },
+                "OTEL_EXPORTER_OTLP_ENDPOINT",
+                4320,
+            ),
+        ],
+    )
+    def test_otlp_custom_endpoint(
+        self,
+        library_env: dict[str, str],
+        endpoint_env: str,
+        otlp_endpoint_library_env: dict[str, str],  # noqa: ARG002
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+    ):
+        """Logs are exported to custom OTLP endpoint."""
+        with test_library as library:
+            library.create_logger("otlp_custom_endpoint", LogLevel.INFO)
+            library.write_log("otlp_custom_endpoint", LogLevel.INFO, "test_otlp_custom_endpoint")
+
+        assert urlparse(library_env[endpoint_env]).port == 4320, (
+            f"Expected port 4320 in {urlparse(library_env[endpoint_env])}"
+        )
+        log_payloads = test_agent.wait_for_num_log_payloads(1)
+        assert find_log_record(log_payloads, "otlp_custom_endpoint", "test_otlp_custom_endpoint") is not None
 
 
 @features.otel_logs_enabled

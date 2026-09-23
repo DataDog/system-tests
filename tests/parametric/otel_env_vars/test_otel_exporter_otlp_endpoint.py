@@ -8,9 +8,9 @@ from utils.docker_fixtures import TestAgentAPI
 
 
 VARIABLE_NAME: Final = "OTEL_EXPORTER_OTLP_ENDPOINT"
-ROUTED_PATH: Final = "/otel-global-endpoint/v1/metrics"
 DEFAULT_PATH: Final = "/v1/metrics"
 GRPC_PROTOCOL: Final = "grpc"
+ROUTED_OTLP_HTTP_PORT: Final = 4320
 
 METRICS_ENVIRONMENT: Final = {
     "DD_METRICS_OTEL_ENABLED": "true",
@@ -20,8 +20,11 @@ METRICS_ENVIRONMENT: Final = {
     "CORECLR_ENABLE_PROFILING": "1",
 }
 
-ENDPOINT_VALUES: Final = [
-    pytest.param("routed", ROUTED_PATH, id="routed-base-url"),
+ROUTED_VALUES: Final = [
+    pytest.param("routed", DEFAULT_PATH, id="routed-base-url"),
+]
+
+DEFAULT_VALUES: Final = [
     pytest.param("unset", DEFAULT_PATH, id="unset"),
     pytest.param("empty", DEFAULT_PATH, id="empty"),
 ]
@@ -39,9 +42,7 @@ def _configure_endpoint(
     library_env["OTEL_EXPORTER_OTLP_METRICS_ENDPOINT"] = None
 
     if endpoint_value == "routed":
-        library_env[VARIABLE_NAME] = (
-            f"http://{test_agent.container_name}:{test_agent_otlp_http_port}/otel-global-endpoint"
-        )
+        library_env[VARIABLE_NAME] = f"http://{test_agent.container_name}:{test_agent_otlp_http_port}"
     elif endpoint_value == "unset":
         library_env[VARIABLE_NAME] = None
     elif endpoint_value == "empty":
@@ -62,12 +63,27 @@ def _emit_metric(library: APMLibrary) -> None:
 
 
 @scenarios.parametric
-@features.otel_logs_enabled
-@features.otel_metrics_api
 @features.otel_exporter_otlp_endpoint
 class Test_OTEL_EXPORTER_OTLP_ENDPOINT:
-    @pytest.mark.parametrize(("endpoint_value", "expected_path"), ENDPOINT_VALUES)
+    @pytest.mark.parametrize(("endpoint_value", "expected_path"), ROUTED_VALUES)
+    @pytest.mark.parametrize("test_agent_otlp_http_port", [ROUTED_OTLP_HTTP_PORT])
     def test_endpoint_is_used_as_a_base_url(
+        self,
+        endpoint_value: str,  # noqa: ARG002
+        expected_path: str,
+        test_agent: TestAgentAPI,
+        test_agent_otlp_http_port: int,  # noqa: ARG002
+        test_library: APMLibrary,
+    ) -> None:
+        with test_library as library:
+            _emit_metric(library)
+
+        test_agent.wait_for_num_otlp_metrics(num=1)
+        requests = test_agent.otlp_requests()
+        assert any(request["url"].endswith(expected_path) for request in requests), requests
+
+    @pytest.mark.parametrize(("endpoint_value", "expected_path"), DEFAULT_VALUES)
+    def test_default_endpoint_is_used(
         self,
         endpoint_value: str,  # noqa: ARG002
         expected_path: str,

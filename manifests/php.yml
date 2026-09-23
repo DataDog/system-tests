@@ -1615,6 +1615,7 @@ manifest:
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Api_MeterProvider: v1.17.0
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Configuration_Enabled: v1.17.0
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Configuration_Enabled::test_otlp_metrics_disabled: bug (APMAPI-2494)
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint: missing_feature
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Headers: missing_feature
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Protocol: missing_feature
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Configuration_Temporality_Preference: missing_feature
