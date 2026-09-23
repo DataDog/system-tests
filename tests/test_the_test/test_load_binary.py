@@ -77,6 +77,14 @@ fi
 
 
 @scenarios.test_the_test
+class Test_LoadBinaryPHP:
+    def test_setup_script_download_fails_on_http_errors(self) -> None:
+        installer = Path("utils/build/docker/php/common/install_ddtrace.sh").read_text(encoding="utf-8")
+
+        assert "curl --fail --location --show-error --remote-name" in installer
+
+
+@scenarios.test_the_test
 class Test_LoadBinaryC:
     def test_native_library_is_loaded_by_auto_inject(self) -> None:
         dockerfile = Path("utils/build/docker/c/perl-mojolicious.Dockerfile").read_text(encoding="utf-8")
