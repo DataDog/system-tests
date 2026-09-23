@@ -61,9 +61,15 @@ compute_pipeline:
           BASE_COMMIT=$(git merge-base origin/main "$CI_COMMIT_REF_NAME")
         fi
         echo "Branch was created from commit--> $BASE_COMMIT"
+        if [ "$CI_COMMIT_REF_NAME" = "main" ] && [ "$CI_PIPELINE_SOURCE" = "push" ]; then
+          # Compare manifests from this push with the same base used for modified_files.txt.
+          rm -rf original/manifests
+          git archive "$BASE_COMMIT" -- manifests/ | tar -xC original/
+        fi
         git diff --name-only "$BASE_COMMIT" "$CI_COMMIT_SHA" >> modified_files.txt # List modified files
         cat modified_files.txt
-        python utils/scripts/compute_libraries_and_scenarios.py >> impacted_scenarios.txt
+        # Deliberate AWS SSI opt-in; shared callers keep the full matrix on main.
+        python utils/scripts/compute_libraries_and_scenarios.py --select-main-push-from-diff >> impacted_scenarios.txt
         cat impacted_scenarios.txt
         source impacted_scenarios.txt
       else

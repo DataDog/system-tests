@@ -302,8 +302,11 @@ class Inputs:
         scenario_map_file: str = "logs_mock_the_test/scenarios.json",
         new_manifests: Path = Path("manifests/"),
         old_manifests: Path = Path("original/manifests/"),
+        *,
+        select_main_push_from_diff: bool = False,
     ) -> None:
         self.is_gitlab = False
+        self.select_main_push_from_diff = select_main_push_from_diff
         self.load_git_info()
         self.output = output
         self.mapping_file = os.path.join(root_dir, mapping_file)
@@ -352,13 +355,14 @@ class Inputs:
     def selects_scenarios_from_diff(self) -> bool:
         """Select scenarios from the changed files, instead of the full matrix.
 
-        Scheduled pipelines keep the full matrix. GitHub pushes to main also keep
-        it: that workflow does not write modified_files.txt. GitLab pushes to main
-        use the same diff selection as pull requests.
+        Scheduled pipelines and main pushes keep the full matrix by default.
+        Callers must explicitly opt main pushes into diff selection.
         """
         if self.event_name not in ("pull_request", "push"):
             return False
-        return not (self.ref == "refs/heads/main" and not self.is_gitlab)
+        if self.ref == "refs/heads/main":
+            return self.event_name == "push" and self.select_main_push_from_diff
+        return True
 
     def load_modified_files(self) -> None:
         if not self.selects_scenarios_from_diff():
@@ -463,9 +467,14 @@ def main() -> None:
         default="",
         help="Output file. If not provided, output to stdout",
     )
+    parser.add_argument(
+        "--select-main-push-from-diff",
+        action="store_true",
+        help="Select impacted scenarios for a main push instead of using the full matrix",
+    )
     args = parser.parse_args()
 
-    inputs = Inputs(output=args.output)
+    inputs = Inputs(output=args.output, select_main_push_from_diff=args.select_main_push_from_diff)
     strings_out = process(inputs)
     print_outputs(strings_out, inputs)
 
