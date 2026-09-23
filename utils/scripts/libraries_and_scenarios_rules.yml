@@ -262,6 +262,9 @@ patterns:
         libraries: null
     utils/scripts/check_version.sh:
         scenario_groups: null
+    utils/scripts/ci_orchestrators/compute-time-stats.py:
+        scenario_groups: null
+        libraries: null
     utils/scripts/compute_libraries_and_scenarios.py:
         scenario_groups: null
         libraries: null
@@ -286,6 +289,9 @@ patterns:
         libraries: null
     utils/scripts/ssi_wizards/*:
         scenario_groups: null
+    utils/scripts/update_agent_version.py:
+        scenario_groups: null
+        libraries: null
     utils/scripts/update_change_log.sh:
         scenario_groups: null
         libraries: null
