@@ -6,26 +6,35 @@ import re
 import json
 
 import tests.debugger.utils as debugger
-from utils import scenarios, features
+from utils import scenarios, features, slow
 
 
 @features.debugger_expression_language
 @scenarios.debugger_expression_language
+@slow
 class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
     message_map: dict = {}
 
     ############ setup ############
     def _setup(self, probes: list[dict], request_path: str):
+        self.initialize_weblog_remote_config()
         self.set_probes(probes)
         self.send_rc_probes()
-        self.wait_for_all_probes(statuses=["INSTALLED"])
+        if not self.wait_for_all_probes(statuses=["INSTALLED"], timeout=60):
+            self.setup_failures = ["Probes did not reach INSTALLED status"]
+            # Stop the test if the probes did not reach INSTALLED status since the probe won't exist
+            # to send a snapshot.
+            return
+
         self.send_weblog_request(request_path)
         self.wait_for_all_probes(statuses=["EMITTING"])
-        self.wait_for_all_snapshots()
+        self.wait_for_all_snapshots(timeout=60)
 
     ############ assert ############
     def _assert(self, expected_response: int):
         self.collect()
+
+        self.assert_setup_ok()
 
         assert len(self.probe_ids) > 0, (
             "Expected probes to be created for validation. "
