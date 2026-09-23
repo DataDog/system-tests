@@ -354,6 +354,10 @@ images:
     digest: sha256:daf6a5c0a2b36153b94c91f3563e8ef89b3b19e4129963c6ccb07b8c5251f7ef
     target: registry.ddbuild.io/system-tests/mirror/public.ecr.aws/lambda/nodejs:18
     tag: '18'
+  public.ecr.aws/lambda/nodejs:22:
+    digest: sha256:e411a8873485c3572742c577aeaefac25e06994090c7d861cb177be9eabfdb3f
+    target: registry.ddbuild.io/system-tests/mirror/public.ecr.aws/lambda/nodejs:22
+    tag: '22'
   public.ecr.aws/lambda/python:3.13:
     digest: sha256:0fc65c4c9bace18ce7cb5b670119b847140a9c1c45f2b24d06ce4e35bef0a9be
     target: registry.ddbuild.io/system-tests/mirror/public.ecr.aws/lambda/python:3.13
