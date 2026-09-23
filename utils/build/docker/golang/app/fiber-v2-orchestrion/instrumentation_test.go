@@ -81,12 +81,24 @@ func TestAutomaticFiberListenerInstrumentation(t *testing.T) {
 
 	client := &http.Client{Timeout: 5 * time.Second}
 	defer client.CloseIdleConnections()
-	for _, path := range []string{"/sample_rate_route/1", "/returnheaders"} {
-		req, err := http.NewRequest(http.MethodGet, "http://"+listener.Addr().String()+path, nil)
+	requests := []struct{ method, path string }{
+		{http.MethodGet, "/sample_rate_route/1"},
+		{http.MethodGet, "/returnheaders"},
+		{http.MethodPut, "/"},
+		{http.MethodPost, "/"},
+		{http.MethodDelete, "/"},
+		{http.MethodPatch, "/"},
+		{http.MethodGet, "/"},
+	}
+	expectedMethods := make(map[string]string, len(requests))
+	for _, request := range requests {
+		requestID := request.method + " " + request.path
+		expectedMethods[requestID] = request.method
+		req, err := http.NewRequest(request.method, "http://"+listener.Addr().String()+request.path, nil)
 		if err != nil {
 			t.Fatal(err)
 		}
-		req.Header.Set("User-Agent", path)
+		req.Header.Set("User-Agent", requestID)
 		res, err := client.Do(req)
 		if err != nil {
 			t.Fatal(err)
@@ -94,10 +106,11 @@ func TestAutomaticFiberListenerInstrumentation(t *testing.T) {
 		_, readErr := io.Copy(io.Discard, res.Body)
 		res.Body.Close()
 		if readErr != nil || res.StatusCode != http.StatusOK {
-			t.Fatalf("%s returned %d, read error: %v", path, res.StatusCode, readErr)
+			t.Fatalf("%s returned %d, read error: %v", requestID, res.StatusCode, readErr)
 		}
 	}
 	servers := make(map[string]int)
+	seenRequests := make(map[string]int)
 	clients := 0
 	for _, span := range mt.FinishedSpans() {
 		component, _ := span.Tag("component").(string)
@@ -115,16 +128,28 @@ func TestAutomaticFiberListenerInstrumentation(t *testing.T) {
 			if route == "/sample_rate_route/:i" {
 				path = "/sample_rate_route/1"
 			}
-			if span.Tag("system_tests.request.user_agent") != path {
+			requestID, _ := span.Tag("system_tests.request.user_agent").(string)
+			method, found := expectedMethods[requestID]
+			if !found || requestID != method+" "+path {
 				t.Fatalf("request buffer reuse changed the correlation tag: %v", span.Tags())
 			}
+			// Check only after every request, so reused method buffers have changed.
+			if span.Tag("http.method") != method {
+				t.Fatalf("request buffer reuse changed the method for %q: %v", requestID, span.Tags())
+			}
+			seenRequests[requestID]++
 		case "client":
 			if component == "net/http" {
 				clients++
 			}
 		}
 	}
-	if len(servers) != 2 || servers["/sample_rate_route/:i"] != 1 || servers["/returnheaders"] != 1 || clients != 2 {
+	if len(servers) != 3 || servers["/sample_rate_route/:i"] != 1 || servers["/returnheaders"] != 1 || servers["/"] != 5 || clients != len(requests) {
 		t.Fatalf("want one Fiber server and one HTTP client span per request, got servers=%v clients=%d", servers, clients)
+	}
+	for requestID := range expectedMethods {
+		if seenRequests[requestID] != 1 {
+			t.Fatalf("want one server span for %q, got %d", requestID, seenRequests[requestID])
+		}
 	}
 }

@@ -62,6 +62,26 @@ def test_fiber_inherits_only_the_automatic_log_injection_bug(weblog: str, test_n
 
 @features.not_reported
 @scenarios.test_the_test
+@pytest.mark.parametrize("library_version", ["1.72.0", "1.73.0-dev", "2.10.1", "2.12.0-dev.3"])
+@pytest.mark.parametrize("weblog", ["fiber-v2-orchestrion", "net-http-orchestrion", "gin"])
+def test_fiber_standalone_requires_http_appsec_support(library_version: str, weblog: str) -> None:
+    manifest = Manifest({"golang": Version(library_version)}, weblog)
+    if weblog == "fiber-v2-orchestrion":
+        expected = [SkipDeclaration("missing_feature", "Fiber HTTP AppSec support is not released")]
+    elif Version(library_version) < Version("1.73.0-dev"):
+        expected = [SkipDeclaration("missing_feature", "declared version for golang is v1.73.0-dev")]
+    else:
+        expected = []
+    nodeid = "tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2"
+    assert manifest.get_declarations(nodeid) == expected
+    assert (
+        manifest.get_declarations(f"{nodeid}::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_0")
+        == expected
+    )
+
+
+@features.not_reported
+@scenarios.test_the_test
 def test_fiber_otlp_remains_enabled() -> None:
     manifest = Manifest({"golang": Version("2.12.0-dev"), "agent": Version("7.83.2")}, "fiber-v2-orchestrion")
     for nodeid in (

@@ -56,7 +56,9 @@ func main() {
 }
 
 func newApp() *fiber.App {
-	app := fiber.New(fiber.Config{DisableStartupMessage: true})
+	// Keep tracer-retained request strings stable. Remove this workaround after
+	// https://github.com/DataDog/dd-trace-go/issues/5433 is fixed in tested tracers.
+	app := fiber.New(fiber.Config{DisableStartupMessage: true, Immutable: true})
 	app.Use(func(c *fiber.Ctx) error {
 		// Use a test-only tag for request correlation. Do not emulate HTTP tags
 		// that the tracer does not capture. Clone values that outlive the request.
