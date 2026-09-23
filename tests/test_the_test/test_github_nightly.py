@@ -119,6 +119,12 @@ class Test_GithubNightly:
         assert not should_enable_auto_merge("asm-libraries", "ruby", opt_ins)
         assert not should_enable_auto_merge("apm-python", "python", opt_ins)
 
+    def test_sdk_capabilities_opted_in_for_every_easy_win_library(self) -> None:
+        for library in COMPONENT_GROUPS.easy_win:
+            assert should_enable_auto_merge("apm-sdk-capabilities", library, nightly.AUTO_MERGE_OPT_INS)
+
+        assert not should_enable_auto_merge("asm-libraries", "ruby", nightly.AUTO_MERGE_OPT_INS)
+
     def test_extract_reports_from_logs_artifacts(self, tmp_path: Path) -> None:
         artifact_dir = tmp_path / "logs_python"
         artifact_dir.mkdir()
