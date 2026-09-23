@@ -606,49 +606,6 @@ class Test_FR09_Log_Injection:
 
 @features.otel_logs_enabled
 @scenarios.parametric
-class Test_FR10_Timeout_Configuration:
-    """FR10: Timeout Configuration Tests"""
-
-    @pytest.mark.parametrize(
-        "library_env",
-        [
-            {"DD_LOGS_OTEL_ENABLED": "true", "DD_TRACE_DEBUG": None, "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1"},
-        ],
-    )
-    def test_default_timeout(self, test_agent: TestAgentAPI, test_library: APMLibrary):
-        """SDK uses default timeout when no timeout env vars are set."""
-        with test_library as library:
-            library.create_logger("default_timeout", LogLevel.INFO)
-            library.write_log("default_timeout", LogLevel.INFO, "test_default_timeout")
-
-        log_payloads = test_agent.wait_for_num_log_payloads(1)
-        assert find_log_record(log_payloads, "default_timeout", "test_default_timeout") is not None
-        # Wait for telemetry configurations and verify the timeout has the default value of 10s
-        configurations_by_name = test_agent.wait_for_telemetry_configurations()
-
-        # Find default configurations (since no env vars are set, these should have default origin)
-        exporter_timeout = test_agent.get_telemetry_config_by_origin(
-            configurations_by_name, "OTEL_EXPORTER_OTLP_TIMEOUT", "default", fallback_to_first=True
-        )
-        exporter_logs_timeout = test_agent.get_telemetry_config_by_origin(
-            configurations_by_name, "OTEL_EXPORTER_OTLP_LOGS_TIMEOUT", "default", fallback_to_first=True
-        )
-
-        assert exporter_timeout is not None, "OTEL_EXPORTER_OTLP_TIMEOUT should be set"
-        assert exporter_logs_timeout is not None, "OTEL_EXPORTER_OTLP_LOGS_TIMEOUT should be set"
-        assert isinstance(exporter_timeout, dict)
-        assert isinstance(exporter_logs_timeout, dict)
-
-        assert str(exporter_timeout.get("value")) == "10000", (
-            f"OTEL_EXPORTER_OTLP_TIMEOUT should be 10000, exporter_timeout: {exporter_timeout}"
-        )
-        assert str(exporter_logs_timeout.get("value")) == "10000", (
-            f"OTEL_EXPORTER_OTLP_LOGS_TIMEOUT should be 10000, exporter_logs_timeout: {exporter_logs_timeout}"
-        )
-
-
-@features.otel_logs_enabled
-@scenarios.parametric
 class Test_FR11_Telemetry:
     """Test OTLP Logs generated via OpenTelemetry API generate telemetry configurations and metrics."""
 

@@ -1918,6 +1918,10 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_blrp_max_export_batch_size.py::Test_OTEL_BLRP_MAX_EXPORT_BATCH_SIZE: missing_feature
   tests/parametric/otel_env_vars/test_otel_blrp_max_queue_size.py::Test_OTEL_BLRP_MAX_QUEUE_SIZE: missing_feature
   tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY: missing_feature
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_timeout.py::Test_OTEL_EXPORTER_OTLP_LOGS_TIMEOUT: v4.11.0
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_timeout.py::Test_OTEL_EXPORTER_OTLP_METRICS_TIMEOUT: v4.11.0
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_timeout.py::Test_OTEL_EXPORTER_OTLP_TIMEOUT: v4.11.0
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_timeout.py::Test_OTEL_EXPORTER_OTLP_TRACES_TIMEOUT: v4.11.0
   tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT: v4.11.0
   tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT::test_invalid_values: bug (APMAPI-2461)
   tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT::test_spec_default: irrelevant (Datadog intentionally defaults to 7500 ms)
@@ -2126,7 +2130,6 @@ manifest:
   tests/parametric/test_otel_logs.py::Test_FR07_Host_Name: v3.13.0.dev
   tests/parametric/test_otel_logs.py::Test_FR08_Custom_Headers: v3.13.0.dev
   tests/parametric/test_otel_logs.py::Test_FR09_Log_Injection: v3.13.0.dev
-  tests/parametric/test_otel_logs.py::Test_FR10_Timeout_Configuration: v3.13.0.dev
   tests/parametric/test_otel_logs.py::Test_FR11_Telemetry: v3.15.0
   tests/parametric/test_otel_logs.py::Test_FR12_Log_Levels: v3.13.0.dev
   tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields::test_scope_attributes_field: missing_feature (OpenTelemetry Python SDK bug - LoggerProvider.get_logger() caching doesn't preserve scope attributes when attributes=None)
