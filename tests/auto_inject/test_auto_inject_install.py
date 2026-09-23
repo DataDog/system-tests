@@ -6,6 +6,7 @@ import tests.auto_inject.utils as base
 
 class _AutoInjectProfilingTest(base.AutoInjectBaseTest):
     def _test_profiling_retry(self) -> None:
+        """Retry AWS SSI profiling validation while tracer configuration remains unaligned (APMSP-4033)."""
         for attempt in range(1, 4):
             try:
                 self._test_install(context.virtual_machine, profile=True)
