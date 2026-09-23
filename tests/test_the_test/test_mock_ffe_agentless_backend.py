@@ -123,7 +123,7 @@ def test_agentless_end_to_end_scenario_starts_backend_before_weblog() -> None:
         scenario._start_mock_backend()  # noqa: SLF001 - focused lifecycle test
 
         environment = scenario.weblog_infra.library_container.environment
-        assert environment["DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED"] == "true"
+        assert "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED" not in environment
         assert "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE" not in environment
         assert "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT" not in environment
         base_url = environment["DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL"]
@@ -136,6 +136,20 @@ def test_agentless_end_to_end_scenario_starts_backend_before_weblog() -> None:
         assert status["requests_total"] == 0
     finally:
         scenario._stop_mock_backend()  # noqa: SLF001 - focused lifecycle test
+
+
+@scenarios.test_the_test
+@features.not_reported
+def test_default_agentless_scenario_leaves_source_selection_implicit() -> None:
+    scenario = scenarios.feature_flagging_and_experimentation_agentless
+    environment = scenario.weblog_infra.library_container.environment
+
+    # The legacy enable switch selects Remote Config when the source is unset. The
+    # default-agentless scenario must model a new customer without either input.
+    assert "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED" not in environment
+    assert "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE" not in environment
+    assert "DD_FEATURE_FLAGS_ENABLED" not in environment
+    assert environment["DD_REMOTE_CONFIGURATION_ENABLED"] == "false"
 
 
 @pytest.mark.parametrize("exposure_egress", ["direct", "sidecar"])

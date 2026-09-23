@@ -499,15 +499,15 @@ manifest:
   tests/appsec/iast/sink/test_unvalidated_redirect.py:
     - weblog_declaration:
         tornado: missing_feature
-  tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedHeader:  # Easy win for django-poc, django-py3.13, fastapi, flask-poc, python3.12, uds-flask, uwsgi-poc and version 4.6.4
+  tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedHeader:
     - weblog_declaration:
-        "*": flaky (APPSEC-61861)  # v4.7.0-rc1 (implemented in v3.9.0.dev, but there was the APPSEC-57817 and APPSEC-61861 bugs)
+        "*": v4.16.0-rc1 (implemented in v3.9.0.dev, previously flaky due to APPSEC-57817 and APPSEC-61861)
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedHeader::test_secure:
     - weblog_declaration:
         "*": v4.12.0-rc1 (implemented in v3.9.0.dev)
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedHeader_ExtendedLocation:
     - weblog_declaration:
-        "*": flaky (APPSEC-61861)  # v4.7.0-rc1 (implemented in v3.9.0.dev, but there was the APPSEC-57817 and APPSEC-61861 bugs)
+        "*": v4.16.0-rc1 (implemented in v3.9.0.dev, previously flaky due to APPSEC-57817 and APPSEC-61861)
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedHeader_StackTrace:  # Easy win for django-poc, django-py3.13, fastapi, flask-poc, python3.12, uds-flask, uwsgi-poc and version 4.6.4
     - weblog_declaration:
         "*": v4.7.0-rc1 (implemented in v3.9.0.dev, but there was the APPSEC-57817 and APPSEC-61861 bugs)
@@ -516,11 +516,11 @@ manifest:
         "*": v4.7.0-rc1 (implemented in v3.9.0.dev, but there was the APPSEC-57817 and APPSEC-61861 bugs)
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect::test_secure:
     - weblog_declaration:
-        "*": flaky (APPSEC-61861)
+        "*": v4.16.0-rc1 (implemented in v3.9.0.dev, previously flaky due to APPSEC-61861)
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect_ExtendedLocation:
     - weblog_declaration:
         "*": v4.12.0-rc1 (implemented in v3.9.0.dev)
-  tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect_ExtendedLocation::test_extended_location_data: flaky (APPSEC-62470)
+  tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect_ExtendedLocation::test_extended_location_data: v4.16.0-rc1 (implemented in v3.9.0.dev, previously flaky due to APPSEC-62470)
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect_StackTrace:  # Easy win for django-poc, django-py3.13, fastapi, flask-poc, python3.12, uds-flask, uwsgi-poc and version 4.6.4
     - weblog_declaration:
         "*": v4.7.0-rc1 (implemented in v3.9.0.dev, but there was the APPSEC-57817 and APPSEC-61861 bugs)
@@ -1944,6 +1944,10 @@ manifest:
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
+  tests/parametric/otel_env_vars/test_otel_blrp_export_timeout.py::Test_OTEL_BLRP_EXPORT_TIMEOUT: missing_feature
+  tests/parametric/otel_env_vars/test_otel_blrp_max_export_batch_size.py::Test_OTEL_BLRP_MAX_EXPORT_BATCH_SIZE: missing_feature
+  tests/parametric/otel_env_vars/test_otel_blrp_max_queue_size.py::Test_OTEL_BLRP_MAX_QUEUE_SIZE: missing_feature
+  tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY: missing_feature
   tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT: v4.11.0
   tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT::test_invalid_values: bug (APMAPI-2461)
   tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT::test_spec_default: irrelevant (Datadog intentionally defaults to 7500 ms)
@@ -2009,6 +2013,7 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_tracing_client_tracing_tags:
     - declaration: flaky (APMAPI-1400)
       component_version: '>3.7.0'
+  tests/parametric/test_dynamic_configuration.py::Test_DynamicConfigSdkConfiguration: missing_feature (SDK_CONFIGURATION capability not yet implemented)
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Default: v2.20.0
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Ignore: v2.20.0
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart: v2.20.0
