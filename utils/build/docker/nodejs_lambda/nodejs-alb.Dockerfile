@@ -1,6 +1,6 @@
-FROM public.ecr.aws/lambda/nodejs:18
+FROM public.ecr.aws/lambda/nodejs:22
 
-RUN yum install -y unzip findutils socat && yum clean all
+RUN dnf install -y unzip findutils socat && dnf clean all
 
 # Add the Datadog Extension
 RUN mkdir -p /opt/extensions
