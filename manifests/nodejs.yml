@@ -2255,6 +2255,12 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_blrp_max_export_batch_size.py::Test_OTEL_BLRP_MAX_EXPORT_BATCH_SIZE: missing_feature
   tests/parametric/otel_env_vars/test_otel_blrp_max_queue_size.py::Test_OTEL_BLRP_MAX_QUEUE_SIZE: missing_feature
   tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY: missing_feature
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_endpoint.py::Test_OTEL_EXPORTER_OTLP_ENDPOINT: v5.83.0
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_endpoint.py::Test_OTEL_EXPORTER_OTLP_ENDPOINT::test_otlp_custom_endpoint_grpc: missing_feature (Does not support grpc)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_endpoint.py::Test_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT: v5.83.0
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_endpoint.py::Test_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: v5.83.0
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_endpoint.py::Test_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT::test_otlp_metrics_custom_endpoint_grpc: missing_feature (Does not support grpc)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_endpoint.py::Test_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: v6.0.0
   tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT: v5.83.0
   tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT::test_invalid_values: bug (APMAPI-2463)
   tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT::test_spec_default: irrelevant (Datadog intentionally defaults to 7500 ms)
@@ -2436,7 +2442,6 @@ manifest:
   tests/parametric/test_otel_logs.py::Test_FR01_Enable_OTLP_Log_Collection: *ref_5_72_0
   tests/parametric/test_otel_logs.py::Test_FR03_Resource_Attributes: *ref_5_72_0
   tests/parametric/test_otel_logs.py::Test_FR04_Trace_Span_IDs: *ref_5_72_0
-  tests/parametric/test_otel_logs.py::Test_FR05_Custom_Endpoints: *ref_5_72_0
   tests/parametric/test_otel_logs.py::Test_FR06_OTLP_Protocols: *ref_5_72_0
   tests/parametric/test_otel_logs.py::Test_FR07_Host_Name: *ref_5_72_0
   tests/parametric/test_otel_logs.py::Test_FR07_Host_Name::test_hostname_from_dd_hostname: irrelevant (DD_HOSTNAME is only supported in Python)
@@ -2450,10 +2455,6 @@ manifest:
   tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields::test_scope_version_field: *ref_5_72_0
   tests/parametric/test_otel_metrics.py: *ref_5_81_0
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Api_MeterProvider::test_otel_get_meter_by_distinct_schema_url: '>=6.8.0'  # TODO: a lower version might be supported
-  ? tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint::test_otlp_custom_endpoint_grpc
-  : missing_feature (Does not support grpc)
-  ? tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint::test_otlp_metrics_custom_endpoint_grpc
-  : missing_feature (Does not support grpc)
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Host_Name::test_hostname_from_dd_hostname: missing_feature (DD_HOSTNAME to host.name resource attribute mapping not yet implemented)
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_metrics_grpc: missing_feature (Does not support grpc)
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_add_event_meta_serialization:
