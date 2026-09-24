@@ -926,9 +926,7 @@ class _Scenarios:
         doc="End-to-end testing scenario focused on efficient payload handling and v1 trace format validation",
     )
 
-    otel_tracing_e2e = OpenTelemetryScenario("OTEL_TRACING_E2E", require_api_key=True, doc="")
-    otel_metric_e2e = OpenTelemetryScenario("OTEL_METRIC_E2E", require_api_key=True, mocked_backend=False, doc="")
-    otel_log_e2e = OpenTelemetryScenario("OTEL_LOG_E2E", require_api_key=True, doc="")
+    otel_e2e = OpenTelemetryScenario("OTEL_E2E", doc="")
 
     library_conf_custom_header_tags = DdTraceEndToEndScenario(
         "LIBRARY_CONF_CUSTOM_HEADER_TAGS",
@@ -1534,7 +1532,6 @@ class _Scenarios:
     )
 
     otel_collector = OtelCollectorScenario("OTEL_COLLECTOR")
-    otel_collector_e2e = OtelCollectorScenario("OTEL_COLLECTOR_E2E", mocked_backend=False)
 
     integration_frameworks = IntegrationFrameworksScenario(
         "INTEGRATION_FRAMEWORKS", doc="Tests for third-party integration frameworks"

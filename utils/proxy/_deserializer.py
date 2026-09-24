@@ -207,7 +207,7 @@ def deserialize_http_message(
                     use_integers_for_enums=True,
                 )
             )
-        if dd_protocol == "otlp" and "metrics" in path:
+        if dd_protocol == "otlp" and ("metrics" in path or "series" in path):
             return MessageToDict(
                 ExportMetricsServiceRequest.FromString(content),
                 preserving_proto_field_name=False,

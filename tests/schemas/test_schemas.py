@@ -273,7 +273,6 @@ class Test_DdtraceSchemas:
 
 @features.not_reported
 @scenarios.otel_collector
-@scenarios.otel_collector_e2e
 @auxiliary_test
 class Test_OtelSchemas:
     def test_main(self):

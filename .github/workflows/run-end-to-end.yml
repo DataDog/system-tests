@@ -465,52 +465,10 @@ jobs:
       run: ./run.sh DEBUGGER_TELEMETRY
     - name: Run OTEL_INTEGRATIONS scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_INTEGRATIONS"')
-      run: |
-        [[ -z "$DD_API_KEY" ]] && echo "Skipping: DD_API_KEY is not set" && exit 0
-        ./run.sh OTEL_INTEGRATIONS
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-        DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
-        DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
-    - name: Run OTEL_TRACING_E2E scenario
-      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_TRACING_E2E"')
-      run: |
-        [[ -z "$DD_API_KEY" ]] && echo "Skipping: DD_API_KEY is not set" && exit 0
-        ./run.sh OTEL_TRACING_E2E
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-        DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
-        DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
-        DD_API_KEY_2: ${{ secrets.DD_API_KEY_2 }}
-        DD_APP_KEY_2: ${{ secrets.DD_APP_KEY_2 }}
-        DD_API_KEY_3: ${{ secrets.DD_API_KEY_3 }}
-        DD_APP_KEY_3: ${{ secrets.DD_APP_KEY_3 }}
-    - name: Run OTEL_METRIC_E2E scenario
-      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_METRIC_E2E"')
-      run: |
-        [[ -z "$DD_API_KEY" ]] && echo "Skipping: DD_API_KEY is not set" && exit 0
-        ./run.sh OTEL_METRIC_E2E
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-        DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
-        DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
-        DD_API_KEY_2: ${{ secrets.DD_API_KEY_2 }}
-        DD_APP_KEY_2: ${{ secrets.DD_APP_KEY_2 }}
-        DD_API_KEY_3: ${{ secrets.DD_API_KEY_3 }}
-        DD_APP_KEY_3: ${{ secrets.DD_APP_KEY_3 }}
-    - name: Run OTEL_LOG_E2E scenario
-      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_LOG_E2E"')
-      run: |
-        [[ -z "$DD_API_KEY" ]] && echo "Skipping: DD_API_KEY is not set" && exit 0
-        ./run.sh OTEL_LOG_E2E
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-        DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
-        DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
-        DD_API_KEY_2: ${{ secrets.DD_API_KEY_2 }}
-        DD_APP_KEY_2: ${{ secrets.DD_APP_KEY_2 }}
-        DD_API_KEY_3: ${{ secrets.DD_API_KEY_3 }}
-        DD_APP_KEY_3: ${{ secrets.DD_APP_KEY_3 }}
+      run: ./run.sh OTEL_INTEGRATIONS
+    - name: Run OTEL_E2E scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_E2E"')
+      run: ./run.sh OTEL_E2E
     - name: Run APPSEC_LAMBDA_DEFAULT scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_LAMBDA_DEFAULT"')
       run: ./run.sh APPSEC_LAMBDA_DEFAULT
@@ -541,13 +499,6 @@ jobs:
     - name: Run OTEL_COLLECTOR scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_COLLECTOR"')
       run: ./run.sh OTEL_COLLECTOR
-    - name: Run OTEL_COLLECTOR_E2E scenario
-      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_COLLECTOR_E2E"')
-      run: |
-        [[ -z "$DD_API_KEY" ]] && echo "Skipping: DD_API_KEY is not set" && exit 0
-        ./run.sh OTEL_COLLECTOR_E2E
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run AI_GUARD scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"AI_GUARD"')
       run: ./run.sh AI_GUARD
@@ -570,9 +521,6 @@ jobs:
     - name: Run all scenarios in replay mode
       if: success() && steps.build.outcome == 'success' && inputs._enable_replay_scenarios
       run: utils/scripts/replay_scenarios.sh
-      env:
-        DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
-        DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
 
     - name: Compress logs
       id: compress_logs

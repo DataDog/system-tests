@@ -1,5 +1,3 @@
-import os
-
 import pytest
 
 from watchdog.observers.polling import PollingObserver
@@ -8,6 +6,7 @@ from watchdog.events import FileSystemEventHandler, FileSystemEvent
 from utils._logger import logger
 from utils import interfaces
 from utils.interfaces._core import ProxyBasedInterfaceValidator
+from utils.mocked_backend.backend_v2 import get_mocked_backend_v2_container_url
 from utils._context.component_version import Version
 from utils._context.constants import WeblogCategory
 
@@ -26,6 +25,10 @@ from .endtoend import DockerScenario
 class OpenTelemetryScenario(DockerScenario):
     """Scenario for testing opentelemetry"""
 
+    intake_api_key = "0123456789012345678901234_intake"
+    collector_api_key = "0123456789012345678901_collector"
+    agent_api_key = "01234567890123456789012345_agent"
+
     def __init__(
         self,
         name: str,
@@ -35,9 +38,6 @@ class OpenTelemetryScenario(DockerScenario):
         include_agent: bool = True,
         include_collector: bool = True,
         include_intake: bool = True,
-        backend_interface_timeout: int = 20,
-        require_api_key: bool = False,
-        mocked_backend: bool = True,
         extra_containers: tuple[type[TestedContainer], ...] = (),
     ) -> None:
         super().__init__(
@@ -47,11 +47,16 @@ class OpenTelemetryScenario(DockerScenario):
             scenario_groups=[scenario_groups.all, scenario_groups.open_telemetry],
             weblog_categories=[WeblogCategory.open_telemetry],
             use_proxy=True,
-            mocked_backend=mocked_backend,
+            mocked_backend=False,
             extra_containers=extra_containers,
+            mocked_backend_v2=True,
         )
         if include_agent:
-            self.agent_container = AgentContainer(use_proxy=True)
+            # mocked_backend_v2 is not compatible with use_proxy: the agent can't send its traffic to
+            # both the proxy and the mocked backend.
+            self.agent_container = AgentContainer(
+                use_proxy=False, mocked_backend_v2=True, dd_api_key=self.agent_api_key
+            )
             self._containers.append(self.agent_container)
         if include_collector:
             self.collector_container = OpenTelemetryCollectorContainer()
@@ -65,27 +70,27 @@ class OpenTelemetryScenario(DockerScenario):
         self.include_agent = include_agent
         self.include_collector = include_collector
         self.include_intake = include_intake
-        self.backend_interface_timeout = backend_interface_timeout
-        self._require_api_key = require_api_key
 
     def configure(self, config: pytest.Config):
         super().configure(config)
-        self._check_env_vars()
 
-        dd_site = os.environ.get("DD_SITE", "datad0g.com")
+        mocked_backend_url = get_mocked_backend_v2_container_url()
+        dd_site = mocked_backend_url.replace("http://", "")
         if self.include_intake:
             self.weblog_container.environment["OTEL_SYSTEST_INCLUDE_INTAKE"] = "True"
-            self.weblog_container.environment["DD_API_KEY"] = os.environ.get("DD_API_KEY_2")
+            self.weblog_container.environment["DD_API_KEY"] = self.intake_api_key
             self.weblog_container.environment["DD_SITE"] = dd_site
         if self.include_collector:
             self.weblog_container.environment["OTEL_SYSTEST_INCLUDE_COLLECTOR"] = "True"
-            self.collector_container.environment["DD_API_KEY"] = os.environ.get("DD_API_KEY_3")
+            self.collector_container.environment["DD_API_KEY"] = self.collector_api_key
             self.collector_container.environment["DD_SITE"] = dd_site
+            # the datadog exporter otherwise derives its endpoints as https://<prefix>.<site>, but our
+            # mocked backend only serves plain HTTP.
+            self.collector_container.environment["DD_URL"] = mocked_backend_url
         if self.include_agent:
             self.weblog_container.environment["OTEL_SYSTEST_INCLUDE_AGENT"] = "True"
             interfaces.agent.configure(self.host_log_folder, replay=self.replay)
 
-        interfaces.backend.configure(self.host_log_folder, replay=self.replay)
         interfaces.open_telemetry.configure(self.host_log_folder, replay=self.replay)
         interfaces.library_dotnet_managed.configure(self.host_log_folder, replay=self.replay)
 
@@ -138,11 +143,6 @@ class OpenTelemetryScenario(DockerScenario):
 
     def post_setup(self, session: pytest.Session):  # noqa: ARG002
         if self.replay:
-            logger.terminal.write(
-                "\nReplay mode is not fully functional for this scenario, you may encounter errors\n",
-                bold=True,
-                red=True,
-            )
             logger.terminal.write_sep("-", "Load all data from logs")
             logger.terminal.flush()
 
@@ -153,10 +153,9 @@ class OpenTelemetryScenario(DockerScenario):
                 interfaces.agent.load_data_from_logs()
                 interfaces.agent.check_deserialization_errors()
 
-            interfaces.backend.load_data_from_logs()
+            interfaces.backend_v2.load_data_from_logs()
         elif self.use_proxy:
             self._wait_interface(interfaces.open_telemetry, 5)
-            self._wait_interface(interfaces.backend, self.backend_interface_timeout)
 
         self.close_targets()
 
@@ -167,19 +166,6 @@ class OpenTelemetryScenario(DockerScenario):
         logger.terminal.flush()
 
         interface.wait(timeout)
-
-    def _check_env_vars(self):
-        if self._require_api_key and "DD_API_KEY" not in os.environ:
-            pytest.exit("DD_API_KEY is required for this scenario", 1)
-
-        if self.include_intake:
-            assert all(key in os.environ for key in ("DD_API_KEY_2", "DD_APP_KEY_2")), (
-                "OTel E2E test requires DD_API_KEY_2 and DD_APP_KEY_2"
-            )
-        if self.include_collector:
-            assert all(key in os.environ for key in ("DD_API_KEY_3", "DD_APP_KEY_3")), (
-                "OTel E2E test requires DD_API_KEY_3 and DD_APP_KEY_3"
-            )
 
     @property
     def library(self):
