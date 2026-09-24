@@ -334,8 +334,8 @@ def make_split_fixture(flag_key: str):
 def make_invalid_regex_fixture(flag_key: str, invalid_regex: str = "[invalid"):
     """Create a UFC fixture with an invalid regex pattern in a MATCHES condition.
 
-    This tests the PARSE_ERROR scenario where the configuration contains
-    a syntactically invalid regex pattern that fails during evaluation.
+    This tests per-flag configuration isolation. An invalid flag returns the
+    caller default without error metadata.
     """
     return {
         "createdAt": "2024-04-17T19:40:53.716Z",
@@ -376,8 +376,8 @@ def make_invalid_regex_fixture(flag_key: str, invalid_regex: str = "[invalid"):
 def make_variant_type_mismatch_fixture(flag_key: str):
     """Create a UFC fixture where the variant value doesn't match the declared type.
 
-    This tests the PARSE_ERROR scenario where the configuration declares a flag type
-    (e.g., INTEGER) but the variant value is incompatible (e.g., a string).
+    This tests per-flag configuration isolation when the declared flag type and
+    variant value are incompatible.
     This is a configuration error, not a runtime type conversion error.
     """
     return {
@@ -736,21 +736,16 @@ class Test_FFE_Eval_Metric_Numeric_To_Integer:
 
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_eval_metrics
-class Test_FFE_Eval_Metric_Parse_Error_Invalid_Regex:
-    """Test that an invalid regex pattern produces error.type=parse_error.
+class Test_FFE_Eval_Metric_Invalid_Regex_Default:
+    """Test that an invalid regex pattern produces caller-default metrics.
 
-    This configures a flag with a MATCHES condition containing an invalid regex pattern
-    (e.g., "[invalid" which has an unclosed bracket). When the condition is evaluated,
-    the regex compilation fails and produces a parse_error.
-
-    Behavioral differences across SDKs:
-    - Python (libdatadog): Returns parse_error during evaluation
-    - Go: Validates regex at config load time, rejects config with invalid regex
+    Per-flag invalid configuration is isolated. The evaluation returns the caller
+    default without error metadata. A malformed full payload remains a parse error.
     """
 
-    def setup_ffe_eval_metric_parse_error_invalid_regex(self):
-        config_id = "ffe-eval-metric-parse-error"
-        self.flag_key = "eval-metric-parse-error-flag"
+    def setup_ffe_eval_metric_invalid_regex_default(self):
+        config_id = "ffe-eval-invalid-regex-default"
+        self.flag_key = "eval-invalid-regex-default-flag"
         rc.tracer_rc_state.reset().set_config(
             f"{RC_PATH}/{config_id}/config", make_invalid_regex_fixture(self.flag_key)
         ).apply()
@@ -767,8 +762,8 @@ class Test_FFE_Eval_Metric_Parse_Error_Invalid_Regex:
             },
         )
 
-    def test_ffe_eval_metric_parse_error_invalid_regex(self):
-        """Test that invalid regex produces error.type:parse_error."""
+    def test_ffe_eval_metric_invalid_regex_default(self):
+        """Test that invalid regex produces a default result without an error."""
         assert self.r.status_code == 200, f"Flag evaluation request failed: {self.r.text}"
 
         metrics = find_eval_metrics(self.flag_key)
@@ -777,31 +772,28 @@ class Test_FFE_Eval_Metric_Parse_Error_Invalid_Regex:
         point = metrics[0]
         tags = point.get("tags", [])
 
-        assert get_tag_value(tags, "feature_flag.result.reason") == "error", (
-            f"Expected reason 'error' for parse error, got tags: {tags}"
+        assert get_tag_value(tags, "feature_flag.result.reason") == "default", (
+            f"Expected reason 'default' for invalid regex, got tags: {tags}"
         )
-        assert get_tag_value(tags, "error.type") == "parse_error", (
-            f"Expected error.type 'parse_error', got tags: {tags}"
-        )
+        assert get_tag_value(tags, "error.type") is None, f"Expected no error.type for invalid regex, got tags: {tags}"
 
 
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_eval_metrics
-class Test_FFE_Eval_Metric_Parse_Error_Variant_Type_Mismatch:
-    """Test that a variant value not matching declared flag type produces parse_error.
+class Test_FFE_Eval_Metric_Invalid_Variant_Default:
+    """Test that an invalid variant value produces caller-default metrics.
 
     This configures a flag as INTEGER type but gives the variant a string value.
-    When the configuration is validated during evaluation, this type mismatch
-    produces a parse_error (configuration is invalid).
+    Per-flag invalid configuration is isolated. The evaluation returns the caller
+    default without error metadata.
 
     This is different from Test_FFE_Eval_Metric_Type_Mismatch which tests
     runtime type conversion (e.g., evaluating a STRING flag as BOOLEAN).
-    This test validates that configuration errors are properly detected.
     """
 
-    def setup_ffe_eval_metric_parse_error_variant_type_mismatch(self):
-        config_id = "ffe-eval-variant-type-mismatch"
-        self.flag_key = "eval-variant-type-mismatch-flag"
+    def setup_ffe_eval_metric_invalid_variant_default(self):
+        config_id = "ffe-eval-invalid-variant-default"
+        self.flag_key = "eval-invalid-variant-default-flag"
         rc.tracer_rc_state.reset().set_config(
             f"{RC_PATH}/{config_id}/config", make_variant_type_mismatch_fixture(self.flag_key)
         ).apply()
@@ -818,8 +810,8 @@ class Test_FFE_Eval_Metric_Parse_Error_Variant_Type_Mismatch:
             },
         )
 
-    def test_ffe_eval_metric_parse_error_variant_type_mismatch(self):
-        """Test that variant type mismatch produces error.type:parse_error."""
+    def test_ffe_eval_metric_invalid_variant_default(self):
+        """Test that an invalid variant produces a default result without an error."""
         assert self.r.status_code == 200, f"Flag evaluation request failed: {self.r.text}"
 
         metrics = find_eval_metrics(self.flag_key)
@@ -828,11 +820,11 @@ class Test_FFE_Eval_Metric_Parse_Error_Variant_Type_Mismatch:
         point = metrics[0]
         tags = point.get("tags", [])
 
-        assert get_tag_value(tags, "feature_flag.result.reason") == "error", (
-            f"Expected reason 'error' for variant type mismatch, got tags: {tags}"
+        assert get_tag_value(tags, "feature_flag.result.reason") == "default", (
+            f"Expected reason 'default' for invalid variant, got tags: {tags}"
         )
-        assert get_tag_value(tags, "error.type") == "parse_error", (
-            f"Expected error.type 'parse_error' for variant type mismatch, got tags: {tags}"
+        assert get_tag_value(tags, "error.type") is None, (
+            f"Expected no error.type for invalid variant, got tags: {tags}"
         )
 
 
