@@ -36,7 +36,7 @@ manifest:
   tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_telemetry_process_tags_svc: missing_feature
   tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_tracing_process_tags_svc: missing_feature
   tests/apm_tracing_e2e/test_single_span.py::Test_SingleSpan: missing_feature
-  tests/appsec/api_security/:
+  tests/appsec/api_security/test_api_security_rc.py:
     - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
       weblog: fiber-v2-orchestrion
   tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_processors: v2.0.0
@@ -52,12 +52,27 @@ manifest:
         net-http-span-pool: irrelevant (net-http doesn't handle path params)
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Rate::test_sampling_rate: irrelevant (New sampling algorithm tests have been implemented)
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_With_Delay: missing_feature
-  tests/appsec/api_security/test_apisecurity_telemetry.py: v2.0.0
+  tests/appsec/api_security/test_apisecurity_telemetry.py:
+    - weblog_declaration:
+        "*": v2.0.0
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Capabilities: v2.4.0
-  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Multiple_Scanners: v2.4.0
-  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Negative: v2.4.0
-  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Processor_Override: v2.4.0
-  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Scanner: v2.4.0
+  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Multiple_Scanners:
+    - weblog_declaration:
+        "*": v2.4.0
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
+  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Negative:
+    - weblog_declaration:
+        "*": v2.4.0
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
+  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Processor_Override:
+    - weblog_declaration:
+        "*": v2.4.0
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
+  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Scanner:
+    - weblog_declaration:
+        "*": v2.4.0
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
   tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery:
     - weblog_declaration:
         "*": missing_feature
@@ -69,6 +84,9 @@ manifest:
   tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_response_code: irrelevant (Not supported)
   tests/appsec/api_security/test_endpoint_fallback.py: missing_feature
   tests/appsec/api_security/test_endpoints.py: irrelevant (language not implementing this feature)
+  tests/appsec/api_security/test_schemas.py:
+    - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
+      weblog: fiber-v2-orchestrion
   tests/appsec/api_security/test_schemas.py::Test_Scanners: v2.0.0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Cookies: v1.60.0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_FormUrlEncoded_Body: v1.60.0
@@ -352,23 +370,53 @@ manifest:
   tests/appsec/iast/test_sampling_by_route_method_count.py::TestSamplingByRouteMethodCount: missing_feature
   tests/appsec/iast/test_security_controls.py::TestSecurityControls: missing_feature
   tests/appsec/iast/test_vulnerability_schema.py::TestIastVulnerabilitySchema: v0.0.0  # Compliant because no IAST support
-  tests/appsec/rasp/:
-    - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
-      weblog: fiber-v2-orchestrion
-  tests/appsec/rasp/test_api10.py::Test_API10_all: v2.7.0-dev
-  tests/appsec/rasp/test_api10.py::Test_API10_downstream_request_tag: v2.5.0-dev
-  tests/appsec/rasp/test_api10.py::Test_API10_downstream_ssrf_telemetry: v2.4.0
-  tests/appsec/rasp/test_api10.py::Test_API10_redirect: v2.7.0-dev
-  tests/appsec/rasp/test_api10.py::Test_API10_redirect_status: v2.5.0-dev
-  tests/appsec/rasp/test_api10.py::Test_API10_request_body: v2.7.0-dev
-  tests/appsec/rasp/test_api10.py::Test_API10_request_headers: v2.7.0-dev
-  tests/appsec/rasp/test_api10.py::Test_API10_request_method: v2.4.0
-  tests/appsec/rasp/test_api10.py::Test_API10_response_body: v2.7.0-dev
+  tests/appsec/rasp/test_api10.py::Test_API10_all:
+    - weblog_declaration:
+        "*": v2.7.0-dev
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
+  tests/appsec/rasp/test_api10.py::Test_API10_downstream_request_tag:
+    - weblog_declaration:
+        "*": v2.5.0-dev
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
+  tests/appsec/rasp/test_api10.py::Test_API10_downstream_ssrf_telemetry:
+    - weblog_declaration:
+        "*": v2.4.0
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
+  tests/appsec/rasp/test_api10.py::Test_API10_redirect:
+    - weblog_declaration:
+        "*": v2.7.0-dev
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
+  tests/appsec/rasp/test_api10.py::Test_API10_redirect_status:
+    - weblog_declaration:
+        "*": v2.5.0-dev
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
+  tests/appsec/rasp/test_api10.py::Test_API10_request_body:
+    - weblog_declaration:
+        "*": v2.7.0-dev
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
+  tests/appsec/rasp/test_api10.py::Test_API10_request_headers:
+    - weblog_declaration:
+        "*": v2.7.0-dev
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
+  tests/appsec/rasp/test_api10.py::Test_API10_request_method:
+    - weblog_declaration:
+        "*": v2.4.0
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body:
+    - weblog_declaration:
+        "*": v2.7.0-dev
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
   tests/appsec/rasp/test_api10.py::Test_API10_response_body_ignored_content_length_missing: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_response_body_ignored_content_length_too_big: missing_feature
   tests/appsec/rasp/test_api10.py::Test_API10_response_body_ignored_content_type: missing_feature
-  tests/appsec/rasp/test_api10.py::Test_API10_response_headers: v2.4.0
-  tests/appsec/rasp/test_api10.py::Test_API10_response_status: v2.4.0
+  tests/appsec/rasp/test_api10.py::Test_API10_response_headers:
+    - weblog_declaration:
+        "*": v2.4.0
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
+  tests/appsec/rasp/test_api10.py::Test_API10_response_status:
+    - weblog_declaration:
+        "*": v2.4.0
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
   tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_max: v2.4.0
   tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_sample_rate: v2.7.0-dev
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyJson:  # Easy win for net-http-orchestrion and version 2.10.0
@@ -474,57 +522,129 @@ manifest:
         "*": irrelevant (LFi detection requires orchestrion)
         net-http-orchestrion: v2.0.0
   tests/appsec/rasp/test_shi.py: irrelevant (there is no equivalent to system(3) in go)
-  tests/appsec/rasp/test_sqli.py::Test_Sqli_BodyJson: v1.66.0
-  tests/appsec/rasp/test_sqli.py::Test_Sqli_BodyUrlEncoded: v1.66.0
-  tests/appsec/rasp/test_sqli.py::Test_Sqli_BodyXml: v1.66.0
+  tests/appsec/rasp/test_sqli.py::Test_Sqli_BodyJson:
+    - weblog_declaration:
+        "*": v1.66.0
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
+  tests/appsec/rasp/test_sqli.py::Test_Sqli_BodyUrlEncoded:
+    - weblog_declaration:
+        "*": v1.66.0
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
+  tests/appsec/rasp/test_sqli.py::Test_Sqli_BodyXml:
+    - weblog_declaration:
+        "*": v1.66.0
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Capability: v1.69.0
-  tests/appsec/rasp/test_sqli.py::Test_Sqli_Mandatory_SpanTags: v1.69.0
-  tests/appsec/rasp/test_sqli.py::Test_Sqli_Optional_SpanTags: v2.0.0
+  tests/appsec/rasp/test_sqli.py::Test_Sqli_Mandatory_SpanTags:
+    - weblog_declaration:
+        "*": v1.69.0
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
+  tests/appsec/rasp/test_sqli.py::Test_Sqli_Optional_SpanTags:
+    - weblog_declaration:
+        "*": v2.0.0
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Rules_Version: v2.0.0
-  tests/appsec/rasp/test_sqli.py::Test_Sqli_StackTrace: v1.66.0
-  tests/appsec/rasp/test_sqli.py::Test_Sqli_Telemetry: v2.0.0
-  tests/appsec/rasp/test_sqli.py::Test_Sqli_Telemetry_V2: v2.0.0
-  tests/appsec/rasp/test_sqli.py::Test_Sqli_UrlQuery: v1.66.0
+  tests/appsec/rasp/test_sqli.py::Test_Sqli_StackTrace:
+    - weblog_declaration:
+        "*": v1.66.0
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
+  tests/appsec/rasp/test_sqli.py::Test_Sqli_Telemetry:
+    - weblog_declaration:
+        "*": v2.0.0
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
+  tests/appsec/rasp/test_sqli.py::Test_Sqli_Telemetry_V2:
+    - weblog_declaration:
+        "*": v2.0.0
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
+  tests/appsec/rasp/test_sqli.py::Test_Sqli_UrlQuery:
+    - weblog_declaration:
+        "*": v1.66.0
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Waf_Version: v2.0.0
-  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyJson: v1.65.1
-  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyUrlEncoded: v1.65.1
-  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyXml: v1.65.1
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyJson:
+    - weblog_declaration:
+        "*": v1.65.1
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyUrlEncoded:
+    - weblog_declaration:
+        "*": v1.65.1
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyXml:
+    - weblog_declaration:
+        "*": v1.65.1
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Capability: v1.69.0
-  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Mandatory_SpanTags: v1.69.0
-  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Optional_SpanTags: v2.0.0
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Mandatory_SpanTags:
+    - weblog_declaration:
+        "*": v1.69.0
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Optional_SpanTags:
+    - weblog_declaration:
+        "*": v2.0.0
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Rules_Version: v2.0.0
-  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_StackTrace: v1.65.1
-  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry: v2.0.0
-  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry_V2: v2.0.0
-  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_UrlQuery: v1.65.1
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_StackTrace:
+    - weblog_declaration:
+        "*": v1.65.1
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry:
+    - weblog_declaration:
+        "*": v2.0.0
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry_V2:
+    - weblog_declaration:
+        "*": v2.0.0
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_UrlQuery:
+    - weblog_declaration:
+        "*": v1.65.1
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Waf_Version: v2.0.0
-  tests/appsec/smoke_tests/:
+  tests/appsec/smoke_tests/test_apm_standalone.py: v2.7.0
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_ApiSecurity:
     - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
       weblog: fiber-v2-orchestrion
-  tests/appsec/smoke_tests/test_apm_standalone.py: v2.7.0
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp:
+    - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
+      weblog: fiber-v2-orchestrion
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp::test_lfi_smoke:
     - weblog_declaration:
         "*": irrelevant (LFi detection requires orchestrion)
         net-http-orchestrion: v2.7.0
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp::test_shi_smoke: irrelevant (there is no equivalent to system(3) in go)
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_RemoteConfig:
+    - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
+      weblog: fiber-v2-orchestrion
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_RemoteConfig::test_rasp_blocking_smoke:
     - weblog_declaration:
         "*": irrelevant (LFi detection requires orchestrion)
         net-http-orchestrion: v2.7.0
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Threats:
+    - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
+      weblog: fiber-v2-orchestrion
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_UserEvents: missing_feature
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_ApiSecurity:
+    - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
+      weblog: fiber-v2-orchestrion
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Rasp:
+    - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
+      weblog: fiber-v2-orchestrion
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Rasp::test_lfi_smoke:
     - weblog_declaration:
         "*": irrelevant (LFi detection requires orchestrion)
         net-http-orchestrion: v2.7.0
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Rasp::test_shi_smoke: irrelevant (there is no equivalent to system(3) in go)
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_RemoteConfig:
+    - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
+      weblog: fiber-v2-orchestrion
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_RemoteConfig::test_rasp_blocking_smoke:
     - weblog_declaration:
         "*": irrelevant (LFi detection requires orchestrion)
         net-http-orchestrion: v2.7.0
-  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_UserEvents: missing_feature
-  tests/appsec/test_agentic_onboarding.py:
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Threats:
     - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
       weblog: fiber-v2-orchestrion
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_UserEvents: missing_feature
   tests/appsec/test_agentic_onboarding.py::Test_AppsecAgenticOnboarding:
     - weblog_declaration:
         "*": v2.11.0-dev
@@ -708,8 +828,6 @@ manifest:
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Blocking: irrelevant (Go only supports SDK events)
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Tracking: irrelevant (Go only supports SDK events)
   tests/appsec/test_blocking_addresses.py:
-    - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
-      weblog: fiber-v2-orchestrion
     - weblog_declaration:
         apim: v2.7.1
         envoy: v1.72.0
@@ -718,9 +836,18 @@ manifest:
     - weblog_declaration:
         envoy, apim, haproxy: irrelevant (not applicable to proxies)
         "*": missing_feature
-  tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip: v1.51.0
-  tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_K8_private_ip: v2.2.0
-  tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_forwarded: v2.3.0-dev
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip:
+    - weblog_declaration:
+        "*": v1.51.0
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_K8_private_ip:
+    - weblog_declaration:
+        "*": v2.2.0
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_forwarded:
+    - weblog_declaration:
+        "*": v2.3.0-dev
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_filenames: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_files_content: missing_feature
@@ -731,6 +858,7 @@ manifest:
         net-http: irrelevant
         net-http-orchestrion: irrelevant
         net-http-span-pool: irrelevant
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_cookies::test_blocking_before:
     - weblog_declaration:
         envoy, apim, haproxy: missing_feature (The endpoint /tag_value is not implemented in the weblog)
@@ -740,6 +868,7 @@ manifest:
         net-http: irrelevant
         net-http-orchestrion: irrelevant
         net-http-span-pool: irrelevant
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_headers::test_blocking_before:
     - weblog_declaration:
         envoy, apim, haproxy: missing_feature (The endpoint /tag_value is not implemented in the weblog)
@@ -749,6 +878,7 @@ manifest:
         net-http: irrelevant
         net-http-orchestrion: irrelevant
         net-http-span-pool: irrelevant
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_method::test_blocking_before:
     - weblog_declaration:
         envoy, apim, haproxy: missing_feature (The endpoint /tag_value is not implemented in the weblog)
@@ -758,6 +888,7 @@ manifest:
         net-http: irrelevant
         net-http-orchestrion: irrelevant
         net-http-span-pool: irrelevant
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_path_params::test_blocking:
     - weblog_declaration:
         envoy, apim, haproxy: missing_feature (The endpoint /param is not implemented in the weblog)
@@ -774,15 +905,26 @@ manifest:
         net-http: irrelevant
         net-http-orchestrion: irrelevant
         net-http-span-pool: irrelevant
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query::test_blocking:
+    - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
+      weblog: fiber-v2-orchestrion
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query::test_blocking_before:
     - weblog_declaration:
         envoy, apim, haproxy: missing_feature (The endpoint /tag_value is not implemented in the weblog)
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query::test_blocking_case_sensitive:
+    - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
+      weblog: fiber-v2-orchestrion
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query::test_non_blocking:
+    - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
+      weblog: fiber-v2-orchestrion
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_uri:
     - weblog_declaration:
         "*": v1.51.0
         net-http: irrelevant
         net-http-orchestrion: irrelevant
         net-http-span-pool: irrelevant
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_uri::test_blocking_before:
     - weblog_declaration:
         envoy, apim, haproxy: missing_feature (The endpoint /tag_value is not implemented in the weblog)
@@ -807,6 +949,7 @@ manifest:
     - weblog_declaration:
         envoy, apim, haproxy: irrelevant (not supported on proxies)
         "*": v1.51.0
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
   tests/appsec/test_blocking_addresses.py::Test_Suspicious_Request_Blocking:
     - weblog_declaration:
         "*": v2.3.0-dev
@@ -814,6 +957,7 @@ manifest:
         haproxy: v2.10.0  # TODO: a lower version might be supported
         apim: v2.10.0  # TODO: a lower version might be supported
         envoy: v2.10.0  # TODO: a lower version might be supported
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
   tests/appsec/test_blocking_addresses.py::Test_Suspicious_Request_Blocking::test_blocking:  # Created by easy win activation script
     - weblog_declaration:
         net-http-orchestrion: missing_feature (path params are not supported)
@@ -834,23 +978,36 @@ manifest:
         envoy: missing_feature (can't test with set tag)
         haproxy: missing_feature (can't test with set tag)
   tests/appsec/test_client_ip.py:
-    - declaration: missing_feature (Fiber v2 does not collect client IP tags)
-      weblog: fiber-v2-orchestrion
     - weblog_declaration:
         apim: v2.7.1
         envoy: v1.72.0
         haproxy: v2.4.0
   tests/appsec/test_client_ip.py::Test_StandardTagsClientIp: v1.44.1
-  tests/appsec/test_conf.py:
+  tests/appsec/test_conf.py::Test_ConfigurationVariables: v2.0.0
+  tests/appsec/test_conf.py::Test_ConfigurationVariables::test_appsec_rules:
     - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
       weblog: fiber-v2-orchestrion
-  tests/appsec/test_conf.py::Test_ConfigurationVariables: v2.0.0
-  tests/appsec/test_conf.py::Test_ConfigurationVariables_New_Obfuscation: v2.1.0-dev
-  tests/appsec/test_customconf.py:
+  tests/appsec/test_conf.py::Test_ConfigurationVariables::test_enabled:
+    - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
+      weblog: fiber-v2-orchestrion
+  tests/appsec/test_conf.py::Test_ConfigurationVariables::test_obfuscation_parameter_key:
+    - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
+      weblog: fiber-v2-orchestrion
+  tests/appsec/test_conf.py::Test_ConfigurationVariables::test_obfuscation_parameter_value:
+    - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
+      weblog: fiber-v2-orchestrion
+  tests/appsec/test_conf.py::Test_ConfigurationVariables_New_Obfuscation:
+    - weblog_declaration:
+        "*": v2.1.0-dev
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
+  tests/appsec/test_customconf.py::Test_ConfRuleSet::test_requests:
     - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
       weblog: fiber-v2-orchestrion
   tests/appsec/test_customconf.py::Test_CorruptedRules_Telemetry: missing_feature
-  tests/appsec/test_customconf.py::Test_NoLimitOnWafRules: v1.37.0
+  tests/appsec/test_customconf.py::Test_NoLimitOnWafRules:
+    - weblog_declaration:
+        "*": v1.37.0
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
   tests/appsec/test_event_tracking.py::Test_CustomEvent:
     - weblog_declaration:
         '*': v1.47.0
@@ -890,10 +1047,7 @@ manifest:
   tests/appsec/test_event_tracking.py::Test_UserLoginSuccessEvent_Metrics::test_user_login_success_event:
     - weblog_declaration:
         envoy, apim, haproxy: missing_feature
-  tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled:
-    - weblog_declaration:
-        '*': v2.2.0-dev  # LANGPLAT-583
-        fiber-v2-orchestrion: missing_feature (Fiber v2 does not support event header tags)
+  tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled: v2.2.0-dev  # LANGPLAT-583
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_HeaderCollection_AppsecEnabled:
     - weblog_declaration:
         '*': v2.2.0-dev  # LANGPLAT-583
@@ -910,10 +1064,7 @@ manifest:
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_Tags_AppsecEnabled: v2.1.0-dev
   ? tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_Tags_AppsecEnabled::test_user_login_failure_event_deep_metadata
   : irrelevant (dd-trace-go only accepts string metadata values)
-  tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_HeaderCollection_AppsecDisabled:
-    - weblog_declaration:
-        '*': v2.2.0-dev  # LANGPLAT-583
-        fiber-v2-orchestrion: missing_feature (Fiber v2 does not support event header tags)
+  tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_HeaderCollection_AppsecDisabled: v2.2.0-dev  # LANGPLAT-583
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_HeaderCollection_AppsecEnabled:
     - weblog_declaration:
         '*': v2.2.0-dev  # LANGPLAT-583
@@ -934,9 +1085,6 @@ manifest:
   : irrelevant (dd-trace-go only accepts string metadata values)
   ? tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Tags_AppsecEnabled::test_user_login_success_event_multi_type_metadata
   : irrelevant (dd-trace-go only accepts string metadata values)
-  tests/appsec/test_extended_data_collection.py:
-    - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
-      weblog: fiber-v2-orchestrion
   tests/appsec/test_extended_data_collection.py::Test_ExtendedDataCollectionCapability: missing_feature
   tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestBodyCollection:  # Modified by easy win activation script
     - weblog_declaration:
@@ -948,6 +1096,7 @@ manifest:
         net-http-orchestrion: '>=2.5.0'
         net-http: '>=2.5.0'
         net-http-span-pool: '>=2.5.0'
+        fiber-v2-orchestrion: '>=2.5.0'
   tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestBodyCollection::test_extended_request_body_collection:  # Created by easy win activation script
     - weblog_declaration:
         echo: missing_feature
@@ -957,6 +1106,7 @@ manifest:
         uds-echo: missing_feature
         chi: missing_feature
         net-http-orchestrion: missing_feature
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
   ? tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestBodyCollection::test_extended_request_body_collection_truncated
   :  # Created by easy win activation script
     - weblog_declaration:
@@ -967,36 +1117,49 @@ manifest:
         uds-echo: missing_feature
         chi: missing_feature
         net-http-orchestrion: missing_feature
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
   tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestHeadersDataCollection: missing_feature
   tests/appsec/test_extended_data_collection.py::Test_ExtendedResponseHeadersDataCollection: missing_feature
   tests/appsec/test_extended_header_collection.py::Test_ExtendedHeaderCollection: missing_feature
   tests/appsec/test_extended_request_body_collection.py::Test_ExtendedRequestBodyCollection: missing_feature
-  tests/appsec/test_fingerprinting.py:
-    - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
-      weblog: fiber-v2-orchestrion
-  tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Endpoint: v1.69.0
+  tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Endpoint:
+    - weblog_declaration:
+        "*": v1.69.0
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Endpoint_Capability: v1.69.0
-  tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Endpoint_Preprocessor: v1.69.0
-  tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Header_And_Network: v1.69.0
-  tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Header_And_Network_Preprocessor: v1.69.0
+  tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Endpoint_Preprocessor:
+    - weblog_declaration:
+        "*": v1.69.0
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
+  tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Header_And_Network:
+    - weblog_declaration:
+        "*": v1.69.0
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
+  tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Header_And_Network_Preprocessor:
+    - weblog_declaration:
+        "*": v1.69.0
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Header_And_Network_Preprocessor::test_fingerprinting_header_blocking:
     - weblog_declaration:
         envoy, haproxy: missing_feature
         apim: v2.10.0  # TODO: a lower version might be supported
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Header_Capability: v1.69.0
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Network_Capability: v1.69.0
-  tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session: v1.69.0
+  tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session:
+    - weblog_declaration:
+        "*": v1.69.0
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session::test_session:
     - weblog_declaration:
         envoy, apim, haproxy: missing_feature
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session_Capability: v1.69.0
-  tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session_Preprocessor: v1.69.0
+  tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session_Preprocessor:
+    - weblog_declaration:
+        "*": v1.69.0
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session_Preprocessor::test_session_non_blocking:
     - weblog_declaration:
         envoy, apim, haproxy: missing_feature
-  tests/appsec/test_identify.py:
-    - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
-      weblog: fiber-v2-orchestrion
   tests/appsec/test_identify.py::Test_Basic: v1.37.0
   tests/appsec/test_identify.py::Test_Basic::test_identify_tags_with_attack:
     - weblog_declaration:
@@ -1024,16 +1187,37 @@ manifest:
   tests/appsec/test_rate_limiter.py:
     - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
       weblog: fiber-v2-orchestrion
-  tests/appsec/test_remote_config_rule_changes.py:
+  tests/appsec/test_remote_config_rule_changes.py::Test_AsmDdMultiConfiguration: v2.1.0-dev
+  tests/appsec/test_remote_config_rule_changes.py::Test_AsmDdMultiConfiguration::test_update_rules:
     - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
       weblog: fiber-v2-orchestrion
-  tests/appsec/test_remote_config_rule_changes.py::Test_AsmDdMultiConfiguration: v2.1.0-dev
-  tests/appsec/test_remote_config_rule_changes.py::Test_BlockingActionChangesWithRemoteConfig: v1.69.0
-  tests/appsec/test_remote_config_rule_changes.py::Test_Empty_Config: v2.4.0
-  tests/appsec/test_remote_config_rule_changes.py::Test_Invalid_Config: v2.2.3
-  tests/appsec/test_remote_config_rule_changes.py::Test_Multiple_Actions: v1.69.0
-  tests/appsec/test_remote_config_rule_changes.py::Test_Unknown_Action: v1.69.0
-  tests/appsec/test_remote_config_rule_changes.py::Test_UpdateRuleFileWithRemoteConfig: v2.0.0
+  tests/appsec/test_remote_config_rule_changes.py::Test_AsmDdMultiConfiguration::test_update_rules_with_rules_compat:
+    - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
+      weblog: fiber-v2-orchestrion
+  tests/appsec/test_remote_config_rule_changes.py::Test_BlockingActionChangesWithRemoteConfig:
+    - weblog_declaration:
+        "*": v1.69.0
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
+  tests/appsec/test_remote_config_rule_changes.py::Test_Empty_Config:
+    - weblog_declaration:
+        "*": v2.4.0
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
+  tests/appsec/test_remote_config_rule_changes.py::Test_Invalid_Config:
+    - weblog_declaration:
+        "*": v2.2.3
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
+  tests/appsec/test_remote_config_rule_changes.py::Test_Multiple_Actions:
+    - weblog_declaration:
+        "*": v1.69.0
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
+  tests/appsec/test_remote_config_rule_changes.py::Test_Unknown_Action:
+    - weblog_declaration:
+        "*": v1.69.0
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
+  tests/appsec/test_remote_config_rule_changes.py::Test_UpdateRuleFileWithRemoteConfig:
+    - weblog_declaration:
+        "*": v2.0.0
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
   tests/appsec/test_reports.py:
     - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
       weblog: fiber-v2-orchestrion
@@ -1071,13 +1255,16 @@ manifest:
         apim: v2.7.1
         envoy: v1.72.0
         haproxy: v2.4.0
-  tests/appsec/test_runtime_activation.py:
-    - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
-      weblog: fiber-v2-orchestrion
-  tests/appsec/test_runtime_activation.py::Test_RuntimeActivation: v1.69.0
+  tests/appsec/test_runtime_activation.py::Test_RuntimeActivation:
+    - weblog_declaration:
+        "*": v1.69.0
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
   tests/appsec/test_runtime_activation.py::Test_RuntimeActivationCapabilities: v1.69.0
   tests/appsec/test_runtime_activation.py::Test_RuntimeActivationCapabilitiesCleared: v1.69.0
-  tests/appsec/test_runtime_activation.py::Test_RuntimeDeactivation: v1.69.0
+  tests/appsec/test_runtime_activation.py::Test_RuntimeDeactivation:
+    - weblog_declaration:
+        "*": v1.69.0
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
   tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_After_Vulnerable_Call: missing_feature
   tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_Registered_At_Load_Time: missing_feature
   tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_Deduplication: missing_feature
@@ -1103,10 +1290,10 @@ manifest:
     - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
       weblog: fiber-v2-orchestrion
   tests/appsec/test_suspicious_attacker_blocking.py::Test_Suspicious_Attacker_Blocking: v1.69.0
-  tests/appsec/test_trace_tagging.py:
-    - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
-      weblog: fiber-v2-orchestrion
-  tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules: v2.1.0-dev
+  tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules:
+    - weblog_declaration:
+        "*": v2.1.0-dev
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules::test_rule_with_attributes_no_keep_event:
     - weblog_declaration:
         apim: v2.7.1
@@ -1119,8 +1306,6 @@ manifest:
         haproxy: v2.4.0
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRulesRcCapability: v2.1.0-dev
   tests/appsec/test_traces.py:
-    - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
-      weblog: fiber-v2-orchestrion
     - weblog_declaration:
         apim: v2.7.1
         envoy: v1.72.0
@@ -1129,31 +1314,41 @@ manifest:
     - weblog_declaration:
         "*": v1.36.0
         gin: v1.37.0
+  tests/appsec/test_traces.py::Test_AppSecEventSpanTags::test_custom_span_tags:
+    - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
+      weblog: fiber-v2-orchestrion
   tests/appsec/test_traces.py::Test_AppSecEventSpanTags::test_header_collection:
     - weblog_declaration:
         envoy, apim, haproxy: irrelevant (test)
-  tests/appsec/test_traces.py::Test_AppSecObfuscator: v1.38.0
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
+  tests/appsec/test_traces.py::Test_AppSecObfuscator:
+    - weblog_declaration:
+        "*": v1.38.0
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
   tests/appsec/test_traces.py::Test_CollectDefaultRequestHeader:
     - weblog_declaration:
         "*": v1.36.2
         gin: v1.37.0
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
   tests/appsec/test_traces.py::Test_CollectRespondHeaders:
     - weblog_declaration:
         "*": v1.36.2
         gin: v1.37.0
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
   tests/appsec/test_traces.py::Test_CollectRespondHeaders::test_header_collection:
     - weblog_declaration:
         envoy, apim, haproxy: missing_feature (The endpoint /headers is not implemented in the weblog)
-  tests/appsec/test_traces.py::Test_ExternalWafRequestsIdentification: v1.63.0
+  tests/appsec/test_traces.py::Test_ExternalWafRequestsIdentification:
+    - weblog_declaration:
+        "*": v1.63.0
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
   tests/appsec/test_traces.py::Test_RetainTraces:
     - weblog_declaration:
         "*": v1.36.0
         gin: v1.37.0
-  tests/appsec/test_user_blocking_full_denylist.py:
-    - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
-      weblog: fiber-v2-orchestrion
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
   tests/appsec/test_user_blocking_full_denylist.py::Test_UserBlocking_FullDenylist: v1.48.0
-  tests/appsec/test_versions.py:
+  tests/appsec/test_user_blocking_full_denylist.py::Test_UserBlocking_FullDenylist::test_blocking_test:
     - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
       weblog: fiber-v2-orchestrion
   tests/appsec/test_versions.py::Test_Events:
@@ -1163,10 +1358,10 @@ manifest:
         apim: v2.7.1
         envoy: v1.72.0
         haproxy: v2.4.0
-  tests/appsec/waf/:
-    - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
-      weblog: fiber-v2-orchestrion
-  tests/appsec/waf/test_addresses.py::Test_BodyJson: v1.37.0
+  tests/appsec/waf/test_addresses.py::Test_BodyJson:
+    - weblog_declaration:
+        "*": v1.37.0
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
   tests/appsec/waf/test_addresses.py::Test_BodyJson::test_json_array:
     - weblog_declaration:
         apim: v2.7.1
@@ -1177,11 +1372,17 @@ manifest:
         apim: v2.7.1
         envoy: v1.72.0
         haproxy: v2.4.0
-  tests/appsec/waf/test_addresses.py::Test_BodyUrlEncoded: v1.37.0
+  tests/appsec/waf/test_addresses.py::Test_BodyUrlEncoded:
+    - weblog_declaration:
+        "*": v1.37.0
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
   tests/appsec/waf/test_addresses.py::Test_BodyUrlEncoded::test_body_value:
     - weblog_declaration:
         envoy, apim, haproxy: missing_feature
-  tests/appsec/waf/test_addresses.py::Test_BodyXml: v1.37.0
+  tests/appsec/waf/test_addresses.py::Test_BodyXml:
+    - weblog_declaration:
+        "*": v1.37.0
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
   tests/appsec/waf/test_addresses.py::Test_BodyXml::test_xml_attr_value:
     - weblog_declaration:
         envoy, apim, haproxy: missing_feature
@@ -1194,12 +1395,14 @@ manifest:
         chi: v1.36.0
         echo: v1.36.0
         gin: v1.37.0
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
   tests/appsec/waf/test_addresses.py::Test_Cookies::test_cookies_with_semicolon_custom_rules: irrelevant (Not handled by the Go standard cookie parser)
   tests/appsec/waf/test_addresses.py::Test_Cookies::test_cookies_with_special_chars2_custom_rules: irrelevant (Not handled by the Go standard cookie parser)
   tests/appsec/waf/test_addresses.py::Test_FullGrpc: missing_feature
   tests/appsec/waf/test_addresses.py::Test_GraphQL:
     - weblog_declaration:
         "*": v1.60.0
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
   tests/appsec/waf/test_addresses.py::Test_GraphQL::test_request_monitor_attack_directive: missing_feature (Not supported or implemented in existing libraries)
   tests/appsec/waf/test_addresses.py::Test_GrpcServerMethod: v1.62.0
   tests/appsec/waf/test_addresses.py::Test_Headers:
@@ -1208,6 +1411,7 @@ manifest:
         chi: v1.36.0
         echo: v1.36.0
         gin: v1.37.0
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
   tests/appsec/waf/test_addresses.py::Test_Headers::test_specific_key3:
     - weblog_declaration:
         envoy: missing_feature
@@ -1220,6 +1424,7 @@ manifest:
         net-http: irrelevant (net-http doesn't handle path params)
         net-http-orchestrion: irrelevant (net-http doesn't handle path params)
         net-http-span-pool: irrelevant (net-http doesn't handle path params)
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
   tests/appsec/waf/test_addresses.py::Test_PathParams::test_security_scanner:
     - weblog_declaration:
         envoy, apim, haproxy: missing_feature
@@ -1227,6 +1432,7 @@ manifest:
     - weblog_declaration:
         "*": v1.36.0
         gin: v1.37.0
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
   tests/appsec/waf/test_addresses.py::Test_ResponseStatus::test_basic:
     - weblog_declaration:
         envoy, apim, haproxy: missing_feature
@@ -1234,17 +1440,25 @@ manifest:
     - weblog_declaration:
         "*": v1.35.0
         gin: v1.37.0
-  tests/appsec/waf/test_addresses.py::Test_UrlQueryKey: v1.38.1
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
+  tests/appsec/waf/test_addresses.py::Test_UrlQueryKey:
+    - weblog_declaration:
+        "*": v1.38.1
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
   tests/appsec/waf/test_addresses.py::Test_UrlRaw:
     - weblog_declaration:
         "*": v1.34.0
         chi: v1.36.0
         echo: v1.36.0
         gin: v1.37.0
+        fiber-v2-orchestrion: missing_feature (Fiber v2 has no HTTP AppSec integration)
   tests/appsec/waf/test_addresses.py::Test_gRPC: v1.36.0
   tests/appsec/waf/test_addresses.py::Test_gRPC::test_basic:
     - weblog_declaration:
         envoy, apim, haproxy: missing_feature
+  tests/appsec/waf/test_blocking.py:
+    - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
+      weblog: fiber-v2-orchestrion
   tests/appsec/waf/test_blocking.py::Test_Blocking: v1.50.0-rc.1
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_full_html:
     - declaration: bug (APPSEC-61196)
@@ -1260,12 +1474,24 @@ manifest:
       component_version: <1.52.0
   tests/appsec/waf/test_blocking.py::Test_Blocking_strip_response_headers: missing_feature
   tests/appsec/waf/test_blocking.py::Test_CustomBlockingResponse: v1.63.0
+  tests/appsec/waf/test_blocking_security_response_id.py:
+    - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
+      weblog: fiber-v2-orchestrion
   tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_Custom_Redirect: v2.5.0-dev
   tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_HTML_Response: v2.5.0-dev
   tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_In_Span_Triggers: v2.5.0-dev
   tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_JSON_Response: v2.5.0-dev
+  tests/appsec/waf/test_custom_rules.py:
+    - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
+      weblog: fiber-v2-orchestrion
   tests/appsec/waf/test_custom_rules.py::Test_CustomRules: v1.51.0
+  tests/appsec/waf/test_exclusions.py:
+    - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
+      weblog: fiber-v2-orchestrion
   tests/appsec/waf/test_exclusions.py::Test_Exclusions: v1.53.0
+  tests/appsec/waf/test_miscs.py:
+    - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
+      weblog: fiber-v2-orchestrion
   tests/appsec/waf/test_miscs.py::Test_404:
     - weblog_declaration:
         "*": v1.34.0
@@ -1290,11 +1516,17 @@ manifest:
         "*": v1.36.0
         gin: v1.37.0
   tests/appsec/waf/test_raw_response_body.py::Test_RawResponseBody: missing_feature
+  tests/appsec/waf/test_reports.py:
+    - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
+      weblog: fiber-v2-orchestrion
   tests/appsec/waf/test_reports.py::Test_Monitoring: v1.38.0
   tests/appsec/waf/test_reports.py::Test_Monitoring::test_waf_monitoring_errors: irrelevant (expected tags were deprecated by rfc1025)
   tests/appsec/waf/test_reports.py::Test_Monitoring::test_waf_monitoring_once:
     - declaration: irrelevant (replaced by test_waf_monitoring_once_rfc1025)
       component_version: '>=2.1.0-dev'
+  tests/appsec/waf/test_rules.py:
+    - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
+      weblog: fiber-v2-orchestrion
   tests/appsec/waf/test_rules.py::Test_CommandInjection:
     - weblog_declaration:
         "*": v1.35.0
@@ -1356,6 +1588,15 @@ manifest:
         echo: v1.36.0
         gin: v1.37.0
   tests/appsec/waf/test_telemetry.py::Test_TelemetryMetrics: v2.0.0
+  tests/appsec/waf/test_telemetry.py::Test_TelemetryMetrics::test_metric_waf_requests:
+    - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
+      weblog: fiber-v2-orchestrion
+  tests/appsec/waf/test_telemetry.py::Test_TelemetryMetrics::test_waf_requests_match_traced_requests:
+    - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
+      weblog: fiber-v2-orchestrion
+  tests/appsec/waf/test_truncation.py:
+    - declaration: missing_feature (Fiber v2 has no HTTP AppSec integration)
+      weblog: fiber-v2-orchestrion
   tests/appsec/waf/test_truncation.py::Test_Truncation: v2.0.0
   tests/appsec/waf/test_truncation.py::Test_Truncation::test_truncation:
     - weblog_declaration:
@@ -2144,14 +2385,8 @@ manifest:
         apim: v2.7.1
         envoy: v1.72.0
         haproxy: v2.4.0
-  tests/test_library_conf.py::Test_HeaderTags_Colon_Leading:
-    - weblog_declaration:
-        '*': v1.53.0
-        fiber-v2-orchestrion: missing_feature (Fiber v2 does not support header tags)
-  tests/test_library_conf.py::Test_HeaderTags_Colon_Trailing:
-    - weblog_declaration:
-        '*': v1.70.0
-        fiber-v2-orchestrion: missing_feature (Fiber v2 does not support header tags)
+  tests/test_library_conf.py::Test_HeaderTags_Colon_Leading: v1.53.0
+  tests/test_library_conf.py::Test_HeaderTags_Colon_Trailing: v1.70.0
   tests/test_library_conf.py::Test_HeaderTags_DynamicConfig:
     - weblog_declaration:
         '*': v1.70.0
