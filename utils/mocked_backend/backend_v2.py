@@ -18,7 +18,7 @@ import io
 import json
 import threading
 import traceback
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal
 from urllib.parse import urlsplit
 import zlib
 
@@ -31,6 +31,10 @@ from utils.proxy._deserializer import deserialize
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping
+
+    RouteHandler = Callable[["MockBackendV2RequestHandler"], list|dict]
+
+HttpMethod = Literal["GET", "POST", "PUT"]
 
 
 def _decode_content(raw_body: bytes, content_encoding: str) -> bytes:
@@ -94,6 +98,7 @@ class MockBackendV2Server(ThreadingHTTPServer):
         self.on_message = on_message
         self.message_count = 0
         self._count_lock = threading.Lock()
+        self._routes: dict[tuple[HttpMethod, str], RouteHandler] = {}
         self.port = self.server_port
         self._thread = threading.Thread(target=self.serve_forever, name=self.thread_name, daemon=True)
         self._thread.start()
@@ -104,6 +109,21 @@ class MockBackendV2Server(ThreadingHTTPServer):
     def base_url(self) -> str:
         return f"http://127.0.0.1:{self.port}"
 
+    def add_handler(self, method: HttpMethod, path: str, handler: RouteHandler) -> None:
+        """Register a handler for an exact (method, path) pair. ``path`` is matched without its
+        query string; the handler is responsible for validating query params/headers/body itself
+        (e.g. by writing a 404 through ``request._write_json`` when they don't match).
+        """
+        self._routes[(method, path)] = handler
+
+    def get_handler(self, method: HttpMethod, path: str) -> RouteHandler:
+        return self._routes.get((method, path), self._default_handler)
+
+    def _default_handler(self, request:MockBackendV2RequestHandler) -> dict:
+        response_payload: dict[str, Any] = {}
+        request.write_json(HTTPStatus.OK, response_payload)
+        return response_payload
+
     def close(self) -> None:
         logger.debug(f"Stopping {self.thread_name} server on {self.base_url}")
         self.shutdown()
@@ -113,11 +133,21 @@ class MockBackendV2Server(ThreadingHTTPServer):
 
 class MockBackendV2RequestHandler(BaseHTTPRequestHandler):
     server: MockBackendV2Server
+    _data: dict # use to store request and response info
+
+    # catch response events
+    def send_response(self, code: int, message:str|None = None) -> None:
+        self._data["response"]["status_code"] = code
+        return super().send_response(code, message)
+
+    def send_header(self, keyword:str, value:str) -> None:
+        self._data["response"]["headers"].append((keyword, value))
+        return super().send_header(keyword, value)
 
     def log_message(self, _format: str, *_args: object) -> None:
         return
 
-    def _write_json(self, status_code: HTTPStatus, payload: Mapping[str, Any]) -> None:
+    def write_json(self, status_code: HTTPStatus, payload: Mapping[str, Any]) -> None:
         body = json.dumps(payload).encode("utf-8")
         with contextlib.suppress(BrokenPipeError, ConnectionResetError):
             self.send_response(status_code)
@@ -127,57 +157,57 @@ class MockBackendV2RequestHandler(BaseHTTPRequestHandler):
             self.wfile.write(body)
 
     def do_GET(self) -> None:
-        self._handle()
+        self._handle("GET")
 
     def do_POST(self) -> None:
-        self._handle()
+        self._handle("POST")
 
     def do_PUT(self) -> None:
-        self._handle()
+        self._handle("PUT")
 
-    def _handle(self) -> None:
+    def _handle(self, method:HttpMethod) -> None:
         content_length = int(self.headers.get("Content-Length", "0"))
         raw_body = self.rfile.read(content_length) if content_length else b""
-        path_without_query = urlsplit(self.path).path
+        url_parts = urlsplit(self.path)
+        path = url_parts.path
+        query = url_parts.query
 
         with self.server._count_lock:  # noqa: SLF001
             message_count = self.server.message_count
             self.server.message_count += 1
 
-        log_filename = f"{self.server.log_folder}/{message_count:03d}_{path_without_query.replace('/', '_')}.json"
+        log_filename = f"{self.server.log_folder}/{message_count:03d}_{path.replace('/', '_')}.json"
 
-        data: dict[str, Any] = {
+        self._data: dict[str, Any] = {
             "log_filename": log_filename,
             "method": self.command,
-            "path": path_without_query,
+            "path": path,
             "request": {"headers": list(self.headers.items())},
+            "response": {
+                "headers": []
+            }
         }
+
         try:
             content = _decode_content(raw_body, self.headers.get("Content-Encoding", "")) if raw_body else None
         except Exception:
-            data["request"]["raw_content"] = repr(raw_body)
-            data["request"]["traceback"] = traceback.format_exc()
+            self._data["request"]["raw_content"] = repr(raw_body)
+            self._data["request"]["traceback"] = traceback.format_exc()
         else:
             deserialize(
-                data,
+                self._data,
                 key="request",
                 content=content,
                 interface="agent",
                 export_content_files_to=f"{self.server.log_folder}/files",
             )
 
-        response_payload: dict[str, Any] = {}
-        data["response"] = {
-            "status_code": int(HTTPStatus.OK),
-            "headers": [("Content-Type", "application/json")],
-            "content": response_payload,
-        }
+        handler = self.server.get_handler(method, path)
+        self._data["response"]["content"] = handler(self)
 
         logger.debug(f"Mocked backend v2 received {self.command} {self.path}, logging into {log_filename}")
         with open(log_filename, mode="w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2, default=repr)
+            json.dump(self._data, f, indent=2, default=repr)
 
         if self.server.on_message is not None:
-            self.server.on_message(data)
-
-        self._write_json(HTTPStatus.OK, response_payload)
+            self.server.on_message(self._data)
