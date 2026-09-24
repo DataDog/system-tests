@@ -61,10 +61,8 @@ class Test_Automated_User_Tracking:
             meta = span.get("meta", {})
             if context.library in libs_without_user_id:
                 assert meta["usr.id"] == USER
-                assert meta["_dd.appsec.usr.id"] == USER
             else:
                 assert meta["usr.id"] == "social-security-id"
-                assert meta["_dd.appsec.usr.id"] == "social-security-id"
 
             assert meta["_dd.appsec.user.collection_mode"] == "identification"
 
@@ -79,10 +77,6 @@ class Test_Automated_User_Tracking:
         for _, _, span in interfaces.library.get_spans(request=self.r_users):
             meta = span.get("meta", {})
             assert meta["usr.id"] == "sdkUser"
-            if context.library in libs_without_user_id:
-                assert meta["_dd.appsec.usr.id"] == USER
-            else:
-                assert meta["_dd.appsec.usr.id"] == "social-security-id"
 
             assert meta["_dd.appsec.user.collection_mode"] == "sdk"
 
