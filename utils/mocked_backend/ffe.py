@@ -10,19 +10,19 @@ from __future__ import annotations
 
 import contextlib
 from http import HTTPStatus
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import os
 from pathlib import Path
 import threading
 import time
-from typing import TYPE_CHECKING, Any, TypedDict, cast
+from typing import TYPE_CHECKING, TypedDict, cast
 from urllib.parse import parse_qs, urlencode, urlparse
 
 import pytest
 import requests
 
 from utils.docker_fixtures._core import get_host_port
+from utils.mocked_backend.backend_v2 import MockBackendV2RequestHandler, MockBackendV2Server
 
 if TYPE_CHECKING:
     from collections.abc import Generator, Mapping
@@ -136,21 +136,13 @@ class MockFFEAgentlessBackendState:
             }
 
 
-class MockFFEAgentlessBackendHTTPServer(ThreadingHTTPServer):
-    daemon_threads = True
-
-    def __init__(self, server_address: tuple[str, int]) -> None:
-        super().__init__(server_address, MockFFEAgentlessBackendRequestHandler)
-        self.state = MockFFEAgentlessBackendState()
-
-
-class MockFFEAgentlessBackendRequestHandler(BaseHTTPRequestHandler):
+class MockFFEAgentlessBackendRequestHandler(MockBackendV2RequestHandler):
     # Endpoint contract:
     # - GET /api/v2/feature-flagging/config/rules-based/server?dd_env=test
     # - GET /status
     # - POST /control/responses
     # - POST /control/reset
-    server: MockFFEAgentlessBackendHTTPServer
+    server: MockFFEAgentlessBackendServer
 
     def do_GET(self) -> None:
         parsed = urlparse(self.path)
@@ -175,8 +167,8 @@ class MockFFEAgentlessBackendRequestHandler(BaseHTTPRequestHandler):
             return
         self._write_json(HTTPStatus.NOT_FOUND, {"error": "not found"})
 
-    def log_message(self, _format: str, *_args: object) -> None:
-        return
+    def do_PUT(self) -> None:
+        self._write_json(HTTPStatus.NOT_FOUND, {"error": "not found"})
 
     def _handle_config(self) -> None:
         request_headers = dict(self.headers)
@@ -224,15 +216,6 @@ class MockFFEAgentlessBackendRequestHandler(BaseHTTPRequestHandler):
 
         self.server.state.set_responses(validated_responses)
         self._write_json(HTTPStatus.OK, self.server.state.status())
-
-    def _write_json(self, status_code: HTTPStatus, payload: dict[str, Any] | MockFFEAgentlessBackendStatus) -> None:
-        body = json.dumps(payload).encode("utf-8")
-        with contextlib.suppress(BrokenPipeError, ConnectionResetError):
-            self.send_response(status_code)
-            self.send_header("Content-Type", "application/json")
-            self.send_header("Content-Length", str(len(body)))
-            self.end_headers()
-            self.wfile.write(body)
 
 
 def _has_auth(headers: Mapping[str, str]) -> bool:
@@ -288,19 +271,13 @@ def _strip_config_path(url: str) -> str:
     return parsed._replace(path=base_path, params="", query="", fragment="").geturl().rstrip("/")
 
 
-class MockFFEAgentlessBackendServer:
-    def __init__(self, worker_id: str = "master", *, port: int | None = None) -> None:
-        self.port = get_host_port(worker_id, 4900) if port is None else port
-        self._server = MockFFEAgentlessBackendHTTPServer(("0.0.0.0", self.port))  # noqa: S104 - test fixture must be container-reachable.
-        self.port = self._server.server_port
-        self._thread = threading.Thread(
-            target=self._server.serve_forever, name="mock-ffe-agentless-backend", daemon=True
-        )
-        self._thread.start()
+class MockFFEAgentlessBackendServer(MockBackendV2Server):
+    thread_name = "mock-ffe-agentless-backend"
 
-    @property
-    def base_url(self) -> str:
-        return f"http://127.0.0.1:{self.port}"
+    def __init__(self, worker_id: str = "master", *, port: int | None = None) -> None:
+        port = get_host_port(worker_id, 4900) if port is None else port
+        super().__init__(port=port, request_handler_cls=MockFFEAgentlessBackendRequestHandler)
+        self.state = MockFFEAgentlessBackendState()
 
     @property
     def library_base_url(self) -> str:
@@ -337,11 +314,6 @@ class MockFFEAgentlessBackendServer:
         response = requests.get(f"{self.base_url}/status", timeout=5)
         response.raise_for_status()
         return cast("MockFFEAgentlessBackendStatus", response.json())
-
-    def close(self) -> None:
-        self._server.shutdown()
-        self._server.server_close()
-        self._thread.join(timeout=5)
 
 
 @pytest.fixture
