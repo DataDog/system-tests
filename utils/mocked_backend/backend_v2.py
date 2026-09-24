@@ -86,7 +86,7 @@ class MockBackendV2Server(ThreadingHTTPServer):
 
     def __init__(
         self,
-        log_folder: str,
+        log_folder: str | None = None,
         on_message: Callable[[dict], None] | None = None,
         *,
         port: int | None = None,
@@ -170,7 +170,12 @@ class MockBackendV2RequestHandler(BaseHTTPRequestHandler):
             message_count = self.server.message_count
             self.server.message_count += 1
 
-        log_filename = f"{self.server.log_folder}/{message_count:03d}_{path.replace('/', '_')}.json"
+        if self.server.log_folder:
+            log_filename = f"{self.server.log_folder}/{message_count:03d}_{path.replace('/', '_')}.json"
+            export_content_files_to = f"{self.server.log_folder}/files"
+        else:
+            log_filename = None
+            export_content_files_to = None
 
         self._data: dict[str, Any] = {
             "log_filename": log_filename,
@@ -193,7 +198,7 @@ class MockBackendV2RequestHandler(BaseHTTPRequestHandler):
                 key="request",
                 content=content,
                 interface="agent",
-                export_content_files_to=f"{self.server.log_folder}/files",
+                export_content_files_to=export_content_files_to,
             )
 
         handler = self.server.get_handler(method, path)
@@ -202,8 +207,10 @@ class MockBackendV2RequestHandler(BaseHTTPRequestHandler):
         self._data["response"]["content"] = str(response) if isinstance(response, bytes) else response
 
         logger.debug(f"Mocked backend v2 received {self.command} {self.path}, logging into {log_filename}")
-        with open(log_filename, mode="w", encoding="utf-8") as f:
-            json.dump(self._data, f, indent=2, default=repr)
+
+        if log_filename:
+            with open(log_filename, mode="w", encoding="utf-8") as f:
+                json.dump(self._data, f, indent=2, default=repr)
 
         if self.server.on_message is not None:
             self.server.on_message(self._data)
