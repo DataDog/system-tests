@@ -26,10 +26,10 @@ images:
     digest: sha256:deb4d6f51367a1cdc4de3066184117a99eabb107a53a4bc0dace9f38d06fce03
     target: registry.ddbuild.io/system-tests/mirror/datadog/dd-appsec-php-ci:php-8.2-release
     tag: php-8.2-release
-  datadog/serverless-init:1.10.2:
-    digest: sha256:9936ccb50daa747d71a8b1148e74720a6ae60238ebdcc1793ea1834c01493bd3
-    target: registry.ddbuild.io/system-tests/mirror/datadog/serverless-init:1.10.2
-    tag: 1.10.2
+  datadog/serverless-init:1.10.4:
+    digest: sha256:f4943347f155505156ba5f594317ea64b59678b3a6522e8c0993581af20956ff
+    target: registry.ddbuild.io/system-tests/mirror/datadog/serverless-init:1.10.4
+    tag: 1.10.4
   datadog/system-tests:apache-mod-7.0-zts.base-01cc5715b403:
     digest: sha256:938508774e20aa6ce48e5af82c9ed04f362acef5c398350301f7d9edfd2864dc
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:apache-mod-7.0-zts.base-01cc5715b403

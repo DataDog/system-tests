@@ -14,7 +14,7 @@
 - "datadog/agent:latest"
 - "datadog/dd-appsec-php-ci:php-8.0-release"
 - "datadog/dd-appsec-php-ci:php-8.2-release"
-- "datadog/serverless-init:1.10.2"
+- "datadog/serverless-init:1.10.4"
 - "datadog/system-tests:apache-mod-7.0-zts.base-01cc5715b403"
 - "datadog/system-tests:apache-mod-7.0-zts.base-3f822642099f"
 - "datadog/system-tests:apache-mod-7.0.base-8c8102938177"
