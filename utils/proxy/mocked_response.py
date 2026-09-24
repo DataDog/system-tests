@@ -3,18 +3,20 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 import base64
 from collections import defaultdict
-from collections.abc import Sequence
 from http import HTTPStatus
 import json
 import os
 import re
-from typing import Self, Literal
+from typing import TYPE_CHECKING, Self, Literal
 
 import requests
 
 from mitmproxy.http import HTTPFlow, Response as HTTPResponse
 
 from .ports import ProxyPorts
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 MOCKED_TRACER_RESPONSES_PATH = "/mocked_tracer_responses"
 MOCKED_BACKEND_RESPONSES_PATH = "/mocked_backend_responses"
