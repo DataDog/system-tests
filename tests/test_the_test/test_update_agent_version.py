@@ -208,7 +208,7 @@ def test_publish_update_creates_only_missing_pr(
     if existing_pr:
         assert ("PATCH", f"/repos/DataDog/system-tests/pulls/{existing_pr}") in github.calls
     # Whether it is created or refreshed, the PR describes the version that was just pushed.
-    assert [description["title"] for description in github.descriptions] == ["APMSP-3752 Update Agent to 7.82.3"]
+    assert [description["title"] for description in github.descriptions] == ["Update Agent to 7.82.3"]
     assert github.calls[-1] == ("POST", "/graphql")
 
 
