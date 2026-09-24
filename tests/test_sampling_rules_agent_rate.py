@@ -47,7 +47,7 @@ class Test_SamplingRulesAgentRate:
         # round-trips back to the tracer still carry the old rate. Keep sending bursts, with pauses
         # to let a flush/response cycle happen, until a span shows the mocked agent rate.
         request_idx = 0
-        for _ in range(15):
+        for _ in range(8):
             if interfaces.library.wait_for(has_agent_rate, timeout=0):
                 break
             for _j in range(20):
@@ -55,7 +55,7 @@ class Test_SamplingRulesAgentRate:
                 request_idx += 1
             time.sleep(2)
 
-        interfaces.library.wait_for(has_agent_rate, timeout=30)
+        interfaces.library.wait_for(has_agent_rate, timeout=10)
 
     def test_agent_rate_applies_to_rule_miss(self):
         """Verify a rule-miss span carries the agent-published rate, not the default of 1.0."""
