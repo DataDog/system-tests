@@ -16,7 +16,11 @@ class _CrossTestImport(TypedDict):
 
 
 def _is_test_module(module: str) -> bool:
-    return module.startswith("tests.") and module.rsplit(".", maxsplit=1)[-1].startswith("test_")
+    return (
+        module.startswith("tests.")
+        and module.rsplit(".", maxsplit=1)[-1].startswith("test_")
+        and module.rsplit(".", maxsplit=1)[-1] != "test_tests"
+    )
 
 
 class NoCrossTestImportsContract(Contract):
