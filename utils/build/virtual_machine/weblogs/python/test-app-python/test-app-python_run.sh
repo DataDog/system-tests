@@ -3,8 +3,12 @@ echo "START python APP"
 
 set -e
 
-export PATH="/home/datadog/.pyenv/bin:$PATH" 
-eval "$(pyenv init -)"
+# Configure pyenv if it's installed (needed for some Python versions like 2.7)
+if [ -d "/home/datadog/.pyenv" ]; then
+  export PATH="/home/datadog/.pyenv/bin:$PATH" 
+  eval "$(pyenv init -)"
+fi
+
 # shellcheck disable=SC2035
 sudo chmod -R 755 * 
 

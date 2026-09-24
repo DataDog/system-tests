@@ -4,7 +4,7 @@ FROM ${BASE_IMAGE}
 
 WORKDIR /workdir
 
-COPY ./base/install_script_ssi.sh ./base/binaries/* ./
+COPY ./base/install_script_ssi.sh ./base/download_with_retry.sh ./base/binaries/* ./
 
 ARG DD_API_KEY=deadbeef
 

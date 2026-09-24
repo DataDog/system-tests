@@ -5,6 +5,8 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Set timezone to UTC by default
 RUN ln -sf /usr/share/zoneinfo/Etc/UTC /etc/localtime
 
+RUN apk add --no-cache build-base yaml-dev
+
 # Upgrade RubyGems and Bundler
 RUN gem update --system 3.4.22
 RUN gem install bundler -v '~> 2.4.22'
@@ -19,7 +21,10 @@ WORKDIR /app
 COPY lib_injection_rails_app /app
 
 # Install gems
-RUN bundle install
+RUN set -eu; \
+  printf '%s\n' 'eval_gemfile File.expand_path("gemfiles/ruby-3.4-alpine.gemfile", __dir__)' > Gemfile; \
+  cp "gemfiles/ruby-3.4-alpine.gemfile.lock" Gemfile.lock; \
+  bundle install
 
 # Set entrypoint
 ENTRYPOINT ["/bin/bash", "-c"]

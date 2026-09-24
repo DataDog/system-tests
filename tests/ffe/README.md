@@ -7,7 +7,8 @@ This directory contains system tests for the Feature Flags & Experimentation (FF
 | File | Description |
 |------|-------------|
 | `test_dynamic_evaluation.py` | Dynamic flag evaluation via Remote Config |
-| `test_exposures.py` | Flag exposure tracking and reporting |
+| `test_exposure_egress.py` | Shared exposure cache and payload contract across Agent, sidecar, and direct egress |
+| `test_exposures_datadog_agent.py` | Flag exposure tracking and reporting through the Datadog Agent |
 | `test_flag_eval_metrics.py` | Evaluation metrics (OTel counter) |
 | `test_flag_eval_evp.py` | Server-side EVP flagevaluation payloads, aggregation, and bounds |
 
@@ -16,6 +17,20 @@ This directory contains system tests for the Feature Flags & Experimentation (FF
 ```bash
 ./run.sh FEATURE_FLAGGING_AND_EXPERIMENTATION --library <language>
 ```
+
+## Test-contract self-tests
+
+The self-tests in `testing_tests/` validate the FFE assertions using synthetic
+captures. They do not run SDKs or contact an intake. With the Python 3.12 runner
+environment installed, run them explicitly:
+
+```bash
+./run.sh FEATURE_FLAGGING_CONTRACT_TESTS tests/ffe/testing_tests
+```
+
+This no-container scenario has no CI workflow or scenario-group membership.
+Its tests do not run in `TEST_THE_TEST`, `DEFAULT`, or the FFE end-to-end scenarios.
+Framework mock-backend and lifecycle tests stay in `tests/test_the_test/`.
 
 ---
 

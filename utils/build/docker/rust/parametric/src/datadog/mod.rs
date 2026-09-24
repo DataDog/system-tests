@@ -12,10 +12,24 @@ use opentelemetry::{
     Context,
 };
 use opentelemetry_http::HeaderExtractor;
-use std::{collections::HashMap, sync::Arc, vec};
+use std::{
+    collections::HashMap,
+    sync::{
+        atomic::{AtomicU64, Ordering},
+        Arc,
+    },
+    vec,
+};
 use tracing::debug;
 
 use crate::{get_tracer, AppState, ContextWithParent};
+
+/// Fake span id for contexts without a valid remote span context (e.g. "restart" mode), so
+/// they can still be stored and referenced as a `parent_id`. High bit avoids real span ids.
+fn next_synthetic_span_id() -> u64 {
+    static COUNTER: AtomicU64 = AtomicU64::new(0);
+    (1u64 << 63) | COUNTER.fetch_add(1, Ordering::Relaxed)
+}
 
 pub fn app() -> Router<AppState> {
     Router::new()
@@ -139,7 +153,11 @@ async fn start_span(
     let span_id = u64::from_be_bytes(id.to_bytes());
     let trace_id = u128::from_be_bytes(span.span_context().trace_id().to_bytes());
 
-    let ctx = Context::current_with_span(span);
+    // Build from parent_ctx (not current) so baggage isn't dropped.
+    let ctx = match &parent_ctx {
+        Some(parent_ctx) => parent_ctx.with_span(span),
+        None => Context::current_with_span(span),
+    };
 
     let ctx_with_parent = Arc::new(ContextWithParent::new(ctx, parent_ctx));
     *state.current_context.lock().unwrap() = ctx_with_parent.clone();
@@ -291,16 +309,14 @@ async fn inject_headers(
 ) -> Json<SpanInjectHeadersResult> {
     let contexts = state.contexts.lock().unwrap();
     if let Some(ctx) = contexts.get(&args.span_id) {
-        let span = ctx.context.span();
         opentelemetry::global::get_text_map_propagator(|propagator| {
             let mut injector = HashMap::new();
 
-            // TODO: review!
-            let context = Context::new().with_remote_span_context(span.span_context().clone());
+            let context = &ctx.context;
 
             debug!("inject_headers: context: {:#?}", context);
 
-            propagator.inject_context(&context, &mut injector);
+            propagator.inject_context(context, &mut injector);
 
             debug!(
                 "inject_headers: span {} found: {:#?}",
@@ -344,13 +360,11 @@ async fn extract_headers(
         debug!("extract_headers: received {:#?}", extractor);
 
         let context = propagator.extract(&HeaderExtractor(&extractor));
-
-        if !context.span().span_context().is_valid() {
-            debug!("extract_headers: no valid context. Returning empty result");
-            return Json(SpanExtractHeadersResult { span_id: None });
-        }
-
-        let span_id = u64::from_be_bytes(context.span().span_context().span_id().to_bytes());
+        let span_id = if context.span().span_context().is_valid() {
+            u64::from_be_bytes(context.span().span_context().span_id().to_bytes())
+        } else {
+            next_synthetic_span_id()
+        };
         let trace_id = u128::from_be_bytes(context.span().span_context().trace_id().to_bytes());
 
         debug!("extract_headers: trace_id: {trace_id}, span_id: {span_id:#?}");

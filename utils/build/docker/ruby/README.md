@@ -54,7 +54,7 @@ you need to be inside the container, like this:
 
 ```bash
 $ cd utils/build/docker/ruby/rails72
-$ docker run --rm -it -v "${PWD}":"${PWD}" -w "${PWD}" ghcr.io/datadog/images-rb/engines/ruby:3.2 bash
+$ docker run --rm -it -v "${PWD}":"${PWD}" -w "${PWD}" ghcr.io/datadog/images-rb/engines/ruby:3.2-gnu-gcc bash
 ```
 
 ## Ruby 2.5 tips & tricks
@@ -62,7 +62,7 @@ $ docker run --rm -it -v "${PWD}":"${PWD}" -w "${PWD}" ghcr.io/datadog/images-rb
 For Ruby 2.5 and Rails 4.2 we need to use bundler < 2.
 
 ```bash
-$ docker run --rm -it -v "${PWD}":"${PWD}" -w "${PWD}" ghcr.io/datadog/images-rb/engines/ruby:2.5 bash
+$ docker run --rm -it -v "${PWD}":"${PWD}" -w "${PWD}" ghcr.io/datadog/images-rb/engines/ruby:2.5-gnu-gcc bash
 $ root@c262f9bc5bd8: gem install -N bundler:1.17.3
 $ root@c262f9bc5bd8: rm $(ruby -e 'puts Gem.default_specifications_dir')/bundler-2.*.gemspec
 ```

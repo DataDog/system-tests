@@ -125,6 +125,35 @@ get '/status' do
   'Ok'
 end
 
+get '/trace/manual_keep_drop' do
+  decision = request.params['decision']
+  halt 400, 'decision must be keep or drop' unless %w[keep drop].include?(decision)
+
+  trace = Datadog::Tracing.active_trace
+  decision == 'keep' ? trace.keep! : trace.reject!
+
+  content_type :json
+
+  # Call downstream so that tests can assert on the sampling decision that gets propagated
+  url = 'http://localhost:7777/'
+  uri = URI(url)
+  downstream_request = nil
+  response = nil
+
+  Net::HTTP.start(uri.host, uri.port) do |http|
+    downstream_request = Net::HTTP::Get.new(uri)
+
+    response = http.request(downstream_request)
+  end
+
+  {
+    "url": url,
+    "status_code": response.code.to_i,
+    "request_headers": downstream_request.each_header.to_h,
+    "response_headers": response.each_header.to_h
+  }.to_json
+end
+
 get '/make_distant_call' do
   content_type :json
 

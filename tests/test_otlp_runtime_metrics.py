@@ -238,6 +238,11 @@ DD_PROPRIETARY_PREFIXES: dict[str, str] = {
     "java": "jvm.heap_memory",
 }
 
+# Hit an endpoint that deliberately throws instead of relying on incidental exceptions that may not happen
+EXCEPTION_TRIGGER_ENDPOINTS: dict[str, str] = {
+    "dotnet": "/exceptionreplay/simple",
+}
+
 
 def get_runtime_metrics_by_name() -> dict[str, list[dict[str, str]]]:
     """Return observed runtime metrics grouped by name.
@@ -276,6 +281,11 @@ class Test_OtlpRuntimeMetrics:
 
     def setup_otel_metrics_are_present_and_attributed(self) -> None:
         self.req = weblog.get("/")
+
+        trigger = EXCEPTION_TRIGGER_ENDPOINTS.get(context.library.name)
+        if trigger is not None:
+            weblog.get(trigger)
+
         wait_for_runtime_metrics(context.library.name)
 
     def test_otel_metrics_are_present_and_attributed(self) -> None:

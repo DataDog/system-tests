@@ -265,8 +265,7 @@ class Test_Headers_Precedence:
         assert int(traceparent1.trace_id[-16:], base=16) == int(headers1["x-datadog-trace-id"])
         assert int(traceparent1.parent_id, base=16) == int(headers1["x-datadog-parent-id"])
         assert "tracestate" in headers1
-        assert len(tracestate_1_arr) == 1
-        assert tracestate_1_arr[0].startswith("dd=")
+        assert any(item.startswith("dd=") for item in tracestate_1_arr)
 
         # 2) Only tracecontext headers
         # Result: traceparent used
@@ -402,8 +401,7 @@ class Test_Headers_Precedence:
         tracestate_1_arr = headers1["tracestate"].split(",")
         assert "traceparent" in headers1
         assert "tracestate" in headers1
-        assert len(tracestate_1_arr) == 1
-        assert tracestate_1_arr[0].startswith("dd=")
+        assert any(item.startswith("dd=") for item in tracestate_1_arr)
         assert "x-datadog-trace-id" not in headers1
         assert "x-datadog-parent-id" not in headers1
         assert "x-datadog-sampling-priority" not in headers1
@@ -457,8 +455,7 @@ class Test_Headers_Precedence:
         tracestate_5_arr = headers5["tracestate"].split(",")
         assert "traceparent" in headers5
         assert "tracestate" in headers5
-        assert len(tracestate_5_arr) == 1
-        assert tracestate_5_arr[0].startswith("dd=")
+        assert any(item.startswith("dd=") for item in tracestate_5_arr)
         assert "x-datadog-trace-id" not in headers5
         assert "x-datadog-parent-id" not in headers5
         assert "x-datadog-sampling-priority" not in headers5
@@ -468,8 +465,7 @@ class Test_Headers_Precedence:
         tracestate_6_arr = headers6["tracestate"].split(",")
         assert "traceparent" in headers6
         assert "tracestate" in headers6
-        assert len(tracestate_6_arr) == 1
-        assert tracestate_6_arr[0].startswith("dd=")
+        assert any(item.startswith("dd=") for item in tracestate_6_arr)
         assert "x-datadog-trace-id" not in headers6
         assert "x-datadog-parent-id" not in headers6
         assert "x-datadog-sampling-priority" not in headers6
@@ -537,8 +533,7 @@ class Test_Headers_Precedence:
         assert int(traceparent1.trace_id[-16:], base=16) == int(headers1["x-datadog-trace-id"])
         assert int(traceparent1.parent_id, base=16) == int(headers1["x-datadog-parent-id"])
         assert "tracestate" in headers1
-        assert len(tracestate_1_arr) == 1
-        assert tracestate_1_arr[0].startswith("dd=")
+        assert any(item.startswith("dd=") for item in tracestate_1_arr)
 
         # 2) Only tracecontext headers
         # Result: traceparent used

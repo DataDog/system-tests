@@ -11,12 +11,15 @@ namespace weblog
         private class EndpointParameters
         {
             public string? Url { get; private init; }
+            public string Method { get; private init; } = "GET";
             public static EndpointParameters Bind(HttpContext context)
             {
                 string? url = context.Request.Query["url"];
+                string? method = context.Request.Query["method"];
                 var result = new EndpointParameters
                 {
                     Url = url,
+                    Method = string.IsNullOrWhiteSpace(method) ? "GET" : method,
                 };
                 return result;
             }
@@ -49,7 +52,7 @@ namespace weblog
                     throw new System.Exception($"Specify the url to call in the query string: {example}");
                 }
 
-                var response = await HttpClientWrapper.LocalGetRequest(parameters.Url);
+                var response = await HttpClientWrapper.LocalRequest(parameters.Url, parameters.Method);
                 var endpointResponse = new EndpointResponse()
                 {
                     Url = parameters.Url,

@@ -3,8 +3,12 @@
   "$id": "/miscs/telemetry/v2/objects/host.json",
   "description": "V2 Host Object",
   "title": "Instrumentation Telemetry V2 Host",
+  "type": "object",
   "properties": {
     "hostname": {
+      "type": "string"
+    },
+    "container_id": {
       "type": "string"
     },
     "os": {
@@ -26,12 +30,5 @@
       "type": "string"
     }
   },
-  "required": [
-    "hostname",
-    "os",
-    "architecture",
-    "kernel_name",
-    "kernel_release",
-    "kernel_version"
-  ]
+  "required": ["hostname"]
 }

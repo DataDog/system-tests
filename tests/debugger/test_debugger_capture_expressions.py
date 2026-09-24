@@ -16,7 +16,7 @@ class BaseDebuggerCaptureExpressionsTest(debugger.BaseDebuggerTest):
         probes_name: str,
         request_path: str,
         probe_type: str,
-        lines: list[str] | None = None,
+        lines: list[int] | None = None,
     ):
         self.initialize_weblog_remote_config()
 
@@ -27,13 +27,7 @@ class BaseDebuggerCaptureExpressionsTest(debugger.BaseDebuggerTest):
         for probe in probes:
             probe["id"] = debugger.generate_probe_id(probe_type)
 
-        if lines is not None:
-            for probe in probes:
-                if "methodName" in probe["where"]:
-                    del probe["where"]["methodName"]
-                probe["where"]["lines"] = lines
-                probe["where"]["sourceFile"] = "ACTUAL_SOURCE_FILE"
-                probe["where"]["typeName"] = None
+        self._rewrite_where_for_lines(probes, lines)
 
         self.set_probes(probes)
 
@@ -147,11 +141,21 @@ class BaseDebuggerCaptureExpressionsTest(debugger.BaseDebuggerTest):
 class Test_Debugger_Method_Capture_Expressions(BaseDebuggerCaptureExpressionsTest):
     """Tests for method-level probe capture expressions"""
 
-    ### log probe with capture expressions ###
-    def setup_log_method_capture_expressions(self):
-        self._setup("probe_capture_expressions_method", "/debugger/expression?inputValue=testValue", "log", lines=None)
+    ### method probe: capture expressions over method parameters ###
+    def setup_method_parameter_capture_expressions(self):
+        probes_name = "probe_capture_expressions_method_parameter"
+        if self.get_tracer()["language"] == "ruby":
+            # Ruby method probes expose positional arguments as arg1, arg2, ... in capture expressions.
+            probes_name = "probe_capture_expressions_method_parameter_ruby"
 
-    def test_log_method_capture_expressions(self):
+        self._setup(
+            probes_name,
+            "/debugger/expression?inputValue=testValue",
+            "log",
+            lines=None,
+        )
+
+    def test_method_parameter_capture_expressions(self):
         self._assert()
 
         # Build expected captures with validation functions
@@ -159,6 +163,21 @@ class Test_Debugger_Method_Capture_Expressions(BaseDebuggerCaptureExpressionsTes
         for probe_id in self.probe_ids:
             expected_captures[probe_id] = {
                 "inputValue": lambda v: isinstance(v, dict) and "type" in v and "value" in v,
+            }
+
+        self._validate_capture_expressions(expected_captures)
+
+    ### method probe: capture expressions over method-body locals ###
+    def setup_method_local_capture_expressions(self):
+        self._setup("probe_capture_expressions_method", "/debugger/expression?inputValue=testValue", "log", lines=None)
+
+    def test_method_local_capture_expressions(self):
+        self._assert()
+
+        # Build expected captures with validation functions
+        expected_captures = {}
+        for probe_id in self.probe_ids:
+            expected_captures[probe_id] = {
                 "localValue": lambda v: isinstance(v, dict) and "type" in v and "value" in v,
                 "testStruct": lambda v: isinstance(v, dict) and "type" in v,
             }
@@ -192,7 +211,9 @@ class Test_Debugger_Line_Capture_Expressions(BaseDebuggerCaptureExpressionsTest)
 
     ### log probe with capture expressions ###
     def setup_log_line_capture_expressions(self):
-        self._setup("probe_capture_expressions_line", "/debugger/expression?inputValue=testValue", "log", lines=None)
+        language = self.get_tracer()["language"]
+        lines = self.method_and_language_to_line_number("CaptureExpressionsLine", language) or None
+        self._setup("probe_capture_expressions_line", "/debugger/expression?inputValue=testValue", "log", lines=lines)
 
     def test_log_line_capture_expressions(self):
         self._assert()

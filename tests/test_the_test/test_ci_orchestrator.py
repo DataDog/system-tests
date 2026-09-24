@@ -1,11 +1,12 @@
 from functools import lru_cache
+from pathlib import Path
 
 from utils import scenarios
+from utils.const import COMPONENT_GROUPS
 from utils._context.weblog_metadata import WeblogMetaData
-
+from utils._context._scenarios import get_all_scenarios, Scenario
 from utils.scripts.ci_orchestrators.workflow_data import (
     _get_endtoend_weblogs,
-    _is_supported,
     get_endtoend_definitions,
 )
 
@@ -42,9 +43,12 @@ def test_get_endtoend_definitions():
 
 @scenarios.test_the_test
 def test_ipv6_is_not_supported_for_uds_weblogs():
-    assert not _is_supported(get_weblog("dotnet", "uds"), scenarios.ipv6, "dev")
-    assert not _is_supported(get_weblog("python", "uds-flask"), scenarios.ipv6, "dev")
-    assert _is_supported(get_weblog("python", "flask-poc"), scenarios.ipv6, "dev")
+    def _is_supported(weblog: WeblogMetaData, scenario: Scenario) -> bool:
+        return weblog.support_scenario(scenario.name, scenario.weblog_categories)
+
+    assert not _is_supported(get_weblog("dotnet", "uds"), scenarios.ipv6)
+    assert not _is_supported(get_weblog("python", "uds-flask"), scenarios.ipv6)
+    assert _is_supported(get_weblog("python", "flask-poc"), scenarios.ipv6)
 
 
 @scenarios.test_the_test
@@ -91,37 +95,6 @@ def test_weblog_build_mode_is_resolved_from_metadata():
 
 
 @scenarios.test_the_test
-def test_nodejs_build_base_image():
-    scenario_map = {"endtoend": [scenarios.default, scenarios.integration_frameworks]}
-    defs = get_endtoend_definitions("nodejs", scenario_map, [], "dev", 200000, 256, "123", "", build_base_images=True)
-
-    assert defs["endtoend_defs"]["parallel_weblogs"] == []
-
-    jobs = {job["weblog"]: job for job in defs["endtoend_defs"]["parallel_jobs"]}
-
-    # express4 is build_mode=local and has a base Dockerfile → should build base image
-    assert jobs["express4"]["build_weblog_base_image"] is True
-
-    # openai-js is build_mode=none and has no base Dockerfile → should not build base image
-    assert jobs["openai-js@6.0.0"]["build_weblog_base_image"] is False
-
-
-@scenarios.test_the_test
-def test_python_build_base_image():
-    scenario_map = {"endtoend": [scenarios.default, scenarios.integration_frameworks]}
-    defs = get_endtoend_definitions("python", scenario_map, [], "dev", 200000, 256, "123", "", build_base_images=True)
-
-    # all python weblog has build_mode=prebuild. build_weblog_base_image
-    # only applies to build_mode=local weblogs → should not build base image inline
-    for job in defs["endtoend_defs"]["parallel_jobs"]:
-        assert job["build_weblog_base_image"] is False, job
-
-    # all python weblog with build_mode=prebuild should rebuild base images in the build job
-    for job in defs["endtoend_defs"]["parallel_weblogs"]:
-        assert job["build_base_images"] is True, job
-
-
-@scenarios.test_the_test
 def test_otel_collector():
     scenario_map = {"endtoend": [scenarios.otel_collector]}
     defs = get_endtoend_definitions("otel_collector", scenario_map, [], "prod", 200000, 256, "123", "")
@@ -129,7 +102,6 @@ def test_otel_collector():
     assert defs["endtoend_defs"]["parallel_jobs"] == [
         {
             "binaries_artifact": "",
-            "build_weblog_base_image": False,
             "expected_job_time": 74.34217318962216,
             "library": "otel_collector",
             "runs_on": "ubuntu-latest",
@@ -139,3 +111,35 @@ def test_otel_collector():
             "weblog_instance": 1,
         }
     ]
+
+
+@scenarios.test_the_test
+def test_weblog_metadata_scenario_names_are_valid():
+    valid_names = {scenario.name for scenario in get_all_scenarios()}
+
+    for library in sorted(COMPONENT_GROUPS.all):
+        for weblog in WeblogMetaData.load(library):
+            for scenario_name in weblog.supported_scenarios + weblog.excluded_scenarios:
+                assert scenario_name in valid_names, (
+                    f"{library}/{weblog.name}: '{scenario_name}' is not a known scenario name "
+                    f"(check utils/build/docker/{library}/weblog_metadata.yml)"
+                )
+
+
+@scenarios.test_the_test
+def test_all_weblog_has_metadata():
+    for library in sorted(COMPONENT_GROUPS.all):
+        folder = Path(f"utils/build/docker/{library}")
+        if folder.exists():  # some lib does not have any weblog
+            names = [
+                f.name.replace(".Dockerfile", "")
+                for f in folder.iterdir()
+                if f.suffix == ".Dockerfile" and ".base." not in f.name and f.is_file()
+            ]
+
+            known_weblog_names = {w.name.split("@")[0] for w in WeblogMetaData.load(library)}
+
+            for name in names:
+                assert name in known_weblog_names, (
+                    f"Please add {name} in utils/build/docker/{library}/weblog_metadata.yml"
+                )

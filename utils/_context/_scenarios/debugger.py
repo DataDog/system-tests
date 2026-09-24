@@ -1,6 +1,7 @@
 import pytest
 
 from utils._logger import logger
+from utils._context.constants import WeblogCategory
 
 from .core import scenario_groups
 from .endtoend import EndToEndScenario
@@ -25,6 +26,7 @@ class DebuggerScenario(EndToEndScenario):
             library_interface_timeout=5,
             weblog_env=base_weblog_env,
             scenario_groups=[scenario_groups.debugger],
+            weblog_categories=[WeblogCategory.dd_trace],
         )
 
     def configure(self, config: pytest.Config):

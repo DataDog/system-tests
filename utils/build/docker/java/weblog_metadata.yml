@@ -1,5 +1,38 @@
 # docs/understand/weblogs/weblog-metadata.md
 
+akka-http:
+  categories: [dd_trace]
+jersey-grizzly2:
+  categories: [dd_trace]
 openai-java:
   build_mode: none
   framework_versions: ["4.29.0"]
+  categories: [dd_trace_frameworks]
+play:
+  categories: [dd_trace]
+ratpack:
+  categories: [dd_trace]
+resteasy-netty3:
+  categories: [dd_trace]
+spring-boot:
+  categories: [dd_trace]
+spring-boot-3-native:
+  categories: [dd_trace]
+spring-boot-jetty:
+  categories: [dd_trace]
+spring-boot-openliberty:
+  categories: [dd_trace]
+spring-boot-payara:
+  categories: [dd_trace]
+  excluded_scenarios: [CROSSED_TRACING_LIBRARIES]  # probably because of a crash, but no history
+spring-boot-undertow:
+  categories: [dd_trace]
+spring-boot-wildfly:
+  categories: [dd_trace]
+uds-spring-boot:
+  categories: [dd_trace]
+  excluded_scenarios: [IPV6]
+vertx3:
+  categories: [dd_trace]
+vertx4:
+  categories: [dd_trace]

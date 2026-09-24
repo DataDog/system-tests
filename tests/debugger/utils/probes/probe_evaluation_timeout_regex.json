@@ -1,0 +1,26 @@
+[
+    {
+        "language": "",
+        "type": "",
+        "id": "",
+        "version": 0,
+        "where": {
+            "typeName": "ACTUAL_TYPE_NAME",
+            "methodName": "StringOperations",
+            "sourceFile": null
+        },
+        "when": {
+            "dsl": "strValue.matches(\"^(a+)+$\")",
+            "json": {
+                "matches": [
+                    {"ref": "strValue"},
+                    "^(a+)+$"
+                ]
+            }
+        },
+        "captureSnapshot": true,
+        "segments": [
+            {"str": "regex evaluation timeout probe fired"}
+        ]
+    }
+]

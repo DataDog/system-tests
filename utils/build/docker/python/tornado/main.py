@@ -8,6 +8,7 @@ import sqlite3
 import subprocess
 import sys
 from http import HTTPStatus
+from pathlib import Path
 from typing import Any, ClassVar
 from urllib.parse import parse_qs
 
@@ -20,6 +21,7 @@ import xmltodict
 from ddtrace._trace.pin import Pin
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 from ddtrace.appsec import track_user_sdk
+from ddtrace.constants import MANUAL_DROP_KEY, MANUAL_KEEP_KEY
 from ddtrace.contrib.trace_utils import set_user
 from ddtrace.openfeature import DataDogProvider
 from ddtrace.trace import tracer
@@ -204,6 +206,37 @@ class StatsUniqueHandler(BaseHandler):
             self.write("OK, probably")
 
 
+def write_thread_context(path: str) -> dict[str, str] | None:
+    span = tracer.current_span()
+    if span is None:
+        return None
+
+    with Path(path).open("w") as f:
+        f.write("system-tests thread context sharing")
+
+    return {
+        "trace_id": str(span.trace_id),
+        "span_id": str(span.span_id),
+    }
+
+
+async def write_thread_context_after_yield(path: str) -> dict[str, str] | None:
+    # Force a task switch before the syscall so Tornado validates child-task context restoration.
+    await asyncio.sleep(0)
+    return write_thread_context(path)
+
+
+class ThreadContextSharingHandler(BaseHandler):
+    async def get(self) -> None:
+        result = await asyncio.create_task(write_thread_context_after_yield(self.get_argument("path")))
+        if result is None:
+            self.set_status(HTTPStatus.INTERNAL_SERVER_ERROR)
+            return
+
+        self.set_header("Content-Type", "application/json")
+        self.write(json.dumps(result))
+
+
 class HealthcheckHandler(BaseHandler):
     def get(self) -> None:
         self.set_header("Content-Type", "application/json")
@@ -279,12 +312,42 @@ class TagValueHandler(BaseHandler):
         self._handle(tag_value, status_code)
 
 
+class TraceManualKeepDropHandler(BaseHandler):
+    async def get(self) -> None:
+        decision = self.get_argument("decision", "")
+        if decision not in ("keep", "drop"):
+            self.set_status(HTTPStatus.BAD_REQUEST)
+            self.write("decision must be keep or drop")
+            return
+
+        span = tracer.current_span()
+        span.set_tag(MANUAL_KEEP_KEY if decision == "keep" else MANUAL_DROP_KEY)
+
+        # Call downstream so that tests can assert on the sampling decision that gets propagated
+        url = "http://localhost:7777/"
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url)
+
+        result = {
+            "url": url,
+            "status_code": response.status_code,
+            "request_headers": dict(response.request.headers),
+            "response_headers": dict(response.headers),
+        }
+
+        self.set_header("Content-Type", "application/json")
+        self.write(json.dumps(result))
+
+
 class MakeDistantCallHandler(BaseHandler):
     async def get(self) -> None:
         url = self.get_argument("url")
+        # The method is configurable so semantic-convention tests can drive a non-standard verb
+        # through the client instrumentation. Matches the nodejs express weblog.
+        method = self.get_argument("method", "GET")
 
         async with httpx.AsyncClient() as client:
-            response = await client.get(url)
+            response = await client.request(method, url)
 
         result = {
             "url": url,
@@ -1029,12 +1092,14 @@ def make_app() -> Application:
             (r"/status", StatusHandler),
             (r"/stats-unique", StatsUniqueHandler),
             (r"/healthcheck", HealthcheckHandler),
+            (r"/security/thread_context_sharing", ThreadContextSharingHandler),
             # WAF endpoints
             (r"/waf/?", WafHandler),
             (r"/waf/(.+)", WafHandler),
             # Tag value endpoint
             (r"/tag_value/(?P<tag_value>[^/]+)/(?P<status_code>\d+)", TagValueHandler),
             # HTTP client endpoints
+            (r"/trace/manual_keep_drop", TraceManualKeepDropHandler),
             (r"/make_distant_call", MakeDistantCallHandler),
             (r"/external_request", ExternalRequestHandler),
             (r"/external_request/redirect", ExternalRequestRedirectHandler),

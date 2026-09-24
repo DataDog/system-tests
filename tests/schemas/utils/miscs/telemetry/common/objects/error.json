@@ -6,11 +6,20 @@
   "type": "object",
   "properties": {
     "code": {
-      "type": "integer"
+      "type": [
+        "integer",
+        "null"
+      ]
     },
     "message": {
-      "type": "string"
+      "type": [
+        "string",
+        "null"
+      ]
     }
   },
-  "required": ["code", "message"]
+  "required": [
+    "code",
+    "message"
+  ]
 }

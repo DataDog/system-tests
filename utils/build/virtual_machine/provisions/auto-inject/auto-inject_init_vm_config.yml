@@ -98,6 +98,10 @@
         echo "deb http://archive.debian.org/debian bullseye-backports main contrib non-free" | sudo tee /etc/apt/sources.list.d/bullseye-backports.list >/dev/null || true
         sudo sed -i 's|cdn-aws.deb.debian.org|archive.debian.org|g' /etc/apt/sources.list || true
         sudo find /etc/apt/sources.list.d -name '*.list' -exec sudo sed -i 's|cdn-aws.deb.debian.org|archive.debian.org|g' {} + || true
+        # Debian 11 LTS ended 2026-08-31; drop security.debian.org (404s) and keep archive only
+        sudo sed -i -E '/security\.debian\.org|debian-security|bullseye-security/d' /etc/apt/sources.list || true
+        sudo find /etc/apt/sources.list.d -name '*.list' -exec sudo sed -i -E '/security\.debian\.org|debian-security|bullseye-security/d' {} + || true
+        echo 'Acquire::Check-Valid-Until "false";' | sudo tee /etc/apt/apt.conf.d/99no-check-valid-until >/dev/null || true
       fi
     fi
     sudo apt-get -y update

@@ -39,11 +39,11 @@ class CiData:
         excluded_scenarios: str,
         weblogs: str,
         parametric_job_count: int,
+        parametric_workers: int,
         desired_execution_time: int,
         explicit_binaries_artifact: str,
         system_tests_dev_mode: bool,
         ci_environment: str | None,
-        build_weblog_base_images: bool = False,
     ):
         # this data struture is a dict where:
         #  the key is the workflow identifier
@@ -88,16 +88,17 @@ class CiData:
             maximum_parallel_jobs=256,
             unique_id=self.unique_id,
             binaries_artifact=self.binaries_artifact,
-            build_base_images=build_weblog_base_images,
         )
 
         self.data["parametric"] = {
             "job_count": parametric_job_count,
             "job_matrix": list(range(1, parametric_job_count + 1)),
+            "workers": parametric_workers,
             "enable": len(scenario_map.get("parametric", [])) > 0
             and "otel" not in library
             and library
             not in (
+                "c",
                 "cpp_nginx",
                 "cpp_kong",
                 "cpp_httpd",
@@ -279,6 +280,9 @@ if __name__ == "__main__":
 
     # workflow specific parameters
     parser.add_argument("--parametric-job-count", type=int, help="How may jobs must run parametric scenario", default=1)
+    parser.add_argument(
+        "--parametric-workers", type=int, help="Maximum number of pytest-xdist workers per parametric job", default=4
+    )
 
     # Misc
     parser.add_argument(
@@ -288,12 +292,6 @@ if __name__ == "__main__":
         "--system-tests-dev-mode", type=str, help="true if running in system-tests CI, with  the dev mode", default=""
     )
     parser.add_argument("--ci-environment", type=str, help="Explicitly provide CI environment", default=None)
-    parser.add_argument(
-        "--build-weblog-base-images",
-        type=str,
-        help="Rebuild weblog base images",
-        default="",
-    )
 
     args = parser.parse_args()
 
@@ -309,9 +307,9 @@ if __name__ == "__main__":
         excluded_scenarios=args.excluded_scenarios,
         weblogs=args.weblogs,
         parametric_job_count=args.parametric_job_count,
+        parametric_workers=args.parametric_workers,
         desired_execution_time=args.desired_execution_time,
         explicit_binaries_artifact=args.explicit_binaries_artifact,
         system_tests_dev_mode=args.system_tests_dev_mode == "true",
         ci_environment=args.ci_environment,
-        build_weblog_base_images=args.build_weblog_base_images == "true",
     ).export(export_format=args.format, output=args.output)

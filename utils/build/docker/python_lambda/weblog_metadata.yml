@@ -1,0 +1,10 @@
+alb:
+  categories: [dd_trace_lambda]
+alb-multi:
+  categories: [dd_trace_lambda]
+apigw-http:
+  categories: [dd_trace_lambda]
+apigw-rest:
+  categories: [dd_trace_lambda]
+function-url:
+  categories: [dd_trace_lambda]

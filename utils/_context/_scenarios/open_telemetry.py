@@ -9,6 +9,7 @@ from utils._logger import logger
 from utils import interfaces
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils._context.component_version import Version
+from utils._context.constants import WeblogCategory
 
 from utils._context.containers import (
     AgentContainer,
@@ -44,6 +45,7 @@ class OpenTelemetryScenario(DockerScenario):
             doc=doc,
             github_workflow="endtoend",
             scenario_groups=[scenario_groups.all, scenario_groups.open_telemetry],
+            weblog_categories=[WeblogCategory.open_telemetry],
             use_proxy=True,
             mocked_backend=mocked_backend,
             extra_containers=extra_containers,

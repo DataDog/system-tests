@@ -12,6 +12,8 @@
   "license": "ISC",
   "dependencies": {
     "@fastify/formbody": "^8.0.0",
+    "@openfeature/core": "^1.9.0",
+    "@openfeature/server-sdk": "~1.19.0",
     "@opentelemetry/api": "^1.9.0",
     "@opentelemetry/core": "^1.30.1",
     "aws-sdk": "^2.1530.0",

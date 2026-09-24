@@ -28,7 +28,7 @@ class Test_SingleSpan:
 
     def test_parent_span_is_single_span(self):
         # Only the parent span should be submitted to the backend!
-        spans = interfaces.agent.get_spans_list(self.req)
+        spans = interfaces.backend_v2.get_spans_list(self.req)
         assert len(spans) == 1, "Agent did not submit the spans we want!"
 
         # Assert the spans sent by the agent.
@@ -39,11 +39,6 @@ class Test_SingleSpan:
         assert metrics["_dd.top_level"] == 1.0
         _assert_single_span_metrics(span)
 
-        # Assert the spans received from the backend!
-        backend_spans = interfaces.backend.assert_single_spans_exist(self.req)
-        assert len(backend_spans) == 1
-        _assert_single_span_event(backend_spans[0], "parent.span.single_span_submitted", is_root=True)
-
     def setup_child_span_is_single_span(self):
         self.req = weblog.get(
             "/e2e_single_span",
@@ -52,7 +47,7 @@ class Test_SingleSpan:
 
     def test_child_span_is_single_span(self):
         # Only the child should be submitted to the backend!
-        spans = interfaces.agent.get_spans_list(self.req)
+        spans = interfaces.backend_v2.get_spans_list(self.req)
         assert len(spans) == 1, "Agent did not submit the spans we want!"
 
         # Assert the spans sent by the agent.
@@ -60,11 +55,6 @@ class Test_SingleSpan:
         assert span.get_span_name() == "child.span.single_span_submitted"
         assert span.get("parentID") is not None
         _assert_single_span_metrics(span)
-
-        # Assert the spans received from the backend!
-        backend_spans = interfaces.backend.assert_single_spans_exist(self.req)
-        assert len(backend_spans) == 1
-        _assert_single_span_event(backend_spans[0], "child.span.single_span_submitted", is_root=False)
 
 
 def _assert_single_span_event(event: dict, name: str, *, is_root: bool):

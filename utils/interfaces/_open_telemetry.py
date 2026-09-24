@@ -5,6 +5,7 @@
 """Validate data flow between agent and backend"""
 
 import threading
+from typing import Any
 
 from utils._logger import logger
 from utils.interfaces._core import ProxyBasedInterfaceValidator
@@ -40,7 +41,12 @@ class OpenTelemetryInterfaceValidator(ProxyBasedInterfaceValidator):
                         attributes = span.get("attributes", {})
                         request_headers_user_agent_value = attributes.get("http.request.headers.user-agent", "")
                         user_agent_value = attributes.get("http.useragent", "")
-                        if rid in request_headers_user_agent_value or rid in user_agent_value:
+                        user_agent_original_value = attributes.get("user_agent.original", "")
+                        if (
+                            rid in request_headers_user_agent_value
+                            or rid in user_agent_value
+                            or rid in user_agent_original_value
+                        ):
                             yield span.get("trace_id") or span.get("traceId")
 
     def get_otel_spans(self, request: HttpResponse):
@@ -50,7 +56,9 @@ class OpenTelemetryInterfaceValidator(ProxyBasedInterfaceValidator):
         if rid:
             logger.debug(f"Try to find traces related to request {rid}")
 
-        parent_spans = set()
+        span_records: list[tuple[dict[str, Any], dict[str, Any], dict[str, Any]]] = []
+        correlated_indexes: set[int] = set()
+        correlated_span_ids: set[str] = set()
 
         for data in self.get_data(path_filters=paths):
             content = data.get("request").get("content")
@@ -60,17 +68,29 @@ class OpenTelemetryInterfaceValidator(ProxyBasedInterfaceValidator):
                 scope_spans = resource_span.get("scopeSpans")
                 for scope_span in scope_spans:
                     for span in scope_span.get("spans"):
-                        parent_span_id = span.get("parentSpanId")
+                        index = len(span_records)
+                        span_records.append((data.get("request"), content, span))
                         attributes = span.get("attributes", {})
-                        request_headers_user_agent_value = attributes.get("http.request.headers.user-agent", "")
-                        user_agent_value = attributes.get("http.useragent", "")
-                        if (
-                            rid in request_headers_user_agent_value
-                            or rid in user_agent_value
-                            or parent_span_id in parent_spans
+                        if any(
+                            rid in attributes.get(key, "")
+                            for key in ("http.request.headers.user-agent", "http.useragent", "user_agent.original")
                         ):
-                            span_id = span.get("spanId")
-                            if span_id:
-                                parent_spans.add(span_id)
-                            yield data.get("request"), content, span
-                            break  # Skip to next span
+                            correlated_indexes.add(index)
+                            if span_id := span.get("spanId"):
+                                correlated_span_ids.add(span_id)
+
+        # Child spans can be exported before their parent. Resolve the complete descendant set
+        # only after collecting every payload, so export order does not affect correlation.
+        found_descendant = True
+        while found_descendant:
+            found_descendant = False
+            for index, (_, _, span) in enumerate(span_records):
+                if index in correlated_indexes or span.get("parentSpanId") not in correlated_span_ids:
+                    continue
+                correlated_indexes.add(index)
+                if span_id := span.get("spanId"):
+                    correlated_span_ids.add(span_id)
+                found_descendant = True
+
+        for index in sorted(correlated_indexes):
+            yield span_records[index]

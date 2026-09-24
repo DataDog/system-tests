@@ -5,14 +5,10 @@
   "title": "Instrumentation Telemetry Products",
   "type": "object",
   "properties": {
-    "appsec": {
-      "$ref": "./product.json"
-    },
-    "profiler": {
-      "$ref": "./product.json"
-    },
-    "dynamic_instrumentation": {
-      "$ref": "./product.json"
-    }
-  }
+    "appsec": { "$ref": "./product.json" },
+    "profiler": { "$ref": "./product.json" },
+    "dynamic_instrumentation": { "$ref": "./product.json" },
+    "mlobs": { "$ref": "./product.json" }
+  },
+  "additionalProperties": { "$ref": "./product.json" }
 }

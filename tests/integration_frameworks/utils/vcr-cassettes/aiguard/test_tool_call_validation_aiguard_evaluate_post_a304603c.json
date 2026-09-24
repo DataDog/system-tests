@@ -1,0 +1,38 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://app.datadoghq.com/api/v2/ai-guard/evaluate",
+    "headers": {
+      "Accept-Encoding": "identity",
+      "Content-Length": "190",
+      "Content-Type": "application/json",
+      "DD-AI-GUARD-VERSION": "4.10.6",
+      "DD-AI-GUARD-SOURCE": "SDK",
+      "DD-AI-GUARD-LANGUAGE": "python",
+      "Datadog-Entity-ID": "in-115716"
+    },
+    "body": "{\"data\": {\"attributes\": {\"messages\": [{\"role\": \"user\", \"content\": \"Bob is a student at Stanford University. He is studying computer science.\"}], \"meta\": {\"service\": \"openai\", \"env\": null}}}}"
+  },
+  "response": {
+    "status": {
+      "code": 200,
+      "message": "OK"
+    },
+    "headers": {
+      "content-security-policy": "frame-ancestors 'self'; report-uri https://logs.browser-intake-datadoghq.com/api/v2/logs?dd-api-key=pube4f163c23bbf91c16b8f57f56af9fc58&dd-evp-origin=content-security-policy&ddsource=csp-report&ddtags=site%3Adatadoghq.com",
+      "content-type": "application/vnd.api+json",
+      "vary": "Accept-Encoding",
+      "x-frame-options": "SAMEORIGIN",
+      "content-length": "219",
+      "date": "Fri, 03 Jul 2026 14:50:11 GMT",
+      "x-content-type-options": "nosniff",
+      "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+      "x-ratelimit-limit": "5000",
+      "x-ratelimit-period": "60",
+      "x-ratelimit-remaining": "4998",
+      "x-ratelimit-reset": "49",
+      "x-ratelimit-name": "ai_guard_evaluate_per_org"
+    },
+    "body": "{\"data\":{\"id\":\"c3372620-7e64-47c1-bbd6-63a2c664334c\",\"type\":\"evaluations\",\"attributes\":{\"action\":\"ALLOW\",\"global_prob\":0.00885009765625,\"is_blocking_enabled\":false,\"reason\":\"No rule match.\",\"tag_probs\":null,\"tags\":[]}}}"
+  }
+}

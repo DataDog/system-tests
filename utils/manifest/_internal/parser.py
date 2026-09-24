@@ -302,6 +302,7 @@ def load(base_dir: Path = Path("manifests/")) -> ManifestData:
 
     for component in (
         "agent",
+        "c",
         "cpp",
         "cpp_httpd",
         "cpp_kong",

@@ -1,8 +1,8 @@
 import pytest
 from .core import scenario_groups
 from .endtoend import EndToEndScenario
-from utils._context.containers import InternalServerContainer
-from utils._context.containers import PostgresContainer
+from utils._context.containers import InternalServerContainer, PostgresContainer
+from utils._context.constants import WeblogCategory
 
 
 # When Security Controls configuration is set, tracers must instrument all the designated methods in the
@@ -10,6 +10,7 @@ from utils._context.containers import PostgresContainer
 # RFC(https://docs.google.com/document/d/1j1hp87-2wJnXUGADZxzLnvKJmaF_Gd6ZR1hPS3LVguQ/edit?pli=1&tab=t.0)
 
 _iast_security_controls_map = {
+    "c": "TODO",
     "cpp_kong": "TODO",
     "cpp_nginx": "TODO",
     "cpp_httpd": "TODO",
@@ -75,15 +76,13 @@ class DefaultScenario(EndToEndScenario):
                 "DD_RUM_REMOTE_CONFIGURATION_ID": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
             },
             agent_env={"SOME_SECRET_ENV": "leaked-env-var"},
-            other_weblog_containers=(PostgresContainer,),
+            other_weblog_containers=(PostgresContainer, InternalServerContainer),
             scenario_groups=[scenario_groups.essentials, scenario_groups.telemetry],
+            weblog_categories=[WeblogCategory.dd_trace],
             doc="Default scenario, spawn tracer, the Postgres databases and agent, and run most of exisiting tests",
         )
 
     def configure(self, config: pytest.Config):
-        self._internal_server = InternalServerContainer()
-        self._containers.append(self._internal_server)
-
         super().configure(config)
         library = self.weblog_infra.library_name
         value = _iast_security_controls_map[library]

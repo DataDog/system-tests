@@ -165,15 +165,26 @@ class TestClientApi:
 
     def _wait(self, timeout: float):
         delay = 0.01
+        logger.debug(f"Waiting for {self.container.name} being ready")
         for _ in range(int(timeout / delay)):
             try:
                 if self._is_alive():
+                    logger.debug(f"{self.container.name} is ready")
                     break
             except Exception:
-                if self.container.status != "running":
-                    self._print_logs()
-                    message = f"Container {self.container.name} status is {self.container.status}. Please check logs."
-                    _fail(message)
+                # don't log anything here, it makes the ouput very noisy
+                ...
+
+            # _is_alive() swallows a non-running container status and returns False instead of
+            # raising, so the check must be repeated here on every iteration (not only in the
+            # except branch above) or a container that exits early (e.g. crash, port collision)
+            # silently gets retried for the full timeout instead of failing fast with its logs.
+            self.container.reload()
+            if self.container.status not in ("running", "created"):
+                self._print_logs()
+                message = f"Container {self.container.name} status is {self.container.status}. Please check logs."
+                _fail(message)
+
             time.sleep(delay)
         else:
             self._print_logs()

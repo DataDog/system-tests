@@ -12,6 +12,7 @@ GET  /waf                      controllers.AppSecController.waf
 GET  /waf/                      controllers.AppSecController.waf
 GET  /waf/*segments            controllers.AppSecController.params(segments: Seq[String])
 POST /waf                      controllers.AppSecController.wafPost
+GET  /trace/manual_keep_drop   controllers.AppSecController.traceManualKeepDrop(decision: String)
 GET  /make_distant_call        controllers.AppSecController.distantCall(url: String)
 GET  /status                   controllers.AppSecController.status(code: Int)
 GET  /stats-unique             controllers.AppSecController.statsUnique(code: Option[Int])

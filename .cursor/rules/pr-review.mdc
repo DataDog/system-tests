@@ -63,3 +63,7 @@ When adding a new weblog, verify the name is unique across all languages. Search
 - `bug` and `flaky` markers must include a JIRA ticket (e.g., `bug (JIRA-123)`)
 - Values with special YAML characters (`>`, `<`, `:`, `#`) must be quoted
 - Entries should be sorted alphabetically within each manifest file
+
+## 11. Deactivating scenarios in weblog_metadata files
+
+Deactivating scenarios in weblog_metadata files is rare and should only be done when it aims at deactivating a test or group of tests that runs on multiple scenarios for only one scenario.

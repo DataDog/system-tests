@@ -1,8 +1,9 @@
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, replace, field
 from pathlib import Path
 import yaml
 
-from .constants import WeblogBuildMode
+from utils.base_images.base_image import base_image_ref
+from .constants import WeblogBuildMode, WeblogCategory
 
 
 @dataclass
@@ -14,8 +15,18 @@ class WeblogMetaData:
     artifact_name: str = ""
     """ not declared in the yml file, but populated later """
 
+    supported_scenarios: list[str] = field(default_factory=list)
+    excluded_scenarios: list[str] = field(default_factory=list)
+
+    categories: list[WeblogCategory] = field(default_factory=list)
+
+    request_timeout: int | None = None
+    """ Read timeout in seconds for HTTP requests sent to this weblog. None means use the default. """
+
     def __post_init__(self):
+        # cast enums
         self.build_mode = WeblogBuildMode(self.build_mode)
+        self.categories = [WeblogCategory[category] for category in self.categories]
 
     @property
     def require_build(self) -> bool:
@@ -23,30 +34,12 @@ class WeblogMetaData:
         return self.build_mode != WeblogBuildMode.none
 
     @property
-    def base_dockerfile(self) -> Path | None:
-        """Returns the path of the base image docker file if exists, else None"""
-        image_name = self.base_image_tag
-
-        if image_name is None:
-            return None
-
-        file_prefix = image_name.replace("datadog/system-tests:", "").rsplit("-", 1)[0]
-        assert file_prefix.endswith(".base")
-
-        path = Path(f"utils/build/docker/{self.library}/{file_prefix}.Dockerfile")
-        return path if path.exists() else None
-
-    @property
     def base_image_tag(self) -> str | None:
-        """system-tests base image tag read from the first FROM in the weblog Dockerfile."""
+        """system-tests base image the weblog Dockerfile builds FROM (see base_image.py)."""
         dockerfile = Path(f"utils/build/docker/{self.library}/{self.name}.Dockerfile")
         if not dockerfile.exists():
             return None
-        for line in dockerfile.read_text().splitlines():
-            if line.startswith("FROM "):
-                image_name = line.split()[1]
-                return image_name if image_name.startswith("datadog/system-tests:") else None
-        return None
+        return base_image_ref(dockerfile.read_text())
 
     @staticmethod
     def _load_explicit_metadata(library: str) -> dict[str, "WeblogMetaData"]:
@@ -88,9 +81,11 @@ class WeblogMetaData:
 
         return result
 
+    def support_scenario(self, scenario_name: str, weblog_categories: list[WeblogCategory]) -> bool:
+        if scenario_name in self.excluded_scenarios:
+            return False
 
-if __name__ == "__main__":
-    x = WeblogMetaData.load("python")
-    from pprint import pprint
+        if scenario_name in self.supported_scenarios:
+            return True
 
-    pprint(x)  # noqa: T203
+        return any(category in self.categories for category in weblog_categories)

@@ -36,6 +36,7 @@ VARIANT_COMPONENT_MAP = {
     "django-py3.13": "django",
     "python3.12": "django",
     "gin": "gin-gonic/gin",
+    "apim": "apim-callout",
     "haproxy": "haproxy-spoa",
     "gqlgen": "99designs/gqlgen",
     "graph-gophers": "graph-gophers/graphql-go",
@@ -43,6 +44,8 @@ VARIANT_COMPONENT_MAP = {
     "jersey-grizzly2": {"jakarta-rs.request": "jakarta-rs-controller", "grizzly.request": ["grizzly", "jakarta-rs"]},
     "net-http": "net/http",
     "net-http-orchestrion": "net/http",
+    "net-http-span-pool": "net/http",
+    "perl-mojolicious": "http",
     "sinatra": {"rack.request": "rack", "sinatra.route": "sinatra", "sinatra.request": "sinatra"},
     "spring-boot": {
         "servlet.request": "tomcat-server",

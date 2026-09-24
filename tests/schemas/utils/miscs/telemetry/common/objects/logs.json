@@ -10,16 +10,50 @@
     },
     "level": {
       "type": "string",
-      "enum": ["ERROR", "WARN", "DEBUG"]
+      "enum": [
+        "ERROR",
+        "WARN",
+        "DEBUG",
+        "INFO"
+      ]
     },
     "tags": {
       "type": "string"
     },
     "stack_trace": {
-      "type": ["string", "null"]
+      "type": [
+        "string",
+        "null"
+      ]
     },
     "tracer_time": {
       "type": "number"
+    },
+    "count": {
+      "$comment": "Nullable only because nodejs sends null, which the intake decodes to 0, exactly as an absent value.",
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "is_crash": {
+      "type": "boolean"
+    },
+    "is_sensitive": {
+      "type": "boolean"
+    },
+    "trace_id": {
+      "type": "string"
+    },
+    "span_id": {
+      "type": "string"
+    },
+    "error_kind": {
+      "type": "string"
     }
-  }
+  },
+  "required": [
+    "message",
+    "level"
+  ]
 }

@@ -20,16 +20,14 @@ use DDTrace\Configuration;
 use DDTrace\Tag;
 use Monolog\Logger;
 use Monolog\Processor\PsrLogMessageProcessor;
+use OpenTelemetry\API\Globals;
+use OpenTelemetry\API\Metrics\Noop\NoopMeterProvider;
 use OpenTelemetry\API\Logs\LogRecord;
+use OpenTelemetry\API\Logs\NoopLoggerProvider;
 use OpenTelemetry\API\Logs\LoggerInterface as OtelLoggerInterface;
 use OpenTelemetry\API\Logs\LoggerProviderInterface as OtelLoggerProviderInterface;
 use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
 use OpenTelemetry\Contrib\Logs\Monolog\Handler as OtelMonologHandler;
-use OpenTelemetry\Contrib\Otlp\LogsExporterFactory;
-use OpenTelemetry\SDK\Common\Time\ClockFactory;
-use OpenTelemetry\SDK\Logs\LoggerProvider as SDKLoggerProvider;
-use OpenTelemetry\SDK\Logs\Processor\BatchLogRecordProcessor;
-use OpenTelemetry\SDK\Resource\ResourceInfoFactory;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
@@ -208,36 +206,66 @@ $activeSpan = null;
 $spansDistributedTracingHeaders = [];
 /** @var Logger[] $loggerDict */
 $loggerDict = [];
+/** @var \OpenTelemetry\API\Metrics\MeterInterface[] $otelMeters */
+$otelMeters = [];
+/** @var \OpenTelemetry\API\Metrics\CounterInterface[] $otelCounters */
+$otelCounters = [];
+// Composer bootstraps the SDK with OTEL_PHP_AUTOLOAD_ENABLED. The SDK owns
+// provider selection and shutdown; the app always uses the configured provider.
+$sdkMeterProvider = Globals::meterProvider();
 /** @var ?\DDTrace\FeatureFlags\Client $ffeClient */
 $ffeClient = null;
 
-// Construct the OTel LoggerProvider directly when DD_LOGS_OTEL_ENABLED=true.
-// Mirrors how a user would wire up OTLP logs export themselves. dd-trace-php's
-// DatadogResolver fills in OTEL_EXPORTER_OTLP_LOGS_ENDPOINT from the agent host
-// and the resource detector hooks (Service / Environment / Host) populate the
-// ResourceInfo with DD_SERVICE / DD_ENV / DD_VERSION / DD_HOSTNAME.
-$sdkLoggerProvider = SDKLoggerProvider::builder()->build();
+// Use the provider selected by SDK autoconfiguration, including OTEL_LOGS_EXPORTER.
+$sdkLoggerProvider = NoopLoggerProvider::getInstance();
 if (\dd_trace_env_config('DD_LOGS_OTEL_ENABLED')) {
-    try {
-        $sdkLoggerProvider = SDKLoggerProvider::builder()
-            ->setResource(ResourceInfoFactory::defaultResource())
-            ->addLogRecordProcessor(
-                new BatchLogRecordProcessor(
-                    (new LogsExporterFactory())->create(),
-                    ClockFactory::getDefault()
-                )
-            )
-            ->build();
-    } catch (\Throwable $e) {
-        // Fall back to a noop provider when the OTLP transport for the
-        // configured protocol isn't available (e.g. grpc without ext-grpc +
-        // open-telemetry/transport-grpc). Lets the server keep responding so
-        // tests fail cleanly on missing payloads rather than 500s.
-        \error_log('Datadog: failed to build OTLP LoggerProvider: ' . $e->getMessage());
-    }
+    $sdkLoggerProvider = Globals::loggerProvider();
 }
 
 $router = new Router($server, $logger, $errorHandler);
+$router->addRoute('POST', '/metrics/otel/get_meter', new ClosureRequestHandler(function (Request $req) use (&$otelMeters, $sdkMeterProvider) {
+    $name = arg($req, 'name');
+    if (!isset($otelMeters[$name])) {
+        $otelMeters[$name] = $sdkMeterProvider->getMeter(
+            $name,
+            arg($req, 'version'),
+            arg($req, 'schema_url'),
+            arg($req, 'attributes') ?? []
+        );
+    }
+    return jsonResponse(new stdClass());
+}));
+$router->addRoute('POST', '/metrics/otel/create_counter', new ClosureRequestHandler(function (Request $req) use (&$otelMeters, &$otelCounters) {
+    $meterName = arg($req, 'meter_name');
+    if (!isset($otelMeters[$meterName])) {
+        return new Response(status: 400, headers: ['content-type' => 'application/json'], body: json_encode([
+            'success' => false, 'message' => 'Unknown meter: ' . $meterName,
+        ]));
+    }
+    $name = arg($req, 'name');
+    $unit = arg($req, 'unit');
+    $description = arg($req, 'description');
+    $key = json_encode([$meterName, $name, $unit, $description]);
+    $otelCounters[$key] = $otelMeters[$meterName]->createCounter($name, $unit, $description);
+    return jsonResponse(new stdClass());
+}));
+$router->addRoute('POST', '/metrics/otel/counter_add', new ClosureRequestHandler(function (Request $req) use (&$otelCounters) {
+    $key = json_encode([arg($req, 'meter_name'), arg($req, 'name'), arg($req, 'unit'), arg($req, 'description')]);
+    if (!isset($otelCounters[$key])) {
+        return new Response(status: 400, headers: ['content-type' => 'application/json'], body: json_encode([
+            'success' => false, 'message' => 'Unknown counter: ' . $key,
+        ]));
+    }
+    $otelCounters[$key]->add(arg($req, 'value'), arg($req, 'attributes') ?? []);
+    return jsonResponse(new stdClass());
+}));
+$router->addRoute('POST', '/metrics/otel/force_flush', new ClosureRequestHandler(function () use ($sdkMeterProvider) {
+    // The API no-op provider has no buffered metrics or flush method.
+    if ($sdkMeterProvider instanceof NoopMeterProvider) {
+        return jsonResponse(['success' => true]);
+    }
+    return jsonResponse(['success' => $sdkMeterProvider->forceFlush()]);
+}));
 $router->addRoute('POST', '/ffe/start', new ClosureRequestHandler(function (Request $req) use (&$ffeClient) {
     if (!class_exists('\\DDTrace\\FeatureFlags\\Client')) {
         return new Response(status: 500, headers: ['content-type' => 'application/json'], body: json_encode([
@@ -803,8 +831,11 @@ $router->addRoute('POST', '/otel/logger/write', new ClosureRequestHandler(functi
 }));
 $router->addRoute('POST', '/log/otel/flush', new ClosureRequestHandler(function (Request $req) use (&$sdkLoggerProvider) {
     try {
-        $sdkLoggerProvider->forceFlush();
-        return jsonResponse(['success' => true, 'message' => get_class($sdkLoggerProvider)]);
+        // The API no-op provider has no buffered logs or flush method.
+        if ($sdkLoggerProvider instanceof NoopLoggerProvider) {
+            return jsonResponse(['success' => true, 'message' => get_class($sdkLoggerProvider)]);
+        }
+        return jsonResponse(['success' => $sdkLoggerProvider->forceFlush(), 'message' => get_class($sdkLoggerProvider)]);
     } catch (\Throwable $e) {
         return jsonResponse(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
     }

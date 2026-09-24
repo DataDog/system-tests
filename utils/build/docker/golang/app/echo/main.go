@@ -167,6 +167,9 @@ func main() {
 		return c.String(rCode, "OK")
 	})
 
+	r.Any("/trace/manual_keep_drop", echoHandleFunc(common.ManualKeepDrop))
+	r.Any("/security/thread_context_sharing", echoHandleFunc(common.ThreadContextSharing))
+
 	r.Any("/make_distant_call", func(c echo.Context) error {
 		url := c.Request().URL.Query().Get("url")
 		if url == "" {

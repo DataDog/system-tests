@@ -1,5 +1,6 @@
 import pytest
 
+from utils._context.constants import WeblogCategory
 from .core import scenario_groups
 from .endtoend import EndToEndScenario
 
@@ -10,6 +11,7 @@ class AppsecLowWafTimeout(EndToEndScenario):
             name,
             doc="Appsec with a very low WAF timeout",
             scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_low_waf_timeout],
+            weblog_categories=[WeblogCategory.dd_trace],
         )
 
     def configure(self, config: pytest.Config):

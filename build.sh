@@ -3,6 +3,7 @@ set -eu
 
 ATTEMPT=${SYSTEM_TEST_BUILD_ATTEMPTS:=1}
 BUILD_TIMEOUT=${SYSTEM_TEST_BUILD_TIMEOUT:=600}  # Default 10 minutes per attempt
+TIMEOUT_COMMAND=$(command -v timeout || command -v gtimeout || true)
 
 for (( i=1; i<=$ATTEMPT; i++ ))
 do
@@ -10,7 +11,12 @@ do
 
     # Temporarily disable exit on error to capture the exit code
     set +e
-    timeout "$BUILD_TIMEOUT" ./utils/build/build.sh "$@"
+    if [[ -n "$TIMEOUT_COMMAND" ]]; then
+        "$TIMEOUT_COMMAND" "$BUILD_TIMEOUT" ./utils/build/build.sh "$@"
+    else
+        echo "No timeout command found; running the build without a per-attempt timeout"
+        ./utils/build/build.sh "$@"
+    fi
     exit_code=$?
     set -e
 
