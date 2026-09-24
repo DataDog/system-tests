@@ -500,6 +500,7 @@ manifest:
   tests/test_rum_injection.py::Test_RUM_Injection::test_rum_enabled: missing_feature (/html endpoint not implemented)
   tests/test_sampling_manual.py::Test_Manual_Sampling: missing_feature (dd-trace-rs does not honor the manual.keep/manual.drop attributes)
   tests/test_sampling_rate_capping.py::Test_SamplingRateCappedIncrease: missing_feature (sampling-rate capping is not implemented)
+  tests/test_sampling_rules_agent_rate.py::Test_SamplingRulesAgentRate: missing_feature (dd-trace-rs does not report agent-published sampling rates via _dd.agent_psr)
   tests/test_scrubbing.py::Test_UrlQuery: missing_feature (Rust does not implement query string obfuscation)
   tests/test_span_events.py: missing_feature (Span Events are not implemented)
   tests/test_standard_tags.py::Test_StandardTagsClientIp: missing_feature (client IP resolution from forwarded headers is a tracer feature, not implemented in dd-trace-rs)
