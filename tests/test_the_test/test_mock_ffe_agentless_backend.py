@@ -511,7 +511,7 @@ def test_agentless_end_to_end_scenario_closes_backend_when_startup_fails(
     backend = MagicMock(spec=MockFFEAgentlessBackendServer)
     backend.reset.side_effect = RuntimeError("reset failed")
 
-    def create_backend() -> MagicMock:
+    def create_backend(log_folder: str) -> MagicMock:  # noqa: ARG001
         return backend
 
     monkeypatch.setattr(agentless_endtoend_scenarios, "MockFFEAgentlessBackendServer", create_backend)

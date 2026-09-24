@@ -111,7 +111,7 @@ class AgentlessEndToEndScenario(DdTraceEndToEndScenario):
     def _start_mock_backend(self) -> None:
         assert self._mock_backend is None, "mock FFE agentless backend is already running"
 
-        self._mock_backend = MockFFEAgentlessBackendServer()
+        self._mock_backend = MockFFEAgentlessBackendServer(log_folder=self.host_log_folder)
         self._mock_backend.reset()
 
         environment = self.weblog_infra.library_container.environment

@@ -662,3 +662,8 @@ def fixture_session(request: pytest.FixtureRequest) -> pytest.Session:
 @pytest.fixture(scope="session", name="deselected_items")
 def fixture_deselected_items() -> list[pytest.Item]:
     return _deselected_items
+
+
+@pytest.fixture(scope="session", name="host_log_folder")
+def fixture_host_log_folder() -> str:
+    return context.scenario.host_log_folder

@@ -32,7 +32,7 @@ from utils.proxy._deserializer import deserialize
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping
 
-    RouteHandler = Callable[["MockBackendV2RequestHandler"], list|dict]
+    RouteHandler = Callable[["MockBackendV2RequestHandler", bytes | dict | None], list | Mapping | bytes]
 
 HttpMethod = Literal["GET", "POST", "PUT"]
 
@@ -86,14 +86,13 @@ class MockBackendV2Server(ThreadingHTTPServer):
 
     def __init__(
         self,
-        log_folder: str | None = None,
+        log_folder: str,
         on_message: Callable[[dict], None] | None = None,
         *,
         port: int | None = None,
-        request_handler_cls: type[BaseHTTPRequestHandler] | None = None,
     ) -> None:
         port = get_mocked_backend_v2_port() if port is None else port
-        super().__init__(("0.0.0.0", port), request_handler_cls or MockBackendV2RequestHandler)  # noqa: S104
+        super().__init__(("0.0.0.0", port), MockBackendV2RequestHandler)  # noqa: S104
         self.log_folder = log_folder
         self.on_message = on_message
         self.message_count = 0
@@ -119,10 +118,9 @@ class MockBackendV2Server(ThreadingHTTPServer):
     def get_handler(self, method: HttpMethod, path: str) -> RouteHandler:
         return self._routes.get((method, path), self._default_handler)
 
-    def _default_handler(self, request:MockBackendV2RequestHandler) -> dict:
+    def _default_handler(self, request: MockBackendV2RequestHandler, _: bytes | dict | None) -> Mapping:
         response_payload: dict[str, Any] = {}
-        request.write_json(HTTPStatus.OK, response_payload)
-        return response_payload
+        return request.write_json(HTTPStatus.OK, response_payload)
 
     def close(self) -> None:
         logger.debug(f"Stopping {self.thread_name} server on {self.base_url}")
@@ -133,21 +131,21 @@ class MockBackendV2Server(ThreadingHTTPServer):
 
 class MockBackendV2RequestHandler(BaseHTTPRequestHandler):
     server: MockBackendV2Server
-    _data: dict # use to store request and response info
+    _data: dict  # use to store request and response info
 
     # catch response events
-    def send_response(self, code: int, message:str|None = None) -> None:
+    def send_response(self, code: int, message: str | None = None) -> None:
         self._data["response"]["status_code"] = code
         return super().send_response(code, message)
 
-    def send_header(self, keyword:str, value:str) -> None:
+    def send_header(self, keyword: str, value: str) -> None:
         self._data["response"]["headers"].append((keyword, value))
         return super().send_header(keyword, value)
 
     def log_message(self, _format: str, *_args: object) -> None:
         return
 
-    def write_json(self, status_code: HTTPStatus, payload: Mapping[str, Any]) -> None:
+    def write_json(self, status_code: HTTPStatus, payload: Mapping[str, Any]) -> Mapping[str, Any]:
         body = json.dumps(payload).encode("utf-8")
         with contextlib.suppress(BrokenPipeError, ConnectionResetError):
             self.send_response(status_code)
@@ -155,6 +153,8 @@ class MockBackendV2RequestHandler(BaseHTTPRequestHandler):
             self.send_header("Content-Length", str(len(body)))
             self.end_headers()
             self.wfile.write(body)
+
+        return payload
 
     def do_GET(self) -> None:
         self._handle("GET")
@@ -165,12 +165,11 @@ class MockBackendV2RequestHandler(BaseHTTPRequestHandler):
     def do_PUT(self) -> None:
         self._handle("PUT")
 
-    def _handle(self, method:HttpMethod) -> None:
+    def _handle(self, method: HttpMethod) -> None:
         content_length = int(self.headers.get("Content-Length", "0"))
         raw_body = self.rfile.read(content_length) if content_length else b""
         url_parts = urlsplit(self.path)
         path = url_parts.path
-        query = url_parts.query
 
         with self.server._count_lock:  # noqa: SLF001
             message_count = self.server.message_count
@@ -183,10 +182,10 @@ class MockBackendV2RequestHandler(BaseHTTPRequestHandler):
             "method": self.command,
             "path": path,
             "request": {"headers": list(self.headers.items())},
-            "response": {
-                "headers": []
-            }
+            "response": {"headers": []},
         }
+
+        content = None
 
         try:
             content = _decode_content(raw_body, self.headers.get("Content-Encoding", "")) if raw_body else None
@@ -203,7 +202,9 @@ class MockBackendV2RequestHandler(BaseHTTPRequestHandler):
             )
 
         handler = self.server.get_handler(method, path)
-        self._data["response"]["content"] = handler(self)
+        response = handler(self, self._data["request"].get("content", content))
+
+        self._data["response"]["content"] = str(response) if isinstance(response, bytes) else response
 
         logger.debug(f"Mocked backend v2 received {self.command} {self.path}, logging into {log_filename}")
         with open(log_filename, mode="w", encoding="utf-8") as f:
