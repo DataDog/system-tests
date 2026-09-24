@@ -61,10 +61,11 @@ The `fiber-v2-orchestrion` variant uses Fiber v2 with build-time instrumentation
 
 It provides the HTTP, tracing, AppSec SDK, and shared integration endpoints used
 by the Gin and Echo weblogs. Orchestrion adds the Fiber middleware and starts the
-tracer and profiler; the application does not install tracing middleware itself.
+tracer, and the profiler when a scenario enables it; the application does not
+install tracing middleware itself.
 The tracer's Fiber integration does not yet support HTTP AppSec protection. The
-Go manifest records this limit; AppSec SDK tag and telemetry tests remain enabled
-where they do not need HTTP protection. The weblog uses a test-only
+Go manifest disables only the tests that need it. Tests of the AppSec SDK,
+telemetry, remote-configuration capabilities, and gRPC remain enabled. The weblog uses a test-only
 `system_tests.request.user_agent` span tag for request correlation. It does not
 supply missing tracer HTTP tags.
 

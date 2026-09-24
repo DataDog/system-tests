@@ -31,7 +31,8 @@ func main() {
 	logrus.SetOutput(os.Stdout)
 	logrus.SetLevel(logrus.DebugLevel)
 
-	// Orchestrion starts the tracer and profiler and adds the tracing middleware.
+	// Orchestrion starts the tracer (and any enabled profiler) and adds the
+	// tracing middleware.
 	app := newApp()
 	// Use automatic client instrumentation, as in net-http-orchestrion.
 	rasp.HTTPClient = &http.Client{Transport: http.DefaultTransport}

@@ -35,10 +35,7 @@ RUN printf '#!/bin/bash\nexec ./weblog\n' > app.sh && chmod +x app.sh
 EXPOSE 7777
 CMD ["./app.sh"]
 
+# Scenarios own service, version, environment, and profiling settings.
 ENV DD_LOGGING_RATE="0" \
     DD_TRACE_HEADER_TAGS="user-agent" \
-    DD_DATA_STREAMS_ENABLED="true" \
-    DD_ENV="system-tests" \
-    DD_SERVICE="weblog" \
-    DD_VERSION="1.0" \
-    DD_PROFILING_ENABLED="true"
+    DD_DATA_STREAMS_ENABLED="true"
