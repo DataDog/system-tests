@@ -3871,12 +3871,12 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER::test_development_values: missing_feature (Only otlp and none exporters are implemented)
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER::test_empty:
     - declaration: missing_feature
-      component_version: <1.62.0
+      component_version: "<1.62.0"
     - declaration: bug (APMAPI-2485)
       component_version: ">=1.62.0"
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER::test_invalid:
     - declaration: missing_feature
-      component_version: <1.62.0
+      component_version: "<1.62.0"
     - declaration: bug (APMAPI-2485)
       component_version: ">=1.62.0"
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER::test_none: v1.62.0
