@@ -703,7 +703,9 @@ manifest:
   tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_hash_key_value:  # TODO: a lower version might be supported
     - declaration: missing_feature (DEBUG-3374)
       component_version: '<3.45.0'
-  tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_hash_operations: bug (DEBUG-2602)
+  tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_hash_operations:  # DEBUG-2602: box value-type dictionary keys (#9274)
+    - declaration: bug (DEBUG-2602)
+      component_version: '<3.55.0'
   tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_instance_of:  # TODO: a lower version might be supported
     - declaration: bug (DEBUG-2530)
       component_version: <3.51.1
@@ -797,6 +799,7 @@ manifest:
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_Unknown_Operator_Tolerance: bug (FFL-2184)
   tests/ffe/test_exposure_egress.py: v3.36.0
   tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Direct: missing_feature (Not yet implemented)
+  tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Direct_Shutdown: missing_feature (Not yet implemented)
   tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Sidecar: missing_feature (Not yet implemented)
   tests/ffe/test_exposures_datadog_agent.py: v3.36.0
   tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Appears: missing_feature (EX-3416)
@@ -876,11 +879,15 @@ manifest:
     - weblog_declaration:
         uds: v3.46.0
         poc: v3.41.0
-  tests/otel/test_tracing_otlp.py::Test_Otlp_Carries_Ot: missing_feature (APMAPI-2172)
-  tests/otel/test_tracing_otlp.py::Test_Otlp_Forwards_Inherited_Ot: missing_feature (APMAPI-2172)
+  tests/otel/test_tracing_otlp.py::Test_Otlp_Carries_Ot: missing_feature (agent sampling decision happens after export)
+  tests/otel/test_tracing_otlp.py::Test_Otlp_Forwards_Inherited_Ot: v3.55.0-dev
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
+  tests/parametric/otel_env_vars/test_otel_blrp_export_timeout.py::Test_OTEL_BLRP_EXPORT_TIMEOUT: missing_feature
+  tests/parametric/otel_env_vars/test_otel_blrp_max_export_batch_size.py::Test_OTEL_BLRP_MAX_EXPORT_BATCH_SIZE: missing_feature
+  tests/parametric/otel_env_vars/test_otel_blrp_max_queue_size.py::Test_OTEL_BLRP_MAX_QUEUE_SIZE: missing_feature
+  tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY: missing_feature
   tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT: v3.37.0
   tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT::test_invalid_values: bug (APMAPI-2459)
   tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT::test_spec_default: irrelevant (Datadog intentionally defaults to 7500 ms)
@@ -936,7 +943,6 @@ manifest:
     - declaration: bug (APMRP-360)
       component_version: <=2.53.2
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled: v2.49.0
-  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_default_capability_completeness: missing_feature (FFL-2703 declares FFE_FLAG_CONFIGURATION_RULES for dotnet from 3.54.0)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_tracing_client_tracing_disable_one_way: irrelevant (dotnet tracer supports re-enabling over RC)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1: v2.33.0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1::test_trace_sampling_rate_override_default:
@@ -949,6 +955,7 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets: '>=3.36.0'  # Modified by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets::test_not_match_service_target: missing_feature  # Created by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2: v2.44.0
+  tests/parametric/test_dynamic_configuration.py::Test_DynamicConfigSdkConfiguration: missing_feature (SDK_CONFIGURATION capability not yet implemented)
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Default: v3.10.0
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Default::test_baggage: incomplete_test_app (The parametric test app does not preserve baggage after extraction)
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Default::test_multiple_tracecontexts: incomplete_test_app (The parametric test app does not emit terminated-context span links)
@@ -1072,7 +1079,7 @@ manifest:
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: v2.53.0
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_log_level_env: missing_feature (DD_LOG_LEVEL is not supported in .NET)
   tests/parametric/test_otel_logs.py: '>=3.36.0'  # Modified by easy win activation script
-  tests/parametric/test_otel_logs.py::Test_FR01_Enable_OTLP_Log_Collection::test_otlp_logs_enabled: missing_feature  # Created by easy win activation script
+  tests/parametric/test_otel_logs.py::Test_FR01_Enable_OTLP_Log_Collection::test_otlp_logs_enabled: v3.53.0
   tests/parametric/test_otel_logs.py::Test_FR03_Resource_Attributes: missing_feature  # Created by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR04_Trace_Span_IDs: missing_feature  # Created by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR05_Custom_Endpoints: missing_feature  # Created by easy win activation script
@@ -1166,9 +1173,7 @@ manifest:
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_FFE_Start: missing_feature
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Otel_Baggage: incomplete_test_app (otel baggage endpoints are not implemented)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Otel_Current_Span: incomplete_test_app (otel current span endpoint are not implemented)
-  tests/parametric/test_parametric_endpoints.py::Test_Parametric_Write_Log: missing_feature
-  tests/parametric/test_parametric_endpoints.py::Test_Parametric_Write_Log::test_create_logger: incomplete_test_app (Logs endpoint is only implemented in python and node.js app)
-  tests/parametric/test_parametric_endpoints.py::Test_Parametric_Write_Log::test_write_log: incomplete_test_app (Logs endpoint is only implemented in python and node.js app)
+  tests/parametric/test_parametric_endpoints.py::Test_Parametric_Write_Log: v3.53.0
   tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_one_span_default: missing_feature (partial flushing not enabled by default)
   tests/parametric/test_process_discovery.py::Test_ProcessDiscovery: '>=3.36.0'  # Modified by easy win activation script
   tests/parametric/test_process_discovery.py::Test_ProcessDiscovery::test_metadata_content_with_process_tags: '>=3.52.0'  # Created by easy win activation script

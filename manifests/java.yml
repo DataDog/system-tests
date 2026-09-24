@@ -10,9 +10,18 @@ manifest:
         "*": irrelevant (just one weblog is enough to test the SDK)
         "spring-boot": v1.65.0-SNAPSHOT
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone_APMDisabledMarker: missing_feature
-  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRedacted: missing_feature
-  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests: missing_feature
-  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRedacted:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "spring-boot": v1.67.0-SNAPSHOT
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "spring-boot": v1.67.0-SNAPSHOT
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "spring-boot": v1.67.0-SNAPSHOT
   tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
@@ -33,16 +42,46 @@ manifest:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
         "spring-boot": v1.57.0
-  tests/ai_guard/test_ai_guard_sdk.py::Test_NoRedaction: missing_feature
-  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactedMessagesInSDKResponse: missing_feature
-  tests/ai_guard/test_ai_guard_sdk.py::Test_Redaction: missing_feature
-  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionDisabled: missing_feature
-  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionDisabledTelemetry: missing_feature
-  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionFailSafe: missing_feature
-  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionInSDKResponse: missing_feature
-  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionMultiTurnContext: missing_feature
-  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionOnBlock: missing_feature
-  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionSkipsStructuralFields: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_NoRedaction:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "spring-boot": v1.67.0-SNAPSHOT
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactedMessagesInSDKResponse:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "spring-boot": v1.67.0-SNAPSHOT
+  tests/ai_guard/test_ai_guard_sdk.py::Test_Redaction:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "spring-boot": v1.67.0-SNAPSHOT
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionDisabled:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "spring-boot": v1.67.0-SNAPSHOT
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionDisabledTelemetry:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "spring-boot": v1.67.0-SNAPSHOT
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionFailSafe:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "spring-boot": v1.67.0-SNAPSHOT
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionInSDKResponse:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "spring-boot": v1.67.0-SNAPSHOT
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionMultiTurnContext:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "spring-boot": v1.67.0-SNAPSHOT
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionOnBlock:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "spring-boot": v1.67.0-SNAPSHOT
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionSkipsStructuralFields:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "spring-boot": v1.67.0-SNAPSHOT
   tests/ai_guard/test_ai_guard_sdk.py::Test_RootSpanUserKeep:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
@@ -3352,6 +3391,7 @@ manifest:
         "*": irrelevant
         spring-boot: v1.56.0
   tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Direct: missing_feature (Not yet implemented)
+  tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Direct_Shutdown: missing_feature (Not yet implemented)
   tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Sidecar: missing_feature (Not yet implemented)
   tests/ffe/test_exposures_datadog_agent.py:
     - weblog_declaration:
@@ -3811,6 +3851,20 @@ manifest:
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
+  tests/parametric/otel_env_vars/test_otel_blrp_export_timeout.py::Test_OTEL_BLRP_EXPORT_TIMEOUT: v1.62.0
+  tests/parametric/otel_env_vars/test_otel_blrp_export_timeout.py::Test_OTEL_BLRP_EXPORT_TIMEOUT::test_empty_is_treated_as_unset: bug (APMAPI-2412)
+  tests/parametric/otel_env_vars/test_otel_blrp_export_timeout.py::Test_OTEL_BLRP_EXPORT_TIMEOUT::test_invalid_value_is_ignored: bug (APMAPI-2446)
+  tests/parametric/otel_env_vars/test_otel_blrp_max_export_batch_size.py::Test_OTEL_BLRP_MAX_EXPORT_BATCH_SIZE: v1.62.0
+  ? tests/parametric/otel_env_vars/test_otel_blrp_max_export_batch_size.py::Test_OTEL_BLRP_MAX_EXPORT_BATCH_SIZE::test_empty_is_treated_as_unset
+  : bug (APMAPI-2412)
+  ? tests/parametric/otel_env_vars/test_otel_blrp_max_export_batch_size.py::Test_OTEL_BLRP_MAX_EXPORT_BATCH_SIZE::test_invalid_value_is_ignored
+  : bug (APMAPI-2446)
+  tests/parametric/otel_env_vars/test_otel_blrp_max_queue_size.py::Test_OTEL_BLRP_MAX_QUEUE_SIZE: v1.62.0
+  tests/parametric/otel_env_vars/test_otel_blrp_max_queue_size.py::Test_OTEL_BLRP_MAX_QUEUE_SIZE::test_empty_is_treated_as_unset: bug (APMAPI-2412)
+  tests/parametric/otel_env_vars/test_otel_blrp_max_queue_size.py::Test_OTEL_BLRP_MAX_QUEUE_SIZE::test_invalid_value_is_ignored: bug (APMAPI-2446)
+  tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY: v1.62.0
+  tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY::test_empty_is_treated_as_unset: bug (APMAPI-2412)
+  tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY::test_invalid_value_is_ignored: bug (APMAPI-2446)
   tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT: v1.56.0
   tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT::test_invalid_values: bug (APMAPI-2462)
   tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT::test_spec_default: irrelevant (Datadog intentionally defaults to 7500 ms)
@@ -3881,6 +3935,7 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets: v1.31.0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets::test_not_match_service_target: irrelevant (APMAPI-1003)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2: v1.31.0
+  tests/parametric/test_dynamic_configuration.py::Test_DynamicConfigSdkConfiguration: missing_feature (SDK_CONFIGURATION capability not yet implemented)
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Default: v1.48.0
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Ignore: v1.50.1
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart: v1.48.0
@@ -4940,7 +4995,6 @@ manifest:
         resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
         spring-boot-3-native: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
   tests/test_sampling_rate_capping.py::Test_SamplingRateCappedIncrease: v1.60.0-SNAPSHOT+c95286e6a5
-  tests/test_sampling_rate_capping.py::Test_SamplingRateCappedIncrease::test_sampling_rate_capped_increase: missing_feature
   tests/test_sampling_rates.py::Test_SampleRateFunction:
     - weblog_declaration:
         "*": v1.49.0
