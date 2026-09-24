@@ -62,6 +62,8 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_blrp_max_queue_size.py::Test_OTEL_BLRP_MAX_QUEUE_SIZE: missing_feature
   tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY: missing_feature
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS: missing_feature
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_headers.py::Test_OTEL_EXPORTER_OTLP_LOGS_HEADERS: missing_feature
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_headers.py::Test_OTEL_EXPORTER_OTLP_METRICS_HEADERS: missing_feature
   tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT: missing_feature
   tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES: missing_feature
   tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED: missing_feature
@@ -236,7 +238,6 @@ manifest:
   tests/parametric/test_otel_logs.py::Test_FR06_OTLP_Protocols: missing_feature  # Created by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR07_Host_Name: missing_feature  # Created by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR07_Host_Name::test_hostname_from_dd_hostname: irrelevant (DD_HOSTNAME is only supported in Python)
-  tests/parametric/test_otel_logs.py::Test_FR08_Custom_Headers: missing_feature  # Created by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR09_Log_Injection: missing_feature  # Created by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR10_Timeout_Configuration: missing_feature  # Created by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR11_Telemetry: missing_feature  # Created by easy win activation script
