@@ -65,9 +65,14 @@ tracer, and the profiler when a scenario enables it; the application does not
 install tracing middleware itself.
 The tracer's Fiber integration does not yet support HTTP AppSec protection. The
 Go manifest disables only the tests that need it. Tests of the AppSec SDK,
-telemetry, remote-configuration capabilities, and gRPC remain enabled. The weblog uses a test-only
-`system_tests.request.user_agent` span tag for request correlation. It does not
-supply missing tracer HTTP tags.
+telemetry, remote-configuration capabilities, and gRPC remain enabled.
+
+System-tests normally finds the spans of a request through their user-agent
+tag, which the tracer sets directly or through `DD_TRACE_HEADER_TAGS`. The
+tracer's Fiber integration does neither. The weblog therefore sets a test-only
+`system_tests.request.user_agent` span tag, which the test framework uses only
+when no standard user-agent tag is present. It does not supply missing tracer
+HTTP tags.
 
 ### dd-trace-c packages
 
