@@ -495,7 +495,7 @@ class EndToEndScenario(DockerScenario):
 
             # An empty selection has no test-generated data to flush. An Agentless scenario also
             # has no Agent-backed writer target, so its flush endpoint can only time out.
-            self.weblog_infra.stop(flush=not is_empty_test_run and self.include_agent)
+            self._stop_weblog(is_empty_test_run=is_empty_test_run)
             interfaces.library.check_deserialization_errors()
 
             for container in self.buddies:
@@ -517,6 +517,10 @@ class EndToEndScenario(DockerScenario):
                 )
             if self._mocked_backend_v2:
                 interfaces.backend_v2.check_deserialization_errors()
+
+    def _stop_weblog(self, *, is_empty_test_run: bool) -> None:
+        """Stop the weblog after setup traffic has been generated."""
+        self.weblog_infra.stop(flush=not is_empty_test_run and self.include_agent)
 
     def _wait_interface(self, interface: ProxyBasedInterfaceValidator, timeout: int):
         logger.terminal.write_sep("-", f"Wait for {interface} ({timeout}s)")
@@ -588,6 +592,7 @@ class DdTraceEndToEndScenario(EndToEndScenario):
         doc: str,
         additional_trace_header_tags: tuple[str, ...] = (),
         agent_env: dict[str, str | None] | None = None,
+        agent_interface_timeout: int = 5,
         appsec_enabled: bool = True,
         backend_interface_timeout: int = 0,
         client_drop_p0s: bool | None = None,
@@ -615,6 +620,7 @@ class DdTraceEndToEndScenario(EndToEndScenario):
             name,
             additional_trace_header_tags=additional_trace_header_tags,
             agent_env=agent_env,
+            agent_interface_timeout=agent_interface_timeout,
             appsec_enabled=appsec_enabled,
             backend_interface_timeout=backend_interface_timeout,
             client_drop_p0s=client_drop_p0s,
