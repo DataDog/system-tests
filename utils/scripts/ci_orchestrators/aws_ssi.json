@@ -553,8 +553,7 @@
                     "Ubuntu_24_10_arm64",
                     "Ubuntu_25_04_amd64",
                     "Ubuntu_25_04_arm64",
-                    "Fedora_41_arm64",
-                    "RedHat_8_6_arm64"
+                    "Fedora_41_arm64"
                 ]
             },
             {
