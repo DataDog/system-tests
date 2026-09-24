@@ -2255,6 +2255,21 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_blrp_max_export_batch_size.py::Test_OTEL_BLRP_MAX_EXPORT_BATCH_SIZE: missing_feature
   tests/parametric/otel_env_vars/test_otel_blrp_max_queue_size.py::Test_OTEL_BLRP_MAX_QUEUE_SIZE: missing_feature
   tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY: missing_feature
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS: v5.88.0
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_logs_percent_encoded_value
+  : bug (APMAPI-2450)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_metrics_percent_encoded_value
+  : bug (APMAPI-2450)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_headers.py::Test_OTEL_EXPORTER_OTLP_LOGS_HEADERS: v5.88.0
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_headers.py::Test_OTEL_EXPORTER_OTLP_LOGS_HEADERS::test_empty_falls_back
+  : bug (APMAPI-2475)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_headers.py::Test_OTEL_EXPORTER_OTLP_LOGS_HEADERS::test_logs_percent_encoded_value
+  : bug (APMAPI-2450)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_headers.py::Test_OTEL_EXPORTER_OTLP_METRICS_HEADERS: v5.83.0
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_headers.py::Test_OTEL_EXPORTER_OTLP_METRICS_HEADERS::test_empty_falls_back
+  : bug (APMAPI-2475)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_headers.py::Test_OTEL_EXPORTER_OTLP_METRICS_HEADERS::test_metrics_percent_encoded_value
+  : bug (APMAPI-2450)
   tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT: v5.83.0
   tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT::test_invalid_values: bug (APMAPI-2463)
   tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT::test_spec_default: irrelevant (Datadog intentionally defaults to 7500 ms)
@@ -2445,7 +2460,6 @@ manifest:
   tests/parametric/test_otel_logs.py::Test_FR06_OTLP_Protocols: *ref_5_72_0
   tests/parametric/test_otel_logs.py::Test_FR07_Host_Name: *ref_5_72_0
   tests/parametric/test_otel_logs.py::Test_FR07_Host_Name::test_hostname_from_dd_hostname: irrelevant (DD_HOSTNAME is only supported in Python)
-  tests/parametric/test_otel_logs.py::Test_FR08_Custom_Headers: *ref_5_72_0
   tests/parametric/test_otel_logs.py::Test_FR09_Log_Injection: *ref_5_72_0
   tests/parametric/test_otel_logs.py::Test_FR10_Timeout_Configuration: *ref_5_72_0
   tests/parametric/test_otel_logs.py::Test_FR11_Telemetry: *ref_5_72_0

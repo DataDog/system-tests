@@ -2306,6 +2306,28 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY: v2.34.0
   tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY::test_empty_is_treated_as_unset: bug (APMAPI-2413)
   tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY::test_invalid_value_is_ignored: bug (APMAPI-2445)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS: v2.23.0
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_logs_empty_headers:
+    - declaration: missing_feature
+      component_version: '<2.34.0'
+    - declaration: bug (APMAPI-2477)
+      component_version: '>=2.34.0'
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_logs_headers: v2.34.0
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_logs_override: v2.34.0
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_logs_percent_encoded_value
+  : bug (APMAPI-2473)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_metrics_percent_encoded_value
+  : bug (APMAPI-2473)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_headers.py::Test_OTEL_EXPORTER_OTLP_LOGS_HEADERS: v2.34.0
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_headers.py::Test_OTEL_EXPORTER_OTLP_LOGS_HEADERS::test_empty_falls_back
+  : bug (APMAPI-2477)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_headers.py::Test_OTEL_EXPORTER_OTLP_LOGS_HEADERS::test_logs_percent_encoded_value
+  : bug (APMAPI-2473)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_headers.py::Test_OTEL_EXPORTER_OTLP_METRICS_HEADERS: v2.23.0
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_headers.py::Test_OTEL_EXPORTER_OTLP_METRICS_HEADERS::test_empty_falls_back
+  : bug (APMAPI-2477)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_headers.py::Test_OTEL_EXPORTER_OTLP_METRICS_HEADERS::test_metrics_percent_encoded_value
+  : bug (APMAPI-2473)
   tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT: v2.23.0
   tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT::test_invalid_values: bug (APMAPI-2445)
   tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT::test_spec_default: irrelevant (Datadog intentionally defaults to 7500 ms)
@@ -2537,7 +2559,6 @@ manifest:
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: v2.1.0
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_log_level_env: missing_feature (DD_LOG_LEVEL is not supported in ruby)
   tests/parametric/test_otel_logs.py: '>=2.34.0-dev'
-  tests/parametric/test_otel_logs.py::Test_FR08_Custom_Headers: missing_feature (Ruby net/http titlecases header names; test checks lowercase; fix requires overriding OTLP exporter HTTP headers)
   tests/parametric/test_otel_logs.py::Test_FR11_Telemetry::test_telemetry_exporter_logs_configurations:  # TODO: a lower version might be supported
     - declaration: missing_feature (OTEL_EXPORTER_OTLP_LOGS_ENDPOINT is not supported)
       component_version: <2.40.0
