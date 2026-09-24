@@ -1,3 +1,5 @@
+//go:build !ddtrace_v2_4
+
 package main
 
 import (
@@ -5,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"strconv"
@@ -172,9 +175,18 @@ func main() {
 	http.HandleFunc("/metrics/otel/create_asynchronous_gauge", s.otelCreateAsynchronousGaugeHandler)
 	http.HandleFunc("/metrics/otel/force_flush", s.otelMetricsForceFlushHandler)
 
-	err = http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
+	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
-	log.Printf("server listening at %v", fmt.Sprintf("0.0.0.0:%d", port))
+	assignedPort := listener.Addr().(*net.TCPAddr).Port
+	if readyFile := os.Getenv("APM_TEST_CLIENT_READY_FILE"); readyFile != "" {
+		if err := os.WriteFile(readyFile, []byte(strconv.Itoa(assignedPort)), 0o644); err != nil {
+			log.Fatalf("failed to publish assigned port: %v", err)
+		}
+	}
+	log.Printf("server listening at 0.0.0.0:%d", assignedPort)
+	if err := http.Serve(listener, nil); err != nil {
+		log.Fatalf("failed to serve: %v", err)
+	}
 }

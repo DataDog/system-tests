@@ -1,0 +1,23 @@
+common --enable_bzlmod
+
+build:buildbarn --remote_executor=grpcs://buildbarn-frontend.us1.ddbuild.io:443
+build:buildbarn --remote_cache=grpcs://buildbarn-frontend.us1.ddbuild.io:443
+build:buildbarn --remote_instance_name=ci/shared
+build:buildbarn --remote_timeout=1800
+build:buildbarn --remote_retries=5
+build:buildbarn --experimental_remote_execution_keepalive
+build:buildbarn --experimental_remote_cache_lease_extension
+build:buildbarn --experimental_remote_cache_ttl=10m
+build:buildbarn --experimental_remote_cache_eviction_retries=5
+build:buildbarn --platforms=//bazel/platforms:linux_x86_64
+build:buildbarn --extra_execution_platforms=//bazel/platforms:linux_x86_64
+build:buildbarn --spawn_strategy=remote
+build:buildbarn --strategy_regexp='^Copying files( .for tool.)?$=local'
+build:buildbarn --@rules_go//go/config:gc_linkopts=-extldflags,-no-pie
+build:buildbarn --remote_local_fallback=false
+build:buildbarn --remote_download_outputs=toplevel
+test:buildbarn --test_output=errors
+
+build:buildbarn-dd-source --config=buildbarn
+build:buildbarn-dd-source --remote_instance_name=ci/dd-source
+test:buildbarn-dd-source --test_output=errors

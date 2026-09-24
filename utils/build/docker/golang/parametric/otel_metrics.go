@@ -1,3 +1,5 @@
+//go:build !ddtrace_v2_4
+
 package main
 
 import (

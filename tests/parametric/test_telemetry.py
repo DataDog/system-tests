@@ -562,7 +562,7 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
             # Sleep between telemetry events to ensure they are recorded with different timestamps, to later reorder them.
             # seq_id can't be used to sort because payloads are sent from different tracer sessions.
             time.sleep(1)
-            test_library.container_restart()
+            test_library.restart()
             test_library.dd_start_span("test")
         configuration_by_name = test_agent.wait_for_telemetry_configurations()
         for cfg_name, expected_origin in expected_origins.items():
@@ -626,7 +626,7 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
             )
             # Sleep to ensure the telemetry events are sent with different timestamps
             time.sleep(1)
-            test_library.container_restart()
+            test_library.restart()
             test_library.dd_start_span("test")
         configuration_by_name = test_agent.wait_for_telemetry_configurations()
         # Configuration set via fleet config should have the config_id set
@@ -713,7 +713,7 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
             # Sleep between telemetry events to ensure they are recorded with different timestamps, to later reorder them.
             # seq_id can't be used to sort because payloads are sent from different tracer sessions.
             time.sleep(1)
-            test_library.container_restart()
+            test_library.restart()
             test_library.dd_start_span("test")
         configuration_by_name = test_agent.wait_for_telemetry_configurations()
         for cfg_name, expected_origin in expected_origins.items():
@@ -789,7 +789,7 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
             # Sleep between telemetry events to ensure they are recorded with different timestamps, to later reorder them.
             # seq_id can't be used to sort because payloads are sent from different tracer sessions.
             time.sleep(1)
-            test_library.container_restart()
+            test_library.restart()
             test_library.dd_start_span("test")
         configuration_by_name = test_agent.wait_for_telemetry_configurations()
         for cfg_name, expected_origin in expected_origins.items():
