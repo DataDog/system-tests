@@ -20,7 +20,9 @@ RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python", "c
 
 @features.security_events_metadata
 @scenarios.default
+@scenarios.appsec_otel_api_default_rules
 @scenarios.appsec_lambda_default
+@scenarios.appsec_otel_api_default_rules
 class Test_RetainTraces:
     """Retain trace (manual keep & appsec.event = true)"""
 
@@ -61,7 +63,9 @@ class Test_RetainTraces:
 
 @features.security_events_metadata
 @scenarios.default
+@scenarios.appsec_otel_api_default_rules
 @scenarios.appsec_lambda_default
+@scenarios.appsec_otel_api_default_rules
 class Test_AppSecEventSpanTags:
     """AppSec correctly fill span tags."""
 
@@ -131,7 +135,9 @@ class Test_AppSecEventSpanTags:
 @features.sensitive_data_obfuscation
 @features.security_events_metadata
 @scenarios.default
+@scenarios.appsec_otel_api_default_rules
 @scenarios.appsec_lambda_default
+@scenarios.appsec_otel_api_default_rules
 class Test_AppSecObfuscator:
     """AppSec obfuscates sensitive data."""
 
@@ -266,7 +272,9 @@ class Test_AppSecObfuscator:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
 @features.security_events_metadata
 @scenarios.default
+@scenarios.appsec_otel_api_default_rules
 @scenarios.appsec_lambda_default
+@scenarios.appsec_otel_api_default_rules
 class Test_CollectRespondHeaders:
     """AppSec should collect some headers for http.response and store them in span tags."""
 
@@ -289,7 +297,9 @@ class Test_CollectRespondHeaders:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
 @features.security_events_metadata
 @scenarios.default
+@scenarios.appsec_otel_api_default_rules
 @scenarios.appsec_lambda_default
+@scenarios.appsec_otel_api_default_rules
 class Test_CollectDefaultRequestHeader:
     HEADERS = {
         "User-Agent": "MyBrowser",
@@ -321,7 +331,9 @@ class Test_CollectDefaultRequestHeader:
 @rfc("https://docs.google.com/document/d/1xf-s6PtSr6heZxmO_QLUtcFzY_X_rT94lRXNq6-Ghws/edit?pli=1")
 @features.security_events_metadata
 @scenarios.default
+@scenarios.appsec_otel_api_default_rules
 @scenarios.appsec_lambda_default
+@scenarios.appsec_otel_api_default_rules
 class Test_ExternalWafRequestsIdentification:
     def setup_external_wafs_header_collection(self):
         self.r = weblog.get(

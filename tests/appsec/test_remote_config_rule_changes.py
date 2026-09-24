@@ -43,6 +43,7 @@ BLOCK_REDIRECT = (
 
 
 @scenarios.appsec_runtime_activation
+@scenarios.appsec_otel_api_runtime_activation
 @features.changing_rules_using_rc
 class Test_BlockingActionChangesWithRemoteConfig:
     """A library should block requests after AppSec is activated via remote config,
@@ -132,6 +133,7 @@ RULE_FILE: tuple[str, dict] = (
 
 
 @scenarios.appsec_runtime_activation
+@scenarios.appsec_otel_api_runtime_activation
 @features.changing_rules_using_rc
 class Test_UpdateRuleFileWithRemoteConfig:
     """A library should use the default rules when AppSec is activated via remote config,
@@ -451,6 +453,7 @@ FOO_ACTION = (
 
 
 @scenarios.appsec_runtime_activation
+@scenarios.appsec_otel_api_runtime_activation
 @features.changing_rules_using_rc
 class Test_Unknown_Action:
     def setup_unknown_action(self):
@@ -490,6 +493,7 @@ BLOCK_FOO_ACTION = (
 
 
 @scenarios.appsec_runtime_activation
+@scenarios.appsec_otel_api_runtime_activation
 @features.changing_rules_using_rc
 class Test_Multiple_Actions:
     def setup_multiple_actions(self):
@@ -520,6 +524,7 @@ EMPTY_CONFIG: tuple[str, dict] = ("datadog/2/ASM/actions/config", {})
 
 
 @scenarios.appsec_runtime_activation
+@scenarios.appsec_otel_api_runtime_activation
 @features.changing_rules_using_rc
 class Test_Empty_Config:
     def setup_empty_config(self):
@@ -561,6 +566,7 @@ DUPLICATE_ID_CONFIG = (
 
 
 @scenarios.appsec_runtime_activation
+@scenarios.appsec_otel_api_runtime_activation
 @features.changing_rules_using_rc
 class Test_Invalid_Config:
     def setup_invalid_config(self):
