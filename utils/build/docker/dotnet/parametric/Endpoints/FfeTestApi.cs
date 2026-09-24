@@ -1,5 +1,6 @@
+using System.ComponentModel;
+using System.Reflection;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using OpenFeature;
 using OpenFeature.Constant;
 using OpenFeature.Model;
@@ -40,162 +41,70 @@ public abstract class FfeTestApi
         }
     }
 
-    private static async Task<IResult> EvaluateFfe(HttpRequest request)
+    private static async Task<IResult> EvaluateFfe(EvaluateRequest request)
     {
         if (_client is null)
         {
             return Results.Json(new { error = "FFE provider not initialized" }, statusCode: 500);
         }
 
+        var contextBuilder = EvaluationContext.Builder().SetTargetingKey(request.TargetingKey);
+
+        foreach (var (key, attribute) in request.Attributes ?? new())
+        {
+            switch (attribute.ValueKind)
+            {
+                case JsonValueKind.String:
+                    contextBuilder.Set(key, attribute.GetString()!);
+                    break;
+                case JsonValueKind.Number:
+                    contextBuilder.Set(key, attribute.GetDouble());
+                    break;
+                case JsonValueKind.True:
+                case JsonValueKind.False:
+                    contextBuilder.Set(key, attribute.GetBoolean());
+                    break;
+                default:
+                    contextBuilder.Set(key, attribute.GetRawText());
+                    break;
+            }
+        }
+
+        var context = contextBuilder.Build();
+        var defaultValue = request.DefaultValue;
+
         try
         {
-            using var jsonDoc = await JsonDocument.ParseAsync(request.Body);
-            var root = jsonDoc.RootElement;
-
-            var flag = root.GetProperty("flag").GetString()!;
-            var variationType = root.GetProperty("variationType").GetString()!;
-            var targetingKey = root.GetProperty("targetingKey").GetString()!;
-            var attributes = new Dictionary<string, object?>();
-
-            if (root.TryGetProperty("attributes", out var attrsEl) && attrsEl.ValueKind == JsonValueKind.Object)
+            return request.VariationType switch
             {
-                foreach (var prop in attrsEl.EnumerateObject())
-                {
-                    attributes[prop.Name] = prop.Value.ValueKind switch
-                    {
-                        JsonValueKind.String => prop.Value.GetString(),
-                        JsonValueKind.Number => prop.Value.GetDouble(),
-                        JsonValueKind.True => true,
-                        JsonValueKind.False => false,
-                        _ => prop.Value.GetRawText()
-                    };
-                }
-            }
-
-            var contextBuilder = EvaluationContext.Builder().SetTargetingKey(targetingKey);
-
-            foreach (var (key, attribute) in attributes)
-            {
-                switch (attribute)
-                {
-                    case string s:
-                        contextBuilder.Set(key, s);
-                        break;
-                    case double d:
-                        contextBuilder.Set(key, d);
-                        break;
-                    case bool b:
-                        contextBuilder.Set(key, b);
-                        break;
-                    default:
-                        contextBuilder.Set(key, attribute?.ToString() ?? string.Empty);
-                        break;
-                }
-            }
-
-            var context = contextBuilder.Build();
-
-            object? value;
-            string? errorCode = null;
-            string reason = "DEFAULT";
-
-            try
-            {
-                switch (variationType)
-                {
-                    case "BOOLEAN":
-                        {
-                            var details = await _client.GetBooleanDetailsAsync(flag, root.GetProperty("defaultValue").GetBoolean(), context);
-                            value = details.Value;
-                            reason = details.Reason ?? "DEFAULT";
-                            errorCode = ErrorTypeToString(details.ErrorType);
-                        }
-                        break;
-                    case "STRING":
-                        {
-                            var details = await _client.GetStringDetailsAsync(flag, root.GetProperty("defaultValue").GetString()!, context);
-                            value = details.Value;
-                            reason = details.Reason ?? "DEFAULT";
-                            errorCode = ErrorTypeToString(details.ErrorType);
-                        }
-                        break;
-                    case "INTEGER":
-                        {
-                            var details = await _client.GetIntegerDetailsAsync(flag, root.GetProperty("defaultValue").GetInt32(), context);
-                            value = details.Value;
-                            reason = details.Reason ?? "DEFAULT";
-                            errorCode = ErrorTypeToString(details.ErrorType);
-                        }
-                        break;
-                    case "NUMERIC":
-                        {
-                            var details = await _client.GetDoubleDetailsAsync(flag, root.GetProperty("defaultValue").GetDouble(), context);
-                            value = details.Value;
-                            reason = details.Reason ?? "DEFAULT";
-                            errorCode = ErrorTypeToString(details.ErrorType);
-                        }
-                        break;
-                    case "JSON":
-                        {
-                            var details = await _client.GetObjectDetailsAsync(flag, new Value(root.GetProperty("defaultValue").GetRawText()), context);
-                            value = details.Value;
-                            reason = details.Reason ?? "DEFAULT";
-                            errorCode = ErrorTypeToString(details.ErrorType);
-                        }
-                        break;
-                    default:
-                        value = root.GetProperty("defaultValue").GetRawText();
-                        break;
-                }
-            }
-            catch (Exception)
-            {
-                value = GetDefaultValue(root);
-                reason = "ERROR";
-            }
-
-            return Results.Ok(new { value, reason, errorCode });
+                "BOOLEAN" => ToResult(await _client.GetBooleanDetailsAsync(request.Flag, defaultValue.GetBoolean(), context)),
+                "STRING" => ToResult(await _client.GetStringDetailsAsync(request.Flag, defaultValue.GetString()!, context)),
+                "INTEGER" => ToResult(await _client.GetIntegerDetailsAsync(request.Flag, defaultValue.GetInt32(), context)),
+                "NUMERIC" => ToResult(await _client.GetDoubleDetailsAsync(request.Flag, defaultValue.GetDouble(), context)),
+                "JSON" => ToResult(await _client.GetObjectDetailsAsync(request.Flag, new Value(defaultValue.GetRawText()), context)),
+                _ => Results.Ok(new { value = defaultValue, reason = "DEFAULT", errorCode = (string?)null }),
+            };
         }
         catch (Exception e)
         {
             _logger?.LogError(e, "Error evaluating flag");
-            return Results.Json(new { error = e.Message }, statusCode: 500);
+            return Results.Ok(new { value = defaultValue, reason = "ERROR", errorCode = (string?)null });
         }
     }
 
-    private static object? GetDefaultValue(JsonElement root)
-    {
-        if (!root.TryGetProperty("defaultValue", out var dv))
-            return null;
+    private static IResult ToResult<T>(FlagEvaluationDetails<T> details)
+        => Results.Ok(new { value = details.Value, reason = details.Reason ?? "DEFAULT", errorCode = ToErrorCode(details.ErrorType) });
 
-        return dv.ValueKind switch
-        {
-            JsonValueKind.String => dv.GetString(),
-            JsonValueKind.Number => dv.GetDouble(),
-            JsonValueKind.True => true,
-            JsonValueKind.False => false,
-            _ => dv.GetRawText()
-        };
-    }
+    // OpenFeature carries the spec error code on each ErrorType member as its Description.
+    private static string? ToErrorCode(ErrorType errorType)
+        => errorType == ErrorType.None
+               ? null
+               : typeof(ErrorType).GetField(errorType.ToString())?.GetCustomAttribute<DescriptionAttribute>()?.Description;
 
-    private static string? ErrorTypeToString(ErrorType errorType)
-    {
-        if (errorType == ErrorType.None)
-        {
-            return null;
-        }
-
-        // Convert PascalCase enum to UPPER_SNAKE_CASE (e.g. ProviderNotReady -> PROVIDER_NOT_READY)
-        var name = errorType.ToString();
-        var result = new System.Text.StringBuilder();
-        for (var i = 0; i < name.Length; i++)
-        {
-            if (i > 0 && char.IsUpper(name[i]))
-            {
-                result.Append('_');
-            }
-            result.Append(char.ToUpper(name[i]));
-        }
-        return result.ToString();
-    }
+    public sealed record EvaluateRequest(
+        string Flag,
+        string VariationType,
+        JsonElement DefaultValue,
+        string TargetingKey,
+        Dictionary<string, JsonElement>? Attributes);
 }
