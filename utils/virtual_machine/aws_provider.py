@@ -90,7 +90,12 @@ class AWSPulumiProvider(VmProvider):
             )
         except pulumi.automation.errors.CommandError as pulumi_command_exception:
             logger.stdout("❌ Exception launching aws provision step remote command ❌")
-            logger.stdout(f"(Please, check the log file: {context.scenario.host_log_folder}/{context.vm_name}.log)")
+
+            logfile = f"{context.scenario.host_log_folder}/{context.vm_name}.log"
+
+            with pathlib.Path(logfile).open() as f:
+                logger.log_file_to_stdout(logfile, f.readlines())
+
             logger.stdout(
                 "📖 Learn more in the Troubleshooting guide: https://github.com/DataDog/system-tests/blob/main/docs/understand/scenarios/onboarding.md#troubleshooting"
             )
