@@ -245,20 +245,22 @@ class MockFFEAgentlessBackendServer(MockBackendV2Server):
         response.raise_for_status()
         return cast("MockFFEAgentlessBackendStatus", response.json())
 
-    def _default_handler(self, request: MockBackendV2RequestHandler, _: bytes | dict | None) -> Mapping:
+    def _default_handler(self, request: MockBackendV2RequestHandler, _: bytes | dict | None) -> tuple[Mapping, bytes]:
         return request.write_json(HTTPStatus.NOT_FOUND, {"error": "not found"})
 
-    def handle_status(self, request: MockBackendV2RequestHandler, _: bytes | dict | None) -> Mapping:
+    def handle_status(self, request: MockBackendV2RequestHandler, _: bytes | dict | None) -> tuple[Mapping, bytes]:
         return request.write_json(HTTPStatus.OK, self.state.status())
 
-    def handle_config(self, request: MockBackendV2RequestHandler, _: bytes | dict | None) -> Mapping | bytes:
+    def handle_config(
+        self, request: MockBackendV2RequestHandler, _: bytes | dict | None
+    ) -> tuple[Mapping | bytes, bytes]:
         parsed = urlparse(request.path)
         if parse_qs(parsed.query, keep_blank_values=True) == {"dd_env": [EXPECTED_DD_ENV]}:
             return self._handle_config(request)
 
         return request.write_json(HTTPStatus.NOT_FOUND, {"error": "not found"})
 
-    def _handle_config(self, request: MockBackendV2RequestHandler) -> bytes:
+    def _handle_config(self, request: MockBackendV2RequestHandler) -> tuple[bytes, bytes]:
         request_headers = dict(request.headers)
         response = self.state.record_request(request_headers, request.path)
         try:
@@ -271,16 +273,15 @@ class MockFFEAgentlessBackendServer(MockBackendV2Server):
                 request.send_response(status_code)
                 for key, value in headers.items():
                     request.send_header(key, value)
-                request.send_header("Content-Length", str(len(body)))
-                request.end_headers()
-                if body:
-                    request.wfile.write(body)
+
         finally:
             self.state.finish_request()
 
-        return body
+        return body, body
 
-    def handle_control_responses(self, request: MockBackendV2RequestHandler, payload: bytes | dict | None) -> Mapping:
+    def handle_control_responses(
+        self, request: MockBackendV2RequestHandler, payload: bytes | dict | None
+    ) -> tuple[Mapping, bytes]:
         content_length = int(request.headers.get("Content-Length", "0"))
         if content_length > MAX_CONTROL_BODY_BYTES:
             return request.write_json(HTTPStatus.BAD_REQUEST, {"error": "control body too large"})
@@ -297,7 +298,9 @@ class MockFFEAgentlessBackendServer(MockBackendV2Server):
         self.state.set_responses(validated_responses)
         return request.write_json(HTTPStatus.OK, self.state.status())
 
-    def handle_control_reset(self, request: MockBackendV2RequestHandler, _: bytes | dict | None) -> Mapping:
+    def handle_control_reset(
+        self, request: MockBackendV2RequestHandler, _: bytes | dict | None
+    ) -> tuple[Mapping, bytes]:
         self.state.reset()
         return request.write_json(HTTPStatus.OK, self.state.status())
 

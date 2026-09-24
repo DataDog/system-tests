@@ -32,7 +32,7 @@ from utils.proxy._deserializer import deserialize
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping
 
-    RouteHandler = Callable[["MockBackendV2RequestHandler", bytes | dict | None], list | Mapping | bytes]
+    RouteHandler = Callable[["MockBackendV2RequestHandler", bytes | dict | None], tuple[list | Mapping | bytes, bytes]]
 
 HttpMethod = Literal["GET", "POST", "PUT"]
 
@@ -118,9 +118,8 @@ class MockBackendV2Server(ThreadingHTTPServer):
     def get_handler(self, method: HttpMethod, path: str) -> RouteHandler:
         return self._routes.get((method, path), self._default_handler)
 
-    def _default_handler(self, request: MockBackendV2RequestHandler, _: bytes | dict | None) -> Mapping:
-        response_payload: dict[str, Any] = {}
-        return request.write_json(HTTPStatus.OK, response_payload)
+    def _default_handler(self, request: MockBackendV2RequestHandler, _: bytes | dict | None) -> tuple[Mapping, bytes]:
+        return request.write_json(HTTPStatus.OK, {})
 
     def close(self) -> None:
         logger.debug(f"Stopping {self.thread_name} server on {self.base_url}")
@@ -145,16 +144,12 @@ class MockBackendV2RequestHandler(BaseHTTPRequestHandler):
     def log_message(self, _format: str, *_args: object) -> None:
         return
 
-    def write_json(self, status_code: HTTPStatus, payload: Mapping[str, Any]) -> Mapping[str, Any]:
-        body = json.dumps(payload).encode("utf-8")
+    def write_json(self, status_code: HTTPStatus, payload: Mapping[str, Any]) -> tuple[Mapping[str, Any], bytes]:
         with contextlib.suppress(BrokenPipeError, ConnectionResetError):
             self.send_response(status_code)
             self.send_header("Content-Type", "application/json")
-            self.send_header("Content-Length", str(len(body)))
-            self.end_headers()
-            self.wfile.write(body)
 
-        return payload
+        return payload, json.dumps(payload).encode("utf-8")
 
     def do_GET(self) -> None:
         self._handle("GET")
@@ -202,7 +197,7 @@ class MockBackendV2RequestHandler(BaseHTTPRequestHandler):
             )
 
         handler = self.server.get_handler(method, path)
-        response = handler(self, self._data["request"].get("content", content))
+        response, response_as_bytes = handler(self, self._data["request"].get("content", content))
 
         self._data["response"]["content"] = str(response) if isinstance(response, bytes) else response
 
@@ -212,3 +207,9 @@ class MockBackendV2RequestHandler(BaseHTTPRequestHandler):
 
         if self.server.on_message is not None:
             self.server.on_message(self._data)
+
+        # we need to send data AFTER we wrote the file
+        with contextlib.suppress(BrokenPipeError, ConnectionResetError):
+            self.send_header("Content-Length", str(len(response_as_bytes)))
+            self.end_headers()
+            self.wfile.write(response_as_bytes)
