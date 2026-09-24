@@ -66,7 +66,7 @@ class Test_OTEL_LOGS_EXPORTER:
 
     def _assert_exporter(self, test_agent: TestAgentAPI, test_library: APMLibrary, exporter: str) -> None:
         logger_name = "exporter_selection_probe"
-        message = "OTEL exporter selection probe 2329"
+        message = "Test log for OTEL_LOGS_EXPORTER"
         with test_library as library:
             assert library.create_logger(logger_name, LogLevel.INFO)
             assert library.write_log(logger_name, LogLevel.INFO, message)
