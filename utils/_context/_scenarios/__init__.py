@@ -1102,6 +1102,8 @@ class _Scenarios:
             "DD_EXCEPTION_REPLAY_ENABLED": "1",
             "DD_CODE_ORIGIN_FOR_SPANS_ENABLED": "0",
             "DD_EXCEPTION_REPLAY_CAPTURE_MAX_FRAMES": "10",
+            # Avoid flaky captures being truncated by the default 150ms capture timeout under CI load
+            "DD_DYNAMIC_INSTRUMENTATION_CAPTURE_TIMEOUT_MS": "1000",
         },
         doc="Check exception replay",
     )
