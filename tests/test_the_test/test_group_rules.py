@@ -17,6 +17,10 @@ def test_appsec():
 def test_tracer_release():
     # make an exclusion list
 
+    contract_self_tests = scenarios.feature_flagging_contract_tests
+    assert contract_self_tests.github_workflow is None
+    assert contract_self_tests.scenario_groups == []
+
     dormant_agentless_scenario = scenarios.feature_flagging_and_experimentation_agentless
     assert dormant_agentless_scenario.include_agent is False
     assert dormant_agentless_scenario.use_proxy is False
@@ -45,6 +49,7 @@ def test_tracer_release():
         scenarios.mock_the_test,
         scenarios.mock_the_test_2,
         scenarios.test_the_test,
+        contract_self_tests,
         scenarios.todo,
         # targetting OTEL
         scenarios.otel_integrations,
