@@ -4962,6 +4962,9 @@ manifest:
         spring-boot: v0.92.0
         spring-boot-3-native: v0.92.0
   tests/test_sampling_rates.py::Test_SamplingRates: v0.92.0
+  tests/test_sampling_rules_agent_rate.py::Test_SamplingRulesAgentRate::test_agent_rate_applies_to_rule_miss:
+    - declaration: bug (APMAPI-2506)
+      component_version: "<1.67.0"
   tests/test_scrubbing.py::Test_UrlField::test_main:
     - weblog_declaration:
         akka-http: v1.60.1  # TODO: a lower version might be supported
