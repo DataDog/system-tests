@@ -566,19 +566,12 @@ class EndToEndScenario(DockerScenario):
     def telemetry_heartbeat_interval(self):
         return self.weblog_container.telemetry_heartbeat_interval
 
-    def get_junit_properties(self) -> dict[str, str]:
+    def get_junit_properties(self) -> dict[str, dict | str]:
         result = super().get_junit_properties()
 
-        result["dd_tags[systest.suite.context.agent]"] = self.agent_version
-        result["dd_tags[systest.suite.context.library.name]"] = self.library.name
-        result["dd_tags[systest.suite.context.library.version]"] = self.library.version
-        result["dd_tags[systest.suite.context.weblog_variant]"] = self.weblog_variant
-        result["dd_tags[systest.suite.context.appsec_rules_file]"] = self.appsec_rules_file or ""
-
-        result["dd_tags[test.parameters.context.agent]"] = self.agent_version
-        result["dd_tags[test.parameters.library.name]"] = self.library.name
-        result["dd_tags[test.parameters.library.version]"] = self.library.version
-        result["dd_tags[test.parameters.weblog_variant]"] = self.weblog_variant
+        result["agent"] = self.agent_version
+        result["library]"] = {"name": self.library.name, "version": self.library.version}
+        result["weblog_variant"] = self.weblog_variant
 
         return result
 

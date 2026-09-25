@@ -229,11 +229,8 @@ class Scenario:
     def parametrized_tests_metadata(self):
         return {}
 
-    def get_junit_properties(self) -> dict[str, str]:
-        return {
-            "dd_tags[systest.suite.context.scenario]": self.name,  # legacy
-            "dd_tags[test.parameters.scenario]": self.name,
-        }
+    def get_junit_properties(self) -> dict[str, dict | str]:
+        return {"scenario": self.name}
 
     def customize_feature_parity_dashboard(self, result: dict):
         pass

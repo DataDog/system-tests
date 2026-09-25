@@ -168,16 +168,10 @@ class LambdaScenario(DockerScenario):
     def weblog_variant(self):
         return self.lambda_weblog.weblog_variant
 
-    def get_junit_properties(self) -> dict[str, str]:
+    def get_junit_properties(self) -> dict[str, dict | str]:
         result = super().get_junit_properties()
 
-        # legacy
-        result["dd_tags[systest.suite.context.library.name]"] = self.library.name
-        result["dd_tags[systest.suite.context.library.version]"] = self.library.version
-        result["dd_tags[systest.suite.context.weblog_variant]"] = self.weblog_variant
-
-        result["dd_tags[test.parameters.library.name]"] = self.library.name
-        result["dd_tags[test.parameters.library.version]"] = self.library.version
-        result["dd_tags[test.parameters.weblog_variant]"] = self.weblog_variant
+        result["library]"] = {"name": self.library.name, "version": self.library.version}
+        result["weblog_variant"] = self.weblog_variant
 
         return result

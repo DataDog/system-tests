@@ -236,14 +236,27 @@ def pytest_sessionstart(session: pytest.Session) -> None:
     if not session.config.option.collectonly:
         context.scenario.pytest_sessionstart(session)
 
+    def flatten(source: dict[str, str | dict], dest: dict[str, str], root: str = "") -> dict:
+        for key, value in source.items():
+            if isinstance(value, str):
+                dest[f"{root}{key}"] = value
+            elif isinstance(value, dict):
+                flatten(value, dest, f"{root}{key}.")
+
+        return dest
+
     # The canonical way of adding Junit properties to testsuite is not working with xdist
     # Workaround to tackle this issue
     # https://github.com/pytest-dev/pytest/issues/7767#issuecomment-698560400
     xml = session.config._store.get(xml_key, None)  # noqa: SLF001
     if xml:
         properties = context.scenario.get_junit_properties()
-        for key, value in properties.items():
-            xml.add_global_property(key, value or "")
+
+        # legacy
+        for key, value in flatten(properties, {}).items():
+            xml.add_global_property(f"dd_tags[systest.suite.context.{key}]", value)
+
+        xml.add_global_property("dd_tags[test.parameters]", json.dumps(properties))
 
     if session.config.option.sleep:
         logger.terminal.write("\n ********************************************************** \n")
