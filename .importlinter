@@ -28,3 +28,4 @@ ignore_imports =
     tests.test_telemetry -> tests.test_telemetry_heartbeat_utils
     tests.test_the_test.test_telemetry_heartbeat -> tests.test_telemetry_heartbeat_utils
     tests.test_the_test.test_otlp_request_correlation -> tests.otel.test_tracing_otlp
+    tests.parametric.otel_env_vars.test_otel_logs_exporter -> tests.parametric.test_otel_logs
