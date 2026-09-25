@@ -119,6 +119,12 @@ class Test_GithubNightly:
         assert not should_enable_auto_merge("asm-libraries", "ruby", opt_ins)
         assert not should_enable_auto_merge("apm-python", "python", opt_ins)
 
+    def test_sdk_capabilities_opted_in_for_every_easy_win_library(self) -> None:
+        for library in COMPONENT_GROUPS.easy_win:
+            assert should_enable_auto_merge("apm-sdk-capabilities", library, nightly.AUTO_MERGE_OPT_INS)
+
+        assert not should_enable_auto_merge("asm-libraries", "ruby", nightly.AUTO_MERGE_OPT_INS)
+
     def test_extract_reports_from_logs_artifacts(self, tmp_path: Path) -> None:
         artifact_dir = tmp_path / "logs_python"
         artifact_dir.mkdir()
@@ -260,6 +266,7 @@ class Test_GithubNightly:
                 result(),  # gh pr create
                 result("789\n"),  # gh pr list after create
                 result(),  # gh pr ready
+                result(),  # no bot review threads
             ]
         )
 
@@ -280,6 +287,9 @@ class Test_GithubNightly:
         runner = FakeRunner(
             [
                 result("123\n"),  # existing PR
+                result("thread-1\nthread-2\n"),  # unresolved bot-authored review threads
+                result(),  # resolve thread-1
+                result(),  # resolve thread-2
                 result("1\n"),  # human comments
                 result("0\n"),  # human reviews
                 result("1\n"),  # commit count
@@ -295,6 +305,13 @@ class Test_GithubNightly:
 
         assert ["git", "checkout", "easy-win/asm-libraries/python"] not in [command.args for command in runner.commands]
         assert ["gh", "pr", "merge", "123", "--auto", "--squash"] not in [command.args for command in runner.commands]
+        assert [command.args[-1] for command in runner.commands if command.args[-1].startswith("threadId=")] == [
+            "threadId=thread-1",
+            "threadId=thread-2",
+        ]
+        thread_query_command = next(command for command in runner.commands if "reviewThreads" in " ".join(command.args))
+        assert "comments(first: 1)" in " ".join(thread_query_command.args)
+        assert '.comments.nodes[0].author.__typename == "Bot"' in thread_query_command.args[-1]
 
     def test_auto_merge_runs_only_for_opted_in_pair(self, tmp_path: Path) -> None:
         runner = FakeRunner(
@@ -308,6 +325,7 @@ class Test_GithubNightly:
                 result(),  # gh pr create
                 result("456\n"),  # gh pr list after create
                 result(),  # gh pr ready
+                result(),  # no bot review threads
                 result(),  # gh pr merge --auto --squash
             ]
         )
