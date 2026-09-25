@@ -2,7 +2,7 @@ import base64
 from collections.abc import Generator
 from urllib.parse import urlparse
 
-import pytest
+from utils import pytest
 
 from utils import scenarios, features, logger
 from utils.docker_fixtures.parametric import LogLevel

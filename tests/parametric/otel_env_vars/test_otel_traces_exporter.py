@@ -1,4 +1,4 @@
-import pytest
+from utils import pytest
 
 from tests.parametric.conftest import APMLibrary
 from utils import features, scenarios
@@ -120,9 +120,11 @@ def _assert_no_native_trace(test_agent: TestAgentAPI) -> None:
 
 def _assert_otlp_export(test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
     with test_library as library:
-        _emit_span(library)
+        with library.dd_start_span(name=SPAN_NAME):
+            pass
+        assert library.dd_flush()
 
-    requests = test_agent.otlp_requests()
+    requests = test_agent.wait_for_num_otlp_requests(1)
     assert any(request["url"].endswith(OTLP_TRACE_PATH) for request in requests)
     _assert_no_native_trace(test_agent)
 

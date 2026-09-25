@@ -265,4 +265,8 @@ def _get_rid_from_span(span: dict) -> str | None:
     if not user_agent:  # last last last hope (python opentelemetry autoinstrumentation)
         user_agent = meta.get("http.user_agent")
 
+    if not user_agent:
+        # Weblogs can use this tag without emulating unsupported HTTP instrumentation.
+        user_agent = meta.get("system_tests.request.user_agent")
+
     return get_rid_from_user_agent(user_agent)

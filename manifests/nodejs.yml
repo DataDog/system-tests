@@ -2280,6 +2280,7 @@ manifest:
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs::test_documented_json_default
   : irrelevant (The SDK uses the specification default)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs::test_grpc: missing_feature (OTLP gRPC exporter is not available)
+  tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER: missing_feature (OTEL_LOGS_EXPORTER does not configure the logs pipeline)
   tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT: v5.83.0
   tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT::test_invalid_values: bug (APMAPI-2463)
   tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT::test_spec_default: irrelevant (Datadog intentionally defaults to 7500 ms)
@@ -2362,9 +2363,15 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::Test_DynamicConfigSdkConfiguration:  # TODO: a lower version might be supported
     - declaration: missing_feature (SDK_CONFIGURATION capability not yet implemented)
       component_version: <6.16.0
-  tests/parametric/test_dynamic_configuration.py::Test_DynamicConfigSdkConfiguration::test_capability_sdk_configuration: missing_feature (SDK_CONFIGURATION capability not yet implemented)
-  tests/parametric/test_dynamic_configuration.py::Test_DynamicConfigSdkConfiguration::test_sdk_config_field_is_applied: missing_feature (SDK_CONFIGURATION capability not yet implemented)
-  tests/parametric/test_dynamic_configuration.py::Test_DynamicConfigSdkConfiguration::test_sdk_config_profiling_enabled: missing_feature (SDK_CONFIGURATION capability not yet implemented)
+  tests/parametric/test_dynamic_configuration.py::Test_DynamicConfigSdkConfiguration::test_capability_sdk_configuration:  # TODO: a lower version might be supported
+    - declaration: missing_feature (SDK_CONFIGURATION capability not yet implemented)
+      component_version: <6.17.0
+  tests/parametric/test_dynamic_configuration.py::Test_DynamicConfigSdkConfiguration::test_sdk_config_field_is_applied:  # TODO: a lower version might be supported
+    - declaration: missing_feature (SDK_CONFIGURATION capability not yet implemented)
+      component_version: <6.17.0
+  tests/parametric/test_dynamic_configuration.py::Test_DynamicConfigSdkConfiguration::test_sdk_config_profiling_enabled:  # TODO: a lower version might be supported
+    - declaration: missing_feature (SDK_CONFIGURATION capability not yet implemented)
+      component_version: <6.17.0
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Default: incomplete_test_app (The parametric test app does not reinject the extracted Datadog context)
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Ignore: *ref_5_47_0
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart: *ref_5_47_0
@@ -3130,9 +3137,9 @@ manifest:
     - weblog_declaration:
         fastify: missing_feature
         express5: missing_feature
-        express4: missing_feature
-        express4-typescript: missing_feature
-        uds-express4: missing_feature
+        express4: v6.17.0  # TODO: a lower version might be supported
+        express4-typescript: v6.17.0  # TODO: a lower version might be supported
+        uds-express4: v6.17.0  # TODO: a lower version might be supported
         nextjs: missing_feature
   tests/test_telemetry.py::Test_MessageBatch: *ref_4_21_0
   tests/test_telemetry.py::Test_MessageBatch::test_message_batch_enabled: bug (APMAPI-929)

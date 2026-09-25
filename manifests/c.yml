@@ -10,6 +10,7 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_protocol.py::Test_OTEL_EXPORTER_OTLP_METRICS_PROTOCOL: missing_feature
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL: missing_feature
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs: missing_feature
+  tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER: missing_feature
   tests/serverless/: irrelevant (dd-trace-c does not instrument serverless runtimes)
   tests/test_config_consistency.py::Test_Config_ClientTagQueryString_Empty: missing_feature (dd-trace-c does not support configuring query-string tagging)
   tests/test_config_consistency.py::Test_Config_HttpClientErrorStatuses_Default: missing_feature (dd-trace-c uses server-style HTTP error thresholds for client spans)

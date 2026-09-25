@@ -230,6 +230,7 @@ def process_activation_branch(
     pr_number = _find_pr_number(branch_name, runner)
 
     if pr_number is not None:
+        _resolve_bot_review_threads(options.github.repository, pr_number, runner)
         activity = _get_pr_activity(options.github.repository, pr_number, runner)
         if activity.has_human_activity:
             print(  # noqa: T201
@@ -247,6 +248,7 @@ def process_activation_branch(
         if pr_number is None:
             raise RuntimeError(f"Could not find PR after creating it for {branch_name}")
         _run_checked(["gh", "pr", "ready", pr_number], runner)
+        _resolve_bot_review_threads(options.github.repository, pr_number, runner)
 
     if should_enable_auto_merge(owner, library, options.auto_merge_opt_ins):
         print(f"Enabling auto-merge on PR #{pr_number}")  # noqa: T201
@@ -317,6 +319,62 @@ def _get_pr_activity(repository: str, pr_number: str, runner: CommandRunner) -> 
     )
     commits = _api_count(["gh", "api", f"repos/{repository}/pulls/{pr_number}/commits", "--jq", "length"], runner)
     return PullRequestActivity(comments=comments, reviews=reviews, commits=commits)
+
+
+def _resolve_bot_review_threads(repository: str, pr_number: str, runner: CommandRunner) -> None:
+    owner, name = repository.split("/", maxsplit=1)
+    query = """
+query($owner: String!, $name: String!, $number: Int!, $endCursor: String) {
+  repository(owner: $owner, name: $name) {
+    pullRequest(number: $number) {
+      reviewThreads(first: 100, after: $endCursor) {
+        nodes {
+          id
+          isResolved
+          comments(first: 1) {
+            nodes { author { __typename } }
+          }
+        }
+        pageInfo { hasNextPage endCursor }
+      }
+    }
+  }
+}
+"""
+    bot_thread_ids = _run_checked(
+        [
+            "gh",
+            "api",
+            "graphql",
+            "--paginate",
+            "-f",
+            f"query={query}",
+            "-F",
+            f"owner={owner}",
+            "-F",
+            f"name={name}",
+            "-F",
+            f"number={pr_number}",
+            "--jq",
+            (
+                ".data.repository.pullRequest.reviewThreads.nodes[] | "
+                "select(.isResolved == false and "
+                '.comments.nodes[0].author.__typename == "Bot") | .id'
+            ),
+        ],
+        runner,
+    ).stdout.split()
+
+    mutation = """
+mutation($threadId: ID!) {
+  resolveReviewThread(input: {threadId: $threadId}) { thread { id } }
+}
+"""
+    for thread_id in bot_thread_ids:
+        _run_checked(
+            ["gh", "api", "graphql", "-f", f"query={mutation}", "-F", f"threadId={thread_id}"],
+            runner,
+        )
 
 
 def _api_count(command: Sequence[str], runner: CommandRunner) -> int:
