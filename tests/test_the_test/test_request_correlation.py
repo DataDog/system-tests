@@ -1,4 +1,4 @@
-import pytest
+from utils import pytest
 
 from utils import features, scenarios
 from utils.dd_types._utils import get_rid_from_span_data

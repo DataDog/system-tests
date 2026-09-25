@@ -1,7 +1,7 @@
 from typing import Any
 from unittest.mock import Mock, patch
 
-import pytest
+from utils import pytest
 
 from tests.otel.test_tracing_otlp import OtelSpanRecord, _server_span_by_request_id
 from utils import features, scenarios

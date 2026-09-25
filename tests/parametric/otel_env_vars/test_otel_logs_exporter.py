@@ -2,7 +2,7 @@
 
 import json
 
-import pytest
+from utils import pytest
 
 from tests.parametric.conftest import APMLibrary
 from tests.parametric.test_otel_logs import find_log_record
