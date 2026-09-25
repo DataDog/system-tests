@@ -464,3 +464,9 @@ pub struct OtelWriteLogArgs {
 pub struct OtelWriteLogReturn {
     pub success: bool,
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct OtelLogsFlushReturn {
+    pub success: bool,
+    pub message: String,
+}

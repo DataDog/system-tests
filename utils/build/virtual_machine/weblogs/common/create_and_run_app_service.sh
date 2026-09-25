@@ -2,7 +2,7 @@
 echo "START RUN APP"
 
 #Create folder for app logs
-sudo mkdir /var/log/datadog_weblog
+sudo mkdir -p /var/log/datadog_weblog
 sudo chmod 777 /var/log/datadog_weblog
 
 COMMAND_LINE=$1

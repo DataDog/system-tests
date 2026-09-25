@@ -176,7 +176,7 @@ class AWSPulumiProvider(VmProvider):
         log_folder = context.scenario.host_log_folder
         logger.stdout(
             f"Downloading VM logs after provision failure into {log_folder} "
-            "(including var/log/datadog_weblog/dd-agent-diagnostics.log if present)"
+            "(including weblog diagnostics and core dumps if present)"
         )
         download_vm_logs(
             vm=self.vm,

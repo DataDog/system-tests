@@ -9,6 +9,8 @@
         local_path: auto_inject.lock
       - name: copy-tracer-debug-config
         local_path: utils/build/virtual_machine/provisions/auto-inject/tracer_debug/debug_config.yaml
+      - name: copy-agent-version-lock
+        local_path: utils/build/virtual_machine/agent.lock
       - name: copy-binaries
         local_path: binaries/
   remote-command: |
