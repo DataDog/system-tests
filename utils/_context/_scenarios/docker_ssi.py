@@ -311,6 +311,10 @@ class DockerSSIScenario(Scenario):
         result["dd_tags[systest.suite.context.os]"] = self.configuration["os"]
         result["dd_tags[systest.suite.context.arch]"] = self.configuration["arch"]
 
+        result["dd_tags[test.parameters.library.name]"] = self.library.name
+        result["dd_tags[test.parameters.library.version]"] = self.library.version
+        result["dd_tags[test.parameters.weblog_variant]"] = self.weblog_variant
+
         return result
 
 

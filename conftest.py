@@ -538,12 +538,12 @@ def _set_outcome_properties(outcome: PytestOutcome, user_properties: list[tuple]
     else:
         raise ValueError(f"Can't translate `{outcome}` into test optim final status")
 
-    user_properties.append(("dd_tags[systest.case.outcome]", outcome))
+    user_properties.append(("dd_tags[systest.case.outcome]", outcome))  # legacy
     user_properties.append(("dd_tags[test.final_status]", final_status))
 
 
 @pytest.hookimpl(optionalhook=True)
-def pytest_json_runtest_metadata(item: pytest.Item, call: pytest.CallInfo) -> None | dict:
+def pytest_json_runtest_metadata(item: pytest.Item, call: pytest.CallInfo) -> dict | None:
     if call.when != "setup":
         return {}
 

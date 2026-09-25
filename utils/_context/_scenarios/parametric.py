@@ -175,6 +175,10 @@ class ParametricScenario(DockerFixturesScenario):
         result["dd_tags[systest.suite.context.library.version]"] = self.library.version
         result["dd_tags[systest.suite.context.weblog_variant]"] = self.weblog_variant
 
+        result["dd_tags[test.parameters.library.name]"] = self.library.name
+        result["dd_tags[test.parameters.library.version]"] = self.library.version
+        result["dd_tags[test.parameters.weblog_variant]"] = self.weblog_variant
+
         return result
 
     @contextlib.contextmanager

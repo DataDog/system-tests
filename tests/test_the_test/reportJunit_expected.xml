@@ -3,6 +3,7 @@
   <testsuite name="system_tests_suite" errors="1" failures="1" skipped="6" tests="10" time="0.823" timestamp="2026-06-29T14:39:48.463003" hostname="COMP-MKHXWVJ25H">
     <properties>
       <property name="dd_tags[systest.suite.context.scenario]" value="MOCK_THE_TEST"/>
+      <property name="dd_tags[test.parameters.scenario]" value="MOCK_THE_TEST"/>
     </properties>
     <testcase name="tests.test_the_test.test_junit.Test_Cases.test_pass[spring]" time="0.000">
       <properties>

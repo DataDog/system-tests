@@ -575,6 +575,11 @@ class EndToEndScenario(DockerScenario):
         result["dd_tags[systest.suite.context.weblog_variant]"] = self.weblog_variant
         result["dd_tags[systest.suite.context.appsec_rules_file]"] = self.appsec_rules_file or ""
 
+        result["dd_tags[test.parameters.context.agent]"] = self.agent_version
+        result["dd_tags[test.parameters.library.name]"] = self.library.name
+        result["dd_tags[test.parameters.library.version]"] = self.library.version
+        result["dd_tags[test.parameters.weblog_variant]"] = self.weblog_variant
+
         return result
 
     @property
