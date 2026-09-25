@@ -1,11 +1,17 @@
 import os
 import subprocess
 from pathlib import Path
+from typing import cast
+
+import yaml
 
 from utils import scenarios
 
 INSTALLER_VERSIONS_SCRIPT = Path("utils/build/ssi/base/installer_versions.sh").resolve()
 AUTO_INJECT_LOCK = Path("auto_inject.lock")
+AUTO_INJECT_INSTALLER_PROVISION = Path(
+    "utils/build/virtual_machine/provisions/auto-inject/auto-inject_installer_manual.yml"
+)
 
 
 def _run_installer_versions_script(tmp_path: Path, env: dict[str, str]) -> subprocess.CompletedProcess[str]:
@@ -102,3 +108,19 @@ class Test_InstallerVersions:
         assert contents.endswith("\n")
         assert contents.count("\n") == 1
         assert contents.strip() == contents[:-1]
+
+    def test_windows_installer_pins_injector_from_lock(self) -> None:
+        provisions = cast(
+            "list[dict[str, object]]", yaml.safe_load(AUTO_INJECT_INSTALLER_PROVISION.read_text(encoding="utf-8"))
+        )
+        windows_provision = next(provision for provision in provisions if provision.get("os_type") == "windows")
+        copied_files = cast("list[dict[str, str]]", windows_provision["copy_files"])
+        remote_command = cast("str", windows_provision["remote-command"])
+
+        assert any(file["local_path"] == "auto_inject.lock" for file in copied_files)
+        assert "$env:DD_INSTALLER_LIBRARY_VERSION -and -not $env:DD_INSTALLER_INJECTOR_VERSION" in remote_command
+        assert "[System.IO.File]::ReadAllText($AUTO_INJECT_LOCK_PATH).Trim()" in remote_command
+        assert (
+            "$env:DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_INJECT = $env:DD_INSTALLER_INJECTOR_VERSION"
+            in remote_command
+        )
