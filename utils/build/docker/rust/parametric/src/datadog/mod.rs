@@ -8,7 +8,7 @@ use axum::{
 };
 use dto::*;
 use opentelemetry::{
-    trace::{Span, TraceContextExt, Tracer},
+    trace::{Span, Status, TraceContextExt, Tracer},
     Context,
 };
 use opentelemetry_http::HeaderExtractor;
@@ -77,9 +77,6 @@ async fn start_span(
     if let Some(span_type) = args.r#type {
         attributes.push(opentelemetry::KeyValue::new("span.type", span_type));
     }
-
-    // hack to prevent libdatadog from dropping trace chunks
-    attributes.push(opentelemetry::KeyValue::new("_dd.top_level", 1));
 
     args.span_tags.iter().for_each(|tag| {
         debug!("start_span: add received tag {tag:?}");
@@ -246,10 +243,9 @@ async fn set_metric(State(state): State<AppState>, Json(args): Json<SpanSetMetri
     if let Some(ctx) = contexts.get_mut(&args.span_id) {
         let span = ctx.context.span();
         debug!("set_metric: span {} found", args.span_id);
-        span.set_attribute(opentelemetry::KeyValue::new(
-            args.key.clone(),
-            args.value.to_string(),
-        ));
+        // Numeric attributes are mapped to dd span *metrics* by the tracer transform
+        // (string attributes would land in `meta` instead), so keep this a number.
+        span.set_attribute(opentelemetry::KeyValue::new(args.key.clone(), args.value));
     } else {
         debug!("set_metric: span {} NOT found", args.span_id);
     }
@@ -282,17 +278,16 @@ async fn set_error(State(state): State<AppState>, Json(args): Json<SpanErrorArgs
     if let Some(ctx) = contexts.get_mut(&args.span_id) {
         let span = ctx.context.span();
         debug!("set_error: span {} found", args.span_id);
-        span.set_attribute(opentelemetry::KeyValue::new(
-            "error".to_string(),
-            "true".to_string(),
-        ));
+        // The dd-trace-rs OTLP transform sets the dd span `error` integer field only
+        // when the OTel span status is `Error` (or a numeric `error` attribute is set).
+        // Marking the status as Error is what propagates the error flag into client-side
+        // stats (Errors count) and into the trace payload.
+        span.set_status(Status::Error {
+            description: args.message.clone().into(),
+        });
         span.set_attribute(opentelemetry::KeyValue::new(
             "error.type".to_string(),
             args.r#type.clone(),
-        ));
-        span.set_attribute(opentelemetry::KeyValue::new(
-            "error.msg".to_string(),
-            args.message.clone(),
         ));
         span.set_attribute(opentelemetry::KeyValue::new(
             "error.stack".to_string(),
@@ -398,9 +393,13 @@ async fn flush_spans(State(state): State<AppState>) -> StatusCode {
     }
 }
 
-async fn flush_stats(State(_): State<AppState>) -> StatusCode {
-    debug!("flush_stats: OK");
-    StatusCode::OK
+async fn flush_stats(State(state): State<AppState>) -> StatusCode {
+    let result = state.tracer_provider.force_flush();
+    if result.is_ok() {
+        StatusCode::OK
+    } else {
+        StatusCode::INTERNAL_SERVER_ERROR
+    }
 }
 
 async fn config(State(state): State<AppState>) -> Json<TraceConfigResponse> {
