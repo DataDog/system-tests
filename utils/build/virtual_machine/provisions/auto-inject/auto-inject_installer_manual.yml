@@ -1,3 +1,4 @@
+---
 # Installs the installer package
 - os_type: linux
   copy_files:
@@ -173,6 +174,8 @@
     sudo systemctl restart datadog-agent || echo "Warning: Could not restart datadog-agent"
 - os_type: windows
   copy_files:
+    - name: copy-auto-inject-lock
+      local_path: auto_inject.lock
     - name: copy-binaries
       local_path: binaries/
 
@@ -191,10 +194,24 @@
       Set-Item -Path "Env:DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_LIBRARY_${DD_LANG}" -Value $env:DD_INSTALLER_LIBRARY_VERSION
     }
 
-    # if ($env:DD_INSTALLER_INJECTOR_VERSION) {
-    #   $env:DD_INSTALLER_REGISTRY_URL_APM_INJECT_PACKAGE = "installtesting.datad0g.com";
-    #   $env:DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_INJECT = $env:DD_INSTALLER_INJECTOR_VERSION;
-    # }
+    if ($env:DD_INSTALLER_LIBRARY_VERSION -and -not $env:DD_INSTALLER_INJECTOR_VERSION) {
+      $AUTO_INJECT_LOCK_PATH = "auto_inject.lock"
+      if (-not (Test-Path -Path $AUTO_INJECT_LOCK_PATH -PathType Leaf)) {
+        throw "No injector version was provided and lock file '$AUTO_INJECT_LOCK_PATH' was not found; refusing to install with an unpinned injector"
+      }
+
+      $env:DD_INSTALLER_INJECTOR_VERSION = [System.IO.File]::ReadAllText($AUTO_INJECT_LOCK_PATH).Trim()
+      if ([string]::IsNullOrWhiteSpace($env:DD_INSTALLER_INJECTOR_VERSION)) {
+        throw "Lock file '$AUTO_INJECT_LOCK_PATH' is empty or invalid; refusing to install with an unpinned injector"
+      }
+
+      Write-Host "Using pinned injector version from auto_inject.lock: $env:DD_INSTALLER_INJECTOR_VERSION"
+    }
+
+    if ($env:DD_INSTALLER_INJECTOR_VERSION) {
+      $env:DD_INSTALLER_REGISTRY_URL_APM_INJECT_PACKAGE = "installtesting.datad0g.com";
+      $env:DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_INJECT = $env:DD_INSTALLER_INJECTOR_VERSION;
+    }
 
     if ($env:DD_INSTALLER_AGENT_VERSION) {
       $env:DD_INSTALLER_REGISTRY_URL_AGENT_PACKAGE = "installtesting.datad0g.com";
