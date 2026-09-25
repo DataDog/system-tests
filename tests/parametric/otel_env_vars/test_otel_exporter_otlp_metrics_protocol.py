@@ -7,79 +7,23 @@ import pytest
 from opentelemetry.proto.collector.metrics.v1.metrics_service_pb2 import ExportMetricsServiceRequest
 from google.protobuf.json_format import MessageToDict, ParseDict
 
-from utils import context, features, scenarios
+from utils import features, scenarios
 from utils.docker_fixtures import TestAgentAPI
 from tests.parametric.conftest import APMLibrary
+from tests.parametric.otel_env_vars import otlp_protocol_fixtures
 from tests.parametric.test_otel_metrics import generate_default_counter_data_point
 
 VARIABLE = "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL"
 
-
-def _non_default_protocol(signal: str) -> str:
-    """An uppercase transport distinguishable from this SDK's default."""
-    if context.library == "nodejs" or (context.library == "php" and signal == "logs"):
-        return "HTTP/JSON"
-    if context.library in ("python", "rust"):
-        return "HTTP/PROTOBUF"
-    return "GRPC"
-
-
-def _default_protocol(signal: str) -> str:
-    if context.library in ("python", "rust"):
-        return "grpc"
-    if context.library == "golang" and signal == "logs":
-        return "http/json"
-    return "http/protobuf"
+protocol = otlp_protocol_fixtures.protocol
+generic_protocol = otlp_protocol_fixtures.generic_protocol
+expected_protocol = otlp_protocol_fixtures.expected_protocol
+library_env = otlp_protocol_fixtures.library_env
 
 
 @pytest.fixture
-def protocol(request: pytest.FixtureRequest, signal: str) -> str:
-    value = _non_default_protocol(signal)
-    return value.lower() if getattr(request, "param", None) == "nondefault" else value
-
-
-@pytest.fixture
-def generic_protocol(request: pytest.FixtureRequest, signal: str) -> str | None:
-    selection = getattr(request, "param", None)
-    if selection == "nondefault":
-        return _non_default_protocol(signal).lower()
-    if selection == "default":
-        return _default_protocol(signal)
-    return None
-
-
-@pytest.fixture
-def expected_protocol(generic_protocol: str | None, protocol: str | None, signal: str) -> str:
-    if generic_protocol and not protocol:
-        return generic_protocol
-    if protocol and protocol != "unsupported":
-        return protocol.lower()
-    return _default_protocol(signal)
-
-
-# The test matrix supplies the protocol value to exercise protocol selection.
-# Default cases leave it unset; the endpoint selects the expected HTTP/gRPC
-# listener so delivery proves the transport, including SDKs that default to gRPC.
-# Use the generic endpoint so each SDK derives its HTTP or gRPC signal path.
-@pytest.fixture
-def library_env(
-    generic_protocol: str | None,
-    protocol: str | None,
-    signal: str,
-    expected_protocol: str,
-    test_agent: TestAgentAPI,
-    test_agent_otlp_http_port: int,
-    test_agent_otlp_grpc_port: int,
-) -> dict[str, str | None]:
-    port = test_agent_otlp_grpc_port if expected_protocol == "grpc" else test_agent_otlp_http_port
-    env: dict[str, str | None] = {
-        f"DD_{signal.upper()}_OTEL_ENABLED": "true",
-        "OTEL_EXPORTER_OTLP_ENDPOINT": f"http://{test_agent.container_name}:{port}",
-        VARIABLE: protocol,
-    }
-    if generic_protocol is not None:
-        env["OTEL_EXPORTER_OTLP_PROTOCOL"] = generic_protocol
-    return env
+def protocol_variable() -> str:
+    return VARIABLE
 
 
 def _assert_export(test_library: APMLibrary, test_agent: TestAgentAPI, signal: str, expected_protocol: str) -> None:
