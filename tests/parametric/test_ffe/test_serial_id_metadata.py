@@ -138,9 +138,7 @@ class Test_FFE_Serial_Id_Metadata:
         )
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_serial_id_zero_is_not_treated_as_missing(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary
-    ) -> None:
+    def test_serial_id_zero_is_not_treated_as_missing(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Serial ID 0 is a real, valid ID and must survive falsy-value checks."""
         _set_and_wait_ffe_rc(test_agent, UFC_SERIAL_ID_METADATA_DATA)
         assert test_library.ffe_start(UFC_SERIAL_ID_METADATA_DATA), "Failed to start FFE provider"
@@ -179,6 +177,9 @@ class Test_FFE_Serial_Id_Metadata:
             targeting_key="user-1",
         )
         assert not _is_ffe_waiting_for_rc(result), f"FFE provider did not load RC data; result={result}"
+        assert result.get("errorCode") in {None, ""}, f"FFE evaluation failed; result={result}"
+        assert result.get("reason") != "ERROR", f"FFE evaluation failed; result={result}"
+        assert result.get("value") == "control", f"Expected the configured control variation; result={result}"
 
         flag_metadata = result.get("flagMetadata") or {}
         assert flag_metadata.get(SERIAL_ID_METADATA_KEY) is None, (
@@ -190,7 +191,7 @@ class Test_FFE_Serial_Id_Metadata:
     def test_serial_id_matches_selected_split_under_targeting(
         self, test_agent: TestAgentAPI, test_library: APMLibrary
     ) -> None:
-        """flagMetadata must reflect whichever split targeting actually selected."""
+        """FlagMetadata must reflect whichever split targeting actually selected."""
         _set_and_wait_ffe_rc(test_agent, UFC_SERIAL_ID_METADATA_DATA)
         assert test_library.ffe_start(UFC_SERIAL_ID_METADATA_DATA), "Failed to start FFE provider"
 
