@@ -1,5 +1,3 @@
-from typing import Final
-
 import pytest
 
 from tests.parametric.conftest import APMLibrary
@@ -7,12 +5,12 @@ from utils import features, scenarios
 from utils.docker_fixtures import TestAgentAPI
 
 
-VARIABLE_NAME: Final = "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT"
-DEFAULT_PATH: Final = "/v1/traces"
-SPAN_NAME: Final = "otel-exporter-otlp-traces-endpoint"
-ROUTED_OTLP_HTTP_PORT: Final = 4320
+VARIABLE_NAME = "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT"
+DEFAULT_PATH = "/v1/traces"
+SPAN_NAME = "otel-exporter-otlp-traces-endpoint"
+ROUTED_OTLP_HTTP_PORT = 4320
 
-TRACES_ENVIRONMENT: Final = {
+TRACES_ENVIRONMENT = {
     "DD_TRACE_AGENT_PROTOCOL_VERSION": None,
     "DD_TRACE_DEBUG": "false",
     "DD_TRACE_ENABLED": None,
@@ -21,11 +19,11 @@ TRACES_ENVIRONMENT: Final = {
     "OTEL_TRACES_EXPORTER": "otlp",
 }
 
-ROUTED_VALUES: Final = [
+ROUTED_VALUES = [
     pytest.param("routed", DEFAULT_PATH, id="routed-signal-url"),
 ]
 
-FALLBACK_VALUES: Final = [
+FALLBACK_VALUES = [
     pytest.param("unset", DEFAULT_PATH, id="unset"),
     pytest.param("empty", DEFAULT_PATH, id="empty"),
 ]
@@ -45,9 +43,11 @@ def _configure_endpoint(
     elif endpoint_value == "unset":
         library_env["OTEL_EXPORTER_OTLP_ENDPOINT"] = f"http://{test_agent.container_name}:{test_agent_otlp_http_port}"
         library_env[VARIABLE_NAME] = None
-    else:
+    elif endpoint_value == "empty":
         library_env["OTEL_EXPORTER_OTLP_ENDPOINT"] = f"http://{test_agent.container_name}:{test_agent_otlp_http_port}"
         library_env[VARIABLE_NAME] = ""
+    else:
+        raise ValueError(f"Unexpected endpoint value: {endpoint_value}")
 
 
 @scenarios.parametric
