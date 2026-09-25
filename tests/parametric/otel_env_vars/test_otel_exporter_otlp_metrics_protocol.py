@@ -15,15 +15,45 @@ from tests.parametric.test_otel_metrics import generate_default_counter_data_poi
 
 VARIABLE = "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL"
 
-protocol = otlp_protocol_fixtures.protocol
-generic_protocol = otlp_protocol_fixtures.generic_protocol
-expected_protocol = otlp_protocol_fixtures.expected_protocol
-library_env = otlp_protocol_fixtures.library_env
+
+@pytest.fixture
+def protocol(request: pytest.FixtureRequest, signal: str) -> str:
+    return otlp_protocol_fixtures.protocol(getattr(request, "param", None), signal)
 
 
 @pytest.fixture
-def protocol_variable() -> str:
-    return VARIABLE
+def generic_protocol(request: pytest.FixtureRequest, signal: str) -> str | None:
+    return otlp_protocol_fixtures.generic_protocol(getattr(request, "param", None), signal)
+
+
+@pytest.fixture
+def expected_protocol(generic_protocol: str | None, protocol: str | None, signal: str) -> str:
+    return otlp_protocol_fixtures.expected_protocol(generic_protocol, protocol, signal)
+
+
+# The test matrix supplies the protocol value to exercise protocol selection.
+# Default cases leave it unset; the endpoint selects the expected HTTP/gRPC
+# listener so delivery proves the transport, including SDKs that default to gRPC.
+# Use the generic endpoint so each SDK derives its HTTP or gRPC signal path.
+@pytest.fixture
+def library_env(
+    generic_protocol: str | None,
+    protocol: str | None,
+    signal: str,
+    test_agent: TestAgentAPI,
+    test_agent_otlp_http_port: int,
+    test_agent_otlp_grpc_port: int,
+) -> dict[str, str | None]:
+    expected_protocol = otlp_protocol_fixtures.expected_protocol(generic_protocol, protocol, signal)
+    port = test_agent_otlp_grpc_port if expected_protocol == "grpc" else test_agent_otlp_http_port
+    env: dict[str, str | None] = {
+        f"DD_{signal.upper()}_OTEL_ENABLED": "true",
+        "OTEL_EXPORTER_OTLP_ENDPOINT": f"http://{test_agent.container_name}:{port}",
+        VARIABLE: protocol,
+    }
+    if generic_protocol is not None:
+        env["OTEL_EXPORTER_OTLP_PROTOCOL"] = generic_protocol
+    return env
 
 
 def _assert_export(test_library: APMLibrary, test_agent: TestAgentAPI, signal: str, expected_protocol: str) -> None:
