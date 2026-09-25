@@ -28,7 +28,7 @@ manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_ClientIPTagsCollected:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
-        "flask-poc": bug (APPSEC-62204)
+        "flask-poc": v4.16.0-rc1
   tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
@@ -1928,7 +1928,9 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_default_matches_specification: bug (APMAPI-2416)
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME: v4.11.0
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_default_follows_otel_spec: irrelevant
-  tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_empty_is_treated_as_unset: bug (APMAPI-2414)
+  tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_empty_is_treated_as_unset:  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-2414)
+      component_version: <4.15.2
   tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER: v4.11.0
   tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_console_exporter: missing_feature (Console trace export is not implemented)
   tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_default_matches_specification: missing_feature (The default OTLP exporter is not implemented)
@@ -1940,13 +1942,21 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER: v4.11.0
   tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER::test_dd_trace_sample_ignore_parent_false: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
   tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER::test_dd_trace_sample_ignore_parent_true: missing_feature (dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language)
-  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER::test_default_matches_specification: missing_feature (OTel default sampler semantics are not implemented)
-  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER::test_empty_is_treated_as_unset: missing_feature (OTel default sampler semantics are not implemented)
-  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER::test_invalid_value_is_ignored: missing_feature (OTel default sampler semantics are not implemented)
+  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER::test_default_matches_specification:  # TODO: a lower version might be supported
+    - declaration: missing_feature (OTel default sampler semantics are not implemented)
+      component_version: <4.15.2
+  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER::test_empty_is_treated_as_unset:  # TODO: a lower version might be supported
+    - declaration: missing_feature (OTel default sampler semantics are not implemented)
+      component_version: <4.15.2
+  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER::test_invalid_value_is_ignored:  # TODO: a lower version might be supported
+    - declaration: missing_feature (OTel default sampler semantics are not implemented)
+      component_version: <4.15.2
   tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER::test_jaeger_remote_values: missing_feature (Jaeger remote sampling is not implemented)
   tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER::test_third_party_values: missing_feature (X-Ray sampling is not implemented)
   tests/parametric/otel_env_vars/test_otel_traces_sampler_arg.py::Test_OTEL_TRACES_SAMPLER_ARG: v4.11.0
-  tests/parametric/otel_env_vars/test_otel_traces_sampler_arg.py::Test_OTEL_TRACES_SAMPLER_ARG::test_above_range_is_ignored: missing_feature (Out-of-range sampler arguments are not ignored)
+  tests/parametric/otel_env_vars/test_otel_traces_sampler_arg.py::Test_OTEL_TRACES_SAMPLER_ARG::test_above_range_is_ignored:  # TODO: a lower version might be supported
+    - declaration: missing_feature (Out-of-range sampler arguments are not ignored)
+      component_version: <4.15.2
   tests/parametric/otel_env_vars/test_otel_traces_sampler_arg.py::Test_OTEL_TRACES_SAMPLER_ARG::test_below_range_is_ignored: missing_feature (Out-of-range sampler arguments are not ignored)
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids: v2.6.0
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3single_128_bit_generation_disabled: irrelevant (Supports the value `b3` instead of the deprecated `B3 single header`)
@@ -1984,7 +1994,11 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_tracing_client_tracing_tags:
     - declaration: flaky (APMAPI-1400)
       component_version: '>3.7.0'
-  tests/parametric/test_dynamic_configuration.py::Test_DynamicConfigSdkConfiguration: missing_feature (SDK_CONFIGURATION capability not yet implemented)
+  tests/parametric/test_dynamic_configuration.py::Test_DynamicConfigSdkConfiguration:  # TODO: a lower version might be supported
+    - declaration: missing_feature (SDK_CONFIGURATION capability not yet implemented)
+      component_version: <4.15.2
+  tests/parametric/test_dynamic_configuration.py::Test_DynamicConfigSdkConfiguration::test_capability_sdk_configuration: missing_feature (SDK_CONFIGURATION capability not yet implemented)
+  tests/parametric/test_dynamic_configuration.py::Test_DynamicConfigSdkConfiguration::test_sdk_config_profiling_enabled: missing_feature (SDK_CONFIGURATION capability not yet implemented)
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Default: v2.20.0
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Ignore: v2.20.0
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart: v2.20.0
@@ -2065,7 +2079,9 @@ manifest:
   tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD: v2.8.0
   tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_empty_elements: bug (APMAPI-2294)
   ? tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_evicts_32_or_greater_list_members
-  : bug (APMAPI-914)
+  :  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-914)
+      component_version: <4.15.2
   ? tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_reset_dm
   : "missing_feature (\"Issue: Does not reset dm to DEFAULT\")"
   ? tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_same_dm
@@ -2622,14 +2638,14 @@ manifest:
         uwsgi-poc: '>=4.3.1'
   tests/test_telemetry.py::Test_Log_Generation::test_log_generation_enabled:  # Created by easy win activation script
     - weblog_declaration:
-        tornado: missing_feature
-        python3.12: missing_feature
-        uds-flask: missing_feature
-        uwsgi-poc: missing_feature
-        django-poc: missing_feature
-        flask-poc: missing_feature
-        fastapi: missing_feature
-        django-py3.13: missing_feature
+        tornado: v4.15.2  # TODO: a lower version might be supported
+        python3.12: v4.15.2  # TODO: a lower version might be supported
+        uds-flask: v4.15.2  # TODO: a lower version might be supported
+        uwsgi-poc: v4.15.2  # TODO: a lower version might be supported
+        django-poc: v4.15.2  # TODO: a lower version might be supported
+        flask-poc: v4.15.2  # TODO: a lower version might be supported
+        fastapi: v4.15.2  # TODO: a lower version might be supported
+        django-py3.13: v4.15.2  # TODO: a lower version might be supported
   tests/test_telemetry.py::Test_MessageBatch:  # Modified by easy win activation script
     - weblog_declaration:
         '*': missing_feature
