@@ -88,6 +88,8 @@ def test_gitlab_secret_lookups_use_vault() -> None:
     contents = "\n".join(source.read_text() for source in sources)
 
     assert "aws ssm get-parameter" not in contents
-    assert "kv/k8s/gitlab-runner/${CI_PROJECT_NAME}/docker-login" in contents
-    assert "kv/k8s/gitlab-runner/${CI_PROJECT_NAME}/test-optimization" in contents
-    assert "kv/k8s/gitlab-runner/${CI_PROJECT_NAME}/apm-ecosystems-reliability-profile" in contents
+    assert 'SYSTEM_TESTS_VAULT_PATH="kv/k8s/gitlab-runner/${CI_PROJECT_NAME}"' in contents
+    assert 'SYSTEM_TESTS_VAULT_PATH="${SYSTEM_TESTS_VAULT_PATH}/system-tests"' in contents
+    assert '"${SYSTEM_TESTS_VAULT_PATH}/docker-login"' in contents
+    assert '"${SYSTEM_TESTS_VAULT_PATH}/test-optimization"' in contents
+    assert '"${SYSTEM_TESTS_VAULT_PATH}/apm-ecosystems-reliability-profile"' in contents

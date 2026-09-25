@@ -1,7 +1,13 @@
 {% macro docker_auth() %}
     - section_start "docker_auth" "Docker hub auth"
-    - export DOCKER_LOGIN=$(vault kv get -field=username kv/k8s/gitlab-runner/${CI_PROJECT_NAME}/docker-login)
-    - export DOCKER_LOGIN_PASS=$(vault kv get -field=password kv/k8s/gitlab-runner/${CI_PROJECT_NAME}/docker-login)
+    - |
+      SYSTEM_TESTS_VAULT_PATH="kv/k8s/gitlab-runner/${CI_PROJECT_NAME}"
+      if [ "$CI_PROJECT_NAME" != "system-tests" ]; then
+        SYSTEM_TESTS_VAULT_PATH="${SYSTEM_TESTS_VAULT_PATH}/system-tests"
+      fi
+      export SYSTEM_TESTS_VAULT_PATH
+    - export DOCKER_LOGIN=$(vault kv get -field=username "${SYSTEM_TESTS_VAULT_PATH}/docker-login")
+    - export DOCKER_LOGIN_PASS=$(vault kv get -field=password "${SYSTEM_TESTS_VAULT_PATH}/docker-login")
     - |
       for i in 1 2 3; do
         echo "$DOCKER_LOGIN_PASS" | docker login --username "$DOCKER_LOGIN" --password-stdin && break
