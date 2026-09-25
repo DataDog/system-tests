@@ -26,6 +26,10 @@ ssi_tests:
       # Force gitlab to keep the exit code as 3 if the job fails with exit code 3
       FF_USE_NEW_BASH_EVAL_STRATEGY: true
     after_script: |
+        SYSTEM_TESTS_VAULT_PATH="kv/k8s/gitlab-runner/${CI_PROJECT_NAME}"
+        if [ "$CI_PROJECT_NAME" != "system-tests" ]; then
+            SYSTEM_TESTS_VAULT_PATH="${SYSTEM_TESTS_VAULT_PATH}/system-tests"
+        fi
         SCENARIO_SUFIX=$(echo "$SCENARIO" | tr "[:upper:]" "[:lower:]")
         mkdir -p reports/
         if [ "$CI_PROJECT_NAME" = "system-tests" ]; then
@@ -34,8 +38,8 @@ ssi_tests:
             cp -R /system-tests/logs_"${SCENARIO_SUFIX}" reports/
         fi
         if [ "$CI_COMMIT_BRANCH" = "main" ] && [ "$CI_PROJECT_NAME" = "system-tests" ]; then
-          export FP_IMPORT_URL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-import-url --with-decryption --query "Parameter.Value" --out text)
-          export FP_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-api-key --with-decryption --query "Parameter.Value" --out text)
+          export FP_IMPORT_URL=$(vault kv get -field=import_url "${SYSTEM_TESTS_VAULT_PATH}/feature-parity")
+          export FP_API_KEY=$(vault kv get -field=api_key "${SYSTEM_TESTS_VAULT_PATH}/feature-parity")
           for folder in reports/logs*/ ; do
             echo "Checking folder: ${folder}"
             for filename in ./${folder}feature_parity.json; do
@@ -50,7 +54,7 @@ ssi_tests:
 
         # Push JUnit results to Datadog Test Optimization
         export DATADOG_SITE="${DATADOG_SITE:-datadoghq.com}"
-        export DATADOG_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.${CI_PROJECT_NAME}.test_optimization.dd_api_key --with-decryption --query "Parameter.Value" --out text)
+        export DATADOG_API_KEY=$(vault kv get -field=dd_api_key "${SYSTEM_TESTS_VAULT_PATH}/test-optimization")
         export DD_TAGS="test.configuration.ci_environment:${CI_ENVIRONMENT:-prod}"
         if compgen -G "reports/logs*/reportJunit.xml" > /dev/null; then
             datadog-ci junit upload \
@@ -116,10 +120,14 @@ ssi_tests:
             set -o pipefail
             timeout 3000 ./run.sh "$SCENARIO" --vm-weblog "${WEBLOG}" --vm-env "${ONBOARDING_FILTER_ENV}" --vm-library "${TEST_LIBRARY}" --vm-provider aws --vm-default-vms All --vm-only "${VM}" --report-run-url "${CI_JOB_URL}" --report-environment "${ONBOARDING_FILTER_ENV}" 2>&1 | tee "${CI_PROJECT_DIR}/run_output.log"
     after_script: |
+        SYSTEM_TESTS_VAULT_PATH="kv/k8s/gitlab-runner/${CI_PROJECT_NAME}"
+        if [ "$CI_PROJECT_NAME" != "system-tests" ]; then
+            SYSTEM_TESTS_VAULT_PATH="${SYSTEM_TESTS_VAULT_PATH}/system-tests"
+        fi
         # Only fetch FP params on main in system-tests repo (use default CI creds)
         if [ "$CI_COMMIT_BRANCH" = "main" ] && [ "$CI_PROJECT_NAME" = "system-tests" ]; then
-          export FP_IMPORT_URL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-import-url --with-decryption --query "Parameter.Value" --out text)
-          export FP_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-api-key --with-decryption --query "Parameter.Value" --out text)
+          export FP_IMPORT_URL=$(vault kv get -field=import_url "${SYSTEM_TESTS_VAULT_PATH}/feature-parity")
+          export FP_API_KEY=$(vault kv get -field=api_key "${SYSTEM_TESTS_VAULT_PATH}/feature-parity")
         fi
         # Re-establish AWS credentials for S3 operations (after_script runs in new shell session)
         echo "Setting up AWS credentials for after_script..."
@@ -127,7 +135,7 @@ ssi_tests:
 
         # Clean up any existing config and recreate it
         rm -f ~/.aws/config
-        aws ssm get-parameter --region us-east-1 --name ci.${CI_PROJECT_NAME}.apm-ecosystems-reliability-profile --with-decryption --query "Parameter.Value" --out text > ~/.aws/config
+        vault kv get -field=config "${SYSTEM_TESTS_VAULT_PATH}/apm-ecosystems-reliability-profile" > ~/.aws/config
         export AWS_PROFILE=apm-ecosystems-reliability-ci
 
         SCENARIO_SUFIX=$(echo "$SCENARIO" | tr "[:upper:]" "[:lower:]")
@@ -245,8 +253,8 @@ ssi_tests:
         cp -R /system-tests/logs_*/ reports/
     fi
     if [ "$CI_COMMIT_BRANCH" = "main" ] && [ "$CI_PROJECT_NAME" = "system-tests" ]; then
-      export FP_IMPORT_URL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-import-url --with-decryption --query "Parameter.Value" --out text)
-      export FP_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-api-key --with-decryption --query "Parameter.Value" --out text)
+      export FP_IMPORT_URL=$(vault kv get -field=import_url kv/k8s/gitlab-runner/system-tests/feature-parity)
+      export FP_API_KEY=$(vault kv get -field=api_key kv/k8s/gitlab-runner/system-tests/feature-parity)
       for folder in reports/logs*/ ; do
         echo "Checking folder: ${folder}"
          for filename in ./${folder}feature_parity.json; do

@@ -76,3 +76,21 @@ def test_generated_chunk_jobs_have_required_keys(tmp_path: Path):
                 continue
             has_stage = "stage" in job or "extends" in job
             assert has_stage, f"job '{name}' in chunk {i} has no stage or extends"
+
+
+@scenarios.test_the_test
+def test_gitlab_secret_lookups_use_vault_without_generated_docker_auth() -> None:
+    generated_pipeline_template = Path("utils/ci/gitlab/system-tests.yml.j2").read_text()
+    sources = [
+        Path(".gitlab-ci.yml"),
+        Path(".gitlab/ssi_gitlab-ci.yml"),
+    ]
+    contents = "\n".join(source.read_text() for source in sources)
+
+    assert "docker_auth" not in generated_pipeline_template
+    assert "DOCKER_LOGIN" not in generated_pipeline_template
+    assert "aws ssm get-parameter" not in contents
+    assert 'SYSTEM_TESTS_VAULT_PATH="kv/k8s/gitlab-runner/${CI_PROJECT_NAME}"' in contents
+    assert 'SYSTEM_TESTS_VAULT_PATH="${SYSTEM_TESTS_VAULT_PATH}/system-tests"' in contents
+    assert '"${SYSTEM_TESTS_VAULT_PATH}/test-optimization"' in contents
+    assert '"${SYSTEM_TESTS_VAULT_PATH}/apm-ecosystems-reliability-profile"' in contents
