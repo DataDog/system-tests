@@ -1,22 +1,3 @@
-{% macro docker_auth() %}
-    - section_start "docker_auth" "Docker hub auth"
-    - |
-      SYSTEM_TESTS_VAULT_PATH="kv/k8s/gitlab-runner/${CI_PROJECT_NAME}"
-      if [ "$CI_PROJECT_NAME" != "system-tests" ]; then
-        SYSTEM_TESTS_VAULT_PATH="${SYSTEM_TESTS_VAULT_PATH}/system-tests"
-      fi
-      export SYSTEM_TESTS_VAULT_PATH
-    - export DOCKER_LOGIN=$(vault kv get -field=username "${SYSTEM_TESTS_VAULT_PATH}/docker-login")
-    - export DOCKER_LOGIN_PASS=$(vault kv get -field=password "${SYSTEM_TESTS_VAULT_PATH}/docker-login")
-    - |
-      for i in 1 2 3; do
-        echo "$DOCKER_LOGIN_PASS" | docker login --username "$DOCKER_LOGIN" --password-stdin && break
-        if [ "$i" -eq 3 ]; then echo "docker login failed after 3 attempts"; exit 1; fi
-        echo "docker login failed (attempt $i), retrying in $((i*5))s..."
-        sleep $((i*5))
-      done
-    - section_end "docker_auth"
-{% endmacro %}
 {% macro copy_binaries(path) %}
     - section_start "copy_binaries" "Copying pre-built binaries into binaries/"
     - mkdir -p binaries
@@ -110,9 +91,6 @@ system_tests_build_{{library}}_{{variant}}:
     {% endfor %}
   {% endif %}
   script:
-    {% if docker_auth_enabled %}
-    {{ docker_auth() }}
-    {% endif %}
     {% if binaries_artifacts_list and binaries_artifact_path %}
     {{ copy_binaries(binaries_artifact_path) }}
     {% endif %}
@@ -152,9 +130,6 @@ system_tests_run_{{library}}_{{scenario}}_{{variant}}:
     {% endfor %}
   {% endif %}
   script:
-    {% if docker_auth_enabled %}
-    {{ docker_auth() }}
-    {% endif %}
     - section_start "weblog_setup" "Setting up the weblog"
     {% if build_required %}
     - mv ../binaries/* binaries/
