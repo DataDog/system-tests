@@ -1,5 +1,3 @@
-from typing import Final
-
 import pytest
 
 from tests.parametric.conftest import APMLibrary
@@ -7,12 +5,12 @@ from utils import features, scenarios
 from utils.docker_fixtures import TestAgentAPI
 
 
-VARIABLE_NAME: Final = "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT"
-DEFAULT_PATH: Final = "/v1/metrics"
-GRPC_PROTOCOL: Final = "grpc"
-ROUTED_OTLP_HTTP_PORT: Final = 4320
+VARIABLE_NAME = "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT"
+DEFAULT_PATH = "/v1/metrics"
+GRPC_PROTOCOL = "grpc"
+ROUTED_OTLP_HTTP_PORT = 4320
 
-METRICS_ENVIRONMENT: Final = {
+METRICS_ENVIRONMENT = {
     "DD_METRICS_OTEL_ENABLED": "true",
     "DD_RUNTIME_METRICS_ENABLED": "false",
     "OTEL_EXPORTER_OTLP_ENDPOINT": None,
@@ -21,11 +19,11 @@ METRICS_ENVIRONMENT: Final = {
     "CORECLR_ENABLE_PROFILING": "1",
 }
 
-ROUTED_VALUES: Final = [
+ROUTED_VALUES = [
     pytest.param("routed", DEFAULT_PATH, id="routed-signal-url"),
 ]
 
-FALLBACK_VALUES: Final = [
+FALLBACK_VALUES = [
     pytest.param("unset", DEFAULT_PATH, id="unset"),
     pytest.param("empty", DEFAULT_PATH, id="empty"),
 ]
@@ -49,10 +47,12 @@ def _configure_endpoint(
     elif endpoint_value == "empty":
         library_env["OTEL_EXPORTER_OTLP_ENDPOINT"] = f"http://{test_agent.container_name}:{test_agent_otlp_http_port}"
         library_env[VARIABLE_NAME] = ""
-    else:
+    elif endpoint_value == GRPC_PROTOCOL:
         library_env["OTEL_EXPORTER_OTLP_METRICS_PROTOCOL"] = None
         library_env["OTEL_EXPORTER_OTLP_PROTOCOL"] = GRPC_PROTOCOL
         library_env[VARIABLE_NAME] = f"http://{test_agent.container_name}:{test_agent_otlp_grpc_port}/"
+    else:
+        raise ValueError(f"Unexpected endpoint value: {endpoint_value}")
 
 
 def _emit_metric(library: APMLibrary) -> None:
