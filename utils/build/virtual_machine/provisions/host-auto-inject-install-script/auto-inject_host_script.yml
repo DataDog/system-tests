@@ -3,6 +3,10 @@
   copy_files:
       - name: copy-auto-install-script
         local_path: utils/build/virtual_machine/provisions/auto-inject/repositories/autoinstall/execute_install_script.sh
+      - name: copy-installer-versions-script
+        local_path: utils/build/ssi/base/installer_versions.sh
+      - name: copy-auto-inject-lock
+        local_path: auto_inject.lock
       - name: copy-tracer-debug-config
         local_path: utils/build/virtual_machine/provisions/auto-inject/tracer_debug/debug_config.yaml
       - name: copy-agent-version-lock
@@ -10,16 +14,16 @@
       - name: copy-binaries
         local_path: binaries/
   remote-command: |
-    # Env variables set on the scenario definition. Write to file and load  
+    # Env variables set on the scenario definition. Write to file and load
     SCENARIO_AGENT_ENV="${DD_AGENT_ENV:-''}"
     echo "${SCENARIO_AGENT_ENV}" > scenario_agent.env
     echo "AGENT VARIABLES CONFIGURED FROM THE SCENARIO:"
     cat scenario_agent.env
-    export $(cat scenario_agent.env | xargs) 
+    export $(cat scenario_agent.env | xargs)
 
     DD_APM_INSTRUMENTATION_ENABLED=host bash execute_install_script.sh
     sudo cp debug_config.yaml /etc/datadog-agent/inject/debug_config.yaml
-    
+
 - os_type: windows
   remote-command: |
     echo "TODO. Windows is not supported for installation script yet. TODO."

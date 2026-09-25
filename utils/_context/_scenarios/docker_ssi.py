@@ -4,6 +4,7 @@ import random
 import socket
 import time
 from collections.abc import Iterator
+from pathlib import Path
 from docker.errors import BuildError
 from docker.models.networks import Network
 import pytest
@@ -22,6 +23,9 @@ from utils._logger import logger
 from utils.virtual_machine.vm_logger import vm_logger
 
 from .core import Scenario, ScenarioGroup
+
+
+AUTO_INJECT_LOCK = Path(__file__).resolve().parents[3] / "auto_inject.lock"
 
 
 class ContainerRemovalError(Exception):
@@ -507,6 +511,11 @@ class DockerSSIImageBuilder:
             f"[tag:{self.ssi_all_docker_tag}]Installing dd ssi for autoinjection on base image "
             f"[{ssi_installer_docker_tag}]."
         )
+        pinned_injector_version = (
+            AUTO_INJECT_LOCK.read_text(encoding="utf-8").strip()
+            if self._custom_library_version and not self._custom_injector_version
+            else None
+        )
         try:
             # Install the ssi to run the auto instrumentation
             _, build_logs = get_docker_client().images.build(
@@ -521,6 +530,7 @@ class DockerSSIImageBuilder:
                     "SSI_ENV": self._env,
                     "DD_INSTALLER_LIBRARY_VERSION": self._custom_library_version,
                     "DD_INSTALLER_INJECTOR_VERSION": self._custom_injector_version,
+                    "DD_INSTALLER_PINNED_INJECTOR_VERSION": pinned_injector_version,
                     "DD_APPSEC_ENABLED": str(self._appsec_enabled).lower()
                     if isinstance(self._appsec_enabled, bool)
                     else None,
