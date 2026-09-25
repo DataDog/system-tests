@@ -71,6 +71,31 @@ class Test_InstallerVersions:
 
         assert result.stdout == "RESULT=\n"
 
+    def test_missing_lock_file_fails_loud(self, tmp_path: Path) -> None:
+        env = os.environ.copy()
+        env["DD_INSTALLER_LIBRARY_VERSION"] = "custom-library"
+        env.pop("DD_INSTALLER_INJECTOR_VERSION", None)
+        env.pop("DD_INSTALLER_PINNED_INJECTOR_VERSION", None)
+
+        result = subprocess.run(
+            [
+                "bash",
+                "-c",
+                'source "$1"; printf "RESULT=%s\\n" "${DD_INSTALLER_INJECTOR_VERSION:-}"',
+                "bash",
+                str(INSTALLER_VERSIONS_SCRIPT),
+            ],
+            cwd=tmp_path,
+            env=env,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+
+        assert result.returncode != 0
+        assert "auto_inject.lock" in result.stderr
+        assert "RESULT=" not in result.stdout
+
     def test_auto_inject_lock_format(self) -> None:
         contents = AUTO_INJECT_LOCK.read_text(encoding="utf-8")
 
