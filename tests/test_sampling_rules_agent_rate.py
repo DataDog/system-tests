@@ -47,7 +47,7 @@ class Test_SamplingRulesAgentRate:
         # round-trips back to the tracer still carry the old rate. Keep sending bursts, with pauses
         # to let a flush/response cycle happen, until a span shows the mocked agent rate.
         request_idx = 0
-        for _ in range(8):
+        for _ in range(5):
             if interfaces.library.wait_for(has_agent_rate, timeout=0):
                 break
             for _j in range(20):
