@@ -2,11 +2,12 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, interfaces, weblog, features, irrelevant, rfc
+from utils import context, interfaces, weblog, features, irrelevant, rfc, scenarios
 from utils._weblog import HttpResponse
 from utils.dd_types import DataDogLibrarySpan
 
 
+@scenarios.appsec_otlp_export_default_rules
 @rfc("https://docs.google.com/document/d/1YYxOB1nM032H-lgXrVml9mukMhF4eHVIzyK9H_PvrSY/edit#heading=h.o5gstqo08gu5")
 @features.appsec_shell_execution_tracing
 class Test_ShellExecution:

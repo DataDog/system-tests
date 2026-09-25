@@ -101,6 +101,7 @@ class Test_Fingerprinting_Session:
 @features.fingerprinting
 @scenarios.appsec_blocking
 @scenarios.appsec_lambda_blocking
+@scenarios.appsec_otlp_export
 class Test_Fingerprinting_Endpoint_Preprocessor:
     endpoint_fingerprint_regex = r"http-[^-]*-[^-]*-[^-]*-[^-]*"
 
@@ -131,6 +132,7 @@ class Test_Fingerprinting_Endpoint_Preprocessor:
 @features.fingerprinting
 @scenarios.appsec_blocking
 @scenarios.appsec_lambda_blocking
+@scenarios.appsec_otlp_export
 class Test_Fingerprinting_Header_And_Network_Preprocessor:
     network_fingerprint_regex = r"net-[^-]*-[^-]*"
     header_fingerprint_regex = r"hdr-[^-]*-[^-]*-[^-]*-[^-]*"
@@ -186,6 +188,7 @@ class Test_Fingerprinting_Header_And_Network_Preprocessor:
 @features.fingerprinting
 @scenarios.appsec_blocking
 @scenarios.appsec_lambda_blocking
+@scenarios.appsec_otlp_export
 class Test_Fingerprinting_Session_Preprocessor:
     session_fingerprint_regex = r"ssn-[^-]*-[^-]*-[^-]*-[^-]*"
 
