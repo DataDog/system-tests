@@ -300,6 +300,7 @@ manifest:
   tests/parametric/test_otlp_trace_metrics.py::Test_FR01_Enablement_Configuration::test_fr01_3_enabled_by_default: missing_feature
   tests/parametric/test_otlp_trace_metrics.py::Test_FR02_Metric_Identity: missing_feature
   tests/parametric/test_otlp_trace_metrics.py::Test_FR02_Mutual_Exclusion::test_fr02_3_otlp_suppresses_native_stats: missing_feature
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR02_Mutual_Exclusion::test_fr02_4_native_stats_no_otlp: flaky (APMSP-4039)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR03_Metric_Shape: missing_feature
   tests/parametric/test_otlp_trace_metrics.py::Test_FR04_Span_Selection: missing_feature
   tests/parametric/test_otlp_trace_metrics.py::Test_FR05_Sampling_Independence: missing_feature
