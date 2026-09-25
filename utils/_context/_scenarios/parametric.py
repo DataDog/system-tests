@@ -168,7 +168,7 @@ class ParametricScenario(DockerFixturesScenario):
     def weblog_variant(self):
         return f"parametric-{self.library.name}"
 
-    def get_junit_properties(self) -> dict[str, dict | str]:
+    def get_junit_properties(self) -> dict[str, dict[str, str] | str]:
         result = super().get_junit_properties()
 
         result["library"] = {"name": self.library.name, "version": str(self.library.version)}

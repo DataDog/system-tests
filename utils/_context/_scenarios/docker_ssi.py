@@ -298,15 +298,15 @@ class DockerSSIScenario(Scenario):
     def configuration(self):
         return self._configuration
 
-    def get_junit_properties(self) -> dict[str, dict | str]:
+    def get_junit_properties(self) -> dict[str, dict[str, str] | str]:
         result = super().get_junit_properties()
 
-        result["library"] = {"name": self.library.name, "version": self.library.version}
+        result["library"] = {"name": self.library.name, "version": str(self.library.version)}
         result["weblog_variant"] = self.weblog_variant
-        result["agent"] = self.components["agent"]
+        result["agent"] = str(self.components["agent"])
         result["datadog-apm-inject"] = {"version": self.dd_apm_inject_version}
-        result["datadog-installer"] = {"version": self.components["datadog-installer"]}
-        result["installed_language_runtime"] = self.installed_language_runtime or ""
+        result["datadog-installer"] = {"version": str(self.components["datadog-installer"])}
+        result["installed_language_runtime"] = str(self.installed_language_runtime or "")
         result["os"] = self.configuration["os"]
         result["arch"] = self.configuration["arch"]
 

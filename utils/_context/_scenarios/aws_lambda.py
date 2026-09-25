@@ -168,7 +168,7 @@ class LambdaScenario(DockerScenario):
     def weblog_variant(self):
         return self.lambda_weblog.weblog_variant
 
-    def get_junit_properties(self) -> dict[str, dict | str]:
+    def get_junit_properties(self) -> dict[str, dict[str, str] | str]:
         result = super().get_junit_properties()
 
         result["library"] = {"name": self.library.name, "version": str(self.library.version)}

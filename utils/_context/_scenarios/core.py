@@ -229,7 +229,7 @@ class Scenario:
     def parametrized_tests_metadata(self):
         return {}
 
-    def get_junit_properties(self) -> dict[str, dict | str]:
+    def get_junit_properties(self) -> dict[str, dict[str, str] | str]:
         return {"scenario": self.name}
 
     def customize_feature_parity_dashboard(self, result: dict):
