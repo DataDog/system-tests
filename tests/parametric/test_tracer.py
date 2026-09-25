@@ -1,4 +1,4 @@
-import pytest
+from utils import pytest
 
 from utils.docker_fixtures.spec.trace import find_trace
 from utils.docker_fixtures.spec.trace import find_span

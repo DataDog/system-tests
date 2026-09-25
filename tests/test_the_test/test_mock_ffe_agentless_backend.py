@@ -7,7 +7,7 @@ from typing import Any, Literal
 from unittest.mock import MagicMock
 
 import requests
-import pytest
+from utils import pytest
 
 from utils import features, interfaces, scenarios
 from utils._context.containers import ServerlessInitContainer
