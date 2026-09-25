@@ -23,8 +23,11 @@ ROUTED_VALUES = [
     pytest.param("routed", DEFAULT_PATH, id="routed-signal-url"),
 ]
 
-FALLBACK_VALUES = [
+UNSET_VALUES = [
     pytest.param("unset", DEFAULT_PATH, id="unset"),
+]
+
+EMPTY_VALUES = [
     pytest.param("empty", DEFAULT_PATH, id="empty"),
 ]
 
@@ -71,8 +74,24 @@ class Test_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT:
         requests = test_agent.otlp_requests()
         assert any(request["url"].endswith(expected_path) for request in requests), requests
 
-    @pytest.mark.parametrize(("endpoint_value", "expected_path"), FALLBACK_VALUES)
-    def test_unset_and_empty_fall_back_to_global_endpoint(
+    @pytest.mark.parametrize(("endpoint_value", "expected_path"), UNSET_VALUES)
+    def test_unset_falls_back_to_global_endpoint(
+        self,
+        endpoint_value: str,  # noqa: ARG002
+        expected_path: str,
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+    ) -> None:
+        with test_library as library:
+            library.create_logger(LOGGER_NAME, LogLevel.INFO)
+            library.write_log(LOGGER_NAME, LogLevel.INFO, LOG_MESSAGE)
+
+        test_agent.wait_for_num_log_payloads(num=1)
+        requests = test_agent.otlp_requests()
+        assert any(request["url"].endswith(expected_path) for request in requests), requests
+
+    @pytest.mark.parametrize(("endpoint_value", "expected_path"), EMPTY_VALUES)
+    def test_empty_falls_back_to_global_endpoint(
         self,
         endpoint_value: str,  # noqa: ARG002
         expected_path: str,

@@ -22,8 +22,11 @@ ROUTED_VALUES = [
     pytest.param("routed", DEFAULT_PATH, id="routed-base-url"),
 ]
 
-DEFAULT_VALUES = [
+UNSET_VALUES = [
     pytest.param("unset", DEFAULT_PATH, id="unset"),
+]
+
+EMPTY_VALUES = [
     pytest.param("empty", DEFAULT_PATH, id="empty"),
 ]
 
@@ -82,8 +85,23 @@ class Test_OTEL_EXPORTER_OTLP_ENDPOINT:
         requests = test_agent.otlp_requests()
         assert any(request["url"].endswith(expected_path) for request in requests), requests
 
-    @pytest.mark.parametrize(("endpoint_value", "expected_path"), DEFAULT_VALUES)
-    def test_default_endpoint_is_used(
+    @pytest.mark.parametrize(("endpoint_value", "expected_path"), UNSET_VALUES)
+    def test_unset_endpoint_is_used_by_default(
+        self,
+        endpoint_value: str,  # noqa: ARG002
+        expected_path: str,
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+    ) -> None:
+        with test_library as library:
+            _emit_metric(library)
+
+        test_agent.wait_for_num_otlp_metrics(num=1)
+        requests = test_agent.otlp_requests()
+        assert any(request["url"].endswith(expected_path) for request in requests), requests
+
+    @pytest.mark.parametrize(("endpoint_value", "expected_path"), EMPTY_VALUES)
+    def test_empty_endpoint_falls_back_to_default(
         self,
         endpoint_value: str,  # noqa: ARG002
         expected_path: str,
