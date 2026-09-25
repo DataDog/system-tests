@@ -570,7 +570,7 @@ class EndToEndScenario(DockerScenario):
         result = super().get_junit_properties()
 
         result["agent"] = self.agent_version
-        result["library]"] = {"name": self.library.name, "version": self.library.version}
+        result["library"] = {"name": self.library.name, "version": str(self.library.version)}
         result["weblog_variant"] = self.weblog_variant
 
         return result
