@@ -49,10 +49,11 @@ class Test_SamplingRateCappedIncrease:
             high_rate_response
         ] * self.NUM_HIGH_RATE_RESPONSES
 
-        # Send mocks for both trace endpoints in one call to avoid overwriting
+        # Send mocks for the relevant trace endpoints in one call to avoid overwriting
         mocks = [
             SequentialJsonMockedTracerResponse(path="/v0.4/traces", mocked_json_sequence=sequence),
             SequentialJsonMockedTracerResponse(path="/v0.5/traces", mocked_json_sequence=sequence),
+            SequentialJsonMockedTracerResponse(path="/v1.0/traces", mocked_json_sequence=sequence),
         ]
         _send_mocked_tracer_responses(mocks)
 
@@ -68,7 +69,17 @@ class Test_SamplingRateCappedIncrease:
                     return True
             return False
 
-        interfaces.library.wait_for(wait_for_low_rate, timeout=30)
+        # The first flush receives the mocked rate after its spans were created.
+        # Send more traffic so subsequent spans can reflect that rate.
+        self.low_rate_observed = False
+        request_idx = 40
+        for _ in range(5):
+            for _j in range(20):
+                weblog.get(f"/sample_rate_route/{request_idx}")
+                request_idx += 1
+            if interfaces.library.wait_for(wait_for_low_rate, timeout=3):
+                self.low_rate_observed = True
+                break
 
         # Record how many spans exist before the ramp-up phase
         self.spans_before_ramp = sum(1 for _ in interfaces.library.get_root_spans())
@@ -76,7 +87,7 @@ class Test_SamplingRateCappedIncrease:
         # Generate traffic in bursts to trigger multiple flush cycles during ramp-up
         # Each burst sends requests, then sleeps to allow the tracer to flush and receive
         # the next mocked response, which should trigger a capped rate increase.
-        request_idx = 100
+        request_idx = 1000
         for _ in range(10):
             for _j in range(20):
                 weblog.get(f"/sample_rate_route/{request_idx}")
@@ -93,10 +104,13 @@ class Test_SamplingRateCappedIncrease:
                     return True
             return False
 
-        interfaces.library.wait_for(wait_for_high_rate_after_ramp, timeout=40)
+        self.high_rate_observed = interfaces.library.wait_for(wait_for_high_rate_after_ramp, timeout=40)
 
     def test_sampling_rate_capped_increase(self):
         """Verify that the tracer ramps up sampling rate gradually instead of jumping directly."""
+        assert self.low_rate_observed, "Tracer did not apply the low agent rate"
+        assert self.high_rate_observed, "Tracer did not reach the high agent rate after the ramp"
+
         # Only look at spans from AFTER the low-rate phase to avoid the default 1.0 at startup
         agent_psr_values = set()
 
