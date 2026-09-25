@@ -34,7 +34,7 @@ from utils.proxy.ports import ProxyPorts
 
 @scenarios.test_the_test
 def test_mock_ffe_agentless_backend_serves_fixture_and_tracks_metadata(worker_id: str) -> None:
-    server = MockFFEAgentlessBackendServer(worker_id, port=0)
+    server = MockFFEAgentlessBackendServer(worker_id=worker_id, port=0)
     try:
         for invalid_query in ("", "?dd_env=", "?dd_env=wrong", f"?dd_env={EXPECTED_DD_ENV}&dd_env=wrong"):
             response = requests.get(
@@ -83,7 +83,7 @@ def test_mock_ffe_agentless_backend_host_gateway_mapping(monkeypatch: pytest.Mon
     monkeypatch.delenv("SYSTEM_TESTS_MOCK_FFE_AGENTLESS_BACKEND_HOST", raising=False)
     monkeypatch.delenv("SYSTEM_TESTS_MOCK_AGENTLESS_BACKEND_HOST", raising=False)
 
-    server = MockFFEAgentlessBackendServer(worker_id, port=0)
+    server = MockFFEAgentlessBackendServer(worker_id=worker_id, port=0)
     try:
         assert server.library_config_url.endswith(f"{CONFIG_PATH}?{CONFIG_QUERY}")
         env = {"DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL": server.library_config_url}
@@ -94,7 +94,7 @@ def test_mock_ffe_agentless_backend_host_gateway_mapping(monkeypatch: pytest.Mon
 
 @scenarios.test_the_test
 def test_mock_ffe_agentless_backend_status_is_metadata_only(worker_id: str) -> None:
-    server = MockFFEAgentlessBackendServer(worker_id, port=0)
+    server = MockFFEAgentlessBackendServer(worker_id=worker_id, port=0)
     try:
         status = server.status()
         assert set(status) == {
