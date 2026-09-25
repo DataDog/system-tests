@@ -285,37 +285,6 @@ class Test_FR05_Custom_Endpoints:
 
 @features.otel_logs_enabled
 @scenarios.parametric
-class Test_FR06_OTLP_Protocols:
-    """FR06: OTLP Protocol Tests"""
-
-    @pytest.mark.parametrize(
-        "library_env",
-        [
-            {
-                "DD_LOGS_OTEL_ENABLED": "true",
-                "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
-                "DD_TRACE_DEBUG": None,
-            },
-            {
-                "DD_LOGS_OTEL_ENABLED": "true",
-                "OTEL_EXPORTER_OTLP_PROTOCOL": "grpc",
-                "DD_TRACE_DEBUG": None,
-            },
-        ],
-        ids=["http_protobuf", "grpc"],
-    )
-    def test_otlp_protocols(self, test_agent: TestAgentAPI, test_library: APMLibrary):
-        """OTLP logs are emitted in expected format."""
-        with test_library as library:
-            library.create_logger("otlp_protocols", LogLevel.INFO)
-            library.write_log("otlp_protocols", LogLevel.INFO, "test_otlp_protocols")
-
-        log_payloads = test_agent.wait_for_num_log_payloads(1)
-        assert find_log_record(log_payloads, "otlp_protocols", "test_otlp_protocols") is not None
-
-
-@features.otel_logs_enabled
-@scenarios.parametric
 class Test_FR07_Host_Name:
     """FR07: Host Name Attribute Tests"""
 
