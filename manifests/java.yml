@@ -3397,6 +3397,9 @@ manifest:
         spring-boot-undertow: v1.38.0
         spring-boot-wildfly: v1.38.0
         uds-spring-boot: v1.38.0
+  tests/debugger/test_debugger_rc_unsubscribe.py::Test_Debugger_RC_Unsubscribe: v1.67.0
+  ? tests/debugger/test_debugger_rc_unsubscribe.py::Test_Debugger_RC_Unsubscribe::test_remove_config_with_other_config_remaining
+  : missing_feature (DI config deletion does not restore local enablement while other APM_TRACING configs remain)
   tests/debugger/test_debugger_snapshot_correlation.py::Test_Debugger_Coordinated_Sampling: incomplete_test_app (no /debugger/correlation endpoint)
   tests/debugger/test_debugger_snapshot_correlation.py::Test_Debugger_Coordinated_Sampling_Line_Probe: irrelevant (Line-probe variant is only used by Node.js)
   tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb:
