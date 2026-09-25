@@ -251,6 +251,9 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
                 return "<scrubbed>"
             elif key == "StackTrace" and isinstance(value, dict):
                 value["value"] = "<scrubbed>"
+                # Clip is old; truncated:true is new (dd-trace-dotnet #9272). Drop it so
+                # approvals match tracers with and without the flag.
+                value.pop("truncated", None)
                 return value
             elif key == "staticFields" and isinstance(value, dict):
 
