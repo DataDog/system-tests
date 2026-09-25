@@ -17,21 +17,6 @@ from tests.parametric.test_otel_logs import find_log_record
 VARIABLE = "OTEL_EXPORTER_OTLP_LOGS_PROTOCOL"
 
 
-@pytest.fixture
-def protocol(request: pytest.FixtureRequest, signal: str) -> str:
-    return otlp_protocol_fixtures.protocol(getattr(request, "param", None), signal)
-
-
-@pytest.fixture
-def generic_protocol(request: pytest.FixtureRequest, signal: str) -> str | None:
-    return otlp_protocol_fixtures.generic_protocol(getattr(request, "param", None), signal)
-
-
-@pytest.fixture
-def expected_protocol(generic_protocol: str | None, protocol: str | None, signal: str) -> str:
-    return otlp_protocol_fixtures.expected_protocol(generic_protocol, protocol, signal)
-
-
 # The test matrix supplies the protocol value to exercise protocol selection.
 # Default cases leave it unset; the endpoint selects the expected HTTP/gRPC
 # listener so delivery proves the transport, including SDKs that default to gRPC.
@@ -57,7 +42,10 @@ def library_env(
     return env
 
 
-def _assert_export(test_library: APMLibrary, test_agent: TestAgentAPI, signal: str, expected_protocol: str) -> None:
+def _assert_export(
+    test_library: APMLibrary, test_agent: TestAgentAPI, signal: str, protocol: str | None, generic_protocol: str | None
+) -> None:
+    expected_protocol = otlp_protocol_fixtures.expected_protocol(generic_protocol, protocol, signal)
     with test_library as library:
         library.create_logger("protocol-test", LogLevel.INFO)
         library.write_log("protocol-test", LogLevel.INFO, "selected-protocol")
@@ -86,66 +74,139 @@ def _assert_export(test_library: APMLibrary, test_agent: TestAgentAPI, signal: s
 class Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL:
     """All specified transports, with separate declarations for optional protocols."""
 
-    @pytest.mark.parametrize("protocol", [pytest.param("http/protobuf", id="http-protobuf")])
+    @pytest.mark.parametrize(
+        ("protocol", "generic_protocol"), [pytest.param("http/protobuf", None, id="http-protobuf")]
+    )
     def test_http_protobuf(
-        self, test_library: APMLibrary, test_agent: TestAgentAPI, signal: str, expected_protocol: str
+        self,
+        test_library: APMLibrary,
+        test_agent: TestAgentAPI,
+        signal: str,
+        protocol: str | None,
+        generic_protocol: str | None,
     ) -> None:
-        _assert_export(test_library, test_agent, signal, expected_protocol)
+        _assert_export(test_library, test_agent, signal, protocol, generic_protocol)
 
-    @pytest.mark.parametrize("protocol", [pytest.param("grpc", id="grpc")])
+    @pytest.mark.parametrize(("protocol", "generic_protocol"), [pytest.param("grpc", None, id="grpc")])
     def test_grpc(
-        self, test_library: APMLibrary, test_agent: TestAgentAPI, signal: str, expected_protocol: str
+        self,
+        test_library: APMLibrary,
+        test_agent: TestAgentAPI,
+        signal: str,
+        protocol: str | None,
+        generic_protocol: str | None,
     ) -> None:
-        _assert_export(test_library, test_agent, signal, expected_protocol)
+        _assert_export(test_library, test_agent, signal, protocol, generic_protocol)
 
-    @pytest.mark.parametrize("protocol", [pytest.param("http/json", id="http-json")])
+    @pytest.mark.parametrize(("protocol", "generic_protocol"), [pytest.param("http/json", None, id="http-json")])
     def test_http_json(
-        self, test_library: APMLibrary, test_agent: TestAgentAPI, signal: str, expected_protocol: str
+        self,
+        test_library: APMLibrary,
+        test_agent: TestAgentAPI,
+        signal: str,
+        protocol: str | None,
+        generic_protocol: str | None,
     ) -> None:
-        _assert_export(test_library, test_agent, signal, expected_protocol)
+        _assert_export(test_library, test_agent, signal, protocol, generic_protocol)
 
-    @pytest.mark.parametrize("protocol", [pytest.param(None, id="unset")])
+    @pytest.mark.parametrize(("protocol", "generic_protocol"), [pytest.param(None, None, id="unset")])
     def test_default(
-        self, test_library: APMLibrary, test_agent: TestAgentAPI, signal: str, expected_protocol: str
+        self,
+        test_library: APMLibrary,
+        test_agent: TestAgentAPI,
+        signal: str,
+        protocol: str | None,
+        generic_protocol: str | None,
     ) -> None:
-        assert expected_protocol in ("http/protobuf", "grpc")
-        _assert_export(test_library, test_agent, signal, expected_protocol)
+        assert otlp_protocol_fixtures.default_protocol(signal) in ("http/protobuf", "grpc")
+        _assert_export(test_library, test_agent, signal, protocol, generic_protocol)
 
-    @pytest.mark.parametrize("protocol", [pytest.param("", id="empty")])
+    @pytest.mark.parametrize(("protocol", "generic_protocol"), [pytest.param("", None, id="empty")])
     def test_empty(
-        self, test_library: APMLibrary, test_agent: TestAgentAPI, signal: str, expected_protocol: str
+        self,
+        test_library: APMLibrary,
+        test_agent: TestAgentAPI,
+        signal: str,
+        protocol: str | None,
+        generic_protocol: str | None,
     ) -> None:
-        _assert_export(test_library, test_agent, signal, expected_protocol)
+        _assert_export(test_library, test_agent, signal, protocol, generic_protocol)
 
-    @pytest.mark.parametrize("protocol", [pytest.param("unsupported", id="invalid")])
+    @pytest.mark.parametrize(("protocol", "generic_protocol"), [pytest.param("unsupported", None, id="invalid")])
     def test_invalid(
-        self, test_library: APMLibrary, test_agent: TestAgentAPI, signal: str, expected_protocol: str
+        self,
+        test_library: APMLibrary,
+        test_agent: TestAgentAPI,
+        signal: str,
+        protocol: str | None,
+        generic_protocol: str | None,
     ) -> None:
-        _assert_export(test_library, test_agent, signal, expected_protocol)
+        _assert_export(test_library, test_agent, signal, protocol, generic_protocol)
 
+    @pytest.mark.parametrize(
+        ("protocol", "generic_protocol"),
+        [pytest.param(otlp_protocol_fixtures.non_default_protocol("logs"), None, id="uppercase")],
+    )
     def test_case_insensitive(
-        self, test_library: APMLibrary, test_agent: TestAgentAPI, signal: str, expected_protocol: str
+        self,
+        test_library: APMLibrary,
+        test_agent: TestAgentAPI,
+        signal: str,
+        protocol: str | None,
+        generic_protocol: str | None,
     ) -> None:
-        _assert_export(test_library, test_agent, signal, expected_protocol)
+        _assert_export(test_library, test_agent, signal, protocol, generic_protocol)
 
-    @pytest.mark.parametrize("generic_protocol", [pytest.param("default", id="generic-default")], indirect=True)
-    @pytest.mark.parametrize("protocol", [pytest.param("nondefault", id="signal-nondefault")], indirect=True)
+    @pytest.mark.parametrize(
+        ("protocol", "generic_protocol"),
+        [
+            pytest.param(
+                otlp_protocol_fixtures.non_default_protocol("logs").lower(),
+                otlp_protocol_fixtures.default_protocol("logs"),
+                id="signal-nondefault-generic-default",
+            )
+        ],
+    )
     def test_signal_precedence(
-        self, test_library: APMLibrary, test_agent: TestAgentAPI, signal: str, expected_protocol: str
+        self,
+        test_library: APMLibrary,
+        test_agent: TestAgentAPI,
+        signal: str,
+        protocol: str | None,
+        generic_protocol: str | None,
     ) -> None:
-        _assert_export(test_library, test_agent, signal, expected_protocol)
+        _assert_export(test_library, test_agent, signal, protocol, generic_protocol)
 
-    @pytest.mark.parametrize("generic_protocol", [pytest.param("nondefault", id="generic-nondefault")], indirect=True)
-    @pytest.mark.parametrize("protocol", [pytest.param(None, id="unset"), pytest.param("", id="empty")])
+    @pytest.mark.parametrize(
+        ("protocol", "generic_protocol"),
+        [
+            pytest.param(
+                None, otlp_protocol_fixtures.non_default_protocol("logs").lower(), id="unset-generic-nondefault"
+            ),
+            pytest.param(
+                "", otlp_protocol_fixtures.non_default_protocol("logs").lower(), id="empty-generic-nondefault"
+            ),
+        ],
+    )
     def test_generic_fallback(
-        self, test_library: APMLibrary, test_agent: TestAgentAPI, signal: str, expected_protocol: str
+        self,
+        test_library: APMLibrary,
+        test_agent: TestAgentAPI,
+        signal: str,
+        protocol: str | None,
+        generic_protocol: str | None,
     ) -> None:
-        _assert_export(test_library, test_agent, signal, expected_protocol)
+        _assert_export(test_library, test_agent, signal, protocol, generic_protocol)
 
-    @pytest.mark.parametrize("protocol", [pytest.param(None, id="unset")])
+    @pytest.mark.parametrize(("protocol", "generic_protocol"), [pytest.param(None, None, id="unset")])
     def test_documented_json_default(
-        self, test_library: APMLibrary, test_agent: TestAgentAPI, signal: str, expected_protocol: str
+        self,
+        test_library: APMLibrary,
+        test_agent: TestAgentAPI,
+        signal: str,
+        protocol: str | None,
+        generic_protocol: str | None,
     ) -> None:
         """Go documents HTTP/JSON as its logs default, independently of the OTel recommendation."""
-        assert expected_protocol == "http/json"
-        _assert_export(test_library, test_agent, signal, expected_protocol)
+        assert otlp_protocol_fixtures.default_protocol(signal) == "http/json"
+        _assert_export(test_library, test_agent, signal, protocol, generic_protocol)
