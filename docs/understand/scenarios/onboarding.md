@@ -375,7 +375,9 @@ All system-tests assertions and utilities are based on python and pytests. You n
 
 Before execute the "onboarding" tests you must configure some environment variables:
 
-- **ONBOARDING_AWS_INFRA_SUBNET_ID:** AWS subnet id.
+- **ONBOARDING_AWS_INFRA_SUBNET_ID:** One or more comma-separated AWS subnet IDs. Configure subnets from
+  different availability zones so EC2 launches can move to another zone when the selected zone has insufficient
+  instance capacity.
 - **ONBOARDING_AWS_INFRA_SECURITY_GROUPS_ID:** AWS security groups id.
 - **DD_API_KEY_ONBOARDING:** Datadog API key.
 - **DD_APP_KEY_ONBOARDING:** Datadog APP key.
@@ -1317,5 +1319,4 @@ A failure in the GitLab runners can propagate across all repositories that rely 
 
 1. If the problem persists, report it in the #ci-infra-support channel so the CI infrastructure team can investigate and assist.
 2. The runners used for SSI tests in system-tests can be found at: https://github.com/DataDog/libdatadog-build/tree/main/docker
-
 
