@@ -222,7 +222,9 @@ manifest:
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_w3c_p_phase_3_extract_first: missing_feature (Not implemented)
   tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD: ">1.0.0"
   ? tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_evicts_32_or_greater_list_members
-  : bug (APMAPI-914)
+  :  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-914)
+      component_version: <2.3.0
   tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_propagate_propagatedtags:  # Modified by easy win activation script
     - declaration: missing_feature (_dd.p.dm is reset to DEFAULT because we made the sampling decision)
       component_version: <2.0.0
@@ -230,7 +232,9 @@ manifest:
   : missing_feature (_dd.p.dm does not change when a sampling priority was extracted)
   ? tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_same_dm
   : missing_feature (_dd.p.dm is never dropped)
-  tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_ows_between_list_members: bug (APMAPI-2297)
+  tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_ows_between_list_members:  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-2297)
+      component_version: <2.3.0
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_agent_populated_fields_empty_TS013: missing_feature (cpp has not implemented stats computation yet)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_cardinality_overflow_sentinel_TS017: missing_feature (cpp has not implemented stats computation yet)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_distinct_aggregationkeys_TS003: missing_feature (cpp has not implemented stats computation yet)
