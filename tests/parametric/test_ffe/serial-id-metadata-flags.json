@@ -1,0 +1,97 @@
+{
+  "createdAt": "2024-01-01T00:00:00.000Z",
+  "format": "SERVER",
+  "environment": { "name": "Test" },
+  "flags": {
+    "serial-id-basic-flag": {
+      "key": "serial-id-basic-flag",
+      "enabled": true,
+      "variationType": "BOOLEAN",
+      "variations": {
+        "on": { "key": "on", "value": true },
+        "off": { "key": "off", "value": false }
+      },
+      "allocations": [
+        {
+          "key": "on-allocation",
+          "rules": [],
+          "splits": [
+            { "variationKey": "on", "shards": [], "serialId": 42 }
+          ],
+          "doLog": true
+        }
+      ]
+    },
+    "serial-id-zero-flag": {
+      "key": "serial-id-zero-flag",
+      "enabled": true,
+      "variationType": "BOOLEAN",
+      "variations": {
+        "on": { "key": "on", "value": true },
+        "off": { "key": "off", "value": false }
+      },
+      "allocations": [
+        {
+          "key": "zero-allocation",
+          "rules": [],
+          "splits": [
+            { "variationKey": "on", "shards": [], "serialId": 0 }
+          ],
+          "doLog": true
+        }
+      ]
+    },
+    "serial-id-missing-flag": {
+      "key": "serial-id-missing-flag",
+      "enabled": true,
+      "variationType": "STRING",
+      "variations": {
+        "control": { "key": "control", "value": "control" },
+        "treatment": { "key": "treatment", "value": "treatment" }
+      },
+      "allocations": [
+        {
+          "key": "no-serial-allocation",
+          "rules": [],
+          "splits": [
+            { "variationKey": "control", "shards": [] }
+          ],
+          "doLog": true
+        }
+      ]
+    },
+    "serial-id-targeting-flag": {
+      "key": "serial-id-targeting-flag",
+      "enabled": true,
+      "variationType": "STRING",
+      "variations": {
+        "vip": { "key": "vip", "value": "vip" },
+        "standard": { "key": "standard", "value": "standard" }
+      },
+      "allocations": [
+        {
+          "key": "vip-allocation",
+          "rules": [
+            {
+              "conditions": [
+                { "attribute": "segment", "operator": "ONE_OF", "value": ["vip"] }
+              ]
+            }
+          ],
+          "splits": [
+            { "variationKey": "vip", "shards": [], "serialId": 201 }
+          ],
+          "doLog": true
+        },
+        {
+          "key": "default-allocation",
+          "rules": [],
+          "splits": [
+            { "variationKey": "standard", "shards": [], "serialId": 200 }
+          ],
+          "doLog": true
+        }
+      ]
+    }
+  }
+}
