@@ -3028,7 +3028,12 @@ manifest:
     - declaration: missing_feature (Method capture expressions are not implemented)
       component_version: '<=1.54.0'
   ? tests/debugger/test_debugger_capture_expressions_errors.py::Test_Debugger_Filter_Rejected_Capture_Expression_Error::test_filter_rejected_no_error_spam
-  : bug (IDEAI-714)
+  :  # TODO: a lower version might be supported
+    - declaration: bug (IDEAI-714)
+      component_version: <1.66.0
+      weblog: [spring-boot-wildfly, uds-spring-boot, spring-boot-openliberty, spring-boot-undertow, spring-boot-jetty, spring-boot, spring-boot-payara]
+    - declaration: bug (IDEAI-714)
+      excluded_weblog: [spring-boot-wildfly, uds-spring-boot, spring-boot-openliberty, spring-boot-undertow, spring-boot-jetty, spring-boot, spring-boot-payara]
   tests/debugger/test_debugger_code_origins.py::Test_Debugger_Code_Origins:
     - weblog_declaration:
         "*": missing_feature
@@ -3053,6 +3058,13 @@ manifest:
         spring-boot-undertow: v1.38.0
         spring-boot-wildfly: v1.38.0
         uds-spring-boot: v1.38.0
+        vertx3: v1.66.0  # TODO: a lower version might be supported
+        vertx4: v1.66.0  # TODO: a lower version might be supported
+        jersey-grizzly2: v1.66.0  # TODO: a lower version might be supported
+        play: v1.66.0  # TODO: a lower version might be supported
+        resteasy-netty3: v1.66.0  # TODO: a lower version might be supported
+        ratpack: v1.66.0  # TODO: a lower version might be supported
+        akka-http: v1.66.0  # TODO: a lower version might be supported
   tests/debugger/test_debugger_condition_errors.py::Test_Debugger_Runtime_Condition_Error:
     - weblog_declaration:
         "*": missing_feature
