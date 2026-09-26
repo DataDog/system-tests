@@ -2581,6 +2581,7 @@ manifest:
     - weblog_declaration:
         "*": v2.8.0
         tornado: v4.6.4  # TODO: a lower version might be supported
+  tests/test_sampling_rules_agent_rate.py::Test_SamplingRulesAgentRate::test_agent_rate_applies_to_rule_miss: bug (APMAPI-2508)
   tests/test_scrubbing.py::Test_UrlField:
     - weblog_declaration:
         "*": v1.7.1
