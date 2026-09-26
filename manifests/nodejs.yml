@@ -1895,13 +1895,32 @@ manifest:
   tests/integration_frameworks/llm/google_genai/test_google_genai_apm.py::TestGoogleGenAiEmbedContent: *ref_5_81_0
   tests/integration_frameworks/llm/google_genai/test_google_genai_apm.py::TestGoogleGenAiGenerateContent: *ref_5_81_0
   tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiEmbedContent: bug (MLOB-5070)  # does not record metadata
-  tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiGenerateContent: bug (MLOB-5070)
-  tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiGenerateContentReasoning: bug (MLOB-5070)
-  tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiGenerateContentWithTools: bug (MLOB-5070)
+  tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiGenerateContent:  # TODO: a lower version might be supported
+    - declaration: bug (MLOB-5070)
+      component_version: <6.17.0
+      weblog: [google_genai-js@1.34.0]
+    - declaration: bug (MLOB-5070)
+      excluded_weblog: [google_genai-js@1.34.0]
+  tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiGenerateContentReasoning:  # TODO: a lower version might be supported
+    - declaration: bug (MLOB-5070)
+      component_version: <6.17.0
+      weblog: [google_genai-js@1.34.0]
+    - declaration: bug (MLOB-5070)
+      excluded_weblog: [google_genai-js@1.34.0]
+  tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiGenerateContentWithTools:  # TODO: a lower version might be supported
+    - declaration: bug (MLOB-5070)
+      component_version: <6.17.0
+      weblog: [google_genai-js@1.34.0]
+    - declaration: bug (MLOB-5070)
+      excluded_weblog: [google_genai-js@1.34.0]
   ? tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiGenerateContentWithTools::test_generate_content_executable_code
-  : bug (MLOB-5070)
+  : - declaration: bug (MLOB-5070)
+    - weblog_declaration:
+        google_genai-js@1.34.0: bug (MLOB-5070)
   ? tests/integration_frameworks/llm/google_genai/test_google_genai_llmobs.py::TestGoogleGenAiGenerateContentWithTools::test_generate_content_with_tools
-  : missing_feature (Node.js LLM Observability Google GenAI integration does not submit tool definitions)
+  : - declaration: missing_feature (Node.js LLM Observability Google GenAI integration does not submit tool definitions)
+    - weblog_declaration:
+        google_genai-js@1.34.0: bug (MLOB-5070)
   tests/integration_frameworks/llm/openai/test_openai_ai_guard.py::TestOpenAiAiGuard: missing_feature (APPSEC-68977, AI Guard/OpenAI integration not yet wired into INTEGRATION_FRAMEWORKS)
   tests/integration_frameworks/llm/openai/test_openai_apm.py::TestOpenAiApmChatCompletions: *ref_5_76_0
   tests/integration_frameworks/llm/openai/test_openai_apm.py::TestOpenAiApmCompletions: *ref_5_76_0
