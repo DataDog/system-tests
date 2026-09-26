@@ -17,10 +17,30 @@ manifest:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
         "flask-poc": v4.13.0-dev
-  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone_APMDisabledMarker: missing_feature
-  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRedacted: bug (APPSEC-69627)
-  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests: bug (APPSEC-69627)
-  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated: bug (APPSEC-69627)
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone_APMDisabledMarker:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        uds-flask: '>=4.15.2'
+        flask-poc: '>=4.15.2'
+        uwsgi-poc: '>=4.15.2'
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRedacted:  # TODO: a lower version might be supported
+    - declaration: bug (APPSEC-69627)
+      component_version: <4.15.2
+      weblog: [uds-flask, flask-poc, uwsgi-poc]
+    - declaration: bug (APPSEC-69627)
+      excluded_weblog: [uds-flask, flask-poc, uwsgi-poc]
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests:  # TODO: a lower version might be supported
+    - declaration: bug (APPSEC-69627)
+      component_version: <4.15.2
+      weblog: [uds-flask, flask-poc, uwsgi-poc]
+    - declaration: bug (APPSEC-69627)
+      excluded_weblog: [uds-flask, flask-poc, uwsgi-poc]
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated:  # TODO: a lower version might be supported
+    - declaration: bug (APPSEC-69627)
+      component_version: <4.15.2
+      weblog: [uds-flask, flask-poc, uwsgi-poc]
+    - declaration: bug (APPSEC-69627)
+      excluded_weblog: [uds-flask, flask-poc, uwsgi-poc]
   tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
@@ -57,7 +77,12 @@ manifest:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
         "flask-poc": v4.14.0-dev
-  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionDisabledTelemetry: bug (APPSEC-69627)
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionDisabledTelemetry:  # TODO: a lower version might be supported
+    - declaration: bug (APPSEC-69627)
+      component_version: <4.15.2
+      weblog: [uds-flask, flask-poc, uwsgi-poc]
+    - declaration: bug (APPSEC-69627)
+      excluded_weblog: [uds-flask, flask-poc, uwsgi-poc]
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionFailSafe:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
@@ -499,13 +524,13 @@ manifest:
   tests/appsec/iast/sink/test_unvalidated_redirect.py:
     - weblog_declaration:
         tornado: missing_feature
-  tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedHeader:
+  tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedHeader:  # Easy win for django-poc, django-py3.13, fastapi, flask-poc, python3.12, uds-flask, uwsgi-poc and version 4.15.2
     - weblog_declaration:
         "*": v4.16.0-rc1 (implemented in v3.9.0.dev, previously flaky due to APPSEC-57817 and APPSEC-61861)
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedHeader::test_secure:
     - weblog_declaration:
         "*": v4.12.0-rc1 (implemented in v3.9.0.dev)
-  tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedHeader_ExtendedLocation:
+  tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedHeader_ExtendedLocation:  # Easy win for django-poc, django-py3.13, fastapi, flask-poc, python3.12, uds-flask, uwsgi-poc and version 4.15.2
     - weblog_declaration:
         "*": v4.16.0-rc1 (implemented in v3.9.0.dev, previously flaky due to APPSEC-57817 and APPSEC-61861)
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedHeader_StackTrace:  # Easy win for django-poc, django-py3.13, fastapi, flask-poc, python3.12, uds-flask, uwsgi-poc and version 4.6.4
@@ -514,13 +539,13 @@ manifest:
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect:  # Easy win for django-poc, django-py3.13, fastapi, flask-poc, python3.12, uds-flask, uwsgi-poc and version 4.6.4
     - weblog_declaration:
         "*": v4.7.0-rc1 (implemented in v3.9.0.dev, but there was the APPSEC-57817 and APPSEC-61861 bugs)
-  tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect::test_secure:
+  tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect::test_secure:  # Easy win for django-poc, django-py3.13, fastapi, flask-poc, python3.12, uds-flask, uwsgi-poc and version 4.15.2
     - weblog_declaration:
         "*": v4.16.0-rc1 (implemented in v3.9.0.dev, previously flaky due to APPSEC-61861)
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect_ExtendedLocation:
     - weblog_declaration:
         "*": v4.12.0-rc1 (implemented in v3.9.0.dev)
-  tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect_ExtendedLocation::test_extended_location_data: v4.16.0-rc1 (implemented in v3.9.0.dev, previously flaky due to APPSEC-62470)
+  tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect_ExtendedLocation::test_extended_location_data: v4.16.0-rc1 (implemented in v3.9.0.dev, previously flaky due to APPSEC-62470)  # Easy win for django-poc, django-py3.13, fastapi, flask-poc, python3.12, uds-flask, uwsgi-poc and version 4.15.2
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedRedirect_StackTrace:  # Easy win for django-poc, django-py3.13, fastapi, flask-poc, python3.12, uds-flask, uwsgi-poc and version 4.6.4
     - weblog_declaration:
         "*": v4.7.0-rc1 (implemented in v3.9.0.dev, but there was the APPSEC-57817 and APPSEC-61861 bugs)
