@@ -55,6 +55,13 @@ const jsonLogger = winston.createLogger({
 
 iast.initData().catch(() => {})
 
+// High-cardinality FFE fixtures exceed the default 100 KiB JSON limit.
+app.use('/ffe', require('body-parser').json({
+  limit: '1mb',
+  verify: (req, res, buf) => {
+    req.rawBody = buf
+  }
+}))
 app.use(require('body-parser').json({
   verify: (req, res, buf) => {
     req.rawBody = buf
