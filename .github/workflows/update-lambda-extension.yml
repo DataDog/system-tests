@@ -2,8 +2,8 @@ name: Update lambda extension
 
 on:
   workflow_dispatch: {}
-  schedule:
-    - cron: '0 3 * * *'  # Every day at 3:00 AM UTC
+  # schedule:
+  #   - cron: '0 3 * * *'  # Every day at 3:00 AM UTC
 
 jobs:
   update_lambda_extension:
