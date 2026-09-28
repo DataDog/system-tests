@@ -3890,7 +3890,7 @@ manifest:
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_endpoint.py::Test_OTEL_EXPORTER_OTLP_ENDPOINT::test_empty_endpoint_falls_back_to_default
   : bug (APMAPI-2412)
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_endpoint.py::Test_OTEL_EXPORTER_OTLP_ENDPOINT::test_otlp_custom_endpoint_grpc
-  : incomplete_test_app (GPRC fails for system-test but works with real collector)
+  : bug (APMAPI-2503, APMAPI-2528)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_endpoint.py::Test_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT: v1.62.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_endpoint.py::Test_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT::test_empty_falls_back_to_global_endpoint
   : bug (APMAPI-2412)
@@ -3898,7 +3898,7 @@ manifest:
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_endpoint.py::Test_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT::test_empty_falls_back_to_global_endpoint
   : bug (APMAPI-2412)
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_endpoint.py::Test_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT::test_otlp_metrics_custom_endpoint_grpc
-  : incomplete_test_app (GPRC fails for system-test but works with real collector)
+  : bug (APMAPI-2503, APMAPI-2528)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_endpoint.py::Test_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: v1.61.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_endpoint.py::Test_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT::test_empty_falls_back_to_global_endpoint
   : bug (APMAPI-2412)
