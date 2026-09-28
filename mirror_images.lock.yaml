@@ -290,6 +290,10 @@ images:
     digest: sha256:02ce356eafacfe04d3022ff505e2dbb9e47cd3c55244b7918ff6fc824db85f02
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:proxy-v1
     tag: proxy-v1
+  datadog/system-tests:python-lambda-runtime.base-944cdc8541b3:
+    digest: sha256:cf99198e2bf2d697238f3b1d1962ce805c41a52ac7939038e5a8a524994655f4
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:python-lambda-runtime.base-944cdc8541b3
+    tag: python-lambda-runtime.base-944cdc8541b3
   datadog/system-tests:python3.12.base-604705958847:
     digest: sha256:a55c34668794e06a125ea3882fc9d0e31a8b84b4742b6a778c2fba82513cfb65
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:python3.12.base-604705958847
