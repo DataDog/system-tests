@@ -1,5 +1,7 @@
 """Internal SDK logger configuration, not the severity of exported application logs."""
 
+import time
+
 from utils import features, pytest, scenarios
 from tests.parametric.conftest import APMLibrary, nodejs_startup_config
 from utils.docker_fixtures import TestAgentAPI
@@ -59,7 +61,10 @@ def _log_level(test_agent: TestAgentAPI, library: APMLibrary) -> str:
 
 def _diagnostic_logs(library: APMLibrary) -> str:
     if library.lang == "dotnet":
-        success, logs = library.container_exec_run("sh -c 'cat /tmp/otel-log-level/dotnet-tracer-managed*'")
+        success, logs = library.container_exec_run(
+            "sh -c 'for file in /tmp/otel-log-level/dotnet-tracer-managed*; "
+            'do if [ -e "$file" ]; then cat "$file" || exit 1; fi; done\''
+        )
         assert success, "Could not read the .NET diagnostic log files"
         return logs
     return library.get_logs()
@@ -146,12 +151,21 @@ class Test_OTEL_LOG_LEVEL:
     )
     def test_invalid_value_emits_warning(self, test_library: APMLibrary) -> None:
         with test_library as library:
-            logs = _diagnostic_logs(library).lower()
-        assert any(
-            ("otel_log_level" in line or "not-a-log-level" in line)
-            and ("warn" in line or "invalid" in line or "unsupported" in line or "not supported" in line)
-            for line in logs.splitlines()
-        ), "No warning about the unrecognized OTEL_LOG_LEVEL value"
+            with library.dd_start_span("otel-log-level-diagnostics"):
+                pass
+            library.dd_flush()
+            # Configuration diagnostics can run asynchronously after the first agent handshake.
+            deadline = time.monotonic() + 5
+            while True:
+                logs = _diagnostic_logs(library).lower()
+                if any(
+                    ("otel_log_level" in line or "not-a-log-level" in line)
+                    and ("warn" in line or "invalid" in line or "unsupported" in line or "not supported" in line)
+                    for line in logs.splitlines()
+                ):
+                    return
+                assert time.monotonic() < deadline, f"No warning about the unrecognized OTEL_LOG_LEVEL value:\n{logs}"
+                time.sleep(0.1)
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVIRONMENT, "OTEL_LOG_LEVEL": "error"}], ids=["error"])
     def test_otel_log_level_env(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
