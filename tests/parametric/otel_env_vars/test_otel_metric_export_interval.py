@@ -35,11 +35,19 @@ def _effective_interval(test_agent: TestAgentAPI, test_library: APMLibrary) -> i
     assert entries, f"No effective configuration for {name}"
     # Telemetry may also report attempted inputs. Rejected entries carry an error
     # and do not override the last accepted value (notably in Node.js).
-    accepted = [entry for entry in entries if not entry.get("error")]
+    accepted = [entry for entry in entries if not _has_configuration_error(entry.get("error"))]
     assert accepted, f"No accepted configuration for {name}: {entries}"
     value = accepted[0].get("value")
     assert value is not None, f"No value for {name}: {accepted[0]}"
     return int(str(value))
+
+
+def _has_configuration_error(error: object) -> bool:
+    # Go serializes the zero-valued error envelope even for accepted settings.
+    # Node.js reports rejected attempts with a message and a null error code.
+    if isinstance(error, dict):
+        return bool(error.get("code") or error.get("message"))
+    return bool(error)
 
 
 def _default_interval(test_library: APMLibrary) -> int:
