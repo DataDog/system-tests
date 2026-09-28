@@ -43,6 +43,12 @@ jobs:
           source venv/bin/activate
           python utils/scripts/update-base-images-lock.py
 
+      - name: Update mirror images
+        if: steps.update_script.outputs.changes_made == 'true'
+        run: |
+          source venv/bin/activate
+          python utils/scripts/update_mirror_images.py
+
       - name: Configure git
         if: steps.update_script.outputs.changes_made == 'true'
         run: |
@@ -53,7 +59,12 @@ jobs:
       - name: Add files
         if: steps.update_script.outputs.changes_made == 'true'
         run: |
-          git add "utils/build/docker/python_lambda/runtime.base.Dockerfile" "utils/build/docker/base-images.lock.json"
+          git add \
+            "utils/build/docker/python_lambda/runtime.base.Dockerfile" \
+            "utils/build/docker/base-images.lock.json" \
+            "mirror_images.yaml" \
+            "mirror_images.lock.yaml" \
+            "utils/build/docker/buildkitd.toml"
 
       - name: Variables
         if: steps.update_script.outputs.changes_made == 'true'
