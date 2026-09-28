@@ -7,7 +7,8 @@ serial ID without re-deriving it from (flag_key, allocation_key, variant_key).
 
 The contract under test: when span enrichment is enabled, the SDK's OpenFeature
 EvaluationDetails-equivalent object must expose the selected split's serial ID
-via `flagMetadata` under the internal key `__dd_split_serial_id`, matching the
+via `flagMetadata` under the SDK's serial ID key (`dd.serialId` for Go,
+`__dd_split_serial_id` otherwise), matching the
 value present in the UFC config pushed over Remote Config. This is the field
 `openfeature-js-client#269` introduced for the Node server SDK; this test
 generalizes the contract to every parametric-tested SDK.
@@ -28,7 +29,7 @@ from typing import Any
 
 import pytest
 
-from utils import features, scenarios
+from utils import context, features, scenarios
 from utils.dd_constants import RemoteConfigApplyState
 from utils.docker_fixtures import TestAgentAPI
 from tests.parametric.conftest import APMLibrary
@@ -38,7 +39,8 @@ RC_PATH = f"datadog/2/{RC_PRODUCT}"
 FFE_READY_RETRY_ATTEMPTS = 10
 FFE_READY_RETRY_INTERVAL_SECONDS = 0.2
 
-SERIAL_ID_METADATA_KEY = "__dd_split_serial_id"
+# Assert on the SDK's native metadata key; adapters must forward metadata unchanged.
+SERIAL_ID_METADATA_KEY = "dd.serialId" if context.library.name == "golang" else "__dd_split_serial_id"
 
 parametrize = pytest.mark.parametrize
 
