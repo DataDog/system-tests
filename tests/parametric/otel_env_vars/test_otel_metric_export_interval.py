@@ -87,10 +87,13 @@ class Test_OTEL_METRIC_EXPORT_INTERVAL:
     def test_spec_default(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         assert _effective_interval(test_agent, test_library) == 60000
 
+    @pytest.mark.parametrize("interval", [pytest.param("-1", id="negative")])
+    def test_negative_is_ignored(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        assert _effective_interval(test_agent, test_library) == _default_interval(test_library)
+
     @pytest.mark.parametrize(
         "interval",
         [
-            pytest.param("-1", id="negative"),
             pytest.param("1.5", id="fractional"),
             pytest.param("not-an-interval", id="not-an-integer"),
         ],
