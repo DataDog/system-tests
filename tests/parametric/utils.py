@@ -1,6 +1,7 @@
 from utils import pytest
 
 from utils import context
+from tests.parametric.conftest import APMLibrary
 
 parametrize = pytest.mark.parametrize
 
@@ -175,3 +176,36 @@ def _mapped_telemetry_name(apm_telemetry_name: str) -> list[str]:
                 return mapped_name
             return [mapped_name]
     return [apm_telemetry_name]
+
+
+DEFAULT_METER_NAME = "parametric-api"
+
+DEFAULT_METER_VERSION = "1.0.0"
+
+# schema_url is not supported by .NET's System.Diagnostics.Metrics API
+DEFAULT_SCHEMA_URL = "https://opentelemetry.io/schemas/1.21.0"
+
+DEFAULT_INSTRUMENT_UNIT = "triggers"
+
+DEFAULT_INSTRUMENT_DESCRIPTION = "test_description"
+
+DEFAULT_SCOPE_ATTRIBUTES = {"scope.attr": "scope.value"}
+
+DEFAULT_MEASUREMENT_ATTRIBUTES = {"test_attr": "test_value"}
+
+
+def generate_default_counter_data_point(test_library: APMLibrary, instrument_name: str) -> None:
+    test_library.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+    test_library.otel_metrics_force_flush()
+    test_library.otel_create_counter(
+        DEFAULT_METER_NAME, instrument_name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION
+    )
+    test_library.otel_counter_add(
+        DEFAULT_METER_NAME,
+        instrument_name,
+        DEFAULT_INSTRUMENT_UNIT,
+        DEFAULT_INSTRUMENT_DESCRIPTION,
+        42,
+        DEFAULT_MEASUREMENT_ATTRIBUTES,
+    )
+    test_library.otel_metrics_force_flush()

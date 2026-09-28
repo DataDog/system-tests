@@ -1,9 +1,9 @@
 """Prove OTEL_EXPORTER_OTLP_METRICS_COMPRESSION through the encoding of an emitted OTLP request."""
 
-import pytest
+from utils import pytest
 
 from tests.parametric.conftest import APMLibrary
-from tests.parametric.test_otel_metrics import generate_default_counter_data_point
+from tests.parametric.utils import generate_default_counter_data_point
 from utils import features, scenarios
 from utils.docker_fixtures import TestAgentAPI
 

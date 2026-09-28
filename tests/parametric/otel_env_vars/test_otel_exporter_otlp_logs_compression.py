@@ -1,6 +1,6 @@
 """Prove OTEL_EXPORTER_OTLP_LOGS_COMPRESSION through the encoding of an emitted OTLP request."""
 
-import pytest
+from utils import pytest
 
 from tests.parametric.conftest import APMLibrary
 from utils.docker_fixtures.parametric import LogLevel
