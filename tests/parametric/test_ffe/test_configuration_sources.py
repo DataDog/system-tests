@@ -18,7 +18,7 @@ from pathlib import Path
 import time
 from typing import Any
 
-import pytest
+from utils import pytest
 
 from tests.parametric.conftest import APMLibrary
 from tests.parametric.test_ffe.test_dynamic_evaluation import _set_and_wait_ffe_rc, _ffe_evaluate_with_rc_retry

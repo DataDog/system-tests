@@ -495,7 +495,7 @@ class EndToEndScenario(DockerScenario):
 
             # An empty selection has no test-generated data to flush. An Agentless scenario also
             # has no Agent-backed writer target, so its flush endpoint can only time out.
-            self.weblog_infra.stop(flush=not is_empty_test_run and self.include_agent)
+            self._stop_weblog(is_empty_test_run=is_empty_test_run)
             interfaces.library.check_deserialization_errors()
 
             for container in self.buddies:
@@ -517,6 +517,10 @@ class EndToEndScenario(DockerScenario):
                 )
             if self._mocked_backend_v2:
                 interfaces.backend_v2.check_deserialization_errors()
+
+    def _stop_weblog(self, *, is_empty_test_run: bool) -> None:
+        """Stop the weblog after setup traffic has been generated."""
+        self.weblog_infra.stop(flush=not is_empty_test_run and self.include_agent)
 
     def _wait_interface(self, interface: ProxyBasedInterfaceValidator, timeout: int):
         logger.terminal.write_sep("-", f"Wait for {interface} ({timeout}s)")
@@ -562,14 +566,12 @@ class EndToEndScenario(DockerScenario):
     def telemetry_heartbeat_interval(self):
         return self.weblog_container.telemetry_heartbeat_interval
 
-    def get_junit_properties(self) -> dict[str, str]:
+    def get_junit_properties(self) -> dict[str, dict[str, str] | str]:
         result = super().get_junit_properties()
 
-        result["dd_tags[systest.suite.context.agent]"] = self.agent_version
-        result["dd_tags[systest.suite.context.library.name]"] = self.library.name
-        result["dd_tags[systest.suite.context.library.version]"] = self.library.version
-        result["dd_tags[systest.suite.context.weblog_variant]"] = self.weblog_variant
-        result["dd_tags[systest.suite.context.appsec_rules_file]"] = self.appsec_rules_file or ""
+        result["agent"] = str(self.agent_version)
+        result["library"] = {"name": self.library.name, "version": str(self.library.version)}
+        result["weblog_variant"] = self.weblog_variant
 
         return result
 

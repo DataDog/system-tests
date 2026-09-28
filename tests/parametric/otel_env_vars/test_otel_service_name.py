@@ -1,4 +1,4 @@
-import pytest
+from utils import pytest
 
 from tests.parametric.conftest import APMLibrary
 from utils import features, scenarios

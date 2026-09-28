@@ -822,6 +822,13 @@ class _Scenarios:
         ],
     )
 
+    # Product assertion self-tests are opt-in, not part of framework CI or E2E groups.
+    feature_flagging_contract_tests = Scenario(
+        "FEATURE_FLAGGING_CONTRACT_TESTS",
+        doc="Unit tests for Feature Flags test contracts; no containers or SDK build required.",
+        github_workflow=None,
+    )
+
     feature_flagging_and_experimentation = DdTraceEndToEndScenario(
         "FEATURE_FLAGGING_AND_EXPERIMENTATION",
         rc_api_enabled=True,
