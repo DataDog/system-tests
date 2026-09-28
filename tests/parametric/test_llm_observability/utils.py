@@ -1,5 +1,5 @@
 import os
-import pytest
+from utils import pytest
 
 
 def check_and_get_api_key(api_key_name: str, *, generate_cassettes: bool = False) -> str | None:

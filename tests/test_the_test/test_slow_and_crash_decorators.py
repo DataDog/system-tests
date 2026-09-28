@@ -2,8 +2,6 @@ import shutil
 import textwrap
 from pathlib import Path
 
-import pytest
-
 from utils import bug, missing_feature, scenarios, features, slow, scenario_crash
 
 from .utils import run_system_tests
@@ -135,25 +133,6 @@ class Test_ScenarioCrashDecoratorOnClass:
         assert tests[nodeid]["outcome"] == "skipped"
 
 
-@scenarios.test_the_test
-class Test_SkipIfXfail:
-    """Test that tests with both skip_if_xfail and declaration markers are skipped."""
-
-    def test_skip_if_xfail_with_declaration_is_skipped(self):
-        """Test that a test marked with both skip_if_xfail and a declaration marker is skipped."""
-        tests = run_system_tests(test_path=FILENAME)
-
-        nodeid = f"{FILENAME}::Test_SkipIfXfailMock::test_with_both_markers"
-        assert tests[nodeid]["outcome"] == "skipped"
-
-    def test_skip_if_xfail_without_declaration_is_not_skipped(self):
-        """Test that a test marked with only skip_if_xfail (no declaration) is not skipped."""
-        tests = run_system_tests(test_path=FILENAME)
-
-        nodeid = f"{FILENAME}::Test_SkipIfXfailMock::test_skip_if_xfail_only"
-        assert tests[nodeid]["outcome"] == "passed"
-
-
 # Mock test classes used by the test scenarios above
 
 
@@ -184,21 +163,6 @@ class Test_ScenarioCrashMock:
     @missing_feature(condition=True)
     def test_scenario_crash_with_missing_feature(self):
         """Test with @scenario_crash and @missing_feature() - should be skipped."""
-        assert True
-
-
-@scenarios.mock_the_test
-@features.adaptive_sampling
-class Test_SkipIfXfailMock:
-    @bug(condition=True, reason="FAKE-001")
-    @pytest.mark.skip_if_xfail
-    def test_with_both_markers(self):
-        """Test with both skip_if_xfail and declaration markers - should be skipped."""
-        assert True
-
-    @pytest.mark.skip_if_xfail
-    def test_skip_if_xfail_only(self):
-        """Test with only skip_if_xfail marker, no declaration - should NOT be skipped."""
         assert True
 
 

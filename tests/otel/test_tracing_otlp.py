@@ -16,6 +16,7 @@ from utils import context, features, interfaces, scenarios, weblog
 from utils._context._scenarios.endtoend import EndToEndScenario
 from utils.dd_constants import SpanKind, StatusCode
 from utils.docker_fixtures.spec.tracecontext import Tracestate
+from utils.interfaces._open_telemetry import is_otel_span_for_request
 
 
 type OtelSpanRecord = tuple[Any, Any, Any]
@@ -45,12 +46,7 @@ def _server_span_by_request_id(data: list[OtelSpanRecord], request_id: str) -> O
     matching_server_spans = []
     for entry in data:
         span = entry[2]
-        attributes = span.get("attributes", {})
-        user_agent = " ".join(
-            str(attributes.get(key, ""))
-            for key in ("user_agent.original", "http.useragent", "http.request.headers.user-agent")
-        )
-        if span.get("kind") == SpanKind.SERVER.value and request_id in user_agent:
+        if span.get("kind") == SpanKind.SERVER.value and is_otel_span_for_request(span, request_id):
             matching_server_spans.append(entry)
 
     assert len(matching_server_spans) == 1, (

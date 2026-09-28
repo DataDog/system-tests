@@ -8,7 +8,7 @@ from utils.proxy.traces.trace_v1 import (
 )
 import base64
 import msgpack
-import pytest
+from utils import pytest
 
 
 @scenarios.test_the_test

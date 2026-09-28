@@ -35,7 +35,7 @@ class WeblogInfra(ABC):
         """Perform any configuration. Executed only if the weblog will be used"""
 
     @abstractmethod
-    def stop(self, *, flush: bool = True) -> None:
+    def stop(self, *, flush: bool = True, stop_timeout: int | None = None) -> None:
         """Stop the tested infra"""
 
 
@@ -214,18 +214,18 @@ class EndToEndWeblogInfra(WeblogInfra):
             )
         return (self.http_container, *self._other_containers)
 
-    def stop(self, *, flush: bool = True) -> None:
+    def stop(self, *, flush: bool = True, stop_timeout: int | None = None) -> None:
         if self._is_proxy_weblog:
             if self._proxy_runtime_container:
-                self._proxy_runtime_container.stop()
+                self._proxy_runtime_container.stop(timeout=stop_timeout)
             if self._processor_container:
-                self._processor_container.stop()
+                self._processor_container.stop(timeout=stop_timeout)
             if self._dummy_server_container:
-                self._dummy_server_container.stop()
+                self._dummy_server_container.stop(timeout=stop_timeout)
         else:
             if flush:
                 self.http_container.flush()
-            self.http_container.stop()
+            self.http_container.stop(timeout=stop_timeout)
 
     @property
     def library_name(self) -> str:
