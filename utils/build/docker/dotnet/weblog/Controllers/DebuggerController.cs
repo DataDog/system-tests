@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
 using Microsoft.AspNetCore.Routing;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using weblog.Models.Debugger;
 
@@ -181,6 +182,30 @@ namespace weblog
                 ["_2fa"] = "EXCLUDED_IDENTIFIER_VALUE",
                 ["name"] = "NON_SENSITIVE_VALUE",
             };
+        }
+
+        [HttpGet("correlation")]
+        [Consumes("application/json", "application/xml")]
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        public IActionResult Correlation()
+        {
+            int result = CorrelationMiddle();
+            System.Threading.Thread.Sleep(400); // space the probed call sites in time
+            return Content($"Correlation {result}");
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private int CorrelationMiddle()
+        {
+            int result = CorrelationLeaf();
+            System.Threading.Thread.Sleep(400); // space the probed call sites in time
+            return result;
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private int CorrelationLeaf()
+        {
+            return 3;
         }
     }
 }
