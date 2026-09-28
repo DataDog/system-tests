@@ -3,11 +3,9 @@
 https://opentelemetry.io/docs/specs/otel/protocol/exporter/#specifying-headers-via-environment-variables
 """
 
-import pytest
-
 from tests.parametric.conftest import APMLibrary
-from tests.parametric.test_otel_metrics import generate_default_counter_data_point
-from utils import features, scenarios
+from tests.parametric.utils import generate_default_counter_data_point
+from utils import features, scenarios, pytest
 from utils.docker_fixtures import TestAgentAPI
 
 

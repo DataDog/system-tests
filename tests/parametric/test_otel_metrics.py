@@ -5,17 +5,21 @@ from utils import features, scenarios
 
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary
+from .utils import (
+    DEFAULT_METER_NAME,
+    DEFAULT_METER_VERSION,
+    DEFAULT_SCHEMA_URL,
+    DEFAULT_INSTRUMENT_UNIT,
+    DEFAULT_INSTRUMENT_DESCRIPTION,
+    DEFAULT_SCOPE_ATTRIBUTES,
+    DEFAULT_MEASUREMENT_ATTRIBUTES,
+    generate_default_counter_data_point,
+)
 
 
 EXPECTED_TAGS = [("foo", "bar1"), ("baz", "qux1")]
 
-DEFAULT_METER_NAME = "parametric-api"
-DEFAULT_METER_VERSION = "1.0.0"
-# schema_url is not supported by .NET's System.Diagnostics.Metrics API
-DEFAULT_SCHEMA_URL = "https://opentelemetry.io/schemas/1.21.0"
 
-DEFAULT_INSTRUMENT_UNIT = "triggers"
-DEFAULT_INSTRUMENT_DESCRIPTION = "test_description"
 DEFAULT_EXPLICIT_BUCKET_BOUNDARIES = [
     0.0,
     5.0,
@@ -34,8 +38,6 @@ DEFAULT_EXPLICIT_BUCKET_BOUNDARIES = [
     10000.0,
 ]
 
-DEFAULT_SCOPE_ATTRIBUTES = {"scope.attr": "scope.value"}
-DEFAULT_MEASUREMENT_ATTRIBUTES = {"test_attr": "test_value"}
 NON_DEFAULT_MEASUREMENT_ATTRIBUTES = {"test_attr": "non_default_value"}
 
 # Define common default environment variables to support the OpenTelemetry Metrics API feature:
@@ -75,23 +77,6 @@ def otlp_metrics_endpoint_library_env(
         del library_env[endpoint_env]
     else:
         library_env[endpoint_env] = prev_value
-
-
-def generate_default_counter_data_point(test_library: APMLibrary, instrument_name: str):
-    test_library.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
-    test_library.otel_metrics_force_flush()
-    test_library.otel_create_counter(
-        DEFAULT_METER_NAME, instrument_name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION
-    )
-    test_library.otel_counter_add(
-        DEFAULT_METER_NAME,
-        instrument_name,
-        DEFAULT_INSTRUMENT_UNIT,
-        DEFAULT_INSTRUMENT_DESCRIPTION,
-        42,
-        DEFAULT_MEASUREMENT_ATTRIBUTES,
-    )
-    test_library.otel_metrics_force_flush()
 
 
 def assert_metric_info(metric: dict, name: str, unit: str, description: str):
