@@ -1,4 +1,5 @@
 from pathlib import Path
+import time
 
 from tests.parametric.conftest import APMLibrary
 from utils import features, pytest, scenarios
@@ -65,8 +66,11 @@ def _configured_propagators(library: APMLibrary) -> set[str]:
 
 def _diagnostic_logs(library: APMLibrary) -> str:
     if library.lang == "dotnet":
-        success, logs = library.container_exec_run("sh -c 'cat /tmp/otel-propagators/dotnet-tracer-managed*'")
-        assert success, "Could not read the .NET diagnostic log files"
+        success, logs = library.container_exec_run(
+            "sh -c 'for log in /tmp/otel-propagators/dotnet-tracer-managed*; do "
+            '[ -f "$log" ] || continue; cat "$log" || exit 1; done\''
+        )
+        assert success, f"Could not read the .NET diagnostic log files: {logs}"
         return logs
     return library.get_logs()
 
@@ -202,9 +206,19 @@ class Test_OTEL_PROPAGATORS:
     @pytest.mark.parametrize("library_env", INVALID_VALUE)
     def test_invalid_value_logs_warning(self, test_library: APMLibrary) -> None:
         with test_library as library:
-            logs = _diagnostic_logs(library).lower()
-        assert any(
-            "not-a-propagator" in line
-            and any(word in line for word in ("warn", "invalid", "unsupported", "not supported"))
-            for line in logs.splitlines()
-        ), logs
+            # Startup diagnostics can follow an asynchronous agent ping. One
+            # flushed span and a bounded wait allow that diagnostic to arrive.
+            with library.dd_start_span("otel-propagators-diagnostics"):
+                pass
+            library.dd_flush()
+            deadline = time.monotonic() + 5
+            while True:
+                logs = _diagnostic_logs(library).lower()
+                if any(
+                    any(value in line for value in ("not-a-propagator", "otel_propagators"))
+                    and any(word in line for word in ("warn", "invalid", "unsupported", "not supported"))
+                    for line in logs.splitlines()
+                ):
+                    return
+                assert time.monotonic() < deadline, logs
+                time.sleep(0.1)
