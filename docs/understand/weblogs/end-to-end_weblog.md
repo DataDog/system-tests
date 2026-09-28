@@ -961,6 +961,10 @@ Additionally, the method supports the following query parameters to use the sdk 
 
 These endpoints are used for the `Dynamic Instrumentation` tests.
 
+#### GET /debugger/correlation
+
+Calls `Correlation`, `CorrelationMiddle`, and `CorrelationLeaf` in one request, pausing between the probed method exits. Used to check that snapshot sampling emits a whole probe chain together.
+
 #### GET /debugger/snapshot/capture-timeout
 
 Creates a collection containing `collectionSize` object chains. Each chain has a leaf wrapped by
