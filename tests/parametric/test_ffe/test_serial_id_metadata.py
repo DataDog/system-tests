@@ -15,8 +15,8 @@ generalizes the contract to every parametric-tested SDK.
 This module tests:
 1. flagMetadata carries the exact serialId of the selected split.
 2. Zero is a valid serial ID and must not be treated as "missing" (falsy-check trap).
-3. Evaluation details always expose flagMetadata; for a split with no serialId, the map is null/empty
-   or omits the serial ID key.
+3. Evaluation details always expose flagMetadata; for a split with no serialId, the map must not
+   contain the serial ID key.
 4. flagMetadata reflects whichever split targeting actually selected, not always the first one.
 5. Repeated evaluations of the same context return the same serial ID.
 """
@@ -194,9 +194,9 @@ class Test_FFE_Serial_Id_Metadata:
         assert result.get("value") == "control", f"Expected the configured control variation; result={result}"
 
         flag_metadata = _require_flag_metadata(result)
-        assert flag_metadata.get(SERIAL_ID_METADATA_KEY) is None, (
-            f"Expected no serial ID for a split without one, got "
-            f"flagMetadata['{SERIAL_ID_METADATA_KEY}']={flag_metadata.get(SERIAL_ID_METADATA_KEY)!r}"
+        assert SERIAL_ID_METADATA_KEY not in flag_metadata, (
+            f"Expected flagMetadata to omit '{SERIAL_ID_METADATA_KEY}' for a split without a serial ID, "
+            f"got flagMetadata={flag_metadata}"
         )
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
