@@ -1,7 +1,5 @@
-import pytest
-
 from tests.parametric.conftest import APMLibrary
-from utils import features, scenarios
+from utils import features, pytest, scenarios
 from utils.docker_fixtures import TestAgentAPI
 from utils.docker_fixtures.parametric import LogLevel
 
