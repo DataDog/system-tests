@@ -3,15 +3,15 @@
 https://opentelemetry.io/docs/specs/otel/protocol/exporter/#specify-protocol
 """
 
-import pytest
+from utils import pytest
 from opentelemetry.proto.collector.metrics.v1.metrics_service_pb2 import ExportMetricsServiceRequest
 from google.protobuf.json_format import MessageToDict, ParseDict
 
 from utils import features, scenarios
 from utils.docker_fixtures import TestAgentAPI
 from tests.parametric.conftest import APMLibrary
-from tests.parametric.otel_env_vars import otlp_protocol_fixtures
-from tests.parametric.test_otel_metrics import generate_default_counter_data_point
+from tests.parametric.otel_env_vars import utils as otel_env_var_utils
+from tests.parametric.utils import generate_default_counter_data_point
 
 VARIABLE = "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL"
 
@@ -29,7 +29,7 @@ def library_env(
     test_agent_otlp_http_port: int,
     test_agent_otlp_grpc_port: int,
 ) -> dict[str, str | None]:
-    expected_protocol = otlp_protocol_fixtures.expected_protocol(generic_protocol, protocol, signal)
+    expected_protocol = otel_env_var_utils.expected_protocol(generic_protocol, protocol, signal)
     port = test_agent_otlp_grpc_port if expected_protocol == "grpc" else test_agent_otlp_http_port
     env: dict[str, str | None] = {
         f"DD_{signal.upper()}_OTEL_ENABLED": "true",
@@ -44,7 +44,7 @@ def library_env(
 def _assert_export(
     test_library: APMLibrary, test_agent: TestAgentAPI, signal: str, protocol: str | None, generic_protocol: str | None
 ) -> None:
-    expected_protocol = otlp_protocol_fixtures.expected_protocol(generic_protocol, protocol, signal)
+    expected_protocol = otel_env_var_utils.expected_protocol(generic_protocol, protocol, signal)
     with test_library as library:
         generate_default_counter_data_point(library, "selected_protocol_counter")
 
@@ -122,7 +122,7 @@ class Test_OTEL_EXPORTER_OTLP_METRICS_PROTOCOL:
         protocol: str | None,
         generic_protocol: str | None,
     ) -> None:
-        assert otlp_protocol_fixtures.default_protocol(signal) in ("http/protobuf", "grpc")
+        assert otel_env_var_utils.default_protocol(signal) in ("http/protobuf", "grpc")
         _assert_export(test_library, test_agent, signal, protocol, generic_protocol)
 
     @pytest.mark.parametrize(("protocol", "generic_protocol"), [pytest.param("", None, id="empty")])
@@ -149,7 +149,7 @@ class Test_OTEL_EXPORTER_OTLP_METRICS_PROTOCOL:
 
     @pytest.mark.parametrize(
         ("protocol", "generic_protocol"),
-        [pytest.param(otlp_protocol_fixtures.non_default_protocol("metrics"), None, id="uppercase")],
+        [pytest.param(otel_env_var_utils.non_default_protocol("metrics"), None, id="uppercase")],
     )
     def test_case_insensitive(
         self,
@@ -165,8 +165,8 @@ class Test_OTEL_EXPORTER_OTLP_METRICS_PROTOCOL:
         ("protocol", "generic_protocol"),
         [
             pytest.param(
-                otlp_protocol_fixtures.non_default_protocol("metrics").lower(),
-                otlp_protocol_fixtures.default_protocol("metrics"),
+                otel_env_var_utils.non_default_protocol("metrics").lower(),
+                otel_env_var_utils.default_protocol("metrics"),
                 id="signal-nondefault-generic-default",
             )
         ],
@@ -183,11 +183,7 @@ class Test_OTEL_EXPORTER_OTLP_METRICS_PROTOCOL:
 
     @pytest.mark.parametrize(
         ("protocol", "generic_protocol"),
-        [
-            pytest.param(
-                None, otlp_protocol_fixtures.non_default_protocol("metrics").lower(), id="unset-generic-nondefault"
-            )
-        ],
+        [pytest.param(None, otel_env_var_utils.non_default_protocol("metrics").lower(), id="unset-generic-nondefault")],
     )
     def test_generic_fallback(
         self,
@@ -201,11 +197,7 @@ class Test_OTEL_EXPORTER_OTLP_METRICS_PROTOCOL:
 
     @pytest.mark.parametrize(
         ("protocol", "generic_protocol"),
-        [
-            pytest.param(
-                "", otlp_protocol_fixtures.non_default_protocol("metrics").lower(), id="empty-generic-nondefault"
-            )
-        ],
+        [pytest.param("", otel_env_var_utils.non_default_protocol("metrics").lower(), id="empty-generic-nondefault")],
     )
     def test_empty_generic_fallback(
         self,

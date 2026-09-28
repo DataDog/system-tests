@@ -3,7 +3,7 @@
 https://opentelemetry.io/docs/specs/otel/protocol/exporter/#specify-protocol
 """
 
-import pytest
+from utils import pytest
 from opentelemetry.proto.collector.metrics.v1.metrics_service_pb2 import ExportMetricsServiceRequest
 from opentelemetry.proto.collector.logs.v1.logs_service_pb2 import ExportLogsServiceRequest
 from google.protobuf.json_format import MessageToDict, ParseDict
@@ -12,9 +12,9 @@ from utils import features, scenarios
 from utils.docker_fixtures import TestAgentAPI
 from utils.docker_fixtures.parametric import LogLevel
 from tests.parametric.conftest import APMLibrary
-from tests.parametric.otel_env_vars import otlp_protocol_fixtures
-from tests.parametric.test_otel_logs import find_log_record
-from tests.parametric.test_otel_metrics import generate_default_counter_data_point
+from tests.parametric.otel_env_vars import utils as otel_env_var_utils
+from tests.parametric.utils import find_log_record
+from tests.parametric.utils import generate_default_counter_data_point
 
 VARIABLE = "OTEL_EXPORTER_OTLP_PROTOCOL"
 
@@ -31,7 +31,7 @@ def library_env(
     test_agent_otlp_http_port: int,
     test_agent_otlp_grpc_port: int,
 ) -> dict[str, str | None]:
-    expected_protocol = otlp_protocol_fixtures.expected_protocol(None, protocol, signal)
+    expected_protocol = otel_env_var_utils.expected_protocol(None, protocol, signal)
     port = test_agent_otlp_grpc_port if expected_protocol == "grpc" else test_agent_otlp_http_port
     return {
         f"DD_{signal.upper()}_OTEL_ENABLED": "true",
@@ -41,7 +41,7 @@ def library_env(
 
 
 def _assert_export(test_library: APMLibrary, test_agent: TestAgentAPI, signal: str, protocol: str | None) -> None:
-    expected_protocol = otlp_protocol_fixtures.expected_protocol(None, protocol, signal)
+    expected_protocol = otel_env_var_utils.expected_protocol(None, protocol, signal)
     with test_library as library:
         if signal == "logs":
             library.create_logger("protocol-test", LogLevel.INFO)
@@ -106,7 +106,7 @@ class Test_OTEL_EXPORTER_OTLP_PROTOCOL:
     def test_default(
         self, test_library: APMLibrary, test_agent: TestAgentAPI, signal: str, protocol: str | None
     ) -> None:
-        assert otlp_protocol_fixtures.default_protocol(signal) in ("http/protobuf", "grpc")
+        assert otel_env_var_utils.default_protocol(signal) in ("http/protobuf", "grpc")
         _assert_export(test_library, test_agent, signal, protocol)
 
     @pytest.mark.parametrize("protocol", [pytest.param("", id="empty")])
@@ -120,7 +120,7 @@ class Test_OTEL_EXPORTER_OTLP_PROTOCOL:
         _assert_export(test_library, test_agent, signal, protocol)
 
     @pytest.mark.parametrize(
-        "protocol", [pytest.param(otlp_protocol_fixtures.non_default_protocol("metrics"), id="uppercase")]
+        "protocol", [pytest.param(otel_env_var_utils.non_default_protocol("metrics"), id="uppercase")]
     )
     def test_case_insensitive(
         self, test_library: APMLibrary, test_agent: TestAgentAPI, signal: str, protocol: str | None
@@ -154,7 +154,7 @@ class Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs:
     def test_default(
         self, test_library: APMLibrary, test_agent: TestAgentAPI, signal: str, protocol: str | None
     ) -> None:
-        assert otlp_protocol_fixtures.default_protocol(signal) in ("http/protobuf", "grpc")
+        assert otel_env_var_utils.default_protocol(signal) in ("http/protobuf", "grpc")
         _assert_export(test_library, test_agent, signal, protocol)
 
     @pytest.mark.parametrize("protocol", [pytest.param("", id="empty")])
@@ -168,7 +168,7 @@ class Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs:
         _assert_export(test_library, test_agent, signal, protocol)
 
     @pytest.mark.parametrize(
-        "protocol", [pytest.param(otlp_protocol_fixtures.non_default_protocol("logs"), id="uppercase")]
+        "protocol", [pytest.param(otel_env_var_utils.non_default_protocol("logs"), id="uppercase")]
     )
     def test_case_insensitive(
         self, test_library: APMLibrary, test_agent: TestAgentAPI, signal: str, protocol: str | None
@@ -180,5 +180,5 @@ class Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs:
         self, test_library: APMLibrary, test_agent: TestAgentAPI, signal: str, protocol: str | None
     ) -> None:
         """Go documents HTTP/JSON as its logs default, independently of the OTel recommendation."""
-        assert otlp_protocol_fixtures.default_protocol(signal) == "http/json"
+        assert otel_env_var_utils.default_protocol(signal) == "http/json"
         _assert_export(test_library, test_agent, signal, protocol)
