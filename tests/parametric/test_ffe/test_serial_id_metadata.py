@@ -5,10 +5,10 @@ Every evaluated (allocation, variant) pair has a stable per-org serial ID
 enrichment, exposure caching, evaluation-metrics correlation -- need that
 serial ID without re-deriving it from (flag_key, allocation_key, variant_key).
 
-The contract under test: the SDK's OpenFeature EvaluationDetails-equivalent
-object must expose the selected split's serial ID via `flagMetadata` under
-the internal key `__dd_split_serial_id`, matching the value present in the
-UFC config pushed over Remote Config. This is the field
+The contract under test: when span enrichment is enabled, the SDK's OpenFeature
+EvaluationDetails-equivalent object must expose the selected split's serial ID
+via `flagMetadata` under the internal key `__dd_split_serial_id`, matching the
+value present in the UFC config pushed over Remote Config. This is the field
 `openfeature-js-client#269` introduced for the Node server SDK; this test
 generalizes the contract to every parametric-tested SDK.
 
@@ -58,6 +58,7 @@ UFC_SERIAL_ID_METADATA_DATA = _load_serial_id_metadata_fixture()
 
 DEFAULT_ENVVARS = {
     "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
+    "DD_EXPERIMENTAL_FLAGGING_PROVIDER_SPAN_ENRICHMENT_ENABLED": "true",
     "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE": "remote_config",
     "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
 }
