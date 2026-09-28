@@ -13,6 +13,7 @@ BASE_ENV = {
     "DD_PROPAGATION_STYLE_INJECT": None,
     "DD_PROPAGATION_STYLE_EXTRACT": None,
     "DD_TRACE_OTEL_ENABLED": "true",
+    "DD_TRACE_LOG_DIRECTORY": "/tmp/otel-propagators",
     "DD_DATA_STREAMS_ENABLED": "false",
     "OTEL_METRICS_EXPORTER": "none",
     "OTEL_LOGS_EXPORTER": "none",
@@ -60,6 +61,14 @@ def _configured_propagators(library: APMLibrary) -> set[str]:
     if "baggage" in headers:
         assert headers["baggage"] == "otel.propagators=selected"
     return {name for name, header in PROPAGATOR_HEADERS.items() if header in headers}
+
+
+def _diagnostic_logs(library: APMLibrary) -> str:
+    if library.lang == "dotnet":
+        success, logs = library.container_exec_run("sh -c 'cat /tmp/otel-propagators/dotnet-tracer-managed*'")
+        assert success, "Could not read the .NET diagnostic log files"
+        return logs
+    return library.get_logs()
 
 
 @pytest.fixture
@@ -193,7 +202,7 @@ class Test_OTEL_PROPAGATORS:
     @pytest.mark.parametrize("library_env", INVALID_VALUE)
     def test_invalid_value_logs_warning(self, test_library: APMLibrary) -> None:
         with test_library as library:
-            logs = library.get_logs().lower()
+            logs = _diagnostic_logs(library).lower()
         assert any(
             "not-a-propagator" in line
             and any(word in line for word in ("warn", "invalid", "unsupported", "not supported"))
