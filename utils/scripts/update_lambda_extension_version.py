@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
+# This product includes software developed at Datadog (https://www.datadoghq.com/).
+# Copyright 2021 Datadog, Inc.
 """Bump the pinned Datadog Lambda Extension version in the python_lambda base image.
 
 The extension is pinned (not `:latest`) because the base-image content hash only
