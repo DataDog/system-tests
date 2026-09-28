@@ -24,8 +24,11 @@ CONTENT_TYPES = {
     "http/json": "application/json",
 }
 
-PROTOCOL_VALUES = [
+GRPC_PROTOCOL_VALUE = [
     pytest.param({**BASE_ENVIRONMENT, "OTEL_EXPORTER_OTLP_TRACES_PROTOCOL": "grpc"}, "grpc", id="grpc"),
+]
+
+HTTP_PROTOCOL_VALUES = [
     pytest.param(
         {**BASE_ENVIRONMENT, "OTEL_EXPORTER_OTLP_TRACES_PROTOCOL": "http/protobuf"},
         "http/protobuf",
@@ -91,8 +94,18 @@ def _assert_protocol(
 @scenarios.parametric
 @features.otel_exporter_otlp_traces_protocol
 class Test_OTEL_EXPORTER_OTLP_TRACES_PROTOCOL:
-    @pytest.mark.parametrize(("library_env", "expected_protocol"), PROTOCOL_VALUES)
-    def test_protocol_is_used_for_trace_export(
+    @pytest.mark.parametrize(("library_env", "expected_protocol"), GRPC_PROTOCOL_VALUE)
+    def test_grpc_protocol_is_used_for_trace_export(
+        self,
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+        *,
+        expected_protocol: str,
+    ) -> None:
+        _assert_protocol(test_agent, test_library, expected_protocol)
+
+    @pytest.mark.parametrize(("library_env", "expected_protocol"), HTTP_PROTOCOL_VALUES)
+    def test_http_protocol_is_used_for_trace_export(
         self,
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
