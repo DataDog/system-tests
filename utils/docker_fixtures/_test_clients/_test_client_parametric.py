@@ -747,6 +747,7 @@ class ParametricTestClientApi(TestClientApi):
         return {
             "dd_service": config_dict.get("dd_service", None),
             "dd_log_level": config_dict.get("dd_log_level", None),
+            "dd_trace_effective_log_level": config_dict.get("dd_trace_effective_log_level", None),
             "dd_trace_sample_rate": config_dict.get("dd_trace_sample_rate", None),
             "dd_trace_enabled": config_dict.get("dd_trace_enabled", None),
             "dd_runtime_metrics_enabled": config_dict.get("dd_runtime_metrics_enabled", None),
