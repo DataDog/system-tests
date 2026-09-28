@@ -4,7 +4,7 @@ from copy import deepcopy
 from typing import Any, Literal
 from unittest.mock import MagicMock
 
-import pytest
+from utils import pytest
 
 from tests.ffe import test_exposure_egress as exposure_egress_tests
 from tests.ffe import test_flag_eval_evp as flag_eval_evp_tests

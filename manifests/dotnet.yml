@@ -888,6 +888,10 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_blrp_max_export_batch_size.py::Test_OTEL_BLRP_MAX_EXPORT_BATCH_SIZE: missing_feature
   tests/parametric/otel_env_vars/test_otel_blrp_max_queue_size.py::Test_OTEL_BLRP_MAX_QUEUE_SIZE: missing_feature
   tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY: missing_feature
+  tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER: v3.37.0
+  tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER::test_console: missing_feature (Only otlp and none exporters are implemented)
+  tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER::test_deprecated_values: missing_feature (Only otlp and none exporters are implemented)
+  tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER::test_development_values: missing_feature (Only otlp and none exporters are implemented)
   tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT: v3.37.0
   tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT::test_invalid_values: bug (APMAPI-2459)
   tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT::test_spec_default: irrelevant (Datadog intentionally defaults to 7500 ms)
@@ -955,14 +959,29 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets: '>=3.36.0'  # Modified by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets::test_not_match_service_target: missing_feature  # Created by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2: v2.44.0
-  tests/parametric/test_dynamic_configuration.py::Test_DynamicConfigSdkConfiguration: missing_feature (SDK_CONFIGURATION capability not yet implemented)
+  tests/parametric/test_dynamic_configuration.py::Test_DynamicConfigSdkConfiguration:  # TODO: a lower version might be supported
+    - declaration: missing_feature (SDK_CONFIGURATION capability not yet implemented)
+      component_version: <3.54.0
+  tests/parametric/test_dynamic_configuration.py::Test_DynamicConfigSdkConfiguration::test_capability_sdk_configuration: missing_feature (SDK_CONFIGURATION capability not yet implemented)
+  tests/parametric/test_dynamic_configuration.py::Test_DynamicConfigSdkConfiguration::test_sdk_config_field_is_applied: missing_feature (SDK_CONFIGURATION capability not yet implemented)
+  tests/parametric/test_dynamic_configuration.py::Test_DynamicConfigSdkConfiguration::test_sdk_config_profiling_enabled: missing_feature (SDK_CONFIGURATION capability not yet implemented)
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Default: v3.10.0
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Default::test_baggage: incomplete_test_app (The parametric test app does not preserve baggage after extraction)
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Default::test_multiple_tracecontexts: incomplete_test_app (The parametric test app does not emit terminated-context span links)
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Ignore: v3.10.0
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart: incomplete_test_app (The parametric test app does not emit restart span links or preserve baggage)
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart_With_Extract_First: incomplete_test_app (The parametric test app does not emit restart span links or preserve baggage)
-  tests/parametric/test_ffe/test_configuration_sources.py: missing_feature (FFL-2703 tracks .NET agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
+  tests/parametric/test_ffe/test_configuration_sources.py: '>=3.54.0'  # FFL-2703
+  ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Cold_Failure_And_Recovery::test_bad_to_unchanged_cold_preserves_not_ready
+  : bug (FFL-3325)
+  ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Cold_Failure_And_Recovery::test_malformed_cold
+  : bug (FFL-3325)
+  ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Cold_Failure_And_Recovery::test_request_timeout_cold
+  : bug (FFL-3325)
+  ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Cold_Failure_And_Recovery::test_unauthorized_cold
+  : bug (FFL-3325)
+  ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Selection::test_remote_config_without_rc_does_not_fallback_to_agentless
+  : bug (FFL-3325)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: '>=3.36.0'  # Modified by easy win activation script
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_flag_evaluation: missing_feature  # Created by easy win activation script
   tests/parametric/test_ffe/test_span_enrichment.py: missing_feature
@@ -1080,16 +1099,19 @@ manifest:
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_log_level_env: missing_feature (DD_LOG_LEVEL is not supported in .NET)
   tests/parametric/test_otel_logs.py: '>=3.36.0'  # Modified by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR01_Enable_OTLP_Log_Collection::test_otlp_logs_enabled: v3.53.0
-  tests/parametric/test_otel_logs.py::Test_FR03_Resource_Attributes: missing_feature  # Created by easy win activation script
-  tests/parametric/test_otel_logs.py::Test_FR04_Trace_Span_IDs: missing_feature  # Created by easy win activation script
-  tests/parametric/test_otel_logs.py::Test_FR05_Custom_Endpoints: missing_feature  # Created by easy win activation script
-  tests/parametric/test_otel_logs.py::Test_FR06_OTLP_Protocols: missing_feature  # Created by easy win activation script
+  tests/parametric/test_otel_logs.py::Test_FR03_Resource_Attributes: '>=3.54.0'  # Created by easy win activation script
+  tests/parametric/test_otel_logs.py::Test_FR04_Trace_Span_IDs: '>=3.54.0'  # Created by easy win activation script
+  tests/parametric/test_otel_logs.py::Test_FR04_Trace_Span_IDs::test_dd_span_context_injection: missing_feature
+  tests/parametric/test_otel_logs.py::Test_FR05_Custom_Endpoints: '>=3.54.0'  # Created by easy win activation script
+  tests/parametric/test_otel_logs.py::Test_FR06_OTLP_Protocols: '>=3.54.0'  # Created by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR07_Host_Name::test_hostname_from_dd_hostname: irrelevant (DD_HOSTNAME is only supported in Python)
-  tests/parametric/test_otel_logs.py::Test_FR07_Host_Name::test_hostname_from_otel_resources: missing_feature  # Created by easy win activation script
-  tests/parametric/test_otel_logs.py::Test_FR08_Custom_Headers: missing_feature  # Created by easy win activation script
-  tests/parametric/test_otel_logs.py::Test_FR09_Log_Injection: missing_feature  # Created by easy win activation script
-  tests/parametric/test_otel_logs.py::Test_FR10_Timeout_Configuration: missing_feature  # Created by easy win activation script
-  tests/parametric/test_otel_logs.py::Test_FR11_Telemetry: missing_feature  # Created by easy win activation script
+  tests/parametric/test_otel_logs.py::Test_FR07_Host_Name::test_hostname_from_otel_resources: '>=3.54.0'  # Created by easy win activation script
+  tests/parametric/test_otel_logs.py::Test_FR08_Custom_Headers: '>=3.54.0'  # Created by easy win activation script
+  tests/parametric/test_otel_logs.py::Test_FR09_Log_Injection: '>=3.54.0'  # Created by easy win activation script
+  tests/parametric/test_otel_logs.py::Test_FR09_Log_Injection::test_log_without_active_span: missing_feature
+  tests/parametric/test_otel_logs.py::Test_FR10_Timeout_Configuration: '>=3.54.0'  # Created by easy win activation script
+  tests/parametric/test_otel_logs.py::Test_FR11_Telemetry: '>=3.54.0'  # Created by easy win activation script
+  tests/parametric/test_otel_logs.py::Test_FR11_Telemetry::test_telemetry_metrics: missing_feature
   tests/parametric/test_otel_logs.py::Test_FR12_Log_Levels: missing_feature  # Created by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields: missing_feature  # Created by easy win activation script
   tests/parametric/test_otel_metrics.py: v3.29.0
