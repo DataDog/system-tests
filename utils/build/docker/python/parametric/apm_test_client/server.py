@@ -10,6 +10,10 @@ import logging
 import os
 import enum
 import threading
+
+# Starlette's synchronous endpoints access this public submodule through anyio.
+# Recent AnyIO releases no longer populate it on importing the parent package.
+import anyio.to_thread
 from fastapi import FastAPI
 from fastapi import Request
 from fastapi.responses import JSONResponse

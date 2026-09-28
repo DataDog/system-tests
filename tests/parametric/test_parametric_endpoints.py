@@ -280,6 +280,7 @@ class Test_Parametric_DDTrace_Config:
                 "dd_trace_sample_rate",
                 "dd_trace_enabled",
                 "dd_runtime_metrics_enabled",
+                "dd_metrics_otel_interval",
                 "dd_tags",
                 "dd_trace_propagation_style",
                 "dd_trace_debug",
