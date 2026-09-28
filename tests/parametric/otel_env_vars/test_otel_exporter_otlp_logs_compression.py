@@ -20,6 +20,24 @@ def library_env(compression_env: dict[str, str]) -> dict[str, str]:
     }
 
 
+def _assert_compression(test_agent: TestAgentAPI, test_library: APMLibrary, expected: str) -> None:
+    # A single exported artifact proves that the effective compressor is in use.
+    with test_library as library:
+        library.create_logger("compression_probe", LogLevel.INFO)
+        library.write_log("compression_probe", LogLevel.INFO, "compression probe")
+
+    test_agent.wait_for_num_log_payloads(1)
+    requests = [request for request in test_agent.otlp_requests() if request["url"].endswith("/v1/logs")]
+    assert requests, "No OTLP logs request was captured"
+    for request in requests:
+        headers = {name.lower(): value.lower() for name, value in request["headers"].items()}
+        encoding = headers.get("content-encoding", "identity")
+        if expected == "gzip":
+            assert encoding == "gzip", headers
+        else:
+            assert encoding in ("identity", ""), headers
+
+
 @scenarios.parametric
 @features.otel_exporter_otlp_logs_compression
 class Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION:
@@ -31,22 +49,22 @@ class Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION:
         ],
     )
     def test_stable_values(self, test_agent: TestAgentAPI, test_library: APMLibrary, expected: str) -> None:
-        self._assert_compression(test_agent, test_library, expected)
+        _assert_compression(test_agent, test_library, expected)
 
     @pytest.mark.parametrize("compression_env", [pytest.param({}, id="unset")])
     def test_default(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         # The specification permits SDK-specific defaults; Java and Python default to no compression.
-        self._assert_compression(test_agent, test_library, "none")
+        _assert_compression(test_agent, test_library, "none")
 
     @pytest.mark.parametrize("compression_env", [pytest.param({"OTEL_EXPORTER_OTLP_LOGS_COMPRESSION": ""}, id="empty")])
     def test_empty(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
-        self._assert_compression(test_agent, test_library, "none")
+        _assert_compression(test_agent, test_library, "none")
 
     @pytest.mark.parametrize(
         "compression_env", [pytest.param({"OTEL_EXPORTER_OTLP_LOGS_COMPRESSION": "not-a-compression"}, id="invalid")]
     )
     def test_invalid(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
-        self._assert_compression(test_agent, test_library, "none")
+        _assert_compression(test_agent, test_library, "none")
 
     @pytest.mark.parametrize(
         ("compression_env", "expected"),
@@ -64,7 +82,7 @@ class Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION:
         ],
     )
     def test_signal_precedence(self, test_agent: TestAgentAPI, test_library: APMLibrary, expected: str) -> None:
-        self._assert_compression(test_agent, test_library, expected)
+        _assert_compression(test_agent, test_library, expected)
 
     @pytest.mark.parametrize(
         "compression_env",
@@ -76,21 +94,4 @@ class Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION:
         ],
     )
     def test_empty_inherits_general(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
-        self._assert_compression(test_agent, test_library, "gzip")
-
-    def _assert_compression(self, test_agent: TestAgentAPI, test_library: APMLibrary, expected: str) -> None:
-        # A single exported artifact proves that the effective compressor is in use.
-        with test_library as library:
-            library.create_logger("compression_probe", LogLevel.INFO)
-            library.write_log("compression_probe", LogLevel.INFO, "compression probe")
-
-        test_agent.wait_for_num_log_payloads(1)
-        requests = [request for request in test_agent.otlp_requests() if request["url"].endswith("/v1/logs")]
-        assert requests, "No OTLP logs request was captured"
-        for request in requests:
-            headers = {name.lower(): value.lower() for name, value in request["headers"].items()}
-            encoding = headers.get("content-encoding", "identity")
-            if expected == "gzip":
-                assert encoding == "gzip", headers
-            else:
-                assert encoding in ("identity", ""), headers
+        _assert_compression(test_agent, test_library, "gzip")
