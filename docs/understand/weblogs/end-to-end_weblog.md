@@ -972,6 +972,10 @@ These endpoints are used for the `Dynamic Instrumentation` tests.
 Executes the same probe line `loops` times during one request. It is used to verify per-probe and global
 Dynamic Instrumentation rate limits.
 
+#### GET /debugger/correlation
+
+Calls `Correlation`, `CorrelationMiddle`, and `CorrelationLeaf` in one request, pausing between the probed method exits. Used to check that snapshot sampling emits a whole probe chain together.
+
 #### GET /debugger/snapshot/capture-timeout
 
 Creates a collection containing `collectionSize` object chains. Each chain has a leaf wrapped by
