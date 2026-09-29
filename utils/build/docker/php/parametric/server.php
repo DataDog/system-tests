@@ -116,7 +116,7 @@ function ffeDetailsPayload($details) {
         'variant' => $details->getVariant(),
         'errorCode' => $details->getErrorCode(),
         'errorMessage' => $details->getErrorMessage(),
-        'flagMetadata' => $details->getFlagMetadata(),
+        'flagMetadata' => (object) $details->getFlagMetadata(),
         'exposureData' => $details->getExposureData(),
         'providerState' => $details->getProviderState(),
     ];
