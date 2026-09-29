@@ -273,6 +273,24 @@ fastify.get('/make_distant_call', async (request, reply) => {
   })
 })
 
+fastify.get('/security/thread_context_sharing', async (request, reply) => {
+  const path = request.query.path
+  if (typeof path !== 'string' || path === '') {
+    reply.status(400)
+    return 'missing path query parameter'
+  }
+
+  // Synchronous on purpose: async fs opens the file on a libuv worker thread, which does not carry
+  // the request's thread context that the security agent reads.
+  require('fs').writeFileSync(path, 'thread context sharing')
+
+  const context = tracer.scope().active().context()
+  return {
+    trace_id: BigInt(`0x${context.toTraceId(true)}`).toString(),
+    span_id: context.toSpanId()
+  }
+})
+
 fastify.get('/user_login_success_event', async (request, reply) => {
   const userId = request.query.event_user_id || 'system_tests_user'
 
