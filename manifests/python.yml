@@ -1935,6 +1935,14 @@ manifest:
   : bug (APMAPI-2476)
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_compression.py::Test_OTEL_EXPORTER_OTLP_METRICS_COMPRESSION::test_invalid
   : bug (APMAPI-2481)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_endpoint.py::Test_OTEL_EXPORTER_OTLP_ENDPOINT: v4.11.0
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_endpoint.py::Test_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT: v4.11.0
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_endpoint.py::Test_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT::test_empty_falls_back_to_global_endpoint
+  : bug (APMAPI-2414)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_endpoint.py::Test_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: v4.11.0
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_endpoint.py::Test_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT::test_empty_falls_back_to_global_endpoint
+  : bug (APMAPI-2414)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_endpoint.py::Test_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: v4.11.0
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER:  # TODO: a lower version might be supported
     - declaration: missing_feature (OTEL_LOGS_EXPORTER does not configure the logs pipeline)
       component_version: <4.15.2
@@ -2603,6 +2611,7 @@ manifest:
     - weblog_declaration:
         "*": v2.8.0
         tornado: v4.6.4  # TODO: a lower version might be supported
+  tests/test_sampling_rules_agent_rate.py::Test_SamplingRulesAgentRate::test_agent_rate_applies_to_rule_miss: bug (APMAPI-2508)
   tests/test_scrubbing.py::Test_UrlField:
     - weblog_declaration:
         "*": v1.7.1
