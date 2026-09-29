@@ -300,6 +300,23 @@ app.get('/make_distant_call', (req, res) => {
   request.end()
 })
 
+app.get('/security/thread_context_sharing', (req, res) => {
+  const path = req.query.path
+  if (typeof path !== 'string' || path === '') {
+    return res.status(400).send('missing path query parameter')
+  }
+
+  // Synchronous on purpose: async fs opens the file on a libuv worker thread, which does not carry
+  // the request's thread context that the security agent reads.
+  fs.writeFileSync(path, 'thread context sharing')
+
+  const context = tracer.scope().active().context()
+  res.json({
+    trace_id: BigInt(`0x${context.toTraceId(true)}`).toString(),
+    span_id: context.toSpanId()
+  })
+})
+
 app.get('/user_login_success_event', (req, res) => {
   const userId = req.query.event_user_id || 'system_tests_user'
 
