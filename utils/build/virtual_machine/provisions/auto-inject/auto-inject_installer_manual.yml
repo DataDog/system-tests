@@ -90,7 +90,6 @@
     fi
 
     if [ -n "${DD_INSTALLER_INJECTOR_VERSION}" ]; then
-      export DD_INSTALLER_REGISTRY_URL_APM_INJECT_PACKAGE='installtesting.datad0g.com'
       export DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_INJECT="${DD_INSTALLER_INJECTOR_VERSION}"
     fi
 
@@ -194,6 +193,7 @@
       Set-Item -Path "Env:DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_LIBRARY_${DD_LANG}" -Value $env:DD_INSTALLER_LIBRARY_VERSION
     }
 
+    $DD_INSTALLER_INJECTOR_VERSION_FROM_LOCKFILE = $false
     if ($env:DD_INSTALLER_LIBRARY_VERSION -and -not $env:DD_INSTALLER_INJECTOR_VERSION) {
       $AUTO_INJECT_LOCK_PATH = "auto_inject.lock"
       if (-not (Test-Path -Path $AUTO_INJECT_LOCK_PATH -PathType Leaf)) {
@@ -205,11 +205,16 @@
         throw "Lock file '$AUTO_INJECT_LOCK_PATH' is empty or invalid; refusing to install with an unpinned injector"
       }
 
+      $DD_INSTALLER_INJECTOR_VERSION_FROM_LOCKFILE = $true
       Write-Host "Using pinned injector version from auto_inject.lock: $env:DD_INSTALLER_INJECTOR_VERSION"
     }
 
     if ($env:DD_INSTALLER_INJECTOR_VERSION) {
-      $env:DD_INSTALLER_REGISTRY_URL_APM_INJECT_PACKAGE = "installtesting.datad0g.com";
+      if ($DD_INSTALLER_INJECTOR_VERSION_FROM_LOCKFILE) {
+        $env:DD_INSTALLER_REGISTRY_URL_APM_INJECT_PACKAGE = "install.datadoghq.com";
+      } else {
+        $env:DD_INSTALLER_REGISTRY_URL_APM_INJECT_PACKAGE = "installtesting.datad0g.com";
+      }
       $env:DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_INJECT = $env:DD_INSTALLER_INJECTOR_VERSION;
     }
 

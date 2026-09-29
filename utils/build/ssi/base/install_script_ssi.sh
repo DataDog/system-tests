@@ -39,7 +39,6 @@ fi
 
 #We want specfic injector version (to run on auto_inject pipelines)
 if [ -n "${DD_INSTALLER_INJECTOR_VERSION}" ]; then
-    export DD_INSTALLER_REGISTRY_URL_APM_INJECT_PACKAGE='installtesting.datad0g.com'
     export DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_INJECT="${DD_INSTALLER_INJECTOR_VERSION}"
 fi
 

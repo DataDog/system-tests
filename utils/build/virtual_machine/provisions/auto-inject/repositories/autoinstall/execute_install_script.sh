@@ -55,7 +55,6 @@ if [ "${DD_LANG}" == "js" ] && [ "${DD_env}" == "dev" ] && [ -z "${DD_INSTALLER_
 fi
 
 if [ -n "${DD_INSTALLER_INJECTOR_VERSION}" ]; then
-    export DD_INSTALLER_REGISTRY_URL_APM_INJECT_PACKAGE='installtesting.datad0g.com'
     export DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_INJECT="${DD_INSTALLER_INJECTOR_VERSION}"
 fi
 
