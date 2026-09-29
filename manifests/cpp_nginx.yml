@@ -446,7 +446,9 @@ manifest:
   tests/test_distributed.py::Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   tests/test_graphql.py: missing_feature
   tests/test_identify.py: irrelevant
-  tests/test_ipv6.py: missing_feature (APMAPI-869)
+  tests/test_ipv6.py:  # TODO: a lower version might be supported
+    - declaration: missing_feature (APMAPI-869)
+      component_version: <1.25.0
   tests/test_library_conf.py: irrelevant
   tests/test_library_conf.py::Test_HeaderTags_DynamicConfig::test_tracing_client_http_header_tags_apm_multiconfig: missing_feature (APM_TRACING_MULTICONFIG is not supported in any language yet)
   tests/test_library_logs.py::Test_NoExceptions::test_dotnet: irrelevant (only for .NET)
