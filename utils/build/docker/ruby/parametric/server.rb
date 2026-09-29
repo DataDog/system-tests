@@ -38,8 +38,10 @@ require 'datadog/opentelemetry' # TODO: Remove when DD_TRACE_OTEL_ENABLED=true w
 OpenTelemetry::SDK.configure # Initialize OpenTelemetry
 
 Datadog.configure do |c|
-  # The shared harness enables DD_TRACE_DEBUG by default. Preserve an explicit
-  # absence here so configuration tests can observe the tracer's own default.
+  if ENV['DD_TRACE_DEBUG'].nil?
+    # If DD_TRACE_DEBUG is set do not override this configuration.
+    c.diagnostics.debug = true # When tests fail, ensure there's enough data to debug the failure.
+  end
   c.logger.instance = Logger.new(STDOUT) # Make sure logs are available for inspection from outside the container.
 end
 

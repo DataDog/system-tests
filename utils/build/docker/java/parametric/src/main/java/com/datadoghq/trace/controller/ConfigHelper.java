@@ -26,28 +26,6 @@ final class ConfigHelper {
     }
   }
 
-  public String getEffectiveLogLevel() {
-    try {
-      // The agent shades SLF4J; the application's own LoggerFactory has a separate configuration.
-      // Only use the public SLF4J interface, not implementation fields or raw environment values.
-      Class<?> loggerFactory = Class.forName("datadog.slf4j.LoggerFactory");
-      Class<?> loggerInterface = Class.forName("datadog.slf4j.Logger");
-      Object logger = loggerFactory.getMethod("getLogger", String.class)
-          .invoke(null, "datadog.trace.parametric.log-level");
-      for (String level : new String[] {"Trace", "Debug", "Info", "Warn", "Error"}) {
-        if ((Boolean) loggerInterface.getMethod("is" + level + "Enabled").invoke(logger)) {
-          return level.toLowerCase(java.util.Locale.ROOT);
-        }
-      }
-      return "off";
-    } catch (ClassNotFoundException e) {
-      // Keep the existing config endpoint usable with older agent logging packages.
-      return null;
-    } catch (ReflectiveOperationException e) {
-      throw new IllegalStateException("Failed to read effective tracer log level", e);
-    }
-  }
-
   public String getConfigValue(String accessorName) {
     Object value = getValue(this.configClass, this.config, accessorName);
     return value == null ? null : value.toString();

@@ -54,7 +54,9 @@ def _log_level(test_agent: TestAgentAPI, library: APMLibrary) -> str:
         value = accepted[0].get("value")
     else:
         config = library.config()
-        value = config.get("dd_trace_effective_log_level") or config.get("dd_log_level")
+        # Java's dd_log_level is raw input, so it cannot prove effective defaults or fallback.
+        key = "dd_trace_effective_log_level" if library.lang == "java" else "dd_log_level"
+        value = config.get(key)
     assert isinstance(value, str), "The parametric application does not expose the effective logger level"
     return value.lower()
 
