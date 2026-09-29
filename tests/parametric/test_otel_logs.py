@@ -11,40 +11,12 @@ from utils.docker_fixtures.spec.trace import find_only_span
 from utils.docker_fixtures.spec.trace import extract_trace_id_from_otel_span
 
 from .conftest import APMLibrary
-
-
-def _find_log_components(
-    log_payloads: list[dict], logger_name: str, log_message: str
-) -> tuple[dict | None, dict | None, dict | None]:
-    """Find matching log record, scope_log, and resource_log for a specific logger and message.
-
-    Returns:
-        Tuple of (log_record, scope_log, resource_log) or (None, None, None) if not found.
-
-    """
-    for payload in log_payloads:
-        for resource_log in payload.get("resource_logs", []):
-            for scope_log in resource_log.get("scope_logs", []):
-                scope_name = scope_log.get("scope", {}).get("name") if scope_log.get("scope") else None
-                if scope_name == logger_name:
-                    for log_record in scope_log.get("log_records", []):
-                        record_message = log_record.get("body", {}).get("string_value", "")
-                        if record_message == log_message:
-                            return log_record, scope_log, resource_log
-    return None, None, None
-
-
-def find_log_record(log_payloads: list[dict], logger_name: str, log_message: str) -> dict | None:
-    """Find a specific log record in the log payloads."""
-    logger.debug(f"Searching for log record: logger_name='{logger_name}', message='{log_message}'")
-    logger.debug(f"Number of log payloads to search: {len(log_payloads)}")
-    log_record, _, _ = _find_log_components(log_payloads, logger_name, log_message)
-    return log_record
+from .utils import find_log_components, find_log_record
 
 
 def find_resource(log_payloads: list[dict], logger_name: str, log_message: str) -> dict | None:
     """Extract resource from captured logs."""
-    _, _, resource_log = _find_log_components(log_payloads, logger_name, log_message)
+    _, _, resource_log = find_log_components(log_payloads, logger_name, log_message)
     if resource_log:
         logger.debug(f"Found resource_log: {resource_log}")
         return resource_log.get("resource")
@@ -63,7 +35,7 @@ def find_attributes(proto_object: dict | None) -> dict:
 
 def find_scope(log_payloads: list[dict], logger_name: str, log_message: str) -> dict | None:
     """Find ScopeLogs object for a specific log record (includes schema_url at ScopeLogs level)."""
-    _, scope_log, _ = _find_log_components(log_payloads, logger_name, log_message)
+    _, scope_log, _ = find_log_components(log_payloads, logger_name, log_message)
     return scope_log
 
 
@@ -423,90 +395,6 @@ class Test_FR07_Host_Name:
         attrs = find_attributes(resource)
 
         assert "host.name" not in attrs
-
-
-@features.otel_logs_enabled
-@scenarios.parametric
-class Test_FR08_Custom_Headers:
-    """FR08: Custom HTTP Headers Tests"""
-
-    @pytest.mark.parametrize(
-        "library_env",
-        [
-            {
-                "DD_LOGS_OTEL_ENABLED": "true",
-                "DD_TRACE_DEBUG": None,
-                "OTEL_EXPORTER_OTLP_HEADERS": "api-key=key,other-config-value=value",
-                "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
-            },
-        ],
-    )
-    def test_custom_http_headers_included_in_otlp_export(self, test_agent: TestAgentAPI, test_library: APMLibrary):
-        """Custom headers from OTEL_EXPORTER_OTLP_HEADERS appear in requests."""
-        with test_library as library:
-            library.create_logger("custom_http_headers_included_in_otlp_export", LogLevel.INFO)
-            library.write_log(
-                "custom_http_headers_included_in_otlp_export",
-                LogLevel.INFO,
-                "test_custom_http_headers_included_in_otlp_export",
-            )
-
-        log_payloads = test_agent.wait_for_num_log_payloads(1)
-        assert (
-            find_log_record(
-                log_payloads,
-                "custom_http_headers_included_in_otlp_export",
-                "test_custom_http_headers_included_in_otlp_export",
-            )
-            is not None
-        )
-
-        requests = test_agent.requests()
-        logs_request = [r for r in requests if r["url"].endswith("/v1/logs")]
-        assert logs_request, f"Expected logs request, got {requests}"
-        assert logs_request[0]["headers"].get("api-key") == "key", f"Expected api-key, got {logs_request[0]['headers']}"
-        assert logs_request[0]["headers"].get("other-config-value") == "value", (
-            f"Expected other-config-value, got {logs_request[0]['headers']}"
-        )
-
-    @pytest.mark.parametrize(
-        "library_env",
-        [
-            {
-                "DD_LOGS_OTEL_ENABLED": "true",
-                "DD_TRACE_DEBUG": None,
-                "OTEL_EXPORTER_OTLP_LOGS_HEADERS": "api-key=key,other-config-value=value",
-                "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
-            },
-        ],
-    )
-    def test_custom_logs_http_headers_included_in_otlp_export(self, test_agent: TestAgentAPI, test_library: APMLibrary):
-        """Custom headers from OTEL_EXPORTER_OTLP_LOGS_HEADERS appear in requests."""
-        with test_library as library:
-            library.create_logger("custom_logs_http_headers_included_in_otlp_export", LogLevel.INFO)
-            library.write_log(
-                "custom_logs_http_headers_included_in_otlp_export",
-                LogLevel.INFO,
-                "test_custom_logs_http_headers_included_in_otlp_export",
-            )
-
-        log_payloads = test_agent.wait_for_num_log_payloads(1)
-        assert (
-            find_log_record(
-                log_payloads,
-                "custom_logs_http_headers_included_in_otlp_export",
-                "test_custom_logs_http_headers_included_in_otlp_export",
-            )
-            is not None
-        )
-
-        requests = test_agent.requests()
-        logs_request = [r for r in requests if r["url"].endswith("/v1/logs")]
-        assert logs_request, f"Expected logs request, got {requests}"
-        assert logs_request[0]["headers"].get("api-key") == "key", f"Expected api-key, got {logs_request[0]['headers']}"
-        assert logs_request[0]["headers"].get("other-config-value") == "value", (
-            f"Expected other-config-value, got {logs_request[0]['headers']}"
-        )
 
 
 @features.otel_logs_enabled

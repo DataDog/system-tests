@@ -5,17 +5,21 @@ from utils import features, scenarios
 
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary
+from .utils import (
+    DEFAULT_METER_NAME,
+    DEFAULT_METER_VERSION,
+    DEFAULT_SCHEMA_URL,
+    DEFAULT_INSTRUMENT_UNIT,
+    DEFAULT_INSTRUMENT_DESCRIPTION,
+    DEFAULT_SCOPE_ATTRIBUTES,
+    DEFAULT_MEASUREMENT_ATTRIBUTES,
+    generate_default_counter_data_point,
+)
 
 
 EXPECTED_TAGS = [("foo", "bar1"), ("baz", "qux1")]
 
-DEFAULT_METER_NAME = "parametric-api"
-DEFAULT_METER_VERSION = "1.0.0"
-# schema_url is not supported by .NET's System.Diagnostics.Metrics API
-DEFAULT_SCHEMA_URL = "https://opentelemetry.io/schemas/1.21.0"
 
-DEFAULT_INSTRUMENT_UNIT = "triggers"
-DEFAULT_INSTRUMENT_DESCRIPTION = "test_description"
 DEFAULT_EXPLICIT_BUCKET_BOUNDARIES = [
     0.0,
     5.0,
@@ -34,8 +38,6 @@ DEFAULT_EXPLICIT_BUCKET_BOUNDARIES = [
     10000.0,
 ]
 
-DEFAULT_SCOPE_ATTRIBUTES = {"scope.attr": "scope.value"}
-DEFAULT_MEASUREMENT_ATTRIBUTES = {"test_attr": "test_value"}
 NON_DEFAULT_MEASUREMENT_ATTRIBUTES = {"test_attr": "non_default_value"}
 
 # Define common default environment variables to support the OpenTelemetry Metrics API feature:
@@ -75,23 +77,6 @@ def otlp_metrics_endpoint_library_env(
         del library_env[endpoint_env]
     else:
         library_env[endpoint_env] = prev_value
-
-
-def generate_default_counter_data_point(test_library: APMLibrary, instrument_name: str):
-    test_library.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
-    test_library.otel_metrics_force_flush()
-    test_library.otel_create_counter(
-        DEFAULT_METER_NAME, instrument_name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION
-    )
-    test_library.otel_counter_add(
-        DEFAULT_METER_NAME,
-        instrument_name,
-        DEFAULT_INSTRUMENT_UNIT,
-        DEFAULT_INSTRUMENT_DESCRIPTION,
-        42,
-        DEFAULT_MEASUREMENT_ATTRIBUTES,
-    )
-    test_library.otel_metrics_force_flush()
 
 
 def assert_metric_info(metric: dict, name: str, unit: str, description: str):
@@ -1455,76 +1440,6 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
         assert scope_metrics is not None
-
-
-@features.otel_metrics_api
-@scenarios.parametric
-class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Headers:
-    """Tests the OpenTelemetry OTLP exporter metrics headers configuration.
-
-    This class validates the behavior of OTLP header configuration:
-    - Custom headers configuration through environment variables OTEL_EXPORTER_OTLP_HEADERS and OTEL_EXPORTER_OTLP_METRICS_HEADERS
-    """
-
-    @pytest.mark.parametrize(
-        "library_env",
-        [
-            {
-                **DEFAULT_ENVVARS,
-                "OTEL_EXPORTER_OTLP_HEADERS": "api-key=key,other-config-value=value",
-                "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
-            },
-        ],
-    )
-    def test_custom_http_headers_included_in_otlp_export(self, test_agent: TestAgentAPI, test_library: APMLibrary):
-        """OTLP metrics are emitted when enabled."""
-
-        name = "test_custom_http_headers_included_in_otlp_export-counter"
-        with test_library as t:
-            generate_default_counter_data_point(t, name)
-
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
-        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
-        assert scope_metrics is not None
-
-        requests = test_agent.requests()
-        metrics_requests = [r for r in requests if r["url"].endswith("/v1/metrics")]
-        assert metrics_requests, f"Expected metrics request, got {requests}"
-        # Normalize headers to lowercase for comparison (ex: ruby converts headers to camel case)
-        headers = {h.lower(): v for h, v in metrics_requests[0]["headers"].items()}
-        assert headers.get("api-key") == "key", f"Expected api-key in headers, got {headers}"
-        assert headers.get("other-config-value") == "value", f"Expected other-config-value in headers, got {headers}"
-
-    @pytest.mark.parametrize(
-        "library_env",
-        [
-            {
-                **DEFAULT_ENVVARS,
-                "OTEL_EXPORTER_OTLP_METRICS_HEADERS": "api-key=key,other-config-value=value",
-                "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
-            },
-        ],
-    )
-    def test_custom_metrics_http_headers_included_in_otlp_export(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary
-    ):
-        """OTLP metrics are emitted when enabled."""
-
-        name = "test_custom_metrics_http_headers_included_in_otlp_export-counter"
-        with test_library as t:
-            generate_default_counter_data_point(t, name)
-
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
-        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
-        assert scope_metrics is not None
-
-        requests = test_agent.requests()
-        metrics_requests = [r for r in requests if r["url"].endswith("/v1/metrics")]
-        assert metrics_requests, f"Expected metrics request, got {requests}"
-        # Normalize headers to lowercase for comparison (ex: ruby converts headers to camel case)
-        headers = {h.lower(): v for h, v in metrics_requests[0]["headers"].items()}
-        assert headers.get("api-key") == "key", f"Expected api-key in headers, got {headers}"
-        assert headers.get("other-config-value") == "value", f"Expected other-config-value in headers, got {headers}"
 
 
 @features.otel_metrics_api
