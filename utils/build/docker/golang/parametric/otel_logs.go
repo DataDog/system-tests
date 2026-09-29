@@ -10,6 +10,7 @@ import (
 
 	otlog "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry/log"
 	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
+	"go.opentelemetry.io/otel/attribute"
 	otellog "go.opentelemetry.io/otel/log"
 	"go.opentelemetry.io/otel/log/noop"
 )
@@ -131,7 +132,7 @@ func (s *apmClientServer) otelWriteLogHandler(w http.ResponseWriter, r *http.Req
 		record.SetTimestamp(time.Now())
 		record.SetSeverity(level)
 		record.SetSeverityText(strings.ToUpper(args.Level))
-		record.SetBody(otellog.StringValue(args.Message))
+		record.SetBody(attribute.StringValue(args.Message))
 		logger.logger.Emit(ctx, record)
 	}
 	writeLogResponse(w, otelLogReturn{Success: true})
