@@ -532,7 +532,7 @@ app.post('/ffe/start', async (req, res) => {
 
 app.post('/ffe/evaluate', async (req, res) => {
   const { flag, variationType, defaultValue, targetingKey, attributes, span_id } = req.body;
-  let value, reason;
+  let details;
   const context = { targetingKey, ...attributes }
 
   // Helper function to perform the actual flag evaluation
@@ -540,28 +540,25 @@ app.post('/ffe/evaluate', async (req, res) => {
     try {
       switch (variationType) {
         case 'BOOLEAN':
-          value = await openFeatureClient.getBooleanValue(flag, defaultValue, context)
+          details = await openFeatureClient.getBooleanDetails(flag, defaultValue, context)
           break;
         case 'STRING':
-          value = await openFeatureClient.getStringValue(flag, defaultValue, context)
+          details = await openFeatureClient.getStringDetails(flag, defaultValue, context)
           break;
         case 'INTEGER':
-          value = await openFeatureClient.getNumberValue(flag, defaultValue, context)
+          details = await openFeatureClient.getNumberDetails(flag, defaultValue, context)
           break;
         case 'NUMERIC':
-          value = await openFeatureClient.getNumberValue(flag, defaultValue, context)
+          details = await openFeatureClient.getNumberDetails(flag, defaultValue, context)
           break;
         case 'JSON':
-          value = await openFeatureClient.getObjectValue(flag, defaultValue, context)
+          details = await openFeatureClient.getObjectDetails(flag, defaultValue, context)
           break;
         default:
-          value = defaultValue;
+          details = { value: defaultValue, reason: 'DEFAULT' };
       }
-
-      reason = 'DEFAULT';
     } catch (error) {
-      value = defaultValue;
-      reason = 'ERROR';
+      details = { value: defaultValue, reason: 'ERROR' };
     }
   }
 
@@ -574,8 +571,9 @@ app.post('/ffe/evaluate', async (req, res) => {
   }
 
   res.json({
-    value: value,
-    reason: reason
+    value: details.value,
+    reason: details.reason,
+    flagMetadata: details.flagMetadata ?? null
   });
 });
 
