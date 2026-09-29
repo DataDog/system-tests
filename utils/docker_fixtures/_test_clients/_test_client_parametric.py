@@ -747,9 +747,12 @@ class ParametricTestClientApi(TestClientApi):
         return {
             "dd_service": config_dict.get("dd_service", None),
             "dd_log_level": config_dict.get("dd_log_level", None),
+            "dd_trace_effective_log_level": config_dict.get("dd_trace_effective_log_level", None),
             "dd_trace_sample_rate": config_dict.get("dd_trace_sample_rate", None),
             "dd_trace_enabled": config_dict.get("dd_trace_enabled", None),
             "dd_runtime_metrics_enabled": config_dict.get("dd_runtime_metrics_enabled", None),
+            "dd_metrics_otel_interval": config_dict.get("dd_metrics_otel_interval", None),
+            "otel_metrics_initialized": config_dict.get("otel_metrics_initialized", None),
             "dd_tags": config_dict.get("dd_tags", None),
             "dd_trace_propagation_style": config_dict.get("dd_trace_propagation_style", None),
             "dd_trace_debug": config_dict.get("dd_trace_debug", None),
