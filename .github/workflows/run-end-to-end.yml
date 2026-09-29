@@ -400,6 +400,9 @@ jobs:
     - name: Run SAMPLING_RATE_CAPPING scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"SAMPLING_RATE_CAPPING"')
       run: ./run.sh SAMPLING_RATE_CAPPING
+    - name: Run SAMPLING_RULES_AGENT_RATE scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"SAMPLING_RULES_AGENT_RATE"')
+      run: ./run.sh SAMPLING_RULES_AGENT_RATE
     - name: Run OTEL_SAMPLING_RATE_0_01 scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_SAMPLING_RATE_0_01"')
       run: ./run.sh OTEL_SAMPLING_RATE_0_01
