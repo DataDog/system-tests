@@ -4,6 +4,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
+import org.springframework.context.ConfigurableApplicationContext;
 
 // Spring Boot 1.x
 //import org.springframework.boot.web.support.SpringBootServletInitializer;
@@ -29,7 +30,8 @@ public class SpringbootwildflyApplication extends SpringBootServletInitializer {
             }
             return;
         }
-        SpringApplication.run(applicationClass, args);
+        ConfigurableApplicationContext context = SpringApplication.run(applicationClass, args);
+        DirectEvpShutdown.install(context);
     }
 
     @Override
@@ -40,5 +42,4 @@ public class SpringbootwildflyApplication extends SpringBootServletInitializer {
     //private static Class<SpringbootwildflyApplication> applicationClass = SpringbootwildflyApplication.class;
     private static Class<App> applicationClass = App.class;
 }
-
 
