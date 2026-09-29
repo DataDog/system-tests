@@ -1078,7 +1078,7 @@ class Test_UserEventsStandalone_Automated:
         trace_id = 1212121212121212111
         meta = self._get_standalone_span_meta(trace_id)
         assert meta is not None
-        assert meta["_dd.appsec.usr.login"] == USER
+        assert meta["appsec.events.users.login.success.usr.login"] == USER
 
     def setup_user_login_failure_event_generates_asm_event(self):
         trace_id = 1212121212121212122
@@ -1088,7 +1088,7 @@ class Test_UserEventsStandalone_Automated:
         trace_id = 1212121212121212122
         meta = self._get_standalone_span_meta(trace_id)
         assert meta is not None
-        assert meta["_dd.appsec.usr.login"] == INVALID_USER
+        assert meta["appsec.events.users.login.failure.usr.login"] == INVALID_USER
 
     def setup_user_signup_event_generates_asm_event(self):
         trace_id = 1212121212121212133
