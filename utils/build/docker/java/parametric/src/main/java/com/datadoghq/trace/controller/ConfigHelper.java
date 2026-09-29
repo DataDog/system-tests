@@ -31,20 +31,6 @@ final class ConfigHelper {
     return value == null ? null : value.toString();
   }
 
-  /** Access a public configuration getter that may not exist in older tracer releases. */
-  public String getOptionalConfigValue(String accessorName) {
-    try {
-      Method method = this.configClass.getMethod(accessorName);
-      Object value = method.invoke(this.config);
-      return value == null ? null : value.toString();
-    } catch (NoSuchMethodException e) {
-      return null;
-    } catch (ReflectiveOperationException e) {
-      throw new IllegalStateException(
-          "Failed get config value from " + this.configClass + "." + accessorName + "()", e);
-    }
-  }
-
   public String getConfigCollectionValues(String accessorName, String delimiter) {
     Object value = getValue(this.configClass, this.config, accessorName);
     if (value instanceof Collection<?> collection) {
