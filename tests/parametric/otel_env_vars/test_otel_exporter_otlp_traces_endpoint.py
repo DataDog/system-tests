@@ -6,7 +6,6 @@ from utils.docker_fixtures import TestAgentAPI
 VARIABLE_NAME = "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT"
 DEFAULT_PATH = "/v1/traces"
 SPAN_NAME = "otel-exporter-otlp-traces-endpoint"
-ROUTED_OTLP_HTTP_PORT = 4320
 
 TRACES_ENVIRONMENT = {
     "DD_TRACE_AGENT_PROTOCOL_VERSION": None,
@@ -16,18 +15,6 @@ TRACES_ENVIRONMENT = {
     "OTEL_EXPORTER_OTLP_TRACES_PROTOCOL": "http/protobuf",
     "OTEL_TRACES_EXPORTER": "otlp",
 }
-
-ROUTED_VALUES = [
-    pytest.param("routed", DEFAULT_PATH, id="routed-signal-url"),
-]
-
-UNSET_VALUES = [
-    pytest.param("unset", DEFAULT_PATH, id="unset"),
-]
-
-EMPTY_VALUES = [
-    pytest.param("empty", DEFAULT_PATH, id="empty"),
-]
 
 
 @pytest.fixture(autouse=True)
@@ -54,8 +41,10 @@ def _configure_endpoint(
 @scenarios.parametric
 @features.otel_exporter_otlp_traces_endpoint
 class Test_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:
-    @pytest.mark.parametrize(("endpoint_value", "expected_path"), ROUTED_VALUES)
-    @pytest.mark.parametrize("test_agent_otlp_http_port", [ROUTED_OTLP_HTTP_PORT])
+    @pytest.mark.parametrize(
+        ("endpoint_value", "expected_path"), [pytest.param("routed", DEFAULT_PATH, id="routed-signal-url")]
+    )
+    @pytest.mark.parametrize("test_agent_otlp_http_port", [4320])
     def test_endpoint_is_used_as_is(
         self,
         endpoint_value: str,  # noqa: ARG002
@@ -72,7 +61,7 @@ class Test_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:
         requests = test_agent.otlp_requests()
         assert any(request["url"].endswith(expected_path) for request in requests), requests
 
-    @pytest.mark.parametrize(("endpoint_value", "expected_path"), UNSET_VALUES)
+    @pytest.mark.parametrize(("endpoint_value", "expected_path"), [pytest.param("unset", DEFAULT_PATH, id="unset")])
     def test_unset_falls_back_to_global_endpoint(
         self,
         endpoint_value: str,  # noqa: ARG002
@@ -88,7 +77,7 @@ class Test_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:
         requests = test_agent.otlp_requests()
         assert any(request["url"].endswith(expected_path) for request in requests), requests
 
-    @pytest.mark.parametrize(("endpoint_value", "expected_path"), EMPTY_VALUES)
+    @pytest.mark.parametrize(("endpoint_value", "expected_path"), [pytest.param("empty", DEFAULT_PATH, id="empty")])
     def test_empty_falls_back_to_global_endpoint(
         self,
         endpoint_value: str,  # noqa: ARG002

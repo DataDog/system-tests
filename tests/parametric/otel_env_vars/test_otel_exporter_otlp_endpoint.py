@@ -5,8 +5,6 @@ from utils.docker_fixtures import TestAgentAPI
 
 VARIABLE_NAME = "OTEL_EXPORTER_OTLP_ENDPOINT"
 DEFAULT_PATH = "/v1/metrics"
-GRPC_PROTOCOL = "grpc"
-ROUTED_OTLP_HTTP_PORT = 4320
 
 METRICS_ENVIRONMENT = {
     "DD_METRICS_OTEL_ENABLED": "true",
@@ -15,18 +13,6 @@ METRICS_ENVIRONMENT = {
     "OTEL_METRIC_EXPORT_INTERVAL": "60000",
     "CORECLR_ENABLE_PROFILING": "1",
 }
-
-ROUTED_VALUES = [
-    pytest.param("routed", DEFAULT_PATH, id="routed-base-url"),
-]
-
-UNSET_VALUES = [
-    pytest.param("unset", DEFAULT_PATH, id="unset"),
-]
-
-EMPTY_VALUES = [
-    pytest.param("empty", DEFAULT_PATH, id="empty"),
-]
 
 
 @pytest.fixture(autouse=True)
@@ -46,9 +32,9 @@ def _configure_endpoint(
         library_env[VARIABLE_NAME] = None
     elif endpoint_value == "empty":
         library_env[VARIABLE_NAME] = ""
-    elif endpoint_value == GRPC_PROTOCOL:
+    elif endpoint_value == "grpc":
         library_env["OTEL_EXPORTER_OTLP_METRICS_PROTOCOL"] = None
-        library_env["OTEL_EXPORTER_OTLP_PROTOCOL"] = GRPC_PROTOCOL
+        library_env["OTEL_EXPORTER_OTLP_PROTOCOL"] = "grpc"
         library_env[VARIABLE_NAME] = f"http://{test_agent.container_name}:{test_agent_otlp_grpc_port}/"
     else:
         raise ValueError(f"Unexpected endpoint value: {endpoint_value}")
@@ -66,8 +52,10 @@ def _emit_metric(library: APMLibrary) -> None:
 @scenarios.parametric
 @features.otel_exporter_otlp_endpoint
 class Test_OTEL_EXPORTER_OTLP_ENDPOINT:
-    @pytest.mark.parametrize(("endpoint_value", "expected_path"), ROUTED_VALUES)
-    @pytest.mark.parametrize("test_agent_otlp_http_port", [ROUTED_OTLP_HTTP_PORT])
+    @pytest.mark.parametrize(
+        ("endpoint_value", "expected_path"), [pytest.param("routed", DEFAULT_PATH, id="routed-base-url")]
+    )
+    @pytest.mark.parametrize("test_agent_otlp_http_port", [4320])
     def test_endpoint_is_used_as_a_base_url(
         self,
         endpoint_value: str,  # noqa: ARG002
@@ -83,7 +71,7 @@ class Test_OTEL_EXPORTER_OTLP_ENDPOINT:
         requests = test_agent.otlp_requests()
         assert any(request["url"].endswith(expected_path) for request in requests), requests
 
-    @pytest.mark.parametrize(("endpoint_value", "expected_path"), UNSET_VALUES)
+    @pytest.mark.parametrize(("endpoint_value", "expected_path"), [pytest.param("unset", DEFAULT_PATH, id="unset")])
     def test_unset_endpoint_is_used_by_default(
         self,
         endpoint_value: str,  # noqa: ARG002
@@ -98,7 +86,7 @@ class Test_OTEL_EXPORTER_OTLP_ENDPOINT:
         requests = test_agent.otlp_requests()
         assert any(request["url"].endswith(expected_path) for request in requests), requests
 
-    @pytest.mark.parametrize(("endpoint_value", "expected_path"), EMPTY_VALUES)
+    @pytest.mark.parametrize(("endpoint_value", "expected_path"), [pytest.param("empty", DEFAULT_PATH, id="empty")])
     def test_empty_endpoint_falls_back_to_default(
         self,
         endpoint_value: str,  # noqa: ARG002
