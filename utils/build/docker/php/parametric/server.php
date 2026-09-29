@@ -340,7 +340,7 @@ $router->addRoute('POST', '/trace/span/start', new ClosureRequestHandler(functio
             \DDTrace\create_stack();
             $span = \DDTrace\start_span();
         } elseif (isset($spansDistributedTracingHeaders[$parent])) {
-            $span = \DDTrace\start_span();
+            $span = \DDTrace\start_trace_span();
             $distributedTracingHeaders = $spansDistributedTracingHeaders[$parent];
             \DDTrace\consume_distributed_tracing_headers($distributedTracingHeaders);
         } else {
