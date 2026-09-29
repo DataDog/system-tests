@@ -67,6 +67,14 @@ def _assert_otlp(test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
     assert _has_counter(metrics), f"No exported {COUNTER} counter in {metrics}"
 
 
+def _assert_none(test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+    """Preserve the previous exporter-none check with an explicit reachable collector."""
+    with test_library as library:
+        _emit_counter(library)
+    with pytest.raises(ValueError):
+        test_agent.wait_for_num_otlp_metrics(num=1)
+
+
 def _assert_console(test_agent: TestAgentAPI, test_library: APMLibrary, *, otlp: bool = False) -> None:
     with test_library as library:
         _emit_counter(library)
@@ -90,17 +98,21 @@ def _assert_console(test_agent: TestAgentAPI, test_library: APMLibrary, *, otlp:
 @scenarios.parametric
 @features.otel_metrics_exporter
 class Test_OTEL_METRICS_EXPORTER:
-    @pytest.mark.parametrize("exporter", [pytest.param("otlp", id="otlp"), pytest.param("OTLP", id="OTLP")])
+    @pytest.mark.parametrize("exporter", [pytest.param("otlp", id="otlp")])
     def test_otlp(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         _assert_otlp(test_agent, test_library)
 
-    @pytest.mark.parametrize("exporter", [pytest.param("none", id="none"), pytest.param("NONE", id="NONE")])
+    @pytest.mark.parametrize("exporter", [pytest.param("OTLP", id="OTLP")])
+    def test_otlp_case_insensitive(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        _assert_otlp(test_agent, test_library)
+
+    @pytest.mark.parametrize("exporter", [pytest.param("none", id="none")])
     def test_none(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
-        """Preserve the previous exporter-none check with an explicit reachable collector."""
-        with test_library as library:
-            _emit_counter(library)
-        with pytest.raises(ValueError):
-            test_agent.wait_for_num_otlp_metrics(num=1)
+        _assert_none(test_agent, test_library)
+
+    @pytest.mark.parametrize("exporter", [pytest.param("NONE", id="NONE")])
+    def test_none_case_insensitive(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        _assert_none(test_agent, test_library)
 
     @pytest.mark.parametrize("exporter", [pytest.param(None, id="unset")])
     def test_spec_default(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:

@@ -28,6 +28,10 @@ def _effective_interval(test_agent: TestAgentAPI, test_library: APMLibrary) -> i
         if library.lang == "java":
             return int(str(library.config()["dd_metrics_otel_interval"]))
         library.otel_get_meter("export-interval-configuration", "1.0.0", "", {})
+        if library.lang == "python":
+            # Python can publish an accepted value before the OTel reader rejects
+            # it during initialization and leaves the API's proxy provider in place.
+            assert library.config()["otel_metrics_initialized"] == "true", "Metrics SDK did not initialize"
 
     name = "OTEL_METRIC_EXPORT_INTERVAL"
     configurations = test_agent.wait_for_telemetry_configurations()
@@ -91,12 +95,10 @@ class Test_OTEL_METRIC_EXPORT_INTERVAL:
     def test_negative_is_ignored(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         assert _effective_interval(test_agent, test_library) == _default_interval(test_library)
 
-    @pytest.mark.parametrize(
-        "interval",
-        [
-            pytest.param("1.5", id="fractional"),
-            pytest.param("not-an-interval", id="not-an-integer"),
-        ],
-    )
+    @pytest.mark.parametrize("interval", [pytest.param("1.5", id="fractional")])
+    def test_fractional_is_ignored(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        assert _effective_interval(test_agent, test_library) == _default_interval(test_library)
+
+    @pytest.mark.parametrize("interval", [pytest.param("not-an-interval", id="not-an-integer")])
     def test_invalid_values_use_default(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         assert _effective_interval(test_agent, test_library) == _default_interval(test_library)
