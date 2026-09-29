@@ -5,21 +5,26 @@ class AiGuardController < ApplicationController
 
   def evaluate
     messages = params.to_unsafe_h.fetch(:_json).map do |message_data|
-      tool_calls = message_data.fetch(:tool_calls, []).map do |tool_call_data|
-        Datadog::AIGuard.tool_call(
-          id: tool_call_data[:id],
-          name: tool_call_data.dig(:function, :name),
-          arguments: tool_call_data.dig(:function, :arguments)
+      if message_data[:role] == 'tool'
+        next Datadog::AIGuard.tool(
+          tool_call_id: message_data[:tool_call_id], content: message_data[:content]
         )
       end
 
-      if message_data[:content].is_a?(Array)
-        Datadog::AIGuard.message(
-          role: message_data[:role],
-          tool_calls: tool_calls,
-          tool_call_id: message_data[:tool_call_id]
-        ) do |message|
-          message_data[:content].each do |part|
+      message_content = message_data[:content]
+      content = message_content unless message_content.is_a?(Array)
+
+      Datadog::AIGuard.message(role: message_data[:role], content: content) do |message|
+        message_data.fetch(:tool_calls, []).each do |tool_call_data|
+          message.tool_call(
+            id: tool_call_data[:id],
+            name: tool_call_data.dig(:function, :name),
+            arguments: tool_call_data.dig(:function, :arguments)
+          )
+        end
+
+        if message_content.is_a?(Array)
+          message_content.each do |part|
             case part[:type]
             when 'text'
               message.text(part[:text])
@@ -28,13 +33,6 @@ class AiGuardController < ApplicationController
             end
           end
         end
-      else
-        Datadog::AIGuard.message(
-          role: message_data[:role],
-          content: message_data[:content],
-          tool_calls: tool_calls,
-          tool_call_id: message_data[:tool_call_id]
-        )
       end
     end
 
