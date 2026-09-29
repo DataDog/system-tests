@@ -8,7 +8,7 @@ import yaml
 from utils import scenarios
 
 INSTALLER_VERSIONS_SCRIPT = Path("utils/build/ssi/base/installer_versions.sh").resolve()
-AUTO_INJECT_LOCK = Path("auto_inject.lock")
+AUTO_INJECT_LOCK = Path("utils/build/auto_inject.lock")
 AUTO_INJECT_INSTALLER_PROVISION = Path(
     "utils/build/virtual_machine/provisions/auto-inject/auto-inject_installer_manual.yml"
 )
@@ -117,7 +117,7 @@ class Test_InstallerVersions:
         copied_files = cast("list[dict[str, str]]", windows_provision["copy_files"])
         remote_command = cast("str", windows_provision["remote-command"])
 
-        assert any(file["local_path"] == "auto_inject.lock" for file in copied_files)
+        assert any(file["local_path"] == "utils/build/auto_inject.lock" for file in copied_files)
         assert "$env:DD_INSTALLER_LIBRARY_VERSION -and -not $env:DD_INSTALLER_INJECTOR_VERSION" in remote_command
         assert "[System.IO.File]::ReadAllText($AUTO_INJECT_LOCK_PATH).Trim()" in remote_command
         assert (

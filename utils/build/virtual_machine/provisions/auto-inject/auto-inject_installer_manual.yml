@@ -9,7 +9,7 @@
     - name: copy-installer-versions-script
       local_path: utils/build/ssi/base/installer_versions.sh
     - name: copy-auto-inject-lock
-      local_path: auto_inject.lock
+      local_path: utils/build/auto_inject.lock
     - name: copy-agent-version-lock
       local_path: utils/build/virtual_machine/agent.lock
     - name: copy-binaries
@@ -174,7 +174,7 @@
 - os_type: windows
   copy_files:
     - name: copy-auto-inject-lock
-      local_path: auto_inject.lock
+      local_path: utils/build/auto_inject.lock
     - name: copy-binaries
       local_path: binaries/
 

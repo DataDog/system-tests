@@ -25,7 +25,7 @@ from utils.virtual_machine.vm_logger import vm_logger
 from .core import Scenario, ScenarioGroup
 
 
-AUTO_INJECT_LOCK = Path(__file__).resolve().parents[3] / "auto_inject.lock"
+AUTO_INJECT_LOCK = Path(__file__).resolve().parents[3] / "utils" / "build" / "auto_inject.lock"
 
 
 class ContainerRemovalError(Exception):
