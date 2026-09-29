@@ -18,6 +18,6 @@ if [[ -n "${DD_INSTALLER_LIBRARY_VERSION:-}" && -z "${DD_INSTALLER_INJECTOR_VERS
     export DD_INSTALLER_INJECTOR_VERSION
     export DD_INSTALLER_REGISTRY_URL_APM_INJECT_PACKAGE='install.datadoghq.com'
     echo "Using pinned injector version from auto_inject.lock: ${DD_INSTALLER_INJECTOR_VERSION}"
-else
+elif [[ -n "${DD_INSTALLER_INJECTOR_VERSION:-}" ]]; then
     export DD_INSTALLER_REGISTRY_URL_APM_INJECT_PACKAGE='installtesting.datad0g.com'
 fi
