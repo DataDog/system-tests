@@ -127,9 +127,16 @@ app.post('/trace/span/extract_headers', (req, res) => {
   let extractedSpanID = null;
   if (hasBaggageAPI) {
     if (extracted) {
-      extractedSpanID = extracted.toSpanId()
-      ddContext[extractedSpanID] = extracted
-    } else if (Object.keys(extractedBaggage).length > 0) {
+      try {
+        extractedSpanID = extracted.toSpanId()
+      } catch (error) {
+        // A B3 sampling-only context has no remote span ID. Its public ID
+        // accessor throws TypeError; preserve the app's no-parent behavior.
+        if (!(error instanceof TypeError)) throw error
+      }
+      if (extractedSpanID !== null) ddContext[extractedSpanID] = extracted
+    }
+    if (extractedSpanID === null && Object.keys(extractedBaggage).length > 0) {
       // Baggage-only extraction has no span context. This ID belongs to the
       // parametric API and never changes the tracer's span or trace IDs.
       extractedSpanID = String(dummyIdIncrementer++)
