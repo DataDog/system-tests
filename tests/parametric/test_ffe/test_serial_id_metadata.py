@@ -8,7 +8,9 @@ serial ID without re-deriving it from (flag_key, allocation_key, variant_key).
 The contract under test: when span enrichment is enabled, the SDK's OpenFeature
 EvaluationDetails-equivalent object must expose the selected split's serial ID
 via `flagMetadata` under the internal key `__dd_split_serial_id`, matching the
-value present in the UFC config pushed over Remote Config. This is the field
+value present in the UFC config pushed over Remote Config. Only .NET represents
+the serial ID as a decimal string, preserving Int64 IDs through OpenFeature's
+metadata API; all other SDKs must return a numeric value. This is the field
 `openfeature-js-client#269` introduced for the Node server SDK; this test
 generalizes the contract to every parametric-tested SDK.
 
@@ -28,7 +30,7 @@ from typing import Any
 
 from utils import pytest
 
-from utils import features, scenarios
+from utils import context, features, scenarios
 from utils.dd_constants import RemoteConfigApplyState
 from utils.docker_fixtures import TestAgentAPI
 from tests.parametric.conftest import APMLibrary
@@ -41,6 +43,11 @@ FFE_READY_RETRY_INTERVAL_SECONDS = 0.2
 SERIAL_ID_METADATA_KEY = "__dd_split_serial_id"
 
 parametrize = pytest.mark.parametrize
+
+
+def _expected_serial_id(serial_id: int) -> int | str:
+    """Only .NET uses strings to preserve Int64 IDs in OpenFeature metadata."""
+    return str(serial_id) if context.library.name == "dotnet" else serial_id
 
 
 def _load_serial_id_metadata_fixture() -> dict[str, Any]:
@@ -145,8 +152,9 @@ class Test_FFE_Serial_Id_Metadata:
         assert not _is_ffe_waiting_for_rc(result), f"FFE provider did not load RC data; result={result}"
 
         flag_metadata = _require_flag_metadata(result)
-        assert flag_metadata.get(SERIAL_ID_METADATA_KEY) == 42, (
-            f"Expected flagMetadata['{SERIAL_ID_METADATA_KEY}'] == 42 for the selected split, "
+        expected_id = _expected_serial_id(42)
+        assert flag_metadata.get(SERIAL_ID_METADATA_KEY) == expected_id, (
+            f"Expected flagMetadata['{SERIAL_ID_METADATA_KEY}'] == {expected_id!r} for the selected split, "
             f"got flagMetadata={flag_metadata}"
         )
 
@@ -170,8 +178,9 @@ class Test_FFE_Serial_Id_Metadata:
             f"flagMetadata is missing '{SERIAL_ID_METADATA_KEY}' entirely; a 0 serial ID must not be "
             f"dropped by a truthiness check. flagMetadata={flag_metadata}"
         )
-        assert flag_metadata.get(SERIAL_ID_METADATA_KEY) == 0, (
-            f"Expected flagMetadata['{SERIAL_ID_METADATA_KEY}'] == 0, got flagMetadata={flag_metadata}"
+        expected_id = _expected_serial_id(0)
+        assert flag_metadata.get(SERIAL_ID_METADATA_KEY) == expected_id, (
+            f"Expected flagMetadata['{SERIAL_ID_METADATA_KEY}'] == {expected_id!r}, got flagMetadata={flag_metadata}"
         )
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
@@ -232,12 +241,12 @@ class Test_FFE_Serial_Id_Metadata:
         standard_metadata = _require_flag_metadata(standard_result)
 
         assert vip_result.get("value") == "vip"
-        assert vip_metadata.get(SERIAL_ID_METADATA_KEY) == 201, (
+        assert vip_metadata.get(SERIAL_ID_METADATA_KEY) == _expected_serial_id(201), (
             f"VIP targeting should select the split with serialId 201, got flagMetadata={vip_metadata}"
         )
 
         assert standard_result.get("value") == "standard"
-        assert standard_metadata.get(SERIAL_ID_METADATA_KEY) == 200, (
+        assert standard_metadata.get(SERIAL_ID_METADATA_KEY) == _expected_serial_id(200), (
             f"Non-VIP targeting should select the split with serialId 200, got flagMetadata={standard_metadata}"
         )
 
@@ -266,6 +275,7 @@ class Test_FFE_Serial_Id_Metadata:
 
         first_id = _require_flag_metadata(first).get(SERIAL_ID_METADATA_KEY)
         second_id = _require_flag_metadata(second).get(SERIAL_ID_METADATA_KEY)
-        assert first_id == second_id == 42, (
-            f"Expected stable serial ID 42 across repeated evaluations, got {first_id} then {second_id}"
+        expected_id = _expected_serial_id(42)
+        assert first_id == second_id == expected_id, (
+            f"Expected stable serial ID {expected_id!r} across repeated evaluations, got {first_id!r} then {second_id!r}"
         )
