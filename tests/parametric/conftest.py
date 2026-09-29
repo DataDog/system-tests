@@ -5,7 +5,7 @@ from pathlib import Path
 import shutil
 import subprocess
 
-import pytest
+from utils import pytest
 import yaml
 
 from utils import scenarios, logger

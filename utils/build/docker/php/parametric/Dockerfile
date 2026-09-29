@@ -1,6 +1,6 @@
 
 FROM datadog/dd-trace-ci:php-8.2_bookworm-6
-RUN switch-php nts
+RUN switch-php nts && echo 'extension=grpc' > /opt/php/nts/conf.d/grpc.ini
 WORKDIR /binaries
 ENV DD_TRACE_CLI_ENABLED=1
 ADD utils/build/docker/php/parametric/composer.json .
@@ -10,6 +10,7 @@ ADD utils/build/docker/php/parametric/../common/install_ddtrace.sh .
 COPY binaries /binaries
 RUN NO_EXTRACT_VERSION=Y ./install_ddtrace.sh
 RUN php -d error_reporting='' -r 'echo phpversion("ddtrace");' > SYSTEM_TESTS_LIBRARY_VERSION
+ENV OTEL_PHP_AUTOLOAD_ENABLED=true
 ADD utils/build/docker/php/parametric/server.php .
 # RUN mkdir /parametric-tracer-logs
 

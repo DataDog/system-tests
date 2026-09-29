@@ -1,6 +1,6 @@
 mod dto;
 
-use std::sync::Arc;
+use std::{sync::Arc, time::Duration};
 
 use axum::{
     extract::State,
@@ -57,6 +57,7 @@ pub fn app() -> Router<AppState> {
         .route("/metrics/otel/force_flush", post(otel_metrics_force_flush))
         .route("/otel/logger/create", post(otel_create_logger))
         .route("/otel/logger/write", post(otel_write_log))
+        .route("/log/otel/flush", post(otel_logs_flush))
 }
 
 // Handler implementations
@@ -876,4 +877,35 @@ async fn otel_write_log(
 
     logger.emit(log_record);
     Json(OtelWriteLogReturn { success: true })
+}
+
+async fn otel_logs_flush(
+    State(state): State<AppState>,
+    Json(args): Json<FlushArgs>,
+) -> Json<OtelLogsFlushReturn> {
+    let provider = state.logger_provider.lock().unwrap().clone();
+    let Some(provider) = provider else {
+        return Json(OtelLogsFlushReturn {
+            success: false,
+            message: "Logger provider not initialized".to_string(),
+        });
+    };
+    let Ok(seconds) = u64::try_from(args.seconds) else {
+        return Json(OtelLogsFlushReturn {
+            success: false,
+            message: "Flush timeout must not be negative".to_string(),
+        });
+    };
+
+    // The SDK's synchronous flush must not block the async runtime. A timeout
+    // bounds this request; the worker still completes the SDK flush afterward.
+    let flush = tokio::task::spawn_blocking(move || provider.force_flush());
+    let result = tokio::time::timeout(Duration::from_secs(seconds), flush).await;
+    let (success, message) = match result {
+        Ok(Ok(Ok(()))) => (true, "SdkLoggerProvider".to_string()),
+        Ok(Ok(Err(error))) => (false, format!("Log flush failed: {error}")),
+        Ok(Err(error)) => (false, format!("Log flush worker failed: {error}")),
+        Err(_) => (false, format!("Log flush timed out after {seconds} seconds")),
+    };
+    Json(OtelLogsFlushReturn { success, message })
 }

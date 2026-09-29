@@ -1,6 +1,6 @@
 import os
 import json
-import pytest
+from utils import pytest
 
 from utils import missing_feature, irrelevant, scenarios, rfc, features, bug, flaky, logger
 

@@ -33,6 +33,7 @@ manifest:
       weblog_declaration:
         chi: bug (DEBUG-5421)
         echo: bug (DEBUG-5421)
+        fiber-v2-orchestrion: bug (DEBUG-5421)
         gin: bug (DEBUG-5421)
         net-http: bug (DEBUG-5421)
         net-http-orchestrion: bug (DEBUG-5421)
@@ -42,6 +43,7 @@ manifest:
       weblog_declaration:
         chi: bug (DEBUG-5421)
         echo: bug (DEBUG-5421)
+        fiber-v2-orchestrion: bug (DEBUG-5421)
         gin: bug (DEBUG-5421)
         net-http: bug (DEBUG-5421)
         net-http-orchestrion: bug (DEBUG-5421)
@@ -51,6 +53,7 @@ manifest:
       weblog_declaration:
         chi: bug (DEBUG-5421)
         echo: bug (DEBUG-5421)
+        fiber-v2-orchestrion: bug (DEBUG-5421)
         gin: bug (DEBUG-5421)
         net-http: bug (DEBUG-5421)
         net-http-orchestrion: bug (DEBUG-5421)
@@ -60,6 +63,7 @@ manifest:
       weblog_declaration:
         chi: bug (DEBUG-5421)
         echo: bug (DEBUG-5421)
+        fiber-v2-orchestrion: bug (DEBUG-5421)
         gin: bug (DEBUG-5421)
         net-http: bug (DEBUG-5421)
         net-http-orchestrion: bug (DEBUG-5421)
@@ -69,6 +73,7 @@ manifest:
       weblog_declaration:
         chi: bug (DEBUG-5421)
         echo: bug (DEBUG-5421)
+        fiber-v2-orchestrion: bug (DEBUG-5421)
         gin: bug (DEBUG-5421)
         net-http: bug (DEBUG-5421)
         net-http-orchestrion: bug (DEBUG-5421)
