@@ -11,6 +11,7 @@ var otelLogger = app.Services.GetRequiredService<ILogger<ApmTestApi.Endpoints.Ap
 // Map endpoints
 ApmTestApi.Endpoints.ApmTestApi.MapApmTraceEndpoints(app, logger);
 ApmTestApi.Endpoints.ApmTestApiOtel.MapApmOtelEndpoints(app, otelLogger);
+ApmTestApi.Endpoints.FfeTestApi.MapFfeEndpoints(app, logger);
 
 if (!int.TryParse(Environment.GetEnvironmentVariable("APM_TEST_CLIENT_SERVER_PORT"), out var port))
 {

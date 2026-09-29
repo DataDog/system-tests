@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import tests.debugger.utils as debugger
-from utils import context, features, interfaces, logger, scenarios, slow
+from utils import context, features, logger, scenarios, slow
 import json
 import time
 
@@ -174,10 +174,18 @@ class Test_Debugger_InProduct_Enablement_Exception_Replay(debugger.BaseDebuggerT
 @slow
 class Test_Debugger_InProduct_Enablement_Code_Origin(debugger.BaseDebuggerTest):
     ########### code origin ############
+    _WARMUP_TIMEOUT = 10
+    _CODE_ORIGIN_TIMEOUT = 30
+
     def _check_code_origin(self):
         """Send a request and check if code origin spans are present."""
-        self.send_weblog_request("/")
-        return self.wait_for_code_origin_span(TIMEOUT)
+        request = self.send_weblog_request("/")
+        return self.wait_for_code_origin_span(request, self._CODE_ORIGIN_TIMEOUT)
+
+    def _warmup_code_origin(self):
+        """Send a request and wait until the tracer has instrumented the view function."""
+        request = self.send_weblog_request("/")
+        self.wait_for_code_origin_span(request, self._WARMUP_TIMEOUT, stop_when_absent=False)
 
     def _set_code_origin_and_check(self, *, enabled: bool | None):
         """Set code origin via remote config and check if spans are present."""
@@ -187,6 +195,11 @@ class Test_Debugger_InProduct_Enablement_Code_Origin(debugger.BaseDebuggerTest):
     def setup_inproduct_enablement_code_origin(self):
         self.initialize_weblog_remote_config()
         self.weblog_responses = []
+
+        # Node.js starts code origin asynchronously. Let it instrument the view
+        # function before checking the default-on state with a fresh request.
+        if context.library == "nodejs":
+            self._warmup_code_origin()
 
         # Check initial state (default varies by language)
         self.co_initial_state = self._check_code_origin()
@@ -219,16 +232,31 @@ class Test_Debugger_InProduct_Enablement_Code_Origin(debugger.BaseDebuggerTest):
 @scenarios.debugger_inproduct_enablement
 @slow
 class Test_Debugger_InProduct_Enablement_Code_Origin_Default_On(debugger.BaseDebuggerTest):
+    # Timeout for the warmup request that lets the tracer finish instrumenting
+    # the view functions, and the longer timeout for the actual check that
+    # absorbs slow trace flush/delivery under CI load.
+    _WARMUP_TIMEOUT = 10
+    _CODE_ORIGIN_TIMEOUT = 30
+
     def setup_code_origin_enabled_by_default(self):
         self.initialize_weblog_remote_config()
-        threshold = self._get_max_trace_file_number()
-        self._span_found = False
-        self.send_weblog_request("/")
-        interfaces.agent.wait_for(
-            lambda data: self._wait_for_code_origin_span(data, threshold=threshold),
-            timeout=TIMEOUT,
-        )
-        self.code_origin_enabled_by_default = self._span_found
+
+        # The preceding code-origin in-product enablement test explicitly
+        # disables code origin via remote config. Clear that RC state so this
+        # test observes the true default rather than the previous override.
+        self.send_rc_apm_tracing(reset=True)
+
+        # The code origin product is started asynchronously and only instruments
+        # the view functions once enabled, so a request sent right after startup
+        # may be served before the code origin metadata is attached. Send a
+        # warmup request to let instrumentation complete before the real check.
+        warmup_request = self.send_weblog_request("/")
+        self.wait_for_code_origin_span(warmup_request, timeout=self._WARMUP_TIMEOUT, stop_when_absent=False)
+
+        # Correlate the trace lookup to this request so that stale traces cannot
+        # satisfy the check and a fast trace cannot be discarded.
+        request = self.send_weblog_request("/")
+        self.code_origin_enabled_by_default = self.wait_for_code_origin_span(request, timeout=self._CODE_ORIGIN_TIMEOUT)
 
     def test_code_origin_enabled_by_default(self):
         self.assert_setup_ok()
