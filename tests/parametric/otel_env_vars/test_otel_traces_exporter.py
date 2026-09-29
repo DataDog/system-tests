@@ -1,3 +1,7 @@
+import time
+
+from requests.exceptions import RequestException
+
 from utils import pytest
 
 from tests.parametric.conftest import APMLibrary
@@ -124,8 +128,21 @@ def _assert_otlp_export(test_agent: TestAgentAPI, test_library: APMLibrary) -> N
             pass
         assert library.dd_flush()
 
-    requests = test_agent.wait_for_num_otlp_requests(1)
-    assert any(request["url"].endswith(OTLP_TRACE_PATH) for request in requests)
+    deadline = time.monotonic() + 3
+    observed_urls: set[str] = set()
+    while True:
+        try:
+            requests = test_agent.otlp_requests()
+        except RequestException:
+            pass
+        else:
+            observed_urls.update(request["url"] for request in requests)
+            if any(request["url"].endswith(OTLP_TRACE_PATH) for request in requests):
+                break
+        assert time.monotonic() < deadline, (
+            f"No OTLP request to {OTLP_TRACE_PATH}; observed URLs: {sorted(observed_urls)}"
+        )
+        time.sleep(0.1)
     _assert_no_native_trace(test_agent)
 
 
