@@ -492,6 +492,11 @@ class ParametricTestClientApi(TestClientApi):
         )
         return resp.json()["span_id"]
 
+    def dd_log_level_diagnostics(self) -> bool:
+        """Ask the app to trigger identifiable SDK warning and error diagnostics."""
+        response = self._session.post(self._url("/trace/diagnostics/log_level"), json={})
+        return HTTPStatus(response.status_code).is_success and response.json().get("success") is True
+
     def dd_flush(self) -> bool:
         r = self._session.post(self._url("/trace/span/flush"), json={})
 
@@ -1107,6 +1112,9 @@ class APMLibrary:
 
     def ensure_agent_info(self) -> bool:
         return self._client.ensure_agent_info()
+
+    def dd_log_level_diagnostics(self) -> bool:
+        return self._client.dd_log_level_diagnostics()
 
     def dd_flush(self) -> bool:
         return self._client.dd_flush()
