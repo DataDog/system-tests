@@ -18,6 +18,20 @@ This directory contains system tests for the Feature Flags & Experimentation (FF
 ./run.sh FEATURE_FLAGGING_AND_EXPERIMENTATION --library <language>
 ```
 
+## Test-contract self-tests
+
+The self-tests in `testing_tests/` validate the FFE assertions using synthetic
+captures. They do not run SDKs or contact an intake. With the Python 3.12 runner
+environment installed, run them explicitly:
+
+```bash
+./run.sh FEATURE_FLAGGING_CONTRACT_TESTS tests/ffe/testing_tests
+```
+
+This no-container scenario has no CI workflow or scenario-group membership.
+Its tests do not run in `TEST_THE_TEST`, `DEFAULT`, or the FFE end-to-end scenarios.
+Framework mock-backend and lifecycle tests stay in `tests/test_the_test/`.
+
 ---
 
 # Eval Metrics Implementation Guide

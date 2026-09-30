@@ -15,11 +15,58 @@ if [ -f "$HOME/dd-agent-diagnostics.log" ]; then
   sudo cp "$HOME/dd-agent-diagnostics.log" /var/log/datadog_weblog/dd-agent-diagnostics.log 2>/dev/null || true;
 fi'"""
 
+# PHP host startup creates core-diagnostics.txt when core dumps are enabled.
+# Collect only for opted-in apps so other AWS SSI weblogs keep their current behavior.
+_COLLECT_CORE_DUMPS_CMD = r"""bash -lc '
+set +e
+dest=/var/log/datadog_weblog
+diagnostics="$dest/core-diagnostics.txt"
+
+[ -f "$diagnostics" ] || exit 0
+
+{
+  echo
+  echo "..:: PHP CORE DUMP COLLECTION ::.."
+  date -u "+%Y-%m-%dT%H:%M:%SZ"
+  printf "core_pattern: "
+  cat /proc/sys/kernel/core_pattern 2>/dev/null || echo unknown
+  printf "suid_dumpable: "
+  cat /proc/sys/fs/suid_dumpable 2>/dev/null || echo unknown
+  sudo systemctl show test-app.service --property=LimitCORE 2>/dev/null || true
+} | sudo tee -a "$diagnostics" >/dev/null
+
+sudo journalctl -xeu test-app.service --no-pager 2>&1 |
+  sudo tee "$dest/journalctl_test-app.log" >/dev/null
+
+if command -v coredumpctl >/dev/null 2>&1; then
+  sudo coredumpctl --no-pager list php 2>&1 |
+    sudo tee "$dest/coredumpctl-list.txt" >/dev/null
+
+  if ! sudo find "$dest" -maxdepth 1 -type f \( -name "core" -o -name "core.*" \) -print -quit |
+    grep -q .; then
+    sudo coredumpctl --no-pager --output="$dest/systemd-coredump" dump php >/dev/null 2>&1 || true
+    sudo test -s "$dest/systemd-coredump" || sudo rm -f "$dest/systemd-coredump"
+  fi
+fi
+
+{
+  echo "collected core files:"
+  sudo find "$dest" -maxdepth 1 -type f \
+    \( -name "core" -o -name "core.*" -o -name "systemd-coredump" \) -print
+} | sudo tee -a "$diagnostics" >/dev/null
+
+sudo find "$dest" -maxdepth 1 -type f \
+  \( -name "core" -o -name "core.*" -o -name "systemd-coredump" \) \
+  -exec chmod a+r {} \;
+sudo chmod a+r "$diagnostics" "$dest/journalctl_test-app.log" "$dest/coredumpctl-list.txt" 2>/dev/null || true
+'"""
+
 # Remote commands that collect host/docker/agent logs into /var/log/datadog_weblog before download.
 # Mirrors utils/build/virtual_machine/provisions/auto-inject/auto-inject-vm_logs.yml.
 _LOG_COLLECTION_COMMANDS = [
     "sudo mkdir -p /var/log/datadog_weblog || true",
     "sudo chmod 777 /var/log/datadog_weblog || true",
+    _COLLECT_CORE_DUMPS_CMD,
     _COLLECT_DD_AGENT_DIAGNOSTICS_CMD,
     "bash -lc 'cd ~ && sudo docker-compose ps > /var/log/datadog_weblog/docker_proccess.log 2>&1 || true'",
     "bash -lc 'cd ~ && sudo docker-compose logs > /var/log/datadog_weblog/docker_logs.log 2>&1 || true'",
