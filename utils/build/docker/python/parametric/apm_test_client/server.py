@@ -203,6 +203,9 @@ def trace_config() -> TraceConfigReturn:
         config={
             "dd_service": config.service,
             "dd_log_level": None,
+            "dd_trace_effective_log_level": logging.getLevelName(
+                logging.getLogger("ddtrace").getEffectiveLevel()
+            ).lower(),
             "dd_trace_sample_rate": str(_global_sampling_rate()),
             "dd_trace_enabled": str(config._tracing_enabled).lower(),
             "dd_runtime_metrics_enabled": str(config._runtime_metrics_enabled).lower(),
