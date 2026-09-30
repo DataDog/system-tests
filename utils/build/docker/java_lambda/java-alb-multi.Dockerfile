@@ -6,14 +6,7 @@ COPY utils/build/docker/java_lambda/src ./src
 RUN mvn clean package -DskipTests
 
 # Runtime image
-FROM public.ecr.aws/lambda/java:17
-
-# Install only runtime dependencies
-RUN yum install -y unzip findutils socat && yum clean all
-
-# Add Datadog Extension
-RUN mkdir -p /opt/extensions
-COPY --from=public.ecr.aws/datadog/lambda-extension:latest /opt/. /opt/
+FROM system_tests_base_java_lambda_java_lambda_runtime
 
 # Install dd-trace-java
 COPY utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
