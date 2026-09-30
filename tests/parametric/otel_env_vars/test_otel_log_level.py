@@ -45,20 +45,50 @@ FALLBACK_VALUES = [
 
 
 def _log_level(test_agent: TestAgentAPI, library: APMLibrary) -> str:
-    """Adapt the published configuration surfaces to a common level spelling."""
+    """Adapt effective logger views and emitted diagnostics to a common spelling."""
     if library.lang == "nodejs":
         entries = test_agent.wait_for_telemetry_configurations().get("DD_TRACE_LOG_LEVEL", [])
         # Rejected attempts may precede the effective default in configuration telemetry.
         accepted = [entry for entry in entries if not entry.get("error")]
         assert accepted, "No accepted DD_TRACE_LOG_LEVEL configuration in telemetry"
         value = accepted[0].get("value")
+    elif library.lang in ("golang", "dotnet"):
+        # The debug-only mapping does not expose a scalar threshold. Require an
+        # actual INFO diagnostic as well as the published effective debug flag.
+        assert _debug_enabled(library) is False
+        if library.lang == "golang":
+            value = library.config().get("dd_trace_startup_log_level")
+        else:
+            with library.dd_start_span("otel-log-level-default"):
+                pass
+            library.dd_flush()
+            deadline = time.monotonic() + 5
+            while True:
+                logs = _diagnostic_logs(library)
+                if any("[INF]" in line and "DATADOG TRACER CONFIGURATION" in line for line in logs.splitlines()):
+                    value = "info"
+                    break
+                assert time.monotonic() < deadline, f"No INFO startup diagnostic from the SDK:\n{logs}"
+                time.sleep(0.1)
     else:
         config = library.config()
         # Java's dd_log_level is raw input, so it cannot prove effective defaults or fallback.
-        key = "dd_trace_effective_log_level" if library.lang == "java" else "dd_log_level"
+        key = "dd_trace_effective_log_level" if library.lang in ("java", "python", "ruby") else "dd_log_level"
         value = config.get(key)
     assert isinstance(value, str), "The parametric application does not expose the effective logger level"
     return value.lower()
+
+
+def _php_threshold_diagnostics(library: APMLibrary, *, warning_enabled: bool) -> None:
+    probe = getattr(library, "dd_log_level_diagnostics", None)
+    assert callable(probe), "The PHP logger diagnostic probe requires the companion parametric app PR"
+    assert probe(), "The SDK logger diagnostic probe did not complete"
+    # Both SDK calls execute synchronously before the endpoint responds. Requiring
+    # ERROR positively prevents a completely disabled logger from passing.
+    logs = library.get_logs().lower()
+    assert "cannot update the span duration of an unfinished span" in logs, f"No SDK ERROR diagnostic:\n{logs}"
+    warning = "unexpected parameter, expecting double for start time"
+    assert (warning in logs) is warning_enabled, f"Unexpected SDK WARN filtering:\n{logs}"
 
 
 def _diagnostic_logs(library: APMLibrary) -> str:
@@ -117,11 +147,24 @@ class Test_OTEL_LOG_LEVEL:
             assert _debug_enabled(library) is False
 
     @pytest.mark.parametrize("library_env", [pytest.param(DEFAULT_ENVIRONMENT, id="unset")])
-    def test_default_error_threshold(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+    def test_default_error_threshold(self, test_library: APMLibrary) -> None:
         # PHP's documented Datadog logger default is error.
         with test_library as library:
-            assert _log_level(test_agent, library) == "error"
+            _php_threshold_diagnostics(library, warning_enabled=False)
             assert _debug_enabled(library) is False
+
+    @pytest.mark.parametrize("library_env", FALLBACK_VALUES)
+    def test_default_warning_threshold(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        # Python inherits its application root logger's WARNING threshold.
+        with test_library as library:
+            assert _log_level(test_agent, library) == "warning"
+            assert _debug_enabled(library) is False
+
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVIRONMENT, "OTEL_LOG_LEVEL": "warn"}], ids=["warn"])
+    def test_warning_threshold_diagnostic(self, test_library: APMLibrary) -> None:
+        # Positive control for the same warning suppressed at PHP's ERROR default.
+        with test_library as library:
+            _php_threshold_diagnostics(library, warning_enabled=True)
 
     @pytest.mark.parametrize(
         "library_env",
@@ -130,9 +173,9 @@ class Test_OTEL_LOG_LEVEL:
             pytest.param({**DEFAULT_ENVIRONMENT, "OTEL_LOG_LEVEL": "not-a-log-level"}, id="unrecognized"),
         ],
     )
-    def test_error_threshold_fallback(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+    def test_error_threshold_fallback(self, test_library: APMLibrary) -> None:
         with test_library as library:
-            assert _log_level(test_agent, library) == "error"
+            _php_threshold_diagnostics(library, warning_enabled=False)
 
     @pytest.mark.parametrize("library_env", UNSET_AND_EMPTY)
     def test_default_does_not_enable_debug(self, test_library: APMLibrary) -> None:
