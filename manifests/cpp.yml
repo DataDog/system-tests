@@ -70,6 +70,7 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_metric_export_interval.py::Test_OTEL_METRIC_EXPORT_INTERVAL: missing_feature
   tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT: missing_feature
   tests/parametric/otel_env_vars/test_otel_metrics_exporter.py::Test_OTEL_METRICS_EXPORTER: missing_feature
+  tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS: missing_feature (OTEL_PROPAGATORS is not implemented)
   tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES: missing_feature
   tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED: missing_feature
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME: '>=2.2.0'  # TODO: a lower version might be supported
