@@ -1,6 +1,11 @@
 name: OTel app completion validation
 on:
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      libraries:
+        description: JSON array of SDKs to validate
+        type: string
+        default: '["golang", "java", "dotnet", "php", "python", "ruby", "nodejs"]'
 permissions:
   contents: read
   id-token: write
@@ -12,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        library: [golang, java, dotnet, php, python, ruby, nodejs]
+        library: ${{ fromJSON(inputs.libraries) }}
         version: [prod, dev]
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
