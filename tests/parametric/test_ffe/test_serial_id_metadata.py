@@ -26,7 +26,7 @@ import time
 from pathlib import Path
 from typing import Any
 
-import pytest
+from utils import pytest
 
 from utils import features, scenarios
 from utils.dd_constants import RemoteConfigApplyState
