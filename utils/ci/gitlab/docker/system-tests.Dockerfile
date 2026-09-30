@@ -62,4 +62,8 @@ COPY --from=registry.ddbuild.io/ddsign:v1.11.10@sha256:55784668a612ab22129bb15a6
 # For more information see https://datadoghq.atlassian.net/wiki/spaces/SECENG/pages/5138645099/User+guide+dd-octo-sts#%3Agitlab%3A-Via-Gitlab-CI-job
 COPY --from=registry.ddbuild.io/dd-octo-sts:v1.9.3@sha256:f8412df42db2e1879182c820ea4ef600ab4375c5b696a24151c7f0dd931ffee6 /usr/local/bin/dd-octo-sts /usr/local/bin/dd-octo-sts
 
+# Used to push signed commits to automation branches (e.g. the pinned Agent version update)
+# https://github.com/DataDog/commit-headless
+COPY --from=registry.ddbuild.io/commit-headless:v3.4.0@sha256:7a7c7853250c0dcd4682548a256d4e470fc4443a9a37e0c69aa83e85e53a1dbc /commit-headless /usr/local/bin/commit-headless
+
 WORKDIR /
