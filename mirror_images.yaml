@@ -57,6 +57,7 @@
 - "datadog/system-tests:fastify.base-bce27c61b3f5"
 - "datadog/system-tests:flask-poc.base-fa81f4f89ea4"
 - "datadog/system-tests:golang_buddy-v2"
+- "datadog/system-tests:java-lambda-runtime.base-e849230b09df"
 - "datadog/system-tests:java_buddy-v1"
 - "datadog/system-tests:lambda-proxy-v1"
 - "datadog/system-tests:nextjs.base-95582a903467"
