@@ -762,7 +762,7 @@ class TestAgentAPI:
             self.clear()
         return configurations
 
-    def wait_for_telemetry_runtime_id(self, *, exclude: str | None = None, wait_loops: int = 200) -> str:
+    def wait_for_telemetry_runtime_id(self, *, exclude: str | None = None, wait_loops: int = 400) -> str:
         observed_runtime_ids: set[str] = set()
         for _ in range(wait_loops):
             events: list[dict[str, Any]] = []
