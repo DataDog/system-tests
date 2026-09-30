@@ -286,6 +286,7 @@ class Test_Parametric_DDTrace_Config:
                 "dd_tags",
                 "dd_trace_propagation_style",
                 "dd_trace_debug",
+                "dd_trace_startup_log_level",
                 "dd_trace_otel_enabled",
                 "dd_trace_sample_ignore_parent",
                 "dd_env",
