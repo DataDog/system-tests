@@ -25,7 +25,7 @@ class ActivationConfig:
 
 
 @dataclass(frozen=True)
-class AutoMergeOptIn:
+class AutoMergeOptOut:
     owner: str
     library: str
 
@@ -43,7 +43,7 @@ class NightlyOptions:
     commit_headless: Path
     github: GithubContext
     github_token: str
-    auto_merge_opt_ins: tuple[AutoMergeOptIn, ...]
+    auto_merge_opt_outs: tuple[AutoMergeOptOut, ...]
 
 
 @dataclass(frozen=True)
@@ -113,20 +113,21 @@ LIBRARIES: tuple[ActivationConfig, ...] = tuple(
     ActivationConfig(library, use_dev=library == "rust") for library in sorted(COMPONENT_GROUPS.easy_win)
 )
 
-AUTO_MERGE_OPT_INS_OWNERS: tuple[str, ...] = ("apm-sdk-capabilities",)
-"""Teams that opted in for auto-merge of their easy win PRs, on every easy win library"""
+AUTO_MERGE_OPT_OUTS_OWNERS: tuple[str, ...] = ()
+"""Teams that opted out of auto-merge of their easy win PRs, on every easy win library"""
 
-AUTO_MERGE_OPT_INS: tuple[AutoMergeOptIn, ...] = tuple(
-    AutoMergeOptIn(owner=owner, library=library)
-    for owner in AUTO_MERGE_OPT_INS_OWNERS
+AUTO_MERGE_OPT_OUTS: tuple[AutoMergeOptOut, ...] = tuple(
+    AutoMergeOptOut(owner=owner, library=library)
+    for owner in AUTO_MERGE_OPT_OUTS_OWNERS
     for library in sorted(COMPONENT_GROUPS.easy_win)
 )
+"""Team/library pairs for which auto-merge is disabled. Auto-merge is enabled for every other pair."""
 
 MIN_ACTIVATION_BRANCH_PARTS = 3
 
 
-def should_enable_auto_merge(owner: str, library: str, opt_ins: Sequence[AutoMergeOptIn]) -> bool:
-    return any(opt_in.owner == owner and opt_in.library == library for opt_in in opt_ins)
+def should_enable_auto_merge(owner: str, library: str, opt_outs: Sequence[AutoMergeOptOut]) -> bool:
+    return not any(opt_out.owner == owner and opt_out.library == library for opt_out in opt_outs)
 
 
 def extract_reports_from_logs_artifacts(reports_dir: Path) -> None:
@@ -250,7 +251,7 @@ def process_activation_branch(
         _run_checked(["gh", "pr", "ready", pr_number], runner)
         _resolve_bot_review_threads(options.github.repository, pr_number, runner)
 
-    if should_enable_auto_merge(owner, library, options.auto_merge_opt_ins):
+    if should_enable_auto_merge(owner, library, options.auto_merge_opt_outs):
         print(f"Enabling auto-merge on PR #{pr_number}")  # noqa: T201
         _run_checked(["gh", "pr", "merge", pr_number, "--auto", "--squash"], runner)
 
@@ -415,7 +416,7 @@ def _create_pr(
     body = (
         f"Automated activation of easy-win tests for `{library}` owned by `{owner}`\n"
         f"[View nightly workflow run]({github.server_url}/{github.repository}/actions/runs/{github.run_id})\n"
-        "- Auto-merge is only enabled for opted-in team/library pairs.\n"
+        "- Auto-merge is enabled unless the team opted out for this library.\n"
         "- If the tests are failing it might be due to a change made since the last nightly system-tests run. "
         "You can close the PR, an updated one will be available tomorrow.\n"
         "- If you close the PR please also delete the branch"
@@ -492,7 +493,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 commit_headless=args.commit_headless,
                 github=GithubContext(repository=args.repository, server_url=args.server_url, run_id=args.run_id),
                 github_token=github_token,
-                auto_merge_opt_ins=AUTO_MERGE_OPT_INS,
+                auto_merge_opt_outs=AUTO_MERGE_OPT_OUTS,
             )
         )
 
