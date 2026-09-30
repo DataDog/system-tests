@@ -198,6 +198,10 @@ images:
     digest: sha256:b567fa2e328f24c74aab600e8bf07362b4265ac508413a83e06afddb399bee80
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:golang_buddy-v2
     tag: golang_buddy-v2
+  datadog/system-tests:java-lambda-runtime.base-e849230b09df:
+    digest: sha256:0ed8d03a1d80c5e8dc78991a6fd9d32021f6282898a73ce9c5e43b444b630327
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:java-lambda-runtime.base-e849230b09df
+    tag: java-lambda-runtime.base-e849230b09df
   datadog/system-tests:java_buddy-v1:
     digest: sha256:67aac2b7c0c88b40da498fbc74b48f0a62702148e5c9256c5752a9e624d972ce
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:java_buddy-v1
@@ -210,6 +214,10 @@ images:
     digest: sha256:128b7524cde00a739246166feef66b0d512388005dc125b0f11034555a8b6a70
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:nextjs.base-95582a903467
     tag: nextjs.base-95582a903467
+  datadog/system-tests:nodejs-lambda-runtime.base-500f77a9bd83:
+    digest: sha256:399c73c66758ed23002ba4ac4b6f61e387ee510a06fd8a64f2361fb53daed841
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:nodejs-lambda-runtime.base-500f77a9bd83
+    tag: nodejs-lambda-runtime.base-500f77a9bd83
   datadog/system-tests:nodejs_buddy-v1:
     digest: sha256:71d124f74d4d7ac706f1afa8d5950864e1e931ec3b511f540b49eb6328c0338e
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:nodejs_buddy-v1
