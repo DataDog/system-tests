@@ -271,27 +271,27 @@ jobs:
 
   check_ref_on_main:
     name: Check system-tests ref is on main
-    # Runs last, so that testing on a system-tests dev branch still produces results,
-    # while failing the workflow to block merging until the ref points back to main
-    needs:
-      - compute_parameters
-      - parametric
-      - build_end_to_end
-      - run_end_to_end
-    if: ${{ !cancelled() && github.repository != 'DataDog/system-tests' }}
+    # No other job depends on this one: tests still run on a system-tests dev branch,
+    # but the workflow fails to block merging until the ref points back to main.
+    # Skipped when ref is empty or main, as tests run on main in that case.
+    if: ${{ github.repository != 'DataDog/system-tests' && inputs.ref != '' && inputs.ref != 'main' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:
       - name: Checkout
+        id: checkout
+        # Do not fail the job if the clone fails, this check is best effort
+        continue-on-error: true
         uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
         with:
           repository: 'DataDog/system-tests'
-          ref: ${{ inputs.ref || 'main' }}
+          ref: ${{ inputs.ref }}
           fetch-depth: 0
       - name: Check system-tests ref is on main
+        if: steps.checkout.outcome == 'success'
         env:
-          REF: ${{ inputs.ref || 'main' }}
+          REF: ${{ inputs.ref }}
         run: |
           # REF can be a branch, tag or commit SHA. It is accepted as long as the commit it
           # points to is part of main's history.
