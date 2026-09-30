@@ -4,7 +4,7 @@ import json
 import re
 from pathlib import Path
 
-import pytest
+from utils import pytest
 import yaml
 
 from utils import scenarios

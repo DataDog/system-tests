@@ -46,6 +46,12 @@ if ! mypy --config pyproject.toml; then
   exit 1
 fi
 
+echo "Running import policy checks..."
+if ! lint-imports; then
+  echo "Import policy checks failed. Please fix the errors above. 💥 💔 💥"
+  exit 1
+fi
+
 echo "Running ruff formatter..."
 if [ "$COMMAND" == "fix" ]; then
   ruff format
