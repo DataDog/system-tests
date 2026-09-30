@@ -120,7 +120,8 @@ def remote_branch_exists(github: GitHubApi) -> bool:
     try:
         github.request("GET", f"/repos/{REPOSITORY}/git/ref/heads/{AUTOMATION_BRANCH}")
     except urllib.error.HTTPError as error:
-        if error.code == 404:
+        not_found = 404
+        if error.code == not_found:
             return False
         raise
     return True
@@ -132,7 +133,17 @@ def push_signed_commit(root: Path, base_sha: str, github: GitHubApi, env: Mappin
     flag = "--force" if remote_branch_exists(github) else "--create-branch"
     result = run_command(
         root,
-        ["commit-headless", "push", "-T", REPOSITORY, "--branch", AUTOMATION_BRANCH, "--head-sha", base_sha, flag],
+        [
+            "commit-headless",
+            "push",
+            "-T",
+            REPOSITORY,
+            "--branch",
+            AUTOMATION_BRANCH,
+            "--head-sha",
+            base_sha,
+            flag,
+        ],
         capture_output=True,
         env=env,
     )
@@ -144,7 +155,11 @@ def publish_update(root: Path, version: str, github: GitHubApi, env: Mapping[str
     run_command(root, ["git", "switch", "--force-create", AUTOMATION_BRANCH], env=env)
     run_command(root, ["git", "add", str(AGENT_VERSION_LOCK)], env=env)
     run_command(root, ["git", "config", "user.name", "github-actions[bot]"], env=env)
-    run_command(root, ["git", "config", "user.email", "github-actions[bot]@users.noreply.github.com"], env=env)
+    run_command(
+        root,
+        ["git", "config", "user.email", "github-actions[bot]@users.noreply.github.com"],
+        env=env,
+    )
     run_command(root, ["git", "commit", "-m", f"Update Agent to {version}"], env=env)
 
     signed_sha = push_signed_commit(root, base_sha, github, env)

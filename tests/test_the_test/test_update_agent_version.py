@@ -225,7 +225,10 @@ def test_publish_update_creates_only_missing_pr(
         "--force",
     ] in commands
     assert not any(command[0] == "gh" for command in commands)
-    assert any(method == "GET" and path == f"/repos/DataDog/system-tests/git/ref/heads/{AUTOMATION_BRANCH}" for method, path in github.calls)
+    assert any(
+        method == "GET" and path == f"/repos/DataDog/system-tests/git/ref/heads/{AUTOMATION_BRANCH}"
+        for method, path in github.calls
+    )
     assert any(method == "POST" and path.endswith("/pulls") for method, path in github.calls) is (not existing_pr)
     if existing_pr:
         assert ("PATCH", f"/repos/DataDog/system-tests/pulls/{existing_pr}") in github.calls
