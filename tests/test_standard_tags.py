@@ -185,7 +185,7 @@ class Test_StandardTagsRoute:
             if "net-http" in context.weblog_variant:
                 # net/http doesn't support parametrized routes but a path catches anything down the tree.
                 tags["http.route"] = "/sample_rate_route/"
-            if context.weblog_variant in ("gin", "echo", "uds-echo"):
+            if context.weblog_variant in ("gin", "echo", "uds-echo", "fiber-v2-orchestrion"):
                 tags["http.route"] = "/sample_rate_route/:i"
         if context.library == "dotnet":
             tags["http.route"] = "/sample_rate_route/{i:int}"

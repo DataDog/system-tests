@@ -2,8 +2,14 @@
 
 # This script is needed only for this reason: https://datadoghq.atlassian.net/browse/AP-2165
 
-if [ -z "$INSTALLER_URL" ]; then
-    INSTALLER_URL="https://dd-agent.s3.amazonaws.com/scripts/install_script_agent7.sh"
+# shellcheck source=/dev/null
+. ./agent.lock
+export DD_AGENT_MAJOR_VERSION="${DD_AGENT_VERSION%%.*}"
+export DD_AGENT_MINOR_VERSION="${DD_AGENT_VERSION#*.}"
+AGENT_INSTALL_SCRIPT="install_script_agent${DD_AGENT_MAJOR_VERSION}.sh"
+
+if [ -z "${INSTALLER_URL:-}" ]; then
+    INSTALLER_URL="https://dd-agent.s3.amazonaws.com/scripts/${AGENT_INSTALL_SCRIPT}"
 fi
 
 if [ "$DD_APM_INSTRUMENTATION_ENABLED" == "docker" ]; then
@@ -62,9 +68,9 @@ fi
 
 sudo sh -c "sudo mkdir -p /etc/datadog-agent && printf \"api_key: ${DD_API_KEY}\nsite: datadoghq.com\n\" > /etc/datadog-agent/datadog.yaml"
 
-if [ -f "install_script_agent7.sh" ]; then
+if [ -f "${AGENT_INSTALL_SCRIPT}" ]; then
     echo "*** Execute installation script from provided binaries ***"
-    cp install_script_agent7.sh install_script.sh
+    cp "${AGENT_INSTALL_SCRIPT}" install_script.sh
     chmod +x install_script.sh
 else
     echo "Download installation script from S3"

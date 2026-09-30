@@ -81,7 +81,9 @@ def base_image_contexts(dockerfile_text: str, lock_path: Path = LOCK_PATH) -> di
     missing = [alias for alias in aliases if alias not in lock]
     if missing:
         raise BaseImageLockError(
-            f"{lock_path}: missing base-image lock entr{'y' if len(missing) == 1 else 'ies'} for {', '.join(missing)}"
+            f"{lock_path}: missing base-image lock entr{'y' if len(missing) == 1 else 'ies'} for {', '.join(missing)}; "
+            "if you just added or renamed a base image, regenerate the lock with "
+            "python utils/scripts/update-base-images-lock.py and commit the result"
         )
     return {alias: lock[alias] for alias in aliases}
 

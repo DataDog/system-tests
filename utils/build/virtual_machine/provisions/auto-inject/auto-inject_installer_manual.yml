@@ -5,13 +5,16 @@
       local_path: utils/build/virtual_machine/provisions/auto-inject/tracer_debug/debug_config.yaml
     - name: copy-docker-config
       local_path: utils/build/virtual_machine/provisions/auto-inject/docker/docker_config.yaml
+    - name: copy-agent-version-lock
+      local_path: utils/build/virtual_machine/agent.lock
     - name: copy-binaries
       local_path: binaries/
 
   remote-command: |
-    # Pin to 7.78.4 agent release. APMSP-3059
-    export DD_AGENT_MAJOR_VERSION=7
-    export DD_AGENT_MINOR_VERSION=78.4
+    . ./agent.lock
+    export DD_AGENT_MAJOR_VERSION="${DD_AGENT_VERSION%%.*}"
+    export DD_AGENT_MINOR_VERSION="${DD_AGENT_VERSION#*.}"
+    AGENT_INSTALL_SCRIPT="install_script_agent${DD_AGENT_MAJOR_VERSION}.sh"
     # Check if Docker is installed and ensure it's running
     if command -v docker >/dev/null 2>&1; then
         echo "Docker is installed, ensuring service is enabled and running..."
@@ -118,21 +121,21 @@
     sudo cat /etc/datadog-agent/application_monitoring.yaml || true
 
     # Check if install script exists locally in binaries folder
-    if [ -f "install_script_agent7.sh" ]; then
+    if [ -f "${AGENT_INSTALL_SCRIPT}" ]; then
         echo "*** Execute installation script from provided binaries ***"
-        cp install_script_agent7.sh install_script.sh
+        cp "${AGENT_INSTALL_SCRIPT}" install_script.sh
         chmod +x install_script.sh
     else
         echo "Download installation script from S3"
         # dns install.datadoghq.com or the network interfaces are no very steady, so we need to retry
         # On the old machines the curl command doesn't support the --retry-connrefused flag, we implement the retry policy in a loop
-        # standard exec: DD_REPO_URL=${DD_injection_repo_url} bash -c "$(curl -L https://dd-agent.s3.amazonaws.com/scripts/install_script_agent7.sh)"
+        # standard exec: DD_REPO_URL=${DD_injection_repo_url} bash -c "$(curl -L https://dd-agent.s3.amazonaws.com/scripts/${AGENT_INSTALL_SCRIPT})"
         MAX_RETRIES=5
         RETRY_DELAY=5
         COUNTER=0
 
         while [ $COUNTER -lt $MAX_RETRIES ]; do
-            curl -L https://dd-agent.s3.amazonaws.com/scripts/install_script_agent7.sh -o install_script.sh && break
+            curl -L "https://dd-agent.s3.amazonaws.com/scripts/${AGENT_INSTALL_SCRIPT}" -o install_script.sh && break
             echo "Retrying in $RETRY_DELAY seconds..."
             sleep $RETRY_DELAY
             ((COUNTER++))

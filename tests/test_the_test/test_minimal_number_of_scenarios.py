@@ -2,7 +2,7 @@ import itertools
 import json
 from typing import Any
 
-import pytest
+from utils import pytest
 
 from utils._context._scenarios import get_all_scenarios, scenarios
 from utils._context._scenarios.endtoend import EndToEndScenario
