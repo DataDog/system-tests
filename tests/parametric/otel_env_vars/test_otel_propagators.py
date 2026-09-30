@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 import time
 
@@ -75,6 +76,30 @@ def _diagnostic_logs(library: APMLibrary) -> str:
     return library.get_logs()
 
 
+def _configured_baggage_propagators(library: APMLibrary) -> set[str]:
+    if library.lang != "dotnet":
+        return _configured_propagators(library)
+
+    # .NET's manual span-context API discards baggage. Its published startup
+    # configuration exposes the resolved propagators in both directions.
+    with library.dd_start_span("otel-propagators-configuration"):
+        pass
+    library.dd_flush()
+    deadline = time.monotonic() + 5
+    marker = "DATADOG TRACER CONFIGURATION - "
+    while True:
+        logs = _diagnostic_logs(library)
+        for line in logs.splitlines():
+            if marker in line:
+                configuration = json.loads(line.split(marker, 1)[1])
+                inject = set(configuration["trace_propagation_style_inject"])
+                extract = set(configuration["trace_propagation_style_extract"])
+                assert inject == extract, f"Injection and extraction differ: {inject=}, {extract=}"
+                return inject
+        assert time.monotonic() < deadline, f"No published propagation configuration found: {logs}"
+        time.sleep(0.1)
+
+
 @pytest.fixture
 def default_and_configured_propagators(
     request: pytest.FixtureRequest,
@@ -123,7 +148,7 @@ class Test_OTEL_PROPAGATORS:
     @pytest.mark.parametrize(("library_env", "expected"), [STABLE_VALUES["baggage"]])
     def test_baggage(self, test_library: APMLibrary, expected: set[str]) -> None:
         with test_library as library:
-            assert _configured_propagators(library) == expected
+            assert _configured_baggage_propagators(library) == expected
 
     @pytest.mark.parametrize(("library_env", "expected"), [STABLE_VALUES["xray"]])
     def test_xray(self, test_library: APMLibrary, expected: set[str]) -> None:
@@ -154,7 +179,7 @@ class Test_OTEL_PROPAGATORS:
     )
     def test_composite_propagators(self, test_library: APMLibrary) -> None:
         with test_library as library:
-            assert _configured_propagators(library) == {"tracecontext", "baggage"}
+            assert _configured_baggage_propagators(library) == {"tracecontext", "baggage"}
 
     @pytest.mark.parametrize(
         "library_env",
