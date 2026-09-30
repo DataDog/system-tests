@@ -277,9 +277,12 @@ class Test_Parametric_DDTrace_Config:
             assert list(configs.keys()) == [
                 "dd_service",
                 "dd_log_level",
+                "dd_trace_effective_log_level",
                 "dd_trace_sample_rate",
                 "dd_trace_enabled",
                 "dd_runtime_metrics_enabled",
+                "dd_metrics_otel_interval",
+                "otel_metrics_initialized",
                 "dd_tags",
                 "dd_trace_propagation_style",
                 "dd_trace_debug",

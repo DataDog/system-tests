@@ -51,6 +51,8 @@ public class TraceController {
       config.put("dd_trace_propagation_style", helper.getConfigCollectionValues("getTracePropagationStylesToInject", ","));
       config.put("dd_tags", helper.getConfigMapValues("getGlobalTags", ",", ":"));
       config.put("dd_trace_otel_enabled", helper.getInstrumenterConfigValue("isTraceOtelEnabled"));
+      config.put("dd_metrics_otel_interval", helper.getOptionalConfigValue("getMetricsOtelInterval"));
+      config.put("dd_trace_effective_log_level", helper.getEffectiveLogLevel());
 
       config.values().removeIf(Objects::isNull);
       return new GetTraceConfigResult(config);
