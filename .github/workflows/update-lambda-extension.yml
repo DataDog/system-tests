@@ -22,26 +22,17 @@ jobs:
       - name: Install runner
         uses: ./.github/actions/install_runner
 
-      - name: Run scripts
+      - name: Run script
         id: update_script
         run: |
-          chmod +x utils/scripts/update_lambda_extension_version.py utils/scripts/update_lambda_runtime_image_digest.py
+          chmod +x utils/scripts/update_lambda_extension_version.py
           source venv/bin/activate
-
-          changed=false
           if ./utils/scripts/update_lambda_extension_version.py; then
-            changed=true
-          fi
-          if ./utils/scripts/update_lambda_runtime_image_digest.py; then
-            changed=true
-          fi
-
-          if [ "$changed" = "true" ]; then
             echo "changes_made=true" >> "$GITHUB_OUTPUT"
-            echo "Updates were made to the pinned lambda extension version and/or runtime image digest"
+            echo "Updates were made to the pinned lambda extension version"
           else
             echo "changes_made=false" >> "$GITHUB_OUTPUT"
-            echo "No updates needed - already pinned to the latest versions"
+            echo "No updates needed - already pinned to the latest version"
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -106,7 +97,7 @@ jobs:
         if: steps.update_script.outputs.changes_made == 'true'
         run: |
           echo "Committing..."
-          git commit -m "Update pinned lambda extension version and/or runtime image digest" --no-verify
+          git commit -m "Update pinned lambda extension version" --no-verify
 
       - uses: DataDog/dd-octo-sts-action@acaa02eee7e3bb0839e4272dacb37b8f3b58ba80 # v1.0.3
         if: steps.update_script.outputs.changes_made == 'true'
@@ -136,8 +127,8 @@ jobs:
             echo "PR already exists: #$PR_NUMBER"
           else
             gh pr create \
-              --title "Update pinned lambda extension version and/or runtime image digest" \
-              --body "Automated update of the pinned public.ecr.aws/datadog/lambda-extension version and/or AWS Lambda runtime image digests used by the python_lambda and java_lambda base images" \
+              --title "Update pinned lambda extension version" \
+              --body "Automated update of the pinned public.ecr.aws/datadog/lambda-extension version used by the python_lambda and java_lambda base images" \
               --head "$BRANCH_NAME" \
               --base main
           fi
