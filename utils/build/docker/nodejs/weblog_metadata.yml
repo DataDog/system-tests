@@ -51,6 +51,7 @@ fastify:
     - APPSEC_STANDALONE_RASP
     - IAST_DEDUPLICATION
     - IAST_STANDALONE
+    - THREAD_CONTEXT_SHARING
 nextjs:
   build_mode: local
   supported_scenarios: *framework_scenarios
