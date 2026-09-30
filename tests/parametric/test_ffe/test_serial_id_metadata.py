@@ -15,7 +15,8 @@ generalizes the contract to every parametric-tested SDK.
 This module tests:
 1. flagMetadata carries the exact serialId of the selected split.
 2. Zero is a valid serial ID and must not be treated as "missing" (falsy-check trap).
-3. A split with no serialId must not fabricate one; flagMetadata omits the key or reports null.
+3. Evaluation details always expose flagMetadata; for a split with no serialId, the map is null/empty
+   or omits the serial ID key.
 4. flagMetadata reflects whichever split targeting actually selected, not always the first one.
 5. Repeated evaluations of the same context return the same serial ID.
 """
@@ -80,6 +81,17 @@ def _is_ffe_waiting_for_rc(result: dict[str, Any]) -> bool:
     )
 
 
+def _require_flag_metadata(result: dict[str, Any]) -> dict[str, Any]:
+    """Require evaluation details to expose flagMetadata, allowing a null map."""
+    assert "flagMetadata" in result, f"FFE evaluation details did not emit flagMetadata; result={result}"
+
+    flag_metadata = result["flagMetadata"]
+    assert flag_metadata is None or isinstance(flag_metadata, dict), (
+        f"Expected flagMetadata to be a map or null, got {flag_metadata!r}"
+    )
+    return flag_metadata or {}
+
+
 def _ffe_evaluate_with_rc_retry(
     test_library: APMLibrary,
     *,
@@ -131,7 +143,7 @@ class Test_FFE_Serial_Id_Metadata:
         )
         assert not _is_ffe_waiting_for_rc(result), f"FFE provider did not load RC data; result={result}"
 
-        flag_metadata = result.get("flagMetadata") or {}
+        flag_metadata = _require_flag_metadata(result)
         assert flag_metadata.get(SERIAL_ID_METADATA_KEY) == 42, (
             f"Expected flagMetadata['{SERIAL_ID_METADATA_KEY}'] == 42 for the selected split, "
             f"got flagMetadata={flag_metadata}"
@@ -152,7 +164,7 @@ class Test_FFE_Serial_Id_Metadata:
         )
         assert not _is_ffe_waiting_for_rc(result), f"FFE provider did not load RC data; result={result}"
 
-        flag_metadata = result.get("flagMetadata") or {}
+        flag_metadata = _require_flag_metadata(result)
         assert SERIAL_ID_METADATA_KEY in flag_metadata, (
             f"flagMetadata is missing '{SERIAL_ID_METADATA_KEY}' entirely; a 0 serial ID must not be "
             f"dropped by a truthiness check. flagMetadata={flag_metadata}"
@@ -181,7 +193,7 @@ class Test_FFE_Serial_Id_Metadata:
         assert result.get("reason") != "ERROR", f"FFE evaluation failed; result={result}"
         assert result.get("value") == "control", f"Expected the configured control variation; result={result}"
 
-        flag_metadata = result.get("flagMetadata") or {}
+        flag_metadata = _require_flag_metadata(result)
         assert flag_metadata.get(SERIAL_ID_METADATA_KEY) is None, (
             f"Expected no serial ID for a split without one, got "
             f"flagMetadata['{SERIAL_ID_METADATA_KEY}']={flag_metadata.get(SERIAL_ID_METADATA_KEY)!r}"
@@ -215,8 +227,8 @@ class Test_FFE_Serial_Id_Metadata:
         for label, result in (("vip", vip_result), ("standard", standard_result)):
             assert not _is_ffe_waiting_for_rc(result), f"FFE provider did not load RC data ({label}); result={result}"
 
-        vip_metadata = vip_result.get("flagMetadata") or {}
-        standard_metadata = standard_result.get("flagMetadata") or {}
+        vip_metadata = _require_flag_metadata(vip_result)
+        standard_metadata = _require_flag_metadata(standard_result)
 
         assert vip_result.get("value") == "vip"
         assert vip_metadata.get(SERIAL_ID_METADATA_KEY) == 201, (
@@ -251,8 +263,8 @@ class Test_FFE_Serial_Id_Metadata:
             targeting_key="user-repeat",
         )
 
-        first_id = (first.get("flagMetadata") or {}).get(SERIAL_ID_METADATA_KEY)
-        second_id = (second.get("flagMetadata") or {}).get(SERIAL_ID_METADATA_KEY)
+        first_id = _require_flag_metadata(first).get(SERIAL_ID_METADATA_KEY)
+        second_id = _require_flag_metadata(second).get(SERIAL_ID_METADATA_KEY)
         assert first_id == second_id == 42, (
             f"Expected stable serial ID 42 across repeated evaluations, got {first_id} then {second_id}"
         )
