@@ -1,9 +1,4 @@
-FROM public.ecr.aws/lambda/ruby:3.4
-
-RUN dnf install -y unzip findutils socat gcc make redhat-rpm-config
-
-RUN mkdir -p /opt/extensions
-COPY --from=public.ecr.aws/datadog/lambda-extension:latest /opt/. /opt/
+FROM system_tests_base_ruby_lambda_ruby_lambda_runtime
 
 COPY utils/build/docker/ruby_lambda/install_datadog_lambda.sh binaries* /binaries/
 RUN /binaries/install_datadog_lambda.sh

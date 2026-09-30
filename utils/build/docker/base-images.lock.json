@@ -39,6 +39,7 @@
     "system_tests_base_python_lambda_python_lambda_runtime": "datadog/system-tests:python-lambda-runtime.base-944cdc8541b3",
     "system_tests_base_python_python3_12": "datadog/system-tests:python3.12.base-604705958847",
     "system_tests_base_python_tornado": "datadog/system-tests:tornado.base-301b798ae137",
-    "system_tests_base_python_uwsgi_poc": "datadog/system-tests:uwsgi-poc.base-24176640f4fe"
+    "system_tests_base_python_uwsgi_poc": "datadog/system-tests:uwsgi-poc.base-24176640f4fe",
+    "system_tests_base_ruby_lambda_ruby_lambda_runtime": "datadog/system-tests:ruby-lambda-runtime.base-78548bc44bd6"
   }
 }

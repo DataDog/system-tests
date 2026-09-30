@@ -84,6 +84,7 @@
 - "datadog/system-tests:python-lambda-runtime.base-944cdc8541b3"
 - "datadog/system-tests:python3.12.base-604705958847"
 - "datadog/system-tests:python_buddy-v2"
+- "datadog/system-tests:ruby-lambda-runtime.base-78548bc44bd6"
 - "datadog/system-tests:ruby_buddy-v2"
 - "datadog/system-tests:tornado.base-301b798ae137"
 - "datadog/system-tests:tornado.base-f378644cba7d"
