@@ -22,13 +22,12 @@ else
     esac
     echo "Detected Node.js major: ${NODE_MAJOR}, using layer runtime version: ${NODE_VERSION}"
 
-    LATEST_TAG=$(curl -fsSL -H "Accept: application/vnd.github.v3+json" \
-        https://api.github.com/repos/DataDog/datadog-lambda-js/releases/latest \
-        | grep '"tag_name"' | head -1 | sed 's/.*"tag_name": *"//;s/".*//')
-    echo "Latest release tag: ${LATEST_TAG}"
-
+    # Resolves directly to the latest release's asset (a github.com redirect), unlike
+    # api.github.com/.../releases/latest which needs a separate call to get the tag name
+    # first and hits that API's much lower unauthenticated rate limit (60/hour/IP).
+    # python_lambda and ruby_lambda's install scripts use the same shortcut.
     ZIP_NAME="datadog_lambda_node${NODE_VERSION}.zip"
-    DOWNLOAD_URL="https://github.com/DataDog/datadog-lambda-js/releases/download/${LATEST_TAG}/${ZIP_NAME}"
+    DOWNLOAD_URL="https://github.com/DataDog/datadog-lambda-js/releases/latest/download/${ZIP_NAME}"
     echo "Downloading ${DOWNLOAD_URL}"
     curl -fsSLO "${DOWNLOAD_URL}"
 
