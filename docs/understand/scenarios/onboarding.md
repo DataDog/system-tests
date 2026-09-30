@@ -819,8 +819,12 @@ Located in: **var/log/datadog_weblog/**
 * **docker_list_dependencies.log:** Docker dependencies listing.
 * **docker_proccess.log:** Docker process information.
 * **journalctl_docker.log:** Systemd journal logs related to Docker.
+* **journalctl_test-app.log:** Systemd journal logs for the host weblog service (`test-app.service`).
 * **system.timers.log:** System timer logs.
 * **dd-agent-diagnostics.log:** Datadog Agent container diagnostics. Only present in container-based scenarios that start the agent via `docker-compose-agent-prod.yml`.
+* **core-diagnostics.txt:** Core dump configuration and the core files collected after a PHP host application crash.
+* **core.\* / systemd-coredump:** PHP process core dumps. Use these with `gdb` when investigating a segmentation fault or exit status 139.
+* **coredumpctl-list.txt:** PHP entries reported by `coredumpctl`, when the command is available on the VM.
 
 ## How to read VM log markers (`[vm_name].log`)
 
@@ -946,6 +950,7 @@ Exception launching aws provision step remote command
    grep -n "Diagnostics:" [vm_name].log
    ~~~
 4. Identify the failing command (package install, Docker/runtime setup, agent install, SSI packages, or test app build) and fix accordingly.
+5. If the PHP host weblog failed with a segmentation fault or exit status 139, inspect `core-diagnostics.txt`, `journalctl_test-app.log`, and any `core.*` or `systemd-coredump` file under `var/log/datadog_weblog/`.
 
 ---
 
@@ -1013,6 +1018,8 @@ Exception during trace in backend verification: Reached overall timeout of 300 f
 - **Backend processing** — in the Datadog UI (system-tests org), locate the trace ID `{request_uuid}` and verify associated profiling data is present or delayed.
 
 > **Note:** Make sure profiling is actually enabled for the application (per language tracer guidance) before investigating backend intake.
+
+If the PHP host weblog crashes during `php --version` or while starting `test-app.service`, investigate the core dump under `var/log/datadog_weblog/` instead of treating it as a missing-profile timeout.
 
 ---
 

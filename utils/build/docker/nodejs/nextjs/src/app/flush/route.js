@@ -1,4 +1,5 @@
 import { promisify } from 'util'
+import { channel } from 'diagnostics_channel'
 import { NextResponse } from 'next/server'
 
 export const dynamic = 'force-dynamic'
@@ -18,6 +19,8 @@ function flush () {
   // tracer._tracer?._dataStreamsProcessor?.writer?.flush?.()
   tracer.dogstatsd?.flush?.()
   tracer._pluginManager?._pluginsByName?.openai?.metrics?.flush?.()
+  // force FFE exposure events out immediately instead of waiting for the writer's periodic flush
+  channel('ffe:writers:flush').publish()
 
   // does have a callback :)
   const promises = []

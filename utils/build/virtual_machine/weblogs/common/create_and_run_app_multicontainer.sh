@@ -4,6 +4,7 @@
 set -e
 
 readonly AGENT_COMPOSE="docker-compose-agent-prod.yml"
+readonly AGENT_LOCK="agent.lock"
 PULL_AGENT_IMAGE_SCRIPT="$(dirname "$0")/pull_agent_image.sh"
 readonly PULL_AGENT_IMAGE_SCRIPT
 
@@ -20,6 +21,11 @@ sudo rm -rf system-tests || true
 sudo docker-compose -f docker-compose.yml build  --parallel
 
 if [ -f "${AGENT_COMPOSE}" ]; then
+    set -a
+    # shellcheck source=/dev/null
+    . "./${AGENT_LOCK}"
+    set +a
+
     # Agent may be installed in a different way. Pull with retries before compose up
     # so GCR rate limits / timeouts do not fail the provision on the first attempt.
     bash "${PULL_AGENT_IMAGE_SCRIPT}"

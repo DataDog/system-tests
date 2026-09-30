@@ -1,3 +1,4 @@
+import asyncio
 import base64
 import json
 import logging
@@ -7,6 +8,7 @@ import shlex
 import subprocess
 import sys
 import typing
+from pathlib import Path
 
 import fastapi
 from fastapi import Cookie
@@ -32,6 +34,7 @@ import requests
 import stripe
 import urllib3
 import xmltodict
+import anyio
 from packaging.version import Version
 from starlette.middleware.sessions import SessionMiddleware
 
@@ -429,6 +432,28 @@ async def stats_unique(code: int = 200):
     if code == 204:
         return Response(status_code=code)
     return PlainTextResponse("OK, probably", status_code=code)
+
+
+@app.get("/security/thread_context_sharing")
+async def thread_context_sharing(path: str):
+    # Exercise uvloop task restoration before crossing AnyIO's worker-thread boundary.
+    await asyncio.sleep(0)
+
+    return await anyio.to_thread.run_sync(write_thread_context, path)
+
+
+def write_thread_context(path: str):
+    span = tracer.current_span()
+    if span is None:
+        return Response(status_code=500)
+
+    with Path(path).open("w") as f:
+        f.write("system-tests thread context sharing")
+
+    return {
+        "trace_id": str(span.trace_id),
+        "span_id": str(span.span_id),
+    }
 
 
 @app.get("/trace/manual_keep_drop")

@@ -22,6 +22,7 @@ import subprocess
 import sys
 import threading
 import urllib.request
+from pathlib import Path
 
 import boto3
 import flask
@@ -636,11 +637,16 @@ def trace_manual_keep_drop():
 def thread_context_sharing():
     path = flask_request.args["path"]
 
+    # Exercise a greenlet switch in flask-poc. uds-flask remains the synchronous
+    # baseline, while uwsgi-poc handles the request on one of its native threads.
+    if os.environ.get("UWSGI_ENABLED", "false") == "false" and os.environ.get("UDS_WEBLOG", "0") != "1":
+        gevent.sleep(0)
+
     span = tracer.current_span()
     if span is None:
         return Response(status=500)
 
-    with open(path, "w") as f:
+    with Path(path).open("w") as f:
         f.write("system-tests thread context sharing")
 
     return {

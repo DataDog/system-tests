@@ -189,6 +189,7 @@ func main() {
 	})
 
 	mux.HandleFunc("/trace/manual_keep_drop", common.ManualKeepDrop)
+	mux.HandleFunc("/security/thread_context_sharing", common.ThreadContextSharing)
 
 	mux.HandleFunc("/make_distant_call", func(w http.ResponseWriter, r *http.Request) {
 		url := r.URL.Query().Get("url")

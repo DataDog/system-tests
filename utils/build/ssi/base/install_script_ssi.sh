@@ -54,7 +54,18 @@ if [ ! -s "install_script_agent7.sh" ]; then
     exit 1
 fi
 
-DD_REPO_URL=${DD_injection_repo_url} DD_INSTALL_ONLY=true DD_APM_INSTRUMENTATION_ENABLED=host bash ./install_script_agent7.sh
+if ! run_with_retry \
+    "Datadog Agent installer" \
+    3 \
+    5 \
+    env \
+    "DD_REPO_URL=${DD_injection_repo_url}" \
+    DD_INSTALL_ONLY=true \
+    DD_APM_INSTRUMENTATION_ENABLED=host \
+    bash ./install_script_agent7.sh; then
+    echo "[ERROR] aborting SSI install after Datadog Agent installer failure" >&2
+    exit 1
+fi
 
 if [ -f /etc/debian_version ] || [ "$DISTRIBUTION" == "Debian" ] || [ "$DISTRIBUTION" == "Ubuntu" ]; then
     OS="Debian"

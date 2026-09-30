@@ -1,5 +1,5 @@
 import json
-import pytest
+from utils import pytest
 
 from utils.docker_fixtures.spec.trace import ORIGIN
 from utils.docker_fixtures.spec.trace import SAMPLING_PRIORITY_KEY

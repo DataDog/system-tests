@@ -7,13 +7,16 @@ from http import HTTPStatus
 import json
 import os
 import re
-from typing import Self, Literal
+from typing import TYPE_CHECKING, Self, Literal
 
 import requests
 
 from mitmproxy.http import HTTPFlow, Response as HTTPResponse
 
 from .ports import ProxyPorts
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 MOCKED_TRACER_RESPONSES_PATH = "/mocked_tracer_responses"
 MOCKED_BACKEND_RESPONSES_PATH = "/mocked_backend_responses"
@@ -27,6 +30,17 @@ def _get_proxy_domain() -> str:
         m = re.match(r"(?:ssh:|tcp:|fd:|)//(?:[^@]+@|)([^:]+)", os.environ["DOCKER_HOST"])
         return m.group(1) if m is not None else "localhost"
     return "localhost"
+
+
+def send_mocked_tracer_responses(mocks: Sequence[MockedTracerResponse]) -> None:
+    """Send multiple mocked tracer responses in a single PUT request."""
+    domain = _get_proxy_domain()
+    response = requests.put(
+        f"http://{domain}:{ProxyPorts.proxy_commands}{MOCKED_TRACER_RESPONSES_PATH}",
+        json=[m.to_json() for m in mocks],
+        timeout=30,
+    )
+    response.raise_for_status()
 
 
 class MockedResponse(ABC):
