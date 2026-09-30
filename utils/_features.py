@@ -2730,6 +2730,14 @@ class _Features:
         return _mark_test_object(test_object, feature_id=551, owner=_Owner.ffe)
 
     @staticmethod
+    def feature_flags_serial_id_metadata(test_object):
+        """Feature Flags Serial ID Metadata (UFC split serialId threaded through flagMetadata)
+
+        No feature-parity page yet; using NOT_REPORTED_ID until one is filed.
+        """
+        return _mark_test_object(test_object, feature_id=NOT_REPORTED_ID, owner=_Owner.ffe)
+
+    @staticmethod
     def appsec_extended_data_collection(test_object):
         """AppSec supports extended data collection including headers and body
 
