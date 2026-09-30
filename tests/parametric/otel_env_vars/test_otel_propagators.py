@@ -91,7 +91,8 @@ def _configured_baggage_propagators(library: APMLibrary) -> set[str]:
         logs = _diagnostic_logs(library)
         for line in logs.splitlines():
             if marker in line:
-                configuration = json.loads(line.split(marker, 1)[1])
+                # The logger appends metadata after the JSON configuration object.
+                configuration, _ = json.JSONDecoder().raw_decode(line.split(marker, 1)[1].lstrip())
                 inject = set(configuration["trace_propagation_style_inject"])
                 extract = set(configuration["trace_propagation_style_extract"])
                 assert inject == extract, f"Injection and extraction differ: {inject=}, {extract=}"
