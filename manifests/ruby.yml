@@ -1697,7 +1697,12 @@ manifest:
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_all:
     - declaration: bug (APMRP-360)
       component_version: <1.12.1
-  tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_full_html: missing_feature (Support for quality not implemented)
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_full_html:  # TODO: a lower version might be supported
+    - declaration: missing_feature (Support for quality not implemented)
+      component_version: <2.42.0
+      weblog: [rails42, rails52, rails61, uds-rails, rails80, sinatra32, sinatra14, sinatra41, rack, uds-sinatra, sinatra22, rails72]
+    - declaration: missing_feature (Support for quality not implemented)
+      excluded_weblog: [rails42, rails52, rails61, uds-rails, rails80, sinatra32, sinatra14, sinatra41, rack, uds-sinatra, sinatra22, rails72]
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_full_json:
     - declaration: bug (APMRP-360)
       component_version: <1.12.1
@@ -1705,7 +1710,21 @@ manifest:
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_partial_json:
     - declaration: bug (APMRP-360)
       component_version: <1.12.1
-  tests/appsec/waf/test_blocking.py::Test_Blocking::test_html_template_v2: missing_feature
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_html_template_v2:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        rails42: '>=2.42.0'
+        rails52: '>=2.42.0'
+        rails61: '>=2.42.0'
+        uds-rails: '>=2.42.0'
+        rails80: '>=2.42.0'
+        sinatra32: '>=2.42.0'
+        sinatra14: '>=2.42.0'
+        sinatra41: '>=2.42.0'
+        rack: '>=2.42.0'
+        uds-sinatra: '>=2.42.0'
+        sinatra22: '>=2.42.0'
+        rails72: '>=2.42.0'
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_json_template_v1:  # Modified by easy win activation script
     - weblog_declaration:
         '*': missing_feature
@@ -2040,7 +2059,7 @@ manifest:
     - declaration: missing_feature (Not implemented)
       component_version: <2.7.0
   tests/docker_ssi/test_docker_ssi_servicenaming.py::TestDockerServiceNaming::test_service_name: missing_feature (No implemented)
-  tests/ffe/test_agentless_configuration.py: v2.43.0-dev
+  tests/ffe/test_agentless_configuration.py: v2.44.0-dev
   tests/ffe/test_dynamic_evaluation.py:
     - weblog_declaration:
         "*": irrelevant
@@ -2306,6 +2325,24 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY: v2.34.0
   tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY::test_empty_is_treated_as_unset: bug (APMAPI-2413)
   tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY::test_invalid_value_is_ignored: bug (APMAPI-2445)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_endpoint.py::Test_OTEL_EXPORTER_OTLP_ENDPOINT: v2.23.0
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_endpoint.py::Test_OTEL_EXPORTER_OTLP_ENDPOINT::test_empty_endpoint_falls_back_to_default
+  : bug (APMAPI-2413)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_endpoint.py::Test_OTEL_EXPORTER_OTLP_ENDPOINT::test_otlp_custom_endpoint_grpc
+  : missing_feature (Does not support grpc)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_endpoint.py::Test_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT: v2.34.0
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_endpoint.py::Test_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT::test_empty_falls_back_to_global_endpoint
+  : bug (APMAPI-2413)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_endpoint.py::Test_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: v2.23.0
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_endpoint.py::Test_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT::test_empty_falls_back_to_global_endpoint
+  : bug (APMAPI-2413)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_endpoint.py::Test_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT::test_otlp_metrics_custom_endpoint_grpc
+  : missing_feature (Does not support grpc)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_endpoint.py::Test_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: missing_feature
+  tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER: v2.34.0
+  tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER::test_console: missing_feature (Only otlp and none exporters are implemented)
+  tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER::test_deprecated_values: missing_feature (Only otlp and none exporters are implemented)
+  tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER::test_development_values: missing_feature (Only otlp and none exporters are implemented)
   tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT: v2.23.0
   tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT::test_invalid_values: bug (APMAPI-2445)
   tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT::test_spec_default: irrelevant (Datadog intentionally defaults to 7500 ms)
@@ -2417,7 +2454,7 @@ manifest:
       component_version: <2.40.0
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart: incomplete_test_app (The parametric test app does not emit restart span links or preserve baggage)
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart_With_Extract_First: incomplete_test_app (The parametric test app does not emit restart span links or preserve baggage)
-  tests/parametric/test_ffe/test_configuration_sources.py: v2.43.0-dev
+  tests/parametric/test_ffe/test_configuration_sources.py: v2.44.0-dev
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v2.23.0
   tests/parametric/test_ffe/test_span_enrichment.py: missing_feature
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_extract_invalid:  # Easy win for all weblogs and version 2.27.0

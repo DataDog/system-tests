@@ -8,7 +8,7 @@ import sys
 import tempfile
 import textwrap
 
-import pytest
+from utils import pytest
 
 from utils import scenarios
 from utils.base_images import build_base_images

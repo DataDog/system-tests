@@ -3,7 +3,7 @@ import json
 import os
 from pathlib import Path
 import subprocess
-import pytest
+from utils import pytest
 from utils import scenarios, missing_feature, logger
 
 

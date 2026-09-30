@@ -5,7 +5,7 @@ import json
 import time
 import uuid
 
-import pytest
+from utils import pytest
 
 from .conftest import StableConfigWriter
 from utils.telemetry_utils import TelemetryUtils
