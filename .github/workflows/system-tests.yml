@@ -274,7 +274,7 @@ jobs:
     # No other job depends on this one: tests still run on a system-tests dev branch,
     # but the workflow fails to block merging until the ref points back to main.
     # Skipped when ref is empty or main, as tests run on main in that case.
-    # if: ${{ github.repository != 'DataDog/system-tests' && inputs.ref != '' && inputs.ref != 'main' }}
+    if: ${{ github.repository != 'DataDog/system-tests' && inputs.ref != '' && inputs.ref != 'main' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
