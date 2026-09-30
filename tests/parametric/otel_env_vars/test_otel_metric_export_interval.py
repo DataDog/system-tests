@@ -21,12 +21,16 @@ def library_env(interval: str | None) -> dict[str, str | None]:
     }
 
 
-def _effective_interval(test_agent: TestAgentAPI, test_library: APMLibrary) -> int:
+def _effective_interval(test_agent: TestAgentAPI, test_library: APMLibrary, *, require_reader: bool = False) -> int:
     with test_library as library:
         # Java telemetry reports the original input, including rejected values.
         # Its public Config getter exposes the resolved interval instead.
-        if library.lang == "java":
-            return int(str(library.config()["dd_metrics_otel_interval"]))
+        # Go also needs the reader observation for values its OTel reader can
+        # reject after publishing configuration telemetry.
+        if library.lang == "java" or (library.lang == "golang" and require_reader):
+            interval = library.config().get("dd_metrics_otel_interval")
+            assert interval is not None, "Effective metric reader interval is not exposed by the test app"
+            return int(str(interval))
         library.otel_get_meter("export-interval-configuration", "1.0.0", "", {})
         if library.lang == "python":
             # Python can publish an accepted value before the OTel reader rejects
@@ -77,7 +81,7 @@ class Test_OTEL_METRIC_EXPORT_INTERVAL:
     @pytest.mark.parametrize("interval", [pytest.param("0", id="zero-ms")])
     def test_zero(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         # A duration of zero is zero milliseconds, unlike an unlimited timeout.
-        assert _effective_interval(test_agent, test_library) == 0
+        assert _effective_interval(test_agent, test_library, require_reader=True) == 0
 
     @pytest.mark.parametrize("interval", [pytest.param(None, id="unset")])
     def test_unset_uses_default(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
@@ -93,7 +97,7 @@ class Test_OTEL_METRIC_EXPORT_INTERVAL:
 
     @pytest.mark.parametrize("interval", [pytest.param("-1", id="negative")])
     def test_negative_is_ignored(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
-        assert _effective_interval(test_agent, test_library) == _default_interval(test_library)
+        assert _effective_interval(test_agent, test_library, require_reader=True) == _default_interval(test_library)
 
     @pytest.mark.parametrize("interval", [pytest.param("1.5", id="fractional")])
     def test_fractional_is_ignored(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
