@@ -277,6 +277,7 @@ class Test_Parametric_DDTrace_Config:
             assert list(configs.keys()) == [
                 "dd_service",
                 "dd_log_level",
+                "dd_trace_effective_log_level",
                 "dd_trace_sample_rate",
                 "dd_trace_enabled",
                 "dd_runtime_metrics_enabled",
@@ -295,6 +296,9 @@ class Test_Parametric_DDTrace_Config:
                 "dd_profiling_enabled",
                 "dd_data_streams_enabled",
             ]
+            if t.lang == "php":
+                # PHP exposes its effective threshold through emitted SDK diagnostics.
+                assert t.dd_log_level_diagnostics()
 
 
 @scenarios.parametric
