@@ -249,6 +249,9 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
         def __scrub_dotnet(key: str, value: dict | list | str, parent: dict):  # noqa: ARG001
             if key == "Id":
                 return "<scrubbed>"
+            elif key == "exceptionHash":
+                # The hash format differs between tracer versions, so approvals can't pin its value.
+                return "<scrubbed>"
             elif key == "StackTrace" and isinstance(value, dict):
                 value["value"] = "<scrubbed>"
                 # Clip is old; truncated:true is new (dd-trace-dotnet #9272). Drop it so
