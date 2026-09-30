@@ -44,10 +44,15 @@ jobs:
           python utils/scripts/update-base-images-lock.py
 
       - name: Update mirror images
+        # --skip-lock: the new content-hash image tag doesn't exist yet (build_base_images
+        # only builds/pushes it once this commit lands on main), so mirror_images.py can't
+        # resolve its digest. This only refreshes the unlocked mirror_images.yaml; someone
+        # must re-run `python utils/scripts/update_mirror_images.py` (no --skip-lock) once
+        # the image has been pushed, to refresh mirror_images.lock.yaml and buildkitd.toml.
         if: steps.update_script.outputs.changes_made == 'true'
         run: |
           source venv/bin/activate
-          python utils/scripts/update_mirror_images.py
+          python utils/scripts/update_mirror_images.py --skip-lock
 
       - name: Configure git
         if: steps.update_script.outputs.changes_made == 'true'
@@ -61,6 +66,8 @@ jobs:
         run: |
           git add \
             "utils/build/docker/python_lambda/runtime.base.Dockerfile" \
+            "utils/build/docker/java_lambda/runtime.base.Dockerfile" \
+            "utils/build/docker/ruby_lambda/runtime.base.Dockerfile" \
             "utils/build/docker/base-images.lock.json" \
             "mirror_images.yaml" \
             "mirror_images.lock.yaml" \
@@ -122,7 +129,7 @@ jobs:
           else
             gh pr create \
               --title "Update pinned lambda extension version" \
-              --body "Automated update of the pinned public.ecr.aws/datadog/lambda-extension version used by the python_lambda base image" \
+              --body "Automated update of the pinned public.ecr.aws/datadog/lambda-extension version used by the python_lambda, java_lambda, and ruby_lambda base images" \
               --head "$BRANCH_NAME" \
               --base main
           fi

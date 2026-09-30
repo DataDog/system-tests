@@ -1697,7 +1697,12 @@ manifest:
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_all:
     - declaration: bug (APMRP-360)
       component_version: <1.12.1
-  tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_full_html: missing_feature (Support for quality not implemented)
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_full_html:  # TODO: a lower version might be supported
+    - declaration: missing_feature (Support for quality not implemented)
+      component_version: <2.42.0
+      weblog: [rails42, rails52, rails61, uds-rails, rails80, sinatra32, sinatra14, sinatra41, rack, uds-sinatra, sinatra22, rails72]
+    - declaration: missing_feature (Support for quality not implemented)
+      excluded_weblog: [rails42, rails52, rails61, uds-rails, rails80, sinatra32, sinatra14, sinatra41, rack, uds-sinatra, sinatra22, rails72]
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_full_json:
     - declaration: bug (APMRP-360)
       component_version: <1.12.1
@@ -1705,7 +1710,21 @@ manifest:
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_partial_json:
     - declaration: bug (APMRP-360)
       component_version: <1.12.1
-  tests/appsec/waf/test_blocking.py::Test_Blocking::test_html_template_v2: missing_feature
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_html_template_v2:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        rails42: '>=2.42.0'
+        rails52: '>=2.42.0'
+        rails61: '>=2.42.0'
+        uds-rails: '>=2.42.0'
+        rails80: '>=2.42.0'
+        sinatra32: '>=2.42.0'
+        sinatra14: '>=2.42.0'
+        sinatra41: '>=2.42.0'
+        rack: '>=2.42.0'
+        uds-sinatra: '>=2.42.0'
+        sinatra22: '>=2.42.0'
+        rails72: '>=2.42.0'
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_json_template_v1:  # Modified by easy win activation script
     - weblog_declaration:
         '*': missing_feature
