@@ -872,17 +872,24 @@ def handle_ffe_evaluation(req, res)
       flag_key: args.flag, default_value: args.default_value, evaluation_context: context
     }
 
-    value =
+    details =
       case args.variation_type
-      when 'BOOLEAN'then client.fetch_boolean_value(**options)
-      when 'STRING' then client.fetch_string_value(**options)
-      when 'INTEGER' then client.fetch_integer_value(**options)
-      when 'NUMERIC' then client.fetch_float_value(**options)
-      when 'JSON' then client.fetch_object_value(**options)
-      else 'FATAL_UNEXPECTED_VARIATION_TYPE'
+      when 'BOOLEAN' then client.fetch_boolean_details(**options)
+      when 'STRING' then client.fetch_string_details(**options)
+      when 'INTEGER' then client.fetch_integer_details(**options)
+      when 'NUMERIC' then client.fetch_float_details(**options)
+      when 'JSON' then client.fetch_object_details(**options)
+      else raise ArgumentError, 'FATAL_UNEXPECTED_VARIATION_TYPE'
       end
 
-    res.write({value: value, reason: 'DEFAULT'}.to_json)
+    res.write({
+      value: details.value,
+      reason: details.reason,
+      variant: details.variant,
+      errorCode: details.error_code,
+      errorMessage: details.error_message,
+      flagMetadata: details.flag_metadata,
+    }.to_json)
   rescue => e
     res.write({value: args.default_value, reason: 'ERROR'}.to_json)
   end
