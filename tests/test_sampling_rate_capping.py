@@ -4,30 +4,12 @@
 
 import time
 
-import requests
-
 from utils import weblog, interfaces, scenarios, features, logger
-from utils.proxy.mocked_response import (
-    MOCKED_TRACER_RESPONSES_PATH,
-    SequentialJsonMockedTracerResponse,
-    _get_proxy_domain,
-)
-from utils.proxy.ports import ProxyPorts
+from utils.proxy.mocked_response import SequentialJsonMockedTracerResponse, send_mocked_tracer_responses
 
 
 LOW_RATE = 0.1
 HIGH_RATE = 1.0
-
-
-def _send_mocked_tracer_responses(mocks: list) -> None:
-    """Send multiple mocked tracer responses in a single PUT request."""
-    domain = _get_proxy_domain()
-    response = requests.put(
-        f"http://{domain}:{ProxyPorts.proxy_commands}{MOCKED_TRACER_RESPONSES_PATH}",
-        json=[m.to_json() for m in mocks],
-        timeout=30,
-    )
-    response.raise_for_status()
 
 
 @scenarios.sampling_rate_capping
@@ -54,7 +36,7 @@ class Test_SamplingRateCappedIncrease:
             SequentialJsonMockedTracerResponse(path="/v0.4/traces", mocked_json_sequence=sequence),
             SequentialJsonMockedTracerResponse(path="/v0.5/traces", mocked_json_sequence=sequence),
         ]
-        _send_mocked_tracer_responses(mocks)
+        send_mocked_tracer_responses(mocks)
 
         # Generate initial traffic until the tracer picks up the low rate
         for i in range(40):

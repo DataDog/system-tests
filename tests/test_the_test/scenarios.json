@@ -5698,6 +5698,12 @@
   "tests/test_the_test/test_decorators.py::Test_Skips::test_regular": [
     "TEST_THE_TEST"
   ],
+  "tests/test_the_test/test_decorators.py::Test_PytestProxy::test_exposes_approved_apis": [
+    "TEST_THE_TEST"
+  ],
+  "tests/test_the_test/test_decorators.py::Test_PytestProxy::test_hides_internal_force_skip_marker": [
+    "TEST_THE_TEST"
+  ],
   "tests/test_the_test/test_decorators.py::test_version_range": [
     "TEST_THE_TEST"
   ],
