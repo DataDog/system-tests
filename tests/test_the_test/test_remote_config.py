@@ -281,5 +281,5 @@ def test_apm_tracing_capabilities_exclude_sdk_configuration():
     `resolve_sdk_configuration_contract`.
     """
     assert Capabilities.SDK_CONFIGURATION not in rc.APM_TRACING_CAPABILITIES
-    assert rc.LEGACY_APM_TRACING_CAPABILITIES <= rc.APM_TRACING_CAPABILITIES
+    assert rc.LIB_CONFIG_CAPABILITY_FINGERPRINT <= rc.APM_TRACING_CAPABILITIES
     assert Capabilities.APM_TRACING_MULTICONFIG in rc.APM_TRACING_CAPABILITIES

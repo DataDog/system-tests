@@ -645,10 +645,11 @@ APM_TRACING_CAPABILITIES = frozenset(
     capability for capability in Capabilities if capability.name.startswith("APM_TRACING_")
 )
 
-# The per-setting APM_TRACING capabilities that SDK_CONFIGURATION originally replaced. Most
-# libraries on the new contract advertise the single SDK_CONFIGURATION bit instead of these;
-# Node.js 6.19.0+ advertises both for backend/frontend compatibility while consuming sdk_config.
-LEGACY_APM_TRACING_CAPABILITIES = frozenset(
+# The per-setting capability fingerprint observed on libraries that consume `lib_config`. This is
+# deliberately not an exhaustive set of legacy APM_TRACING capabilities: optional feature bits do
+# not reliably identify the payload contract. Node.js 6.19.0+ re-advertises this fingerprint for
+# backend/frontend compatibility while continuing to consume `sdk_config`.
+LIB_CONFIG_CAPABILITY_FINGERPRINT = frozenset(
     {
         Capabilities.APM_TRACING_CUSTOM_TAGS,
         Capabilities.APM_TRACING_ENABLED,
@@ -677,7 +678,7 @@ def resolve_sdk_configuration_contract(
     present. Node.js 6.19.0 restored those bits for backend/frontend compatibility without restoring
     the legacy `lib_config` application path.
 
-    For other tracers, dropping the per-setting capabilities is what distinguishes the two. Absence
+    For other tracers, the per-setting fingerprint distinguishes the two contracts. Its absence
     only counts once the library has actually registered its APM_TRACING remote config, though:
     capabilities are added as products start, and AppSec ones come first, so an early poll from a
     libdatadog library shows bit 49 with no APM_TRACING bit yet and would otherwise be mistaken for
@@ -689,7 +690,7 @@ def resolve_sdk_configuration_contract(
     if library_name == "nodejs" and Capabilities.SDK_CONFIGURATION in capabilities:
         return True
 
-    if capabilities & LEGACY_APM_TRACING_CAPABILITIES:
+    if capabilities & LIB_CONFIG_CAPABILITY_FINGERPRINT:
         return False
 
     return Capabilities.SDK_CONFIGURATION in capabilities
