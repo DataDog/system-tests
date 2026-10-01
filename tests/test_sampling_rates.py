@@ -77,17 +77,6 @@ def trace_should_be_kept(sampling_rate: float, trace_id: int):
     return ((trace_id * SAMPLING_KNUTH_FACTOR) % SAMPLING_MODULO) <= (sampling_rate * MAX_UINT64)
 
 
-def _spans_with_parent(traces: list, parent_ids: list):
-    if not isinstance(traces, list):
-        logger.error("Traces should be an array")
-        yield from []  # do not fail here, it's schema's job
-    else:
-        for trace in traces:
-            for span in trace:
-                if span.get("parent_id") in parent_ids:
-                    yield span
-
-
 def generate_request_id() -> Generator[int, Any, Any]:
     i = 0
     while True:
@@ -260,13 +249,16 @@ class Test_SamplingDeterminism:
         traces = {trace["parent_id"]: trace for trace in self.traces_determinism}
         sampling_decisions_per_trace_id = defaultdict(list)
 
-        def validator(data: dict):
-            for span in _spans_with_parent(data["request"]["content"], list(traces.keys())):
-                expected_trace_id = traces[(span["parent_id"])]["trace_id"]
-                sampling_priority = span["metrics"].get("_sampling_priority_v1")
-                sampling_decisions_per_trace_id[span["trace_id"]].append(sampling_priority)
+        for data, trace in interfaces.library.get_traces():
+            for span in trace:
+                if span.get("parent_id") not in traces:
+                    continue
 
-                assert span["trace_id"] == expected_trace_id, (
+                expected_trace_id = traces[span["parent_id"]]["trace_id"]
+                sampling_priority = span.get_sampling_priority()
+                sampling_decisions_per_trace_id[expected_trace_id].append(sampling_priority)
+
+                assert span.trace_id_equals(expected_trace_id), (
                     f"Message: {data['log_filename']}: If parent_id matches, "
                     f"trace_id should match too expected trace_id {expected_trace_id} "
                     f"span trace_id : {span['trace_id']}, span parent_id : {span['parent_id']}",
@@ -275,8 +267,6 @@ class Test_SamplingDeterminism:
                 assert sampling_priority is not None, (
                     f"Message: {data['log_filename']}: sampling priority should be set"
                 )
-
-        interfaces.library.validate_all(validator, path_filters=["/v0.4/traces", "/v0.5/traces"], allow_no_data=True)
 
         for trace_id, decisions in sampling_decisions_per_trace_id.items():
             if len(decisions) < 2:

@@ -4,6 +4,7 @@ from utils import scenarios, features
 from opentelemetry.trace import SpanKind
 from utils.docker_fixtures.spec.trace import find_trace, find_span, retrieve_span_links, find_only_span, find_root_span
 from utils.docker_fixtures import TestAgentAPI, ParametricTestClientApi as APMLibrary
+from utils.dd_types import is_same_boolean
 
 
 # this global mark applies to all tests in this file.
@@ -447,7 +448,8 @@ class Test_Otel_API_Interoperability:
         assert root is not None
         assert root["metrics"]["int"] == 1
         assert root["metrics"]["float"] == 1.0
-        assert root["meta"]["bool"] == "true"
+        # With v1.0, tracers can send typed booleans, which dd-apm-test-agent converts to numeric 1/0.
+        assert is_same_boolean(actual={**root["meta"], **root["metrics"]}.get("bool"), expected="true")
         assert root["meta"]["str"] == "string"
         assert "none" not in root["meta"]
         assert root["meta"]["str_array.0"] == "a"
