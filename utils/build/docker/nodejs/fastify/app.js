@@ -252,7 +252,7 @@ fastify.get('/make_distant_call', async (request, reply) => {
         resolve({
           url,
           status_code: response.statusCode,
-          request_headers: response.req._headers,
+          request_headers: response.req.getHeaders(),
           response_headers: response.headers,
           response_body: responseBody
         })
@@ -699,7 +699,7 @@ fastify.get('/otel_drop_in_baggage_api_otel', async (request, reply) => {
           resolve({
             url,
             status_code: response.statusCode,
-            request_headers: response.req._headers,
+            request_headers: response.req.getHeaders(),
             response_headers: response.headers,
             response_body: responseBody
           })
@@ -761,7 +761,7 @@ fastify.get('/otel_drop_in_baggage_api_datadog', async (request, reply) => {
         resolve({
           url,
           status_code: response.statusCode,
-          request_headers: response.req._headers,
+          request_headers: response.req.getHeaders(),
           response_headers: response.headers,
           response_body: responseBody
         })

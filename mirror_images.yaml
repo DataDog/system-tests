@@ -58,6 +58,7 @@
 - "datadog/system-tests:fastapi.base-1795d4d88178"
 - "datadog/system-tests:fastapi.base-2917769b3665"
 - "datadog/system-tests:fastify.base-9613346d64d0"
+- "datadog/system-tests:fastify.base-9dddb89b99c4"
 - "datadog/system-tests:fastify.base-bce27c61b3f5"
 - "datadog/system-tests:fastify.base-edcf078de5d9"
 - "datadog/system-tests:flask-poc.base-fa81f4f89ea4"
