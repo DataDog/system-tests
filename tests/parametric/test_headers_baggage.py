@@ -2,7 +2,7 @@ from utils.docker_fixtures.spec.trace import find_only_span
 from utils import features, scenarios
 from utils.docker_fixtures import TestAgentAPI
 
-import pytest
+from utils import pytest
 
 from .conftest import APMLibrary
 

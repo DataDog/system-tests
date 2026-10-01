@@ -1,7 +1,7 @@
 from utils import features, scenarios
 from utils.docker_fixtures import FrameworkTestClientApi, TestAgentAPI
 
-import pytest
+from utils import pytest
 
 from .utils import BaseGoogleGenaiTest
 

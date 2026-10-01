@@ -3,6 +3,7 @@ go 1.25.0
 use (
 	./apim
 	./app
+	./app/fiber-v2-orchestrion
 	./app/net-http-orchestrion
 	./parametric
 )

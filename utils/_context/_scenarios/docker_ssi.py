@@ -298,18 +298,17 @@ class DockerSSIScenario(Scenario):
     def configuration(self):
         return self._configuration
 
-    def get_junit_properties(self) -> dict[str, str]:
+    def get_junit_properties(self) -> dict[str, dict[str, str] | str]:
         result = super().get_junit_properties()
 
-        result["dd_tags[systest.suite.context.library.name]"] = self.library.name
-        result["dd_tags[systest.suite.context.library.version]"] = self.library.version
-        result["dd_tags[systest.suite.context.weblog_variant]"] = self.weblog_variant
-        result["dd_tags[systest.suite.context.agent]"] = self.components["agent"]
-        result["dd_tags[systest.suite.context.datadog-apm-inject.version]"] = self.dd_apm_inject_version
-        result["dd_tags[systest.suite.context.datadog-installer.version]"] = self.components["datadog-installer"]
-        result["dd_tags[systest.suite.context.installed_language_runtime]"] = self.installed_language_runtime or ""
-        result["dd_tags[systest.suite.context.os]"] = self.configuration["os"]
-        result["dd_tags[systest.suite.context.arch]"] = self.configuration["arch"]
+        result["library"] = {"name": self.library.name, "version": str(self.library.version)}
+        result["weblog_variant"] = self.weblog_variant
+        result["agent"] = str(self.components["agent"])
+        result["datadog-apm-inject"] = {"version": self.dd_apm_inject_version}
+        result["datadog-installer"] = {"version": str(self.components["datadog-installer"])}
+        result["installed_language_runtime"] = str(self.installed_language_runtime or "")
+        result["os"] = self.configuration["os"]
+        result["arch"] = self.configuration["arch"]
 
         return result
 

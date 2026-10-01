@@ -120,7 +120,7 @@ def deserialize_http_message(
     content: bytes | None,
     interface: Interface,
     key: Literal["request", "response"],
-    export_content_files_to: str,
+    export_content_files_to: str | None,
 ):
     def json_load():
         if not content:
@@ -308,7 +308,7 @@ def deserialize_http_message(
 
 
 def _deserialize_file_in_multipart_form_data(
-    path: str, item: dict, headers: dict[str, str], export_content_files_to: str, content: bytes
+    path: str, item: dict, headers: dict[str, str], export_content_files_to: str | None, content: bytes
 ) -> None:
     content_disposition = headers.get("content-disposition", "<not set>")
 
@@ -346,7 +346,7 @@ def _deserialize_file_in_multipart_form_data(
                 except (json.JSONDecodeError, UnicodeDecodeError):
                     item["system-tests-error"] = "Can't decode json file"
 
-            if not content_is_deserialized:
+            if not content_is_deserialized and export_content_files_to:
                 file_path = f"{export_content_files_to}/{md5(content).hexdigest()}_{filename}"
 
                 item["system-tests-information"] = "File exported to a separated file"
@@ -416,7 +416,7 @@ def deserialize(
     key: Literal["request", "response"],
     content: bytes | None,
     interface: Interface,
-    export_content_files_to: str,
+    export_content_files_to: str | None,
 ):
     try:
         data[key]["content"] = deserialize_http_message(

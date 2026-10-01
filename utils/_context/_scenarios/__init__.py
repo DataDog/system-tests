@@ -255,6 +255,23 @@ class _Scenarios:
         scenario_groups=[scenario_groups.sampling],
     )
 
+    sampling_rules_agent_rate = DdTraceEndToEndScenario(
+        "SAMPLING_RULES_AGENT_RATE",
+        weblog_env={
+            "DD_TRACE_RATE_LIMIT": "10000000",
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
+            # This rule never matches real weblog traffic (wrong service name), so every span
+            # falls through to the fallback sampler. That fallback must still receive agent-published
+            # rates instead of being stuck at 1.0: https://github.com/DataDog/dd-trace-java/pull/12490
+            "DD_TRACE_SAMPLING_RULES": '[{"service": "not-the-real-service-xyz", "sample_rate": 1.0}]',
+        },
+        doc=(
+            "Test that agent-published sampling rates are still applied to spans that don't match any "
+            "configured sampling rule, instead of the rule-miss fallback being stuck at rate 1.0."
+        ),
+        scenario_groups=[scenario_groups.sampling],
+    )
+
     trace_propagation_style_w3c = DdTraceEndToEndScenario(
         "TRACE_PROPAGATION_STYLE_W3C",
         weblog_env={
@@ -822,9 +839,18 @@ class _Scenarios:
         ],
     )
 
+    # Product assertion self-tests are opt-in, not part of framework CI or E2E groups.
+    feature_flagging_contract_tests = Scenario(
+        "FEATURE_FLAGGING_CONTRACT_TESTS",
+        doc="Unit tests for Feature Flags test contracts; no containers or SDK build required.",
+        github_workflow=None,
+    )
+
     feature_flagging_and_experimentation = DdTraceEndToEndScenario(
         "FEATURE_FLAGGING_AND_EXPERIMENTATION",
         rc_api_enabled=True,
+        # Allow final EVP batches to reach the backend after the weblog flushes and stops.
+        agent_interface_timeout=15,
         weblog_env={
             "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
             "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE": "remote_config",

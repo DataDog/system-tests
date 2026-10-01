@@ -13,6 +13,7 @@ from typing import Any, Literal, TypedDict
 from collections.abc import Iterator
 
 from utils import interfaces, remote_config, weblog, context, logger
+from utils._weblog import HttpResponse
 from utils.dd_constants import RemoteConfigApplyState as ApplyState
 from utils.dd_types import DataDogAgentSpan
 
@@ -469,11 +470,13 @@ class BaseDebuggerTest:
 
         self.rc_states.append(remote_config.send_symdb_command(BaseDebuggerTest._rc_version))
 
-    def send_weblog_request(self, request_path: str, *, reset: bool = True) -> None:
+    def send_weblog_request(self, request_path: str, *, reset: bool = True) -> HttpResponse:
         if reset:
             self.weblog_responses = []
 
-        self.weblog_responses.append(weblog.get(request_path))
+        response = weblog.get(request_path)
+        self.weblog_responses.append(response)
+        return response
 
     ###### wait for #####
     _last_read = 0
@@ -720,60 +723,45 @@ class BaseDebuggerTest:
         logger.debug(f"No capture reason span found: {self._no_capture_reason_span_found}")
         return self._no_capture_reason_span_found
 
-    def wait_for_code_origin_span(self, timeout: int = 5, threshold: int | None = None) -> bool:
-        """Wait for a code origin span.
+    def wait_for_code_origin_span(
+        self, request: HttpResponse, timeout: int = 5, *, stop_when_absent: bool = True
+    ) -> bool:
+        """Wait for the request's trace and report whether it contains a code origin span.
 
-        By default, the threshold used to filter out pre-existing trace files
-        is computed when this method is called. If the request being checked
-        was already sent before calling this method, pass the threshold
-        captured just before sending it, otherwise a fast trace may be
-        discarded as pre-existing data.
+        By default the wait ends as soon as the correlated trace arrives, even without code
+        origin metadata, so that disabled-state checks do not wait for the whole timeout. Pass
+        stop_when_absent=False for warmup requests, so that the wait keeps running until the
+        tracer has finished its asynchronous instrumentation.
         """
         self._span_found = False
-        if threshold is None:
-            threshold = self._get_max_trace_file_number()
 
         interfaces.agent.wait_for(
-            lambda data: self._wait_for_code_origin_span(data, threshold=threshold),
+            lambda data: self._wait_for_code_origin_span(data, request=request, stop_when_absent=stop_when_absent),
             timeout=timeout,
         )
         return self._span_found
 
-    def _get_max_trace_file_number(self) -> int:
-        """Get the maximum trace file number currently in the agent interface."""
-        max_number = 0
-        for data in interfaces.agent.get_data(_TRACES_PATH):
-            log_filename_found = re.search(r"/(\d+)__", data["log_filename"])
-            if log_filename_found:
-                file_number = int(log_filename_found.group(1))
-                max_number = max(max_number, file_number)
-        return max_number
-
-    def _wait_for_code_origin_span(self, data: dict, *, threshold: int) -> bool:
+    def _wait_for_code_origin_span(self, data: dict, *, request: HttpResponse, stop_when_absent: bool) -> bool:
         if data["path"] != _TRACES_PATH:
             return False
 
-        # Iterate through the agent interface rather than the raw payload, so that both the legacy
-        # (tracerPayloads) and the v1 (idxTracerPayloads) trace formats are handled.
-        for span_data, span in interfaces.agent.get_spans():
-            log_filename_found = re.search(r"/(\d+)__", span_data["log_filename"])
-            if not log_filename_found:
-                continue
-
-            if int(log_filename_found.group(1)) <= threshold:
-                continue
-
-            if span.get_span_type() != "web":
-                continue
-
-            if not span.get_span_resource().startswith("GET"):
-                continue
-
-            if span.meta.get("_dd.code_origin.type", "") == "entry":
+        # Select the trace using the request ID, then inspect every span because the code origin
+        # entry span is not guaranteed to carry the request ID itself.
+        trace_found = False
+        for _, trace in interfaces.agent.get_traces(request=request):
+            trace_found = True
+            if any(
+                span.get_span_type() == "web"
+                and span.get_span_resource().startswith("GET")
+                and span.meta.get("_dd.code_origin.type", "") == "entry"
+                for span in trace.spans
+            ):
                 self._span_found = True
                 return True
 
-        return False
+        # The correlated trace arrived without code origin metadata: that is a conclusive answer
+        # for a state check, but a warmup must keep waiting for instrumentation to complete.
+        return trace_found and stop_when_absent
 
     def wait_for_telemetry(self, telemetry_type: str, timeout: int = 5) -> dict | None:
         self._telemetry: dict | None = None

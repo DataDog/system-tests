@@ -26,6 +26,8 @@ echo:
   categories: [dd_trace]
 gin:
   categories: [dd_trace]
+fiber-v2-orchestrion:
+  categories: [dd_trace]
 uds-echo:
   categories: [dd_trace]
   excluded_scenarios: [IPV6]
