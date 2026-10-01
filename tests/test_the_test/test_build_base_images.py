@@ -32,6 +32,7 @@ from utils.base_images.build_base_images import (
     parse_copy_dependencies,
 )
 from utils.base_images import wait_for_base_image
+from utils.base_images.wait_for_base_image import _base_image_tag
 
 
 def _write_dockerfile(tmp_path: Path, content: str) -> Path:
@@ -772,6 +773,42 @@ class Test_ImageExists:
 
         with pytest.raises(RuntimeError, match="after 3 attempts"):
             image_exists("datadog/system-tests:test", retry_delay_seconds=0)
+
+
+@scenarios.test_the_test
+class Test_BaseImageTag:
+    """Unit tests for utils.base_images.wait_for_base_image._base_image_tag, which returns the base image
+    a weblog must wait for, or None if there is nothing to wait for.
+    """
+
+    def test_weblog_with_base_image(self):
+        lock = load_base_image_lock()
+        assert _base_image_tag("python", "flask-poc") == lock["system_tests_base_python_flask_poc"]
+
+    def test_weblog_without_base_image(self):
+        assert _base_image_tag("golang", "net-http") is None
+
+    def test_framework_weblog_with_base_image(self):
+        lock = load_base_image_lock()
+        assert _base_image_tag("python", "openai-py@2.0.0") == lock["system_tests_base_python_openai_py"]
+
+    def test_framework_weblog_without_base_image(self):
+        assert _base_image_tag("python", "anthropic-py@0.75.0") is None
+
+    def test_weblog_without_dockerfile(self):
+        assert _base_image_tag("golang", "envoy") is None
+
+    def test_unknown_weblog_fails(self):
+        with pytest.raises(SystemExit):
+            _base_image_tag("golang", "unknown")
+
+    def test_unknown_framework_version_fails(self):
+        with pytest.raises(SystemExit):
+            _base_image_tag("python", "openai-py@bad")
+
+    def test_unknown_library_fails(self):
+        with pytest.raises(SystemExit):
+            _base_image_tag("bogus", "bogus")
 
 
 @scenarios.test_the_test
