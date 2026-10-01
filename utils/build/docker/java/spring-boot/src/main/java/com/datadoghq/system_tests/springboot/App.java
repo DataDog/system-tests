@@ -1095,11 +1095,13 @@ public class App {
         }
 
         // Call downstream so that tests can assert on the sampling decision that gets propagated
-        return ResponseEntity.ok(make_distant_call("http://localhost:7777/"));
+        return ResponseEntity.ok(make_distant_call("http://localhost:7777/", "GET"));
     }
 
     @RequestMapping("/make_distant_call")
-    DistantCallResponse make_distant_call(@RequestParam String url) throws Exception {
+    DistantCallResponse make_distant_call(
+            @RequestParam String url,
+            @RequestParam(defaultValue = "GET") String method) throws Exception {
         HashMap<String, String> request_headers = new HashMap<>();
 
         OkHttpClient client = new OkHttpClient.Builder()
@@ -1115,9 +1117,12 @@ public class App {
         })
         .build();
 
+        okhttp3.RequestBody requestBody = ("GET".equals(method) || "HEAD".equals(method))
+                ? null
+                : okhttp3.RequestBody.create(null, new byte[0]);
         Request request = new Request.Builder()
                 .url(url)
-                .get()
+                .method(method, requestBody)
                 .build();
 
         Response response = client.newCall(request).execute();
