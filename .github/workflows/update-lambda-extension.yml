@@ -1,0 +1,137 @@
+name: Update lambda extension
+
+on:
+  workflow_dispatch: {}
+  # schedule:
+  #   - cron: '0 3 * * *'  # Every day at 3:00 AM UTC
+
+jobs:
+  update_lambda_extension:
+    name: Update lambda extension
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: read
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          fetch-depth: 0
+
+      - name: Install runner
+        uses: ./.github/actions/install_runner
+
+      - name: Run script
+        id: update_script
+        run: |
+          chmod +x utils/scripts/update_lambda_extension_version.py
+          source venv/bin/activate
+          if ./utils/scripts/update_lambda_extension_version.py; then
+            echo "changes_made=true" >> "$GITHUB_OUTPUT"
+            echo "Updates were made to the pinned lambda extension version"
+          else
+            echo "changes_made=false" >> "$GITHUB_OUTPUT"
+            echo "No updates needed - already pinned to the latest version"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update base-images lock
+        if: steps.update_script.outputs.changes_made == 'true'
+        run: |
+          source venv/bin/activate
+          python utils/scripts/update-base-images-lock.py
+
+      - name: Update mirror images
+        # --skip-lock: the new content-hash image tag doesn't exist yet (build_base_images
+        # only builds/pushes it once this commit lands on main), so mirror_images.py can't
+        # resolve its digest. This only refreshes the unlocked mirror_images.yaml; someone
+        # must re-run `python utils/scripts/update_mirror_images.py` (no --skip-lock) once
+        # the image has been pushed, to refresh mirror_images.lock.yaml and buildkitd.toml.
+        if: steps.update_script.outputs.changes_made == 'true'
+        run: |
+          source venv/bin/activate
+          python utils/scripts/update_mirror_images.py --skip-lock
+
+      - name: Configure git
+        if: steps.update_script.outputs.changes_made == 'true'
+        run: |
+          # Set the git user.
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Add files
+        if: steps.update_script.outputs.changes_made == 'true'
+        run: |
+          git add \
+            "utils/build/docker/python_lambda/runtime.base.Dockerfile" \
+            "utils/build/docker/java_lambda/runtime.base.Dockerfile" \
+            "utils/build/docker/ruby_lambda/runtime.base.Dockerfile" \
+            "utils/build/docker/base-images.lock.json" \
+            "mirror_images.yaml" \
+            "mirror_images.lock.yaml" \
+            "utils/build/docker/buildkitd.toml"
+
+      - name: Variables
+        if: steps.update_script.outputs.changes_made == 'true'
+        id: vars
+        run: |
+          BRANCH_NAME="auto-lambda-extension-update"
+          echo "branch_name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Create branch
+        if: steps.update_script.outputs.changes_made == 'true'
+        run: |
+          echo "Creating branch ${{ steps.vars.outputs.branch_name }}..."
+          git checkout -B ${{ steps.vars.outputs.branch_name }}
+
+          echo "Authenticating with GitHub CLI..."
+          gh auth setup-git
+
+          echo "Pushing empty branch ${{ steps.vars.outputs.branch_name }}..."
+          git push --force-with-lease -u origin ${{ steps.vars.outputs.branch_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create commit
+        if: steps.update_script.outputs.changes_made == 'true'
+        run: |
+          echo "Committing..."
+          git commit -m "Update pinned lambda extension version" --no-verify
+
+      - uses: DataDog/dd-octo-sts-action@acaa02eee7e3bb0839e4272dacb37b8f3b58ba80 # v1.0.3
+        if: steps.update_script.outputs.changes_made == 'true'
+        id: octo-sts
+        with:
+          scope: DataDog/system-tests
+          policy: self.update-lambda-extension
+
+      - name: Push signed commits
+        if: steps.update_script.outputs.changes_made == 'true'
+        uses: Asana/push-signed-commits@d615ca88d8e1a946734c24970d1e7a6c56f34897
+        with:
+          github-token: ${{ steps.octo-sts.outputs.token }}
+          repo: DataDog/system-tests
+          local_branch_name: ${{ steps.vars.outputs.branch_name }}
+          remote_name: origin
+          remote_branch_name: ${{ steps.vars.outputs.branch_name }}
+
+      - name: Create Pull Request
+        if: steps.update_script.outputs.changes_made == 'true'
+        run: |
+          BRANCH_NAME="${{ steps.vars.outputs.branch_name }}"
+
+          # Create or reference PR
+          if gh pr list --head "$BRANCH_NAME" --json number --jq '.[0].number' | grep -q .; then
+            PR_NUMBER=$(gh pr list --head "$BRANCH_NAME" --json number --jq '.[0].number')
+            echo "PR already exists: #$PR_NUMBER"
+          else
+            gh pr create \
+              --title "Update pinned lambda extension version" \
+              --body "Automated update of the pinned public.ecr.aws/datadog/lambda-extension version used by the python_lambda, java_lambda, and ruby_lambda base images" \
+              --head "$BRANCH_NAME" \
+              --base main
+          fi
+        env:
+          GITHUB_TOKEN: ${{ steps.octo-sts.outputs.token }}

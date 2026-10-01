@@ -1697,7 +1697,12 @@ manifest:
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_all:
     - declaration: bug (APMRP-360)
       component_version: <1.12.1
-  tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_full_html: missing_feature (Support for quality not implemented)
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_full_html:  # TODO: a lower version might be supported
+    - declaration: missing_feature (Support for quality not implemented)
+      component_version: <2.42.0
+      weblog: [rails42, rails52, rails61, uds-rails, rails80, sinatra32, sinatra14, sinatra41, rack, uds-sinatra, sinatra22, rails72]
+    - declaration: missing_feature (Support for quality not implemented)
+      excluded_weblog: [rails42, rails52, rails61, uds-rails, rails80, sinatra32, sinatra14, sinatra41, rack, uds-sinatra, sinatra22, rails72]
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_full_json:
     - declaration: bug (APMRP-360)
       component_version: <1.12.1
@@ -1705,7 +1710,21 @@ manifest:
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_partial_json:
     - declaration: bug (APMRP-360)
       component_version: <1.12.1
-  tests/appsec/waf/test_blocking.py::Test_Blocking::test_html_template_v2: missing_feature
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_html_template_v2:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        rails42: '>=2.42.0'
+        rails52: '>=2.42.0'
+        rails61: '>=2.42.0'
+        uds-rails: '>=2.42.0'
+        rails80: '>=2.42.0'
+        sinatra32: '>=2.42.0'
+        sinatra14: '>=2.42.0'
+        sinatra41: '>=2.42.0'
+        rack: '>=2.42.0'
+        uds-sinatra: '>=2.42.0'
+        sinatra22: '>=2.42.0'
+        rails72: '>=2.42.0'
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_json_template_v1:  # Modified by easy win activation script
     - weblog_declaration:
         '*': missing_feature
@@ -2306,6 +2325,20 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY: v2.34.0
   tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY::test_empty_is_treated_as_unset: bug (APMAPI-2413)
   tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY::test_invalid_value_is_ignored: bug (APMAPI-2445)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_endpoint.py::Test_OTEL_EXPORTER_OTLP_ENDPOINT: v2.23.0
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_endpoint.py::Test_OTEL_EXPORTER_OTLP_ENDPOINT::test_empty_endpoint_falls_back_to_default
+  : bug (APMAPI-2413)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_endpoint.py::Test_OTEL_EXPORTER_OTLP_ENDPOINT::test_otlp_custom_endpoint_grpc
+  : missing_feature (Does not support grpc)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_endpoint.py::Test_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT: v2.34.0
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_endpoint.py::Test_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT::test_empty_falls_back_to_global_endpoint
+  : bug (APMAPI-2413)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_endpoint.py::Test_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: v2.23.0
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_endpoint.py::Test_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT::test_empty_falls_back_to_global_endpoint
+  : bug (APMAPI-2413)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_endpoint.py::Test_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT::test_otlp_metrics_custom_endpoint_grpc
+  : missing_feature (Does not support grpc)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_endpoint.py::Test_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: missing_feature
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER: v2.34.0
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER::test_console: missing_feature (Only otlp and none exporters are implemented)
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER::test_deprecated_values: missing_feature (Only otlp and none exporters are implemented)
@@ -3532,4 +3565,21 @@ manifest:
   tests/test_telemetry.py::Test_TelemetryV2::test_telemetry_v2_required_headers:
     - declaration: missing_feature (dd-client-library-version missing)
       component_version: <1.22.0
-  tests/test_v1_payloads.py: missing_feature (dd-trace-rb only exposes the /v0.3 and /v0.4 trace endpoints)
+  tests/test_v1_payloads.py:  # TODO: a lower version might be supported
+    - declaration: missing_feature (dd-trace-rb only exposes the /v0.3 and /v0.4 trace endpoints)
+      component_version: <2.43.0
+      weblog: [rack]
+    - declaration: missing_feature (dd-trace-rb only exposes the /v0.3 and /v0.4 trace endpoints)
+      excluded_weblog: [rack]
+  tests/test_v1_payloads.py::Test_V1PayloadByDefault:
+    - weblog_declaration:
+        rack: missing_feature (dd-trace-rb only exposes the /v0.3 and /v0.4 trace endpoints)
+  tests/test_v1_payloads.py::Test_V1Payloads:
+    - weblog_declaration:
+        rack: missing_feature (dd-trace-rb only exposes the /v0.3 and /v0.4 trace endpoints)
+  tests/test_v1_payloads.py::Test_V1SpanLinks:
+    - weblog_declaration:
+        rack: missing_feature (dd-trace-rb only exposes the /v0.3 and /v0.4 trace endpoints)
+  tests/test_v1_payloads.py::Test_V1TopLevelSpans:
+    - weblog_declaration:
+        rack: missing_feature (dd-trace-rb only exposes the /v0.3 and /v0.4 trace endpoints)
