@@ -21,11 +21,6 @@ ENV _DD_APPSEC_DEDUPLICATION_ENABLED=false
 
 ENV FLASK_APP=app.py
 
-ENV DD_APM_RECEIVER_SOCKET=/var/run/datadog/apm.socket
-RUN apt-get update && apt-get install socat -y
-ENV UDS_WEBLOG=1
-COPY utils/build/docker/set-uds-transport.sh set-uds-transport.sh
-
 CMD ./app.sh
 
 # docker build -f utils/build/docker/python.flask-poc.Dockerfile -t test .
