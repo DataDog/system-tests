@@ -4271,7 +4271,7 @@ manifest:
   tests/parametric/test_otel_tracer.py::Test_Otel_Tracer::test_otel_force_flush:
     - declaration: missing_feature (OTel resource naming implemented in 1.24.0)
       component_version: <=1.23.0
-  tests/parametric/test_otel_tracestate_sampling.py::Test_OtelTracestateSampling: v1.67.0-SNAPSHOT
+  tests/parametric/test_otel_tracestate_sampling.py::Test_OtelTracestateSampling: v1.67.0-SNAPSHOT  # Easy win for all weblogs and version 1.66.0
   tests/parametric/test_otlp_trace_metrics.py: v1.66.0-SNAPSHOT
   tests/parametric/test_otlp_trace_metrics.py::Test_FR01_Enablement_Configuration::test_fr01_6_disabled_when_apm_tracing_disabled: missing_feature (OTLP trace metrics are still emitted when DD_APM_TRACING_ENABLED=false)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_AdditionalTags::test_fr08_10_dd_tags_tracer_tags_resource_attributes: missing_feature (DD_TAGS is not yet reported as datadog.tracer_tags on the OTLP trace metrics resource)
@@ -5088,7 +5088,27 @@ manifest:
         ratpack: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
         resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-  tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh:
+  tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh:  # Easy win for play, spring-boot, spring-boot-jetty, spring-boot-openliberty, spring-boot-payara, spring-boot-undertow, spring-boot-wildfly, uds-spring-boot, vertx3, vertx4 and version 1.66.0
+    - weblog_declaration:
+        "*": v1.67.0-SNAPSHOT
+        akka-http: v1.66.0  # TODO: a lower version might be supported
+        jersey-grizzly2: v1.66.0  # TODO: a lower version might be supported
+        ratpack: v1.66.0  # TODO: a lower version might be supported
+        resteasy-netty3: v1.66.0  # TODO: a lower version might be supported
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+  tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh::test_force_keep_forwards_inherited_rv:
+    - weblog_declaration:
+        resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        jersey-grizzly2: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        akka-http: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        ratpack: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+  tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh::test_force_keep_overrides_inherited_drop_decision:
+    - weblog_declaration:
+        resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        jersey-grizzly2: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        akka-http: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        ratpack: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+  tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchanged:  # Easy win for play, spring-boot, spring-boot-jetty, spring-boot-openliberty, spring-boot-payara, spring-boot-undertow, spring-boot-wildfly, uds-spring-boot, vertx3, vertx4 and version 1.66.0
     - weblog_declaration:
         "*": v1.67.0-SNAPSHOT
         akka-http: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
@@ -5096,15 +5116,7 @@ manifest:
         ratpack: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
         resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-  tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchanged:
-    - weblog_declaration:
-        "*": v1.67.0-SNAPSHOT
-        akka-http: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
-        jersey-grizzly2: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
-        ratpack: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
-        resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
-        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-  tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchangedWhenDropped:
+  tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchangedWhenDropped:  # Easy win for play, spring-boot, spring-boot-jetty, spring-boot-openliberty, spring-boot-payara, spring-boot-undertow, spring-boot-wildfly, uds-spring-boot, vertx3, vertx4 and version 1.66.0
     - weblog_declaration:
         "*": v1.67.0-SNAPSHOT
         akka-http: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
@@ -5120,7 +5132,7 @@ manifest:
         ratpack: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
         resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-  tests/test_otel_tracestate_sampling.py::Test_PreserveDdAndOtherVendors:
+  tests/test_otel_tracestate_sampling.py::Test_PreserveDdAndOtherVendors:  # Easy win for play, spring-boot, spring-boot-jetty, spring-boot-openliberty, spring-boot-payara, spring-boot-undertow, spring-boot-wildfly, uds-spring-boot, vertx3, vertx4 and version 1.66.0
     - weblog_declaration:
         "*": v1.67.0-SNAPSHOT
         akka-http: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
@@ -5128,7 +5140,7 @@ manifest:
         ratpack: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
         resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-  tests/test_otel_tracestate_sampling.py::Test_PreserveTracestateMemberOrder:
+  tests/test_otel_tracestate_sampling.py::Test_PreserveTracestateMemberOrder:  # Easy win for play, spring-boot, spring-boot-jetty, spring-boot-openliberty, spring-boot-payara, spring-boot-undertow, spring-boot-wildfly, uds-spring-boot, vertx3, vertx4 and version 1.66.0
     - weblog_declaration:
         "*": v1.67.0-SNAPSHOT
         akka-http: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
@@ -5136,7 +5148,15 @@ manifest:
         ratpack: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
         resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-  tests/test_otel_tracestate_sampling.py::Test_SampledWithoutOtNotFabricated:
+  tests/test_otel_tracestate_sampling.py::Test_SampledWithoutOtNotFabricated:  # Easy win for play, spring-boot, spring-boot-jetty, spring-boot-openliberty, spring-boot-payara, spring-boot-undertow, spring-boot-wildfly, uds-spring-boot, vertx3, vertx4 and version 1.66.0
+    - weblog_declaration:
+        "*": v1.67.0-SNAPSHOT
+        akka-http: v1.66.0  # TODO: a lower version might be supported
+        jersey-grizzly2: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        ratpack: v1.66.0  # TODO: a lower version might be supported
+        resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+  tests/test_otel_tracestate_sampling.py::Test_ThOnlyDoesNotFabricateRv:  # Easy win for play, spring-boot, spring-boot-jetty, spring-boot-openliberty, spring-boot-payara, spring-boot-undertow, spring-boot-wildfly, uds-spring-boot, vertx3, vertx4 and version 1.66.0
     - weblog_declaration:
         "*": v1.67.0-SNAPSHOT
         akka-http: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
@@ -5144,15 +5164,7 @@ manifest:
         ratpack: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
         resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-  tests/test_otel_tracestate_sampling.py::Test_ThOnlyDoesNotFabricateRv:
-    - weblog_declaration:
-        "*": v1.67.0-SNAPSHOT
-        akka-http: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
-        jersey-grizzly2: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
-        ratpack: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
-        resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
-        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-  tests/test_otel_tracestate_sampling.py::Test_ThOnlyDoesNotFabricateRvWhenDropped:
+  tests/test_otel_tracestate_sampling.py::Test_ThOnlyDoesNotFabricateRvWhenDropped:  # Easy win for play, spring-boot, spring-boot-jetty, spring-boot-openliberty, spring-boot-payara, spring-boot-undertow, spring-boot-wildfly, uds-spring-boot, vertx3, vertx4 and version 1.66.0
     - weblog_declaration:
         "*": v1.67.0-SNAPSHOT
         akka-http: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
