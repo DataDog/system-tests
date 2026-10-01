@@ -121,7 +121,10 @@ manifest:
         net-http: v2.1.0-dev  # Using SDK-style
         net-http-span-pool: v2.1.0-dev  # Using SDK-style
         uds-echo: v2.5.0  # Modified by easy win activation script
-  tests/appsec/api_security/test_schemas_auth.py: missing_feature
+  tests/appsec/api_security/test_schemas_auth.py:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        net-http-orchestrion: '>=2.10.1'
   tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders:
     - weblog_declaration:
         "*": v2.10.0-dev
@@ -759,6 +762,7 @@ manifest:
         net-http-orchestrion: '>=2.10.0'
         net-http: '>=2.10.0'
         uds-echo: '>=2.10.0'
+        fiber-v2-orchestrion: v2.10.1  # TODO: a lower version might be supported
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_NotEnabled:
     - weblog_declaration:
         apim: v2.7.1
@@ -1656,7 +1660,12 @@ manifest:
   ? tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots_With_SCM::test_span_decoration_method_snapshot
   : missing_feature (Not yet implemented)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Method_Probe_Snaphots_With_SCM::test_span_method_snapshot: missing_feature (Not yet implemented)
-  tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses: missing_feature (feature not implemented)
+  tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses:  # TODO: a lower version might be supported
+    - declaration: missing_feature (feature not implemented)
+      component_version: <2.10.1
+      weblog: [gin, net-http, fiber-v2-orchestrion, uds-echo, echo, chi, net-http-orchestrion]
+    - declaration: missing_feature (feature not implemented)
+      excluded_weblog: [gin, net-http, fiber-v2-orchestrion, uds-echo, echo, chi, net-http-orchestrion]
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses::test_log_line_status: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses::test_metric_line_status: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses::test_span_decoration_line_status: missing_feature (Not yet implemented)
@@ -1666,7 +1675,12 @@ manifest:
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Method_Probe_Statuses::test_span_method_status: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb: v2.2.3
   # TODO(andrei): un-skip when datadog-agent v7.79.0 is released (Go's symdb upload comes from the agent, not from dd-trace-go)
-  tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb::test_event_metadata: missing_feature (extended event schema not yet shipped)
+  tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb::test_event_metadata:  # TODO: a lower version might be supported
+    - declaration: missing_feature (extended event schema not yet shipped)
+      component_version: <2.10.1
+      weblog: [gin, net-http, fiber-v2-orchestrion, uds-echo, echo, chi, net-http-orchestrion]
+    - declaration: missing_feature (extended event schema not yet shipped)
+      excluded_weblog: [gin, net-http, fiber-v2-orchestrion, uds-echo, echo, chi, net-http-orchestrion]
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry: missing_feature
   tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: v2.0.0
   tests/ffe/test_agentless_configuration.py: v2.11.0-dev
@@ -2439,8 +2453,147 @@ manifest:
   tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_SamplingRules: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server:  # TODO: a lower version might be supported
+    - declaration: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+      component_version: <2.10.1
+      weblog: [gin, net-http, uds-echo, echo, chi, net-http-orchestrion]
+    - declaration: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+      excluded_weblog: [gin, net-http, uds-echo, echo, chi, net-http-orchestrion]
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_client_address:
+    - weblog_declaration:
+        chi: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        net-http-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        net-http: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        uds-echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        gin: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_datadog_attributes_absent:
+    - weblog_declaration:
+        chi: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        net-http-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        net-http: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        uds-echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        gin: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_http_endpoint_retained_from_appsec: irrelevant (The AppSec endpoint retention request is specific to .NET)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_http_endpoint_retained_from_resource_renaming:
+    - weblog_declaration:
+        chi: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        gin: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        uds-echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_network_peer_address:
+    - weblog_declaration:
+        chi: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        net-http-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        net-http: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        uds-echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        gin: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_otel_attributes_present:
+    - weblog_declaration:
+        chi: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        net-http-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        net-http: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        uds-echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        gin: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_server_address:
+    - weblog_declaration:
+        chi: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        net-http-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        net-http: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        uds-echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        gin: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_server_port:
+    - weblog_declaration:
+        chi: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        net-http-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        net-http: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        uds-echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        gin: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_span_name_route_invariance:
+    - weblog_declaration:
+        chi: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        net-http-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        net-http: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        uds-echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        gin: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_span_name_unknown_method:
+    - weblog_declaration:
+        chi: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        net-http-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        net-http: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        uds-echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        gin: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_span_name_with_route:
+    - weblog_declaration:
+        chi: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        net-http-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        net-http: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        uds-echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        gin: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_span_name_without_route:
+    - weblog_declaration:
+        chi: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        net-http-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        net-http: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        uds-echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        gin: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_status_3xx_is_not_error:
+    - weblog_declaration:
+        chi: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        net-http-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        net-http: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        uds-echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        gin: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_status_400_is_not_error:
+    - weblog_declaration:
+        chi: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        net-http-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        net-http: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        uds-echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        gin: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_status_500_no_exception_is_status_code_error:
+    - weblog_declaration:
+        chi: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        net-http-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        net-http: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        uds-echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        gin: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_url_query_obfuscation:
+    - weblog_declaration:
+        chi: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        net-http-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        net-http: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        uds-echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        gin: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_url_query_present_with_query_string:
+    - weblog_declaration:
+        chi: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        net-http-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        net-http: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        uds-echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        gin: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_user_agent:
+    - weblog_declaration:
+        chi: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        net-http-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        net-http: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        uds-echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        gin: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
   tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5: v2.11.0-dev
   tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh:
     - weblog_declaration:
