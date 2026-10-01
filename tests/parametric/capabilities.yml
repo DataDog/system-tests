@@ -71,8 +71,9 @@ capabilities:
 
     # SDK_CONFIGURATION supersedes the per-setting APM_TRACING capabilities in the 5.x
     # line from 5.128.0 and in the 6.x line from 6.17.0. Node.js 6.19.0 restores the
-    # legacy bits as compatibility metadata while continuing to consume sdk_config.
-    '<5.128.0 || >=6.0.0-0 <6.17.0 || >=6.19.0':
+    # legacy bits as compatibility metadata while continuing to consume sdk_config. Keep the
+    # restored-bit range below 7.0.0 so this can land before the change reaches Node.js main.
+    '<5.128.0 || >=6.0.0-0 <6.17.0 || >=6.19.0 <7.0.0-0':
       - APM_TRACING_CUSTOM_TAGS
       - APM_TRACING_ENABLED
       - APM_TRACING_HTTP_HEADER_TAGS
@@ -89,11 +90,11 @@ capabilities:
     '>=5.83.0':
       - APM_TRACING_MULTICONFIG
 
-    '>=5.83.0 <5.128.0 || >=6.0.0-0 <6.17.0 || >=6.19.0':
+    '>=5.83.0 <5.128.0 || >=6.0.0-0 <6.17.0 || >=6.19.0 <7.0.0-0':
       - APM_TRACING_ENABLE_CODE_ORIGIN
       - APM_TRACING_ENABLE_DYNAMIC_INSTRUMENTATION
 
-    '>=5.84.0 <5.128.0 || >=6.0.0-0 <6.17.0 || >=6.19.0':
+    '>=5.84.0 <5.128.0 || >=6.0.0-0 <6.17.0 || >=6.19.0 <7.0.0-0':
       - APM_TRACING_ENABLE_LIVE_DEBUGGING
 
   python:
