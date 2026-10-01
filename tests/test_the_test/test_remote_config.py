@@ -208,26 +208,9 @@ def test_resolve_sdk_configuration_contract():
         }
     )
 
-    # dd-trace-php: bit 49 is ASM_RAW_RESPONSE_BODY there, and lib_config is still what it reads
-    assert (
-        rc.resolve_sdk_configuration_contract(
-            {
-                Capabilities.APM_TRACING_CUSTOM_TAGS,
-                Capabilities.APM_TRACING_ENABLED,
-                Capabilities.APM_TRACING_HTTP_HEADER_TAGS,
-                Capabilities.APM_TRACING_LOGS_INJECTION,
-                Capabilities.APM_TRACING_SAMPLE_RATE,
-                Capabilities.APM_TRACING_SAMPLE_RULES,
-                Capabilities.APM_TRACING_MULTICONFIG,
-                Capabilities.SDK_CONFIGURATION,
-            }
-        )
-        is False
-    )
-
-    # dd-trace-js 6.19.0+: legacy bits are compatibility metadata, but sdk_config remains the
-    # only application path. The same capability combination still means lib_config for PHP.
-    mixed_capabilities = {
+    # dd-trace-php: bit 49 is ASM_RAW_RESPONSE_BODY there, and the per-setting fingerprint confirms
+    # that lib_config is still what it reads.
+    php_lib_config_capabilities = {
         Capabilities.APM_TRACING_CUSTOM_TAGS,
         Capabilities.APM_TRACING_ENABLED,
         Capabilities.APM_TRACING_HTTP_HEADER_TAGS,
@@ -237,8 +220,16 @@ def test_resolve_sdk_configuration_contract():
         Capabilities.APM_TRACING_MULTICONFIG,
         Capabilities.SDK_CONFIGURATION,
     }
-    assert rc.resolve_sdk_configuration_contract(mixed_capabilities, library_name="nodejs") is True
-    assert rc.resolve_sdk_configuration_contract(mixed_capabilities, library_name="php") is False
+    assert rc.resolve_sdk_configuration_contract(php_lib_config_capabilities, library_name="php") is False
+
+    # dd-trace-js 6.19.0+: all nine restored per-setting bits are compatibility metadata, but
+    # sdk_config remains the only application path.
+    nodejs_6_19_apm_capabilities = php_lib_config_capabilities | {
+        Capabilities.APM_TRACING_ENABLE_CODE_ORIGIN,
+        Capabilities.APM_TRACING_ENABLE_DYNAMIC_INSTRUMENTATION,
+        Capabilities.APM_TRACING_ENABLE_LIVE_DEBUGGING,
+    }
+    assert rc.resolve_sdk_configuration_contract(nodejs_6_19_apm_capabilities, library_name="nodejs") is True
 
     # dd-trace-java: no SDK_CONFIGURATION at all
     assert (
