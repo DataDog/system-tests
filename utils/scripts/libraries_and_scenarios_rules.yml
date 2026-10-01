@@ -454,7 +454,7 @@ patterns:
         scenario_groups: null  # already handled by the manifest comparison
         libraries: java
     utils/build/docker/java/*:
-        scenario_groups: [ end_to_end, open_telemetry]
+        scenario_groups: [ end_to_end, open_telemetry, integration_frameworks]
         libraries: java
     lib-injection/build/docker/java/*:
         libraries: java
@@ -472,7 +472,7 @@ patterns:
         scenario_groups: null  # already handled by the manifest comparison
         libraries: nodejs
     utils/build/docker/nodejs/*:
-        scenario_groups: [ end_to_end, open_telemetry]
+        scenario_groups: [ end_to_end, open_telemetry, integration_frameworks]
         libraries: nodejs
     lib-injection/build/docker/nodejs/*:
         libraries: nodejs
@@ -496,7 +496,7 @@ patterns:
         libraries: python
     utils/build/docker/python/*:
         libraries: python
-        scenario_groups: [ end_to_end, open_telemetry]
+        scenario_groups: [ end_to_end, open_telemetry, integration_frameworks]
     lib-injection/build/docker/python/*:
         libraries: python
     manifests/ruby.yml:
