@@ -21,6 +21,8 @@ STABLE_VALUES = [
 
 
 def _configuration_name(library: APMLibrary) -> str:
+    # Java reports it with a different telemetry name although
+    # configuration works with the OTEL_ name
     if library.lang == "java":
         return JAVA_TELEMETRY_NAME
     return VARIABLE_NAME
