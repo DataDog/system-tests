@@ -2960,8 +2960,18 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         express5: *ref_6_0_0
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics::test_trace_metric_agrees_with_client_success: missing_feature (successful client trace metrics still report OTel error status)
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics::test_trace_metric_agrees_with_server_success: missing_feature (successful server trace metrics still report OTel error status)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics::test_trace_metric_agrees_with_client_success:  # TODO: a lower version might be supported
+    - declaration: missing_feature (successful client trace metrics still report OTel error status)
+      component_version: <6.19.0
+      weblog: [express5]
+    - declaration: missing_feature (successful client trace metrics still report OTel error status)
+      excluded_weblog: [express5]
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics::test_trace_metric_agrees_with_server_success:  # TODO: a lower version might be supported
+    - declaration: missing_feature (successful server trace metrics still report OTel error status)
+      component_version: <6.19.0
+      weblog: [express5]
+    - declaration: missing_feature (successful server trace metrics still report OTel error status)
+      excluded_weblog: [express5]
   tests/test_otel_http_semantics.py::Test_OtelSemantics_SamplingRules:
     - weblog_declaration:
         "*": missing_feature
