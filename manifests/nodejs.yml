@@ -1678,7 +1678,7 @@ manifest:
   tests/cws/test_thread_context_sharing.py::Test_ThreadContextSharing:
     - weblog_declaration:
         "*": irrelevant (requires AsyncContextFrame, Node.js 22.9+; covered on fastify)
-        fastify: missing_feature (thread context sharing not enabled for appsec yet)
+        fastify: *ref_4_1_0
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Line_Capture_Expressions:
     - weblog_declaration:
         "*": irrelevant

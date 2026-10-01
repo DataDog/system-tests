@@ -26,3 +26,5 @@ CMD ./app.sh
 COPY utils/build/docker/nodejs/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh && rm -rf /root/.bun
 ENV DD_TRACE_HEADER_TAGS=user-agent
+# TEMPORARY (do not merge): run the thread context writer end to end on Node.js 24.
+ENV DD_TRACE_OTEL_CTX_ENABLED=true
