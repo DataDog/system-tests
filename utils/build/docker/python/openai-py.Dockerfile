@@ -4,9 +4,9 @@ ARG FRAMEWORK_VERSION
 WORKDIR /app
 
 RUN if [ "$FRAMEWORK_VERSION" = "latest" ]; then \
-        python -m pip install openai; \
+        python -m pip install --retries 10 --timeout 120 openai; \
     else \
-        python -m pip install openai==$FRAMEWORK_VERSION; \
+        python -m pip install --retries 10 --timeout 120 openai==$FRAMEWORK_VERSION; \
     fi
 
 COPY utils/build/docker/python/openai_app/system_tests_library_version.sh system_tests_library_version.sh
