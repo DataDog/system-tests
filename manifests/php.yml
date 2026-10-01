@@ -1685,7 +1685,7 @@ manifest:
   ? tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_extended_reserved_attributes_overrides_analytics_event
   : - declaration: missing_feature (Implemented in 0.96.0)
       component_version: <=0.95.0
-  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_link_attribute_handling: missing_feature (Not implemented, does not break out arrays into dot notation)
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_link_attribute_handling: v1.26.0-dev
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_started_with_link_from_another_span:
     - declaration: missing_feature (Implemented in 0.97.0)
       component_version: <0.97.0
@@ -1747,9 +1747,24 @@ manifest:
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_defaults_rate_1_and_rate_limit_3_sst010: bug (APMAPI-737)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_defaults_rate_1_and_rule_0_sst006: bug (APMAPI-737)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_defaults_rate_tiny_sst004: bug (APMAPI-737)
-  tests/parametric/test_span_events.py: missing_feature
-  tests/parametric/test_span_events.py::Test_Span_Events::test_span_with_event_v05: '>=1.16.0'
-  tests/parametric/test_span_links.py: missing_feature
+  tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_defaults_sst002:
+    - declaration: bug (APMAPI-1545)
+      component_version: '>=1.26.0-dev'
+  tests/parametric/test_span_events.py::Test_Span_Events::test_span_with_event_v04: v1.26.0-dev
+  tests/parametric/test_span_events.py::Test_Span_Events::test_span_with_event_v05:
+    - declaration: missing_feature
+      component_version: '<1.16.0'
+    - declaration: irrelevant (PHP does not support v0.5; V1 sends span events natively)
+      component_version: '>=1.26.0-dev'
+  tests/parametric/test_span_events.py::Test_Span_Events::test_span_with_event_v07: v1.26.0-dev
+  tests/parametric/test_span_events.py::Test_Span_Events::test_span_with_invalid_event_attributes: missing_feature
+  tests/parametric/test_span_links.py::Test_Span_Links::test_span_link_from_distributed_datadog_headers: missing_feature
+  tests/parametric/test_span_links.py::Test_Span_Links::test_span_link_from_distributed_w3c_headers: missing_feature
+  tests/parametric/test_span_links.py::Test_Span_Links::test_span_link_propagated_sampling_decisions: missing_feature
+  tests/parametric/test_span_links.py::Test_Span_Links::test_span_started_with_link_v04: v1.26.0-dev
+  tests/parametric/test_span_links.py::Test_Span_Links::test_span_started_with_link_v05: missing_feature
+  tests/parametric/test_span_links.py::Test_Span_Links::test_span_started_with_link_v05_span_id_padding: missing_feature
+  tests/parametric/test_span_links.py::Test_Span_Links::test_span_with_attached_links: v1.26.0-dev
   ? tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_child_span_selected_and_root_dropped_by_sss_when_dropping_policy_is_active017
   : missing_feature (The PHP tracer always sends the full trace to the agent.)
   tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_entire_trace_dropped_when_dropping_policy_is_active018: missing_feature (The PHP tracer always sends the full trace to the agent.)
@@ -2530,4 +2545,5 @@ manifest:
   tests/test_telemetry.py::Test_TelemetrySCAEnvVar: v0.99.1
   tests/test_telemetry.py::Test_TelemetryV2: v0.90
   tests/test_telemetry.py::Test_TelemetryV2::test_app_started_product_info: missing_feature (Product started missing (both in libdatadog and php))
-  tests/test_v1_payloads.py: missing_feature
+  tests/test_v1_payloads.py: v1.26.0-dev
+  tests/test_v1_payloads.py::Test_V1SpanLinks: missing_feature (no span link is created from conflicting datadog and tracecontext contexts, see Test_Span_Links_From_Conflicting_Contexts)
