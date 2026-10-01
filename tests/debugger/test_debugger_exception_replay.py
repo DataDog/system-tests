@@ -48,16 +48,9 @@ def normalize_approval_data(data: object) -> object:
     as strings, whereas a natively emitted v1 payload keeps real booleans. Neither difference is
     relevant to exception replay, so drop the marker and canonicalize booleans on both sides of the
     comparison. This keeps a single set of approval files valid whether or not conversion is enabled.
-
-    The ``_dd.sdk.otlp_export`` tag describes trace export routing, not exception replay. Its presence
-    varies across tracer versions, so exclude it from both sides of the approval comparison too.
     """
     if isinstance(data, dict):
-        return {
-            key: normalize_approval_data(value)
-            for key, value in data.items()
-            if key not in {"_dd.convertedv1", "_dd.sdk.otlp_export"}
-        }
+        return {key: normalize_approval_data(value) for key, value in data.items() if key != "_dd.convertedv1"}
 
     if isinstance(data, list):
         return [normalize_approval_data(item) for item in data]
