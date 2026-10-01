@@ -75,6 +75,19 @@ class AppController extends AbstractController
         return new Response('', $code);
     }
 
+    #[Route('/add_event', name: 'add_event', methods: ['GET'])]
+    public function addEvent(): Response
+    {
+        $span = \DDTrace\root_span();
+        if ($span === null) {
+            return new Response('root span not found', 500);
+        }
+
+        $span->events[] = new \DDTrace\SpanEvent('span.event', ['string' => 'value', 'int' => 1]);
+
+        return new Response('[Event added]', 200);
+    }
+
     #[Route('/trace/manual_keep_drop', name: 'trace_manual_keep_drop', methods: ['GET'])]
     public function traceManualKeepDrop(Request $request): Response
     {
