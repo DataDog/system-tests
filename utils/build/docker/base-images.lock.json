@@ -1,6 +1,7 @@
 {
   "version": 1,
   "images": {
+    "system_tests_base_java_lambda_java_lambda_runtime": "datadog/system-tests:java-lambda-runtime.base-e849230b09df",
     "system_tests_base_nodejs_express4": "datadog/system-tests:express4.base-cb2b80abf6d1",
     "system_tests_base_nodejs_express4_typescript": "datadog/system-tests:express4-typescript.base-eb800c09d602",
     "system_tests_base_nodejs_express5": "datadog/system-tests:express5.base-3ef9e2c68c47",
@@ -38,6 +39,7 @@
     "system_tests_base_python_lambda_python_lambda_runtime": "datadog/system-tests:python-lambda-runtime.base-944cdc8541b3",
     "system_tests_base_python_python3_12": "datadog/system-tests:python3.12.base-604705958847",
     "system_tests_base_python_tornado": "datadog/system-tests:tornado.base-301b798ae137",
-    "system_tests_base_python_uwsgi_poc": "datadog/system-tests:uwsgi-poc.base-24176640f4fe"
+    "system_tests_base_python_uwsgi_poc": "datadog/system-tests:uwsgi-poc.base-24176640f4fe",
+    "system_tests_base_ruby_lambda_ruby_lambda_runtime": "datadog/system-tests:ruby-lambda-runtime.base-78548bc44bd6"
   }
 }
