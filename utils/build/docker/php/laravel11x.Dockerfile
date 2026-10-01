@@ -21,13 +21,6 @@ RUN mkdir -p /var/www/html && \
     echo "APP_DEBUG=true" >> /var/www/html/.env
 
 RUN chmod +x /tmp/php/apache-mod/build.sh
-# Laravel 11 has no fix for CVE-2026-102279 (debug-page XSS); allow it in this test fixture.
-# Apply the exception here: editing weblogs/ also changes every shared PHP base-image hash.
-RUN php -r '\
-    $path = "/tmp/php/weblogs/laravel11x/composer.json"; \
-    $config = json_decode(file_get_contents($path), true, 512, JSON_THROW_ON_ERROR); \
-    $config["config"]["policy"]["advisories"]["ignore-id"][] = "PKSA-d5tc-s1qs-h781"; \
-    file_put_contents($path, json_encode($config, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . PHP_EOL);'
 RUN /tmp/php/apache-mod/build.sh laravel11x
 # Use Laravel-specific Apache config (DocumentRoot public/, AllowOverride All) — mirrors apache-mod Dockerfiles pattern
 RUN cp /tmp/php/weblogs/laravel11x/.apache.conf /etc/apache2/mods-available/php.conf && \
