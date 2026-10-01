@@ -2990,7 +2990,10 @@ manifest:
   tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualProfiling::test_profiling:
     - declaration: bug (SCP-962)
       component_version: '>=1.5.0'
-  tests/cws/test_thread_context_sharing.py::Test_ThreadContextSharing: missing_feature (thread context sharing not enabled for appsec yet)
+  tests/cws/test_thread_context_sharing.py::Test_ThreadContextSharing:
+    - weblog_declaration:
+        "*": irrelevant (only tested in one framework)
+        spring-boot: v1.67.0-SNAPSHOT
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Line_Capture_Expressions:
     - weblog_declaration:
         "*": missing_feature
