@@ -102,6 +102,7 @@ class OtelSemanticsOtlpTraceMetrics(DdTraceEndToEndScenario):
             weblog_env={
                 "DD_TRACE_OTEL_SEMANTICS_ENABLED": "true",
                 "DD_TRACE_OTEL_ENABLED": "true",
+                "DD_METRICS_OTEL_ENABLED": "true",
                 "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
                 "OTEL_TRACES_EXPORTER": "otlp",
                 "OTEL_TRACES_SPAN_METRICS_ENABLED": "true",
