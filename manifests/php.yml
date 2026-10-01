@@ -1725,7 +1725,11 @@ manifest:
     - declaration: bug (APMAPI-1545)
       component_version: '>=1.26.0-dev'
   tests/parametric/test_span_events.py::Test_Span_Events::test_span_with_event_v04: v1.26.0-dev
-  tests/parametric/test_span_events.py::Test_Span_Events::test_span_with_event_v05: missing_feature
+  tests/parametric/test_span_events.py::Test_Span_Events::test_span_with_event_v05:
+    - declaration: missing_feature
+      component_version: '<1.16.0'
+    - declaration: irrelevant (PHP does not support v0.5; V1 sends span events natively)
+      component_version: '>=1.26.0-dev'
   tests/parametric/test_span_events.py::Test_Span_Events::test_span_with_event_v07: v1.26.0-dev
   tests/parametric/test_span_events.py::Test_Span_Events::test_span_with_invalid_event_attributes: missing_feature
   tests/parametric/test_span_links.py::Test_Span_Links::test_span_link_from_distributed_datadog_headers: missing_feature
