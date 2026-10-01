@@ -645,8 +645,9 @@ APM_TRACING_CAPABILITIES = frozenset(
     capability for capability in Capabilities if capability.name.startswith("APM_TRACING_")
 )
 
-# The per-setting APM_TRACING capabilities that SDK_CONFIGURATION replaces. A library on the new
-# contract advertises the single SDK_CONFIGURATION bit instead of all of these.
+# The per-setting APM_TRACING capabilities that SDK_CONFIGURATION originally replaced. Most
+# libraries on the new contract advertise the single SDK_CONFIGURATION bit instead of these;
+# Node.js 6.19.0+ advertises both for backend/frontend compatibility while consuming sdk_config.
 LEGACY_APM_TRACING_CAPABILITIES = frozenset(
     {
         Capabilities.APM_TRACING_CUSTOM_TAGS,
@@ -659,7 +660,9 @@ LEGACY_APM_TRACING_CAPABILITIES = frozenset(
 )
 
 
-def resolve_sdk_configuration_contract(capabilities: set[Capabilities]) -> bool | None:
+def resolve_sdk_configuration_contract(
+    capabilities: set[Capabilities], *, library_name: str | None = None
+) -> bool | None:
     """Decide which APM_TRACING payload shape a set of advertised capabilities asks for.
 
     Returns True for `sdk_config`, False for `lib_config`, and None when the capabilities seen so
@@ -670,14 +673,21 @@ def resolve_sdk_configuration_contract(capabilities: set[Capabilities]) -> bool 
     libdatadog hands the same bit to `ASM_RAW_RESPONSE_BODY`, so a libdatadog-based library such as
     dd-trace-php advertises it while still reading `lib_config`.
 
-    Dropping the per-setting capabilities is the whole point of the unified bit, so their absence
-    is what distinguishes the two. Absence only counts once the library has actually registered its
-    APM_TRACING remote config, though: capabilities are added as products start, and AppSec ones
-    come first, so an early poll from a libdatadog library shows bit 49 with no APM_TRACING bit yet
-    and would otherwise be mistaken for the unified contract.
+    For Node.js, SDK_CONFIGURATION is authoritative even when the legacy per-setting bits are also
+    present. Node.js 6.19.0 restored those bits for backend/frontend compatibility without restoring
+    the legacy `lib_config` application path.
+
+    For other tracers, dropping the per-setting capabilities is what distinguishes the two. Absence
+    only counts once the library has actually registered its APM_TRACING remote config, though:
+    capabilities are added as products start, and AppSec ones come first, so an early poll from a
+    libdatadog library shows bit 49 with no APM_TRACING bit yet and would otherwise be mistaken for
+    the unified contract.
     """
     if not capabilities & APM_TRACING_CAPABILITIES:
         return None
+
+    if library_name == "nodejs" and Capabilities.SDK_CONFIGURATION in capabilities:
+        return True
 
     if capabilities & LEGACY_APM_TRACING_CAPABILITIES:
         return False
@@ -711,7 +721,7 @@ def resolve_sdk_configuration_support(get_capabilities: Callable[[], set[Capabil
         logger.error(f"Could not read the RC capabilities ({e}), assuming no SDK_CONFIGURATION support")
         return False
 
-    supported = resolve_sdk_configuration_contract(capabilities)
+    supported = resolve_sdk_configuration_contract(capabilities, library_name=context.library.name)
     if supported is None:
         logger.info("No APM_TRACING capability advertised yet, sending lib_config for now")
         return False

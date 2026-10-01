@@ -196,9 +196,10 @@ def test_resolve_sdk_configuration_contract():
     """The SDK_CONFIGURATION bit alone does not mean the library reads sdk_config.
 
     Bit 49 is SDK_CONFIGURATION in the remote config source of truth, but libdatadog gives the
-    same bit to ASM_RAW_RESPONSE_BODY, so the per-setting capabilities have to be gone too.
+    same bit to ASM_RAW_RESPONSE_BODY. Capability interpretation therefore also needs to account
+    for the tracer implementation when legacy bits and SDK_CONFIGURATION appear together.
     """
-    # dd-trace-js with the SDK_CONFIGURATION support: the per-setting capabilities are dropped
+    # dd-trace-js 6.17.0 and 6.18.0: the per-setting capabilities are dropped
     assert rc.resolve_sdk_configuration_contract(
         {
             Capabilities.ASM_ACTIVATION,
@@ -223,6 +224,21 @@ def test_resolve_sdk_configuration_contract():
         )
         is False
     )
+
+    # dd-trace-js 6.19.0+: legacy bits are compatibility metadata, but sdk_config remains the
+    # only application path. The same capability combination still means lib_config for PHP.
+    mixed_capabilities = {
+        Capabilities.APM_TRACING_CUSTOM_TAGS,
+        Capabilities.APM_TRACING_ENABLED,
+        Capabilities.APM_TRACING_HTTP_HEADER_TAGS,
+        Capabilities.APM_TRACING_LOGS_INJECTION,
+        Capabilities.APM_TRACING_SAMPLE_RATE,
+        Capabilities.APM_TRACING_SAMPLE_RULES,
+        Capabilities.APM_TRACING_MULTICONFIG,
+        Capabilities.SDK_CONFIGURATION,
+    }
+    assert rc.resolve_sdk_configuration_contract(mixed_capabilities, library_name="nodejs") is True
+    assert rc.resolve_sdk_configuration_contract(mixed_capabilities, library_name="php") is False
 
     # dd-trace-java: no SDK_CONFIGURATION at all
     assert (
