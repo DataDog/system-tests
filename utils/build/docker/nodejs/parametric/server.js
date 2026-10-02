@@ -167,10 +167,13 @@ app.post('/trace/span/finish', (req, res) => {
 });
 
 app.post('/trace/span/flush', (req, res) => {
-  const { _tracer: { _exporter: { _writer } } } = tracer
-  _writer.flush(() => {
+  const exporter = tracer._tracer._exporter
+  if (typeof exporter.flush === 'function') {
+    exporter.flush(() => res.json({}))
+  } else {
+    // Older OTLP exporters send on span finish and have no flush method.
     res.json({});
-  })
+  }
   spans.clear();
   ddContext.clear();
 });

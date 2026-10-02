@@ -1,4 +1,4 @@
-FROM datadog/system-tests:apache-mod-8.0.base-v1
+FROM system_tests_base_php_apache_mod_8_0
 
 ENV PHP_VERSION=8.0
 ENV VARIANT=release

@@ -52,6 +52,23 @@ def test_ipv6_is_not_supported_for_uds_weblogs():
 
 
 @scenarios.test_the_test
+def test_fiber_v2_orchestrion_weblog() -> None:
+    weblog = get_weblog("golang", "fiber-v2-orchestrion")
+    for scenario in (scenarios.default, scenarios.sampling, scenarios.ipv6):
+        assert weblog.support_scenario(scenario.name, scenario.weblog_categories)
+    assert not weblog.support_scenario(scenarios.graphql_appsec.name, scenarios.graphql_appsec.weblog_categories)
+
+    definitions = get_endtoend_definitions(
+        "golang", {"endtoend": [scenarios.default]}, [weblog.name], "dev", 200000, 256, "123", ""
+    )
+    jobs = definitions["endtoend_defs"]["parallel_jobs"]
+    assert len(jobs) == 1
+    assert jobs[0]["weblog"] == weblog.name
+    assert jobs[0]["weblog_build_required"]
+    assert jobs[0]["scenarios"] == ["DEFAULT"]
+
+
+@scenarios.test_the_test
 def test_get_endtoend_definitions_empty_scenario_map():
     # Regression: previously raised KeyError when "endtoend" or "parametric" keys were absent
     defs = get_endtoend_definitions("ruby", {}, [], "dev", 200000, 256, "123", "")
@@ -95,37 +112,6 @@ def test_weblog_build_mode_is_resolved_from_metadata():
 
 
 @scenarios.test_the_test
-def test_nodejs_build_base_image():
-    scenario_map = {"endtoend": [scenarios.default, scenarios.integration_frameworks]}
-    defs = get_endtoend_definitions("nodejs", scenario_map, [], "dev", 200000, 256, "123", "", build_base_images=True)
-
-    assert defs["endtoend_defs"]["parallel_weblogs"] == []
-
-    jobs = {job["weblog"]: job for job in defs["endtoend_defs"]["parallel_jobs"]}
-
-    # express4 is build_mode=local and has a base Dockerfile → should build base image
-    assert jobs["express4"]["build_weblog_base_image"] is True
-
-    # openai-js is build_mode=none and has no base Dockerfile → should not build base image
-    assert jobs["openai-js@6.0.0"]["build_weblog_base_image"] is False
-
-
-@scenarios.test_the_test
-def test_python_build_base_image():
-    scenario_map = {"endtoend": [scenarios.default, scenarios.integration_frameworks]}
-    defs = get_endtoend_definitions("python", scenario_map, [], "dev", 200000, 256, "123", "", build_base_images=True)
-
-    # all python weblog has build_mode=prebuild. build_weblog_base_image
-    # only applies to build_mode=local weblogs → should not build base image inline
-    for job in defs["endtoend_defs"]["parallel_jobs"]:
-        assert job["build_weblog_base_image"] is False, job
-
-    # all python weblog with build_mode=prebuild should rebuild base images in the build job
-    for job in defs["endtoend_defs"]["parallel_weblogs"]:
-        assert job["build_base_images"] is True, job
-
-
-@scenarios.test_the_test
 def test_otel_collector():
     scenario_map = {"endtoend": [scenarios.otel_collector]}
     defs = get_endtoend_definitions("otel_collector", scenario_map, [], "prod", 200000, 256, "123", "")
@@ -133,7 +119,6 @@ def test_otel_collector():
     assert defs["endtoend_defs"]["parallel_jobs"] == [
         {
             "binaries_artifact": "",
-            "build_weblog_base_image": False,
             "expected_job_time": 74.34217318962216,
             "library": "otel_collector",
             "runs_on": "ubuntu-latest",

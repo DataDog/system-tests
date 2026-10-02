@@ -255,6 +255,23 @@ class _Scenarios:
         scenario_groups=[scenario_groups.sampling],
     )
 
+    sampling_rules_agent_rate = DdTraceEndToEndScenario(
+        "SAMPLING_RULES_AGENT_RATE",
+        weblog_env={
+            "DD_TRACE_RATE_LIMIT": "10000000",
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
+            # This rule never matches real weblog traffic (wrong service name), so every span
+            # falls through to the fallback sampler. That fallback must still receive agent-published
+            # rates instead of being stuck at 1.0: https://github.com/DataDog/dd-trace-java/pull/12490
+            "DD_TRACE_SAMPLING_RULES": '[{"service": "not-the-real-service-xyz", "sample_rate": 1.0}]',
+        },
+        doc=(
+            "Test that agent-published sampling rates are still applied to spans that don't match any "
+            "configured sampling rule, instead of the rule-miss fallback being stuck at rate 1.0."
+        ),
+        scenario_groups=[scenario_groups.sampling],
+    )
+
     trace_propagation_style_w3c = DdTraceEndToEndScenario(
         "TRACE_PROPAGATION_STYLE_W3C",
         weblog_env={
@@ -822,9 +839,18 @@ class _Scenarios:
         ],
     )
 
+    # Product assertion self-tests are opt-in, not part of framework CI or E2E groups.
+    feature_flagging_contract_tests = Scenario(
+        "FEATURE_FLAGGING_CONTRACT_TESTS",
+        doc="Unit tests for Feature Flags test contracts; no containers or SDK build required.",
+        github_workflow=None,
+    )
+
     feature_flagging_and_experimentation = DdTraceEndToEndScenario(
         "FEATURE_FLAGGING_AND_EXPERIMENTATION",
         rc_api_enabled=True,
+        # Allow final EVP batches to reach the backend after the weblog flushes and stops.
+        agent_interface_timeout=15,
         weblog_env={
             "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
             "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE": "remote_config",
@@ -875,8 +901,8 @@ class _Scenarios:
     apm_tracing_e2e_otel = DdTraceEndToEndScenario(
         "APM_TRACING_E2E_OTEL",
         weblog_env={"DD_TRACE_OTEL_ENABLED": "true"},
-        backend_interface_timeout=5,
-        require_api_key=True,
+        mocked_backend_v2=True,
+        use_proxy_for_agent=False,
         doc="",
     )
     apm_tracing_e2e_single_span = DdTraceEndToEndScenario(
@@ -1043,6 +1069,17 @@ class _Scenarios:
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
         },
         doc="Test that debugger snapshot capture reports when its time budget is exceeded",
+    )
+
+    debugger_evaluation_timeout = DebuggerScenario(
+        "DEBUGGER_EVALUATION_TIMEOUT",
+        weblog_env={
+            "DD_DYNAMIC_INSTRUMENTATION_EVALUATION_TIMEOUT": "10",
+            "DD_DYNAMIC_INSTRUMENTATION_EVALUATION_TIMEOUT_MS": "10",
+            "DD_DYNAMIC_INSTRUMENTATION_MAX_TIME_TO_EVALUATE": "10",
+            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
+        },
+        doc="Test that debugger expression evaluation reports when its time budget is exceeded",
     )
 
     debugger_probes_snapshot_with_scm = DebuggerScenario(

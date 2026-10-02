@@ -1,4 +1,8 @@
 # Docker Buildx bake file for python base images
+#
+# `context` is always this directory: base image Dockerfiles only COPY files from
+# here, so paths in the Dockerfile are relative to it (see build_base_images.py,
+# which derives base_image_dependencies from these COPY instructions).
 
 group "default" {
   targets = [
@@ -9,47 +13,58 @@ group "default" {
     "flask-poc",
     "uwsgi-poc",
     "tornado",
+    "openai-py",
   ]
 }
 
+target "_common" {
+  context = "."
+}
+
 target "django-py3_13" {
-  context    = "."
-  dockerfile = "utils/build/docker/python/django-py3.13.base.Dockerfile"
-  tags       = ["datadog/system-tests:django-py3.13.base-v12"]
+  inherits   = ["_common"]
+  dockerfile = "django-py3.13.base.Dockerfile"
+  tags       = ["datadog/system-tests:django-py3.13.base"]
 }
 
 target "fastapi" {
-  context    = "."
-  dockerfile = "utils/build/docker/python/fastapi.base.Dockerfile"
-  tags       = ["datadog/system-tests:fastapi.base-v11"]
+  inherits   = ["_common"]
+  dockerfile = "fastapi.base.Dockerfile"
+  tags       = ["datadog/system-tests:fastapi.base"]
 }
 
 target "python3_12" {
-  context    = "."
-  dockerfile = "utils/build/docker/python/python3.12.base.Dockerfile"
-  tags       = ["datadog/system-tests:python3.12.base-v15"]
+  inherits   = ["_common"]
+  dockerfile = "python3.12.base.Dockerfile"
+  tags       = ["datadog/system-tests:python3.12.base"]
 }
 
 target "django-poc" {
-  context    = "."
-  dockerfile = "utils/build/docker/python/django-poc.base.Dockerfile"
-  tags       = ["datadog/system-tests:django-poc.base-v13"]
+  inherits   = ["_common"]
+  dockerfile = "django-poc.base.Dockerfile"
+  tags       = ["datadog/system-tests:django-poc.base"]
 }
 
 target "flask-poc" {
-  context    = "."
-  dockerfile = "utils/build/docker/python/flask-poc.base.Dockerfile"
-  tags       = ["datadog/system-tests:flask-poc.base-v16"]
+  inherits   = ["_common"]
+  dockerfile = "flask-poc.base.Dockerfile"
+  tags       = ["datadog/system-tests:flask-poc.base"]
 }
 
 target "uwsgi-poc" {
-  context    = "."
-  dockerfile = "utils/build/docker/python/uwsgi-poc.base.Dockerfile"
-  tags       = ["datadog/system-tests:uwsgi-poc.base-v12"]
+  inherits   = ["_common"]
+  dockerfile = "uwsgi-poc.base.Dockerfile"
+  tags       = ["datadog/system-tests:uwsgi-poc.base"]
 }
 
 target "tornado" {
-  context    = "."
-  dockerfile = "utils/build/docker/python/tornado.base.Dockerfile"
-  tags       = ["datadog/system-tests:tornado.base-v3"]
+  inherits   = ["_common"]
+  dockerfile = "tornado.base.Dockerfile"
+  tags       = ["datadog/system-tests:tornado.base"]
+}
+
+target "openai-py" {
+  inherits   = ["_common"]
+  dockerfile = "openai-py.base.Dockerfile"
+  tags       = ["datadog/system-tests:openai-py.base"]
 }

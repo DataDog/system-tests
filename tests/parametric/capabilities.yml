@@ -66,24 +66,33 @@ capabilities:
 
   nodejs:
     base:
+      - ASM_ACTIVATION
+      - ASM_AUTO_USER_INSTRUM_MODE
+
+    # SDK_CONFIGURATION supersedes the per-setting APM_TRACING capabilities in the 5.x
+    # line from 5.128.0 and in the 6.x line from 6.17.0.
+    '<5.128.0 || >=6.0.0-0 <6.17.0':
       - APM_TRACING_CUSTOM_TAGS
       - APM_TRACING_ENABLED
       - APM_TRACING_HTTP_HEADER_TAGS
       - APM_TRACING_LOGS_INJECTION
       - APM_TRACING_SAMPLE_RATE
       - APM_TRACING_SAMPLE_RULES
-      - ASM_ACTIVATION
-      - ASM_AUTO_USER_INSTRUM_MODE
+
+    '>=5.128.0 <6.0.0-0 || >=6.17.0':
+      - SDK_CONFIGURATION
 
     '>=5.72.0':
       - FFE_FLAG_CONFIGURATION_RULES
 
     '>=5.83.0':
-      - APM_TRACING_ENABLE_CODE_ORIGIN
-      - APM_TRACING_ENABLE_DYNAMIC_INSTRUMENTATION
       - APM_TRACING_MULTICONFIG
 
-    '>=5.84.0':
+    '>=5.83.0 <5.128.0 || >=6.0.0-0 <6.17.0':
+      - APM_TRACING_ENABLE_CODE_ORIGIN
+      - APM_TRACING_ENABLE_DYNAMIC_INSTRUMENTATION
+
+    '>=5.84.0 <5.128.0 || >=6.0.0-0 <6.17.0':
       - APM_TRACING_ENABLE_LIVE_DEBUGGING
 
   python:
@@ -116,6 +125,9 @@ capabilities:
       - APM_TRACING_ENABLE_EXCEPTION_REPLAY
       - APM_TRACING_ENABLE_LIVE_DEBUGGING
       - APM_TRACING_MULTICONFIG
+
+    '>=3.54.0':
+      - FFE_FLAG_CONFIGURATION_RULES
 
   cpp:
     base:
