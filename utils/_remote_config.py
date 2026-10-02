@@ -645,19 +645,6 @@ APM_TRACING_CAPABILITIES = frozenset(
     capability for capability in Capabilities if capability.name.startswith("APM_TRACING_")
 )
 
-# The per-setting APM_TRACING capabilities that SDK_CONFIGURATION replaces. A library on the new
-# contract advertises the single SDK_CONFIGURATION bit instead of all of these.
-LEGACY_APM_TRACING_CAPABILITIES = frozenset(
-    {
-        Capabilities.APM_TRACING_CUSTOM_TAGS,
-        Capabilities.APM_TRACING_ENABLED,
-        Capabilities.APM_TRACING_HTTP_HEADER_TAGS,
-        Capabilities.APM_TRACING_LOGS_INJECTION,
-        Capabilities.APM_TRACING_SAMPLE_RATE,
-        Capabilities.APM_TRACING_SAMPLE_RULES,
-    }
-)
-
 
 def resolve_sdk_configuration_contract(capabilities: set[Capabilities]) -> bool | None:
     """Decide which APM_TRACING payload shape a set of advertised capabilities asks for.
@@ -665,22 +652,12 @@ def resolve_sdk_configuration_contract(capabilities: set[Capabilities]) -> bool 
     Returns True for `sdk_config`, False for `lib_config`, and None when the capabilities seen so
     far cannot tell, so the caller should look again later.
 
-    The SDK_CONFIGURATION bit alone is not enough to decide. Bit 49 is SDK_CONFIGURATION in the
-    remote config source of truth (dd-source `remote-config/shared/libs/rc/capabilities.go`), but
-    libdatadog hands the same bit to `ASM_RAW_RESPONSE_BODY`, so a libdatadog-based library such as
-    dd-trace-php advertises it while still reading `lib_config`.
-
-    Dropping the per-setting capabilities is the whole point of the unified bit, so their absence
-    is what distinguishes the two. Absence only counts once the library has actually registered its
-    APM_TRACING remote config, though: capabilities are added as products start, and AppSec ones
-    come first, so an early poll from a libdatadog library shows bit 49 with no APM_TRACING bit yet
-    and would otherwise be mistaken for the unified contract.
+    SDK_CONFIGURATION is authoritative once the library has registered at least one APM_TRACING
+    capability. Waiting for an APM capability prevents an unrelated product that registers first
+    from deciding which APM_TRACING payload shape to use.
     """
     if not capabilities & APM_TRACING_CAPABILITIES:
         return None
-
-    if capabilities & LEGACY_APM_TRACING_CAPABILITIES:
-        return False
 
     return Capabilities.SDK_CONFIGURATION in capabilities
 
