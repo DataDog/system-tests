@@ -18,6 +18,12 @@ MINIMAL_PARAMS = {
     "parametric": {"enable": False, "parallel_jobs": []},
 }
 
+AWS_SSI_SUBNETS = [
+    "subnet-0949e8646141ad988",
+    "subnet-0db3fd98b4f88f174",
+    "subnet-0597477128c3d3a6b",
+]
+
 
 @scenarios.test_the_test
 def test_gitlab_component_allow_failure_input_is_wired() -> None:
@@ -29,6 +35,15 @@ def test_gitlab_component_allow_failure_input_is_wired() -> None:
 
     for job_name in (".system_tests_param_base", "system_tests_build_pipeline", ".run_test_pipeline_base"):
         assert pipeline[job_name]["allow_failure"] == "$[[ inputs.allow_failure ]]"
+
+
+@scenarios.test_the_test
+def test_aws_ssi_jobs_are_configured_across_availability_zones() -> None:
+    pipeline = yaml.safe_load(Path(".gitlab/ssi_gitlab-ci.yml").read_text())
+
+    subnet_ids = pipeline[".base_job_onboarding_system_tests"]["variables"]["ONBOARDING_AWS_INFRA_SUBNET_ID"].split(",")
+
+    assert subnet_ids == AWS_SSI_SUBNETS
 
 
 @scenarios.test_the_test
