@@ -5,7 +5,7 @@ from utils import features, scenarios
 
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary
-from .otel_metrics_utils import (
+from .otel_env_vars.utils import (
     DEFAULT_METER_NAME,
     DEFAULT_METER_VERSION,
     DEFAULT_SCHEMA_URL,

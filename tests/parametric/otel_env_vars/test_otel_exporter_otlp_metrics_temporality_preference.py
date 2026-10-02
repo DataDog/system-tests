@@ -6,7 +6,7 @@ https://opentelemetry.io/docs/specs/otel/metrics/sdk_exporters/otlp/
 from utils import features, pytest, scenarios
 from tests.parametric.conftest import APMLibrary
 from utils.docker_fixtures import TestAgentAPI
-from tests.parametric.otel_metrics_utils import (
+from .utils import (
     DEFAULT_METER_NAME,
     DEFAULT_METER_VERSION,
     DEFAULT_SCHEMA_URL,
