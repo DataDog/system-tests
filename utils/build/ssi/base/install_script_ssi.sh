@@ -29,6 +29,9 @@ if [ -n "${DD_INSTALLER_LIBRARY_VERSION}" ]; then
     export "DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_LIBRARY_$(echo "$DD_LANG" | tr "[:lower:]" "[:upper:]")"="${DD_INSTALLER_LIBRARY_VERSION}"
 fi
 
+# shellcheck source=utils/build/ssi/base/installer_versions.sh
+source ./installer_versions.sh
+
 if [ "${DD_LANG}" == "js" ] && [ "${SSI_ENV}" == "dev" ] && [ -z "${DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_LIBRARY_JS}" ]; then
     # Special case for Node.js, the staging major version is 1 above the prod major (7 here)
     export DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_LIBRARY_JS="7"
@@ -36,7 +39,6 @@ fi
 
 #We want specfic injector version (to run on auto_inject pipelines)
 if [ -n "${DD_INSTALLER_INJECTOR_VERSION}" ]; then
-    export DD_INSTALLER_REGISTRY_URL_APM_INJECT_PACKAGE='installtesting.datad0g.com'
     export DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_INJECT="${DD_INSTALLER_INJECTOR_VERSION}"
 fi
 
