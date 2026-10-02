@@ -83,8 +83,10 @@ class _BaseDatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
     def test_span_kind(self, excluded_operations: tuple[str, ...] = ()):
         """Describes the relationship between the Span, its parents, and its children in a Trace."""
 
-        for _, span_meta in self.get_spans_meta(excluded_operations):
-            assert span_meta["span.kind"] == "client"
+        for _, lib_span, agent_span in self.get_spans(excluded_operations):
+            assert lib_span.meta["span.kind"] == "client"
+            # in the efficient trace payload format, the agent reports the kind as a top-level enum field
+            assert agent_span.get_span_kind() in ("client", "SPAN_KIND_CLIENT")
 
     def test_runtime_id(self):
         """Unique identifier for the current process."""
