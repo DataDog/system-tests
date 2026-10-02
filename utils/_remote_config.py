@@ -645,53 +645,19 @@ APM_TRACING_CAPABILITIES = frozenset(
     capability for capability in Capabilities if capability.name.startswith("APM_TRACING_")
 )
 
-# The per-setting capability fingerprint observed on libraries that consume `lib_config`. This is
-# deliberately not an exhaustive set of legacy APM_TRACING capabilities: optional feature bits do
-# not reliably identify the payload contract. Node.js 6.19.0+ re-advertises this fingerprint for
-# backend/frontend compatibility while continuing to consume `sdk_config`.
-LIB_CONFIG_CAPABILITY_FINGERPRINT = frozenset(
-    {
-        Capabilities.APM_TRACING_CUSTOM_TAGS,
-        Capabilities.APM_TRACING_ENABLED,
-        Capabilities.APM_TRACING_HTTP_HEADER_TAGS,
-        Capabilities.APM_TRACING_LOGS_INJECTION,
-        Capabilities.APM_TRACING_SAMPLE_RATE,
-        Capabilities.APM_TRACING_SAMPLE_RULES,
-    }
-)
 
-
-def resolve_sdk_configuration_contract(
-    capabilities: set[Capabilities], *, library_name: str | None = None
-) -> bool | None:
+def resolve_sdk_configuration_contract(capabilities: set[Capabilities]) -> bool | None:
     """Decide which APM_TRACING payload shape a set of advertised capabilities asks for.
 
     Returns True for `sdk_config`, False for `lib_config`, and None when the capabilities seen so
     far cannot tell, so the caller should look again later.
 
-    The SDK_CONFIGURATION bit alone is not enough to decide. Bit 49 is SDK_CONFIGURATION in the
-    remote config source of truth (dd-source `remote-config/shared/libs/rc/capabilities.go`), but
-    libdatadog hands the same bit to `ASM_RAW_RESPONSE_BODY`, so a libdatadog-based library such as
-    dd-trace-php advertises it while still reading `lib_config`.
-
-    For Node.js, SDK_CONFIGURATION is authoritative even when the legacy per-setting bits are also
-    present. Node.js 6.19.0 restored those bits for backend/frontend compatibility without restoring
-    the legacy `lib_config` application path.
-
-    For other tracers, the per-setting fingerprint distinguishes the two contracts. Its absence
-    only counts once the library has actually registered its APM_TRACING remote config, though:
-    capabilities are added as products start, and AppSec ones come first, so an early poll from a
-    libdatadog library shows bit 49 with no APM_TRACING bit yet and would otherwise be mistaken for
-    the unified contract.
+    SDK_CONFIGURATION is authoritative once the library has registered at least one APM_TRACING
+    capability. Waiting for an APM capability prevents an unrelated product that registers first
+    from deciding which APM_TRACING payload shape to use.
     """
     if not capabilities & APM_TRACING_CAPABILITIES:
         return None
-
-    if library_name == "nodejs" and Capabilities.SDK_CONFIGURATION in capabilities:
-        return True
-
-    if capabilities & LIB_CONFIG_CAPABILITY_FINGERPRINT:
-        return False
 
     return Capabilities.SDK_CONFIGURATION in capabilities
 
@@ -722,7 +688,7 @@ def resolve_sdk_configuration_support(get_capabilities: Callable[[], set[Capabil
         logger.error(f"Could not read the RC capabilities ({e}), assuming no SDK_CONFIGURATION support")
         return False
 
-    supported = resolve_sdk_configuration_contract(capabilities, library_name=context.library.name)
+    supported = resolve_sdk_configuration_contract(capabilities)
     if supported is None:
         logger.info("No APM_TRACING capability advertised yet, sending lib_config for now")
         return False

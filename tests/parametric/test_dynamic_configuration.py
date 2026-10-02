@@ -193,10 +193,10 @@ def uses_sdk_configuration(test_agent: TestAgentAPI) -> bool:
 def assert_rc_capability(test_agent: TestAgentAPI, capability: Capabilities, wait_loops: int = 100) -> None:
     """Assert that the tracer advertises the capability to remotely configure one setting.
 
-    A tracer that has moved to the unified SDK_CONFIGURATION contract can use that bit for every
-    remotely configurable setting, so it stands in for any missing per-setting one. The
-    SDK_CONFIGURATION bit on its own does not, since libdatadog gives that bit a different meaning;
-    only a tracer whose capability combination identifies the unified contract qualifies.
+    A tracer that has moved to the unified SDK_CONFIGURATION contract advertises that single bit
+    for every remotely configurable setting instead of the per-setting ones, so it stands in for
+    any of them. The SDK_CONFIGURATION bit on its own does not, since libdatadog gives that bit a
+    different meaning; only a tracer that has really dropped the per-setting bits qualifies.
     """
     seen_capabilities = test_agent.wait_for_rc_capabilities(wait_loops)
     if capability in seen_capabilities:
@@ -581,10 +581,10 @@ _LEGACY_CAPABILITY_SNAPSHOT: dict[str, frozenset[Capabilities]] = {
 class Test_DynamicConfigSdkConfiguration:
     """Coverage for the generic sdk_config RC delivery path.
 
-    sdk_config carries settings as generic env-var-keyed entries, applied via the unified
-    SDK_CONFIGURATION contract instead of custom per-setting parsing. These tests confirm a tracer
-    on that contract consumes sdk_config with no regression in behavior compared to the equivalent
-    lib_config delivery, starting with DD_TRACE_ENABLED.
+    sdk_config carries settings as generic env-var-keyed entries, applied via the single
+    SDK_CONFIGURATION capability instead of custom per-setting parsing. These tests confirm a
+    tracer that declares SDK_CONFIGURATION consumes sdk_config with no regression in behavior
+    compared to the equivalent lib_config delivery, starting with DD_TRACE_ENABLED.
 
     test_sdk_config_tracing_enabled_matches_lib_config asserts real behavior (tracing actually
     stops) for DD_TRACE_ENABLED. test_sdk_config_field_is_applied then layers a shallower

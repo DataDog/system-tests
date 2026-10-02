@@ -192,14 +192,8 @@ def test_build_apm_tracing_command_legacy_by_default():
 
 
 @scenarios.test_the_test
-def test_resolve_sdk_configuration_contract():
-    """The SDK_CONFIGURATION bit alone does not mean the library reads sdk_config.
-
-    Bit 49 is SDK_CONFIGURATION in the remote config source of truth, but libdatadog gives the
-    same bit to ASM_RAW_RESPONSE_BODY. Capability interpretation therefore also needs to account
-    for the tracer implementation when legacy bits and SDK_CONFIGURATION appear together.
-    """
-    # dd-trace-js 6.17.0 and 6.18.0: the per-setting capabilities are dropped
+def test_sdk_configuration_alone_selects_sdk_config():
+    """SDK_CONFIGURATION without per-setting APM_TRACING capabilities selects sdk_config."""
     assert rc.resolve_sdk_configuration_contract(
         {
             Capabilities.ASM_ACTIVATION,
@@ -208,49 +202,50 @@ def test_resolve_sdk_configuration_contract():
         }
     )
 
-    core_lib_config_capabilities = {
+
+@scenarios.test_the_test
+def test_sdk_configuration_with_apm_tracing_capabilities_selects_sdk_config():
+    """SDK_CONFIGURATION alongside per-setting APM_TRACING capabilities selects sdk_config."""
+    capabilities = {
         Capabilities.APM_TRACING_CUSTOM_TAGS,
         Capabilities.APM_TRACING_ENABLED,
         Capabilities.APM_TRACING_HTTP_HEADER_TAGS,
         Capabilities.APM_TRACING_LOGS_INJECTION,
         Capabilities.APM_TRACING_SAMPLE_RATE,
         Capabilities.APM_TRACING_SAMPLE_RULES,
-    }
-
-    # dd-trace-php: bit 49 is ASM_RAW_RESPONSE_BODY there, and the per-setting fingerprint confirms
-    # that lib_config is still what it reads.
-    php_lib_config_capabilities = core_lib_config_capabilities | {
-        Capabilities.APM_TRACING_MULTICONFIG,
-        Capabilities.SDK_CONFIGURATION,
-    }
-    assert rc.resolve_sdk_configuration_contract(php_lib_config_capabilities, library_name="php") is False
-
-    # dd-trace-js 6.19.0+: all nine restored per-setting bits are compatibility metadata, but
-    # sdk_config remains the only application path.
-    nodejs_sdk_config_with_legacy_capabilities = core_lib_config_capabilities | {
         Capabilities.APM_TRACING_MULTICONFIG,
         Capabilities.APM_TRACING_ENABLE_CODE_ORIGIN,
         Capabilities.APM_TRACING_ENABLE_DYNAMIC_INSTRUMENTATION,
         Capabilities.APM_TRACING_ENABLE_LIVE_DEBUGGING,
         Capabilities.SDK_CONFIGURATION,
     }
-    assert (
-        rc.resolve_sdk_configuration_contract(nodejs_sdk_config_with_legacy_capabilities, library_name="nodejs") is True
-    )
 
-    # dd-trace-java: no SDK_CONFIGURATION at all
-    assert (
-        rc.resolve_sdk_configuration_contract({Capabilities.APM_TRACING_SAMPLE_RATE, Capabilities.APM_TRACING_ENABLED})
-        is False
-    )
+    assert rc.resolve_sdk_configuration_contract(capabilities) is True
 
-    # Only ASM capabilities registered so far: nothing to conclude, ask again later
+
+@scenarios.test_the_test
+def test_apm_tracing_capabilities_without_sdk_configuration_select_lib_config():
+    """Per-setting APM_TRACING capabilities without SDK_CONFIGURATION select lib_config."""
+    capabilities = {
+        Capabilities.APM_TRACING_CUSTOM_TAGS,
+        Capabilities.APM_TRACING_ENABLED,
+        Capabilities.APM_TRACING_HTTP_HEADER_TAGS,
+        Capabilities.APM_TRACING_LOGS_INJECTION,
+        Capabilities.APM_TRACING_SAMPLE_RATE,
+        Capabilities.APM_TRACING_SAMPLE_RULES,
+        Capabilities.APM_TRACING_MULTICONFIG,
+    }
+
+    assert rc.resolve_sdk_configuration_contract(capabilities) is False
+
+
+@scenarios.test_the_test
+def test_resolve_sdk_configuration_contract_waits_for_apm_capabilities():
+    """Capability registration is inconclusive until an APM_TRACING capability is present."""
+
     assert rc.resolve_sdk_configuration_contract({Capabilities.ASM_ACTIVATION}) is None
     assert rc.resolve_sdk_configuration_contract(set()) is None
 
-    # A libdatadog library mid-startup: bit 49 is registered with the other AppSec capabilities,
-    # before any APM_TRACING one. The absence of the per-setting bits is not evidence of the
-    # unified contract yet, so this must stay inconclusive rather than be cached as sdk_config.
     assert (
         rc.resolve_sdk_configuration_contract(
             {
@@ -262,7 +257,6 @@ def test_resolve_sdk_configuration_contract():
         is None
     )
 
-    # APM_TRACING registered but no SDK_CONFIGURATION: conclusively lib_config
     assert (
         rc.resolve_sdk_configuration_contract(
             {Capabilities.APM_TRACING_MULTICONFIG, Capabilities.APM_TRACING_ENABLE_CODE_ORIGIN}
@@ -279,5 +273,4 @@ def test_apm_tracing_capabilities_exclude_sdk_configuration():
     `resolve_sdk_configuration_contract`.
     """
     assert Capabilities.SDK_CONFIGURATION not in rc.APM_TRACING_CAPABILITIES
-    assert rc.LIB_CONFIG_CAPABILITY_FINGERPRINT <= rc.APM_TRACING_CAPABILITIES
     assert Capabilities.APM_TRACING_MULTICONFIG in rc.APM_TRACING_CAPABILITIES
