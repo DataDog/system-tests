@@ -258,10 +258,23 @@ class Test_OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE:
         [
             pytest.param({**LIBRARY_ENV, VARIABLE_NAME: wire}, expected, id=wire)
             for wire, expected in STABLE_VALUES
-            if expected != "lowmemory" and wire not in (wire.lower(), wire.upper())
+            if expected == "cumulative" and wire not in (wire.lower(), wire.upper())
         ],
     )
-    def test_case_insensitive(self, test_agent: TestAgentAPI, test_library: APMLibrary, expected: str) -> None:
+    def test_cumulative_case_insensitive(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary, expected: str
+    ) -> None:
+        _assert_temporality(test_agent, test_library, expected)
+
+    @pytest.mark.parametrize(
+        ("library_env", "expected"),
+        [
+            pytest.param({**LIBRARY_ENV, VARIABLE_NAME: wire}, expected, id=wire)
+            for wire, expected in STABLE_VALUES
+            if expected == "delta" and wire not in (wire.lower(), wire.upper())
+        ],
+    )
+    def test_delta_case_insensitive(self, test_agent: TestAgentAPI, test_library: APMLibrary, expected: str) -> None:
         _assert_temporality(test_agent, test_library, expected)
 
     @pytest.mark.parametrize(
