@@ -45,6 +45,7 @@ def login_data(user: str, password: str):
 
 @rfc("https://docs.google.com/document/d/1RT38U6dTTcB-8muiYV4-aVDCsT_XrliyakjtAPyjUpw")
 @features.user_monitoring
+@scenarios.appsec_otlp_export_default_rules
 class Test_Automated_User_Tracking:
     def setup_user_tracking_auto(self):
         self.r_login = weblog.post("/login?auth=local", data=login_data(USER, PASSWORD))
