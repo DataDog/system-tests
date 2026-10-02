@@ -4,7 +4,7 @@ from pathlib import Path
 
 from functools import wraps
 
-import pytest
+from utils import pytest
 from utils.scripts.compute_libraries_and_scenarios import Inputs, process
 from utils import scenarios
 
@@ -90,6 +90,8 @@ def build_inputs(
     modified_files: list | None = None,
     new_manifests: Path = Path("./tests/test_the_test/manifests/manifests_ref/"),
     old_manifests: Path = Path("./tests/test_the_test/manifests/manifests_ref/"),
+    *,
+    select_main_push_from_diff: bool = False,
 ):
     if modified_files is None:
         modified_files = []
@@ -99,6 +101,7 @@ def build_inputs(
         scenario_map_file="tests/test_the_test/scenarios.json",
         new_manifests=new_manifests,
         old_manifests=old_manifests,
+        select_main_push_from_diff=select_main_push_from_diff,
     )
     Path.unlink(Path("modified_files.txt"))
     return inputs
@@ -184,8 +187,27 @@ class Test_ComputeLibrariesAndScenarios:
             600,
             "false",
             "DEFAULT",
-            "end_to_end,open_telemetry",
+            "end_to_end,integration_frameworks,open_telemetry",
         )
+
+    def test_integration_frameworks_docker_file(self):
+        for library, file, desired_execution_time in (
+            ("python", "utils/build/docker/python/openai-py.Dockerfile", 600),
+            ("python", "utils/build/docker/python/anthropic_app/main.py", 600),
+            ("nodejs", "utils/build/docker/nodejs/google_genai-js.Dockerfile", 300),
+            ("java", "utils/build/docker/java/openai_app/pom.xml", 600),
+        ):
+            inputs = build_inputs([file])
+
+            assert_github_processor(
+                inputs,
+                [library],
+                [library],
+                desired_execution_time,
+                "false",
+                "DEFAULT",
+                "end_to_end,integration_frameworks,open_telemetry",
+            )
 
     def test_nodejs_docker_file(self):
         inputs = build_inputs(["utils/build/docker/nodejs/express5.Dockerfile"])
@@ -197,7 +219,7 @@ class Test_ComputeLibrariesAndScenarios:
             300,
             "false",
             "DEFAULT",
-            "end_to_end,open_telemetry",
+            "end_to_end,integration_frameworks,open_telemetry",
         )
 
     def test_c_docker_file(self):
@@ -315,7 +337,7 @@ class Test_ComputeLibrariesAndScenarios:
             600,
             "false",
             "DEFAULT",
-            "end_to_end,open_telemetry",
+            "end_to_end,integration_frameworks,open_telemetry",
         )
 
     @set_env("GITHUB_PR_TITLE", "[java] Some title")
@@ -329,7 +351,7 @@ class Test_ComputeLibrariesAndScenarios:
             3600,
             "false",
             "DEFAULT",
-            "end_to_end,open_telemetry",
+            "end_to_end,integration_frameworks,open_telemetry",
         )
 
     @set_env("GITHUB_PR_TITLE", "[java@main] Some title")
@@ -343,7 +365,7 @@ class Test_ComputeLibrariesAndScenarios:
             600,
             "false",
             "DEFAULT",
-            "end_to_end,open_telemetry",
+            "end_to_end,integration_frameworks,open_telemetry",
         )
 
     @set_env("GITHUB_PR_TITLE", "[c@feature/native-http] Some title")
@@ -468,7 +490,7 @@ class Test_ComputeLibrariesAndScenarios:
             600,
             "false",
             "DEFAULT",
-            "end_to_end,open_telemetry",
+            "end_to_end,integration_frameworks,open_telemetry",
         )
 
     def test_otel_library(self):
@@ -657,13 +679,55 @@ class Test_GitLabMode:
 
         assert 'libraries="python"' not in process(inputs)
 
-    def test_main_pipelines_select_python(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
-    ) -> None:
+    def test_main_push_without_opt_in_keeps_full_matrix(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setenv("GITLAB_CI", "true")
         monkeypatch.setenv("CI_PIPELINE_SOURCE", "push")
         monkeypatch.setenv("CI_COMMIT_REF_NAME", "main")
-        inputs = build_inputs()
+        inputs = build_inputs(modified_files=["utils/virtual_machine/virtual_machines.json"])
 
-        assert 'libraries="python"' in process(inputs)
+        output = process(inputs)
+        assert 'libraries="python"' in output
+        assert 'scenarios_groups="all"' in output
+
+    def test_main_push_with_opt_in_selects_only_impacted_scenarios(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setenv("GITLAB_CI", "true")
+        monkeypatch.setenv("CI_PIPELINE_SOURCE", "push")
+        monkeypatch.setenv("CI_COMMIT_REF_NAME", "main")
+        inputs = build_inputs(
+            modified_files=["utils/virtual_machine/virtual_machines.json"],
+            select_main_push_from_diff=True,
+        )
+
+        output = process(inputs)
+        assert 'libraries="python"' in output
+        assert 'scenarios_groups="onboarding"' in output
+        assert 'scenarios_groups="all"' not in output
+
+    def test_main_push_with_opt_in_compares_manifests(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setenv("GITLAB_CI", "true")
+        monkeypatch.setenv("CI_PIPELINE_SOURCE", "push")
+        monkeypatch.setenv("CI_COMMIT_REF_NAME", "main")
+        inputs = build_inputs(
+            modified_files=["manifests/python.yml"],
+            new_manifests=Path("./tests/test_the_test/manifests/manifests_python_edit/"),
+            old_manifests=Path("./tests/test_the_test/manifests/manifests_ref/"),
+            select_main_push_from_diff=True,
+        )
+
+        output = process(inputs)
+        assert 'libraries="python"' in output
+        assert 'scenarios="APPSEC_API_SECURITY,DEFAULT"' in output
+        assert 'scenarios_groups=""' in output
+
+    def test_scheduled_main_still_selects_all_scenarios(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setenv("GITLAB_CI", "true")
+        monkeypatch.setenv("CI_PIPELINE_SOURCE", "schedule")
+        monkeypatch.setenv("CI_COMMIT_REF_NAME", "main")
+        inputs = build_inputs(
+            modified_files=["utils/virtual_machine/virtual_machines.json"],
+            select_main_push_from_diff=True,
+        )
+
+        output = process(inputs)
+        assert 'scenarios_groups="all"' in output
+        assert not any(line.startswith("libraries=") for line in output)

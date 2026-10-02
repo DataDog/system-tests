@@ -52,6 +52,23 @@ def test_ipv6_is_not_supported_for_uds_weblogs():
 
 
 @scenarios.test_the_test
+def test_fiber_v2_orchestrion_weblog() -> None:
+    weblog = get_weblog("golang", "fiber-v2-orchestrion")
+    for scenario in (scenarios.default, scenarios.sampling, scenarios.ipv6):
+        assert weblog.support_scenario(scenario.name, scenario.weblog_categories)
+    assert not weblog.support_scenario(scenarios.graphql_appsec.name, scenarios.graphql_appsec.weblog_categories)
+
+    definitions = get_endtoend_definitions(
+        "golang", {"endtoend": [scenarios.default]}, [weblog.name], "dev", 200000, 256, "123", ""
+    )
+    jobs = definitions["endtoend_defs"]["parallel_jobs"]
+    assert len(jobs) == 1
+    assert jobs[0]["weblog"] == weblog.name
+    assert jobs[0]["weblog_build_required"]
+    assert jobs[0]["scenarios"] == ["DEFAULT"]
+
+
+@scenarios.test_the_test
 def test_get_endtoend_definitions_empty_scenario_map():
     # Regression: previously raised KeyError when "endtoend" or "parametric" keys were absent
     defs = get_endtoend_definitions("ruby", {}, [], "dev", 200000, 256, "123", "")

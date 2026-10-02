@@ -1,4 +1,4 @@
-import pytest
+from utils import pytest
 
 from ddapm_test_agent.trace import Span
 from tests.parametric.conftest import APMLibrary, assert_nodejs_telemetry_config

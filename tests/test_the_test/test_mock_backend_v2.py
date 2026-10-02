@@ -5,7 +5,7 @@ import json
 from collections.abc import Generator
 from pathlib import Path
 
-import pytest
+from utils import pytest
 import requests
 import zstandard
 

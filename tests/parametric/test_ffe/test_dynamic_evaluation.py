@@ -1,7 +1,7 @@
 """Test FFE (Feature Flags & Experimentation) functionality via parametric tests."""
 
 import json
-import pytest
+from utils import pytest
 import time
 from pathlib import Path
 from typing import Any
