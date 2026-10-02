@@ -1397,6 +1397,8 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_endpoint.py::Test_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: v1.23.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_endpoint.py::Test_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT::test_otlp_metrics_custom_endpoint_grpc
   : missing_feature (Does not support grpc)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_temporality_preference.py::Test_Otel_Metrics_Configuration_Temporality_Preference
+  : missing_feature
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_endpoint.py::Test_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: missing_feature
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER: v1.23.0
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER::test_deprecated_values: missing_feature (Deprecated logging exporter is not implemented)
@@ -1627,7 +1629,6 @@ manifest:
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint: missing_feature
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Headers: missing_feature
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Protocol: missing_feature
-  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Configuration_Temporality_Preference: missing_feature
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Host_Name: missing_feature
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Resource_Attributes: missing_feature
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry: missing_feature
