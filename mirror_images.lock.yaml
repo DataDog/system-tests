@@ -222,6 +222,10 @@ images:
     digest: sha256:71d124f74d4d7ac706f1afa8d5950864e1e931ec3b511f540b49eb6328c0338e
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:nodejs_buddy-v1
     tag: nodejs_buddy-v1
+  datadog/system-tests:openai-py.base-b4fd56aee3f2:
+    digest: sha256:197c03e69fb63974baaa169769ad1e36deb751703e7a77f3bc2a76fe4346c1ff
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:openai-py.base-b4fd56aee3f2
+    tag: openai-py.base-b4fd56aee3f2
   datadog/system-tests:php-fpm-7.0.base-137961f277f1:
     digest: sha256:49d92059c4714f31a2def57d6ae291554ea232b8af9e0c8ec8a4c7d5029e10e0
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:php-fpm-7.0.base-137961f277f1
@@ -310,6 +314,10 @@ images:
     digest: sha256:abbd02d4495d83c66af12b5562ccca0077800cb920142375cd48dcfc8aeb1596
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:python_buddy-v2
     tag: python_buddy-v2
+  datadog/system-tests:ruby-lambda-runtime.base-78548bc44bd6:
+    digest: sha256:7d9e2dbb7c34f2eab2431fcdba3d0b695350f29e24e074319f74815a5c3b5f00
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:ruby-lambda-runtime.base-78548bc44bd6
+    tag: ruby-lambda-runtime.base-78548bc44bd6
   datadog/system-tests:ruby_buddy-v2:
     digest: sha256:939d3828d85666a598c0349a6dd933fe1d92c5daa5d01438512d950ea3ccc258
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:ruby_buddy-v2
