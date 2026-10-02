@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+### 2026-09 (154 PR merged)
+
+* 2026-09-22 [Automate SSI Agent updates](https://github.com/DataDog/system-tests/pull/7719) by @nccatoni
+* 2026-09-09 [Introduce Mocked Backend V2](https://github.com/DataDog/system-tests/pull/7668) by @cbeauchesne
+* 2026-09-25 [Import restrictions on test modules](https://github.com/DataDog/system-tests/pull/7408) by @nccatoni
+* 2026-09-14 [Reliable and automated base image build process](https://github.com/DataDog/system-tests/pull/7270) by @nccatoni
+
+
 ### 2026-08 (158 PR merged)
 
 * 2026-08-24 [chore: add system-tests-reviewers to CODEOWNERS](https://github.com/DataDog/system-tests/pull/7564) by @brettlangdon
