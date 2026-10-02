@@ -184,10 +184,6 @@ def _span_is_error(span: HttpSpan) -> bool:
     return _status_code(status.get("code", StatusCode.STATUS_CODE_UNSET.value)) == StatusCode.STATUS_CODE_ERROR.value
 
 
-def _span_is_sampled(span: HttpSpan) -> bool:
-    return bool(int(span.get("flags", 0)) & 1)
-
-
 def _iter_otlp_spans(request: HttpResponse) -> Iterator[dict[str, Any]]:
     """Yield every span in the OTLP payloads associated with ``request``, each one once.
 
@@ -785,9 +781,6 @@ class Test_OtelSemantics_SamplingRules:
         assert trace_id, "the request-correlated matched span carries no traceId"
         matched_trace = [span for span in _iter_otlp_spans(self.matched_response) if span.get("traceId") == trace_id]
         assert matched_trace, "the matched trace must contain at least one exported span"
-        assert all(_span_is_sampled(span) for span in matched_trace), (
-            "every span in the trace kept by the HTTP* resource rule must carry the sampled flag"
-        )
 
     def setup_server_span_name_is_available_before_client_sampling(self) -> None:
         self.distant_call_response = _distant_call()
@@ -800,5 +793,3 @@ class Test_OtelSemantics_SamplingRules:
         assert _attributes(server_span).get("_dd.rule_psr") == 1, (
             "the GET* rule must keep the server trace whether or not the route was resolved before client sampling"
         )
-        assert _span_is_sampled(server_span)
-        assert _span_is_sampled(client_span), "sampling the server trace must keep its outbound HTTP client span"

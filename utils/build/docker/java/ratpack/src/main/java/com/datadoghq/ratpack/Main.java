@@ -231,30 +231,27 @@ public class Main {
                             .get("make_distant_call", ctx -> {
                                 final Promise<String> res = Blocking.get(() -> {
                                     String url = ctx.getRequest().getQueryParams().get("url");
-
-                                    URL urlObject = new URL(url);
-
-                                    HttpURLConnection con = (HttpURLConnection) urlObject.openConnection();
-                                    con.setRequestMethod("GET");
+                                    String method = Optional.ofNullable(
+                                            ctx.getRequest().getQueryParams().get("method"))
+                                            .orElse("GET");
+                                    java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
+                                            .uri(java.net.URI.create(url))
+                                            .method(method, java.net.http.HttpRequest.BodyPublishers.noBody())
+                                            .build();
+                                    java.net.http.HttpResponse<Void> response = java.net.http.HttpClient
+                                            .newHttpClient()
+                                            .send(request, java.net.http.HttpResponse.BodyHandlers.discarding());
 
                                     // Save request headers
                                     HashMap<String, String> request_headers = new HashMap<String, String>();
-                                    for (Map.Entry<String, List<String>> header : con.getRequestProperties().entrySet()) {
-                                        if (header.getKey() == null) {
-                                            continue;
-                                        }
-
+                                    for (Map.Entry<String, List<String>> header : request.headers().map().entrySet()) {
                                         request_headers.put(header.getKey(), header.getValue().get(0));
                                     }
 
                                     // Save response headers and status code
-                                    int status_code = con.getResponseCode();
+                                    int status_code = response.statusCode();
                                     HashMap<String, String> response_headers = new HashMap<String, String>();
-                                    for (Map.Entry<String, List<String>> header : con.getHeaderFields().entrySet()) {
-                                        if (header.getKey() == null) {
-                                            continue;
-                                        }
-
+                                    for (Map.Entry<String, List<String>> header : response.headers().map().entrySet()) {
                                         response_headers.put(header.getKey(), header.getValue().get(0));
                                     }
 
@@ -483,4 +480,3 @@ public class Main {
 
     public static final DataSource DATA_SOURCE = new SqlServer().start();
 }
-
