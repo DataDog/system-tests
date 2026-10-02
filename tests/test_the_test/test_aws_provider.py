@@ -3,7 +3,7 @@
 from collections.abc import Callable
 from typing import Any
 
-import pytest
+from utils import pytest
 
 from utils import features, scenarios
 from utils.virtual_machine import aws_provider
