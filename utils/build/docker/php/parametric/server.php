@@ -840,6 +840,27 @@ $router->addRoute('POST', '/log/otel/flush', new ClosureRequestHandler(function 
         return jsonResponse(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
     }
 }));
+$router->addRoute('POST', '/trace/diagnostics/log_level', new ClosureRequestHandler(function (Request $req) {
+    // Exercise real SDK diagnostics without changing its logger configuration.
+    // The invalid start time emits WARN; updating an unfinished span emits ERROR.
+    try {
+        \DDTrace\start_span([]);
+    } catch (\TypeError $error) {
+        // The SDK logs the invalid argument before PHP reports its type error.
+    }
+
+    $previousStack = \DDTrace\active_stack();
+    $span = \DDTrace\start_trace_span();
+    try {
+        \DDTrace\update_span_duration($span);
+    } finally {
+        \DDTrace\close_span();
+        \DDTrace\switch_stack($previousStack);
+    }
+
+    return jsonResponse(['success' => true]);
+}));
+
 $router->addRoute('GET', '/trace/config', new ClosureRequestHandler(function (Request $req) {
 
     $tags_array = \dd_trace_env_config("DD_TAGS");
