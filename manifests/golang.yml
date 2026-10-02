@@ -1966,6 +1966,14 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_endpoint.py::Test_OTEL_EXPORTER_OTLP_ENDPOINT: v2.6.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_endpoint.py::Test_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT: v2.7.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_endpoint.py::Test_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: v2.6.0
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_temporality_preference.py::Test_OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE
+  : v2.5.0
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_temporality_preference.py::Test_OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE::test_default_matches_specification
+  : missing_feature (Datadog intentionally defaults to Delta)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_temporality_preference.py::Test_OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE::test_lowmemory
+  : missing_feature (LowMemory temporality is not implemented)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_temporality_preference.py::Test_OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE::test_lowmemory_case_insensitive
+  : missing_feature (LowMemory temporality is not implemented)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_endpoint.py::Test_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: v2.8.0
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER:  # TODO: a lower version might be supported
     - declaration: missing_feature (OTEL_LOGS_EXPORTER does not configure the logs pipeline)
