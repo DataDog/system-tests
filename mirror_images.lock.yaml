@@ -214,6 +214,10 @@ images:
     digest: sha256:128b7524cde00a739246166feef66b0d512388005dc125b0f11034555a8b6a70
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:nextjs.base-95582a903467
     tag: nextjs.base-95582a903467
+  datadog/system-tests:nodejs-lambda-runtime.base-500f77a9bd83:
+    digest: sha256:399c73c66758ed23002ba4ac4b6f61e387ee510a06fd8a64f2361fb53daed841
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:nodejs-lambda-runtime.base-500f77a9bd83
+    tag: nodejs-lambda-runtime.base-500f77a9bd83
   datadog/system-tests:nodejs_buddy-v1:
     digest: sha256:71d124f74d4d7ac706f1afa8d5950864e1e931ec3b511f540b49eb6328c0338e
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:nodejs_buddy-v1

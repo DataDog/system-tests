@@ -7,8 +7,9 @@
 The extension is pinned (not `:latest`) because the base-image content hash only
 covers local build-context files: a floating tag would freeze silently on the
 image's first build and never refresh (see utils/build/docker/python_lambda/runtime.base.Dockerfile,
-utils/build/docker/java_lambda/runtime.base.Dockerfile, and
-utils/build/docker/ruby_lambda/runtime.base.Dockerfile). This script keeps that pin current.
+utils/build/docker/java_lambda/runtime.base.Dockerfile,
+utils/build/docker/ruby_lambda/runtime.base.Dockerfile and
+utils/build/docker/nodejs_lambda/runtime.base.Dockerfile). This script keeps that pin current.
 """
 
 import re
@@ -22,6 +23,7 @@ DOCKERFILES = [
     REPO_ROOT / "utils" / "build" / "docker" / "python_lambda" / "runtime.base.Dockerfile",
     REPO_ROOT / "utils" / "build" / "docker" / "java_lambda" / "runtime.base.Dockerfile",
     REPO_ROOT / "utils" / "build" / "docker" / "ruby_lambda" / "runtime.base.Dockerfile",
+    REPO_ROOT / "utils" / "build" / "docker" / "nodejs_lambda" / "runtime.base.Dockerfile",
 ]
 
 REGISTRY = "public.ecr.aws"
