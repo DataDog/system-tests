@@ -340,7 +340,7 @@ $router->addRoute('POST', '/trace/span/start', new ClosureRequestHandler(functio
             \DDTrace\create_stack();
             $span = \DDTrace\start_span();
         } elseif (isset($spansDistributedTracingHeaders[$parent])) {
-            $span = \DDTrace\start_span();
+            $span = \DDTrace\start_trace_span();
             $distributedTracingHeaders = $spansDistributedTracingHeaders[$parent];
             \DDTrace\consume_distributed_tracing_headers($distributedTracingHeaders);
         } else {
@@ -394,6 +394,11 @@ $router->addRoute('POST', '/trace/span/extract_headers', new ClosureRequestHandl
     };
     \DDTrace\consume_distributed_tracing_headers($callback);
     $spanID = $span->parentId ?? null;
+    if (!$spanID && !empty($span->baggage)) {
+        // Baggage-only extraction has no remote parent ID. Keep an app context
+        // handle so start can replay the extracted headers through the SDK.
+        $spanID = $span->id;
+    }
     $spansDistributedTracingHeaders[$spanID] = $headers;
     return jsonResponse(["span_id" => $spanID]);
 }));
