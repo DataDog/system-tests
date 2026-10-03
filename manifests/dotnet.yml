@@ -938,10 +938,32 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_endpoint.py::Test_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT: v3.37.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_endpoint.py::Test_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT::test_empty_falls_back_to_global_endpoint
   : bug (APMAPI-2509)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_timeout.py::Test_OTEL_EXPORTER_OTLP_LOGS_TIMEOUT: v3.37.0
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_timeout.py::Test_OTEL_EXPORTER_OTLP_LOGS_TIMEOUT::test_empty_is_treated_as_unset
+  : incomplete_test_app (The test app cannot expose the effective logs timeout; telemetry alone does not establish the exporter value)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_timeout.py::Test_OTEL_EXPORTER_OTLP_LOGS_TIMEOUT::test_invalid_value_is_ignored
+  : bug (APMAPI-2459)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_timeout.py::Test_OTEL_EXPORTER_OTLP_LOGS_TIMEOUT::test_zero_is_unlimited
+  : bug (APMAPI-2459)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_endpoint.py::Test_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: v3.37.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_endpoint.py::Test_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT::test_empty_falls_back_to_global_endpoint
   : bug (APMAPI-2509)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_timeout.py::Test_OTEL_EXPORTER_OTLP_METRICS_TIMEOUT: v3.37.0
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_timeout.py::Test_OTEL_EXPORTER_OTLP_METRICS_TIMEOUT::test_empty_is_treated_as_unset
+  : incomplete_test_app (The test app reads configuration telemetry but cannot expose the effective exporter timeout)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_timeout.py::Test_OTEL_EXPORTER_OTLP_METRICS_TIMEOUT::test_invalid_value_is_ignored
+  : incomplete_test_app (The test app reads raw configuration telemetry even though the SDK validates the effective timeout)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_timeout.py::Test_OTEL_EXPORTER_OTLP_TIMEOUT: v3.37.0
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_timeout.py::Test_OTEL_EXPORTER_OTLP_TIMEOUT::test_empty_is_treated_as_unset
+  : incomplete_test_app (The test app reads configuration telemetry but cannot expose the effective exporter timeout)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_timeout.py::Test_OTEL_EXPORTER_OTLP_TIMEOUT::test_invalid_value_is_ignored
+  : incomplete_test_app (The test app reads raw configuration telemetry even though the SDK validates the effective timeout)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_endpoint.py::Test_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: v3.41.0
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_timeout.py::Test_OTEL_EXPORTER_OTLP_TRACES_TIMEOUT: v3.41.0
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_timeout.py::Test_OTEL_EXPORTER_OTLP_TRACES_TIMEOUT::test_empty_is_treated_as_unset
+  : incomplete_test_app (The test app reads configuration telemetry but cannot expose the effective exporter timeout)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_timeout.py::Test_OTEL_EXPORTER_OTLP_TRACES_TIMEOUT::test_invalid_value_is_ignored
+  : incomplete_test_app (The test app reads raw configuration telemetry even though the SDK validates the effective timeout)
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER: v3.37.0
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER::test_console: missing_feature (Only otlp and none exporters are implemented)
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER::test_deprecated_values: missing_feature (Only otlp and none exporters are implemented)

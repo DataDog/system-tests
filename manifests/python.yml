@@ -1948,10 +1948,24 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_endpoint.py::Test_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT: v4.11.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_endpoint.py::Test_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT::test_empty_falls_back_to_global_endpoint
   : bug (APMAPI-2414)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_timeout.py::Test_OTEL_EXPORTER_OTLP_LOGS_TIMEOUT: v4.11.0
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_timeout.py::Test_OTEL_EXPORTER_OTLP_LOGS_TIMEOUT::test_empty_is_treated_as_unset
+  : incomplete_test_app (The test app cannot expose the effective logs timeout; telemetry alone does not establish the exporter value)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_timeout.py::Test_OTEL_EXPORTER_OTLP_LOGS_TIMEOUT::test_invalid_value_is_ignored
+  : incomplete_test_app (The test app cannot expose the effective logs timeout; telemetry alone does not establish the exporter value)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_endpoint.py::Test_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: v4.11.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_endpoint.py::Test_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT::test_empty_falls_back_to_global_endpoint
   : bug (APMAPI-2414)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_timeout.py::Test_OTEL_EXPORTER_OTLP_METRICS_TIMEOUT: v4.11.0
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_timeout.py::Test_OTEL_EXPORTER_OTLP_METRICS_TIMEOUT::test_invalid_value_is_ignored
+  : bug (APMAPI-2461)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_timeout.py::Test_OTEL_EXPORTER_OTLP_TIMEOUT: v4.11.0
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_timeout.py::Test_OTEL_EXPORTER_OTLP_TIMEOUT::test_invalid_value_is_ignored
+  : bug (APMAPI-2461)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_endpoint.py::Test_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: v4.11.0
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_timeout.py::Test_OTEL_EXPORTER_OTLP_TRACES_TIMEOUT: v4.11.0
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_timeout.py::Test_OTEL_EXPORTER_OTLP_TRACES_TIMEOUT::test_invalid_value_is_ignored
+  : bug (APMAPI-2461)
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER:  # TODO: a lower version might be supported
     - declaration: missing_feature (OTEL_LOGS_EXPORTER does not configure the logs pipeline)
       component_version: <4.15.2
