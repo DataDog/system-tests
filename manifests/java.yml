@@ -1269,7 +1269,7 @@ manifest:
         "*": v1.51.0-SNAPSHOT
         akka-http: bug (APPSEC-57926)
         play: v1.54.0-SNAPSHOT+c2aec92b86
-        ratpack: bug (APPSEC-58210)
+        ratpack: v1.66.0  # TODO: a lower version might be supported
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/iast/test_security_controls.py::TestSecurityControls:
     - weblog_declaration:
