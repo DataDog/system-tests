@@ -21,10 +21,6 @@
 {% macro job_tag(tag) %}
     - datadog-ci tag --level job --tags "system-tests.job_type:{{tag}}"
 {% endmacro %}
-{% macro ci_framework_tag() %}
-    # first command of the script, so the job is tagged even if it fails later
-    - datadog-ci tag --level job --tags "_ci_framework:system-tests" || true
-{% endmacro %}
 {% macro emit_execution_time_metric() %}
     - |
       if [[ "$SYSTEM_TESTS_GENERATED_PIPELINE_START_TIME" =~ ^[0-9]+$ ]]; then
@@ -90,7 +86,6 @@ setup:
     DD_STS_OIDC_TOKEN:
       aud: dd-sts
   script:
-    {{ ci_framework_tag() }}
     - datadog-ci tag --level pipeline --tags "system-tests:true"
 {% endif %}
 
@@ -109,7 +104,6 @@ system_tests_build_{{library}}_{{variant}}:
     {% endfor %}
   {% endif %}
   script:
-    {{ ci_framework_tag() }}
     {% if docker_auth_enabled %}
     {{ docker_auth() }}
     {% endif %}
@@ -152,7 +146,6 @@ system_tests_run_{{library}}_{{scenario}}_{{variant}}:
     {% endfor %}
   {% endif %}
   script:
-    {{ ci_framework_tag() }}
     {% if docker_auth_enabled %}
     {{ docker_auth() }}
     {% endif %}
@@ -203,7 +196,6 @@ system_tests_run_{{library}}_PARAMETRIC_{{job_index}}:
     {% endfor %}
   {% endif %}
   script:
-    {{ ci_framework_tag() }}
     - section_start "run" "Running PARAMETRIC (group {{job_index}}/{{parametric.job_count}})" false
     {{ job_tag("run") }}
     {% if binaries_artifacts_list and binaries_artifact_path %}
