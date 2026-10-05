@@ -238,10 +238,18 @@ images:
     digest: sha256:06f818aebeadbcaf9614e5f9b75f388b98afe0903b458be96ee1aa7c47aae9b3
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:express4.base-cb2b80abf6d1
     tag: express4.base-cb2b80abf6d1
+  datadog/system-tests:express4.base-fca783fc392c:
+    digest: sha256:03b029b4111f8d710307cfeddb4c025595825b5437d920d1ad4e1c78384faf29
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:express4.base-fca783fc392c
+    tag: express4.base-fca783fc392c
   datadog/system-tests:express5.base-3ef9e2c68c47:
     digest: sha256:89561e1d8fa4a4effbb68f840847454c11249f3d0b4e4f4fb1e7f954dc7a095f
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:express5.base-3ef9e2c68c47
     tag: express5.base-3ef9e2c68c47
+  datadog/system-tests:express5.base-6eecdb28aed2:
+    digest: sha256:bdb975b8d63efe446a17d77a67e0c3d4c5ce1f11b55264e9ae49dae31b6c7c85
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:express5.base-6eecdb28aed2
+    tag: express5.base-6eecdb28aed2
   datadog/system-tests:fastapi.base-1795d4d88178:
     digest: sha256:bf65195d25f6e0d663c0f414590471fba7f18b1a0e3d284dda0cbd1896bea9a0
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:fastapi.base-1795d4d88178
@@ -458,6 +466,10 @@ images:
     digest: sha256:817244a7aec2196c0ad5b09e958a9d1fb40846ecc4257736917aa6b9b55c5e49
     target: registry.ddbuild.io/system-tests/mirror/ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.64.1
     tag: v1.64.1
+  ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.67.0:
+    digest: sha256:b79a36b24977153d80e501e670bb1dcf95d50a694d98f748cd25d8a9a96fa843
+    target: registry.ddbuild.io/system-tests/mirror/ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.67.0
+    tag: v1.67.0
   ghcr.io/datadog/images-rb/engines/ruby:2.5-gnu-gcc:
     digest: sha256:9cb908874c97382ac64f6c6ea58d9bad24e6dc6fdea795ab264652e83b41c966
     target: registry.ddbuild.io/system-tests/mirror/ghcr.io/datadog/images-rb/engines/ruby:2.5-gnu-gcc
