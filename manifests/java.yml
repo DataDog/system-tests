@@ -3075,13 +3075,6 @@ manifest:
         uds-spring-boot: v1.38.0
     - declaration: missing_feature (Method capture expressions are not implemented)
       component_version: '<=1.54.0'
-  ? tests/debugger/test_debugger_capture_expressions_errors.py::Test_Debugger_Filter_Rejected_Capture_Expression_Error::test_filter_rejected_no_error_spam
-  :  # TODO: a lower version might be supported
-    - declaration: bug (IDEAI-714)
-      component_version: <1.66.0
-      weblog: [uds-spring-boot, spring-boot-wildfly, spring-boot-openliberty, spring-boot-undertow, spring-boot-jetty, spring-boot, spring-boot-payara]
-    - declaration: bug (IDEAI-714)
-      excluded_weblog: [uds-spring-boot, spring-boot-wildfly, spring-boot-openliberty, spring-boot-undertow, spring-boot-jetty, spring-boot, spring-boot-payara]
   tests/debugger/test_debugger_code_origins.py::Test_Debugger_Code_Origins:
     - weblog_declaration:
         "*": missing_feature
@@ -3222,7 +3215,16 @@ manifest:
         uds-spring-boot: v1.38.0
   tests/debugger/test_debugger_guardrails.py::Test_Debugger_Evaluation_Timeout_Line_Probe: irrelevant (Line-probe variant is only used by Node.js and Ruby)
   tests/debugger/test_debugger_guardrails.py::Test_Debugger_Evaluation_Timeout_Method_Probe: missing_feature (Debugger evaluation timeout guardrail not implemented yet)
-  tests/debugger/test_debugger_guardrails.py::Test_Debugger_Snapshot_Size_Guardrail: missing_feature (Debugger snapshot size guardrail not implemented yet)
+  tests/debugger/test_debugger_guardrails.py::Test_Debugger_Snapshot_Size_Guardrail:
+    - weblog_declaration:
+        "*": missing_feature
+        spring-boot: v1.38.0
+        spring-boot-jetty: v1.38.0
+        spring-boot-openliberty: v1.38.0
+        spring-boot-payara: v1.38.0
+        spring-boot-undertow: v1.38.0
+        spring-boot-wildfly: v1.38.0
+        uds-spring-boot: v1.38.0
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin:
     - weblog_declaration:
         "*": missing_feature
@@ -3292,7 +3294,6 @@ manifest:
         spring-boot-undertow: v1.38.0
         spring-boot-wildfly: v1.38.0
         uds-spring-boot: v1.38.0
-  tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_log_line_capture_expression_budgets: bug (DEBUG-5730)
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_span_probe_expression_budgets: bug (DEBUG-3797)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots:
     - weblog_declaration:
@@ -4276,7 +4277,9 @@ manifest:
   tests/parametric/test_otlp_trace_metrics.py::Test_FR01_Enablement_Configuration::test_fr01_6_disabled_when_apm_tracing_disabled: missing_feature (OTLP trace metrics are still emitted when DD_APM_TRACING_ENABLED=false)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_AdditionalTags::test_fr08_10_dd_tags_tracer_tags_resource_attributes: missing_feature (DD_TAGS is not yet reported as datadog.tracer_tags on the OTLP trace metrics resource)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_AdditionalTags::test_fr08_11_otel_resource_attributes_env_tracer_tags: missing_feature (OTEL_RESOURCE_ATTRIBUTES is not yet reported as datadog.tracer_tags on the OTLP trace metrics resource)
-  tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes::test_fr08_14_peer_tags: missing_feature (Blocked on test-agent support for advertising a peer_tags allowlist in /info)
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes::test_fr08_14_peer_tags:  # TODO: a lower version might be supported
+    - declaration: missing_feature (Blocked on test-agent support for advertising a peer_tags allowlist in /info)
+      component_version: <1.66.0
   tests/parametric/test_parametric_endpoints.py::TestRemoteConfigApplyEndpoint: incomplete_test_app (POST /trace/remote-config/apply only implemented in the python parametric app)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Add_Link: incomplete_test_app (add_link endpoint is not implemented)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Baggage:  # Modified by easy win activation script
@@ -4297,8 +4300,12 @@ manifest:
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Write_Log::test_write_log:  # TODO: a lower version might be supported
     - declaration: incomplete_test_app (Logs endpoint is only implemented in python and node.js app)
       component_version: <1.66.0
-  tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_one_span: 'missing_feature (java uses ''>'' so it needs one more span to force a partial flush)'
-  tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_one_span_default: 'missing_feature (java uses ''>'' so it needs one more span to force a partial flush)'
+  tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_one_span:  # TODO: a lower version might be supported
+    - declaration: missing_feature (java uses '>' so it needs one more span to force a partial flush)
+      component_version: <1.66.0
+  tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_one_span_default:  # TODO: a lower version might be supported
+    - declaration: missing_feature (java uses '>' so it needs one more span to force a partial flush)
+      component_version: <1.66.0
   tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_propagation_tags: v1.65.0-SNAPSHOT+7071ae2ed6
   tests/parametric/test_process_discovery.py::Test_ProcessDiscovery: v1.55.0-SNAPSHOT
   tests/parametric/test_sampling_manual.py::Test_Manual_Sampling: v1.59.0-SNAPSHOT+419da213f7
@@ -4474,8 +4481,8 @@ manifest:
   tests/stats/test_stats.py::Test_Error_Sampler:
     - weblog_declaration:
         "*": v1.54.0
-        vertx3: missing_feature (500 responses are not flagged as errors, so no error trace is produced)
-        vertx4: missing_feature (500 responses are not flagged as errors, so no error trace is produced)
+        vertx3: v1.66.0  # TODO: a lower version might be supported
+        vertx4: v1.66.0  # TODO: a lower version might be supported
   tests/stats/test_stats.py::Test_Stats_Service_Source:
     - weblog_declaration:
         "*": v0.0.0
