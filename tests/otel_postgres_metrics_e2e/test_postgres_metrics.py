@@ -28,7 +28,6 @@ _metrics_validator = OtelMetricsValidator(postgresql_metrics)
 
 
 @scenarios.otel_collector
-@scenarios.otel_collector_e2e
 @features.postgres_receiver_metrics
 class Test_PostgreSQLMetricsCollection:
     def test_postgresql_metrics_received_by_collector(self):
@@ -43,7 +42,6 @@ class Test_PostgreSQLMetricsCollection:
         )
 
 
-@scenarios.otel_collector_e2e
 @features.postgres_receiver_metrics
 class Test_BackendValidity:
     def test_postgresql_metrics_received_by_backend(self):
@@ -79,7 +77,6 @@ class Test_BackendValidity:
 
 
 @scenarios.otel_collector
-@scenarios.otel_collector_e2e
 @features.postgres_receiver_metrics
 class Test_Smoke:
     """PostgreSQL-specific smoke test to generate database activity.
