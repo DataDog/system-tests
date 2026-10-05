@@ -24,6 +24,7 @@ These rules apply in EVERY interaction.
 - @.cursor/rules/test-activation.mdc — Test activation/deactivation rules
 - @.cursor/rules/doc.mdc — Rules for editing the documentation
 - @.cursor/rules/devtools.mdc — Developer tools: MCP, GitHub (gh), GitLab (glab) usage
+- @.cursor/rules/tag-official-workflows.mdc — Official system-tests CI workflows (jobs executed in caller repositories must be tagged with `_ci_framework:system-tests`)
 
 ## Manual Rules (Apply Only When Explicitly Requested)
 

@@ -1,0 +1,40 @@
+name: "Tag job as part of official system-tests workflow"
+inputs:
+  datadog_site:
+    description: Which DataDog site should be used
+    default: datadoghq.com
+
+runs:
+  using: composite
+  steps:
+    - name: Skip for dependabot
+      if: ${{ !cancelled() && github.event.pull_request.user.login == 'dependabot[bot]' }}
+      shell: bash
+      run: echo "Skipping official workflow tagging for dependabot PRs"
+
+    - name: Get Datadog credentials
+      id: dd-sts
+      if: ${{ !cancelled() && github.event.pull_request.user.login != 'dependabot[bot]' }}
+      continue-on-error: true
+      uses: DataDog/dd-sts-action@639d841c72f15e4e77747bd726ef8105ce971da2 # v1.0.5
+      with:
+        policy: system-tests
+        retries: 16
+
+    - name: Install datadog-ci
+      id: install
+      if: ${{ !cancelled() && github.event.pull_request.user.login != 'dependabot[bot]' && steps.dd-sts.outcome == 'success' }}
+      continue-on-error: true
+      shell: bash
+      run: npm install -g @datadog/datadog-ci || (sleep 60 && npm install -g @datadog/datadog-ci)
+
+    - name: Tag job
+      if: ${{ !cancelled() && github.event.pull_request.user.login != 'dependabot[bot]' && steps.install.outcome == 'success' }}
+      continue-on-error: true
+      shell: bash
+      # _ci_framework is a private tag (leading underscore), used to identify official system-tests workflows
+      run: |
+        datadog-ci tag --level job --tags _ci_framework:system-tests
+      env:
+        DATADOG_SITE: ${{ inputs.datadog_site }}
+        DATADOG_API_KEY:  ${{ steps.dd-sts.outputs.api_key }}

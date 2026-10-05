@@ -19,7 +19,7 @@ runs:
     - name: Install datadog-ci
       if: github.event.pull_request.user.login != 'dependabot[bot]'
       shell: bash
-      run: npm install -g @datadog/datadog-ci || sleep 60 && npm install -g @datadog/datadog-ci
+      run: npm install -g @datadog/datadog-ci || (sleep 60 && npm install -g @datadog/datadog-ci)
 
     - name: checkout owner repo
       if: github.event.pull_request.user.login != 'dependabot[bot]'
@@ -37,6 +37,8 @@ runs:
         retries: 16
 
     # https://docs.datadoghq.com/tests/setup/junit_xml/?tab=linux
+    # Note : we count the job as part of the official workflow if and only if test result are pushed
+    # to test optimization. Otherwise, we cannot distinguish errors from the workflow, from test errors
     - name: Push results
       if: github.event.pull_request.user.login != 'dependabot[bot]' && steps.dd-sts.outcome == 'success'
       shell: bash
@@ -48,6 +50,7 @@ runs:
           --env ci \
           --verbose \
           --xpath-tag "test.codeowners=/testcase/properties/property[@name='test.codeowners']"
+        datadog-ci tag --level job --tags _ci_framework:system-tests
       env:
         DATADOG_SITE: ${{ inputs.datadog_site }}
         DATADOG_API_KEY:  ${{ steps.dd-sts.outputs.api_key }}

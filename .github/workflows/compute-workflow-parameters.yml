@@ -199,3 +199,8 @@ jobs:
         name: binaries_dev_${{ inputs.library }}
         path: binaries/
         include-hidden-files: ${{ inputs.library == 'python' || inputs.library == 'python_lambda' }}
+
+    - name: Tag job
+      if: ${{ !cancelled() }}
+      continue-on-error: true
+      uses: ./.github/actions/tag_official_workflow
