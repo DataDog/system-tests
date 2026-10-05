@@ -1,7 +1,7 @@
 """Test FFE (Feature Flags & Experimentation) functionality via parametric tests."""
 
 import json
-import pytest
+from utils import pytest
 import time
 from pathlib import Path
 from typing import Any
@@ -51,6 +51,7 @@ ALL_TEST_CASE_FILES = _get_test_case_files()
 
 DEFAULT_ENVVARS = {
     "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
+    "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE": "remote_config",
     "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.2",
     "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
 }

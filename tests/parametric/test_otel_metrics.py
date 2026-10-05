@@ -1,21 +1,25 @@
 from urllib.parse import urlparse
-import pytest
+from utils import pytest
 
 from utils import features, scenarios
 
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary
+from .utils import (
+    DEFAULT_METER_NAME,
+    DEFAULT_METER_VERSION,
+    DEFAULT_SCHEMA_URL,
+    DEFAULT_INSTRUMENT_UNIT,
+    DEFAULT_INSTRUMENT_DESCRIPTION,
+    DEFAULT_SCOPE_ATTRIBUTES,
+    DEFAULT_MEASUREMENT_ATTRIBUTES,
+    generate_default_counter_data_point,
+)
 
 
 EXPECTED_TAGS = [("foo", "bar1"), ("baz", "qux1")]
 
-DEFAULT_METER_NAME = "parametric-api"
-DEFAULT_METER_VERSION = "1.0.0"
-# schema_url is not supported by .NET's System.Diagnostics.Metrics API
-DEFAULT_SCHEMA_URL = "https://opentelemetry.io/schemas/1.21.0"
 
-DEFAULT_INSTRUMENT_UNIT = "triggers"
-DEFAULT_INSTRUMENT_DESCRIPTION = "test_description"
 DEFAULT_EXPLICIT_BUCKET_BOUNDARIES = [
     0.0,
     5.0,
@@ -34,8 +38,6 @@ DEFAULT_EXPLICIT_BUCKET_BOUNDARIES = [
     10000.0,
 ]
 
-DEFAULT_SCOPE_ATTRIBUTES = {"scope.attr": "scope.value"}
-DEFAULT_MEASUREMENT_ATTRIBUTES = {"test_attr": "test_value"}
 NON_DEFAULT_MEASUREMENT_ATTRIBUTES = {"test_attr": "non_default_value"}
 
 # Define common default environment variables to support the OpenTelemetry Metrics API feature:
@@ -75,23 +77,6 @@ def otlp_metrics_endpoint_library_env(
         del library_env[endpoint_env]
     else:
         library_env[endpoint_env] = prev_value
-
-
-def generate_default_counter_data_point(test_library: APMLibrary, instrument_name: str):
-    test_library.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
-    test_library.otel_metrics_force_flush()
-    test_library.otel_create_counter(
-        DEFAULT_METER_NAME, instrument_name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION
-    )
-    test_library.otel_counter_add(
-        DEFAULT_METER_NAME,
-        instrument_name,
-        DEFAULT_INSTRUMENT_UNIT,
-        DEFAULT_INSTRUMENT_DESCRIPTION,
-        42,
-        DEFAULT_MEASUREMENT_ATTRIBUTES,
-    )
-    test_library.otel_metrics_force_flush()
 
 
 def assert_metric_info(metric: dict, name: str, unit: str, description: str):
@@ -242,10 +227,18 @@ def get_expected_bucket_counts(entries: list[int], bucket_boundaries: list[float
 
 @scenarios.parametric
 @features.otel_metrics_api
+@pytest.mark.parametrize("endpoint_env", ["OTEL_EXPORTER_OTLP_METRICS_ENDPOINT"])
+@pytest.mark.usefixtures("otlp_metrics_endpoint_library_env")
 class Test_Otel_Metrics_Configuration_Enabled:
     """Tests the enablement and disablement of the OTel Metrics API through the following configurations:
     - DD_METRICS_OTEL_ENABLED
     - OTEL_METRICS_EXPORTER
+
+    Pin HTTP/protobuf in library_env because SDK protocol defaults differ across
+    languages (for example, Python defaults to gRPC). This keeps the exporter and
+    collector on the same transport while these tests exercise enablement.
+    Use an explicit, reachable collector so disabling Datadog endpoint defaults
+    cannot be mistaken for disabling export.
     """
 
     @pytest.mark.parametrize(
@@ -253,6 +246,7 @@ class Test_Otel_Metrics_Configuration_Enabled:
         [
             {
                 "DD_METRICS_OTEL_ENABLED": "true",
+                "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": "http/protobuf",
                 "OTEL_METRIC_EXPORT_INTERVAL": "60000",
                 "CORECLR_ENABLE_PROFILING": "1",
             },
@@ -274,19 +268,34 @@ class Test_Otel_Metrics_Configuration_Enabled:
         [
             {
                 "DD_METRICS_OTEL_ENABLED": "false",
-                "OTEL_METRIC_EXPORT_INTERVAL": "60000",
-                "CORECLR_ENABLE_PROFILING": "1",
-            },
-            {
-                "DD_METRICS_OTEL_ENABLED": "true",
-                "OTEL_METRICS_EXPORTER": "none",
+                "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": "http/protobuf",
                 "OTEL_METRIC_EXPORT_INTERVAL": "60000",
                 "CORECLR_ENABLE_PROFILING": "1",
             },
         ],
     )
-    def test_otlp_metrics_disabled(self, test_agent: TestAgentAPI, test_library: APMLibrary):
-        """Ensure that OTLP metrics are not emitted."""
+    def test_otlp_metrics_disabled(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        """Ensure the Datadog enablement flag disables metrics export."""
+        with test_library as t:
+            generate_default_counter_data_point(t, "disabled-counter")
+
+        with pytest.raises(ValueError):
+            test_agent.wait_for_num_otlp_metrics(num=1)
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                "DD_METRICS_OTEL_ENABLED": "true",
+                "OTEL_METRICS_EXPORTER": "none",
+                "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": "http/protobuf",
+                "OTEL_METRIC_EXPORT_INTERVAL": "60000",
+                "CORECLR_ENABLE_PROFILING": "1",
+            },
+        ],
+    )
+    def test_otlp_metrics_exporter_none(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        """Ensure selecting no exporter disables metrics export."""
         name = "disabled-counter"
 
         with test_library as t:

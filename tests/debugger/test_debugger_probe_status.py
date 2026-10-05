@@ -91,7 +91,7 @@ class BaseDebuggerProbeStatusTest(debugger.BaseDebuggerTest):
 
 
 @features.debugger_method_probe
-@scenarios.debugger_probes_status
+@scenarios.debugger_expression_language
 @slow
 @missing_feature(context.library == "golang" and context.agent_version < "7.71.0-rc.1", reason="Not yet implemented")
 class Test_Debugger_Method_Probe_Statuses(BaseDebuggerProbeStatusTest):
@@ -127,7 +127,7 @@ class Test_Debugger_Method_Probe_Statuses(BaseDebuggerProbeStatusTest):
 
 
 @features.debugger_line_probe
-@scenarios.debugger_probes_status
+@scenarios.debugger_expression_language
 class Test_Debugger_Line_Probe_Statuses(BaseDebuggerProbeStatusTest):
     """Tests for line-level probe status"""
 

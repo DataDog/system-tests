@@ -3,6 +3,7 @@ from . import scrubber  # noqa: F401
 
 import asyncio
 from collections import defaultdict
+import io
 import json
 import logging
 import os
@@ -10,13 +11,15 @@ import ssl
 from typing import Any, Literal, cast
 from datetime import datetime, UTC
 
+import zstandard
+
 from mitmproxy import master, options, http
 from mitmproxy.addons import errorcheck, default_addons
 from mitmproxy.connection import Client
 from mitmproxy.flow import Error as FlowError
 from mitmproxy.http import HTTPFlow, Request
 
-from ._deserializer import deserialize
+from ._deserializer import deserialize, Interface
 from .ports import ProxyPorts
 from .mocked_response import (
     MOCKED_TRACER_RESPONSES_PATH,
@@ -36,6 +39,8 @@ messages_counts: dict[str, int] = defaultdict(int)
 
 # Used to create the stub TLS server cert (mitmproxy CA is always present at startup).
 _MITMPROXY_CA_PEM = "/app/utils/proxy/.mitmproxy/mitmproxy-ca.pem"
+
+_MOCKED_BACKEND_PORTS = (ProxyPorts.agent, ProxyPorts.datadog_sidecar, ProxyPorts.datadog_direct)
 
 
 class _UDPForwarder(asyncio.DatagramProtocol):
@@ -80,6 +85,34 @@ async def _start_udp_forwarder(
         local_addr=(listen_host, listen_port),
     )
     return cast("asyncio.DatagramTransport", server_transport)
+
+
+def get_decoded_content(message: http.Message) -> bytes | None:
+    """Return the uncompressed body of an HTTP request/response.
+
+    mitmproxy's ``message.content`` relies on ``zstandard.ZstdDecompressor.decompress()``
+    which only decodes the *first* frame of a multi-frame zstd stream. The datadog-agent
+    metrics intake (``/api/intake/metrics/v3/series``) streams its protobuf payload as
+    several concatenated zstd frames, so ``message.content`` silently returns a truncated
+    body (e.g. 3 bytes). We decode the raw body ourselves with a frame-aware reader.
+
+    For any other (or absent) content-encoding we fall back to mitmproxy's own decoding.
+    """
+    content_encoding = message.headers.get("content-encoding", "").lower()
+    if content_encoding != "zstd":
+        # mitmproxy handles gzip/deflate/br/identity correctly; keep existing behavior.
+        return message.content
+
+    raw = message.raw_content
+    if not raw:
+        return raw
+
+    try:
+        # stream_reader().read() consumes every concatenated frame, unlike decompress().
+        return zstandard.ZstdDecompressor().stream_reader(io.BytesIO(raw)).read()
+    except zstandard.ZstdError:
+        # Not valid (multi-frame) zstd; let mitmproxy try (and possibly degrade gracefully).
+        return message.content
 
 
 class ObjectDumpEncoder(json.JSONEncoder):
@@ -157,7 +190,7 @@ class _RequestLogger:
     def http_connect(self, flow: HTTPFlow) -> None:
         proxy_port = flow.client_conn.sockname[1]
         logger.info(f"Flow {flow.id}: CONNECT {flow.request.host}:{flow.request.port} using proxy port {proxy_port}")
-        if proxy_port == ProxyPorts.agent and self.mocked_backend:
+        if proxy_port in _MOCKED_BACKEND_PORTS and self.mocked_backend:
             # Redirect to local stub TLS server so mitmproxy can always complete tunnel setup.
             # Without this, CONNECT handshake is performed to the backend, and if ever it fails,
             # request() never fires.
@@ -238,7 +271,7 @@ class _RequestLogger:
             )
             flow.request.scheme = "http"
             logger.info(f"Flow {flow.id}: reverse proxy to {flow.request.pretty_url}")
-        elif proxy_port == ProxyPorts.agent and self.mocked_backend:
+        elif proxy_port in _MOCKED_BACKEND_PORTS and self.mocked_backend:
             # Since we are faking the backend (generating responses from
             # scratch), the logic is that the first mock satisfying the
             # condition wins. Consequently, we check runtime mocks (controlled
@@ -279,6 +312,7 @@ class _RequestLogger:
         self._modify_response(flow)
 
         # get the interface name
+        interface: Interface
         if proxy_port == ProxyPorts.otel_collector:
             interface = "otel_collector"
         elif proxy_port == ProxyPorts.open_telemetry_weblog:
@@ -297,6 +331,10 @@ class _RequestLogger:
             interface = "golang_buddy"
         elif proxy_port == ProxyPorts.agent:  # HTTPS port, as the agent use the proxy with HTTP_PROXY env var
             interface = "agent"
+        elif proxy_port == ProxyPorts.datadog_sidecar:
+            interface = "datadog_sidecar"
+        elif proxy_port == ProxyPorts.datadog_direct:
+            interface = "datadog_direct"
         else:
             raise ValueError(f"Unknown port provenance for {flow.request}: {proxy_port}")
 
@@ -315,6 +353,11 @@ class _RequestLogger:
 
         host, port = self._original_connects.get(flow.client_conn.id, (flow.request.host, flow.request.port))
 
+        # Use a frame-aware decoder (see get_decoded_content) so multi-frame zstd bodies,
+        # like the agent's /api/intake/metrics/v3/series payload, are not truncated.
+        request_content = get_decoded_content(flow.request)
+        response_content = get_decoded_content(flow.response)
+
         data = {
             "log_filename": log_filename,
             "path": path,
@@ -325,19 +368,19 @@ class _RequestLogger:
             "request": {
                 "timestamp_start": datetime.fromtimestamp(flow.request.timestamp_start, tz=UTC).isoformat(),
                 "headers": list(flow.request.headers.items()),
-                "length": len(flow.request.content) if flow.request.content else 0,
+                "length": len(request_content) if request_content else 0,
             },
             "response": {
                 "status_code": flow.response.status_code,
                 "headers": list(flow.response.headers.items()),
-                "length": len(flow.response.content) if flow.response.content else 0,
+                "length": len(response_content) if response_content else 0,
             },
         }
 
         deserialize(
             data,
             key="request",
-            content=flow.request.content,
+            content=request_content,
             interface=interface,
             export_content_files_to=export_content_files_to,
         )
@@ -348,7 +391,7 @@ class _RequestLogger:
             deserialize(
                 data,
                 key="response",
-                content=flow.response.content,
+                content=response_content,
                 interface=interface,
                 export_content_files_to=export_content_files_to,
             )
@@ -380,6 +423,8 @@ def start_proxy() -> None:
         f"regular@{ProxyPorts.golang_buddy}",  # golang_buddy
         f"regular@{ProxyPorts.open_telemetry_weblog}",  # Open telemetry weblog
         f"regular@{ProxyPorts.agent}",  # from agent to backend
+        f"regular@{ProxyPorts.datadog_sidecar}",  # Datadog sidecar traffic
+        f"regular@{ProxyPorts.datadog_direct}",  # Datadog direct intake traffic
         f"regular@{ProxyPorts.otel_collector}",  # from otel collector to backend
     ]
 

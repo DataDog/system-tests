@@ -1,5 +1,5 @@
 import contextlib
-import pytest
+from utils import pytest
 
 from utils import features, interfaces, logger, scenarios, weblog
 
@@ -170,50 +170,6 @@ class Test_Client_Stats_With_Client_Obfuscation:
         assert len(sql_stats) >= 1, "Expected at least one SQL stats entry"
         for stat in sql_stats:
             assert "?" in stat["Resource"], f"Expected obfuscated resource (containing '?'), got '{stat['Resource']}'"
-
-
-@features.client_side_stats_supported
-@scenarios.trace_stats_computation_obfuscation_disabled
-class Test_Client_Stats_With_Client_Obfuscation_Disabled:
-    """Test that libraries read the agent /info to respect the obfuscation config"""
-
-    TEST_USER_IDS = ["1", "2", "admin", "test"]
-
-    def setup_obfuscation(self):
-        """Setup for obfuscation test - generates SQL spans for obfuscation testing"""
-        for user_id in self.TEST_USER_IDS:
-            weblog.get(f"/rasp/sqli?user_id={user_id}")
-
-    def test_obfuscation(self):
-        """Test that SQL resources are obfuscated before stats aggregation.
-
-        Validates:
-        - Datadog-Obfuscation-Version header is present on stats payloads
-        - SQL resource names are not obfuscated, only normalized
-        """
-        sql_stats = []
-        obfuscation_header_found = False
-
-        for data in interfaces.library.get_data("/v0.6/stats"):
-            headers = {h[0].lower(): h[1] for h in data["request"]["headers"]}
-            if "datadog-obfuscation-version" in headers:
-                obfuscation_header_found = True
-                assert int(headers["datadog-obfuscation-version"]) >= 1, (
-                    f"Expected obfuscation version to be >= 1, got '{headers['datadog-obfuscation-version']}'"
-                )
-
-            payload = data["request"]["content"]
-            for bucket in payload.get("Stats", []):
-                for stat in bucket.get("Stats", []):
-                    if stat.get("Type") == "sql" and stat["Resource"].startswith("SELECT"):
-                        sql_stats.append(stat)
-
-        assert obfuscation_header_found, "Datadog-Obfuscation-Version header not found on any stats payload"
-
-        unique_resources = {stat["Resource"] for stat in sql_stats}
-        assert len(unique_resources) >= 4, (
-            "Expected at least 4 distinct SQL stats entries, because obfuscation was not applied client-side"
-        )
 
 
 @features.client_side_stats_supported
@@ -606,6 +562,8 @@ class Test_Client_Drop_P0s:
             trace_requests = list(interfaces.library.get_data("/v0.5/traces"))
         if len(trace_requests) == 0:
             trace_requests = list(interfaces.library.get_data("/v0.7/traces"))
+        if len(trace_requests) == 0:
+            trace_requests = list(interfaces.library.get_data("/v1.0/traces"))
 
         assert len(trace_requests) > 0, "Should have at least one trace request"
 
@@ -620,6 +578,41 @@ class Test_Client_Drop_P0s:
                     f"When client_drop_p0s is false, Datadog-Client-Computed-Stats should be false/absent, "
                     f"found: {header_value}"
                 )
+
+
+@features.client_side_stats_supported
+@scenarios.trace_stats_computation_error_sampler
+class Test_Error_Sampler:
+    """Test that traces containing errors are always sent, even when sampling would drop them.
+
+    The agent keeps a portion of error traces (error sampler), so the tracer must send all traces
+    containing an error regardless of the configured sample rate. This scenario sets
+    DD_TRACE_SAMPLE_RATE=0 with Client-Side Stats enabled.
+    """
+
+    def setup_error_traces_always_sent(self):
+        # Droppable P0 traffic: with sample rate 0 these are dropped from traces but still counted in stats.
+        for _ in range(5):
+            weblog.get("/")
+        # Error traffic: must still be sent to the agent for the error sampler to keep it.
+        self.error_requests = [weblog.get("/status?code=500") for _ in range(3)]
+        interfaces.library.wait_for_client_side_stats_payload()
+
+    def test_error_traces_always_sent(self):
+        """Test that error traces are sent and stats are computed when sample rate is 0."""
+        # Client-side stats are computed despite sampling being disabled.
+        stats_requests = list(interfaces.library.get_data("/v0.6/stats"))
+        assert len(stats_requests) > 0, "Client-side stats should be computed even when the sample rate is 0"
+
+        # Error traces are still sent to the agent even though sampling would drop them.
+        error_span_found = False
+        for request in self.error_requests:
+            for _, _, span in interfaces.library.get_spans(request=request):
+                if span.get("error") == 1:
+                    error_span_found = True
+                    break
+
+        assert error_span_found, "Traces containing an error must be sent to the agent even when the sample rate is 0"
 
 
 @features.client_side_stats_supported

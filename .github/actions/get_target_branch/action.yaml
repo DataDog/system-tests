@@ -33,6 +33,7 @@ runs:
         )
         libs = result.stdout.strip().split("|")
         libs.append("agent")
+        libs.append("auto_inject")
 
         text = os.environ["INPUTS_TEXT"]
         pattern = re.compile(r"\[([^@\]]+)@([^\]]+)\]", re.IGNORECASE)

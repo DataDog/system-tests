@@ -38,11 +38,15 @@ import (
 	dd_logrus "github.com/DataDog/dd-trace-go/contrib/sirupsen/logrus/v2"
 	"github.com/DataDog/dd-trace-go/v2/appsec"
 	ddotel "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry"
+	_ "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry/metric"
 	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 	"github.com/DataDog/dd-trace-go/v2/profiler"
+	of "github.com/open-feature/go-sdk/openfeature"
 )
 
 func main() {
+	common.RunAsChildIfRequested()
+
 	logrus.SetFormatter(&logrus.JSONFormatter{})
 	logrus.SetOutput(os.Stdout)
 	logrus.SetLevel(logrus.DebugLevel)
@@ -188,6 +192,11 @@ func main() {
 		w.Write([]byte("OK"))
 	})
 
+	mux.HandleFunc("/spawn_child", common.SpawnChild)
+
+	mux.HandleFunc("/trace/manual_keep_drop", common.ManualKeepDrop)
+	mux.HandleFunc("/security/thread_context_sharing", common.ThreadContextSharing)
+
 	mux.HandleFunc("/make_distant_call", func(w http.ResponseWriter, r *http.Request) {
 		url := r.URL.Query().Get("url")
 		if url == "" {
@@ -195,8 +204,17 @@ func main() {
 			return
 		}
 
+		method := r.URL.Query().Get("method")
+		if method == "" {
+			method = http.MethodGet
+		}
 		client := httptrace.WrapClient(http.DefaultClient)
-		req, _ := http.NewRequestWithContext(r.Context(), http.MethodGet, url, nil)
+		req, err := http.NewRequestWithContext(r.Context(), method, url, nil)
+		if err != nil {
+			logrus.WithError(err).Error("can't build distant call request")
+			http.Error(w, "Can't build distant call request", http.StatusBadRequest)
+			return
+		}
 		// Inject the current span's context into req.Header so headers are
 		// visible after client.Do (the wrapped client injects into a cloned request).
 		if span, ok := tracer.SpanFromContext(r.Context()); ok {
@@ -748,6 +766,7 @@ func main() {
 	mux.HandleFunc("/rasp/multiple", rasp.LFIMultiple)
 	mux.HandleFunc("/rasp/ssrf", rasp.SSRF)
 	mux.HandleFunc("/rasp/sqli", rasp.SQLi)
+	mux.HandleFunc("/rasp/cmdi", rasp.CMDI)
 
 	mux.HandleFunc("/add_event", func(w http.ResponseWriter, r *http.Request) {
 		span, ok := tracer.SpanFromContext(r.Context())
@@ -774,6 +793,10 @@ func main() {
 	mux.HandleFunc("/debugger/log", d.logProbe)
 	mux.HandleFunc("/debugger/mix", d.mixProbe)
 	mux.HandleFunc("/debugger/expression", d.expression)
+	mux.HandleFunc("/debugger/budgets/{count}", func(w http.ResponseWriter, r *http.Request) {
+		loops, _ := strconv.Atoi(r.PathValue("count"))
+		d.budgets(w, r, loops)
+	})
 
 	srv := &http.Server{
 		Addr:    ":7777",
@@ -792,10 +815,29 @@ func main() {
 	signal.Notify(c, syscall.SIGTERM)
 	<-c
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	if err := srv.Shutdown(ctx); err != nil {
-		logrus.Fatalf("HTTP shutdown error: %v", err)
+	httpShutdownCtx, httpShutdownCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	httpShutdownErr := srv.Shutdown(httpShutdownCtx)
+	httpShutdownCancel()
+	if httpShutdownErr != nil {
+		logrus.Fatalf("HTTP shutdown error: %v", httpShutdownErr)
+	}
+
+	// The direct-EVP shutdown test proves the normal OpenFeature lifecycle: stop
+	// accepting evaluations, record that boundary, then let the provider drain its
+	// buffered events before the process exits. Keep this opt-in so unrelated
+	// scenarios retain the weblog's historical shutdown behavior.
+	if os.Getenv("SYSTEM_TESTS_FFE_SHUTDOWN_FLUSH_ENABLED") == "true" {
+		if err := json.NewEncoder(os.Stdout).Encode(map[string]string{
+			"event":     "system_tests.ffe.shutdown.server_closed",
+			"timestamp": time.Now().UTC().Format(time.RFC3339Nano),
+		}); err != nil {
+			logrus.Fatalf("shutdown marker error: %v", err)
+		}
+		providerShutdownCtx, providerShutdownCancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer providerShutdownCancel()
+		if err := of.ShutdownWithContext(providerShutdownCtx); err != nil {
+			logrus.Fatalf("OpenFeature shutdown error: %v", err)
+		}
 	}
 }
 

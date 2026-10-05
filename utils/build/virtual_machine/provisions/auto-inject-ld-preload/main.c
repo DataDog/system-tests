@@ -1,3 +1,6 @@
+// ensure RTLD_NEXT is available
+#define _GNU_SOURCE 1
+
 #include <stdio.h>
 #include <dlfcn.h>
 

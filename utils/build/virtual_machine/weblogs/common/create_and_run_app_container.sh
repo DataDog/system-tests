@@ -14,12 +14,24 @@ set -e
 readonly DIAGNOSTICS_LOG="${HOME}/dd-agent-diagnostics.log"
 readonly SCRIPT_MARKER="create_and_run_app_container.sh diagnostics-v3"
 readonly AGENT_COMPOSE="docker-compose-agent-prod.yml"
+readonly AGENT_LOCK="agent.lock"
 readonly WEBLOG_LOG_DIR="/var/log/datadog_weblog"
 readonly DOCKER_BUILD_MAX_RETRIES=3
+PULL_AGENT_IMAGE_SCRIPT="$(dirname "$0")/pull_agent_image.sh"
+readonly PULL_AGENT_IMAGE_SCRIPT
 
 # True when the Datadog Agent is installed via its own compose file.
 agent_is_enabled() {
     [ -f "${AGENT_COMPOSE}" ]
+}
+
+load_agent_version() {
+    agent_is_enabled || return 0
+
+    set -a
+    # shellcheck source=/dev/null
+    . "./${AGENT_LOCK}"
+    set +a
 }
 
 # ---------------------------------------------------------------------------
@@ -37,7 +49,7 @@ dump_dd_agent_diagnostics() {
     {
         echo "..:: DD-AGENT DIAGNOSTICS (${SCRIPT_MARKER}) ::.."
         date -u '+%Y-%m-%dT%H:%M:%SZ'
-        sudo docker-compose -f "${AGENT_COMPOSE}" ps 2>&1 || true
+        sudo -E docker-compose -f "${AGENT_COMPOSE}" ps 2>&1 || true
         if sudo docker inspect dd-agent >/dev/null 2>&1; then
             echo "..:: DD-AGENT HEALTH ::.."
             sudo docker inspect dd-agent --format '{{json .State.Health}}' 2>&1 || true
@@ -48,7 +60,7 @@ dump_dd_agent_diagnostics() {
             sudo docker ps -a 2>&1 || true
         fi
         echo "..:: DD-AGENT LOGS (docker-compose logs) ::.."
-        sudo docker-compose -f "${AGENT_COMPOSE}" logs --no-color datadog 2>&1 || true
+        sudo -E docker-compose -f "${AGENT_COMPOSE}" logs --no-color datadog 2>&1 || true
     } 2>&1 | tee -a "${DIAGNOSTICS_LOG}"
 
     # Mirror diagnostics into the log folder downloaded by the test harness.
@@ -115,6 +127,14 @@ start_agent() {
     agent_is_enabled || return 0
 
     echo "DD_API_KEY=${DD_API_KEY}" > .env
+
+    if ! bash "${PULL_AGENT_IMAGE_SCRIPT}"; then
+        echo "..:: DOCKER_PULL_FAILED (agent image) ::.." | tee -a "${DIAGNOSTICS_LOG}" >&2
+        dump_dd_agent_diagnostics
+        echo "..:: Diagnostics written to ${DIAGNOSTICS_LOG} ::.." >&2
+        exit 1
+    fi
+
     if ! sudo -E docker-compose -f "${AGENT_COMPOSE}" up -d --remove-orphans datadog --wait --wait-timeout 120; then
         echo "..:: COMPOSE_WAIT_FAILED (dd-agent unhealthy or timeout) ::.." | tee -a "${DIAGNOSTICS_LOG}" >&2
         dump_dd_agent_diagnostics
@@ -142,7 +162,7 @@ print_services_output() {
     sudo docker-compose ps
     if agent_is_enabled; then
         echo "..:: DATADOG AGENT OUTPUT ::.."
-        sudo docker-compose -f "${AGENT_COMPOSE}" logs datadog
+        sudo -E docker-compose -f "${AGENT_COMPOSE}" logs datadog
     fi
     echo "..:: WEBLOG APP OUTPUT ::.."
     sudo docker-compose logs
@@ -153,6 +173,8 @@ print_services_output() {
 # Main
 # ---------------------------------------------------------------------------
 main() {
+    load_agent_version
+
     # Always dump agent diagnostics on failure too (trap is deduplicated against the success dump).
     trap _on_exit EXIT
 

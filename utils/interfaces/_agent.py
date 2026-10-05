@@ -151,7 +151,7 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
     def get_metrics(self):
         """Attempts to fetch the metrics the agent will submit to the backend."""
 
-        for data in self.get_data(path_filters="/api/v2/series"):
+        for data in self.get_data(path_filters=("/api/v2/series", "/api/intake/metrics/v3/series")):
             content = data["request"]["content"]
             assert isinstance(content, dict), f"content is not a dict in {data['log_filename']}"
 

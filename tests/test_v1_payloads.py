@@ -8,7 +8,10 @@ class Test_V1PayloadByDefault:
     """Tracers use by default v1 trace format"""
 
     def test_main(self):
-        for data, trace in interfaces.library.get_traces():
+        traces = list(interfaces.library.get_traces())
+        assert traces, "Expected at least one trace"
+
+        for data, trace in traces:
             assert data["path"] == "/v1.0/traces"
             assert trace.format == LibraryTraceFormat.v10
 
@@ -32,7 +35,7 @@ class Test_V1Payloads:
             SamplingMechanism.DEFAULT,
         )  # TODO: Why is this local rule sampler for go? For JAVA it is `DEFAULT`.
         assert trace.raw_trace["priority"] == SamplingPriority.USER_KEEP
-        span = trace.spans[0]
+        span = interfaces.library.get_root_span(self.r)
         assert span.raw_span["error"], "Error field must be boolean"
         assert span.raw_span["env"] == "system-tests"
         assert span.raw_span["component"], "Component must not be empty"
@@ -67,21 +70,20 @@ class Test_V1SpanLinks:
     def test_span_links_present(self):
         """V1 spans carrying span links expose them at the top level or in attributes"""
         spans_with_links = [
-            span
-            for _, _, span in interfaces.library.get_spans(self.r, full_trace=True)
-            if span.raw_span.get("span_links") or span.raw_span.get("attributes", {}).get("_dd.span_links")
+            span for _, _, span in interfaces.library.get_spans(self.r, full_trace=True) if span.get_span_links()
         ]
         assert len(spans_with_links) >= 1, "Expected at least one span with span links"
 
         link_carrier = spans_with_links[0]
-        links = link_carrier.raw_span.get("span_links") or []
+        assert link_carrier.trace.format == LibraryTraceFormat.v10
+        links = link_carrier.get_span_links()
 
         assert len(links) >= 1
         link = links[0]
 
-        assert isinstance(link["trace_id"], str)
-        assert link["trace_id"].startswith("0x")
-        assert isinstance(link["span_id"], int)
+        assert isinstance(link.data["trace_id"], str)
+        assert link.data["trace_id"].startswith("0x")
+        assert isinstance(link.data["span_id"], int)
 
 
 @scenarios.apm_tracing_efficient_payload
@@ -123,7 +125,10 @@ class Test_V1TopLevelSpans:
 
     def test_root_span_is_top_level(self):
         """The root span of a trace must be marked as top-level"""
-        for _, root_span in interfaces.library.get_root_spans(self.r):
+        root_spans = list(interfaces.library.get_root_spans(self.r))
+        assert root_spans, "Expected at least one root span"
+
+        for _, root_span in root_spans:
             attrs = root_span.raw_span.get("attributes", {})
             assert attrs.get("_dd.top_level") == 1 or attrs.get("_dd.top_level") == 1.0, (
                 f"Root span must have _dd.top_level=1 in attributes, got: {attrs.get('_dd.top_level')}"

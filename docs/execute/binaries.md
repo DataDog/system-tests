@@ -7,6 +7,38 @@ But we often want to run system tests against unmerged changes. The general appr
 
 * Add a file `agent-image` in `binaries/`. The content must be a valid docker image name containing the datadog agent, like `datadog/agent` or `datadog/agent-dev:master-py3`.
 
+### Building an agent image from a local datadog-agent branch
+
+If your datadog-agent changes are limited to `pkg/trace` or `cmd/trace-agent`, you don't need
+to wait for a datadog-agent CI image build (or run the slow, Linux-devcontainer-only
+`dda inv agent.hacky-dev-image-build`) to test them. `utils/scripts/build-local-agent-image.sh`
+compiles just the trace-agent binary from your local checkout/worktree and overlays it onto a
+published agent base image:
+
+```bash
+./utils/scripts/build-local-agent-image.sh /path/to/datadog-agent datadog/agent-dev:my-branch
+echo datadog/agent-dev:my-branch > binaries/agent-image
+./build.sh golang
+TEST_LIBRARY=golang ./run.sh DEFAULT
+```
+
+Run `./utils/scripts/build-local-agent-image.sh --help` for all options (base image, output
+image tag/path via flags or env vars, etc). The script builds the trace-agent with `CGO_ENABLED=1`
+(required by the zstd dependency, so it can't cross-compile from macOS with `CGO_ENABLED=0`)
+inside a `golang` container matching your Docker host's architecture and your agent checkout's
+`.go-version`, and sets version ldflags so the resulting binary reports the same agent version as
+the base image (otherwise system-tests' agent-version gating sees a generic `6.0.0`).
+
+To confirm the custom binary is actually running once a scenario has executed:
+* `logs_<scenario>/docker/agent/stdout.log` -- TRACE-level log lines show `/src/...` source
+  paths, since the binary was compiled inside the script's `/src` mount.
+* `logs_<scenario>/docker/agent/image.json` -- shows the image tag that was used.
+
+**Limitation**: only the trace-agent binary is replaced, so this only covers changes inside
+`pkg/trace`/`cmd/trace-agent`. For changes elsewhere in datadog-agent, build a full agent image
+instead, either with `dda inv agent.hacky-dev-image-build` from a Linux devcontainer, or by using
+the CI-built `datadog/agent-dev:<branch>` image from your datadog-agent PR.
+
 ## C++ library
 
 * Tracer:
@@ -138,9 +170,36 @@ There are three ways to run system-tests with a custom node tracer.
 ## PHP library
 
 - Place `datadog-setup.php` and `dd-library-php-[X.Y.Z+commitsha]-*-linux-gnu.tar.gz` in `/binaries` folder
-  - You can download the `.tar.gz` from the `package extension: [arm64, aarch64-unknown-linux-gnu]` (or the `amd64` if you're not on ARM) job artifacts (from the `package-trigger` sub-pipeline), from a CI run of your branch.
+  - You can download the `.tar.gz` from the `package extension: [arm64, aarch64-unknown-linux-gnu]` (or the `amd64` if you're not on ARM) job artifacts (from the `package-trigger` sub-pipeline of dd-trace-php's `gitlab.ddbuild.io`), from a CI run of your branch.
+    - **Via the browser:** open the pipeline for your branch, drill into the `package-trigger`
+      child pipeline, open the `package extension: [...]` job, and download its artifacts.
+    - **Via `glab` (for agents/CLI use):** the one-liners `glab ci artifact`/`glab job artifact`
+      only search the *top-level* pipeline's jobs, so they never find `package extension: [...]`
+      (it lives in the `package-trigger` **child** pipeline) — they just hang instead of failing
+      fast. Walk the GitLab API by hand instead (project is `DataDog/apm-reliability/dd-trace-php`,
+      project ID `355`; see [GitLab CLI setup](../ai/ai-tools-integration-guide.md#gitlab-cli-glab)).
+      These calls must target `gitlab.ddbuild.io` explicitly via `--hostname`, since `glab`'s
+      default host may point elsewhere:
+      ```bash
+      # 1. Find the top-level pipeline for your commit
+      glab api --hostname gitlab.ddbuild.io "/projects/355/pipelines?sha=<commit-sha>"
+
+      # 2. List that pipeline's trigger bridges, find package-trigger's downstream_pipeline.id
+      glab api --hostname gitlab.ddbuild.io "/projects/355/pipelines/<pipeline-id>/bridges"
+
+      # 3. Find the job's numeric id in that child pipeline (paginate with &page=N if needed)
+      glab api --hostname gitlab.ddbuild.io "/projects/355/pipelines/<child-pipeline-id>/jobs?per_page=100"
+
+      # 4. Download the job's artifacts zip (large; can take a few minutes). `--output` selects
+      # glab's own response format (json/ndjson), not a file path, so redirect stdout instead.
+      glab api --hostname gitlab.ddbuild.io "/projects/355/jobs/<job-id>/artifacts" > artifacts.zip
+
+      # 5. Pull out just the tarball you need, matching your host/container architecture
+      # (<arch> is aarch64 or x86_64, matching `uname -m` inside the PHP weblog container)
+      unzip -p artifacts.zip "packages/dd-library-php-<version>-<arch>-linux-gnu.tar.gz" \
+        > binaries/dd-library-php-<version>-<arch>-linux-gnu.tar.gz
+      ```
   - The `datadog-setup.php` can be copied from the dd-trace-php repository root.
-- Copy it in the binaries folder
 
 Then run the tests from the repo root folder:
 
@@ -154,6 +213,12 @@ Then run the tests from the repo root folder:
     "single-request"
   ],
 ```
+
+> :note: **Keep `binaries/` clean between runs**
+> Only one PHP tarball should be present in `binaries/` at a time — a stale one left over from an earlier test causes `install_ddtrace.sh`'s "multiple dd-library-php tarballs found" error.
+> This can also happen even when `binaries/` on the host is clean: the PHP base image (`apache-mod.base.Dockerfile`, tagged e.g. `datadog/system-tests:apache-mod-8.2.base-v1`) bakes in whatever was in `binaries/` at the time it was built, and it's only rebuilt if the tag is missing locally.
+> If a stale tarball was baked into the base image, every later build adds a second tarball on top of it. Fix by removing the base image and letting it rebuild:
+> - `docker rmi datadog/system-tests:<variant>.base-v1`
 
 ## Python library
 

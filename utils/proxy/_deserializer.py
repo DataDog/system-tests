@@ -27,6 +27,7 @@ from opentelemetry.proto.collector.logs.v1.logs_service_pb2 import (
     ExportLogsServiceResponse,
 )
 from ._decoders.protobuf_schemas import MetricPayload, TracePayload, SketchPayload, BackendResponsePayload
+from ._decoders.metrics_v3 import decode_metrics_v3
 from .trace_bytes_decoding import decode_trace_bytes_ascii, unpack_trace_bytes_msgpack
 from .traces.trace_v1 import deserialize_v1_trace, _uncompress_agent_v1_trace, decode_appsec_s_value
 from .traces.otlp_v1 import deserialize_otlp_v1_trace
@@ -35,6 +36,21 @@ from .utils import logger
 
 def get_header_value(name: str, headers: list[tuple[str, str]]):
     return next((h[1] for h in headers if h[0].lower() == name.lower()), None)
+
+
+Interface = Literal[
+    "agent",
+    "library",
+    "python_buddy",
+    "nodejs_buddy",
+    "java_buddy",
+    "ruby_buddy",
+    "golang_buddy",
+    "otel_collector",
+    "open_telemetry",
+    "datadog_sidecar",
+    "datadog_direct",
+]
 
 
 def _parse_as_unsigned_int(value: int, size_in_bits: int) -> int:
@@ -102,9 +118,9 @@ def deserialize_http_message(
     path: str,
     message: dict,
     content: bytes | None,
-    interface: str,
+    interface: Interface,
     key: Literal["request", "response"],
-    export_content_files_to: str,
+    export_content_files_to: str | None,
 ):
     def json_load():
         if not content:
@@ -226,8 +242,13 @@ def deserialize_http_message(
             _deserialized_nested_json_from_trace_payloads(result, interface)
             _uncompress_agent_v1_trace(result, interface)
             return result
-        if path == "/api/v2/series":
+        if path in ("/api/v2/series", "/api/intake/metrics/v3/series"):
             if key == "request":
+                if path == "/api/intake/metrics/v3/series":
+                    # v3 uses a columnar, dictionary-encoded protobuf format; the descriptor
+                    # parses the envelope but the dictionary/delta encoding on top is undone
+                    # by our custom decoder.
+                    return decode_metrics_v3(content)
                 return MessageToDict(MetricPayload.FromString(content))
 
             return MessageToDict(BackendResponsePayload.FromString(content))
@@ -287,7 +308,7 @@ def deserialize_http_message(
 
 
 def _deserialize_file_in_multipart_form_data(
-    path: str, item: dict, headers: dict[str, str], export_content_files_to: str, content: bytes
+    path: str, item: dict, headers: dict[str, str], export_content_files_to: str | None, content: bytes
 ) -> None:
     content_disposition = headers.get("content-disposition", "<not set>")
 
@@ -325,7 +346,7 @@ def _deserialize_file_in_multipart_form_data(
                 except (json.JSONDecodeError, UnicodeDecodeError):
                     item["system-tests-error"] = "Can't decode json file"
 
-            if not content_is_deserialized:
+            if not content_is_deserialized and export_content_files_to:
                 file_path = f"{export_content_files_to}/{md5(content).hexdigest()}_{filename}"
 
                 item["system-tests-information"] = "File exported to a separated file"
@@ -335,7 +356,7 @@ def _deserialize_file_in_multipart_form_data(
                     f.write(content)
 
 
-def _deserialized_nested_json_from_trace_payloads(content: Any, interface: str):  # noqa: ANN401
+def _deserialized_nested_json_from_trace_payloads(content: Any, interface: Interface):  # noqa: ANN401
     """Trace payload from agent and library contains strings that are json"""
 
     if interface == "agent":
@@ -394,15 +415,15 @@ def deserialize(
     data: dict[str, Any],
     key: Literal["request", "response"],
     content: bytes | None,
-    interface: str,
-    export_content_files_to: str,
+    interface: Interface,
+    export_content_files_to: str | None,
 ):
     try:
         data[key]["content"] = deserialize_http_message(
             data["path"], data[key], content, interface, key, export_content_files_to
         )
     except Exception:  # Many possible errors, catching all
-        status_code: int = data[key]["status_code"]
+        status_code: int | None = data[key].get("status_code")
         if key == "response" and status_code in (
             HTTPStatus.INTERNAL_SERVER_ERROR,
             HTTPStatus.REQUEST_TIMEOUT,

@@ -8,7 +8,9 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 
+	"github.com/DataDog/dd-trace-go/v2/ddtrace/ext"
 	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 )
 
@@ -26,6 +28,68 @@ func InitDatadog() {
 	span := tracer.StartSpan("init.service")
 	defer span.Finish()
 	span.SetTag("whip", "done")
+}
+
+// ManualKeepDrop forces the sampling decision of the trace the request belongs to,
+// based on the mandatory `decision` query parameter (either "keep" or "drop"), then calls
+// downstream so that tests can assert on the sampling decision that gets propagated.
+func ManualKeepDrop(w http.ResponseWriter, r *http.Request) {
+	span, ok := tracer.SpanFromContext(r.Context())
+	if !ok {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("no active span"))
+		return
+	}
+
+	switch r.URL.Query().Get("decision") {
+	case "keep":
+		span.SetTag(ext.ManualKeep, true)
+	case "drop":
+		span.SetTag(ext.ManualDrop, true)
+	default:
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("decision must be keep or drop"))
+		return
+	}
+
+	const url = "http://localhost:7777/"
+	req, _ := http.NewRequestWithContext(r.Context(), http.MethodGet, url, nil)
+	// Inject the current span's context into req.Header so the headers are visible after
+	// client.Do, which injects into a cloned request.
+	tracer.Inject(span.Context(), tracer.HTTPHeadersCarrier(req.Header))
+
+	res, err := httpClient().Do(req)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+	defer res.Body.Close()
+
+	requestHeaders := make(map[string]string, len(req.Header))
+	for key, values := range req.Header {
+		requestHeaders[strings.ToLower(key)] = strings.Join(values, ",")
+	}
+
+	responseHeaders := make(map[string]string, len(res.Header))
+	for key, values := range res.Header {
+		responseHeaders[key] = strings.Join(values, ",")
+	}
+
+	jsonResponse, err := json.Marshal(struct {
+		URL             string            `json:"url"`
+		StatusCode      int               `json:"status_code"`
+		RequestHeaders  map[string]string `json:"request_headers"`
+		ResponseHeaders map[string]string `json:"response_headers"`
+	}{URL: url, StatusCode: res.StatusCode, RequestHeaders: requestHeaders, ResponseHeaders: responseHeaders})
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(jsonResponse)
 }
 
 func ParseBody(r *http.Request) (interface{}, error) {

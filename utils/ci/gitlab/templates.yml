@@ -1,0 +1,37 @@
+---
+spec:
+  inputs:
+    stage:
+    ref:
+      default: main
+
+---
+
+.system_tests_base:
+  image: $CI_IMAGE
+  tags:
+    - docker-in-docker:amd64
+  variables:
+    GIT_STRATEGY: none
+    # In DinD, DOCKER_HOST is set to tcp://docker:2376 which causes _Weblog to
+    # resolve the weblog as docker:7777 instead of localhost:7777, breaking span
+    # snapshot assertions. Force it back to localhost.
+    SYSTEM_TESTS_WEBLOG_HOST: "localhost"
+    # Pull scenario images (and weblog FROM bases) from the system-tests mirror
+    # instead of docker.io/ghcr.io/etc. Runtime pulls fall back to the original
+    # registry if an image isn't mirrored yet (see utils/_context/_image_mirror.py).
+    USE_IMAGE_MIRROR: "1"
+  stage: $[[ inputs.stage ]]
+  interruptible: true
+  before_script:
+    - echo -e "section_start:`date +%s`:setup[collapsed=true]\r\e[0KSystem-tests runner setup"
+    - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.ddbuild.io/DataDog/system-tests.git
+    - cd system-tests
+    - git checkout $[[ inputs.ref ]]
+    - ln -sf /system-tests/venv venv
+    - source venv/bin/activate
+    - export PYTHONPATH="$CI_PROJECT_DIR/system-tests"
+    - source utils/ci/gitlab/section.sh
+    - echo -e "section_end:`date +%s`:setup\r\e[0K"
+    - export DD_API_KEY=$(dd-sts exchange --policy system-tests-gitlab -- env | sed -n 's/^DD_API_KEY=//p')
+    - echo "export DD_API_KEY=${DD_API_KEY}" > "$CI_PROJECT_DIR/dd_api_key.env"

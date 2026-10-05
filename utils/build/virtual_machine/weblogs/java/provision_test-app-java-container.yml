@@ -32,6 +32,8 @@ weblog:
 
           - name: copy-container-run-script
             local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_container.sh
+          - name: copy-pull-agent-image-script
+            local_path: utils/build/virtual_machine/weblogs/common/pull_agent_image.sh
 
           - name: copy-docker-file
             local_path: utils/build/virtual_machine/weblogs/java/test-app-java-multicontainer/Dockerfile.jdk11

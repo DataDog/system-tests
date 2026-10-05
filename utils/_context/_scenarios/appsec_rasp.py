@@ -4,6 +4,7 @@ from utils._context._scenarios.aws_lambda import LambdaScenario
 from utils._context._scenarios.endtoend import EndToEndScenario
 from utils._context._scenarios.core import scenario_groups
 from utils._context.containers import InternalServerContainer
+from utils._context.constants import WeblogCategory
 
 
 class AppsecRaspScenario(EndToEndScenario):
@@ -39,6 +40,7 @@ class AppsecRaspScenario(EndToEndScenario):
             doc="Enable APPSEC RASP",
             github_workflow="endtoend",
             scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_rasp, scenario_groups.appsec_rasp_scenario],
+            weblog_categories=[WeblogCategory.dd_trace],
             other_weblog_containers=(InternalServerContainer,),
         )
 

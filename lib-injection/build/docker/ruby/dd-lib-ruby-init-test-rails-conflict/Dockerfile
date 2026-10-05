@@ -3,7 +3,11 @@ FROM public.ecr.aws/docker/library/ruby:3.1.3
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install prerequisites
+# Debian 11 LTS ended 2026-08-31; live security repos 404 — use archive only
 RUN set -ex && \
+  sed -i 's|deb.debian.org|archive.debian.org|g' /etc/apt/sources.list && \
+  sed -i -E '/security\.debian\.org|debian-security|bullseye-security/d' /etc/apt/sources.list && \
+  echo 'Acquire::Check-Valid-Until "false";' > /etc/apt/apt.conf.d/99no-check-valid-until && \
   echo "===> Installing dependencies" && \
   apt-get -y update && \
   apt-get install -y --force-yes --no-install-recommends \
@@ -42,6 +46,11 @@ WORKDIR /app
 # Add files
 COPY lib_injection_rails_app /app
 
+# Use the lockfile for this Ruby version before introducing a conflict
+RUN set -eu; \
+  ruby_minor="$(ruby -e 'print RUBY_VERSION.split(".").take(2).join(".")')"; \
+  cp "gemfiles/ruby-${ruby_minor}.gemfile.lock" Gemfile.lock
+
 # Introducing a conflict
 RUN echo "gem 'debase-ruby_core_source', '0.10.15'" >> Gemfile
 
@@ -52,4 +61,3 @@ RUN bundle install
 ENTRYPOINT ["/bin/bash", "-c"]
 
 CMD ["bin/rails server -b 0.0.0.0 -p 18080"]
-

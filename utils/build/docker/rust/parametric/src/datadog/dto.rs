@@ -204,8 +204,10 @@ fn format_global_tags(config: &Config) -> String {
 }
 
 fn format_trace_propagation_extract(config: &Config) -> String {
+    // Fall back to the global style, mirroring dd-trace-rs's get_extractors.
     config
         .trace_propagation_style_extract()
+        .or_else(|| config.trace_propagation_style())
         .map(|styles| {
             styles
                 .iter()

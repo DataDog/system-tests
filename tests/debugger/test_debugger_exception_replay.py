@@ -40,6 +40,35 @@ def set_span_attrs(span: dict, span_format: AgentTraceFormat, meta: dict[str, st
         raise ValueError(f"Unknown span format: {span_format}")
 
 
+def normalize_approval_data(data: object) -> object:
+    """Makes approval data comparable across trace payload formats.
+
+    When the trace agent converts an incoming v0.4 payload to v1, it stamps the span with a
+    ``_dd.convertedv1`` provenance marker and carries the v0.4 string-only ``meta`` values through
+    as strings, whereas a natively emitted v1 payload keeps real booleans. Neither difference is
+    relevant to exception replay, so drop the marker and canonicalize booleans on both sides of the
+    comparison. This keeps a single set of approval files valid whether or not conversion is enabled.
+
+    The ``_dd.sdk.otlp_export`` tag describes trace export routing, not exception replay. Its presence
+    varies across tracer versions, so exclude it from both sides of the approval comparison too.
+    """
+    if isinstance(data, dict):
+        return {
+            key: normalize_approval_data(value)
+            for key, value in data.items()
+            if key not in {"_dd.convertedv1", "_dd.sdk.otlp_export"}
+        }
+
+    if isinstance(data, list):
+        return [normalize_approval_data(item) for item in data]
+
+    # bool must be checked before int, as bool is a subclass of int
+    if isinstance(data, bool):
+        return "true" if data else "false"
+
+    return data
+
+
 def get_env_bool(env_var_name: str, *, default: bool = False) -> bool:
     value = os.getenv(env_var_name, str(default)).lower()
     return value in {"true", "True", "1"}
@@ -63,7 +92,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
 
     ############ setup ############
     def _setup(self, request_path: str, exception_message: str):
-        self.weblog_responses = []
+        self.weblog_responses: list[object] = []
 
         retries = 0
         timeout = _timeout_first
@@ -227,22 +256,51 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
         def __scrub_dotnet(key: str, value: dict | list | str, parent: dict):  # noqa: ARG001
             if key == "Id":
                 return "<scrubbed>"
+            elif key == "exceptionHash":
+                # The hash format differs between tracer versions, so approvals can't pin its value.
+                return "<scrubbed>"
             elif key == "StackTrace" and isinstance(value, dict):
                 value["value"] = "<scrubbed>"
+                # Clip is old; truncated:true is new (dd-trace-dotnet #9272). Drop it so
+                # approvals match tracers with and without the flag.
+                value.pop("truncated", None)
                 return value
+            elif key == "staticFields" and isinstance(value, dict):
+
+                def is_empty_result_static_field(field_name: str, field_value: object) -> bool:
+                    return (
+                        field_name == "Empty"
+                        and isinstance(field_value, dict)
+                        and field_value.get("type") == "EmptyResult"
+                        and set(field_value).issubset({"type", "notCapturedReason"})
+                        and field_value.get("notCapturedReason") in (None, "typeInitializer")
+                    )
+
+                scrubbed_static_fields = {
+                    field_name: __scrub(field_value)
+                    for field_name, field_value in value.items()
+                    if not is_empty_result_static_field(field_name, field_value)
+                }
+                return scrubbed_static_fields or None
             elif key == "function":
                 assert isinstance(value, str)
                 if "lambda_" in value:
                     value = re.sub(r"(lambda_method)\d+", r"\1<scrubbed>", value)
-                if re.search(r"<[^>]+>", value):
+                if re.search(r"<[^>]+>", value) and not value.endswith("<scrubbed>"):
                     value = re.sub(r"(.*>)(.*)", r"\1<scrubbed>", value)
                 return value
             elif key in ["stacktrace", "stack"]:
                 scrubbed = []
                 assert isinstance(value, list)
                 for entry in value:
+                    function = entry.get("function")
+                    if function is None:
+                        if entry != {"<runtime>": "<scrubbed>"}:
+                            scrubbed.append(__scrub(entry))
+                        continue
+
                     # skip inner runtime methods from stack traces since they are not relevant to debugger
-                    if entry["function"].startswith(("Microsoft", "System", "Unknown")):
+                    if function.startswith(("Microsoft", "System", "Unknown")):
                         continue
 
                     scrubbed.append(__scrub(entry))
@@ -318,6 +376,8 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
                 self._write_approval(snapshots, test_name, "snapshots_expected")
 
             expected_snapshots = self._read_approval(test_name, "snapshots_expected")
+            if self.get_tracer()["language"] == "dotnet" and not _SKIP_SCRUB:
+                expected_snapshots = [__scrub_dict(snapshot) for snapshot in expected_snapshots]  # type: ignore[assignment]
             if self.get_tracer()["language"] == "php":
                 expected_snapshots = __normalize_php_fields(expected_snapshots)  # type: ignore[assignment]
             assert expected_snapshots == snapshots
@@ -349,7 +409,12 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
                 keys_to_remove = []
                 span_meta = get_span_meta(span, span_format)
                 for meta_key, meta_value in span_meta.items():
-                    if meta_key in {
+                    if meta_key.startswith("_dd.appsec.s."):
+                        # API Security samples schemas per (route, method, status) on a time window, so
+                        # which request of the test carries them is not deterministic
+                        keys_to_remove.append(meta_key)
+                    elif meta_key in {
+                        "_dd.convertedv1",  # trace agent marker, only set when it converts v0.4 -> v1
                         "_dd.appsec.fp.http.endpoint",
                         "_dd.appsec.fp.http.header",
                         "_dd.appsec.fp.http.network",
@@ -358,6 +423,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
                         "_dd.tags.process",  # varies by PHP SAPI (apache vs fpm)
                         "_dd.p.dm",  # trace sampling decision, varies by tracer version
                         "_dd.p.ksr",  # keep sample rate, not present in all versions
+                        "_dd.p.tid",  # high trace ID bits, not present in all versions
                         "http.response.headers.content-length",  # not emitted by all tracer versions
                     }:
                         keys_to_remove.append(meta_key)
@@ -418,7 +484,9 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
 
             expected = self._read_approval(test_name, expected_suffix)
 
-            assert expected == normalized_for_approval
+            # Normalize both sides so already-recorded approvals stay valid whether or not the
+            # trace agent converts v0.4 payloads to v1 (see normalize_approval_data).
+            assert normalize_approval_data(expected) == normalize_approval_data(normalized_for_approval)
 
             missing_keys_dict = {}
 
@@ -604,7 +672,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
 
     ############ Rock Paper Scissors ############
     def setup_exception_replay_rockpaperscissors(self):
-        self.weblog_responses = []
+        self.weblog_responses: list[object] = []
 
         retries = 0
         timeout = _timeout_first

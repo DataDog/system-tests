@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
 
 	sqltrace "github.com/DataDog/dd-trace-go/contrib/database/sql/v2"
 	httptrace "github.com/DataDog/dd-trace-go/contrib/net/http/v2"
@@ -149,5 +150,68 @@ func SQLi(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Println("unknown error during sql call: ", err.Error())
+	}
+}
+
+func parseCommandRASPRequest(r *http.Request) []string {
+	switch r.Method {
+	case http.MethodGet:
+		return []string{r.URL.Query().Get("command")}
+	case http.MethodPost:
+		switch r.Header.Get("Content-Type") {
+		case "application/json":
+			var body struct {
+				Command []string `json:"command"`
+			}
+			if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+				log.Fatalf("failed to parse body: %v\n", err)
+			}
+			if err := appsec.MonitorParsedHTTPBody(r.Context(), map[string]any{"command": body.Command}); err != nil {
+				log.Fatalf("Body Monitoring should not block the request: %v\n", err)
+			}
+			return body.Command
+		case "application/xml":
+			var body struct {
+				Command []string `xml:"cmd"`
+			}
+			if err := xml.NewDecoder(r.Body).Decode(&body); err != nil {
+				log.Fatalf("failed to parse body: %v\n", err)
+			}
+			if err := appsec.MonitorParsedHTTPBody(r.Context(), map[string]any{"command": body.Command}); err != nil {
+				log.Fatalf("Body Monitoring should not block the request: %v\n", err)
+			}
+			return body.Command
+		case "application/x-www-form-urlencoded":
+			if err := r.ParseForm(); err != nil {
+				log.Fatalf("failed to parse body: %v\n", err)
+			}
+			command := r.Form.Get("command")
+			if err := appsec.MonitorParsedHTTPBody(r.Context(), map[string]string{"command": command}); err != nil {
+				log.Fatalf("Body Monitoring should not block the request: %v\n", err)
+			}
+			return []string{command}
+		default:
+			log.Fatalln("unsupported content type")
+		}
+	default:
+		log.Fatalln("method not allowed")
+	}
+
+	return nil
+}
+
+func CMDI(w http.ResponseWriter, r *http.Request) {
+	command := parseCommandRASPRequest(r)
+	if len(command) == 0 {
+		return
+	}
+
+	err := (&exec.Cmd{Path: command[0], Args: command}).Run()
+	if events.IsSecurityError(err) {
+		return
+	}
+
+	if err != nil {
+		log.Println("unknown error during command execution: ", err.Error())
 	}
 }

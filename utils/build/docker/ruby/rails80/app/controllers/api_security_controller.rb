@@ -12,4 +12,12 @@ class ApiSecurityController < ApplicationController
   def sampling_by_status
     render plain: 'OK', status: params.fetch(:status, 200).to_i
   end
+
+  def multi_params_in_segment
+    render plain: 'OK'
+  end
+
+  def optional_params
+    render plain: 'OK'
+  end
 end

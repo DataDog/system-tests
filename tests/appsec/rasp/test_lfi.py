@@ -162,7 +162,9 @@ class Test_Lfi_Telemetry_Multiple_Exploits:
         assert self.r.status_code == 200
         series_eval = find_series("appsec", "rasp.rule.match", is_metrics=True)
         assert series_eval
-        assert series_eval[0]["points"][0][1] == 3.0
+        assert any(validate_metric("rasp.rule.match", "lfi", s) and s["points"][0][1] == 3.0 for s in series_eval), [
+            s.get("tags") for s in series_eval
+        ]
 
 
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.enmf90juqidf")

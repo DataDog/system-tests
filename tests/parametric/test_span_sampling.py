@@ -1,6 +1,6 @@
 import time
 import json
-import pytest
+from utils import pytest
 from utils.docker_fixtures.spec.trace import SAMPLING_PRIORITY_KEY
 from utils.docker_fixtures.spec.trace import SINGLE_SPAN_SAMPLING_MAX_PER_SEC
 from utils.docker_fixtures.spec.trace import SINGLE_SPAN_SAMPLING_MECHANISM
@@ -18,6 +18,24 @@ from utils import context, scenarios, features
 
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary
+
+
+def _wait_for_client_side_stats_active(test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+    """Wait until client-side stats are active before asserting p0 dropping.
+
+    p0 dropping only turns on after the tracer's async `/info` handshake; spans flushed before it
+    are forwarded undropped (a startup race). A received `/v0.6/stats` payload proves it is active.
+    """
+    for _ in range(30):
+        with test_library, test_library.dd_start_span(name="css-warmup", service="webserver"):
+            pass
+        try:
+            test_agent.wait_for_num_v06_stats(1, wait_loops=10)
+        except ValueError:
+            continue
+        test_agent.clear()
+        return
+    raise ValueError("client-side stats were not enabled in time; cannot reliably assert p0 dropping")
 
 
 @features.single_span_sampling
@@ -625,6 +643,7 @@ class Test_Span_Sampling:
         the activate dropping policy.
         """
         assert test_agent.info()["client_drop_p0s"] is True, "Client drop p0s expected to be enabled"
+        _wait_for_client_side_stats_active(test_agent, test_library)
 
         with test_library, test_library.dd_start_span(name="parent", service="webserver"):
             pass
@@ -684,6 +703,7 @@ class Test_Span_Sampling:
         the activate dropping policy.
         """
         assert test_agent.info()["client_drop_p0s"] is True, "Client drop p0s expected to be enabled"
+        _wait_for_client_side_stats_active(test_agent, test_library)
 
         with (
             test_library,
@@ -737,6 +757,7 @@ class Test_Span_Sampling:
         the activate dropping policy.
         """
         assert test_agent.info()["client_drop_p0s"] is True, "Client drop p0s expected to be enabled"
+        _wait_for_client_side_stats_active(test_agent, test_library)
 
         with test_library, test_library.dd_start_span(name="parent", service="webserver"):
             pass

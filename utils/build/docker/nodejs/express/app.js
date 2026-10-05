@@ -1,4 +1,5 @@
 'use strict'
+/* eslint-disable camelcase */
 
 const opts = {}
 
@@ -9,6 +10,7 @@ if (process.env.CONFIG_CHAINING_TEST) {
 }
 
 const tracer = require('dd-trace').init(opts)
+const { tags: { MANUAL_KEEP, MANUAL_DROP } } = require('dd-trace/ext')
 
 const { promisify } = require('util')
 const app = require('express')()
@@ -72,6 +74,43 @@ app.get('/', (req, res) => {
   res.send('Hello world!\n')
 })
 
+function subprocessAndExitHandler (req, res) {
+  const path = require('path')
+  const { spawn } = require('child_process')
+  const sleep = req.query.sleep != null ? String(req.query.sleep) : null
+  const crash = req.query.crash
+  if (sleep == null || sleep === '') {
+    res.status(400).send('sleep required')
+    return
+  }
+  const crashStr = String(crash || '').toLowerCase()
+  const forkStr = String(req.query.fork || '').toLowerCase()
+  if (crashStr !== 'true' && crashStr !== 'false') {
+    res.status(400).send('crash required (boolean)')
+    return
+  }
+  if (forkStr !== 'true' && forkStr !== 'false') {
+    res.status(400).send('fork required (boolean)')
+    return
+  }
+  const useFork = forkStr === 'true'
+
+  if (useFork) {
+    const child = require('child_process').fork(path.join(__dirname, 'fork_child.js'), [sleep, crashStr])
+    child.on('close', (code, signal) => {
+      res.send(`Child process ${child.pid} exited with code ${code}, signal ${signal}`)
+    })
+  } else {
+    const child = spawn(process.execPath, [path.join(__dirname, 'fork_child.js'), sleep, crashStr], {
+      stdio: 'inherit'
+    })
+    child.on('close', (code, signal) => {
+      res.send(`Child process ${child.pid} exited with code ${code}, signal ${signal}`)
+    })
+  }
+}
+app.get('/spawn_child', subprocessAndExitHandler)
+
 app.get('/healthcheck', (req, res) => {
   res.json({
     status: 'ok',
@@ -102,6 +141,20 @@ app.get('/api_security/sampling/:status', (req, res) => {
 
 app.get('/api_security_sampling/:i', (req, res) => {
   res.send('OK')
+})
+
+// RFC-1103: two mandatory params in the same segment (rule 5 intra-segment combining)
+app.get('/api_security/multi-params-in-segment/:id.:format', (req, res) => {
+  res.send('ok')
+})
+
+// RFC-1103: optional intra-segment param (rules 5 + 6); more-specific route first
+app.get('/api_security/optional-params/:id.:format', (req, res) => {
+  res.send('ok')
+})
+
+app.get('/api_security/optional-params/:id', (req, res) => {
+  res.send('ok')
 })
 
 app.get('/params/:value', (req, res) => {
@@ -177,19 +230,47 @@ app.get('/status', (req, res) => {
   res.status(parseInt(req.query.code) || 400).send('OK')
 })
 
-app.get('/make_distant_call', (req, res) => {
-  const url = req.query.url
+app.get('/trace/manual_keep_drop', (req, res) => {
+  const decision = req.query.decision
 
-  const parsedUrl = new URL(url)
-
-  const options = {
-    hostname: parsedUrl.hostname,
-    port: parsedUrl.port || 80, // Use default port if not provided
-    path: parsedUrl.pathname,
-    method: 'GET'
+  if (decision !== 'keep' && decision !== 'drop') {
+    return res.status(400).send('decision must be keep or drop')
   }
 
-  const request = http.request(options, (response) => {
+  tracer.scope().active().setTag(decision === 'keep' ? MANUAL_KEEP : MANUAL_DROP, true)
+
+  // Call downstream so that tests can assert on the sampling decision that gets propagated
+  // The weblog listens on IPv4; localhost may resolve to IPv6 instead.
+  const url = 'http://127.0.0.1:7777/'
+  const request = http.request({ hostname: '127.0.0.1', port: 7777, path: '/', method: 'GET' }, (response) => {
+    response.on('data', () => {})
+
+    response.on('end', () => {
+      res.json({
+        url,
+        status_code: response.statusCode,
+        request_headers: response.req.getHeaders(),
+        response_headers: response.headers
+      })
+    })
+  })
+
+  request.on('error', (error) => {
+    console.log(error)
+    res.status(500).send(error.message)
+  })
+
+  request.end()
+})
+
+app.get('/make_distant_call', (req, res) => {
+  const url = req.query.url
+  const parsedUrl = new URL(url)
+  const method = req.query.method || 'GET'
+
+  // Passing the URL object preserves query strings and credentials. This endpoint is used by
+  // semantic-convention tests that need the tracer to observe the complete outbound request.
+  const request = http.request(parsedUrl, { method }, (response) => {
     let responseBody = ''
     response.on('data', (chunk) => {
       responseBody += chunk
@@ -597,6 +678,8 @@ app.get('/flush', (req, res) => {
   tracer.dogstatsd?.flush?.()
   tracer._pluginManager?._pluginsByName?.openai?.metrics?.flush?.()
   tracer._tracer?._processor?._stats?.onInterval()
+  // force FFE exposure events out immediately instead of waiting for the writer's periodic flush
+  require('node:diagnostics_channel').channel('ffe:writers:flush').publish()
 
   // does have a callback :)
   const promises = []
@@ -775,8 +858,15 @@ app.get('/external_request/redirect', (req, res) => {
 require('./rasp')(app)
 
 app.post('/ai_guard/evaluate', async (req, res) => {
-  // eslint-disable-next-line camelcase
-  const renameAttrs = ({ tagProbabilities: tag_probs, ...rest }) => ({ ...rest, tag_probs })
+  const renameAttrs = ({
+    tagProbabilities: tag_probs,
+    redactionReplacements: redaction_replacements,
+    ...rest
+  }) => ({
+    ...rest,
+    tag_probs,
+    redaction_replacements
+  })
   const block = req.headers['x-ai-guard-block'] === 'true'
   const messages = req.body
   const userId = req.headers['x-user-id']
@@ -797,20 +887,40 @@ app.post('/ai_guard/evaluate', async (req, res) => {
 })
 
 let openFeatureClient = null
+let openFeatureClientPromise = null
 
-// Initialize OpenFeature provider if FFE is enabled
-if (process.env.DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED === 'true') {
-  const { openfeature } = tracer
-  OpenFeature.setProvider(openfeature)
-  openFeatureClient = OpenFeature.getClient()
+async function getOpenFeatureClient () {
+  if (openFeatureClient) {
+    return openFeatureClient
+  }
+
+  if (process.env.DD_FEATURE_FLAGS_ENABLED === 'false') {
+    return null
+  }
+
+  if (!openFeatureClientPromise) {
+    const { openfeature } = tracer
+    openFeatureClientPromise = OpenFeature.setProviderAndWait(openfeature)
+      .then(() => {
+        openFeatureClient = OpenFeature.getClient()
+        return openFeatureClient
+      })
+      .catch(error => {
+        openFeatureClientPromise = null
+        throw error
+      })
+  }
+
+  return openFeatureClientPromise
 }
 
 // Single FFE endpoint that evaluates feature flags
 app.post('/ffe', async (req, res) => {
   try {
     const { flag, variationType, defaultValue, targetingKey, targetingKeys, attributes } = req.body
+    const client = await getOpenFeatureClient()
 
-    if (!openFeatureClient) {
+    if (!client) {
       return res.status(500).json({ error: 'FFE provider not initialized' })
     }
 
@@ -822,17 +932,17 @@ app.post('/ffe', async (req, res) => {
 
       switch (variationType) {
         case 'BOOLEAN':
-          value = await openFeatureClient.getBooleanValue(flag, defaultValue, context)
+          value = await client.getBooleanValue(flag, defaultValue, context)
           break
         case 'STRING':
-          value = await openFeatureClient.getStringValue(flag, defaultValue, context)
+          value = await client.getStringValue(flag, defaultValue, context)
           break
         case 'INTEGER':
         case 'NUMERIC':
-          value = await openFeatureClient.getNumberValue(flag, defaultValue, context)
+          value = await client.getNumberValue(flag, defaultValue, context)
           break
         case 'JSON':
-          value = await openFeatureClient.getObjectValue(flag, defaultValue, context)
+          value = await client.getObjectValue(flag, defaultValue, context)
           break
         default:
           return res.status(400).json({ error: `Unknown variation type: ${variationType}` })

@@ -1,11 +1,13 @@
 weblog:
     name: test-app-nodejs-alpine
-    runtime_version: 18
+    runtime_version: 22
     install: 
       - os_type: linux
         copy_files:
           - name: copy-container-run-script
             local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_container.sh
+          - name: copy-pull-agent-image-script
+            local_path: utils/build/virtual_machine/weblogs/common/pull_agent_image.sh
 
           - name: copy-docker-compose-file
             local_path: utils/build/virtual_machine/weblogs/common/docker-compose.yml
@@ -15,6 +17,5 @@ weblog:
 
           - name: copy-nodejs-app-dockerfile
             local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-alpine/Dockerfile.template
-            remote_path: Dockerfile.template
 
         remote-command: sh create_and_run_app_container.sh

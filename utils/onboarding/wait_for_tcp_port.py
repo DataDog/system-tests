@@ -22,7 +22,7 @@ import time
 from utils._logger import logger
 
 
-def wait_for_port(port: int, host: str = "localhost", timeout: float = 5.0):
+def wait_for_port(port: int, host: str = "localhost", timeout: float = 5.0) -> bool:
     """Wait until a port starts accepting TCP connections.
 
     Args:

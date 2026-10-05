@@ -6,11 +6,20 @@
   "type": "object",
   "properties": {
     "configuration": {
-      "$ref": "/miscs/telemetry/v2/objects/configuration.json"
+      "allOf": [
+        {
+          "$ref": "/miscs/telemetry/v2/objects/configuration.json"
+        },
+        {
+          "minItems": 1
+        }
+      ]
     },
     "remote_config": {
       "$ref": "/miscs/telemetry/common/objects/remote_config.json"
     }
   },
-  "required": ["configuration"]
+  "required": [
+    "configuration"
+  ]
 }

@@ -1,7 +1,10 @@
 from abc import ABC, abstractmethod
 from enum import StrEnum
 from typing import Any
+import json
+
 from ._utils import get_rid_from_span_data
+from ._datadog_span_link import DataDogSpanLink
 
 
 class AgentTraceFormat(StrEnum):
@@ -130,6 +133,35 @@ class DataDogAgentSpan(ABC):
 
         return get_rid_from_span_data(self.get_span_type(), self.meta, self.metrics)
 
+    def get_tag(self, key: str, default: Any = None) -> Any:  # noqa: ANN401
+        """Returns a span tag, normalized to the string form the legacy format guarantees.
+
+        In the efficient trace payload format, meta and metrics are merged into a single typed
+        `attributes` map. A tag that a tracer reports both as a string tag and as a numeric metric
+        (http.status_code, for instance) therefore collides, and the numeric value is the one that
+        survives. Normalize integral numbers back to their string form so tests can assert on the
+        tag value without caring which of the two the tracer happened to send.
+
+        The legacy format keeps meta and metrics separate, so values are returned untouched there:
+        a numeric value in meta remains a failure, as it should.
+        """
+
+        value = self.meta.get(key, default)
+
+        if self.trace.format != AgentTraceFormat.efficient_trace_payload_format:
+            return value
+
+        if isinstance(value, bool):
+            return value
+
+        if isinstance(value, int):
+            return str(value)
+
+        if isinstance(value, float) and value.is_integer():
+            return str(int(value))
+
+        return value
+
     @property
     @abstractmethod
     def metrics(self) -> dict[str, Any]:
@@ -162,6 +194,18 @@ class DataDogAgentSpan(ABC):
     @abstractmethod
     def get_sampling_priority(self) -> int | None:
         pass
+
+    def get_span_links(self) -> list[DataDogSpanLink]:
+        if self.get("spanLinks") is not None:
+            return [DataDogSpanLink.from_agent_span_links(data) for data in self.get("spanLinks")]
+
+        if self.trace.format == AgentTraceFormat.efficient_trace_payload_format and self.get("links") is not None:
+            return [DataDogSpanLink.from_agent_efficient_trace_payload_format(data) for data in self.get("links")]
+
+        raw = self.meta.get("_dd.span_links", [])
+        raw_deserilialized = json.loads(raw) if isinstance(raw, (str, bytes, bytearray)) else raw
+
+        return [DataDogSpanLink.from_agent_legacy_format(data) for data in raw_deserilialized]
 
 
 class DataDogAgentSpanLegacy(DataDogAgentSpan):

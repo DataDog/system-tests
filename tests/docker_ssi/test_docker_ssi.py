@@ -14,6 +14,14 @@ from utils import (
 )
 
 
+_NODEJS_REQUIRES_NODE_22 = context.library == "nodejs" and context.library.version.major >= 6
+_NODEJS_UNSUPPORTED_RUNTIME = context.library == "nodejs" and (
+    (_NODEJS_REQUIRES_NODE_22 and context.installed_language_runtime < "22.0")
+    or (not _NODEJS_REQUIRES_NODE_22 and context.installed_language_runtime < "17.0")
+)
+_NODEJS_ABORT_IRRELEVANT = context.library == "nodejs" and not _NODEJS_UNSUPPORTED_RUNTIME
+
+
 @scenarios.docker_ssi
 class TestDockerSSIFeatures:
     """Test the ssi in a simulated host injection environment (docker container + test agent)
@@ -42,7 +50,7 @@ class TestDockerSSIFeatures:
     @irrelevant(context.library == "python" and context.installed_language_runtime < "3.8.0")
     @irrelevant(context.library == "java" and context.installed_language_runtime < "1.8.0_0")
     @irrelevant(context.library == "php" and context.installed_language_runtime < "7.0")
-    @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "17.0")
+    @irrelevant(_NODEJS_UNSUPPORTED_RUNTIME)
     @irrelevant(context.library >= "python@4.0.0rc1" and context.installed_language_runtime < "3.9.0")
     @irrelevant(context.library == "ruby" and context.installed_language_runtime < "2.6.0")
     def test_install_supported_runtime(self):
@@ -77,7 +85,7 @@ class TestDockerSSIFeatures:
     )
     @irrelevant(context.library == "java" and context.installed_language_runtime < "1.8.0_0")
     @irrelevant(context.library == "php" and context.installed_language_runtime < "7.0")
-    @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "17.0")
+    @irrelevant(_NODEJS_UNSUPPORTED_RUNTIME)
     @irrelevant(context.library >= "python@4.0.0rc1" and context.installed_language_runtime < "3.9.0")
     @irrelevant(context.library == "ruby" and context.installed_language_runtime < "2.6.0")
     def test_telemetry(self):
@@ -106,7 +114,7 @@ class TestDockerSSIFeatures:
     @irrelevant(context.library == "php" and context.installed_language_runtime >= "7.0")
     @bug(context.library == "nodejs" and context.installed_language_runtime < "12.17.0", reason="INPLAT-252")
     @bug(context.library == "java" and context.installed_language_runtime == "1.7.0-201", reason="INPLAT-427")
-    @irrelevant(context.library == "nodejs" and context.installed_language_runtime >= "17.0")
+    @irrelevant(_NODEJS_ABORT_IRRELEVANT)
     @irrelevant(context.library == "dotnet" and context.installed_language_runtime >= "6.0.0")
     @irrelevant(context.library == "ruby" and context.installed_language_runtime >= "2.6.0")
     def test_telemetry_abort(self):
@@ -145,7 +153,7 @@ class TestDockerSSIFeatures:
     @irrelevant(context.library == "python" and context.installed_language_runtime < "3.9.0")
     @irrelevant(context.library == "java" and context.installed_language_runtime < "1.8.0_0")
     @irrelevant(context.library == "php" and context.installed_language_runtime < "7.1")
-    @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "17.0")
+    @irrelevant(_NODEJS_UNSUPPORTED_RUNTIME)
     @irrelevant(context.library >= "python@4.0.0.dev" and context.installed_language_runtime < "3.9.0")
     @irrelevant(context.library < "python@4.0.0.dev" and context.installed_language_runtime < "3.8.0")
     @irrelevant(context.library == "ruby" and context.installed_language_runtime < "2.6.0")
@@ -168,7 +176,7 @@ class TestDockerSSIFeatures:
     @irrelevant(context.library == "python" and context.installed_language_runtime < "3.8.0")
     @irrelevant(context.library == "java" and context.installed_language_runtime < "1.8.0_0")
     @irrelevant(context.library == "php" and context.installed_language_runtime < "7.1")
-    @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "17.0")
+    @irrelevant(_NODEJS_UNSUPPORTED_RUNTIME)
     @irrelevant(context.library >= "python@4.0.0rc1" and context.installed_language_runtime < "3.9.0")
     def test_injection_metadata(self):
         logger.info("Testing injection result variables")

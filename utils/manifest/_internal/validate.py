@@ -222,7 +222,7 @@ def assert_nodeids_exist(obj: dict) -> list[str]:
 #     return errors
 
 
-def pretty(name: str, errors: dict[str, list]) -> str:
+def pretty(name: str, errors: dict[Path, list]) -> str:
     width = 80
     padding = width - len(name)
     ret = "\n" + "=" * (padding // 2 + padding % 2) + name + "=" * (padding // 2) + "\n"

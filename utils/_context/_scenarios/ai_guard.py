@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 from utils._context.containers import VCRCassettesContainer
+from utils._context.constants import WeblogCategory
 from utils._logger import logger
 
 from .endtoend import EndToEndScenario
@@ -20,7 +21,7 @@ class AIGuardScenario(EndToEndScenario):
     """
 
     def __init__(self, name: str, **kwargs):  # noqa: ANN003
-        super().__init__(name, **kwargs)
+        super().__init__(name, weblog_categories=[WeblogCategory.dd_trace], **kwargs)
         self._generate_cassettes = False
 
     def configure(self, config: pytest.Config):

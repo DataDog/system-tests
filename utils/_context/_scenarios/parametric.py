@@ -8,6 +8,7 @@ from typing import Any
 import pytest
 
 from utils._context.component_version import ComponentVersion
+from utils._context.constants import WeblogCategory
 from utils._context.docker import get_docker_client
 from utils._logger import logger
 from utils.docker_fixtures import (
@@ -63,7 +64,8 @@ class ParametricScenario(DockerFixturesScenario):
             name,
             doc=doc,
             github_workflow="parametric",
-            agent_image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.62.0",
+            agent_image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.64.1",
+            weblog_categories=[WeblogCategory.parametric],
         )
         self._parametric_tests_confs = ParametricScenario.PersistentParametricTestConf(self)
 
@@ -166,12 +168,11 @@ class ParametricScenario(DockerFixturesScenario):
     def weblog_variant(self):
         return f"parametric-{self.library.name}"
 
-    def get_junit_properties(self) -> dict[str, str]:
+    def get_junit_properties(self) -> dict[str, dict[str, str] | str]:
         result = super().get_junit_properties()
 
-        result["dd_tags[systest.suite.context.library.name]"] = self.library.name
-        result["dd_tags[systest.suite.context.library.version]"] = self.library.version
-        result["dd_tags[systest.suite.context.weblog_variant]"] = self.weblog_variant
+        result["library"] = {"name": self.library.name, "version": str(self.library.version)}
+        result["weblog_variant"] = self.weblog_variant
 
         return result
 

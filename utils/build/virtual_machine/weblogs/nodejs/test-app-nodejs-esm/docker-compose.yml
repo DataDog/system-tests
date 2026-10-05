@@ -12,13 +12,13 @@ services:
         healthcheck:
             test: "curl -f http://localhost:8080"
 
-    node_20:
+    node_22:
         env_file: "scenario_app.env"
-        image: system-tests/node_20:latest
+        image: system-tests/node_22:latest
         restart: always
         build:
             context: .
-            dockerfile: Dockerfile.node20
+            dockerfile: Dockerfile.node22
         healthcheck:
             test: "node health"
 

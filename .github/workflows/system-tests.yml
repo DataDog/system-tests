@@ -44,21 +44,6 @@ on:
         default: 'custom'
         required: false
         type: string
-      _build_python_base_images:
-        description: "Shall we build python base images for tests on python tracer"
-        default: false
-        required: false
-        type: boolean
-      _build_php_base_images:
-        description: "Shall we build PHP base images for tests on PHP tracer"
-        default: false
-        required: false
-        type: boolean
-      _build_nodejs_base_images:
-        description: "Shall we build Node.js base images for tests on Node.js tracer"
-        default: false
-        required: false
-        type: boolean
       _build_buddies_images:
         description: "Shall we build buddies images"
         default: false
@@ -71,11 +56,6 @@ on:
         type: boolean
       _build_lambda_proxy_image:
         description: "Shall we build the lambda-proxy image"
-        default: false
-        required: false
-        type: boolean
-      push_to_feature_parity_dashbaord:
-        description: "Shall we push results to Feature Parity Dashbaord"
         default: false
         required: false
         type: boolean
@@ -229,18 +209,9 @@ jobs:
         run: ls -la binaries/
       - name: Export github token to a file
         run: echo "${{ secrets.GITHUB_TOKEN }}" > "$RUNNER_TEMP/github_token.txt"
-      - name: Build python weblog base images
-        if: inputs.library == 'python' && inputs._build_python_base_images
-        run: |
-          ./utils/build/build_python_base_images.sh
-      - name: Build php weblog base images
-        if: inputs.library == 'php' && inputs._build_php_base_images
-        run: |
-          ./utils/build/build_php_base_images.sh
-      - name: Build nodejs weblog base images
-        if: inputs.library == 'nodejs' && inputs._build_nodejs_base_images
-        run: |
-          ./utils/build/build_nodejs_base_images.sh
+      - name: Wait for weblog base image
+        if: github.repository == 'DataDog/system-tests'
+        run: python3 ./utils/scripts/wait-for-base-images.py ${{ inputs.library }} ${{ matrix.weblog.name }} --timeout 900 --poll-interval 30
       - name: Build weblog
         id: build
         run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ inputs.library }} -i weblog -w ${{ matrix.weblog.name }} -s --github-token-file "$RUNNER_TEMP/github_token.txt"
@@ -297,3 +268,37 @@ jobs:
       _build_lambda_proxy_image: ${{ inputs._build_lambda_proxy_image }}
       _enable_replay_scenarios: ${{ inputs._enable_replay_scenarios }}
       _system_tests_dev_mode: ${{ inputs._system_tests_dev_mode }}
+
+  check_ref_on_main:
+    name: Check system-tests ref is on main
+    # No other job depends on this one: tests still run on a system-tests dev branch,
+    # but the workflow fails to block merging until the ref points back to main.
+    # Skipped when ref is empty or main, as tests run on main in that case.
+    if: ${{ github.repository != 'DataDog/system-tests' && inputs.ref != '' && inputs.ref != 'main' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        id: checkout
+        # Do not fail the job if the clone fails, this check is best effort
+        continue-on-error: true
+        uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
+        with:
+          repository: 'DataDog/system-tests'
+          ref: ${{ inputs.ref }}
+          fetch-depth: 0
+      - name: Check system-tests ref is on main
+        if: steps.checkout.outcome == 'success'
+        env:
+          REF: ${{ inputs.ref }}
+        run: |
+          # REF can be a branch, tag or commit SHA. It is accepted as long as the commit it
+          # points to is part of main's history.
+          # It typically fails when a caller forgot to switch back from a system-tests dev branch.
+          sha=$(git rev-parse HEAD)
+          if [[ -z "$(git branch --remotes --contains "$sha" --list origin/main)" ]]; then
+            echo "::error::system-tests ref '${REF}' (${sha}) is not a commit from the main branch of DataDog/system-tests. Did you forget to point back to main (or a commit from main) after testing with a dev branch?"
+            exit 1
+          fi
+          echo "system-tests ref '${REF}' (${sha}) is on main"

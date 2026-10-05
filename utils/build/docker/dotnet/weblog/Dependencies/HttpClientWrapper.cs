@@ -15,9 +15,9 @@ namespace weblog
             return await HttpClient.GetStringAsync($"{url}{path}");
         }
 
-        public static async Task<HttpResponseMessage> LocalGetRequest(string url)
+        public static async Task<HttpResponseMessage> LocalRequest(string url, string method)
         {
-            return await HttpClient.GetAsync($"{url}");
+            return await HttpClient.SendAsync(new HttpRequestMessage(new HttpMethod(method), url));
         }
     }
 }

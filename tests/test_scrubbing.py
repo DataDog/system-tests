@@ -31,7 +31,6 @@ def validate_no_leak(needle: str, whitelist_pattern: str | None = None) -> Calla
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2490990623/QueryString+-+Sensitive+Data+Obfuscation")
 @features.library_scrubbing
-@scenarios.go_proxies_default
 @scenarios.default
 class Test_UrlQuery:
     """PII values in query parameter are all removed"""
@@ -101,7 +100,6 @@ class Test_UrlField:
 
 
 @features.library_scrubbing
-@scenarios.go_proxies_default
 @scenarios.default
 class Test_EnvVar:
     """Environnement variables are not leaked"""

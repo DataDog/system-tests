@@ -1,0 +1,19 @@
+[
+    {
+        "language": "",
+        "type": "",
+        "id": "",
+        "version": 0,
+        "captureSnapshot": true,
+        "where": {
+            "typeName": "ACTUAL_TYPE_NAME",
+            "methodName": "SnapshotLimits",
+            "sourceFile": null
+        },
+        "capture": {
+            "maxCollectionSize": 20001,
+            "maxLength": 1000001,
+            "maxFieldCount": 100
+        }
+    }
+]

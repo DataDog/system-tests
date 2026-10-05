@@ -1,9 +1,11 @@
+import json
 from abc import ABC, abstractmethod
 from collections.abc import Iterator
 from enum import StrEnum
 from typing import Any
 
 from ._utils import get_rid_from_span_data
+from ._datadog_span_link import DataDogSpanLink
 
 
 class LibraryTraceFormat(StrEnum):
@@ -160,6 +162,10 @@ class DataDogLibrarySpan(ABC):
     def get_sampling_priority(self) -> int | None:
         pass
 
+    @abstractmethod
+    def get_span_links(self) -> list[DataDogSpanLink]:
+        pass
+
 
 class DataDogLibrarySpanLegacy(DataDogLibrarySpan):
     def get(self, key: str, default: Any = None):  # noqa: ANN401
@@ -180,9 +186,47 @@ class DataDogLibrarySpanLegacy(DataDogLibrarySpan):
     def get_sampling_priority(self) -> int | None:
         return self["metrics"].get("_sampling_priority_v1")
 
+    def get_span_links(self) -> list[DataDogSpanLink]:
+        if "span_links" in self.raw_span:
+            return [DataDogSpanLink.from_library_v1_span_links(data) for data in self.raw_span["span_links"]]
+
+        raw = self.meta.get("_dd.span_links", [])
+        raw_deserilialized = json.loads(raw) if isinstance(raw, (str, bytes, bytearray)) else raw
+
+        return [DataDogSpanLink.from_library_legacy_format(data) for data in raw_deserilialized]
+
 
 class DataDogLibrarySpanV1(DataDogLibrarySpan):
     trace: DataDogLibraryTracev1
+
+    # v1 promotes these fields out of attributes into top-level span fields.
+    # Map them back into meta so existing assertions using span["meta"]["x"] still work.
+    _V1_TOP_LEVEL_TO_META: dict[str, str] = {
+        "component": "component",
+        "env": "env",
+        "span_kind": "span.kind",
+        "version": "version",
+    }
+
+    # span_kind is stored as an integer in v1; map it to the lowercase string expected by tests.
+    _SPAN_KIND_INT_TO_STR: dict[int, str] = {
+        0: "unspecified",
+        1: "internal",
+        2: "server",
+        3: "client",
+        4: "producer",
+        5: "consumer",
+    }
+
+    def _meta_dict(self) -> dict[str, Any]:
+        result = dict(self.raw_span.get("attributes", {}))
+        for v1_key, meta_key in self._V1_TOP_LEVEL_TO_META.items():
+            if v1_key in self.raw_span:
+                value = self.raw_span[v1_key]
+                if v1_key == "span_kind" and isinstance(value, int):
+                    value = self._SPAN_KIND_INT_TO_STR.get(value, str(value))
+                result[meta_key] = value
+        return result
 
     def __contains__(self, key: str) -> bool:
         if key in ("meta", "meta_struct", "metrics"):
@@ -197,8 +241,11 @@ class DataDogLibrarySpanV1(DataDogLibrarySpan):
         if key == "trace_id":
             return self.trace.trace_id
 
-        if key in ("meta", "meta_struct", "metrics"):
-            return self.raw_span["attributes"]
+        if key in ("meta", "meta_struct"):
+            return self._meta_dict()
+
+        if key == "metrics":
+            return self.raw_span.get("attributes", {})
 
         return self.raw_span.get(key, default)
 
@@ -206,7 +253,10 @@ class DataDogLibrarySpanV1(DataDogLibrarySpan):
         if key == "trace_id":
             return self.trace.trace_id
 
-        if key in ("meta", "meta_struct", "metrics"):
+        if key in ("meta", "meta_struct"):
+            return self._meta_dict()
+
+        if key == "metrics":
             return self.raw_span["attributes"]
 
         return self.raw_span[key]
@@ -214,7 +264,7 @@ class DataDogLibrarySpanV1(DataDogLibrarySpan):
     @property
     def meta(self) -> dict[str, Any]:
         assert "attributes" in self.raw_span
-        return self.raw_span["attributes"]
+        return self._meta_dict()
 
     @property
     def metrics(self) -> dict[str, Any]:
@@ -223,3 +273,16 @@ class DataDogLibrarySpanV1(DataDogLibrarySpan):
 
     def get_sampling_priority(self) -> int | None:
         return self.trace.raw_trace.get("priority")
+
+    def get_span_links(self) -> list[DataDogSpanLink]:
+        # v1.0: span_links can be at top level or in attributes
+        if "span_links" in self.raw_span:
+            return [DataDogSpanLink.from_library_v1_span_links(data) for data in self.raw_span["span_links"]]
+
+        if "_dd.span_links" in self.raw_span.get("attributes", {}):
+            return [
+                DataDogSpanLink.from_library_v1_attributes(data)
+                for data in self.raw_span["attributes"]["_dd.span_links"]
+            ]
+
+        return []

@@ -1,3 +1,4 @@
+from abc import ABC
 import os
 import platform
 import re
@@ -19,7 +20,11 @@ import requests
 
 from utils._context.component_version import ComponentVersion, Version
 from utils._context.docker import get_docker_client
-from utils._context.ports import ContainerPorts
+from utils._context._image_mirror import mirror_image
+from utils._context.constants import ContainerPorts
+from utils.base_images.base_image import base_image_contexts
+from utils._context.weblog_metadata import WeblogMetaData
+from utils.docker_fixtures._core import extra_hosts_for_environment
 from utils.proxy.tuf import get_tuf_root_json
 from utils.proxy.ports import ProxyPorts
 from utils.proxy.mocked_response import (
@@ -84,6 +89,7 @@ class TestedContainer:
         cap_add: list[str] | None = None,
         command: str | list[str] | None = None,
         environment: dict[str, str | None] | None = None,
+        extra_hosts: dict[str, str] | None = None,
         healthcheck: dict | None = None,
         local_image_only: bool = False,
         ports: dict | None = None,
@@ -113,6 +119,7 @@ class TestedContainer:
         self.healthy: bool | None = None
 
         self.environment = environment or {}
+        self.extra_hosts = extra_hosts
         self.volumes = volumes or {}
         self.ports = ports or {}
         self.depends_on: list[TestedContainer] = []
@@ -138,6 +145,14 @@ class TestedContainer:
                 return f.read().strip()
         except FileNotFoundError:
             return default_name
+
+    def enable_ptrace(self) -> None:
+        """Allow processes in this container to be traced from outside, e.g. by py-spy"""
+
+        self.cap_add = self.cap_add if self.cap_add is not None else []
+
+        if "SYS_PTRACE" not in self.cap_add:
+            self.cap_add.append("SYS_PTRACE")
 
     def enable_core_dumps(self) -> None:
         """Modify container options to enable the possibility of core dumps"""
@@ -227,6 +242,7 @@ class TestedContainer:
             name=self.container_name,
             hostname=self.name,
             environment=self.environment,
+            extra_hosts=self.extra_hosts,
             # auto_remove=True,
             detach=True,
             network=network.name,
@@ -407,7 +423,14 @@ class TestedContainer:
 
         self.volumes = result
 
-    def stop(self):
+    @property
+    def runtime_container(self) -> Container:
+        """Return the live Docker object backing this configured container."""
+        if self._container is None:
+            raise RuntimeError(f"Container {self.name} has not been started")
+        return self._container
+
+    def stop(self, *, timeout: int | None = None) -> None:
         self._starting_thread = None
 
         logger.debug(f"Stopping container {self.name}")
@@ -418,7 +441,18 @@ class TestedContainer:
                 self.healthy = False
                 pytest.exit(f"Container {self.name} is not running ({self._container.status}), please check logs", 1)
 
-            self._container.stop()
+            try:
+                if timeout is None:
+                    self._container.stop()
+                else:
+                    self._container.stop(timeout=timeout)
+            except requests.exceptions.Timeout as e:
+                pytest.exit(
+                    f"Container {self.name} failed to stop: the docker client timed out waiting for a response "
+                    f"from the daemon. This may mean the container's process did not exit within the stop grace "
+                    f"period, or that the docker daemon/host is overloaded and unresponsive. ({e})",
+                    1,
+                )
 
             if not self.healthy:
                 pytest.exit(f"Container {self.name} is not healthy, please check logs", 1)
@@ -462,6 +496,10 @@ class TestedContainer:
 
         if self.stdout_interface is not None:
             self.stdout_interface.load_data()
+
+    def is_removed(self) -> bool:
+        """Check that the container has been removed."""
+        return self.get_existing_container() is None
 
     def _set_aws_auth_environment(self):
         # Set default AWS values
@@ -526,7 +564,10 @@ class ImageInfo:
 
         self.env: dict[str, str] | None = None
         self.labels: dict[str, str] = {}
-        self.name = image_name
+        # When the image mirror is enabled (USE_IMAGE_MIRROR), pull from the
+        # mirror; keep the original ref for diagnostics if the mirror pull fails.
+        self.original_name = image_name
+        self.name = mirror_image(image_name)
         self.local_image_only = local_image_only
 
     def _pull_with_retries(self, max_retries: int = 4, delay: int = 4):
@@ -555,7 +596,20 @@ class ImageInfo:
                 pytest.exit(f"Image {self.name} not found locally, please build it", 1)
 
             logger.stdout(f"Pulling {self.name}")
-            self._image = self._pull_with_retries()
+            try:
+                self._image = self._pull_with_retries()
+            except (docker.errors.APIError, requests.exceptions.ConnectionError):
+                if self.name != self.original_name:
+                    # The mirror rewrote this ref but the mirror copy could not be
+                    # pulled. Don't silently fall back to the original registry:
+                    # that would mask an incomplete mirror and could pull a
+                    # different digest than the one that was mirrored.
+                    logger.stdout(
+                        f"Could not pull mirrored image {self.name} (mirror of {self.original_name}). "
+                        "The mirror may be incomplete — regenerate it with "
+                        "utils/scripts/update_mirror_images.py and check the mirror_images CI job."
+                    )
+                raise
 
         self._init_from_attrs(self._image.attrs)
 
@@ -787,6 +841,7 @@ class AgentContainer(TestedContainer):
             image_name="datadog/agent:latest",
             binary_file_name="agent-image",
             environment=environment,
+            extra_hosts=extra_hosts_for_environment(environment),
             healthcheck={
                 "test": f"curl --fail --silent --show-error --max-time 2 http://localhost:{self.apm_receiver_port}/info",
                 "retries": 60,
@@ -814,6 +869,51 @@ class AgentContainer(TestedContainer):
     @property
     def dd_site(self):
         return os.environ.get("DD_SITE", "datad0g.com")
+
+
+class ServerlessInitContainer(TestedContainer):
+    """Run serverless-init as the local trace and Feature Flags relay."""
+
+    apm_receiver_port = 8126
+
+    def __init__(self) -> None:
+        apm_receiver_port_hex = f"{self.apm_receiver_port:04X}"
+        super().__init__(
+            name="ffe-serverless-init",
+            image_name="datadog/serverless-init:1.10.4",
+            environment={
+                "DD_API_KEY": _FAKE_DD_API_KEY,
+                "DD_SITE": "mock-intake.invalid",
+                "DD_SERVICE": "ffe-system-tests-serverless-init",
+                "DD_ENV": "system-tests",
+                "DD_APM_ENABLED": "true",
+                "DD_APM_NON_LOCAL_TRAFFIC": "true",
+                "DD_PROXY_HTTPS": f"http://proxy:{ProxyPorts.datadog_sidecar}",
+                "DD_PROXY_HTTP": f"http://proxy:{ProxyPorts.datadog_sidecar}",
+                "DD_SERVERLESS_FLUSH_STRATEGY": "periodically,100",
+                "DD_SKIP_SSL_VALIDATION": "true",
+            },
+            # This image has no HTTP client. Inspect the kernel socket table instead.
+            healthcheck={
+                "test": (
+                    "/bin/sh -c 'for table in /proc/net/tcp /proc/net/tcp6; do "
+                    "while read -r _ local_address _ state _; do "
+                    f'[ "${{local_address##*:}}" = "{apm_receiver_port_hex}" ] '
+                    '&& [ "$state" = "0A" ] && exit 0; '
+                    'done < "$table"; done; exit 1'
+                    "'"
+                ),
+                "retries": 60,
+            },
+        )
+
+    @property
+    def serverless_init_version(self) -> Version:
+        """Read the serverless-init version from the image metadata."""
+        version = self.image.labels.get("org.opencontainers.image.version")
+        if not version:
+            raise ValueError("The serverless-init image has no OCI version label")
+        return Version(version)
 
 
 class BuddyContainer(TestedContainer):
@@ -852,7 +952,6 @@ class BuddyContainer(TestedContainer):
 
 
 class WeblogContainer(TestedContainer):
-    appsec_rules_file: str | None
     stdout_interface: LibraryStdoutInterface
 
     def __init__(
@@ -932,6 +1031,7 @@ class WeblogContainer(TestedContainer):
             image_name="system_tests/weblog",
             name="weblog",
             environment=environment,
+            extra_hosts=extra_hosts_for_environment(environment),
             volumes=volumes,
             # ddprof's perf event open is blocked by default by docker's seccomp profile
             # This is worse than the line above though prevents mmap bugs locally
@@ -973,22 +1073,29 @@ class WeblogContainer(TestedContainer):
         if not library or not weblog:
             return result
 
+        if weblog in ("envoy", "haproxy", "apim"):
+            # Those are not based on a dockerfile. TODO : weblog abstraction
+            return result
+
         args = {}
 
-        pattern = re.compile(r"^FROM\s+(?P<image_name>[^\s]+)")
+        pattern = re.compile(r"^FROM\s+(?:--\S+\s+)*(?P<image_name>\S+)", re.IGNORECASE)
         arg_pattern = re.compile(r"^ARG\s+(?P<arg_name>[^\s]+)\s*=\s*(?P<arg_value>[^\s]+)")
-        with open(f"utils/build/docker/{library}/{weblog}.Dockerfile", encoding="utf-8") as f:
-            for line in f:
-                if match := arg_pattern.match(line):
-                    args[match.group("arg_name")] = match.group("arg_value")
+        dockerfile = Path(f"utils/build/docker/{library}/{weblog}.Dockerfile")
+        dockerfile_text = dockerfile.read_text()
+        base_contexts = base_image_contexts(dockerfile_text)
+        for line in dockerfile_text.splitlines():
+            if match := arg_pattern.match(line):
+                args[match.group("arg_name")] = match.group("arg_value")
 
-                if match := pattern.match(line):
-                    image_name = match.group("image_name")
+            if match := pattern.match(line):
+                image_name = match.group("image_name")
+                image_name = base_contexts.get(image_name, image_name)
 
-                    for name, value in args.items():
-                        image_name = image_name.replace(f"${name}", value)
+                for name, value in args.items():
+                    image_name = image_name.replace(f"${name}", value)
 
-                    result.append(image_name)
+                result.append(image_name)
 
         return result
 
@@ -1008,6 +1115,11 @@ class WeblogContainer(TestedContainer):
 
         library = self.image.labels["system-tests-library"]
 
+        metadata = next((w for w in WeblogMetaData.load(library) if w.name == self.weblog_variant), None)
+        if metadata is not None and metadata.request_timeout is not None:
+            logger.info(f"Weblog {self.weblog_variant} declares a {metadata.request_timeout}s request timeout")
+            weblog.set_default_timeout(metadata.request_timeout)
+
         header_tags = ""
         if library in ("cpp_nginx", "cpp_httpd", "dotnet", "java", "python"):
             header_tags = "user-agent:http.request.headers.user-agent"
@@ -1024,13 +1136,6 @@ class WeblogContainer(TestedContainer):
             header_tags += f",{','.join(self.additional_trace_header_tags)}"
 
         self.environment["DD_TRACE_HEADER_TAGS"] = header_tags
-
-        if "DD_APPSEC_RULES" in self.environment:
-            self.appsec_rules_file = self.environment["DD_APPSEC_RULES"]
-        elif self.image.env is not None and "DD_APPSEC_RULES" in self.environment:
-            self.appsec_rules_file = self.image.env["DD_APPSEC_RULES"]
-        else:
-            self.appsec_rules_file = None
 
         # Workaround: Once the dd-trace-go fix is merged that avoids a go panic for
         # DD_TRACE_PROPAGATION_EXTRACT_FIRST=true when context propagation fails,
@@ -1076,6 +1181,11 @@ class WeblogContainer(TestedContainer):
 
         if library in ("php", "cpp_nginx"):
             self.enable_core_dumps()
+
+        if library == "python":
+            # py-spy dumps this weblog's thread stacks when a remote config apply
+            # stalls (see utils/_remote_config.py), and needs ptrace to do so
+            self.enable_ptrace()
 
     def warmup_request(self, timeout: int = 10):
         weblog.get("/", timeout=timeout)
@@ -1125,9 +1235,6 @@ class WeblogContainer(TestedContainer):
             if exit_code == 0 and output:
                 logger.stdout(f"Library metadata:\n{output.decode('utf-8', errors='replace').strip()}")
 
-        if self.appsec_rules_file:
-            logger.stdout("Using a custom appsec rules file")
-
         if self.uds_mode:
             logger.stdout(f"UDS socket: {self.uds_socket}")
 
@@ -1145,12 +1252,12 @@ class WeblogContainer(TestedContainer):
         return self._library
 
     @property
-    def uds_socket(self):
+    def uds_socket(self) -> str | None:
         assert self.image.env is not None, "No env set"
         return self.image.env.get("DD_APM_RECEIVER_SOCKET", None)
 
     @property
-    def uds_mode(self):
+    def uds_mode(self) -> bool:
         return self.uds_socket is not None
 
     @property
@@ -1495,7 +1602,7 @@ class VCRCassettesContainer(TestedContainer):
 
     def __init__(self, vcr_port: int = ContainerPorts.vcr_cassettes) -> None:
         super().__init__(
-            image_name="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.62.0",
+            image_name="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.64.1",
             name="vcr_cassettes",
             environment={
                 "PORT": str(vcr_port),
@@ -1627,25 +1734,38 @@ class EnvoyContainer(TestedContainer):
         super().__init__(
             image_name="envoyproxy/envoy:v1.31-latest",
             name="envoy",
-            volumes={"./utils/build/docker/envoy/envoy.yaml": {"bind": "/etc/envoy/envoy.yaml", "mode": "ro"}},
+            volumes={"./utils/build/docker/golang/envoy/envoy.yaml": {"bind": "/etc/envoy/envoy.yaml", "mode": "ro"}},
             ports={"80": ("127.0.0.1", weblog.port)},
             healthcheck={
                 "test": "/bin/bash -c \"\
                     exec 3<>/dev/tcp/127.0.0.1/80 || exit 1;\
-                    echo -e 'GET / HTTP/1.1\nHost: system-tests\r\n\r\n' >&3;\
+                    echo -e 'GET / HTTP/1.1\r\nHost: system-tests\r\nUser-Agent: systemtests-healthcheck\r\n\r\n' >&3;\
                     cat <&3 | grep -q '200'\"",
                 "retries": 10,
             },
         )
 
 
-class ExternalProcessingContainer(TestedContainer):
+class GoProcessorContainer(TestedContainer, ABC):
     library: ComponentVersion
 
+    def post_start(self):
+        with open(self.healthcheck_log_file, encoding="utf-8") as f:
+            data = json.load(f)
+            lib = data["library"]
+
+        assert lib["language"] == "golang"
+        self.library = ComponentVersion("golang", lib["version"])
+
+        logger.stdout(f"Library: {self.library}")
+        logger.stdout(f"Processor image: {self.image.name}")
+
+
+class ExternalProcessingContainer(GoProcessorContainer):
     def __init__(
         self,
-        env: dict[str, str | None] | None,
-        volumes: dict[str, dict[str, str]] | None,
+        env: dict[str, str | None] | None = None,
+        volumes: dict[str, dict[str, str]] | None = None,
     ) -> None:
         try:
             with open("binaries/golang-service-extensions-callout-image", encoding="utf-8") as f:
@@ -1660,6 +1780,9 @@ class ExternalProcessingContainer(TestedContainer):
             "DD_AGENT_HOST": "proxy",
             "DD_TRACE_AGENT_PORT": str(ProxyPorts.weblog),
             "DD_APPSEC_WAF_TIMEOUT": "1s",
+            # The callout defaults APM tracing to false, which rate-limits ordinary traces
+            # and makes APM assertions nondeterministic.
+            "DD_APM_TRACING_ENABLED": "true",
         }
 
         if env:
@@ -1679,16 +1802,6 @@ class ExternalProcessingContainer(TestedContainer):
             },
         )
 
-    def post_start(self):
-        with open(self.healthcheck_log_file, encoding="utf-8") as f:
-            data = json.load(f)
-            lib = data["library"]
-
-        assert lib["language"] == "golang"
-        self.library = ComponentVersion("envoy", lib["version"])
-        logger.stdout(f"Library: {self.library}")
-        logger.stdout(f"Image: {self.image.name}")
-
 
 class HAProxyContainer(TestedContainer):
     def __init__(self) -> None:
@@ -1696,12 +1809,15 @@ class HAProxyContainer(TestedContainer):
             image_name="haproxy:3.2",
             name="haproxy",
             volumes={
-                "./utils/build/docker/haproxy/haproxy.cfg": {
+                "./utils/build/docker/golang/haproxy/haproxy.cfg": {
                     "bind": "/usr/local/etc/haproxy/haproxy.cfg",
                     "mode": "ro",
                 },
-                "./utils/build/docker/haproxy/spoe.cfg": {"bind": "/usr/local/etc/haproxy/spoe.cfg", "mode": "ro"},
-                "./utils/build/docker/haproxy/datadog_aap_blocking_response.lua": {
+                "./utils/build/docker/golang/haproxy/spoe.cfg": {
+                    "bind": "/usr/local/etc/haproxy/spoe.cfg",
+                    "mode": "ro",
+                },
+                "./utils/build/docker/golang/haproxy/datadog_aap_blocking_response.lua": {
                     "bind": "/etc/haproxy/lua/datadog_aap_blocking_response.lua",
                     "mode": "ro",
                 },
@@ -1710,20 +1826,20 @@ class HAProxyContainer(TestedContainer):
             healthcheck={
                 "test": "/bin/bash -c \"\
                     exec 3<>/dev/tcp/127.0.0.1/80 || exit 1;\
-                    echo -e 'GET / HTTP/1.1\nHost: system-tests\r\n\r\n' >&3;\
+                    echo -e 'GET / HTTP/1.1\r\nHost: system-tests\r\nUser-Agent: systemtests-healthcheck\r\n\r\n' >&3;\
                     cat <&3 | grep -q '200'\"",
                 "retries": 10,
             },
         )
 
 
-class StreamProcessingOffloadContainer(TestedContainer):
+class StreamProcessingOffloadContainer(GoProcessorContainer):
     library: ComponentVersion
 
     def __init__(
         self,
-        env: dict[str, str | None] | None,
-        volumes: dict[str, dict[str, str]] | None,
+        env: dict[str, str | None] | None = None,
+        volumes: dict[str, dict[str, str]] | None = None,
     ) -> None:
         try:
             with open("binaries/golang-haproxy-spoa-image", encoding="utf-8") as f:
@@ -1732,10 +1848,13 @@ class StreamProcessingOffloadContainer(TestedContainer):
             image = "ghcr.io/datadog/dd-trace-go/haproxy-spoa:latest"
 
         environment: dict[str, str | None] = {
+            "DD_APPSEC_ENABLED": "true",
             "DD_SERVICE": "service_test",
             "DD_ENV": "system-tests",
             "DD_AGENT_HOST": "proxy",
             "DD_TRACE_AGENT_PORT": str(ProxyPorts.weblog),
+            "DD_APPSEC_WAF_TIMEOUT": "1s",
+            "DD_APM_TRACING_ENABLED": "true",
         }
 
         if env:
@@ -1755,13 +1874,95 @@ class StreamProcessingOffloadContainer(TestedContainer):
             },
         )
 
-    def post_start(self):
-        with open(self.healthcheck_log_file, encoding="utf-8") as f:
-            data = json.load(f)
-            lib = data["library"]
 
-        assert lib["language"] == "golang"
-        self.library = ComponentVersion("haproxy", lib["version"])
+class ApimGatewayContainer(TestedContainer):
+    """Stand-in for the Azure APIM gateway: a stdlib-only Go shim compiled at container start"""
 
-        logger.stdout(f"Library: {self.library}")
-        logger.stdout(f"Image: {self.image.name}")
+    def __init__(self) -> None:
+        super().__init__(
+            # already mirrored: mirror_images.lock.yaml:325, curated at mirror_images.yaml:90
+            image_name="golang:1.26-alpine",
+            name="apim-gateway",
+            working_dir="/app",
+            # there is no dockerfile for this weblog (build_mode: none), the shim sources are
+            # mounted and compiled on start
+            command="go run .",
+            # GOTOOLCHAIN is deliberately not set: it is already `local` in this image
+            environment={"CGO_ENABLED": "0"},
+            volumes={
+                "./utils/build/docker/golang/apim/main.go": {"bind": "/app/main.go", "mode": "ro"},
+                "./utils/build/docker/golang/apim/go.mod": {"bind": "/app/go.mod", "mode": "ro"},
+            },
+            ports={"80": ("127.0.0.1", weblog.port)},
+            healthcheck={
+                # golang:1.26-alpine ships busybox but no bash, so the /bin/bash + /dev/tcp
+                # healthcheck used by EnvoyContainer and HAProxyContainer is not usable here
+                "test": "wget -qO- http://localhost:80/",
+                # `go run .` compiles the shim on every container start, and since Go 1.20 ships
+                # no prebuilt std it rebuilds net/http and crypto/tls from source into an empty
+                # GOCACHE. That measured ~12s wall locally but ~13s of CPU, so a contended
+                # 2-vCPU runner can take substantially longer.
+                #
+                # execute_command retries until the first success and stops, so a high retry
+                # count costs nothing on a fast start but keeps a slow runner from failing the
+                # whole scenario. start_period is an unconditional sleep here, not a Docker
+                # grace period, so it is omitted: probing immediately detects a fast start
+                # sooner than any blind wait would.
+                "retries": 60,
+                "interval": 1_000_000_000,
+            },
+        )
+
+
+class ApimCalloutContainer(GoProcessorContainer):
+    """dd-trace-go apim-callout processor, driven by the apim-gateway shim"""
+
+    def __init__(
+        self,
+        env: dict[str, str | None] | None = None,
+        volumes: dict[str, dict[str, str]] | None = None,
+    ) -> None:
+        try:
+            with open("binaries/golang-apim-callout-image", encoding="utf-8") as f:
+                image = f.read().strip()
+            # never logger.stdout() from a container constructor: containers are also built by
+            # utils/scripts/get-image-list.py, whose stdout IS the compose document consumed by
+            # `docker compose` in .github/actions/pull_images. The resolved tag still reaches
+            # stdout on a real run, via GoProcessorContainer.post_start().
+            logger.info(f"apim-callout image: {image} (from binaries/golang-apim-callout-image)")
+        except FileNotFoundError:
+            image = "ghcr.io/datadog/dd-trace-go/apim-callout:latest"
+            # the downgrade is significant: without the pointer file we test released code instead
+            # of the commit under test
+            logger.warning(f"binaries/golang-apim-callout-image not found, falling back to released image {image}")
+
+        environment: dict[str, str | None] = {
+            "DD_APPSEC_ENABLED": "true",
+            "DD_SERVICE": "service_test",
+            "DD_ENV": "system-tests",
+            "DD_AGENT_HOST": "proxy",
+            "DD_TRACE_AGENT_PORT": str(ProxyPorts.weblog),
+            # not inherited: this lives in ExternalProcessingContainer, not in GoProcessorContainer
+            "DD_APPSEC_WAF_TIMEOUT": "1s",
+            # required, do not remove: the callout's own getDefaultEnvVars() defaults this to
+            # "false" whenever the variable is empty, which rate-limits ordinary traces to one per
+            # minute and makes APM assertions nondeterministic
+            "DD_APM_TRACING_ENABLED": "true",
+        }
+
+        if env:
+            environment.update(env)
+
+        if volumes is None:
+            volumes = {}
+
+        super().__init__(
+            image_name=image,
+            name="apim-callout",
+            volumes=volumes,
+            environment=environment,
+            healthcheck={
+                "test": "wget -qO- http://localhost:8081/",
+                "retries": 10,
+            },
+        )

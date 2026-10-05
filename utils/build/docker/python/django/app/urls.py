@@ -1,4 +1,5 @@
 # pages/urls.py
+import asyncio
 import base64
 import json
 import os
@@ -7,6 +8,7 @@ import shlex
 import subprocess
 import xmltodict
 import sys
+from pathlib import Path
 import boto3
 import django
 import httpx
@@ -34,6 +36,8 @@ from iast import (
 import ddtrace
 
 from ddtrace.appsec import trace_utils as ato_user_sdk_v1
+from ddtrace.constants import MANUAL_DROP_KEY
+from ddtrace.constants import MANUAL_KEEP_KEY
 
 try:
     from ddtrace.appsec import track_user_sdk
@@ -331,6 +335,47 @@ def status_code(request, *args, **kwargs):
 
 def stats_unique(request, *args, **kwargs):
     return HttpResponse("OK, probably", status=int(request.GET.get("code", "200")))
+
+
+def _write_thread_context(path):
+    span = tracer.current_span()
+    if span is None:
+        return None
+
+    with Path(path).open("w") as f:
+        f.write("system-tests thread context sharing")
+
+    return {
+        "trace_id": str(span.trace_id),
+        "span_id": str(span.span_id),
+    }
+
+
+def thread_context_sharing(request):
+    result = _write_thread_context(request.GET["path"])
+    if result is None:
+        return HttpResponse(status=500)
+    return JsonResponse(result)
+
+
+async def async_thread_context_sharing(request):
+    path = request.GET["path"]
+
+    # python3.12 yields the request task; django-py3.13 additionally offloads the
+    # file operation and active-context lookup to a worker thread.
+    if sys.version_info >= (3, 13):
+        result = await asyncio.to_thread(_write_thread_context, path)
+    else:
+        await asyncio.sleep(0)
+        result = _write_thread_context(path)
+
+    if result is None:
+        return HttpResponse(status=500)
+    return JsonResponse(result)
+
+
+# django-poc on Python 3.11 remains the synchronous Django baseline.
+thread_context_sharing_view = async_thread_context_sharing if sys.version_info >= (3, 12) else thread_context_sharing
 
 
 def identify(request):
@@ -847,11 +892,36 @@ def view_iast_code_injection_secure(request):
     return HttpResponse("OK", status=200)
 
 
+def trace_manual_keep_drop(request):
+    decision = request.GET.get("decision")
+    if decision not in ("keep", "drop"):
+        return HttpResponse("decision must be keep or drop", status=400)
+
+    span = tracer.current_span()
+    span.set_tag(MANUAL_KEEP_KEY if decision == "keep" else MANUAL_DROP_KEY)
+
+    # Call downstream so that tests can assert on the sampling decision that gets propagated
+    url = "http://localhost:7777/"
+    response = requests.get(url)
+
+    return JsonResponse(
+        {
+            "url": url,
+            "status_code": response.status_code,
+            "request_headers": dict(response.request.headers),
+            "response_headers": dict(response.headers),
+        }
+    )
+
+
 def make_distant_call(request):
     # curl localhost:7777/make_distant_call?url=http%3A%2F%2Fweblog%3A7777 | jq
 
     url = request.GET.get("url")
-    response = requests.get(url)
+    # The method is configurable so semantic-convention tests can drive a non-standard verb
+    # through the client instrumentation. Matches the nodejs express weblog.
+    method = request.GET.get("method", "GET")
+    response = requests.request(method, url)
 
     result = {
         "url": url,
@@ -956,6 +1026,10 @@ MAGIC_SESSION_KEY = "random_session_id"
 def session_new(request):
     request.session.save()
     session_id = request.session.session_key
+    # The signed_cookies backend re-derives session_key from a fresh timestamp on every save(), and
+    # SessionMiddleware saves again in process_response. Without pinning, the key we return here and
+    # the one set in the cookie differ whenever the clock second ticks in between.
+    request.session.save = lambda *args, **kwargs: None
     return HttpResponse(session_id)
 
 
@@ -1212,6 +1286,7 @@ urlpatterns = [
     path("api_security/optional-params/<str:id>", api_security_optional_params),
     path("sample_rate_route/<int:i>", sample_rate),
     path("healthcheck", healthcheck),
+    path("security/thread_context_sharing", thread_context_sharing_view),
     path("waf", waf),
     path("waf/", waf),
     path("waf/<url>", waf),
@@ -1290,6 +1365,7 @@ urlpatterns = [
     path("iast/unvalidated_redirect/test_secure_redirect", view_iast_unvalidated_redirect_secure),
     path("iast/unvalidated_redirect/test_insecure_header", view_iast_unvalidated_redirect_insecure_header),
     path("iast/unvalidated_redirect/test_secure_header", view_iast_unvalidated_redirect_secure_header),
+    path("trace/manual_keep_drop", trace_manual_keep_drop),
     path("make_distant_call", make_distant_call),
     path("user_login_success_event", track_user_login_success_event),
     path("user_login_failure_event", track_user_login_failure_event),

@@ -3,7 +3,12 @@ import os
 import json
 import hashlib
 
+import paramiko
+
 from utils.virtual_machine.virtual_machine_provisioner import Provision, _DeployedWeblog
+
+# The AWS AMI name is limited to 128 characters (119 usable + 9 added by AWS).
+_MAX_CACHE_NAME_LENGTH = 120
 
 
 class AWSInfraConfig:
@@ -74,8 +79,6 @@ class _SSHConfig:
         self.pkey = pkey
 
     def get_ssh_connection(self):
-        import paramiko
-
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())  # noqa: S507
         if self.pkey_path is not None:
@@ -100,7 +103,6 @@ class _VirtualMachine:
         os_cpu: str,
         *,
         default_vm: bool = True,
-        **kwargs,
     ) -> None:
         self.name = name
         self.datadog_config = DataDogConfig()
@@ -144,13 +146,13 @@ class _VirtualMachine:
     def get_ssh_connection_for_log_download(self):
         """SSH for log extraction after a failed provision (skips provision_install_error guard)."""
         if not self.ssh_config.hostname:
-            raise Exception("IP not found - cannot download logs from VM")
+            raise ValueError("IP not found - cannot download logs from VM")
         return self.ssh_config.get_ssh_connection()
 
     def get_ip(self):
         self._check_provsion_install_error()
         if not self.ssh_config.hostname:
-            raise Exception("IP not found")
+            raise ValueError("IP not found")
         return self.ssh_config.hostname
 
     def _check_provsion_install_error(self):
@@ -196,7 +198,7 @@ class _VirtualMachine:
 
         full_cache_name = cached_name + hashlib.md5(vm_cached_name.encode("utf-8")).hexdigest()
 
-        if len(full_cache_name) >= 120:
+        if len(full_cache_name) >= _MAX_CACHE_NAME_LENGTH:
             # There is a limit of 128 characters for the AMI name. 119 + 9 characters added by the aws
             # for now encoding provision_name is enough to keep the name short
             provision_name = hashlib.shake_128(self.get_provision().provision_name.encode("utf-8")).hexdigest(4)
@@ -273,7 +275,7 @@ class _VirtualMachine:
         return vms_by_runtime, vms_by_runtime_ids
 
 
-def load_virtual_machines(provider_id: str):
+def load_virtual_machines(provider_id: str) -> list[_VirtualMachine]:
     with open("utils/virtual_machine/virtual_machines.json", "r") as file:
         data = json.load(file)
 
