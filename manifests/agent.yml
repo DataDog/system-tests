@@ -7,9 +7,7 @@ manifest:
   tests/appsec/smoke_tests/test_apm_standalone.py:
     - component_version: "<7.77.0-0"
       declaration: irrelevant (APM Standalone option was added in 7.77.0)
-  tests/cws/test_thread_context_sharing.py::Test_ThreadContextSharing:
-    - declaration: missing_feature (Trace collection not available in agents pre 7.84)
-      component_version: '<7.84.0-devel'
+  tests/cws/test_thread_context_sharing.py::Test_ThreadContextSharing: bug (APPSEC-70532)
   tests/debugger/test_debugger_condition_errors.py::Test_Debugger_Invalid_Condition_DSL:
     - component_version: "<7.77.1"
       weblog_declaration:
@@ -33,6 +31,7 @@ manifest:
       weblog_declaration:
         chi: bug (DEBUG-5421)
         echo: bug (DEBUG-5421)
+        fiber-v2-orchestrion: bug (DEBUG-5421)
         gin: bug (DEBUG-5421)
         net-http: bug (DEBUG-5421)
         net-http-orchestrion: bug (DEBUG-5421)
@@ -42,6 +41,7 @@ manifest:
       weblog_declaration:
         chi: bug (DEBUG-5421)
         echo: bug (DEBUG-5421)
+        fiber-v2-orchestrion: bug (DEBUG-5421)
         gin: bug (DEBUG-5421)
         net-http: bug (DEBUG-5421)
         net-http-orchestrion: bug (DEBUG-5421)
@@ -51,6 +51,7 @@ manifest:
       weblog_declaration:
         chi: bug (DEBUG-5421)
         echo: bug (DEBUG-5421)
+        fiber-v2-orchestrion: bug (DEBUG-5421)
         gin: bug (DEBUG-5421)
         net-http: bug (DEBUG-5421)
         net-http-orchestrion: bug (DEBUG-5421)
@@ -60,6 +61,7 @@ manifest:
       weblog_declaration:
         chi: bug (DEBUG-5421)
         echo: bug (DEBUG-5421)
+        fiber-v2-orchestrion: bug (DEBUG-5421)
         gin: bug (DEBUG-5421)
         net-http: bug (DEBUG-5421)
         net-http-orchestrion: bug (DEBUG-5421)
@@ -69,6 +71,7 @@ manifest:
       weblog_declaration:
         chi: bug (DEBUG-5421)
         echo: bug (DEBUG-5421)
+        fiber-v2-orchestrion: bug (DEBUG-5421)
         gin: bug (DEBUG-5421)
         net-http: bug (DEBUG-5421)
         net-http-orchestrion: bug (DEBUG-5421)

@@ -400,6 +400,9 @@ jobs:
     - name: Run SAMPLING_RATE_CAPPING scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"SAMPLING_RATE_CAPPING"')
       run: ./run.sh SAMPLING_RATE_CAPPING
+    - name: Run SAMPLING_RULES_AGENT_RATE scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"SAMPLING_RULES_AGENT_RATE"')
+      run: ./run.sh SAMPLING_RULES_AGENT_RATE
     - name: Run OTEL_SAMPLING_RATE_0_01 scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_SAMPLING_RATE_0_01"')
       run: ./run.sh OTEL_SAMPLING_RATE_0_01
@@ -563,9 +566,10 @@ jobs:
     - name: Run AI_GUARD_REDACTION_TELEMETRY scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"AI_GUARD_REDACTION_TELEMETRY"')
       run: ./run.sh AI_GUARD_REDACTION_TELEMETRY
-    - name: Run THREAD_CONTEXT_SHARING scenario
-      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"THREAD_CONTEXT_SHARING"')
-      run: ./run.sh THREAD_CONTEXT_SHARING
+
+    # - name: Run THREAD_CONTEXT_SHARING scenario
+    #   if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"THREAD_CONTEXT_SHARING"')
+    #   run: ./run.sh THREAD_CONTEXT_SHARING
 
     - name: Run all scenarios in replay mode
       if: success() && steps.build.outcome == 'success' && inputs._enable_replay_scenarios

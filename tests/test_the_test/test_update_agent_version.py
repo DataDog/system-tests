@@ -2,7 +2,7 @@ import os
 import subprocess
 from pathlib import Path
 
-import pytest
+from utils import pytest
 
 from utils import scenarios
 from utils.scripts.update_agent_version import (

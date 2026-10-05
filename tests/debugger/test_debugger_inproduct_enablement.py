@@ -241,6 +241,11 @@ class Test_Debugger_InProduct_Enablement_Code_Origin_Default_On(debugger.BaseDeb
     def setup_code_origin_enabled_by_default(self):
         self.initialize_weblog_remote_config()
 
+        # The preceding code-origin in-product enablement test explicitly
+        # disables code origin via remote config. Clear that RC state so this
+        # test observes the true default rather than the previous override.
+        self.send_rc_apm_tracing(reset=True)
+
         # The code origin product is started asynchronously and only instruments
         # the view functions once enabled, so a request sent right after startup
         # may be served before the code origin metadata is attached. Send a

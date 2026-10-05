@@ -573,7 +573,7 @@ class ParametricTestClientApi(TestClientApi):
             )
             if HTTPStatus(resp.status_code).is_success:
                 data = resp.json()
-                return data["success"], data["message"]
+                return data["success"], data.get("message", "")
             return False, f"HTTP error: {resp.status_code}"
         except Exception as e:
             return False, f"Error: {e!s}"
