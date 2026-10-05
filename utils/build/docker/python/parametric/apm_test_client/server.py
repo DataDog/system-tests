@@ -10,6 +10,7 @@ import logging
 import os
 import enum
 import threading
+import anyio.to_thread  # Ensure Starlette's synchronous routes work with AnyIO's lazy module imports.
 from fastapi import FastAPI
 from fastapi import Request
 from fastapi.responses import JSONResponse
