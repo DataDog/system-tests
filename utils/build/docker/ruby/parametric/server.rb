@@ -38,11 +38,10 @@ require 'datadog/opentelemetry' # TODO: Remove when DD_TRACE_OTEL_ENABLED=true w
 OpenTelemetry::SDK.configure # Initialize OpenTelemetry
 
 Datadog.configure do |c|
-  if ENV['DD_TRACE_DEBUG'].nil?
-    # If DD_TRACE_DEBUG is set do not override this configuration.
-    c.diagnostics.debug = true # When tests fail, ensure there's enough data to debug the failure.
-  end
-  c.logger.instance = Logger.new(STDOUT) # Make sure logs are available for inspection from outside the container.
+  # The shared harness enables DD_TRACE_DEBUG by default. Preserve an explicit
+  # absence here so configuration tests can observe the tracer's own default.
+  # Redirect diagnostics without changing the SDK's configured threshold.
+  c.logger.instance = Logger.new(STDOUT, level: c.logger.level)
 end
 
 remote = Datadog::Core::Remote.active_remote
@@ -1093,6 +1092,7 @@ class MyApp
     config["dd_runtime_metrics_enabled"] = Datadog.configuration.runtime_metrics.enabled.to_s
     config["dd_trace_propagation_style"] = Datadog.configuration.tracing.propagation_style.join(",")
     config["dd_trace_debug"] = Datadog.configuration.diagnostics.debug.to_s
+    config["dd_trace_effective_log_level"] = Logger::SEV_LABEL.fetch(Datadog.logger.level).downcase
     config["dd_env"] = Datadog.configuration.env || ""
     config["dd_version"] = Datadog.configuration.version || ""
     config["dd_tags"] = Datadog.configuration.tags.nil? ? "" : Datadog.configuration.tags.map { |k, v| "#{k}:#{v}" }.join(",")
