@@ -385,7 +385,7 @@ manifest:
         "*": v1.63.0
         akka-http: v1.66.0  # TODO: a lower version might be supported
         jersey-grizzly2: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
-        ratpack: v1.66.0  # TODO: a lower version might be supported
+        ratpack: bug (APPSEC-58210)
         resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute: missing_feature
@@ -1269,7 +1269,7 @@ manifest:
         "*": v1.51.0-SNAPSHOT
         akka-http: bug (APPSEC-57926)
         play: v1.54.0-SNAPSHOT+c2aec92b86
-        ratpack: v1.66.0  # TODO: a lower version might be supported
+        ratpack: bug (APPSEC-58210)
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/iast/test_security_controls.py::TestSecurityControls:
     - weblog_declaration:
@@ -2061,7 +2061,7 @@ manifest:
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         play: v1.66.0  # TODO: a lower version might be supported
         vertx3: v1.66.0  # TODO: a lower version might be supported
-        ratpack: v1.66.0  # TODO: a lower version might be supported
+        ratpack: bug (APPSEC-58210)
         uds-spring-boot: v1.66.0  # TODO: a lower version might be supported
         spring-boot-wildfly: v1.66.0  # TODO: a lower version might be supported
         jersey-grizzly2: v1.66.0  # TODO: a lower version might be supported
@@ -2077,7 +2077,7 @@ manifest:
         akka-http: v1.22.0
         jersey-grizzly2: v1.66.0  # TODO: a lower version might be supported
         play: v1.22.0
-        ratpack: v1.66.0  # TODO: a lower version might be supported
+        ratpack: bug (APPSEC-58210)
         resteasy-netty3: v1.66.0  # TODO: a lower version might be supported
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         spring-boot-openliberty: bug (APPSEC-54985)
@@ -3101,7 +3101,7 @@ manifest:
         uds-spring-boot: v1.38.0
         play: v1.66.0  # TODO: a lower version might be supported
         vertx3: v1.66.0  # TODO: a lower version might be supported
-        ratpack: v1.66.0  # TODO: a lower version might be supported
+        ratpack: bug (APPSEC-58210)
         jersey-grizzly2: v1.66.0  # TODO: a lower version might be supported
         vertx4: v1.66.0  # TODO: a lower version might be supported
         akka-http: v1.66.0  # TODO: a lower version might be supported
@@ -5094,7 +5094,7 @@ manifest:
         "*": v1.67.0-SNAPSHOT
         akka-http: v1.66.0  # TODO: a lower version might be supported
         jersey-grizzly2: v1.66.0  # TODO: a lower version might be supported
-        ratpack: v1.66.0  # TODO: a lower version might be supported
+        ratpack: bug (APPSEC-58210)
         resteasy-netty3: v1.66.0  # TODO: a lower version might be supported
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh::test_force_keep_forwards_inherited_rv:
@@ -5154,7 +5154,7 @@ manifest:
         "*": v1.67.0-SNAPSHOT
         akka-http: v1.66.0  # TODO: a lower version might be supported
         jersey-grizzly2: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
-        ratpack: v1.66.0  # TODO: a lower version might be supported
+        ratpack: bug (APPSEC-58210)
         resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/test_otel_tracestate_sampling.py::Test_ThOnlyDoesNotFabricateRv:  # Easy win for play, spring-boot, spring-boot-jetty, spring-boot-openliberty, spring-boot-payara, spring-boot-undertow, spring-boot-wildfly, uds-spring-boot, vertx3, vertx4 and version 1.66.0
@@ -5301,7 +5301,7 @@ manifest:
     - weblog_declaration:
         '*': missing_feature
         spring-boot: v1.23.0
-        ratpack: v1.66.0  # TODO: a lower version might be supported
+        ratpack: bug (APPSEC-58210)
         akka-http: v1.66.0  # TODO: a lower version might be supported
         uds-spring-boot: v1.66.0  # TODO: a lower version might be supported
         vertx3: v1.66.0  # TODO: a lower version might be supported
