@@ -230,10 +230,18 @@ images:
     digest: sha256:b71678692a476b6acc3eb235edbb98bbb9c6b943e17c246ecb24937276807bc3
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:django-py3.13.base-d8262a2c816c
     tag: django-py3.13.base-d8262a2c816c
+  datadog/system-tests:express4-typescript.base-1502d45c1d2d:
+    digest: sha256:e43e1235c446cc36258c04fe7da7382f48aa3f8b349fa79f02c1665471fb7e9a
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:express4-typescript.base-1502d45c1d2d
+    tag: express4-typescript.base-1502d45c1d2d
   datadog/system-tests:express4-typescript.base-eb800c09d602:
     digest: sha256:4c1359af1571b63dfcb95471fb9fa6a368329368ab5b51d755f35a347161e388
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:express4-typescript.base-eb800c09d602
     tag: express4-typescript.base-eb800c09d602
+  datadog/system-tests:express4.base-884b45738883:
+    digest: sha256:6d356ebef344c7f034c82da2853fb274d8bdbe0e5deece0dde6371294845e5fc
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:express4.base-884b45738883
+    tag: express4.base-884b45738883
   datadog/system-tests:express4.base-cb2b80abf6d1:
     digest: sha256:06f818aebeadbcaf9614e5f9b75f388b98afe0903b458be96ee1aa7c47aae9b3
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:express4.base-cb2b80abf6d1
@@ -250,6 +258,10 @@ images:
     digest: sha256:bdb975b8d63efe446a17d77a67e0c3d4c5ce1f11b55264e9ae49dae31b6c7c85
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:express5.base-6eecdb28aed2
     tag: express5.base-6eecdb28aed2
+  datadog/system-tests:express5.base-8d1b201a9524:
+    digest: sha256:c836c399a018e9965e19aea65a6e600ac85d88b2def351ce1fa9b789d123de24
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:express5.base-8d1b201a9524
+    tag: express5.base-8d1b201a9524
   datadog/system-tests:fastapi.base-1795d4d88178:
     digest: sha256:bf65195d25f6e0d663c0f414590471fba7f18b1a0e3d284dda0cbd1896bea9a0
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:fastapi.base-1795d4d88178
@@ -258,6 +270,10 @@ images:
     digest: sha256:f72a31702ffaabc1ba5e43042963e9cea965d1be6256d9d8a58e7e2381090d40
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:fastapi.base-2917769b3665
     tag: fastapi.base-2917769b3665
+  datadog/system-tests:fastify.base-a1ef28556ea8:
+    digest: sha256:9792fd316a9a91cd838f726360d6f50f6d3e7853d84874739f20342c13b1eccf
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:fastify.base-a1ef28556ea8
+    tag: fastify.base-a1ef28556ea8
   datadog/system-tests:fastify.base-bce27c61b3f5:
     digest: sha256:984e566d8eb604d53c1532a55559549f4c443ac73caf41664bb73241e529357c
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:fastify.base-bce27c61b3f5
