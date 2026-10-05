@@ -1870,15 +1870,15 @@ manifest:
   tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Direct:
     - weblog_declaration:
         "*": irrelevant
-        express5: v7.0.0-pre
+        express5: '>=6.18.0 || ^5.129.0'
   tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Direct_Shutdown:
     - weblog_declaration:
         "*": irrelevant
-        express5: v7.0.0-pre
+        express5: '>=6.18.0 || ^5.129.0'
   tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Sidecar:
     - weblog_declaration:
         "*": irrelevant
-        express5: v7.0.0-pre
+        express5: '>=6.18.0 || ^5.129.0'
   tests/ffe/test_exposures_datadog_agent.py:
     - weblog_declaration:
         "*": incomplete_test_app
