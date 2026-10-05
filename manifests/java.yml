@@ -3947,14 +3947,21 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY: v1.62.0
   tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY::test_empty_is_treated_as_unset: bug (APMAPI-2412)
   tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY::test_invalid_value_is_ignored: bug (APMAPI-2446)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_compression.py::Test_OTEL_EXPORTER_OTLP_COMPRESSION: v1.60.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_endpoint.py::Test_OTEL_EXPORTER_OTLP_ENDPOINT: v1.56.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_endpoint.py::Test_OTEL_EXPORTER_OTLP_ENDPOINT::test_empty_endpoint_falls_back_to_default
   : bug (APMAPI-2412)
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_endpoint.py::Test_OTEL_EXPORTER_OTLP_ENDPOINT::test_otlp_custom_endpoint_grpc
   : bug (APMAPI-2503, APMAPI-2528)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_compression.py::Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION: v1.62.0
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_compression.py::Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION::test_empty_inherits_general
+  : bug (APMAPI-2474)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_endpoint.py::Test_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT: v1.62.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_endpoint.py::Test_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT::test_empty_falls_back_to_global_endpoint
   : bug (APMAPI-2412)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_compression.py::Test_OTEL_EXPORTER_OTLP_METRICS_COMPRESSION: v1.60.0
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_compression.py::Test_OTEL_EXPORTER_OTLP_METRICS_COMPRESSION::test_empty_inherits_general
+  : bug (APMAPI-2474)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_endpoint.py::Test_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: v1.56.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_endpoint.py::Test_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT::test_empty_falls_back_to_global_endpoint
   : bug (APMAPI-2412)
@@ -3964,6 +3971,12 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_endpoint.py::Test_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: v1.61.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_endpoint.py::Test_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT::test_empty_falls_back_to_global_endpoint
   : bug (APMAPI-2412)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_headers.py::Test_OTEL_EXPORTER_OTLP_TRACES_HEADERS: v1.61.0
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_headers.py::Test_OTEL_EXPORTER_OTLP_TRACES_HEADERS::test_empty_is_treated_as_unset
+  : bug (APMAPI-2474)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_protocol.py::Test_OTEL_EXPORTER_OTLP_TRACES_PROTOCOL: v1.61.0
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_protocol.py::Test_OTEL_EXPORTER_OTLP_TRACES_PROTOCOL::test_grpc_protocol_is_used_for_trace_export
+  : incomplete_test_app (gRPC trace requests are not captured by the HTTP request assertion)
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER: v1.54.0
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER::test_console: missing_feature (Only otlp and none exporters are implemented)
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER::test_deprecated_values: missing_feature (Only otlp and none exporters are implemented)
