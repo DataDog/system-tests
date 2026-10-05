@@ -377,7 +377,7 @@ class Test_Headers_Tracestate_DD:
         # Result: Tags are placed into the tracestate where "_dd.p." is replaced with "t."
         #         and "=" is replaced with ":"
 
-        assert set(",".split(headers3["x-datadog-tags"])) == {
+        assert set(headers3["x-datadog-tags"].split(",")) == {
             "_dd.p.dm=-4",
             "_dd.p.usr.id=baz64==",
             "_dd.p.url=http://localhost",
