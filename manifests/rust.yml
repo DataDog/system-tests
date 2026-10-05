@@ -256,7 +256,9 @@ manifest:
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_computed_after_span_finsh_TS009: '>=0.5.3-dev+fd1307f'  # Created by easy win activation script
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_msgpack_serialization_TS001: '>=0.5.3-dev+fd1307f'  # Created by easy win activation script
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_partial_version_excluded_TS014: "missing_feature (CSS v1.2.0: dd-trace-rs has no client-side stats implementation)"
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_payload_metadata_TS012: "missing_feature (CSS v1.2.0: dd-trace-rs has no client-side stats implementation)"
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_payload_metadata_TS012:  # TODO: a lower version might be supported
+    - declaration: 'missing_feature (CSS v1.2.0: dd-trace-rs has no client-side stats implementation)'
+      component_version: <0.5.3-dev+79746e6
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_sample_rate_0_TS007: '>=0.5.3-dev+fd1307f'  # Created by easy win activation script
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_span_kind_eligibility_TS015: "missing_feature (CSS v1.2.0: dd-trace-rs has no client-side stats implementation)"
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_successes_errors_recorded_separately_TS006: missing_feature  # Created by easy win activation script
