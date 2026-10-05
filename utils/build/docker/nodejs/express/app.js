@@ -240,8 +240,9 @@ app.get('/trace/manual_keep_drop', (req, res) => {
   tracer.scope().active().setTag(decision === 'keep' ? MANUAL_KEEP : MANUAL_DROP, true)
 
   // Call downstream so that tests can assert on the sampling decision that gets propagated
-  const url = 'http://localhost:7777/'
-  const request = http.request({ hostname: 'localhost', port: 7777, path: '/', method: 'GET' }, (response) => {
+  // The weblog listens on IPv4; localhost may resolve to IPv6 instead.
+  const url = 'http://127.0.0.1:7777/'
+  const request = http.request({ hostname: '127.0.0.1', port: 7777, path: '/', method: 'GET' }, (response) => {
     response.on('data', () => {})
 
     response.on('end', () => {

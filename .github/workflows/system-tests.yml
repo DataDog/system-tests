@@ -268,3 +268,37 @@ jobs:
       _build_lambda_proxy_image: ${{ inputs._build_lambda_proxy_image }}
       _enable_replay_scenarios: ${{ inputs._enable_replay_scenarios }}
       _system_tests_dev_mode: ${{ inputs._system_tests_dev_mode }}
+
+  check_ref_on_main:
+    name: Check system-tests ref is on main
+    # No other job depends on this one: tests still run on a system-tests dev branch,
+    # but the workflow fails to block merging until the ref points back to main.
+    # Skipped when ref is empty or main, as tests run on main in that case.
+    if: ${{ github.repository != 'DataDog/system-tests' && inputs.ref != '' && inputs.ref != 'main' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        id: checkout
+        # Do not fail the job if the clone fails, this check is best effort
+        continue-on-error: true
+        uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
+        with:
+          repository: 'DataDog/system-tests'
+          ref: ${{ inputs.ref }}
+          fetch-depth: 0
+      - name: Check system-tests ref is on main
+        if: steps.checkout.outcome == 'success'
+        env:
+          REF: ${{ inputs.ref }}
+        run: |
+          # REF can be a branch, tag or commit SHA. It is accepted as long as the commit it
+          # points to is part of main's history.
+          # It typically fails when a caller forgot to switch back from a system-tests dev branch.
+          sha=$(git rev-parse HEAD)
+          if [[ -z "$(git branch --remotes --contains "$sha" --list origin/main)" ]]; then
+            echo "::error::system-tests ref '${REF}' (${sha}) is not a commit from the main branch of DataDog/system-tests. Did you forget to point back to main (or a commit from main) after testing with a dev branch?"
+            exit 1
+          fi
+          echo "system-tests ref '${REF}' (${sha}) is on main"
