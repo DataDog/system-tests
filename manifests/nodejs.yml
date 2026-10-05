@@ -2468,11 +2468,12 @@ manifest:
     - declaration: missing_feature (SDK_CONFIGURATION capability not yet implemented)
       component_version: <6.17.0
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Default: incomplete_test_app (The parametric test app does not reinject the extracted Datadog context)
+  tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Default::test_baggage: *ref_5_56_0
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Ignore: *ref_5_47_0
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart: *ref_5_47_0
-  tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart::test_baggage: incomplete_test_app (The parametric test app does not preserve baggage after extraction)
+  tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart::test_baggage: *ref_5_56_0
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart_With_Extract_First: *ref_5_47_0
-  tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart_With_Extract_First::test_baggage: incomplete_test_app (The parametric test app does not preserve baggage after extraction)
+  tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart_With_Extract_First::test_baggage: *ref_5_56_0
   tests/parametric/test_ffe/test_configuration_sources.py: *ref_6_8_0
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: *ref_5_75_0
   tests/parametric/test_ffe/test_span_enrichment.py:  # TODO: a lower version might be supported
@@ -2497,6 +2498,9 @@ manifest:
     - declaration: missing_feature (Need to remove b3=b3multi alias)
       component_version: <6.8.0
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage: irrelevant (uses weblog tests)
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggage_disable_settings_D003: *ref_5_56_0
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_headers_baggage_default_D001: *ref_5_56_0
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_headers_baggage_only_D002: *ref_5_56_0
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Span_Tags: *ref_5_54_0
   tests/parametric/test_headers_opm.py:  # TODO: a lower version might be supported
     - declaration: missing_feature (Org Propagation Guard RFC not yet implemented)
