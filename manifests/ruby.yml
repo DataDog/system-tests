@@ -33,7 +33,14 @@ manifest:
         rails72: '>=2.40.0'
         rails61: '>=2.40.0'
         rails80: '>=2.40.0'
-  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRedacted: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRedacted:
+    - weblog_declaration:
+        '*': irrelevant
+        uds-rails: v2.44.0-dev
+        rails52: v2.44.0-dev
+        rails72: v2.44.0-dev
+        rails80: v2.44.0-dev
+        rails61: v2.44.0-dev
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags:
@@ -91,9 +98,30 @@ manifest:
         sinatra32: irrelevant
         sinatra41: irrelevant
         uds-sinatra: irrelevant
-  tests/ai_guard/test_ai_guard_sdk.py::Test_NoRedaction: missing_feature
-  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactedMessagesInSDKResponse: missing_feature
-  tests/ai_guard/test_ai_guard_sdk.py::Test_Redaction: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_NoRedaction:
+    - weblog_declaration:
+        '*': irrelevant
+        uds-rails: v2.44.0-dev
+        rails52: v2.44.0-dev
+        rails72: v2.44.0-dev
+        rails80: v2.44.0-dev
+        rails61: v2.44.0-dev
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactedMessagesInSDKResponse:
+    - weblog_declaration:
+        '*': irrelevant
+        uds-rails: v2.44.0-dev
+        rails52: v2.44.0-dev
+        rails72: v2.44.0-dev
+        rails80: v2.44.0-dev
+        rails61: v2.44.0-dev
+  tests/ai_guard/test_ai_guard_sdk.py::Test_Redaction:
+    - weblog_declaration:
+        '*': irrelevant
+        uds-rails: v2.44.0-dev
+        rails52: v2.44.0-dev
+        rails72: v2.44.0-dev
+        rails80: v2.44.0-dev
+        rails61: v2.44.0-dev
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionDisabled:  # TODO: a lower version might be supported
     - weblog_declaration:
         '*': missing_feature
@@ -104,17 +132,59 @@ manifest:
         rails61: '>=2.41.0'
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionDisabled::test_findings_still_reported:
     - weblog_declaration:
-        rails80: missing_feature
-        rails61: missing_feature
-        uds-rails: missing_feature
-        rails52: missing_feature
-        rails72: missing_feature
-  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionDisabledTelemetry: missing_feature
-  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionFailSafe: missing_feature
-  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionInSDKResponse: missing_feature
-  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionMultiTurnContext: missing_feature
-  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionOnBlock: missing_feature
-  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionSkipsStructuralFields: missing_feature
+        rails80: v2.44.0-dev
+        rails61: v2.44.0-dev
+        uds-rails: v2.44.0-dev
+        rails52: v2.44.0-dev
+        rails72: v2.44.0-dev
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionDisabledTelemetry:
+    - weblog_declaration:
+        '*': missing_feature
+        uds-rails: v2.44.0-dev
+        rails52: v2.44.0-dev
+        rails72: v2.44.0-dev
+        rails80: v2.44.0-dev
+        rails61: v2.44.0-dev
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionFailSafe:
+    - weblog_declaration:
+        '*': irrelevant
+        uds-rails: v2.44.0-dev
+        rails52: v2.44.0-dev
+        rails72: v2.44.0-dev
+        rails80: v2.44.0-dev
+        rails61: v2.44.0-dev
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionInSDKResponse:
+    - weblog_declaration:
+        '*': irrelevant
+        uds-rails: v2.44.0-dev
+        rails52: v2.44.0-dev
+        rails72: v2.44.0-dev
+        rails80: v2.44.0-dev
+        rails61: v2.44.0-dev
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionMultiTurnContext:
+    - weblog_declaration:
+        '*': irrelevant
+        uds-rails: v2.44.0-dev
+        rails52: v2.44.0-dev
+        rails72: v2.44.0-dev
+        rails80: v2.44.0-dev
+        rails61: v2.44.0-dev
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionOnBlock:
+    - weblog_declaration:
+        '*': irrelevant
+        uds-rails: v2.44.0-dev
+        rails52: v2.44.0-dev
+        rails72: v2.44.0-dev
+        rails80: v2.44.0-dev
+        rails61: v2.44.0-dev
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionSkipsStructuralFields:
+    - weblog_declaration:
+        '*': irrelevant
+        uds-rails: v2.44.0-dev
+        rails52: v2.44.0-dev
+        rails72: v2.44.0-dev
+        rails80: v2.44.0-dev
+        rails61: v2.44.0-dev
   tests/ai_guard/test_ai_guard_sdk.py::Test_RootSpanUserKeep:
     - weblog_declaration:
         "*": v2.31.0-dev
@@ -3565,4 +3635,21 @@ manifest:
   tests/test_telemetry.py::Test_TelemetryV2::test_telemetry_v2_required_headers:
     - declaration: missing_feature (dd-client-library-version missing)
       component_version: <1.22.0
-  tests/test_v1_payloads.py: missing_feature (dd-trace-rb only exposes the /v0.3 and /v0.4 trace endpoints)
+  tests/test_v1_payloads.py:  # TODO: a lower version might be supported
+    - declaration: missing_feature (dd-trace-rb only exposes the /v0.3 and /v0.4 trace endpoints)
+      component_version: <2.43.0
+      weblog: [rack]
+    - declaration: missing_feature (dd-trace-rb only exposes the /v0.3 and /v0.4 trace endpoints)
+      excluded_weblog: [rack]
+  tests/test_v1_payloads.py::Test_V1PayloadByDefault:
+    - weblog_declaration:
+        rack: missing_feature (dd-trace-rb only exposes the /v0.3 and /v0.4 trace endpoints)
+  tests/test_v1_payloads.py::Test_V1Payloads:
+    - weblog_declaration:
+        rack: missing_feature (dd-trace-rb only exposes the /v0.3 and /v0.4 trace endpoints)
+  tests/test_v1_payloads.py::Test_V1SpanLinks:
+    - weblog_declaration:
+        rack: missing_feature (dd-trace-rb only exposes the /v0.3 and /v0.4 trace endpoints)
+  tests/test_v1_payloads.py::Test_V1TopLevelSpans:
+    - weblog_declaration:
+        rack: missing_feature (dd-trace-rb only exposes the /v0.3 and /v0.4 trace endpoints)
