@@ -205,7 +205,7 @@ def test_sdk_configuration_alone_selects_sdk_config():
 
 @scenarios.test_the_test
 def test_sdk_configuration_with_apm_tracing_capabilities_selects_sdk_config():
-    """SDK_CONFIGURATION alongside per-setting APM_TRACING capabilities selects sdk_config."""
+    """Node.js uses sdk_config while continuing to advertise per-setting capabilities."""
     capabilities = {
         Capabilities.APM_TRACING_CUSTOM_TAGS,
         Capabilities.APM_TRACING_ENABLED,
@@ -220,7 +220,24 @@ def test_sdk_configuration_with_apm_tracing_capabilities_selects_sdk_config():
         Capabilities.SDK_CONFIGURATION,
     }
 
-    assert rc.resolve_sdk_configuration_contract(capabilities) is True
+    assert rc.resolve_sdk_configuration_contract(capabilities, library_name="nodejs") is True
+
+
+@scenarios.test_the_test
+def test_php_bit_49_collision_with_apm_tracing_capabilities_selects_lib_config():
+    """PHP uses bit 49 for ASM_RAW_RESPONSE_BODY and continues to consume lib_config."""
+    capabilities = {
+        Capabilities.APM_TRACING_CUSTOM_TAGS,
+        Capabilities.APM_TRACING_ENABLED,
+        Capabilities.APM_TRACING_HTTP_HEADER_TAGS,
+        Capabilities.APM_TRACING_LOGS_INJECTION,
+        Capabilities.APM_TRACING_SAMPLE_RATE,
+        Capabilities.APM_TRACING_SAMPLE_RULES,
+        Capabilities.APM_TRACING_MULTICONFIG,
+        Capabilities.SDK_CONFIGURATION,
+    }
+
+    assert rc.resolve_sdk_configuration_contract(capabilities, library_name="php") is False
 
 
 @scenarios.test_the_test
@@ -273,4 +290,5 @@ def test_apm_tracing_capabilities_exclude_sdk_configuration():
     `resolve_sdk_configuration_contract`.
     """
     assert Capabilities.SDK_CONFIGURATION not in rc.APM_TRACING_CAPABILITIES
+    assert rc.LEGACY_APM_TRACING_CAPABILITIES <= rc.APM_TRACING_CAPABILITIES
     assert Capabilities.APM_TRACING_MULTICONFIG in rc.APM_TRACING_CAPABILITIES
