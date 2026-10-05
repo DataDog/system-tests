@@ -9,6 +9,10 @@ It unions every Docker image required by the CI-run ``DockerScenario`` instances
 via the dd-repo-tools ``mirror_images.py add`` command, then resolves digests
 into ``mirror_images.lock.yaml`` via ``lock``.
 
+``mirror_images.yaml`` is rebuilt from scratch on every run: images no longer
+required by any scenario (e.g. a base image whose content tag was replaced) are
+dropped, and ``lock`` then prunes their entries from ``mirror_images.lock.yaml``.
+
 It never pushes or mirrors anything: commit the updated ``mirror_images.yaml``
 and ``mirror_images.lock.yaml`` yourself.
 
@@ -164,9 +168,16 @@ def main(excluded: set[str], *, skip_lock: bool, refresh: bool = False) -> None:
 
     images = collect_images(excluded)
     print(f"Collected {len(images)} mirrorable image(s) from the CI scenarios.", flush=True)
+    if not images:
+        # The CI scenarios always need images: an empty set means the enumeration
+        # is broken, so fail before the manifest below gets reset.
+        sys.exit("error: no mirrorable images collected from the CI scenarios; refusing to empty mirror_images.yaml")
 
-    if not MIRROR_YAML.exists():
-        MIRROR_YAML.write_text(MIRROR_YAML_HEADER)
+    # Replace the list rather than appending to it: `add` only ever adds, so start
+    # from an empty manifest to drop images that are no longer required. `lock`
+    # keeps only entries still declared in mirror_images.yaml, so stale images
+    # are pruned from the lock file too.
+    MIRROR_YAML.write_text(MIRROR_YAML_HEADER, encoding="utf-8")
 
     _run_mirror_images("add", *images)
     _restore_yaml_header()
