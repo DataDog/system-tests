@@ -1950,7 +1950,7 @@ manifest:
   tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchangedWhenDropped: v1.26.0-dev
   tests/test_otel_tracestate_sampling.py::Test_MalformedOtHandling: v1.26.0-dev
   tests/test_otel_tracestate_sampling.py::Test_PreserveDdAndOtherVendors: v1.26.0-dev
-  tests/test_otel_tracestate_sampling.py::Test_PreserveTracestateMemberOrder: v1.26.0-dev
+  tests/test_otel_tracestate_sampling.py::Test_PreserveTracestateMemberOrder: bug (APMAPI-2179)
   tests/test_otel_tracestate_sampling.py::Test_SampledWithoutOtNotFabricated: v1.26.0-dev
   tests/test_otel_tracestate_sampling.py::Test_ThOnlyDoesNotFabricateRv: v1.26.0-dev
   tests/test_otel_tracestate_sampling.py::Test_ThOnlyDoesNotFabricateRvWhenDropped: v1.26.0-dev
