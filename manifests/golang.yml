@@ -2731,13 +2731,6 @@ manifest:
     - weblog_declaration:
         "*": missing_feature (APMAPI-2171)
         envoy, apim, haproxy: irrelevant (not applicable to proxies)
-        uds-echo: v2.10.1  # TODO: a lower version might be supported
-        net-http: v2.10.1  # TODO: a lower version might be supported
-        gin: v2.10.1  # TODO: a lower version might be supported
-        chi: v2.10.1  # TODO: a lower version might be supported
-        net-http-orchestrion: v2.10.1  # TODO: a lower version might be supported
-        echo: v2.10.1  # TODO: a lower version might be supported
-        fiber-v2-orchestrion: v2.10.1  # TODO: a lower version might be supported
   tests/test_otel_tracestate_sampling.py::Test_SampledWithoutOtNotFabricated:  # Easy win for chi, echo, fiber-v2-orchestrion, gin, net-http, net-http-orchestrion, uds-echo and version 2.10.1
     - weblog_declaration:
         "*": v2.11.0-dev
