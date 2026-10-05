@@ -36,7 +36,7 @@ EVP_DEGRADATION_OVERFLOW_EVALS = 2_000
 PII_TARGETING_KEY = "jane.doe@datadoghq.com"
 PII_TARGETING_KEY_HASHED = "sha256_b4698f9b6d186781fa8dc59e533578fa2d8379a46b1cf6db85cda6aa9c99e51b"
 PII_ATTRIBUTES: dict[str, object] = {
-    "org_id": 12345678901234567890,
+    "org_id": 1234567890123456,
     "user_email": "jane.doe@datadoghq.com",
     "plan": "enterprise",
     "region": "us-east-1",
