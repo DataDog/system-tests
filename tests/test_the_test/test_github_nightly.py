@@ -4,13 +4,13 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
-import pytest
+from utils import pytest
 
 from utils import scenarios
 from utils.ci.github import nightly
 from utils.ci.github.nightly import (
     ActivationConfig,
-    AutoMergeOptIn,
+    AutoMergeOptOut,
     CommandResult,
     GithubContext,
     NightlyOptions,
@@ -62,7 +62,7 @@ def options(tmp_path: Path) -> NightlyOptions:
         commit_headless=commit_headless,
         github=GithubContext(repository="DataDog/system-tests", server_url="https://github.com", run_id="123"),
         github_token="token",  # noqa: S106 - test token for fake command execution
-        auto_merge_opt_ins=(AutoMergeOptIn(owner="asm-libraries", library="python"),),
+        auto_merge_opt_outs=(AutoMergeOptOut(owner="asm-libraries", library="ruby"),),
     )
 
 
@@ -112,18 +112,15 @@ class Test_GithubNightly:
         )
         assert captured["options"].github_token == "secret-token"
 
-    def test_auto_merge_opt_in_requires_exact_owner_library(self) -> None:
-        opt_ins = (AutoMergeOptIn(owner="asm-libraries", library="python"),)
+    def test_auto_merge_opt_out_requires_exact_owner_library(self) -> None:
+        opt_outs = (AutoMergeOptOut(owner="asm-libraries", library="python"),)
 
-        assert should_enable_auto_merge("asm-libraries", "python", opt_ins)
-        assert not should_enable_auto_merge("asm-libraries", "ruby", opt_ins)
-        assert not should_enable_auto_merge("apm-python", "python", opt_ins)
+        assert not should_enable_auto_merge("asm-libraries", "python", opt_outs)
+        assert should_enable_auto_merge("asm-libraries", "ruby", opt_outs)
+        assert should_enable_auto_merge("apm-python", "python", opt_outs)
 
-    def test_sdk_capabilities_opted_in_for_every_easy_win_library(self) -> None:
-        for library in COMPONENT_GROUPS.easy_win:
-            assert should_enable_auto_merge("apm-sdk-capabilities", library, nightly.AUTO_MERGE_OPT_INS)
-
-        assert not should_enable_auto_merge("asm-libraries", "ruby", nightly.AUTO_MERGE_OPT_INS)
+    def test_auto_merge_enabled_by_default(self) -> None:
+        assert should_enable_auto_merge("asm-libraries", "python", ())
 
     def test_extract_reports_from_logs_artifacts(self, tmp_path: Path) -> None:
         artifact_dir = tmp_path / "logs_python"
@@ -313,7 +310,7 @@ class Test_GithubNightly:
         assert "comments(first: 1)" in " ".join(thread_query_command.args)
         assert '.comments.nodes[0].author.__typename == "Bot"' in thread_query_command.args[-1]
 
-    def test_auto_merge_runs_only_for_opted_in_pair(self, tmp_path: Path) -> None:
+    def test_auto_merge_runs_for_non_opted_out_pair(self, tmp_path: Path) -> None:
         runner = FakeRunner(
             [
                 result(""),  # no existing PR
@@ -338,3 +335,29 @@ class Test_GithubNightly:
         )
 
         assert ["gh", "pr", "merge", "456", "--auto", "--squash"] in [command.args for command in runner.commands]
+
+    def test_auto_merge_skipped_for_opted_out_pair(self, tmp_path: Path) -> None:
+        runner = FakeRunner(
+            [
+                result(""),  # no existing PR
+                result(),  # git checkout
+                result("main-sha\n"),  # git rev-parse main
+                result("commit-sha\n"),  # git log
+                result(returncode=2),  # remote branch does not exist
+                result("signed-sha\n"),  # commit-headless
+                result(),  # gh pr create
+                result("456\n"),  # gh pr list after create
+                result(),  # gh pr ready
+                result(),  # no bot review threads
+            ]
+        )
+
+        process_activation_branch(
+            "easy-win/asm-libraries/ruby",
+            "ruby",
+            options(tmp_path),
+            runner,
+        )
+
+        assert runner.commands[6].args[:3] == ["gh", "pr", "create"]
+        assert ["gh", "pr", "merge", "456", "--auto", "--squash"] not in [command.args for command in runner.commands]

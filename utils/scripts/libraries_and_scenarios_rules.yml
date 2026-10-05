@@ -152,6 +152,16 @@ patterns:
     run.sh: # run all by default
     .gitlab/ssi_gitlab-ci.yml:
         scenario_groups: [onboarding, lib_injection, docker_ssi]
+    utils/build/docker/base-images.lock.json:
+        scenario_groups: null
+        libraries: null
+    mirror_images.yaml:
+        scenario_groups: null
+        libraries: null
+    mirror_images.lock.yaml:
+        scenario_groups: null
+        libraries: null
+
 
 ################################ GitHub Actions ################################
 # This section contains rules to apply to files related to GitHub Actions.
@@ -454,7 +464,7 @@ patterns:
         scenario_groups: null  # already handled by the manifest comparison
         libraries: java
     utils/build/docker/java/*:
-        scenario_groups: [ end_to_end, open_telemetry]
+        scenario_groups: [ end_to_end, open_telemetry, integration_frameworks]
         libraries: java
     lib-injection/build/docker/java/*:
         libraries: java
@@ -472,7 +482,7 @@ patterns:
         scenario_groups: null  # already handled by the manifest comparison
         libraries: nodejs
     utils/build/docker/nodejs/*:
-        scenario_groups: [ end_to_end, open_telemetry]
+        scenario_groups: [ end_to_end, open_telemetry, integration_frameworks]
         libraries: nodejs
     lib-injection/build/docker/nodejs/*:
         libraries: nodejs
@@ -496,7 +506,7 @@ patterns:
         libraries: python
     utils/build/docker/python/*:
         libraries: python
-        scenario_groups: [ end_to_end, open_telemetry]
+        scenario_groups: [ end_to_end, open_telemetry, integration_frameworks]
     lib-injection/build/docker/python/*:
         libraries: python
     manifests/ruby.yml:
