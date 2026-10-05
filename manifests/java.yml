@@ -9,7 +9,16 @@ manifest:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
         "spring-boot": v1.65.0-SNAPSHOT
-  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone_APMDisabledMarker: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardStandalone_APMDisabledMarker:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        uds-spring-boot: '>=1.66.0'
+        spring-boot-wildfly: '>=1.66.0'
+        spring-boot-openliberty: '>=1.66.0'
+        spring-boot-undertow: '>=1.66.0'
+        spring-boot-jetty: '>=1.66.0'
+        spring-boot: '>=1.66.0'
+        spring-boot-payara: '>=1.66.0'
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRedacted:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
@@ -25,11 +34,11 @@ manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
-        "spring-boot": missing_feature (APPSEC-62449)
+        "spring-boot": v1.66.0  # TODO: a lower version might be supported
   tests/ai_guard/test_ai_guard_sdk.py::Test_ClientIPTagsCollected:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
-        "spring-boot": missing_feature (APPSEC-62199)
+        "spring-boot": v1.66.0  # TODO: a lower version might be supported
   tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
@@ -54,7 +63,7 @@ manifest:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
         "spring-boot": v1.67.0-SNAPSHOT
-  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionDisabled:
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionDisabled:  # Easy win for spring-boot and version 1.66.0
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
         "spring-boot": v1.67.0-SNAPSHOT
@@ -350,7 +359,23 @@ manifest:
         akka-http: bug (APPSEC-56888)
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         vertx3: missing_feature
-  tests/appsec/api_security/test_schemas_auth.py: missing_feature
+  tests/appsec/api_security/test_schemas_auth.py:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        play: '>=1.66.0'
+        vertx3: '>=1.66.0'
+        ratpack: '>=1.66.0'
+        uds-spring-boot: '>=1.66.0'
+        spring-boot-wildfly: '>=1.66.0'
+        jersey-grizzly2: '>=1.66.0'
+        vertx4: '>=1.66.0'
+        spring-boot-undertow: '>=1.66.0'
+        spring-boot-openliberty: '>=1.66.0'
+        spring-boot-jetty: '>=1.66.0'
+        akka-http: '>=1.66.0'
+        spring-boot: '>=1.66.0'
+        resteasy-netty3: '>=1.66.0'
+        spring-boot-payara: '>=1.66.0'
   tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders:
     - weblog_declaration:
         "*": v1.63.0
@@ -358,9 +383,9 @@ manifest:
   tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders::test_not_propagated_downstream:
     - weblog_declaration:
         "*": v1.63.0
-        akka-http: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        akka-http: v1.66.0  # TODO: a lower version might be supported
         jersey-grizzly2: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
-        ratpack: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        ratpack: v1.66.0  # TODO: a lower version might be supported
         resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute: missing_feature
@@ -487,7 +512,7 @@ manifest:
         ratpack: missing_feature
         resteasy-netty3: missing_feature
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-        spring-boot-openliberty: bug (APPSEC-51483)
+        spring-boot-openliberty: v1.66.0  # TODO: a lower version might be supported
         vertx3: missing_feature
         vertx4: missing_feature
   tests/appsec/iast/sink/test_hsts_missing_header.py::Test_HstsMissingHeader::test_telemetry_metric_executed_sink:
@@ -505,7 +530,7 @@ manifest:
         ratpack: missing_feature
         resteasy-netty3: missing_feature
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-        spring-boot-openliberty: bug (APPSEC-51483)
+        spring-boot-openliberty: v1.66.0  # TODO: a lower version might be supported
         vertx3: missing_feature
         vertx4: missing_feature
   tests/appsec/iast/sink/test_hsts_missing_header.py::Test_HstsMissingHeader_StackTrace: irrelevant (not expected to have a stack trace)
@@ -921,7 +946,7 @@ manifest:
         ratpack: missing_feature
         resteasy-netty3: missing_feature
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-        spring-boot-openliberty: bug (APPSEC-54981)
+        spring-boot-openliberty: v1.66.0  # TODO: a lower version might be supported
         vertx3: missing_feature
         vertx4: missing_feature
   tests/appsec/iast/sink/test_xcontent_sniffing.py::Test_XContentSniffing::test_telemetry_metric_executed_sink:
@@ -939,7 +964,7 @@ manifest:
         ratpack: missing_feature
         resteasy-netty3: missing_feature
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-        spring-boot-openliberty: bug (APPSEC-54981)
+        spring-boot-openliberty: v1.66.0  # TODO: a lower version might be supported
         vertx3: missing_feature
         vertx4: missing_feature
   tests/appsec/iast/sink/test_xcontent_sniffing.py::Test_XContentSniffing_StackTrace: irrelevant (not expected to have a stack trace)
@@ -1300,7 +1325,7 @@ manifest:
   tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_sample_rate:  # Modified by easy win activation script
     - weblog_declaration:
         '*': missing_feature
-        vertx3: bug (APPSEC-61153)
+        vertx3: v1.66.0  # TODO: a lower version might be supported
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyJson:
     - weblog_declaration:
         "*": v1.45.0
@@ -1610,7 +1635,7 @@ manifest:
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp:
     - weblog_declaration:
-        spring-boot-payara: missing_feature (APPSEC-54966)
+        spring-boot-payara: v1.66.0  # TODO: a lower version might be supported
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp::test_ssrf_smoke:
     - weblog_declaration:
         vertx3: missing_feature (APPSEC-55781)
@@ -1966,7 +1991,15 @@ manifest:
         spring-boot-payara: bug (APPSEC-54985)
         vertx3: missing_feature (login endpoints not implemented)
         vertx4: missing_feature (login endpoints not implemented)
-  tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Blocking::test_user_blocking_sdk: missing_feature
+  tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Blocking::test_user_blocking_sdk:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        uds-spring-boot: '>=1.66.0'
+        spring-boot-wildfly: '>=1.66.0'
+        spring-boot-openliberty: '>=1.66.0'
+        spring-boot-undertow: '>=1.66.0'
+        spring-boot-jetty: '>=1.66.0'
+        spring-boot: '>=1.66.0'
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Tracking:
     - weblog_declaration:
         "*": v1.45.0
@@ -2026,14 +2059,26 @@ manifest:
         spring-boot: v1.62.0-SNAPSHOT
         spring-boot-payara: v1.63.0-SNAPSHOT
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+        play: v1.66.0  # TODO: a lower version might be supported
+        vertx3: v1.66.0  # TODO: a lower version might be supported
+        ratpack: v1.66.0  # TODO: a lower version might be supported
+        uds-spring-boot: v1.66.0  # TODO: a lower version might be supported
+        spring-boot-wildfly: v1.66.0  # TODO: a lower version might be supported
+        jersey-grizzly2: v1.66.0  # TODO: a lower version might be supported
+        vertx4: v1.66.0  # TODO: a lower version might be supported
+        spring-boot-undertow: v1.66.0  # TODO: a lower version might be supported
+        spring-boot-openliberty: v1.66.0  # TODO: a lower version might be supported
+        spring-boot-jetty: v1.66.0  # TODO: a lower version might be supported
+        akka-http: v1.66.0  # TODO: a lower version might be supported
+        resteasy-netty3: v1.66.0  # TODO: a lower version might be supported
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_multipart:
     - weblog_declaration:
         "*": v1.15.0
         akka-http: v1.22.0
-        jersey-grizzly2: missing_feature
+        jersey-grizzly2: v1.66.0  # TODO: a lower version might be supported
         play: v1.22.0
-        ratpack: missing_feature
-        resteasy-netty3: missing_feature
+        ratpack: v1.66.0  # TODO: a lower version might be supported
+        resteasy-netty3: v1.66.0  # TODO: a lower version might be supported
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         spring-boot-openliberty: bug (APPSEC-54985)
         spring-boot-payara: bug (APPSEC-54985)
@@ -2990,7 +3035,10 @@ manifest:
   tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualProfiling::test_profiling:
     - declaration: bug (SCP-962)
       component_version: '>=1.5.0'
-  tests/cws/test_thread_context_sharing.py::Test_ThreadContextSharing: missing_feature (thread context sharing not enabled for appsec yet)
+  tests/cws/test_thread_context_sharing.py::Test_ThreadContextSharing:
+    - weblog_declaration:
+        "*": irrelevant (only tested in one framework)
+        spring-boot: v1.67.0-SNAPSHOT
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Line_Capture_Expressions:
     - weblog_declaration:
         "*": missing_feature
@@ -3027,8 +3075,6 @@ manifest:
         uds-spring-boot: v1.38.0
     - declaration: missing_feature (Method capture expressions are not implemented)
       component_version: '<=1.54.0'
-  ? tests/debugger/test_debugger_capture_expressions_errors.py::Test_Debugger_Filter_Rejected_Capture_Expression_Error::test_filter_rejected_no_error_spam
-  : bug (IDEAI-714)
   tests/debugger/test_debugger_code_origins.py::Test_Debugger_Code_Origins:
     - weblog_declaration:
         "*": missing_feature
@@ -3053,6 +3099,13 @@ manifest:
         spring-boot-undertow: v1.38.0
         spring-boot-wildfly: v1.38.0
         uds-spring-boot: v1.38.0
+        play: v1.66.0  # TODO: a lower version might be supported
+        vertx3: v1.66.0  # TODO: a lower version might be supported
+        ratpack: v1.66.0  # TODO: a lower version might be supported
+        jersey-grizzly2: v1.66.0  # TODO: a lower version might be supported
+        vertx4: v1.66.0  # TODO: a lower version might be supported
+        akka-http: v1.66.0  # TODO: a lower version might be supported
+        resteasy-netty3: v1.66.0  # TODO: a lower version might be supported
   tests/debugger/test_debugger_condition_errors.py::Test_Debugger_Runtime_Condition_Error:
     - weblog_declaration:
         "*": missing_feature
@@ -3162,7 +3215,16 @@ manifest:
         uds-spring-boot: v1.38.0
   tests/debugger/test_debugger_guardrails.py::Test_Debugger_Evaluation_Timeout_Line_Probe: irrelevant (Line-probe variant is only used by Node.js and Ruby)
   tests/debugger/test_debugger_guardrails.py::Test_Debugger_Evaluation_Timeout_Method_Probe: missing_feature (Debugger evaluation timeout guardrail not implemented yet)
-  tests/debugger/test_debugger_guardrails.py::Test_Debugger_Snapshot_Size_Guardrail: missing_feature (Debugger snapshot size guardrail not implemented yet)
+  tests/debugger/test_debugger_guardrails.py::Test_Debugger_Snapshot_Size_Guardrail:
+    - weblog_declaration:
+        "*": missing_feature
+        spring-boot: v1.38.0
+        spring-boot-jetty: v1.38.0
+        spring-boot-openliberty: v1.38.0
+        spring-boot-payara: v1.38.0
+        spring-boot-undertow: v1.38.0
+        spring-boot-wildfly: v1.38.0
+        uds-spring-boot: v1.38.0
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin:
     - weblog_declaration:
         "*": missing_feature
@@ -3232,7 +3294,6 @@ manifest:
         spring-boot-undertow: v1.38.0
         spring-boot-wildfly: v1.38.0
         uds-spring-boot: v1.38.0
-  tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_log_line_capture_expression_budgets: bug (DEBUG-5730)
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_span_probe_expression_budgets: bug (DEBUG-3797)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots:
     - weblog_declaration:
@@ -3886,6 +3947,14 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY: v1.62.0
   tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY::test_empty_is_treated_as_unset: bug (APMAPI-2412)
   tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY::test_invalid_value_is_ignored: bug (APMAPI-2446)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_endpoint.py::Test_OTEL_EXPORTER_OTLP_ENDPOINT: v1.56.0
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_endpoint.py::Test_OTEL_EXPORTER_OTLP_ENDPOINT::test_empty_endpoint_falls_back_to_default
+  : bug (APMAPI-2412)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_endpoint.py::Test_OTEL_EXPORTER_OTLP_ENDPOINT::test_otlp_custom_endpoint_grpc
+  : bug (APMAPI-2503, APMAPI-2528)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_endpoint.py::Test_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT: v1.62.0
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_endpoint.py::Test_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT::test_empty_falls_back_to_global_endpoint
+  : bug (APMAPI-2412)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL: v1.62.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL::test_case_insensitive
   : bug (APMAPI-2503)
@@ -3897,6 +3966,11 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL::test_http_json: missing_feature (OTLP HTTP JSON exporter is not implemented)
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL::test_signal_precedence
   : bug (APMAPI-2503)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_endpoint.py::Test_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: v1.56.0
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_endpoint.py::Test_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT::test_empty_falls_back_to_global_endpoint
+  : bug (APMAPI-2412)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_endpoint.py::Test_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT::test_otlp_metrics_custom_endpoint_grpc
+  : bug (APMAPI-2503, APMAPI-2528)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_protocol.py::Test_OTEL_EXPORTER_OTLP_METRICS_PROTOCOL: v1.56.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_protocol.py::Test_OTEL_EXPORTER_OTLP_METRICS_PROTOCOL::test_case_insensitive
   : bug (APMAPI-2503)
@@ -3919,6 +3993,9 @@ manifest:
   : irrelevant (The SDK uses the specification default)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs::test_grpc: bug (APMAPI-2503)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs::test_http_json: missing_feature (OTLP HTTP JSON exporter is not implemented)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_endpoint.py::Test_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: v1.61.0
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_endpoint.py::Test_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT::test_empty_falls_back_to_global_endpoint
+  : bug (APMAPI-2412)
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER: v1.54.0
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER::test_console: missing_feature (Only otlp and none exporters are implemented)
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER::test_deprecated_values: missing_feature (Only otlp and none exporters are implemented)
@@ -4226,19 +4303,14 @@ manifest:
   tests/parametric/test_otel_tracer.py::Test_Otel_Tracer::test_otel_force_flush:
     - declaration: missing_feature (OTel resource naming implemented in 1.24.0)
       component_version: <=1.23.0
-  tests/parametric/test_otel_tracestate_sampling.py::Test_OtelTracestateSampling:  # TODO: a lower version might be supported
-    - declaration: missing_feature (APMAPI-2171)
-      component_version: <1.66.0
-  tests/parametric/test_otel_tracestate_sampling.py::Test_OtelTracestateSampling::test_emits_probability_sampling_vectors: missing_feature (APMAPI-2171)
-  tests/parametric/test_otel_tracestate_sampling.py::Test_OtelTracestateSampling::test_force_keep_clears_inherited_th: missing_feature (APMAPI-2171)
-  tests/parametric/test_otel_tracestate_sampling.py::Test_OtelTracestateSampling::test_malformed_th_preserves_rv: missing_feature (APMAPI-2171)
-  tests/parametric/test_otel_tracestate_sampling.py::Test_OtelTracestateSampling::test_precision_boundary_decisions: missing_feature (APMAPI-2171)
-  tests/parametric/test_otel_tracestate_sampling.py::Test_OtelTracestateSampling::test_sanitizes_malformed_inbound_ot: missing_feature (APMAPI-2171)
+  tests/parametric/test_otel_tracestate_sampling.py::Test_OtelTracestateSampling: v1.67.0-SNAPSHOT  # Easy win for all weblogs and version 1.66.0
   tests/parametric/test_otlp_trace_metrics.py: v1.66.0-SNAPSHOT
   tests/parametric/test_otlp_trace_metrics.py::Test_FR01_Enablement_Configuration::test_fr01_6_disabled_when_apm_tracing_disabled: missing_feature (OTLP trace metrics are still emitted when DD_APM_TRACING_ENABLED=false)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_AdditionalTags::test_fr08_10_dd_tags_tracer_tags_resource_attributes: missing_feature (DD_TAGS is not yet reported as datadog.tracer_tags on the OTLP trace metrics resource)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_AdditionalTags::test_fr08_11_otel_resource_attributes_env_tracer_tags: missing_feature (OTEL_RESOURCE_ATTRIBUTES is not yet reported as datadog.tracer_tags on the OTLP trace metrics resource)
-  tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes::test_fr08_14_peer_tags: missing_feature (Blocked on test-agent support for advertising a peer_tags allowlist in /info)
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes::test_fr08_14_peer_tags:  # TODO: a lower version might be supported
+    - declaration: missing_feature (Blocked on test-agent support for advertising a peer_tags allowlist in /info)
+      component_version: <1.66.0
   tests/parametric/test_parametric_endpoints.py::TestRemoteConfigApplyEndpoint: incomplete_test_app (POST /trace/remote-config/apply only implemented in the python parametric app)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Add_Link: incomplete_test_app (add_link endpoint is not implemented)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Baggage:  # Modified by easy win activation script
@@ -4259,8 +4331,12 @@ manifest:
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Write_Log::test_write_log:  # TODO: a lower version might be supported
     - declaration: incomplete_test_app (Logs endpoint is only implemented in python and node.js app)
       component_version: <1.66.0
-  tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_one_span: 'missing_feature (java uses ''>'' so it needs one more span to force a partial flush)'
-  tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_one_span_default: 'missing_feature (java uses ''>'' so it needs one more span to force a partial flush)'
+  tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_one_span:  # TODO: a lower version might be supported
+    - declaration: missing_feature (java uses '>' so it needs one more span to force a partial flush)
+      component_version: <1.66.0
+  tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_one_span_default:  # TODO: a lower version might be supported
+    - declaration: missing_feature (java uses '>' so it needs one more span to force a partial flush)
+      component_version: <1.66.0
   tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_propagation_tags: v1.65.0-SNAPSHOT+7071ae2ed6
   tests/parametric/test_process_discovery.py::Test_ProcessDiscovery: v1.55.0-SNAPSHOT
   tests/parametric/test_sampling_manual.py::Test_Manual_Sampling: v1.59.0-SNAPSHOT+419da213f7
@@ -4436,8 +4512,8 @@ manifest:
   tests/stats/test_stats.py::Test_Error_Sampler:
     - weblog_declaration:
         "*": v1.54.0
-        vertx3: missing_feature (500 responses are not flagged as errors, so no error trace is produced)
-        vertx4: missing_feature (500 responses are not flagged as errors, so no error trace is produced)
+        vertx3: v1.66.0  # TODO: a lower version might be supported
+        vertx4: v1.66.0  # TODO: a lower version might be supported
   tests/stats/test_stats.py::Test_Stats_Service_Source:
     - weblog_declaration:
         "*": v0.0.0
@@ -5042,80 +5118,98 @@ manifest:
         play: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
         uds-spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
         spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-  tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5: missing_feature (APMAPI-2171)
-  tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh:  # TODO: a lower version might be supported
-    - declaration: missing_feature (APMAPI-2171)
-      component_version: <1.66.0
-      weblog: [ratpack, akka-http, spring-boot-3-native, uds-spring-boot, vertx3, vertx4, play, spring-boot-wildfly, spring-boot, spring-boot-jetty, resteasy-netty3, spring-boot-openliberty, jersey-grizzly2, spring-boot-undertow, spring-boot-payara]
-    - declaration: missing_feature (APMAPI-2171)
-      excluded_weblog: [ratpack, akka-http, spring-boot-3-native, uds-spring-boot, vertx3, vertx4, play, spring-boot-wildfly, spring-boot, spring-boot-jetty, resteasy-netty3, spring-boot-openliberty, jersey-grizzly2, spring-boot-undertow, spring-boot-payara]
+  tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5:
+    - weblog_declaration:
+        "*": v1.67.0-SNAPSHOT
+        akka-http: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        jersey-grizzly2: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        ratpack: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+  tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh:  # Easy win for play, spring-boot, spring-boot-jetty, spring-boot-openliberty, spring-boot-payara, spring-boot-undertow, spring-boot-wildfly, uds-spring-boot, vertx3, vertx4 and version 1.66.0
+    - weblog_declaration:
+        "*": v1.67.0-SNAPSHOT
+        akka-http: v1.66.0  # TODO: a lower version might be supported
+        jersey-grizzly2: v1.66.0  # TODO: a lower version might be supported
+        ratpack: v1.66.0  # TODO: a lower version might be supported
+        resteasy-netty3: v1.66.0  # TODO: a lower version might be supported
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh::test_force_keep_forwards_inherited_rv:
     - weblog_declaration:
-        resteasy-netty3: missing_feature (APMAPI-2171)
-        ratpack: missing_feature (APMAPI-2171)
-        jersey-grizzly2: missing_feature (APMAPI-2171)
-        spring-boot-3-native: missing_feature (APMAPI-2171)
-        akka-http: missing_feature (APMAPI-2171)
+        resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        jersey-grizzly2: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        akka-http: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        ratpack: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
   tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh::test_force_keep_overrides_inherited_drop_decision:
     - weblog_declaration:
-        vertx3: missing_feature (APMAPI-2171)
-        akka-http: missing_feature (APMAPI-2171)
-        spring-boot-undertow: missing_feature (APMAPI-2171)
-        spring-boot: missing_feature (APMAPI-2171)
-        spring-boot-payara: missing_feature (APMAPI-2171)
-        vertx4: missing_feature (APMAPI-2171)
-        resteasy-netty3: missing_feature (APMAPI-2171)
-        ratpack: missing_feature (APMAPI-2171)
-        jersey-grizzly2: missing_feature (APMAPI-2171)
-        spring-boot-jetty: missing_feature (APMAPI-2171)
-        spring-boot-3-native: missing_feature (APMAPI-2171)
-        spring-boot-openliberty: missing_feature (APMAPI-2171)
-        spring-boot-wildfly: missing_feature (APMAPI-2171)
-        play: missing_feature (APMAPI-2171)
-        uds-spring-boot: missing_feature (APMAPI-2171)
-  tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchanged:  # TODO: a lower version might be supported
-    - declaration: missing_feature (APMAPI-2171)
-      component_version: <1.66.0
-      weblog: [uds-spring-boot, vertx3, vertx4, play, spring-boot-wildfly, spring-boot, spring-boot-jetty, spring-boot-openliberty, spring-boot-undertow, spring-boot-payara]
-    - declaration: missing_feature (APMAPI-2171)
-      excluded_weblog: [uds-spring-boot, vertx3, vertx4, play, spring-boot-wildfly, spring-boot, spring-boot-jetty, spring-boot-openliberty, spring-boot-undertow, spring-boot-payara]
-  tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchangedWhenDropped:  # TODO: a lower version might be supported
-    - declaration: missing_feature (APMAPI-2171)
-      component_version: <1.66.0
-      weblog: [uds-spring-boot, vertx3, vertx4, play, spring-boot-wildfly, spring-boot, spring-boot-jetty, spring-boot-openliberty, spring-boot-undertow, spring-boot-payara]
-    - declaration: missing_feature (APMAPI-2171)
-      excluded_weblog: [uds-spring-boot, vertx3, vertx4, play, spring-boot-wildfly, spring-boot, spring-boot-jetty, spring-boot-openliberty, spring-boot-undertow, spring-boot-payara]
-  tests/test_otel_tracestate_sampling.py::Test_MalformedOtHandling: missing_feature (APMAPI-2171)
-  tests/test_otel_tracestate_sampling.py::Test_PreserveDdAndOtherVendors:  # TODO: a lower version might be supported
-    - declaration: missing_feature (APMAPI-2171)
-      component_version: <1.66.0
-      weblog: [uds-spring-boot, vertx3, vertx4, play, spring-boot-wildfly, spring-boot, spring-boot-jetty, spring-boot-openliberty, spring-boot-undertow, spring-boot-payara]
-    - declaration: missing_feature (APMAPI-2171)
-      excluded_weblog: [uds-spring-boot, vertx3, vertx4, play, spring-boot-wildfly, spring-boot, spring-boot-jetty, spring-boot-openliberty, spring-boot-undertow, spring-boot-payara]
-  tests/test_otel_tracestate_sampling.py::Test_PreserveTracestateMemberOrder:  # TODO: a lower version might be supported
-    - declaration: missing_feature (APMAPI-2171)
-      component_version: <1.66.0
-      weblog: [uds-spring-boot, vertx3, vertx4, play, spring-boot-wildfly, spring-boot, spring-boot-jetty, spring-boot-openliberty, spring-boot-undertow, spring-boot-payara]
-    - declaration: missing_feature (APMAPI-2171)
-      excluded_weblog: [uds-spring-boot, vertx3, vertx4, play, spring-boot-wildfly, spring-boot, spring-boot-jetty, spring-boot-openliberty, spring-boot-undertow, spring-boot-payara]
-  tests/test_otel_tracestate_sampling.py::Test_SampledWithoutOtNotFabricated:  # TODO: a lower version might be supported
-    - declaration: missing_feature (APMAPI-2171)
-      component_version: <1.66.0
-      weblog: [ratpack, akka-http, spring-boot-3-native, uds-spring-boot, vertx3, vertx4, play, spring-boot-wildfly, spring-boot, spring-boot-jetty, spring-boot-openliberty, spring-boot-undertow, spring-boot-payara]
-    - declaration: missing_feature (APMAPI-2171)
-      excluded_weblog: [ratpack, akka-http, spring-boot-3-native, uds-spring-boot, vertx3, vertx4, play, spring-boot-wildfly, spring-boot, spring-boot-jetty, spring-boot-openliberty, spring-boot-undertow, spring-boot-payara]
-  tests/test_otel_tracestate_sampling.py::Test_ThOnlyDoesNotFabricateRv:  # TODO: a lower version might be supported
-    - declaration: missing_feature (APMAPI-2171)
-      component_version: <1.66.0
-      weblog: [uds-spring-boot, vertx3, vertx4, play, spring-boot-wildfly, spring-boot, spring-boot-jetty, spring-boot-openliberty, spring-boot-undertow, spring-boot-payara]
-    - declaration: missing_feature (APMAPI-2171)
-      excluded_weblog: [uds-spring-boot, vertx3, vertx4, play, spring-boot-wildfly, spring-boot, spring-boot-jetty, spring-boot-openliberty, spring-boot-undertow, spring-boot-payara]
-  tests/test_otel_tracestate_sampling.py::Test_ThOnlyDoesNotFabricateRvWhenDropped:  # TODO: a lower version might be supported
-    - declaration: missing_feature (APMAPI-2171)
-      component_version: <1.66.0
-      weblog: [uds-spring-boot, vertx3, vertx4, play, spring-boot-wildfly, spring-boot, spring-boot-jetty, spring-boot-openliberty, spring-boot-undertow, spring-boot-payara]
-    - declaration: missing_feature (APMAPI-2171)
-      excluded_weblog: [uds-spring-boot, vertx3, vertx4, play, spring-boot-wildfly, spring-boot, spring-boot-jetty, spring-boot-openliberty, spring-boot-undertow, spring-boot-payara]
+        resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        jersey-grizzly2: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        akka-http: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        ratpack: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+  tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchanged:  # Easy win for play, spring-boot, spring-boot-jetty, spring-boot-openliberty, spring-boot-payara, spring-boot-undertow, spring-boot-wildfly, uds-spring-boot, vertx3, vertx4 and version 1.66.0
+    - weblog_declaration:
+        "*": v1.67.0-SNAPSHOT
+        akka-http: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        jersey-grizzly2: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        ratpack: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+  tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchangedWhenDropped:  # Easy win for play, spring-boot, spring-boot-jetty, spring-boot-openliberty, spring-boot-payara, spring-boot-undertow, spring-boot-wildfly, uds-spring-boot, vertx3, vertx4 and version 1.66.0
+    - weblog_declaration:
+        "*": v1.67.0-SNAPSHOT
+        akka-http: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        jersey-grizzly2: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        ratpack: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+  tests/test_otel_tracestate_sampling.py::Test_MalformedOtHandling:
+    - weblog_declaration:
+        "*": v1.67.0-SNAPSHOT
+        akka-http: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        jersey-grizzly2: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        ratpack: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+  tests/test_otel_tracestate_sampling.py::Test_PreserveDdAndOtherVendors:  # Easy win for play, spring-boot, spring-boot-jetty, spring-boot-openliberty, spring-boot-payara, spring-boot-undertow, spring-boot-wildfly, uds-spring-boot, vertx3, vertx4 and version 1.66.0
+    - weblog_declaration:
+        "*": v1.67.0-SNAPSHOT
+        akka-http: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        jersey-grizzly2: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        ratpack: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+  tests/test_otel_tracestate_sampling.py::Test_PreserveTracestateMemberOrder:  # Easy win for play, spring-boot, spring-boot-jetty, spring-boot-openliberty, spring-boot-payara, spring-boot-undertow, spring-boot-wildfly, uds-spring-boot, vertx3, vertx4 and version 1.66.0
+    - weblog_declaration:
+        "*": v1.67.0-SNAPSHOT
+        akka-http: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        jersey-grizzly2: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        ratpack: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+  tests/test_otel_tracestate_sampling.py::Test_SampledWithoutOtNotFabricated:  # Easy win for play, spring-boot, spring-boot-jetty, spring-boot-openliberty, spring-boot-payara, spring-boot-undertow, spring-boot-wildfly, uds-spring-boot, vertx3, vertx4 and version 1.66.0
+    - weblog_declaration:
+        "*": v1.67.0-SNAPSHOT
+        akka-http: v1.66.0  # TODO: a lower version might be supported
+        jersey-grizzly2: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        ratpack: v1.66.0  # TODO: a lower version might be supported
+        resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+  tests/test_otel_tracestate_sampling.py::Test_ThOnlyDoesNotFabricateRv:  # Easy win for play, spring-boot, spring-boot-jetty, spring-boot-openliberty, spring-boot-payara, spring-boot-undertow, spring-boot-wildfly, uds-spring-boot, vertx3, vertx4 and version 1.66.0
+    - weblog_declaration:
+        "*": v1.67.0-SNAPSHOT
+        akka-http: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        jersey-grizzly2: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        ratpack: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+  tests/test_otel_tracestate_sampling.py::Test_ThOnlyDoesNotFabricateRvWhenDropped:  # Easy win for play, spring-boot, spring-boot-jetty, spring-boot-openliberty, spring-boot-payara, spring-boot-undertow, spring-boot-wildfly, uds-spring-boot, vertx3, vertx4 and version 1.66.0
+    - weblog_declaration:
+        "*": v1.67.0-SNAPSHOT
+        akka-http: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        jersey-grizzly2: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        ratpack: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
   tests/test_otlp_runtime_metrics.py::Test_OtlpRuntimeMetrics::test_dd_metrics_are_absent:  # TODO: a lower version might be supported
     - declaration: bug (APMAPI-1952)
       component_version: <1.66.0
@@ -5170,6 +5264,9 @@ manifest:
         spring-boot: v0.92.0
         spring-boot-3-native: v0.92.0
   tests/test_sampling_rates.py::Test_SamplingRates: v0.92.0
+  tests/test_sampling_rules_agent_rate.py::Test_SamplingRulesAgentRate::test_agent_rate_applies_to_rule_miss:
+    - declaration: bug (APMAPI-2506)
+      component_version: "<=1.67.0-SNAPSHOT"
   tests/test_scrubbing.py::Test_UrlField::test_main:
     - weblog_declaration:
         akka-http: v1.60.1  # TODO: a lower version might be supported
@@ -5209,7 +5306,12 @@ manifest:
     - weblog_declaration:
         "*": v0.93.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-  tests/test_standard_tags.py::Test_StandardTagsNetworkClientIp::test_network_client_ip: missing_feature (APPSEC-62219)
+  tests/test_standard_tags.py::Test_StandardTagsNetworkClientIp::test_network_client_ip:  # TODO: a lower version might be supported
+    - declaration: missing_feature (APPSEC-62219)
+      component_version: <1.66.0
+      weblog: [play, vertx3, ratpack, uds-spring-boot, spring-boot-wildfly, jersey-grizzly2, vertx4, spring-boot-undertow, spring-boot-openliberty, spring-boot-jetty, akka-http, spring-boot, resteasy-netty3, spring-boot-payara]
+    - declaration: missing_feature (APPSEC-62219)
+      excluded_weblog: [play, vertx3, ratpack, uds-spring-boot, spring-boot-wildfly, jersey-grizzly2, vertx4, spring-boot-undertow, spring-boot-openliberty, spring-boot-jetty, akka-http, spring-boot, resteasy-netty3, spring-boot-payara]
   tests/test_standard_tags.py::Test_StandardTagsReferrerHostname: missing_feature
   tests/test_standard_tags.py::Test_StandardTagsRoute:
     - weblog_declaration:
