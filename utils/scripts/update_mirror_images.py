@@ -64,10 +64,7 @@ MIRROR_YAML_HEADER = """\
 # Scenarios excluded from the GitLab end-to-end pipeline. Mirrors the
 # `excluded_scenarios` input in .gitlab-ci.yml so the mirrored image set matches
 # what actually runs in CI. Override with --exclude when the CI list changes.
-DEFAULT_EXCLUDED = (
-    "DEBUGGER_EXPRESSION_LANGUAGE",
-    "OTEL_COLLECTOR_E2E",
-)
+DEFAULT_EXCLUDED = ("DEBUGGER_EXPRESSION_LANGUAGE",)
 
 
 def _library_weblog_pairs() -> list[tuple[str, str]]:
