@@ -1,5 +1,3 @@
-import time
-
 from tests.parametric.conftest import APMLibrary
 from utils import features, pytest, scenarios
 from utils.docker_fixtures import TestAgentAPI
@@ -17,16 +15,6 @@ TRACES_ENVIRONMENT = {
     "OTEL_EXPORTER_OTLP_TRACES_PROTOCOL": "http/protobuf",
     "OTEL_TRACES_EXPORTER": "otlp",
 }
-
-
-def _assert_trace_request_received(test_agent: TestAgentAPI, expected_path: str) -> None:
-    # Flush can return before the agent records the export. Telemetry requests do not count.
-    for _ in range(30):
-        requests = test_agent.otlp_requests()
-        if any(request["url"].endswith(expected_path) for request in requests):
-            return
-        time.sleep(0.1)
-    raise AssertionError(f"No OTLP trace request received at {expected_path}: {requests}")
 
 
 @pytest.fixture(autouse=True)
@@ -70,7 +58,8 @@ class Test_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:
                 pass
             library.dd_flush()
 
-        _assert_trace_request_received(test_agent, expected_path)
+        requests = test_agent.otlp_requests()
+        assert any(request["url"].endswith(expected_path) for request in requests), requests
 
     @pytest.mark.parametrize(("endpoint_value", "expected_path"), [pytest.param("unset", DEFAULT_PATH, id="unset")])
     def test_unset_falls_back_to_global_endpoint(
@@ -85,7 +74,8 @@ class Test_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:
                 pass
             library.dd_flush()
 
-        _assert_trace_request_received(test_agent, expected_path)
+        requests = test_agent.otlp_requests()
+        assert any(request["url"].endswith(expected_path) for request in requests), requests
 
     @pytest.mark.parametrize(("endpoint_value", "expected_path"), [pytest.param("empty", DEFAULT_PATH, id="empty")])
     def test_empty_falls_back_to_global_endpoint(
@@ -100,4 +90,5 @@ class Test_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:
                 pass
             library.dd_flush()
 
-        _assert_trace_request_received(test_agent, expected_path)
+        requests = test_agent.otlp_requests()
+        assert any(request["url"].endswith(expected_path) for request in requests), requests
