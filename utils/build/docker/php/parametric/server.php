@@ -210,6 +210,8 @@ $loggerDict = [];
 $otelMeters = [];
 /** @var \OpenTelemetry\API\Metrics\CounterInterface[] $otelCounters */
 $otelCounters = [];
+/** @var array<string, object> $otelMetricInstruments */
+$otelMetricInstruments = [];
 // Composer bootstraps the SDK with OTEL_PHP_AUTOLOAD_ENABLED. The SDK owns
 // provider selection and shutdown; the app always uses the configured provider.
 $sdkMeterProvider = Globals::meterProvider();
@@ -259,6 +261,62 @@ $router->addRoute('POST', '/metrics/otel/counter_add', new ClosureRequestHandler
     $otelCounters[$key]->add(arg($req, 'value'), arg($req, 'attributes') ?? []);
     return jsonResponse(new stdClass());
 }));
+// Keep instrument handles alive for recording and asynchronous collection.
+foreach ([
+    'updowncounter' => ['createUpDownCounter', 'add'],
+    'gauge' => ['createGauge', 'record'],
+    'histogram' => ['createHistogram', 'record'],
+] as $kind => [$createMethod, $recordMethod]) {
+    $router->addRoute('POST', '/metrics/otel/create_' . $kind, new ClosureRequestHandler(function (Request $req) use (&$otelMeters, &$otelMetricInstruments, $kind, $createMethod) {
+        $meterName = arg($req, 'meter_name');
+        if (!isset($otelMeters[$meterName])) {
+            return new Response(status: 400, headers: ['content-type' => 'application/json'], body: json_encode([
+                'success' => false, 'message' => 'Unknown meter: ' . $meterName,
+            ]));
+        }
+        $name = arg($req, 'name');
+        $unit = arg($req, 'unit');
+        $description = arg($req, 'description');
+        $key = json_encode([$meterName, $kind, $name, $unit, $description]);
+        $otelMetricInstruments[$key] = $otelMeters[$meterName]->$createMethod($name, $unit, $description);
+        return jsonResponse(new stdClass());
+    }));
+    $router->addRoute('POST', '/metrics/otel/' . $kind . '_' . $recordMethod, new ClosureRequestHandler(function (Request $req) use (&$otelMetricInstruments, $kind, $recordMethod) {
+        $key = json_encode([arg($req, 'meter_name'), $kind, arg($req, 'name'), arg($req, 'unit'), arg($req, 'description')]);
+        if (!isset($otelMetricInstruments[$key])) {
+            return new Response(status: 400, headers: ['content-type' => 'application/json'], body: json_encode([
+                'success' => false, 'message' => 'Unknown instrument: ' . $key,
+            ]));
+        }
+        $otelMetricInstruments[$key]->$recordMethod(arg($req, 'value'), arg($req, 'attributes') ?? []);
+        return jsonResponse(new stdClass());
+    }));
+}
+foreach ([
+    'counter' => 'createObservableCounter',
+    'updowncounter' => 'createObservableUpDownCounter',
+    'gauge' => 'createObservableGauge',
+] as $kind => $createMethod) {
+    $router->addRoute('POST', '/metrics/otel/create_asynchronous_' . $kind, new ClosureRequestHandler(function (Request $req) use (&$otelMeters, &$otelMetricInstruments, $kind, $createMethod) {
+        $meterName = arg($req, 'meter_name');
+        if (!isset($otelMeters[$meterName])) {
+            return new Response(status: 400, headers: ['content-type' => 'application/json'], body: json_encode([
+                'success' => false, 'message' => 'Unknown meter: ' . $meterName,
+            ]));
+        }
+        $name = arg($req, 'name');
+        $unit = arg($req, 'unit');
+        $description = arg($req, 'description');
+        $value = arg($req, 'value');
+        $attributes = arg($req, 'attributes') ?? [];
+        $callback = function (\OpenTelemetry\API\Metrics\ObserverInterface $observer) use ($value, $attributes): void {
+            $observer->observe($value, $attributes);
+        };
+        $key = json_encode([$meterName, 'asynchronous_' . $kind, $name, $unit, $description]);
+        $otelMetricInstruments[$key] = $otelMeters[$meterName]->$createMethod($name, $unit, $description, [], $callback);
+        return jsonResponse(new stdClass());
+    }));
+}
 $router->addRoute('POST', '/metrics/otel/force_flush', new ClosureRequestHandler(function () use ($sdkMeterProvider) {
     // The API no-op provider has no buffered metrics or flush method.
     if ($sdkMeterProvider instanceof NoopMeterProvider) {
@@ -340,7 +398,7 @@ $router->addRoute('POST', '/trace/span/start', new ClosureRequestHandler(functio
             \DDTrace\create_stack();
             $span = \DDTrace\start_span();
         } elseif (isset($spansDistributedTracingHeaders[$parent])) {
-            $span = \DDTrace\start_span();
+            $span = \DDTrace\start_trace_span();
             $distributedTracingHeaders = $spansDistributedTracingHeaders[$parent];
             \DDTrace\consume_distributed_tracing_headers($distributedTracingHeaders);
         } else {
@@ -394,6 +452,11 @@ $router->addRoute('POST', '/trace/span/extract_headers', new ClosureRequestHandl
     };
     \DDTrace\consume_distributed_tracing_headers($callback);
     $spanID = $span->parentId ?? null;
+    if (!$spanID && !empty($span->baggage)) {
+        // Baggage-only extraction has no remote parent ID. Keep an app context
+        // handle so start can replay the extracted headers through the SDK.
+        $spanID = $span->id;
+    }
     $spansDistributedTracingHeaders[$spanID] = $headers;
     return jsonResponse(["span_id" => $spanID]);
 }));
