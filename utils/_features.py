@@ -126,18 +126,7 @@ class _Owner(Enum):
                             })
     remote_config        = _OwnerDef("@DataDog/remote-config")
     rp                   = _OwnerDef("@DataDog/apm-reliability-and-performance")
-    sdk_capabilities     = _OwnerDef("@DataDog/apm-sdk-capabilities", repo_overrides={
-                                "dd-trace-cpp":     "@DataDog/apm-sdk-capabilities-cpp",
-                                "dd-trace-dotnet":  "@DataDog/apm-sdk-capabilities-dotnet",
-                                "dd-trace-go":      "@DataDog/apm-sdk-capabilities-go",
-                                "dd-trace-java":    "@DataDog/apm-sdk-capabilities-java",
-                                "dd-trace-js":      "@DataDog/apm-sdk-capabilities-js",
-                                "dd-trace-py":      "@DataDog/apm-sdk-capabilities-python",
-                                "dd-trace-rb":      "@DataDog/apm-sdk-capabilities-ruby",
-                                "dd-trace-rs":      "@DataDog/apm-sdk-capabilities-rust",
-                                "httpd-datadog":    "@DataDog/apm-sdk-capabilities-cpp",
-                                "nginx-datadog":    "@DataDog/apm-sdk-capabilities-cpp",
-                            })
+    sdk_capabilities     = _OwnerDef("@DataDog/apm-sdk-capabilities")
     # fmt: on
 
 
