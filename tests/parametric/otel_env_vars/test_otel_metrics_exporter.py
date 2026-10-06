@@ -8,6 +8,7 @@ from utils.docker_fixtures import TestAgentAPI
 from tests.parametric.conftest import APMLibrary
 
 
+VARIABLE = "OTEL_METRICS_EXPORTER"
 METER = "metrics-exporter-configuration"
 COUNTER = "exporter_selection_probe"
 
@@ -21,7 +22,7 @@ def library_env(
         "DD_METRICS_OTEL_ENABLED": "true",
         # Keep runtime metrics out of the exporter-none assertion.
         "DD_RUNTIME_METRICS_ENABLED": "false",
-        "OTEL_METRICS_EXPORTER": exporter,
+        VARIABLE: exporter,
         # Isolate metrics from the apps' logs pipeline startup.
         "OTEL_LOGS_EXPORTER": "none",
         "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": "http/protobuf",

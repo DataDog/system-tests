@@ -5,6 +5,9 @@ from utils.docker_fixtures import TestAgentAPI
 from tests.parametric.conftest import APMLibrary
 
 
+VARIABLE = "OTEL_METRIC_EXPORT_INTERVAL"
+
+
 @pytest.fixture
 def library_env(interval: str | None) -> dict[str, str | None]:
     return {
@@ -14,7 +17,7 @@ def library_env(interval: str | None) -> dict[str, str | None]:
         "OTEL_METRICS_EXPORTER": "otlp",
         # Isolate metrics from the apps' logs pipeline startup.
         "OTEL_LOGS_EXPORTER": "none",
-        "OTEL_METRIC_EXPORT_INTERVAL": interval,
+        VARIABLE: interval,
         # Avoid a timeout longer than the smallest interval in SDKs that validate both.
         "OTEL_METRIC_EXPORT_TIMEOUT": "1",
     }
@@ -36,16 +39,15 @@ def _effective_interval(test_agent: TestAgentAPI, test_library: APMLibrary, *, r
             # it during initialization and leaves the API's proxy provider in place.
             assert library.config()["otel_metrics_initialized"] == "true", "Metrics SDK did not initialize"
 
-    name = "OTEL_METRIC_EXPORT_INTERVAL"
     configurations = test_agent.wait_for_telemetry_configurations()
-    entries = configurations.get(name)
-    assert entries, f"No effective configuration for {name}"
+    entries = configurations.get(VARIABLE)
+    assert entries, f"No effective configuration for {VARIABLE}"
     # Telemetry may also report attempted inputs. Rejected entries carry an error
     # and do not override the last accepted value (notably in Node.js).
     accepted = [entry for entry in entries if not _has_configuration_error(entry.get("error"))]
-    assert accepted, f"No accepted configuration for {name}: {entries}"
+    assert accepted, f"No accepted configuration for {VARIABLE}: {entries}"
     value = accepted[0].get("value")
-    assert value is not None, f"No value for {name}: {accepted[0]}"
+    assert value is not None, f"No value for {VARIABLE}: {accepted[0]}"
     return int(str(value))
 
 
