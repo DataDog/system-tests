@@ -187,22 +187,23 @@ def uses_sdk_configuration(test_agent: TestAgentAPI) -> bool:
     that does not poll remote config (tracing disabled by DD_TRACE_ENABLED, for instance) looks
     like; the shared helper turns that into the `lib_config` default.
     """
-    return remote_config.resolve_sdk_configuration_support(lambda: test_agent.wait_for_rc_capabilities(_RC_WAIT_LOOPS))
+    return remote_config.resolve_sdk_configuration_support(
+        lambda: test_agent.wait_for_rc_capabilities(_RC_WAIT_LOOPS), library_name=context.library.name
+    )
 
 
 def assert_rc_capability(test_agent: TestAgentAPI, capability: Capabilities, wait_loops: int = 100) -> None:
     """Assert that the tracer advertises the capability to remotely configure one setting.
 
-    A tracer that has moved to the unified SDK_CONFIGURATION contract advertises that single bit
-    for every remotely configurable setting instead of the per-setting ones, so it stands in for
-    any of them. The SDK_CONFIGURATION bit on its own does not, since libdatadog gives that bit a
-    different meaning; only a tracer that has really dropped the per-setting bits qualifies.
+    A tracer that has moved to the unified SDK_CONFIGURATION contract may advertise that bit in
+    place of a per-setting capability. Since libdatadog gives the same bit a different meaning,
+    the shared resolver also uses the library identity when legacy capabilities remain present.
     """
     seen_capabilities = test_agent.wait_for_rc_capabilities(wait_loops)
     if capability in seen_capabilities:
         return
 
-    assert remote_config.resolve_sdk_configuration_contract(seen_capabilities), (
+    assert remote_config.resolve_sdk_configuration_contract(seen_capabilities, library_name=context.library.name), (
         f"RemoteConfig capability missing: neither {capability.name} nor the SDK_CONFIGURATION "
         f"contract that replaces it; seen: {seen_capabilities}"
     )
