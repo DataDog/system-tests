@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -eu
+set -euo pipefail
 
 cd /binaries
 
@@ -29,7 +29,7 @@ else
     ZIP_NAME="datadog_lambda_node${NODE_VERSION}.zip"
     DOWNLOAD_URL="https://github.com/DataDog/datadog-lambda-js/releases/latest/download/${ZIP_NAME}"
     echo "Downloading ${DOWNLOAD_URL}"
-    curl -fsSLO "${DOWNLOAD_URL}"
+    curl -fsSLO --retry 3 "${DOWNLOAD_URL}"
 
     if [ ! -f "${ZIP_NAME}" ]; then
         echo "Failed to download ${ZIP_NAME}"
