@@ -1830,24 +1830,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "reqwest-tracing"
-version = "0.7.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b5e5af0cd6fc3d3c8f703d597af70b6e4e62432c63157b49419fa1ffaf481702"
-dependencies = [
- "anyhow",
- "async-trait",
- "getrandom 0.2.17",
- "http",
- "matchit",
- "opentelemetry",
- "reqwest",
- "reqwest-middleware",
- "tracing",
- "tracing-opentelemetry",
-]
-
-[[package]]
 name = "ring"
 version = "0.17.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2737,7 +2719,6 @@ dependencies = [
  "opentelemetry_sdk",
  "reqwest",
  "reqwest-middleware",
- "reqwest-tracing",
  "serde",
  "serde_json",
  "tokio",
