@@ -1,4 +1,5 @@
 import os
+import re
 import subprocess
 from pathlib import Path
 from typing import cast
@@ -108,6 +109,8 @@ class Test_InstallerVersions:
         assert contents.endswith("\n")
         assert contents.count("\n") == 1
         assert contents.strip() == contents[:-1]
+        # Injector OCI tags carry a package revision; a bare x.y.z tag does not exist in the registry.
+        assert re.fullmatch(r"\d+\.\d+\.\d+-\d+", contents.strip())
 
     def test_windows_installer_pins_injector_from_lock(self) -> None:
         provisions = cast(
