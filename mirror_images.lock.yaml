@@ -246,10 +246,6 @@ images:
     digest: sha256:207ecae0b2b104dfc6dfa763d1e9cd2041cb344800a180e24cb1a28ed533ff90
     target: registry.ddbuild.io/system-tests/mirror/eclipse-temurin:17-jre
     tag: 17-jre
-  ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.64.1:
-    digest: sha256:817244a7aec2196c0ad5b09e958a9d1fb40846ecc4257736917aa6b9b55c5e49
-    target: registry.ddbuild.io/system-tests/mirror/ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.64.1
-    tag: v1.64.1
   ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.67.0:
     digest: sha256:b79a36b24977153d80e501e670bb1dcf95d50a694d98f748cd25d8a9a96fa843
     target: registry.ddbuild.io/system-tests/mirror/ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.67.0
