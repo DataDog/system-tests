@@ -38,7 +38,7 @@ LIBRARY_ENV: Final = {
 }
 
 # One stable-value matrix, split into methods so manifests can distinguish
-# missing LowMemory support from case-insensitive parsing gaps.
+# missing LowMemory support from case-insensitive parsing gaps and Delta-only bugs.
 STABLE_VALUES: Final[tuple[tuple[str, str], ...]] = (
     ("cumulative", "cumulative"),
     ("CUMULATIVE", "cumulative"),
@@ -236,10 +236,21 @@ class Test_OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE:
         [
             pytest.param({**LIBRARY_ENV, VARIABLE_NAME: wire}, expected, id=wire)
             for wire, expected in STABLE_VALUES
-            if expected != "lowmemory" and wire in (wire.lower(), wire.upper())
+            if expected == "cumulative" and wire in (wire.lower(), wire.upper())
         ],
     )
-    def test_stable_values(self, test_agent: TestAgentAPI, test_library: APMLibrary, expected: str) -> None:
+    def test_cumulative_values(self, test_agent: TestAgentAPI, test_library: APMLibrary, expected: str) -> None:
+        _assert_temporality(test_agent, test_library, expected)
+
+    @pytest.mark.parametrize(
+        ("library_env", "expected"),
+        [
+            pytest.param({**LIBRARY_ENV, VARIABLE_NAME: wire}, expected, id=wire)
+            for wire, expected in STABLE_VALUES
+            if expected == "delta" and wire in (wire.lower(), wire.upper())
+        ],
+    )
+    def test_delta_values(self, test_agent: TestAgentAPI, test_library: APMLibrary, expected: str) -> None:
         _assert_temporality(test_agent, test_library, expected)
 
     @pytest.mark.parametrize(
@@ -312,9 +323,15 @@ class Test_OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE:
         [
             pytest.param(LIBRARY_ENV, "delta", id="unset"),
             pytest.param({**LIBRARY_ENV, VARIABLE_NAME: "DELTA"}, "delta", id="DELTA"),
-            pytest.param({**LIBRARY_ENV, VARIABLE_NAME: "CUMULATIVE"}, "cumulative", id="CUMULATIVE"),
         ],
     )
     def test_exported_payload(self, test_agent: TestAgentAPI, test_library: APMLibrary, expected: str) -> None:
         """Preserve the original test's values, attributes, timestamps, and histogram buckets."""
         _assert_temporality(test_agent, test_library, expected, check_payload=True)
+
+    @pytest.mark.parametrize(
+        "library_env", [pytest.param({**LIBRARY_ENV, VARIABLE_NAME: "CUMULATIVE"}, id="CUMULATIVE")]
+    )
+    def test_exported_payload_cumulative(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        """Keep Cumulative payload coverage enabled independently of Delta support."""
+        _assert_temporality(test_agent, test_library, "cumulative", check_payload=True)
