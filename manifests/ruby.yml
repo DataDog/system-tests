@@ -33,7 +33,14 @@ manifest:
         rails72: '>=2.40.0'
         rails61: '>=2.40.0'
         rails80: '>=2.40.0'
-  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRedacted: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRedacted:
+    - weblog_declaration:
+        '*': irrelevant
+        uds-rails: v2.44.0-dev
+        rails52: v2.44.0-dev
+        rails72: v2.44.0-dev
+        rails80: v2.44.0-dev
+        rails61: v2.44.0-dev
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryRequests: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardTelemetryTruncated: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_AnomalyDetectionTags:
@@ -91,9 +98,30 @@ manifest:
         sinatra32: irrelevant
         sinatra41: irrelevant
         uds-sinatra: irrelevant
-  tests/ai_guard/test_ai_guard_sdk.py::Test_NoRedaction: missing_feature
-  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactedMessagesInSDKResponse: missing_feature
-  tests/ai_guard/test_ai_guard_sdk.py::Test_Redaction: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_NoRedaction:
+    - weblog_declaration:
+        '*': irrelevant
+        uds-rails: v2.44.0-dev
+        rails52: v2.44.0-dev
+        rails72: v2.44.0-dev
+        rails80: v2.44.0-dev
+        rails61: v2.44.0-dev
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactedMessagesInSDKResponse:
+    - weblog_declaration:
+        '*': irrelevant
+        uds-rails: v2.44.0-dev
+        rails52: v2.44.0-dev
+        rails72: v2.44.0-dev
+        rails80: v2.44.0-dev
+        rails61: v2.44.0-dev
+  tests/ai_guard/test_ai_guard_sdk.py::Test_Redaction:
+    - weblog_declaration:
+        '*': irrelevant
+        uds-rails: v2.44.0-dev
+        rails52: v2.44.0-dev
+        rails72: v2.44.0-dev
+        rails80: v2.44.0-dev
+        rails61: v2.44.0-dev
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionDisabled:  # TODO: a lower version might be supported
     - weblog_declaration:
         '*': missing_feature
@@ -104,17 +132,59 @@ manifest:
         rails61: '>=2.41.0'
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionDisabled::test_findings_still_reported:
     - weblog_declaration:
-        rails80: missing_feature
-        rails61: missing_feature
-        uds-rails: missing_feature
-        rails52: missing_feature
-        rails72: missing_feature
-  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionDisabledTelemetry: missing_feature
-  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionFailSafe: missing_feature
-  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionInSDKResponse: missing_feature
-  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionMultiTurnContext: missing_feature
-  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionOnBlock: missing_feature
-  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionSkipsStructuralFields: missing_feature
+        rails80: v2.44.0-dev
+        rails61: v2.44.0-dev
+        uds-rails: v2.44.0-dev
+        rails52: v2.44.0-dev
+        rails72: v2.44.0-dev
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionDisabledTelemetry:
+    - weblog_declaration:
+        '*': missing_feature
+        uds-rails: v2.44.0-dev
+        rails52: v2.44.0-dev
+        rails72: v2.44.0-dev
+        rails80: v2.44.0-dev
+        rails61: v2.44.0-dev
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionFailSafe:
+    - weblog_declaration:
+        '*': irrelevant
+        uds-rails: v2.44.0-dev
+        rails52: v2.44.0-dev
+        rails72: v2.44.0-dev
+        rails80: v2.44.0-dev
+        rails61: v2.44.0-dev
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionInSDKResponse:
+    - weblog_declaration:
+        '*': irrelevant
+        uds-rails: v2.44.0-dev
+        rails52: v2.44.0-dev
+        rails72: v2.44.0-dev
+        rails80: v2.44.0-dev
+        rails61: v2.44.0-dev
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionMultiTurnContext:
+    - weblog_declaration:
+        '*': irrelevant
+        uds-rails: v2.44.0-dev
+        rails52: v2.44.0-dev
+        rails72: v2.44.0-dev
+        rails80: v2.44.0-dev
+        rails61: v2.44.0-dev
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionOnBlock:
+    - weblog_declaration:
+        '*': irrelevant
+        uds-rails: v2.44.0-dev
+        rails52: v2.44.0-dev
+        rails72: v2.44.0-dev
+        rails80: v2.44.0-dev
+        rails61: v2.44.0-dev
+  tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionSkipsStructuralFields:
+    - weblog_declaration:
+        '*': irrelevant
+        uds-rails: v2.44.0-dev
+        rails52: v2.44.0-dev
+        rails72: v2.44.0-dev
+        rails80: v2.44.0-dev
+        rails61: v2.44.0-dev
   tests/ai_guard/test_ai_guard_sdk.py::Test_RootSpanUserKeep:
     - weblog_declaration:
         "*": v2.31.0-dev
@@ -1697,7 +1767,12 @@ manifest:
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_all:
     - declaration: bug (APMRP-360)
       component_version: <1.12.1
-  tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_full_html: missing_feature (Support for quality not implemented)
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_full_html:  # TODO: a lower version might be supported
+    - declaration: missing_feature (Support for quality not implemented)
+      component_version: <2.42.0
+      weblog: [rails42, rails52, rails61, uds-rails, rails80, sinatra32, sinatra14, sinatra41, rack, uds-sinatra, sinatra22, rails72]
+    - declaration: missing_feature (Support for quality not implemented)
+      excluded_weblog: [rails42, rails52, rails61, uds-rails, rails80, sinatra32, sinatra14, sinatra41, rack, uds-sinatra, sinatra22, rails72]
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_full_json:
     - declaration: bug (APMRP-360)
       component_version: <1.12.1
@@ -1705,7 +1780,21 @@ manifest:
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_accept_partial_json:
     - declaration: bug (APMRP-360)
       component_version: <1.12.1
-  tests/appsec/waf/test_blocking.py::Test_Blocking::test_html_template_v2: missing_feature
+  tests/appsec/waf/test_blocking.py::Test_Blocking::test_html_template_v2:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        rails42: '>=2.42.0'
+        rails52: '>=2.42.0'
+        rails61: '>=2.42.0'
+        uds-rails: '>=2.42.0'
+        rails80: '>=2.42.0'
+        sinatra32: '>=2.42.0'
+        sinatra14: '>=2.42.0'
+        sinatra41: '>=2.42.0'
+        rack: '>=2.42.0'
+        uds-sinatra: '>=2.42.0'
+        sinatra22: '>=2.42.0'
+        rails72: '>=2.42.0'
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_json_template_v1:  # Modified by easy win activation script
     - weblog_declaration:
         '*': missing_feature
@@ -2306,20 +2395,100 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY: v2.34.0
   tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY::test_empty_is_treated_as_unset: bug (APMAPI-2413)
   tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY::test_invalid_value_is_ignored: bug (APMAPI-2445)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_compression.py::Test_OTEL_EXPORTER_OTLP_COMPRESSION: '>=2.43.0'  # TODO: a lower version might be supported
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_compression.py::Test_OTEL_EXPORTER_OTLP_COMPRESSION::test_default: missing_feature
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_compression.py::Test_OTEL_EXPORTER_OTLP_COMPRESSION::test_empty: missing_feature
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_compression.py::Test_OTEL_EXPORTER_OTLP_COMPRESSION::test_invalid: missing_feature
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_endpoint.py::Test_OTEL_EXPORTER_OTLP_ENDPOINT: v2.23.0
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_endpoint.py::Test_OTEL_EXPORTER_OTLP_ENDPOINT::test_empty_endpoint_falls_back_to_default
+  : bug (APMAPI-2413)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_endpoint.py::Test_OTEL_EXPORTER_OTLP_ENDPOINT::test_otlp_custom_endpoint_grpc
+  : missing_feature (Does not support grpc)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_compression.py::Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION: '>=2.43.0'  # TODO: a lower version might be supported
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_compression.py::Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION::test_default
+  : missing_feature
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_compression.py::Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION::test_empty: missing_feature
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_compression.py::Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION::test_empty_inherits_general
+  : missing_feature
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_compression.py::Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION::test_invalid
+  : missing_feature
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_endpoint.py::Test_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT: v2.34.0
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_endpoint.py::Test_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT::test_empty_falls_back_to_global_endpoint
+  : bug (APMAPI-2413)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL: v2.34.0
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL::test_case_insensitive
+  : missing_feature (No non-default OTLP transport is available)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL::test_documented_json_default
+  : irrelevant (The SDK uses the specification default)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL::test_generic_fallback
+  : missing_feature (No non-default OTLP transport is available)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL::test_grpc: missing_feature (OTLP gRPC exporter is not available)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL::test_http_json: missing_feature (OTLP HTTP JSON exporter is not implemented)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL::test_signal_precedence
+  : missing_feature (No non-default OTLP transport is available)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_compression.py::Test_OTEL_EXPORTER_OTLP_METRICS_COMPRESSION: '>=2.43.0'  # TODO: a lower version might be supported
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_compression.py::Test_OTEL_EXPORTER_OTLP_METRICS_COMPRESSION::test_default
+  : missing_feature
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_compression.py::Test_OTEL_EXPORTER_OTLP_METRICS_COMPRESSION::test_empty
+  : missing_feature
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_compression.py::Test_OTEL_EXPORTER_OTLP_METRICS_COMPRESSION::test_empty_inherits_general
+  : missing_feature
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_compression.py::Test_OTEL_EXPORTER_OTLP_METRICS_COMPRESSION::test_invalid
+  : missing_feature
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_endpoint.py::Test_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: v2.23.0
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_endpoint.py::Test_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT::test_empty_falls_back_to_global_endpoint
+  : bug (APMAPI-2413)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_endpoint.py::Test_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT::test_otlp_metrics_custom_endpoint_grpc
+  : missing_feature (Does not support grpc)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_protocol.py::Test_OTEL_EXPORTER_OTLP_METRICS_PROTOCOL: v2.24.0
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_protocol.py::Test_OTEL_EXPORTER_OTLP_METRICS_PROTOCOL::test_case_insensitive
+  : missing_feature (No non-default OTLP transport is available)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_protocol.py::Test_OTEL_EXPORTER_OTLP_METRICS_PROTOCOL::test_empty_generic_fallback
+  : missing_feature (No non-default OTLP transport is available)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_protocol.py::Test_OTEL_EXPORTER_OTLP_METRICS_PROTOCOL::test_generic_fallback
+  : missing_feature (No non-default OTLP transport is available)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_protocol.py::Test_OTEL_EXPORTER_OTLP_METRICS_PROTOCOL::test_grpc: missing_feature (OTLP gRPC exporter is not available)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_protocol.py::Test_OTEL_EXPORTER_OTLP_METRICS_PROTOCOL::test_http_json
+  : missing_feature (OTLP HTTP JSON exporter is not implemented)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_protocol.py::Test_OTEL_EXPORTER_OTLP_METRICS_PROTOCOL::test_signal_precedence
+  : missing_feature (No non-default OTLP transport is available)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_temporality_preference.py::Test_OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE
+  : v2.23.0
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_temporality_preference.py::Test_OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE::test_default_matches_specification
+  : missing_feature (Datadog intentionally defaults to Delta)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_temporality_preference.py::Test_OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE::test_delta_case_insensitive
+  : bug (APMAPI-2566)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_temporality_preference.py::Test_OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE::test_empty_is_treated_as_unset
+  : bug (APMAPI-2566)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_temporality_preference.py::Test_OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE::test_exported_payload
+  : missing_feature (Gauge attributes and default Histogram buckets are not up to spec)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_temporality_preference.py::Test_OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE::test_exported_payload_cumulative
+  : missing_feature (Gauge attributes and default Histogram buckets are not up to spec)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_temporality_preference.py::Test_OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE::test_invalid_value_is_ignored
+  : bug (APMAPI-2566)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_temporality_preference.py::Test_OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE::test_lowmemory_case_insensitive
+  : bug (APMAPI-2566)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL: v2.23.0
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL::test_case_insensitive: missing_feature (No non-default OTLP transport is available)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL::test_grpc: missing_feature (OTLP gRPC exporter is not available)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL::test_http_json: missing_feature (OTLP HTTP JSON exporter is not implemented)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs: v2.34.0
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs::test_case_insensitive: missing_feature (No non-default OTLP transport is available)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs::test_documented_json_default
+  : irrelevant (The SDK uses the specification default)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs::test_grpc: missing_feature (OTLP gRPC exporter is not available)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs::test_http_json: missing_feature (OTLP HTTP JSON exporter is not implemented)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_endpoint.py::Test_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: missing_feature
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_headers.py::Test_OTEL_EXPORTER_OTLP_TRACES_HEADERS: missing_feature
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_protocol.py::Test_OTEL_EXPORTER_OTLP_TRACES_PROTOCOL: missing_feature
   tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL: v2.22.0
-  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_case_insensitive_debug_mapping: incomplete_test_app (Requires removal of the forced debug override in PR 7851)
   tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_case_insensitive_values: missing_feature (Only the debug-mode mapping is implemented)
   tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_default_debug_threshold: irrelevant (A different logger default applies)
-  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_default_does_not_enable_debug: incomplete_test_app (Requires removal of the forced debug override in PR 7851)
   tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_default_error_threshold: irrelevant (A different logger default applies)
-  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_default_matches_specification: incomplete_test_app (Requires the logger observer and debug override removal in PR 7851)
   tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_default_warning_threshold: irrelevant (A different logger default applies)
-  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_empty_is_treated_as_unset: incomplete_test_app (Requires the logger observer and debug override removal in PR 7851)
   tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_error_threshold_fallback: irrelevant (A different logger default applies)
   tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_invalid_value_emits_warning: bug (APMAPI-2539)
-  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_invalid_value_is_ignored: incomplete_test_app (Requires the logger observer and debug override removal in PR 7851)
   tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_otel_log_level_env: missing_feature (Only the debug-mode mapping is implemented)
-  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_otel_log_level_to_debug_mapping: incomplete_test_app (Requires removal of the forced debug override in PR 7851)
   tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_stable_values: missing_feature (Only the debug-mode mapping is implemented)
   tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_warning_threshold_diagnostic: irrelevant (Uses the PHP SDK diagnostic probe)
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER: v2.34.0
@@ -2583,7 +2752,6 @@ manifest:
   : missing_feature (Does not support grpc)
   ? tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint::test_otlp_metrics_custom_endpoint_grpc
   : missing_feature (Does not support grpc)
-  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Configuration_Temporality_Preference::test_otel_aggregation_temporality: missing_feature (default Histogram bucket ranges is not up to spec)
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_metrics_grpc: missing_feature (Does not support grpc)
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods: v1.17.0
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_add_event_meta_serialization:  # TODO: a lower version might be supported
@@ -3547,4 +3715,21 @@ manifest:
   tests/test_telemetry.py::Test_TelemetryV2::test_telemetry_v2_required_headers:
     - declaration: missing_feature (dd-client-library-version missing)
       component_version: <1.22.0
-  tests/test_v1_payloads.py: missing_feature (dd-trace-rb only exposes the /v0.3 and /v0.4 trace endpoints)
+  tests/test_v1_payloads.py:  # TODO: a lower version might be supported
+    - declaration: missing_feature (dd-trace-rb only exposes the /v0.3 and /v0.4 trace endpoints)
+      component_version: <2.43.0
+      weblog: [rack]
+    - declaration: missing_feature (dd-trace-rb only exposes the /v0.3 and /v0.4 trace endpoints)
+      excluded_weblog: [rack]
+  tests/test_v1_payloads.py::Test_V1PayloadByDefault:
+    - weblog_declaration:
+        rack: missing_feature (dd-trace-rb only exposes the /v0.3 and /v0.4 trace endpoints)
+  tests/test_v1_payloads.py::Test_V1Payloads:
+    - weblog_declaration:
+        rack: missing_feature (dd-trace-rb only exposes the /v0.3 and /v0.4 trace endpoints)
+  tests/test_v1_payloads.py::Test_V1SpanLinks:
+    - weblog_declaration:
+        rack: missing_feature (dd-trace-rb only exposes the /v0.3 and /v0.4 trace endpoints)
+  tests/test_v1_payloads.py::Test_V1TopLevelSpans:
+    - weblog_declaration:
+        rack: missing_feature (dd-trace-rb only exposes the /v0.3 and /v0.4 trace endpoints)

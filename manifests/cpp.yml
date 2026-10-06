@@ -61,6 +61,21 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_blrp_max_export_batch_size.py::Test_OTEL_BLRP_MAX_EXPORT_BATCH_SIZE: missing_feature
   tests/parametric/otel_env_vars/test_otel_blrp_max_queue_size.py::Test_OTEL_BLRP_MAX_QUEUE_SIZE: missing_feature
   tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY: missing_feature
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_compression.py::Test_OTEL_EXPORTER_OTLP_COMPRESSION: missing_feature
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_endpoint.py::Test_OTEL_EXPORTER_OTLP_ENDPOINT: missing_feature
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_compression.py::Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION: missing_feature
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_endpoint.py::Test_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT: missing_feature
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL: missing_feature
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_compression.py::Test_OTEL_EXPORTER_OTLP_METRICS_COMPRESSION: missing_feature
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_endpoint.py::Test_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: missing_feature
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_protocol.py::Test_OTEL_EXPORTER_OTLP_METRICS_PROTOCOL: missing_feature
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_temporality_preference.py::Test_OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE
+  : missing_feature
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL: missing_feature
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs: missing_feature
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_endpoint.py::Test_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: missing_feature
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_headers.py::Test_OTEL_EXPORTER_OTLP_TRACES_HEADERS: missing_feature
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_protocol.py::Test_OTEL_EXPORTER_OTLP_TRACES_PROTOCOL: missing_feature
   tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL: missing_feature (OTEL_LOG_LEVEL is not read by the tracer)
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER: missing_feature
   tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT: missing_feature
@@ -257,7 +272,6 @@ manifest:
   tests/parametric/test_otel_logs.py::Test_FR03_Resource_Attributes: missing_feature  # Created by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR04_Trace_Span_IDs: missing_feature  # Created by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR05_Custom_Endpoints: missing_feature  # Created by easy win activation script
-  tests/parametric/test_otel_logs.py::Test_FR06_OTLP_Protocols: missing_feature  # Created by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR07_Host_Name: missing_feature  # Created by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR07_Host_Name::test_hostname_from_dd_hostname: irrelevant (DD_HOSTNAME is only supported in Python)
   tests/parametric/test_otel_logs.py::Test_FR08_Custom_Headers: missing_feature  # Created by easy win activation script
@@ -379,7 +393,16 @@ manifest:
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_enabled_propagated: missing_feature  # Created by easy win activation script
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_enabled_propagated_specifics: irrelevant
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: missing_feature
-  tests/parametric/test_trace_filters.py::Test_Trace_Filters: missing_feature
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters: '>=2.3.0'  # TODO: a lower version might be supported
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_ignore_resources: missing_feature
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_reject: missing_feature
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_reject_no_value: missing_feature
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_reject_regex: missing_feature
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_require_missing: missing_feature
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_require_regex_missing: missing_feature
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_resource_normalization: missing_feature
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_tag_normalization_env: missing_feature
+  tests/parametric/test_trace_filters.py::Test_Trace_Filters::test_trace_filters_trim: missing_feature
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Globs::test_field_case_insensitivity:  # Modified by easy win activation script
     - declaration: bug (APMAPI-908)
       component_version: <2.0.0

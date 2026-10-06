@@ -90,9 +90,15 @@ manifest:
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Optional_SpanTags: v8.117.0.dev
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Rules_Version: v8.117.0.dev
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_StackTrace: v8.117.0.dev
-  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry: missing_feature (telemetry is not available in Lambda yet)
-  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry_V2: missing_feature (telemetry is not available in Lambda yet)
-  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry_Variant_Tag: missing_feature (telemetry is not available in Lambda yet)
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry:  # TODO: a lower version might be supported
+    - declaration: missing_feature (telemetry is not available in Lambda yet)
+      component_version: <8.128.0
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry_V2:  # TODO: a lower version might be supported
+    - declaration: missing_feature (telemetry is not available in Lambda yet)
+      component_version: <8.128.0
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry_Variant_Tag:  # TODO: a lower version might be supported
+    - declaration: missing_feature (telemetry is not available in Lambda yet)
+      component_version: <8.128.0
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_UrlQuery: v8.117.0.dev
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Waf_Version: v8.117.0.dev
   tests/appsec/rasp/test_lfi.py::Test_Lfi_BodyJson: v8.117.0.dev
@@ -104,9 +110,13 @@ manifest:
   tests/appsec/rasp/test_lfi.py::Test_Lfi_RC_CustomAction: v8.117.0.dev
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Rules_Version: v8.117.0.dev
   tests/appsec/rasp/test_lfi.py::Test_Lfi_StackTrace: v8.117.0.dev
-  tests/appsec/rasp/test_lfi.py::Test_Lfi_Telemetry: missing_feature (telemetry is not available in Lambda yet)
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_Telemetry:  # TODO: a lower version might be supported
+    - declaration: missing_feature (telemetry is not available in Lambda yet)
+      component_version: <8.128.0
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Telemetry_Multiple_Exploits: missing_feature (telemetry is not available in Lambda yet)
-  tests/appsec/rasp/test_lfi.py::Test_Lfi_Telemetry_V2: missing_feature (telemetry is not available in Lambda yet)
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_Telemetry_V2:  # TODO: a lower version might be supported
+    - declaration: missing_feature (telemetry is not available in Lambda yet)
+      component_version: <8.128.0
   tests/appsec/rasp/test_lfi.py::Test_Lfi_UrlQuery: v8.117.0.dev
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Waf_Version: v8.117.0.dev
   tests/appsec/rasp/test_shi.py::Test_Shi_BodyJson: v8.117.0.dev
@@ -117,9 +127,15 @@ manifest:
   tests/appsec/rasp/test_shi.py::Test_Shi_Optional_SpanTags: v8.117.0.dev
   tests/appsec/rasp/test_shi.py::Test_Shi_Rules_Version: v8.117.0.dev
   tests/appsec/rasp/test_shi.py::Test_Shi_StackTrace: v8.117.0.dev
-  tests/appsec/rasp/test_shi.py::Test_Shi_Telemetry: missing_feature (telemetry is not available in Lambda yet)
-  tests/appsec/rasp/test_shi.py::Test_Shi_Telemetry_V2: missing_feature (telemetry is not available in Lambda yet)
-  tests/appsec/rasp/test_shi.py::Test_Shi_Telemetry_Variant_Tag: missing_feature (telemetry is not available in Lambda yet)
+  tests/appsec/rasp/test_shi.py::Test_Shi_Telemetry:  # TODO: a lower version might be supported
+    - declaration: missing_feature (telemetry is not available in Lambda yet)
+      component_version: <8.128.0
+  tests/appsec/rasp/test_shi.py::Test_Shi_Telemetry_V2:  # TODO: a lower version might be supported
+    - declaration: missing_feature (telemetry is not available in Lambda yet)
+      component_version: <8.128.0
+  tests/appsec/rasp/test_shi.py::Test_Shi_Telemetry_Variant_Tag:  # TODO: a lower version might be supported
+    - declaration: missing_feature (telemetry is not available in Lambda yet)
+      component_version: <8.128.0
   tests/appsec/rasp/test_shi.py::Test_Shi_UrlQuery: v8.117.0.dev
   tests/appsec/rasp/test_shi.py::Test_Shi_Waf_Version: v8.117.0.dev
   tests/appsec/rasp/test_sqli.py::Test_Sqli_BodyJson: v8.117.0.dev
@@ -130,8 +146,12 @@ manifest:
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Optional_SpanTags: v8.117.0.dev
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Rules_Version: v8.117.0.dev
   tests/appsec/rasp/test_sqli.py::Test_Sqli_StackTrace: v8.117.0.dev
-  tests/appsec/rasp/test_sqli.py::Test_Sqli_Telemetry: missing_feature (telemetry is not available in Lambda yet)
-  tests/appsec/rasp/test_sqli.py::Test_Sqli_Telemetry_V2: missing_feature (telemetry is not available in Lambda yet)
+  tests/appsec/rasp/test_sqli.py::Test_Sqli_Telemetry:  # TODO: a lower version might be supported
+    - declaration: missing_feature (telemetry is not available in Lambda yet)
+      component_version: <8.128.0
+  tests/appsec/rasp/test_sqli.py::Test_Sqli_Telemetry_V2:  # TODO: a lower version might be supported
+    - declaration: missing_feature (telemetry is not available in Lambda yet)
+      component_version: <8.128.0
   tests/appsec/rasp/test_sqli.py::Test_Sqli_UrlQuery: v8.117.0.dev
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Waf_Version: v8.117.0.dev
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyJson: v8.117.0.dev
@@ -142,8 +162,12 @@ manifest:
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Optional_SpanTags: v8.117.0.dev
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Rules_Version: v8.117.0.dev
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_StackTrace: v8.117.0.dev
-  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry: missing_feature (telemetry is not available in Lambda yet)
-  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry_V2: missing_feature (telemetry is not available in Lambda yet)
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry:  # TODO: a lower version might be supported
+    - declaration: missing_feature (telemetry is not available in Lambda yet)
+      component_version: <8.128.0
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry_V2:  # TODO: a lower version might be supported
+    - declaration: missing_feature (telemetry is not available in Lambda yet)
+      component_version: <8.128.0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_UrlQuery: v8.117.0.dev
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Waf_Version: v8.117.0.dev
   tests/appsec/test_alpha.py::Test_Basic: v7.112.0
