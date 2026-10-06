@@ -1,5 +1,6 @@
 import os
 import subprocess
+import urllib.error
 from pathlib import Path
 
 from utils import pytest
@@ -13,6 +14,7 @@ from utils.scripts.update_agent_version import (
     enable_auto_merge,
     normalize_version,
     publish_update,
+    push_signed_commit,
     revoke_token,
     run_automation,
     update_agent_version,
@@ -194,22 +196,84 @@ def test_publish_update_creates_only_missing_pr(
     ) -> subprocess.CompletedProcess[str]:
         assert env == {"GH_TOKEN": "token"}
         commands.append(args)
-        return subprocess.CompletedProcess(args, 0, stdout="" if capture_output else None)
+        if not capture_output:
+            return subprocess.CompletedProcess(args, 0, stdout=None)
+        if args == ["git", "rev-parse", "HEAD"]:
+            return subprocess.CompletedProcess(args, 0, stdout="main-sha\n")
+        if args[0] == "commit-headless":
+            return subprocess.CompletedProcess(args, 0, stdout="signed-sha\n")
+        return subprocess.CompletedProcess(args, 0, stdout="")
 
     monkeypatch.setattr("utils.scripts.update_agent_version.run_command", fake_run)
 
     github = FakeGitHubApi()
     publish_update(tmp_path, "7.82.3", github, {"GH_TOKEN": "token"})
 
+    assert ["git", "rev-parse", "HEAD"] in commands
     assert ["git", "add", str(AGENT_VERSION_LOCK)] in commands
-    assert ["git", "push", "--force", "--set-upstream", "origin", AUTOMATION_BRANCH] in commands
+    # The fake GitHub API never raises a 404 for the branch-existence check, so the branch is
+    # always treated as already existing and force-updated.
+    assert [
+        "commit-headless",
+        "push",
+        "-T",
+        "DataDog/system-tests",
+        "--branch",
+        AUTOMATION_BRANCH,
+        "--head-sha",
+        "main-sha",
+        "--force",
+    ] in commands
     assert not any(command[0] == "gh" for command in commands)
+    assert any(
+        method == "GET" and path == f"/repos/DataDog/system-tests/git/ref/heads/{AUTOMATION_BRANCH}"
+        for method, path in github.calls
+    )
     assert any(method == "POST" and path.endswith("/pulls") for method, path in github.calls) is (not existing_pr)
     if existing_pr:
         assert ("PATCH", f"/repos/DataDog/system-tests/pulls/{existing_pr}") in github.calls
     # Whether it is created or refreshed, the PR describes the version that was just pushed.
     assert [description["title"] for description in github.descriptions] == ["Update Agent to 7.82.3"]
     assert github.calls[-1] == ("POST", "/graphql")
+
+
+@scenarios.test_the_test
+def test_push_signed_commit_creates_branch_when_missing(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    commands: list[list[str]] = []
+
+    class MissingBranchGitHubApi(GitHubApi):
+        def __init__(self) -> None:
+            super().__init__("token")
+
+        def request(self, method: str, path: str, data: dict[str, object] | None = None) -> object:  # noqa: ARG002
+            raise urllib.error.HTTPError(path, 404, "Not Found", {}, None)  # type: ignore[arg-type]
+
+    def fake_run(
+        _root: Path,
+        args: list[str],
+        *,
+        capture_output: bool = False,  # noqa: ARG001
+        env: dict[str, str] | None = None,  # noqa: ARG001
+    ) -> subprocess.CompletedProcess[str]:
+        commands.append(args)
+        return subprocess.CompletedProcess(args, 0, stdout="signed-sha\n")
+
+    monkeypatch.setattr("utils.scripts.update_agent_version.run_command", fake_run)
+
+    signed_sha = push_signed_commit(tmp_path, "main-sha", MissingBranchGitHubApi(), {"GH_TOKEN": "token"})
+
+    assert signed_sha == "signed-sha"
+    assert [
+        "commit-headless",
+        "push",
+        "-T",
+        "DataDog/system-tests",
+        "--branch",
+        AUTOMATION_BRANCH,
+        "--head-sha",
+        "main-sha",
+        "--create-branch",
+    ] in commands
 
 
 def fake_github(result: object) -> GitHubApi:
