@@ -404,6 +404,7 @@ func (s *apmClientServer) getTraceConfigHandler(w http.ResponseWriter, r *http.R
 			response.Config["dd_metrics_otel_interval"] = interval
 		}
 	}
+	// TODO: Expose resolved OTLP exporter timeouts in /trace/config once they are centralized in the tracer.
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)

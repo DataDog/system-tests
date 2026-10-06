@@ -866,7 +866,52 @@ $router->addRoute('POST', '/trace/diagnostics/log_level', new ClosureRequestHand
     return jsonResponse(['success' => true]);
 }));
 
-$router->addRoute('GET', '/trace/config', new ClosureRequestHandler(function (Request $req) {
+function readOtelProperty(?object $instance, string $name): mixed
+{
+    if ($instance === null) {
+        return null;
+    }
+    $reflection = new ReflectionObject($instance);
+    if (!$reflection->hasProperty($name)) {
+        return null;
+    }
+    $property = $reflection->getProperty($name);
+    return $property->isInitialized($instance) ? $property->getValue($instance) : null;
+}
+
+function otlpExporterTimeout(iterable $processors): ?string
+{
+    $timeouts = [];
+    foreach ($processors as $processor) {
+        $children = readOtelProperty($processor, 'processors');
+        if ($children !== null) {
+            $timeout = otlpExporterTimeout($children);
+            if ($timeout !== null) {
+                $timeouts[] = $timeout;
+            }
+            continue;
+        }
+        $exporter = readOtelProperty($processor, 'exporter');
+        if (!$exporter instanceof \OpenTelemetry\Contrib\Otlp\LogsExporter &&
+            !$exporter instanceof \OpenTelemetry\Contrib\Otlp\MetricExporter) {
+            continue;
+        }
+        $client = readOtelProperty(readOtelProperty($exporter, 'transport'), 'client');
+        $timeout = null;
+        if ($client instanceof \GuzzleHttp\Client) {
+            $timeout = $client->getConfig('timeout');
+        } elseif ($client instanceof \Symfony\Component\HttpClient\Psr18Client) {
+            $options = readOtelProperty(readOtelProperty($client, 'client'), 'defaultOptions');
+            $timeout = $options['max_duration'] ?? null;
+        }
+        if (is_int($timeout) || is_float($timeout)) {
+            $timeouts[] = (string) (int) ($timeout * 1000);
+        }
+    }
+    return count($timeouts) === 1 ? $timeouts[0] : null;
+}
+
+$router->addRoute('GET', '/trace/config', new ClosureRequestHandler(function (Request $req) use ($sdkMeterProvider, $sdkLoggerProvider) {
 
     $tags_array = \dd_trace_env_config("DD_TAGS");
     $propagation_array = \dd_trace_env_config("DD_TRACE_PROPAGATION_STYLE");
@@ -884,6 +929,10 @@ $router->addRoute('GET', '/trace/config', new ClosureRequestHandler(function (Re
     }
 
     $config = array(
+        'otel_exporter_otlp_metrics_timeout_ms' => otlpExporterTimeout(readOtelProperty($sdkMeterProvider, 'metricReaders') ?? []),
+        'otel_exporter_otlp_logs_timeout_ms' => otlpExporterTimeout(
+            [readOtelProperty(readOtelProperty($sdkLoggerProvider, 'loggerSharedState'), 'processor')]
+        ),
         'dd_service' => trim(var_export(\dd_trace_env_config("DD_SERVICE"), true), "'"),
         'dd_env' => trim(var_export(\dd_trace_env_config("DD_ENV"), true), "'"),
         'dd_version' => trim(var_export(\dd_trace_env_config("DD_VERSION"), true), "'"),
