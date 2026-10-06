@@ -277,12 +277,16 @@ class Test_Parametric_DDTrace_Config:
             assert list(configs.keys()) == [
                 "dd_service",
                 "dd_log_level",
+                "dd_trace_effective_log_level",
                 "dd_trace_sample_rate",
                 "dd_trace_enabled",
                 "dd_runtime_metrics_enabled",
+                "dd_metrics_otel_interval",
+                "otel_metrics_initialized",
                 "dd_tags",
                 "dd_trace_propagation_style",
                 "dd_trace_debug",
+                "dd_trace_startup_log_level",
                 "dd_trace_otel_enabled",
                 "dd_trace_sample_ignore_parent",
                 "dd_env",
@@ -295,6 +299,9 @@ class Test_Parametric_DDTrace_Config:
                 "dd_profiling_enabled",
                 "dd_data_streams_enabled",
             ]
+            if t.lang == "php":
+                # PHP exposes its effective threshold through emitted SDK diagnostics.
+                assert t.dd_log_level_diagnostics()
 
 
 @scenarios.parametric
