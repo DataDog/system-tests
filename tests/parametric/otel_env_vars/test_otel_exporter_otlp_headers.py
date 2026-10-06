@@ -18,11 +18,15 @@ VARIABLE = "OTEL_EXPORTER_OTLP_HEADERS"
 # Some SDKs default to gRPC; the collector forwards decoded gRPC payloads over
 # HTTP, whose headers do not represent the original request.
 def _environment(signal: str, value: str | None) -> dict[str, str | None]:
-    return {
+    environment: dict[str, str | None] = {
         f"DD_{signal.upper()}_OTEL_ENABLED": "true",
         "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
         VARIABLE: value,
     }
+    if signal == "logs":
+        # Avoid startup debug logs satisfying the payload wait before the test record.
+        environment["DD_TRACE_DEBUG"] = None
+    return environment
 
 
 def _assert_headers(signal: str, expected: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
@@ -54,8 +58,6 @@ class Test_OTEL_EXPORTER_OTLP_HEADERS:
     @pytest.mark.parametrize(
         ("library_env", "expected"),
         [
-            pytest.param(_environment("metrics", None), {}, id="unset"),
-            pytest.param(_environment("metrics", ""), {}, id="empty"),
             pytest.param(_environment("metrics", "api-key=key"), {"api-key": "key"}, id="one-pair"),
             pytest.param(
                 _environment("metrics", "api-key=key,other-config-value=value"),
@@ -67,8 +69,19 @@ class Test_OTEL_EXPORTER_OTLP_HEADERS:
     def test_metrics_headers(
         self, expected: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
     ) -> None:
-        """Unset and empty add no custom headers; configured pairs reach the exporter."""
+        """Configured pairs reach the exporter."""
         _assert_headers("metrics", expected, test_agent, test_library)
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            pytest.param(_environment("metrics", None), id="unset"),
+            pytest.param(_environment("metrics", ""), id="empty"),
+        ],
+    )
+    def test_metrics_default_headers(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        """Default header settings add no custom headers."""
+        _assert_headers("metrics", {}, test_agent, test_library)
 
     @pytest.mark.parametrize(
         "library_env", [_environment("metrics", "api-key=hello%20world%2Cvalue%3D1")], ids=["percent-encoded-value"]
@@ -79,7 +92,6 @@ class Test_OTEL_EXPORTER_OTLP_HEADERS:
     @pytest.mark.parametrize(
         ("library_env", "expected"),
         [
-            pytest.param(_environment("logs", None), {}, id="unset"),
             pytest.param(_environment("logs", "api-key=key"), {"api-key": "key"}, id="one-pair"),
             pytest.param(
                 _environment("logs", "api-key=key,other-config-value=value"),
@@ -89,12 +101,17 @@ class Test_OTEL_EXPORTER_OTLP_HEADERS:
         ],
     )
     def test_logs_headers(self, expected: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
-        """Unset adds no custom headers; configured pairs reach the exporter."""
+        """Configured pairs reach the exporter."""
         _assert_headers("logs", expected, test_agent, test_library)
 
     @pytest.mark.parametrize("library_env", [_environment("logs", "")], ids=["empty"])
     def test_logs_empty_headers(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """An explicitly empty generic header setting behaves as unset."""
+        _assert_headers("logs", {}, test_agent, test_library)
+
+    @pytest.mark.parametrize("library_env", [pytest.param(_environment("logs", None), id="unset")])
+    def test_logs_default_headers(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        """Default header settings add no custom headers."""
         _assert_headers("logs", {}, test_agent, test_library)
 
     @pytest.mark.parametrize(

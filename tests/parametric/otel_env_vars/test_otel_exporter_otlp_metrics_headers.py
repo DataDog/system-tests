@@ -43,8 +43,6 @@ class Test_OTEL_EXPORTER_OTLP_METRICS_HEADERS:
     @pytest.mark.parametrize(
         ("library_env", "expected"),
         [
-            pytest.param(_environment(None), {}, id="unset"),
-            pytest.param(_environment(""), {}, id="empty"),
             pytest.param(_environment("api-key=key"), {"api-key": "key"}, id="one-pair"),
             pytest.param(
                 _environment("api-key=key,other-config-value=value"),
@@ -56,8 +54,15 @@ class Test_OTEL_EXPORTER_OTLP_METRICS_HEADERS:
     def test_metrics_headers(
         self, expected: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
     ) -> None:
-        """Unset and empty add no custom headers; configured pairs reach the exporter."""
+        """Configured pairs reach the exporter."""
         _assert_headers(expected, test_agent, test_library)
+
+    @pytest.mark.parametrize(
+        "library_env", [pytest.param(_environment(None), id="unset"), pytest.param(_environment(""), id="empty")]
+    )
+    def test_metrics_default_headers(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        """Default header settings add no custom headers."""
+        _assert_headers({}, test_agent, test_library)
 
     @pytest.mark.parametrize(
         "library_env", [_environment("api-key=hello%20world%2Cvalue%3D1")], ids=["percent-encoded-value"]

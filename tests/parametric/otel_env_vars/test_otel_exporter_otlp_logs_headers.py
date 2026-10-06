@@ -19,6 +19,8 @@ VARIABLE = "OTEL_EXPORTER_OTLP_LOGS_HEADERS"
 def _environment(value: str | None) -> dict[str, str | None]:
     return {
         "DD_LOGS_OTEL_ENABLED": "true",
+        # Avoid startup debug logs satisfying the payload wait before the test record.
+        "DD_TRACE_DEBUG": None,
         "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
         VARIABLE: value,
     }
@@ -45,8 +47,6 @@ class Test_OTEL_EXPORTER_OTLP_LOGS_HEADERS:
     @pytest.mark.parametrize(
         ("library_env", "expected"),
         [
-            pytest.param(_environment(None), {}, id="unset"),
-            pytest.param(_environment(""), {}, id="empty"),
             pytest.param(_environment("api-key=key"), {"api-key": "key"}, id="one-pair"),
             pytest.param(
                 _environment("api-key=key,other-config-value=value"),
@@ -56,8 +56,15 @@ class Test_OTEL_EXPORTER_OTLP_LOGS_HEADERS:
         ],
     )
     def test_logs_headers(self, expected: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
-        """Unset and empty add no custom headers; configured pairs reach the exporter."""
+        """Configured pairs reach the exporter."""
         _assert_headers(expected, test_agent, test_library)
+
+    @pytest.mark.parametrize(
+        "library_env", [pytest.param(_environment(None), id="unset"), pytest.param(_environment(""), id="empty")]
+    )
+    def test_logs_default_headers(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        """Default header settings add no custom headers."""
+        _assert_headers({}, test_agent, test_library)
 
     @pytest.mark.parametrize(
         "library_env", [_environment("api-key=hello%20world%2Cvalue%3D1")], ids=["percent-encoded-value"]
