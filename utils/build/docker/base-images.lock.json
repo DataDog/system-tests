@@ -6,6 +6,7 @@
     "system_tests_base_nodejs_express4_typescript": "datadog/system-tests:express4-typescript.base-eb800c09d602",
     "system_tests_base_nodejs_express5": "datadog/system-tests:express5.base-6eecdb28aed2",
     "system_tests_base_nodejs_fastify": "datadog/system-tests:fastify.base-bce27c61b3f5",
+    "system_tests_base_nodejs_lambda_nodejs_lambda_runtime": "datadog/system-tests:nodejs-lambda-runtime.base-f7f78c7298cf",
     "system_tests_base_nodejs_nextjs": "datadog/system-tests:nextjs.base-95582a903467",
     "system_tests_base_php_apache_mod_7_0": "datadog/system-tests:apache-mod-7.0.base-d171f9d9cd49",
     "system_tests_base_php_apache_mod_7_0_zts": "datadog/system-tests:apache-mod-7.0-zts.base-c32a9f8fabfa",
