@@ -497,6 +497,9 @@ manifest:
     - weblog_declaration:
         tornado: missing_feature
   tests/appsec/iast/sink/test_ssrf.py::TestSSRF: v2.10.0
+  tests/appsec/iast/sink/test_ssrf.py::TestSSRF::test_secure:
+    - weblog_declaration:
+        python3.12: bug (APPSEC-373)
   tests/appsec/iast/sink/test_ssrf.py::TestSSRF_ExtendedLocation: v3.1.0.dev
   tests/appsec/iast/sink/test_ssrf.py::TestSSRF_StackTrace: v3.9.0.dev
   tests/appsec/iast/sink/test_stacktrace_leak.py:
