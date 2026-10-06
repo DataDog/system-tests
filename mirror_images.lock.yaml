@@ -286,6 +286,10 @@ images:
     digest: sha256:128b7524cde00a739246166feef66b0d512388005dc125b0f11034555a8b6a70
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:nextjs.base-95582a903467
     tag: nextjs.base-95582a903467
+  datadog/system-tests:nodejs-lambda-runtime.base-f7f78c7298cf:
+    digest: sha256:6f2d40e78bc96937010874e2b7f23ef9effb5e087c0cdf674f9b1ca0bcb631a8
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:nodejs-lambda-runtime.base-f7f78c7298cf
+    tag: nodejs-lambda-runtime.base-f7f78c7298cf
   datadog/system-tests:nodejs_buddy-v1:
     digest: sha256:71d124f74d4d7ac706f1afa8d5950864e1e931ec3b511f540b49eb6328c0338e
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:nodejs_buddy-v1
@@ -462,6 +466,10 @@ images:
     digest: sha256:817244a7aec2196c0ad5b09e958a9d1fb40846ecc4257736917aa6b9b55c5e49
     target: registry.ddbuild.io/system-tests/mirror/ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.64.1
     tag: v1.64.1
+  ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.67.0:
+    digest: sha256:b79a36b24977153d80e501e670bb1dcf95d50a694d98f748cd25d8a9a96fa843
+    target: registry.ddbuild.io/system-tests/mirror/ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.67.0
+    tag: v1.67.0
   ghcr.io/datadog/images-rb/engines/ruby:2.5-gnu-gcc:
     digest: sha256:9cb908874c97382ac64f6c6ea58d9bad24e6dc6fdea795ab264652e83b41c966
     target: registry.ddbuild.io/system-tests/mirror/ghcr.io/datadog/images-rb/engines/ruby:2.5-gnu-gcc
