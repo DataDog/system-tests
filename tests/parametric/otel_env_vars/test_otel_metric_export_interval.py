@@ -9,15 +9,14 @@ from tests.parametric.conftest import APMLibrary
 def library_env(interval: str | None) -> dict[str, str | None]:
     return {
         "DD_METRICS_OTEL_ENABLED": "true",
-        "DD_METRICS_OTEL_INTERVAL": None,
-        "DD_RUNTIME_METRICS_ENABLED": "false",
+        # Deliver configuration telemetry within the test agent's bounded wait.
         "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
         "OTEL_METRICS_EXPORTER": "otlp",
+        # Isolate metrics from the apps' logs pipeline startup.
         "OTEL_LOGS_EXPORTER": "none",
         "OTEL_METRIC_EXPORT_INTERVAL": interval,
         # Avoid a timeout longer than the smallest interval in SDKs that validate both.
         "OTEL_METRIC_EXPORT_TIMEOUT": "1",
-        "CORECLR_ENABLE_PROFILING": "1",
     }
 
 

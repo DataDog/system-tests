@@ -19,14 +19,15 @@ def library_env(
     return {
         # Opt in to the metrics integration; the selected exporter must still apply.
         "DD_METRICS_OTEL_ENABLED": "true",
+        # Keep runtime metrics out of the exporter-none assertion.
         "DD_RUNTIME_METRICS_ENABLED": "false",
-        "DD_METRICS_OTEL_EXPORTER": None,
         "OTEL_METRICS_EXPORTER": exporter,
+        # Isolate metrics from the apps' logs pipeline startup.
         "OTEL_LOGS_EXPORTER": "none",
         "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": "http/protobuf",
         "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT": f"http://{test_agent.container_name}:{test_agent_otlp_http_port}/v1/metrics",
+        # Keep periodic exports from racing the explicit counter flush.
         "OTEL_METRIC_EXPORT_INTERVAL": "60000",
-        "CORECLR_ENABLE_PROFILING": "1",
     }
 
 
