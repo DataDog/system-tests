@@ -77,12 +77,6 @@ For some purposes, secrets are used in the workflow:
 
 | Name                                   | Description
 | -------------------------------------- | ----------------------------------------------------------------------------------
-| DD_API_KEY                             | Some scenarios requires valid API and APP keys
-| DD_APPLICATION_KEY                     |
-| DD_API_KEY_2                           |
-| DD_APP_KEY_2                           |
-| DD_API_KEY_3                           |
-| DD_APP_KEY_3                           |
 | DOCKERHUB_USERNAME and DOCKERHUB_TOKEN | If both are set, all docker pull are authenticated, which offer higher rate limit
 
 

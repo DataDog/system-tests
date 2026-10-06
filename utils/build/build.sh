@@ -152,8 +152,11 @@ build() {
     echo "EXTRA_DOCKER_ARGS: $EXTRA_DOCKER_ARGS"
     echo ""
 
-    # Issues with Mac M1 arm64 arch. This patch is intended to affect Mac M1 only.
-    ARCH=$(uname -m | sed 's/x86_//;s/i[3-6]86/32/')
+    # Match the docker daemon's actual architecture, not the host machine's: on Apple Silicon,
+    # the docker VM (e.g. Colima) can be configured to run natively as x86_64 rather than
+    # emulating amd64 containers on top of an arm64 VM, in which case images must be built as
+    # linux/amd64 too.
+    ARCH=$(docker info --format '{{.Architecture}}' 2>/dev/null | sed 's/x86_//;s/i[3-6]86/32/')
 
     case $ARCH in
     arm64|aarch64) DOCKER_PLATFORM_ARGS="${DOCKER_PLATFORM:-"--platform linux/arm64/v8"}";;

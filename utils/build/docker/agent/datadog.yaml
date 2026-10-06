@@ -8,6 +8,7 @@ remote_configuration:
 logs_enabled: true
 logs_config:
   batch_wait: 1
+  force_use_http: true
 otlp_config:
   debug:
     verbosity: detailed
