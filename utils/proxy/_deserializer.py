@@ -38,6 +38,21 @@ def get_header_value(name: str, headers: list[tuple[str, str]]):
     return next((h[1] for h in headers if h[0].lower() == name.lower()), None)
 
 
+Interface = Literal[
+    "agent",
+    "library",
+    "python_buddy",
+    "nodejs_buddy",
+    "java_buddy",
+    "ruby_buddy",
+    "golang_buddy",
+    "otel_collector",
+    "open_telemetry",
+    "datadog_sidecar",
+    "datadog_direct",
+]
+
+
 def _parse_as_unsigned_int(value: int, size_in_bits: int) -> int:
     """Some fields in spans are decribed as a 64 bits unsigned integers, but
     java, and other languages only supports signed integer. As such, they might send trace ids as negative
@@ -103,9 +118,9 @@ def deserialize_http_message(
     path: str,
     message: dict,
     content: bytes | None,
-    interface: str,
+    interface: Interface,
     key: Literal["request", "response"],
-    export_content_files_to: str,
+    export_content_files_to: str | None,
 ):
     def json_load():
         if not content:
@@ -293,7 +308,7 @@ def deserialize_http_message(
 
 
 def _deserialize_file_in_multipart_form_data(
-    path: str, item: dict, headers: dict[str, str], export_content_files_to: str, content: bytes
+    path: str, item: dict, headers: dict[str, str], export_content_files_to: str | None, content: bytes
 ) -> None:
     content_disposition = headers.get("content-disposition", "<not set>")
 
@@ -331,7 +346,7 @@ def _deserialize_file_in_multipart_form_data(
                 except (json.JSONDecodeError, UnicodeDecodeError):
                     item["system-tests-error"] = "Can't decode json file"
 
-            if not content_is_deserialized:
+            if not content_is_deserialized and export_content_files_to:
                 file_path = f"{export_content_files_to}/{md5(content).hexdigest()}_{filename}"
 
                 item["system-tests-information"] = "File exported to a separated file"
@@ -341,7 +356,7 @@ def _deserialize_file_in_multipart_form_data(
                     f.write(content)
 
 
-def _deserialized_nested_json_from_trace_payloads(content: Any, interface: str):  # noqa: ANN401
+def _deserialized_nested_json_from_trace_payloads(content: Any, interface: Interface):  # noqa: ANN401
     """Trace payload from agent and library contains strings that are json"""
 
     if interface == "agent":
@@ -400,8 +415,8 @@ def deserialize(
     data: dict[str, Any],
     key: Literal["request", "response"],
     content: bytes | None,
-    interface: str,
-    export_content_files_to: str,
+    interface: Interface,
+    export_content_files_to: str | None,
 ):
     try:
         data[key]["content"] = deserialize_http_message(

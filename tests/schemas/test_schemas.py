@@ -1,4 +1,4 @@
-from utils import scenario_groups, features, context, interfaces, scenarios, auxiliary_test
+from utils import scenario_groups, features, context, interfaces, scenarios, auxiliary_test, irrelevant
 
 
 from .utils.schemas_validators import SchemaBug, assert_no_schema_error
@@ -7,6 +7,7 @@ from .utils.schemas_validators import SchemaBug, assert_no_schema_error
 @features.not_reported
 @scenario_groups.end_to_end
 @auxiliary_test
+@irrelevant(context.scenario.name == "OTEL_COLLECTOR", reason="This scenario does not use library/agent interfaces")
 class Test_DdtraceSchemas:
     def test_library(self):
         known_bugs = [
@@ -84,12 +85,6 @@ class Test_DdtraceSchemas:
                 data_path="$[].content",
                 condition=context.library < "nodejs@5.31.0",
                 ticket="DEBUG-2864",
-            ),
-            SchemaBug(
-                endpoint="/debugger/v1/diagnostics",
-                data_path="$[].content[].debugger.diagnostics",
-                condition=context.library == "nodejs",
-                ticket="DEBUG-3245",
             ),
             SchemaBug(
                 endpoint="/debugger/v1/input",
@@ -278,7 +273,6 @@ class Test_DdtraceSchemas:
 
 @features.not_reported
 @scenarios.otel_collector
-@scenarios.otel_collector_e2e
 @auxiliary_test
 class Test_OtelSchemas:
     def test_main(self):

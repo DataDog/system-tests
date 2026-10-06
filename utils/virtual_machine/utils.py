@@ -1,18 +1,18 @@
+import crossplane
 import json
 
 
-def nginx_parser(nginx_config_file: str):
-    """Parse the nginx config file and return the apps in the return block of the location block of the server block of the http block.
-    TODO: Improve this uggly code
+def nginx_parser(nginx_config_file: str) -> list[dict]:
+    """Parse the nginx config file and return the apps in the return block of the location block of the server block of
+    the http block. TODO: Improve this uggly code
     """
-    import crossplane
 
     nginx_config = crossplane.parse(nginx_config_file)
     config_endpoints = nginx_config["config"]
     for config_endpoint in config_endpoints:
         parsed_data = config_endpoint["parsed"]
         for parsed in parsed_data:
-            if "http" == parsed["directive"]:
+            if parsed["directive"] == "http":
                 parsed_blocks = parsed["block"]
                 for parsed_block in parsed_blocks:
                     if "server" in parsed_block["directive"]:
@@ -26,3 +26,5 @@ def nginx_parser(nginx_config_file: str):
                                         # convert string to  object
                                         json_object = json.loads(return_args[1].replace("'", '"'))
                                         return json_object["apps"]
+
+    raise ValueError("Data not found")

@@ -1,9 +1,8 @@
 import sys
 import logging
 from typing import Any
-import pytest
 
-from utils import irrelevant, missing_feature, flaky, rfc, logger
+from utils import irrelevant, missing_feature, flaky, pytest, rfc, logger
 from utils._decorators import add_pytest_marker
 from utils.manifest import TestDeclaration
 
@@ -82,6 +81,16 @@ class Test_Skips:
 
         with pytest.raises(pytest.exit.Exception, match="Please set a jira ticket"):
             add_pytest_marker(test_invalid, TestDeclaration.BUG, "APPSEC-123 & APPSEC-456")
+
+
+class Test_PytestProxy:
+    def test_exposes_approved_apis(self):
+        assert callable(pytest.fixture)
+        assert callable(pytest.raises)
+        assert callable(pytest.mark.parametrize)
+
+    def test_hides_internal_force_skip_marker(self):
+        assert not hasattr(pytest.mark, "skip_if_xfail")
 
 
 if __name__ == "__main__":

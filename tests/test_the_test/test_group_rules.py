@@ -17,6 +17,10 @@ def test_appsec():
 def test_tracer_release():
     # make an exclusion list
 
+    contract_self_tests = scenarios.feature_flagging_contract_tests
+    assert contract_self_tests.github_workflow is None
+    assert contract_self_tests.scenario_groups == []
+
     dormant_agentless_scenario = scenarios.feature_flagging_and_experimentation_agentless
     assert dormant_agentless_scenario.include_agent is False
     assert dormant_agentless_scenario.use_proxy is False
@@ -25,13 +29,27 @@ def test_tracer_release():
     assert scenario_groups.end_to_end not in dormant_agentless_scenario.scenario_groups
     assert scenario_groups.tracer_release not in dormant_agentless_scenario.scenario_groups
 
+    agentless_exposure_scenarios = [
+        scenarios.feature_flagging_and_experimentation_agentless_direct,
+        scenarios.feature_flagging_and_experimentation_agentless_serverless,
+    ]
+    for exposure_scenario in agentless_exposure_scenarios:
+        assert exposure_scenario.include_agent is False
+        assert exposure_scenario.use_proxy is True
+        assert scenario_groups.ffe in exposure_scenario.scenario_groups
+        assert scenario_groups.all not in exposure_scenario.scenario_groups
+        assert scenario_groups.end_to_end not in exposure_scenario.scenario_groups
+        assert scenario_groups.tracer_release not in exposure_scenario.scenario_groups
+
     not_in_tracer_release_group = [
         # list of scenario that will never be part of tracer release
         scenarios.fuzzer,
         dormant_agentless_scenario,
+        *agentless_exposure_scenarios,
         scenarios.mock_the_test,
         scenarios.mock_the_test_2,
         scenarios.test_the_test,
+        contract_self_tests,
         scenarios.todo,
         # targetting OTEL
         scenarios.otel_integrations,
@@ -70,7 +88,6 @@ def test_tracer_release():
         scenarios.simple_auto_injection_profiling,
         scenarios.simple_installer_auto_injection,
         scenarios.multi_installer_auto_injection,
-        scenarios.otel_collector_e2e,
     ]
 
     for scenario in get_all_scenarios():

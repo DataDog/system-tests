@@ -8,7 +8,10 @@ class Test_V1PayloadByDefault:
     """Tracers use by default v1 trace format"""
 
     def test_main(self):
-        for data, trace in interfaces.library.get_traces():
+        traces = list(interfaces.library.get_traces())
+        assert traces, "Expected at least one trace"
+
+        for data, trace in traces:
             assert data["path"] == "/v1.0/traces"
             assert trace.format == LibraryTraceFormat.v10
 
@@ -122,7 +125,10 @@ class Test_V1TopLevelSpans:
 
     def test_root_span_is_top_level(self):
         """The root span of a trace must be marked as top-level"""
-        for _, root_span in interfaces.library.get_root_spans(self.r):
+        root_spans = list(interfaces.library.get_root_spans(self.r))
+        assert root_spans, "Expected at least one root span"
+
+        for _, root_span in root_spans:
             attrs = root_span.raw_span.get("attributes", {})
             assert attrs.get("_dd.top_level") == 1 or attrs.get("_dd.top_level") == 1.0, (
                 f"Root span must have _dd.top_level=1 in attributes, got: {attrs.get('_dd.top_level')}"

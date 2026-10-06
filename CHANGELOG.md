@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
+### 2026-09 (154 PR merged)
+
+* 2026-09-30 [Switching easy win auto merge from opt in to opt out](https://github.com/DataDog/system-tests/pull/7865) by @nccatoni
+* 2026-09-28 [Remove any calls to public.ecr.aws on critical path for python lambda](https://github.com/DataDog/system-tests/pull/7838) by @cbeauchesne
+* 2026-09-25 [Unify ffe and v2 backend](https://github.com/DataDog/system-tests/pull/7814) by @cbeauchesne
+* 2026-09-22 [Automate SSI Agent updates](https://github.com/DataDog/system-tests/pull/7719) by @nccatoni
+* 2026-09-09 [Introduce Mocked Backend V2](https://github.com/DataDog/system-tests/pull/7668) by @cbeauchesne
+* 2026-09-25 [Import restrictions on test modules](https://github.com/DataDog/system-tests/pull/7408) by @nccatoni
+* 2026-09-14 [Reliable and automated base image build process](https://github.com/DataDog/system-tests/pull/7270) by @nccatoni
+
+
+### 2026-08 (158 PR merged)
+
+* 2026-08-24 [chore: add system-tests-reviewers to CODEOWNERS](https://github.com/DataDog/system-tests/pull/7564) by @brettlangdon
+* 2026-08-12 [Ew auto merge per team lang](https://github.com/DataDog/system-tests/pull/7475) by @nccatoni
+
+
+### 2026-07 (150 PR merged)
+
+* 2026-07-01 [feat: add per-weblog metadata to control CI build requirement](https://github.com/DataDog/system-tests/pull/7130) by @rochdev
+* 2026-07-03 [Gitlab pipeline for End to End and parametric scenarios](https://github.com/DataDog/system-tests/pull/6651) by @nccatoni
+
+
 ### 2026-06 (140 PR merged)
 
 * 2026-06-05 [[ruby] Add new Ruby-lang weblog `ruby_lambda`](https://github.com/DataDog/system-tests/pull/7065) by @Strech

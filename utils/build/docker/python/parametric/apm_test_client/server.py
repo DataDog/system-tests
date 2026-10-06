@@ -10,6 +10,10 @@ import logging
 import os
 import enum
 import threading
+
+# Starlette's synchronous endpoints access this public submodule through anyio.
+# Recent AnyIO releases no longer populate it on importing the parent package.
+import anyio.to_thread
 from fastapi import FastAPI
 from fastapi import Request
 from fastapi.responses import JSONResponse
@@ -24,6 +28,7 @@ from opentelemetry.metrics import Meter
 from opentelemetry.metrics import Observation
 from opentelemetry.metrics import Instrument
 from opentelemetry.metrics import get_meter_provider
+from opentelemetry.sdk.metrics import MeterProvider as SdkMeterProvider
 from opentelemetry.trace import set_tracer_provider
 from opentelemetry.trace.span import NonRecordingSpan as OtelNonRecordingSpan
 from opentelemetry.trace import SpanKind
@@ -68,9 +73,24 @@ from .llmobs import router as llmobs_router
 
 log = logging.getLogger(__name__)
 
-# OpenFeature client initialization
+# OpenFeature client initialization.
+#
+# The configuration-source contract requires lazy activation: no configuration
+# delivery may happen before the provider is accessed through /ffe/start. When any
+# Feature Flagging configuration variable is set, skip this eager initialization and
+# leave provider setup to /ffe/start. Tests that predate that contract keep the
+# original eager behavior.
+_FFE_CONFIGURATION_ENVVARS = (
+    "DD_FEATURE_FLAGS_ENABLED",
+    "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE",
+    "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL",
+    "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_POLL_INTERVAL_SECONDS",
+    "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_REQUEST_TIMEOUT_SECONDS",
+)
 openfeature_client = None
-if os.environ.get("DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED") == "true":
+if os.environ.get("DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED") == "true" and not any(
+    name in os.environ for name in _FFE_CONFIGURATION_ENVVARS
+):
     try:
         from openfeature import api
         from ddtrace.openfeature import DataDogProvider
@@ -183,9 +203,13 @@ def trace_config() -> TraceConfigReturn:
         config={
             "dd_service": config.service,
             "dd_log_level": None,
+            "dd_trace_effective_log_level": logging.getLevelName(
+                logging.getLogger("ddtrace").getEffectiveLevel()
+            ).lower(),
             "dd_trace_sample_rate": str(_global_sampling_rate()),
             "dd_trace_enabled": str(config._tracing_enabled).lower(),
             "dd_runtime_metrics_enabled": str(config._runtime_metrics_enabled).lower(),
+            "otel_metrics_initialized": str(isinstance(get_meter_provider(), SdkMeterProvider)).lower(),
             "dd_tags": ",".join(f"{k}:{v}" for k, v in config.tags.items()),
             "dd_trace_propagation_style": ",".join(config._propagation_style_extract),
             "dd_trace_debug": str(config._debug_mode).lower(),
@@ -429,19 +453,6 @@ class TraceStatsFlushReturn(BaseModel):
 
 @app.post("/trace/stats/flush")
 def trace_stats_flush(args: TraceStatsFlushArgs) -> TraceStatsFlushReturn:
-    # Legacy path: older dd-trace-py versions used a Python-side SpanStatsProcessorV06.
-    if hasattr(ddtrace.internal.processor, "stats"):
-        stats_proc = [
-            p
-            for p in ddtrace.tracer._span_processors
-            if isinstance(p, ddtrace.internal.processor.stats.SpanStatsProcessorV06)
-        ]
-        if stats_proc:
-            stats_proc[0].periodic()
-            return TraceStatsFlushReturn()
-
-    # Modern path: dd-trace-py >= 3.x delegates CSS to libdatadog's native TraceExporter.
-    # The exporter only emits /v0.6/stats on its internal 10-second timer or on shutdown.
     span_aggregator = getattr(ddtrace.tracer, "_span_aggregator", None)
     writer = getattr(span_aggregator, "writer", None)
     if writer is None:
@@ -1464,28 +1475,37 @@ async def ffe_evaluate(request: Request) -> JSONResponse:
         # Build context
         context = EvaluationContext(targeting_key=targeting_key, attributes=attributes)
 
-        # Evaluate based on variation type
+        # Evaluate based on variation type. The detailed variants are used so the
+        # provider's reason and error code reach the test, which the
+        # configuration-source contract asserts on (for example
+        # PROVIDER_NOT_READY while no configuration has been delivered yet).
         value = default_value
         reason = "DEFAULT"
+        error_code = None
 
         try:
             if variation_type == "BOOLEAN":
-                value = openfeature_client.get_boolean_value(flag, default_value, context)
+                details = openfeature_client.get_boolean_details(flag, default_value, context)
             elif variation_type == "STRING":
-                value = openfeature_client.get_string_value(flag, default_value, context)
+                details = openfeature_client.get_string_details(flag, default_value, context)
             elif variation_type == "INTEGER":
-                value = openfeature_client.get_integer_value(flag, default_value, context)
+                details = openfeature_client.get_integer_details(flag, default_value, context)
             elif variation_type == "NUMERIC":
-                value = openfeature_client.get_float_value(flag, default_value, context)
+                details = openfeature_client.get_float_details(flag, default_value, context)
             elif variation_type == "JSON":
-                value = openfeature_client.get_object_value(flag, default_value, context)
+                details = openfeature_client.get_object_details(flag, default_value, context)
             else:
-                value = default_value
+                details = None
+
+            if details is not None:
+                value = details.value
+                reason = getattr(details.reason, "value", details.reason) or "DEFAULT"
+                error_code = getattr(details.error_code, "value", details.error_code)
         except Exception:
             value = default_value
             reason = "ERROR"
 
-        return JSONResponse({"value": value, "reason": reason}, status_code=200)
+        return JSONResponse({"value": value, "reason": reason, "errorCode": error_code}, status_code=200)
     except Exception as e:
         log.error(f"[FFE] Error evaluating flag: {e}")
         return JSONResponse({"error": str(e)}, status_code=500)

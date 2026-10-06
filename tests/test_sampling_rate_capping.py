@@ -4,30 +4,12 @@
 
 import time
 
-import requests
-
 from utils import weblog, interfaces, scenarios, features, logger
-from utils.proxy.mocked_response import (
-    MOCKED_TRACER_RESPONSES_PATH,
-    SequentialJsonMockedTracerResponse,
-    _get_proxy_domain,
-)
-from utils.proxy.ports import ProxyPorts
+from utils.proxy.mocked_response import SequentialJsonMockedTracerResponse, send_mocked_tracer_responses
 
 
 LOW_RATE = 0.1
 HIGH_RATE = 1.0
-
-
-def _send_mocked_tracer_responses(mocks: list) -> None:
-    """Send multiple mocked tracer responses in a single PUT request."""
-    domain = _get_proxy_domain()
-    response = requests.put(
-        f"http://{domain}:{ProxyPorts.proxy_commands}{MOCKED_TRACER_RESPONSES_PATH}",
-        json=[m.to_json() for m in mocks],
-        timeout=30,
-    )
-    response.raise_for_status()
 
 
 @scenarios.sampling_rate_capping
@@ -53,8 +35,9 @@ class Test_SamplingRateCappedIncrease:
         mocks = [
             SequentialJsonMockedTracerResponse(path="/v0.4/traces", mocked_json_sequence=sequence),
             SequentialJsonMockedTracerResponse(path="/v0.5/traces", mocked_json_sequence=sequence),
+            SequentialJsonMockedTracerResponse(path="/v1.0/traces", mocked_json_sequence=sequence),
         ]
-        _send_mocked_tracer_responses(mocks)
+        send_mocked_tracer_responses(mocks)
 
         # Generate initial traffic until the tracer picks up the low rate
         for i in range(40):
@@ -71,7 +54,7 @@ class Test_SamplingRateCappedIncrease:
         interfaces.library.wait_for(wait_for_low_rate, timeout=30)
 
         # Record how many spans exist before the ramp-up phase
-        self._spans_before_ramp = sum(1 for _ in interfaces.library.get_root_spans())
+        self.spans_before_ramp = sum(1 for _ in interfaces.library.get_root_spans())
 
         # Generate traffic in bursts to trigger multiple flush cycles during ramp-up
         # Each burst sends requests, then sleeps to allow the tracer to flush and receive
@@ -86,7 +69,7 @@ class Test_SamplingRateCappedIncrease:
         # Wait for a span with the high rate that appeared AFTER the low-rate phase
         def wait_for_high_rate_after_ramp(_data: dict) -> bool:
             for idx, (_, span) in enumerate(interfaces.library.get_root_spans()):
-                if idx < self._spans_before_ramp:
+                if idx < self.spans_before_ramp:
                     continue
                 agent_psr = span.get("metrics", {}).get("_dd.agent_psr")
                 if agent_psr is not None and abs(agent_psr - HIGH_RATE) < 0.01:
@@ -101,7 +84,7 @@ class Test_SamplingRateCappedIncrease:
         agent_psr_values = set()
 
         for idx, (_, span) in enumerate(interfaces.library.get_root_spans()):
-            if idx < self._spans_before_ramp:
+            if idx < self.spans_before_ramp:
                 continue
             agent_psr = span.get("metrics", {}).get("_dd.agent_psr")
             if agent_psr is not None:

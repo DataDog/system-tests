@@ -28,7 +28,7 @@ class Test_NativeCGitLabCI:
         patterns = ignored_patterns.splitlines()
 
         for index in range(3):
-            check_name = f"dd-gitlab/system_tests_run_pipeline_{index}"
+            check_name = f"dd-gitlab/system_tests_e2e_run_pipeline_{index}"
             assert not any(re.search(pattern, check_name) for pattern in patterns)
 
         assert any(re.search(pattern, "dd-gitlab/unrelated-job") for pattern in patterns)

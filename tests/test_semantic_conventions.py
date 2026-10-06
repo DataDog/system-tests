@@ -36,6 +36,8 @@ VARIANT_COMPONENT_MAP = {
     "django-py3.13": "django",
     "python3.12": "django",
     "gin": "gin-gonic/gin",
+    "fiber-v2-orchestrion": "gofiber/fiber.v2",
+    "apim": "apim-callout",
     "haproxy": "haproxy-spoa",
     "gqlgen": "99designs/gqlgen",
     "graph-gophers": "graph-gophers/graphql-go",

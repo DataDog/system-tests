@@ -4,6 +4,7 @@ import random
 import socket
 import time
 from collections.abc import Iterator
+from pathlib import Path
 from docker.errors import BuildError
 from docker.models.networks import Network
 import pytest
@@ -22,6 +23,9 @@ from utils._logger import logger
 from utils.virtual_machine.vm_logger import vm_logger
 
 from .core import Scenario, ScenarioGroup
+
+
+AUTO_INJECT_LOCK = Path(__file__).resolve().parents[3] / "utils" / "build" / "auto_inject.lock"
 
 
 class ContainerRemovalError(Exception):
@@ -298,18 +302,17 @@ class DockerSSIScenario(Scenario):
     def configuration(self):
         return self._configuration
 
-    def get_junit_properties(self) -> dict[str, str]:
+    def get_junit_properties(self) -> dict[str, dict[str, str] | str]:
         result = super().get_junit_properties()
 
-        result["dd_tags[systest.suite.context.library.name]"] = self.library.name
-        result["dd_tags[systest.suite.context.library.version]"] = self.library.version
-        result["dd_tags[systest.suite.context.weblog_variant]"] = self.weblog_variant
-        result["dd_tags[systest.suite.context.agent]"] = self.components["agent"]
-        result["dd_tags[systest.suite.context.datadog-apm-inject.version]"] = self.dd_apm_inject_version
-        result["dd_tags[systest.suite.context.datadog-installer.version]"] = self.components["datadog-installer"]
-        result["dd_tags[systest.suite.context.installed_language_runtime]"] = self.installed_language_runtime or ""
-        result["dd_tags[systest.suite.context.os]"] = self.configuration["os"]
-        result["dd_tags[systest.suite.context.arch]"] = self.configuration["arch"]
+        result["library"] = {"name": self.library.name, "version": str(self.library.version)}
+        result["weblog_variant"] = self.weblog_variant
+        result["agent"] = str(self.components["agent"])
+        result["datadog-apm-inject"] = {"version": self.dd_apm_inject_version}
+        result["datadog-installer"] = {"version": str(self.components["datadog-installer"])}
+        result["installed_language_runtime"] = str(self.installed_language_runtime or "")
+        result["os"] = self.configuration["os"]
+        result["arch"] = self.configuration["arch"]
 
         return result
 
@@ -507,6 +510,11 @@ class DockerSSIImageBuilder:
             f"[tag:{self.ssi_all_docker_tag}]Installing dd ssi for autoinjection on base image "
             f"[{ssi_installer_docker_tag}]."
         )
+        pinned_injector_version = (
+            AUTO_INJECT_LOCK.read_text(encoding="utf-8").strip()
+            if self._custom_library_version and not self._custom_injector_version
+            else None
+        )
         try:
             # Install the ssi to run the auto instrumentation
             _, build_logs = get_docker_client().images.build(
@@ -521,6 +529,7 @@ class DockerSSIImageBuilder:
                     "SSI_ENV": self._env,
                     "DD_INSTALLER_LIBRARY_VERSION": self._custom_library_version,
                     "DD_INSTALLER_INJECTOR_VERSION": self._custom_injector_version,
+                    "DD_INSTALLER_PINNED_INJECTOR_VERSION": pinned_injector_version,
                     "DD_APPSEC_ENABLED": str(self._appsec_enabled).lower()
                     if isinstance(self._appsec_enabled, bool)
                     else None,

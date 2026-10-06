@@ -12,6 +12,7 @@ object IastRoutes {
 
   private val superSecretAccessKey = "insecure"
   private val cmd = new CmdExamples()
+  private val codeInjection = new CodeInjectionExamples()
   private val crypto = new CryptoExamples()
   private val ldap = new LDAPExamples(ldapContext)
   private val path_ = new PathExamples()
@@ -77,6 +78,18 @@ object IastRoutes {
           paramOrFormField("cmd") { cmdParam =>
             complete(cmd.insecureCmd(cmdParam))
           }
+        }
+      } ~
+      path("code_injection" / "test_insecure") {
+        post {
+          paramOrFormField("code") { code =>
+            complete(codeInjection.insecureCodeInjection(code))
+          }
+        }
+      } ~
+      path("code_injection" / "test_secure") {
+        post {
+          complete(codeInjection.secureCodeInjection())
         }
       } ~
       pathPrefix("xpathi") {

@@ -37,6 +37,7 @@ class _ScenarioGroups:
     2. select a set of scenario to execute in the official system-tests workflow
     """
 
+    agentless = ScenarioGroup()
     all = ScenarioGroup()
     ai_guard = ScenarioGroup()
     appsec = ScenarioGroup()
@@ -71,6 +72,7 @@ class _ScenarioGroups:
     tracer_release = ScenarioGroup()
     appsec_low_waf_timeout = ScenarioGroup()
     ffe = ScenarioGroup()
+    thread_context_sharing = ScenarioGroup()
 
     def __getitem__(self, key: str) -> ScenarioGroup:
         key = key.replace("-", "_").lower()
@@ -227,8 +229,8 @@ class Scenario:
     def parametrized_tests_metadata(self):
         return {}
 
-    def get_junit_properties(self) -> dict[str, str]:
-        return {"dd_tags[systest.suite.context.scenario]": self.name}
+    def get_junit_properties(self) -> dict[str, dict[str, str] | str]:
+        return {"scenario": self.name}
 
     def customize_feature_parity_dashboard(self, result: dict):
         pass

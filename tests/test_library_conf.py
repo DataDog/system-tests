@@ -1,7 +1,7 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
-import pytest
+from utils import pytest
 from utils import weblog, interfaces, scenarios, features
 from utils.dd_types import DataDogAgentSpan
 from utils._context.header_tag_vars import (
@@ -40,9 +40,14 @@ class Test_HeaderTags:
     def test_trace_header_tags_basic(self):
         """Test that http.request.headers.user-agent is in all web spans"""
 
-        for _, span in interfaces.library.get_root_spans():
-            if span.get("type") == "web":
-                assert "http.request.headers.user-agent" in span.get("meta", {})
+        # get_root_spans() yields nothing when no root span was collected, and filtering by
+        # type == "web" can also empty out the collection, so the loop below would pass
+        # vacuously without this guard
+        web_spans = [span for _, span in interfaces.library.get_root_spans() if span.get("type") == "web"]
+        assert web_spans, "Expected at least one web root span"
+
+        for span in web_spans:
+            assert "http.request.headers.user-agent" in span.get("meta", {})
 
 
 @scenarios.library_conf_custom_header_tags
@@ -384,6 +389,8 @@ class Test_HeaderTags_DynamicConfig:
             "lib_config": header_tags,
         }
         rc_id = hash(json.dumps(config))
+        if rc.library_supports_sdk_configuration():
+            config = rc.to_sdk_config_payload(config)
         return f"datadog/2/APM_TRACING/{rc_id}/config", config
 
 
