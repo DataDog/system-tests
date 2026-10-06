@@ -418,6 +418,9 @@ manifest:
       weblog: [apache-mod-8.1-zts, apache-mod-7.4-zts, apache-mod-7.2-zts, php-fpm-8.1, apache-mod-8.2-zts, apache-mod-8.2, php-fpm-7.0, apache-mod-7.0, php-fpm-8.0, apache-mod-7.2, apache-mod-7.1-zts, apache-mod-7.3-zts, apache-mod-7.1, php-fpm-7.3, apache-mod-8.1, symfony7x, apache-mod-7.4, apache-mod-7.3, php-fpm-7.1, apache-mod-8.0, php-fpm-8.5, php-fpm-8.2, apache-mod-8.0-zts, php-fpm-7.4, apache-mod-7.0-zts, laravel11x, php-fpm-7.2]
     - declaration: bug (APPSEC-69429)
       excluded_weblog: [apache-mod-8.1-zts, apache-mod-7.4-zts, apache-mod-7.2-zts, php-fpm-8.1, apache-mod-8.2-zts, apache-mod-8.2, php-fpm-7.0, apache-mod-7.0, php-fpm-8.0, apache-mod-7.2, apache-mod-7.1-zts, apache-mod-7.3-zts, apache-mod-7.1, php-fpm-7.3, apache-mod-8.1, symfony7x, apache-mod-7.4, apache-mod-7.3, php-fpm-7.1, apache-mod-8.0, php-fpm-8.5, php-fpm-8.2, apache-mod-8.0-zts, php-fpm-7.4, apache-mod-7.0-zts, laravel11x, php-fpm-7.2]
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_ApiSecurity::test_api_security_smoke:
+    - weblog_declaration:
+        apache-mod-7.2: flaky (APPSEC-70615)
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Rasp::test_shi_smoke: missing_feature
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Rasp::test_sqli_smoke:  # TODO: a lower version might be supported
     - weblog_declaration:
@@ -434,7 +437,7 @@ manifest:
   ? tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2
   : - weblog_declaration:
         laravel11x: flaky (APPSEC-69699)
-        symfony7x: v1.23.3  # TODO: a lower version might be supported
+        symfony7x: flaky (APPSEC-70615)
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_APMDisabledMarker:  # TODO: a lower version might be supported
     - weblog_declaration:
         '*': missing_feature
