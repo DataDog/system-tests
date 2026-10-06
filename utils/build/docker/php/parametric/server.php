@@ -340,7 +340,7 @@ $router->addRoute('POST', '/trace/span/start', new ClosureRequestHandler(functio
             \DDTrace\create_stack();
             $span = \DDTrace\start_span();
         } elseif (isset($spansDistributedTracingHeaders[$parent])) {
-            $span = \DDTrace\start_span();
+            $span = \DDTrace\start_trace_span();
             $distributedTracingHeaders = $spansDistributedTracingHeaders[$parent];
             \DDTrace\consume_distributed_tracing_headers($distributedTracingHeaders);
         } else {
@@ -394,6 +394,11 @@ $router->addRoute('POST', '/trace/span/extract_headers', new ClosureRequestHandl
     };
     \DDTrace\consume_distributed_tracing_headers($callback);
     $spanID = $span->parentId ?? null;
+    if (!$spanID && !empty($span->baggage)) {
+        // Baggage-only extraction has no remote parent ID. Keep an app context
+        // handle so start can replay the extracted headers through the SDK.
+        $spanID = $span->id;
+    }
     $spansDistributedTracingHeaders[$spanID] = $headers;
     return jsonResponse(["span_id" => $spanID]);
 }));
@@ -840,6 +845,27 @@ $router->addRoute('POST', '/log/otel/flush', new ClosureRequestHandler(function 
         return jsonResponse(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
     }
 }));
+$router->addRoute('POST', '/trace/diagnostics/log_level', new ClosureRequestHandler(function (Request $req) {
+    // Exercise real SDK diagnostics without changing its logger configuration.
+    // The invalid start time emits WARN; updating an unfinished span emits ERROR.
+    try {
+        \DDTrace\start_span([]);
+    } catch (\TypeError $error) {
+        // The SDK logs the invalid argument before PHP reports its type error.
+    }
+
+    $previousStack = \DDTrace\active_stack();
+    $span = \DDTrace\start_trace_span();
+    try {
+        \DDTrace\update_span_duration($span);
+    } finally {
+        \DDTrace\close_span();
+        \DDTrace\switch_stack($previousStack);
+    }
+
+    return jsonResponse(['success' => true]);
+}));
+
 $router->addRoute('GET', '/trace/config', new ClosureRequestHandler(function (Request $req) {
 
     $tags_array = \dd_trace_env_config("DD_TAGS");
