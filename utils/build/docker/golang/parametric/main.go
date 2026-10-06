@@ -31,9 +31,10 @@ type apmClientServer struct {
 	// OTel Logs
 	otelLoggers map[string]otelLogger
 	// OTel Metrics
-	mp          metric.MeterProvider
-	meters      map[string]metric.Meter
-	instruments map[string]interface{} // Can be Counter, UpDownCounter, Gauge, Histogram, or Observable variants
+	mp                  metric.MeterProvider
+	meters              map[string]metric.Meter
+	instruments         map[string]interface{} // Can be Counter, UpDownCounter, Gauge, Histogram, or Observable variants
+	metricConfiguration *metricReaderConfiguration
 }
 
 type spanContext struct {
@@ -45,6 +46,7 @@ func newServer() *apmClientServer {
 	tp := ddotel.NewTracerProvider()
 	otel.SetTracerProvider(tp)
 
+	metricConfiguration := observeMetricReaderConfiguration()
 	mp, err := ddmetric.NewMeterProvider()
 	if err != nil {
 		log.Fatalf("failed to create Datadog OTel MeterProvider: %v", err)
@@ -56,14 +58,15 @@ func newServer() *apmClientServer {
 	}
 
 	s := &apmClientServer{
-		spans:        make(map[uint64]*tracer.Span),
-		otelLoggers:  make(map[string]otelLogger),
-		spanContexts: make(map[uint64]*tracer.SpanContext),
-		otelSpans:    make(map[uint64]spanContext),
-		tp:           tp,
-		mp:           mp,
-		meters:       make(map[string]metric.Meter),
-		instruments:  make(map[string]interface{}),
+		spans:               make(map[uint64]*tracer.Span),
+		otelLoggers:         make(map[string]otelLogger),
+		spanContexts:        make(map[uint64]*tracer.SpanContext),
+		otelSpans:           make(map[uint64]spanContext),
+		tp:                  tp,
+		mp:                  mp,
+		meters:              make(map[string]metric.Meter),
+		instruments:         make(map[string]interface{}),
+		metricConfiguration: metricConfiguration,
 	}
 
 	// The configuration-source contract requires lazy activation: no configuration
