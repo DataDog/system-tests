@@ -286,6 +286,10 @@ images:
     digest: sha256:128b7524cde00a739246166feef66b0d512388005dc125b0f11034555a8b6a70
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:nextjs.base-95582a903467
     tag: nextjs.base-95582a903467
+  datadog/system-tests:nodejs-lambda-runtime.base-ae2ef8602d9b:
+    digest: sha256:54a2a448697db0cfa98574d06b5a156dc856a6cb112e4ef3a1cfcec7bbeacea3
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:nodejs-lambda-runtime.base-ae2ef8602d9b
+    tag: nodejs-lambda-runtime.base-ae2ef8602d9b
   datadog/system-tests:nodejs-lambda-runtime.base-f7f78c7298cf:
     digest: sha256:6f2d40e78bc96937010874e2b7f23ef9effb5e087c0cdf674f9b1ca0bcb631a8
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:nodejs-lambda-runtime.base-f7f78c7298cf
@@ -586,6 +590,10 @@ images:
     digest: sha256:daf6a5c0a2b36153b94c91f3563e8ef89b3b19e4129963c6ccb07b8c5251f7ef
     target: registry.ddbuild.io/system-tests/mirror/public.ecr.aws/lambda/nodejs:18
     tag: '18'
+  public.ecr.aws/lambda/nodejs:22:
+    digest: sha256:0d8cef825977958151403ab65c255a2ae59380c521384edb356d9d5b4bd1f063
+    target: registry.ddbuild.io/system-tests/mirror/public.ecr.aws/lambda/nodejs:22
+    tag: '22'
   public.ecr.aws/lambda/python:3.13:
     digest: sha256:0fc65c4c9bace18ce7cb5b670119b847140a9c1c45f2b24d06ce4e35bef0a9be
     target: registry.ddbuild.io/system-tests/mirror/public.ecr.aws/lambda/python:3.13
