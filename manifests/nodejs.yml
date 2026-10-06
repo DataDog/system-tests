@@ -2665,7 +2665,6 @@ manifest:
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Baggage::test_remove_all_baggage: incomplete_test_app (baggage endpoints are not implemented)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Baggage::test_remove_baggage: incomplete_test_app (baggage endpoints are not implemented)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Baggage::test_set_baggage: incomplete_test_app (baggage endpoints are not implemented)
-  tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Config: incomplete_test_app (/trace/config does not expose configuration)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Crash:  # TODO: a lower version might be supported
     - declaration: incomplete_test_app (crash endpoint is not implemented)
       component_version: <6.8.0
