@@ -99,6 +99,8 @@ class TestedContainer:
         volumes: dict | None = None,
         working_dir: str | None = None,
         pid_mode: str | None = None,
+        cgroupns: str | None = None,
+        mounts: list[docker.types.Mount] | None = None,
     ) -> None:
         assert name
         assert image_name
@@ -133,6 +135,10 @@ class TestedContainer:
         self.ulimits: list | None = None
         self.privileged = False
         self.pid_mode = pid_mode
+        self.cgroupns = cgroupns
+        # Unlike volumes, a bind mount listed here fails container creation when its source is
+        # missing, instead of being created as an empty directory by the docker daemon.
+        self.mounts = mounts
 
     def _get_image_name(self, binary_file_name: str | None, default_name: str) -> str:
         # if the container provide binary_file_name, then a file named binaries/{binary_file_name}
@@ -256,6 +262,8 @@ class TestedContainer:
             privileged=self.privileged,
             ulimits=self.ulimits,
             pid_mode=self.pid_mode,
+            cgroupns=self.cgroupns,
+            mounts=self.mounts,
         )
 
         self.healthy = self.wait_for_health()
