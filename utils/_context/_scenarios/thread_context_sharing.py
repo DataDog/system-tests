@@ -1,9 +1,29 @@
+import os
+
+from docker.errors import APIError
+from docker.models.networks import Network
+from docker.types import Mount
 import pytest
 
+from utils import interfaces
 from utils._context.constants import WeblogCategory
+from utils._logger import logger
 
 from .core import scenario_groups
 from .endtoend import EndToEndScenario
+
+
+GUEST_KERNEL_MOUNTS_VARIABLE = "SYSTEM_TESTS_CWS_GUEST_KERNEL_MOUNTS"
+GUEST_KERNEL_MOUNTS_ANNOTATION = "io.katacontainers.datadog.guest-kernel-mounts"
+GUEST_KERNEL_MOUNTS_MARKER = "/vm-host/.ready-v1"
+CWS_READINESS_TIMEOUT = 90
+
+_GUEST_KERNEL_MOUNTS_HELP = (
+    f"{GUEST_KERNEL_MOUNTS_VARIABLE}=v1 requires a Kata docker-in-docker job whose pod has the "
+    f"{GUEST_KERNEL_MOUNTS_ANNOTATION}=v1 annotation, on a Kata runtime with the guest kernel mounts "
+    f"hook, which exposes the VM's kernel filesystems under /vm-host and writes {GUEST_KERNEL_MOUNTS_MARKER} "
+    "last. Kata only logs hook failures; look for them in the Kata VM: dmesg | grep 'kata-agent: hook failed'"
+)
 
 
 class ThreadContextSharingScenario(EndToEndScenario):
@@ -21,6 +41,10 @@ class ThreadContextSharingScenario(EndToEndScenario):
     CWS security events are observed through the agent's proxy-captured HTTPS traffic
     (`/api/v2/logs`), decoded via `tests/cws/utils.py` - the same way this scenario
     already observes telemetry, remote config, etc.
+
+    Setting SYSTEM_TESTS_CWS_GUEST_KERNEL_MOUNTS=v1 opts into a topology for running inside
+    a Kata VM's docker-in-docker container, where the kernel filesystems of the VM are exposed
+    under /vm-host by a Kata guest hook. See docs/understand/scenarios/thread_context_sharing.md.
     """
 
     def __init__(self, name: str, doc: str) -> None:
@@ -34,6 +58,9 @@ class ThreadContextSharingScenario(EndToEndScenario):
         )
 
     def configure(self, config: pytest.Config):
+        # checked first, so that a typo fails before anything else is prepared
+        guest_kernel_mounts = self._guest_kernel_mounts_opted_in()
+
         super().configure(config)
 
         agent = self.agent_container
@@ -69,3 +96,91 @@ class ThreadContextSharingScenario(EndToEndScenario):
         # rw: attaching kprobes means writing to /sys/kernel/debug/tracing/kprobe_events
         agent.volumes["/sys/kernel/debug"] = {"bind": "/sys/kernel/debug", "mode": "rw"}
         agent.volumes["/sys/kernel/security"] = {"bind": "/sys/kernel/security", "mode": "rw"}
+
+        if guest_kernel_mounts:
+            self._use_guest_kernel_mounts()
+
+    @staticmethod
+    def _guest_kernel_mounts_opted_in() -> bool:
+        value = os.environ.get(GUEST_KERNEL_MOUNTS_VARIABLE, "")
+        if value not in ("", "v1"):
+            pytest.exit(
+                f"Unsupported {GUEST_KERNEL_MOUNTS_VARIABLE}={value!r}: "
+                "leave it unset, or set it to v1 to use the Kata guest kernel mounts",
+                1,
+            )
+        return value == "v1"
+
+    def _use_guest_kernel_mounts(self) -> None:
+        """Take the kernel filesystems from the Kata VM instead of the docker daemon's host.
+
+        In a Kata docker-in-docker job, the docker daemon's "host" is only a container of the
+        VM: --pid=host yields the DIND PID namespace, and its /sys/kernel/* are not the kernel
+        filesystems the agent needs. A Kata guest prestart hook, enabled on the DIND container
+        by a pod annotation, clones the VM's own mounts under /vm-host, and writes
+        /vm-host/.ready-v1 last.
+        """
+        agent = self.agent_container
+
+        # As in the documented CWS Docker setup (--cgroupns host): cgroup paths read by the agent
+        # are relative to the docker daemon's cgroup namespace, not to a private one of its own.
+        agent.cgroupns = "host"
+
+        del agent.volumes["/sys/kernel/debug"]
+        del agent.volumes["/sys/kernel/security"]
+        # Mounts, not volumes: a missing source (hook not run, or not ready) fails the agent
+        # container creation, instead of being silently created as an empty directory.
+        agent.mounts = [
+            Mount(target="/host/proc", source="/vm-host/proc", type="bind", read_only=True),
+            Mount(target="/host/sys/fs/cgroup", source="/vm-host/sys/fs/cgroup", type="bind", read_only=True),
+            Mount(target="/sys/kernel/debug", source="/vm-host/sys/kernel/debug", type="bind", read_only=False),
+            Mount(target="/sys/kernel/tracing", source="/vm-host/sys/kernel/tracing", type="bind", read_only=False),
+            Mount(target="/sys/kernel/security", source="/vm-host/sys/kernel/security", type="bind", read_only=False),
+            # only there so that the agent can't start before the hook has completed
+            Mount(
+                target="/opt/system-tests/vm-host-ready-v1",
+                source=GUEST_KERNEL_MOUNTS_MARKER,
+                type="bind",
+                read_only=True,
+            ),
+        ]
+
+        # The agent sees cgroup files relative to the VM's namespaces, not to its own: its
+        # self-cgroup detection is approximate in this topology, so it must never enforce.
+        agent.environment["DD_RUNTIME_SECURITY_CONFIG_ENFORCEMENT_ENABLED"] = "false"
+
+        self._agent_start = agent.start
+        agent.start = self._agent_start_explaining_missing_mounts  # type: ignore[method-assign]
+
+        # The weblog depends on the agent, so it is only started after this warmup. A weblog
+        # started before CWS was live has been observed to produce events without trace context.
+        self._agent_warmup = agent.warmup
+        agent.warmup = self._agent_warmup_then_wait_for_cws  # type: ignore[method-assign]
+
+    def _agent_start_explaining_missing_mounts(self, network: Network) -> None:
+        try:
+            self._agent_start(network)
+        except APIError as e:
+            if "/vm-host" not in str(e):
+                raise
+            message = (
+                f"The agent container could not mount the Kata guest kernel filesystems ({e}). "
+                f"{_GUEST_KERNEL_MOUNTS_HELP}"
+            )
+            # The framework logs start exceptions to tests.log only, and the console just says
+            # that the agent can't be started; this is where CI users look first.
+            logger.stdout(message)
+            raise RuntimeError(message) from e
+
+    def _agent_warmup_then_wait_for_cws(self) -> None:
+        # Imported lazily, so that utils (which loads every scenario) does not depend on the
+        # tests package at import time; this is the same readiness predicate the tests use.
+        from tests.cws.utils import cws_self_test_succeeded  # noqa: PLC0415
+
+        self._agent_warmup()
+
+        if not interfaces.agent.wait_for(cws_self_test_succeeded, timeout=CWS_READINESS_TIMEOUT):
+            raise RuntimeError(
+                f"CWS did not report a successful self test within {CWS_READINESS_TIMEOUT}s; check the "
+                f"agent logs. {_GUEST_KERNEL_MOUNTS_HELP}"
+            )
