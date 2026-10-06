@@ -645,8 +645,9 @@ APM_TRACING_CAPABILITIES = frozenset(
     capability for capability in Capabilities if capability.name.startswith("APM_TRACING_")
 )
 
-# The per-setting APM_TRACING capabilities that SDK_CONFIGURATION replaces. A library on the new
-# contract advertises the single SDK_CONFIGURATION bit instead of all of these.
+# The per-setting capabilities replaced by the unified SDK_CONFIGURATION contract. Their presence
+# alongside bit 49 is ambiguous: Node.js intentionally advertises both families, while libdatadog
+# uses bit 49 for ASM_RAW_RESPONSE_BODY and still consumes the legacy lib_config payload.
 LEGACY_APM_TRACING_CAPABILITIES = frozenset(
     {
         Capabilities.APM_TRACING_CUSTOM_TAGS,
@@ -659,30 +660,29 @@ LEGACY_APM_TRACING_CAPABILITIES = frozenset(
 )
 
 
-def resolve_sdk_configuration_contract(capabilities: set[Capabilities]) -> bool | None:
+def resolve_sdk_configuration_contract(
+    capabilities: set[Capabilities], *, library_name: str | None = None
+) -> bool | None:
     """Decide which APM_TRACING payload shape a set of advertised capabilities asks for.
 
     Returns True for `sdk_config`, False for `lib_config`, and None when the capabilities seen so
     far cannot tell, so the caller should look again later.
 
-    The SDK_CONFIGURATION bit alone is not enough to decide. Bit 49 is SDK_CONFIGURATION in the
-    remote config source of truth (dd-source `remote-config/shared/libs/rc/capabilities.go`), but
-    libdatadog hands the same bit to `ASM_RAW_RESPONSE_BODY`, so a libdatadog-based library such as
-    dd-trace-php advertises it while still reading `lib_config`.
-
-    Dropping the per-setting capabilities is the whole point of the unified bit, so their absence
-    is what distinguishes the two. Absence only counts once the library has actually registered its
-    APM_TRACING remote config, though: capabilities are added as products start, and AppSec ones
-    come first, so an early poll from a libdatadog library shows bit 49 with no APM_TRACING bit yet
-    and would otherwise be mistaken for the unified contract.
+    Waiting for an APM capability prevents an unrelated product that registers first from deciding
+    which APM_TRACING payload shape to use. When bit 49 appears with legacy per-setting bits, only
+    Node.js treats it as SDK_CONFIGURATION; libdatadog libraries use the same bit for
+    ASM_RAW_RESPONSE_BODY and still consume lib_config.
     """
     if not capabilities & APM_TRACING_CAPABILITIES:
         return None
 
-    if capabilities & LEGACY_APM_TRACING_CAPABILITIES:
+    if Capabilities.SDK_CONFIGURATION not in capabilities:
         return False
 
-    return Capabilities.SDK_CONFIGURATION in capabilities
+    if capabilities & LEGACY_APM_TRACING_CAPABILITIES:
+        return library_name == "nodejs"
+
+    return True
 
 
 # Memoized once the capabilities are conclusive, both to skip re-scanning the whole /v0.7/config
@@ -691,11 +691,14 @@ def resolve_sdk_configuration_contract(capabilities: set[Capabilities]) -> bool 
 _sdk_configuration_support: dict[str, bool] = {}
 
 
-def resolve_sdk_configuration_support(get_capabilities: Callable[[], set[Capabilities]]) -> bool:
+def resolve_sdk_configuration_support(
+    get_capabilities: Callable[[], set[Capabilities]], *, library_name: str | None = None
+) -> bool:
     """Whether the library reads its APM_TRACING settings from `sdk_config` instead of `lib_config`.
 
-    `get_capabilities` returns the capabilities the library currently advertises. How to obtain
-    them, and how long to wait for them, differs between the end-to-end interface and the
+    `get_capabilities` returns the capabilities the library currently advertises. `library_name`
+    resolves bit 49 when it appears alongside legacy per-setting capabilities. How to obtain the
+    capabilities, and how long to wait for them, differs between the end-to-end interface and the
     parametric test agent, so that part stays with the caller; everything after it is shared.
 
     Falls back to `lib_config` whenever the answer is not yet knowable, which is the safe
@@ -711,7 +714,7 @@ def resolve_sdk_configuration_support(get_capabilities: Callable[[], set[Capabil
         logger.error(f"Could not read the RC capabilities ({e}), assuming no SDK_CONFIGURATION support")
         return False
 
-    supported = resolve_sdk_configuration_contract(capabilities)
+    supported = resolve_sdk_configuration_contract(capabilities, library_name=library_name)
     if supported is None:
         logger.info("No APM_TRACING capability advertised yet, sending lib_config for now")
         return False
@@ -732,7 +735,7 @@ def library_supports_sdk_configuration() -> bool:
         logger.warning("No remote config request seen, assuming the library does not support SDK_CONFIGURATION")
         return False
 
-    return resolve_sdk_configuration_support(library.get_rc_capabilities)
+    return resolve_sdk_configuration_support(library.get_rc_capabilities, library_name=context.library.name)
 
 
 def build_apm_tracing_command(
