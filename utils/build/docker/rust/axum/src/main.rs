@@ -21,7 +21,6 @@ use opentelemetry::{
 use opentelemetry_http::{HeaderExtractor, HeaderInjector};
 use opentelemetry_sdk::trace::SdkTracerProvider;
 use reqwest_middleware::ClientBuilder;
-use reqwest_tracing::TracingMiddleware;
 use serde::Deserialize;
 use tracing_opentelemetry::OpenTelemetrySpanExt;
 
@@ -450,7 +449,7 @@ async fn header_map_to_json(headers: HeaderMap) -> Json<HashMap<String, String>>
 
 async fn request_downstream(State(state): State<AppState>, method: Method) -> Response {
     let client = ClientBuilder::new(reqwest::Client::new())
-        .with(TracingMiddleware::<DatadogClientSpanBackend>::new())
+        .with(DatadogClientSpanBackend)
         .build();
 
     let response = client.request(method, &state.downstream_url).send().await;
@@ -529,7 +528,7 @@ async fn make_distant_call(Query(params): Query<HashMap<String, String>>) -> Res
 async fn distant_call(url: &str) -> Response {
     let capture_request_headers = integration::CaptureRequestHeaders::new();
     let client = ClientBuilder::new(reqwest::Client::new())
-        .with(TracingMiddleware::<DatadogClientSpanBackend>::new())
+        .with(DatadogClientSpanBackend)
         .with(capture_request_headers.clone())
         .build();
 

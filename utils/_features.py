@@ -3342,6 +3342,14 @@ class _Features:
         return _mark_test_object(test_object, feature_id=604, owner=_Owner.sdk_capabilities)
 
     @staticmethod
+    def otel_exporter_otlp_metrics_temporality_preference(test_object):
+        """OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE
+
+        https://feature-parity.us1.prod.dog/#/?feature=645
+        """
+        return _mark_test_object(test_object, feature_id=645, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
     def otel_exporter_otlp_metrics_timeout(test_object):
         """OTEL_EXPORTER_OTLP_METRICS_TIMEOUT
 

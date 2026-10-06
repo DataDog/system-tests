@@ -7,6 +7,7 @@ import json
 import os
 import re
 import subprocess
+import urllib.error
 import urllib.parse
 import urllib.request
 from pathlib import Path
@@ -115,19 +116,54 @@ def enable_auto_merge(github: GitHubApi, pull_request_node_id: str) -> None:
         raise RuntimeError("GitHub failed to enable pull request auto-merge")
 
 
+def remote_branch_exists(github: GitHubApi) -> bool:
+    try:
+        github.request("GET", f"/repos/{REPOSITORY}/git/ref/heads/{AUTOMATION_BRANCH}")
+    except urllib.error.HTTPError as error:
+        not_found = 404
+        if error.code == not_found:
+            return False
+        raise
+    return True
+
+
+def push_signed_commit(root: Path, base_sha: str, github: GitHubApi, env: Mapping[str, str]) -> str:
+    # The branch is (re)created from main on every run, so its remote counterpart, if any, always
+    # needs a force-update: only its very first push can fast-forward via --create-branch.
+    flag = "--force" if remote_branch_exists(github) else "--create-branch"
+    result = run_command(
+        root,
+        [
+            "commit-headless",
+            "push",
+            "-T",
+            REPOSITORY,
+            "--branch",
+            AUTOMATION_BRANCH,
+            "--head-sha",
+            base_sha,
+            flag,
+        ],
+        capture_output=True,
+        env=env,
+    )
+    return result.stdout.strip()
+
+
 def publish_update(root: Path, version: str, github: GitHubApi, env: Mapping[str, str]) -> None:
-    run_command(root, ["git", "remote", "set-url", "origin", f"https://github.com/{REPOSITORY}.git"], env=env)
+    base_sha = run_command(root, ["git", "rev-parse", "HEAD"], capture_output=True, env=env).stdout.strip()
     run_command(root, ["git", "switch", "--force-create", AUTOMATION_BRANCH], env=env)
     run_command(root, ["git", "add", str(AGENT_VERSION_LOCK)], env=env)
     run_command(root, ["git", "config", "user.name", "github-actions[bot]"], env=env)
-    run_command(root, ["git", "config", "user.email", "github-actions[bot]@users.noreply.github.com"], env=env)
     run_command(
         root,
-        ["git", "config", "credential.helper", "!f() { echo username=x-access-token; echo password=$GH_TOKEN; }; f"],
+        ["git", "config", "user.email", "github-actions[bot]@users.noreply.github.com"],
         env=env,
     )
     run_command(root, ["git", "commit", "-m", f"Update Agent to {version}"], env=env)
-    run_command(root, ["git", "push", "--force", "--set-upstream", "origin", AUTOMATION_BRANCH], env=env)
+
+    signed_sha = push_signed_commit(root, base_sha, github, env)
+    print(f"Pushed signed commit {signed_sha} to {AUTOMATION_BRANCH}")
 
     head = urllib.parse.quote(f"DataDog:{AUTOMATION_BRANCH}", safe="")
     pull_requests = github.request("GET", f"/repos/{REPOSITORY}/pulls?head={head}&state=open")

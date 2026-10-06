@@ -66,6 +66,7 @@ sudo chmod a+r "$diagnostics" "$dest/journalctl_test-app.log" "$dest/coredumpctl
 _LOG_COLLECTION_COMMANDS = [
     "sudo mkdir -p /var/log/datadog_weblog || true",
     "sudo chmod 777 /var/log/datadog_weblog || true",
+    "sudo chmod -R a+rX /var/log/datadog || true",
     _COLLECT_CORE_DUMPS_CMD,
     _COLLECT_DD_AGENT_DIAGNOSTICS_CMD,
     "bash -lc 'cd ~ && sudo docker-compose ps > /var/log/datadog_weblog/docker_proccess.log 2>&1 || true'",
