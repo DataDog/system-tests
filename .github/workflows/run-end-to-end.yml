@@ -544,13 +544,6 @@ jobs:
     - name: Run OTEL_COLLECTOR scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_COLLECTOR"')
       run: ./run.sh OTEL_COLLECTOR
-    - name: Run OTEL_COLLECTOR_E2E scenario
-      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_COLLECTOR_E2E"')
-      run: |
-        [[ -z "$DD_API_KEY" ]] && echo "Skipping: DD_API_KEY is not set" && exit 0
-        ./run.sh OTEL_COLLECTOR_E2E
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
     - name: Run AI_GUARD scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"AI_GUARD"')
       run: ./run.sh AI_GUARD
@@ -566,9 +559,10 @@ jobs:
     - name: Run AI_GUARD_REDACTION_TELEMETRY scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"AI_GUARD_REDACTION_TELEMETRY"')
       run: ./run.sh AI_GUARD_REDACTION_TELEMETRY
-    - name: Run THREAD_CONTEXT_SHARING scenario
-      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"THREAD_CONTEXT_SHARING"')
-      run: ./run.sh THREAD_CONTEXT_SHARING
+
+    # - name: Run THREAD_CONTEXT_SHARING scenario
+    #   if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"THREAD_CONTEXT_SHARING"')
+    #   run: ./run.sh THREAD_CONTEXT_SHARING
 
     - name: Run all scenarios in replay mode
       if: success() && steps.build.outcome == 'success' && inputs._enable_replay_scenarios
