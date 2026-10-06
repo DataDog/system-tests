@@ -96,6 +96,11 @@ def procedure():
 
 
 def _executeQuery(sql):
-    cursor = connect_db().cursor()
-    cursor.execute(sql)
-    cursor.close()
+    conn = connect_db()
+    try:
+        cursor = conn.cursor()
+        cursor.execute(sql)
+        conn.commit()
+        cursor.close()
+    finally:
+        conn.close()
