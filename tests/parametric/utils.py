@@ -1,6 +1,7 @@
 from utils import pytest
 
-from utils import context
+from utils import context, logger
+from tests.parametric.conftest import APMLibrary
 
 parametrize = pytest.mark.parametrize
 
@@ -175,3 +176,65 @@ def _mapped_telemetry_name(apm_telemetry_name: str) -> list[str]:
                 return mapped_name
             return [mapped_name]
     return [apm_telemetry_name]
+
+
+def find_log_components(
+    log_payloads: list[dict], logger_name: str, log_message: str
+) -> tuple[dict | None, dict | None, dict | None]:
+    """Find matching log record, scope_log, and resource_log for a specific logger and message.
+
+    Returns:
+        Tuple of (log_record, scope_log, resource_log) or (None, None, None) if not found.
+
+    """
+    for payload in log_payloads:
+        for resource_log in payload.get("resource_logs", []):
+            for scope_log in resource_log.get("scope_logs", []):
+                scope_name = scope_log.get("scope", {}).get("name") if scope_log.get("scope") else None
+                if scope_name == logger_name:
+                    for log_record in scope_log.get("log_records", []):
+                        record_message = log_record.get("body", {}).get("string_value", "")
+                        if record_message == log_message:
+                            return log_record, scope_log, resource_log
+    return None, None, None
+
+
+def find_log_record(log_payloads: list[dict], logger_name: str, log_message: str) -> dict | None:
+    """Find a specific log record in the log payloads."""
+    logger.debug(f"Searching for log record: logger_name='{logger_name}', message='{log_message}'")
+    logger.debug(f"Number of log payloads to search: {len(log_payloads)}")
+    log_record, _, _ = find_log_components(log_payloads, logger_name, log_message)
+    return log_record
+
+
+DEFAULT_METER_NAME = "parametric-api"
+
+DEFAULT_METER_VERSION = "1.0.0"
+
+# schema_url is not supported by .NET's System.Diagnostics.Metrics API
+DEFAULT_SCHEMA_URL = "https://opentelemetry.io/schemas/1.21.0"
+
+DEFAULT_INSTRUMENT_UNIT = "triggers"
+
+DEFAULT_INSTRUMENT_DESCRIPTION = "test_description"
+
+DEFAULT_SCOPE_ATTRIBUTES = {"scope.attr": "scope.value"}
+
+DEFAULT_MEASUREMENT_ATTRIBUTES = {"test_attr": "test_value"}
+
+
+def generate_default_counter_data_point(test_library: APMLibrary, instrument_name: str) -> None:
+    test_library.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+    test_library.otel_metrics_force_flush()
+    test_library.otel_create_counter(
+        DEFAULT_METER_NAME, instrument_name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION
+    )
+    test_library.otel_counter_add(
+        DEFAULT_METER_NAME,
+        instrument_name,
+        DEFAULT_INSTRUMENT_UNIT,
+        DEFAULT_INSTRUMENT_DESCRIPTION,
+        42,
+        DEFAULT_MEASUREMENT_ATTRIBUTES,
+    )
+    test_library.otel_metrics_force_flush()

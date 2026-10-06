@@ -36,7 +36,7 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
             name,
             doc=doc,
             github_workflow="endtoend",
-            agent_image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.64.1",
+            agent_image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.67.0",
             scenario_groups=(groups.integration_frameworks,),
             weblog_categories=[WeblogCategory.dd_trace_frameworks],
         )

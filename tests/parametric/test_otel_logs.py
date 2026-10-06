@@ -11,40 +11,12 @@ from utils.docker_fixtures.spec.trace import find_only_span
 from utils.docker_fixtures.spec.trace import extract_trace_id_from_otel_span
 
 from .conftest import APMLibrary
-
-
-def _find_log_components(
-    log_payloads: list[dict], logger_name: str, log_message: str
-) -> tuple[dict | None, dict | None, dict | None]:
-    """Find matching log record, scope_log, and resource_log for a specific logger and message.
-
-    Returns:
-        Tuple of (log_record, scope_log, resource_log) or (None, None, None) if not found.
-
-    """
-    for payload in log_payloads:
-        for resource_log in payload.get("resource_logs", []):
-            for scope_log in resource_log.get("scope_logs", []):
-                scope_name = scope_log.get("scope", {}).get("name") if scope_log.get("scope") else None
-                if scope_name == logger_name:
-                    for log_record in scope_log.get("log_records", []):
-                        record_message = log_record.get("body", {}).get("string_value", "")
-                        if record_message == log_message:
-                            return log_record, scope_log, resource_log
-    return None, None, None
-
-
-def find_log_record(log_payloads: list[dict], logger_name: str, log_message: str) -> dict | None:
-    """Find a specific log record in the log payloads."""
-    logger.debug(f"Searching for log record: logger_name='{logger_name}', message='{log_message}'")
-    logger.debug(f"Number of log payloads to search: {len(log_payloads)}")
-    log_record, _, _ = _find_log_components(log_payloads, logger_name, log_message)
-    return log_record
+from .utils import find_log_components, find_log_record
 
 
 def find_resource(log_payloads: list[dict], logger_name: str, log_message: str) -> dict | None:
     """Extract resource from captured logs."""
-    _, _, resource_log = _find_log_components(log_payloads, logger_name, log_message)
+    _, _, resource_log = find_log_components(log_payloads, logger_name, log_message)
     if resource_log:
         logger.debug(f"Found resource_log: {resource_log}")
         return resource_log.get("resource")
@@ -63,7 +35,7 @@ def find_attributes(proto_object: dict | None) -> dict:
 
 def find_scope(log_payloads: list[dict], logger_name: str, log_message: str) -> dict | None:
     """Find ScopeLogs object for a specific log record (includes schema_url at ScopeLogs level)."""
-    _, scope_log, _ = _find_log_components(log_payloads, logger_name, log_message)
+    _, scope_log, _ = find_log_components(log_payloads, logger_name, log_message)
     return scope_log
 
 
@@ -281,37 +253,6 @@ class Test_FR05_Custom_Endpoints:
         )
         log_payloads = test_agent.wait_for_num_log_payloads(1)
         assert find_log_record(log_payloads, "otlp_custom_endpoint", "test_otlp_custom_endpoint") is not None
-
-
-@features.otel_logs_enabled
-@scenarios.parametric
-class Test_FR06_OTLP_Protocols:
-    """FR06: OTLP Protocol Tests"""
-
-    @pytest.mark.parametrize(
-        "library_env",
-        [
-            {
-                "DD_LOGS_OTEL_ENABLED": "true",
-                "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
-                "DD_TRACE_DEBUG": None,
-            },
-            {
-                "DD_LOGS_OTEL_ENABLED": "true",
-                "OTEL_EXPORTER_OTLP_PROTOCOL": "grpc",
-                "DD_TRACE_DEBUG": None,
-            },
-        ],
-        ids=["http_protobuf", "grpc"],
-    )
-    def test_otlp_protocols(self, test_agent: TestAgentAPI, test_library: APMLibrary):
-        """OTLP logs are emitted in expected format."""
-        with test_library as library:
-            library.create_logger("otlp_protocols", LogLevel.INFO)
-            library.write_log("otlp_protocols", LogLevel.INFO, "test_otlp_protocols")
-
-        log_payloads = test_agent.wait_for_num_log_payloads(1)
-        assert find_log_record(log_payloads, "otlp_protocols", "test_otlp_protocols") is not None
 
 
 @features.otel_logs_enabled
