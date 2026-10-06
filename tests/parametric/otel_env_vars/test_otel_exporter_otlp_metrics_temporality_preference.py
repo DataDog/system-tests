@@ -229,6 +229,7 @@ def _assert_temporality(
 
 
 @scenarios.parametric
+@features.otel_metrics_api
 @features.otel_exporter_otlp_metrics_temporality_preference
 class Test_OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE:
     @pytest.mark.parametrize(
