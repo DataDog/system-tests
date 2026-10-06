@@ -1845,23 +1845,14 @@ manifest:
     - weblog_declaration:
         '*': missing_feature
         symfony7x: '>=1.23.3'
-  tests/stats/test_stats.py::Test_Client_Stats_Future_Obfuscation_Version::test_no_obfuscation:
-    - declaration: bug (APMAPI-2559)
-      component_version: '>=1.26.0-dev'
   tests/stats/test_stats.py::Test_Client_Stats_Missing_Obfuscation_Version:  # TODO: a lower version might be supported
     - weblog_declaration:
         '*': missing_feature
         symfony7x: '>=1.23.3'
-  tests/stats/test_stats.py::Test_Client_Stats_Missing_Obfuscation_Version::test_no_obfuscation:
-    - declaration: bug (APMAPI-2559)
-      component_version: '>=1.26.0-dev'
   tests/stats/test_stats.py::Test_Client_Stats_Obfuscation_Version_Zero:  # TODO: a lower version might be supported
     - weblog_declaration:
         '*': missing_feature
         symfony7x: '>=1.23.3'
-  tests/stats/test_stats.py::Test_Client_Stats_Obfuscation_Version_Zero::test_no_obfuscation:
-    - declaration: bug (APMAPI-2559)
-      component_version: '>=1.26.0-dev'
   tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation: missing_feature
   tests/stats/test_stats.py::Test_Error_Sampler: missing_feature (error traces dropped client-side under sampling; errors counted in stats but traces not sent)
   tests/stats/test_stats.py::Test_Stats_Service_Source: irrelevant (Only implemented for Java)
