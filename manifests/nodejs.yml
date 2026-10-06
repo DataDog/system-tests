@@ -2387,7 +2387,10 @@ manifest:
   : - declaration: bug (APMAPI-2475)
       component_version: '<=6.16.0'
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_protocol.py::Test_OTEL_EXPORTER_OTLP_METRICS_PROTOCOL::test_grpc: missing_feature (OTLP gRPC exporter is not available)
-  tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_temporality_preference.py: *ref_5_81_0
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_temporality_preference.py::Test_OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE
+  : v5.83.0
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_temporality_preference.py::Test_OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE::test_default_matches_specification
+  : missing_feature (Datadog intentionally defaults to Delta)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL: v5.83.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL::test_case_insensitive: missing_feature (Case-insensitive OTLP protocol parsing is not released)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL::test_grpc: missing_feature (OTLP gRPC exporter is not available)

@@ -10,6 +10,8 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL: missing_feature
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_compression.py::Test_OTEL_EXPORTER_OTLP_METRICS_COMPRESSION: missing_feature
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_protocol.py::Test_OTEL_EXPORTER_OTLP_METRICS_PROTOCOL: missing_feature
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_temporality_preference.py::Test_OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE
+  : missing_feature
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL: missing_feature
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs: missing_feature
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER: missing_feature

@@ -94,7 +94,14 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_protocol.py::Test_OTEL_EXPORTER_OTLP_METRICS_PROTOCOL: v0.3.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_protocol.py::Test_OTEL_EXPORTER_OTLP_METRICS_PROTOCOL::test_http_json
   : missing_feature (OTLP HTTP JSON exporter is not implemented)
-  tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_temporality_preference.py: v0.3.0
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_temporality_preference.py::Test_OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE
+  : v0.3.0
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_temporality_preference.py::Test_OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE::test_default_matches_specification
+  : missing_feature (Datadog intentionally defaults to Delta)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_temporality_preference.py::Test_OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE::test_lowmemory
+  : bug (APMAPI-2564)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_temporality_preference.py::Test_OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE::test_lowmemory_case_insensitive
+  : bug (APMAPI-2564)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL: v0.3.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL::test_http_json: missing_feature (OTLP HTTP JSON exporter is not implemented)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs: v0.3.0
