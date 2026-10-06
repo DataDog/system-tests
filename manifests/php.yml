@@ -1935,6 +1935,8 @@ manifest:
   ? tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability::test_distributed_headers_are_propagated_tracecontext
   : - declaration: bug (APMLP-2283)
       component_version: ">=1.28.0-dev"
+    - declaration: bug (APMAPI-1545)
+      component_version: '>=1.26.0-dev'
   tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability::test_set_attribute_from_otel:
     - declaration: bug (APMLP-2283)
       component_version: ">=1.28.0-dev"
