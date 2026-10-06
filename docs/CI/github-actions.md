@@ -100,5 +100,4 @@ Those parameters are used only by system-tests own CI
 | `_build_buddies_images`               | Shall we build buddies images                                        | boolean | false    | false      |
 | `_build_proxy_image`                  | Shall we build proxy image                                           | boolean | false    | false      |
 | `_build_lambda_proxy_image`           | Shall we build the lambda-proxy image                                | boolean | false    | false      |
-| `_build_weblog_base_images`           | Shall we build weblog base images                                    | boolean | false    | false      |
 | `_enable_replay_scenarios`            | Enable replay scenarios, should only be used in system-tests CI      | boolean | false    | false      |

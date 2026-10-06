@@ -186,15 +186,11 @@ app.get("/make_distant_call", (req: Request, res: Response) => {
   console.log(url)
 
   const parsedUrl = new URL(url as string)
+  const method = String(req.query.method || 'GET')
 
-  const options = {
-    hostname: parsedUrl.hostname,
-    port: parsedUrl.port || 80, // Use default port if not provided
-    path: parsedUrl.pathname,
-    method: 'GET'
-  }
-
-  const request = http.request(options, (response: http.IncomingMessage) => {
+  // Passing the URL object preserves query strings and credentials. This endpoint is used by
+  // semantic-convention tests that need the tracer to observe the complete outbound request.
+  const request = http.request(parsedUrl, { method }, (response: http.IncomingMessage) => {
     let responseBody = ''
     response.on('data', (chunk) => {
       responseBody += chunk
@@ -392,6 +388,8 @@ app.get('/flush', (req: Request, res: Response) => {
   tracer.dogstatsd?.flush?.()
   tracer._pluginManager?._pluginsByName?.openai?.metrics?.flush?.()
   tracer._tracer?._processor?._stats?.onInterval()
+  // force FFE exposure events out immediately instead of waiting for the writer's periodic flush
+  require('diagnostics_channel').channel('ffe:writers:flush').publish()
 
   // does have a callback :)
   const promises = []

@@ -47,4 +47,7 @@ else
     unzip -o "${ZIPFILE}" -d /opt
 fi
 
+cd /binaries
+gem install faraday --install-dir "${GEM_DIR}" --no-document
+
 rm -rf "${GEM_DIR}/cache"

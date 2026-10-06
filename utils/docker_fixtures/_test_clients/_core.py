@@ -14,6 +14,7 @@ import requests
 from _pytest.outcomes import Failed
 
 from utils._logger import logger
+from utils.base_images.base_image import base_image_contexts
 from utils.docker_fixtures._core import get_docker_client
 
 
@@ -74,6 +75,9 @@ class TestClientFactory:
 
             for name, value in self.build_args.items():
                 cmd += ["--build-arg", f"{name}={value}"]
+
+            for alias, image in base_image_contexts(Path(self.dockerfile).read_text()).items():
+                cmd += ["--build-context", f"{alias}=docker-image://{image}"]
 
             cmd += [
                 "-t",
@@ -165,12 +169,15 @@ class TestClientApi:
 
     def _wait(self, timeout: float):
         delay = 0.01
+        logger.debug(f"Waiting for {self.container.name} being ready")
         for _ in range(int(timeout / delay)):
             try:
                 if self._is_alive():
+                    logger.debug(f"{self.container.name} is ready")
                     break
-            except Exception as e:
-                logger.debug(f"Error while checking if {self.container.name} is alive: {e}")
+            except Exception:
+                # don't log anything here, it makes the ouput very noisy
+                ...
 
             # _is_alive() swallows a non-running container status and returns False instead of
             # raising, so the check must be repeated here on every iteration (not only in the

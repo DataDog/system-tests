@@ -881,6 +881,845 @@
     ],
     "cassette": "aiguard_evaluate_post_969c2372.json"
   },
+  "REDACT_TURN_1": {
+    "description": "RFC multi-turn example, turn 1: the SSN is in the latest user message.",
+    "action": "ALLOW",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "My SSN is 123-45-6789"
+      }
+    ],
+    "replacements": [
+      {
+        "path": "messages[1].content",
+        "replacement": "My SSN is <REDACTED>"
+      }
+    ],
+    "expected_messages": [
+      {
+        "role": "system",
+        "content": "You are a helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "My SSN is <REDACTED>"
+      }
+    ],
+    "redacted": true,
+    "sensitive_values": [
+      "123-45-6789"
+    ],
+    "retained_values": [],
+    "sds_findings": [
+      {
+        "rule_display_name": "US Social Security Number Scanner",
+        "rule_tag": "us_ssn",
+        "category": "ssn",
+        "location": {
+          "path": "messages[1].content",
+          "start_index": 10,
+          "end_index_exclusive": 21
+        }
+      }
+    ],
+    "cassette": "aiguard_evaluate_post_4f716ee4.json"
+  },
+  "REDACT_HISTORY_AND_LATEST": {
+    "description": "RFC multi-turn example, turn 2: a historical SSN and a new email, both redacted.",
+    "action": "ALLOW",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "My SSN is 123-45-6789"
+      },
+      {
+        "role": "assistant",
+        "content": "Your SSN is <REDACTED>."
+      },
+      {
+        "role": "user",
+        "content": "my email is paco@paco.es"
+      }
+    ],
+    "replacements": [
+      {
+        "path": "messages[1].content",
+        "replacement": "My SSN is <REDACTED>"
+      },
+      {
+        "path": "messages[3].content",
+        "replacement": "my email is <REDACTED>"
+      }
+    ],
+    "expected_messages": [
+      {
+        "role": "system",
+        "content": "You are a helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "My SSN is <REDACTED>"
+      },
+      {
+        "role": "assistant",
+        "content": "Your SSN is <REDACTED>."
+      },
+      {
+        "role": "user",
+        "content": "my email is <REDACTED>"
+      }
+    ],
+    "redacted": true,
+    "sensitive_values": [
+      "123-45-6789",
+      "paco@paco.es"
+    ],
+    "retained_values": [],
+    "sds_findings": [
+      {
+        "rule_display_name": "US Social Security Number Scanner",
+        "rule_tag": "us_ssn",
+        "category": "ssn",
+        "location": {
+          "path": "messages[1].content",
+          "start_index": 10,
+          "end_index_exclusive": 21
+        }
+      },
+      {
+        "rule_display_name": "Standard Email Address Scanner",
+        "rule_tag": "email_address",
+        "category": "email_address",
+        "location": {
+          "path": "messages[3].content",
+          "start_index": 12,
+          "end_index_exclusive": 24
+        }
+      }
+    ],
+    "cassette": "aiguard_evaluate_post_5302857d.json"
+  },
+  "REDACT_REORDERED_CONTEXT": {
+    "description": "The turn-2 context reordered by the application: replacements follow the new indexes.",
+    "action": "ALLOW",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "my email is paco@paco.es"
+      },
+      {
+        "role": "assistant",
+        "content": "Your SSN is <REDACTED>."
+      },
+      {
+        "role": "user",
+        "content": "My SSN is 123-45-6789"
+      }
+    ],
+    "replacements": [
+      {
+        "path": "messages[1].content",
+        "replacement": "my email is <REDACTED>"
+      },
+      {
+        "path": "messages[3].content",
+        "replacement": "My SSN is <REDACTED>"
+      }
+    ],
+    "expected_messages": [
+      {
+        "role": "system",
+        "content": "You are a helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "my email is <REDACTED>"
+      },
+      {
+        "role": "assistant",
+        "content": "Your SSN is <REDACTED>."
+      },
+      {
+        "role": "user",
+        "content": "My SSN is <REDACTED>"
+      }
+    ],
+    "redacted": true,
+    "sensitive_values": [
+      "paco@paco.es",
+      "123-45-6789"
+    ],
+    "retained_values": [],
+    "sds_findings": [
+      {
+        "rule_display_name": "Standard Email Address Scanner",
+        "rule_tag": "email_address",
+        "category": "email_address",
+        "location": {
+          "path": "messages[1].content",
+          "start_index": 12,
+          "end_index_exclusive": 24
+        }
+      },
+      {
+        "rule_display_name": "US Social Security Number Scanner",
+        "rule_tag": "us_ssn",
+        "category": "ssn",
+        "location": {
+          "path": "messages[3].content",
+          "start_index": 10,
+          "end_index_exclusive": 21
+        }
+      }
+    ],
+    "cassette": "aiguard_evaluate_post_0acfa129.json"
+  },
+  "REDACT_HISTORY_ONLY": {
+    "description": "Sensitive data only in the history: the latest message is benign, the history still redacts.",
+    "action": "ALLOW",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a support assistant."
+      },
+      {
+        "role": "user",
+        "content": "My SSN is 123-45-6789, open a ticket."
+      },
+      {
+        "role": "assistant",
+        "content": "Ticket TCK-4127 created."
+      },
+      {
+        "role": "user",
+        "content": "Can you summarise what I told you?"
+      }
+    ],
+    "replacements": [
+      {
+        "path": "messages[1].content",
+        "replacement": "My SSN is <REDACTED>, open a ticket."
+      }
+    ],
+    "expected_messages": [
+      {
+        "role": "system",
+        "content": "You are a support assistant."
+      },
+      {
+        "role": "user",
+        "content": "My SSN is <REDACTED>, open a ticket."
+      },
+      {
+        "role": "assistant",
+        "content": "Ticket TCK-4127 created."
+      },
+      {
+        "role": "user",
+        "content": "Can you summarise what I told you?"
+      }
+    ],
+    "redacted": true,
+    "sensitive_values": [
+      "123-45-6789"
+    ],
+    "retained_values": [],
+    "sds_findings": [
+      {
+        "rule_display_name": "US Social Security Number Scanner",
+        "rule_tag": "us_ssn",
+        "category": "ssn",
+        "location": {
+          "path": "messages[1].content",
+          "start_index": 10,
+          "end_index_exclusive": 21
+        }
+      }
+    ],
+    "cassette": "aiguard_evaluate_post_cd60ada5.json"
+  },
+  "REDACT_EVERY_ROLE_IN_HISTORY": {
+    "description": "One replacement per model-visible surface: system, historical user, historical assistant content, tool call arguments, tool result and latest user.",
+    "action": "ALLOW",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a bank assistant. Escalate to ops@acme.io if needed."
+      },
+      {
+        "role": "user",
+        "content": "My SSN is 123-45-6789, check my account."
+      },
+      {
+        "role": "assistant",
+        "content": "Looking it up. I also have the SSN 987-65-4321 on file for you.",
+        "tool_calls": [
+          {
+            "id": "call_1",
+            "function": {
+              "name": "get_account",
+              "arguments": "{\"phone\":\"415-555-0132\"}"
+            }
+          }
+        ]
+      },
+      {
+        "role": "tool",
+        "tool_call_id": "call_1",
+        "content": "Account 000123456789 balance 100"
+      },
+      {
+        "role": "user",
+        "content": "Charge it to 4111-1111-1111-1111"
+      }
+    ],
+    "replacements": [
+      {
+        "path": "messages[0].content",
+        "replacement": "You are a bank assistant. Escalate to <REDACTED> if needed."
+      },
+      {
+        "path": "messages[1].content",
+        "replacement": "My SSN is <REDACTED>, check my account."
+      },
+      {
+        "path": "messages[2].content",
+        "replacement": "Looking it up. I also have the SSN <REDACTED> on file for you."
+      },
+      {
+        "path": "messages[2].tool_calls[0].function.arguments",
+        "replacement": "{\"phone\":\"<REDACTED>\"}"
+      },
+      {
+        "path": "messages[3].content",
+        "replacement": "Account <REDACTED> balance 100"
+      },
+      {
+        "path": "messages[4].content",
+        "replacement": "Charge it to <REDACTED>"
+      }
+    ],
+    "expected_messages": [
+      {
+        "role": "system",
+        "content": "You are a bank assistant. Escalate to <REDACTED> if needed."
+      },
+      {
+        "role": "user",
+        "content": "My SSN is <REDACTED>, check my account."
+      },
+      {
+        "role": "assistant",
+        "content": "Looking it up. I also have the SSN <REDACTED> on file for you.",
+        "tool_calls": [
+          {
+            "id": "call_1",
+            "function": {
+              "name": "get_account",
+              "arguments": "{\"phone\":\"<REDACTED>\"}"
+            }
+          }
+        ]
+      },
+      {
+        "role": "tool",
+        "tool_call_id": "call_1",
+        "content": "Account <REDACTED> balance 100"
+      },
+      {
+        "role": "user",
+        "content": "Charge it to <REDACTED>"
+      }
+    ],
+    "redacted": true,
+    "sensitive_values": [
+      "ops@acme.io",
+      "123-45-6789",
+      "987-65-4321",
+      "415-555-0132",
+      "000123456789",
+      "4111-1111-1111-1111"
+    ],
+    "retained_values": [],
+    "sds_findings": [
+      {
+        "rule_display_name": "Standard Email Address Scanner",
+        "rule_tag": "email_address",
+        "category": "email_address",
+        "location": {
+          "path": "messages[0].content",
+          "start_index": 38,
+          "end_index_exclusive": 49
+        }
+      },
+      {
+        "rule_display_name": "US Social Security Number Scanner",
+        "rule_tag": "us_ssn",
+        "category": "ssn",
+        "location": {
+          "path": "messages[1].content",
+          "start_index": 10,
+          "end_index_exclusive": 21
+        }
+      },
+      {
+        "rule_display_name": "US Social Security Number Scanner",
+        "rule_tag": "us_ssn",
+        "category": "ssn",
+        "location": {
+          "path": "messages[2].content",
+          "start_index": 35,
+          "end_index_exclusive": 46
+        }
+      },
+      {
+        "rule_display_name": "Phone Number Scanner",
+        "rule_tag": "phone_number",
+        "category": "phone_number",
+        "location": {
+          "path": "messages[2].tool_calls[0].function.arguments",
+          "start_index": 10,
+          "end_index_exclusive": 22
+        }
+      },
+      {
+        "rule_display_name": "Bank Account Number Scanner",
+        "rule_tag": "bank_account",
+        "category": "bank_account",
+        "location": {
+          "path": "messages[3].content",
+          "start_index": 8,
+          "end_index_exclusive": 20
+        }
+      },
+      {
+        "rule_display_name": "Credit Card Scanner",
+        "rule_tag": "credit_card",
+        "category": "credit_card",
+        "location": {
+          "path": "messages[4].content",
+          "start_index": 13,
+          "end_index_exclusive": 32
+        }
+      }
+    ],
+    "cassette": "aiguard_evaluate_post_55c3d321.json"
+  },
+  "REDACT_HISTORICAL_TOOL_CALL": {
+    "description": "A historical tool call and its result are redacted while the latest message is benign.",
+    "action": "ALLOW",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Look up my account."
+      },
+      {
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "id": "call_1",
+            "function": {
+              "name": "get_account",
+              "arguments": "{\"ssn\":\"123-45-6789\"}"
+            }
+          }
+        ]
+      },
+      {
+        "role": "tool",
+        "tool_call_id": "call_1",
+        "content": "Account 000123456789 balance 100"
+      },
+      {
+        "role": "assistant",
+        "content": "Your balance is 100."
+      },
+      {
+        "role": "user",
+        "content": "Thanks, what are your opening hours?"
+      }
+    ],
+    "replacements": [
+      {
+        "path": "messages[1].tool_calls[0].function.arguments",
+        "replacement": "{\"ssn\":\"<REDACTED>\"}"
+      },
+      {
+        "path": "messages[2].content",
+        "replacement": "Account <REDACTED> balance 100"
+      }
+    ],
+    "expected_messages": [
+      {
+        "role": "user",
+        "content": "Look up my account."
+      },
+      {
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "id": "call_1",
+            "function": {
+              "name": "get_account",
+              "arguments": "{\"ssn\":\"<REDACTED>\"}"
+            }
+          }
+        ]
+      },
+      {
+        "role": "tool",
+        "tool_call_id": "call_1",
+        "content": "Account <REDACTED> balance 100"
+      },
+      {
+        "role": "assistant",
+        "content": "Your balance is 100."
+      },
+      {
+        "role": "user",
+        "content": "Thanks, what are your opening hours?"
+      }
+    ],
+    "redacted": true,
+    "sensitive_values": [
+      "123-45-6789",
+      "000123456789"
+    ],
+    "retained_values": [],
+    "sds_findings": [
+      {
+        "rule_display_name": "US Social Security Number Scanner",
+        "rule_tag": "us_ssn",
+        "category": "ssn",
+        "location": {
+          "path": "messages[1].tool_calls[0].function.arguments",
+          "start_index": 8,
+          "end_index_exclusive": 19
+        }
+      },
+      {
+        "rule_display_name": "Bank Account Number Scanner",
+        "rule_tag": "bank_account",
+        "category": "bank_account",
+        "location": {
+          "path": "messages[2].content",
+          "start_index": 8,
+          "end_index_exclusive": 20
+        }
+      }
+    ],
+    "cassette": "aiguard_evaluate_post_1c682a42.json"
+  },
+  "REDACT_HISTORY_CONTENT_PART": {
+    "description": "A text content part in a historical multimodal message, with the latest message benign.",
+    "action": "ALLOW",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Here is the card I mentioned."
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "The number is 4111-1111-1111-1111"
+          },
+          {
+            "type": "image_url",
+            "image_url": {
+              "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+            }
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": "Thank you."
+      },
+      {
+        "role": "user",
+        "content": "Which bank issued it?"
+      }
+    ],
+    "replacements": [
+      {
+        "path": "messages[1].content[0].text",
+        "replacement": "The number is <REDACTED>"
+      }
+    ],
+    "expected_messages": [
+      {
+        "role": "user",
+        "content": "Here is the card I mentioned."
+      },
+      {
+        "role": "user",
+        "content": [
+          {
+            "type": "text",
+            "text": "The number is <REDACTED>"
+          },
+          {
+            "type": "image_url",
+            "image_url": {
+              "url": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+            }
+          }
+        ]
+      },
+      {
+        "role": "assistant",
+        "content": "Thank you."
+      },
+      {
+        "role": "user",
+        "content": "Which bank issued it?"
+      }
+    ],
+    "redacted": true,
+    "sensitive_values": [
+      "4111-1111-1111-1111"
+    ],
+    "retained_values": [],
+    "sds_findings": [
+      {
+        "rule_display_name": "Credit Card Scanner",
+        "rule_tag": "credit_card",
+        "category": "credit_card",
+        "location": {
+          "path": "messages[1].content[0].text",
+          "start_index": 14,
+          "end_index_exclusive": 33
+        }
+      }
+    ],
+    "cassette": "aiguard_evaluate_post_5784ecb9.json"
+  },
+  "REDACT_DEEP_HISTORY": {
+    "description": "Non-contiguous replacements in an eight-message context: no off-by-one, no last-message bias.",
+    "action": "ALLOW",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You are a helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "My SSN is 123-45-6789"
+      },
+      {
+        "role": "assistant",
+        "content": "Noted."
+      },
+      {
+        "role": "user",
+        "content": "Also file it under my email paco@gmail.com"
+      },
+      {
+        "role": "assistant",
+        "content": "Filed."
+      },
+      {
+        "role": "user",
+        "content": "My phone is 415-555-0132"
+      },
+      {
+        "role": "assistant",
+        "content": "Got it."
+      },
+      {
+        "role": "user",
+        "content": "Charge my card 4111-1111-1111-1111"
+      }
+    ],
+    "replacements": [
+      {
+        "path": "messages[1].content",
+        "replacement": "My SSN is <REDACTED>"
+      },
+      {
+        "path": "messages[3].content",
+        "replacement": "Also file it under my email <REDACTED>"
+      },
+      {
+        "path": "messages[5].content",
+        "replacement": "My phone is <REDACTED>"
+      },
+      {
+        "path": "messages[7].content",
+        "replacement": "Charge my card <REDACTED>"
+      }
+    ],
+    "expected_messages": [
+      {
+        "role": "system",
+        "content": "You are a helpful assistant."
+      },
+      {
+        "role": "user",
+        "content": "My SSN is <REDACTED>"
+      },
+      {
+        "role": "assistant",
+        "content": "Noted."
+      },
+      {
+        "role": "user",
+        "content": "Also file it under my email <REDACTED>"
+      },
+      {
+        "role": "assistant",
+        "content": "Filed."
+      },
+      {
+        "role": "user",
+        "content": "My phone is <REDACTED>"
+      },
+      {
+        "role": "assistant",
+        "content": "Got it."
+      },
+      {
+        "role": "user",
+        "content": "Charge my card <REDACTED>"
+      }
+    ],
+    "redacted": true,
+    "sensitive_values": [
+      "123-45-6789",
+      "paco@gmail.com",
+      "415-555-0132",
+      "4111-1111-1111-1111"
+    ],
+    "retained_values": [],
+    "sds_findings": [
+      {
+        "rule_display_name": "US Social Security Number Scanner",
+        "rule_tag": "us_ssn",
+        "category": "ssn",
+        "location": {
+          "path": "messages[1].content",
+          "start_index": 10,
+          "end_index_exclusive": 21
+        }
+      },
+      {
+        "rule_display_name": "Standard Email Address Scanner",
+        "rule_tag": "email_address",
+        "category": "email_address",
+        "location": {
+          "path": "messages[3].content",
+          "start_index": 28,
+          "end_index_exclusive": 42
+        }
+      },
+      {
+        "rule_display_name": "Phone Number Scanner",
+        "rule_tag": "phone_number",
+        "category": "phone_number",
+        "location": {
+          "path": "messages[5].content",
+          "start_index": 12,
+          "end_index_exclusive": 24
+        }
+      },
+      {
+        "rule_display_name": "Credit Card Scanner",
+        "rule_tag": "credit_card",
+        "category": "credit_card",
+        "location": {
+          "path": "messages[7].content",
+          "start_index": 15,
+          "end_index_exclusive": 34
+        }
+      }
+    ],
+    "cassette": "aiguard_evaluate_post_2fb44ba7.json"
+  },
+  "REDACT_SAME_VALUE_ACROSS_TURNS": {
+    "description": "One value restated in a later turn: one entry per path, each applied on its own.",
+    "action": "ALLOW",
+    "messages": [
+      {
+        "role": "user",
+        "content": "My SSN is 123-45-6789"
+      },
+      {
+        "role": "assistant",
+        "content": "Could you confirm it?"
+      },
+      {
+        "role": "user",
+        "content": "Yes, it is 123-45-6789"
+      }
+    ],
+    "replacements": [
+      {
+        "path": "messages[0].content",
+        "replacement": "My SSN is <REDACTED>"
+      },
+      {
+        "path": "messages[2].content",
+        "replacement": "Yes, it is <REDACTED>"
+      }
+    ],
+    "expected_messages": [
+      {
+        "role": "user",
+        "content": "My SSN is <REDACTED>"
+      },
+      {
+        "role": "assistant",
+        "content": "Could you confirm it?"
+      },
+      {
+        "role": "user",
+        "content": "Yes, it is <REDACTED>"
+      }
+    ],
+    "redacted": true,
+    "sensitive_values": [
+      "123-45-6789"
+    ],
+    "retained_values": [],
+    "sds_findings": [
+      {
+        "rule_display_name": "US Social Security Number Scanner",
+        "rule_tag": "us_ssn",
+        "category": "ssn",
+        "location": {
+          "path": "messages[0].content",
+          "start_index": 10,
+          "end_index_exclusive": 21
+        }
+      },
+      {
+        "rule_display_name": "US Social Security Number Scanner",
+        "rule_tag": "us_ssn",
+        "category": "ssn",
+        "location": {
+          "path": "messages[2].content",
+          "start_index": 11,
+          "end_index_exclusive": 22
+        }
+      }
+    ],
+    "cassette": "aiguard_evaluate_post_942c4dec.json"
+  },
   "SKIP_PATH_OUT_OF_RANGE": {
     "description": "A message index past the end of the list resolves to nothing and is skipped.",
     "action": "ALLOW",
