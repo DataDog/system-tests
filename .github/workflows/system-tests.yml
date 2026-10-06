@@ -234,7 +234,10 @@ jobs:
       - name: Tag job
         if: ${{ !cancelled() }}
         continue-on-error: true
-        uses: ./.github/actions/tag_official_workflow
+        uses: ./.github/actions/datadog_ci
+        with:
+          _is_official_system_tests_job: true
+
 
   run_end_to_end:
     name: "End-to-end #${{ matrix.job.weblog_instance }}"
@@ -310,4 +313,7 @@ jobs:
       - name: Tag job
         if: ${{ !cancelled() }}
         continue-on-error: true
-        uses: ./.github/actions/tag_official_workflow
+        uses: ./.github/actions/datadog_ci
+        with:
+          _is_official_system_tests_job: true
+
