@@ -69,9 +69,7 @@ def _log_level(test_agent: TestAgentAPI, library: APMLibrary) -> str:
 
 
 def _php_threshold_diagnostics(library: APMLibrary, *, warning_enabled: bool) -> None:
-    probe = getattr(library, "dd_log_level_diagnostics", None)
-    assert callable(probe), "The PHP logger diagnostic probe requires the companion parametric app PR"
-    assert probe(), "The SDK logger diagnostic probe did not complete"
+    assert library.dd_log_level_diagnostics(), "The SDK logger diagnostic probe did not complete"
     # Both SDK calls execute synchronously before the endpoint responds. Requiring
     # ERROR positively prevents a completely disabled logger from passing.
     logs = library.get_logs().lower()
