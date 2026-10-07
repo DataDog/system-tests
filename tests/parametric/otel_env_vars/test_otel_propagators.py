@@ -1,4 +1,5 @@
 import json
+import re
 import time
 
 from tests.parametric.conftest import APMLibrary
@@ -67,6 +68,50 @@ def _diagnostic_logs(library: APMLibrary) -> str:
         assert success, f"Could not read the .NET diagnostic log files: {logs}"
         return logs
     return library.get_logs()
+
+
+def _has_invalid_propagator_warning(language: str, logs: str) -> bool:
+    variable = re.escape(VARIABLE)
+    invalid = re.escape("not-a-propagator")
+    node_setting = rf"(?:{variable}|DD_TRACE_PROPAGATION_STYLE|tracePropagationStyle)"
+    # Match complete SDK rejection messages, not configuration/telemetry echoes.
+    # Python and Node.js emit unprefixed warnings; .NET may omit the invalid value.
+    patterns = {
+        "dotnet": (
+            rf"(?:[\d: .+\-]+ )?\[WRN\] OpenTelemetry configuration {variable}"
+            r" is invalid\.(?:  \{.*\})?"
+        ),
+        "golang": (
+            rf"\d{{4}}/\d{{2}}/\d{{2}} \d{{2}}:\d{{2}}:\d{{2}} Datadog Tracer \S+ WARN: "
+            rf'Invalid configuration: "{invalid}" is not supported\. This propagation style will be ignored\.'
+        ),
+        "java": (
+            rf"\[dd\.trace [^\]]+\] \[[^\]]+\] WARN [\w.$]+ - "
+            rf"{variable}={invalid} is not supported"
+        ),
+        "nodejs": (
+            rf"(?:Invalid propagator: ['\"]{invalid}['\"] for {node_setting} \(source: {node_setting}\), picked default"
+            rf"|Unknown propagation style: {invalid})"
+        ),
+        "php": (
+            rf"OpenTelemetry: \[warning\] Text map propagator not registered for: {invalid} "
+            r"in [^\r\n]+\(\d+\)"
+        ),
+        "python": (
+            rf"(?:Following style not supported by ddtrace: {invalid}\."
+            rf"|Setting {variable} to {invalid} is not supported by ddtrace, this configuration will be ignored\.)"
+        ),
+        "ruby": (
+            r"W, \[[^\]]+\] +WARN -- datadog: (?:\[datadog\] \(.*\) )?"
+            rf"(?:Unsupported propagation style: {invalid}"
+            rf"|The {invalid} propagator is unknown and cannot be configured)"
+        ),
+        "rust": (rf"WARN \S+:\d+ - Error parsing: Unknown trace propagation style: '{invalid}'"),
+    }
+    pattern = patterns.get(language)
+    return pattern is not None and any(
+        re.fullmatch(pattern, re.sub(r"\x1b\[[0-9;]*m", "", line), re.IGNORECASE) for line in logs.splitlines()
+    )
 
 
 def _configured_baggage_propagators(library: APMLibrary) -> set[str]:
@@ -191,12 +236,8 @@ class Test_OTEL_PROPAGATORS:
             library.dd_flush()
             deadline = time.monotonic() + 5
             while True:
-                logs = _diagnostic_logs(library).lower()
-                if any(
-                    any(value in line for value in ("not-a-propagator", VARIABLE.lower()))
-                    and any(word in line for word in ("warn", "invalid", "unsupported", "not supported"))
-                    for line in logs.splitlines()
-                ):
+                logs = _diagnostic_logs(library)
+                if _has_invalid_propagator_warning(library.lang, logs):
                     return
                 assert time.monotonic() < deadline, logs
                 time.sleep(0.1)
