@@ -102,26 +102,18 @@ images:
     digest: sha256:b71678692a476b6acc3eb235edbb98bbb9c6b943e17c246ecb24937276807bc3
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:django-py3.13.base-d8262a2c816c
     tag: django-py3.13.base-d8262a2c816c
-  datadog/system-tests:express4-typescript.base-eb800c09d602:
-    digest: sha256:4c1359af1571b63dfcb95471fb9fa6a368329368ab5b51d755f35a347161e388
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:express4-typescript.base-eb800c09d602
-    tag: express4-typescript.base-eb800c09d602
-  datadog/system-tests:express4.base-6786803fa4e3:
-    digest: sha256:be00e3e69f16e741e0428419d58157ca935f4ec324448b33a7ae731115f3c2a4
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:express4.base-6786803fa4e3
-    tag: express4.base-6786803fa4e3
-  datadog/system-tests:express5.base-6999ebe9fb1a:
-    digest: sha256:a21a55644481386775f274625489986419d9be9e982f1f29b36842af6bfa3cd3
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:express5.base-6999ebe9fb1a
-    tag: express5.base-6999ebe9fb1a
+  datadog/system-tests:express4-typescript.base-1502d45c1d2d:
+    digest: sha256:e43e1235c446cc36258c04fe7da7382f48aa3f8b349fa79f02c1665471fb7e9a
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:express4-typescript.base-1502d45c1d2d
+    tag: express4-typescript.base-1502d45c1d2d
   datadog/system-tests:fastapi.base-2917769b3665:
     digest: sha256:f72a31702ffaabc1ba5e43042963e9cea965d1be6256d9d8a58e7e2381090d40
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:fastapi.base-2917769b3665
     tag: fastapi.base-2917769b3665
-  datadog/system-tests:fastify.base-bce27c61b3f5:
-    digest: sha256:984e566d8eb604d53c1532a55559549f4c443ac73caf41664bb73241e529357c
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:fastify.base-bce27c61b3f5
-    tag: fastify.base-bce27c61b3f5
+  datadog/system-tests:fastify.base-a1ef28556ea8:
+    digest: sha256:9792fd316a9a91cd838f726360d6f50f6d3e7853d84874739f20342c13b1eccf
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:fastify.base-a1ef28556ea8
+    tag: fastify.base-a1ef28556ea8
   datadog/system-tests:flask-poc.base-fa81f4f89ea4:
     digest: sha256:f300cff471470574ce8263292f54ab745ffacfa8af741dd41be15a8c947e2e0e
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:flask-poc.base-fa81f4f89ea4
