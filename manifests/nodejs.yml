@@ -3322,11 +3322,11 @@ manifest:
         nextjs: missing_feature  # http.route not added in nextjs
   tests/test_standard_tags.py::Test_StandardTagsStatusCode: v2.11.0
   tests/test_standard_tags.py::Test_StandardTagsUrl: *ref_3_0_0
-  tests/test_standard_tags.py::Test_StandardTagsUrl::test_multiple_matching_substring: missing_feature (tracer did not yet implemented the new version of query parameters obfuscation regex)
+  tests/test_standard_tags.py::Test_StandardTagsUrl::test_multiple_matching_substring: *ref_6_20_1
   tests/test_standard_tags.py::Test_StandardTagsUrl::test_multiple_matching_substring_legacy:
     - declaration: irrelevant (nodejs released the new version of query parameters obfuscation regex at 6.20.1 and 5.131.1)
       component_version: *ref_6_20_1
-  tests/test_standard_tags.py::Test_StandardTagsUrl::test_url_with_sensitive_query_string: missing_feature (tracer did not yet implemented the new version of query parameters obfuscation regex)
+  tests/test_standard_tags.py::Test_StandardTagsUrl::test_url_with_sensitive_query_string: *ref_6_20_1
   tests/test_standard_tags.py::Test_StandardTagsUrl::test_url_with_sensitive_query_string_legacy:
     - declaration: irrelevant (nodejs released the new version of query parameters obfuscation regex at 6.20.1 and 5.131.1)
       component_version: *ref_6_20_1
