@@ -71,47 +71,34 @@ def _diagnostic_logs(library: APMLibrary) -> str:
 
 
 def _has_invalid_propagator_warning(language: str, logs: str) -> bool:
-    variable = re.escape(VARIABLE)
-    invalid = re.escape("not-a-propagator")
-    node_setting = rf"(?:{variable}|DD_TRACE_PROPAGATION_STYLE|tracePropagationStyle)"
-    # Match complete SDK rejection messages, not configuration/telemetry echoes.
-    # Python and Node.js emit unprefixed warnings; .NET may omit the invalid value.
-    patterns = {
-        "dotnet": (
-            rf"(?:[\d: .+\-]+ )?\[WRN\] OpenTelemetry configuration {variable}"
-            r" is invalid\.(?:  \{.*\})?"
-        ),
-        "golang": (
-            rf"\d{{4}}/\d{{2}}/\d{{2}} \d{{2}}:\d{{2}}:\d{{2}} Datadog Tracer \S+ WARN: "
-            rf'Invalid configuration: "{invalid}" is not supported\. This propagation style will be ignored\.'
-        ),
-        "java": (
-            rf"\[dd\.trace [^\]]+\] \[[^\]]+\] WARN [\w.$]+ - "
-            rf"{variable}={invalid} is not supported"
-        ),
-        "nodejs": (
-            rf"(?:Invalid propagator: ['\"]{invalid}['\"] for {node_setting} \(source: {node_setting}\), picked default"
-            rf"|Unknown propagation style: {invalid})"
-        ),
-        "php": (
-            rf"OpenTelemetry: \[warning\] Text map propagator not registered for: {invalid} "
-            r"in [^\r\n]+\(\d+\)"
-        ),
-        "python": (
-            rf"(?:Following style not supported by ddtrace: {invalid}\."
-            rf"|Setting {variable} to {invalid} is not supported by ddtrace, this configuration will be ignored\.)"
-        ),
-        "ruby": (
-            r"W, \[[^\]]+\] +WARN -- datadog: (?:\[datadog\] \(.*\) )?"
-            rf"(?:Unsupported propagation style: {invalid}"
-            rf"|The {invalid} propagator is unknown and cannot be configured)"
-        ),
-        "rust": (rf"WARN \S+:\d+ - Error parsing: Unknown trace propagation style: '{invalid}'"),
-    }
-    pattern = patterns.get(language)
-    return pattern is not None and any(
-        re.fullmatch(pattern, re.sub(r"\x1b\[[0-9;]*m", "", line), re.IGNORECASE) for line in logs.splitlines()
-    )
+    for raw_line in logs.splitlines():
+        line = re.sub(r"\x1b\[[0-9;]*m", "", raw_line).strip()
+        if "not-a-propagator" not in line:
+            continue
+        json_start = re.search(r'[\[{]\s*"', line)
+        levels = r"WARN(?:ING)?|WRN|DEBUG|DBG|INFO|INF|ERROR|ERR|TRACE|TRC|FATAL|CRITICAL"
+        level = re.search(
+            rf"(?<![\w.])(?:{levels})(?=[\s:\]])|(?<=\[)(?i:{levels})(?=\])|^(?i:{levels})(?=[:\s])",
+            line,
+        )
+        if level is not None:
+            # Ignore levels inside JSON echoes. Real warning messages may contain JSON.
+            if json_start is not None and json_start.start() < level.start():
+                continue
+            # The first level wins, so an INFO/DEBUG echo of a warning cannot pass.
+            if level.group().lower() in {"warn", "warning", "wrn"} and "not-a-propagator" in line[level.end() :]:
+                return True
+        elif (
+            language in {"nodejs", "python"}
+            and json_start is None
+            and re.search(
+                r"\b(?:invalid|unknown|unsupported|not supported|not registered|warning)\b", line, re.IGNORECASE
+            )
+        ):
+            # These SDKs can print warnings without a level prefix. Require a
+            # diagnostic containing the test value without fixing its wording.
+            return True
+    return False
 
 
 def _configured_baggage_propagators(library: APMLibrary) -> set[str]:
