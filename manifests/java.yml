@@ -3956,12 +3956,29 @@ manifest:
   : bug (APMAPI-2412)
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_endpoint.py::Test_OTEL_EXPORTER_OTLP_ENDPOINT::test_otlp_custom_endpoint_grpc
   : bug (APMAPI-2503, APMAPI-2528)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS: v1.56.0
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_logs_default_headers: v1.62.0
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_logs_empty_headers: v1.62.0
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_logs_headers: v1.62.0
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_logs_override: v1.62.0
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_logs_percent_encoded_value
+  : - component_version: <1.62.0
+      declaration: missing_feature
+    - component_version: '>=1.62.0'
+      declaration: bug (APMAPI-2471)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_metrics_percent_encoded_value
+  : bug (APMAPI-2471)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_compression.py::Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION: v1.62.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_compression.py::Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION::test_empty_inherits_general
   : bug (APMAPI-2474)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_endpoint.py::Test_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT: v1.62.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_endpoint.py::Test_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT::test_empty_falls_back_to_global_endpoint
   : bug (APMAPI-2412)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_headers.py::Test_OTEL_EXPORTER_OTLP_LOGS_HEADERS: v1.62.0
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_headers.py::Test_OTEL_EXPORTER_OTLP_LOGS_HEADERS::test_empty_falls_back
+  : bug (APMAPI-2474)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_headers.py::Test_OTEL_EXPORTER_OTLP_LOGS_HEADERS::test_logs_percent_encoded_value
+  : bug (APMAPI-2471)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL: v1.62.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL::test_case_insensitive
   : bug (APMAPI-2503)
@@ -3970,7 +3987,9 @@ manifest:
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL::test_generic_fallback
   : bug (APMAPI-2503)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL::test_grpc: bug (APMAPI-2503)
-  tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL::test_http_json: missing_feature (OTLP HTTP JSON exporter is not implemented)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL::test_http_json:  # TODO: a lower version might be supported
+    - declaration: missing_feature (OTLP HTTP JSON exporter is not implemented)
+      component_version: <1.66.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL::test_signal_precedence
   : bug (APMAPI-2503)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_compression.py::Test_OTEL_EXPORTER_OTLP_METRICS_COMPRESSION: v1.60.0
@@ -3981,6 +4000,11 @@ manifest:
   : bug (APMAPI-2412)
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_endpoint.py::Test_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT::test_otlp_metrics_custom_endpoint_grpc
   : bug (APMAPI-2503, APMAPI-2528)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_headers.py::Test_OTEL_EXPORTER_OTLP_METRICS_HEADERS: v1.56.0
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_headers.py::Test_OTEL_EXPORTER_OTLP_METRICS_HEADERS::test_empty_falls_back
+  : bug (APMAPI-2474)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_headers.py::Test_OTEL_EXPORTER_OTLP_METRICS_HEADERS::test_metrics_percent_encoded_value
+  : bug (APMAPI-2471)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_protocol.py::Test_OTEL_EXPORTER_OTLP_METRICS_PROTOCOL: v1.56.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_protocol.py::Test_OTEL_EXPORTER_OTLP_METRICS_PROTOCOL::test_case_insensitive
   : bug (APMAPI-2503)
@@ -3990,7 +4014,9 @@ manifest:
   : bug (APMAPI-2503)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_protocol.py::Test_OTEL_EXPORTER_OTLP_METRICS_PROTOCOL::test_grpc: bug (APMAPI-2503)
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_protocol.py::Test_OTEL_EXPORTER_OTLP_METRICS_PROTOCOL::test_http_json
-  : missing_feature (OTLP HTTP JSON exporter is not implemented)
+  :  # TODO: a lower version might be supported
+    - declaration: missing_feature (OTLP HTTP JSON exporter is not implemented)
+      component_version: <1.66.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_protocol.py::Test_OTEL_EXPORTER_OTLP_METRICS_PROTOCOL::test_signal_precedence
   : bug (APMAPI-2503)
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_temporality_preference.py::Test_OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE
@@ -4000,13 +4026,17 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL: v1.56.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL::test_case_insensitive: bug (APMAPI-2503)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL::test_grpc: bug (APMAPI-2503)
-  tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL::test_http_json: missing_feature (OTLP HTTP JSON exporter is not implemented)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL::test_http_json:  # TODO: a lower version might be supported
+    - declaration: missing_feature (OTLP HTTP JSON exporter is not implemented)
+      component_version: <1.66.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs: v1.62.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs::test_case_insensitive: bug (APMAPI-2503)
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs::test_documented_json_default
   : irrelevant (The SDK uses the specification default)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs::test_grpc: bug (APMAPI-2503)
-  tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs::test_http_json: missing_feature (OTLP HTTP JSON exporter is not implemented)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs::test_http_json:  # TODO: a lower version might be supported
+    - declaration: missing_feature (OTLP HTTP JSON exporter is not implemented)
+      component_version: <1.66.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_endpoint.py::Test_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: v1.61.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_endpoint.py::Test_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT::test_empty_falls_back_to_global_endpoint
   : bug (APMAPI-2412)
@@ -4089,6 +4119,7 @@ manifest:
   tests/parametric/test_crashtracking.py::Test_Crashtracking::test_telemetry_timeout:  # Modified by easy win activation script
     - declaration: bug (APMLP-302)
       component_version: <1.58.2+06122213c8
+    - declaration: flaky (APMLP-1934)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules: v1.34.0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled: v1.32.0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_tracing_client_tracing_disable_one_way:
