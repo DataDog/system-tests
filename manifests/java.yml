@@ -4119,6 +4119,7 @@ manifest:
   tests/parametric/test_crashtracking.py::Test_Crashtracking::test_telemetry_timeout:  # Modified by easy win activation script
     - declaration: bug (APMLP-302)
       component_version: <1.58.2+06122213c8
+    - declaration: flaky (APMLP-1934)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules: v1.34.0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled: v1.32.0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_tracing_client_tracing_disable_one_way:
