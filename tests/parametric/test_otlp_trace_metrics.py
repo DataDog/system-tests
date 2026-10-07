@@ -866,11 +866,9 @@ class Test_FR06_Otel_Resource_Attributes:
         assert resource_attrs.get("service.version") == "1.2.3", (
             f"Expected service.version=1.2.3, got: {resource_attrs}"
         )
-        # The deployment environment semantic convention was renamed in 1.27.0.
-        assert (
-            resource_attrs.get("deployment.environment") == "prod"
-            or resource_attrs.get("deployment.environment.name") == "prod"
-        ), f"Expected deployment environment=prod, got: {resource_attrs}"
+        assert resource_attrs.get("deployment.environment.name") == "prod", (
+            f"Expected deployment.environment.name=prod, got: {resource_attrs}"
+        )
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS_OTLP}])
     def test_fr06_14_custom_service_on_data_point(
