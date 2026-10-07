@@ -2622,13 +2622,13 @@ manifest:
   tests/parametric/test_otel_api_interoperability.py: missing_feature
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: v5.11.0  #implemented in v5.11.0, v4.35.0, &v3.56.0
   tests/parametric/test_otel_logs.py::Test_FR01_Enable_OTLP_Log_Collection: *ref_5_72_0
-  tests/parametric/test_otel_logs.py::Test_FR03_Resource_Attributes: v7.0.0-pre
+  tests/parametric/test_otel_logs.py::Test_FR03_Resource_Attributes: missing_feature
   tests/parametric/test_otel_logs.py::Test_FR04_Trace_Span_IDs: *ref_5_72_0
   tests/parametric/test_otel_logs.py::Test_FR05_Custom_Endpoints: *ref_5_72_0
   tests/parametric/test_otel_logs.py::Test_FR07_Host_Name: *ref_5_72_0
   tests/parametric/test_otel_logs.py::Test_FR07_Host_Name::test_hostname_from_dd_hostname: irrelevant (DD_HOSTNAME is only supported in Python)
   tests/parametric/test_otel_logs.py::Test_FR08_Custom_Headers: *ref_5_72_0
-  tests/parametric/test_otel_logs.py::Test_FR09_Log_Injection: v7.0.0-pre
+  tests/parametric/test_otel_logs.py::Test_FR09_Log_Injection: missing_feature
   tests/parametric/test_otel_logs.py::Test_FR10_Timeout_Configuration: *ref_5_72_0
   tests/parametric/test_otel_logs.py::Test_FR11_Telemetry: *ref_5_72_0
   tests/parametric/test_otel_logs.py::Test_FR12_Log_Levels: *ref_5_72_0
@@ -2642,7 +2642,7 @@ manifest:
   ? tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint::test_otlp_metrics_custom_endpoint_grpc
   : missing_feature (Does not support grpc)
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Host_Name::test_hostname_from_dd_hostname: missing_feature (DD_HOSTNAME to host.name resource attribute mapping not yet implemented)
-  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Resource_Attributes: v7.0.0-pre
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Resource_Attributes: missing_feature
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_metrics_grpc: missing_feature (Does not support grpc)
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_add_event_meta_serialization:
     - declaration: missing_feature (Implemented in v5.17.0 & v4.41.0)
