@@ -108,6 +108,7 @@ refs:
   - &ref_6_13_0 '>=6.13.0 || ^5.124.0'
   - &ref_6_17_0 '>=6.17.0 || ^5.128.0'
   - &ref_6_20_0 '>=6.20.0 || ^5.131.0'
+  - &ref_6_20_1 '>=6.20.1 || ^5.131.1'
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag:
     - weblog_declaration:
@@ -3322,7 +3323,13 @@ manifest:
   tests/test_standard_tags.py::Test_StandardTagsStatusCode: v2.11.0
   tests/test_standard_tags.py::Test_StandardTagsUrl: *ref_3_0_0
   tests/test_standard_tags.py::Test_StandardTagsUrl::test_multiple_matching_substring: missing_feature (tracer did not yet implemented the new version of query parameters obfuscation regex)
+  tests/test_standard_tags.py::Test_StandardTagsUrl::test_multiple_matching_substring_legacy:
+    - declaration: irrelevant (nodejs released the new version of query parameters obfuscation regex at 6.20.1 and 5.131.1)
+      component_version: *ref_6_20_1
   tests/test_standard_tags.py::Test_StandardTagsUrl::test_url_with_sensitive_query_string: missing_feature (tracer did not yet implemented the new version of query parameters obfuscation regex)
+  tests/test_standard_tags.py::Test_StandardTagsUrl::test_url_with_sensitive_query_string_legacy:
+    - declaration: irrelevant (nodejs released the new version of query parameters obfuscation regex at 6.20.1 and 5.131.1)
+      component_version: *ref_6_20_1
   tests/test_standard_tags.py::Test_StandardTagsUserAgent: v2.9.0
   tests/test_telemetry.py::Test_DependencyEnable: missing_feature
   tests/test_telemetry.py::Test_ExtendedHeartbeat: *ref_5_97_0
