@@ -1957,7 +1957,7 @@ manifest:
         net-http: v1.70.1
         net-http-span-pool: v1.70.1
   tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP: v2.8.0-dev
-  tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP::test_single_server_trace: v2.11.0
+  tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP::test_single_server_trace: v2.12.0
   tests/otel/test_tracing_otlp.py::Test_Otlp_Carries_Ot: v2.11.0-dev
   tests/otel/test_tracing_otlp.py::Test_Otlp_Forwards_Inherited_Ot: v2.11.0-dev  # Easy win for chi, echo, fiber-v2-orchestrion, gin, net-http, net-http-orchestrion, uds-echo and version 2.10.1
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
@@ -2017,7 +2017,7 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES::test_invalid_value_is_discarded: bug (APMAPI-2432)
   tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES::test_percent_encoded_separators: bug (APMAPI-2425)
   ? tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES::test_reserved_attributes_are_mapped
-  : v2.11.0
+  : v2.12.0
   tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED: missing_feature
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME: v2.6.0
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_default_follows_otel_spec: irrelevant
@@ -2192,7 +2192,7 @@ manifest:
   tests/parametric/test_otel_logs.py::Test_FR11_Telemetry::test_telemetry_exporter_logs_configurations: missing_feature
   tests/parametric/test_otel_logs.py::Test_FR12_Log_Levels: '>=2.10.1'  # Created by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields: '>=2.10.1'  # Created by easy win activation script
-  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Resource_Attributes::test_dd_env_vars_override_otel: v2.11.0
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Resource_Attributes::test_dd_env_vars_override_otel: v2.12.0
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_default_configurations: '>=2.10.1'  # TODO: a lower version might be supported
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_exporter_configurations: '>=2.10.1'  # TODO: a lower version might be supported
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_exporter_metrics_configurations: '>=2.10.1'  # TODO: a lower version might be supported
