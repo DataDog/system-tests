@@ -73,10 +73,79 @@ class Test_InstallerVersions:
         env = os.environ.copy()
         env.pop("DD_INSTALLER_LIBRARY_VERSION", None)
         env.pop("DD_INSTALLER_INJECTOR_VERSION", None)
+        env.pop("SSI_ENV", None)
+        env.pop("DD_env", None)
 
         result = _run_installer_versions_script(tmp_path, env)
 
         assert result.stdout == "RESULT=\n"
+
+    def test_prod_without_versions_pins_injector(self, tmp_path: Path) -> None:
+        env = os.environ.copy()
+        env.pop("DD_INSTALLER_LIBRARY_VERSION", None)
+        env.pop("DD_INSTALLER_INJECTOR_VERSION", None)
+        env.pop("DD_INSTALLER_PINNED_INJECTOR_VERSION", None)
+        env["SSI_ENV"] = "prod"
+        env.pop("DD_env", None)
+
+        result = _run_installer_versions_script(tmp_path, env)
+
+        assert result.stdout.splitlines() == [
+            "Using pinned injector version from auto_inject.lock: pinned-version",
+            "RESULT=pinned-version",
+        ]
+
+    def test_prod_dd_env_without_versions_pins_injector(self, tmp_path: Path) -> None:
+        env = os.environ.copy()
+        env.pop("DD_INSTALLER_LIBRARY_VERSION", None)
+        env.pop("DD_INSTALLER_INJECTOR_VERSION", None)
+        env.pop("DD_INSTALLER_PINNED_INJECTOR_VERSION", None)
+        env.pop("SSI_ENV", None)
+        env["DD_env"] = "prod"
+
+        result = _run_installer_versions_script(tmp_path, env)
+
+        assert result.stdout.splitlines() == [
+            "Using pinned injector version from auto_inject.lock: pinned-version",
+            "RESULT=pinned-version",
+        ]
+
+    def test_dev_without_versions_does_not_set_injector(self, tmp_path: Path) -> None:
+        env = os.environ.copy()
+        env.pop("DD_INSTALLER_LIBRARY_VERSION", None)
+        env.pop("DD_INSTALLER_INJECTOR_VERSION", None)
+        env["SSI_ENV"] = "dev"
+        env.pop("DD_env", None)
+
+        result = _run_installer_versions_script(tmp_path, env)
+
+        assert result.stdout == "RESULT=\n"
+
+    def test_prod_explicit_injector_is_not_overridden(self, tmp_path: Path) -> None:
+        env = os.environ.copy()
+        env.pop("DD_INSTALLER_LIBRARY_VERSION", None)
+        env["DD_INSTALLER_INJECTOR_VERSION"] = "custom-injector"
+        env["SSI_ENV"] = "prod"
+        env.pop("DD_env", None)
+
+        result = _run_installer_versions_script(tmp_path, env)
+
+        assert result.stdout == "RESULT=custom-injector\n"
+
+    def test_dev_custom_library_still_pins_injector(self, tmp_path: Path) -> None:
+        env = os.environ.copy()
+        env["DD_INSTALLER_LIBRARY_VERSION"] = "custom-library"
+        env.pop("DD_INSTALLER_INJECTOR_VERSION", None)
+        env.pop("DD_INSTALLER_PINNED_INJECTOR_VERSION", None)
+        env["SSI_ENV"] = "dev"
+        env.pop("DD_env", None)
+
+        result = _run_installer_versions_script(tmp_path, env)
+
+        assert result.stdout.splitlines() == [
+            "Using pinned injector version from auto_inject.lock: pinned-version",
+            "RESULT=pinned-version",
+        ]
 
     def test_missing_lock_file_fails_loud(self, tmp_path: Path) -> None:
         env = os.environ.copy()
@@ -121,7 +190,10 @@ class Test_InstallerVersions:
         remote_command = cast("str", windows_provision["remote-command"])
 
         assert any(file["local_path"] == "utils/build/auto_inject.lock" for file in copied_files)
-        assert "$env:DD_INSTALLER_LIBRARY_VERSION -and -not $env:DD_INSTALLER_INJECTOR_VERSION" in remote_command
+        assert (
+            '-not $env:DD_INSTALLER_INJECTOR_VERSION -and ($env:DD_INSTALLER_LIBRARY_VERSION -or $env:DD_env -eq "prod")'
+            in remote_command
+        )
         assert "[System.IO.File]::ReadAllText($AUTO_INJECT_LOCK_PATH).Trim()" in remote_command
         assert (
             "$env:DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_INJECT = $env:DD_INSTALLER_INJECTOR_VERSION"
