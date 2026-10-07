@@ -12,7 +12,6 @@ TRACES_ENVIRONMENT = {
 
 STABLE_VALUES = [
     pytest.param({**TRACES_ENVIRONMENT, VARIABLE_NAME: "500"}, 500, id="500-ms"),
-    pytest.param({**TRACES_ENVIRONMENT, VARIABLE_NAME: "0"}, 0, id="zero-unlimited"),
 ]
 
 
@@ -35,6 +34,13 @@ class Test_OTEL_EXPORTER_OTLP_TRACES_TIMEOUT:
         expected_value: int,
     ) -> None:
         assert _timeout_value(test_library) == expected_value
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [pytest.param({**TRACES_ENVIRONMENT, VARIABLE_NAME: "0"}, id="zero-unlimited")],
+    )
+    def test_zero_is_unlimited(self, test_library: APMLibrary) -> None:
+        assert _timeout_value(test_library) == 0
 
     @pytest.mark.parametrize(
         "library_env",

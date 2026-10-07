@@ -1977,6 +1977,7 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL::test_empty: bug (APMAPI-2501)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL::test_http_json: bug (APMAPI-2501)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL::test_invalid: bug (APMAPI-2501)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_timeout.py::Test_OTEL_EXPORTER_OTLP_LOGS_TIMEOUT: missing_feature (OTLP exporter timeout configuration is not centralized)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_compression.py::Test_OTEL_EXPORTER_OTLP_METRICS_COMPRESSION: missing_feature
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_endpoint.py::Test_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: v2.6.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_protocol.py::Test_OTEL_EXPORTER_OTLP_METRICS_PROTOCOL: v2.6.0
@@ -1990,6 +1991,7 @@ manifest:
   : missing_feature (LowMemory temporality is not implemented)
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_temporality_preference.py::Test_OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE::test_lowmemory_case_insensitive
   : missing_feature (LowMemory temporality is not implemented)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_timeout.py::Test_OTEL_EXPORTER_OTLP_METRICS_TIMEOUT: missing_feature (OTLP exporter timeout configuration is not centralized)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL: v2.5.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL::test_http_json: missing_feature (OTLP HTTP JSON exporter is not implemented)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs: v2.7.0
@@ -1999,9 +2001,11 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs::test_empty: bug (APMAPI-2501)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs::test_http_json: bug (APMAPI-2501)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs::test_invalid: bug (APMAPI-2501)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_timeout.py::Test_OTEL_EXPORTER_OTLP_TIMEOUT: missing_feature (OTLP exporter timeout configuration is not centralized)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_endpoint.py::Test_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: v2.8.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_headers.py::Test_OTEL_EXPORTER_OTLP_TRACES_HEADERS: missing_feature
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_protocol.py::Test_OTEL_EXPORTER_OTLP_TRACES_PROTOCOL: missing_feature
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_timeout.py::Test_OTEL_EXPORTER_OTLP_TRACES_TIMEOUT: missing_feature (OTLP exporter timeout configuration is not centralized)
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER:  # TODO: a lower version might be supported
     - declaration: missing_feature (OTEL_LOGS_EXPORTER does not configure the logs pipeline)
       component_version: <2.10.1
@@ -3072,7 +3076,3 @@ manifest:
         uds-echo: missing_feature
         fiber-v2-orchestrion: missing_feature
         gin: missing_feature
-  tests/parametric/otel_env_vars/test_otel_exporter_otlp_timeout.py::Test_OTEL_EXPORTER_OTLP_TIMEOUT: missing_feature (OTLP exporter timeout configuration is not centralized)
-  tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_timeout.py::Test_OTEL_EXPORTER_OTLP_METRICS_TIMEOUT: missing_feature (OTLP exporter timeout configuration is not centralized)
-  tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_timeout.py::Test_OTEL_EXPORTER_OTLP_TRACES_TIMEOUT: missing_feature (OTLP exporter timeout configuration is not centralized)
-  tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_timeout.py::Test_OTEL_EXPORTER_OTLP_LOGS_TIMEOUT: missing_feature (OTLP exporter timeout configuration is not centralized)
