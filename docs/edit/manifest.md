@@ -48,6 +48,25 @@ Each component has its own manifest file in the `manifests/` directory.
 
 **Note:** Do not create new manifest files without consulting the team in **#apm-shared-testing** Slack channel first.
 
+### Lambda Library and Tracer Versions
+
+Lambda scenarios register both the Lambda library and the underlying language tracer
+reported by the healthcheck. For example, `python_lambda` selects `python_lambda.yml`
+and `python` selects `python.yml`. A test must satisfy both manifests.
+
+Keep layer requirements in the Lambda manifest. Use existing weblog declarations in
+the language manifest when Lambda needs a different tracer version:
+
+```yaml
+# manifests/python.yml
+tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry:
+  - weblog_declaration:
+      "*": v2.20.0.dev
+      "alb, alb-multi, apigw-http, apigw-rest, function-url": v4.15.0
+```
+
+Healthchecks without the optional `tracer` object retain their existing behavior.
+
 ## Test Node ID Format
 
 Tests are identified by a node ID with three optional components:

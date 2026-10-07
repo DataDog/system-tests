@@ -38,6 +38,10 @@ function versionInfo () {
     library: {
       name: 'nodejs_lambda',
       version: getDatadogLambdaVersion()
+    },
+    tracer: {
+      name: 'nodejs',
+      version: require('dd-trace/package.json').version
     }
   }
 }

@@ -565,6 +565,7 @@ public class Handler implements RequestHandler<Object, Object> {
         library.put("name", "java_lambda");
         library.put("version", version);
         info.put("library", library);
+        info.put("tracer", Map.of("name", "java", "version", version));
         return info;
     }
 

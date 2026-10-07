@@ -1054,6 +1054,7 @@ class WeblogContainer(TestedContainer):
 
         self.weblog_variant = ""
         self._library: ComponentVersion | None = None
+        self._tracer: ComponentVersion | None = None
 
     @property
     def trace_agent_port(self):
@@ -1227,8 +1228,12 @@ class WeblogContainer(TestedContainer):
             lib = data["library"]
 
         self._library = ComponentVersion(lib["name"], lib["version"])
+        tracer = data.get("tracer")
+        self._tracer = ComponentVersion(tracer["name"], tracer["version"]) if tracer else None
 
         logger.stdout(f"Library: {self.library}")
+        if self.tracer is not None:
+            logger.stdout(f"Tracer: {self.tracer}")
 
         if self._container is not None:
             exit_code, output = self.exec_run("cat /binaries/metadata.txt")
@@ -1250,6 +1255,10 @@ class WeblogContainer(TestedContainer):
     def library(self) -> ComponentVersion:
         assert self._library is not None, "Library version is not set"
         return self._library
+
+    @property
+    def tracer(self) -> ComponentVersion | None:
+        return self._tracer
 
     @property
     def uds_socket(self) -> str | None:
