@@ -106,6 +106,8 @@ refs:
   - &ref_6_8_0 '>=6.8.0 || ^5.119.0'
   - &ref_6_10_0 '>=6.10.0 || ^5.121.0'
   - &ref_6_13_0 '>=6.13.0 || ^5.124.0'
+  - &ref_6_17_0 '>=6.17.0 || ^5.128.0'
+  - &ref_6_20_0 '>=6.20.0 || ^5.131.0'
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag:
     - weblog_declaration:
@@ -1713,19 +1715,9 @@ manifest:
         "*": *ref_5_46_0
         nextjs: irrelevant
   ? tests/debugger/test_debugger_condition_errors.py::Test_Debugger_Runtime_Condition_Error::test_runtime_condition_error_emits_error_only_snapshot
-  :  # TODO: a lower version might be supported
-    - declaration: bug (DEBUG-5701)
-      component_version: <6.19.0
-      weblog: [express5, express4-typescript]
-    - declaration: bug (DEBUG-5701)
-      excluded_weblog: [express5, express4-typescript]
+  : *ref_6_17_0
   ? tests/debugger/test_debugger_condition_errors.py::Test_Debugger_Runtime_Condition_Error::test_runtime_condition_error_rate_limited
-  :  # TODO: a lower version might be supported
-    - declaration: bug (DEBUG-5705)
-      component_version: <6.8.0
-      weblog: [express4-typescript, uds-express4, express4, express5, fastify]
-    - declaration: bug (DEBUG-5705)
-      excluded_weblog: [express4-typescript, uds-express4, express4, express5, fastify]
+  : *ref_6_17_0
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay: missing_feature
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_firsthit: missing_feature (Implemented only for dotnet)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_outofmemory: missing_feature (Implemented only for dotnet)
@@ -1750,7 +1742,10 @@ manifest:
         express5: *ref_5_85_0
         fastify: *ref_5_85_0
         uds-express4: *ref_5_85_0
-  tests/debugger/test_debugger_guardrails.py::Test_Debugger_Evaluation_Timeout_Line_Probe: missing_feature (Debugger evaluation timeout guardrail not implemented yet)
+  tests/debugger/test_debugger_guardrails.py::Test_Debugger_Evaluation_Timeout_Line_Probe:
+    - weblog_declaration:
+        "*": *ref_6_20_0
+        nextjs: irrelevant
   tests/debugger/test_debugger_guardrails.py::Test_Debugger_Evaluation_Timeout_Method_Probe: irrelevant (Method-probe variant is not used by Node.js)
   tests/debugger/test_debugger_guardrails.py::Test_Debugger_Snapshot_Size_Guardrail: missing_feature (Debugger snapshot size guardrail not implemented yet)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin:
@@ -1779,8 +1774,16 @@ manifest:
   : missing_feature (Not yet implemented)
   ? tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers::test_pii_redaction_log_probe_sensitive_type
   : missing_feature (Not yet implemented)
-  tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets: missing_feature
-  tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_log_line_budgets: missing_feature (Not yet implemented)
+  tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets:
+    - weblog_declaration:
+        "*": incomplete_test_app (No /debugger/budgets endpoint)
+        express4: *ref_5_46_0
+        express4-typescript: *ref_5_46_0
+        express5: *ref_5_46_0
+        fastify: *ref_5_46_0
+        uds-express4: *ref_5_46_0
+  tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_log_line_capture_expression_budgets: '>=6.16.0 || ^5.127.0'
+  tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_span_probe_expression_budgets: missing_feature (Method probes are not supported by Node.js)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots:
     - weblog_declaration:
         "*": *ref_5_39_0
@@ -1867,9 +1870,18 @@ manifest:
     - weblog_declaration:
         "*": incomplete_test_app
         express5: *ref_5_77_0
-  tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Direct: missing_feature (dd-trace-js#9527)
-  tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Direct_Shutdown: missing_feature (dd-trace-js#9527)
-  tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Sidecar: missing_feature (dd-trace-js#9527)
+  tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Direct:
+    - weblog_declaration:
+        "*": irrelevant
+        express5: '>=6.18.0 || ^5.129.0'
+  tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Direct_Shutdown:
+    - weblog_declaration:
+        "*": irrelevant
+        express5: '>=6.18.0 || ^5.129.0'
+  tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Sidecar:
+    - weblog_declaration:
+        "*": irrelevant
+        express5: '>=6.18.0 || ^5.129.0'
   tests/ffe/test_exposures_datadog_agent.py:
     - weblog_declaration:
         "*": incomplete_test_app
@@ -2361,7 +2373,8 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_blrp_max_export_batch_size.py::Test_OTEL_BLRP_MAX_EXPORT_BATCH_SIZE: missing_feature
   tests/parametric/otel_env_vars/test_otel_blrp_max_queue_size.py::Test_OTEL_BLRP_MAX_QUEUE_SIZE: missing_feature
   tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY: missing_feature
-  tests/parametric/otel_env_vars/test_otel_exporter_otlp_compression.py::Test_OTEL_EXPORTER_OTLP_COMPRESSION: missing_feature
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_compression.py::Test_OTEL_EXPORTER_OTLP_COMPRESSION: '>=6.20.0'  # TODO: a lower version might be supported
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_compression.py::Test_OTEL_EXPORTER_OTLP_COMPRESSION::test_stable_values: missing_feature
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_endpoint.py::Test_OTEL_EXPORTER_OTLP_ENDPOINT: v5.83.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_endpoint.py::Test_OTEL_EXPORTER_OTLP_ENDPOINT::test_otlp_custom_endpoint_grpc
   : missing_feature (Does not support grpc)
@@ -2382,7 +2395,13 @@ manifest:
       declaration: missing_feature
     - component_version: '>=5.88.0'
       declaration: bug (APMAPI-2450)
-  tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_compression.py::Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION: missing_feature
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_compression.py::Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION: '>=6.20.0'  # TODO: a lower version might be supported
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_compression.py::Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION::test_empty_inherits_general
+  : missing_feature
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_compression.py::Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION::test_signal_precedence
+  : missing_feature
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_compression.py::Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION::test_stable_values
+  : missing_feature
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_endpoint.py::Test_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT: v5.83.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_headers.py::Test_OTEL_EXPORTER_OTLP_LOGS_HEADERS: v5.72.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_headers.py::Test_OTEL_EXPORTER_OTLP_LOGS_HEADERS::test_empty_falls_back
@@ -2403,14 +2422,22 @@ manifest:
   : v5.88.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL: v5.88.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL::test_case_insensitive
-  : missing_feature (Case-insensitive OTLP protocol parsing is not released)
+  :  # TODO: a lower version might be supported
+    - declaration: missing_feature (Case-insensitive OTLP protocol parsing is not released)
+      component_version: <6.20.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL::test_documented_json_default
   : irrelevant (The SDK uses the specification default)
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL::test_generic_fallback
   : - declaration: bug (APMAPI-2475)
       component_version: '<=6.16.0'
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL::test_grpc: missing_feature (OTLP gRPC exporter is not available)
-  tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_compression.py::Test_OTEL_EXPORTER_OTLP_METRICS_COMPRESSION: missing_feature
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_compression.py::Test_OTEL_EXPORTER_OTLP_METRICS_COMPRESSION: '>=6.20.0'  # TODO: a lower version might be supported
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_compression.py::Test_OTEL_EXPORTER_OTLP_METRICS_COMPRESSION::test_empty_inherits_general
+  : missing_feature
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_compression.py::Test_OTEL_EXPORTER_OTLP_METRICS_COMPRESSION::test_signal_precedence
+  : missing_feature
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_compression.py::Test_OTEL_EXPORTER_OTLP_METRICS_COMPRESSION::test_stable_values
+  : missing_feature
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_endpoint.py::Test_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: v5.83.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_endpoint.py::Test_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT::test_otlp_metrics_custom_endpoint_grpc
   : missing_feature (Does not support grpc)
@@ -2433,7 +2460,9 @@ manifest:
   : v5.83.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_protocol.py::Test_OTEL_EXPORTER_OTLP_METRICS_PROTOCOL: v5.88.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_protocol.py::Test_OTEL_EXPORTER_OTLP_METRICS_PROTOCOL::test_case_insensitive
-  : missing_feature (Case-insensitive OTLP protocol parsing is not released)
+  :  # TODO: a lower version might be supported
+    - declaration: missing_feature (Case-insensitive OTLP protocol parsing is not released)
+      component_version: <6.20.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_protocol.py::Test_OTEL_EXPORTER_OTLP_METRICS_PROTOCOL::test_empty_generic_fallback
   : - declaration: bug (APMAPI-2475)
       component_version: '<=6.16.0'
@@ -2443,10 +2472,14 @@ manifest:
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_temporality_preference.py::Test_OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE::test_default_matches_specification
   : missing_feature (Datadog intentionally defaults to Delta)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL: v5.83.0
-  tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL::test_case_insensitive: missing_feature (Case-insensitive OTLP protocol parsing is not released)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL::test_case_insensitive:  # TODO: a lower version might be supported
+    - declaration: missing_feature (Case-insensitive OTLP protocol parsing is not released)
+      component_version: <6.20.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL::test_grpc: missing_feature (OTLP gRPC exporter is not available)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs: v5.83.0
-  tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs::test_case_insensitive: missing_feature (Case-insensitive OTLP protocol parsing is not released)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs::test_case_insensitive:  # TODO: a lower version might be supported
+    - declaration: missing_feature (Case-insensitive OTLP protocol parsing is not released)
+      component_version: <6.20.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs::test_documented_json_default
   : irrelevant (The SDK uses the specification default)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs::test_grpc: missing_feature (OTLP gRPC exporter is not available)
@@ -2455,7 +2488,9 @@ manifest:
       component_version: '<6.0.0'
     - declaration: flaky (APMAPI-2554)
       component_version: '>=6.0.0'
-  tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_headers.py::Test_OTEL_EXPORTER_OTLP_TRACES_HEADERS: missing_feature
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_headers.py::Test_OTEL_EXPORTER_OTLP_TRACES_HEADERS: '>=6.20.0'  # TODO: a lower version might be supported
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_headers.py::Test_OTEL_EXPORTER_OTLP_TRACES_HEADERS::test_empty_is_treated_as_unset
+  : missing_feature
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_protocol.py::Test_OTEL_EXPORTER_OTLP_TRACES_PROTOCOL: missing_feature
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER: missing_feature (OTEL_LOGS_EXPORTER does not configure the logs pipeline)
   tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT: v5.83.0
@@ -2552,8 +2587,12 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::Test_DynamicConfigSdkConfiguration::test_sdk_config_profiling_enabled:  # TODO: a lower version might be supported
     - declaration: missing_feature (SDK_CONFIGURATION capability not yet implemented)
       component_version: <6.17.0
-  tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Default: incomplete_test_app (The parametric test app does not reinject the extracted Datadog context)
+  tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Default:  # TODO: a lower version might be supported
+    - declaration: incomplete_test_app (The parametric test app does not reinject the extracted Datadog context)
+      component_version: <6.20.0
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Default::test_baggage: *ref_5_56_0
+  tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Default::test_multiple_tracecontexts: incomplete_test_app (The parametric test app does not reinject the extracted Datadog context)
+  tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Default::test_single_tracecontext: incomplete_test_app (The parametric test app does not reinject the extracted Datadog context)
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Ignore: *ref_5_47_0
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart: *ref_5_47_0
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart::test_baggage: *ref_5_56_0
@@ -2591,7 +2630,9 @@ manifest:
     - declaration: missing_feature (Org Propagation Guard RFC not yet implemented)
       component_version: <6.8.0
   tests/parametric/test_headers_opm.py::Test_HeadersOPM_AgentInfo::test_tracer_consumes_info_opm: missing_feature (Org Propagation Guard RFC not yet implemented)
-  tests/parametric/test_headers_opm.py::Test_HeadersOPM_ExtractEnabled::test_mismatch_preserves_baggage: missing_feature (Org Propagation Guard RFC not yet implemented)
+  tests/parametric/test_headers_opm.py::Test_HeadersOPM_ExtractEnabled::test_mismatch_preserves_baggage:  # TODO: a lower version might be supported
+    - declaration: missing_feature (Org Propagation Guard RFC not yet implemented)
+      component_version: <6.20.0
   tests/parametric/test_headers_opm.py::Test_HeadersOPM_ExtractEnabled::test_mismatch_strips_dd_state: missing_feature (Org Propagation Guard RFC not yet implemented)
   tests/parametric/test_headers_opm.py::Test_HeadersOPM_ExtractEnabled::test_mismatch_strips_dd_tracestate_member: missing_feature (Org Propagation Guard RFC not yet implemented)
   tests/parametric/test_headers_opm.py::Test_HeadersOPM_ExtractEnabled::test_missing_inbound_opm_does_not_enforce: missing_feature (Org Propagation Guard RFC not yet implemented)
@@ -2627,7 +2668,9 @@ manifest:
     - declaration: missing_feature (Not implemented)
       component_version: <5.6.0
   ? tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_evicts_32_or_greater_list_members
-  : bug (APMAPI-914)
+  :  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-914)
+      component_version: <6.20.0
   ? tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_reset_dm
   : "missing_feature (\"Issue: Does not reset dm to DEFAULT\")"
   ? tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_same_dm
@@ -2766,7 +2809,9 @@ manifest:
       component_version: <6.8.0
   tests/parametric/test_partial_flushing.py::Test_Partial_Flushing::test_partial_flushing_disabled: bug (APMLP-270)
   tests/parametric/test_process_discovery.py::Test_ProcessDiscovery: v5.93.0
-  tests/parametric/test_sampling_manual.py::Test_Manual_Sampling: bug (APMAPI-1720)  # Manual keep did not override the upstream drop decision
+  tests/parametric/test_sampling_manual.py::Test_Manual_Sampling:  # Manual keep did not override the upstream drop decision
+    - declaration: bug (APMAPI-1720)
+      component_version: <6.20.0
   tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate: '>=5.93.0'
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_appsec_enabled_sst011: bug (APMAPI-737)
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags::test_tags_child_dropped_sst001: bug (APMAPI-737)
@@ -3219,7 +3264,12 @@ manifest:
     - weblog_declaration:
         nextjs: missing_feature
   tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)
-  tests/test_sampling_manual.py: bug (APMAPI-1720)
+  tests/test_sampling_manual.py:  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-1720)
+      component_version: <6.20.0
+      weblog: [express5]
+    - declaration: bug (APMAPI-1720)
+      excluded_weblog: [express5]
   tests/test_sampling_rate_capping.py::Test_SamplingRateCappedIncrease: missing_feature
   tests/test_sampling_rates.py::Test_SampleRateFunction: *ref_5_54_0
   tests/test_sampling_rates.py::Test_SamplingDecisionAdded: *ref_5_17_0
