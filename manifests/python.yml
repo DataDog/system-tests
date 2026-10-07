@@ -1967,6 +1967,7 @@ manifest:
         uwsgi-poc: v4.3.1  # Modified by easy win activation script
   tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP: v4.8.0
   tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP::test_128bit_trace_id_consistent_across_spans: v4.12.0rc1
+  tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP::test_single_server_trace: v4.15.0
   tests/otel/test_tracing_otlp.py::Test_Otlp_Carries_Ot: v4.15.0-dev
   tests/otel/test_tracing_otlp.py::Test_Otlp_Forwards_Inherited_Ot: v4.15.0-dev
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
@@ -2070,6 +2071,8 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT::test_spec_default: irrelevant (Datadog intentionally defaults to 7500 ms)
   tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES: v4.11.0
   tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES::test_percent_encoded_separators: bug (APMAPI-2429)
+  ? tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES::test_reserved_attributes_are_mapped
+  : v4.15.0
   tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED: v4.11.0
   tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_default_matches_specification: bug (APMAPI-2416)
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME: v4.11.0
@@ -2283,11 +2286,14 @@ manifest:
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_log_level_env: missing_feature (DD_LOG_LEVEL is not supported in Python)
   tests/parametric/test_otel_logs.py::Test_FR01_Enable_OTLP_Log_Collection: v3.13.0.dev
   tests/parametric/test_otel_logs.py::Test_FR03_Resource_Attributes: v3.13.0.dev
+  tests/parametric/test_otel_logs.py::Test_FR03_Resource_Attributes::test_dd_env_vars_override_otel: missing_feature (deployment.environment.name output is not supported)
   tests/parametric/test_otel_logs.py::Test_FR04_Trace_Span_IDs: v3.13.0.dev
   tests/parametric/test_otel_logs.py::Test_FR05_Custom_Endpoints: v3.13.0.dev
   tests/parametric/test_otel_logs.py::Test_FR07_Host_Name: v3.13.0.dev
   tests/parametric/test_otel_logs.py::Test_FR08_Custom_Headers: v3.13.0.dev
   tests/parametric/test_otel_logs.py::Test_FR09_Log_Injection: v3.13.0.dev
+  tests/parametric/test_otel_logs.py::Test_FR09_Log_Injection::test_log_injection_when_otel_enabled: missing_feature (deployment.environment.name output is not supported)
+  tests/parametric/test_otel_logs.py::Test_FR09_Log_Injection::test_log_without_active_span: missing_feature (deployment.environment.name output is not supported)
   tests/parametric/test_otel_logs.py::Test_FR10_Timeout_Configuration: v3.13.0.dev
   tests/parametric/test_otel_logs.py::Test_FR11_Telemetry: v3.15.0
   tests/parametric/test_otel_logs.py::Test_FR12_Log_Levels: v3.13.0.dev
@@ -2296,6 +2302,9 @@ manifest:
   tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields::test_scope_version_field: missing_feature
   tests/parametric/test_otel_metrics.py: v3.18.0
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Api_MeterProvider::test_otel_get_meter_by_distinct_schema_url: '>=4.3.1'  # Modified by easy win activation script
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Resource_Attributes::test_dd_env_vars_override_otel: missing_feature (deployment.environment.name output is not supported)
+  ? tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Resource_Attributes::test_otel_resource_attributes_populated_by_dd_otel_envs
+  : missing_feature (deployment.environment.name output is not supported)
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods: v2.8.0
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_add_event_meta_serialization:
     - declaration: missing_feature (Not implemented)

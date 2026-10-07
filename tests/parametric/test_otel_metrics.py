@@ -1263,7 +1263,7 @@ class Test_Otel_Metrics_Resource_Attributes:
         [
             {
                 **DEFAULT_ENVVARS,
-                "OTEL_RESOURCE_ATTRIBUTES": "deployment.environment=otelenv,service.name=service,service.version=2.0,foo=bar1,baz=qux1",
+                "OTEL_RESOURCE_ATTRIBUTES": "deployment.environment.name=otelenv,service.name=service,service.version=2.0,foo=bar1,baz=qux1",
             },
         ],
     )
@@ -1286,11 +1286,7 @@ class Test_Otel_Metrics_Resource_Attributes:
         actual_attributes = {item["key"]: item["value"]["string_value"] for item in resource["attributes"]}
         assert expected_attributes.items() <= actual_attributes.items()
 
-        # Add separate assertion for the DD_ENV mapping, whose semantic convention was updated in 1.27.0
-        assert (
-            actual_attributes.get("deployment.environment") == "otelenv"
-            or actual_attributes.get("deployment.environment.name") == "otelenv"
-        )
+        assert actual_attributes.get("deployment.environment.name") == "otelenv"
 
     @pytest.mark.parametrize(
         "library_env",
@@ -1304,13 +1300,13 @@ class Test_Otel_Metrics_Resource_Attributes:
             },
             {
                 **DEFAULT_ENVVARS,
-                "OTEL_RESOURCE_ATTRIBUTES": "deployment.environment=otelenv,service.name=service,service.version=2.0,foo=bar1,baz=qux1",
+                "OTEL_RESOURCE_ATTRIBUTES": "deployment.environment.name=otelenv,service.name=service,service.version=2.0,foo=bar1,baz=qux1",
             },
             {
                 **DEFAULT_ENVVARS,
                 "DD_SERVICE": "service",
                 "DD_VERSION": "2.0",
-                "OTEL_RESOURCE_ATTRIBUTES": "deployment.environment=otelenv,foo=bar1,baz=qux1",
+                "OTEL_RESOURCE_ATTRIBUTES": "deployment.environment.name=otelenv,foo=bar1,baz=qux1",
             },
             {
                 **DEFAULT_ENVVARS,
@@ -1347,11 +1343,7 @@ class Test_Otel_Metrics_Resource_Attributes:
         actual_attributes = {item["key"]: item["value"]["string_value"] for item in resource["attributes"]}
         assert expected_attributes.items() <= actual_attributes.items()
 
-        # Add separate assertion for the DD_ENV mapping, whose semantic convention was updated in 1.27.0
-        assert (
-            actual_attributes.get("deployment.environment") == "otelenv"
-            or actual_attributes.get("deployment.environment.name") == "otelenv"
-        )
+        assert actual_attributes.get("deployment.environment.name") == "otelenv"
 
     @pytest.mark.parametrize(
         "library_env",
@@ -1362,7 +1354,7 @@ class Test_Otel_Metrics_Resource_Attributes:
                 "DD_SERVICE": "service",
                 "DD_VERSION": "2.0",
                 "DD_TAGS": "foo:bar1,baz:qux1",
-                "OTEL_RESOURCE_ATTRIBUTES": "deployment.environment=ignored_env,service.name=ignored_service,service.version=ignored_version,foo=ignored_bar1,baz=ignored_qux1",
+                "OTEL_RESOURCE_ATTRIBUTES": "deployment.environment.name=ignored_env,service.name=ignored_service,service.version=ignored_version,foo=ignored_bar1,baz=ignored_qux1",
             },
         ],
     )
@@ -1385,11 +1377,7 @@ class Test_Otel_Metrics_Resource_Attributes:
         actual_attributes = {item["key"]: item["value"]["string_value"] for item in resource["attributes"]}
         assert expected_attributes.items() <= actual_attributes.items()
 
-        # Add separate assertion for the DD_ENV mapping, whose semantic convention was updated in 1.27.0
-        assert (
-            actual_attributes.get("deployment.environment") == "otelenv"
-            or actual_attributes.get("deployment.environment.name") == "otelenv"
-        )
+        assert actual_attributes.get("deployment.environment.name") == "otelenv"
 
 
 @features.otel_metrics_api

@@ -92,10 +92,7 @@ class Test_Otel_Tracing_OTLP:
         # TODO: Assert the following attributes: runtime-id, git.commit.sha, git.repository_url
         assert attributes.get("service.name") == "weblog"
         assert attributes.get("service.version") == "1.0.0"
-        assert (
-            attributes.get("deployment.environment.name") == "system-tests"
-            or attributes.get("deployment.environment") == "system-tests"
-        )
+        assert attributes.get("deployment.environment.name") == "system-tests"
         assert attributes.get("telemetry.sdk.name") == "datadog"
         assert "telemetry.sdk.language" in attributes
         # assert "telemetry.sdk.version" in attributes

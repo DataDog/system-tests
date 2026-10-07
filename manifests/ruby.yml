@@ -2491,6 +2491,8 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES: v2.22.0
   tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES::test_invalid_value_is_discarded: bug (APMAPI-2435)
   tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES::test_percent_encoded_separators: bug (APMAPI-2430)
+  ? tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES::test_reserved_attributes_are_mapped
+  : missing_feature (deployment.environment.name is not supported)
   tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED: missing_feature
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME: v2.22.0
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_default_follows_otel_spec: irrelevant
@@ -2716,7 +2718,10 @@ manifest:
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: v2.1.0
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_log_level_env: missing_feature (DD_LOG_LEVEL is not supported in ruby)
   tests/parametric/test_otel_logs.py: '>=2.34.0-dev'
+  tests/parametric/test_otel_logs.py::Test_FR03_Resource_Attributes::test_dd_env_vars_override_otel: missing_feature (deployment.environment.name output is not supported)
   tests/parametric/test_otel_logs.py::Test_FR08_Custom_Headers: missing_feature (Ruby net/http titlecases header names; test checks lowercase; fix requires overriding OTLP exporter HTTP headers)
+  tests/parametric/test_otel_logs.py::Test_FR09_Log_Injection::test_log_injection_when_otel_enabled: missing_feature (deployment.environment.name output is not supported)
+  tests/parametric/test_otel_logs.py::Test_FR09_Log_Injection::test_log_without_active_span: missing_feature (deployment.environment.name output is not supported)
   tests/parametric/test_otel_logs.py::Test_FR11_Telemetry::test_telemetry_exporter_logs_configurations:  # TODO: a lower version might be supported
     - declaration: missing_feature (OTEL_EXPORTER_OTLP_LOGS_ENDPOINT is not supported)
       component_version: <2.40.0
@@ -2743,6 +2748,9 @@ manifest:
   : missing_feature (Does not support grpc)
   ? tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint::test_otlp_metrics_custom_endpoint_grpc
   : missing_feature (Does not support grpc)
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Resource_Attributes::test_dd_env_vars_override_otel: missing_feature (deployment.environment.name output is not supported)
+  ? tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Resource_Attributes::test_otel_resource_attributes_populated_by_dd_otel_envs
+  : missing_feature (deployment.environment.name output is not supported)
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_metrics_grpc: missing_feature (Does not support grpc)
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods: v1.17.0
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_add_event_meta_serialization:  # TODO: a lower version might be supported
