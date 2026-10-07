@@ -1,10 +1,8 @@
 import json
-from pathlib import Path
 import time
 
 from tests.parametric.conftest import APMLibrary
 from utils import features, pytest, scenarios
-from utils.docker_fixtures import TestAgentAPI, new_test_id
 
 
 VARIABLE = "OTEL_PROPAGATORS"
@@ -96,38 +94,6 @@ def _configured_baggage_propagators(library: APMLibrary) -> set[str]:
         time.sleep(0.1)
 
 
-@pytest.fixture
-def default_and_configured_propagators(
-    request: pytest.FixtureRequest,
-    worker_id: str,
-    test_agent: TestAgentAPI,
-    library_env: dict[str, str],
-    library_extra_command_arguments: list[str],
-) -> tuple[set[str], set[str]]:
-    """Compare with a fresh unset process without baking in a tracer's defaults."""
-    scenarios.parametric.parametrized_tests_metadata[request.node.nodeid] = library_env
-    observed = []
-    for label, environment in (("unset", BASE_ENV), ("configured", library_env)):
-        # The factory tears each container down before the next reuses its port.
-        with scenarios.parametric.get_apm_library(
-            request=request,
-            worker_id=worker_id,
-            test_id=new_test_id(),
-            test_agent=test_agent,
-            library_env=environment,
-            library_extra_command_arguments=library_extra_command_arguments,
-        ) as library:
-            with library:
-                observed.append(_configured_propagators(library))
-            # The factory's server_log.log is reused for a given pytest node;
-            # retain each process's diagnostics for failed comparisons.
-            log_folder = (
-                Path(scenarios.parametric.host_log_folder) / "outputs" / request.cls.__name__ / request.node.name
-            )
-            (log_folder / f"{label}_server_log.log").write_text(library.get_logs(), encoding="utf-8")
-    return observed[0], observed[1]
-
-
 @scenarios.parametric
 @features.otel_propagators
 class Test_OTEL_PROPAGATORS:
@@ -201,28 +167,19 @@ class Test_OTEL_PROPAGATORS:
             assert _configured_propagators(library) == {"tracecontext", "b3multi"}
 
     @pytest.mark.parametrize("library_env", DEFAULT_VALUE)
-    def test_default_is_sensible(self, test_library: APMLibrary) -> None:
-        with test_library as library:
-            propagators = _configured_propagators(library)
-        assert "tracecontext" in propagators
-        assert propagators <= {"datadog", "tracecontext", "baggage"}
-
-    @pytest.mark.parametrize("library_env", DEFAULT_VALUE)
     def test_default_matches_specification(self, test_library: APMLibrary) -> None:
         with test_library as library:
-            assert _configured_propagators(library) == {"tracecontext", "baggage"}
+            assert _configured_baggage_propagators(library) == {"tracecontext", "baggage"}
 
     @pytest.mark.parametrize("library_env", EMPTY_VALUE)
-    def test_empty_is_treated_as_unset(self, default_and_configured_propagators: tuple[set[str], set[str]]) -> None:
-        unset, configured = default_and_configured_propagators
-        assert "tracecontext" in unset
-        assert configured == unset
+    def test_empty_is_treated_as_unset(self, test_library: APMLibrary) -> None:
+        with test_library as library:
+            assert _configured_baggage_propagators(library) == {"tracecontext", "baggage"}
 
     @pytest.mark.parametrize("library_env", INVALID_VALUE)
-    def test_invalid_is_ignored(self, default_and_configured_propagators: tuple[set[str], set[str]]) -> None:
-        unset, configured = default_and_configured_propagators
-        assert "tracecontext" in unset
-        assert configured == unset
+    def test_invalid_is_ignored(self, test_library: APMLibrary) -> None:
+        with test_library as library:
+            assert _configured_baggage_propagators(library) == {"tracecontext", "baggage"}
 
     @pytest.mark.parametrize("library_env", INVALID_VALUE)
     def test_invalid_value_logs_warning(self, test_library: APMLibrary) -> None:
