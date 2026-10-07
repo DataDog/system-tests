@@ -143,6 +143,8 @@ module.exports = {
     })
 
     fastify.get('/debugger/budgets/:loops', budgets)
+    fastify.get('/debugger/correlation', correlationHandler)
+    fastify.get('/debugger/correlation/loop/:count', correlationLoopHandler)
   }
 }
 
@@ -154,13 +156,47 @@ function captureTimeoutFixture (collectionSize, nestingDepth) {
     }
     return nested
   })
-  return 'Capture timeout probe' // This needs to be line 157
+  return 'Capture timeout probe' // This needs to be line 159
 }
 
 function budgets (request, reply) {
   const loops = Number(request.params.loops)
   for (let iteration = 0; iteration < loops; iteration++) {
-    const currentIteration = iteration // This needs to be line 163
+    const currentIteration = iteration // This needs to be line 165
   }
   return reply.send('Budgets')
+}
+
+async function correlationHandler (request, reply) {
+  return `Correlation ${await correlation()}`
+}
+
+async function correlation () {
+  const value = await correlationMiddle()
+  await sleep(400)
+  return value // This needs to be line 177
+}
+
+async function correlationMiddle () {
+  const value = correlationLeaf()
+  await sleep(400)
+  return value // This needs to be line 183
+}
+
+function correlationLeaf () {
+  return 3 // This needs to be line 187
+}
+
+async function correlationLoopHandler (request, reply) {
+  const count = Number(request.params.count)
+  let total = 0
+  for (let i = 0; i < count; i++) {
+    total += i // This needs to be line 194
+    await sleep(1000)
+  }
+  return `Loop ${total}` // This needs to be line 197
+}
+
+function sleep (ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }
