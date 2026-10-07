@@ -2888,6 +2888,8 @@ manifest:
   tests/test_standard_tags.py::Test_StandardTagsUrl::test_multiple_matching_substring_legacy:
     - declaration: missing_feature (Fiber v2 records only the URL path)
       weblog: fiber-v2-orchestrion
+    - declaration: irrelevant (golang released the new version of query parameters obfuscation regex at 2.12.0)
+      component_version: '>=2.12.0-dev'
   tests/test_standard_tags.py::Test_StandardTagsUrl::test_url_with_query_string:
     - declaration: missing_feature (Fiber v2 records only the URL path)
       weblog: fiber-v2-orchestrion
@@ -2899,6 +2901,8 @@ manifest:
   tests/test_standard_tags.py::Test_StandardTagsUrl::test_url_with_sensitive_query_string_legacy:
     - declaration: missing_feature (Fiber v2 records only the URL path)
       weblog: fiber-v2-orchestrion
+    - declaration: irrelevant (golang released the new version of query parameters obfuscation regex at 2.12.0)
+      component_version: '>=2.12.0-dev'
   tests/test_standard_tags.py::Test_StandardTagsUserAgent:
     - weblog_declaration:
         '*': v1.39.0
