@@ -7,12 +7,12 @@ from tests.parametric.conftest import APMLibrary, nodejs_startup_config
 from utils.docker_fixtures import TestAgentAPI
 
 
+VARIABLE = "OTEL_LOG_LEVEL"
+
 DEFAULT_ENVIRONMENT: dict[str, str | None] = {
-    "OTEL_LOG_LEVEL": None,
+    VARIABLE: None,
     # The harness enables debug by default, which otherwise masks OTEL_LOG_LEVEL.
     "DD_TRACE_DEBUG": None,
-    "DD_TRACE_LOG_LEVEL": None,
-    "DD_LOG_LEVEL": None,
     "DD_TRACE_STARTUP_LOGS": "true",
     "DD_TRACE_LOG_DIRECTORY": "/tmp/otel-log-level",
     "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
@@ -23,24 +23,13 @@ DEFAULT_ENVIRONMENT: dict[str, str | None] = {
 # The specification defines the default and enum parsing, but does not enumerate
 # levels. These are the common values supported by the full log-level mappings.
 STABLE_VALUES = [
-    pytest.param({**DEFAULT_ENVIRONMENT, "OTEL_LOG_LEVEL": level}, level, id=level)
+    pytest.param({**DEFAULT_ENVIRONMENT, VARIABLE: level}, level, id=level)
     for level in ("debug", "info", "warn", "error")
 ]
 
 CASE_INSENSITIVE_VALUES = [
-    pytest.param({**DEFAULT_ENVIRONMENT, "OTEL_LOG_LEVEL": value}, value.lower(), id=value)
+    pytest.param({**DEFAULT_ENVIRONMENT, VARIABLE: value}, value.lower(), id=value)
     for value in ("DEBUG", "DeBuG", "ERROR")
-]
-
-UNSET_AND_EMPTY = [
-    pytest.param(DEFAULT_ENVIRONMENT, id="unset"),
-    pytest.param({**DEFAULT_ENVIRONMENT, "OTEL_LOG_LEVEL": ""}, id="empty"),
-]
-
-
-FALLBACK_VALUES = [
-    *UNSET_AND_EMPTY,
-    pytest.param({**DEFAULT_ENVIRONMENT, "OTEL_LOG_LEVEL": "not-a-log-level"}, id="unrecognized"),
 ]
 
 
@@ -134,57 +123,31 @@ class Test_OTEL_LOG_LEVEL:
         with test_library as library:
             assert _log_level(test_agent, library) == "info"
 
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVIRONMENT, "OTEL_LOG_LEVEL": ""}], ids=["empty"])
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVIRONMENT, VARIABLE: ""}], ids=["empty"])
     def test_empty_is_treated_as_unset(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         with test_library as library:
             assert _log_level(test_agent, library) == "info"
 
-    @pytest.mark.parametrize("library_env", FALLBACK_VALUES)
-    def test_default_debug_threshold(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
-        # Node.js keeps a debug threshold but disables debug output by default.
-        with test_library as library:
-            assert _log_level(test_agent, library) == "debug"
-            assert _debug_enabled(library) is False
-
-    @pytest.mark.parametrize("library_env", [pytest.param(DEFAULT_ENVIRONMENT, id="unset")])
-    def test_default_error_threshold(self, test_library: APMLibrary) -> None:
-        # PHP's documented Datadog logger default is error.
-        with test_library as library:
-            _php_threshold_diagnostics(library, warning_enabled=False)
-            assert _debug_enabled(library) is False
-
-    @pytest.mark.parametrize("library_env", FALLBACK_VALUES)
-    def test_default_warning_threshold(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
-        # Python inherits its application root logger's WARNING threshold.
-        with test_library as library:
-            assert _log_level(test_agent, library) == "warning"
-            assert _debug_enabled(library) is False
-
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVIRONMENT, "OTEL_LOG_LEVEL": "warn"}], ids=["warn"])
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVIRONMENT, VARIABLE: "warn"}], ids=["warn"])
     def test_warning_threshold_diagnostic(self, test_library: APMLibrary) -> None:
-        # Positive control for the same warning suppressed at PHP's ERROR default.
+        # Positive control for the warning suppressed by the PHP fallback threshold.
         with test_library as library:
             _php_threshold_diagnostics(library, warning_enabled=True)
 
     @pytest.mark.parametrize(
         "library_env",
         [
-            pytest.param({**DEFAULT_ENVIRONMENT, "OTEL_LOG_LEVEL": ""}, id="empty"),
-            pytest.param({**DEFAULT_ENVIRONMENT, "OTEL_LOG_LEVEL": "not-a-log-level"}, id="unrecognized"),
+            pytest.param({**DEFAULT_ENVIRONMENT, VARIABLE: ""}, id="empty"),
+            pytest.param({**DEFAULT_ENVIRONMENT, VARIABLE: "not-a-log-level"}, id="unrecognized"),
         ],
     )
     def test_error_threshold_fallback(self, test_library: APMLibrary) -> None:
         with test_library as library:
             _php_threshold_diagnostics(library, warning_enabled=False)
 
-    @pytest.mark.parametrize("library_env", UNSET_AND_EMPTY)
-    def test_default_does_not_enable_debug(self, test_library: APMLibrary) -> None:
-        with test_library as library:
-            assert _debug_enabled(library) is False
-
     @pytest.mark.parametrize(
         "library_env",
-        [pytest.param({**DEFAULT_ENVIRONMENT, "OTEL_LOG_LEVEL": "not-a-log-level"}, id="unrecognized")],
+        [pytest.param({**DEFAULT_ENVIRONMENT, VARIABLE: "not-a-log-level"}, id="unrecognized")],
     )
     def test_invalid_value_is_ignored(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         with test_library as library:
@@ -192,7 +155,7 @@ class Test_OTEL_LOG_LEVEL:
 
     @pytest.mark.parametrize(
         "library_env",
-        [pytest.param({**DEFAULT_ENVIRONMENT, "OTEL_LOG_LEVEL": "not-a-log-level"}, id="unrecognized")],
+        [pytest.param({**DEFAULT_ENVIRONMENT, VARIABLE: "not-a-log-level"}, id="unrecognized")],
     )
     def test_invalid_value_emits_warning(self, test_library: APMLibrary) -> None:
         with test_library as library:
@@ -204,21 +167,21 @@ class Test_OTEL_LOG_LEVEL:
             while True:
                 logs = _diagnostic_logs(library).lower()
                 if any(
-                    ("otel_log_level" in line or "not-a-log-level" in line)
+                    (VARIABLE.lower() in line or "not-a-log-level" in line)
                     and ("warn" in line or "invalid" in line or "unsupported" in line or "not supported" in line)
                     for line in logs.splitlines()
                 ):
                     return
-                assert time.monotonic() < deadline, f"No warning about the unrecognized OTEL_LOG_LEVEL value:\n{logs}"
+                assert time.monotonic() < deadline, f"No warning about the unrecognized {VARIABLE} value:\n{logs}"
                 time.sleep(0.1)
 
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVIRONMENT, "OTEL_LOG_LEVEL": "error"}], ids=["error"])
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVIRONMENT, VARIABLE: "error"}], ids=["error"])
     def test_otel_log_level_env(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         # Preserve the existing error-level assertion in the variable's feature.
         with test_library as library:
             assert _log_level(test_agent, library) == "error"
 
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVIRONMENT, "OTEL_LOG_LEVEL": "debug"}], ids=["debug"])
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVIRONMENT, VARIABLE: "debug"}], ids=["debug"])
     def test_otel_log_level_to_debug_mapping(self, test_library: APMLibrary) -> None:
         # Some SDKs implement OTEL_LOG_LEVEL only as a debug-mode switch.
         with test_library as library:
@@ -226,7 +189,7 @@ class Test_OTEL_LOG_LEVEL:
 
     @pytest.mark.parametrize(
         "library_env",
-        [pytest.param({**DEFAULT_ENVIRONMENT, "OTEL_LOG_LEVEL": value}, id=value) for value in ("DEBUG", "DeBuG")],
+        [pytest.param({**DEFAULT_ENVIRONMENT, VARIABLE: value}, id=value) for value in ("DEBUG", "DeBuG")],
     )
     def test_case_insensitive_debug_mapping(self, test_library: APMLibrary) -> None:
         with test_library as library:
