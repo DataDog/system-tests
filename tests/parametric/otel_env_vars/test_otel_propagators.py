@@ -7,25 +7,22 @@ from utils import features, pytest, scenarios
 from utils.docker_fixtures import TestAgentAPI, new_test_id
 
 
+VARIABLE = "OTEL_PROPAGATORS"
+
 # https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
 BASE_ENV = {
-    "DD_TRACE_PROPAGATION_STYLE": None,
-    "DD_TRACE_PROPAGATION_STYLE_INJECT": None,
-    "DD_TRACE_PROPAGATION_STYLE_EXTRACT": None,
-    "DD_PROPAGATION_STYLE_INJECT": None,
-    "DD_PROPAGATION_STYLE_EXTRACT": None,
-    "DD_TRACE_OTEL_ENABLED": "true",
+    # Keep the .NET configuration and warning diagnostics in a known location.
     "DD_TRACE_LOG_DIRECTORY": "/tmp/otel-propagators",
-    "DD_DATA_STREAMS_ENABLED": "false",
+    # Go starts metric and log providers eagerly; disable unrelated exporters.
     "OTEL_METRICS_EXPORTER": "none",
     "OTEL_LOGS_EXPORTER": "none",
-    "OTEL_PROPAGATORS": None,
+    VARIABLE: None,
 }
 
 # Keep the stable enum values together; separate methods allow manifests to
 # declare partial support without disabling the supported formats.
 STABLE_VALUES = {
-    value: pytest.param({**BASE_ENV, "OTEL_PROPAGATORS": value}, expected, id=value)
+    value: pytest.param({**BASE_ENV, VARIABLE: value}, expected, id=value)
     for value, expected in (
         ("tracecontext", {"tracecontext"}),
         ("baggage", {"baggage"}),
@@ -36,13 +33,11 @@ STABLE_VALUES = {
     )
 }
 
-DEPRECATED_VALUES = [
-    pytest.param({**BASE_ENV, "OTEL_PROPAGATORS": value}, {value}, id=value) for value in ("jaeger", "ottrace")
-]
+DEPRECATED_VALUES = [pytest.param({**BASE_ENV, VARIABLE: value}, {value}, id=value) for value in ("jaeger", "ottrace")]
 
 DEFAULT_VALUE = [pytest.param(BASE_ENV, id="unset")]
-EMPTY_VALUE = [pytest.param({**BASE_ENV, "OTEL_PROPAGATORS": ""}, id="empty")]
-INVALID_VALUE = [pytest.param({**BASE_ENV, "OTEL_PROPAGATORS": "not-a-propagator"}, id="not-a-propagator")]
+EMPTY_VALUE = [pytest.param({**BASE_ENV, VARIABLE: ""}, id="empty")]
+INVALID_VALUE = [pytest.param({**BASE_ENV, VARIABLE: "not-a-propagator"}, id="not-a-propagator")]
 
 PROPAGATOR_HEADERS = {
     "tracecontext": "traceparent",
@@ -168,7 +163,7 @@ class Test_OTEL_PROPAGATORS:
 
     @pytest.mark.parametrize(
         "library_env",
-        [pytest.param({**BASE_ENV, "OTEL_PROPAGATORS": "b3,tracecontext"}, id="b3,tracecontext")],
+        [pytest.param({**BASE_ENV, VARIABLE: "b3,tracecontext"}, id="b3,tracecontext")],
     )
     def test_multiple_trace_propagators(self, test_library: APMLibrary) -> None:
         with test_library as library:
@@ -176,7 +171,7 @@ class Test_OTEL_PROPAGATORS:
 
     @pytest.mark.parametrize(
         "library_env",
-        [pytest.param({**BASE_ENV, "OTEL_PROPAGATORS": "tracecontext,baggage"}, id="tracecontext,baggage")],
+        [pytest.param({**BASE_ENV, VARIABLE: "tracecontext,baggage"}, id="tracecontext,baggage")],
     )
     def test_composite_propagators(self, test_library: APMLibrary) -> None:
         with test_library as library:
@@ -186,7 +181,7 @@ class Test_OTEL_PROPAGATORS:
         "library_env",
         [
             pytest.param(
-                {**BASE_ENV, "OTEL_PROPAGATORS": "tracecontext,b3multi,tracecontext,b3multi"},
+                {**BASE_ENV, VARIABLE: "tracecontext,b3multi,tracecontext,b3multi"},
                 id="tracecontext,b3multi,tracecontext,b3multi",
             )
         ],
@@ -199,7 +194,7 @@ class Test_OTEL_PROPAGATORS:
 
     @pytest.mark.parametrize(
         "library_env",
-        [pytest.param({**BASE_ENV, "OTEL_PROPAGATORS": "TRACEContext,B3MULTI"}, id="TRACEContext,B3MULTI")],
+        [pytest.param({**BASE_ENV, VARIABLE: "TRACEContext,B3MULTI"}, id="TRACEContext,B3MULTI")],
     )
     def test_case_insensitive_values(self, test_library: APMLibrary) -> None:
         with test_library as library:
@@ -241,7 +236,7 @@ class Test_OTEL_PROPAGATORS:
             while True:
                 logs = _diagnostic_logs(library).lower()
                 if any(
-                    any(value in line for value in ("not-a-propagator", "otel_propagators"))
+                    any(value in line for value in ("not-a-propagator", VARIABLE.lower()))
                     and any(word in line for word in ("warn", "invalid", "unsupported", "not supported"))
                     for line in logs.splitlines()
                 ):
