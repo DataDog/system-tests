@@ -194,7 +194,7 @@
     }
 
     $DD_INSTALLER_INJECTOR_VERSION_FROM_LOCKFILE = $false
-    if ($env:DD_INSTALLER_LIBRARY_VERSION -and -not $env:DD_INSTALLER_INJECTOR_VERSION) {
+    if (-not $env:DD_INSTALLER_INJECTOR_VERSION -and ($env:DD_INSTALLER_LIBRARY_VERSION -or $env:DD_env -eq "prod")) {
       $AUTO_INJECT_LOCK_PATH = "auto_inject.lock"
       if (-not (Test-Path -Path $AUTO_INJECT_LOCK_PATH -PathType Leaf)) {
         throw "No injector version was provided and lock file '$AUTO_INJECT_LOCK_PATH' was not found; refusing to install with an unpinned injector"
