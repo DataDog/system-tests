@@ -67,6 +67,16 @@ class AppController extends AbstractController
         ]);
     }
 
+    #[Route('/ffe', name: 'ffe', methods: ['POST'])]
+    public function ffe(): Response
+    {
+        ob_start();
+        require dirname(__DIR__, 2).'/ffe.php';
+        $body = ob_get_clean();
+
+        return new Response($body, http_response_code(), ['Content-Type' => 'application/json']);
+    }
+
     #[Route('/status', name: 'status', methods: ['GET'])]
     public function status(Request $request): Response
     {

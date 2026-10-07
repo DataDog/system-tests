@@ -10,7 +10,7 @@ fi
 
 cd /var/www/html
 export COMPOSER=composer.json
-if [ "$(printf '%s\n' "$PHP_VERSION" "8.2" | sort -V | head -n1)" = "8.2" ]; then
+if [ "$(printf '%s\n' "$PHP_VERSION" "8.2" | sort -V | head -n1)" = "8.2" ] && [ -f composer.gte8.2.json ]; then
 	export COMPOSER=composer.gte8.2.json
 fi
 if [ -f "$COMPOSER" ] && grep -Fq 'stripe/stripe-php' "$COMPOSER"; then
@@ -24,6 +24,11 @@ if [ -f "$COMPOSER" ] && grep -Fq 'stripe/stripe-php' "$COMPOSER"; then
   else
     COMPOSER_DISCARD_CHANGES=true composer require stripe/stripe-php "^10.0" --no-interaction --ignore-platform-req=ext-mbstring
   fi
+fi
+
+if [[ -f /var/www/html/ffe.php && "$(printf '%s\n' "$PHP_VERSION" "8.0" | sort -V | head -n1)" = "8.0" ]]; then
+  COMPOSER_DISCARD_CHANGES=true composer require "open-feature/sdk:^2.2" \
+    --prefer-dist --no-interaction --ignore-platform-req=ext-mbstring
 fi
 
 cd /binaries

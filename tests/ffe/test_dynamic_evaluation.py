@@ -5,6 +5,7 @@ import json
 import uuid
 from http import HTTPStatus
 
+from tests.ffe.utils.fixtures import make_ufc_fixture
 from utils import (
     weblog,
     interfaces,
@@ -41,6 +42,65 @@ UFC_FIXTURE_DATA = {
         }
     },
 }
+
+
+@scenarios.feature_flagging_and_experimentation
+@features.feature_flags_dynamic_evaluation
+class Test_FFE_OpenFeature_Evaluation:
+    """The weblog must use OpenFeature for evaluation by default."""
+
+    def setup_openfeature_evaluation(self) -> None:
+        self.flag_key = "openfeature-evaluation"
+        config = make_ufc_fixture(self.flag_key, variation_type="BOOLEAN")
+        rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/openfeature-evaluation/config", config).apply()
+
+        self.response = weblog.post(
+            "/ffe",
+            json={
+                "flag": self.flag_key,
+                "variationType": "BOOLEAN",
+                "defaultValue": False,
+                "targetingKey": "customer-request",
+                "attributes": {},
+            },
+        )
+
+    def test_openfeature_evaluation(self) -> None:
+        assert self.response.status_code == 200, f"Flag evaluation failed: {self.response.text}"
+        result = json.loads(self.response.text)
+
+        assert result["value"] is True, f"OpenFeature evaluation did not return the configured value: {result}"
+        assert result.get("reason") != "ERROR", f"OpenFeature evaluation returned an unexpected error: {result}"
+        assert result.get("errorCode") is None, f"OpenFeature evaluation returned an unexpected error code: {result}"
+
+
+@scenarios.feature_flagging_and_experimentation
+@features.feature_flags_dynamic_evaluation
+class Test_FFE_OpenFeature_Unavailable:
+    """Weblogs without the OpenFeature SDK must return the supplied default."""
+
+    def setup_openfeature_unavailable(self) -> None:
+        self.response = weblog.post(
+            "/ffe",
+            json={
+                "flag": "openfeature-unavailable",
+                "variationType": "BOOLEAN",
+                "defaultValue": False,
+                "targetingKey": "customer-request",
+                "attributes": {},
+            },
+        )
+
+    def test_openfeature_unavailable(self) -> None:
+        assert self.response.status_code == 200, f"Flag evaluation failed: {self.response.text}"
+        result = json.loads(self.response.text)
+
+        assert result["value"] is False, f"Unavailable providers must return the supplied default: {result}"
+        assert result.get("reason") == "ERROR", f"Unavailable providers must return an error result: {result}"
+        assert result.get("errorCode") == "PROVIDER_NOT_READY", (
+            f"Unavailable providers must report PROVIDER_NOT_READY: {result}"
+        )
+        assert result.get("errorMessage"), f"Unavailable providers must explain why evaluation is unavailable: {result}"
 
 
 @scenarios.feature_flagging_and_experimentation

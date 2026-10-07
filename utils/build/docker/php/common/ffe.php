@@ -1,5 +1,9 @@
 <?php
 
+if (file_exists(__DIR__ . '/vendor/autoload.php')) {
+    require_once __DIR__ . '/vendor/autoload.php';
+}
+
 function dd_ffe_json_response($statusCode, array $payload)
 {
     header('Content-Type: application/json');
@@ -109,6 +113,61 @@ function dd_ffe_evaluate_with_client($flagKey, $variationType, $defaultValue, $t
     }
 }
 
+function dd_ffe_throw_error_exception($severity, $message, $file, $line)
+{
+    if (!(error_reporting() & $severity)) {
+        return false;
+    }
+
+    throw new ErrorException($message, 0, $severity, $file, $line);
+}
+
+function dd_ffe_evaluate_with_openfeature($flagKey, $variationType, $defaultValue, $targetingKey, array $attributes)
+{
+    if (!class_exists('\\OpenFeature\\OpenFeatureAPI')) {
+        throw new RuntimeException('The OpenFeature PHP SDK is not available.');
+    }
+
+    if (!class_exists('\\DDTrace\\OpenFeature\\DataDogProvider')) {
+        throw new RuntimeException('The Datadog OpenFeature provider is not available.');
+    }
+
+    $api = \OpenFeature\OpenFeatureAPI::getInstance();
+    $api->setProvider(new \DDTrace\OpenFeature\DataDogProvider());
+    $client = $api->getClient('system-tests');
+    $context = new \OpenFeature\implementation\flags\EvaluationContext(
+        $targetingKey,
+        new \OpenFeature\implementation\flags\Attributes($attributes)
+    );
+
+    set_error_handler('dd_ffe_throw_error_exception');
+    try {
+        switch (dd_ffe_normalized_variation_type($variationType)) {
+            case 'BOOLEAN':
+                return $client->getBooleanDetails($flagKey, $defaultValue, $context);
+            case 'STRING':
+                return $client->getStringDetails($flagKey, $defaultValue, $context);
+            case 'INTEGER':
+                return $client->getIntegerDetails($flagKey, $defaultValue, $context);
+            case 'NUMERIC':
+            case 'FLOAT':
+            case 'DOUBLE':
+                return $client->getFloatDetails($flagKey, $defaultValue, $context);
+            case 'JSON':
+            case 'OBJECT':
+                return $client->getObjectDetails(
+                    $flagKey,
+                    is_array($defaultValue) ? $defaultValue : array(),
+                    $context
+                );
+            default:
+                throw new InvalidArgumentException('Unsupported variationType: ' . (string) $variationType);
+        }
+    } finally {
+        restore_error_handler();
+    }
+}
+
 function dd_ffe_warning_handler($severity, $message)
 {
     if ($severity === E_USER_WARNING && strpos($message, 'Datadog-backed PHP feature flag evaluation') !== false) {
@@ -118,14 +177,42 @@ function dd_ffe_warning_handler($severity, $message)
     return false;
 }
 
-function dd_ffe_evaluate($flagKey, $variationType, $defaultValue, $targetingKey, array $attributes)
+function dd_ffe_evaluate($flagKey, $variationType, $defaultValue, $targetingKey, array $attributes, $evaluationApi)
 {
+    if ($evaluationApi === 'openfeature') {
+        return dd_ffe_evaluate_with_openfeature(
+            $flagKey,
+            $variationType,
+            $defaultValue,
+            $targetingKey,
+            $attributes
+        );
+    }
+
     set_error_handler('dd_ffe_warning_handler');
     try {
         return dd_ffe_evaluate_with_client($flagKey, $variationType, $defaultValue, $targetingKey, $attributes);
     } finally {
         restore_error_handler();
     }
+}
+
+function dd_ffe_openfeature_details_payload($details)
+{
+    $error = $details->getError();
+
+    return array(
+        'value' => $details->getValue(),
+        'reason' => $details->getReason(),
+        'variant' => $details->getVariant(),
+        'errorCode' => $error === null
+            ? null
+            : $error->getResolutionErrorCode()->getValue(),
+        'errorMessage' => $error === null
+            ? null
+            : $error->getResolutionErrorMessage(),
+        'providerState' => array(),
+    );
 }
 
 function dd_ffe_details_payload($details)
@@ -168,6 +255,7 @@ if (!array_key_exists('defaultValue', $payload)) {
 $flagKey = $payload['flag'];
 $variationType = $payload['variationType'];
 $defaultValue = dd_ffe_normalize_default_value($payload['defaultValue'], $variationType);
+$evaluationApi = isset($payload['evaluationApi']) ? strtolower((string) $payload['evaluationApi']) : 'openfeature';
 $targetingKey = isset($payload['targetingKey']) && $payload['targetingKey'] !== null
     ? (string) $payload['targetingKey']
     : null;
@@ -181,10 +269,19 @@ $attributes = isset($payload['attributes']) && is_array($payload['attributes'])
 try {
     $details = null;
     foreach ($targetingKeys as $key) {
-        $details = dd_ffe_evaluate($flagKey, $variationType, $defaultValue, $key, $attributes);
+        $details = dd_ffe_evaluate(
+            $flagKey,
+            $variationType,
+            $defaultValue,
+            $key,
+            $attributes,
+            $evaluationApi
+        );
     }
     if ($details !== null) {
-        $response = dd_ffe_details_payload($details);
+        $response = $evaluationApi === 'openfeature'
+            ? dd_ffe_openfeature_details_payload($details)
+            : dd_ffe_details_payload($details);
         $response['count'] = count($targetingKeys);
         dd_ffe_json_response(200, $response);
         return;
