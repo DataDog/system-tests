@@ -210,6 +210,14 @@ def trace_config() -> TraceConfigReturn:
             "dd_trace_enabled": str(config._tracing_enabled).lower(),
             "dd_runtime_metrics_enabled": str(config._runtime_metrics_enabled).lower(),
             "otel_metrics_initialized": str(isinstance(get_meter_provider(), SdkMeterProvider)).lower(),
+            "otel_exporter_otlp_metrics_timeout_ms": otlp_exporter_timeout(
+                getattr(getattr(get_meter_provider(), "_sdk_config", None), "metric_readers", ())
+            ),
+            "otel_exporter_otlp_logs_timeout_ms": otlp_exporter_timeout(
+                getattr(
+                    getattr(get_logger_provider(), "_multi_log_record_processor", None), "_log_record_processors", ()
+                )
+            ),
             "dd_tags": ",".join(f"{k}:{v}" for k, v in config.tags.items()),
             "dd_trace_propagation_style": ",".join(config._propagation_style_extract),
             "dd_trace_debug": str(config._debug_mode).lower(),
@@ -226,6 +234,23 @@ def trace_config() -> TraceConfigReturn:
             "dd_data_streams_enabled": str(config._data_streams_enabled).lower(),
         }
     )
+
+
+def otlp_exporter_timeout(processors: Any) -> Optional[str]:
+    timeouts = []
+    for processor in processors:
+        batch_processor = getattr(processor, "_batch_processor", processor)
+        exporter = getattr(batch_processor, "_exporter", None)
+        if exporter is None:
+            exporter = getattr(processor, "_exporter", None)
+        if exporter is None or not any(
+            cls.__module__.startswith("opentelemetry.exporter.otlp.") for cls in type(exporter).__mro__
+        ):
+            continue
+        timeout = getattr(exporter, "_timeout", None)
+        if isinstance(timeout, (int, float)):
+            timeouts.append(str(int(timeout * 1000)))
+    return timeouts[0] if len(timeouts) == 1 else None
 
 
 @app.post("/trace/span/finish")

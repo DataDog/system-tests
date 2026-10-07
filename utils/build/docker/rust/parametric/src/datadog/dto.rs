@@ -179,6 +179,8 @@ pub struct ConfigResult {
     pub dd_trace_sample_rate: Option<String>,
     pub dd_trace_enabled: Option<String>,
     pub dd_runtime_metrics_enabled: Option<String>,
+    pub otel_exporter_otlp_metrics_timeout_ms: Option<String>,
+    pub otel_exporter_otlp_logs_timeout_ms: Option<String>,
     pub dd_tags: Option<String>,
     pub dd_trace_propagation_style: Option<String>,
     pub dd_trace_debug: Option<String>,
@@ -236,6 +238,16 @@ impl From<Config> for ConfigResult {
             dd_trace_sample_rate: None,
             dd_trace_enabled: Some(bool_str(config.enabled())),
             dd_runtime_metrics_enabled: Some(bool_str(config.metrics_otel_enabled())),
+            otel_exporter_otlp_metrics_timeout_ms: Some(
+                std::num::NonZeroU32::new(config.otlp_metrics_timeout())
+                    .map_or(config.otlp_timeout(), std::num::NonZeroU32::get)
+                    .to_string(),
+            ),
+            otel_exporter_otlp_logs_timeout_ms: Some(
+                std::num::NonZeroU32::new(config.otlp_logs_timeout())
+                    .map_or(config.otlp_timeout(), std::num::NonZeroU32::get)
+                    .to_string(),
+            ),
             dd_tags: Some(format_global_tags(&config)),
             dd_trace_propagation_style: Some(format_trace_propagation_extract(&config)),
             dd_trace_debug: Some(bool_str(dd_trace_debug)),
