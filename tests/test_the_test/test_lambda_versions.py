@@ -2,6 +2,8 @@ import json
 from pathlib import Path
 from unittest.mock import Mock, patch
 
+import conftest
+
 from utils import pytest, scenarios
 from utils._context._scenarios.aws_lambda import LambdaScenario
 from utils._context.component_version import ComponentVersion
@@ -101,3 +103,38 @@ class Test_LambdaVersions:
         manifest = Manifest({"python": ComponentVersion("python", "4.14.2").version}, "flask-poc")
         for nodeid in TELEMETRY_TESTS:
             assert not manifest.get_declarations(nodeid), nodeid
+
+    @pytest.mark.parametrize(
+        ("library", "version", "tracer", "exits"),
+        [
+            ("nodejs_lambda", "99.0.0", ComponentVersion("nodejs", "5.126.0"), False),
+            ("ruby_lambda", "99.0.0", ComponentVersion("ruby", "2.43.0"), False),
+            ("nodejs_lambda", "0.0.0", ComponentVersion("nodejs", "5.126.0"), True),
+            ("ruby_lambda", "0.0.0", ComponentVersion("ruby", "2.43.0"), True),
+            ("nodejs", "5.126.0", None, True),
+            ("ruby", "2.43.0", None, True),
+        ],
+    )
+    def test_dev_mode_checks_the_development_library(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        library: str,
+        version: str,
+        tracer: ComponentVersion | None,
+        *,
+        exits: bool,
+    ) -> None:
+        library_version = ComponentVersion(library, version)
+        components = {library: library_version.version}
+        if tracer:
+            components[tracer.name] = tracer.version
+        context = Mock(library=library_version, scenario=Mock(components=components), weblog_variant="alb")
+        session = Mock()
+        session.config.option.collectonly = True
+        session.config.option.sleep = False
+        session.config._store.get.return_value = None  # noqa: SLF001 - mock pytest's JUnit property store
+        session.config.pluginmanager.get_plugin.return_value = conftest.logger.terminal
+        monkeypatch.setenv("SYSTEM_TESTS_DEV_MODE", "true")
+        with patch.object(conftest, "context", context), patch.object(conftest.pytest, "exit") as exit_mock:
+            conftest.pytest_sessionstart(session)
+        assert exit_mock.called is exits
