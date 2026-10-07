@@ -52,6 +52,9 @@ public class TraceController {
       config.put("dd_tags", helper.getConfigMapValues("getGlobalTags", ",", ":"));
       config.put("dd_trace_otel_enabled", helper.getInstrumenterConfigValue("isTraceOtelEnabled"));
       config.put("dd_metrics_otel_interval", helper.getOptionalConfigValue("getMetricsOtelInterval"));
+      config.put("otel_exporter_otlp_traces_timeout_ms", helper.getOptionalConfigValue("getOtlpTracesTimeout"));
+      config.put("otel_exporter_otlp_metrics_timeout_ms", helper.getOptionalConfigValue("getOtlpMetricsTimeout"));
+      config.put("otel_exporter_otlp_logs_timeout_ms", helper.getOptionalConfigValue("getOtlpLogsTimeout"));
       config.put("dd_trace_effective_log_level", helper.getEffectiveLogLevel());
 
       config.values().removeIf(Objects::isNull);
