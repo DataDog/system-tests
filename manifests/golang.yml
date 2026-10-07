@@ -1957,7 +1957,7 @@ manifest:
         net-http: v1.70.1
         net-http-span-pool: v1.70.1
   tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP: v2.8.0-dev
-  tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP::test_single_server_trace: missing_feature (deployment.environment.name is not supported)
+  tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP::test_single_server_trace: v2.11.0-dev
   tests/otel/test_tracing_otlp.py::Test_Otlp_Carries_Ot: v2.11.0-dev
   tests/otel/test_tracing_otlp.py::Test_Otlp_Forwards_Inherited_Ot: v2.11.0-dev  # Easy win for chi, echo, fiber-v2-orchestrion, gin, net-http, net-http-orchestrion, uds-echo and version 2.10.1
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
@@ -2017,7 +2017,7 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES::test_invalid_value_is_discarded: bug (APMAPI-2432)
   tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES::test_percent_encoded_separators: bug (APMAPI-2425)
   ? tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES::test_reserved_attributes_are_mapped
-  : missing_feature (deployment.environment.name is not supported)
+  : v2.11.0-dev
   tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED: missing_feature
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME: v2.6.0
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_default_follows_otel_spec: irrelevant
@@ -2192,7 +2192,7 @@ manifest:
   tests/parametric/test_otel_logs.py::Test_FR11_Telemetry::test_telemetry_exporter_logs_configurations: missing_feature
   tests/parametric/test_otel_logs.py::Test_FR12_Log_Levels: '>=2.10.1'  # Created by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields: '>=2.10.1'  # Created by easy win activation script
-  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Resource_Attributes::test_dd_env_vars_override_otel: missing_feature (deployment.environment.name is not supported)
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Resource_Attributes::test_dd_env_vars_override_otel: v2.11.0-dev
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_default_configurations: '>=2.10.1'  # TODO: a lower version might be supported
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_exporter_configurations: '>=2.10.1'  # TODO: a lower version might be supported
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_exporter_metrics_configurations: '>=2.10.1'  # TODO: a lower version might be supported
@@ -2237,7 +2237,6 @@ manifest:
   tests/parametric/test_otel_span_with_baggage.py::Test_Otel_Span_With_Baggage: missing_feature
   tests/parametric/test_otel_tracestate_sampling.py::Test_OtelTracestateSampling: v2.11.0-dev  # Easy win for all weblogs and version 2.10.1
   tests/parametric/test_otlp_trace_metrics.py: v2.11.0-dev  # Easy win for all weblogs and version 2.10.1
-  tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Resource_Attributes::test_fr06_9_service_env_version: missing_feature (deployment.environment.name is not supported)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_AdditionalTags::test_fr08_10_dd_tags_tracer_tags_resource_attributes: missing_feature (DD_TAGS is not yet reported as datadog.tracer_tags on the OTLP trace metrics resource)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_AdditionalTags::test_fr08_11_otel_resource_attributes_env_tracer_tags: missing_feature (OTEL_RESOURCE_ATTRIBUTES is not yet reported as datadog.tracer_tags on the OTLP trace metrics resource)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes::test_fr08_14_peer_tags: missing_feature (Blocked on test-agent support for advertising a peer_tags allowlist in /info)
