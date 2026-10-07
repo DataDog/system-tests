@@ -2884,7 +2884,8 @@ manifest:
   tests/test_standard_tags.py::Test_StandardTagsUrl::test_multiple_matching_substring:
     - weblog_declaration:
         envoy, apim, haproxy: irrelevant (tracer did not yet implemented the new version of query parameters obfuscation regex)
-        "*": missing_feature (tracer did not yet implemented the new version of query parameters obfuscation regex)
+        fiber-v2-orchestrion: missing_feature (Fiber v2 records only the URL path)
+        "*": v2.12.0-dev
   tests/test_standard_tags.py::Test_StandardTagsUrl::test_multiple_matching_substring_legacy:
     - declaration: missing_feature (Fiber v2 records only the URL path)
       weblog: fiber-v2-orchestrion
@@ -2897,7 +2898,8 @@ manifest:
     - weblog_declaration:
         haproxy: irrelevant (tracer did not yet implemented the new version of query parameters obfuscation regex)
         envoy, apim: irrelevant (tracer did not yet implemented the new version of query parameters obfuscation regex)
-        "*": missing_feature (tracer did not yet implemented the new version of query parameters obfuscation regex)
+        fiber-v2-orchestrion: missing_feature (Fiber v2 records only the URL path)
+        "*": v2.12.0-dev
   tests/test_standard_tags.py::Test_StandardTagsUrl::test_url_with_sensitive_query_string_legacy:
     - declaration: missing_feature (Fiber v2 records only the URL path)
       weblog: fiber-v2-orchestrion
