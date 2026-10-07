@@ -1,6 +1,8 @@
 #!/bin/bash
 
-if [[ -n "${DD_INSTALLER_LIBRARY_VERSION:-}" && -z "${DD_INSTALLER_INJECTOR_VERSION:-}" ]]; then
+_ssi_install_env="${SSI_ENV:-${DD_env:-}}"
+if [[ -z "${DD_INSTALLER_INJECTOR_VERSION:-}" ]] \
+    && { [[ -n "${DD_INSTALLER_LIBRARY_VERSION:-}" ]] || [[ "${_ssi_install_env}" == "prod" ]]; }; then
     if [[ -n "${DD_INSTALLER_PINNED_INJECTOR_VERSION:-}" ]]; then
         DD_INSTALLER_INJECTOR_VERSION="${DD_INSTALLER_PINNED_INJECTOR_VERSION}"
     else
@@ -21,3 +23,4 @@ if [[ -n "${DD_INSTALLER_LIBRARY_VERSION:-}" && -z "${DD_INSTALLER_INJECTOR_VERS
 elif [[ -n "${DD_INSTALLER_INJECTOR_VERSION:-}" ]]; then
     export DD_INSTALLER_REGISTRY_URL_APM_INJECT_PACKAGE='installtesting.datad0g.com'
 fi
+unset _ssi_install_env
