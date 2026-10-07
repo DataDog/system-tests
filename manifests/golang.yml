@@ -2744,6 +2744,7 @@ manifest:
         net-http: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
         uds-echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
         gin: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs: missing_feature
   tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5: v2.11.0-dev
   tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh:  # Easy win for chi, echo, fiber-v2-orchestrion, gin, net-http, net-http-orchestrion, uds-echo and version 2.10.1
     - weblog_declaration:

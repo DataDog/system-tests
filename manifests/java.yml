@@ -5171,6 +5171,7 @@ manifest:
         play: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
         uds-spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
         spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs: missing_feature
   tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5:
     - weblog_declaration:
         "*": v1.67.0-SNAPSHOT
