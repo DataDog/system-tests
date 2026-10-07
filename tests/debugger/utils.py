@@ -207,9 +207,9 @@ class BaseDebuggerTest:
             "SnapshotLimits": {"java": [155], "python": [174], "nodejs": [136], "ruby": [233], "dotnet": [152]},
             "CaptureTimeout": {"java": [174], "nodejs": [159], "dotnet": [173]},
             # Lines the probed methods of the correlation endpoint return on, for tracers without method probes
-            "Correlation": {"nodejs": [177]},
-            "CorrelationMiddle": {"nodejs": [183]},
-            "CorrelationLeaf": {"nodejs": [187]},
+            "Correlation": {"nodejs": [178]},
+            "CorrelationMiddle": {"nodejs": [184]},
+            "CorrelationLeaf": {"nodejs": [188]},
             "CorrelationLoopBody": {"golang": [144], "nodejs": [194]},
             "CorrelationLoopSibling": {"golang": [147], "nodejs": [197]},
         }

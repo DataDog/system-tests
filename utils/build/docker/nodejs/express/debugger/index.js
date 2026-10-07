@@ -168,33 +168,33 @@ function budgets (request, reply) {
 }
 
 async function correlationHandler (req, res) {
-  res.send(`Correlation ${await correlation()}`)
+  await correlation()
+  res.send('Correlation')
 }
 
 async function correlation () {
   const value = await correlationMiddle()
   await sleep(400)
-  return value // This needs to be line 177
+  return value // This needs to be line 178
 }
 
 async function correlationMiddle () {
   const value = correlationLeaf()
   await sleep(400)
-  return value // This needs to be line 183
+  return value // This needs to be line 184
 }
 
 function correlationLeaf () {
-  return 3 // This needs to be line 187
+  return 3 // This needs to be line 188
 }
 
 async function correlationLoopHandler (req, res) {
   const count = Number(req.params.count)
-  let total = 0
   for (let i = 0; i < count; i++) {
-    total += i // This needs to be line 194
+    const iteration = i // This needs to be line 194
     await sleep(1000)
   }
-  res.send(`Loop ${total}`) // This needs to be line 197
+  res.send('Loop') // This needs to be line 197
 }
 
 function sleep (ms) {

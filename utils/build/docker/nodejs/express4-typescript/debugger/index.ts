@@ -168,33 +168,33 @@ function budgets (request: Request, reply: Response): Response {
 }
 
 async function correlationHandler (req: Request, res: Response): Promise<void> {
-  res.send(`Correlation ${await correlation()}`)
+  await correlation()
+  res.send('Correlation')
 }
 
 async function correlation (): Promise<number> {
   const value = await correlationMiddle()
   await sleep(400)
-  return value // This needs to be line 177
+  return value // This needs to be line 178
 }
 
 async function correlationMiddle (): Promise<number> {
   const value = correlationLeaf()
   await sleep(400)
-  return value // This needs to be line 183
+  return value // This needs to be line 184
 }
 
 function correlationLeaf (): number {
-  return 3 // This needs to be line 187
+  return 3 // This needs to be line 188
 }
 
 async function correlationLoopHandler (req: Request, res: Response): Promise<void> {
   const count = Number(req.params.count)
-  let total = 0
   for (let i = 0; i < count; i++) {
-    total += i // This needs to be line 194
+    const iteration = i // This needs to be line 194
     await sleep(1000)
   }
-  res.send(`Loop ${total}`) // This needs to be line 197
+  res.send('Loop') // This needs to be line 197
 }
 
 function sleep (ms: number): Promise<void> {
