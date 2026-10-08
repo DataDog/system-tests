@@ -21,18 +21,6 @@ DEFAULT_ENVIRONMENT: dict[str, str | None] = {
     "OTEL_LOGS_EXPORTER": "none",
 }
 
-# The specification defines the default and enum parsing, but does not enumerate
-# levels. These are the common values supported by the full log-level mappings.
-STABLE_VALUES = [
-    pytest.param({**DEFAULT_ENVIRONMENT, VARIABLE: level}, level, id=level)
-    for level in ("debug", "info", "warn", "error")
-]
-
-CASE_INSENSITIVE_VALUES = [
-    pytest.param({**DEFAULT_ENVIRONMENT, VARIABLE: value}, value.lower(), id=value)
-    for value in ("DEBUG", "DeBuG", "ERROR")
-]
-
 
 def _log_level(test_agent: TestAgentAPI, library: APMLibrary) -> str:
     """Adapt effective logger views and emitted diagnostics to a common spelling."""
@@ -107,12 +95,26 @@ def _debug_enabled(library: APMLibrary) -> bool:
 @scenarios.parametric
 @features.otel_log_level
 class Test_OTEL_LOG_LEVEL:
-    @pytest.mark.parametrize(("library_env", "expected"), STABLE_VALUES)
+    # The specification defines the default and enum parsing, but does not enumerate
+    # levels. These are the common values supported by the full log-level mappings.
+    @pytest.mark.parametrize(
+        ("library_env", "expected"),
+        [
+            pytest.param({**DEFAULT_ENVIRONMENT, VARIABLE: level}, level, id=level)
+            for level in ("debug", "info", "warn", "error")
+        ],
+    )
     def test_stable_values(self, test_agent: TestAgentAPI, test_library: APMLibrary, expected: str) -> None:
         with test_library as library:
             assert _log_level(test_agent, library) == expected
 
-    @pytest.mark.parametrize(("library_env", "expected"), CASE_INSENSITIVE_VALUES)
+    @pytest.mark.parametrize(
+        ("library_env", "expected"),
+        [
+            pytest.param({**DEFAULT_ENVIRONMENT, VARIABLE: value}, value.lower(), id=value)
+            for value in ("DEBUG", "DeBuG", "ERROR")
+        ],
+    )
     def test_case_insensitive_values(self, test_agent: TestAgentAPI, test_library: APMLibrary, expected: str) -> None:
         with test_library as library:
             assert _log_level(test_agent, library) == expected
