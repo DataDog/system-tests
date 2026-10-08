@@ -1,8 +1,12 @@
 from collections import defaultdict
 import json
+import logging
 from utils._context._scenarios import Scenario
 from utils._context.weblog_metadata import WeblogMetaData as Weblog
 from utils._context.constants import WeblogBuildMode as BuildMode
+
+
+logger = logging.getLogger(__name__)
 
 
 def _load_json(file_path: str) -> dict:
@@ -462,13 +466,37 @@ def _get_build_time(library: str, weblog: Weblog, build_stats: dict) -> float:
 
 def _get_execution_time(library: str, weblog: str, scenario: str, run_stats: dict) -> int | float:
     if scenario not in run_stats:
-        return run_stats["*"]
+        duration = run_stats["*"]
+        logger.warning(
+            "Missing scenario timing for %s/%s/%s; using global fallback %.2fs",
+            scenario,
+            library,
+            weblog,
+            duration,
+        )
+        return duration
 
     if library not in run_stats[scenario]:
-        return run_stats[scenario]["*"]
+        duration = run_stats[scenario]["*"]
+        logger.warning(
+            "Missing library timing for %s/%s/%s; using scenario fallback %.2fs",
+            scenario,
+            library,
+            weblog,
+            duration,
+        )
+        return duration
 
     if weblog not in run_stats[scenario][library]:
-        return run_stats[scenario][library]["*"]
+        duration = run_stats[scenario][library]["*"]
+        logger.warning(
+            "Missing weblog timing for %s/%s/%s; using library fallback %.2fs",
+            scenario,
+            library,
+            weblog,
+            duration,
+        )
+        return duration
 
     return run_stats[scenario][library][weblog]
 
