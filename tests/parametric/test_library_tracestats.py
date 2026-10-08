@@ -283,7 +283,7 @@ class Test_Library_Tracestats:
         postgres_stats = [s for s in stats if s["Name"] == "postgres.query"][0]
         assert postgres_stats["Resource"] == "SELECT 1"
         assert postgres_stats["Service"] == "postgres"
-        assert web_stats["Type"] in ["", None, "custom"]  # FIXME: add span type
+        assert postgres_stats["Type"] in ["", None, "custom"]  # FIXME: add span type
         assert postgres_stats["Hits"] == 1
         assert postgres_stats["TopLevelHits"] == 1
         assert postgres_stats["Duration"] > 0
