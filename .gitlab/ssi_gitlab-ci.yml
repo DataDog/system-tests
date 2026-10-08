@@ -26,9 +26,13 @@ ssi_tests:
       # Force gitlab to keep the exit code as 3 if the job fails with exit code 3
       FF_USE_NEW_BASH_EVAL_STRATEGY: true
     after_script: |
-        SYSTEM_TESTS_VAULT_PATH="kv/k8s/gitlab-runner/${CI_PROJECT_NAME}"
-        if [ "$CI_PROJECT_NAME" != "system-tests" ]; then
-            SYSTEM_TESTS_VAULT_PATH="${SYSTEM_TESTS_VAULT_PATH}/system-tests"
+        if [ "$CI_PROJECT_NAME" = "auto_inject" ]; then
+            SYSTEM_TESTS_VAULT_PATH="kv/ci/ddoghq/auto_inject/system-tests"
+        else
+            SYSTEM_TESTS_VAULT_PATH="kv/k8s/gitlab-runner/${CI_PROJECT_NAME}"
+            if [ "$CI_PROJECT_NAME" != "system-tests" ]; then
+                SYSTEM_TESTS_VAULT_PATH="${SYSTEM_TESTS_VAULT_PATH}/system-tests"
+            fi
         fi
         SCENARIO_SUFIX=$(echo "$SCENARIO" | tr "[:upper:]" "[:lower:]")
         mkdir -p reports/
@@ -120,9 +124,13 @@ ssi_tests:
             set -o pipefail
             timeout 3000 ./run.sh "$SCENARIO" --vm-weblog "${WEBLOG}" --vm-env "${ONBOARDING_FILTER_ENV}" --vm-library "${TEST_LIBRARY}" --vm-provider aws --vm-default-vms All --vm-only "${VM}" --report-run-url "${CI_JOB_URL}" --report-environment "${ONBOARDING_FILTER_ENV}" 2>&1 | tee "${CI_PROJECT_DIR}/run_output.log"
     after_script: |
-        SYSTEM_TESTS_VAULT_PATH="kv/k8s/gitlab-runner/${CI_PROJECT_NAME}"
-        if [ "$CI_PROJECT_NAME" != "system-tests" ]; then
-            SYSTEM_TESTS_VAULT_PATH="${SYSTEM_TESTS_VAULT_PATH}/system-tests"
+        if [ "$CI_PROJECT_NAME" = "auto_inject" ]; then
+            SYSTEM_TESTS_VAULT_PATH="kv/ci/ddoghq/auto_inject/system-tests"
+        else
+            SYSTEM_TESTS_VAULT_PATH="kv/k8s/gitlab-runner/${CI_PROJECT_NAME}"
+            if [ "$CI_PROJECT_NAME" != "system-tests" ]; then
+                SYSTEM_TESTS_VAULT_PATH="${SYSTEM_TESTS_VAULT_PATH}/system-tests"
+            fi
         fi
         # Only fetch FP params on main in system-tests repo (use default CI creds)
         if [ "$CI_COMMIT_BRANCH" = "main" ] && [ "$CI_PROJECT_NAME" = "system-tests" ]; then

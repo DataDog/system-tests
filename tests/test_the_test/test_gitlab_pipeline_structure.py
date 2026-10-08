@@ -90,6 +90,8 @@ def test_gitlab_secret_lookups_use_vault_without_generated_docker_auth() -> None
     assert "docker_auth" not in generated_pipeline_template
     assert "DOCKER_LOGIN" not in generated_pipeline_template
     assert "aws ssm get-parameter" not in contents
+    assert 'if [ "$CI_PROJECT_NAME" = "auto_inject" ]; then' in contents
+    assert 'SYSTEM_TESTS_VAULT_PATH="kv/ci/ddoghq/auto_inject/system-tests"' in contents
     assert 'SYSTEM_TESTS_VAULT_PATH="kv/k8s/gitlab-runner/${CI_PROJECT_NAME}"' in contents
     assert 'SYSTEM_TESTS_VAULT_PATH="${SYSTEM_TESTS_VAULT_PATH}/system-tests"' in contents
     assert '"${SYSTEM_TESTS_VAULT_PATH}/test-optimization"' in contents
