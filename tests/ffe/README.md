@@ -18,6 +18,36 @@ This directory contains system tests for the Feature Flags & Experimentation (FF
 ./run.sh FEATURE_FLAGGING_AND_EXPERIMENTATION --library <language>
 ```
 
+## Dependent-flag branch testing
+
+The dependent-flag end-to-end test reads canonical fixtures from
+`ffe-system-test-data` instead of copying them into this repository. Prepare an
+exact fixture branch or commit before building the Node.js `express5` weblog:
+
+```bash
+bash utils/scripts/prepare-ffe-system-test-data.sh
+./build.sh nodejs -w express5
+TEST_LIBRARY=nodejs ./run.sh FEATURE_FLAGGING_AND_EXPERIMENTATION \
+  tests/ffe/test_dependent_flags.py
+```
+
+The fixture checkout is `binaries/ffe-system-test-data` by default. Override
+the repository, revision, or checkout location with
+`SYSTEM_TESTS_FFE_TEST_DATA_REPOSITORY`, `SYSTEM_TESTS_FFE_TEST_DATA_REF`, and
+`SYSTEM_TESTS_FFE_TEST_DATA_PATH`. The test also accepts a pre-existing local
+checkout through `SYSTEM_TESTS_FFE_TEST_DATA_PATH` and otherwise falls back to a
+sibling `../ffe-system-test-data` checkout for local development.
+This branch defaults to the reviewed fixture commit
+`027f529da062c8f395cc5cd4338d8019f63705b0`; an explicit ref overrides that pin.
+It also pins the Node.js tracer to
+`DataDog/dd-trace-js#73c32550ea2241fc09e145b8b15768e235f250ed` in
+`binaries/nodejs-load-from-npm`. Remove `binaries/nodejs-load-from-local` before
+building to use that remote commit instead of a sibling checkout.
+
+Evaluation and absence-of-telemetry assertions run after scenario teardown,
+when the Agent capture is complete. This avoids timing sleeps for negative
+assertions.
+
 ## Test-contract self-tests
 
 The self-tests in `testing_tests/` validate the FFE assertions using synthetic

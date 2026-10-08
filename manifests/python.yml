@@ -1487,6 +1487,7 @@ manifest:
     - weblog_declaration:
         "*": incomplete_test_app (Agentless configuration E2E enablement is scoped to flask-poc)
         flask-poc: v4.14.0
+  tests/ffe/test_dependent_flags.py: missing_feature (Dependent flag evaluation is not implemented)
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_RC_Down_From_Start: v4.0.0
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_RC_Unavailable: flaky (FFL-1622)
   tests/ffe/test_exposure_egress.py: v4.2.0-dev

@@ -3441,6 +3441,7 @@ manifest:
     - weblog_declaration:
         "*": irrelevant
         spring-boot: v1.65.0
+  tests/ffe/test_dependent_flags.py: missing_feature (Dependent flag evaluation is not implemented)
   tests/ffe/test_dynamic_evaluation.py:
     - weblog_declaration:
         "*": irrelevant
