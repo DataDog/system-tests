@@ -621,7 +621,9 @@ manifest:
     - declaration: missing_feature (Rust does not implement query string obfuscation)
       excluded_weblog: [axum]
   tests/test_semantic_conventions.py::Test_Meta::test_meta_runtime_id_tag: missing_feature (dd-trace-rs does not tag spans with runtime-id)
-  tests/test_span_events.py: incomplete_test_app (/add_event endpoint not implemented)
+  tests/test_span_events.py::Test_SpanEvents_WithAgentSupport::test_v04_v07_default_format: '>=0.5.3-dev'  # TODO: a lower version might be supported
+  tests/test_span_events.py::Test_SpanEvents_WithAgentSupport::test_v05_default_format: irrelevant (v0.5 is not the default format)
+  tests/test_span_events.py::Test_SpanEvents_WithoutAgentSupport: missing_feature (dd-trace-rs always sends native span events; no meta 'events' fallback)
   tests/test_standard_tags.py::Test_StandardTagsClientIp: missing_feature (client IP resolution from forwarded headers is a tracer feature, not implemented in dd-trace-rs)
   tests/test_standard_tags.py::Test_StandardTagsNetworkClientIp: missing_feature (client IP resolution is a tracer feature, not implemented in dd-trace-rs)
   tests/test_standard_tags.py::Test_StandardTagsReferrerHostname: missing_feature (referer hostname extraction is a tracer feature, not implemented in dd-trace-rs)

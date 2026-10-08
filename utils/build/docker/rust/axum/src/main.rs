@@ -185,6 +185,7 @@ fn app(state: AppState) -> Router {
         .route("/trace/manual_keep_drop", get(trace_manual_keep_drop))
         .route("/spawn_child", get(spawn_child))
         .route("/log/library", get(log_library))
+        .route("/add_event", get(add_event))
         .with_state(state);
     integration::install_middleware(router)
 }
@@ -682,6 +683,15 @@ async fn log_library(Query(query): Query<LogLibraryQuery>) -> &'static str {
         _ => tracing::info!(target: integration::LIBRARY_LOG_TARGET, "{msg}"),
     }
     "ok"
+}
+
+/// Adds a span event to the request's server span.
+async fn add_event() -> &'static str {
+    Context::current().span().add_event(
+        "span.event",
+        vec![KeyValue::new("string", "value"), KeyValue::new("int", 1i64)],
+    );
+    "[Event added]"
 }
 
 async fn distant_call(url: &str) -> Response {
