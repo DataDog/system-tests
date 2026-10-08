@@ -271,8 +271,9 @@ func (s *apmClientServer) spanSetErrorHandler(w http.ResponseWriter, r *http.Req
 
 type CustomLogger struct {
 	*logrus.Logger
-	tracerConfig   map[string]string
-	profilerConfig map[string]string
+	tracerConfig    map[string]string
+	profilerConfig  map[string]string
+	startupLogLevel string
 }
 
 type TracerConfig struct {
@@ -350,6 +351,9 @@ func parseTracerConfig(l *CustomLogger, tracerEnabled string) map[string]string 
 	config["dd_tags"] = l.tracerConfig["Tags"]
 	config["dd_trace_propagation_style"] = l.tracerConfig["PropagationStyleInject"]
 	config["dd_trace_debug"] = l.tracerConfig["Debug"]
+	if l.startupLogLevel != "" {
+		config["dd_trace_startup_log_level"] = l.startupLogLevel
+	}
 	// config["dd_trace_otel_enabled"] = nil         // golang doesn't support DD_TRACE_OTEL_ENABLED
 	// config["dd_trace_sample_ignore_parent"] = nil // golang doesn't support DD_TRACE_SAMPLE_IGNORE_PARENT
 	config["dd_env"] = l.tracerConfig["Env"]
@@ -375,7 +379,15 @@ func parseTracerConfig(l *CustomLogger, tracerEnabled string) map[string]string 
 func (s *apmClientServer) getTraceConfigHandler(w http.ResponseWriter, r *http.Request) {
 	var log = &CustomLogger{Logger: logrus.New(), tracerConfig: make(map[string]string), profilerConfig: make(map[string]string)}
 
-	tracer.Start(tracer.WithLogger(log))
+	tracer.Start(tracer.WithLogger(tracer.AdaptLogger(func(level tracer.LogLevel, message string, args ...any) {
+		if len(args) != 0 {
+			message = fmt.Sprintf(message, args...)
+		}
+		if strings.Contains(message, "DATADOG TRACER CONFIGURATION ") {
+			log.startupLogLevel = strings.ToLower(level.String())
+		}
+		log.Log(message)
+	})))
 	profiler.Start()
 	defer profiler.Stop()
 
@@ -387,6 +399,12 @@ func (s *apmClientServer) getTraceConfigHandler(w http.ResponseWriter, r *http.R
 
 	// Prepare the response
 	response := GetTraceConfigReturn{Config: parseTracerConfig(log, tracerEnabled)}
+	if s.metricConfiguration != nil {
+		if interval, observed := s.metricConfiguration.intervalMilliseconds(); observed {
+			response.Config["dd_metrics_otel_interval"] = interval
+		}
+	}
+	// TODO: Expose resolved OTLP exporter timeouts in /trace/config once they are centralized in the tracer.
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)

@@ -12,6 +12,22 @@ from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils._weblog import HttpResponse
 
 
+def is_otel_span_for_request(span: dict[str, Any], request_id: str) -> bool:
+    """Match a request without letting a test-only tag override standard user-agent tags."""
+    attributes = span.get("attributes", {})
+    # The proxy can leave an empty OTLP attribute list unchanged.
+    if not isinstance(attributes, dict):
+        return False
+    user_agents = [
+        attributes[key]
+        for key in ("http.request.headers.user-agent", "http.useragent", "user_agent.original")
+        if attributes.get(key)
+    ]
+    if not user_agents:
+        user_agents = [attributes.get("system_tests.request.user_agent")]
+    return bool(request_id) and any(isinstance(value, str) and request_id in value for value in user_agents)
+
+
 class OpenTelemetryInterfaceValidator(ProxyBasedInterfaceValidator):
     """Validated communication between open telemetry and datadog backend"""
 
@@ -38,15 +54,7 @@ class OpenTelemetryInterfaceValidator(ProxyBasedInterfaceValidator):
                 scope_spans = resource_span.get("scopeSpans") or []
                 for scope_span in scope_spans:
                     for span in scope_span.get("spans", []):
-                        attributes = span.get("attributes", {})
-                        request_headers_user_agent_value = attributes.get("http.request.headers.user-agent", "")
-                        user_agent_value = attributes.get("http.useragent", "")
-                        user_agent_original_value = attributes.get("user_agent.original", "")
-                        if (
-                            rid in request_headers_user_agent_value
-                            or rid in user_agent_value
-                            or rid in user_agent_original_value
-                        ):
+                        if is_otel_span_for_request(span, rid):
                             yield span.get("trace_id") or span.get("traceId")
 
     def get_otel_spans(self, request: HttpResponse):
@@ -70,11 +78,7 @@ class OpenTelemetryInterfaceValidator(ProxyBasedInterfaceValidator):
                     for span in scope_span.get("spans"):
                         index = len(span_records)
                         span_records.append((data.get("request"), content, span))
-                        attributes = span.get("attributes", {})
-                        if any(
-                            rid in attributes.get(key, "")
-                            for key in ("http.request.headers.user-agent", "http.useragent", "user_agent.original")
-                        ):
+                        if is_otel_span_for_request(span, rid):
                             correlated_indexes.add(index)
                             if span_id := span.get("spanId"):
                                 correlated_span_ids.add(span_id)

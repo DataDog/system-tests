@@ -2,7 +2,10 @@ package com.datadoghq.system_tests.springboot.ai_guard;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
 import datadog.trace.api.aiguard.AIGuard;
 import datadog.trace.api.aiguard.AIGuard.Evaluation;
 import datadog.trace.api.interceptor.MutableSpan;
@@ -18,11 +21,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.lang.reflect.Method;
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 
@@ -35,7 +36,8 @@ public class AIGuardController {
         public Jackson2ObjectMapperBuilderCustomizer mixInCustomizer() {
             return builder -> builder
                     .mixIn(AIGuard.AIGuardAbortError.class, AIGuardAbortErrorMixIn.class)
-                    .mixIn(AIGuard.Evaluation.class, AIGuardEvaluationMixIn.class);
+                    .mixIn(AIGuard.Evaluation.class, AIGuardEvaluationMixIn.class)
+                    .serializerByType(AIGuard.Message.class, new MessageSerializer());
         }
     }
 
@@ -131,15 +133,13 @@ public class AIGuardController {
         }
 
         public AIGuard.Message toAIGuard() {
-            if (toolCallId != null) {
-                String contentStr = content != null && content.isTextual() ? content.asText() : null;
-                return AIGuard.Message.tool(toolCallId, contentStr);
-            }
-            if (toolCalls != null && !toolCalls.isEmpty()) {
-                return AIGuard.Message.assistant(
-                        toolCalls.stream().map(ToolCall::toAIGuard).toArray(AIGuard.ToolCall[]::new));
-            }
-            // Handle content parts vs string content
+            // Every field is carried over independently: an assistant message can hold content
+            // *and* tool calls at the same time, and dropping either half would change the
+            // conversation the tracer sends to the AI Guard service.
+            List<AIGuard.ToolCall> calls = toolCalls == null || toolCalls.isEmpty()
+                    ? null
+                    : toolCalls.stream().map(ToolCall::toAIGuard).collect(Collectors.toList());
+
             if (content != null && content.isArray()) {
                 // Content parts format
                 List<AIGuard.ContentPart> parts = new ArrayList<>();
@@ -152,12 +152,11 @@ public class AIGuardController {
                         parts.add(AIGuard.ContentPart.imageUrl(url));
                     }
                 }
-                return AIGuard.Message.message(role, parts);
-            } else {
-                // String content format
-                String contentStr = content != null && content.isTextual() ? content.asText() : null;
-                return AIGuard.Message.message(role, contentStr);
+                return new AIGuard.Message(role, parts, calls, toolCallId);
             }
+            // String content format
+            String contentStr = content != null && content.isTextual() ? content.asText() : null;
+            return new AIGuard.Message(role, contentStr, calls, toolCallId);
         }
     }
 
@@ -234,6 +233,89 @@ public class AIGuardController {
 
         @JsonProperty("tag_probs")
         abstract Object getTagProbabilities();
+
+        @JsonProperty("redaction_replacements")
+        abstract Object getRedactionReplacements();
+    }
+
+    /**
+     * Writes {@link AIGuard.Message} back in the very shape the request carried it.
+     *
+     * <p>Bean serialization would emit the SDK's field names and a null for every field the
+     * message does not use, which no other tracer's weblog does and which makes the response
+     * impossible to compare against the messages that were sent. Content parts live under
+     * {@code content} as an array, exactly like the OpenAI wire format the SDK models.
+     */
+    public static class MessageSerializer extends JsonSerializer<AIGuard.Message> {
+
+        @Override
+        public void serialize(final AIGuard.Message message,
+                              final JsonGenerator gen,
+                              final SerializerProvider serializers) throws IOException {
+            gen.writeStartObject();
+            if (message.getRole() != null) {
+                gen.writeStringField("role", message.getRole());
+            }
+            if (message.getContentParts() != null) {
+                gen.writeFieldName("content");
+                gen.writeStartArray();
+                for (final AIGuard.ContentPart part : message.getContentParts()) {
+                    writeContentPart(part, gen);
+                }
+                gen.writeEndArray();
+            } else if (message.getContent() != null) {
+                // Written on nullness, not emptiness: "" is the redaction remove strategy.
+                gen.writeStringField("content", message.getContent());
+            }
+            if (message.getToolCalls() != null) {
+                gen.writeFieldName("tool_calls");
+                gen.writeStartArray();
+                for (final AIGuard.ToolCall toolCall : message.getToolCalls()) {
+                    writeToolCall(toolCall, gen);
+                }
+                gen.writeEndArray();
+            }
+            if (message.getToolCallId() != null) {
+                gen.writeStringField("tool_call_id", message.getToolCallId());
+            }
+            gen.writeEndObject();
+        }
+
+        private static void writeContentPart(final AIGuard.ContentPart part,
+                                             final JsonGenerator gen) throws IOException {
+            gen.writeStartObject();
+            gen.writeStringField("type", part.getType().toString());
+            if (part.getType() == AIGuard.ContentPart.Type.TEXT) {
+                gen.writeStringField("text", part.getText());
+            } else if (part.getType() == AIGuard.ContentPart.Type.IMAGE_URL) {
+                gen.writeFieldName("image_url");
+                gen.writeStartObject();
+                gen.writeStringField("url", part.getImageUrl().getUrl());
+                gen.writeEndObject();
+            }
+            gen.writeEndObject();
+        }
+
+        private static void writeToolCall(final AIGuard.ToolCall toolCall,
+                                          final JsonGenerator gen) throws IOException {
+            gen.writeStartObject();
+            if (toolCall.getId() != null) {
+                gen.writeStringField("id", toolCall.getId());
+            }
+            final AIGuard.ToolCall.Function function = toolCall.getFunction();
+            if (function != null) {
+                gen.writeFieldName("function");
+                gen.writeStartObject();
+                if (function.getName() != null) {
+                    gen.writeStringField("name", function.getName());
+                }
+                if (function.getArguments() != null) {
+                    gen.writeStringField("arguments", function.getArguments());
+                }
+                gen.writeEndObject();
+            }
+            gen.writeEndObject();
+        }
     }
 
 }

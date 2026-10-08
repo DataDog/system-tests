@@ -1,6 +1,6 @@
 import time
 
-import pytest
+from utils import pytest
 
 from opentelemetry.trace import StatusCode
 from opentelemetry.trace import SpanKind

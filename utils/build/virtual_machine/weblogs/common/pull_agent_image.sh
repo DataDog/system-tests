@@ -14,6 +14,7 @@ fi
 set -e
 
 readonly AGENT_COMPOSE="${1:-${AGENT_COMPOSE:-docker-compose-agent-prod.yml}}"
+readonly AGENT_LOCK="${AGENT_LOCK:-agent.lock}"
 readonly DOCKER_PULL_MAX_RETRIES="${DOCKER_PULL_MAX_RETRIES:-3}"
 
 if [ ! -f "${AGENT_COMPOSE}" ]; then
@@ -21,8 +22,26 @@ if [ ! -f "${AGENT_COMPOSE}" ]; then
     exit 0
 fi
 
+if [ ! -f "${AGENT_LOCK}" ]; then
+    echo "Agent version lock ${AGENT_LOCK} not found"
+    exit 1
+fi
+
+# shellcheck source=/dev/null
+. "${AGENT_LOCK}"
+if [ -z "${DD_AGENT_VERSION:-}" ]; then
+    echo "DD_AGENT_VERSION is missing from ${AGENT_LOCK}"
+    exit 1
+fi
+
 agent_compose_image() {
-    awk '/^[[:space:]]*image:[[:space:]]*/ { print $2; exit }' "${AGENT_COMPOSE}"
+    awk -v version="${DD_AGENT_VERSION}" '
+        /^[[:space:]]*image:[[:space:]]*/ {
+            gsub(/\$\{DD_AGENT_VERSION\}/, version, $2)
+            print $2
+            exit
+        }
+    ' "${AGENT_COMPOSE}"
 }
 
 pull_docker_image() {

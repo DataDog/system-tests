@@ -3,8 +3,10 @@ FROM system_tests_base_nodejs_express5
 # Refresh the application code and dependencies baked into the base image.
 COPY utils/build/docker/nodejs/express/app.js app.js
 COPY utils/build/docker/nodejs/express/debugger debugger
+COPY utils/build/docker/nodejs/express5/baggage.js baggage.js
 COPY utils/build/docker/nodejs/express5/package.json utils/build/docker/nodejs/express5/bun.lock ./
 RUN bun install --frozen-lockfile --network-concurrency 8 --linker=hoisted
+RUN printf "\nrequire('./baggage')(app)\n" >> app.js
 
 EXPOSE 7777
 
@@ -19,8 +21,8 @@ ENV DD_DATA_STREAMS_ENABLED=true
 # docker startup
 COPY utils/build/docker/nodejs/app.sh app.sh
 RUN chmod +x app.sh
-RUN printf 'node app.js' >> app.sh
-CMD ./app.sh
+RUN printf 'exec node app.js\n' >> app.sh
+CMD ["./app.sh"]
 
 COPY utils/build/docker/nodejs/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh && rm -rf /root/.bun

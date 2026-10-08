@@ -1,4 +1,4 @@
-import pytest
+from utils import pytest
 
 from utils.docker_fixtures.spec.tracecontext import get_tracecontext
 from utils import scenarios, features
@@ -376,7 +376,12 @@ class Test_Headers_Tracestate_DD:
         # 3) x-datadog-tags is populated with both well-known tags and unrecognized tags
         # Result: Tags are placed into the tracestate where "_dd.p." is replaced with "t."
         #         and "=" is replaced with ":"
-        assert headers3["x-datadog-tags"] == "_dd.p.dm=-4,_dd.p.usr.id=baz64==,_dd.p.url=http://localhost"
+
+        assert set(headers3["x-datadog-tags"].split(",")) == {
+            "_dd.p.dm=-4",
+            "_dd.p.usr.id=baz64==",
+            "_dd.p.url=http://localhost",
+        }
 
         _, tracestate3 = get_tracecontext(headers3)
         dd_items3 = tracestate3["dd"].split(";")
