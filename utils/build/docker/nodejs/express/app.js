@@ -55,11 +55,14 @@ const jsonLogger = winston.createLogger({
 
 iast.initData().catch(() => {})
 
-app.use(require('body-parser').json({
+const jsonBodyOptions = {
   verify: (req, res, buf) => {
     req.rawBody = buf
   }
-}))
+}
+// The shared degradation contract sends 12,000 targeting keys in one /ffe request.
+app.use('/ffe', require('body-parser').json({ ...jsonBodyOptions, limit: '1mb' }))
+app.use(require('body-parser').json(jsonBodyOptions))
 app.use(require('body-parser').urlencoded({ extended: true }))
 app.use(require('express-xml-bodyparser')())
 app.use(require('cookie-parser')())

@@ -1913,7 +1913,10 @@ manifest:
       weblog: [express5]
     - declaration: missing_feature (EX-3412)
       excluded_weblog: [express5]
-  tests/ffe/test_flag_eval_evp.py: missing_feature (FFL-2446)
+  tests/ffe/test_flag_eval_evp.py:
+    - weblog_declaration:
+        "*": incomplete_test_app
+        express5: v7.0.0-pre
   tests/ffe/test_flag_eval_metrics.py:
     - weblog_declaration:
         "*": incomplete_test_app
