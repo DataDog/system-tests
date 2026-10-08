@@ -99,6 +99,24 @@ pub struct SpanSetBaggageArgs {
     pub value: String,
 }
 
+// --- SpanAddLinkArgs ---
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct SpanAddLinkArgs {
+    pub span_id: u64,
+    pub parent_id: u64,
+    pub attributes: Option<HashMap<String, serde_json::Value>>,
+}
+
+// --- SpanAddEventArgs ---
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct SpanAddEventArgs {
+    pub span_id: u64,
+    pub name: String,
+    /// Unix time in nanoseconds.
+    pub timestamp: u64,
+    pub attributes: Option<HashMap<String, serde_json::Value>>,
+}
+
 // --- SpanSetMetaArgs ---
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SpanSetMetaArgs {
@@ -112,7 +130,16 @@ pub struct SpanSetMetaArgs {
 pub struct SpanSetMetricArgs {
     pub span_id: u64,
     pub key: String,
-    pub value: f64,
+    pub value: MetricValue,
+}
+
+/// The client sends a number, a list of integers, or `null` (remove the metric).
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(untagged)]
+pub enum MetricValue {
+    Number(f64),
+    IntArray(Vec<i64>),
+    Null,
 }
 
 // --- ManualSamplingArgs ---
@@ -179,6 +206,8 @@ pub struct ConfigResult {
     pub dd_trace_sample_rate: Option<String>,
     pub dd_trace_enabled: Option<String>,
     pub dd_runtime_metrics_enabled: Option<String>,
+    pub dd_metrics_otel_interval: Option<String>,
+    pub otel_metrics_initialized: Option<String>,
     pub otel_exporter_otlp_metrics_timeout_ms: Option<String>,
     pub otel_exporter_otlp_logs_timeout_ms: Option<String>,
     pub dd_tags: Option<String>,
@@ -235,9 +264,13 @@ impl From<Config> for ConfigResult {
         Self {
             dd_service: Some(config.service().to_string()),
             dd_log_level: Some(config.log_level_filter().to_string().to_lowercase()),
-            dd_trace_sample_rate: None,
+            // Unset means the default of 1.0, as in the other SDKs.
+            dd_trace_sample_rate: Some(config.trace_sample_rate().unwrap_or(1.0).to_string()),
             dd_trace_enabled: Some(bool_str(config.enabled())),
-            dd_runtime_metrics_enabled: Some(bool_str(config.metrics_otel_enabled())),
+            // dd-trace-rs has no runtime metrics; OTel metrics are a separate setting.
+            dd_runtime_metrics_enabled: None,
+            dd_metrics_otel_interval: Some(config.metric_export_interval().to_string()),
+            otel_metrics_initialized: Some(bool_str(config.metrics_otel_enabled())),
             otel_exporter_otlp_metrics_timeout_ms: Some(
                 std::num::NonZeroU32::new(config.otlp_metrics_timeout())
                     .map_or(config.otlp_timeout(), std::num::NonZeroU32::get)
@@ -251,7 +284,8 @@ impl From<Config> for ConfigResult {
             dd_tags: Some(format_global_tags(&config)),
             dd_trace_propagation_style: Some(format_trace_propagation_extract(&config)),
             dd_trace_debug: Some(bool_str(dd_trace_debug)),
-            dd_trace_otel_enabled: None,
+            // dd-trace-rs is built on the OTel API, so it is always on.
+            dd_trace_otel_enabled: Some(bool_str(true)),
             dd_trace_sample_ignore_parent: None,
             dd_env: config.env().map(str::to_string),
             dd_version: config.version().map(str::to_string),
@@ -259,6 +293,7 @@ impl From<Config> for ConfigResult {
             dd_trace_rate_limit: Some(config.trace_rate_limit().to_string()),
             dd_dogstatsd_host: Some(config.dogstatsd_agent_host().to_string()),
             dd_dogstatsd_port: Some(config.dogstatsd_agent_port().to_string()),
+            // Not supported by dd-trace-rs.
             dd_logs_injection: None,
             dd_profiling_enabled: None,
             dd_data_streams_enabled: None,
