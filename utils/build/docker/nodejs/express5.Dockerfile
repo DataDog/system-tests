@@ -18,9 +18,6 @@ ENV PGPORT=5433
 
 ENV DD_DATA_STREAMS_ENABLED=true
 
-# Allow Node.js to trust the CA bundle mounted by direct-intake test scenarios.
-ENV NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt
-
 # docker startup
 COPY utils/build/docker/nodejs/app.sh app.sh
 RUN chmod +x app.sh
