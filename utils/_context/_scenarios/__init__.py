@@ -310,6 +310,8 @@ class _Scenarios:
     otel_startup_logs = DdTraceEndToEndScenario(
         "OTEL_STARTUP_LOGS",
         weblog_env={**OTEL_STARTUP_LOGS_ENV},
+        library_interface_timeout=0,
+        agent_interface_timeout=0,
         appsec_enabled=False,
         iast_enabled=False,
         tracer_sampling_rate=None,
