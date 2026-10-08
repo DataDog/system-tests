@@ -223,10 +223,28 @@ async fn set_meta(State(state): State<AppState>, Json(args): Json<SpanSetMetaArg
     if let Some(ctx) = contexts.get_mut(&args.span_id) {
         let span = ctx.context.span();
         debug!("set_meta: span {} found", args.span_id);
-        span.set_attribute(opentelemetry::KeyValue::new(
-            args.key.clone(),
-            args.value.clone(),
-        ));
+        let value: Option<opentelemetry::Value> = match &args.value {
+            serde_json::Value::String(s) => Some(s.clone().into()),
+            serde_json::Value::Bool(b) => Some((*b).into()),
+            serde_json::Value::Number(n) => Some(n.to_string().into()),
+            // Lists of strings become native OTel arrays; nested lists can't be represented.
+            serde_json::Value::Array(items) => items
+                .iter()
+                .map(|i| {
+                    i.as_str()
+                        .map(|s| opentelemetry::StringValue::from(s.to_string()))
+                })
+                .collect::<Option<Vec<_>>>()
+                .map(|v| opentelemetry::Value::Array(v.into())),
+            // OTel spans can't remove an attribute once set.
+            serde_json::Value::Null | serde_json::Value::Object(_) => None,
+        };
+        match value {
+            Some(value) => {
+                span.set_attribute(opentelemetry::KeyValue::new(args.key.clone(), value))
+            }
+            None => debug!("set_meta: can't set {} to {}", args.key, args.value),
+        }
     } else {
         debug!("set_meta: span {} NOT found", args.span_id);
     }

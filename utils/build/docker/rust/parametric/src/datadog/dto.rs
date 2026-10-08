@@ -122,7 +122,8 @@ pub struct SpanAddEventArgs {
 pub struct SpanSetMetaArgs {
     pub span_id: u64,
     pub key: String,
-    pub value: String,
+    /// The client sends a string, a bool, a (possibly nested) list of strings, or `null`.
+    pub value: serde_json::Value,
 }
 
 // --- SpanSetMetricArgs ---
