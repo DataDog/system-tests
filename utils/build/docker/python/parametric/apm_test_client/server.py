@@ -10,6 +10,10 @@ import logging
 import os
 import enum
 import threading
+
+# Starlette's synchronous endpoints access this public submodule through anyio.
+# Recent AnyIO releases no longer populate it on importing the parent package.
+import anyio.to_thread
 from fastapi import FastAPI
 from fastapi import Request
 from fastapi.responses import JSONResponse
@@ -24,6 +28,7 @@ from opentelemetry.metrics import Meter
 from opentelemetry.metrics import Observation
 from opentelemetry.metrics import Instrument
 from opentelemetry.metrics import get_meter_provider
+from opentelemetry.sdk.metrics import MeterProvider as SdkMeterProvider
 from opentelemetry.trace import set_tracer_provider
 from opentelemetry.trace.span import NonRecordingSpan as OtelNonRecordingSpan
 from opentelemetry.trace import SpanKind
@@ -198,9 +203,21 @@ def trace_config() -> TraceConfigReturn:
         config={
             "dd_service": config.service,
             "dd_log_level": None,
+            "dd_trace_effective_log_level": logging.getLevelName(
+                logging.getLogger("ddtrace").getEffectiveLevel()
+            ).lower(),
             "dd_trace_sample_rate": str(_global_sampling_rate()),
             "dd_trace_enabled": str(config._tracing_enabled).lower(),
             "dd_runtime_metrics_enabled": str(config._runtime_metrics_enabled).lower(),
+            "otel_metrics_initialized": str(isinstance(get_meter_provider(), SdkMeterProvider)).lower(),
+            "otel_exporter_otlp_metrics_timeout_ms": otlp_exporter_timeout(
+                getattr(getattr(get_meter_provider(), "_sdk_config", None), "metric_readers", ())
+            ),
+            "otel_exporter_otlp_logs_timeout_ms": otlp_exporter_timeout(
+                getattr(
+                    getattr(get_logger_provider(), "_multi_log_record_processor", None), "_log_record_processors", ()
+                )
+            ),
             "dd_tags": ",".join(f"{k}:{v}" for k, v in config.tags.items()),
             "dd_trace_propagation_style": ",".join(config._propagation_style_extract),
             "dd_trace_debug": str(config._debug_mode).lower(),
@@ -217,6 +234,23 @@ def trace_config() -> TraceConfigReturn:
             "dd_data_streams_enabled": str(config._data_streams_enabled).lower(),
         }
     )
+
+
+def otlp_exporter_timeout(processors: Any) -> Optional[str]:
+    timeouts = []
+    for processor in processors:
+        batch_processor = getattr(processor, "_batch_processor", processor)
+        exporter = getattr(batch_processor, "_exporter", None)
+        if exporter is None:
+            exporter = getattr(processor, "_exporter", None)
+        if exporter is None or not any(
+            cls.__module__.startswith("opentelemetry.exporter.otlp.") for cls in type(exporter).__mro__
+        ):
+            continue
+        timeout = getattr(exporter, "_timeout", None)
+        if isinstance(timeout, (int, float)):
+            timeouts.append(str(int(timeout * 1000)))
+    return timeouts[0] if len(timeouts) == 1 else None
 
 
 @app.post("/trace/span/finish")

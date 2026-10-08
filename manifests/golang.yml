@@ -1957,6 +1957,7 @@ manifest:
         net-http: v1.70.1
         net-http-span-pool: v1.70.1
   tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP: v2.8.0-dev
+  tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP::test_single_server_trace: missing_feature
   tests/otel/test_tracing_otlp.py::Test_Otlp_Carries_Ot: v2.11.0-dev
   tests/otel/test_tracing_otlp.py::Test_Otlp_Forwards_Inherited_Ot: v2.11.0-dev  # Easy win for chi, echo, fiber-v2-orchestrion, gin, net-http, net-http-orchestrion, uds-echo and version 2.10.1
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
@@ -1968,10 +1969,44 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY: bug (APMAPI-2502)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_compression.py::Test_OTEL_EXPORTER_OTLP_COMPRESSION: missing_feature
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_endpoint.py::Test_OTEL_EXPORTER_OTLP_ENDPOINT: v2.6.0
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS: v2.6.0
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_logs_percent_encoded_value
+  : bug (APMAPI-2497)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_compression.py::Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION: missing_feature
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_endpoint.py::Test_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT: v2.7.0
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_headers.py::Test_OTEL_EXPORTER_OTLP_LOGS_HEADERS: v2.7.0
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_headers.py::Test_OTEL_EXPORTER_OTLP_LOGS_HEADERS::test_logs_percent_encoded_value
+  : bug (APMAPI-2497)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL: v2.7.0
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL::test_default: irrelevant (The SDK documents HTTP JSON as its logs default)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL::test_documented_json_default
+  : bug (APMAPI-2501)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL::test_empty: bug (APMAPI-2501)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL::test_http_json: bug (APMAPI-2501)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL::test_invalid: bug (APMAPI-2501)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_compression.py::Test_OTEL_EXPORTER_OTLP_METRICS_COMPRESSION: missing_feature
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_endpoint.py::Test_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: v2.6.0
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_headers.py::Test_OTEL_EXPORTER_OTLP_METRICS_HEADERS: v2.6.0
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_protocol.py::Test_OTEL_EXPORTER_OTLP_METRICS_PROTOCOL: v2.6.0
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_protocol.py::Test_OTEL_EXPORTER_OTLP_METRICS_PROTOCOL::test_http_json
+  : missing_feature (OTLP HTTP JSON exporter is not implemented)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_temporality_preference.py::Test_OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE
+  : v2.5.0
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_temporality_preference.py::Test_OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE::test_default_matches_specification
+  : missing_feature (Datadog intentionally defaults to Delta)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_temporality_preference.py::Test_OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE::test_lowmemory
+  : missing_feature (LowMemory temporality is not implemented)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_temporality_preference.py::Test_OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE::test_lowmemory_case_insensitive
+  : missing_feature (LowMemory temporality is not implemented)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL: v2.5.0
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL::test_http_json: missing_feature (OTLP HTTP JSON exporter is not implemented)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs: v2.7.0
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs::test_default: irrelevant (The SDK documents HTTP JSON as its logs default)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs::test_documented_json_default
+  : bug (APMAPI-2501)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs::test_empty: bug (APMAPI-2501)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs::test_http_json: bug (APMAPI-2501)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs::test_invalid: bug (APMAPI-2501)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_endpoint.py::Test_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: v2.8.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_headers.py::Test_OTEL_EXPORTER_OTLP_TRACES_HEADERS: missing_feature
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_protocol.py::Test_OTEL_EXPORTER_OTLP_TRACES_PROTOCOL: missing_feature
@@ -1988,6 +2023,8 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES: v2.3.0
   tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES::test_invalid_value_is_discarded: bug (APMAPI-2432)
   tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES::test_percent_encoded_separators: bug (APMAPI-2425)
+  ? tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES::test_reserved_attributes_are_mapped
+  : missing_feature
   tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED: missing_feature
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME: v2.6.0
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_default_follows_otel_spec: irrelevant
@@ -2136,9 +2173,7 @@ manifest:
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_w3c_p_inject:
     - declaration: missing_feature (Not implemented)
       component_version: <1.64.0
-  tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_propagate_propagatedtags:  # TODO: a lower version might be supported
-    - declaration: "missing_feature (\"False Bug: header[3,6]: can't guarantee the order of strings in the tracestate since they came from the map. BUG: header[4,5]: w3cTraceID shouldn't be present\")"
-      component_version: <2.10.1
+  tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_propagate_propagatedtags: "missing_feature (\"False Bug: header[3,6]: can't guarantee the order of strings in the tracestate since they came from the map. BUG: header[4,5]: w3cTraceID shouldn't be present\")"
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_cardinality_overflow_sentinel_TS017:  # Easy win for all weblogs and version 2.10.1
     - declaration: "missing_feature (CSS v1.2.0 Cardinality Limits: dd-trace-go implements collapsing to the tracer_blocked_value sentinel and DD_TRACE_STATS_*_CARDINALITY_LIMIT from v2.11.0 via #5032)"
       component_version: '<2.11.0-dev'
@@ -2154,10 +2189,8 @@ manifest:
   tests/parametric/test_otel_logs.py::Test_FR03_Resource_Attributes: '>=2.10.1'  # Created by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR04_Trace_Span_IDs: '>=2.10.1'  # Created by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR05_Custom_Endpoints: '>=2.10.1'  # Created by easy win activation script
-  tests/parametric/test_otel_logs.py::Test_FR06_OTLP_Protocols: '>=2.10.1'  # Created by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR07_Host_Name: '>=2.10.1'  # Created by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR07_Host_Name::test_hostname_from_dd_hostname: irrelevant (DD_HOSTNAME is only supported in Python)
-  tests/parametric/test_otel_logs.py::Test_FR08_Custom_Headers: missing_feature  # Created by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR09_Log_Injection: '>=2.10.1'  # Created by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR10_Timeout_Configuration: missing_feature  # Created by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR11_Telemetry: '>=2.10.1'  # Created by easy win activation script
@@ -2165,6 +2198,7 @@ manifest:
   tests/parametric/test_otel_logs.py::Test_FR11_Telemetry::test_telemetry_exporter_logs_configurations: missing_feature
   tests/parametric/test_otel_logs.py::Test_FR12_Log_Levels: '>=2.10.1'  # Created by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields: '>=2.10.1'  # Created by easy win activation script
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Resource_Attributes::test_dd_env_vars_override_otel: missing_feature
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_default_configurations: '>=2.10.1'  # TODO: a lower version might be supported
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_exporter_configurations: '>=2.10.1'  # TODO: a lower version might be supported
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_exporter_metrics_configurations: '>=2.10.1'  # TODO: a lower version might be supported
@@ -2854,10 +2888,13 @@ manifest:
   tests/test_standard_tags.py::Test_StandardTagsUrl::test_multiple_matching_substring:
     - weblog_declaration:
         envoy, apim, haproxy: irrelevant (tracer did not yet implemented the new version of query parameters obfuscation regex)
-        "*": missing_feature (tracer did not yet implemented the new version of query parameters obfuscation regex)
+        fiber-v2-orchestrion: missing_feature (Fiber v2 records only the URL path)
+        "*": v2.11.1
   tests/test_standard_tags.py::Test_StandardTagsUrl::test_multiple_matching_substring_legacy:
     - declaration: missing_feature (Fiber v2 records only the URL path)
       weblog: fiber-v2-orchestrion
+    - declaration: irrelevant (golang released the new version of query parameters obfuscation regex at 2.11.1 (backport) and 2.12.0-dev)
+      component_version: '>=2.11.1'
   tests/test_standard_tags.py::Test_StandardTagsUrl::test_url_with_query_string:
     - declaration: missing_feature (Fiber v2 records only the URL path)
       weblog: fiber-v2-orchestrion
@@ -2865,10 +2902,13 @@ manifest:
     - weblog_declaration:
         haproxy: irrelevant (tracer did not yet implemented the new version of query parameters obfuscation regex)
         envoy, apim: irrelevant (tracer did not yet implemented the new version of query parameters obfuscation regex)
-        "*": missing_feature (tracer did not yet implemented the new version of query parameters obfuscation regex)
+        fiber-v2-orchestrion: missing_feature (Fiber v2 records only the URL path)
+        "*": v2.11.1
   tests/test_standard_tags.py::Test_StandardTagsUrl::test_url_with_sensitive_query_string_legacy:
     - declaration: missing_feature (Fiber v2 records only the URL path)
       weblog: fiber-v2-orchestrion
+    - declaration: irrelevant (golang released the new version of query parameters obfuscation regex at 2.11.1 (backport) and 2.12.0-dev)
+      component_version: '>=2.11.1'
   tests/test_standard_tags.py::Test_StandardTagsUserAgent:
     - weblog_declaration:
         '*': v1.39.0

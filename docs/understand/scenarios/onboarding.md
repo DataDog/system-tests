@@ -1146,6 +1146,13 @@ Next, update your GitLab CI configuration file to include the variable `DD_INSTA
 You can see an example in the `dd-trace-java` repository:
 🔗 [GitLab CI example line](https://github.com/DataDog/dd-trace-java/blob/d2f5bb4248ea6ed459374919b357ac93c7d3a810/.gitlab-ci.yml#L961)
 
+Docker SSI, AWS SSI, and AWS SSI container apps choose the injector in this order. The environment does not change the first two cases:
+
+1. `DD_INSTALLER_INJECTOR_VERSION` is set. That value is installed as-is, in prod and in dev. The package comes from `installtesting.datad0g.com` (a pipeline build such as `pipeline-79059602`). `utils/build/auto_inject.lock` is not used.
+2. `DD_INSTALLER_INJECTOR_VERSION` is unset and `DD_INSTALLER_LIBRARY_VERSION` is set. The injector version is the one in `utils/build/auto_inject.lock`, in prod and in dev. The package comes from `install.datadoghq.com`.
+3. Both variables are unset and the install environment is prod (`CI_ENVIRONMENT=prod`). Same as case 2: the lock file version, from `install.datadoghq.com`.
+4. Both variables are unset and the install environment is dev (`CI_ENVIRONMENT=dev`). The install keeps the latest injector snapshot from the dev registry.
+
 Here’s how the modified section would look:
 
 ```yaml
@@ -1317,5 +1324,4 @@ A failure in the GitLab runners can propagate across all repositories that rely 
 
 1. If the problem persists, report it in the #ci-infra-support channel so the CI infrastructure team can investigate and assist.
 2. The runners used for SSI tests in system-tests can be found at: https://github.com/DataDog/libdatadog-build/tree/main/docker
-
 
