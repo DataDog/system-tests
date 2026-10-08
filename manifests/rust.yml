@@ -3,7 +3,7 @@
 refs:
   - &ref_0_0_1 "0.0.1"
 manifest:
-  tests/ai_guard/test_ai_guard_sdk.py: incomplete_test_app (/ai_guard endpoints are not implemented)
+  tests/ai_guard/test_ai_guard_sdk.py: missing_feature (dd-trace-rs has no AI Guard SDK)
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span::test_datadog_otel_span: missing_feature (Datadog OTel API for Rust does not support overriding the span ID, so the parent cannot be forced to 10000)
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span::test_distributed_otel_trace: irrelevant (Golang specific test with OTel Go contrib package)
   tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags: missing_feature (process tags not implemented)
@@ -322,8 +322,8 @@ manifest:
     - declaration: incomplete_test_app (/trace/config endpoint is not implemented)
       component_version: <0.4.1-dev+926c77a
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_env_var_take_precedence: missing_feature (dd-trace-rs has no runtime metrics)
-  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_env_vars_set: incomplete_test_app (/trace/config endpoint is not implemented)
-  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_log_level_env: incomplete_test_app (/trace/config endpoint is not implemented)
+  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_env_vars_set: missing_feature (dd-trace-rs does not read OTEL_TRACES_SAMPLER/OTEL_TRACES_SAMPLER_ARG)
+  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_log_level_env: missing_feature (dd-trace-rs does not read OTEL_LOG_LEVEL)
   tests/parametric/test_otel_logs.py: v0.3.0
   tests/parametric/test_otel_logs.py::Test_FR03_Resource_Attributes::test_dd_env_vars_override_otel: missing_feature (deployment.environment.name is not supported)
   tests/parametric/test_otel_logs.py::Test_FR03_Resource_Attributes::test_otel_resource_attributes:  # TODO: a lower version might be supported
@@ -537,8 +537,8 @@ manifest:
   tests/test_config_consistency.py::Test_Config_HttpClientErrorStatuses_Default: missing_feature (HTTP client error statuses are not implemented)
   tests/test_config_consistency.py::Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature (custom HTTP client error statuses are not implemented)
   tests/test_config_consistency.py::Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature (custom HTTP server error statuses are not implemented)
-  tests/test_config_consistency.py::Test_Config_IntegrationEnabled_False::test_integration_enabled_false: missing_feature (/kafka/produce endpoint not implemented)
-  tests/test_config_consistency.py::Test_Config_IntegrationEnabled_True: incomplete_test_app (/kafka/produce endpoint not implemented)
+  tests/test_config_consistency.py::Test_Config_IntegrationEnabled_False::test_integration_enabled_false: missing_feature (dd-trace-rs has no Kafka integration)
+  tests/test_config_consistency.py::Test_Config_IntegrationEnabled_True: missing_feature (dd-trace-rs has no Kafka integration)
   tests/test_config_consistency.py::Test_Config_LogInjection_128Bit_TraceId_Disabled: missing_feature (dd-trace-rs has no log injection)
   tests/test_config_consistency.py::Test_Config_LogInjection_128Bit_TraceId_Enabled: missing_feature (dd-trace-rs has no log injection)
   tests/test_config_consistency.py::Test_Config_LogInjection_Default_Structured: missing_feature (dd-trace-rs has no log injection)
@@ -564,10 +564,10 @@ manifest:
   tests/test_data_integrity.py::Test_TraceHeaders::test_traces_header_present: missing_feature (datadog-meta-lang-interpreter not set)
   tests/test_distributed.py::Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   tests/test_distributed.py::Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
-  tests/test_identify.py::Test_Basic: missing_feature (/identify endpoint not implemented)
-  tests/test_identify.py::Test_Propagate::test_identify_tags_outgoing: missing_feature (/identify-propagate endpoint not implemented)
-  tests/test_identify.py::Test_Propagate_Legacy::test_identify_tags_outgoing: missing_feature (/identify-propagate endpoint not implemented)
-  tests/test_ipv6.py::Test_Basic: missing_feature (IPv6 is not supported by the Axum weblog)
+  tests/test_identify.py::Test_Basic: missing_feature (dd-trace-rs has no user-identification API)
+  tests/test_identify.py::Test_Propagate::test_identify_tags_outgoing: missing_feature (dd-trace-rs has no user-identification API)
+  tests/test_identify.py::Test_Propagate_Legacy::test_identify_tags_outgoing: missing_feature (dd-trace-rs has no user-identification API)
+  tests/test_ipv6.py::Test_Basic: missing_feature (dd-trace-rs does not bracket IPv6 hosts in the agent URL)
   tests/test_library_conf.py::Test_ExtractBehavior_Default: v0.0.1
   tests/test_library_conf.py::Test_ExtractBehavior_Ignore: ">=0.3.4-dev"
   tests/test_library_conf.py::Test_ExtractBehavior_Restart_Otel: '>=0.5.3-dev'  # TODO: a lower version might be supported
@@ -609,7 +609,7 @@ manifest:
   tests/test_otel_tracestate_sampling.py::Test_ThOnlyDoesNotFabricateRv: '>=0.5.2-dev'
   tests/test_otel_tracestate_sampling.py::Test_ThOnlyDoesNotFabricateRvWhenDropped: '>=0.5.2-dev'
   tests/test_profiling.py::Test_Profile: missing_feature (profiling is not implemented)
-  tests/test_resource_renaming.py: incomplete_test_app (resource-renaming endpoints are not implemented)
+  tests/test_resource_renaming.py: missing_feature (dd-trace-rs does not compute http.endpoint)
   tests/test_rum_injection.py::Test_RUM_Injection::test_rum_enabled: missing_feature (/html endpoint not implemented)
   tests/test_sampling_manual.py::Test_Manual_Sampling: missing_feature (dd-trace-rs does not honor the manual.keep/manual.drop attributes)
   tests/test_sampling_rate_capping.py::Test_SamplingRateCappedIncrease: missing_feature (sampling-rate capping is not implemented)
@@ -621,7 +621,7 @@ manifest:
     - declaration: missing_feature (Rust does not implement query string obfuscation)
       excluded_weblog: [axum]
   tests/test_semantic_conventions.py::Test_Meta::test_meta_runtime_id_tag: missing_feature (dd-trace-rs does not tag spans with runtime-id)
-  tests/test_span_events.py: missing_feature (Span Events are not implemented)
+  tests/test_span_events.py: incomplete_test_app (/add_event endpoint not implemented)
   tests/test_standard_tags.py::Test_StandardTagsClientIp: missing_feature (client IP resolution from forwarded headers is a tracer feature, not implemented in dd-trace-rs)
   tests/test_standard_tags.py::Test_StandardTagsNetworkClientIp: missing_feature (client IP resolution is a tracer feature, not implemented in dd-trace-rs)
   tests/test_standard_tags.py::Test_StandardTagsReferrerHostname: missing_feature (referer hostname extraction is a tracer feature, not implemented in dd-trace-rs)
@@ -652,7 +652,7 @@ manifest:
   tests/test_telemetry.py::Test_ProductsDisabled: missing_feature (product state is not reported in app-started telemetry)
   tests/test_telemetry.py::Test_Telemetry::test_api_still_v1: irrelevant
   tests/test_telemetry.py::Test_Telemetry::test_app_dependencies_loaded: missing_feature (/load_dependency endpoint not implemented)
-  tests/test_telemetry.py::Test_Telemetry::test_app_product_change: missing_feature (/enable_product endpoint not implemented)
+  tests/test_telemetry.py::Test_Telemetry::test_app_product_change: missing_feature (dd-trace-rs has no appsec or profiler product to enable)
   tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_forks: missing_feature (fork is not safe under tokio; /spawn_child only supports fork=false)
   tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_spawned: '>=0.5.3-dev'  # TODO: a lower version might be supported
   tests/test_telemetry.py::Test_Telemetry::test_telemetry_message_has_datadog_container_id: "irrelevant (cgroup in weblog is 0::/, so this test can't work)"
