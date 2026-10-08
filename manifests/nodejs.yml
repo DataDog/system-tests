@@ -2409,10 +2409,7 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL: v5.88.0
   tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_case_insensitive_debug_mapping: bug (APMAPI-2536)
   tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_default_matches_specification: irrelevant (Datadog intentionally defaults to debug with debug output disabled)
-  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_empty_is_treated_as_unset: irrelevant (Datadog intentionally defaults to debug with debug output disabled)
-  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_error_threshold_fallback: irrelevant (A different logger default applies)
   tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_invalid_value_emits_warning: bug (APMAPI-2536)
-  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_invalid_value_is_ignored: irrelevant (Datadog intentionally defaults to debug with debug output disabled)
   tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_warning_threshold_diagnostic: irrelevant (Uses the PHP SDK diagnostic probe)
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER: missing_feature (OTEL_LOGS_EXPORTER does not configure the logs pipeline)
   tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT: v5.83.0

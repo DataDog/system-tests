@@ -3,7 +3,7 @@
 import time
 
 from utils import features, pytest, scenarios
-from tests.parametric.conftest import APMLibrary, nodejs_startup_config
+from tests.parametric.conftest import APMLibrary, APMLibraryFactory, nodejs_startup_config
 from tests.parametric.otel_env_vars.utils import has_warning_for_value
 from utils.docker_fixtures import TestAgentAPI
 
@@ -57,14 +57,31 @@ def _log_level(test_agent: TestAgentAPI, library: APMLibrary) -> str:
     return value.lower()
 
 
-def _php_threshold_diagnostics(library: APMLibrary, *, warning_enabled: bool) -> None:
+def _php_threshold_diagnostics(library: APMLibrary) -> tuple[bool, bool]:
     assert library.dd_log_level_diagnostics(), "The SDK logger diagnostic probe did not complete"
-    # Both SDK calls execute synchronously before the endpoint responds. Requiring
-    # ERROR positively prevents a completely disabled logger from passing.
+    # Both SDK calls execute synchronously before the endpoint responds.
     logs = library.get_logs().lower()
-    assert "cannot update the span duration of an unfinished span" in logs, f"No SDK ERROR diagnostic:\n{logs}"
-    warning = "unexpected parameter, expecting double for start time"
-    assert (warning in logs) is warning_enabled, f"Unexpected SDK WARN filtering:\n{logs}"
+    return (
+        "cannot update the span duration of an unfinished span" in logs,
+        "unexpected parameter, expecting double for start time" in logs,
+    )
+
+
+def _fallback_log_level(test_agent: TestAgentAPI, library: APMLibrary) -> str | tuple[bool, bool]:
+    if library.lang == "php":
+        return _php_threshold_diagnostics(library)
+    return _log_level(test_agent, library)
+
+
+@pytest.fixture
+def default_log_level(test_agent: TestAgentAPI, test_library_factory: APMLibraryFactory) -> str | tuple[bool, bool]:
+    with test_library_factory(DEFAULT_ENVIRONMENT) as library:
+        observed = _fallback_log_level(test_agent, library)
+        if isinstance(observed, tuple):
+            # A positive baseline artifact prevents a completely disabled logger
+            # from passing merely because both processes emit nothing.
+            assert observed[0], "The unset SDK logger did not emit the ERROR diagnostic"
+        return observed
 
 
 def _diagnostic_logs(library: APMLibrary) -> str:
@@ -125,34 +142,35 @@ class Test_OTEL_LOG_LEVEL:
             assert _log_level(test_agent, library) == "info"
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVIRONMENT, VARIABLE: ""}], ids=["empty"])
-    def test_empty_is_treated_as_unset(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
-        with test_library as library:
-            assert _log_level(test_agent, library) == "info"
+    def test_empty_is_treated_as_unset(
+        self,
+        test_agent: TestAgentAPI,
+        test_library_factory: APMLibraryFactory,
+        library_env: dict[str, str | None],
+        default_log_level: str | tuple[bool, bool],
+    ) -> None:
+        with test_library_factory(library_env) as library:
+            assert _fallback_log_level(test_agent, library) == default_log_level
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVIRONMENT, VARIABLE: "warn"}], ids=["warn"])
     def test_warning_threshold_diagnostic(self, test_library: APMLibrary) -> None:
         # Positive control for the warning suppressed by the PHP fallback threshold.
         with test_library as library:
-            _php_threshold_diagnostics(library, warning_enabled=True)
-
-    @pytest.mark.parametrize(
-        "library_env",
-        [
-            pytest.param({**DEFAULT_ENVIRONMENT, VARIABLE: ""}, id="empty"),
-            pytest.param({**DEFAULT_ENVIRONMENT, VARIABLE: "not-a-log-level"}, id="unrecognized"),
-        ],
-    )
-    def test_error_threshold_fallback(self, test_library: APMLibrary) -> None:
-        with test_library as library:
-            _php_threshold_diagnostics(library, warning_enabled=False)
+            assert _php_threshold_diagnostics(library) == (True, True)
 
     @pytest.mark.parametrize(
         "library_env",
         [pytest.param({**DEFAULT_ENVIRONMENT, VARIABLE: "not-a-log-level"}, id="unrecognized")],
     )
-    def test_invalid_value_is_ignored(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
-        with test_library as library:
-            assert _log_level(test_agent, library) == "info"
+    def test_invalid_value_is_ignored(
+        self,
+        test_agent: TestAgentAPI,
+        test_library_factory: APMLibraryFactory,
+        library_env: dict[str, str | None],
+        default_log_level: str | tuple[bool, bool],
+    ) -> None:
+        with test_library_factory(library_env) as library:
+            assert _fallback_log_level(test_agent, library) == default_log_level
 
     @pytest.mark.parametrize(
         "library_env",
