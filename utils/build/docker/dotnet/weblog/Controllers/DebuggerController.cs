@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
 using Microsoft.AspNetCore.Routing;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using weblog.Models.Debugger;
 
@@ -186,7 +185,7 @@ namespace weblog
 
         [HttpGet("correlation")]
         [Consumes("application/json", "application/xml")]
-        [MethodImpl(MethodImplOptions.NoInlining)]
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
         public IActionResult Correlation()
         {
             int result = CorrelationMiddle();
@@ -194,7 +193,7 @@ namespace weblog
             return Content($"Correlation {result}");
         }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
         private int CorrelationMiddle()
         {
             int result = CorrelationLeaf();
@@ -202,7 +201,7 @@ namespace weblog
             return result;
         }
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
         private int CorrelationLeaf()
         {
             return 3;
