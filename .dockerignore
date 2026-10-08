@@ -22,3 +22,7 @@ scenario_groups.yml
 **/dotnet/**/*.user
 **/dotnet/**/*.suo
 /system-tests.sln
+
+# rust (local cargo builds; the Dockerfiles use a cache mount for target/)
+utils/build/docker/rust/*/target/
+/binaries/dd-trace-rs/target/

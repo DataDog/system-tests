@@ -13,6 +13,7 @@ use axum::{
 };
 use opentelemetry::{
     baggage::BaggageExt,
+    context::FutureExt,
     global,
     propagation::TextMapPropagator,
     trace::{Span, SpanKind, Status, TraceContextExt, Tracer},
@@ -31,6 +32,8 @@ mod integration;
 const VERSION_FILE: &str = "/app/SYSTEM_TESTS_LIBRARY_VERSION";
 const DOWNSTREAM_RETURN_HEADERS_URL: &str = "http://localhost:7777/returnheaders";
 const DOWNSTREAM_ROOT_URL: &str = "http://localhost:7777/";
+const CHILD_SLEEP_ENV: &str = "DD_SYSTEM_TEST_CHILD_SLEEP";
+const CHILD_CRASH_ENV: &str = "DD_SYSTEM_TEST_CHILD_CRASH";
 
 #[derive(Clone)]
 struct AppState {
@@ -41,6 +44,33 @@ struct AppState {
 #[derive(Deserialize)]
 struct StatusQuery {
     code: u16,
+}
+
+#[derive(Deserialize)]
+struct ReadFileQuery {
+    file: String,
+}
+
+#[derive(Deserialize)]
+struct LogLibraryQuery {
+    msg: Option<String>,
+    level: Option<String>,
+}
+
+#[derive(Deserialize)]
+struct SpawnChildQuery {
+    sleep: u64,
+    crash: bool,
+    fork: bool,
+}
+
+#[derive(Deserialize)]
+struct BaggageApiQuery {
+    url: String,
+    /// Comma-separated `key=value` pairs to set.
+    baggage_set: Option<String>,
+    /// Comma-separated keys to remove.
+    baggage_remove: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -71,6 +101,10 @@ struct E2eSpanQuery {
 
 #[tokio::main]
 async fn main() {
+    if let Ok(sleep) = std::env::var(CHILD_SLEEP_ENV) {
+        run_as_child(&sleep);
+    }
+
     let tracer_provider = integration::install_datadog_tracing();
 
     let app = app(AppState {
@@ -86,6 +120,19 @@ async fn main() {
     tracer_provider.shutdown().unwrap();
 }
 
+/// Child mode for `/spawn_child`: start the tracer (so it emits its own telemetry),
+/// sleep, stop it, then exit or crash.
+fn run_as_child(sleep: &str) -> ! {
+    let tracer_provider = integration::install_datadog_tracing();
+    std::thread::sleep(Duration::from_secs(sleep.parse().unwrap_or(0)));
+    let _ = tracer_provider.shutdown();
+
+    if std::env::var(CHILD_CRASH_ENV).is_ok_and(|crash| crash == "true") {
+        std::process::abort();
+    }
+    std::process::exit(0);
+}
+
 fn app(state: AppState) -> Router {
     let router = Router::new()
         .route("/", get(index))
@@ -95,6 +142,7 @@ fn app(state: AppState) -> Router {
         .route("/healthcheck", get(healthcheck))
         .route("/headers", get(headers))
         .route("/status", get(status))
+        .route("/read_file", get(read_file))
         .route("/spans", get(spans))
         .route("/stats-unique", get(stats_unique))
         .route("/params/{value}", get(params))
@@ -121,7 +169,22 @@ fn app(state: AppState) -> Router {
         )
         .route("/rasp/sqli", get(rasp_sqli))
         .route("/make_distant_call", get(make_distant_call))
+        .route(
+            "/otel_drop_in_baggage_api_otel",
+            get(otel_drop_in_baggage_api),
+        )
+        // dd-trace-rs has no baggage API of its own: its public API is the OTel one.
+        .route(
+            "/otel_drop_in_baggage_api_datadog",
+            get(otel_drop_in_baggage_api),
+        )
+        .route(
+            "/otel_drop_in_extract_and_make_distant_call",
+            get(otel_drop_in_extract_and_make_distant_call),
+        )
         .route("/trace/manual_keep_drop", get(trace_manual_keep_drop))
+        .route("/spawn_child", get(spawn_child))
+        .route("/log/library", get(log_library))
         .with_state(state);
     integration::install_middleware(router)
 }
@@ -154,6 +217,13 @@ async fn index() -> Response {
 
 async fn status(Query(query): Query<StatusQuery>) -> StatusCode {
     StatusCode::from_u16(query.code).unwrap_or(StatusCode::BAD_REQUEST)
+}
+
+async fn read_file(Query(query): Query<ReadFileQuery>) -> Response {
+    match std::fs::read_to_string(&query.file) {
+        Ok(content) => content.into_response(),
+        Err(err) => (StatusCode::INTERNAL_SERVER_ERROR, err.to_string()).into_response(),
+    }
 }
 
 async fn headers() -> Response {
@@ -523,6 +593,95 @@ async fn trace_manual_keep_drop(Query(query): Query<ManualKeepDropQuery>) -> Res
 async fn make_distant_call(Query(params): Query<HashMap<String, String>>) -> Response {
     let url = params.get("url").cloned().unwrap_or_default();
     distant_call(&url).await
+}
+
+/// Updates the incoming baggage through the OTel API, then makes a distant call so the
+/// test can check the propagated `baggage` header.
+async fn otel_drop_in_baggage_api(Query(query): Query<BaggageApiQuery>) -> Response {
+    let cx = Context::current();
+
+    // `Baggage` isn't `Clone`; copy the incoming entries before editing them.
+    let mut baggage = opentelemetry::baggage::Baggage::new();
+    for (key, (value, metadata)) in cx.baggage().iter() {
+        let _ = baggage.insert_with_metadata(key.clone(), value.clone(), metadata.clone());
+    }
+    for pair in query.baggage_set.as_deref().unwrap_or_default().split(',') {
+        if let Some((key, value)) = pair.split_once('=') {
+            let _ = baggage.insert(key.trim().to_string(), value.trim().to_string());
+        }
+    }
+    for key in query
+        .baggage_remove
+        .as_deref()
+        .unwrap_or_default()
+        .split(',')
+    {
+        let _ = baggage.remove(key.trim());
+    }
+
+    distant_call(&query.url)
+        .with_context(cx.with_baggage(baggage))
+        .await
+}
+
+/// Starts a trace from the incoming headers through the OTel extraction API (rather than
+/// the server layer), then makes a distant call under that span.
+async fn otel_drop_in_extract_and_make_distant_call(
+    headers: HeaderMap,
+    Query(params): Query<HashMap<String, String>>,
+) -> Response {
+    let url = params.get("url").cloned().unwrap_or_default();
+    // Extract onto an empty context so the server span doesn't become the parent.
+    let parent_cx = global::get_text_map_propagator(|propagator| {
+        propagator.extract_with_context(&Context::new(), &HeaderExtractor(&headers))
+    });
+    let span = global::tracer("system-tests")
+        .span_builder("otel_extract_distant_call")
+        .with_kind(SpanKind::Server)
+        .start_with_context(&global::tracer("system-tests"), &parent_cx);
+    let cx = parent_cx.with_span(span);
+
+    let response = distant_call(&url).with_context(cx.clone()).await;
+    cx.span().end();
+    response
+}
+
+/// Re-executes this binary in child mode. The tracer passes its session IDs to the child
+/// through the environment. Forking isn't supported: it isn't safe with a tokio runtime.
+async fn spawn_child(Query(query): Query<SpawnChildQuery>) -> Response {
+    if query.fork {
+        return (StatusCode::BAD_REQUEST, "fork not supported").into_response();
+    }
+
+    let status = tokio::task::spawn_blocking(move || {
+        std::process::Command::new(std::env::current_exe()?)
+            .env(CHILD_SLEEP_ENV, query.sleep.to_string())
+            .env(CHILD_CRASH_ENV, query.crash.to_string())
+            .status()
+    })
+    .await;
+
+    match status {
+        Ok(Ok(status)) => format!(
+            "Child process exited with status {}",
+            status.code().unwrap_or(-1)
+        )
+        .into_response(),
+        Ok(Err(err)) => (StatusCode::INTERNAL_SERVER_ERROR, err.to_string()).into_response(),
+        Err(err) => (StatusCode::INTERNAL_SERVER_ERROR, err.to_string()).into_response(),
+    }
+}
+
+/// Logs `msg` through `tracing`, printed as plain text on stdout.
+async fn log_library(Query(query): Query<LogLibraryQuery>) -> &'static str {
+    let msg = query.msg.as_deref().unwrap_or("msg");
+    match query.level.as_deref() {
+        Some("warn") => tracing::warn!(target: integration::LIBRARY_LOG_TARGET, "{msg}"),
+        Some("error") => tracing::error!(target: integration::LIBRARY_LOG_TARGET, "{msg}"),
+        Some("debug") => tracing::debug!(target: integration::LIBRARY_LOG_TARGET, "{msg}"),
+        _ => tracing::info!(target: integration::LIBRARY_LOG_TARGET, "{msg}"),
+    }
+    "ok"
 }
 
 async fn distant_call(url: &str) -> Response {

@@ -31,7 +31,6 @@ tracing = "0.1.44"
 # datadog-opentelemetry's resolved OpenTelemetry minor.
 tracing-opentelemetry = "0.33.0"
 tracing-subscriber = "0.3"
-uuid = "1.23.4"
 
 # OpenTelemetry version alignment (see install_ddtrace.sh):
 #
