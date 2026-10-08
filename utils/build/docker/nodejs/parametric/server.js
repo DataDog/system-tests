@@ -460,12 +460,23 @@ app.post('/trace/otel/set_attributes', (req, res) => {
 });
 
 app.get('/trace/config', (req, res) => {
-  // The tracer's resolved config is an internal shape whose property paths rename across
-  // refactors, so this endpoint reports nothing from it. Node config consistency is asserted
-  // via telemetry and observable behaviour in the parametric suite; the test client fills
-  // every documented key with null, so the cross-language parity contract still holds.
-  res.json({ config: {} })
+  // Report the SDK's resolved values, including its validation and defaults.
+  // Older tracers may not expose these fields; preserve null in that case.
+  const config = tracer?._tracer?._config
+  res.json({ config: {
+    otel_exporter_otlp_traces_timeout_ms: otlpExporterTimeout(config?.OTEL_EXPORTER_OTLP_TRACES_TIMEOUT),
+    otel_exporter_otlp_metrics_timeout_ms: otlpExporterTimeout(
+      config?.OTEL_EXPORTER_OTLP_METRICS_TIMEOUT ?? config?.otelMetricsTimeout
+    ),
+    otel_exporter_otlp_logs_timeout_ms: otlpExporterTimeout(
+      config?.OTEL_EXPORTER_OTLP_LOGS_TIMEOUT ?? config?.otelLogsTimeout
+    )
+  } })
 });
+
+function otlpExporterTimeout (value) {
+  return typeof value === 'number' && Number.isFinite(value) ? String(value) : null
+}
 
 app.post("/otel/logger/create", (req, res) => {
   const { name, level, version, schema_url, attributes } = req.body

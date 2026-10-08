@@ -210,6 +210,7 @@ def trace_config() -> TraceConfigReturn:
             "dd_trace_enabled": str(config._tracing_enabled).lower(),
             "dd_runtime_metrics_enabled": str(config._runtime_metrics_enabled).lower(),
             "otel_metrics_initialized": str(isinstance(get_meter_provider(), SdkMeterProvider)).lower(),
+            "otel_exporter_otlp_traces_timeout_ms": otlp_trace_exporter_timeout(),
             "otel_exporter_otlp_metrics_timeout_ms": otlp_exporter_timeout(
                 getattr(getattr(get_meter_provider(), "_sdk_config", None), "metric_readers", ())
             ),
@@ -234,6 +235,18 @@ def trace_config() -> TraceConfigReturn:
             "dd_data_streams_enabled": str(config._data_streams_enabled).lower(),
         }
     )
+
+
+def otlp_trace_exporter_timeout() -> Optional[str]:
+    try:
+        from ddtrace.internal.settings._opentelemetry import otel_config
+    except ImportError:
+        return None
+
+    # NativeWriter passes this resolved value to the native exporter in milliseconds.
+    # Older SDKs may have the settings module without trace exporter configuration.
+    timeout = getattr(otel_config.exporter, "TRACES_TIMEOUT", None)
+    return str(timeout) if isinstance(timeout, (int, float)) else None
 
 
 def otlp_exporter_timeout(processors: Any) -> Optional[str]:
