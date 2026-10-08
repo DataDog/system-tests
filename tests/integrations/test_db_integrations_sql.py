@@ -2,6 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+from collections import defaultdict
 from utils import context, scenarios, features, logger
 
 from .utils import BaseDbIntegrationsTestClass
@@ -200,6 +201,7 @@ class _BaseDatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
             span = self.get_span_from_agent(request)
 
             queries = _get_reported_queries(span)
+            assert len(queries) != 0
 
             for source, query in queries.items():
                 assert db_operation in query.lower(), f"{db_operation} not reported in {source}"
@@ -209,7 +211,11 @@ class _BaseDatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
 
         # We launch all queries with two parameters (from weblog)
         # Insert and procedure:These operations also receive two parameters, but are obfuscated as only one.
-        self._assert_obfuscate_query(expected_by_operation={"insert": 1, "procedure": 1})
+        expected_by_operation = defaultdict(lambda: 2)
+        expected_by_operation["insert"] = 1
+        expected_by_operation["procedure"] = 1
+
+        self._assert_obfuscate_query(expected_by_operation=expected_by_operation)
 
     def _assert_obfuscate_query(self, *, expected_by_operation: dict[str, int]):
         def assert_count(source: str, db_operation: str, query: str) -> None:
@@ -289,12 +295,11 @@ class Test_MsSql(_BaseDatadogDbIntegrationTestClass):
     def test_obfuscate_query(self):
         """All queries come out obfuscated from agent"""
 
-        expected_by_operation = {
-            "insert": 1,
-            # Insert and procedure:These operations also receive two parameters, but are obfuscated as only one.
-            # Node.js: The proccedure has a input parameter, but we are calling through method `execute`` and we can't see the parameters in the traces
-            "procedure": 0 if context.library.name == "nodejs" else 2,
-        }
+        expected_by_operation = defaultdict(lambda: 2)
+        expected_by_operation["insert"] = 1
+        # Insert and procedure:These operations also receive two parameters, but are obfuscated as only one.
+        # Node.js: The proccedure has a input parameter, but we are calling through method `execute`` and we can't see the parameters in the traces
+        expected_by_operation["procedure"] = 0 if context.library.name == "nodejs" else 2
 
         self._assert_obfuscate_query(expected_by_operation=expected_by_operation)
 
