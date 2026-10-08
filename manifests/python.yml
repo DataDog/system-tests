@@ -1332,10 +1332,19 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         *flask : v2.11.0
-  tests/debugger/test_debugger_guardrails.py::Test_Debugger_Capture_Timeout_Guardrail: missing_feature (Configurable capture timeout is not available)
+  tests/debugger/test_debugger_guardrails.py::Test_Debugger_Capture_Timeout_Guardrail:
+    - weblog_declaration:
+        "*": missing_feature
+        *flask : v4.13.0
   tests/debugger/test_debugger_guardrails.py::Test_Debugger_Evaluation_Timeout_Line_Probe: irrelevant (Line-probe variant is only used by Node.js and Ruby)
-  tests/debugger/test_debugger_guardrails.py::Test_Debugger_Evaluation_Timeout_Method_Probe: missing_feature (Debugger evaluation timeout guardrail not implemented yet)
-  tests/debugger/test_debugger_guardrails.py::Test_Debugger_Snapshot_Size_Guardrail: missing_feature (Debugger snapshot size guardrail not implemented yet)
+  tests/debugger/test_debugger_guardrails.py::Test_Debugger_Evaluation_Timeout_Method_Probe:
+    - weblog_declaration:
+        "*": missing_feature
+        *flask : v4.13.0
+  tests/debugger/test_debugger_guardrails.py::Test_Debugger_Snapshot_Size_Guardrail:
+    - weblog_declaration:
+        "*": missing_feature
+        *flask : v2.11.0
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin:
     - weblog_declaration:
         "*": missing_feature
@@ -1383,7 +1392,9 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         *flask : v2.11.0
-  tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_log_line_capture_expression_budgets: bug (DEBUG-5743)
+  tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_log_line_capture_expression_budgets:
+    - declaration: bug (DEBUG-5743)
+      component_version: <4.12.0
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_span_probe_expression_budgets: irrelevant (Python emits evaluation errors as span tags, not error snapshots to the debugger endpoint)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots:
     - weblog_declaration:
