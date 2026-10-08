@@ -62,6 +62,7 @@ class DirectEVPShutdownEvaluation:
     body: dict[str, Any]
     flag_key: str
     subject_id: str
+    priming_request_path: str | None = None
 
 
 class AgentlessEndToEndScenario(DdTraceEndToEndScenario):
@@ -284,6 +285,7 @@ class FeatureFlaggingAgentlessEndToEndScenario(AgentlessEndToEndScenario):
         body: dict[str, Any],
         flag_key: str,
         subject_id: str,
+        priming_request_path: str | None = None,
     ) -> None:
         """Defer one evaluation to immediately before the bounded shutdown flush."""
         if self.exposure_egress != "direct":
@@ -298,6 +300,7 @@ class FeatureFlaggingAgentlessEndToEndScenario(AgentlessEndToEndScenario):
             body=body,
             flag_key=flag_key,
             subject_id=subject_id,
+            priming_request_path=priming_request_path,
         )
 
     @property
@@ -531,6 +534,8 @@ class FeatureFlaggingAgentlessEndToEndScenario(AgentlessEndToEndScenario):
             return self._capture_has_shutdown_evaluation(data, evaluation)
 
         # Timer-based writers may flush the first event after a long idle period immediately.
+        # PHP primes through an ordinary FPM request because its shutdown worker
+        # deliberately retains exposures until the process ends its one request.
         # Complete one unique exposure first so the target below is produced inside a fresh flush
         # window. The priming event is evidence, not the event under test; the target must still
         # start its request only after the runtime's truthful server-close marker.
@@ -539,7 +544,7 @@ class FeatureFlaggingAgentlessEndToEndScenario(AgentlessEndToEndScenario):
         priming_body["targetingKey"] = priming_subject_id
         priming_evaluation = DirectEVPShutdownEvaluation(
             signal_path=evaluation.signal_path,
-            request_path=evaluation.request_path,
+            request_path=evaluation.priming_request_path or evaluation.request_path,
             body=priming_body,
             flag_key=evaluation.flag_key,
             subject_id=priming_subject_id,
@@ -606,6 +611,8 @@ class FeatureFlaggingAgentlessEndToEndScenario(AgentlessEndToEndScenario):
             "priming_evaluation_started_at": priming_started_at.isoformat(),
             "priming_evaluation_status_code": priming_response.status_code,
             "priming_subject_id": priming_subject_id,
+            "priming_request_path": priming_evaluation.request_path,
+            "shutdown_request_path": evaluation.request_path,
             "shutdown_bound_seconds": DIRECT_EVP_SHUTDOWN_BOUND_SECONDS,
             "shutdown_duration_seconds": stop_duration,
             "shutdown_marker_errors": shutdown_marker_errors,

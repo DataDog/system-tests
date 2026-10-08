@@ -148,6 +148,11 @@ function dd_ffe_details_payload($details)
     return $payload;
 }
 
+// The long-running shutdown fixture shares the real evaluator helpers.
+if (defined('SYSTEM_TESTS_FFE_WORKER')) {
+    return;
+}
+
 $payload = dd_ffe_read_payload();
 
 if (!isset($payload['flag']) || !is_string($payload['flag']) || $payload['flag'] === '') {

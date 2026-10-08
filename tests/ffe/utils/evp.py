@@ -38,7 +38,7 @@ EVP_LANGUAGE_PID1_EXECUTABLES = {
     "golang": {"weblog"},
     "java": {"java"},
     "nodejs": {"node"},
-    "php": {"bash"},
+    "php": {"dumb-init"},
     "python": {"gunicorn", "python", "python3", "uwsgi"},
     "ruby": {"puma", "ruby"},
 }
@@ -117,6 +117,7 @@ def register_shutdown_evp_evaluation(
     body: dict[str, Any],
     flag_key: str,
     subject_id: str,
+    priming_request_path: str | None = None,
 ) -> None:
     """Register one evaluation for the scenario-owned shutdown-flush phase."""
     scenario = context.scenario
@@ -127,6 +128,7 @@ def register_shutdown_evp_evaluation(
             body=body,
             flag_key=flag_key,
             subject_id=subject_id,
+            priming_request_path=priming_request_path,
         )
 
 
@@ -240,18 +242,19 @@ def _assert_php_fpm_runtime(weblog: dict[str, Any], pid1_process_command: str) -
     assert variant is not None, "PHP direct EVP runtime requires a validated PHP-FPM weblog"
     for command in (str(weblog["pid1_command"]), pid1_process_command):
         args = shlex.split(command)
-        assert args in (["/bin/bash", "./app.sh"], ["bash", "./app.sh"]), (
-            f"Unexpected PHP-FPM PID 1 launcher: {command!r}"
-        )
+        assert args in (
+            ["dumb-init", "--single-child", "/entrypoint.sh"],
+            ["/usr/bin/dumb-init", "--single-child", "/entrypoint.sh"],
+        ), f"Unexpected PHP-FPM PID 1 launcher: {command!r}"
     processes = weblog["processes"]
     init_children = [
         process
         for process in processes
         if process.get("ppid") == str(weblog["state_pid"])
         and shlex.split(str(process.get("command", "")))
-        in (["dumb-init", "/entrypoint.sh"], ["/usr/bin/dumb-init", "/entrypoint.sh"])
+        in (["/bin/bash", "-e", "/entrypoint.sh"], ["bash", "-e", "/entrypoint.sh"])
     ]
-    assert len(init_children) == 1, "PHP-FPM launcher must have its ordinary dumb-init child"
+    assert len(init_children) == 1, "PHP-FPM init must supervise its graceful-shutdown entrypoint"
     master_command = f"php-fpm: master process (/etc/php/{variant[1]}/fpm/php-fpm.conf)"
     assert any(process.get("command") == master_command for process in processes), (
         "PHP-FPM runtime evidence has no live master process"

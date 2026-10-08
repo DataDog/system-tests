@@ -416,10 +416,14 @@ def test_feature_flagging_direct_runtime_evidence_accepts_live_minimal_topology(
 def _php_fpm_runtime_evidence() -> dict[str, Any]:
     evidence = _direct_runtime_evidence()
     weblog = evidence["containers"][1]
-    weblog |= {"library": "php", "weblog_variant": "php-fpm-8.2", "pid1_command": "/bin/bash ./app.sh"}
+    weblog |= {
+        "library": "php",
+        "weblog_variant": "php-fpm-8.2",
+        "pid1_command": "dumb-init --single-child /entrypoint.sh",
+    }
     weblog["processes"] = [
-        {"pid": "202", "ppid": "0", "command": "/bin/bash ./app.sh"},
-        {"pid": "203", "ppid": "202", "command": "dumb-init /entrypoint.sh"},
+        {"pid": "202", "ppid": "0", "command": "dumb-init --single-child /entrypoint.sh"},
+        {"pid": "203", "ppid": "202", "command": "/bin/bash -e /entrypoint.sh"},
         {"pid": "204", "ppid": "203", "command": "php-fpm: master process (/etc/php/8.2/fpm/php-fpm.conf)"},
         {"pid": "205", "ppid": "203", "command": "/usr/sbin/apache2 -k start"},
         {"pid": "206", "ppid": "204", "command": "datadog-ipc-helper /opt/datadog/ddtrace.so"},
