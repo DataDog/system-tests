@@ -124,6 +124,12 @@ jobs:
       with:
         repository: 'DataDog/system-tests'
         ref: ${{ steps.compute_ref.outputs.ref }}
+    - name: Prepare canonical dependent-flag fixtures
+      if: >-
+        inputs.library == 'nodejs' &&
+        inputs.weblog == 'express5' &&
+        contains(inputs.scenarios, '"FEATURE_FLAGGING_AND_EXPERIMENTATION"')
+      run: bash utils/scripts/prepare-ffe-system-test-data.sh
     - name: Install runner
       uses: ./.github/actions/install_runner
     - name: Get binaries artifact

@@ -8,6 +8,7 @@ from utils import pytest
 
 from tests.ffe import test_exposure_egress as exposure_egress_tests
 from tests.ffe import test_flag_eval_evp as flag_eval_evp_tests
+from tests.ffe.utils.canonical import canonical_event_matches
 from tests.ffe.utils.evp import (
     EVP_ORIGINS,
     FeatureFlaggingEVPEgress,
@@ -34,6 +35,22 @@ AGENTLESS_EVP_CAPTURE_CONTRACTS = (
     flag_eval_evp_tests.Test_FFE_EVP_Flagevaluation_Egress_Agentless_Direct,
     flag_eval_evp_tests.Test_FFE_EVP_Flagevaluation_Egress_Agentless_Sidecar,
 )
+
+
+@scenarios.feature_flagging_contract_tests
+@features.not_reported
+def test_canonical_event_matcher_distinguishes_success_from_error_defaults() -> None:
+    successful_event = {"flag": {"key": "leaf"}}
+    assert canonical_event_matches(successful_event, {"flag": "leaf", "errorCode": None})
+
+    error_event = {
+        "flag": {"key": "root"},
+        "error": {"message": "FLAG_NOT_FOUND"},
+        "runtime_default_used": True,
+    }
+    error_matcher = {"flag": "root", "errorCode": "FLAG_NOT_FOUND"}
+    assert canonical_event_matches(error_event, error_matcher)
+    assert not canonical_event_matches({**error_event, "runtime_default_used": False}, error_matcher)
 
 
 @pytest.mark.parametrize("has_capture", [True, False])

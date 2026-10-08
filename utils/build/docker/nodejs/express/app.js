@@ -917,14 +917,14 @@ async function getOpenFeatureClient () {
 // Single FFE endpoint that evaluates feature flags
 app.post('/ffe', async (req, res) => {
   try {
-    const { flag, variationType, defaultValue, targetingKey, targetingKeys, attributes } = req.body
+    const { flag, variationType, defaultValue, targetingKey, targetingKeys, attributes, details = false } = req.body
     const client = await getOpenFeatureClient()
 
     if (!client) {
       return res.status(500).json({ error: 'FFE provider not initialized' })
     }
 
-    let value
+    let result
     const keys = Array.isArray(targetingKeys) && targetingKeys.length > 0 ? targetingKeys : [targetingKey]
 
     for (const key of keys) {
@@ -932,24 +932,32 @@ app.post('/ffe', async (req, res) => {
 
       switch (variationType) {
         case 'BOOLEAN':
-          value = await client.getBooleanValue(flag, defaultValue, context)
+          result = details
+            ? await client.getBooleanDetails(flag, defaultValue, context)
+            : { value: await client.getBooleanValue(flag, defaultValue, context) }
           break
         case 'STRING':
-          value = await client.getStringValue(flag, defaultValue, context)
+          result = details
+            ? await client.getStringDetails(flag, defaultValue, context)
+            : { value: await client.getStringValue(flag, defaultValue, context) }
           break
         case 'INTEGER':
         case 'NUMERIC':
-          value = await client.getNumberValue(flag, defaultValue, context)
+          result = details
+            ? await client.getNumberDetails(flag, defaultValue, context)
+            : { value: await client.getNumberValue(flag, defaultValue, context) }
           break
         case 'JSON':
-          value = await client.getObjectValue(flag, defaultValue, context)
+          result = details
+            ? await client.getObjectDetails(flag, defaultValue, context)
+            : { value: await client.getObjectValue(flag, defaultValue, context) }
           break
         default:
           return res.status(400).json({ error: `Unknown variation type: ${variationType}` })
       }
     }
 
-    res.status(200).json({ value, count: keys.length })
+    res.status(200).json({ ...result, count: keys.length })
   } catch (error) {
     console.error('[FFE] Error:', error)
     res.status(500).json({ error: error.message })

@@ -31,6 +31,14 @@ on:
         description: Specify an arbitrary branch of the lib (if set, dev_or_prod is ignored)
         default: ""
         type: string
+      repeat_count:
+        description: How many times each job runs the scenario
+        default: "100"
+        type: string
+      test_path:
+        description: Optional pytest path or node ID to run within the scenario
+        default: ""
+        type: string
 
 env:
   LIBRARY:                ${{ (github.event_name == 'workflow_dispatch' && inputs.library)               || 'php' }}
@@ -40,6 +48,8 @@ env:
   AGENT_IMAGE:            ${{ (github.event_name == 'workflow_dispatch' && inputs.agent_image)           || 'datadog/agent:latest' }}
   DEV_OR_PROD:            ${{ (github.event_name == 'workflow_dispatch' && inputs.dev_or_prod)           || 'prod' }}
   LIBRARY_TARGET_BRANCH:  ${{ (github.event_name == 'workflow_dispatch' && inputs.library_target_branch) || '' }}
+  REPEAT_COUNT:           ${{ (github.event_name == 'workflow_dispatch' && inputs.repeat_count)          || '100' }}
+  TEST_PATH:              ${{ (github.event_name == 'workflow_dispatch' && inputs.test_path)             || '' }}
 
 jobs:
   generate-matrix:
@@ -62,8 +72,14 @@ jobs:
       - name: Select agent image
         run: echo ${{ env.AGENT_IMAGE }} > binaries/agent-image
       - name: Get dev artifact
-        if: env.DEV_OR_PROD == 'dev'
+        if: env.DEV_OR_PROD == 'dev' || env.LIBRARY_TARGET_BRANCH != ''
         run: ./utils/scripts/load-binary.sh ${{ env.LIBRARY }}
+      - name: Prepare canonical dependent-flag fixtures
+        if: >-
+          env.LIBRARY == 'nodejs' &&
+          env.WEBLOG == 'express5' &&
+          env.SCENARIO == 'FEATURE_FLAGGING_AND_EXPERIMENTATION'
+        run: bash utils/scripts/prepare-ffe-system-test-data.sh
       - name: Build weblog
         id: build
         run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ env.LIBRARY }} -i weblog -w ${{ env.WEBLOG }} -s --github-token-file "$RUNNER_TEMP/github_token.txt"
@@ -108,10 +124,14 @@ jobs:
 
     - run: |
         set -e
-        for i in {1..100}
+        test_args=()
+        if [[ -n "$TEST_PATH" ]]; then
+          test_args+=("$TEST_PATH")
+        fi
+        for ((i = 1; i <= REPEAT_COUNT; i++))
         do
           echo "Run #$i"
-          ./run.sh ${{ env.SCENARIO }}
+          ./run.sh "$SCENARIO" "${test_args[@]}"
         done
 
     - name: Upload artifact
