@@ -252,13 +252,19 @@ def _assert_php_fpm_runtime(weblog: dict[str, Any], pid1_process_command: str) -
         for process in processes
         if process.get("ppid") == str(weblog["state_pid"])
         and shlex.split(str(process.get("command", "")))
-        in (["/bin/bash", "-e", "/entrypoint.sh"], ["bash", "-e", "/entrypoint.sh"])
+        in (
+            ["/bin/bash", "-e", "/entrypoint.sh"],
+            ["bash", "-e", "/entrypoint.sh"],
+            # BusyBox ps prefixes scripts with their process name in braces.
+            ["{entrypoint.sh}", "/bin/bash", "-e", "/entrypoint.sh"],
+            ["{entrypoint.sh}", "bash", "-e", "/entrypoint.sh"],
+        )
     ]
     assert len(init_children) == 1, "PHP-FPM init must supervise its graceful-shutdown entrypoint"
     master_command = f"php-fpm: master process (/etc/php/{variant[1]}/fpm/php-fpm.conf)"
-    assert any(process.get("command") == master_command for process in processes), (
-        "PHP-FPM runtime evidence has no live master process"
-    )
+    assert any(
+        process.get("command") in (master_command, f"{{php-fpm{variant[1]}}} {master_command}") for process in processes
+    ), "PHP-FPM runtime evidence has no live master process"
     assert any(
         Path(str(process.get("command", "")).split()[0]).name == "apache2"
         for process in processes
