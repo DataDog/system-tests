@@ -2269,7 +2269,23 @@ manifest:
         "*": v1.8.0
         play: v1.22.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-  tests/appsec/test_event_tracking.py::Test_CustomEvent_Metrics: missing_feature
+  tests/appsec/test_event_tracking.py::Test_CustomEvent_Metrics:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        spring-boot-jetty: '>=1.67.0'
+        spring-boot-undertow: '>=1.67.0'
+        play: '>=1.67.0'
+        jersey-grizzly2: '>=1.67.0'
+        akka-http: '>=1.67.0'
+        spring-boot-openliberty: '>=1.67.0'
+        uds-spring-boot: '>=1.67.0'
+        vertx3: '>=1.67.0'
+        resteasy-netty3: '>=1.67.0'
+        spring-boot-payara: '>=1.67.0'
+        spring-boot: '>=1.67.0'
+        spring-boot-wildfly: '>=1.67.0'
+        vertx4: '>=1.67.0'
+        ratpack: '>=1.67.0'
   tests/appsec/test_event_tracking.py::Test_UserLoginFailureEvent:
     - weblog_declaration:
         "*": v1.8.0
