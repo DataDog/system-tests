@@ -1,5 +1,6 @@
 import base64
-from collections.abc import Generator
+from collections.abc import Callable, Generator
+from contextlib import AbstractContextManager, contextmanager
 import json
 from pathlib import Path
 import shutil
@@ -12,6 +13,9 @@ from utils import scenarios, logger
 from utils.docker_fixtures import TestAgentAPI, ParametricTestClientApi as APMLibrary, new_test_id
 from utils.docker_fixtures._test_agent import DEFAULT_OTLP_HTTP_PORT, DEFAULT_OTLP_GRPC_PORT
 from utils.docker_fixtures._test_agent_pool import WorkerAgentPool
+
+
+APMLibraryFactory = Callable[[dict[str, str | None]], AbstractContextManager[APMLibrary]]
 
 
 # Max timeout in seconds to keep a container running
@@ -143,6 +147,35 @@ def test_library(
         library_extra_command_arguments=library_extra_command_arguments,
     ) as result:
         yield result
+
+
+@pytest.fixture
+def test_library_factory(
+    worker_id: str,
+    request: pytest.FixtureRequest,
+    test_agent: TestAgentAPI,
+    library_extra_command_arguments: list[str],
+) -> APMLibraryFactory:
+    """Observe fresh SDK processes sequentially without sharing agent data."""
+
+    @contextmanager
+    def create(library_env: dict[str, str | None]) -> Generator[APMLibrary, None, None]:
+        test_agent.clear()
+        scenarios.parametric.parametrized_tests_metadata[request.node.nodeid] = library_env
+        with (
+            scenarios.parametric.get_apm_library(
+                request=request,
+                worker_id=worker_id,
+                test_id=new_test_id(),
+                test_agent=test_agent,
+                library_env=library_env,
+                library_extra_command_arguments=library_extra_command_arguments,
+            ) as library,
+            library,
+        ):
+            yield library
+
+    return create
 
 
 class StableConfigWriter:

@@ -1,7 +1,7 @@
 import json
 import time
 
-from tests.parametric.conftest import APMLibrary
+from tests.parametric.conftest import APMLibrary, APMLibraryFactory
 from tests.parametric.otel_env_vars.utils import has_warning_for_value
 from utils import features, pytest, scenarios
 
@@ -164,16 +164,24 @@ class Test_OTEL_PROPAGATORS:
             assert _configured_baggage_propagators(library) == {"tracecontext", "baggage"}
 
     @pytest.mark.parametrize("library_env", [pytest.param({**BASE_ENV, VARIABLE: ""}, id="empty")])
-    def test_empty_is_treated_as_unset(self, test_library: APMLibrary) -> None:
-        with test_library as library:
-            assert _configured_baggage_propagators(library) == {"tracecontext", "baggage"}
+    def test_empty_is_treated_as_unset(
+        self, test_library_factory: APMLibraryFactory, library_env: dict[str, str | None]
+    ) -> None:
+        with test_library_factory(BASE_ENV) as library:
+            default = _configured_baggage_propagators(library)
+        with test_library_factory(library_env) as library:
+            assert _configured_baggage_propagators(library) == default
 
     @pytest.mark.parametrize(
         "library_env", [pytest.param({**BASE_ENV, VARIABLE: "not-a-propagator"}, id="not-a-propagator")]
     )
-    def test_invalid_is_ignored(self, test_library: APMLibrary) -> None:
-        with test_library as library:
-            assert _configured_baggage_propagators(library) == {"tracecontext", "baggage"}
+    def test_invalid_is_ignored(
+        self, test_library_factory: APMLibraryFactory, library_env: dict[str, str | None]
+    ) -> None:
+        with test_library_factory(BASE_ENV) as library:
+            default = _configured_baggage_propagators(library)
+        with test_library_factory(library_env) as library:
+            assert _configured_baggage_propagators(library) == default
 
     @pytest.mark.parametrize(
         "library_env", [pytest.param({**BASE_ENV, VARIABLE: "not-a-propagator"}, id="not-a-propagator")]
