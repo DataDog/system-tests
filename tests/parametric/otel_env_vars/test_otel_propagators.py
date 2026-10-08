@@ -18,26 +18,6 @@ BASE_ENV = {
     VARIABLE: None,
 }
 
-# Keep the stable enum values together; separate methods allow manifests to
-# declare partial support without disabling the supported formats.
-STABLE_VALUES = {
-    value: pytest.param({**BASE_ENV, VARIABLE: value}, expected, id=value)
-    for value, expected in (
-        ("tracecontext", {"tracecontext"}),
-        ("baggage", {"baggage"}),
-        ("b3", {"b3"}),
-        ("b3multi", {"b3multi"}),
-        ("xray", {"xray"}),
-        ("none", set()),
-    )
-}
-
-DEPRECATED_VALUES = [pytest.param({**BASE_ENV, VARIABLE: value}, {value}, id=value) for value in ("jaeger", "ottrace")]
-
-DEFAULT_VALUE = [pytest.param(BASE_ENV, id="unset")]
-EMPTY_VALUE = [pytest.param({**BASE_ENV, VARIABLE: ""}, id="empty")]
-INVALID_VALUE = [pytest.param({**BASE_ENV, VARIABLE: "not-a-propagator"}, id="not-a-propagator")]
-
 PROPAGATOR_HEADERS = {
     "tracecontext": "traceparent",
     "baggage": "baggage",
@@ -98,32 +78,43 @@ def _configured_baggage_propagators(library: APMLibrary) -> set[str]:
 @scenarios.parametric
 @features.otel_propagators
 class Test_OTEL_PROPAGATORS:
-    @pytest.mark.parametrize(("library_env", "expected"), [STABLE_VALUES["tracecontext"], STABLE_VALUES["b3multi"]])
-    def test_trace_propagators(self, test_library: APMLibrary, expected: set[str]) -> None:
+    @pytest.mark.parametrize("library_env", [pytest.param({**BASE_ENV, VARIABLE: "tracecontext"}, id="tracecontext")])
+    def test_tracecontext(self, test_library: APMLibrary) -> None:
         with test_library as library:
-            assert _configured_propagators(library) == expected
+            assert _configured_propagators(library) == {"tracecontext"}
 
-    @pytest.mark.parametrize(("library_env", "expected"), [STABLE_VALUES["b3"]])
-    def test_b3_single_header(self, test_library: APMLibrary, expected: set[str]) -> None:
+    @pytest.mark.parametrize("library_env", [pytest.param({**BASE_ENV, VARIABLE: "b3multi"}, id="b3multi")])
+    def test_b3multi(self, test_library: APMLibrary) -> None:
         with test_library as library:
-            assert _configured_propagators(library) == expected
+            assert _configured_propagators(library) == {"b3multi"}
 
-    @pytest.mark.parametrize(("library_env", "expected"), [STABLE_VALUES["baggage"]])
-    def test_baggage(self, test_library: APMLibrary, expected: set[str]) -> None:
+    @pytest.mark.parametrize("library_env", [pytest.param({**BASE_ENV, VARIABLE: "b3"}, id="b3")])
+    def test_b3_single_header(self, test_library: APMLibrary) -> None:
         with test_library as library:
-            assert _configured_baggage_propagators(library) == expected
+            assert _configured_propagators(library) == {"b3"}
 
-    @pytest.mark.parametrize(("library_env", "expected"), [STABLE_VALUES["xray"]])
-    def test_xray(self, test_library: APMLibrary, expected: set[str]) -> None:
+    @pytest.mark.parametrize("library_env", [pytest.param({**BASE_ENV, VARIABLE: "baggage"}, id="baggage")])
+    def test_baggage(self, test_library: APMLibrary) -> None:
         with test_library as library:
-            assert _configured_propagators(library) == expected
+            assert _configured_baggage_propagators(library) == {"baggage"}
 
-    @pytest.mark.parametrize(("library_env", "expected"), [STABLE_VALUES["none"]])
-    def test_none(self, test_library: APMLibrary, expected: set[str]) -> None:
+    @pytest.mark.parametrize("library_env", [pytest.param({**BASE_ENV, VARIABLE: "xray"}, id="xray")])
+    def test_xray(self, test_library: APMLibrary) -> None:
         with test_library as library:
-            assert _configured_propagators(library) == expected
+            assert _configured_propagators(library) == {"xray"}
 
-    @pytest.mark.parametrize(("library_env", "expected"), DEPRECATED_VALUES)
+    @pytest.mark.parametrize("library_env", [pytest.param({**BASE_ENV, VARIABLE: "none"}, id="none")])
+    def test_none(self, test_library: APMLibrary) -> None:
+        with test_library as library:
+            assert _configured_propagators(library) == set()
+
+    @pytest.mark.parametrize(
+        ("library_env", "expected"),
+        [
+            pytest.param({**BASE_ENV, VARIABLE: "jaeger"}, {"jaeger"}, id="jaeger"),
+            pytest.param({**BASE_ENV, VARIABLE: "ottrace"}, {"ottrace"}, id="ottrace"),
+        ],
+    )
     def test_deprecated_values(self, test_library: APMLibrary, expected: set[str]) -> None:
         with test_library as library:
             assert _configured_propagators(library) == expected
@@ -167,22 +158,26 @@ class Test_OTEL_PROPAGATORS:
         with test_library as library:
             assert _configured_propagators(library) == {"tracecontext", "b3multi"}
 
-    @pytest.mark.parametrize("library_env", DEFAULT_VALUE)
+    @pytest.mark.parametrize("library_env", [pytest.param(BASE_ENV, id="unset")])
     def test_default_matches_specification(self, test_library: APMLibrary) -> None:
         with test_library as library:
             assert _configured_baggage_propagators(library) == {"tracecontext", "baggage"}
 
-    @pytest.mark.parametrize("library_env", EMPTY_VALUE)
+    @pytest.mark.parametrize("library_env", [pytest.param({**BASE_ENV, VARIABLE: ""}, id="empty")])
     def test_empty_is_treated_as_unset(self, test_library: APMLibrary) -> None:
         with test_library as library:
             assert _configured_baggage_propagators(library) == {"tracecontext", "baggage"}
 
-    @pytest.mark.parametrize("library_env", INVALID_VALUE)
+    @pytest.mark.parametrize(
+        "library_env", [pytest.param({**BASE_ENV, VARIABLE: "not-a-propagator"}, id="not-a-propagator")]
+    )
     def test_invalid_is_ignored(self, test_library: APMLibrary) -> None:
         with test_library as library:
             assert _configured_baggage_propagators(library) == {"tracecontext", "baggage"}
 
-    @pytest.mark.parametrize("library_env", INVALID_VALUE)
+    @pytest.mark.parametrize(
+        "library_env", [pytest.param({**BASE_ENV, VARIABLE: "not-a-propagator"}, id="not-a-propagator")]
+    )
     def test_invalid_value_logs_warning(self, test_library: APMLibrary) -> None:
         with test_library as library:
             # Startup diagnostics can follow an asynchronous agent ping. One
