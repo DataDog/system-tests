@@ -254,6 +254,9 @@ class Job:
     def expected_total_time(self) -> float:
         return self.expected_job_time + self.build_time
 
+    def available_run_time(self, desired_execution_time: float) -> float:
+        return max(desired_execution_time - self.build_time, 0.0)
+
     @property
     def sort_key(self) -> tuple:
         return (self.weblog.name, self.weblog_instance)
@@ -269,7 +272,7 @@ class Job:
         result: list[Job] = []
 
         backpacks = _split_scenarios_for_parallel_execution(
-            self._scenarios_times, desired_execution_time - self.build_time
+            self._scenarios_times, self.available_run_time(desired_execution_time)
         )
         for i, scenarios in enumerate(backpacks):
             result.append(
@@ -451,7 +454,9 @@ def _get_scheduling_metrics(
     weblogs = []
     for source_job in sorted(source_jobs, key=lambda job: job.weblog.name):
         emitted_jobs = jobs_after_limit_by_weblog[source_job.weblog.name]
-        available_run_time = desired_execution_time - source_job.build_time if desired_execution_time > 0 else None
+        available_run_time = (
+            source_job.available_run_time(desired_execution_time) if desired_execution_time > 0 else None
+        )
         scenarios_over_budget = (
             sum(source_job.get_scenario_time(scenario) > available_run_time for scenario in source_job.scenarios)
             if available_run_time is not None
@@ -464,6 +469,11 @@ def _get_scheduling_metrics(
                 "scenario_assignments": len(source_job.scenarios),
                 "build_time": source_job.build_time,
                 "available_run_time": available_run_time,
+                "budget_status": _get_budget_status(
+                    source_job,
+                    desired_execution_time,
+                    scenarios_over_budget,
+                ),
                 "build_exceeds_target": desired_execution_time > 0 and source_job.build_time >= desired_execution_time,
                 "scenarios_exceeding_run_budget": scenarios_over_budget,
                 "jobs_before_limit": jobs_before_limit[source_job.weblog.name],
@@ -490,10 +500,24 @@ def _get_scheduling_metrics(
         "jobs_over_target": sum(
             desired_execution_time > 0 and job.expected_total_time > desired_execution_time for job in jobs_after_limit
         ),
+        "weblogs_with_impossible_budget": sum(
+            desired_execution_time > 0 and job.build_time >= desired_execution_time for job in source_jobs
+        ),
+        "scenarios_exceeding_run_budget": sum(weblog["scenarios_exceeding_run_budget"] for weblog in weblogs),
         "predicted_run_time_seconds": _get_duration_metrics([job.expected_job_time for job in jobs_after_limit]),
         "predicted_critical_path_seconds": _get_duration_metrics([job.expected_total_time for job in jobs_after_limit]),
         "weblogs": weblogs,
     }
+
+
+def _get_budget_status(job: Job, desired_execution_time: float, scenarios_over_budget: int) -> str:
+    if desired_execution_time <= 0:
+        return "disabled"
+    if job.build_time >= desired_execution_time:
+        return "build_exceeds_target"
+    if scenarios_over_budget > 0:
+        return "scenario_exceeds_run_budget"
+    return "within_target"
 
 
 def _get_duration_metrics(durations: list[float]) -> dict[str, float]:
@@ -520,6 +544,9 @@ def _split_scenarios_for_parallel_execution(
     # First Fit Decreasing algorithm to split scenarios into backpacks
     # https://en.wikipedia.org/wiki/First-fit-decreasing_bin_packing
     sorted_scenarios = sorted(scenario_times.items(), key=lambda item: item[1], reverse=True)
+
+    if desired_execution_time <= 0:
+        return [[scenario] for scenario, _execution_time in sorted_scenarios]
 
     backpacks: list[BackPack] = []
 
