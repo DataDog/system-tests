@@ -413,6 +413,46 @@ def test_feature_flagging_direct_runtime_evidence_accepts_live_minimal_topology(
     assert_direct_evp_runtime_evidence(_direct_runtime_evidence(), library_name="nodejs")
 
 
+def _php_fpm_runtime_evidence() -> dict[str, Any]:
+    evidence = _direct_runtime_evidence()
+    weblog = evidence["containers"][1]
+    weblog |= {"library": "php", "weblog_variant": "php-fpm-8.2", "pid1_command": "/bin/bash ./app.sh"}
+    weblog["processes"] = [
+        {"pid": "202", "ppid": "0", "command": "/bin/bash ./app.sh"},
+        {"pid": "203", "ppid": "202", "command": "dumb-init /entrypoint.sh"},
+        {"pid": "204", "ppid": "203", "command": "php-fpm: master process (/etc/php/8.2/fpm/php-fpm.conf)"},
+        {"pid": "205", "ppid": "203", "command": "/usr/sbin/apache2 -k start"},
+        {"pid": "206", "ppid": "204", "command": "datadog-ipc-helper /opt/datadog/ddtrace.so"},
+    ]
+    return evidence
+
+
+@scenarios.feature_flagging_contract_tests
+@features.not_reported
+def test_feature_flagging_direct_runtime_accepts_php_fpm_with_internal_library_helper() -> None:
+    assert_direct_evp_runtime_evidence(_php_fpm_runtime_evidence(), library_name="php")
+
+
+@pytest.mark.parametrize("mutation", ["shell_only", "wrong_launcher", "no_master", "no_frontend", "external_agent"])
+@scenarios.feature_flagging_contract_tests
+@features.not_reported
+def test_feature_flagging_direct_runtime_rejects_incomplete_php_proof(mutation: str) -> None:
+    evidence = _php_fpm_runtime_evidence()
+    weblog = evidence["containers"][1]
+    if mutation == "shell_only":
+        weblog["processes"] = weblog["processes"][:1]
+    elif mutation == "wrong_launcher":
+        weblog["pid1_command"] = "/bin/bash arbitrary-wrapper.sh"
+    elif mutation == "no_master":
+        weblog["processes"] = [process for process in weblog["processes"] if process["pid"] != "204"]
+    elif mutation == "no_frontend":
+        weblog["processes"] = [process for process in weblog["processes"] if process["pid"] != "205"]
+    else:
+        weblog["processes"].append({"pid": "207", "ppid": "203", "command": "trace-agent"})
+    with pytest.raises(AssertionError):
+        assert_direct_evp_runtime_evidence(evidence, library_name="php")
+
+
 @pytest.mark.parametrize("executable", ["python3.11", "python3.12"])
 @scenarios.feature_flagging_contract_tests
 @features.not_reported
