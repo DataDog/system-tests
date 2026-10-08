@@ -1,9 +1,10 @@
 import json
 import time
 
-from tests.parametric.conftest import APMLibrary, APMLibraryFactory
+from tests.parametric.conftest import APMLibrary, APMLibraryFactory, nodejs_telemetry_value
 from tests.parametric.otel_env_vars.utils import has_warning_for_value
 from utils import features, pytest, scenarios
+from utils.docker_fixtures import TestAgentAPI
 
 
 VARIABLE = "OTEL_PROPAGATORS"
@@ -75,38 +76,102 @@ def _configured_baggage_propagators(library: APMLibrary) -> set[str]:
         time.sleep(0.1)
 
 
+def _assert_configured_propagators(library: APMLibrary, expected: set[str]) -> None:
+    configured = _configured_baggage_propagators(library) if "baggage" in expected else _configured_propagators(library)
+    assert configured == expected
+
+    # Each carrier supplies the same trace ID through one selected format.
+    # Only the low 64 bits matter here; 128-bit propagation has separate coverage.
+    carriers = {
+        "tracecontext": [("traceparent", "00-000000000000000000000000075bcd15-000000003ade68b1-01")],
+        "b3": [("b3", "000000000000000000000000075bcd15-000000003ade68b1-1")],
+        "b3multi": [
+            ("x-b3-traceid", "000000000000000000000000075bcd15"),
+            ("x-b3-spanid", "000000003ade68b1"),
+            ("x-b3-sampled", "1"),
+        ],
+        "xray": [("x-amzn-trace-id", f"Root=1-67891233-{123456789:024x};Parent={987654321:016x};Sampled=1")],
+        "jaeger": [("uber-trace-id", "000000000000000000000000075bcd15:000000003ade68b1:0:1")],
+        "ottrace": [
+            ("ot-tracer-traceid", "00000000075bcd15"),
+            ("ot-tracer-spanid", "000000003ade68b1"),
+            ("ot-tracer-sampled", "true"),
+        ],
+    }
+    for propagator in sorted(expected & carriers.keys()):
+        with library.dd_extract_headers_and_make_child_span(
+            "otel-propagators-extraction", carriers[propagator]
+        ) as span:
+            assert int(span.trace_id) & ((1 << 64) - 1) == 123456789, (
+                f"{propagator} did not extract the incoming trace ID"
+            )
+
+    if not expected:
+        with library.dd_extract_headers_and_make_child_span("otel-propagators-none", carriers["tracecontext"]) as span:
+            assert int(span.trace_id) & ((1 << 64) - 1) != 123456789, "none still extracts tracecontext"
+
+
+def _assert_deduplicated_propagators(library: APMLibrary, test_agent: TestAgentAPI) -> None:
+    if library.lang == "python":
+        # The Python app collapses header writes, and its configuration adapter
+        # uses private SDK fields. Only the observable effect is checked here.
+        return
+
+    if library.lang in {"java", "dotnet"}:
+        # These apps preserve every public carrier setter call in the raw list.
+        with library.dd_start_span("otel-propagators-deduplication") as span:
+            headers = library.dd_inject_headers(span.span_id)
+        for header in ("traceparent", "x-b3-traceid"):
+            assert sum(name.lower() == header for name, _ in headers) == 1, headers
+        return
+
+    if library.lang == "nodejs":
+        # The published extraction list directly drives the B3 extraction loop;
+        # injection uses membership checks and cannot reveal repeated entries.
+        styles = nodejs_telemetry_value(test_agent, "dd_trace_propagation_style_extract")
+    else:
+        # Go exposes registered injectors, PHP a resolved set, and Ruby/Rust the
+        # public lists used to construct their propagators. Preserve duplicates.
+        styles = library.config()["dd_trace_propagation_style"]
+    assert isinstance(styles, str), styles
+    resolved = styles.split(",")
+    if library.lang == "golang":
+        resolved = ["b3multi" if style == "b3" else style for style in resolved]
+    assert sorted(resolved) == ["b3multi", "tracecontext"], resolved
+
+
 @scenarios.parametric
 @features.otel_propagators
 class Test_OTEL_PROPAGATORS:
     @pytest.mark.parametrize("library_env", [pytest.param({**BASE_ENV, VARIABLE: "tracecontext"}, id="tracecontext")])
     def test_tracecontext(self, test_library: APMLibrary) -> None:
         with test_library as library:
-            assert _configured_propagators(library) == {"tracecontext"}
+            _assert_configured_propagators(library, {"tracecontext"})
 
     @pytest.mark.parametrize("library_env", [pytest.param({**BASE_ENV, VARIABLE: "b3multi"}, id="b3multi")])
     def test_b3multi(self, test_library: APMLibrary) -> None:
         with test_library as library:
-            assert _configured_propagators(library) == {"b3multi"}
+            _assert_configured_propagators(library, {"b3multi"})
 
     @pytest.mark.parametrize("library_env", [pytest.param({**BASE_ENV, VARIABLE: "b3"}, id="b3")])
     def test_b3_single_header(self, test_library: APMLibrary) -> None:
         with test_library as library:
-            assert _configured_propagators(library) == {"b3"}
+            _assert_configured_propagators(library, {"b3"})
 
     @pytest.mark.parametrize("library_env", [pytest.param({**BASE_ENV, VARIABLE: "baggage"}, id="baggage")])
     def test_baggage(self, test_library: APMLibrary) -> None:
         with test_library as library:
-            assert _configured_baggage_propagators(library) == {"baggage"}
+            _assert_configured_propagators(library, {"baggage"})
 
     @pytest.mark.parametrize("library_env", [pytest.param({**BASE_ENV, VARIABLE: "xray"}, id="xray")])
     def test_xray(self, test_library: APMLibrary) -> None:
         with test_library as library:
-            assert _configured_propagators(library) == {"xray"}
+            _assert_configured_propagators(library, {"xray"})
 
     @pytest.mark.parametrize("library_env", [pytest.param({**BASE_ENV, VARIABLE: "none"}, id="none")])
     def test_none(self, test_library: APMLibrary) -> None:
         with test_library as library:
-            assert _configured_propagators(library) == set()
+            _assert_configured_propagators(library, set())
 
     @pytest.mark.parametrize(
         ("library_env", "expected"),
@@ -117,7 +182,7 @@ class Test_OTEL_PROPAGATORS:
     )
     def test_deprecated_values(self, test_library: APMLibrary, expected: set[str]) -> None:
         with test_library as library:
-            assert _configured_propagators(library) == expected
+            _assert_configured_propagators(library, expected)
 
     @pytest.mark.parametrize(
         "library_env",
@@ -125,7 +190,7 @@ class Test_OTEL_PROPAGATORS:
     )
     def test_multiple_trace_propagators(self, test_library: APMLibrary) -> None:
         with test_library as library:
-            assert _configured_propagators(library) == {"b3", "tracecontext"}
+            _assert_configured_propagators(library, {"b3", "tracecontext"})
 
     @pytest.mark.parametrize(
         "library_env",
@@ -133,7 +198,7 @@ class Test_OTEL_PROPAGATORS:
     )
     def test_composite_propagators(self, test_library: APMLibrary) -> None:
         with test_library as library:
-            assert _configured_baggage_propagators(library) == {"tracecontext", "baggage"}
+            _assert_configured_propagators(library, {"tracecontext", "baggage"})
 
     @pytest.mark.parametrize(
         "library_env",
@@ -144,11 +209,10 @@ class Test_OTEL_PROPAGATORS:
             )
         ],
     )
-    def test_duplicate_propagators(self, test_library: APMLibrary) -> None:
-        # Duplicate entries must have the same observable effect as one entry.
-        # Header maps do not expose how many internal propagators were registered.
+    def test_duplicate_propagators(self, test_library: APMLibrary, test_agent: TestAgentAPI) -> None:
         with test_library as library:
-            assert _configured_propagators(library) == {"tracecontext", "b3multi"}
+            _assert_configured_propagators(library, {"tracecontext", "b3multi"})
+            _assert_deduplicated_propagators(library, test_agent)
 
     @pytest.mark.parametrize(
         "library_env",
@@ -156,12 +220,12 @@ class Test_OTEL_PROPAGATORS:
     )
     def test_case_insensitive_values(self, test_library: APMLibrary) -> None:
         with test_library as library:
-            assert _configured_propagators(library) == {"tracecontext", "b3multi"}
+            _assert_configured_propagators(library, {"tracecontext", "b3multi"})
 
     @pytest.mark.parametrize("library_env", [pytest.param(BASE_ENV, id="unset")])
     def test_default_matches_specification(self, test_library: APMLibrary) -> None:
         with test_library as library:
-            assert _configured_baggage_propagators(library) == {"tracecontext", "baggage"}
+            _assert_configured_propagators(library, {"tracecontext", "baggage"})
 
     @pytest.mark.parametrize("library_env", [pytest.param({**BASE_ENV, VARIABLE: ""}, id="empty")])
     def test_empty_is_treated_as_unset(
