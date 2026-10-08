@@ -104,6 +104,23 @@ class Test_LambdaVersions:
         for nodeid in TELEMETRY_TESTS:
             assert not manifest.get_declarations(nodeid), nodeid
 
+    @pytest.mark.parametrize("weblog", ["ruby-apigw-http", "ruby-apigw-rest"])
+    def test_ruby_lambda_keeps_passing_tests_enabled(self, weblog: str) -> None:
+        manifest = Manifest(
+            {
+                "ruby_lambda": ComponentVersion("ruby_lambda", "3.30.0").version,
+                "ruby": ComponentVersion("ruby", "2.40.0").version,
+            },
+            weblog,
+        )
+        for nodeid in [
+            "tests/appsec/api_security/test_schemas.py::Test_Schema_Request_FormUrlEncoded_Body::test_request_method",
+            "tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry_V2::test_ssrf_telemetry",
+            "tests/appsec/test_traces.py::Test_CollectDefaultRequestHeader::test_collect_default_request_headers",
+            "tests/appsec/waf/test_blocking.py::Test_Blocking::test_json_template_v1",
+        ]:
+            assert not manifest.get_declarations(nodeid), nodeid
+
     @pytest.mark.parametrize(
         ("library", "version", "tracer", "exits"),
         [

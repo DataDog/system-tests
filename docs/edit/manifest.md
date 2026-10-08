@@ -66,6 +66,8 @@ tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry:
 ```
 
 Healthchecks without the optional `tracer` object retain their existing behavior.
+Easy-win activation processes each reported component at its own version. For example,
+`--components python` also considers Python tracer results from Lambda weblogs.
 
 ## Test Node ID Format
 

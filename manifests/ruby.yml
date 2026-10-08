@@ -319,7 +319,10 @@ manifest:
   tests/appsec/api_security/test_endpoints.py: irrelevant (language not implementing this feature)
   tests/appsec/api_security/test_schemas.py::Test_Scanners: v2.19.0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Cookies: v1.15.0
-  tests/appsec/api_security/test_schemas.py::Test_Schema_Request_FormUrlEncoded_Body: missing_feature
+  tests/appsec/api_security/test_schemas.py::Test_Schema_Request_FormUrlEncoded_Body:
+    - weblog_declaration:
+        "*": missing_feature
+        "ruby-apigw-http, ruby-apigw-rest": v2.40.0  # TODO: a lower version might be supported
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Headers: v1.15.0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Json_Body: v1.15.0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Path_Parameters:
@@ -1198,6 +1201,7 @@ manifest:
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry_V2:  # TODO: a lower version might be supported
     - weblog_declaration:
         '*': missing_feature
+        "ruby-apigw-http, ruby-apigw-rest": v2.40.0  # TODO: a lower version might be supported
         rails42: '>=2.33.0'
         sinatra14: '>=2.33.0'
         rack: '>=2.33.0'
@@ -1710,6 +1714,7 @@ manifest:
   tests/appsec/test_traces.py::Test_CollectDefaultRequestHeader:  # Modified by easy win activation script
     - weblog_declaration:
         '*': missing_feature
+        "ruby-apigw-http, ruby-apigw-rest": v2.40.0  # TODO: a lower version might be supported
         rails52: '>=2.24.0'
         rails80: '>=2.24.0'
         uds-rails: '>=2.24.0'
@@ -1798,6 +1803,7 @@ manifest:
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_json_template_v1:  # Modified by easy win activation script
     - weblog_declaration:
         '*': missing_feature
+        "ruby-apigw-http, ruby-apigw-rest": v2.40.0  # TODO: a lower version might be supported
         rails80: '>=2.27.0'
         sinatra14: '>=2.27.0'
         uds-sinatra: '>=2.27.0'
