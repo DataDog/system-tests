@@ -6,6 +6,7 @@ When in doubt refer to the python implementation as the source of truth via
 the OpenAPI schema: https://github.com/DataDog/system-tests/blob/44281005e9d2ddec680f31b2813eb90af831c0fc/docs/understand/scenarios/parametric.md#shared-interface
 """
 
+from collections.abc import Generator
 from typing import Any
 
 from utils import pytest
@@ -305,6 +306,39 @@ class Test_Parametric_DDTrace_Config:
             if t.lang == "php":
                 # PHP exposes its effective threshold through emitted SDK diagnostics.
                 assert t.dd_log_level_diagnostics()
+
+
+@scenarios.parametric
+@features.parametric_endpoint_parity
+class Test_Parametric_Nodejs_OTel_Effective_Config:
+    @pytest.fixture(autouse=True)
+    def _configure_timeouts(self, library_env: dict[str, str]) -> Generator[None, None, None]:
+        original_env = library_env.copy()
+        library_env.update(
+            {
+                "OTEL_EXPORTER_OTLP_TIMEOUT": "900",
+                "OTEL_EXPORTER_OTLP_TRACES_TIMEOUT": "500",
+                "OTEL_EXPORTER_OTLP_METRICS_TIMEOUT": "700",
+            }
+        )
+        try:
+            yield
+        finally:
+            library_env.clear()
+            library_env.update(original_env)
+
+    def test_effective_timeouts(self, test_library: APMLibrary) -> None:
+        """Check signal-specific precedence and the global timeout fallback."""
+        with test_library as library:
+            config = library.otel_effective_config()
+            trace_config = library.config()
+
+        assert config == {
+            "otel_exporter_otlp_traces_timeout_ms": "500",
+            "otel_exporter_otlp_metrics_timeout_ms": "700",
+            "otel_exporter_otlp_logs_timeout_ms": "900",
+        }
+        assert {key: trace_config[key] for key in config} == config
 
 
 @scenarios.parametric

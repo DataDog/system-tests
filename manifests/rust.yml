@@ -418,6 +418,7 @@ manifest:
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Flush: v0.0.1
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_FFE_Start: missing_feature
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Inject_Headers: v0.0.1
+  tests/parametric/test_parametric_endpoints.py::Test_Parametric_Nodejs_OTel_Effective_Config: irrelevant (Node.js-specific diagnostic endpoint)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_OtelSpan_Events: v0.0.1
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_OtelSpan_Set_Name: v0.0.1
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_OtelSpan_Start: v0.0.1

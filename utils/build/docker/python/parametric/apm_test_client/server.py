@@ -245,7 +245,8 @@ def otlp_trace_exporter_timeout() -> Optional[str]:
 
     # NativeWriter passes this resolved value to the native exporter in milliseconds.
     # Older SDKs may have the settings module without trace exporter configuration.
-    timeout = getattr(otel_config.exporter, "TRACES_TIMEOUT", None)
+    exporter = getattr(otel_config, "exporter", None)
+    timeout = getattr(exporter, "TRACES_TIMEOUT", None)
     return str(timeout) if isinstance(timeout, (int, float)) else None
 
 

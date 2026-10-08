@@ -2401,6 +2401,7 @@ manifest:
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes::test_fr08_14_peer_tags: missing_feature (Blocked on test-agent support for advertising a peer_tags allowlist in /info)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Baggage: v2.16.0
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_FFE_Start: v4.0.0
+  tests/parametric/test_parametric_endpoints.py::Test_Parametric_Nodejs_OTel_Effective_Config: irrelevant (Node.js-specific diagnostic endpoint)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Otel_Baggage: v2.16.0
   tests/parametric/test_partial_flushing.py::Test_Partial_Flushing: flaky (APMAPI-734)
   tests/parametric/test_process_discovery.py::Test_ProcessDiscovery: v3.15.0+dev36.gb57f15308

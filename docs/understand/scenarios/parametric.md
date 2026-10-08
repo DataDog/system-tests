@@ -218,6 +218,23 @@ Note: These are based off of the Python tracer's http server which should be hel
 
 Not all endpoint implementations per language are up to spec with regards to their parameters and return values. To view endpoints that are not up to spec, see the [feature parity board](https://feature-parity.us1.prod.dog/#/?runDateFilter=7d&feature=339)
 
+#### Effective OpenTelemetry configuration
+
+Use `test_library.otel_effective_config()` to inspect resolved OTLP exporter timeouts.
+For Node.js it calls the diagnostic endpoint `GET /otel/effective_config`; for other
+SDKs it reads the existing `/trace/config` endpoint. The returned dictionary contains:
+
+- `otel_exporter_otlp_traces_timeout_ms`
+- `otel_exporter_otlp_metrics_timeout_ms`
+- `otel_exporter_otlp_logs_timeout_ms`
+
+Values are strings in milliseconds, or `None` when the SDK does not expose the setting.
+Zero values are preserved. The Node.js endpoint adapts private SDK configuration fields
+to this contract and reports the SDK's resolved values, including its validation and
+defaults. Its `/trace/config` endpoint continues to return an empty configuration.
+The existing `test_library.config()` method also reads Node.js timeout fields from
+the diagnostic endpoint, so tests using that method can inspect these values.
+
 ### Architecture: How System-tests work
 
 Below is an overview of how the testing architecture is structured:

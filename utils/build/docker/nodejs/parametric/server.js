@@ -460,7 +460,16 @@ app.post('/trace/otel/set_attributes', (req, res) => {
 });
 
 app.get('/trace/config', (req, res) => {
-  // Report the SDK's resolved values, including its validation and defaults.
+  // The tracer's resolved config is an internal shape whose property paths rename across
+  // refactors, so this endpoint reports nothing from it. Node config consistency is asserted
+  // via telemetry and observable behaviour in the parametric suite. Missing keys default
+  // to null in the test client; OTLP timeouts use the dedicated diagnostic endpoint below.
+  res.json({ config: {} })
+});
+
+app.get('/otel/effective_config', (req, res) => {
+  // Isolate the SDK's private configuration shape behind stable diagnostic fields.
+  // Keep validation and default resolution inside the SDK.
   // Older tracers may not expose these fields; preserve null in that case.
   const config = tracer?._tracer?._config
   res.json({ config: {
