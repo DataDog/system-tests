@@ -3,10 +3,15 @@ from pathlib import Path
 
 from utils import scenarios
 from utils.const import COMPONENT_GROUPS
+from utils._context.constants import WeblogBuildMode
 from utils._context.weblog_metadata import WeblogMetaData
 from utils._context._scenarios import get_all_scenarios, Scenario
 from utils.scripts.ci_orchestrators.workflow_data import (
+    Job,
+    _get_duration_metrics,
     _get_endtoend_weblogs,
+    _get_scheduling_metrics,
+    _split_jobs_for_parallel_execution,
     get_endtoend_definitions,
 )
 
@@ -39,6 +44,76 @@ def test_get_endtoend_definitions():
     # graphql_appsec is executed on  graphql23 weblog
     # so the job should be equals to weblog count
     assert len(defs["endtoend_defs"]["parallel_jobs"]) == weblog_count
+
+
+@scenarios.test_the_test
+def test_parallel_scheduling_metrics() -> None:
+    weblog = WeblogMetaData(
+        name="test-weblog",
+        library="ruby",
+        build_mode=WeblogBuildMode.prebuild,
+    )
+    source_job = Job(
+        library="ruby",
+        weblog=weblog,
+        weblog_instance=1,
+        scenarios_times={"SCENARIO_A": 40.0, "SCENARIO_B": 30.0},
+        build_time=10.0,
+    )
+
+    emitted_jobs, jobs_before_limit = _split_jobs_for_parallel_execution([source_job], 60.0, 1)
+    metrics = _get_scheduling_metrics([source_job], jobs_before_limit, emitted_jobs, 60.0, 1)
+
+    assert len(emitted_jobs) == 1
+    assert set(emitted_jobs[0].scenarios) == {"SCENARIO_A", "SCENARIO_B"}
+    assert metrics["scenario_assignments"] == 2
+    assert metrics["jobs_before_limit"] == 2
+    assert metrics["jobs_after_limit"] == 1
+    assert metrics["limit_applied"] is True
+    assert metrics["jobs_over_target"] == 1
+    assert metrics["predicted_run_time_seconds"]["maximum"] == 70.0
+    assert metrics["predicted_critical_path_seconds"]["maximum"] == 80.0
+    assert metrics["weblogs"] == [
+        {
+            "weblog": "test-weblog",
+            "scenario_assignments": 2,
+            "build_time": 10.0,
+            "available_run_time": 50.0,
+            "build_exceeds_target": False,
+            "scenarios_exceeding_run_budget": 0,
+            "jobs_before_limit": 2,
+            "jobs_after_limit": 1,
+            "jobs_over_target": 1,
+            "predicted_run_time_seconds": {
+                "minimum": 70.0,
+                "median": 70.0,
+                "p95": 70.0,
+                "maximum": 70.0,
+            },
+            "predicted_critical_path_seconds": {
+                "minimum": 80.0,
+                "median": 80.0,
+                "p95": 80.0,
+                "maximum": 80.0,
+            },
+        }
+    ]
+
+
+@scenarios.test_the_test
+def test_duration_metrics_use_nearest_rank_percentiles() -> None:
+    assert _get_duration_metrics([5.0, 1.0, 4.0, 2.0, 3.0]) == {
+        "minimum": 1.0,
+        "median": 3.0,
+        "p95": 5.0,
+        "maximum": 5.0,
+    }
+    assert _get_duration_metrics([]) == {
+        "minimum": 0.0,
+        "median": 0.0,
+        "p95": 0.0,
+        "maximum": 0.0,
+    }
 
 
 @scenarios.test_the_test
@@ -119,7 +194,9 @@ def test_otel_collector():
     assert defs["endtoend_defs"]["parallel_jobs"] == [
         {
             "binaries_artifact": "",
+            "expected_build_time": 0.0,
             "expected_job_time": 74.34217318962216,
+            "expected_run_time": 74.34217318962216,
             "library": "otel_collector",
             "runs_on": "ubuntu-latest",
             "scenarios": ["OTEL_COLLECTOR"],

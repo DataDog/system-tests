@@ -1,5 +1,6 @@
 from collections import defaultdict
 import json
+from math import ceil
 from utils._context._scenarios import Scenario
 from utils._context.weblog_metadata import WeblogMetaData as Weblog
 from utils._context.constants import WeblogBuildMode as BuildMode
@@ -235,7 +236,9 @@ class Job:
             "weblog_build_required": self.weblog.require_build,
             "weblog_instance": self.weblog_instance,
             "scenarios": sorted(self.scenarios),
-            "expected_job_time": self.expected_job_time + self.build_time,
+            "expected_build_time": self.build_time,
+            "expected_run_time": self.expected_job_time,
+            "expected_job_time": self.expected_total_time,
             "binaries_artifact": self.weblog.artifact_name,
         }
 
@@ -246,6 +249,10 @@ class Job:
     @property
     def expected_job_time(self) -> float:
         return sum(self._scenarios_times.values())
+
+    @property
+    def expected_total_time(self) -> float:
+        return self.expected_job_time + self.build_time
 
     @property
     def sort_key(self) -> tuple:
@@ -356,8 +363,21 @@ def get_endtoend_definitions(
 
     # split those jobs into smaller jobs if needed
 
+    jobs_before_limit = {job.weblog.name: 1 for job in jobs}
+    source_jobs = jobs
+
     if desired_execution_time > 0:  # 0 or less means that user doesn't want to split jobs
-        jobs = _split_jobs_for_parallel_execution(jobs, desired_execution_time, maximum_parallel_jobs)
+        jobs, jobs_before_limit = _split_jobs_for_parallel_execution(
+            jobs, desired_execution_time, maximum_parallel_jobs
+        )
+
+    scheduling = _get_scheduling_metrics(
+        source_jobs,
+        jobs_before_limit,
+        jobs,
+        desired_execution_time,
+        maximum_parallel_jobs,
+    )
 
     # sort jobs by weblog name and weblog instance
     jobs.sort(key=lambda job: job.sort_key)
@@ -372,6 +392,7 @@ def get_endtoend_definitions(
                 _get_weblog_build_job(weblog) for weblog in weblogs if weblog.build_mode == BuildMode.prebuild
             ],
             "parallel_jobs": [job.serialize() for job in jobs],
+            "scheduling": scheduling,
         }
     }
 
@@ -385,11 +406,15 @@ def _get_weblog_build_job(weblog: Weblog) -> dict:
 
 def _split_jobs_for_parallel_execution(
     jobs: list[Job], desired_execution_time: float, maximum_parallel_jobs: int
-) -> list[Job]:
+) -> tuple[list[Job], dict[str, int]]:
     result: list[Job] = []
 
     for job in jobs:
         result.extend(job.split_for_parallel_execution(desired_execution_time))
+
+    jobs_before_limit: dict[str, int] = defaultdict(int)
+    for job in result:
+        jobs_before_limit[job.weblog.name] += 1
 
     while len(result) > maximum_parallel_jobs:
         # sort jobs by their weblog_instance
@@ -409,7 +434,79 @@ def _split_jobs_for_parallel_execution(
             if len(result) <= maximum_parallel_jobs:
                 break
 
-    return result
+    return result, dict(jobs_before_limit)
+
+
+def _get_scheduling_metrics(
+    source_jobs: list[Job],
+    jobs_before_limit: dict[str, int],
+    jobs_after_limit: list[Job],
+    desired_execution_time: float,
+    maximum_parallel_jobs: int,
+) -> dict:
+    jobs_after_limit_by_weblog: dict[str, list[Job]] = defaultdict(list)
+    for job in jobs_after_limit:
+        jobs_after_limit_by_weblog[job.weblog.name].append(job)
+
+    weblogs = []
+    for source_job in sorted(source_jobs, key=lambda job: job.weblog.name):
+        emitted_jobs = jobs_after_limit_by_weblog[source_job.weblog.name]
+        available_run_time = desired_execution_time - source_job.build_time if desired_execution_time > 0 else None
+        scenarios_over_budget = (
+            sum(source_job.get_scenario_time(scenario) > available_run_time for scenario in source_job.scenarios)
+            if available_run_time is not None
+            else 0
+        )
+
+        weblogs.append(
+            {
+                "weblog": source_job.weblog.name,
+                "scenario_assignments": len(source_job.scenarios),
+                "build_time": source_job.build_time,
+                "available_run_time": available_run_time,
+                "build_exceeds_target": desired_execution_time > 0 and source_job.build_time >= desired_execution_time,
+                "scenarios_exceeding_run_budget": scenarios_over_budget,
+                "jobs_before_limit": jobs_before_limit[source_job.weblog.name],
+                "jobs_after_limit": len(emitted_jobs),
+                "jobs_over_target": sum(
+                    desired_execution_time > 0 and job.expected_total_time > desired_execution_time
+                    for job in emitted_jobs
+                ),
+                "predicted_run_time_seconds": _get_duration_metrics([job.expected_job_time for job in emitted_jobs]),
+                "predicted_critical_path_seconds": _get_duration_metrics(
+                    [job.expected_total_time for job in emitted_jobs]
+                ),
+            }
+        )
+
+    total_jobs_before_limit = sum(jobs_before_limit.values())
+    return {
+        "desired_execution_time": desired_execution_time,
+        "maximum_parallel_jobs": maximum_parallel_jobs,
+        "scenario_assignments": sum(len(job.scenarios) for job in source_jobs),
+        "jobs_before_limit": total_jobs_before_limit,
+        "jobs_after_limit": len(jobs_after_limit),
+        "limit_applied": total_jobs_before_limit > maximum_parallel_jobs,
+        "jobs_over_target": sum(
+            desired_execution_time > 0 and job.expected_total_time > desired_execution_time for job in jobs_after_limit
+        ),
+        "predicted_run_time_seconds": _get_duration_metrics([job.expected_job_time for job in jobs_after_limit]),
+        "predicted_critical_path_seconds": _get_duration_metrics([job.expected_total_time for job in jobs_after_limit]),
+        "weblogs": weblogs,
+    }
+
+
+def _get_duration_metrics(durations: list[float]) -> dict[str, float]:
+    if len(durations) == 0:
+        return {"minimum": 0.0, "median": 0.0, "p95": 0.0, "maximum": 0.0}
+
+    values = sorted(durations)
+    return {
+        "minimum": values[0],
+        "median": values[ceil(len(values) * 0.5) - 1],
+        "p95": values[ceil(len(values) * 0.95) - 1],
+        "maximum": values[-1],
+    }
 
 
 def _split_scenarios_for_parallel_execution(
