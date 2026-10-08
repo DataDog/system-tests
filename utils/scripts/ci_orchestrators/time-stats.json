@@ -754,7 +754,7 @@
       }
     },
     "APPSEC_API_SECURITY_RC": {
-      "*": 51.9591836734694,
+      "*": 123.24149659863944,
       "dotnet": {
         "*": 76.5,
         "poc": 75,
@@ -834,28 +834,19 @@
         "uwsgi-poc": 43
       },
       "ruby": {
-        "*": 37.523809523809526,
-        "rack": 35,
-        "rails42": 37,
-        "rails50": 37,
-        "rails51": 37,
-        "rails52": 37,
-        "rails60": 38,
-        "rails61": 37,
-        "rails70": 38,
-        "rails71": 37,
-        "rails72": 39,
-        "rails80": 38,
-        "sinatra14": 36,
-        "sinatra20": 36,
-        "sinatra21": 36,
-        "sinatra22": 36,
-        "sinatra30": 36,
-        "sinatra31": 36,
-        "sinatra32": 36,
-        "sinatra40": 36,
-        "uds-rails": 46,
-        "uds-sinatra": 44
+        "*": 536.5,
+        "rack": 533.0,
+        "rails42": 536.0,
+        "rails52": 537.0,
+        "rails61": 536.0,
+        "rails72": 537.0,
+        "rails80": 539.0,
+        "sinatra14": 536.0,
+        "sinatra22": 535.0,
+        "sinatra32": 536.0,
+        "sinatra41": 528.0,
+        "uds-rails": 545.0,
+        "uds-sinatra": 540.0
       }
     },
     "APPSEC_API_SECURITY_WITH_SAMPLING": {
