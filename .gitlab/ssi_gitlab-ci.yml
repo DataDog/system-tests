@@ -130,10 +130,8 @@ ssi_tests:
         # aws ssm get-parameter is flaky: skip the tag if the API key could not be fetched.
         DATADOG_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.${CI_PROJECT_NAME}.test_optimization.dd_api_key --with-decryption --query "Parameter.Value" --out text) || DATADOG_API_KEY=""
         if [ -n "$DATADOG_API_KEY" ]; then
-            curl -sSL --fail --retry 3 https://github.com/DataDog/datadog-ci/releases/download/v5.17.0/datadog-ci_linux-x64 -o /tmp/datadog-ci \
-                && chmod +x /tmp/datadog-ci \
-                && DATADOG_SITE="${DATADOG_SITE:-datadoghq.com}" DATADOG_API_KEY="${DATADOG_API_KEY}" /tmp/datadog-ci tag --level job --tags "_ci_framework:system-tests" \
-                || echo "Failed to tag the job with _ci_framework:system-tests"
+            DATADOG_SITE="${DATADOG_SITE:-datadoghq.com}" DATADOG_API_KEY="${DATADOG_API_KEY}" datadog-ci tag --level job --tags "_ci_framework:system-tests" \
+              || echo "Failed to tag the job with _ci_framework:system-tests"
         else
             echo "Failed to fetch the Datadog API key, skipping the _ci_framework:system-tests tag"
         fi
