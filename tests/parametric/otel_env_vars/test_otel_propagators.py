@@ -1,8 +1,8 @@
 import json
-import re
 import time
 
 from tests.parametric.conftest import APMLibrary
+from tests.parametric.otel_env_vars.utils import has_warning_for_value
 from utils import features, pytest, scenarios
 
 
@@ -68,37 +68,6 @@ def _diagnostic_logs(library: APMLibrary) -> str:
         assert success, f"Could not read the .NET diagnostic log files: {logs}"
         return logs
     return library.get_logs()
-
-
-def _has_invalid_propagator_warning(language: str, logs: str) -> bool:
-    for raw_line in logs.splitlines():
-        line = re.sub(r"\x1b\[[0-9;]*m", "", raw_line).strip()
-        if "not-a-propagator" not in line:
-            continue
-        json_start = re.search(r'[\[{]\s*"', line)
-        levels = r"WARN(?:ING)?|WRN|DEBUG|DBG|INFO|INF|ERROR|ERR|TRACE|TRC|FATAL|CRITICAL"
-        level = re.search(
-            rf"(?<![\w.])(?:{levels})(?=[\s:\]])|(?<=\[)(?i:{levels})(?=\])|^(?i:{levels})(?=[:\s])",
-            line,
-        )
-        if level is not None:
-            # Ignore levels inside JSON echoes. Real warning messages may contain JSON.
-            if json_start is not None and json_start.start() < level.start():
-                continue
-            # The first level wins, so an INFO/DEBUG echo of a warning cannot pass.
-            if level.group().lower() in {"warn", "warning", "wrn"} and "not-a-propagator" in line[level.end() :]:
-                return True
-        elif (
-            language in {"nodejs", "python"}
-            and json_start is None
-            and re.search(
-                r"\b(?:invalid|unknown|unsupported|not supported|not registered|warning)\b", line, re.IGNORECASE
-            )
-        ):
-            # These SDKs can print warnings without a level prefix. Require a
-            # diagnostic containing the test value without fixing its wording.
-            return True
-    return False
 
 
 def _configured_baggage_propagators(library: APMLibrary) -> set[str]:
@@ -224,7 +193,7 @@ class Test_OTEL_PROPAGATORS:
             deadline = time.monotonic() + 5
             while True:
                 logs = _diagnostic_logs(library)
-                if _has_invalid_propagator_warning(library.lang, logs):
+                if has_warning_for_value(library.lang, logs, "not-a-propagator"):
                     return
                 assert time.monotonic() < deadline, logs
                 time.sleep(0.1)
