@@ -1,5 +1,5 @@
 include:
-  - remote: https://gitlab-templates.ddbuild.io/libdatadog/include/versions/1.8.0/single-step-instrumentation-tests.yml
+  - remote: https://gitlab-templates.ddbuild.io/libdatadog/include-wip/robertomonteromiguel/ssi-secrets-update-v3/single-step-instrumentation-tests.yml
   - local: /utils/ci/gitlab/main.yml
     inputs:
       stage: "e2e"
