@@ -12,6 +12,7 @@ from utils.scripts.ci_orchestrators.workflow_data import (
     _get_endtoend_weblogs,
     _get_scheduling_metrics,
     _split_jobs_for_parallel_execution,
+    _split_scenarios_for_parallel_execution,
     get_endtoend_definitions,
 )
 
@@ -71,6 +72,8 @@ def test_parallel_scheduling_metrics() -> None:
     assert metrics["jobs_after_limit"] == 1
     assert metrics["limit_applied"] is True
     assert metrics["jobs_over_target"] == 1
+    assert metrics["weblogs_with_impossible_budget"] == 0
+    assert metrics["scenarios_exceeding_run_budget"] == 0
     assert metrics["predicted_run_time_seconds"]["maximum"] == 70.0
     assert metrics["predicted_critical_path_seconds"]["maximum"] == 80.0
     assert metrics["weblogs"] == [
@@ -79,6 +82,7 @@ def test_parallel_scheduling_metrics() -> None:
             "scenario_assignments": 2,
             "build_time": 10.0,
             "available_run_time": 50.0,
+            "budget_status": "within_target",
             "build_exceeds_target": False,
             "scenarios_exceeding_run_budget": 0,
             "jobs_before_limit": 2,
@@ -114,6 +118,51 @@ def test_duration_metrics_use_nearest_rank_percentiles() -> None:
         "p95": 0.0,
         "maximum": 0.0,
     }
+
+
+@scenarios.test_the_test
+def test_build_time_over_target_uses_explicit_zero_run_budget() -> None:
+    weblog = WeblogMetaData(
+        name="test-weblog",
+        library="ruby",
+        build_mode=WeblogBuildMode.prebuild,
+    )
+    source_job = Job(
+        library="ruby",
+        weblog=weblog,
+        weblog_instance=1,
+        scenarios_times={"SCENARIO_A": 20.0, "SCENARIO_B": 10.0},
+        build_time=75.0,
+    )
+
+    emitted_jobs, jobs_before_limit = _split_jobs_for_parallel_execution([source_job], 60.0, 2)
+    metrics = _get_scheduling_metrics([source_job], jobs_before_limit, emitted_jobs, 60.0, 2)
+
+    assert source_job.available_run_time(60.0) == 0.0
+    assert [job.scenarios for job in emitted_jobs] == [("SCENARIO_A",), ("SCENARIO_B",)]
+    assert metrics["weblogs_with_impossible_budget"] == 1
+    assert metrics["scenarios_exceeding_run_budget"] == 2
+    assert metrics["weblogs"][0]["available_run_time"] == 0.0
+    assert metrics["weblogs"][0]["budget_status"] == "build_exceeds_target"
+
+
+@scenarios.test_the_test
+def test_scenario_over_run_budget_is_isolated_without_losing_scenarios() -> None:
+    split = _split_scenarios_for_parallel_execution(
+        {
+            "TOO_LONG": 70.0,
+            "SCENARIO_A": 20.0,
+            "SCENARIO_B": 20.0,
+        },
+        50.0,
+    )
+
+    assert split == [["TOO_LONG"], ["SCENARIO_A", "SCENARIO_B"]]
+    assert sorted(scenario for scenarios in split for scenario in scenarios) == [
+        "SCENARIO_A",
+        "SCENARIO_B",
+        "TOO_LONG",
+    ]
 
 
 @scenarios.test_the_test
