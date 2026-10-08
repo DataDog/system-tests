@@ -41,24 +41,27 @@ def _emit_counter(library: APMLibrary) -> None:
 
 
 def _has_counter(value: object) -> bool:
-    if isinstance(value, dict):
-        if value.get("name") == COUNTER:
-            # Console exporters may use the SDK's `data` structure instead of OTLP's `sum`.
-            aggregation = value.get("sum", value.get("data"))
-            if isinstance(aggregation, dict):
-                points = aggregation.get("data_points", aggregation.get("dataPoints", []))
-                if not isinstance(points, list):
-                    return False
-                for point in points:
-                    if not isinstance(point, dict):
-                        continue
-                    for key in ("as_int", "asInt", "as_double", "asDouble", "value"):
-                        if str(point.get(key)) in ("42", "42.0"):
-                            return True
-        return any(_has_counter(item) for item in value.values())
     if isinstance(value, list):
         return any(_has_counter(item) for item in value)
-    return False
+    if not isinstance(value, dict):
+        return False
+    if value.get("name") != COUNTER:
+        return any(_has_counter(item) for item in value.values())
+
+    # Console exporters may use the SDK's `data` structure instead of OTLP's `sum`.
+    aggregation = value.get("sum", value.get("data"))
+    if not isinstance(aggregation, dict):
+        return any(_has_counter(item) for item in value.values())
+    points = aggregation.get("data_points", aggregation.get("dataPoints", []))
+    if not isinstance(points, list):
+        return False
+    for point in points:
+        if not isinstance(point, dict):
+            continue
+        for key in ("as_int", "asInt", "as_double", "asDouble", "value"):
+            if str(point.get(key)) in ("42", "42.0"):
+                return True
+    return any(_has_counter(item) for item in value.values())
 
 
 def _assert_otlp(test_agent: TestAgentAPI, test_library: APMLibrary) -> None:

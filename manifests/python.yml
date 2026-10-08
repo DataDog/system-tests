@@ -2060,12 +2060,28 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER::test_development_values: missing_feature (OTEL_LOGS_EXPORTER does not configure the logs pipeline)
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER::test_none: missing_feature (OTEL_LOGS_EXPORTER does not configure the logs pipeline)
   tests/parametric/otel_env_vars/test_otel_metric_export_interval.py::Test_OTEL_METRIC_EXPORT_INTERVAL: v4.11.0
-  tests/parametric/otel_env_vars/test_otel_metric_export_interval.py::Test_OTEL_METRIC_EXPORT_INTERVAL::test_fractional_is_ignored: bug (APMAPI-2461)
-  ? tests/parametric/otel_env_vars/test_otel_metric_export_interval.py::Test_OTEL_METRIC_EXPORT_INTERVAL::test_invalid_values_use_default
+  tests/parametric/otel_env_vars/test_otel_metric_export_interval.py::Test_OTEL_METRIC_EXPORT_INTERVAL::test_empty_is_unset: irrelevant (Interval and provider initialization are checked together)
+  tests/parametric/otel_env_vars/test_otel_metric_export_interval.py::Test_OTEL_METRIC_EXPORT_INTERVAL::test_fractional_is_ignored: irrelevant (Interval and provider initialization are checked together)
+  ? tests/parametric/otel_env_vars/test_otel_metric_export_interval.py::Test_OTEL_METRIC_EXPORT_INTERVAL::test_initialized_zero_and_invalid_values
   : bug (APMAPI-2461)
-  tests/parametric/otel_env_vars/test_otel_metric_export_interval.py::Test_OTEL_METRIC_EXPORT_INTERVAL::test_negative_is_ignored: bug (APMAPI-2461)
+  ? tests/parametric/otel_env_vars/test_otel_metric_export_interval.py::Test_OTEL_METRIC_EXPORT_INTERVAL::test_invalid_values_use_default
+  : irrelevant (Interval and provider initialization are checked together)
+  tests/parametric/otel_env_vars/test_otel_metric_export_interval.py::Test_OTEL_METRIC_EXPORT_INTERVAL::test_negative_is_ignored: irrelevant (Interval and provider initialization are checked together)
+  tests/parametric/otel_env_vars/test_otel_metric_export_interval.py::Test_OTEL_METRIC_EXPORT_INTERVAL::test_reader_empty_is_unset: irrelevant (Interval and provider initialization are checked together)
+  ? tests/parametric/otel_env_vars/test_otel_metric_export_interval.py::Test_OTEL_METRIC_EXPORT_INTERVAL::test_reader_fractional_is_ignored
+  : irrelevant (Interval and provider initialization are checked together)
+  ? tests/parametric/otel_env_vars/test_otel_metric_export_interval.py::Test_OTEL_METRIC_EXPORT_INTERVAL::test_reader_invalid_values_use_default
+  : irrelevant (Interval and provider initialization are checked together)
+  ? tests/parametric/otel_env_vars/test_otel_metric_export_interval.py::Test_OTEL_METRIC_EXPORT_INTERVAL::test_reader_negative_is_ignored
+  : irrelevant (Interval and provider initialization are checked together)
+  tests/parametric/otel_env_vars/test_otel_metric_export_interval.py::Test_OTEL_METRIC_EXPORT_INTERVAL::test_reader_stable_values: irrelevant (Interval and provider initialization are checked together)
+  ? tests/parametric/otel_env_vars/test_otel_metric_export_interval.py::Test_OTEL_METRIC_EXPORT_INTERVAL::test_reader_unset_uses_default
+  : irrelevant (Interval and provider initialization are checked together)
+  tests/parametric/otel_env_vars/test_otel_metric_export_interval.py::Test_OTEL_METRIC_EXPORT_INTERVAL::test_reader_zero: irrelevant (Interval and provider initialization are checked together)
   tests/parametric/otel_env_vars/test_otel_metric_export_interval.py::Test_OTEL_METRIC_EXPORT_INTERVAL::test_spec_default: irrelevant (Datadog intentionally defaults to 10000 ms)
-  tests/parametric/otel_env_vars/test_otel_metric_export_interval.py::Test_OTEL_METRIC_EXPORT_INTERVAL::test_zero: bug (APMAPI-2461)
+  tests/parametric/otel_env_vars/test_otel_metric_export_interval.py::Test_OTEL_METRIC_EXPORT_INTERVAL::test_stable_values: irrelevant (Interval and provider initialization are checked together)
+  tests/parametric/otel_env_vars/test_otel_metric_export_interval.py::Test_OTEL_METRIC_EXPORT_INTERVAL::test_unset_uses_default: irrelevant (Interval and provider initialization are checked together)
+  tests/parametric/otel_env_vars/test_otel_metric_export_interval.py::Test_OTEL_METRIC_EXPORT_INTERVAL::test_zero: irrelevant (Interval and provider initialization are checked together)
   tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT: v4.11.0
   tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT::test_invalid_values: bug (APMAPI-2461)
   tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT::test_spec_default: irrelevant (Datadog intentionally defaults to 7500 ms)
