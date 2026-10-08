@@ -190,7 +190,7 @@ class BaseDebuggerTest:
     def method_and_language_to_line_number(self, method: str, language: str) -> list:
         """method_and_language_to_line_number returns the respective line number given the method and language"""
         definitions: dict[str, dict[str, list[int]]] = {
-            "Budgets": {"java": [140], "dotnet": [138], "python": [144], "golang": [117], "nodejs": [163]},
+            "Budgets": {"java": [140], "dotnet": [138], "python": [144], "golang": [117], "nodejs": [165]},
             "LogProbe": {"nodejs": [20]},
             "Pii": {"java": [66], "dotnet": [66], "python": [66], "ruby": [66], "nodejs": [64]},
             "Expression": {"java": [73], "dotnet": [76], "python": [74], "ruby": [82], "nodejs": [82], "golang": [71]},
@@ -205,9 +205,13 @@ class BaseDebuggerTest:
             "CollectionOperations": {"java": [116], "dotnet": [116], "python": [125], "ruby": [162], "nodejs": [120]},
             "Nulls": {"java": [132], "dotnet": [129], "python": [138], "ruby": [192], "nodejs": [126]},
             "SnapshotLimits": {"java": [155], "python": [174], "nodejs": [136], "ruby": [233], "dotnet": [152]},
-            "CaptureTimeout": {"java": [174], "nodejs": [157], "dotnet": [173]},
-            "CorrelationLoopBody": {"golang": [144]},
-            "CorrelationLoopSibling": {"golang": [147]},
+            "CaptureTimeout": {"java": [174], "nodejs": [159], "dotnet": [173]},
+            # Lines the probed methods of the correlation endpoint return on, for tracers without method probes
+            "Correlation": {"nodejs": [178]},
+            "CorrelationMiddle": {"nodejs": [184]},
+            "CorrelationLeaf": {"nodejs": [188]},
+            "CorrelationLoopBody": {"golang": [144], "nodejs": [194]},
+            "CorrelationLoopSibling": {"golang": [147], "nodejs": [197]},
         }
 
         return definitions.get(method, {}).get(language, [])

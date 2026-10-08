@@ -7,13 +7,29 @@ import tests.debugger.utils as debugger
 from utils import scenarios, features, rfc, slow
 
 
+class _SnapshotCorrelationTest(debugger.BaseDebuggerTest):
+    def _read_correlation_probes(self) -> list[dict]:
+        """Read the probes on the methods of the correlation endpoint, each with a fresh id.
+
+        Node.js doesn't support method probes, so for it each probe targets the line its method returns on instead.
+        """
+        probes = debugger.read_probes("probe_snapshot_log_correlation")
+        language = self.get_tracer()["language"]
+        for probe in probes:
+            probe["id"] = debugger.generate_probe_id("log")
+            if language == "nodejs":
+                lines = self.method_and_language_to_line_number(probe["where"]["methodName"], language)
+                self._rewrite_where_for_lines([probe], lines)
+        return probes
+
+
 @rfc(
     "https://docs.google.com/document/d/17BQ1cEcJuumpMWMtBItIx9x_akG99dzjBA1NoaBFuBE/edit?tab=t.4l0zjxovcnz3#heading=h.kejjaf501thi"
 )
 @features.debugger_snapshot_correlation
 @scenarios.debugger_probes_snapshot
 @slow
-class Test_Debugger_Coordinated_Sampling(debugger.BaseDebuggerTest):
+class Test_Debugger_Coordinated_Sampling(_SnapshotCorrelationTest):
     """The sampling decision is made once per trace, so a trace emits its whole probe chain or none of it.
 
     Correlation rides on the dd.trace_id already in the snapshot envelope. The endpoint spaces its
@@ -26,9 +42,8 @@ class Test_Debugger_Coordinated_Sampling(debugger.BaseDebuggerTest):
     def setup_coordinated_per_trace_sampling(self):
         self.initialize_weblog_remote_config()
 
-        probes = debugger.read_probes("probe_snapshot_log_correlation")
+        probes = self._read_correlation_probes()
         for probe in probes:
-            probe["id"] = debugger.generate_probe_id("log")
             # This is the per-probe time limiter, not a per-trace rate: it is set only to put the
             # chain under sampling pressure so that an uncoordinated implementation splits it.
             # Swap it for the per-trace rate once one exists.
@@ -81,7 +96,7 @@ class Test_Debugger_Coordinated_Sampling(debugger.BaseDebuggerTest):
 @features.not_reported
 @scenarios.debugger_probes_snapshot
 @slow
-class Test_Debugger_Snapshot_Correlation_Fields(debugger.BaseDebuggerTest):
+class Test_Debugger_Snapshot_Correlation_Fields(_SnapshotCorrelationTest):
     """Identity fields that make a snapshot correlatable: the per-process runtime_id in the envelope,
     and a generation token that disambiguates a reused thread id.
     """
@@ -89,9 +104,7 @@ class Test_Debugger_Snapshot_Correlation_Fields(debugger.BaseDebuggerTest):
     def _setup(self):
         self.initialize_weblog_remote_config()
 
-        probes = debugger.read_probes("probe_snapshot_log_correlation")
-        for probe in probes:
-            probe["id"] = debugger.generate_probe_id("log")
+        probes = self._read_correlation_probes()
         self.set_probes(probes)
 
         self.send_rc_probes()

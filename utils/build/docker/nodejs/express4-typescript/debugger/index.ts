@@ -143,6 +143,8 @@ export function initRoutes (app: Express) {
   })
 
   app.get('/debugger/budgets/:loops', budgets)
+  app.get('/debugger/correlation', correlationHandler)
+  app.get('/debugger/correlation/loop/:count', correlationLoopHandler)
 }
 
 function captureTimeoutFixture (collectionSize: number, nestingDepth: number): string {
@@ -154,13 +156,47 @@ function captureTimeoutFixture (collectionSize: number, nestingDepth: number): s
     return nested
   })
 
-  return 'Capture timeout probe' // This needs to be line 157
+  return 'Capture timeout probe' // This needs to be line 159
 }
 
 function budgets (request: Request, reply: Response): Response {
   const loops = Number(request.params.loops)
   for (let iteration = 0; iteration < loops; iteration++) {
-    const currentIteration = iteration // This needs to be line 163
+    const currentIteration = iteration // This needs to be line 165
   }
   return reply.send('Budgets')
+}
+
+async function correlationHandler (req: Request, res: Response): Promise<void> {
+  await correlation()
+  res.send('Correlation')
+}
+
+async function correlation (): Promise<number> {
+  const value = await correlationMiddle()
+  await sleep(400)
+  return value // This needs to be line 178
+}
+
+async function correlationMiddle (): Promise<number> {
+  const value = correlationLeaf()
+  await sleep(400)
+  return value // This needs to be line 184
+}
+
+function correlationLeaf (): number {
+  return 3 // This needs to be line 188
+}
+
+async function correlationLoopHandler (req: Request, res: Response): Promise<void> {
+  const count = Number(req.params.count)
+  for (let i = 0; i < count; i++) {
+    const iteration = i // This needs to be line 194
+    await sleep(1000)
+  }
+  res.send('Loop') // This needs to be line 197
+}
+
+function sleep (ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }
