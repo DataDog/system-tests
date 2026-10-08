@@ -4,6 +4,7 @@ import time
 
 from utils import features, pytest, scenarios
 from tests.parametric.conftest import APMLibrary, nodejs_startup_config
+from tests.parametric.otel_env_vars.utils import has_warning_for_value
 from utils.docker_fixtures import TestAgentAPI
 
 
@@ -163,12 +164,8 @@ class Test_OTEL_LOG_LEVEL:
             # Configuration diagnostics can run asynchronously after the first agent handshake.
             deadline = time.monotonic() + 5
             while True:
-                logs = _diagnostic_logs(library).lower()
-                if any(
-                    (VARIABLE.lower() in line or "not-a-log-level" in line)
-                    and ("warn" in line or "invalid" in line or "unsupported" in line or "not supported" in line)
-                    for line in logs.splitlines()
-                ):
+                logs = _diagnostic_logs(library)
+                if has_warning_for_value(library.lang, logs, "not-a-log-level"):
                     return
                 assert time.monotonic() < deadline, f"No warning about the unrecognized {VARIABLE} value:\n{logs}"
                 time.sleep(0.1)
