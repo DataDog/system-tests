@@ -154,7 +154,7 @@ capabilities:
       - APM_TRACING_ENABLE_LIVE_DEBUGGING
       - APM_TRACING_MULTICONFIG
 
-    '>=2.8.0':
+    '>=2.11.0':
       - FFE_FLAG_CONFIGURATION_RULES
 
   ruby:
