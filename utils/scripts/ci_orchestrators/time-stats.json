@@ -2332,7 +2332,7 @@
       }
     },
     "APPSEC_RUNTIME_ACTIVATION": {
-      "*": 491.08673469387753,
+      "*": 309.3486394557823,
       "dotnet": {
         "*": 407.5,
         "poc": 407,
@@ -2412,19 +2412,19 @@
         "uwsgi-poc": 167
       },
       "ruby": {
-        "*": 1303.5833333333333,
-        "rack": 1300,
-        "rails42": 1303,
-        "rails52": 1304,
-        "rails61": 1299,
-        "rails72": 1307,
-        "rails80": 1304,
-        "sinatra14": 1301,
-        "sinatra22": 1304,
-        "sinatra32": 1302,
-        "sinatra41": 1301,
-        "uds-rails": 1312,
-        "uds-sinatra": 1306
+        "*": 31.416666666666668,
+        "rack": 31,
+        "rails42": 31,
+        "rails52": 31,
+        "rails61": 29,
+        "rails72": 31,
+        "rails80": 31,
+        "sinatra14": 30,
+        "sinatra22": 32,
+        "sinatra32": 30,
+        "sinatra41": 31,
+        "uds-rails": 34,
+        "uds-sinatra": 36
       }
     },
     "APPSEC_STANDALONE": {
