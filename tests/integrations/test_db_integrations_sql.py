@@ -5,6 +5,7 @@
 from utils import context, scenarios, features, logger
 
 from .utils import BaseDbIntegrationsTestClass
+from utils.dd_types import DataDogAgentSpan
 
 
 class _BaseDatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
@@ -197,24 +198,36 @@ class _BaseDatadogDbIntegrationTestClass(BaseDbIntegrationsTestClass):
         """Usually the query"""
         for db_operation, request in self.get_requests(excluded_operations=["procedure", "select_error"]):
             span = self.get_span_from_agent(request)
-            assert db_operation in span.meta["sql.query"].lower(), (
-                f"sql.query span not found for operation {db_operation}"
-            )
+
+            queries = _get_reported_queries(span)
+
+            for source, query in queries.items():
+                assert db_operation in query.lower(), f"{db_operation} not reported in {source}"
 
     def test_obfuscate_query(self):
         """All queries come out obfuscated from agent"""
+
+        # We launch all queries with two parameters (from weblog)
+        # Insert and procedure:These operations also receive two parameters, but are obfuscated as only one.
+        self._assert_obfuscate_query(expected_by_operation={"insert": 1, "procedure": 1})
+
+    def _assert_obfuscate_query(self, *, expected_by_operation: dict[str, int]):
+        def assert_count(source: str, db_operation: str, query: str) -> None:
+            expected = expected_by_operation.get(db_operation, 2)
+            observed = query.count("?")
+            assert observed == expected, (
+                f"The mssql query is not properly obfuscated for operation {db_operation} in {source}, expecting {expected} obfuscation(s), found {observed}:\n {query}"
+            )
+
         for db_operation, request in self.get_requests():
             span = self.get_span_from_agent(request)
-            # We launch all queries with two parameters (from weblog)
-            # Insert and procedure:These operations also receive two parameters, but are obfuscated as only one.
-            if db_operation in ["insert", "procedure"]:
-                assert span.meta["sql.query"].count("?") == 1, (
-                    f"The query is not properly obfuscated for operation {db_operation}"
-                )
-            else:
-                assert span.meta["sql.query"].count("?") == 2, (
-                    f"The query is not properly obfuscated for operation {db_operation}"
-                )
+
+            queries = _get_reported_queries(span)
+
+            assert len(queries) != 0, "Query has not reported in any known source"
+
+            for source, query in queries.items():
+                assert_count(source, db_operation, query)
 
 
 @features.postgres_support
@@ -275,22 +288,31 @@ class Test_MsSql(_BaseDatadogDbIntegrationTestClass):
 
     def test_obfuscate_query(self):
         """All queries come out obfuscated from agent"""
-        for db_operation, request in self.get_requests():
-            span = self.get_span_from_agent(request)
-            # We launch all queries with two parameters (from weblog)
-            if db_operation == "insert":
-                expected_obfuscation_count = 1
-            elif db_operation == "procedure":
-                # Insert and procedure:These operations also receive two parameters, but are obfuscated as only one.
-                # Node.js: The proccedure has a input parameter, but we are calling through method `execute`` and we can't see the parameters in the traces
-                expected_obfuscation_count = 0 if context.library.name == "nodejs" else 2
-            else:
-                expected_obfuscation_count = 2
 
-            observed_obfuscation_count = span.meta["sql.query"].count("?")
-            assert observed_obfuscation_count == expected_obfuscation_count, (
-                f"The mssql query is not properly obfuscated for operation {db_operation}, expecting {expected_obfuscation_count} obfuscation(s), found {observed_obfuscation_count}:\n {span.meta['sql.query']}"
-            )
+        expected_by_operation = {
+            "insert": 1,
+            # Insert and procedure:These operations also receive two parameters, but are obfuscated as only one.
+            # Node.js: The proccedure has a input parameter, but we are calling through method `execute`` and we can't see the parameters in the traces
+            "procedure": 0 if context.library.name == "nodejs" else 2,
+        }
+
+        self._assert_obfuscate_query(expected_by_operation=expected_by_operation)
 
     def test_sql_success(self, excluded_operations: tuple[str, ...] = ()):  # noqa: ARG002, PT028
         super().test_sql_success()
+
+
+def _get_reported_queries(span: DataDogAgentSpan) -> dict[str, str]:
+    """Returns a dict of queries reported in span on all existing fields. The key describe the field location"""
+    result: dict[str, str] = {}
+
+    if "sql.query" in span.meta:
+        result["span's attributes: sql.query field"] = span.meta["sql.query"]
+
+    if "resourceRef" in span:
+        result["span's resourceRef field"] = span["resourceRef"]
+
+    if "resource" in span:
+        result["span's resource"] = span["resource"]
+
+    return result
