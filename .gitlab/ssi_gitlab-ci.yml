@@ -27,6 +27,16 @@ ssi_tests:
       # Force gitlab to keep the exit code as 3 if the job fails with exit code 3
       FF_USE_NEW_BASH_EVAL_STRATEGY: true
     after_script: |
+        export DATADOG_SITE="${DATADOG_SITE:-datadoghq.com}"
+        export DATADOG_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.${CI_PROJECT_NAME}.test_optimization.dd_api_key --with-decryption --query "Parameter.Value" --out text)
+        # Tag the job as part of the official system-tests workflow, first so it's done even if a later command fails.
+        # aws ssm get-parameter is flaky: skip the tag if the API key could not be fetched.
+        if [ -n "$DATADOG_API_KEY" ]; then
+            datadog-ci tag --level job --tags "ci.framework.name:system-tests" || echo "Failed to tag the job with ci.framework.name:system-tests"
+        else
+            echo "Failed to fetch the Datadog API key, skipping the ci.framework.name:system-tests tag"
+        fi
+
         SCENARIO_SUFIX=$(echo "$SCENARIO" | tr "[:upper:]" "[:lower:]")
         mkdir -p reports/
         if [ "$CI_PROJECT_NAME" = "system-tests" ]; then
@@ -50,8 +60,6 @@ ssi_tests:
         fi
 
         # Push JUnit results to Datadog Test Optimization
-        export DATADOG_SITE="${DATADOG_SITE:-datadoghq.com}"
-        export DATADOG_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.${CI_PROJECT_NAME}.test_optimization.dd_api_key --with-decryption --query "Parameter.Value" --out text)
         export DD_TAGS="test.configuration.ci_environment:${CI_ENVIRONMENT:-prod}"
         if compgen -G "reports/logs*/reportJunit.xml" > /dev/null; then
             datadog-ci junit upload \
@@ -117,6 +125,17 @@ ssi_tests:
             set -o pipefail
             timeout 3000 ./run.sh "$SCENARIO" --vm-weblog "${WEBLOG}" --vm-env "${ONBOARDING_FILTER_ENV}" --vm-library "${TEST_LIBRARY}" --vm-provider aws --vm-default-vms All --vm-only "${VM}" --report-run-url "${CI_JOB_URL}" --report-environment "${ONBOARDING_FILTER_ENV}" 2>&1 | tee "${CI_PROJECT_DIR}/run_output.log"
     after_script: |
+        # Tag the job as part of the official system-tests workflow, first so it's done even if a later command fails.
+        # The image does not ship datadog-ci, so the standalone binary is downloaded.
+        # aws ssm get-parameter is flaky: skip the tag if the API key could not be fetched.
+        DATADOG_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.${CI_PROJECT_NAME}.test_optimization.dd_api_key --with-decryption --query "Parameter.Value" --out text) || DATADOG_API_KEY=""
+        if [ -n "$DATADOG_API_KEY" ]; then
+            DATADOG_SITE="${DATADOG_SITE:-datadoghq.com}" DATADOG_API_KEY="${DATADOG_API_KEY}" datadog-ci tag --level job --tags "ci.framework.name:system-tests" \
+              || echo "Failed to tag the job with ci.framework.name:system-tests"
+        else
+            echo "Failed to fetch the Datadog API key, skipping the ci.framework.name:system-tests tag"
+        fi
+
         # Only fetch FP params on main in system-tests repo (use default CI creds)
         if [ "$CI_COMMIT_BRANCH" = "main" ] && [ "$CI_PROJECT_NAME" = "system-tests" ]; then
           export FP_IMPORT_URL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-import-url --with-decryption --query "Parameter.Value" --out text)
@@ -238,6 +257,16 @@ ssi_tests:
       ./run.sh ${K8S_SCENARIO} --k8s-library ${TEST_LIBRARY} --k8s-weblog ${K8S_WEBLOG} --k8s-weblog-img ${K8S_WEBLOG_IMG}:${TAG_NAME} --k8s-lib-init-img ${K8S_LIB_INIT_IMG} --k8s-injector-img ${K8S_INJECTOR_IMG:-None} --k8s-cluster-img ${K8S_CLUSTER_IMG:-None} --report-run-url $CI_JOB_URL --report-environment ${REPORT_ENVIRONMENT} 2>&1 | tee "${CI_PROJECT_DIR}/run_output.log"
 
   after_script: |
+    # Tag the job as part of the official system-tests workflow, first so it's done even if a later command fails.
+    # aws ssm get-parameter is flaky: skip the tag if the API key could not be fetched.
+    TAG_DD_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.${CI_PROJECT_NAME}.test_optimization.dd_api_key --with-decryption --query "Parameter.Value" --out text) || TAG_DD_API_KEY=""
+    if [ -n "$TAG_DD_API_KEY" ]; then
+      DATADOG_SITE="${DATADOG_SITE:-datadoghq.com}" DATADOG_API_KEY="${TAG_DD_API_KEY}" \
+        datadog-ci tag --level job --tags "ci.framework.name:system-tests" || echo "Failed to tag the job with ci.framework.name:system-tests"
+    else
+      echo "Failed to fetch the Datadog API key, skipping the ci.framework.name:system-tests tag"
+    fi
+
     kind delete clusters --all || true
     mkdir -p reports
     if [ "$CI_PROJECT_NAME" = "system-tests" ]; then

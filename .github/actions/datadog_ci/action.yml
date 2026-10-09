@@ -1,5 +1,5 @@
-name: "Push to TestOptim"
-description: "Push test runs to DataDog Test Optimization"
+name: "Interact with datadog-ci CLI"
+description: "Run all datadog-ci command for one job (allow to have only one API call per job on dd-sts)"
 inputs:
   datadog_site:
     description: Which DataDog site shoud be used
@@ -7,6 +7,12 @@ inputs:
   ci_environment:
     description: "CI environment running the tests (dev/prod/custom), used for Test Optimization tagging"
     default: ""
+  push_to_test_optimization:
+    description: "true to enable pushing junit.xml files to test optimization"
+    default: "false"
+  _is_official_system_tests_job:
+    description: "Reserved for official system-tests jobs, will tag job in CiViz with ci.framework.name:system-tests"
+    default: "false"
 
 runs:
   using: composite
@@ -14,15 +20,16 @@ runs:
     - name: Skip for dependabot
       if: github.event.pull_request.user.login == 'dependabot[bot]'
       shell: bash
-      run: echo "Skipping TestOptim push for dependabot PRs"
+      run: echo "Skipping datadog-ci for dependabot PRs"
 
     - name: Install datadog-ci
+      continue-on-error: true
       if: github.event.pull_request.user.login != 'dependabot[bot]'
       shell: bash
-      run: npm install -g @datadog/datadog-ci || sleep 60 && npm install -g @datadog/datadog-ci
+      run: npm install -g @datadog/datadog-ci || (sleep 60 && npm install -g @datadog/datadog-ci)
 
-    - name: checkout owner repo
-      if: github.event.pull_request.user.login != 'dependabot[bot]'
+    - name: Checkout owner repo
+      if: github.event.pull_request.user.login != 'dependabot[bot]' && inputs.push_to_test_optimization == 'true'
       uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
       with:
         path: repo
@@ -38,7 +45,8 @@ runs:
 
     # https://docs.datadoghq.com/tests/setup/junit_xml/?tab=linux
     - name: Push results
-      if: github.event.pull_request.user.login != 'dependabot[bot]' && steps.dd-sts.outcome == 'success'
+      continue-on-error: true
+      if: github.event.pull_request.user.login != 'dependabot[bot]' && steps.dd-sts.outcome == 'success' && inputs.push_to_test_optimization == 'true'
       shell: bash
       run: |
         cd repo
@@ -52,3 +60,12 @@ runs:
         DATADOG_SITE: ${{ inputs.datadog_site }}
         DATADOG_API_KEY:  ${{ steps.dd-sts.outputs.api_key }}
         DD_TAGS: ${{ inputs.ci_environment != '' && format('test.configuration.ci_environment:{0}', inputs.ci_environment) || '' }}
+
+    - name: Tag system-tests workflow
+      continue-on-error: true
+      if: github.event.pull_request.user.login != 'dependabot[bot]' && steps.dd-sts.outcome == 'success' && inputs._is_official_system_tests_job == 'true'
+      shell: bash
+      run: datadog-ci tag --level job --tags ci.framework.name:system-tests
+      env:
+        DATADOG_SITE: ${{ inputs.datadog_site }}
+        DATADOG_API_KEY:  ${{ steps.dd-sts.outputs.api_key }}
