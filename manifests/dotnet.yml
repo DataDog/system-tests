@@ -1604,15 +1604,7 @@ manifest:
       excluded_weblog: [poc, uds]
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_http_endpoint_retained_from_resource_renaming: irrelevant (The .NET tracer creates http.endpoint from routed AppSec requests)
   tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs: v3.56.0
-  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_configured_dd_agent_host: missing_feature (DD_AGENT_HOST is not reported as an uppercase startup field)
-  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_configured_dd_data_streams_enabled: missing_feature (DD_DATA_STREAMS_ENABLED is not reported as an uppercase startup field)
-  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_configured_dd_dbm_propagation_mode: missing_feature (DD_DBM_PROPAGATION_MODE is not reported as an uppercase startup field)
-  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_configured_dd_dbm_trace_prepared_statements: irrelevant (DD_DBM_TRACE_PREPARED_STATEMENTS is not supported)
-  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_configured_dd_trace_remove_integration_service_names_enabled: missing_feature (DD_TRACE_REMOVE_INTEGRATION_SERVICE_NAMES_ENABLED is not reported as an uppercase startup field)
-  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_configured_otel_exporter_otlp_endpoint: irrelevant (Only effective signal-specific OTLP endpoints are reported)
-  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_configured_otel_exporter_otlp_protocol: irrelevant (Only effective signal-specific OTLP protocols are reported)
-  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_configured_otel_semconv_stability_opt_in: irrelevant (OTEL_SEMCONV_STABILITY_OPT_IN is not supported)
-  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_configured_otel_traces_exporter: missing_feature (OTEL_TRACES_EXPORTER is not reported as an uppercase startup field)
+  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_configured_value: missing_feature (Some configured settings are unsupported or not reported as uppercase startup fields)
   tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_logs_blrp: irrelevant (The logs batching sink has no export timeout setting)
   tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_otlp_exporter: irrelevant (Only effective signal-specific OTLP settings are reported)
   tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_traces: irrelevant (OTEL_TRACES_SAMPLER_ARG is only reported for ratio sampling)

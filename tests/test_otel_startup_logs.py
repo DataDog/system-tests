@@ -46,75 +46,26 @@ def _assert_keys(*keys: str) -> None:
         assert not missing, f"Startup configuration #{index + 1} is missing keys: {', '.join(sorted(missing))}"
 
 
-def _assert_configured_value(config_name: str) -> None:
-    expected = scenarios.OTEL_STARTUP_LOGS_ENV[config_name]
-    accepted_values = [expected]
-    if config_name == "OTEL_TRACES_SAMPLER" and expected == "parentbased_always_on":
-        accepted_values.append("always_on")
-
-    for index, configuration in enumerate(_get_startup_configurations()):
-        assert config_name in configuration, f"Startup configuration #{index + 1} is missing {config_name}"
-        actual = configuration[config_name]
-        # Environment values are strings, while startup JSON can encode booleans natively.
-        normalized = str(actual).lower() if isinstance(actual, bool) else actual
-        assert normalized in accepted_values, (
-            f"Startup configuration #{index + 1}: {config_name}={actual!r}; expected one of {accepted_values!r}"
-        )
-
-
 @scenarios.otel_startup_logs
 @features.log_tracer_status_at_startup
 class Test_OTEL_Startup_Logs:
-    def test_configured_otel_semconv_stability_opt_in(self) -> None:
-        _assert_configured_value("OTEL_SEMCONV_STABILITY_OPT_IN")
+    @pytest.mark.parametrize(
+        ("config_name", "expected"),
+        [pytest.param(name, value, id=name) for name, value in scenarios.OTEL_STARTUP_LOGS_ENV.items()],
+    )
+    def test_configured_value(self, config_name: str, expected: str) -> None:
+        accepted_values = [expected]
+        if config_name == "OTEL_TRACES_SAMPLER" and expected == "parentbased_always_on":
+            accepted_values.append("always_on")
 
-    def test_configured_otel_exporter_otlp_metrics_temporality_preference(self) -> None:
-        _assert_configured_value("OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE")
-
-    def test_configured_otel_exporter_otlp_protocol(self) -> None:
-        _assert_configured_value("OTEL_EXPORTER_OTLP_PROTOCOL")
-
-    def test_configured_otel_traces_exporter(self) -> None:
-        _assert_configured_value("OTEL_TRACES_EXPORTER")
-
-    def test_configured_dd_trace_otel_enabled(self) -> None:
-        _assert_configured_value("DD_TRACE_OTEL_ENABLED")
-
-    def test_configured_dd_logs_otel_enabled(self) -> None:
-        _assert_configured_value("DD_LOGS_OTEL_ENABLED")
-
-    def test_configured_dd_metrics_otel_enabled(self) -> None:
-        _assert_configured_value("DD_METRICS_OTEL_ENABLED")
-
-    def test_configured_dd_trace_otel_semantics_enabled(self) -> None:
-        _assert_configured_value("DD_TRACE_OTEL_SEMANTICS_ENABLED")
-
-    def test_configured_dd_agent_host(self) -> None:
-        _assert_configured_value("DD_AGENT_HOST")
-
-    def test_configured_dd_dbm_propagation_mode(self) -> None:
-        _assert_configured_value("DD_DBM_PROPAGATION_MODE")
-
-    def test_configured_dd_dbm_trace_prepared_statements(self) -> None:
-        _assert_configured_value("DD_DBM_TRACE_PREPARED_STATEMENTS")
-
-    def test_configured_dd_data_streams_enabled(self) -> None:
-        _assert_configured_value("DD_DATA_STREAMS_ENABLED")
-
-    def test_configured_dd_trace_remove_integration_service_names_enabled(self) -> None:
-        _assert_configured_value("DD_TRACE_REMOVE_INTEGRATION_SERVICE_NAMES_ENABLED")
-
-    def test_configured_otel_exporter_otlp_traces_endpoint(self) -> None:
-        _assert_configured_value("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT")
-
-    def test_configured_otel_exporter_otlp_endpoint(self) -> None:
-        _assert_configured_value("OTEL_EXPORTER_OTLP_ENDPOINT")
-
-    def test_configured_otel_traces_sampler(self) -> None:
-        _assert_configured_value("OTEL_TRACES_SAMPLER")
-
-    def test_configured_otel_propagators(self) -> None:
-        _assert_configured_value("OTEL_PROPAGATORS")
+        for index, configuration in enumerate(_get_startup_configurations()):
+            assert config_name in configuration, f"Startup configuration #{index + 1} is missing {config_name}"
+            actual = configuration[config_name]
+            # Environment values are strings, while startup JSON can encode booleans natively.
+            normalized = str(actual).lower() if isinstance(actual, bool) else actual
+            assert normalized in accepted_values, (
+                f"Startup configuration #{index + 1}: {config_name}={actual!r}; expected one of {accepted_values!r}"
+            )
 
     def test_traces(self) -> None:
         _assert_keys(
