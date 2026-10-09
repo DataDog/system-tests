@@ -39,7 +39,7 @@ jobs:
         id: dd-sts
         uses: DataDog/dd-sts-action@639d841c72f15e4e77747bd726ef8105ce971da2 # v1.0.5
         with:
-          policy: system-tests
+          policy: system-tests-ci-viz
           retries: 16
 
       - name: Generate report
