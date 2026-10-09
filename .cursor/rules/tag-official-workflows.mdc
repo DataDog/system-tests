@@ -13,6 +13,6 @@ The official system-tests workflows are:
 
 ## Job tagging
 
-All jobs executed by these workflows in caller repositories (repositories other than system-tests) **MUST** tag themselves with `_ci_framework:system-tests`.
+All jobs executed by these workflows in caller repositories (repositories other than system-tests) **MUST** tag themselves with `ci.framework.name:system-tests`.
 
-`_ci_framework` is a private tag (leading underscore). It will be used for a test period (October 2026).
+

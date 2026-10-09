@@ -25,7 +25,7 @@ spec:
   interruptible: true
   before_script:
     # first command, before the clone, so the job is tagged even if it fails later
-    - dd-sts exchange --policy system-tests-gitlab -- datadog-ci tag --level job --tags "_ci_framework:system-tests" || true
+    - dd-sts exchange --policy system-tests-gitlab -- datadog-ci tag --level job --tags "ci.framework.name:system-tests" || true
     - echo -e "section_start:`date +%s`:setup[collapsed=true]\r\e[0KSystem-tests runner setup"
     - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.ddbuild.io/DataDog/system-tests.git
     - cd system-tests

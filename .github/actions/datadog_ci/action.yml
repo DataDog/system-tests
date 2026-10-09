@@ -11,7 +11,7 @@ inputs:
     description: "true to enable pushing junit.xml files to test optimization"
     default: "false"
   _is_official_system_tests_job:
-    description: "Reserved for official system-tests jobs, will tag job in CiViz with _ci_framework:system-tests"
+    description: "Reserved for official system-tests jobs, will tag job in CiViz with ci.framework.name:system-tests"
     default: "false"
 
 runs:
@@ -65,7 +65,7 @@ runs:
       continue-on-error: true
       if: github.event.pull_request.user.login != 'dependabot[bot]' && steps.dd-sts.outcome == 'success' && inputs._is_official_system_tests_job == 'true'
       shell: bash
-      run: datadog-ci tag --level job --tags _ci_framework:system-tests
+      run: datadog-ci tag --level job --tags ci.framework.name:system-tests
       env:
         DATADOG_SITE: ${{ inputs.datadog_site }}
         DATADOG_API_KEY:  ${{ steps.dd-sts.outputs.api_key }}

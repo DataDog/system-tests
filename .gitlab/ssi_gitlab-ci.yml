@@ -32,9 +32,9 @@ ssi_tests:
         # Tag the job as part of the official system-tests workflow, first so it's done even if a later command fails.
         # aws ssm get-parameter is flaky: skip the tag if the API key could not be fetched.
         if [ -n "$DATADOG_API_KEY" ]; then
-            datadog-ci tag --level job --tags "_ci_framework:system-tests" || echo "Failed to tag the job with _ci_framework:system-tests"
+            datadog-ci tag --level job --tags "ci.framework.name:system-tests" || echo "Failed to tag the job with ci.framework.name:system-tests"
         else
-            echo "Failed to fetch the Datadog API key, skipping the _ci_framework:system-tests tag"
+            echo "Failed to fetch the Datadog API key, skipping the ci.framework.name:system-tests tag"
         fi
 
         SCENARIO_SUFIX=$(echo "$SCENARIO" | tr "[:upper:]" "[:lower:]")
@@ -130,10 +130,10 @@ ssi_tests:
         # aws ssm get-parameter is flaky: skip the tag if the API key could not be fetched.
         DATADOG_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.${CI_PROJECT_NAME}.test_optimization.dd_api_key --with-decryption --query "Parameter.Value" --out text) || DATADOG_API_KEY=""
         if [ -n "$DATADOG_API_KEY" ]; then
-            DATADOG_SITE="${DATADOG_SITE:-datadoghq.com}" DATADOG_API_KEY="${DATADOG_API_KEY}" datadog-ci tag --level job --tags "_ci_framework:system-tests" \
-              || echo "Failed to tag the job with _ci_framework:system-tests"
+            DATADOG_SITE="${DATADOG_SITE:-datadoghq.com}" DATADOG_API_KEY="${DATADOG_API_KEY}" datadog-ci tag --level job --tags "ci.framework.name:system-tests" \
+              || echo "Failed to tag the job with ci.framework.name:system-tests"
         else
-            echo "Failed to fetch the Datadog API key, skipping the _ci_framework:system-tests tag"
+            echo "Failed to fetch the Datadog API key, skipping the ci.framework.name:system-tests tag"
         fi
 
         # Only fetch FP params on main in system-tests repo (use default CI creds)
@@ -262,9 +262,9 @@ ssi_tests:
     TAG_DD_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.${CI_PROJECT_NAME}.test_optimization.dd_api_key --with-decryption --query "Parameter.Value" --out text) || TAG_DD_API_KEY=""
     if [ -n "$TAG_DD_API_KEY" ]; then
       DATADOG_SITE="${DATADOG_SITE:-datadoghq.com}" DATADOG_API_KEY="${TAG_DD_API_KEY}" \
-        datadog-ci tag --level job --tags "_ci_framework:system-tests" || echo "Failed to tag the job with _ci_framework:system-tests"
+        datadog-ci tag --level job --tags "ci.framework.name:system-tests" || echo "Failed to tag the job with ci.framework.name:system-tests"
     else
-      echo "Failed to fetch the Datadog API key, skipping the _ci_framework:system-tests tag"
+      echo "Failed to fetch the Datadog API key, skipping the ci.framework.name:system-tests tag"
     fi
 
     kind delete clusters --all || true
