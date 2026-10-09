@@ -222,7 +222,13 @@ app.post('/trace/span/finish', (req, res) => {
 app.post('/trace/span/flush', (req, res) => {
   const exporter = tracer._tracer._exporter
   if (typeof exporter.flush === 'function') {
-    exporter.flush(() => res.json({}))
+    exporter.flush((error) => {
+      if (error) {
+        res.status(500).json({ error: String(error) })
+      } else {
+        res.json({})
+      }
+    })
   } else {
     // Older OTLP exporters send on span finish and have no flush method.
     res.json({});
