@@ -1,0 +1,20 @@
+---
+# Policy for: update-system-tests-version in ddoghq/auto_inject/.gitlab-ci.yml
+# Opens/updates the PR bumping auto_inject.lock on stable injector release tags (vX.Y.Z).
+# Docs: https://datadoghq.atlassian.net/wiki/spaces/SECENG/pages/5138645099/User+guide+dd-octo-sts
+issuer: https://gitlab.ddbuild.io
+
+subject_pattern: "project_path:ddoghq/auto_inject:ref_type:tag:ref:v[0-9]+\\.[0-9]+\\.[0-9]+"
+
+claim_pattern:
+  project_path: "ddoghq/auto_inject"
+  ref: "v[0-9]+\\.[0-9]+\\.[0-9]+"
+  ref_type: "tag"
+  ref_path: "refs/tags/v[0-9]+\\.[0-9]+\\.[0-9]+"
+  ref_protected: "true"
+  pipeline_source: "push"
+  ci_config_ref_uri: "gitlab\\.ddbuild\\.io/ddoghq/auto_inject//\\.gitlab-ci\\.yml@refs/tags/v[0-9]+\\.[0-9]+\\.[0-9]+"
+
+permissions:
+  contents: write
+  pull_requests: write
