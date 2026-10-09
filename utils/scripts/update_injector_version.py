@@ -6,6 +6,7 @@ import argparse
 import json
 import os
 import re
+import urllib.parse
 import urllib.request
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -21,6 +22,7 @@ VERSION_PATTERN = re.compile(r"^([0-9]+)\.([0-9]+)\.([0-9]+)-([0-9]+)$")
 REPOSITORY = "DataDog/system-tests"
 OCTO_STS_POLICY = "self.gitlab-update-injector-version"
 INJECTOR_TAGS_URL = "https://install.datadoghq.com/v2/apm-inject-package/tags/list"
+NEXT_LINK_PATTERN = re.compile(r'<([^>]+)>;\s*rel="?next"?')
 
 AUTO_INJECT_LOCK = Path("utils/build/auto_inject.lock")
 
@@ -58,11 +60,20 @@ def update_injector_version(root: Path, version: str) -> bool:
 
 
 def fetch_injector_tags() -> list[object]:
-    with urllib.request.urlopen(INJECTOR_TAGS_URL) as response:  # noqa: S310
-        tag_list = json.load(response)
-    if not isinstance(tag_list, dict) or not isinstance(tag_list.get("tags"), list):
-        raise TypeError("The registry returned an invalid injector tag list")
-    return tag_list["tags"]
+    tags: list[object] = []
+    next_url: str | None = INJECTOR_TAGS_URL
+    while next_url:
+        with urllib.request.urlopen(next_url) as response:  # noqa: S310
+            tag_list = json.load(response)
+            link = response.headers.get("Link", "")
+        if not isinstance(tag_list, dict) or not isinstance(tag_list.get("tags"), list):
+            raise TypeError("The registry returned an invalid injector tag list")
+        tags += tag_list["tags"]
+
+        # The registry API paginates via a standard Link header when there are more results.
+        match = NEXT_LINK_PATTERN.search(link)
+        next_url = urllib.parse.urljoin(next_url, match.group(1)) if match else None
+    return tags
 
 
 def latest_injector_version(tags: Sequence[object]) -> str:
