@@ -43,7 +43,8 @@ def _instrument_write_methods_bytes(f: Any, secrets: set[str]) -> None:  # noqa:
     def write(data: bytes):
         if hasattr(data, "replace"):
             for secret in secrets:
-                data = data.replace(secret.encode(), b"--redacted--")
+                encoded_secret = secret.encode()
+                data = data.replace(encoded_secret, b"*" * len(encoded_secret))
 
         return original_write(data)
 
