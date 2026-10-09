@@ -111,7 +111,7 @@ def _assert_configured_propagators(library: APMLibrary, expected: set[str]) -> N
             assert int(span.trace_id) & ((1 << 64) - 1) != 123456789, "none still extracts tracecontext"
 
 
-def _assert_deduplicated_propagators(library: APMLibrary, test_agent: TestAgentAPI) -> None:
+def _assert_deduplicated_propagators(library: APMLibrary, test_agent: TestAgentAPI, expected: set[str]) -> None:
     if library.lang == "python":
         # The Python app collapses header writes, and its configuration adapter
         # uses private SDK fields. Only the observable effect is checked here.
@@ -121,7 +121,8 @@ def _assert_deduplicated_propagators(library: APMLibrary, test_agent: TestAgentA
         # These apps preserve every public carrier setter call in the raw list.
         with library.dd_start_span("otel-propagators-deduplication") as span:
             headers = library.dd_inject_headers(span.span_id)
-        for header in ("traceparent", "x-b3-traceid"):
+        for propagator in expected:
+            header = PROPAGATOR_HEADERS[propagator]
             assert sum(name.lower() == header for name, _ in headers) == 1, headers
         return
 
@@ -136,8 +137,9 @@ def _assert_deduplicated_propagators(library: APMLibrary, test_agent: TestAgentA
     assert isinstance(styles, str), styles
     resolved = styles.split(",")
     if library.lang == "golang":
+        # Go names its B3 multi-header propagator "b3"; OTel calls it "b3multi".
         resolved = ["b3multi" if style == "b3" else style for style in resolved]
-    assert sorted(resolved) == ["b3multi", "tracecontext"], resolved
+    assert sorted(resolved) == sorted(expected), resolved
 
 
 @scenarios.parametric
@@ -210,9 +212,10 @@ class Test_OTEL_PROPAGATORS:
         ],
     )
     def test_duplicate_propagators(self, test_library: APMLibrary, test_agent: TestAgentAPI) -> None:
+        expected = {"tracecontext", "b3multi"}
         with test_library as library:
-            _assert_configured_propagators(library, {"tracecontext", "b3multi"})
-            _assert_deduplicated_propagators(library, test_agent)
+            _assert_configured_propagators(library, expected)
+            _assert_deduplicated_propagators(library, test_agent, expected)
 
     @pytest.mark.parametrize(
         "library_env",
