@@ -4,6 +4,8 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
+import re
+import shlex
 from typing import Any, Literal
 
 from utils import context, interfaces
@@ -36,6 +38,7 @@ EVP_LANGUAGE_PID1_EXECUTABLES = {
     "golang": {"weblog"},
     "java": {"java"},
     "nodejs": {"node"},
+    "php": {"dumb-init"},
     "python": {"gunicorn", "python", "python3", "uwsgi"},
     "ruby": {"puma", "ruby"},
 }
@@ -45,6 +48,7 @@ EVP_ORIGINS = {
     "golang": "dd-trace-go",
     "java": "dd-trace-java",
     "nodejs": "dd-trace-js",
+    "php": "dd-trace-php",
     "python": "dd-trace-py",
     "ruby": "dd-trace-rb",
 }
@@ -113,6 +117,7 @@ def register_shutdown_evp_evaluation(
     body: dict[str, Any],
     flag_key: str,
     subject_id: str,
+    priming_request_path: str | None = None,
 ) -> None:
     """Register one evaluation for the scenario-owned shutdown-flush phase."""
     scenario = context.scenario
@@ -123,6 +128,7 @@ def register_shutdown_evp_evaluation(
             body=body,
             flag_key=flag_key,
             subject_id=subject_id,
+            priming_request_path=priming_request_path,
         )
 
 
@@ -230,6 +236,42 @@ def _runtime_text(container: dict[str, Any]) -> str:
     ).lower()
 
 
+def _assert_php_fpm_runtime(weblog: dict[str, Any], pid1_process_command: str) -> None:
+    """Accept the repository's PHP-FPM launcher only with its live server tree."""
+    variant = re.fullmatch(r"php-fpm-(\d+\.\d+)", str(weblog.get("weblog_variant")))
+    assert variant is not None, "PHP direct EVP runtime requires a validated PHP-FPM weblog"
+    for command in (str(weblog["pid1_command"]), pid1_process_command):
+        args = shlex.split(command)
+        assert args in (
+            ["dumb-init", "--single-child", "/entrypoint.sh"],
+            ["/usr/bin/dumb-init", "--single-child", "/entrypoint.sh"],
+        ), f"Unexpected PHP-FPM PID 1 launcher: {command!r}"
+    processes = weblog["processes"]
+    init_children = [
+        process
+        for process in processes
+        if process.get("ppid") == str(weblog["state_pid"])
+        and shlex.split(str(process.get("command", "")))
+        in (
+            ["/bin/bash", "-e", "/entrypoint.sh"],
+            ["bash", "-e", "/entrypoint.sh"],
+            # BusyBox ps prefixes scripts with their process name in braces.
+            ["{entrypoint.sh}", "/bin/bash", "-e", "/entrypoint.sh"],
+            ["{entrypoint.sh}", "bash", "-e", "/entrypoint.sh"],
+        )
+    ]
+    assert len(init_children) == 1, "PHP-FPM init must supervise its graceful-shutdown entrypoint"
+    master_command = f"php-fpm: master process (/etc/php/{variant[1]}/fpm/php-fpm.conf)"
+    assert any(
+        process.get("command") in (master_command, f"{{php-fpm{variant[1]}}} {master_command}") for process in processes
+    ), "PHP-FPM runtime evidence has no live master process"
+    assert any(
+        Path(str(process.get("command", "")).split()[0]).name == "apache2"
+        for process in processes
+        if process.get("command")
+    ), "PHP-FPM runtime evidence has no Apache request frontend"
+
+
 def assert_direct_evp_runtime_evidence(evidence: dict[str, Any], *, library_name: str) -> None:
     """Assert preserved Docker inspect/top evidence for the live direct scenario."""
     containers = evidence.get("containers")
@@ -301,6 +343,8 @@ def assert_direct_evp_runtime_evidence(evidence: dict[str, Any], *, library_name
         f"docker top reports PID 1 as {pid1_process_command!r}, expected one of "
         f"{sorted(expected_executables)} or a versioned python3 interpreter"
     )
+    if library_name == "php":
+        _assert_php_fpm_runtime(weblog, pid1_process_command)
 
     environment = evidence.get("weblog_environment")
     assert isinstance(environment, dict), "Live weblog environment was not captured"

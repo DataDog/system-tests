@@ -401,10 +401,13 @@ class Test_FFE_EVP_Flagevaluation_Context_Bounds:
     def setup_ffe_evp_flagevaluation_context_bounds(self) -> None:
         config_id = "ffe-evp-context-bounds"
         self.flag_key = "evp-context-bounds-flag"
-        self.oversized_field = "field_010_oversized"
-        rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key)).apply()
+        self.oversized_field = "field_010"
+        config = make_ufc_fixture(self.flag_key, observe_full_evaluation_data=True)
+        rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", config).apply()
 
         attributes: JSON = {f"field_{index:03d}": f"value-{index}" for index in range(300)}
+        # Replace an early field so both insertion-order and sorted collectors
+        # encounter the oversized value before their 256-field inspection cap.
         attributes[self.oversized_field] = "x" * 300
 
         self.r = evaluate_flag(self.flag_key, targeting_key="evp-context-user", attributes=attributes)
@@ -429,12 +432,11 @@ class Test_FFE_EVP_Flagevaluation_Context_Bounds:
 
             full_context_events += 1
             assert isinstance(evaluation_context, dict), "context.evaluation must be an object"
+            assert evaluation_context.get("field_000") == "value-0", "Expected an ordinary bounded context field"
             assert len(evaluation_context) <= 256, f"context.evaluation has too many fields: {len(evaluation_context)}"
             assert self.oversized_field not in evaluation_context, "oversized string context field must be omitted"
 
-        if full_context_events == 0:
-            for _, event in events:
-                assert "context" not in event, f"degraded event should omit context: {event}"
+        assert full_context_events > 0, "Expected consented evaluation context to exercise field bounds"
 
 
 @scenarios.feature_flagging_and_experimentation
