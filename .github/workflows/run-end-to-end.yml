@@ -107,7 +107,7 @@ jobs:
       SYSTEM_TESTS_SKIP_EMPTY_SCENARIO: ${{ inputs.skip_empty_scenarios }}
       SYSTEM_TESTS_FORCE_EXECUTE: ${{ inputs.force_execute }}
       SYSTEM_TESTS_DEV_MODE: ${{ inputs._system_tests_dev_mode }}
-      SYSTEM_TESTS_WEBLOG:  ${{ inputs.weblog }}
+      SYSTEM_TESTS_WEBLOG: ${{ inputs.weblog }}
     steps:
     - name: Compute ref
       id: compute_ref
@@ -127,7 +127,7 @@ jobs:
     - name: Install runner
       uses: ./.github/actions/install_runner
     - name: Get binaries artifact
-      if : ${{ inputs.binaries_artifact != '' }}
+      if: ${{ inputs.binaries_artifact != '' }}
       uses: ./.github/actions/download_artifact
       with:
         name: ${{ inputs.binaries_artifact }}
@@ -529,6 +529,9 @@ jobs:
     - name: Run APPSEC_LAMBDA_INFERRED_SPANS scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_LAMBDA_INFERRED_SPANS"')
       run: ./run.sh APPSEC_LAMBDA_INFERRED_SPANS
+    - name: Run OTEL_STARTUP_LOGS scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_STARTUP_LOGS"')
+      run: ./run.sh OTEL_STARTUP_LOGS
     - name: Run OTEL_SEMANTICS_OTLP scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_SEMANTICS_OTLP"')
       run: ./run.sh OTEL_SEMANTICS_OTLP

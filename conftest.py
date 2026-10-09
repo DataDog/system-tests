@@ -599,6 +599,26 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
             # Test optimization needs to have the full name in name attribute
             junit_report = ET.parse(session.config.option.xmlpath)  # noqa: S314
 
+            # irrelevant tests are noise for test optimization, remove them from the report
+            for testsuite in junit_report.iter("testsuite"):
+                irrelevant_testcases = [
+                    testcase
+                    for testcase in testsuite.findall("testcase")
+                    if testcase.find(
+                        "properties/property[@name='dd_tags[systest.case.declaration]'][@value='irrelevant']"
+                    )
+                    is not None
+                ]
+
+                for testcase in irrelevant_testcases:
+                    testsuite.remove(testcase)
+
+                if irrelevant_testcases:
+                    for attr in ("tests", "skipped"):
+                        if attr in testsuite.attrib:
+                            count = int(testsuite.attrib[attr]) - len(irrelevant_testcases)
+                            testsuite.attrib[attr] = str(count)
+
             for testcase in junit_report.iter("testcase"):
                 if "classname" in testcase.attrib:
                     testcase.attrib["name"] = testcase.attrib["classname"] + "." + testcase.attrib["name"]
