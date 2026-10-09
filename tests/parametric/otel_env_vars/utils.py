@@ -1,3 +1,4 @@
+import re
 from typing import Any, Final
 
 from utils import pytest
@@ -30,6 +31,37 @@ JAVA_TELEMETRY_NAMES: Final = {
 
 TEST_LOGGER_NAME: Final = "blrp_configuration"
 TEST_LOG_MESSAGE: Final = "blrp_configuration"
+
+
+def has_warning_for_value(language: str, logs: str, value: str) -> bool:
+    for raw_line in logs.splitlines():
+        line = re.sub(r"\x1b\[[0-9;]*m", "", raw_line).strip()
+        if value not in line:
+            continue
+        json_start = re.search(r'[\[{]\s*"', line)
+        levels = r"WARN(?:ING)?|WRN|DEBUG|DBG|INFO|INF|ERROR|ERR|TRACE|TRC|FATAL|CRITICAL"
+        level = re.search(
+            rf"(?<![\w.])(?:{levels})(?=[\s:\]])|(?<=\[)(?i:{levels})(?=\])|^(?i:{levels})(?=[:\s])",
+            line,
+        )
+        if level is not None:
+            # Ignore levels inside JSON echoes. Real warning messages may contain JSON.
+            if json_start is not None and json_start.start() < level.start():
+                continue
+            # The first level wins, so an INFO/DEBUG echo of a warning cannot pass.
+            if level.group().lower() in {"warn", "warning", "wrn"} and value in line[level.end() :]:
+                return True
+        elif (
+            language in {"nodejs", "python"}
+            and json_start is None
+            and re.search(
+                r"\b(?:invalid|unknown|unsupported|not supported|not registered|warning)\b", line, re.IGNORECASE
+            )
+        ):
+            # These SDKs can print warnings without a level prefix. Require a
+            # diagnostic containing the test value without fixing its wording.
+            return True
+    return False
 
 
 def assert_blrp_configuration(
