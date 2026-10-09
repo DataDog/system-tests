@@ -184,7 +184,7 @@ class DataDogLibrarySpanLegacy(DataDogLibrarySpan):
         return self.raw_span.get("metrics", {})
 
     def get_sampling_priority(self) -> int | None:
-        return self["metrics"].get("_sampling_priority_v1")
+        return self.metrics.get("_sampling_priority_v1")
 
     def get_span_links(self) -> list[DataDogSpanLink]:
         if "span_links" in self.raw_span:
