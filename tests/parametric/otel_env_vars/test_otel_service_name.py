@@ -24,14 +24,12 @@ def _service_name(test_agent: TestAgentAPI, test_library: APMLibrary) -> str:
 
 def _signal_service_name_cases(signal: str, *, resource_precedence: bool | None = None) -> pytest.MarkDecorator:
     environment = {
-        "DD_TRACE_OTEL_ENABLED": "true",
         "DD_TRACE_DEBUG": None,
         "DD_LOGS_OTEL_ENABLED": "true" if signal == "logs" else "false",
         "DD_METRICS_OTEL_ENABLED": "true" if signal == "metrics" else "false",
         "DD_RUNTIME_METRICS_ENABLED": "false",
         "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
         "OTEL_METRIC_EXPORT_INTERVAL": "60000",
-        "CORECLR_ENABLE_PROFILING": "1",
         "OTEL_SERVICE_NAME": "otel-service",
     }
     cases = [
