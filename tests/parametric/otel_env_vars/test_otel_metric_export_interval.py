@@ -24,20 +24,19 @@ def library_env(interval: str | None) -> dict[str, str | None]:
 
 
 def _effective_interval(test_agent: TestAgentAPI, test_library: APMLibrary) -> int:
-    with test_library as library:
-        # Java telemetry reports the original input, including rejected values.
-        # Its public Config getter exposes the resolved interval instead.
-        # Go also needs the reader observation for values its OTel reader can
-        # reject after publishing configuration telemetry.
-        if library.lang in ("java", "golang"):
-            interval = library.config().get("dd_metrics_otel_interval")
-            assert interval is not None, "Effective metric reader interval is not exposed by the test app"
-            return int(str(interval))
-        library.otel_get_meter("export-interval-configuration", "1.0.0", "", {})
-        if library.lang == "python":
-            # Python can publish an accepted value before the OTel reader rejects
-            # it during initialization and leaves the API's proxy provider in place.
-            assert library.config()["otel_metrics_initialized"] == "true", "Metrics SDK did not initialize"
+    # Java telemetry reports the original input, including rejected values.
+    # Its public Config getter exposes the resolved interval instead.
+    # Go also needs the reader observation for values its OTel reader can
+    # reject after publishing configuration telemetry.
+    if test_library.lang in ("java", "golang"):
+        interval = test_library.config().get("dd_metrics_otel_interval")
+        assert interval is not None, "Effective metric reader interval is not exposed by the test app"
+        return int(str(interval))
+    test_library.otel_get_meter("export-interval-configuration", "1.0.0", "", {})
+    if test_library.lang == "python":
+        # Python can publish an accepted value before the OTel reader rejects
+        # it during initialization and leaves the API's proxy provider in place.
+        assert test_library.config()["otel_metrics_initialized"] == "true", "Metrics SDK did not initialize"
 
     configurations = test_agent.wait_for_telemetry_configurations()
     entries = configurations.get(VARIABLE)
