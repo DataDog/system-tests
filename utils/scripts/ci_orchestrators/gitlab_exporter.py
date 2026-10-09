@@ -97,7 +97,7 @@ def print_ssi_gitlab_pipeline(language: str, matrix_data: dict[str, dict], ci_en
                 )
             result_pipeline[".base_job_onboarding_system_tests"]["script"].insert(0, "cd system-tests")
             result_pipeline[".base_job_onboarding_system_tests"]["script"].insert(
-                0, "git clone https://git@github.com/DataDog/system-tests.git system-tests"
+                0, "git clone https://github.com/DataDog/system-tests.git system-tests"
             )
         print_aws_gitlab_pipeline(language, matrix_data["aws_ssi_scenario_defs"], ci_environment, result_pipeline)
     if matrix_data["dockerssi_scenario_defs"]:

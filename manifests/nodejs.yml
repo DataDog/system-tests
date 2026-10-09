@@ -1913,7 +1913,7 @@ manifest:
       weblog: [express5]
     - declaration: missing_feature (EX-3412)
       excluded_weblog: [express5]
-  tests/ffe/test_flag_eval_evp.py:
+  tests/ffe/test_flag_eval_evp.py:  # Easy win for express5 and version 6.20.1
     - weblog_declaration:
         "*": incomplete_test_app
         express5: v7.0.0-pre
@@ -2437,6 +2437,7 @@ manifest:
   : - declaration: bug (APMAPI-2475)
       component_version: '<=6.16.0'
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL::test_grpc: missing_feature (OTLP gRPC exporter is not available)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_timeout.py::Test_OTEL_EXPORTER_OTLP_LOGS_TIMEOUT: incomplete_test_app (/trace/config does not expose the effective OTLP exporter timeout)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_compression.py::Test_OTEL_EXPORTER_OTLP_METRICS_COMPRESSION: '>=6.20.0'  # TODO: a lower version might be supported
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_compression.py::Test_OTEL_EXPORTER_OTLP_METRICS_COMPRESSION::test_empty_inherits_general
   : missing_feature
@@ -2477,6 +2478,7 @@ manifest:
   : v5.83.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_temporality_preference.py::Test_OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE::test_default_matches_specification
   : missing_feature (Datadog intentionally defaults to Delta)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_timeout.py::Test_OTEL_EXPORTER_OTLP_METRICS_TIMEOUT: incomplete_test_app (/trace/config does not expose the effective OTLP exporter timeout)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL: v5.83.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL::test_case_insensitive:  # TODO: a lower version might be supported
     - declaration: missing_feature (Case-insensitive OTLP protocol parsing is not released)
@@ -2489,6 +2491,7 @@ manifest:
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs::test_documented_json_default
   : irrelevant (The SDK uses the specification default)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs::test_grpc: missing_feature (OTLP gRPC exporter is not available)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_timeout.py::Test_OTEL_EXPORTER_OTLP_TIMEOUT: incomplete_test_app (/trace/config does not expose the effective OTLP exporter timeout)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_endpoint.py::Test_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:
     - declaration: missing_feature
       component_version: '<6.0.0'
@@ -2498,6 +2501,7 @@ manifest:
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_headers.py::Test_OTEL_EXPORTER_OTLP_TRACES_HEADERS::test_empty_is_treated_as_unset
   : missing_feature
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_protocol.py::Test_OTEL_EXPORTER_OTLP_TRACES_PROTOCOL: missing_feature
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_timeout.py::Test_OTEL_EXPORTER_OTLP_TRACES_TIMEOUT: incomplete_test_app (/trace/config does not expose the effective OTLP exporter timeout)
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER: missing_feature (OTEL_LOGS_EXPORTER does not configure the logs pipeline)
   tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT: v5.83.0
   tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT::test_invalid_values: bug (APMAPI-2463)
@@ -3233,6 +3237,7 @@ manifest:
         express5: *ref_6_0_0
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_http_endpoint_retained_from_appsec: irrelevant (The AppSec endpoint retention request is specific to .NET)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_http_endpoint_retained_from_resource_renaming: missing_feature (http.endpoint is not retained under OTel semantics)
+  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs: missing_feature
   tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5: v6.20.0-dev
   tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh: v6.20.0-dev
   tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchanged: v6.20.0-dev
