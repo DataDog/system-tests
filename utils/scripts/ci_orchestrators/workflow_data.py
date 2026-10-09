@@ -1,12 +1,9 @@
 from collections import defaultdict
 import json
-import logging
 from utils._context._scenarios import Scenario
 from utils._context.weblog_metadata import WeblogMetaData as Weblog
 from utils._context.constants import WeblogBuildMode as BuildMode
-
-
-logger = logging.getLogger(__name__)
+from utils._logger import logger
 
 
 def _load_json(file_path: str) -> dict:
