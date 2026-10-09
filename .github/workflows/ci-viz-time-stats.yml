@@ -19,6 +19,7 @@ jobs:
     name: Generate timing report
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
+    environment: CI Visibility
     permissions:
       contents: read
 
@@ -36,8 +37,7 @@ jobs:
 
       - name: Generate report
         env:
-          DD_API_KEY: ${{ secrets.DD_API_KEY }}
-          DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
+          DD_BEARER_TOKEN: ${{ secrets.DD_CI_VISIBILITY_READ_TOKEN }}
         run: python utils/scripts/ci_orchestrators/compute-ci-viz-time-stats.py
 
       - name: Add report to workflow summary
