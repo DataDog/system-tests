@@ -2254,7 +2254,6 @@ manifest:
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Crash: missing_feature (crash endpoint is not implemented)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Current_Span: missing_feature (spans are stored in a local context, there is no global current span in the go tracer)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_FFE_Start: v2.5.0-dev
-  tests/parametric/test_parametric_endpoints.py::Test_Parametric_Nodejs_OTel_Effective_Config: irrelevant (Node.js-specific diagnostic endpoint)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_OtelSpan_Events::test_record_exception: irrelevant (OTEL does not expose an API for recording exceptions)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_OtelSpan_Set_Name: bug (APMAPI-778)  # The set_name endpoint should set the resouce name (not the span name)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_OtelSpan_Start: bug (APMAPI-778)  # String attributes are incorrectly stored/serialized in a list

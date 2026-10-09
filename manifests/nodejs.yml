@@ -2808,7 +2808,6 @@ manifest:
       component_version: <6.8.0
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Current_Span: incomplete_test_app (current_span endpoint is not supported)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_FFE_Start: *ref_5_75_0
-  tests/parametric/test_parametric_endpoints.py::Test_Parametric_Nodejs_OTel_Effective_Config: v6.0.0
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_OtelSpan_Events::test_record_exception: bug (APMAPI-778)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_OtelSpan_Set_Name: bug (APMAPI-778)  # set_name endpoint should set the resource name on a span (not the operation name)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_OtelSpan_Start: bug (APMAPI-778)  # The expected span.kind tag is not set

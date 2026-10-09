@@ -4397,7 +4397,6 @@ manifest:
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Crash: bug (APMAPI-778)  # The crash endpoint does not kill the application
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Current_Span: bug (APMAPI-778)  # Fails to retreive the current span after a span has finished
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_FFE_Start: v1.56.0
-  tests/parametric/test_parametric_endpoints.py::Test_Parametric_Nodejs_OTel_Effective_Config: irrelevant (Node.js-specific diagnostic endpoint)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Otel_Baggage: missing_feature (otel baggage is not supported)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Otel_Current_Span: bug (APMAPI-778)  # Current span endpoint does not return DataDog spans created by the otel api
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Write_Log: '>=1.66.0'  # TODO: a lower version might be supported
