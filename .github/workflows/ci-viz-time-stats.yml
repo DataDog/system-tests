@@ -19,9 +19,9 @@ jobs:
     name: Generate timing report
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
-    environment: CI Visibility
     permissions:
       contents: read
+      id-token: write
 
     steps:
       - name: Checkout
@@ -35,9 +35,17 @@ jobs:
       - name: Install dependencies
         run: python -m pip install requests==2.31.0
 
+      - name: Get Datadog credentials
+        id: dd-sts
+        uses: DataDog/dd-sts-action@639d841c72f15e4e77747bd726ef8105ce971da2 # v1.0.5
+        with:
+          policy: system-tests
+          retries: 16
+
       - name: Generate report
         env:
-          DD_BEARER_TOKEN: ${{ secrets.DD_CI_VISIBILITY_READ_TOKEN }}
+          DD_API_KEY: ${{ steps.dd-sts.outputs.api_key }}
+          DD_APPLICATION_KEY: ${{ steps.dd-sts.outputs.app_key }}
         run: python utils/scripts/ci_orchestrators/compute-ci-viz-time-stats.py
 
       - name: Add report to workflow summary
