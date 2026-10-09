@@ -1957,6 +1957,7 @@ manifest:
         net-http: v1.70.1
         net-http-span-pool: v1.70.1
   tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP: v2.8.0-dev
+  tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP::test_single_server_trace: missing_feature
   tests/otel/test_tracing_otlp.py::Test_Otlp_Carries_Ot: v2.11.0-dev
   tests/otel/test_tracing_otlp.py::Test_Otlp_Forwards_Inherited_Ot: v2.11.0-dev  # Easy win for chi, echo, fiber-v2-orchestrion, gin, net-http, net-http-orchestrion, uds-echo and version 2.10.1
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
@@ -2022,6 +2023,8 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES: v2.3.0
   tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES::test_invalid_value_is_discarded: bug (APMAPI-2432)
   tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES::test_percent_encoded_separators: bug (APMAPI-2425)
+  ? tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES::test_reserved_attributes_are_mapped
+  : missing_feature
   tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED: missing_feature
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME: v2.6.0
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_default_follows_otel_spec: irrelevant
@@ -2195,6 +2198,7 @@ manifest:
   tests/parametric/test_otel_logs.py::Test_FR11_Telemetry::test_telemetry_exporter_logs_configurations: missing_feature
   tests/parametric/test_otel_logs.py::Test_FR12_Log_Levels: '>=2.10.1'  # Created by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields: '>=2.10.1'  # Created by easy win activation script
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Resource_Attributes::test_dd_env_vars_override_otel: missing_feature
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_default_configurations: '>=2.10.1'  # TODO: a lower version might be supported
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_exporter_configurations: '>=2.10.1'  # TODO: a lower version might be supported
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_exporter_metrics_configurations: '>=2.10.1'  # TODO: a lower version might be supported
@@ -2885,10 +2889,13 @@ manifest:
   tests/test_standard_tags.py::Test_StandardTagsUrl::test_multiple_matching_substring:
     - weblog_declaration:
         envoy, apim, haproxy: irrelevant (tracer did not yet implemented the new version of query parameters obfuscation regex)
-        "*": missing_feature (tracer did not yet implemented the new version of query parameters obfuscation regex)
+        fiber-v2-orchestrion: missing_feature (Fiber v2 records only the URL path)
+        "*": v2.11.1
   tests/test_standard_tags.py::Test_StandardTagsUrl::test_multiple_matching_substring_legacy:
     - declaration: missing_feature (Fiber v2 records only the URL path)
       weblog: fiber-v2-orchestrion
+    - declaration: irrelevant (golang released the new version of query parameters obfuscation regex at 2.11.1 (backport) and 2.12.0-dev)
+      component_version: '>=2.11.1'
   tests/test_standard_tags.py::Test_StandardTagsUrl::test_url_with_query_string:
     - declaration: missing_feature (Fiber v2 records only the URL path)
       weblog: fiber-v2-orchestrion
@@ -2896,10 +2903,13 @@ manifest:
     - weblog_declaration:
         haproxy: irrelevant (tracer did not yet implemented the new version of query parameters obfuscation regex)
         envoy, apim: irrelevant (tracer did not yet implemented the new version of query parameters obfuscation regex)
-        "*": missing_feature (tracer did not yet implemented the new version of query parameters obfuscation regex)
+        fiber-v2-orchestrion: missing_feature (Fiber v2 records only the URL path)
+        "*": v2.11.1
   tests/test_standard_tags.py::Test_StandardTagsUrl::test_url_with_sensitive_query_string_legacy:
     - declaration: missing_feature (Fiber v2 records only the URL path)
       weblog: fiber-v2-orchestrion
+    - declaration: irrelevant (golang released the new version of query parameters obfuscation regex at 2.11.1 (backport) and 2.12.0-dev)
+      component_version: '>=2.11.1'
   tests/test_standard_tags.py::Test_StandardTagsUserAgent:
     - weblog_declaration:
         '*': v1.39.0

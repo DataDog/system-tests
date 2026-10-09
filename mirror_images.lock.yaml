@@ -106,6 +106,14 @@ images:
     digest: sha256:e43e1235c446cc36258c04fe7da7382f48aa3f8b349fa79f02c1665471fb7e9a
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:express4-typescript.base-1502d45c1d2d
     tag: express4-typescript.base-1502d45c1d2d
+  datadog/system-tests:express4.base-0185eb481660:
+    digest: sha256:0e3c2d48ccfa457a9a7df5d62a89db73ee49d8866c5b47502727bad46c24e16e
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:express4.base-0185eb481660
+    tag: express4.base-0185eb481660
+  datadog/system-tests:express5.base-c6d5ccc3a720:
+    digest: sha256:f1fc7049aaab26ba70ab13f8fcc9a20f4cc90dab26b56d6e29bca365979759d2
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:express5.base-c6d5ccc3a720
+    tag: express5.base-c6d5ccc3a720
   datadog/system-tests:fastapi.base-2917769b3665:
     digest: sha256:f72a31702ffaabc1ba5e43042963e9cea965d1be6256d9d8a58e7e2381090d40
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:fastapi.base-2917769b3665

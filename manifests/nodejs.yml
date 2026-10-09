@@ -100,6 +100,7 @@ refs:
   - &ref_5_109_0 '>=5.109.0'
   - &ref_5_110_0 '>=5.110.0'
   - &ref_5_111_0 '>=5.111.0'
+  - &ref_5_125_0 '>=6.14.0 || ^5.125.0'
   - &ref_6_0_0 '>=6.0.0-pre'
   - &ref_6_5_0 '>=6.5.0 || ^5.116.0'
   - &ref_6_7_0 '>=6.7.0 || ^5.118.0'
@@ -108,6 +109,7 @@ refs:
   - &ref_6_13_0 '>=6.13.0 || ^5.124.0'
   - &ref_6_17_0 '>=6.17.0 || ^5.128.0'
   - &ref_6_20_0 '>=6.20.0 || ^5.131.0'
+  - &ref_6_20_1 '>=6.20.1 || ^5.131.1'
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag:
     - weblog_declaration:
@@ -1911,7 +1913,10 @@ manifest:
       weblog: [express5]
     - declaration: missing_feature (EX-3412)
       excluded_weblog: [express5]
-  tests/ffe/test_flag_eval_evp.py: missing_feature (FFL-2446)
+  tests/ffe/test_flag_eval_evp.py:  # Easy win for express5 and version 6.20.1
+    - weblog_declaration:
+        "*": incomplete_test_app
+        express5: v7.0.0-pre
   tests/ffe/test_flag_eval_metrics.py:
     - weblog_declaration:
         "*": incomplete_test_app
@@ -2361,6 +2366,7 @@ manifest:
   tests/otel/test_context_propagation.py::Test_Otel_Context_Propagation_Default_Propagator_Api::test_propagation_inject: incomplete_test_app (Node.js inject endpoint doesn't seem to be working.)
   tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP: *ref_5_99_0
   tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP::test_128bit_trace_id_consistent_across_spans: *ref_5_106_0
+  tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP::test_single_server_trace: *ref_5_125_0
   tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP::test_unsampled_trace:
     - weblog_declaration:
         nextjs: missing_feature (AppSec/IAST force-samples traces, overriding unsampled traceparent)
@@ -2499,6 +2505,8 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES: v5.83.0
   tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES::test_invalid_value_is_discarded: bug (APMAPI-2434)
   tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES::test_percent_encoded_separators: bug (APMAPI-2427)
+  ? tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES::test_reserved_attributes_are_mapped
+  : *ref_5_125_0
   tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED: v5.83.0
   tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_datadog_configuration_takes_precedence: incomplete_test_app (config is not exposed)
   tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_default_matches_specification: bug (APMAPI-2418)
@@ -2700,12 +2708,14 @@ manifest:
   tests/parametric/test_otel_api_interoperability.py: missing_feature
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: v5.11.0  #implemented in v5.11.0, v4.35.0, &v3.56.0
   tests/parametric/test_otel_logs.py::Test_FR01_Enable_OTLP_Log_Collection: *ref_5_72_0
-  tests/parametric/test_otel_logs.py::Test_FR03_Resource_Attributes: *ref_5_72_0
+  tests/parametric/test_otel_logs.py::Test_FR03_Resource_Attributes: missing_feature
   tests/parametric/test_otel_logs.py::Test_FR04_Trace_Span_IDs: *ref_5_72_0
   tests/parametric/test_otel_logs.py::Test_FR05_Custom_Endpoints: *ref_5_72_0
   tests/parametric/test_otel_logs.py::Test_FR07_Host_Name: *ref_5_72_0
   tests/parametric/test_otel_logs.py::Test_FR07_Host_Name::test_hostname_from_dd_hostname: irrelevant (DD_HOSTNAME is only supported in Python)
   tests/parametric/test_otel_logs.py::Test_FR09_Log_Injection: *ref_5_72_0
+  tests/parametric/test_otel_logs.py::Test_FR09_Log_Injection::test_log_injection_when_otel_enabled: missing_feature (deployment.environment.name output is not supported)
+  tests/parametric/test_otel_logs.py::Test_FR09_Log_Injection::test_log_without_active_span: missing_feature (deployment.environment.name output is not supported)
   tests/parametric/test_otel_logs.py::Test_FR10_Timeout_Configuration: *ref_5_72_0
   tests/parametric/test_otel_logs.py::Test_FR11_Telemetry: *ref_5_72_0
   tests/parametric/test_otel_logs.py::Test_FR12_Log_Levels: *ref_5_72_0
@@ -2719,6 +2729,7 @@ manifest:
   ? tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint::test_otlp_metrics_custom_endpoint_grpc
   : missing_feature (Does not support grpc)
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Host_Name::test_hostname_from_dd_hostname: missing_feature (DD_HOSTNAME to host.name resource attribute mapping not yet implemented)
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Resource_Attributes: missing_feature
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_metrics_grpc: missing_feature (Does not support grpc)
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_add_event_meta_serialization:
     - declaration: missing_feature (Implemented in v5.17.0 & v4.41.0)
@@ -2776,6 +2787,7 @@ manifest:
   tests/parametric/test_otlp_trace_metrics.py: v6.11.0
   tests/parametric/test_otlp_trace_metrics.py::Test_FR01_Enablement_Configuration::test_fr01_6_disabled_when_apm_tracing_disabled: missing_feature (OTLP trace metrics are still emitted when DD_APM_TRACING_ENABLED=false)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Resource_Attributes::test_fr06_10_hostname: irrelevant (DD_HOSTNAME is only supported in Python)
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Resource_Attributes::test_fr06_9_service_env_version: *ref_5_125_0
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_AdditionalTags::test_fr08_12_stats_additional_tags: missing_feature (DD_TRACE_STATS_ADDITIONAL_TAGS is not forwarded to the native OTLP trace-metrics exporter)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes::test_fr08_13_is_trace_root: missing_feature (different-service child spans are not aggregated into OTLP trace-metric data points)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes::test_fr08_14_peer_tags: missing_feature (Blocked on test-agent support for advertising a peer_tags allowlist in /info)
@@ -3322,8 +3334,14 @@ manifest:
         nextjs: missing_feature  # http.route not added in nextjs
   tests/test_standard_tags.py::Test_StandardTagsStatusCode: v2.11.0
   tests/test_standard_tags.py::Test_StandardTagsUrl: *ref_3_0_0
-  tests/test_standard_tags.py::Test_StandardTagsUrl::test_multiple_matching_substring: missing_feature (tracer did not yet implemented the new version of query parameters obfuscation regex)
-  tests/test_standard_tags.py::Test_StandardTagsUrl::test_url_with_sensitive_query_string: missing_feature (tracer did not yet implemented the new version of query parameters obfuscation regex)
+  tests/test_standard_tags.py::Test_StandardTagsUrl::test_multiple_matching_substring: *ref_6_20_1
+  tests/test_standard_tags.py::Test_StandardTagsUrl::test_multiple_matching_substring_legacy:
+    - declaration: irrelevant (nodejs released the new version of query parameters obfuscation regex at 6.20.1 and 5.131.1)
+      component_version: *ref_6_20_1
+  tests/test_standard_tags.py::Test_StandardTagsUrl::test_url_with_sensitive_query_string: *ref_6_20_1
+  tests/test_standard_tags.py::Test_StandardTagsUrl::test_url_with_sensitive_query_string_legacy:
+    - declaration: irrelevant (nodejs released the new version of query parameters obfuscation regex at 6.20.1 and 5.131.1)
+      component_version: *ref_6_20_1
   tests/test_standard_tags.py::Test_StandardTagsUserAgent: v2.9.0
   tests/test_telemetry.py::Test_DependencyEnable: missing_feature
   tests/test_telemetry.py::Test_ExtendedHeartbeat: *ref_5_97_0
