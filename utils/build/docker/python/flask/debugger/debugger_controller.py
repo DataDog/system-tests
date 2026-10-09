@@ -2,7 +2,7 @@ from flask import Blueprint, request, abort
 from debugger.pii import Pii, CustomPii
 from debugger.expression_test_struct import ExpressionTestStruct
 from debugger.collection_factory import CollectionFactory
-from debugger.data_generator import generate_test_data
+from debugger.data_generator import generate_nested_collection, generate_test_data
 
 # The `debugger` feature allows attachment to specific lines of code.
 # Due to differences in line numbering between libraries,
@@ -172,3 +172,12 @@ def snapshot_limits():
     largeCollection = data["largeCollection"]  # noqa: N806
     longString = data["longString"]  # noqa: N806
     return "Capture limits probe", 200
+
+
+@debugger_blueprint.route("/snapshot/capture-timeout", methods=["GET"])
+def snapshot_capture_timeout():
+    largeCollection = generate_nested_collection(  # noqa: N806
+        collection_size=request.args.get("collectionSize", type=int, default=0),
+        nesting_depth=request.args.get("nestingDepth", type=int, default=0),
+    )
+    return "Capture timeout probe", 200  # must be line 183
