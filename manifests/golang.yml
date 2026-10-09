@@ -2895,12 +2895,12 @@ manifest:
     - weblog_declaration:
         envoy, apim, haproxy: irrelevant (tracer did not yet implemented the new version of query parameters obfuscation regex)
         fiber-v2-orchestrion: missing_feature (Fiber v2 records only the URL path)
-        "*": v2.12.0-dev
+        "*": v2.11.1
   tests/test_standard_tags.py::Test_StandardTagsUrl::test_multiple_matching_substring_legacy:
     - declaration: missing_feature (Fiber v2 records only the URL path)
       weblog: fiber-v2-orchestrion
-    - declaration: irrelevant (golang released the new version of query parameters obfuscation regex at 2.12.0)
-      component_version: '>=2.12.0-dev'
+    - declaration: irrelevant (golang released the new version of query parameters obfuscation regex at 2.11.1 (backport) and 2.12.0-dev)
+      component_version: '>=2.11.1'
   tests/test_standard_tags.py::Test_StandardTagsUrl::test_url_with_query_string:
     - declaration: missing_feature (Fiber v2 records only the URL path)
       weblog: fiber-v2-orchestrion
@@ -2909,12 +2909,12 @@ manifest:
         haproxy: irrelevant (tracer did not yet implemented the new version of query parameters obfuscation regex)
         envoy, apim: irrelevant (tracer did not yet implemented the new version of query parameters obfuscation regex)
         fiber-v2-orchestrion: missing_feature (Fiber v2 records only the URL path)
-        "*": v2.12.0-dev
+        "*": v2.11.1
   tests/test_standard_tags.py::Test_StandardTagsUrl::test_url_with_sensitive_query_string_legacy:
     - declaration: missing_feature (Fiber v2 records only the URL path)
       weblog: fiber-v2-orchestrion
-    - declaration: irrelevant (golang released the new version of query parameters obfuscation regex at 2.12.0)
-      component_version: '>=2.12.0-dev'
+    - declaration: irrelevant (golang released the new version of query parameters obfuscation regex at 2.11.1 (backport) and 2.12.0-dev)
+      component_version: '>=2.11.1'
   tests/test_standard_tags.py::Test_StandardTagsUserAgent:
     - weblog_declaration:
         '*': v1.39.0
