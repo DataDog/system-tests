@@ -16,6 +16,8 @@ from time_stats_report import (
     rows_from_ddsql,
 )
 
+pytestmark = pytest.mark.scenario("TEST_THE_TEST")
+
 
 def timing_row(
     scenario: str = "APPSEC_API_SECURITY",
