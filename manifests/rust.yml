@@ -82,17 +82,17 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_blrp_max_queue_size.py::Test_OTEL_BLRP_MAX_QUEUE_SIZE: missing_feature
   tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY: missing_feature
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_compression.py::Test_OTEL_EXPORTER_OTLP_COMPRESSION: '>=0.5.3-dev+2ea3692'  # TODO: a lower version might be supported
-  tests/parametric/otel_env_vars/test_otel_exporter_otlp_compression.py::Test_OTEL_EXPORTER_OTLP_COMPRESSION::test_empty: missing_feature
-  tests/parametric/otel_env_vars/test_otel_exporter_otlp_compression.py::Test_OTEL_EXPORTER_OTLP_COMPRESSION::test_invalid: missing_feature
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_compression.py::Test_OTEL_EXPORTER_OTLP_COMPRESSION::test_empty: '>=0.5.3-dev+7e8aa8c'  # TODO: a lower version might be supported
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_compression.py::Test_OTEL_EXPORTER_OTLP_COMPRESSION::test_invalid: '>=0.5.3-dev+7e8aa8c'  # TODO: a lower version might be supported
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_compression.py::Test_OTEL_EXPORTER_OTLP_COMPRESSION::test_stable_values: missing_feature
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_endpoint.py::Test_OTEL_EXPORTER_OTLP_ENDPOINT: v0.3.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS: v0.3.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_compression.py::Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION: '>=0.5.3-dev+2ea3692'  # TODO: a lower version might be supported
-  tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_compression.py::Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION::test_empty: missing_feature
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_compression.py::Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION::test_empty: '>=0.5.3-dev+7e8aa8c'  # TODO: a lower version might be supported
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_compression.py::Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION::test_empty_inherits_general
   : missing_feature
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_compression.py::Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION::test_invalid
-  : missing_feature
+  : '>=0.5.3-dev+7e8aa8c'  # TODO: a lower version might be supported
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_compression.py::Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION::test_signal_precedence
   : missing_feature
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_compression.py::Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION::test_stable_values
@@ -110,11 +110,11 @@ manifest:
   : irrelevant (Datadog uses a sufficiently long 10000 ms timeout for zero)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_compression.py::Test_OTEL_EXPORTER_OTLP_METRICS_COMPRESSION: '>=0.5.3-dev+2ea3692'  # TODO: a lower version might be supported
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_compression.py::Test_OTEL_EXPORTER_OTLP_METRICS_COMPRESSION::test_empty
-  : missing_feature
+  : '>=0.5.3-dev+7e8aa8c'  # TODO: a lower version might be supported
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_compression.py::Test_OTEL_EXPORTER_OTLP_METRICS_COMPRESSION::test_empty_inherits_general
   : missing_feature
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_compression.py::Test_OTEL_EXPORTER_OTLP_METRICS_COMPRESSION::test_invalid
-  : missing_feature
+  : '>=0.5.3-dev+7e8aa8c'  # TODO: a lower version might be supported
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_compression.py::Test_OTEL_EXPORTER_OTLP_METRICS_COMPRESSION::test_signal_precedence
   : missing_feature
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_compression.py::Test_OTEL_EXPORTER_OTLP_METRICS_COMPRESSION::test_stable_values
@@ -356,7 +356,9 @@ manifest:
   tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields::test_scope_attributes_field:  # TODO: a lower version might be supported
     - declaration: missing_feature (OpenTelemetry Rust SDK limitation - scope attributes not exported by opentelemetry-otlp)
       component_version: <0.5.3-dev+671276b
-  tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields::test_scope_schema_url_field: missing_feature (OpenTelemetry Rust SDK limitation - schema_url not exported by opentelemetry-otlp)
+  tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields::test_scope_schema_url_field:  # TODO: a lower version might be supported
+    - declaration: missing_feature (OpenTelemetry Rust SDK limitation - schema_url not exported by opentelemetry-otlp)
+      component_version: <0.5.3-dev+7e8aa8c
   tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields::test_scope_version_field:  # TODO: a lower version might be supported
     - declaration: missing_feature (OpenTelemetry Rust SDK limitation - scope version not exported by opentelemetry-otlp)
       component_version: <0.5.3-dev+671276b
@@ -410,9 +412,9 @@ manifest:
   tests/parametric/test_parametric_endpoints.py::TestRemoteConfigApplyEndpoint: incomplete_test_app (POST /trace/remote-config/apply only implemented in the python parametric app)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Add_Link: missing_feature
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Finish: v0.0.1
-  tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Set_Error: missing_feature
+  tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Set_Error: '>=0.5.3-dev+7e8aa8c'  # TODO: a lower version might be supported
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Set_Meta: v0.0.1
-  tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Set_Metric: missing_feature
+  tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Set_Metric: '>=0.5.3-dev+7e8aa8c'  # TODO: a lower version might be supported
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Set_Resource: missing_feature
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Start: v0.0.1
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Baggage: missing_feature
@@ -496,7 +498,7 @@ manifest:
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_With_W3C::test_trace_sampled_by_trace_sampling_rule_tags: missing_feature
   tests/parametric/test_tracer.py: '>=0.2.1'  # Modified by easy win activation script
   tests/parametric/test_tracer.py::Test_ProcessTags_ServiceName: missing_feature
-  tests/parametric/test_tracer.py::Test_Tracer: missing_feature  # Created by easy win activation script
+  tests/parametric/test_tracer.py::Test_Tracer: '>=0.5.3-dev+7e8aa8c'  # Created by easy win activation script
   tests/parametric/test_tracer.py::Test_TracerBaseService:  # TODO: a lower version might be supported
     - declaration: missing_feature (_dd.base_service is not implemented)
       component_version: <0.5.1-dev+8efc582
