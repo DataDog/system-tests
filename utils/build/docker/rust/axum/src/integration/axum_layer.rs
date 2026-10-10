@@ -79,9 +79,6 @@ async fn datadog_specific_axum_layer(request: Request, next: Next) -> Response {
     attributes.extend(dd_tags());
     attributes.push(KeyValue::new("http.url", url));
     attributes.push(KeyValue::new("server.address", server_address));
-    // _dd.top_level marks this as a root span so the library interface can match
-    // traces to requests via the user-agent header.
-    attributes.push(KeyValue::new("_dd.top_level", 1i64));
 
     let tracer = global::tracer("weblog");
     let span = tracer
