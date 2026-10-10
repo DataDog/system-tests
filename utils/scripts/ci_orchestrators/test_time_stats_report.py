@@ -1,10 +1,6 @@
 from datetime import UTC, datetime
-from pathlib import Path
-import sys
 
 import pytest
-
-sys.path.insert(0, str(Path(__file__).parents[2] / "utils/scripts/ci_orchestrators"))
 
 from time_stats_report import (
     TimingRow,
@@ -15,8 +11,6 @@ from time_stats_report import (
     render_report,
     rows_from_ddsql,
 )
-
-pytestmark = pytest.mark.scenario("TEST_THE_TEST")
 
 
 def timing_row(
@@ -39,7 +33,7 @@ def timing_row(
     )
 
 
-def test_rows_from_ddsql_decodes_column_major_response():
+def test_rows_from_ddsql_decodes_column_major_response() -> None:
     row = timing_row()
     response = {
         "data": {
@@ -53,14 +47,14 @@ def test_rows_from_ddsql_decodes_column_major_response():
     assert rows_from_ddsql(response) == [row]
 
 
-def test_rows_from_ddsql_rejects_truncated_results():
+def test_rows_from_ddsql_rejects_truncated_results() -> None:
     response = {"data": {"attributes": {"state": "completed", "warnings": ["Result was truncated"]}}}
 
     with pytest.raises(RuntimeError, match="truncated"):
         rows_from_ddsql(response)
 
 
-def test_get_auth_headers_prefers_bearer_token():
+def test_get_auth_headers_prefers_bearer_token() -> None:
     headers = get_auth_headers(
         {
             "DD_BEARER_TOKEN": "bearer-token",
@@ -72,13 +66,13 @@ def test_get_auth_headers_prefers_bearer_token():
     assert headers == {"Authorization": "Bearer bearer-token"}
 
 
-def test_get_auth_headers_supports_existing_api_and_application_keys():
+def test_get_auth_headers_supports_existing_api_and_application_keys() -> None:
     headers = get_auth_headers({"DD_API_KEY": "api-key", "DD_APPLICATION_KEY": "application-key"})
 
     assert headers == {"DD-API-KEY": "api-key", "DD-APPLICATION-KEY": "application-key"}
 
 
-def test_build_computed_timings_recomputes_fallbacks():
+def test_build_computed_timings_recomputes_fallbacks() -> None:
     rows = [
         timing_row(weblog="rails72", p75=40),
         timing_row(weblog="sinatra41", p75=50),
@@ -87,13 +81,16 @@ def test_build_computed_timings_recomputes_fallbacks():
 
     result = build_computed_timings(rows)
 
-    assert result["run"]["APPSEC_API_SECURITY"]["ruby"]["*"] == 45
-    assert result["run"]["APPSEC_API_SECURITY"]["python"]["*"] == 90
-    assert result["run"]["APPSEC_API_SECURITY"]["*"] == 67.5
-    assert result["run"]["*"] == 67.5
+    expected_ruby = 45
+    expected_python = 90
+    expected_scenario = 67.5
+    assert result["run"]["APPSEC_API_SECURITY"]["ruby"]["*"] == expected_ruby
+    assert result["run"]["APPSEC_API_SECURITY"]["python"]["*"] == expected_python
+    assert result["run"]["APPSEC_API_SECURITY"]["*"] == expected_scenario
+    assert result["run"]["*"] == expected_scenario
 
 
-def test_compare_timings_reports_changes_additions_missing_and_low_samples():
+def test_compare_timings_reports_changes_additions_missing_and_low_samples() -> None:
     rows = [
         timing_row(p75=42),
         timing_row(scenario="NEW_SCENARIO", weblog="rack", sample_count=2, p75=10),
@@ -113,13 +110,15 @@ def test_compare_timings_reports_changes_additions_missing_and_low_samples():
         "missing": 1,
         "low_samples": 1,
     }
-    assert result["changes"][0]["delta"] == 12
-    assert result["changes"][0]["delta_percent"] == 40
+    expected_delta = 12
+    expected_delta_percent = 40
+    assert result["changes"][0]["delta"] == expected_delta
+    assert result["changes"][0]["delta_percent"] == expected_delta_percent
     assert result["added"][0]["scenario"] == "NEW_SCENARIO"
     assert result["missing"][0]["scenario"] == "MISSING_SCENARIO"
 
 
-def test_render_report_contains_summary_and_distribution():
+def test_render_report_contains_summary_and_distribution() -> None:
     rows = [timing_row(p75=42)]
     comparison = compare_timings(rows, {rows[0].key: 30})
 
@@ -133,7 +132,7 @@ def test_render_report_contains_summary_and_distribution():
     assert "| APPSEC_API_SECURITY | ruby | rails72 | 7 | 30.0 | 42.0 |" in report
 
 
-def test_default_window_uses_seven_complete_utc_days():
+def test_default_window_uses_seven_complete_utc_days() -> None:
     start, end = default_window(datetime(2026, 10, 9, 12, 30, tzinfo=UTC))
 
     assert start == datetime(2026, 10, 2, tzinfo=UTC)

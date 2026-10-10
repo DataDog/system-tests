@@ -284,6 +284,9 @@ patterns:
     utils/scripts/ci_orchestrators/run-time-stats.sql:
         scenario_groups: null
         libraries: null
+    utils/scripts/ci_orchestrators/test_time_stats_report.py:
+        scenario_groups: null
+        libraries: null
     utils/scripts/ci_orchestrators/time_stats_report.py:
         scenario_groups: null
         libraries: null
