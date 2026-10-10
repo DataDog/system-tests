@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 import enum
+from itertools import product
 from pathlib import Path
 import re
 import requests
@@ -108,25 +109,23 @@ def parse_artifact_data(
             except FileNotFoundError:
                 continue
 
-            context = Context.create(
-                scenario_data["context"].get("library_name"),
-                scenario_data["context"].get("library"),
-                scenario_data["context"].get("weblog_variant"),
-            )
-
-            if not context or context.library not in libraries:
-                break
-
-            if context not in test_data:
-                test_data[context] = TestData()
-
-            library_name = scenario_data["context"]["library_name"]
-            if library_name not in weblogs:
-                weblogs[library_name] = set()
-            weblogs[library_name].add(scenario_data["context"]["weblog_variant"])
+            # Each reported component activates its own manifest at its own version.
+            report_context = scenario_data["context"]
+            contexts = []
+            for library in libraries:
+                version = report_context.get(library)
+                if library == report_context.get("library_name"):
+                    version = report_context.get("library")
+                context = Context.create(library, version, report_context.get("weblog_variant"))
+                if context is None:
+                    continue
+                contexts.append(context)
+                if context not in test_data:
+                    test_data[context] = TestData()
+                weblogs.setdefault(library, set()).add(context.variant)
 
             excluded_owners_set = excluded_owners or set()
-            for test in scenario_data["tests"]:
+            for context, test in product(contexts, scenario_data["tests"]):
                 # Get code owners from test metadata
                 test_owners = set()
                 if "metadata" in test and "owners" in test["metadata"]:

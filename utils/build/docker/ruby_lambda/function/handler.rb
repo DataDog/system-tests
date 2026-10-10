@@ -211,6 +211,10 @@ def version_info
     'library' => {
       'name' => 'ruby_lambda',
       'version' => Datadog::Lambda::VERSION::STRING
+    },
+    'tracer' => {
+      'name' => 'ruby',
+      'version' => Datadog::VERSION::STRING
     }
   }
 end

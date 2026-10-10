@@ -711,9 +711,18 @@ manifest:
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Optional_SpanTags: v2.20.0.dev
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Rules_Version: v2.18.0.dev
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_StackTrace: v2.20.0.dev
-  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry: v2.20.0.dev
-  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry_V2: v3.5.0.dev
-  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry_Variant_Tag: v2.20.0.dev
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry:
+    - weblog_declaration:
+        "*": v2.20.0.dev
+        "alb, alb-multi, apigw-http, apigw-rest, function-url": v4.15.0
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry_V2:
+    - weblog_declaration:
+        "*": v3.5.0.dev
+        "alb, alb-multi, apigw-http, apigw-rest, function-url": v4.15.0
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry_Variant_Tag:
+    - weblog_declaration:
+        "*": v2.20.0.dev
+        "alb, alb-multi, apigw-http, apigw-rest, function-url": v4.15.0
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_UrlQuery: v2.20.0.dev
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Waf_Version: v2.18.0.dev
   tests/appsec/rasp/test_lfi.py::Test_Lfi_BodyJson: v2.10.0
@@ -725,9 +734,15 @@ manifest:
   tests/appsec/rasp/test_lfi.py::Test_Lfi_RC_CustomAction: v2.14.0
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Rules_Version: v2.18.0.dev
   tests/appsec/rasp/test_lfi.py::Test_Lfi_StackTrace: v2.10.0
-  tests/appsec/rasp/test_lfi.py::Test_Lfi_Telemetry: v2.10.0
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_Telemetry:
+    - weblog_declaration:
+        "*": v2.10.0
+        "alb, alb-multi, apigw-http, apigw-rest, function-url": v4.15.0
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Telemetry_Multiple_Exploits: v2.10.0
-  tests/appsec/rasp/test_lfi.py::Test_Lfi_Telemetry_V2: v3.5.0.dev
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_Telemetry_V2:
+    - weblog_declaration:
+        "*": v3.5.0.dev
+        "alb, alb-multi, apigw-http, apigw-rest, function-url": v4.15.0
   tests/appsec/rasp/test_lfi.py::Test_Lfi_UrlQuery: v2.10.0
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Waf_Version: v2.15.0
   tests/appsec/rasp/test_shi.py::Test_Shi_BodyJson: v2.11.0-rc2
@@ -738,9 +753,18 @@ manifest:
   tests/appsec/rasp/test_shi.py::Test_Shi_Optional_SpanTags: v2.11.0-rc2
   tests/appsec/rasp/test_shi.py::Test_Shi_Rules_Version: v2.15.0
   tests/appsec/rasp/test_shi.py::Test_Shi_StackTrace: v2.11.0-rc2
-  tests/appsec/rasp/test_shi.py::Test_Shi_Telemetry: v2.11.0-rc2
-  tests/appsec/rasp/test_shi.py::Test_Shi_Telemetry_V2: v3.5.0.dev
-  tests/appsec/rasp/test_shi.py::Test_Shi_Telemetry_Variant_Tag: v2.20.0.dev
+  tests/appsec/rasp/test_shi.py::Test_Shi_Telemetry:
+    - weblog_declaration:
+        "*": v2.11.0-rc2
+        "alb, alb-multi, apigw-http, apigw-rest, function-url": v4.15.0
+  tests/appsec/rasp/test_shi.py::Test_Shi_Telemetry_V2:
+    - weblog_declaration:
+        "*": v3.5.0.dev
+        "alb, alb-multi, apigw-http, apigw-rest, function-url": v4.15.0
+  tests/appsec/rasp/test_shi.py::Test_Shi_Telemetry_Variant_Tag:
+    - weblog_declaration:
+        "*": v2.20.0.dev
+        "alb, alb-multi, apigw-http, apigw-rest, function-url": v4.15.0
   tests/appsec/rasp/test_shi.py::Test_Shi_UrlQuery: v2.11.0-rc2
   tests/appsec/rasp/test_shi.py::Test_Shi_Waf_Version: v2.15.0
   tests/appsec/rasp/test_sqli.py::Test_Sqli_BodyJson: v2.10.0
@@ -751,8 +775,14 @@ manifest:
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Optional_SpanTags: v2.10.0
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Rules_Version: v2.16.0
   tests/appsec/rasp/test_sqli.py::Test_Sqli_StackTrace: v2.10.0
-  tests/appsec/rasp/test_sqli.py::Test_Sqli_Telemetry: v2.10.0
-  tests/appsec/rasp/test_sqli.py::Test_Sqli_Telemetry_V2: v3.5.0.dev
+  tests/appsec/rasp/test_sqli.py::Test_Sqli_Telemetry:
+    - weblog_declaration:
+        "*": v2.10.0
+        "alb, alb-multi, apigw-http, apigw-rest, function-url": v4.15.0
+  tests/appsec/rasp/test_sqli.py::Test_Sqli_Telemetry_V2:
+    - weblog_declaration:
+        "*": v3.5.0.dev
+        "alb, alb-multi, apigw-http, apigw-rest, function-url": v4.15.0
   tests/appsec/rasp/test_sqli.py::Test_Sqli_UrlQuery: v2.10.0
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Waf_Version: v2.15.0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyJson:
@@ -785,10 +815,12 @@ manifest:
     - weblog_declaration:
         "*": v2.10.0
         *django : v4.3.0-dev0 (with httpx support)
+        "alb, alb-multi, apigw-http, apigw-rest, function-url": v4.15.0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry_V2:
     - weblog_declaration:
         "*": v3.5.0.dev
         *django : v4.3.0-dev0 (with httpx support)
+        "alb, alb-multi, apigw-http, apigw-rest, function-url": v4.15.0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_UrlQuery:
     - weblog_declaration:
         "*": v2.10.0

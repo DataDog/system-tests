@@ -1303,6 +1303,8 @@ class LambdaWeblogContainer(WeblogContainer):
             volumes=volumes,
         )
 
+        self._tracer: ComponentVersion | None = None
+
         # Set the container port to the one used by the one of the Lambda RIE
         self.container_port = 8080
 
@@ -1314,6 +1316,18 @@ class LambdaWeblogContainer(WeblogContainer):
         }
         # Remove port bindings, as only the LambdaProxyContainer needs to expose a server
         self.ports = {}
+
+    def post_start(self) -> None:
+        super().post_start()
+        with open(self.healthcheck_log_file, encoding="utf-8") as f:
+            tracer = json.load(f).get("tracer")
+        self._tracer = ComponentVersion(tracer["name"], tracer["version"]) if tracer else None
+        if self.tracer is not None:
+            logger.stdout(f"Tracer: {self.tracer}")
+
+    @property
+    def tracer(self) -> ComponentVersion | None:
+        return self._tracer
 
 
 class PostgresContainer(SqlDbTestedContainer):
