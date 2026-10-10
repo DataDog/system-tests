@@ -3488,11 +3488,36 @@ manifest:
         "*": irrelevant
         spring-boot: v1.56.0
   tests/ffe/test_exposures_datadog_agent.py::Test_FFE_EXP_5_Missing_Targeting_Key: bug (FFL-1729)
-  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Appears: missing_feature (EX-3415)
-  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Cycle: missing_feature (EX-3415)
-  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Disappears: missing_feature (EX-3415)
-  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Serial_Id: missing_feature (EX-3415)
-  tests/ffe/test_flag_eval_evp.py: missing_feature (FFL-2446)
+  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Appears:  # TODO: a lower version might be supported
+    - declaration: missing_feature (EX-3415)
+      component_version: <1.67.1
+      weblog: [spring-boot]
+    - declaration: missing_feature (EX-3415)
+      excluded_weblog: [spring-boot]
+  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Cycle:  # TODO: a lower version might be supported
+    - declaration: missing_feature (EX-3415)
+      component_version: <1.67.1
+      weblog: [spring-boot]
+    - declaration: missing_feature (EX-3415)
+      excluded_weblog: [spring-boot]
+  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Disappears:  # TODO: a lower version might be supported
+    - declaration: missing_feature (EX-3415)
+      component_version: <1.67.1
+      weblog: [spring-boot]
+    - declaration: missing_feature (EX-3415)
+      excluded_weblog: [spring-boot]
+  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Serial_Id:  # TODO: a lower version might be supported
+    - declaration: missing_feature (EX-3415)
+      component_version: <1.67.1
+      weblog: [spring-boot]
+    - declaration: missing_feature (EX-3415)
+      excluded_weblog: [spring-boot]
+  tests/ffe/test_flag_eval_evp.py:  # TODO: a lower version might be supported
+    - declaration: missing_feature (FFL-2446)
+      component_version: <1.67.1
+      weblog: [uds-spring-boot, spring-boot-openliberty, spring-boot-jetty, spring-boot, spring-boot-payara, spring-boot-undertow, spring-boot-wildfly]
+    - declaration: missing_feature (FFL-2446)
+      excluded_weblog: [uds-spring-boot, spring-boot-openliberty, spring-boot-jetty, spring-boot, spring-boot-payara, spring-boot-undertow, spring-boot-wildfly]
   tests/ffe/test_flag_eval_metrics.py:
     - weblog_declaration:
         "*": irrelevant
