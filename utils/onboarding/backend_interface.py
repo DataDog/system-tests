@@ -1,4 +1,4 @@
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from datetime import UTC, datetime, timedelta
 from http import HTTPStatus
 import json
@@ -105,7 +105,7 @@ def _make_request(
     json: dict | None = None,
     overall_timeout: int = 300,
     request_timeout: int = 10,
-    retry_delay: int = 1,
+    retry_delay: float = 1,
     backoff_factor: int = 2,
     max_retries: int = 30,
     validator: Callable | None = None,
@@ -147,7 +147,7 @@ def _make_request(
     raise TimeoutError(f"Reached max retries limit for {method} {url}")
 
 
-def _parse_retry_after(headers: dict[str, str]):
+def _parse_retry_after(headers: Mapping[str, str]) -> int:
     # docs: https://docs.datadoghq.com/api/latest/rate-limits/
     limit = headers.get("X-RateLimit-Limit")
     period = headers.get("X-RateLimit-Period")
@@ -161,8 +161,8 @@ def _parse_retry_after(headers: dict[str, str]):
     )
 
     try:
-        return int(reset)
-    except (ValueError, TypeError):
+        return int(reset) if reset is not None else -1
+    except ValueError:
         return -1
 
 
