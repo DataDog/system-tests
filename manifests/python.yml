@@ -2121,7 +2121,11 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_protocol.py::Test_OTEL_EXPORTER_OTLP_TRACES_PROTOCOL: v4.11.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_protocol.py::Test_OTEL_EXPORTER_OTLP_TRACES_PROTOCOL::test_grpc_protocol_is_used_for_trace_export
   : missing_feature (Trace exporter does not support gRPC)
-  tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_timeout.py::Test_OTEL_EXPORTER_OTLP_TRACES_TIMEOUT: incomplete_test_app (/trace/config does not expose the effective OTLP traces timeout)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_timeout.py::Test_OTEL_EXPORTER_OTLP_TRACES_TIMEOUT:  # TODO: a lower version might be supported
+    - declaration: incomplete_test_app (/trace/config does not expose the effective OTLP traces timeout)
+      component_version: <4.15.6
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_timeout.py::Test_OTEL_EXPORTER_OTLP_TRACES_TIMEOUT::test_invalid_value_is_ignored
+  : incomplete_test_app (/trace/config does not expose the effective OTLP traces timeout)
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER:  # TODO: a lower version might be supported
     - declaration: missing_feature (OTEL_LOGS_EXPORTER does not configure the logs pipeline)
       component_version: <4.15.2
