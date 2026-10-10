@@ -2133,7 +2133,7 @@ manifest:
         apache-mod-7.0-zts: '>=1.23.3'
         laravel11x: '>=1.23.3'
         php-fpm-7.2: '>=1.23.3'
-  tests/test_resource_renaming.py::Test_Resource_Renaming_Stats_Aggregation_Keys::test_stats_aggregation_with_method_and_endpoint:
+  tests/test_resource_renaming.py::Test_Resource_Renaming_Stats_Aggregation_Keys::test_stats_aggregation_with_method_and_endpoint:  # Easy win for apache-mod-7.0, apache-mod-7.0-zts, apache-mod-7.1, apache-mod-7.1-zts, apache-mod-7.2, apache-mod-7.2-zts, apache-mod-7.3, apache-mod-7.3-zts, apache-mod-7.4, apache-mod-7.4-zts, apache-mod-8.0, apache-mod-8.0-zts, apache-mod-8.1, apache-mod-8.1-zts, apache-mod-8.2, apache-mod-8.2-zts, laravel11x, php-fpm-7.0, php-fpm-7.1, php-fpm-7.2, php-fpm-7.3, php-fpm-7.4, php-fpm-8.0, php-fpm-8.1, php-fpm-8.2, php-fpm-8.5, symfony7x and version 1.26.0
     - declaration: bug (APMAPI-2559)
       component_version: '>=1.26.0-dev'
   tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)
