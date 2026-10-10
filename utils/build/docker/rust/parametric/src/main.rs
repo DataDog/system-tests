@@ -67,11 +67,56 @@ impl ContextWithParent {
     }
 }
 
+impl AppState {
+    /// Replaces the stored context of `span_id` with `f(context)` (e.g. to change its
+    /// baggage), keeping `current_context` in sync. Returns the new context.
+    pub(crate) fn update_context(
+        &self,
+        span_id: u64,
+        f: impl FnOnce(&::opentelemetry::Context) -> ::opentelemetry::Context,
+    ) -> Option<::opentelemetry::Context> {
+        use ::opentelemetry::trace::TraceContextExt;
+
+        let mut contexts = self.contexts.lock().unwrap();
+        let entry = contexts.get(&span_id)?;
+        let updated = Arc::new(ContextWithParent::new(
+            f(&entry.context),
+            entry.parent.clone(),
+        ));
+        contexts.insert(span_id, updated.clone());
+
+        let mut current = self.current_context.lock().unwrap();
+        if current.context.span().span_context().span_id()
+            == updated.context.span().span_context().span_id()
+        {
+            *current = updated.clone();
+        }
+        Some(updated.context.clone())
+    }
+}
+
+/// `Baggage` isn't `Clone`; copy it entry by entry, metadata included.
+pub(crate) fn copy_baggage(
+    baggage: &::opentelemetry::baggage::Baggage,
+) -> ::opentelemetry::baggage::Baggage {
+    let mut copy = ::opentelemetry::baggage::Baggage::new();
+    for (key, (value, metadata)) in baggage.iter() {
+        let _ = copy.insert_with_metadata(key.clone(), value.clone(), metadata.clone());
+    }
+    copy
+}
+
 #[tokio::main]
 async fn main() {
-    let config = datadog_opentelemetry::configuration::Config::builder()
-        .set_log_level_filter(datadog_opentelemetry::log::LevelFilter::Debug)
-        .build();
+    // dd-trace-rs reads DD_LOG_LEVEL but not DD_TRACE_DEBUG, which the test harness sets by
+    // default. Emulate DD_TRACE_DEBUG=true, but never override an explicit DD_LOG_LEVEL.
+    let mut config_builder = datadog_opentelemetry::configuration::Config::builder();
+    let trace_debug =
+        std::env::var("DD_TRACE_DEBUG").is_ok_and(|v| v.eq_ignore_ascii_case("true") || v == "1");
+    if trace_debug && std::env::var_os("DD_LOG_LEVEL").is_none() {
+        config_builder.set_log_level_filter(datadog_opentelemetry::log::LevelFilter::Debug);
+    }
+    let config = config_builder.build();
 
     // If tracing initialization fails, nevertheless emit a structured log event.
     let result = init_tracing(&config);

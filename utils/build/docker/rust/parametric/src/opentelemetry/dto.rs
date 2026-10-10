@@ -90,6 +90,7 @@ pub struct SetAttributesArgs {
 // --- SetBaggageArgs ---
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SetBaggageArgs {
+    pub span_id: u64,
     pub key: String,
     pub value: String,
 }
@@ -141,6 +142,16 @@ pub struct StartSpanArgs {
     pub span_kind: Option<i32>,
     pub timestamp: Option<i64>,
     pub links: Option<Vec<SpanLink>>,
+    #[serde(default)]
+    pub events: Vec<StartSpanEvent>,
+    pub attributes: Option<HashMap<String, serde_json::Value>>,
+}
+
+// --- StartSpanEvent ---
+#[derive(Debug, Serialize, Deserialize)]
+pub struct StartSpanEvent {
+    pub time_unix_nano: u64,
+    pub name: String,
     pub attributes: Option<HashMap<String, serde_json::Value>>,
 }
 
@@ -258,6 +269,76 @@ pub fn parse_attributes(attributes: Option<&HashMap<String, JsonValue>>) -> Vec<
         }
     }
     result
+}
+
+/// Like [`parse_attributes`], but keeps arrays as native OTel arrays instead of
+/// flattening them to `key.N`. Used for span events and links, whose attributes the
+/// tracer serializes with their original types. Values the OTel API can't represent
+/// (mixed or nested arrays, integers beyond 64 bits) are dropped.
+pub fn parse_attributes_native(attributes: Option<&HashMap<String, JsonValue>>) -> Vec<KeyValue> {
+    let Some(attributes) = attributes else {
+        return Vec::new();
+    };
+    attributes
+        .iter()
+        .filter_map(|(key, value)| json_to_otel_value(value).map(|v| KeyValue::new(key.clone(), v)))
+        .collect()
+}
+
+fn json_number_to_otel(n: &serde_json::Number) -> Option<opentelemetry::Value> {
+    if let Some(i) = n.as_i64() {
+        return Some(i.into());
+    }
+    let f = n.as_f64()?;
+    // serde_json reads integer literals that don't fit in 64 bits as floats.
+    if f.fract() == 0.0 && f.abs() >= 9.223_372_036_854_776e18 {
+        return None;
+    }
+    Some(f.into())
+}
+
+fn json_to_otel_value(value: &JsonValue) -> Option<opentelemetry::Value> {
+    use opentelemetry::{Array, StringValue, Value};
+    match value {
+        JsonValue::Bool(b) => Some((*b).into()),
+        JsonValue::String(s) => Some(s.clone().into()),
+        JsonValue::Number(n) => json_number_to_otel(n),
+        JsonValue::Array(items) if !items.is_empty() => {
+            if let Some(v) = items
+                .iter()
+                .map(JsonValue::as_bool)
+                .collect::<Option<Vec<_>>>()
+            {
+                Some(Value::Array(Array::Bool(v)))
+            } else if let Some(v) = items
+                .iter()
+                .map(|i| i.as_str().map(|s| StringValue::from(s.to_string())))
+                .collect::<Option<Vec<_>>>()
+            {
+                Some(Value::Array(Array::String(v)))
+            } else if let Some(v) = items
+                .iter()
+                .map(JsonValue::as_i64)
+                .collect::<Option<Vec<_>>>()
+            {
+                Some(Value::Array(Array::I64(v)))
+            } else {
+                items
+                    .iter()
+                    .map(|i| match i {
+                        JsonValue::Number(n) => match json_number_to_otel(n)? {
+                            Value::F64(f) => Some(f),
+                            Value::I64(i) => Some(i as f64),
+                            _ => None,
+                        },
+                        _ => None,
+                    })
+                    .collect::<Option<Vec<_>>>()
+                    .map(|v| Value::Array(Array::F64(v)))
+            }
+        }
+        _ => None,
+    }
 }
 
 pub fn parse_status(code: String, description: String) -> Status {

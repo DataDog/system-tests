@@ -8,6 +8,7 @@ use axum::{
 };
 use dto::*;
 use opentelemetry::{
+    baggage::BaggageExt,
     trace::{Span, Status, TraceContextExt, Tracer},
     Context,
 };
@@ -22,7 +23,7 @@ use std::{
 };
 use tracing::debug;
 
-use crate::{get_tracer, AppState, ContextWithParent};
+use crate::{copy_baggage, get_tracer, AppState, ContextWithParent};
 
 /// Fake span id for contexts without a valid remote span context (e.g. "restart" mode), so
 /// they can still be stored and referenced as a `parent_id`. High bit avoids real span ids.
@@ -42,17 +43,20 @@ pub fn app() -> Router<AppState> {
         .route("/span/manual_keep", post(manual_keep))
         .route("/span/manual_drop", post(manual_drop))
         .route("/span/error", post(set_error))
+        .route("/span/add_link", post(add_link))
+        .route("/span/add_event", post(add_event))
+        .route("/crash", get(crash))
         .route("/span/inject_headers", post(inject_headers))
         .route("/span/extract_headers", post(extract_headers))
         .route("/span/flush", post(flush_spans))
         .route("/stats/flush", post(flush_stats))
         .route("/config", get(config))
         .route("/agent/ensure_agent_info", get(ensure_agent_info))
-    // .route("/span/set_baggage", post(set_baggage))
-    // .route("/span/get_baggage", get(get_baggage))
-    // .route("/span/get_all_baggage", get(get_all_baggage))
-    // .route("/span/remove_baggage", post(remove_baggage))
-    // .route("/span/remove_all_baggage", post(remove_all_baggage))
+        .route("/span/set_baggage", post(set_baggage))
+        .route("/span/get_baggage", get(get_baggage))
+        .route("/span/get_all_baggage", get(get_all_baggage))
+        .route("/span/remove_baggage", post(remove_baggage))
+        .route("/span/remove_all_baggage", post(remove_all_baggage))
 }
 
 async fn ensure_agent_info() -> Json<serde_json::Value> {
@@ -99,23 +103,12 @@ async fn start_span(
     let parent_ctx = if let Some(parent_id) = args.parent_id {
         let contexts = state.contexts.lock().unwrap();
         if let Some(parent_ctx) = contexts.get(&parent_id) {
-            let parent_span = parent_ctx.context.span();
             debug!("build with span {parent_id:?} found");
 
-            let parent =
-                Context::new().with_remote_span_context(parent_span.span_context().clone());
-
-            let parent_span_id =
-                u64::from_be_bytes(parent.span().span_context().span_id().to_bytes());
-            debug!(
-                "build with span child {}, hex: {}",
-                parent_span_id,
-                parent.span().span_context().span_id(),
-            );
-
-            debug!("build with span child {:#?}", parent.span());
-
-            Some(parent)
+            // Use the stored context as-is: it holds the live local parent span (and its
+            // baggage). Wrapping it as a remote span context would make every child a new
+            // local root for the span processor.
+            Some(parent_ctx.context.clone())
         } else if let Some(parent_ctx) = state
             .extracted_span_contexts
             .lock()
@@ -215,8 +208,9 @@ async fn set_resource(State(state): State<AppState>, Json(args): Json<SpanSetRes
     if let Some(ctx) = contexts.get_mut(&args.span_id) {
         let span = ctx.context.span();
         debug!("set_resource: span {} found", args.span_id);
+        // `resource.name` is the attribute dd-trace-rs maps to the span resource.
         span.set_attribute(opentelemetry::KeyValue::new(
-            "resource".to_string(),
+            "resource.name".to_string(),
             args.resource.clone(),
         ));
     } else {
@@ -229,10 +223,28 @@ async fn set_meta(State(state): State<AppState>, Json(args): Json<SpanSetMetaArg
     if let Some(ctx) = contexts.get_mut(&args.span_id) {
         let span = ctx.context.span();
         debug!("set_meta: span {} found", args.span_id);
-        span.set_attribute(opentelemetry::KeyValue::new(
-            args.key.clone(),
-            args.value.clone(),
-        ));
+        let value: Option<opentelemetry::Value> = match &args.value {
+            serde_json::Value::String(s) => Some(s.clone().into()),
+            serde_json::Value::Bool(b) => Some((*b).into()),
+            serde_json::Value::Number(n) => Some(n.to_string().into()),
+            // Lists of strings become native OTel arrays; nested lists can't be represented.
+            serde_json::Value::Array(items) => items
+                .iter()
+                .map(|i| {
+                    i.as_str()
+                        .map(|s| opentelemetry::StringValue::from(s.to_string()))
+                })
+                .collect::<Option<Vec<_>>>()
+                .map(|v| opentelemetry::Value::Array(v.into())),
+            // OTel spans can't remove an attribute once set.
+            serde_json::Value::Null | serde_json::Value::Object(_) => None,
+        };
+        match value {
+            Some(value) => {
+                span.set_attribute(opentelemetry::KeyValue::new(args.key.clone(), value))
+            }
+            None => debug!("set_meta: can't set {} to {}", args.key, args.value),
+        }
     } else {
         debug!("set_meta: span {} NOT found", args.span_id);
     }
@@ -243,9 +255,18 @@ async fn set_metric(State(state): State<AppState>, Json(args): Json<SpanSetMetri
     if let Some(ctx) = contexts.get_mut(&args.span_id) {
         let span = ctx.context.span();
         debug!("set_metric: span {} found", args.span_id);
-        // Numeric attributes are mapped to dd span *metrics* by the tracer transform
-        // (string attributes would land in `meta` instead), so keep this a number.
-        span.set_attribute(opentelemetry::KeyValue::new(args.key.clone(), args.value));
+        // Numeric attributes are exported as span metrics; strings would land in meta.
+        match args.value {
+            MetricValue::Number(value) => {
+                span.set_attribute(opentelemetry::KeyValue::new(args.key.clone(), value))
+            }
+            MetricValue::IntArray(values) => span.set_attribute(opentelemetry::KeyValue::new(
+                args.key.clone(),
+                opentelemetry::Value::Array(values.into()),
+            )),
+            // OTel spans can't remove an attribute once set.
+            MetricValue::Null => debug!("set_metric: removing {} is not supported", args.key),
+        }
     } else {
         debug!("set_metric: span {} NOT found", args.span_id);
     }
@@ -278,16 +299,20 @@ async fn set_error(State(state): State<AppState>, Json(args): Json<SpanErrorArgs
     if let Some(ctx) = contexts.get_mut(&args.span_id) {
         let span = ctx.context.span();
         debug!("set_error: span {} found", args.span_id);
-        // The dd-trace-rs OTLP transform sets the dd span `error` integer field only
-        // when the OTel span status is `Error` (or a numeric `error` attribute is set).
-        // Marking the status as Error is what propagates the error flag into client-side
-        // stats (Errors count) and into the trace payload.
+        // The exporter sets the dd span `error` flag from the OTel `Error` status, which also
+        // feeds the client-side stats Errors count. `datadog.error` keeps it set as long as
+        // error.message/error.type/error.stack are all present.
         span.set_status(Status::Error {
             description: args.message.clone().into(),
         });
+        span.set_attribute(opentelemetry::KeyValue::new("datadog.error", 1i64));
         span.set_attribute(opentelemetry::KeyValue::new(
             "error.type".to_string(),
             args.r#type.clone(),
+        ));
+        span.set_attribute(opentelemetry::KeyValue::new(
+            "error.message".to_string(),
+            args.message.clone(),
         ));
         span.set_attribute(opentelemetry::KeyValue::new(
             "error.stack".to_string(),
@@ -296,6 +321,56 @@ async fn set_error(State(state): State<AppState>, Json(args): Json<SpanErrorArgs
     } else {
         debug!("set_error: span {} NOT found", args.span_id);
     }
+}
+
+async fn add_link(State(state): State<AppState>, Json(args): Json<SpanAddLinkArgs>) {
+    // The linked context can be a local span or one created by extract_headers.
+    let linked = state
+        .contexts
+        .lock()
+        .unwrap()
+        .get(&args.parent_id)
+        .map(|ctx| ctx.context.span().span_context().clone())
+        .or_else(|| {
+            state
+                .extracted_span_contexts
+                .lock()
+                .unwrap()
+                .get(&args.parent_id)
+                .map(|ctx| ctx.span().span_context().clone())
+        });
+    let Some(linked) = linked.filter(|sc| sc.is_valid()) else {
+        debug!(
+            "add_link: linked span {} NOT found or invalid",
+            args.parent_id
+        );
+        return;
+    };
+    if let Some(ctx) = state.contexts.lock().unwrap().get(&args.span_id) {
+        ctx.context.span().add_link(
+            linked,
+            crate::opentelemetry::parse_attributes_native(args.attributes.as_ref()),
+        );
+    } else {
+        debug!("add_link: span {} NOT found", args.span_id);
+    }
+}
+
+async fn add_event(State(state): State<AppState>, Json(args): Json<SpanAddEventArgs>) {
+    if let Some(ctx) = state.contexts.lock().unwrap().get(&args.span_id) {
+        ctx.context.span().add_event_with_timestamp(
+            args.name,
+            std::time::UNIX_EPOCH + std::time::Duration::from_nanos(args.timestamp),
+            crate::opentelemetry::parse_attributes_native(args.attributes.as_ref()),
+        );
+    } else {
+        debug!("add_event: span {} NOT found", args.span_id);
+    }
+}
+
+/// Crashes the process; the test only checks that the app goes down.
+async fn crash() {
+    std::process::abort();
 }
 
 async fn inject_headers(
@@ -341,16 +416,22 @@ async fn extract_headers(
     Json(args): Json<SpanExtractHeadersArgs>,
 ) -> Json<SpanExtractHeadersResult> {
     opentelemetry::global::get_text_map_propagator(|propagator| {
-        let extractor = args
-            .http_headers
-            .iter()
-            .fold(HeaderMap::new(), |mut map, kv| {
-                map.append(
-                    kv.key.as_str().parse::<HeaderName>().unwrap(),
-                    kv.value.parse().unwrap(),
-                );
-                map
-            });
+        // Repeated headers are kept as separate values: combining them is the tracer's job
+        // (multi-value extraction). Headers that aren't valid HTTP are skipped rather than
+        // panicking.
+        let mut extractor = HeaderMap::new();
+        for kv in &args.http_headers {
+            let Ok(name) = kv.key.as_str().parse::<HeaderName>() else {
+                debug!("extract_headers: skipping invalid header name {:?}", kv.key);
+                continue;
+            };
+            match kv.value.parse() {
+                Ok(value) => {
+                    extractor.append(name, value);
+                }
+                Err(_) => debug!("extract_headers: skipping invalid value for {name}"),
+            }
+        }
 
         debug!("extract_headers: received {:#?}", extractor);
 
@@ -408,13 +489,13 @@ async fn config(State(state): State<AppState>) -> Json<TraceConfigResponse> {
     })
 }
 
-/*
 async fn set_baggage(State(state): State<AppState>, Json(args): Json<SpanSetBaggageArgs>) {
-    let mut contexts = state.contexts.lock().unwrap();
-    if let Some(span) = spans.get_mut(&args.span_id) {
-        debug!("set_baggage: span {} found", args.span_id);
-        span.set_baggage_item(args.key.clone(), Some(args.value.clone()));
-    } else {
+    let updated = state.update_context(args.span_id, |ctx| {
+        let mut baggage = copy_baggage(ctx.baggage());
+        let _ = baggage.insert(args.key.clone(), args.value.clone());
+        ctx.with_baggage(baggage)
+    });
+    if updated.is_none() {
         debug!("set_baggage: span {} NOT found", args.span_id);
     }
 }
@@ -424,15 +505,13 @@ async fn get_baggage(
     Json(args): Json<SpanGetBaggageArgs>,
 ) -> Json<SpanGetBaggageResult> {
     let contexts = state.contexts.lock().unwrap();
-    if let Some(span) = spans.get(&args.span_id) {
-        debug!("get_baggage: span {} found", args.span_id);
-        Json(SpanGetBaggageResult {
-            baggage: span.get_baggage_item(&args.key),
-        })
-    } else {
-        debug!("get_baggage: span {} NOT found", args.span_id);
-        Json(SpanGetBaggageResult { baggage: None })
-    }
+    let baggage = contexts.get(&args.span_id).and_then(|ctx| {
+        ctx.context
+            .baggage()
+            .get(&args.key)
+            .map(|value| value.as_str().to_string())
+    });
+    Json(SpanGetBaggageResult { baggage })
 }
 
 async fn get_all_baggage(
@@ -440,23 +519,23 @@ async fn get_all_baggage(
     Json(args): Json<SpanGetAllBaggageArgs>,
 ) -> Json<SpanGetAllBaggageResult> {
     let contexts = state.contexts.lock().unwrap();
-    if let Some(span) = spans.get(&args.span_id) {
-        debug!("get_all_baggage: span {} found", args.span_id);
-        Json(SpanGetAllBaggageResult {
-            baggage: Some(span.baggage.clone()),
-        })
-    } else {
-        debug!("get_all_baggage: span {} NOT found", args.span_id);
-        Json(SpanGetAllBaggageResult { baggage: None })
-    }
+    let baggage = contexts.get(&args.span_id).map(|ctx| {
+        ctx.context
+            .baggage()
+            .iter()
+            .map(|(key, (value, _))| (key.to_string(), value.as_str().to_string()))
+            .collect()
+    });
+    Json(SpanGetAllBaggageResult { baggage })
 }
 
 async fn remove_baggage(State(state): State<AppState>, Json(args): Json<SpanRemoveBaggageArgs>) {
-    let mut contexts = state.contexts.lock().unwrap();
-    if let Some(span) = spans.get_mut(&args.span_id) {
-        debug!("remove_baggage: span {} found", args.span_id);
-        span.set_baggage_item(args.key.clone(), None);
-    } else {
+    let updated = state.update_context(args.span_id, |ctx| {
+        let mut baggage = copy_baggage(ctx.baggage());
+        let _ = baggage.remove(&args.key);
+        ctx.with_baggage(baggage)
+    });
+    if updated.is_none() {
         debug!("remove_baggage: span {} NOT found", args.span_id);
     }
 }
@@ -465,12 +544,10 @@ async fn remove_all_baggage(
     State(state): State<AppState>,
     Json(args): Json<SpanRemoveAllBaggageArgs>,
 ) {
-    let mut contexts = state.contexts.lock().unwrap();
-    if let Some(span) = spans.get_mut(&args.span_id) {
-        debug!("remove_all_baggage: span {} found", args.span_id);
-        span.baggage.clear();
-    } else {
+    if state
+        .update_context(args.span_id, |ctx| ctx.with_cleared_baggage())
+        .is_none()
+    {
         debug!("remove_all_baggage: span {} NOT found", args.span_id);
     }
 }
-*/
