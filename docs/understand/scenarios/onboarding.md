@@ -1153,6 +1153,8 @@ Docker SSI, AWS SSI, and AWS SSI container apps choose the injector in this orde
 3. Both variables are unset and the install environment is prod (`CI_ENVIRONMENT=prod`). Same as case 2: the lock file version, from `install.datadoghq.com`.
 4. Both variables are unset and the install environment is dev (`CI_ENVIRONMENT=dev`). The install keeps the latest injector snapshot from the dev registry.
 
+The nightly `update_injector_version` job keeps `utils/build/auto_inject.lock` current: when `install.datadoghq.com` has a newer injector release, it opens a pull request that bumps the lock and merges automatically once the required checks pass.
+
 Here’s how the modified section would look:
 
 ```yaml

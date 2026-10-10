@@ -319,6 +319,26 @@ update_agent_version:
   rules:
     - if: '$SCHEDULED_JOB == "nightly" && $CI_PIPELINE_SOURCE == "schedule" && $CI_COMMIT_BRANCH == "main"'
 
+update_injector_version:
+  image: $CI_IMAGE
+  tags:
+    - arch:amd64
+  stage: system-tests-utils
+  resource_group: update-injector-version
+  id_tokens:
+    DDOCTOSTS_ID_TOKEN:
+      aud: dd-octo-sts
+  needs:
+    - job: build_ci_image
+      artifacts: false
+      optional: true
+  script:
+    # The updater reuses the Agent updater's publishing code, which it imports from the repository.
+    - source /system-tests/venv/bin/activate
+    - PYTHONPATH=$(pwd) python utils/scripts/update_injector_version.py
+  rules:
+    - if: '$SCHEDULED_JOB == "nightly" && $CI_PIPELINE_SOURCE == "schedule" && $CI_COMMIT_BRANCH == "main"'
+
 generate_system_tests_lambda_proxy_image:
   image: registry.ddbuild.io/ci/libdatadog-build/ci_docker_base:100425777
   tags: ["docker-in-docker:amd64"]

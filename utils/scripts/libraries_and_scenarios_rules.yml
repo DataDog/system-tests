@@ -308,6 +308,9 @@ patterns:
     utils/scripts/update_change_log.sh:
         scenario_groups: null
         libraries: null
+    utils/scripts/update_injector_version.py:
+        scenario_groups: null
+        libraries: null
     utils/scripts/update_protobuf.sh:
         scenario_groups: null
 
