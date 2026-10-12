@@ -493,6 +493,9 @@ manifest:
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision::test_no_set_support: missing_feature  # Created by easy win activation script
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_Tags_Feb2024_Revision::test_regex_special_chars: missing_feature  # Created by easy win activation script
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_With_W3C: '>=0.5.3-dev+671276b'  # TODO: a lower version might be supported
+  tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_With_W3C::test_distributed_headers_synthetics_sampling_decision:
+    - declaration: bug (APMAPI-2593)
+      component_version: '>=0.5.3-dev+7e8aa8c'
   tests/parametric/test_trace_sampling.py::Test_Trace_Sampling_With_W3C::test_trace_sampled_by_trace_sampling_rule_tags: missing_feature
   tests/parametric/test_tracer.py: '>=0.2.1'  # Modified by easy win activation script
   tests/parametric/test_tracer.py::Test_ProcessTags_ServiceName: missing_feature
@@ -580,6 +583,9 @@ manifest:
   tests/test_data_integrity.py::Test_TraceHeaders::test_traces_header_present: missing_feature (datadog-meta-lang-interpreter not set)
   tests/test_distributed.py::Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   tests/test_distributed.py::Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
+  tests/test_distributed.py::Test_Synthetics_APM_Datadog:
+    - declaration: bug (APMAPI-2593)
+      component_version: '>=0.5.3-dev+7e8aa8c'
   tests/test_identify.py::Test_Basic: missing_feature (/identify endpoint not implemented)
   tests/test_identify.py::Test_Propagate::test_identify_tags_outgoing: missing_feature (/identify-propagate endpoint not implemented)
   tests/test_identify.py::Test_Propagate_Legacy::test_identify_tags_outgoing: missing_feature (/identify-propagate endpoint not implemented)
