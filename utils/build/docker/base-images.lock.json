@@ -33,6 +33,7 @@
     "system_tests_base_php_php_fpm_8_1": "datadog/system-tests:php-fpm-8.1.base-258c3ae4c142",
     "system_tests_base_php_php_fpm_8_2": "datadog/system-tests:php-fpm-8.2.base-61d56dbb3829",
     "system_tests_base_php_php_fpm_8_5": "datadog/system-tests:php-fpm-8.5.base-b27ba28956cb",
+    "system_tests_base_python_aiohttp": "datadog/system-tests:aiohttp.base-541813beaba9",
     "system_tests_base_python_django_poc": "datadog/system-tests:django-poc.base-78e2159815b1",
     "system_tests_base_python_django_py3_13": "datadog/system-tests:django-py3.13.base-d8262a2c816c",
     "system_tests_base_python_fastapi": "datadog/system-tests:fastapi.base-2917769b3665",

@@ -289,7 +289,7 @@ build() {
                         django-py3.13)
                             PYTHON_VERSION="3.13"
                             ;;
-                        tornado)
+                        tornado|aiohttp)
                             PYTHON_VERSION="3.14"
                             ;;
                         *)

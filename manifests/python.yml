@@ -7,6 +7,7 @@ manifest:
   tests/:  # Easy win for tornado and version 4.3.1
     - weblog_declaration:
         tornado: v4.4.0-rc2
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag:  # TODO: a lower version might be supported
     - declaration: missing_feature (APPSEC-62216)
       component_version: <4.9.0
