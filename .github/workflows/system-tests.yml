@@ -209,6 +209,16 @@ jobs:
         run: ls -la binaries/
       - name: Export github token to a file
         run: echo "${{ secrets.GITHUB_TOKEN }}" > "$RUNNER_TEMP/github_token.txt"
+      - name: Log in to Docker Hub
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: |
+          if [ -n "${DOCKERHUB_USERNAME}" ] && [ -n "${DOCKERHUB_TOKEN}" ]; then
+            echo "${DOCKERHUB_TOKEN}" | docker login --username "${DOCKERHUB_USERNAME}" --password-stdin
+          else
+            echo "Docker Hub credentials not provided, skipping login"
+          fi
       - name: Wait for weblog base image
         if: github.repository == 'DataDog/system-tests'
         run: python3 ./utils/scripts/wait-for-base-images.py ${{ inputs.library }} ${{ matrix.weblog.name }} --timeout 900 --poll-interval 30
