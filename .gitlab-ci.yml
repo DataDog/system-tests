@@ -497,26 +497,50 @@ mirror_images:
 # overwrites existing ones), so it is safe to build ahead of merge. Since new tags never
 # replace old ones. A stale committed base-images.lock.json makes the job fail after
 # publishing the missing images, with instructions for the follow-up lock update.
+#
+# Images are multi-arch (linux/amd64 + linux/arm64, see PLATFORMS in build_base_images.py)
+# so they also run natively on Apple Silicon. docker-in-docker runners cannot build
+# multi-platform images, so each architecture is built natively on its own runner and
+# pushed as <tag>-<arch>; build_base_images then merges them into the multi-arch <tag>.
+# build_base_images.py is stdlib-only, so these jobs use a multi-arch image with docker,
+# aws and python3 instead of the amd64-only $CI_IMAGE (and need no venv).
 # ──────────────────────────────────────────────
 
-build_base_images:
-  image: $CI_IMAGE
-  tags:
-    - docker-in-docker:amd64
-  needs:
-    - job: build_ci_image
-      artifacts: false
-      optional: true
+.build_base_images_base:
+  image: registry.ddbuild.io/ci/libdatadog-build/ci_docker_base:100425777
   stage: e2e
+  needs: []
   before_script:
     - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
     - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
     - echo "$DOCKER_LOGIN_PASS" | docker login --username "$DOCKER_LOGIN" --password-stdin
-    - ln -sf /system-tests/venv venv
-    - source venv/bin/activate
     # Needed by --changed-only for the merge-base (CI clones are shallow); fails open if missing.
     - git fetch origin main
-  script:
-    - python utils/base_images/build_base_images.py --changed-only
   rules:
     - if: '$SCHEDULED_JOB == "" || $SCHEDULED_JOB == null'
+
+build_base_images_amd64:
+  extends: .build_base_images_base
+  tags:
+    - docker-in-docker:amd64
+  script:
+    - python3 utils/base_images/build_base_images.py --changed-only --platform linux/amd64
+
+build_base_images_arm64:
+  extends: .build_base_images_base
+  tags:
+    - docker-in-docker:arm64
+  script:
+    - python3 utils/base_images/build_base_images.py --changed-only --platform linux/arm64
+
+build_base_images:
+  extends: .build_base_images_base
+  tags:
+    - docker-in-docker:amd64
+  needs:
+    - job: build_base_images_amd64
+      artifacts: false
+    - job: build_base_images_arm64
+      artifacts: false
+  script:
+    - python3 utils/base_images/build_base_images.py --changed-only --merge
