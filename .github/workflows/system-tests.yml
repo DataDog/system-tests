@@ -231,6 +231,13 @@ jobs:
           name: ${{ matrix.weblog.artifact_name }}
           path: binaries/
           retention-days: ${{ inputs.artifact_retention_days }}
+      - name: Tag job
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        uses: ./.github/actions/datadog_ci
+        with:
+          _is_official_system_tests_job: true
+
 
   run_end_to_end:
     name: "End-to-end #${{ matrix.job.weblog_instance }}"
@@ -278,6 +285,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      id-token: write  # needed by dd-sts to tag the job
     steps:
       - name: Checkout
         id: checkout
@@ -302,3 +310,10 @@ jobs:
             exit 1
           fi
           echo "system-tests ref '${REF}' (${sha}) is on main"
+      - name: Tag job
+        if: ${{ !cancelled() }}
+        continue-on-error: true
+        uses: ./.github/actions/datadog_ci
+        with:
+          _is_official_system_tests_job: true
+

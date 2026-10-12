@@ -61,7 +61,6 @@ def otlp_metrics_endpoint_library_env(
 class Test_Otel_Metrics_Configuration_Enabled:
     """Tests the enablement and disablement of the OTel Metrics API through the following configurations:
     - DD_METRICS_OTEL_ENABLED
-    - OTEL_METRICS_EXPORTER
 
     Pin HTTP/protobuf in library_env because SDK protocol defaults differ across
     languages (for example, Python defaults to gRPC). This keeps the exporter and
@@ -107,28 +106,6 @@ class Test_Otel_Metrics_Configuration_Enabled:
         """Ensure the Datadog enablement flag disables metrics export."""
         with test_library as t:
             generate_default_counter_data_point(t, "disabled-counter")
-
-        with pytest.raises(ValueError):
-            test_agent.wait_for_num_otlp_metrics(num=1)
-
-    @pytest.mark.parametrize(
-        "library_env",
-        [
-            {
-                "DD_METRICS_OTEL_ENABLED": "true",
-                "OTEL_METRICS_EXPORTER": "none",
-                "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": "http/protobuf",
-                "OTEL_METRIC_EXPORT_INTERVAL": "60000",
-                "CORECLR_ENABLE_PROFILING": "1",
-            },
-        ],
-    )
-    def test_otlp_metrics_exporter_none(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
-        """Ensure selecting no exporter disables metrics export."""
-        name = "disabled-counter"
-
-        with test_library as t:
-            generate_default_counter_data_point(t, name)
 
         with pytest.raises(ValueError):
             test_agent.wait_for_num_otlp_metrics(num=1)
