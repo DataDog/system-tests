@@ -131,6 +131,17 @@ def test_otel_collector():
 
 
 @scenarios.test_the_test
+def test_weblog_names_are_unique_across_libraries() -> None:
+    libraries_by_name: dict[str, str] = {}
+    for library in sorted(COMPONENT_GROUPS.all):
+        for weblog in WeblogMetaData.load(library):
+            assert weblog.name not in libraries_by_name, (
+                f"Weblog name '{weblog.name}' is used by both {libraries_by_name[weblog.name]} and {library}"
+            )
+            libraries_by_name[weblog.name] = library
+
+
+@scenarios.test_the_test
 def test_weblog_metadata_scenario_names_are_valid():
     valid_names = {scenario.name for scenario in get_all_scenarios()}
 
