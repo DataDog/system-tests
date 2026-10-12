@@ -56,6 +56,8 @@ class Test_OTEL_Startup_Logs:
     def test_configured_value(self, config_name: str, expected: str) -> None:
         accepted_values = [expected]
         if config_name == "OTEL_TRACES_SAMPLER" and expected == "parentbased_always_on":
+            # Our tracers do not support parent-based samplers, so falling back
+            # to the corresponding non-parent-based sampler (always_on) is expected.
             accepted_values.append("always_on")
 
         for index, configuration in enumerate(_get_startup_configurations()):
