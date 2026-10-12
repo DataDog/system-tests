@@ -502,15 +502,17 @@ mirror_images:
 # so they also run natively on Apple Silicon. docker-in-docker runners cannot build
 # multi-platform images, so each architecture is built natively on its own runner and
 # pushed as <tag>-<arch>; build_base_images then merges them into the multi-arch <tag>.
-# build_base_images.py is stdlib-only, so these jobs use a multi-arch image with docker,
-# aws and python3 instead of the amd64-only $CI_IMAGE (and need no venv).
+# build_base_images.py is stdlib-only, so these jobs use the multi-arch docker image from
+# DataDog/images (docker/29.4.0-noble-py3: docker, buildx, python3, git) instead of the
+# amd64-only $CI_IMAGE, and need no venv. That image has no AWS CLI, so it is installed first.
 # ──────────────────────────────────────────────
 
 .build_base_images_base:
-  image: registry.ddbuild.io/ci/libdatadog-build/ci_docker_base:100425777
+  image: registry.ddbuild.io/images/docker:29.4.0-noble-py3
   stage: e2e
   needs: []
   before_script:
+    - python3 -m pip install --quiet --break-system-packages awscli
     - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
     - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
     - echo "$DOCKER_LOGIN_PASS" | docker login --username "$DOCKER_LOGIN" --password-stdin
