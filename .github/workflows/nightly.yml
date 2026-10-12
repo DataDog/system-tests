@@ -9,6 +9,12 @@ on:
   schedule:
     - cron: '00 03 * * *'
 
+# A run outlasts the gap between merges to main, so queue push runs and keep only the newest pending one.
+# Schedule and manual runs get a unique group (run_id) so they never wait or get dropped.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'push' && github.ref || github.run_id }}
+  cancel-in-progress: false
+
 jobs:
   nightly:
     strategy:
