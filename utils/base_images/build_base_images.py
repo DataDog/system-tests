@@ -589,8 +589,12 @@ def main() -> None:
         return
 
     if args.dry_run:
-        _lock_drift(prospective, full=not args.library and not args.changed_only)
-        sys.exit(1 if _run_for_targets(report_target, targets) else 0)
+        drift = _lock_drift(prospective, full=not args.library and not args.changed_only)
+        failures = _run_for_targets(report_target, targets)
+        if drift:
+            logger.error("The committed lock is stale. Regenerate and commit it:")
+            logger.error("  python utils/scripts/update-base-images-lock.py")
+        sys.exit(1 if failures or drift else 0)
 
     steps: list[tuple[Callable[..., None], dict[str, str]]]
     if args.platform:

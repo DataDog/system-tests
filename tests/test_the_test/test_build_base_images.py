@@ -1103,6 +1103,27 @@ class Test_Main:
 
         assert calls == ["linux/amd64", "linux/arm64", "merge"]
 
+    @pytest.mark.parametrize(("drift", "expected_code"), [(True, 1), (False, 0)])
+    def test_dry_run_exit_code_reflects_lock_drift(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, *, drift: bool, expected_code: int
+    ):
+        reported: list[str] = []
+        monkeypatch.setattr(sys, "argv", ["build_base_images.py", "--library", "nodejs", "--dry-run"])
+        monkeypatch.setattr(build_base_images, "_bake_file", lambda _library: tmp_path)
+        monkeypatch.setattr(
+            build_base_images,
+            "process_library",
+            lambda library: [(library, tmp_path, "t", "datadog/system-tests:test.base-123456789abc", tmp_path, "df")],
+        )
+        monkeypatch.setattr(build_base_images, "report_target", lambda *a: reported.append(a[2]))
+        monkeypatch.setattr(build_base_images, "_lock_drift", lambda *_a, **_k: drift)
+
+        with pytest.raises(SystemExit) as exc:
+            build_base_images.main()
+
+        assert exc.value.code == expected_code
+        assert reported == ["t"]  # every target is still reported when the lock is stale
+
     def test_unknown_explicit_library_exits_nonzero(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
         monkeypatch.setattr(sys, "argv", ["build_base_images.py", "--library", "bogus"])
         monkeypatch.setattr(build_base_images, "_bake_file", lambda _library: tmp_path / "nope" / "docker-bake.hcl")
