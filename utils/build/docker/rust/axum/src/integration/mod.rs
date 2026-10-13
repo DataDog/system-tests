@@ -11,6 +11,7 @@ mod axum_layer;
 mod reqwest_backend;
 
 pub use axum_layer::install_middleware;
+use datadog_opentelemetry::{configuration::Config, log::LevelFilter};
 pub use reqwest_backend::{
     header_map_to_string_map, CaptureRequestHeaders, DatadogClientSpanBackend,
 };
@@ -18,14 +19,21 @@ pub use reqwest_backend::{
 use opentelemetry::{trace::TracerProvider, KeyValue};
 use opentelemetry_sdk::trace::SdkTracerProvider;
 use std::sync::OnceLock;
-use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+use tracing_subscriber::{fmt, layer::SubscriberExt, util::SubscriberInitExt};
 
 /// Initializes the Datadog tracer provider and installs it as the global
 /// `tracing` subscriber, so `tracing::info_span!` etc. produce Datadog-backed spans.
 pub fn install_datadog_tracing() -> SdkTracerProvider {
-    let tracer_provider = datadog_opentelemetry::tracing().init();
+    let tracer_provider = datadog_opentelemetry::tracing()
+        .with_config({
+            let mut b = Config::builder();
+            b.set_log_level_filter(LevelFilter::Debug);
+            b.build()
+        })
+        .init();
     tracing_subscriber::registry()
         .with(tracing_opentelemetry::layer().with_tracer(tracer_provider.tracer("weblog")))
+        .with(fmt::layer())
         .init();
     tracer_provider
 }
