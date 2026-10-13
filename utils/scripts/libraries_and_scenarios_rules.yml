@@ -275,6 +275,9 @@ patterns:
     utils/scripts/ci_orchestrators/compute-time-stats.py:
         scenario_groups: null
         libraries: null
+    utils/scripts/ci_orchestrators/time-stats.json:
+        scenario_groups: null
+        libraries: null
     utils/scripts/compute_libraries_and_scenarios.py:
         scenario_groups: null
         libraries: null

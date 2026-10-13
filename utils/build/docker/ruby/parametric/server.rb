@@ -1093,6 +1093,9 @@ class MyApp
     config["dd_trace_propagation_style"] = Datadog.configuration.tracing.propagation_style.join(",")
     config["dd_trace_debug"] = Datadog.configuration.diagnostics.debug.to_s
     config["dd_trace_effective_log_level"] = Logger::SEV_LABEL.fetch(Datadog.logger.level).downcase
+    config["otel_exporter_otlp_traces_timeout_ms"] = otlp_exporter_timeout(OpenTelemetry.tracer_provider.instance_variable_get(:@span_processors))
+    config["otel_exporter_otlp_metrics_timeout_ms"] = otlp_exporter_timeout(OpenTelemetry.meter_provider.instance_variable_get(:@metric_readers))
+    config["otel_exporter_otlp_logs_timeout_ms"] = otlp_exporter_timeout(OpenTelemetry.logger_provider.instance_variable_get(:@log_record_processors))
     config["dd_env"] = Datadog.configuration.env || ""
     config["dd_version"] = Datadog.configuration.version || ""
     config["dd_tags"] = Datadog.configuration.tags.nil? ? "" : Datadog.configuration.tags.map { |k, v| "#{k}:#{v}" }.join(",")
@@ -1104,6 +1107,17 @@ class MyApp
     config["dd_data_streams_enabled"] = false.to_s # Not implemented
 
     res.write(TraceConfigReturn.new(config).to_json)
+  end
+
+  def otlp_exporter_timeout(processors)
+    timeouts = Array(processors).filter_map do |processor|
+      exporter = processor.instance_variable_get(:@exporter)
+      next unless exporter&.class&.ancestors&.any? { |ancestor| ancestor.name&.start_with?('OpenTelemetry::Exporter::OTLP::') }
+
+      timeout = exporter.instance_variable_get(:@timeout)
+      (timeout * 1000).to_i.to_s if timeout.is_a?(Numeric)
+    end
+    timeouts.first if timeouts.length == 1
   end
 
   def handle_trace_span_set_metric(req, res)

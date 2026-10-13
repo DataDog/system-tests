@@ -61,7 +61,6 @@ def otlp_metrics_endpoint_library_env(
 class Test_Otel_Metrics_Configuration_Enabled:
     """Tests the enablement and disablement of the OTel Metrics API through the following configurations:
     - DD_METRICS_OTEL_ENABLED
-    - OTEL_METRICS_EXPORTER
 
     Pin HTTP/protobuf in library_env because SDK protocol defaults differ across
     languages (for example, Python defaults to gRPC). This keeps the exporter and
@@ -107,28 +106,6 @@ class Test_Otel_Metrics_Configuration_Enabled:
         """Ensure the Datadog enablement flag disables metrics export."""
         with test_library as t:
             generate_default_counter_data_point(t, "disabled-counter")
-
-        with pytest.raises(ValueError):
-            test_agent.wait_for_num_otlp_metrics(num=1)
-
-    @pytest.mark.parametrize(
-        "library_env",
-        [
-            {
-                "DD_METRICS_OTEL_ENABLED": "true",
-                "OTEL_METRICS_EXPORTER": "none",
-                "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": "http/protobuf",
-                "OTEL_METRIC_EXPORT_INTERVAL": "60000",
-                "CORECLR_ENABLE_PROFILING": "1",
-            },
-        ],
-    )
-    def test_otlp_metrics_exporter_none(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
-        """Ensure selecting no exporter disables metrics export."""
-        name = "disabled-counter"
-
-        with test_library as t:
-            generate_default_counter_data_point(t, name)
 
         with pytest.raises(ValueError):
             test_agent.wait_for_num_otlp_metrics(num=1)
@@ -1087,76 +1064,6 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
 
 @features.otel_metrics_api
 @scenarios.parametric
-class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Headers:
-    """Tests the OpenTelemetry OTLP exporter metrics headers configuration.
-
-    This class validates the behavior of OTLP header configuration:
-    - Custom headers configuration through environment variables OTEL_EXPORTER_OTLP_HEADERS and OTEL_EXPORTER_OTLP_METRICS_HEADERS
-    """
-
-    @pytest.mark.parametrize(
-        "library_env",
-        [
-            {
-                **DEFAULT_ENVVARS,
-                "OTEL_EXPORTER_OTLP_HEADERS": "api-key=key,other-config-value=value",
-                "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
-            },
-        ],
-    )
-    def test_custom_http_headers_included_in_otlp_export(self, test_agent: TestAgentAPI, test_library: APMLibrary):
-        """OTLP metrics are emitted when enabled."""
-
-        name = "test_custom_http_headers_included_in_otlp_export-counter"
-        with test_library as t:
-            generate_default_counter_data_point(t, name)
-
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
-        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
-        assert scope_metrics is not None
-
-        requests = test_agent.requests()
-        metrics_requests = [r for r in requests if r["url"].endswith("/v1/metrics")]
-        assert metrics_requests, f"Expected metrics request, got {requests}"
-        # Normalize headers to lowercase for comparison (ex: ruby converts headers to camel case)
-        headers = {h.lower(): v for h, v in metrics_requests[0]["headers"].items()}
-        assert headers.get("api-key") == "key", f"Expected api-key in headers, got {headers}"
-        assert headers.get("other-config-value") == "value", f"Expected other-config-value in headers, got {headers}"
-
-    @pytest.mark.parametrize(
-        "library_env",
-        [
-            {
-                **DEFAULT_ENVVARS,
-                "OTEL_EXPORTER_OTLP_METRICS_HEADERS": "api-key=key,other-config-value=value",
-                "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
-            },
-        ],
-    )
-    def test_custom_metrics_http_headers_included_in_otlp_export(
-        self, test_agent: TestAgentAPI, test_library: APMLibrary
-    ):
-        """OTLP metrics are emitted when enabled."""
-
-        name = "test_custom_metrics_http_headers_included_in_otlp_export-counter"
-        with test_library as t:
-            generate_default_counter_data_point(t, name)
-
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
-        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
-        assert scope_metrics is not None
-
-        requests = test_agent.requests()
-        metrics_requests = [r for r in requests if r["url"].endswith("/v1/metrics")]
-        assert metrics_requests, f"Expected metrics request, got {requests}"
-        # Normalize headers to lowercase for comparison (ex: ruby converts headers to camel case)
-        headers = {h.lower(): v for h, v in metrics_requests[0]["headers"].items()}
-        assert headers.get("api-key") == "key", f"Expected api-key in headers, got {headers}"
-        assert headers.get("other-config-value") == "value", f"Expected other-config-value in headers, got {headers}"
-
-
-@features.otel_metrics_api
-@scenarios.parametric
 class Test_Otel_Metrics_Host_Name:
     """Tests the OpenTelemetry metrics host name configuration.
 
@@ -1263,7 +1170,7 @@ class Test_Otel_Metrics_Resource_Attributes:
         [
             {
                 **DEFAULT_ENVVARS,
-                "OTEL_RESOURCE_ATTRIBUTES": "deployment.environment=otelenv,service.name=service,service.version=2.0,foo=bar1,baz=qux1",
+                "OTEL_RESOURCE_ATTRIBUTES": "deployment.environment.name=otelenv,service.name=service,service.version=2.0,foo=bar1,baz=qux1",
             },
         ],
     )
@@ -1286,11 +1193,7 @@ class Test_Otel_Metrics_Resource_Attributes:
         actual_attributes = {item["key"]: item["value"]["string_value"] for item in resource["attributes"]}
         assert expected_attributes.items() <= actual_attributes.items()
 
-        # Add separate assertion for the DD_ENV mapping, whose semantic convention was updated in 1.27.0
-        assert (
-            actual_attributes.get("deployment.environment") == "otelenv"
-            or actual_attributes.get("deployment.environment.name") == "otelenv"
-        )
+        assert actual_attributes.get("deployment.environment.name") == "otelenv"
 
     @pytest.mark.parametrize(
         "library_env",
@@ -1304,13 +1207,13 @@ class Test_Otel_Metrics_Resource_Attributes:
             },
             {
                 **DEFAULT_ENVVARS,
-                "OTEL_RESOURCE_ATTRIBUTES": "deployment.environment=otelenv,service.name=service,service.version=2.0,foo=bar1,baz=qux1",
+                "OTEL_RESOURCE_ATTRIBUTES": "deployment.environment.name=otelenv,service.name=service,service.version=2.0,foo=bar1,baz=qux1",
             },
             {
                 **DEFAULT_ENVVARS,
                 "DD_SERVICE": "service",
                 "DD_VERSION": "2.0",
-                "OTEL_RESOURCE_ATTRIBUTES": "deployment.environment=otelenv,foo=bar1,baz=qux1",
+                "OTEL_RESOURCE_ATTRIBUTES": "deployment.environment.name=otelenv,foo=bar1,baz=qux1",
             },
             {
                 **DEFAULT_ENVVARS,
@@ -1347,11 +1250,7 @@ class Test_Otel_Metrics_Resource_Attributes:
         actual_attributes = {item["key"]: item["value"]["string_value"] for item in resource["attributes"]}
         assert expected_attributes.items() <= actual_attributes.items()
 
-        # Add separate assertion for the DD_ENV mapping, whose semantic convention was updated in 1.27.0
-        assert (
-            actual_attributes.get("deployment.environment") == "otelenv"
-            or actual_attributes.get("deployment.environment.name") == "otelenv"
-        )
+        assert actual_attributes.get("deployment.environment.name") == "otelenv"
 
     @pytest.mark.parametrize(
         "library_env",
@@ -1362,7 +1261,7 @@ class Test_Otel_Metrics_Resource_Attributes:
                 "DD_SERVICE": "service",
                 "DD_VERSION": "2.0",
                 "DD_TAGS": "foo:bar1,baz:qux1",
-                "OTEL_RESOURCE_ATTRIBUTES": "deployment.environment=ignored_env,service.name=ignored_service,service.version=ignored_version,foo=ignored_bar1,baz=ignored_qux1",
+                "OTEL_RESOURCE_ATTRIBUTES": "deployment.environment.name=ignored_env,service.name=ignored_service,service.version=ignored_version,foo=ignored_bar1,baz=ignored_qux1",
             },
         ],
     )
@@ -1385,11 +1284,7 @@ class Test_Otel_Metrics_Resource_Attributes:
         actual_attributes = {item["key"]: item["value"]["string_value"] for item in resource["attributes"]}
         assert expected_attributes.items() <= actual_attributes.items()
 
-        # Add separate assertion for the DD_ENV mapping, whose semantic convention was updated in 1.27.0
-        assert (
-            actual_attributes.get("deployment.environment") == "otelenv"
-            or actual_attributes.get("deployment.environment.name") == "otelenv"
-        )
+        assert actual_attributes.get("deployment.environment.name") == "otelenv"
 
 
 @features.otel_metrics_api

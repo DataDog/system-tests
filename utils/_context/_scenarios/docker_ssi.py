@@ -510,11 +510,8 @@ class DockerSSIImageBuilder:
             f"[tag:{self.ssi_all_docker_tag}]Installing dd ssi for autoinjection on base image "
             f"[{ssi_installer_docker_tag}]."
         )
-        pinned_injector_version = (
-            AUTO_INJECT_LOCK.read_text(encoding="utf-8").strip()
-            if self._custom_library_version and not self._custom_injector_version
-            else None
-        )
+        pin_injector = not self._custom_injector_version and (bool(self._custom_library_version) or self._env == "prod")
+        pinned_injector_version = AUTO_INJECT_LOCK.read_text(encoding="utf-8").strip() if pin_injector else None
         try:
             # Install the ssi to run the auto instrumentation
             _, build_logs = get_docker_client().images.build(

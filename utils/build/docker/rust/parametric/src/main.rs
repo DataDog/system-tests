@@ -90,13 +90,21 @@ async fn main() {
     panic::set_hook(Box::new(|panic| error!(%panic, "process panicked")));
 
     // Run and log any error.
-    if let Err(ref error) = run(tracer, meter_provider, logger_provider, config).await {
+    if let Err(ref error) = run(
+        tracer.clone(),
+        meter_provider.clone(),
+        logger_provider.clone(),
+        config
+    ).await {
         error!(
             error = format!("{error:#}"),
             backtrace = %error.backtrace(),
             "process exited with ERROR"
         );
     }
+    tracer.shutdown();
+    meter_provider.shutdown();
+    logger_provider.shutdown();
 }
 
 fn init_tracing(
@@ -227,8 +235,14 @@ async fn serve_plain(
     app: Router,
     _shutdown_timeout: Option<Duration>,
 ) -> Result<()> {
+    let shutdown = shutdown_signal();
+    tokio::pin!(shutdown);
+
     loop {
-        let (socket, _remote_addr) = listener.accept().await.unwrap();
+        let socket = tokio::select! {
+            res = listener.accept() => res.unwrap().0,
+            _ = &mut shutdown => { return Ok(()) },
+        };
 
         let tower_service = app.clone();
 
@@ -254,22 +268,17 @@ async fn serve_axum(
     shutdown_timeout: Option<Duration>,
 ) -> Result<()> {
     axum::serve(listener, app.into_make_service())
-        .with_graceful_shutdown(shutdown_signal(shutdown_timeout))
+        .with_graceful_shutdown(shutdown_signal())
         .await
         .context("run server")
 }
 
-async fn shutdown_signal(shutdown_timeout: Option<Duration>) {
+async fn shutdown_signal() {
     let res = signal(SignalKind::terminate())
         .expect("install SIGTERM handler")
         .recv()
         .await;
     debug!("Shutdown signal received, preparing to close server. {res:?}");
-
-    if let Some(shutdown_timeout) = shutdown_timeout {
-        sleep(shutdown_timeout).await;
-        debug!("Shutdown signal received, closing!!");
-    }
 }
 
 fn make_span(request: &Request<Body>) -> Span {
