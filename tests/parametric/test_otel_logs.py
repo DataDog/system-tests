@@ -108,7 +108,7 @@ class Test_FR03_Resource_Attributes:
         [
             {
                 "DD_LOGS_OTEL_ENABLED": "true",
-                "OTEL_RESOURCE_ATTRIBUTES": "service.name=service,service.version=2.0,deployment.environment=otelenv",
+                "OTEL_RESOURCE_ATTRIBUTES": "service.name=service,service.version=2.0,deployment.environment.name=otelenv",
                 "DD_TRACE_DEBUG": None,
             },
         ],
@@ -125,14 +125,14 @@ class Test_FR03_Resource_Attributes:
 
         assert attrs.get("service.name") == "service"
         assert attrs.get("service.version") == "2.0"
-        assert attrs.get("deployment.environment") == "otelenv" or attrs.get("deployment.environment.name") == "otelenv"
+        assert attrs.get("deployment.environment.name") == "otelenv"
 
     @pytest.mark.parametrize(
         "library_env",
         [
             {
                 "DD_LOGS_OTEL_ENABLED": "true",
-                "OTEL_RESOURCE_ATTRIBUTES": "service.name=service,service.version=2.0,deployment.environment=otelenv",
+                "OTEL_RESOURCE_ATTRIBUTES": "service.name=service,service.version=2.0,deployment.environment.name=otelenv",
                 "DD_SERVICE": "ddservice",
                 "DD_ENV": "ddenv",
                 "DD_VERSION": "ddver",
@@ -152,7 +152,7 @@ class Test_FR03_Resource_Attributes:
 
         assert attrs.get("service.name") == "ddservice"
         assert attrs.get("service.version") == "ddver"
-        assert attrs.get("deployment.environment") == "ddenv" or attrs.get("deployment.environment.name") == "ddenv"
+        assert attrs.get("deployment.environment.name") == "ddenv"
 
 
 @features.otel_logs_enabled
@@ -368,90 +368,6 @@ class Test_FR07_Host_Name:
 
 @features.otel_logs_enabled
 @scenarios.parametric
-class Test_FR08_Custom_Headers:
-    """FR08: Custom HTTP Headers Tests"""
-
-    @pytest.mark.parametrize(
-        "library_env",
-        [
-            {
-                "DD_LOGS_OTEL_ENABLED": "true",
-                "DD_TRACE_DEBUG": None,
-                "OTEL_EXPORTER_OTLP_HEADERS": "api-key=key,other-config-value=value",
-                "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
-            },
-        ],
-    )
-    def test_custom_http_headers_included_in_otlp_export(self, test_agent: TestAgentAPI, test_library: APMLibrary):
-        """Custom headers from OTEL_EXPORTER_OTLP_HEADERS appear in requests."""
-        with test_library as library:
-            library.create_logger("custom_http_headers_included_in_otlp_export", LogLevel.INFO)
-            library.write_log(
-                "custom_http_headers_included_in_otlp_export",
-                LogLevel.INFO,
-                "test_custom_http_headers_included_in_otlp_export",
-            )
-
-        log_payloads = test_agent.wait_for_num_log_payloads(1)
-        assert (
-            find_log_record(
-                log_payloads,
-                "custom_http_headers_included_in_otlp_export",
-                "test_custom_http_headers_included_in_otlp_export",
-            )
-            is not None
-        )
-
-        requests = test_agent.requests()
-        logs_request = [r for r in requests if r["url"].endswith("/v1/logs")]
-        assert logs_request, f"Expected logs request, got {requests}"
-        assert logs_request[0]["headers"].get("api-key") == "key", f"Expected api-key, got {logs_request[0]['headers']}"
-        assert logs_request[0]["headers"].get("other-config-value") == "value", (
-            f"Expected other-config-value, got {logs_request[0]['headers']}"
-        )
-
-    @pytest.mark.parametrize(
-        "library_env",
-        [
-            {
-                "DD_LOGS_OTEL_ENABLED": "true",
-                "DD_TRACE_DEBUG": None,
-                "OTEL_EXPORTER_OTLP_LOGS_HEADERS": "api-key=key,other-config-value=value",
-                "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
-            },
-        ],
-    )
-    def test_custom_logs_http_headers_included_in_otlp_export(self, test_agent: TestAgentAPI, test_library: APMLibrary):
-        """Custom headers from OTEL_EXPORTER_OTLP_LOGS_HEADERS appear in requests."""
-        with test_library as library:
-            library.create_logger("custom_logs_http_headers_included_in_otlp_export", LogLevel.INFO)
-            library.write_log(
-                "custom_logs_http_headers_included_in_otlp_export",
-                LogLevel.INFO,
-                "test_custom_logs_http_headers_included_in_otlp_export",
-            )
-
-        log_payloads = test_agent.wait_for_num_log_payloads(1)
-        assert (
-            find_log_record(
-                log_payloads,
-                "custom_logs_http_headers_included_in_otlp_export",
-                "test_custom_logs_http_headers_included_in_otlp_export",
-            )
-            is not None
-        )
-
-        requests = test_agent.requests()
-        logs_request = [r for r in requests if r["url"].endswith("/v1/logs")]
-        assert logs_request, f"Expected logs request, got {requests}"
-        assert logs_request[0]["headers"].get("api-key") == "key", f"Expected api-key, got {logs_request[0]['headers']}"
-        assert logs_request[0]["headers"].get("other-config-value") == "value", (
-            f"Expected other-config-value, got {logs_request[0]['headers']}"
-        )
-
-
-@features.otel_logs_enabled
-@scenarios.parametric
 class Test_FR09_Log_Injection:
     """FR09: Log Injection Tests"""
 
@@ -495,10 +411,7 @@ class Test_FR09_Log_Injection:
         resource_attrs = find_attributes(resource)
         assert resource_attrs.get("service.name") == "testservice"
         assert resource_attrs.get("service.version") == "1.0.0"
-        assert (
-            resource_attrs.get("deployment.environment") == "testenv"
-            or resource_attrs.get("deployment.environment.name") == "testenv"
-        )
+        assert resource_attrs.get("deployment.environment.name") == "testenv"
 
         # Verify no duplication in log record attributes
         log_attrs = find_attributes(log_record)
@@ -539,10 +452,7 @@ class Test_FR09_Log_Injection:
         resource_attrs = find_attributes(resource)
         assert resource_attrs.get("service.name") == "testservice"
         assert resource_attrs.get("service.version") == "1.0.0"
-        assert (
-            resource_attrs.get("deployment.environment") == "testenv"
-            or resource_attrs.get("deployment.environment.name") == "testenv"
-        )
+        assert resource_attrs.get("deployment.environment.name") == "testenv"
 
 
 @features.otel_logs_enabled

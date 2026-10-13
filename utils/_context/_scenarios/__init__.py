@@ -281,6 +281,45 @@ class _Scenarios:
         doc="Test W3C trace style",
     )
 
+    # Adapted from the instrumentation section of the OTel operator example:
+    # https://github.com/DataDog/opentelemetry-examples/blob/cyrille-leclerc/use-dd-operator/guides/kubernetes/configuration/opentelemetry-kube-stack/values.yaml
+    # Match instrumentation.env and the exporter/sampler/propagators fields.
+    # Only Kubernetes service DNS is replaced with the local Agent hostname.
+    # Settings absent from the example stay unset; the tests still require
+    # their effective defaults to appear in the startup configuration.
+    OTEL_STARTUP_LOGS_ENV: dict[str, str] = {
+        "OTEL_SEMCONV_STABILITY_OPT_IN": "http,database,rpc,messaging",
+        "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE": "delta",
+        "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
+        "OTEL_TRACES_EXPORTER": "otlp",
+        "DD_TRACE_OTEL_ENABLED": "true",
+        "DD_LOGS_OTEL_ENABLED": "true",
+        "DD_METRICS_OTEL_ENABLED": "true",
+        "DD_TRACE_OTEL_SEMANTICS_ENABLED": "true",
+        "DD_AGENT_HOST": "agent",
+        "DD_DBM_PROPAGATION_MODE": "full",
+        "DD_DBM_TRACE_PREPARED_STATEMENTS": "true",
+        "DD_DATA_STREAMS_ENABLED": "true",
+        "DD_TRACE_REMOVE_INTEGRATION_SERVICE_NAMES_ENABLED": "true",
+        "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": "http://agent:4318/v1/traces",
+        "OTEL_EXPORTER_OTLP_ENDPOINT": "http://agent:4318",
+        "OTEL_TRACES_SAMPLER": "parentbased_always_on",
+        "OTEL_PROPAGATORS": "tracecontext,baggage",
+    }
+
+    otel_startup_logs = DdTraceEndToEndScenario(
+        "OTEL_STARTUP_LOGS",
+        weblog_env={**OTEL_STARTUP_LOGS_ENV},
+        library_interface_timeout=0,
+        agent_interface_timeout=0,
+        appsec_enabled=False,
+        iast_enabled=False,
+        tracer_sampling_rate=None,
+        use_proxy_for_weblog=False,
+        doc="Require OTel configuration fields in tracer startup logs with an operator-style configuration",
+        scenario_groups=[scenario_groups.open_telemetry],
+    )
+
     otel_semantics_otlp = DdTraceEndToEndScenario(
         "OTEL_SEMANTICS_OTLP",
         weblog_env={
