@@ -4,7 +4,7 @@
 
 from utils import context, interfaces, weblog, features, irrelevant, rfc
 from utils._weblog import HttpResponse
-from utils.dd_types import DataDogLibrarySpan
+from utils.dd_types import DataDogLibrarySpan, is_same_boolean
 
 
 @rfc("https://docs.google.com/document/d/1YYxOB1nM032H-lgXrVml9mukMhF4eHVIzyK9H_PvrSY/edit#heading=h.o5gstqo08gu5")
@@ -43,7 +43,7 @@ class Test_ShellExecution:
         span = self.fetch_command_execution_span(self.r_cmd_exec)
         assert span["resource"] == "echo"
         assert span["meta"]["cmd.exec"] == '["echo","foo"]'
-        assert span["meta"]["cmd.exit_code"] == "0"
+        assert str(span["meta"]["cmd.exit_code"]) == "0"
 
     def setup_track_shell_exec(self):
         self.r_shell_exec = weblog.post(
@@ -54,7 +54,7 @@ class Test_ShellExecution:
         span = self.fetch_command_execution_span(self.r_shell_exec)
         assert span["resource"] == "sh"
         assert span["meta"]["cmd.shell"] == "echo foo"
-        assert span["meta"]["cmd.exit_code"] == "0"
+        assert str(span["meta"]["cmd.exit_code"]) == "0"
 
     def setup_truncate_1st_argument(self):
         args = ["a" * 4096, "arg"]
@@ -70,8 +70,8 @@ class Test_ShellExecution:
         span = self.fetch_command_execution_span(self.r_truncation)
         assert span["resource"] == "echo"
         assert span["meta"]["cmd.exec"] == '["echo","aa",""]'
-        assert span["meta"]["cmd.truncated"] == "true"
-        assert span["meta"]["cmd.exit_code"] == "0"
+        assert is_same_boolean(actual=span["meta"]["cmd.truncated"], expected="true")
+        assert str(span["meta"]["cmd.exit_code"]) == "0"
 
     def setup_truncate_blank_2nd_argument(self):
         args = ["a" * 4092, "arg"]
@@ -87,8 +87,8 @@ class Test_ShellExecution:
         span = self.fetch_command_execution_span(self.r_truncation)
         assert span["resource"] == "echo"
         assert span["meta"]["cmd.exec"] == '["echo","' + "a" * 4092 + '",""]'
-        assert span["meta"]["cmd.truncated"] == "true"
-        assert span["meta"]["cmd.exit_code"] == "0"
+        assert is_same_boolean(actual=span["meta"]["cmd.truncated"], expected="true")
+        assert str(span["meta"]["cmd.exit_code"]) == "0"
 
     def setup_obfuscation(self):
         args = "password 1234"
@@ -104,4 +104,4 @@ class Test_ShellExecution:
         span = self.fetch_command_execution_span(self.r_obfuscation)
         assert span["resource"] == "echo"
         assert span["meta"]["cmd.exec"] == '["echo","password","?"]'
-        assert span["meta"]["cmd.exit_code"] == "0"
+        assert str(span["meta"]["cmd.exit_code"]) == "0"
