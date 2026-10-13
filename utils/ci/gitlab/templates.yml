@@ -11,6 +11,9 @@ spec:
   image: $CI_IMAGE
   tags:
     - docker-in-docker:amd64
+  id_tokens:
+    CI_IDENTITIES_GITLAB_ID_TOKEN:
+      aud: ci-identities
   variables:
     GIT_STRATEGY: none
     # In DinD, DOCKER_HOST is set to tcp://docker:2376 which causes _Weblog to

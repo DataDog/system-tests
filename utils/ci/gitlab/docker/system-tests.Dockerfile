@@ -1,3 +1,5 @@
+FROM registry.ddbuild.io/ci/libdatadog-build/system-tests:144237924 AS libdatadog_system_tests
+
 FROM registry.ddbuild.io/images/docker:29.4.0-noble AS builder
 USER root
 
@@ -51,6 +53,9 @@ RUN if [ "${TARGETARCH}" = "arm64" ]; then \
 
 COPY --from=registry.ddbuild.io/dd-sts:v0.1.4@sha256:1f4bc8861cca86b0c977ae70843990f9368f9b69dbfc4979cf5c515a97a3ea15 \
     /usr/local/bin/dd-sts /usr/local/bin/dd-sts
+
+COPY --from=libdatadog_system_tests /usr/local/bin/ci-identities-ci-job-client /usr/local/bin/
+COPY --from=libdatadog_system_tests /usr/local/bin/read-system-tests-secret /usr/local/bin/
 
 COPY --from=builder /system-tests/venv /system-tests/venv
 COPY --from=builder /system-tests/utils/ci/gitlab/validate_param_env.py /system-tests/utils/ci/gitlab/validate_param_env.py
