@@ -27,6 +27,25 @@ variables:
     # Destination registry for mirrored CI images.
     MIRROR_DEST_REGISTRY: "registry.ddbuild.io/system-tests/mirror"
 
+# Temporary validation for the Vault migration. Remove it after the WIP template is verified.
+fpd_vault_smoke_test:
+  extends: .base_job_k8s_docker_ssi
+  stage: configure
+  before_script: []
+  script:
+    - |
+      FP_IMPORT_URL="$(read-system-tests-secret fpd fp_import_url)"
+      FP_API_KEY="$(read-system-tests-secret fpd fp_api_key)"
+
+      echo "FP_IMPORT_URL=${FP_IMPORT_URL}"
+      if [[ "$FP_API_KEY" != FPT* ]]; then
+        echo "FP_API_KEY does not start with FPT" >&2
+        exit 1
+      fi
+      echo "FP_API_KEY starts with FPT"
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "robertomonteromiguel/ssi-secrets-vault-templates"'
+
 compute_pipeline:
   image: registry.ddbuild.io/ci/libdatadog-build/system-tests:100425777
   tags: ["arch:amd64"]

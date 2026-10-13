@@ -199,3 +199,10 @@ jobs:
         name: binaries_dev_${{ inputs.library }}
         path: binaries/
         include-hidden-files: ${{ inputs.library == 'python' || inputs.library == 'python_lambda' }}
+
+    - name: Tag job
+      if: ${{ !cancelled() }}
+      continue-on-error: true
+      uses: ./.github/actions/datadog_ci
+      with:
+        _is_official_system_tests_job: true
