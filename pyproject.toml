@@ -225,6 +225,9 @@ ignore = [
     "ANN001", # missing-type-function-argument: obvious decorators
     "ANN205"  # missing-return-type-static-method: obvious decorators
 ]
+"utils/base_images/*" = [
+    "INP001",   # implicit-namespace-package: these scripts must stay importable before the runner virtualenv exists
+]
 "utils/build/*"  = ["ALL"]  # mostly python weblog code. it may be a good idea to enable rules here
 
 "utils/onboarding/weblog_interface.py" = [
@@ -247,4 +250,3 @@ ignore = [
     "S506",    # unsafe-yaml-load: TODO
 ]
 "utils/waf_rules.py" = ["N801"]  # generated file
-

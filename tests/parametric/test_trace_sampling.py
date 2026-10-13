@@ -1,6 +1,6 @@
 import json
 
-import pytest
+from utils import pytest
 import random
 
 from utils.docker_fixtures.spec.trace import find_only_span, find_span_in_traces

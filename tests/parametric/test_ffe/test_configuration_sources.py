@@ -18,7 +18,7 @@ from pathlib import Path
 import time
 from typing import Any
 
-import pytest
+from utils import pytest
 
 from tests.parametric.conftest import APMLibrary
 from tests.parametric.test_ffe.test_dynamic_evaluation import _set_and_wait_ffe_rc, _ffe_evaluate_with_rc_retry
@@ -151,8 +151,11 @@ def _assert_no_mock_requests(mock_ffe_agentless_backend: MockFFEAgentlessBackend
 
 
 def _remote_config_products(test_agent: TestAgentAPI) -> set[str]:
+    # Not post_only: golang polls /v0.7/config with GET, every other library with
+    # POST. The verb says nothing about which products the body advertises, and
+    # the capability assertion next to this one is already unfiltered.
     products: set[str] = set()
-    for request in test_agent.rc_requests(post_only=True):
+    for request in test_agent.rc_requests():
         client = request["body"].get("client", {})
         products.update(client.get("products", []))
     return products

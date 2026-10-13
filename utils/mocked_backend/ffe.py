@@ -10,19 +10,19 @@ from __future__ import annotations
 
 import contextlib
 from http import HTTPStatus
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import os
 from pathlib import Path
 import threading
 import time
-from typing import TYPE_CHECKING, Any, TypedDict, cast
+from typing import TYPE_CHECKING, TypedDict, cast
 from urllib.parse import parse_qs, urlencode, urlparse
 
 import pytest
 import requests
 
 from utils.docker_fixtures._core import get_host_port
+from utils.mocked_backend.backend_v2 import MockBackendV2RequestHandler, MockBackendV2Server
 
 if TYPE_CHECKING:
     from collections.abc import Generator, Mapping
@@ -136,105 +136,6 @@ class MockFFEAgentlessBackendState:
             }
 
 
-class MockFFEAgentlessBackendHTTPServer(ThreadingHTTPServer):
-    daemon_threads = True
-
-    def __init__(self, server_address: tuple[str, int]) -> None:
-        super().__init__(server_address, MockFFEAgentlessBackendRequestHandler)
-        self.state = MockFFEAgentlessBackendState()
-
-
-class MockFFEAgentlessBackendRequestHandler(BaseHTTPRequestHandler):
-    # Endpoint contract:
-    # - GET /api/v2/feature-flagging/config/rules-based/server?dd_env=test
-    # - GET /status
-    # - POST /control/responses
-    # - POST /control/reset
-    server: MockFFEAgentlessBackendHTTPServer
-
-    def do_GET(self) -> None:
-        parsed = urlparse(self.path)
-        if parsed.path == CONFIG_PATH and parse_qs(parsed.query, keep_blank_values=True) == {
-            "dd_env": [EXPECTED_DD_ENV]
-        }:
-            self._handle_config()
-            return
-        if parsed.path == "/status":
-            self._write_json(HTTPStatus.OK, self.server.state.status())
-            return
-        self._write_json(HTTPStatus.NOT_FOUND, {"error": "not found"})
-
-    def do_POST(self) -> None:
-        path = urlparse(self.path).path
-        if path == "/control/responses":
-            self._handle_responses_control()
-            return
-        if path == "/control/reset":
-            self.server.state.reset()
-            self._write_json(HTTPStatus.OK, self.server.state.status())
-            return
-        self._write_json(HTTPStatus.NOT_FOUND, {"error": "not found"})
-
-    def log_message(self, _format: str, *_args: object) -> None:
-        return
-
-    def _handle_config(self) -> None:
-        request_headers = dict(self.headers)
-        response = self.server.state.record_request(request_headers, self.path)
-        try:
-            if response in {"delayed_valid", "timeout"}:
-                time.sleep(TIMEOUT_RESPONSE_SECONDS if response == "timeout" else DELAYED_RESPONSE_SECONDS)
-
-            status_code, body, headers = _response_for_response(response)
-            self.server.state.record_response(status_code)
-            with contextlib.suppress(BrokenPipeError, ConnectionResetError):
-                self.send_response(status_code)
-                for key, value in headers.items():
-                    self.send_header(key, value)
-                self.send_header("Content-Length", str(len(body)))
-                self.end_headers()
-                if body:
-                    self.wfile.write(body)
-        finally:
-            self.server.state.finish_request()
-
-    def _handle_responses_control(self) -> None:
-        content_length = int(self.headers.get("Content-Length", "0"))
-        if content_length > MAX_CONTROL_BODY_BYTES:
-            self._write_json(HTTPStatus.BAD_REQUEST, {"error": "control body too large"})
-            return
-
-        try:
-            body = self.rfile.read(content_length)
-            payload = json.loads(body.decode("utf-8"))
-        except json.JSONDecodeError:
-            self._write_json(HTTPStatus.BAD_REQUEST, {"error": "invalid control JSON"})
-            return
-
-        if not isinstance(payload, dict) or set(payload) != {"responses"}:
-            self._write_json(HTTPStatus.BAD_REQUEST, {"error": "control body must contain only responses"})
-            return
-
-        responses = payload["responses"]
-        try:
-            validated_responses = validate_responses(responses)
-        except ValueError as error:
-            self._write_json(HTTPStatus.BAD_REQUEST, {"error": str(error)})
-            return
-
-        self.server.state.set_responses(validated_responses)
-        self._write_json(HTTPStatus.OK, self.server.state.status())
-
-    def _write_json(self, status_code: HTTPStatus, payload: dict[str, Any] | MockFFEAgentlessBackendStatus) -> None:
-        body = json.dumps(payload).encode("utf-8")
-        with contextlib.suppress(BrokenPipeError, ConnectionResetError):
-            self.send_response(status_code)
-            self.send_header("Content-Type", "application/json")
-            self.send_header("Content-Length", str(len(body)))
-            self.end_headers()
-            self.wfile.write(body)
-
-
 def _has_auth(headers: Mapping[str, str]) -> bool:
     normalized = {key.lower(): value for key, value in headers.items()}
     return normalized.get("dd-api-key") == EXPECTED_API_KEY
@@ -288,19 +189,25 @@ def _strip_config_path(url: str) -> str:
     return parsed._replace(path=base_path, params="", query="", fragment="").geturl().rstrip("/")
 
 
-class MockFFEAgentlessBackendServer:
-    def __init__(self, worker_id: str = "master", *, port: int | None = None) -> None:
-        self.port = get_host_port(worker_id, 4900) if port is None else port
-        self._server = MockFFEAgentlessBackendHTTPServer(("0.0.0.0", self.port))  # noqa: S104 - test fixture must be container-reachable.
-        self.port = self._server.server_port
-        self._thread = threading.Thread(
-            target=self._server.serve_forever, name="mock-ffe-agentless-backend", daemon=True
-        )
-        self._thread.start()
+class MockFFEAgentlessBackendServer(MockBackendV2Server):
+    # Endpoint contract:
+    # - GET /api/v2/feature-flagging/config/rules-based/server?dd_env=test
+    # - GET /status
+    # - POST /control/responses
+    # - POST /control/reset
 
-    @property
-    def base_url(self) -> str:
-        return f"http://127.0.0.1:{self.port}"
+    thread_name = "mock-ffe-agentless-backend"
+
+    def __init__(self, *, worker_id: str = "master", port: int | None = None) -> None:
+        port = get_host_port(worker_id, 4900) if port is None else port
+        super().__init__(port=port)
+        self.state = MockFFEAgentlessBackendState()
+
+        self.add_handler("GET", "/status", self.handle_status)
+        self.add_handler("GET", CONFIG_PATH, self.handle_config)
+
+        self.add_handler("POST", "/control/responses", self.handle_control_responses)
+        self.add_handler("POST", "/control/reset", self.handle_control_reset)
 
     @property
     def library_base_url(self) -> str:
@@ -338,15 +245,69 @@ class MockFFEAgentlessBackendServer:
         response.raise_for_status()
         return cast("MockFFEAgentlessBackendStatus", response.json())
 
-    def close(self) -> None:
-        self._server.shutdown()
-        self._server.server_close()
-        self._thread.join(timeout=5)
+    def _default_handler(self, request: MockBackendV2RequestHandler, _: bytes | dict | None) -> tuple[Mapping, bytes]:
+        return request.write_json(HTTPStatus.NOT_FOUND, {"error": "not found"})
+
+    def handle_status(self, request: MockBackendV2RequestHandler, _: bytes | dict | None) -> tuple[Mapping, bytes]:
+        return request.write_json(HTTPStatus.OK, self.state.status())
+
+    def handle_config(
+        self, request: MockBackendV2RequestHandler, _: bytes | dict | None
+    ) -> tuple[Mapping | bytes, bytes]:
+        parsed = urlparse(request.path)
+        if parse_qs(parsed.query, keep_blank_values=True) == {"dd_env": [EXPECTED_DD_ENV]}:
+            return self._handle_config(request)
+
+        return request.write_json(HTTPStatus.NOT_FOUND, {"error": "not found"})
+
+    def _handle_config(self, request: MockBackendV2RequestHandler) -> tuple[bytes, bytes]:
+        request_headers = dict(request.headers)
+        response = self.state.record_request(request_headers, request.path)
+        try:
+            if response in {"delayed_valid", "timeout"}:
+                time.sleep(TIMEOUT_RESPONSE_SECONDS if response == "timeout" else DELAYED_RESPONSE_SECONDS)
+
+            status_code, body, headers = _response_for_response(response)
+            self.state.record_response(status_code)
+            with contextlib.suppress(BrokenPipeError, ConnectionResetError):
+                request.send_response(status_code)
+                for key, value in headers.items():
+                    request.send_header(key, value)
+
+        finally:
+            self.state.finish_request()
+
+        return body, body
+
+    def handle_control_responses(
+        self, request: MockBackendV2RequestHandler, payload: bytes | dict | None
+    ) -> tuple[Mapping, bytes]:
+        content_length = int(request.headers.get("Content-Length", "0"))
+        if content_length > MAX_CONTROL_BODY_BYTES:
+            return request.write_json(HTTPStatus.BAD_REQUEST, {"error": "control body too large"})
+
+        if not isinstance(payload, dict) or set(payload) != {"responses"}:
+            return request.write_json(HTTPStatus.BAD_REQUEST, {"error": "control body must contain only responses"})
+
+        responses = payload["responses"]
+        try:
+            validated_responses = validate_responses(responses)
+        except ValueError as error:
+            return request.write_json(HTTPStatus.BAD_REQUEST, {"error": str(error)})
+
+        self.state.set_responses(validated_responses)
+        return request.write_json(HTTPStatus.OK, self.state.status())
+
+    def handle_control_reset(
+        self, request: MockBackendV2RequestHandler, _: bytes | dict | None
+    ) -> tuple[Mapping, bytes]:
+        self.state.reset()
+        return request.write_json(HTTPStatus.OK, self.state.status())
 
 
 @pytest.fixture
 def mock_ffe_agentless_backend(worker_id: str) -> Generator[MockFFEAgentlessBackendServer, None, None]:
-    server = MockFFEAgentlessBackendServer(worker_id)
+    server = MockFFEAgentlessBackendServer(worker_id=worker_id)
     try:
         server.reset()
         yield server

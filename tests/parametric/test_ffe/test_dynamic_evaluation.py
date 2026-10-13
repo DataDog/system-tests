@@ -1,7 +1,7 @@
 """Test FFE (Feature Flags & Experimentation) functionality via parametric tests."""
 
 import json
-import pytest
+from utils import pytest
 import time
 from pathlib import Path
 from typing import Any
@@ -80,8 +80,14 @@ def _set_and_wait_ffe_rc(
     # Set the config
     test_agent.set_remote_config(path=f"{RC_PATH}/{config_id}/config", payload=rc_config)
 
-    # Wait for RC acknowledgment
-    return test_agent.wait_for_rc_apply_state(RC_PRODUCT, state=RemoteConfigApplyState.ACKNOWLEDGED, clear=True)
+    # Allow extra RC polling cycles under CI load, and match this update's ACK.
+    return test_agent.wait_for_rc_apply_state(
+        RC_PRODUCT,
+        state=RemoteConfigApplyState.ACKNOWLEDGED,
+        config_id=config_id,
+        wait_loops=500,
+        clear=True,
+    )
 
 
 def _is_ffe_waiting_for_rc(result: dict[str, Any]) -> bool:

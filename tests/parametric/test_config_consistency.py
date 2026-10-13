@@ -2,7 +2,7 @@
 
 from urllib.parse import urlparse
 
-import pytest
+from utils import pytest
 import yaml
 from utils import (
     scenarios,

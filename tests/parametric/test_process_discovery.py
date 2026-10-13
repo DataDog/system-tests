@@ -1,6 +1,6 @@
 """Test the instrumented process discovery mechanism feature."""
 
-import pytest
+from utils import pytest
 import json
 import msgpack
 import re

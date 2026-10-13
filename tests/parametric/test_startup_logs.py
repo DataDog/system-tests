@@ -2,7 +2,7 @@
 
 import re
 
-import pytest
+from utils import pytest
 
 from utils import scenarios, features, context, logger
 from .conftest import APMLibrary

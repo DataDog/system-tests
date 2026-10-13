@@ -1,4 +1,4 @@
-import pytest
+from utils import pytest
 
 from utils import scenarios, features
 from opentelemetry.trace import SpanKind

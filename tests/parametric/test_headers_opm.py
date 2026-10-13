@@ -20,7 +20,7 @@ parametric harness pins `ddapm-test-agent` >= v1.54.1, which reads the
 RFC: https://docs.google.com/document/d/1SzZWivVWT79lJe80ZulEra6AARszjEYVEwWJ7IhJ6Xo/edit?tab=t.0
 """
 
-import pytest
+from utils import pytest
 
 from utils import features, scenarios, rfc
 from utils.docker_fixtures import TestAgentAPI

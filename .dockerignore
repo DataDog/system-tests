@@ -10,6 +10,10 @@ __pycache__
 scenario_groups.yml
 /binaries/**/.git/config
 
+# Materialized build context for utils/base_images/build_base_images.py
+/.base_image_build/
+/.base_images_build/
+
 # dotnet
 **/dotnet/**/bin/
 **/dotnet/**/obj/
@@ -18,3 +22,7 @@ scenario_groups.yml
 **/dotnet/**/*.user
 **/dotnet/**/*.suo
 /system-tests.sln
+
+# rust (local cargo builds; the Dockerfiles use a cache mount for target/)
+utils/build/docker/rust/*/target/
+/binaries/dd-trace-rs/target/

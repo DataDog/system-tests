@@ -6,68 +6,125 @@ use std::{
 };
 
 use http::Extensions;
-use opentelemetry::trace::Status;
+use opentelemetry::{
+    global,
+    trace::{FutureExt, SpanKind, Status, TraceContextExt, Tracer},
+    Context, KeyValue,
+};
+use opentelemetry_http::HeaderInjector;
 use reqwest_middleware::Middleware;
-use reqwest_tracing::{reqwest_otel_span, ReqwestOtelSpanBackend};
-use tracing::Span;
-use tracing_opentelemetry::OpenTelemetrySpanExt;
 
 use super::dd_tags;
 
-/// [`reqwest_tracing::ReqwestOtelSpanBackend`] that names outgoing spans
-/// `http.client.request` and enriches them with the same Datadog
-/// semantic-convention attributes used for inbound server spans.
+/// Reqwest middleware that creates the outgoing `http.client.request` span,
+/// propagates its trace context in the request headers, and enriches it with
+/// the same Datadog semantic-convention attributes used for inbound server spans.
+#[derive(Clone, Copy, Default)]
 pub struct DatadogClientSpanBackend;
 
-impl ReqwestOtelSpanBackend for DatadogClientSpanBackend {
-    fn on_request_start(req: &reqwest::Request, _ext: &mut http::Extensions) -> Span {
-        let span = reqwest_otel_span!(name = "http.client.request", req);
-
-        let host = req.url().host_str().unwrap_or_default().to_owned();
-        let query_suffix = req
-            .url()
-            .query()
-            .map(|q| format!("?{q}"))
-            .unwrap_or_default();
-        let host_port = req
-            .url()
+impl DatadogClientSpanBackend {
+    /// Starts the client span as a child of the current OpenTelemetry `Context`
+    /// and returns a `Context` holding it.
+    fn on_request_start(req: &reqwest::Request) -> Context {
+        let url = req.url();
+        let host = url.host_str().unwrap_or_default().to_owned();
+        let query_suffix = url.query().map(|q| format!("?{q}")).unwrap_or_default();
+        let host_port = url
             .port()
             .map_or_else(|| host.clone(), |p| format!("{host}:{p}"));
         let scrubbed_url = format!(
             "{}://{}{}{}",
-            req.url().scheme(),
+            url.scheme(),
             host_port,
-            req.url().path(),
+            url.path(),
             query_suffix
         );
 
-        for attr in dd_tags() {
-            span.set_attribute(attr.key, attr.value);
+        // OTel HTTP client-span attributes (semantic conventions) ...
+        let mut attributes = vec![
+            KeyValue::new("http.request.method", req.method().to_string()),
+            KeyValue::new("url.scheme", url.scheme().to_owned()),
+        ];
+        if let Some(port) = url.port_or_known_default() {
+            attributes.push(KeyValue::new("server.port", i64::from(port)));
         }
-        span.set_attribute("http.request.method", req.method().to_string());
-        span.set_attribute("http.url", scrubbed_url);
-        span.set_attribute("server.address", host.clone());
-        span.set_attribute("out.host", host);
-        span.set_attribute("network.protocol.name", "http");
-        span
+        if let Some(user_agent) = req
+            .headers()
+            .get(http::header::USER_AGENT)
+            .and_then(|v| v.to_str().ok())
+        {
+            attributes.push(KeyValue::new("user_agent.original", user_agent.to_owned()));
+        }
+        // ... plus the Datadog-specific attributes.
+        attributes.extend(dd_tags());
+        attributes.push(KeyValue::new("http.url", scrubbed_url));
+        attributes.push(KeyValue::new("server.address", host.clone()));
+        attributes.push(KeyValue::new("out.host", host));
+        attributes.push(KeyValue::new("network.protocol.name", "http"));
+
+        let parent_cx = Context::current();
+        let tracer = global::tracer("weblog");
+        let span = tracer
+            .span_builder("http.client.request")
+            .with_kind(SpanKind::Client)
+            .with_attributes(attributes)
+            .start_with_context(&tracer, &parent_cx);
+        parent_cx.with_span(span)
     }
 
-    fn on_request_end(
-        span: &Span,
-        outcome: &reqwest_middleware::Result<reqwest::Response>,
-        _ext: &mut http::Extensions,
-    ) {
-        reqwest_tracing::default_on_request_end(span, outcome);
-        if let Ok(response) = outcome {
-            let status = response.status().as_u16();
-            span.set_attribute("http.status_code", status.to_string());
-            if status >= 400 {
-                span.set_attribute("error.type", "HTTP Error");
+    /// Records the request outcome on the client span and ends it.
+    fn on_request_end(cx: &Context, outcome: &reqwest_middleware::Result<reqwest::Response>) {
+        let span = cx.span();
+        match outcome {
+            Ok(response) => {
+                let status = response.status().as_u16();
+                span.set_attribute(KeyValue::new(
+                    "http.response.status_code",
+                    i64::from(status),
+                ));
+                span.set_attribute(KeyValue::new("http.status_code", status.to_string()));
+                if status >= 400 {
+                    span.set_attribute(KeyValue::new("error.type", "HTTP Error"));
+                    span.set_status(Status::Error {
+                        description: format!("HTTP {status}").into(),
+                    });
+                }
+            }
+            Err(error) => {
+                if let Some(status) = error.status() {
+                    span.set_attribute(KeyValue::new(
+                        "http.response.status_code",
+                        i64::from(status.as_u16()),
+                    ));
+                }
+                span.set_attribute(KeyValue::new("error.message", error.to_string()));
                 span.set_status(Status::Error {
-                    description: format!("HTTP {status}").into(),
+                    description: error.to_string().into(),
                 });
             }
         }
+        span.end();
+    }
+}
+
+#[async_trait::async_trait]
+impl Middleware for DatadogClientSpanBackend {
+    async fn handle(
+        &self,
+        mut req: reqwest::Request,
+        extensions: &mut Extensions,
+        next: reqwest_middleware::Next<'_>,
+    ) -> reqwest_middleware::Result<reqwest::Response> {
+        let cx = Self::on_request_start(&req);
+
+        // Propagate the client span's context so downstream spans join the same trace.
+        global::get_text_map_propagator(|propagator| {
+            propagator.inject_context(&cx, &mut HeaderInjector(req.headers_mut()));
+        });
+
+        let outcome = next.run(req, extensions).with_context(cx.clone()).await;
+        Self::on_request_end(&cx, &outcome);
+        outcome
     }
 }
 
