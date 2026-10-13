@@ -19,7 +19,7 @@ RUN bash system_tests_library_version.sh > /usr/app/SYSTEM_TESTS_LIBRARY_VERSION
 
 FROM debian:bookworm-slim AS final
 
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y curl ca-certificates && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /usr/app/weblog /app/weblog
 COPY --from=builder /usr/app/SYSTEM_TESTS_LIBRARY_VERSION /app/SYSTEM_TESTS_LIBRARY_VERSION
@@ -27,4 +27,5 @@ COPY utils/build/docker/rust/axum/app.sh /app/app.sh
 RUN chmod +x /app/app.sh
 
 WORKDIR /app
+EXPOSE 7777
 CMD ["./app.sh"]
