@@ -1805,10 +1805,17 @@ manifest:
   ? tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_basic_reserved_attributes_overrides_analytics_event
   : - declaration: missing_feature (Implemented in 0.96.0)
       component_version: <=0.95.0
+    - declaration: irrelevant (analytics is deprecated; V2 no longer maps analytics.event to _dd1.sr.eausr)
+      component_version: '>=1.26.0-dev'
   ? tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_extended_reserved_attributes_overrides_analytics_event
   : - declaration: missing_feature (Implemented in 0.96.0)
       component_version: <=0.95.0
+    - declaration: irrelevant (analytics is deprecated; V2 no longer maps analytics.event to _dd1.sr.eausr)
+      component_version: '>=1.26.0-dev'
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_link_attribute_handling: v1.26.0-dev
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_reserved_attributes_overrides:
+    - declaration: irrelevant (analytics is deprecated; V2 no longer maps analytics.event to _dd1.sr.eausr)
+      component_version: '>=1.26.0-dev'
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_started_with_link_from_another_span:
     - declaration: missing_feature (Implemented in 0.97.0)
       component_version: <0.97.0
@@ -1818,6 +1825,8 @@ manifest:
   ? tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_strict_reserved_attributes_overrides_analytics_event
   : - declaration: missing_feature (Implemented in 0.96.0)
       component_version: <=0.95.0
+    - declaration: irrelevant (analytics is deprecated; V2 no longer maps analytics.event to _dd1.sr.eausr)
+      component_version: '>=1.26.0-dev'
   tests/parametric/test_otel_span_with_baggage.py::Test_Otel_Span_With_Baggage: missing_feature
   tests/parametric/test_otel_tracer.py::Test_Otel_Tracer: v0.94.0
   tests/parametric/test_otel_tracestate_sampling.py::Test_OtelTracestateSampling: v1.26.0-dev
