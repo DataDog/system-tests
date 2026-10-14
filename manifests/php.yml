@@ -1237,7 +1237,7 @@ manifest:
   tests/ffe/test_agentless_configuration.py:
     - weblog_declaration:
         "*": incomplete_test_app
-        php-fpm-8.2: v1.26.0
+        php-fpm-8.2: v1.27.0
   tests/ffe/test_dynamic_evaluation.py:
     - weblog_declaration:
         "*": v1.21.0-dev
