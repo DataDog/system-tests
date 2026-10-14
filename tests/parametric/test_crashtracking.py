@@ -2,6 +2,8 @@
 
 import base64
 import json
+import time
+
 from utils import pytest
 
 from utils import features, scenarios, logger
@@ -55,6 +57,50 @@ class Test_Crashtracking:
             test_library.container.wait(timeout=10)
         finally:
             test_agent.set_trace_delay(0)
+
+    # dd-trace-go sends crash reports to the Error Tracking intake through the
+    # Agent EVP proxy instead of telemetry logs, so the telemetry-based tests
+    # above cannot cover it.
+    @pytest.mark.parametrize("library_env", [{"DD_CRASHTRACKING_ENABLED": "true"}])
+    def test_report_crash_error_tracking(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        test_library.crash()
+
+        self.assert_crash_report_error_tracking(self.wait_for_error_tracking_crash_report(test_agent))
+
+    @pytest.mark.parametrize("library_env", [{"DD_CRASHTRACKING_ENABLED": "false"}])
+    def test_disable_crashtracking_error_tracking(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        test_library.crash()
+
+        test_library.container.wait(timeout=10)
+        assert self.get_error_tracking_crash_reports(test_agent) == []
+
+    def get_error_tracking_crash_reports(self, test_agent: TestAgentAPI) -> list[dict]:
+        return [
+            json.loads(base64.b64decode(req["body"]))
+            for req in test_agent.requests()
+            if req["url"].endswith("/evp_proxy/v4/api/v2/errorsintake")
+        ]
+
+    def wait_for_error_tracking_crash_report(self, test_agent: TestAgentAPI) -> dict:
+        for _ in range(400):
+            reports = self.get_error_tracking_crash_reports(test_agent)
+            if reports:
+                return reports[-1]
+            time.sleep(0.01)
+        raise AssertionError("Crash report not found in Error Tracking intake requests")
+
+    def assert_crash_report_error_tracking(self, report: dict) -> None:
+        logger.debug(f"report: {json.dumps(report, indent=2)}")
+
+        assert report["ddsource"] == "crashtracker"
+        assert bool(report["error"]["is_crash"])
+        assert "system-tests crash" in report["error"]["message"]
+
+        tags = dict(item.split(":", 1) for item in report["ddtags"].split(",") if ":" in item)
+        assert tags["language_name"] == "go", tags
+        assert "language_version" in tags, tags
+        assert "tracer_version" in tags, tags
+        assert "data_schema_version" in tags, tags
 
     def assert_crash_report_v1(self, test_library: APMLibrary, event: dict):
         logger.debug(f"event: {json.dumps(event, indent=2)}")

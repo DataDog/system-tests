@@ -9,6 +9,7 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/DataDog/dd-trace-go/v2/crashtracker"
 	ddotel "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry"
 	otlog "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry/log"
 	ddmetric "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry/metric"
@@ -111,7 +112,18 @@ func ffeConfigurationEnvVarsSet() bool {
 	return false
 }
 
+func (s *apmClientServer) crashHandler(http.ResponseWriter, *http.Request) {
+	go func() {
+		panic("system-tests crash")
+	}()
+	select {}
+}
+
 func main() {
+	if err := crashtracker.Start(); err != nil {
+		log.Printf("crashtracker.Start: %v", err)
+	}
+
 	flag.String("Darg1", "", "Argument 1")
 	flag.Parse()
 	defer func() {
@@ -136,6 +148,7 @@ func main() {
 	http.HandleFunc("/trace/span/extract_headers", s.extractHeadersHandler)
 	http.HandleFunc("/trace/span/error", s.spanSetErrorHandler)
 	http.HandleFunc("/trace/config", s.getTraceConfigHandler)
+	http.HandleFunc("/trace/crash", s.crashHandler)
 	http.HandleFunc("/trace/agent/ensure_agent_info", s.ensureAgentInfoHandler)
 	http.HandleFunc("/trace/span/manual_keep", s.spanManualKeepHandler)
 	http.HandleFunc("/trace/span/manual_drop", s.spanManualDropHandler)
