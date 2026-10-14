@@ -64,7 +64,7 @@ public class App {
         if (isIntakeEnabled()) {
             spanExporters.add(
                 OtlpHttpSpanExporter.builder()
-                    .setEndpoint("http://proxy:8127/api/v0.2/traces")  // port is defined in utils/proxy/ports.py
+                    .setEndpoint("http://host.docker.internal:4901/api/v0.2/traces")
                     .addHeader("dd-protocol", "otlp")
                     .addHeader("dd-api-key", System.getenv("DD_API_KEY"))
                     .addHeader("dd-otlp-path", "intake-traces")
@@ -74,9 +74,7 @@ public class App {
         if (isCollectorEnabled()) {
             spanExporters.add(
                 OtlpHttpSpanExporter.builder()
-                    .setEndpoint("http://proxy:8127/v1/traces")  // port is defined in utils/proxy/ports.py
-                    .addHeader("dd-protocol", "otlp")
-                    .addHeader("dd-otlp-path", "collector")
+                    .setEndpoint("http://collector:4318/v1/traces")
                     .build());
         }
 
@@ -108,7 +106,7 @@ public class App {
         if (isIntakeEnabled()) {
             metricExporters.add(
                     OtlpHttpMetricExporter.builder()
-                            .setEndpoint("http://proxy:8127/api/intake/otlp/v1/metrics")  // port is defined in utils/proxy/ports.py
+                            .setEndpoint("http://host.docker.internal:4901/api/v2/series")
                             .addHeader("dd-protocol", "otlp")
                             .addHeader("dd-api-key", System.getenv("DD_API_KEY"))
                             .addHeader("dd-otlp-path", "intake-metrics")
@@ -147,7 +145,7 @@ public class App {
         if (isIntakeEnabled()) {
             logRecordExporters.add(
                     OtlpHttpLogRecordExporter.builder()
-                            .setEndpoint("http://proxy:8127/api/v2/logs")  // port is defined in utils/proxy/ports.py
+                            .setEndpoint("http://host.docker.internal:4901/api/v2/logs")
                             .addHeader("dd-protocol", "otlp")
                             .addHeader("dd-api-key", System.getenv("DD_API_KEY"))
                             .addHeader("dd-otlp-path", "intake-logs")
