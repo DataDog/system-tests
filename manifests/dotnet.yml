@@ -745,7 +745,7 @@ manifest:
   : bug (DEBUG-4637)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Multiconfig_Partial_Update:  # DEBUG-4637: fix remote enablement (#9344)
     - declaration: bug (DEBUG-4637)
-      component_version: '<3.55.0'
+      component_version: '<3.56.0'
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction: v2.50.0
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction::test_pii_redaction_method_full:
     - declaration: missing_feature (keywords are not fully redacted)
