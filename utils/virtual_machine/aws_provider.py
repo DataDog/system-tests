@@ -395,21 +395,17 @@ class AWSCommander(Commander):
     def create_cache(
         self, vm: _VirtualMachine, server: aws.ec2.Instance, last_task: command.remote.Command
     ) -> aws.ec2.AmiFromInstance:
-        """Create a cache : Create an AMI from the server current status."""
+        """Create an AMI cache from the current server state."""
         ami_name = vm.get_cache_name()
-        # Ok. All third party software is installed, let's create the ami to reuse it in the future
         logger.stdout(f"Creating AMI with name [{ami_name}] from instance ")
         vm_logger(context.scenario.host_log_folder, "cache_created").info(f"[{context.scenario.name}] - [{ami_name}]")
 
-        # Expiration date for the ami
-        # expiration_date = (datetime.now() + timedelta(seconds=30)).strftime("%Y-%m-%dT%H:%M:%SZ")
         return aws.ec2.AmiFromInstance(
             ami_name,
             description=ami_name,
-            # deprecation_time=expiration_date,
             source_instance_id=server.id,
             opts=pulumi.ResourceOptions(depends_on=[last_task], retain_on_delete=True),
-            tags={"CI": "system-tests"},
+            tags={"CI": "system-tests", "ami-cache-key": ami_name, "ami-state": "candidate"},
         )
 
     def execute_local_command(
