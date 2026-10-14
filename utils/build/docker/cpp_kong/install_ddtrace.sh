@@ -112,10 +112,18 @@ PLUGIN_VERSION=$(grep -oP 'VERSION\s*=\s*"\K[^"]+' \
     kong-plugin-ddtrace/kong/plugins/ddtrace/handler.lua)
 
 if [ "$KONG_IS_RELEASE" = "false" ]; then
-  auth_header=$(get_authentication_header)
-  COMMIT_SHA=$(eval "curl --silent --fail --retry 3 $auth_header \
-      https://api.github.com/repos/DataDog/kong-plugin-ddtrace/commits/main" \
-      | grep '"sha"' | head -1 | cut -d'"' -f4 | cut -c1-7)
+  COMMIT_SHA=""
+  # Prefer local git SHA when the plugin source has a .git directory
+  if [ -d kong-plugin-ddtrace/.git ]; then
+    COMMIT_SHA=$(git -C kong-plugin-ddtrace rev-parse --short=7 HEAD 2>/dev/null || true)
+  fi
+  # Fall back to the GitHub API for the latest commit on main
+  if [ -z "$COMMIT_SHA" ]; then
+    auth_header=$(get_authentication_header)
+    COMMIT_SHA=$(eval "curl --silent --fail --retry 3 $auth_header \
+        https://api.github.com/repos/DataDog/kong-plugin-ddtrace/commits/main" \
+        | grep '"sha"' | head -1 | cut -d'"' -f4 | cut -c1-7)
+  fi
   if [ -n "$COMMIT_SHA" ]; then
     PLUGIN_VERSION="${PLUGIN_VERSION}-dev+${COMMIT_SHA}"
   fi
