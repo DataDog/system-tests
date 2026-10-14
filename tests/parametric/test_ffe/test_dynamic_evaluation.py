@@ -41,13 +41,14 @@ def _get_test_case_files() -> list[str]:
         return []
 
     # Exclude base fixtures that aren't test cases
-    excluded = {"flags-v1.json", "span-enrichment-flags.json"}
+    excluded = {"flags-v1.json", "span-enrichment-flags.json", "test-case-dependent-flags.json"}
     return [f.name for f in test_data_dir.iterdir() if f.suffix == ".json" and f.name not in excluded]
 
 
 # Load fixture at module level for reuse across tests
 UFC_FIXTURE_DATA = _load_ufc_fixture()
 ALL_TEST_CASE_FILES = _get_test_case_files()
+DEPENDENT_FLAGS_TEST_CASE_FILE = "test-case-dependent-flags.json"
 
 DEFAULT_ENVVARS = {
     "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
@@ -146,18 +147,14 @@ class Test_Feature_Flag_Dynamic_Evaluation:
         assert apply_state["apply_state"] == RemoteConfigApplyState.ACKNOWLEDGED.value
         assert apply_state["product"] == RC_PRODUCT
 
-    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    @parametrize("test_case_file", ALL_TEST_CASE_FILES)
-    def test_ffe_flag_evaluation(self, test_case_file: str, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
-        """Test FFE flag evaluation logic with various targeting scenarios.
-
-        This is the core FFE test that validates the OpenFeature provider correctly:
-        1. Loads flag configurations from Remote Config (UFC format)
-        2. Evaluates flags based on targeting rules and evaluation context
-        3. Returns correct variation values for different variation types
-        4. Handles user targeting, attribute matching, and rollout percentages
-
-        """
+    def _assert_evaluation_cases(
+        self,
+        test_case_file: str,
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+        *,
+        assert_details: bool = False,
+    ) -> None:
         # Load the test case file
         test_case_path = Path(__file__).parent / test_case_file
 
@@ -181,7 +178,7 @@ class Test_Feature_Flag_Dynamic_Evaluation:
             default_value = test_case["defaultValue"]
             targeting_key = test_case["targetingKey"]
             attributes = test_case.get("attributes", {})
-            expected_result = test_case["result"]["value"]
+            expected_result = test_case["result"]
 
             result = _ffe_evaluate_with_rc_retry(
                 test_library,
@@ -195,11 +192,32 @@ class Test_Feature_Flag_Dynamic_Evaluation:
                 f"Test case {i} in {test_case_file} failed: FFE provider did not load RC data after "
                 f"{FFE_READY_RETRY_ATTEMPTS} attempts; result={result}"
             )
-            actual_value = result.get("value")
+            fields = ("value", "reason", "errorCode") if assert_details else ("value",)
+            for field in fields:
+                if field in expected_result:
+                    assert result.get(field) == expected_result[field], (
+                        f"Test case {i} in {test_case_file} failed: "
+                        f"flag='{flag}', targetingKey='{targeting_key}', field='{field}', "
+                        f"expected={expected_result[field]!r}, actual={result.get(field)!r}"
+                    )
+                elif field == "errorCode":
+                    assert result.get(field) is None, (
+                        f"Test case {i} in {test_case_file} failed: "
+                        f"flag='{flag}' unexpectedly returned errorCode={result.get(field)!r}"
+                    )
 
-            # Assert the evaluation result matches expected value
-            assert actual_value == expected_result, (
-                f"Test case {i} in {test_case_file} failed: "
-                f"flag='{flag}', targetingKey='{targeting_key}', "
-                f"expected={expected_result}, actual={actual_value}"
-            )
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @parametrize("test_case_file", ALL_TEST_CASE_FILES)
+    def test_ffe_flag_evaluation(self, test_case_file: str, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        """Test FFE flag evaluation logic with various targeting scenarios."""
+        self._assert_evaluation_cases(test_case_file, test_agent, test_library)
+
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_ffe_dependent_flag_evaluation(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        """Test dependent flags through the standard dynamic-evaluation path."""
+        self._assert_evaluation_cases(
+            DEPENDENT_FLAGS_TEST_CASE_FILE,
+            test_agent,
+            test_library,
+            assert_details=True,
+        )

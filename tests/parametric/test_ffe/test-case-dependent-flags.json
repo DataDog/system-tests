@@ -1,0 +1,91 @@
+[
+  {
+    "description": "A root flag matches a direct prerequisite by variant key.",
+    "attributes": {},
+    "defaultValue": "caller-default",
+    "flag": "dependent-direct-root",
+    "result": {
+      "reason": "TARGETING_MATCH",
+      "value": "direct-match"
+    },
+    "targetingKey": "dependent-direct",
+    "variationType": "STRING"
+  },
+  {
+    "description": "A depth-two tree evaluates its leaf and intermediate prerequisite before matching the root.",
+    "attributes": {},
+    "defaultValue": "caller-default",
+    "flag": "dependent-transitive-root",
+    "result": {
+      "reason": "TARGETING_MATCH",
+      "value": "transitive-match"
+    },
+    "targetingKey": "dependent-transitive",
+    "variationType": "STRING"
+  },
+  {
+    "description": "A false attribute condition short-circuits before an otherwise fatal missing prerequisite. Only the root fallback is evaluated and exposed.",
+    "attributes": {
+      "gate": "closed"
+    },
+    "defaultValue": "caller-default",
+    "flag": "dependent-short-circuit-root",
+    "result": {
+      "reason": "STATIC",
+      "value": "short-circuit-fallback"
+    },
+    "targetingKey": "dependent-short-circuit",
+    "variationType": "STRING"
+  },
+  {
+    "description": "Two membership conditions against the same prerequisite reuse one per-root result. A single prerequisite exposure and evaluation event make memoization observable without test-only traversal instrumentation.",
+    "attributes": {},
+    "defaultValue": "caller-default",
+    "flag": "dependent-memoized-root",
+    "result": {
+      "reason": "TARGETING_MATCH",
+      "value": "memoized-match"
+    },
+    "targetingKey": "dependent-memoized",
+    "variationType": "STRING"
+  },
+  {
+    "description": "A successful prerequisite followed by a missing prerequisite aborts the whole graph. The root returns the caller default with the propagated missing-flag error. Exposure telemetry rolls back atomically, while the successful prerequisite and failed root retain evaluation telemetry.",
+    "attributes": {},
+    "defaultValue": "atomic-default",
+    "flag": "dependent-atomic-error-root",
+    "result": {
+      "errorCode": "FLAG_NOT_FOUND",
+      "reason": "ERROR",
+      "value": "atomic-default"
+    },
+    "targetingKey": "dependent-atomic-error",
+    "variationType": "STRING"
+  },
+  {
+    "description": "With maxDependencyDepth 2, traversal from the root through two prerequisites is allowed, but the third dependency edge aborts the graph. Exposures roll back, while every affected ancestor emits its propagated error evaluation.",
+    "attributes": {},
+    "defaultValue": "depth-default",
+    "flag": "dependent-depth-three-root",
+    "result": {
+      "errorCode": "GENERAL",
+      "reason": "ERROR",
+      "value": "depth-default"
+    },
+    "targetingKey": "dependent-over-depth",
+    "variationType": "STRING"
+  },
+  {
+    "description": "A dependency cycle aborts the whole graph and returns a normalized root error. Exposures roll back, while each affected flag emits one propagated error evaluation.",
+    "attributes": {},
+    "defaultValue": "cycle-default",
+    "flag": "dependent-cycle-a",
+    "result": {
+      "errorCode": "GENERAL",
+      "reason": "ERROR",
+      "value": "cycle-default"
+    },
+    "targetingKey": "dependent-cycle",
+    "variationType": "STRING"
+  }
+]
