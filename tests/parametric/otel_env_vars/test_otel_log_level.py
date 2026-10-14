@@ -3,7 +3,8 @@
 import time
 
 from utils import features, pytest, scenarios
-from tests.parametric.conftest import APMLibrary, APMLibraryFactory, nodejs_startup_config
+from tests.parametric.conftest import APMLibrary, nodejs_startup_config
+from tests.parametric.otel_env_vars.conftest import APMLibraryFactory
 from tests.parametric.otel_env_vars.utils import has_warning_for_value
 from utils.docker_fixtures import TestAgentAPI
 
