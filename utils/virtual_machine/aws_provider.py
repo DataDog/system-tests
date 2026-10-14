@@ -147,7 +147,10 @@ class AWSPulumiProvider(VmProvider):
             return json.load(f)
 
     def _handle_provision_error(self, exception: pulumi.automation.errors.CommandError):
-        """If the exception is known, we will raise the exception, if not,we will store it in the vm object."""
+        """Stop the session on any provision error, so that no test is run.
+
+        If the exception is known, exit with code 3 (GitLab retries the job). If not, exit with code 1.
+        """
 
         exception_message = str(exception)
         for known_message in self.aws_infra_exceptions.values():
@@ -167,6 +170,8 @@ class AWSPulumiProvider(VmProvider):
             repr(exception),
             ["operation:up", "result:fail", f"stack:{self.stack_name}"],
         )
+        # The stack is destroyed by the scenario's close_targets, called when a warmup fails
+        pytest.exit(f"Error on VM provisioning, check the log file: {self.vm.name}.log", returncode=1)
 
     def _download_vm_logs_after_provision_failure(self) -> None:
         """Pull /var/log from the VM while it is still up (provision may have failed mid-way)."""
