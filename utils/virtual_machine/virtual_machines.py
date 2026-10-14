@@ -115,7 +115,7 @@ class _VirtualMachine:
         self.os_branch = os_branch
         self.os_cpu = os_cpu
         self._vm_provision: Provision | None = None
-        self.tested_components = {}
+        self.tested_components: dict[str, str] = {}
         self.deffault_open_port: int = 5985
         self.agent_env: dict[str, str] | None = None
         self.app_env: dict[str, str] | None = None
