@@ -241,6 +241,7 @@ manifest:
   tests/parametric/test_extract_behavior.py: '>=0.4.1-dev'
   tests/parametric/test_ffe/test_configuration_sources.py: irrelevant (rust is not in scope for v1 agentless server SDK configuration-source coverage)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: '>=0.5.3-dev+fd1307f'  # TODO: a lower version might be supported
+  tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_detailed_flag_evaluation: missing_feature (FFL-1694)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_flag_evaluation: missing_feature
   tests/parametric/test_ffe/test_span_enrichment.py: '>=0.5.3-dev+fd1307f'  # TODO: a lower version might be supported
   tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Child_Span_Propagation: missing_feature
