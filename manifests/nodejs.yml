@@ -2644,7 +2644,7 @@ manifest:
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart_With_Extract_First::test_baggage: *ref_5_56_0
   tests/parametric/test_ffe/test_configuration_sources.py: *ref_6_8_0
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: *ref_5_75_0
-  tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_dependent_flag_evaluation: missing_feature (FFL-1694)
+  tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_dependent_flag_evaluation: *ref_5_77_0
   tests/parametric/test_ffe/test_span_enrichment.py:  # TODO: a lower version might be supported
     - declaration: missing_feature (dd-trace-js#8343)
       component_version: <6.19.0
