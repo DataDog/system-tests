@@ -3342,6 +3342,14 @@ class _Features:
         return _mark_test_object(test_object, feature_id=604, owner=_Owner.sdk_capabilities)
 
     @staticmethod
+    def otel_exporter_otlp_metrics_temporality_preference(test_object):
+        """OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE
+
+        https://feature-parity.us1.prod.dog/#/?feature=645
+        """
+        return _mark_test_object(test_object, feature_id=645, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
     def otel_exporter_otlp_metrics_timeout(test_object):
         """OTEL_EXPORTER_OTLP_METRICS_TIMEOUT
 
@@ -3652,6 +3660,18 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=642
         """
         return _mark_test_object(test_object, feature_id=642, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def thread_context_sharing(test_object):
+        """Thread context sharing with system-probe (CWS trace correlation)
+
+        Workload Protection (the security agent) reads the trace and span IDs
+        for events triggered by a traced application from the application's published
+        thread context record (OTEP 4947).
+
+        https://feature-parity.us1.prod.dog/#/?feature=647
+        """
+        return _mark_test_object(test_object, feature_id=647, owner=_Owner.asm)
 
 
 features = _Features()

@@ -26,9 +26,45 @@ final class ConfigHelper {
     }
   }
 
+  public String getEffectiveLogLevel() {
+    try {
+      // The agent shades SLF4J; the application's own LoggerFactory has a separate configuration.
+      // Only use the public SLF4J interface, not implementation fields or raw environment values.
+      Class<?> loggerFactory = Class.forName("datadog.slf4j.LoggerFactory");
+      Class<?> loggerInterface = Class.forName("datadog.slf4j.Logger");
+      Object logger = loggerFactory.getMethod("getLogger", String.class)
+          .invoke(null, "datadog.trace.parametric.log-level");
+      for (String level : new String[] {"Trace", "Debug", "Info", "Warn", "Error"}) {
+        if ((Boolean) loggerInterface.getMethod("is" + level + "Enabled").invoke(logger)) {
+          return level.toLowerCase(java.util.Locale.ROOT);
+        }
+      }
+      return "off";
+    } catch (ClassNotFoundException e) {
+      // Keep the existing config endpoint usable with older agent logging packages.
+      return null;
+    } catch (ReflectiveOperationException e) {
+      throw new IllegalStateException("Failed to read effective tracer log level", e);
+    }
+  }
+
   public String getConfigValue(String accessorName) {
     Object value = getValue(this.configClass, this.config, accessorName);
     return value == null ? null : value.toString();
+  }
+
+  /** Access a public configuration getter that may not exist in older tracer releases. */
+  public String getOptionalConfigValue(String accessorName) {
+    try {
+      Method method = this.configClass.getMethod(accessorName);
+      Object value = method.invoke(this.config);
+      return value == null ? null : value.toString();
+    } catch (NoSuchMethodException e) {
+      return null;
+    } catch (ReflectiveOperationException e) {
+      throw new IllegalStateException(
+          "Failed get config value from " + this.configClass + "." + accessorName + "()", e);
+    }
   }
 
   public String getConfigCollectionValues(String accessorName, String delimiter) {

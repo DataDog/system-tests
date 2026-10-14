@@ -210,6 +210,8 @@ class FeatureFlaggingAgentlessEndToEndScenario(AgentlessEndToEndScenario):
                 "DD_TRACE_AGENT_URL": f"http://ffe-serverless-init:{serverless_init_port}",
             }
             other_weblog_containers = (ServerlessInitContainer,)
+        elif exposure_egress == "direct":
+            environment["NODE_EXTRA_CA_CERTS"] = DIRECT_EVP_CA_BUNDLE_CONTAINER_PATH
 
         super().__init__(
             name,

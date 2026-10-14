@@ -175,7 +175,7 @@ class Test_OTEL_RESOURCE_ATTRIBUTES:
                     "DD_TRACE_OTEL_ENABLED": "true",
                     "DD_VERSION": None,
                     "OTEL_RESOURCE_ATTRIBUTES": (
-                        "deployment.environment=test1,service.name=test2,service.version=5,foo=bar1,baz=qux1"
+                        "deployment.environment.name=test1,service.name=test2,service.version=5,foo=bar1,baz=qux1"
                     ),
                     "OTEL_SERVICE_NAME": None,
                 },

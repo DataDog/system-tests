@@ -35,6 +35,7 @@ class Test_SamplingRateCappedIncrease:
         mocks = [
             SequentialJsonMockedTracerResponse(path="/v0.4/traces", mocked_json_sequence=sequence),
             SequentialJsonMockedTracerResponse(path="/v0.5/traces", mocked_json_sequence=sequence),
+            SequentialJsonMockedTracerResponse(path="/v1.0/traces", mocked_json_sequence=sequence),
         ]
         send_mocked_tracer_responses(mocks)
 

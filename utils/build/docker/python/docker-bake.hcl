@@ -13,6 +13,7 @@ group "default" {
     "flask-poc",
     "uwsgi-poc",
     "tornado",
+    "openai-py",
   ]
 }
 
@@ -60,4 +61,10 @@ target "tornado" {
   inherits   = ["_common"]
   dockerfile = "tornado.base.Dockerfile"
   tags       = ["datadog/system-tests:tornado.base"]
+}
+
+target "openai-py" {
+  inherits   = ["_common"]
+  dockerfile = "openai-py.base.Dockerfile"
+  tags       = ["datadog/system-tests:openai-py.base"]
 }
