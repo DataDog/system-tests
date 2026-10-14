@@ -55,11 +55,14 @@ const jsonLogger = winston.createLogger({
 
 iast.initData().catch(() => {})
 
-app.use(require('body-parser').json({
+const jsonBodyOptions = {
   verify: (req, res, buf) => {
     req.rawBody = buf
   }
-}))
+}
+// The shared degradation contract sends 12,000 targeting keys in one /ffe request.
+app.use('/ffe', require('body-parser').json({ ...jsonBodyOptions, limit: '1mb' }))
+app.use(require('body-parser').json(jsonBodyOptions))
 app.use(require('body-parser').urlencoded({ extended: true }))
 app.use(require('express-xml-bodyparser')())
 app.use(require('cookie-parser')())
@@ -240,8 +243,9 @@ app.get('/trace/manual_keep_drop', (req, res) => {
   tracer.scope().active().setTag(decision === 'keep' ? MANUAL_KEEP : MANUAL_DROP, true)
 
   // Call downstream so that tests can assert on the sampling decision that gets propagated
-  const url = 'http://localhost:7777/'
-  const request = http.request({ hostname: 'localhost', port: 7777, path: '/', method: 'GET' }, (response) => {
+  // The weblog listens on IPv4; localhost may resolve to IPv6 instead.
+  const url = 'http://127.0.0.1:7777/'
+  const request = http.request({ hostname: '127.0.0.1', port: 7777, path: '/', method: 'GET' }, (response) => {
     response.on('data', () => {})
 
     response.on('end', () => {
@@ -973,6 +977,25 @@ const startServer = () => {
         app(req, res)
       }
     })
+
+    // Direct-EVP shutdown coverage needs Docker's SIGTERM to reach the ordinary Node
+    // process and let dd-trace's beforeExit hooks flush. Keep this opt-in so other
+    // scenarios retain the weblog's historical signal behavior.
+    if (process.env.SYSTEM_TESTS_FFE_SHUTDOWN_FLUSH_ENABLED === 'true') {
+      process.once('SIGTERM', () => {
+        server.close(error => {
+          if (error) {
+            console.error('Failed to close server during SIGTERM:', error)
+            process.exitCode = 1
+            return
+          }
+          console.log(JSON.stringify({
+            event: 'system_tests.ffe.shutdown.server_closed',
+            timestamp: new Date().toISOString()
+          }))
+        })
+      })
+    }
 
     server.listen(7777, '0.0.0.0', () => {
       tracer.trace('init.service', () => {})

@@ -187,8 +187,27 @@ class Test_ComputeLibrariesAndScenarios:
             600,
             "false",
             "DEFAULT",
-            "end_to_end,open_telemetry",
+            "end_to_end,integration_frameworks,open_telemetry",
         )
+
+    def test_integration_frameworks_docker_file(self):
+        for library, file, desired_execution_time in (
+            ("python", "utils/build/docker/python/openai-py.Dockerfile", 600),
+            ("python", "utils/build/docker/python/anthropic_app/main.py", 600),
+            ("nodejs", "utils/build/docker/nodejs/google_genai-js.Dockerfile", 300),
+            ("java", "utils/build/docker/java/openai_app/pom.xml", 600),
+        ):
+            inputs = build_inputs([file])
+
+            assert_github_processor(
+                inputs,
+                [library],
+                [library],
+                desired_execution_time,
+                "false",
+                "DEFAULT",
+                "end_to_end,integration_frameworks,open_telemetry",
+            )
 
     def test_nodejs_docker_file(self):
         inputs = build_inputs(["utils/build/docker/nodejs/express5.Dockerfile"])
@@ -200,7 +219,7 @@ class Test_ComputeLibrariesAndScenarios:
             300,
             "false",
             "DEFAULT",
-            "end_to_end,open_telemetry",
+            "end_to_end,integration_frameworks,open_telemetry",
         )
 
     def test_c_docker_file(self):
@@ -318,7 +337,7 @@ class Test_ComputeLibrariesAndScenarios:
             600,
             "false",
             "DEFAULT",
-            "end_to_end,open_telemetry",
+            "end_to_end,integration_frameworks,open_telemetry",
         )
 
     @set_env("GITHUB_PR_TITLE", "[java] Some title")
@@ -332,7 +351,7 @@ class Test_ComputeLibrariesAndScenarios:
             3600,
             "false",
             "DEFAULT",
-            "end_to_end,open_telemetry",
+            "end_to_end,integration_frameworks,open_telemetry",
         )
 
     @set_env("GITHUB_PR_TITLE", "[java@main] Some title")
@@ -346,7 +365,7 @@ class Test_ComputeLibrariesAndScenarios:
             600,
             "false",
             "DEFAULT",
-            "end_to_end,open_telemetry",
+            "end_to_end,integration_frameworks,open_telemetry",
         )
 
     @set_env("GITHUB_PR_TITLE", "[c@feature/native-http] Some title")
@@ -471,7 +490,7 @@ class Test_ComputeLibrariesAndScenarios:
             600,
             "false",
             "DEFAULT",
-            "end_to_end,open_telemetry",
+            "end_to_end,integration_frameworks,open_telemetry",
         )
 
     def test_otel_library(self):

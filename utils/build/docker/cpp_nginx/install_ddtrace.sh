@@ -2,6 +2,10 @@
 
 set -eu
 set -o pipefail
+
+# shellcheck source=/dev/null
+source "$(dirname "$0")/github.sh"
+
 set -x
 
 function fetch_version {
@@ -95,11 +99,6 @@ if [[ -f /binaries/ngx_http_datadog_module.so ]]; then
   exit 0
 fi
 
-get_latest_release() {
-    wget -qO- "https://api.github.com/repos/DataDog/nginx-datadog/releases/latest" \
-      | jq -r '.tag_name'
-}
-
 get_architecture() {
   arch | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/'
 }
@@ -124,7 +123,11 @@ if [ -f "$FILENAME" ]; then
   cp $FILENAME /usr/lib/nginx/modules/ngx_http_datadog_module.so
   NGINX_DATADOG_VERSION="v99.99.99"  # TODO: get version from the binary. Right now, use the "big-version" trick
 else
-  readonly NGINX_DATADOG_VERSION="$(get_latest_release)"
+  # disable tracing so the GitHub token is not printed in build logs
+  set +x
+  NGINX_DATADOG_VERSION="$(get_latest_release DataDog/nginx-datadog)"
+  readonly NGINX_DATADOG_VERSION
+  set -x
 
   if version_first_is_greater "$NGINX_DATADOG_VERSION" "v1.1.0"; then
     TARBALLS=(

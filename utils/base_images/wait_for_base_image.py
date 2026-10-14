@@ -72,24 +72,41 @@ def _metadata_weblogs(metadata_lines: list[str]) -> tuple[set[str], dict[str, se
 
 def _base_image_tag(library: str, weblog: str) -> str | None:
     """system-tests base image the weblog Dockerfile builds FROM (see base_image.py)."""
-    dockerfile = Path(f"utils/build/docker/{library}/{weblog}.Dockerfile")
-    if not dockerfile.exists():
-        metadata = Path(f"utils/build/docker/{library}/weblog_metadata.yml")
-        if not metadata.exists():
-            logger.error("Error: no library found at utils/build/docker/%s", library)
+
+    dockerfile: Path
+    metadata = Path(f"utils/build/docker/{library}/weblog_metadata.yml")
+
+    if not metadata.exists():
+        logger.error("Error: no library found at utils/build/docker/%s", library)
+        sys.exit(1)
+
+    weblogs, framework_versions = _metadata_weblogs(metadata.read_text().splitlines())
+
+    if "@" not in weblog:
+        # regular use case
+
+        if weblog not in weblogs:
+            logger.error(f"Error: {weblog} not found in {metadata}")
             sys.exit(1)
 
-        weblogs, framework_versions = _metadata_weblogs(metadata.read_text().splitlines())
-        weblog_name, separator, version = weblog.partition("@")
-        is_known_weblog = weblog in weblogs or (
-            separator and weblog_name in weblogs and version in framework_versions.get(weblog_name, set())
-        )
+        dockerfile = Path(f"utils/build/docker/{library}/{weblog}.Dockerfile")
+        if not dockerfile.exists():  # some weblog does not have any dockerfiles
+            return None
+    else:
+        # integration-framework weblogs (e.g. openai-py@2.0.0) use the Dockerfile of their unversioned name
+
+        weblog_name, _, version = weblog.partition("@")
+        is_known_weblog = weblog_name in weblogs and version in framework_versions.get(weblog_name, set())
+
         if not is_known_weblog:
-            logger.error("Error: no Dockerfile found for weblog '%s' in library '%s'", weblog, library)
+            logger.error(f"Error: {weblog} not found in {metadata}")
             sys.exit(1)
 
-        logger.info("%s has no Dockerfile, nothing to wait for", weblog)
-        return None
+        dockerfile = Path(f"utils/build/docker/{library}/{weblog_name}.Dockerfile")
+
+        if not dockerfile.exists():
+            logger.error(f"Error: {dockerfile} does not exists")
+            sys.exit(1)
 
     return base_image_ref(dockerfile.read_text())
 
@@ -105,6 +122,7 @@ def main() -> None:
     image_tag = _base_image_tag(args.library, args.weblog)
 
     if image_tag is None:
+        logger.info("%s has no Dockerfile, nothing to wait for", args.weblog)
         return
 
     logger.info("Waiting for %s to be available on Docker Hub (timeout: %ss)", image_tag, args.timeout)
