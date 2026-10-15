@@ -19,6 +19,7 @@ import pulumi_command as command
 DEFAULT_AMI_RETENTION_DAYS = 100
 DEFAULT_AMI_LAST_LAUNCHED_DAYS = 111
 _CANDIDATE_UNUSED_DAYS = 7
+_LAUNCH_REPORT_DELAY_DAYS = 1
 
 
 def should_delete_ami(
@@ -28,12 +29,14 @@ def should_delete_ami(
     now: datetime,
     retention_days: int,
     last_launched_days: int,
+    *,
+    launch_lookup_ok: bool = True,
 ) -> bool:
     """Decide whether automatic cleanup can deregister an AMI."""
     state = (tags or {}).get("ami-state")
-    if state == "active":
+    if state == "active" or (state == "candidate" and not launch_lookup_ok):
         return False
-    days = _CANDIDATE_UNUSED_DAYS if state == "candidate" else retention_days
+    days = _CANDIDATE_UNUSED_DAYS + _LAUNCH_REPORT_DELAY_DAYS if state == "candidate" else retention_days
     old = creation_date < now - timedelta(days=days)
     if state == "candidate":
         unused = last_launched_date is None or last_launched_date < now - timedelta(days=days)
@@ -42,7 +45,7 @@ def should_delete_ami(
     return old or stale
 
 
-def get_last_launched_time(ami_id: str) -> datetime | None:
+def get_last_launched_time(ami_id: str) -> tuple[bool, datetime | None]:
     """Return the AMI last-launched time. AWS can delay this value for 24 hours."""
     command = [
         "aws",
@@ -58,10 +61,10 @@ def get_last_launched_time(ami_id: str) -> datetime | None:
     try:
         result = subprocess.run(command, capture_output=True, text=True, check=True)
         value = json.loads(result.stdout).get("LastLaunchedTime", {}).get("Value")
-        return datetime.fromisoformat(value) if value else None
+        return True, datetime.fromisoformat(value) if value else None
     except (subprocess.CalledProcessError, json.JSONDecodeError, TypeError, ValueError) as error:
         print(f"⚠️ Failed to fetch last launched time for AMI {ami_id}: {error}")
-        return None
+        return False, None
 
 
 def deregister_ami(ami_id: str) -> None:
@@ -215,9 +218,15 @@ async def clean_up_amis() -> None:
             most_recent=True,
         )
         creation_date = datetime.fromisoformat(ami.creation_date)
-        last_launched_date = get_last_launched_time(ami_id)
+        launch_lookup_ok, last_launched_date = get_last_launched_time(ami_id)
         delete = should_delete_ami(
-            ami.tags, creation_date, last_launched_date, datetime.now(UTC), ami_retention_days, ami_last_launched_days
+            ami.tags,
+            creation_date,
+            last_launched_date,
+            datetime.now(UTC),
+            ami_retention_days,
+            ami_last_launched_days,
+            launch_lookup_ok=launch_lookup_ok,
         )
         print(f"AMI {ami.id} created={creation_date} launched={last_launched_date} delete={delete}")
         if delete:

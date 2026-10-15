@@ -41,10 +41,12 @@ _EVENT_REQUEST_TIMEOUT = 15
 def _select_cached_ami(
     cached_amis: list[aws.ec2.GetAmiResult],
 ) -> aws.ec2.GetAmiResult | None:
-    return next(
-        (ami for ami in cached_amis if str(ami.state) == "available" and (ami.tags or {}).get("ami-state") == "active"),
-        next(iter(cached_amis), None),
-    )
+    active_amis = [
+        ami for ami in cached_amis if str(ami.state) == "available" and (ami.tags or {}).get("ami-state") == "active"
+    ]
+    if active_amis:
+        return max(active_amis, key=lambda ami: ami.creation_date)
+    return next(iter(cached_amis), None)
 
 
 class AWSPulumiProvider(VmProvider):
