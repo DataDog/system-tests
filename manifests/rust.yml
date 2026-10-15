@@ -177,7 +177,8 @@ manifest:
   :  # TODO: a lower version might be supported
     - declaration: missing_feature (deployment.environment.name is not supported)
       component_version: <0.5.3-dev+729aaa7
-  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED: missing_feature
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED: '>=0.5.3-dev+04d96da'  # TODO: a lower version might be supported
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_stable_true: missing_feature
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME: v0.5.0
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_default_follows_otel_spec: irrelevant
   tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER: '>=0.5.3-dev+671276b'  # TODO: a lower version might be supported
@@ -190,8 +191,14 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_none_exporter: missing_feature
   tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_otlp_exporter: missing_feature
   tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_zipkin_exporter: missing_feature
-  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER: missing_feature
-  tests/parametric/otel_env_vars/test_otel_traces_sampler_arg.py::Test_OTEL_TRACES_SAMPLER_ARG: missing_feature
+  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER: '>=0.5.3-dev+04d96da'  # TODO: a lower version might be supported
+  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER::test_dd_trace_sample_ignore_parent_false: missing_feature
+  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER::test_dd_trace_sample_ignore_parent_true: missing_feature
+  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER::test_jaeger_remote_values: missing_feature
+  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER::test_rate_values: missing_feature
+  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER::test_third_party_values: missing_feature
+  tests/parametric/otel_env_vars/test_otel_traces_sampler_arg.py::Test_OTEL_TRACES_SAMPLER_ARG: '>=0.5.3-dev+04d96da'  # TODO: a lower version might be supported
+  tests/parametric/otel_env_vars/test_otel_traces_sampler_arg.py::Test_OTEL_TRACES_SAMPLER_ARG::test_stable_values: missing_feature
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids: v0.0.1
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3multi_128_bit_generation_disabled: missing_feature (propagation style not supported)
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3multi_128_bit_generation_enabled: missing_feature (propagation style not supported)
@@ -217,7 +224,7 @@ manifest:
   tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd: v0.3.3
   tests/parametric/test_config_consistency.py::Test_Config_RateLimit::test_default_trace_rate_limit: '>=0.4.1-dev+926c77a'  # Created by easy win activation script
   tests/parametric/test_config_consistency.py::Test_Config_RateLimit::test_setting_trace_rate_limit_strict: '>=0.4.1-dev+926c77a'  # Created by easy win activation script
-  tests/parametric/test_config_consistency.py::Test_Config_Tags::test_comma_space_tag_separation: missing_feature  # Created by easy win activation script
+  tests/parametric/test_config_consistency.py::Test_Config_Tags::test_comma_space_tag_separation: '>=0.5.3-dev+04d96da'  # Created by easy win activation script
   tests/parametric/test_config_consistency.py::Test_Config_Tags::test_dd_service_override: missing_feature  # Created by easy win activation script
   tests/parametric/test_config_consistency.py::Test_Config_TraceAgentURL: v0.3.3
   tests/parametric/test_config_consistency.py::Test_Config_TraceLogDirectory: missing_feature  # Created by easy win activation script
@@ -570,7 +577,12 @@ manifest:
   tests/test_config_consistency.py::Test_Config_LogInjection_128Bit_TraceId_Disabled: missing_feature (dd-trace-rs has no log injection)
   tests/test_config_consistency.py::Test_Config_LogInjection_128Bit_TraceId_Enabled: missing_feature (dd-trace-rs has no log injection)
   tests/test_config_consistency.py::Test_Config_LogInjection_Default_Structured: missing_feature (dd-trace-rs has no log injection)
-  tests/test_config_consistency.py::Test_Config_LogInjection_Default_Unstructured: missing_feature (dd-trace-rs has no log injection)
+  tests/test_config_consistency.py::Test_Config_LogInjection_Default_Unstructured:  # TODO: a lower version might be supported
+    - declaration: missing_feature (dd-trace-rs has no log injection)
+      component_version: <0.5.3-dev+04d96da
+      weblog: [axum]
+    - declaration: missing_feature (dd-trace-rs has no log injection)
+      excluded_weblog: [axum]
   tests/test_config_consistency.py::Test_Config_LogInjection_Enabled: missing_feature (dd-trace-rs has no log injection)
   ? tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Configured::test_query_string_obfuscation_configured_client
   : missing_feature (query string obfuscation not implemented)
@@ -595,7 +607,12 @@ manifest:
   tests/test_identify.py::Test_Basic: missing_feature (dd-trace-rs has no user-identification API)
   tests/test_identify.py::Test_Propagate::test_identify_tags_outgoing: missing_feature (dd-trace-rs has no user-identification API)
   tests/test_identify.py::Test_Propagate_Legacy::test_identify_tags_outgoing: missing_feature (dd-trace-rs has no user-identification API)
-  tests/test_ipv6.py::Test_Basic: bug (APMSP-4081)
+  tests/test_ipv6.py::Test_Basic:  # TODO: a lower version might be supported
+    - declaration: bug (APMSP-4081)
+      component_version: <0.5.3-dev+04d96da
+      weblog: [axum]
+    - declaration: bug (APMSP-4081)
+      excluded_weblog: [axum]
   tests/test_library_conf.py::Test_ExtractBehavior_Default: v0.0.1
   tests/test_library_conf.py::Test_ExtractBehavior_Ignore: ">=0.3.4-dev"
   tests/test_library_conf.py::Test_ExtractBehavior_Restart_Otel: '>0.5.2'  # TODO: a lower version might be supported
