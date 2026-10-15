@@ -4824,9 +4824,6 @@ manifest:
     - declaration: missing_feature (AppSec or IAST trace retention bypasses OTel sampling rule evaluation)
       weblog: [play, vertx3, vertx4]
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client: v1.66.0
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client::test_status_3xx_not_error:
-    - declaration: incomplete_test_app (The client follows a 302 response without a Location header and throws an exception)
-      weblog: [play]
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server: v1.66.0
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_http_endpoint_retained_from_appsec: irrelevant (The AppSec endpoint retention request is specific to .NET)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_span_name_route_invariance:
