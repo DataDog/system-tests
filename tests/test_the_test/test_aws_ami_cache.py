@@ -44,3 +44,25 @@ class Test_AwsAmiCache:
 
     def test_no_cached_ami_returns_none(self) -> None:
         assert _select_cached_ami([]) is None
+
+    def test_candidate_and_rejected_amis_are_not_selected(self) -> None:
+        legacy_ami = _CachedAmi(id="ami-legacy", creation_date="2026-01-01T00:00:00Z")
+        candidate_ami = _CachedAmi(
+            id="ami-candidate",
+            creation_date="2026-01-03T00:00:00Z",
+            tags={"ami-state": "candidate"},
+        )
+        rejected_ami = _CachedAmi(
+            id="ami-rejected",
+            creation_date="2026-01-04T00:00:00Z",
+            tags={"ami-state": "rejected"},
+        )
+
+        assert _select_cached_ami([candidate_ami, rejected_ami, legacy_ami]) is legacy_ami
+        assert _select_cached_ami([rejected_ami, candidate_ami]) is candidate_ami
+        assert _select_cached_ami([rejected_ami]) is None
+
+    def test_pending_ami_is_returned_so_another_job_does_not_create_one(self) -> None:
+        pending_ami = _CachedAmi(id="ami-pending", creation_date="2026-01-01T00:00:00Z", state="pending")
+
+        assert _select_cached_ami([pending_ami]) is pending_ami
