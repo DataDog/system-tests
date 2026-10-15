@@ -78,6 +78,7 @@ class ThreadContextSharingScenario(EndToEndScenario):
         # datadog-agent's documented Docker setup for Cloud Workload Security:
         # https://docs.datadoghq.com/security/workload_protection/setup/agent/docker/
         agent.pid_mode = "host"
+        agent.cgroupns = "host"
         agent.cap_add = [
             "SYS_ADMIN",
             "SYS_RESOURCE",
@@ -119,10 +120,6 @@ class ThreadContextSharingScenario(EndToEndScenario):
         guest's, not the node's.
         """
         agent = self.agent_container
-
-        # As in the documented CWS Docker setup (--cgroupns host): cgroup paths read by the agent
-        # are relative to the docker daemon's cgroup namespace, not to a private one of its own.
-        agent.cgroupns = "host"
 
         # Mounts, not volumes: a missing source (a runner without the /vm-host mounts) fails the
         # agent container creation, instead of being silently created as an empty directory.

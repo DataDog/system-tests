@@ -46,7 +46,7 @@ def test_default_uses_docker_host_kernel_filesystems(configured_scenario: Scenar
     agent = configured_scenario(None).agent_container
 
     assert agent.pid_mode == "host"
-    assert agent.cgroupns is None
+    assert agent.cgroupns == "host"
     assert agent.mounts is None
     assert agent.volumes["/sys/kernel/debug"] == {"bind": "/sys/kernel/debug", "mode": "rw"}
     assert agent.volumes["/sys/kernel/security"] == {"bind": "/sys/kernel/security", "mode": "rw"}
