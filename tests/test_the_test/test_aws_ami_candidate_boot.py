@@ -95,9 +95,14 @@ class Test_AwsAmiCandidateBoot:
         provider.vm.get_cache_name.return_value = _CACHE_KEY
         monkeypatch.setattr("utils.virtual_machine.aws_candidate_boot.boto3.client", lambda *_args, **_kwargs: object())
         rejected: list[tuple[object, ...]] = []
+
+        def _record_state(*args: object) -> bool:
+            rejected.append(args)
+            return True
+
         monkeypatch.setattr(
             "utils.virtual_machine.aws_candidate_boot.set_created_candidate_state",
-            lambda *args: rejected.append(args) or True,
+            _record_state,
         )
 
         provider.promote_booted_candidate("rejected")
