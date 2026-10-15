@@ -2,7 +2,7 @@
 
 The `THREAD_CONTEXT_SHARING` scenario checks that a tracer shares the trace_id/span_id of the span active on a thread with system-probe, so that a CWS (Cloud Workload Security) security event triggered on that thread carries them as `dd.trace_id`/`dd.span_id`. The weblog side of the contract is [`GET /security/thread_context_sharing`](../weblogs/end-to-end_weblog.md#get-securitythread_context_sharing).
 
-It is an [end-to-end scenario](README.md) whose agent runs the CWS runtime security module. Like the [documented CWS Docker setup](https://docs.datadoghq.com/security/workload_protection/setup/agent/docker/), the agent container gets the host PID and cgroup namespaces, extra capabilities, and binds of the docker host's `/sys/kernel/debug` and `/sys/kernel/security`. Tests wait for the agent's CWS self test to succeed before sending requests.
+It is an [end-to-end scenario](README.md) whose agent runs the CWS runtime security module. Like the [documented CWS Docker setup](https://docs.datadoghq.com/security/workload_protection/setup/agent/docker/), the agent container gets the host PID and cgroup namespaces, extra capabilities, and binds of the docker host's `/sys/kernel/debug` and `/sys/kernel/security`. The weblog is only started once the agent's CWS self test has succeeded (90 seconds at most): a weblog started before CWS is live has been observed to produce security events without trace context.
 
 ```bash
 ./build.sh php
@@ -23,10 +23,7 @@ For that environment, setting `SYSTEM_TESTS_CWS_GUEST_KERNEL_MOUNTS=v1` makes th
 | `/vm-host/sys/kernel/tracing`  | `/sys/kernel/tracing`                | rw   |
 | `/vm-host/sys/kernel/security` | `/sys/kernel/security`               | rw   |
 
-In this mode, system-tests also:
-
-* disables CWS enforcement (`DD_RUNTIME_SECURITY_CONFIG_ENFORCEMENT_ENABLED=false`): cgroup files read by the agent are relative to the VM's namespaces rather than its own, so it can't reliably identify its own cgroup;
-* starts the weblog only once the agent's CWS self test has succeeded (90 seconds at most). A weblog started before CWS is live has been observed to produce security events without trace context.
+In this mode, system-tests also disables CWS enforcement (`DD_RUNTIME_SECURITY_CONFIG_ENFORCEMENT_ENABLED=false`): cgroup files read by the agent are relative to the VM's namespaces rather than its own, so it can't reliably identify its own cgroup.
 
 Leaving the variable unset (or empty) keeps the default setup. Any other value is an error, so that a future version of the layout can't be silently misinterpreted.
 

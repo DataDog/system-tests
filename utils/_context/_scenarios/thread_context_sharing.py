@@ -99,6 +99,12 @@ class ThreadContextSharingScenario(EndToEndScenario):
             agent.volumes["/sys/kernel/debug"] = {"bind": "/sys/kernel/debug", "mode": "rw"}
             agent.volumes["/sys/kernel/security"] = {"bind": "/sys/kernel/security", "mode": "rw"}
 
+        # The weblog depends on the agent, so it is only started after this warmup. A weblog
+        # started before CWS was live has been observed to produce events without trace context.
+        self._guest_kernel_mounts = guest_kernel_mounts
+        self._agent_warmup = agent.warmup
+        agent.warmup = self._agent_warmup_then_wait_for_cws  # type: ignore[method-assign]
+
     @staticmethod
     def _guest_kernel_mounts_opted_in() -> bool:
         value = os.environ.get(GUEST_KERNEL_MOUNTS_VARIABLE, "")
@@ -138,11 +144,6 @@ class ThreadContextSharingScenario(EndToEndScenario):
         self._agent_start = agent.start
         agent.start = self._agent_start_explaining_missing_mounts  # type: ignore[method-assign]
 
-        # The weblog depends on the agent, so it is only started after this warmup. A weblog
-        # started before CWS was live has been observed to produce events without trace context.
-        self._agent_warmup = agent.warmup
-        agent.warmup = self._agent_warmup_then_wait_for_cws  # type: ignore[method-assign]
-
     def _agent_start_explaining_missing_mounts(self, network: Network) -> None:
         try:
             self._agent_start(network)
@@ -166,7 +167,9 @@ class ThreadContextSharingScenario(EndToEndScenario):
         self._agent_warmup()
 
         if not interfaces.agent.wait_for(cws_self_test_succeeded, timeout=CWS_READINESS_TIMEOUT):
-            raise RuntimeError(
-                f"CWS did not report a successful self test within {CWS_READINESS_TIMEOUT}s; check the "
-                f"agent logs. {_GUEST_KERNEL_MOUNTS_HELP}"
+            message = (
+                f"CWS did not report a successful self test within {CWS_READINESS_TIMEOUT}s; check the agent logs."
             )
+            if self._guest_kernel_mounts:
+                message += f" {_GUEST_KERNEL_MOUNTS_HELP}"
+            raise RuntimeError(message)
