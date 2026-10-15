@@ -176,6 +176,15 @@ build() {
                     rm -rf venv
                 fi
 
+                # venv/requirements.txt is written only once pip install has completed. If it's missing,
+                # a previous install was interrupted (e.g. killed by timeout), and the venv may contain
+                # half-installed packages that pip considers installed. Recreate it.
+                if [ -d "venv/" ] && [ ! -f "venv/requirements.txt" ]
+                then
+                    echo "Existing venv is incomplete. Recreating it."
+                    rm -rf venv
+                fi
+
                 if [ ! -d "venv/" ]
                 then
                     echo "Build virtual env"
@@ -197,6 +206,8 @@ build() {
                 source venv/bin/activate
                 run_build_command python -m pip install --upgrade pip setuptools==75.8.0
             fi
+            # remove the completion marker, it's written back only if the install succeeds
+            rm -f venv/requirements.txt
             run_build_command python -m pip install -e .
             if [[ -d "venv/" ]]; then
                 cp requirements.txt venv/requirements.txt
