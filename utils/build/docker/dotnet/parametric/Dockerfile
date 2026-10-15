@@ -33,7 +33,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y curl
 
 # install dd-trace-dotnet (must be done before setting LD_PRELOAD)
 COPY utils/build/docker/dotnet/install_ddtrace.sh binaries/ /binaries/
-RUN /binaries/install_ddtrace.sh
+RUN --mount=type=secret,id=github_token /binaries/install_ddtrace.sh
 
 # Opt-out of .NET SDK CLI telemetry (prevent unexpected http client spans)
 ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
