@@ -2722,9 +2722,9 @@ class _Features:
     def feature_flags_serial_id_metadata(test_object):
         """Feature Flags Serial ID Metadata (UFC split serialId threaded through flagMetadata)
 
-        No feature-parity page yet; using NOT_REPORTED_ID until one is filed.
+        https://feature-parity.us1.prod.dog/#/?feature=648
         """
-        return _mark_test_object(test_object, feature_id=NOT_REPORTED_ID, owner=_Owner.ffe)
+        return _mark_test_object(test_object, feature_id=648, owner=_Owner.ffe)
 
     @staticmethod
     def appsec_extended_data_collection(test_object):
