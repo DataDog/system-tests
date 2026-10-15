@@ -1,6 +1,11 @@
 mod dto;
 
-use std::{sync::Arc, time::Duration};
+pub(crate) use dto::parse_attributes_native;
+
+use std::{
+    sync::Arc,
+    time::{Duration, UNIX_EPOCH},
+};
 
 use axum::{
     extract::State,
@@ -8,6 +13,7 @@ use axum::{
     Json, Router,
 };
 use opentelemetry::{
+    baggage::BaggageExt,
     global,
     logs::{LoggerProvider, Logger, LogRecord, Severity, AnyValue},
     metrics::{Counter, Gauge, Histogram, Meter, MeterProvider, ObservableCounter, ObservableGauge, ObservableUpDownCounter, UpDownCounter},
@@ -17,7 +23,7 @@ use opentelemetry::{
 
 use tracing::debug;
 
-use crate::{get_tracer, opentelemetry::dto::*, AppState, ContextWithParent};
+use crate::{copy_baggage, get_tracer, opentelemetry::dto::*, AppState, ContextWithParent};
 
 pub enum MeterInstrument {
     Counter(Counter<u64>),
@@ -39,6 +45,7 @@ pub fn app() -> Router<AppState> {
         .route("/trace/otel/set_status", post(set_status))
         .route("/trace/otel/set_attributes", post(set_attributes))
         .route("/trace/otel/add_event", post(add_event))
+        .route("/trace/otel/otel_set_baggage", post(otel_set_baggage))
         .route("/trace/otel/record_exception", post(record_exception))
         .route("/trace/otel/end_span", post(end_span))
         .route("/trace/otel/flush", post(flush))
@@ -82,7 +89,7 @@ async fn start_span(
             if let Some(ctx) = state.contexts.lock().unwrap().get(&link.parent_id) {
                 let span = ctx.context.span();
                 if span.span_context().is_valid() {
-                    let attributes = parse_attributes(link.attributes.as_ref());
+                    let attributes = parse_attributes_native(link.attributes.as_ref());
                     valid_links.push(Link::new(span.span_context().clone(), attributes, 0));
                 }
             } else {
@@ -94,10 +101,24 @@ async fn start_span(
         }
     }
 
+    if !args.events.is_empty() {
+        builder = builder.with_events(
+            args.events
+                .iter()
+                .map(|event| {
+                    opentelemetry::trace::Event::new(
+                        event.name.clone(),
+                        UNIX_EPOCH + Duration::from_nanos(event.time_unix_nano),
+                        parse_attributes_native(event.attributes.as_ref()),
+                        0,
+                    )
+                })
+                .collect(),
+        );
+    }
+
     // TODO: review!
     let mut attributes = vec![
-        // hack to prevent libdatadog from dropping trace chunks
-        opentelemetry::KeyValue::new("_dd.top_level".to_string(), 1),
         // hack to fix some test_otel_span_methods.py with wrong resorce name
         opentelemetry::KeyValue::new("resource.name".to_string(), args.name),
     ];
@@ -107,20 +128,10 @@ async fn start_span(
     let parent_ctx = if let Some(parent_id) = args.parent_id {
         let spans = state.contexts.lock().unwrap();
         if let Some(ctx) = spans.get(&parent_id) {
-            let parent_span = ctx.context.span();
             debug!("build with otel span {parent_id:?} found");
 
-            let parent =
-                Context::new().with_remote_span_context(parent_span.span_context().clone());
-
-            let parent_span_id =
-                u64::from_be_bytes(parent.span().span_context().span_id().to_bytes());
-            debug!(
-                "build with otel span child {}, hex: {}",
-                parent_span_id,
-                parent.span().span_context().span_id(),
-            );
-            Some(parent)
+            // Use the stored context as-is so the child is parented to the live local span.
+            Some(ctx.context.clone())
         } else {
             debug!("build with otel span {parent_id:?} NOT found");
             None
@@ -143,7 +154,11 @@ async fn start_span(
             .unwrap(),
     );
 
-    let ctx = Context::current_with_span(span);
+    // Build from parent_ctx (not current) so the parent's baggage isn't dropped.
+    let ctx = match &parent_ctx {
+        Some(parent_ctx) => parent_ctx.with_span(span),
+        None => Context::current_with_span(span),
+    };
     let ctx_with_parent = Arc::new(ContextWithParent::new(ctx, parent_ctx));
     *state.current_context.lock().unwrap() = ctx_with_parent.clone();
     state
@@ -275,10 +290,10 @@ async fn add_event(State(state): State<AppState>, Json(args): Json<AddEventArgs>
             span.add_event_with_timestamp(
                 args.name,
                 system_time_from_micros(timestamp),
-                parse_attributes(args.attributes.as_ref()),
+                parse_attributes_native(args.attributes.as_ref()),
             );
         } else {
-            span.add_event(args.name, parse_attributes(args.attributes.as_ref()));
+            span.add_event(args.name, parse_attributes_native(args.attributes.as_ref()));
         }
     }
 }
@@ -342,6 +357,23 @@ async fn flush(State(state): State<AppState>, Json(_args): Json<FlushArgs>) -> J
     Json(FlushResult {
         success: result.is_ok(),
     })
+}
+
+async fn otel_set_baggage(
+    State(state): State<AppState>,
+    Json(args): Json<SetBaggageArgs>,
+) -> Json<GetBaggageResult> {
+    let updated = state.update_context(args.span_id, |ctx| {
+        let mut baggage = copy_baggage(ctx.baggage());
+        let _ = baggage.insert(args.key.clone(), args.value.clone());
+        ctx.with_baggage(baggage)
+    });
+    let value = updated.and_then(|ctx| {
+        ctx.baggage()
+            .get(&args.key)
+            .map(|value| value.as_str().to_string())
+    });
+    Json(GetBaggageResult { value })
 }
 
 // async fn set_baggage(State(state): State<AppState>, Json(args): Json<SetBaggageArgs>) {

@@ -38,7 +38,7 @@ if [ -e /binaries/rust-load-from-git ]; then
 fi
 
 if [ -e /binaries/dd-trace-rs ]; then
-    echo "install from /binaries/datadog-opentelemetry with metrics-http and metrics-grpc features"
+    echo "install from /binaries/datadog-opentelemetry with metrics-http, metrics-grpc, logs-http and logs-grpc features"
 
     cd /binaries/dd-trace-rs
 
@@ -70,7 +70,7 @@ if [ -e /binaries/dd-trace-rs ]; then
         fail "could not install datadog-opentelemetry from /binaries/dd-trace-rs. Check that the checkout contains that package."
     fi
 else
-    echo "install from crates.io with metrics-http and metrics-grpc features"
+    echo "install from crates.io with metrics-http, metrics-grpc, logs-http and logs-grpc features"
 
     # remove previous dependency on datadog-opentelemetry and add the new one from crates.io
     cargo remove datadog-opentelemetry >/dev/null 2>&1 || true
