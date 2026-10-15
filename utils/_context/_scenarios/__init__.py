@@ -255,6 +255,23 @@ class _Scenarios:
         scenario_groups=[scenario_groups.sampling],
     )
 
+    sampling_rules_agent_rate = DdTraceEndToEndScenario(
+        "SAMPLING_RULES_AGENT_RATE",
+        weblog_env={
+            "DD_TRACE_RATE_LIMIT": "10000000",
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
+            # This rule never matches real weblog traffic (wrong service name), so every span
+            # falls through to the fallback sampler. That fallback must still receive agent-published
+            # rates instead of being stuck at 1.0: https://github.com/DataDog/dd-trace-java/pull/12490
+            "DD_TRACE_SAMPLING_RULES": '[{"service": "not-the-real-service-xyz", "sample_rate": 1.0}]',
+        },
+        doc=(
+            "Test that agent-published sampling rates are still applied to spans that don't match any "
+            "configured sampling rule, instead of the rule-miss fallback being stuck at rate 1.0."
+        ),
+        scenario_groups=[scenario_groups.sampling],
+    )
+
     trace_propagation_style_w3c = DdTraceEndToEndScenario(
         "TRACE_PROPAGATION_STYLE_W3C",
         weblog_env={
@@ -262,6 +279,45 @@ class _Scenarios:
             "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "tracecontext",
         },
         doc="Test W3C trace style",
+    )
+
+    # Adapted from the instrumentation section of the OTel operator example:
+    # https://github.com/DataDog/opentelemetry-examples/blob/cyrille-leclerc/use-dd-operator/guides/kubernetes/configuration/opentelemetry-kube-stack/values.yaml
+    # Match instrumentation.env and the exporter/sampler/propagators fields.
+    # Only Kubernetes service DNS is replaced with the local Agent hostname.
+    # Settings absent from the example stay unset; the tests still require
+    # their effective defaults to appear in the startup configuration.
+    OTEL_STARTUP_LOGS_ENV: dict[str, str] = {
+        "OTEL_SEMCONV_STABILITY_OPT_IN": "http,database,rpc,messaging",
+        "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE": "delta",
+        "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
+        "OTEL_TRACES_EXPORTER": "otlp",
+        "DD_TRACE_OTEL_ENABLED": "true",
+        "DD_LOGS_OTEL_ENABLED": "true",
+        "DD_METRICS_OTEL_ENABLED": "true",
+        "DD_TRACE_OTEL_SEMANTICS_ENABLED": "true",
+        "DD_AGENT_HOST": "agent",
+        "DD_DBM_PROPAGATION_MODE": "full",
+        "DD_DBM_TRACE_PREPARED_STATEMENTS": "true",
+        "DD_DATA_STREAMS_ENABLED": "true",
+        "DD_TRACE_REMOVE_INTEGRATION_SERVICE_NAMES_ENABLED": "true",
+        "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": "http://agent:4318/v1/traces",
+        "OTEL_EXPORTER_OTLP_ENDPOINT": "http://agent:4318",
+        "OTEL_TRACES_SAMPLER": "parentbased_always_on",
+        "OTEL_PROPAGATORS": "tracecontext,baggage",
+    }
+
+    otel_startup_logs = DdTraceEndToEndScenario(
+        "OTEL_STARTUP_LOGS",
+        weblog_env={**OTEL_STARTUP_LOGS_ENV},
+        library_interface_timeout=0,
+        agent_interface_timeout=0,
+        appsec_enabled=False,
+        iast_enabled=False,
+        tracer_sampling_rate=None,
+        use_proxy_for_weblog=False,
+        doc="Require OTel configuration fields in tracer startup logs with an operator-style configuration",
+        scenario_groups=[scenario_groups.open_telemetry],
     )
 
     otel_semantics_otlp = DdTraceEndToEndScenario(
@@ -779,12 +835,7 @@ class _Scenarios:
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES",
         rc_api_enabled=True,
         appsec_enabled=False,
-        weblog_env={
-            "DD_REMOTE_CONFIGURATION_ENABLED": "true",
-            # configs below will used to debug connection failures in ddtrace-py
-            "DD_TRACE_LOGGING_RATE": "0",
-            "DD_TRACE_DEBUG": "true",
-        },
+        weblog_env={"DD_REMOTE_CONFIGURATION_ENABLED": "true"},
         doc="",
         scenario_groups=[scenario_groups.appsec, scenario_groups.remote_config, scenario_groups.essentials],
     )
@@ -1536,7 +1587,6 @@ class _Scenarios:
     )
 
     otel_collector = OtelCollectorScenario("OTEL_COLLECTOR")
-    otel_collector_e2e = OtelCollectorScenario("OTEL_COLLECTOR_E2E", mocked_backend=False)
 
     integration_frameworks = IntegrationFrameworksScenario(
         "INTEGRATION_FRAMEWORKS", doc="Tests for third-party integration frameworks"

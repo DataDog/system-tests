@@ -492,6 +492,11 @@ class ParametricTestClientApi(TestClientApi):
         )
         return resp.json()["span_id"]
 
+    def dd_log_level_diagnostics(self) -> bool:
+        """Ask the app to trigger identifiable SDK warning and error diagnostics."""
+        response = self._session.post(self._url("/trace/diagnostics/log_level"), json={})
+        return HTTPStatus(response.status_code).is_success and response.json().get("success") is True
+
     def dd_flush(self) -> bool:
         r = self._session.post(self._url("/trace/span/flush"), json={})
 
@@ -744,15 +749,24 @@ class ParametricTestClientApi(TestClientApi):
     def config(self) -> dict[str, str | None]:
         resp = self._session.get(self._url("/trace/config")).json()
         config_dict = resp["config"]
+        if self.lang == "nodejs":
+            config_dict.update(self.otel_effective_config())
         return {
             "dd_service": config_dict.get("dd_service", None),
             "dd_log_level": config_dict.get("dd_log_level", None),
+            "dd_trace_effective_log_level": config_dict.get("dd_trace_effective_log_level", None),
             "dd_trace_sample_rate": config_dict.get("dd_trace_sample_rate", None),
             "dd_trace_enabled": config_dict.get("dd_trace_enabled", None),
             "dd_runtime_metrics_enabled": config_dict.get("dd_runtime_metrics_enabled", None),
+            "dd_metrics_otel_interval": config_dict.get("dd_metrics_otel_interval", None),
+            "otel_metrics_initialized": config_dict.get("otel_metrics_initialized", None),
+            "otel_exporter_otlp_traces_timeout_ms": config_dict.get("otel_exporter_otlp_traces_timeout_ms", None),
+            "otel_exporter_otlp_metrics_timeout_ms": config_dict.get("otel_exporter_otlp_metrics_timeout_ms", None),
+            "otel_exporter_otlp_logs_timeout_ms": config_dict.get("otel_exporter_otlp_logs_timeout_ms", None),
             "dd_tags": config_dict.get("dd_tags", None),
             "dd_trace_propagation_style": config_dict.get("dd_trace_propagation_style", None),
             "dd_trace_debug": config_dict.get("dd_trace_debug", None),
+            "dd_trace_startup_log_level": config_dict.get("dd_trace_startup_log_level", None),
             "dd_trace_otel_enabled": config_dict.get("dd_trace_otel_enabled", None),
             "dd_trace_sample_ignore_parent": config_dict.get("dd_trace_sample_ignore_parent", None),
             "dd_env": config_dict.get("dd_env", None),
@@ -764,6 +778,18 @@ class ParametricTestClientApi(TestClientApi):
             "dd_logs_injection": config_dict.get("dd_logs_injection", None),
             "dd_profiling_enabled": config_dict.get("dd_profiling_enabled", None),
             "dd_data_streams_enabled": config_dict.get("dd_data_streams_enabled", None),
+        }
+
+    def otel_effective_config(self) -> dict[str, str | None]:
+        """Read resolved OTLP exporter timeouts from each SDK's configuration endpoint."""
+        endpoint = "/otel/effective_config" if self.lang == "nodejs" else "/trace/config"
+        response = self._session.get(self._url(endpoint))
+        response.raise_for_status()
+        config = response.json()["config"]
+        return {
+            "otel_exporter_otlp_traces_timeout_ms": config.get("otel_exporter_otlp_traces_timeout_ms"),
+            "otel_exporter_otlp_metrics_timeout_ms": config.get("otel_exporter_otlp_metrics_timeout_ms"),
+            "otel_exporter_otlp_logs_timeout_ms": config.get("otel_exporter_otlp_logs_timeout_ms"),
         }
 
     def otel_current_span(self) -> _TestOtelSpan | None:
@@ -1103,6 +1129,9 @@ class APMLibrary:
 
     def ensure_agent_info(self) -> bool:
         return self._client.ensure_agent_info()
+
+    def dd_log_level_diagnostics(self) -> bool:
+        return self._client.dd_log_level_diagnostics()
 
     def dd_flush(self) -> bool:
         return self._client.dd_flush()

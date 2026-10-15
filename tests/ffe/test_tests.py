@@ -388,10 +388,11 @@ def test_feature_flagging_agentless_evp_topology_supports_both_routes(
     assert_agentless_evp_topology(FeatureFlaggingEVPEgress(selected_interface, route))
 
     environment = scenario.weblog_infra.library_container.environment
-    for runtime_trust_variable in ("NODE_EXTRA_CA_CERTS", "REQUESTS_CA_BUNDLE", "SSL_CERT_FILE"):
+    for runtime_trust_variable in ("REQUESTS_CA_BUNDLE", "SSL_CERT_FILE"):
         assert runtime_trust_variable not in environment
 
     if route == "direct":
+        assert environment["NODE_EXTRA_CA_CERTS"] == DIRECT_EVP_CA_BUNDLE_CONTAINER_PATH
         library_container = scenario.weblog_infra.library_container
         expected_mount = {
             "bind": DIRECT_EVP_CA_BUNDLE_CONTAINER_PATH,
@@ -404,6 +405,7 @@ def test_feature_flagging_agentless_evp_topology_supports_both_routes(
         assert library_container.volumes[normalized_source] == expected_mount
         assert_agentless_evp_topology(FeatureFlaggingEVPEgress(selected_interface, route))
     else:
+        assert "NODE_EXTRA_CA_CERTS" not in environment
         assert DIRECT_EVP_CA_BUNDLE_SOURCE not in scenario.weblog_infra.library_container.volumes
 
 

@@ -1,11 +1,13 @@
 from functools import lru_cache
 from pathlib import Path
+from unittest.mock import patch
 
 from utils import scenarios
 from utils.const import COMPONENT_GROUPS
 from utils._context.weblog_metadata import WeblogMetaData
 from utils._context._scenarios import get_all_scenarios, Scenario
 from utils.scripts.ci_orchestrators.workflow_data import (
+    _get_execution_time,
     _get_endtoend_weblogs,
     get_endtoend_definitions,
 )
@@ -39,6 +41,68 @@ def test_get_endtoend_definitions():
     # graphql_appsec is executed on  graphql23 weblog
     # so the job should be equals to weblog count
     assert len(defs["endtoend_defs"]["parallel_jobs"]) == weblog_count
+
+
+@scenarios.test_the_test
+def test_execution_time_logs_weblog_fallback() -> None:
+    run_stats = {"SCENARIO": {"ruby": {"*": 42.0}}}
+
+    with patch("utils.scripts.ci_orchestrators.workflow_data.logger.warning") as warning:
+        duration = _get_execution_time("ruby", "sinatra41", "SCENARIO", run_stats)
+
+    assert duration == 42.0
+    warning.assert_called_once_with(
+        "Missing weblog timing for %s/%s/%s; using library fallback %.2fs",
+        "SCENARIO",
+        "ruby",
+        "sinatra41",
+        42.0,
+    )
+
+
+@scenarios.test_the_test
+def test_execution_time_logs_library_fallback() -> None:
+    run_stats = {"SCENARIO": {"*": 42.0}}
+
+    with patch("utils.scripts.ci_orchestrators.workflow_data.logger.warning") as warning:
+        duration = _get_execution_time("ruby", "sinatra41", "SCENARIO", run_stats)
+
+    assert duration == 42.0
+    warning.assert_called_once_with(
+        "Missing library timing for %s/%s/%s; using scenario fallback %.2fs",
+        "SCENARIO",
+        "ruby",
+        "sinatra41",
+        42.0,
+    )
+
+
+@scenarios.test_the_test
+def test_execution_time_logs_scenario_fallback() -> None:
+    run_stats = {"*": 42.0}
+
+    with patch("utils.scripts.ci_orchestrators.workflow_data.logger.warning") as warning:
+        duration = _get_execution_time("ruby", "sinatra41", "SCENARIO", run_stats)
+
+    assert duration == 42.0
+    warning.assert_called_once_with(
+        "Missing scenario timing for %s/%s/%s; using global fallback %.2fs",
+        "SCENARIO",
+        "ruby",
+        "sinatra41",
+        42.0,
+    )
+
+
+@scenarios.test_the_test
+def test_execution_time_does_not_log_exact_match() -> None:
+    run_stats = {"SCENARIO": {"ruby": {"*": 42.0, "sinatra41": 84.0}}}
+
+    with patch("utils.scripts.ci_orchestrators.workflow_data.logger.warning") as warning:
+        duration = _get_execution_time("ruby", "sinatra41", "SCENARIO", run_stats)
+
+    assert duration == 84.0
+    warning.assert_not_called()
 
 
 @scenarios.test_the_test

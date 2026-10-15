@@ -446,7 +446,9 @@ manifest:
   tests/test_distributed.py::Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   tests/test_graphql.py: missing_feature
   tests/test_identify.py: irrelevant
-  tests/test_ipv6.py: missing_feature (APMAPI-869)
+  tests/test_ipv6.py:  # TODO: a lower version might be supported
+    - declaration: missing_feature (APMAPI-869)
+      component_version: <1.25.0
   tests/test_library_conf.py: irrelevant
   tests/test_library_conf.py::Test_HeaderTags_DynamicConfig::test_tracing_client_http_header_tags_apm_multiconfig: missing_feature (APM_TRACING_MULTICONFIG is not supported in any language yet)
   tests/test_library_logs.py::Test_NoExceptions::test_dotnet: irrelevant (only for .NET)
@@ -454,6 +456,7 @@ manifest:
   tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
   tests/test_miscs.py: irrelevant
   tests/test_otel_http_semantics.py: missing_feature (nginx-datadog does not implement OTel HTTP semantic-convention mode)
+  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs: missing_feature
   tests/test_otel_tracestate_sampling.py: irrelevant (library does not implement OpenTelemetry)
   tests/test_profiling.py::Test_Profile::test_process_tags: missing_feature
   tests/test_profiling.py::Test_Profile::test_process_tags_svc: missing_feature

@@ -14,6 +14,7 @@ import requests
 from _pytest.outcomes import Failed
 
 from utils._logger import logger
+from utils.base_images.base_image import base_image_contexts
 from utils.docker_fixtures._core import get_docker_client
 
 
@@ -74,6 +75,9 @@ class TestClientFactory:
 
             for name, value in self.build_args.items():
                 cmd += ["--build-arg", f"{name}={value}"]
+
+            for alias, image in base_image_contexts(Path(self.dockerfile).read_text()).items():
+                cmd += ["--build-context", f"{alias}=docker-image://{image}"]
 
             cmd += [
                 "-t",

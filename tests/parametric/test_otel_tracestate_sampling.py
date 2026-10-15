@@ -240,7 +240,8 @@ class Test_OtelTracestateSampling:
             headers = _make_root_manual_keep_headers(test_library)
 
         traceparent, tracestate = get_tracecontext(headers)
-        assert traceparent.trace_flags == "01"
+        # A locally generated trace ID may also have the W3C random-trace-id flag set.
+        assert int(traceparent.trace_flags, 16) & 0x01
         assert "ot" not in tracestate
 
         (trace,) = test_agent.wait_for_num_traces(1)

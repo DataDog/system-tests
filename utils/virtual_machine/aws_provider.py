@@ -38,6 +38,15 @@ _MAX_EVENT_MESSAGE_LENGTH = 255
 _EVENT_REQUEST_TIMEOUT = 15
 
 
+def _select_cached_ami(
+    cached_amis: list[aws.ec2.GetAmiResult],
+) -> aws.ec2.GetAmiResult | None:
+    return next(
+        (ami for ami in cached_amis if str(ami.state) == "available" and (ami.tags or {}).get("ami-state") == "active"),
+        next(iter(cached_amis), None),
+    )
+
+
 class AWSPulumiProvider(VmProvider):
     def __init__(self):
         super().__init__()
@@ -147,7 +156,10 @@ class AWSPulumiProvider(VmProvider):
             return json.load(f)
 
     def _handle_provision_error(self, exception: pulumi.automation.errors.CommandError):
-        """If the exception is known, we will raise the exception, if not,we will store it in the vm object."""
+        """Stop the session on any provision error, so that no test is run.
+
+        If the exception is known, exit with code 3 (GitLab retries the job). If not, exit with code 1.
+        """
 
         exception_message = str(exception)
         for known_message in self.aws_infra_exceptions.values():
@@ -167,6 +179,8 @@ class AWSPulumiProvider(VmProvider):
             repr(exception),
             ["operation:up", "result:fail", f"stack:{self.stack_name}"],
         )
+        # The stack is destroyed by the scenario's close_targets, called when a warmup fails
+        pytest.exit(f"Error on VM provisioning, check the log file: {self.vm.name}.log", returncode=1)
 
     def _download_vm_logs_after_provision_failure(self) -> None:
         """Pull /var/log from the VM while it is still up (provision may have failed mid-way)."""
@@ -262,71 +276,52 @@ class AWSPulumiProvider(VmProvider):
                 "To destroy them, re-run the test without this env var."
             )
 
-    def _get_cached_amis(self, vm: _VirtualMachine):
+    def _get_cached_amis(self, vm: _VirtualMachine) -> list[aws.ec2.GetAmiResult]:
         """Get all the cached AMIs for the VM"""
-        names_filter_to_check = []
-        cached_amis = []
-        # Create search filter if vm is not marked as skip_cache or update_cache
-
-        if not vm.datadog_config.skip_cache and not vm.datadog_config.update_cache:
-            names_filter_to_check.append(vm.get_cache_name() + "-*")
-
-        # There are vms that should use the cache
-        if len(names_filter_to_check) > 0:
-            # Check for existing ami cache for the vm
-            ami_existing = aws.ec2.get_ami_ids(
-                filters=[aws.ec2.GetAmiIdsFilterArgs(name="name", values=names_filter_to_check)], owners=["self"]
+        ami_ids = aws.ec2.get_ami_ids(
+            filters=[aws.ec2.GetAmiIdsFilterArgs(name="name", values=[vm.get_cache_name() + "-*"])],
+            owners=["self"],
+        ).ids
+        cached_amis = [
+            aws.ec2.get_ami(
+                filters=[aws.ec2.GetAmiIdsFilterArgs(name="image-id", values=[ami_id])],
+                owners=["self"],
+                most_recent=True,
             )
-            # We found some cached AMIsm let's check the details: status, expiration, etc
-            for ami in ami_existing.ids:
-                # Latest ami details
-                ami_recent = aws.ec2.get_ami(
-                    filters=[aws.ec2.GetAmiIdsFilterArgs(name="image-id", values=[ami])],
-                    owners=["self"],
-                    most_recent=True,
-                )
-                logger.stdout(
-                    f"We found an existing AMI  name:[{ami_recent.name}], ID:[{ami_recent.id}], "
-                    f"status:[{ami_recent.state}], expiration:[{ami_recent.deprecation_time}], "
-                    f"created:[{ami_recent.creation_date}]"
-                )
-                cached_amis.append(ami_recent)
+            for ami_id in ami_ids
+        ]
+        for cached_ami in cached_amis:
+            logger.stdout(
+                f"We found an existing AMI  name:[{cached_ami.name}], ID:[{cached_ami.id}], "
+                f"status:[{cached_ami.state}], expiration:[{cached_ami.deprecation_time}], "
+                f"created:[{cached_ami.creation_date}]"
+            )
         return cached_amis
 
-    def _configure_cached_amis(self, vm: _VirtualMachine):
+    def _configure_cached_amis(self, vm: _VirtualMachine) -> None:
         """Configure the cached AMIs for the VM"""
-        before_time = time.time()
-        cached_amis = self._get_cached_amis(vm)
         # We don't want to use cache ami for skip_ami_cache or ami_update
         if vm.datadog_config.skip_cache or vm.datadog_config.update_cache:
             return
-        # Let's search the cached AMI for the VM
-        cached_ami_found = False
-        for cached_ami in cached_amis:
-            # The final name it's the vm.get_cache_name() + "-somethingaddedbyaws"
-            if vm.name in cached_ami.name:
-                if str(cached_ami.state) != "available":
-                    logger.stdout(
-                        f"We found an existing cache AMI for vm [{vm.name}] but we can no use it "
-                        f"because the current status is {cached_ami.state}"
-                    )
-                    logger.stdout(
-                        "We are not going to create a new AMI and we are not going to use it (skip cache mode)"
-                    )
-                    vm.datadog_config.update_cache = False
-                    vm.datadog_config.skip_cache = True
-                else:
-                    logger.stdout(
-                        f"Setting cached AMI for VM [{vm.name}] from base AMI ID [{vm.aws_config.ami_id}] "
-                        f"to cached AMI ID [{cached_ami.id}]"
-                    )
-                    vm.aws_config.ami_id = cached_ami.id
-                cached_ami_found = True
-                break
 
-        # Here we don't find a cached AMI for the VM. Force creation
-        if not cached_ami_found:
+        before_time = time.time()
+        cached_ami = _select_cached_ami(self._get_cached_amis(vm))
+        if cached_ami is None:
             vm.datadog_config.update_cache = True
+        elif str(cached_ami.state) != "available":
+            logger.stdout(
+                f"We found an existing cache AMI for vm [{vm.name}] but we can no use it "
+                f"because the current status is {cached_ami.state}"
+            )
+            logger.stdout("We are not going to create a new AMI and we are not going to use it (skip cache mode)")
+            vm.datadog_config.update_cache = False
+            vm.datadog_config.skip_cache = True
+        else:
+            logger.stdout(
+                f"Setting cached AMI for VM [{vm.name}] from base AMI ID [{vm.aws_config.ami_id}] "
+                f"to cached AMI ID [{cached_ami.id}]"
+            )
+            vm.aws_config.ami_id = cached_ami.id
 
         logger.info(f"Time cache for AMIs: {time.time() - before_time}")
 

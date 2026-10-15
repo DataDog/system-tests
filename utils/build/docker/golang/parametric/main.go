@@ -9,6 +9,7 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/DataDog/dd-trace-go/v2/crashtracker"
 	ddotel "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry"
 	otlog "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry/log"
 	ddmetric "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry/metric"
@@ -31,9 +32,10 @@ type apmClientServer struct {
 	// OTel Logs
 	otelLoggers map[string]otelLogger
 	// OTel Metrics
-	mp          metric.MeterProvider
-	meters      map[string]metric.Meter
-	instruments map[string]interface{} // Can be Counter, UpDownCounter, Gauge, Histogram, or Observable variants
+	mp                  metric.MeterProvider
+	meters              map[string]metric.Meter
+	instruments         map[string]interface{} // Can be Counter, UpDownCounter, Gauge, Histogram, or Observable variants
+	metricConfiguration *metricReaderConfiguration
 }
 
 type spanContext struct {
@@ -45,6 +47,7 @@ func newServer() *apmClientServer {
 	tp := ddotel.NewTracerProvider()
 	otel.SetTracerProvider(tp)
 
+	metricConfiguration := observeMetricReaderConfiguration()
 	mp, err := ddmetric.NewMeterProvider()
 	if err != nil {
 		log.Fatalf("failed to create Datadog OTel MeterProvider: %v", err)
@@ -56,14 +59,15 @@ func newServer() *apmClientServer {
 	}
 
 	s := &apmClientServer{
-		spans:        make(map[uint64]*tracer.Span),
-		otelLoggers:  make(map[string]otelLogger),
-		spanContexts: make(map[uint64]*tracer.SpanContext),
-		otelSpans:    make(map[uint64]spanContext),
-		tp:           tp,
-		mp:           mp,
-		meters:       make(map[string]metric.Meter),
-		instruments:  make(map[string]interface{}),
+		spans:               make(map[uint64]*tracer.Span),
+		otelLoggers:         make(map[string]otelLogger),
+		spanContexts:        make(map[uint64]*tracer.SpanContext),
+		otelSpans:           make(map[uint64]spanContext),
+		tp:                  tp,
+		mp:                  mp,
+		meters:              make(map[string]metric.Meter),
+		instruments:         make(map[string]interface{}),
+		metricConfiguration: metricConfiguration,
 	}
 
 	// The configuration-source contract requires lazy activation: no configuration
@@ -108,7 +112,18 @@ func ffeConfigurationEnvVarsSet() bool {
 	return false
 }
 
+func (s *apmClientServer) crashHandler(http.ResponseWriter, *http.Request) {
+	go func() {
+		panic("system-tests crash")
+	}()
+	select {}
+}
+
 func main() {
+	if err := crashtracker.Start(); err != nil {
+		log.Printf("crashtracker.Start: %v", err)
+	}
+
 	flag.String("Darg1", "", "Argument 1")
 	flag.Parse()
 	defer func() {
@@ -133,6 +148,7 @@ func main() {
 	http.HandleFunc("/trace/span/extract_headers", s.extractHeadersHandler)
 	http.HandleFunc("/trace/span/error", s.spanSetErrorHandler)
 	http.HandleFunc("/trace/config", s.getTraceConfigHandler)
+	http.HandleFunc("/trace/crash", s.crashHandler)
 	http.HandleFunc("/trace/agent/ensure_agent_info", s.ensureAgentInfoHandler)
 	http.HandleFunc("/trace/span/manual_keep", s.spanManualKeepHandler)
 	http.HandleFunc("/trace/span/manual_drop", s.spanManualDropHandler)
