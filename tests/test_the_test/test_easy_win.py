@@ -1,12 +1,15 @@
 import json
+import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
 
-import pytest
+from utils import pytest
 import yaml
 
 from utils.manifest._internal.types import Condition, SkipDeclaration, SemverRange
+from utils.scripts.activate_easy_wins import __main__ as activate_easy_wins_main
 from utils.scripts.activate_easy_wins._internal.test_artifact import (
     ActivationStatus,
     parse_artifact_data,
@@ -45,6 +48,17 @@ def create_manifest_yaml(rules: dict[str, str]) -> str:
     return "\n".join(lines) + "\n"
 
 
+class FakeCompletedProcess:
+    def __init__(self, args: list[str], *, returncode: int = 0, stdout: str = "") -> None:
+        self.args = args
+        self.returncode = returncode
+        self.stdout = stdout
+
+    def check_returncode(self) -> None:
+        if self.returncode != 0:
+            raise subprocess.CalledProcessError(self.returncode, self.args)
+
+
 # =============================================================================
 # Tests for parse_artifact_data function
 # =============================================================================
@@ -79,7 +93,11 @@ def test_parse_artifact_data_xpassed_tests():
         assert weblogs["python"] == {"flask"}
 
 
-def test_parse_artifact_data_xpassed_then_non_xpassed_removes_from_xpass_nodes():
+@pytest.mark.parametrize("outcome", ["xfailed", "skipped"])
+@pytest.mark.parametrize("reverse_order", [False, True])
+def test_parse_artifact_data_xpassed_then_non_xpassed_removes_from_xpass_nodes(
+    outcome: str, *, reverse_order: bool
+) -> None:
     """Test for parametric tests with mixed outcomes"""
     with tempfile.TemporaryDirectory() as tmpdir:
         data_dir = Path(tmpdir)
@@ -92,11 +110,13 @@ def test_parse_artifact_data_xpassed_then_non_xpassed_removes_from_xpass_nodes()
             weblog_variant="flask",
             tests=[
                 {"nodeid": "tests/test_module.py::Test_Class::test_mixed[param1]", "outcome": "xpassed"},
-                {"nodeid": "tests/test_module.py::Test_Class::test_mixed[param2]", "outcome": "xfailed"},
+                {"nodeid": "tests/test_module.py::Test_Class::test_mixed[param2]", "outcome": outcome},
                 {"nodeid": "tests/test_module.py::Test_Class::test_mixed[param3]", "outcome": "xpassed"},
                 {"nodeid": "tests/test_module.py::Test_Class::test_pass[param]", "outcome": "xpassed"},
             ],
         )
+        if reverse_order:
+            report["tests"].reverse()
         with (scenario_dir / "report.json").open("w") as f:
             json.dump(report, f)
 
@@ -104,11 +124,13 @@ def test_parse_artifact_data_xpassed_then_non_xpassed_removes_from_xpass_nodes()
 
         context = next(iter(test_data.keys()))
         assert "tests/test_module.py::Test_Class::test_mixed" not in test_data[context].xpass_nodes
+        assert "tests/test_module.py::Test_Class::test_mixed" in test_data[context].xfail_nodes
         assert "tests/test_module.py::Test_Class::test_pass" in test_data[context].xpass_nodes
 
 
-def test_parse_artifact_data_xfailed_tests():
-    """Test that xfailed tests result in XFAIL status in trie."""
+@pytest.mark.parametrize("outcome", ["xfailed", "skipped"])
+def test_parse_artifact_data_xfailed_tests(outcome: str) -> None:
+    """Test that xfailed and skipped tests block activation at every level."""
     with tempfile.TemporaryDirectory() as tmpdir:
         data_dir = Path(tmpdir)
         scenario_dir = data_dir / "test_run" / "scenario1"
@@ -119,7 +141,7 @@ def test_parse_artifact_data_xfailed_tests():
             library_version="1.5.0",
             weblog_variant="spring-boot",
             tests=[
-                {"nodeid": "tests/test_feature.py::Test_Feature::test_xfail", "outcome": "xfailed"},
+                {"nodeid": "tests/test_feature.py::Test_Feature::test_xfail", "outcome": outcome},
             ],
         )
         with (scenario_dir / "report.json").open("w") as f:
@@ -130,7 +152,12 @@ def test_parse_artifact_data_xfailed_tests():
         assert len(test_data) == 1
         context = next(iter(test_data.keys()))
         assert context.library == "java"
+        assert test_data[context].xpass_nodes == set()
+        assert test_data[context].xfail_nodes == {"tests/test_feature.py::Test_Feature::test_xfail"}
         assert test_data[context].trie.get("tests/test_feature.py/Test_Feature/test_xfail") == ActivationStatus.XFAIL
+        assert test_data[context].trie.get("tests/test_feature.py/Test_Feature") == ActivationStatus.XFAIL
+        assert test_data[context].trie.get("tests/test_feature.py") == ActivationStatus.XFAIL
+        assert test_data[context].trie.get("tests") == ActivationStatus.XFAIL
         assert weblogs["java"] == {"spring-boot"}
 
 
@@ -222,7 +249,9 @@ def test_parse_artifact_data_library_filter():
         assert "python" in weblogs
 
 
-def test_parse_artifact_data_trie_none_status_on_mixed_outcomes():
+@pytest.mark.parametrize("outcome", ["xfailed", "skipped"])
+@pytest.mark.parametrize("reverse_order", [False, True])
+def test_parse_artifact_data_trie_none_status_on_mixed_outcomes(outcome: str, *, reverse_order: bool) -> None:
     """Test that trie nodes get NONE status when children have mixed outcomes.
 
     The trie uses NONE to indicate that a parent node cannot be activated at that level
@@ -242,15 +271,17 @@ def test_parse_artifact_data_trie_none_status_on_mixed_outcomes():
             tests=[
                 # Class with mixed outcomes - should result in NONE at class level
                 {"nodeid": "tests/appsec/test_mixed.py::Test_Mixed::test_passes", "outcome": "xpassed"},
-                {"nodeid": "tests/appsec/test_mixed.py::Test_Mixed::test_fails", "outcome": "xfailed"},
+                {"nodeid": "tests/appsec/test_mixed.py::Test_Mixed::test_fails", "outcome": outcome},
                 # Class with all xpassed - should result in XPASS at class level
                 {"nodeid": "tests/appsec/test_all_pass.py::Test_AllPass::test_one", "outcome": "xpassed"},
                 {"nodeid": "tests/appsec/test_all_pass.py::Test_AllPass::test_two", "outcome": "xpassed"},
                 # Class with all xfailed - should result in XFAIL at class level
-                {"nodeid": "tests/appsec/test_all_fail.py::Test_AllFail::test_a", "outcome": "xfailed"},
-                {"nodeid": "tests/appsec/test_all_fail.py::Test_AllFail::test_b", "outcome": "xfailed"},
+                {"nodeid": "tests/appsec/test_all_fail.py::Test_AllFail::test_a", "outcome": outcome},
+                {"nodeid": "tests/appsec/test_all_fail.py::Test_AllFail::test_b", "outcome": outcome},
             ],
         )
+        if reverse_order:
+            report["tests"].reverse()
         with (scenario_dir / "report.json").open("w") as f:
             json.dump(report, f)
 
@@ -285,7 +316,9 @@ def test_parse_artifact_data_trie_none_status_on_mixed_outcomes():
         assert trie.get("tests") == ActivationStatus.NONE
 
 
-def test_parse_artifact_data_parametric_tests_mixed_params_not_activated():
+@pytest.mark.parametrize("outcome", ["xfailed", "skipped"])
+@pytest.mark.parametrize("reverse_order", [False, True])
+def test_parse_artifact_data_parametric_tests_mixed_params_not_activated(outcome: str, *, reverse_order: bool) -> None:
     """Test that parametric tests with mixed outcomes across parameters are not activated.
 
     When a test method has parameters (e.g., test_method[param1], test_method[param2]),
@@ -306,17 +339,19 @@ def test_parse_artifact_data_parametric_tests_mixed_params_not_activated():
             tests=[
                 # Same test method with different parameters - mixed outcomes
                 {"nodeid": "tests/parametric/test_params.py::Test_Params::test_mixed[param1]", "outcome": "xpassed"},
-                {"nodeid": "tests/parametric/test_params.py::Test_Params::test_mixed[param2]", "outcome": "xfailed"},
+                {"nodeid": "tests/parametric/test_params.py::Test_Params::test_mixed[param2]", "outcome": outcome},
                 {"nodeid": "tests/parametric/test_params.py::Test_Params::test_mixed[param3]", "outcome": "xpassed"},
                 # Same test method with all parameters passing
                 {"nodeid": "tests/parametric/test_params.py::Test_Params::test_all_pass[a]", "outcome": "xpassed"},
                 {"nodeid": "tests/parametric/test_params.py::Test_Params::test_all_pass[b]", "outcome": "xpassed"},
                 {"nodeid": "tests/parametric/test_params.py::Test_Params::test_all_pass[c]", "outcome": "xpassed"},
                 # Same test method with all parameters failing
-                {"nodeid": "tests/parametric/test_params.py::Test_Params::test_all_fail[x]", "outcome": "xfailed"},
-                {"nodeid": "tests/parametric/test_params.py::Test_Params::test_all_fail[y]", "outcome": "xfailed"},
+                {"nodeid": "tests/parametric/test_params.py::Test_Params::test_all_fail[x]", "outcome": outcome},
+                {"nodeid": "tests/parametric/test_params.py::Test_Params::test_all_fail[y]", "outcome": outcome},
             ],
         )
+        if reverse_order:
+            report["tests"].reverse()
         with (scenario_dir / "report.json").open("w") as f:
             json.dump(report, f)
 
@@ -390,6 +425,257 @@ def test_e2e_activation_modifies_manifest():
         # Verify activation occurred
         assert logger.tests_per_language.get("ruby", 0) > 0
         assert logger.total_modified_rules > 0 or len(manifest_editor.added_rules) > 0
+
+
+def test_e2e_activation_does_not_crash_when_clause_has_multiple_weblogs():
+    """Regression test for ManifestEditor.get_matches() clause resolution.
+
+    When a weblog_declaration key contains comma-separated weblogs (e.g. 'rails70, sinatra'),
+    the manifest parser expands it into a single condition with weblog=['rails70', 'sinatra']
+    (length > 1).  When compute_edit_loc determines is_clause=True for that condition,
+    the unpatched code asserted len(key_list) == 1 and crashed with AssertionError.
+
+    This test reproduces that exact scenario: a comma-separated weblog_declaration key
+    where the test xpasses for one of the listed weblogs.
+    """
+    with tempfile.TemporaryDirectory() as tmpdir:
+        data_dir = Path(tmpdir) / "data"
+        manifest_dir = Path(tmpdir) / "manifests"
+        data_dir.mkdir()
+        manifest_dir.mkdir()
+
+        scenario_dir = data_dir / "ruby_run" / "scenario1"
+        scenario_dir.mkdir(parents=True)
+        report = create_report_json(
+            library_name="ruby",
+            library_version="2.5.0",
+            weblog_variant="rails70",
+            tests=[
+                {"nodeid": "tests/appsec/test_clause.py::Test_Clause::test_method", "outcome": "xpassed"},
+                {"nodeid": "tests/appsec/test_clause.py::Test_Clause::test_method2", "outcome": "xfailed"},
+            ],
+        )
+        with (scenario_dir / "report.json").open("w") as f:
+            json.dump(report, f)
+
+        # Comma-separated weblog key: the parser splits this into
+        #   condition["weblog"] = ["rails70", "sinatra"]  (len == 2)
+        # so is_clause=True leads to len(key_list) == 2 in the old assertion.
+        (manifest_dir / "ruby.yml").write_text(
+            (
+                "---\n"
+                "manifest:\n"
+                "  tests/appsec/test_clause.py::Test_Clause:\n"
+                "    - weblog_declaration:\n"
+                "        'rails70, sinatra': missing_feature\n"
+                "        uds-rails: missing_feature\n"
+                "        other_var: v1.2.3\n"
+                "\n"
+            ),
+            encoding="utf-8",
+        )
+
+        test_data, weblogs, _ = parse_artifact_data(data_dir, ["ruby"])
+        manifest_editor = ManifestEditor(weblogs, manifests_path=manifest_dir, components=["ruby"])
+
+        # This used to crash with: AssertionError (len(key_list) == 1)
+        logger = update_manifest(manifest_editor, test_data)
+        manifest_editor.write(output_dir=manifest_dir)
+
+        # Should record an activation for the xpassed test.
+        assert logger.tests_per_language.get("ruby", 0) > 0
+
+        updated_manifest = (manifest_dir / "ruby.yml").read_text(encoding="utf-8")
+        expected_manifest = (
+            "# yaml-language-server: $schema=https://raw.githubusercontent.com/DataDog/system-tests/refs/heads/main/utils/manifest/schema.json\n"
+            "---\n"
+            "manifest:\n"
+            "  tests/appsec/test_clause.py::Test_Clause:\n"
+            "    - weblog_declaration:\n"
+            "        uds-rails: missing_feature\n"
+            "        other_var: v1.2.3\n"
+            "        sinatra: missing_feature\n"
+            "        rails70: v2.5.0  # TODO: a lower version might be supported\n"
+            "  tests/appsec/test_clause.py::Test_Clause::test_method2:\n"
+            "    - weblog_declaration:\n"
+            "        rails70: missing_feature"
+        )
+        assert updated_manifest == expected_manifest
+
+
+def test_e2e_activation_skips_child_rules_when_parent_anchor_poke_is_skipped(tmp_path: Path) -> None:
+    data_dir = tmp_path / "data"
+    manifest_dir = tmp_path / "manifests"
+    scenario_dir = data_dir / "python_run" / "scenario1"
+    scenario_dir.mkdir(parents=True)
+    manifest_dir.mkdir()
+
+    report = create_report_json(
+        library_name="python",
+        library_version="4.12.0",
+        weblog_variant="tornado",
+        tests=[
+            {"nodeid": "tests/debugger/test_symdb.py::Test_SymDb::test_passes", "outcome": "xpassed"},
+            {"nodeid": "tests/debugger/test_symdb.py::Test_SymDb::test_fails", "outcome": "xfailed"},
+        ],
+    )
+    with (scenario_dir / "report.json").open("w", encoding="utf-8") as file:
+        json.dump(report, file)
+
+    (manifest_dir / "python.yml").write_text(
+        """---
+refs:
+  - &flask "flask-poc, uwsgi-poc, uds-flask"
+manifest:
+  tests/debugger/test_symdb.py::Test_SymDb:
+    - weblog_declaration:
+        "*": missing_feature
+        *flask : v2.11.0
+""",
+        encoding="utf-8",
+    )
+
+    test_data, weblogs, _ = parse_artifact_data(data_dir, ["python"])
+    manifest_editor = ManifestEditor(weblogs, manifests_path=manifest_dir, components=["python"])
+    update_manifest(manifest_editor, test_data)
+
+    manifest_editor.write(manifest_dir)
+
+    with (manifest_dir / "python.yml").open(encoding="utf-8") as file:
+        result = yaml.safe_load(file)
+    assert "tests/debugger/test_symdb.py::Test_SymDb::test_fails" not in result["manifest"]
+
+
+def test_e2e_activation_merges_child_rule_before_poke_when_one_parent_is_skipped(tmp_path: Path) -> None:
+    data_dir = tmp_path / "data"
+    manifest_dir = tmp_path / "manifests"
+    manifest_dir.mkdir()
+
+    test_file = "tests/debugger/test_symdb.py"
+    test_class = f"{test_file}::Test_SymDb"
+    failing_test = f"{test_class}::test_fails"
+    tornado_scenario_dir = data_dir / "python_tornado_run" / "scenario1"
+    tornado_scenario_dir.mkdir(parents=True)
+    tornado_report = create_report_json(
+        library_name="python",
+        library_version="4.12.0",
+        weblog_variant="tornado",
+        tests=[
+            {"nodeid": f"{test_class}::test_passes", "outcome": "xpassed"},
+            {"nodeid": failing_test, "outcome": "xfailed"},
+        ],
+    )
+    with (tornado_scenario_dir / "report.json").open("w", encoding="utf-8") as file:
+        json.dump(tornado_report, file)
+
+    flask_scenario_dir = data_dir / "python_flask_run" / "scenario1"
+    flask_scenario_dir.mkdir(parents=True)
+    flask_report = create_report_json(
+        library_name="python",
+        library_version="4.12.0",
+        weblog_variant="flask-poc",
+        tests=[{"nodeid": failing_test, "outcome": "xpassed"}],
+    )
+    with (flask_scenario_dir / "report.json").open("w", encoding="utf-8") as file:
+        json.dump(flask_report, file)
+
+    (manifest_dir / "python.yml").write_text(
+        f"""---
+refs:
+  - &flask "flask-poc, uwsgi-poc, uds-flask"
+manifest:
+  {test_file}:
+    - weblog_declaration:
+        "*": bug (TEST-123)
+        *flask : v2.11.0
+  {test_class}: missing_feature
+  {failing_test}: missing_feature
+""",
+        encoding="utf-8",
+    )
+
+    test_data, weblogs, _ = parse_artifact_data(data_dir, ["python"])
+    manifest_editor = ManifestEditor(weblogs, manifests_path=manifest_dir, components=["python"])
+    update_manifest(manifest_editor, test_data)
+
+    assert {
+        parent.rule: str(parent.condition["declaration"]) for parent, _ in manifest_editor.added_rules[failing_test]
+    } == {test_file: "bug (TEST-123)", test_class: "missing_feature"}
+
+    manifest_editor.write(manifest_dir)
+
+    with (manifest_dir / "python.yml").open(encoding="utf-8") as file:
+        result = yaml.safe_load(file)
+    assert result["manifest"][test_class] == [
+        {
+            "weblog_declaration": {
+                "*": "missing_feature",
+                "flask-poc": ">=4.12.0",
+                "tornado": ">=4.12.0",
+            }
+        }
+    ]
+    assert result["manifest"][failing_test] == [
+        {"weblog_declaration": {"*": "missing_feature", "flask-poc": ">=4.12.0"}}
+    ]
+
+
+def test_split_code_owner_activation_skips_commit_when_manifest_write_has_no_diff(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    skipped_nodes_file = tmp_path / "skip.yml"
+    skipped_nodes_file.write_text("{}\n", encoding="utf-8")
+    recorded_commands: list[list[str]] = []
+
+    class NoDiffManifestEditor:
+        def __init__(self, *_: object, **__: object) -> None:
+            self.added_rules: dict[str, set[object]] = {}
+
+        def write(self) -> None:
+            pass
+
+    class MatchedActivationLogger:
+        total_tests_activated = 1
+        total_modified_rules = 1
+
+    def fake_parse_artifact_data(
+        *_: object, **__: object
+    ) -> tuple[dict[object, object], dict[str, set[str]], set[str]]:
+        return {object(): object()}, {"python": {"flask"}}, {"@DataDog/team-a"}
+
+    def fake_update_manifest(*_: object, **__: object) -> MatchedActivationLogger:
+        return MatchedActivationLogger()
+
+    def fake_subprocess_run(
+        args: list[str],
+        *,
+        check: bool = False,
+        capture_output: bool = False,
+        text: bool = False,
+    ) -> FakeCompletedProcess:
+        del capture_output, text
+        recorded_commands.append(args)
+        if args == ["git", "rev-parse", "--abbrev-ref", "HEAD"]:
+            return FakeCompletedProcess(args, stdout="main\n")
+        if args[:2] == ["git", "commit"]:
+            raise subprocess.CalledProcessError(returncode=1, cmd=args)
+        process = FakeCompletedProcess(args)
+        if check:
+            process.check_returncode()
+        return process
+
+    monkeypatch.setattr(sys, "argv", ["activate_easy_wins", "--no-download", "--split-co", "--components", "python"])
+    monkeypatch.setattr(activate_easy_wins_main, "SKIPPED_NODES_FILE", skipped_nodes_file)
+    monkeypatch.setattr(activate_easy_wins_main, "ManifestEditor", NoDiffManifestEditor)
+    monkeypatch.setattr(activate_easy_wins_main, "parse_artifact_data", fake_parse_artifact_data)
+    monkeypatch.setattr(activate_easy_wins_main, "update_manifest", fake_update_manifest)
+    monkeypatch.setattr(activate_easy_wins_main.subprocess, "run", fake_subprocess_run)
+
+    activate_easy_wins_main.main()
+
+    captured = capsys.readouterr()
+    assert "No update were made" in captured.out
+    assert ["git", "commit", "-m", "chore: activate easy wins for @DataDog/team-a"] not in recorded_commands
 
 
 def test_e2e_activation_filters_by_component():
@@ -538,8 +824,9 @@ def test_e2e_activation_tracks_activations_per_owner():
         assert logger.activations_per_owner.get("@DataDog/team-b", 0) == 1
 
 
-def test_e2e_activation_handles_mixed_outcomes():
-    """Test activation with mixed xpassed and xfailed outcomes for same test class."""
+@pytest.mark.parametrize("outcome", ["xfailed", "skipped"])
+def test_e2e_activation_handles_mixed_outcomes(outcome: str) -> None:
+    """Test activation preserves deactivation for xfailed and skipped siblings."""
     with tempfile.TemporaryDirectory() as tmpdir:
         data_dir = Path(tmpdir) / "data"
         manifest_dir = Path(tmpdir) / "manifests"
@@ -555,7 +842,7 @@ def test_e2e_activation_handles_mixed_outcomes():
             weblog_variant="rails70",
             tests=[
                 {"nodeid": "tests/mixed/test_mixed.py::Test_Mixed::test_passes", "outcome": "xpassed"},
-                {"nodeid": "tests/mixed/test_mixed.py::Test_Mixed::test_fails", "outcome": "xfailed"},
+                {"nodeid": "tests/mixed/test_mixed.py::Test_Mixed::test_fails", "outcome": outcome},
                 {"nodeid": "tests/passing/test_all_pass.py::Test_AllPass::test_one", "outcome": "xpassed"},
                 {"nodeid": "tests/passing/test_all_pass.py::Test_AllPass::test_two", "outcome": "xpassed"},
             ],
@@ -587,6 +874,7 @@ def test_e2e_activation_handles_mixed_outcomes():
         assert test_data[context].trie.get("tests/mixed/test_mixed.py/Test_Mixed") == ActivationStatus.NONE
         # The all-pass class should have XPASS status
         assert test_data[context].trie.get("tests/passing/test_all_pass.py/Test_AllPass") == ActivationStatus.XPASS
+        assert "tests/mixed/test_mixed.py::Test_Mixed::test_fails" in manifest_editor.added_rules
 
 
 def test_manifest_editor_add_condition_to_function_level_inline_declaration():
@@ -623,7 +911,7 @@ def test_manifest_editor_add_condition_to_function_level_inline_declaration():
         manifest_content = """---
 manifest:
   tests/appsec/test_feature.py::Test_Feature: missing_feature
-  tests/appsec/test_feature.py::Test_Feature::test_method2: bug (XXXX)
+  tests/appsec/test_feature.py::Test_Feature::test_method2: bug (TEST-123)
 """
         (manifest_dir / "python.yml").write_text(manifest_content)
 
@@ -637,7 +925,7 @@ manifest:
             result = yaml.safe_load(f)
 
         rule = result["manifest"].get("tests/appsec/test_feature.py::Test_Feature::test_method2")
-        assert rule == [{"declaration": "bug (XXXX)"}, {"weblog_declaration": {"flask": "missing_feature"}}]
+        assert rule == [{"declaration": "bug (TEST-123)"}, {"weblog_declaration": {"flask": "missing_feature"}}]
 
 
 # =============================================================================
@@ -930,6 +1218,29 @@ def test_build_manifest_entry_appends_to_existing_list():
     assert len(result) == 2
     assert result[0] == existing_raw[0]
     assert result[1] == {"weblog_declaration": {"rails70": "missing_feature"}}
+
+
+def test_build_manifest_entry_deduplicates_reordered_weblog_declaration() -> None:
+    rule = "tests/debugger/test_symdb.py::Test_SymDb::test_upload"
+    existing_raw = [
+        {
+            "weblog_declaration": {
+                "python3.12": "missing_feature",
+                "django-poc": "missing_feature",
+                "fastapi": "missing_feature",
+            }
+        }
+    ]
+    condition: Condition = {
+        "component": "python",
+        "declaration": SkipDeclaration("missing_feature"),
+        "weblog": ["fastapi", "django-poc", "python3.12"],
+    }
+
+    result = ManifestEditor.build_manifest_entry(rule, condition, {rule: existing_raw}, [])
+
+    assert result == existing_raw
+    assert len(result) == 1
 
 
 def test_build_manifest_entry_compress_to_inline_string():

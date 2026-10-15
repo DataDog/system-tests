@@ -18,7 +18,7 @@ def _get_ci_repo_name() -> str | None:
         return repo
     # Azure Pipelines
     if repo := os.environ.get("BUILD_REPOSITORY_NAME"):
-        return repo
+        return repo.split("/")[-1]
     return None
 
 
@@ -72,7 +72,6 @@ class _Owner(Enum):
                                 "httpd-datadog":    "@DataDog/asm-cpp",
                                 "nginx-datadog":    "@DataDog/asm-cpp",
                             })
-    auto_instrumentation = _OwnerDef("@DataDog/unified-instrumentation-setup")
     debugger             = _OwnerDef("@DataDog/debugger", repo_overrides={
                                 "dd-trace-dotnet":  "@DataDog/debugger-dotnet",
                                 "dd-trace-go":      "@DataDog/debugger-go",
@@ -95,7 +94,14 @@ class _Owner(Enum):
                                 "httpd-datadog":    "@DataDog/apm-idm-cpp",
                                 "nginx-datadog":    "@DataDog/apm-idm-cpp",
                             })
-    injection_platform   = _OwnerDef("@DataDog/injection-platform")
+    injection_platform   = _OwnerDef("@DataDog/injection-platform", repo_overrides={
+                                "dd-trace-dotnet":  "@DataDog/apm-lang-platform-dotnet",
+                                "dd-trace-java":    "@DataDog/apm-lang-platform-java",
+                                "dd-trace-js":      "@DataDog/lang-platform-js",
+                                "dd-trace-php":     "@DataDog/apm-lang-platform-php",
+                                "dd-trace-py":      "@DataDog/lang-platform-python",
+                                "dd-trace-rb":      "@DataDog/lang-platform-ruby",
+                            })
     language_platform    = _OwnerDef("@DataDog/apm-lang-platform", repo_overrides={
                                 "dd-trace-cpp":     "@DataDog/apm-idm-cpp",  # IDM owns LP implementations on C++ libs
                                 "dd-trace-dotnet":  "@DataDog/apm-lang-platform-dotnet",
@@ -109,21 +115,18 @@ class _Owner(Enum):
                                 "nginx-datadog":    "@DataDog/apm-idm-cpp",  # IDM owns LP implementations on C++ libs
                             })
     ml_observability     = _OwnerDef("@DataDog/ml-observability")
-    profiler             = _OwnerDef("@DataDog/profiling")  # it does not exist
+    profiler             = _OwnerDef("@DataDog/profiling", repo_overrides={
+                                "dd-trace-dotnet":  "@DataDog/profiling-dotnet",
+                                "dd-trace-go":  "@DataDog/profiling-go",
+                                "dd-trace-java":  "@DataDog/profiling-java",
+                                "dd-trace-js":  "@DataDog/profiling-js",
+                                "dd-trace-php":  "@DataDog/profiling-php",
+                                "dd-trace-py":  "@DataDog/profiling-python",
+                                "dd-trace-rb":  "@DataDog/profiling-rb",
+                            })
     remote_config        = _OwnerDef("@DataDog/remote-config")
     rp                   = _OwnerDef("@DataDog/apm-reliability-and-performance")
-    sdk_capabilities     = _OwnerDef("@DataDog/apm-sdk-capabilities", repo_overrides={
-                                "dd-trace-cpp":     "@DataDog/apm-sdk-capabilities-cpp",
-                                "dd-trace-dotnet":  "@DataDog/apm-sdk-capabilities-dotnet",
-                                "dd-trace-go":      "@DataDog/apm-sdk-capabilities-go",
-                                "dd-trace-java":    "@DataDog/apm-sdk-capabilities-java",
-                                "dd-trace-js":      "@DataDog/apm-sdk-capabilities-js",
-                                "dd-trace-py":      "@DataDog/apm-sdk-capabilities-python",
-                                "dd-trace-rb":      "@DataDog/apm-sdk-capabilities-ruby",
-                                "dd-trace-rs":      "@DataDog/apm-sdk-capabilities-rust",
-                                "httpd-datadog":    "@DataDog/apm-sdk-capabilities-cpp",
-                                "nginx-datadog":    "@DataDog/apm-sdk-capabilities-cpp",
-                            })
+    sdk_capabilities     = _OwnerDef("@DataDog/apm-sdk-capabilities")
     # fmt: on
 
 
@@ -854,7 +857,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=89
         """
-        return _mark_test_object(test_object, feature_id=89, owner=_Owner.auto_instrumentation)
+        return _mark_test_object(test_object, feature_id=89, owner=_Owner.injection_platform)
 
     @staticmethod
     def container_auto_instrumentation(test_object):
@@ -862,7 +865,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=90
         """
-        return _mark_test_object(test_object, feature_id=90, owner=_Owner.auto_instrumentation)
+        return _mark_test_object(test_object, feature_id=90, owner=_Owner.injection_platform)
 
     # @staticmethod
     # def collect_http_post_data_and_headers(test_object):
@@ -999,6 +1002,14 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=154
         """
         return _mark_test_object(test_object, feature_id=154, owner=_Owner.asm)
+
+    @staticmethod
+    def appsec_agentic_onboarding(test_object):
+        """Agentic Onboarding Runtime Detection
+
+        https://feature-parity.us1.prod.dog/#/?feature=563
+        """
+        return _mark_test_object(test_object, feature_id=563, owner=_Owner.asm)
 
     @staticmethod
     def changing_rules_using_rc(test_object):
@@ -1780,7 +1791,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=274
         """
-        return _mark_test_object(test_object, feature_id=274, owner=_Owner.auto_instrumentation)
+        return _mark_test_object(test_object, feature_id=274, owner=_Owner.injection_platform)
 
     @staticmethod
     def host_auto_installation_script(test_object):
@@ -1788,7 +1799,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=275
         """
-        return _mark_test_object(test_object, feature_id=275, owner=_Owner.auto_instrumentation)
+        return _mark_test_object(test_object, feature_id=275, owner=_Owner.injection_platform)
 
     @staticmethod
     def host_block_list(test_object):
@@ -1796,7 +1807,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=276
         """
-        return _mark_test_object(test_object, feature_id=276, owner=_Owner.auto_instrumentation)
+        return _mark_test_object(test_object, feature_id=276, owner=_Owner.injection_platform)
 
     @staticmethod
     def aws_kinesis_span_creationcontext_propagation_via_message_attributes_with_dd_trace(
@@ -1860,7 +1871,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=288
         """
-        return _mark_test_object(test_object, feature_id=288, owner=_Owner.auto_instrumentation)
+        return _mark_test_object(test_object, feature_id=288, owner=_Owner.injection_platform)
 
     @staticmethod
     def f_otel_interoperability(test_object):
@@ -1884,7 +1895,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=292
         """
-        return _mark_test_object(test_object, feature_id=292, owner=_Owner.auto_instrumentation)
+        return _mark_test_object(test_object, feature_id=292, owner=_Owner.injection_platform)
 
     @staticmethod
     def rasp_local_file_inclusion(test_object):
@@ -1921,6 +1932,15 @@ class _Features:
         )  # tracing/context-propagation, apm/dbm, idm-sugar
 
     @staticmethod
+    def database_monitoring_dynamic_service(test_object):
+        """DBM: dynamic_service propagation mode — injects ddsh into SQL comments and _dd.propagated_hash onto spans
+
+        https://feature-parity.us1.prod.dog/#/?feature=558
+        https://docs.google.com/document/d/1v-NuhF_0LNCY3zkSQlL6nPxrvlKfvm9LDkeZlEOyO3w/edit?tab=t.0
+        """
+        return _mark_test_object(test_object, feature_id=558, owner=_Owner.idm)
+
+    @staticmethod
     def rasp_stack_trace(test_object):
         """Appsec RASP: Stack Trace
 
@@ -1950,7 +1970,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=302
         """
-        return _mark_test_object(test_object, feature_id=302, owner=_Owner.auto_instrumentation)
+        return _mark_test_object(test_object, feature_id=302, owner=_Owner.injection_platform)
 
     @staticmethod
     def appsec_standalone_experimental(test_object):
@@ -2014,7 +2034,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=306
         """
-        return _mark_test_object(test_object, feature_id=306, owner=_Owner.auto_instrumentation)
+        return _mark_test_object(test_object, feature_id=306, owner=_Owner.injection_platform)
 
     @staticmethod
     def origin_detection(test_object):
@@ -2032,7 +2052,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=307
         """
-        return _mark_test_object(test_object, feature_id=307, owner=_Owner.auto_instrumentation)
+        return _mark_test_object(test_object, feature_id=307, owner=_Owner.injection_platform)
 
     @staticmethod
     def host_guardrail(test_object):
@@ -2040,7 +2060,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=308
         """
-        return _mark_test_object(test_object, feature_id=308, owner=_Owner.auto_instrumentation)
+        return _mark_test_object(test_object, feature_id=308, owner=_Owner.injection_platform)
 
     @staticmethod
     def container_guardrail(test_object):
@@ -2048,7 +2068,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=309
         """
-        return _mark_test_object(test_object, feature_id=309, owner=_Owner.auto_instrumentation)
+        return _mark_test_object(test_object, feature_id=309, owner=_Owner.injection_platform)
 
     @staticmethod
     def datastreams_monitoring_support_for_manual_checkpoints(test_object):
@@ -2144,7 +2164,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=322
         """
-        return _mark_test_object(test_object, feature_id=322, owner=_Owner.auto_instrumentation)
+        return _mark_test_object(test_object, feature_id=322, owner=_Owner.injection_platform)
 
     @staticmethod
     def ssi_crashtracking(test_object):
@@ -2152,7 +2172,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=340
         """
-        return _mark_test_object(test_object, feature_id=340, owner=_Owner.auto_instrumentation)
+        return _mark_test_object(test_object, feature_id=340, owner=_Owner.injection_platform)
 
     @staticmethod
     def ssi_service_naming(test_object):
@@ -2160,7 +2180,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=326
         """
-        return _mark_test_object(test_object, feature_id=326, owner=_Owner.auto_instrumentation)
+        return _mark_test_object(test_object, feature_id=326, owner=_Owner.injection_platform)
 
     @staticmethod
     def ssi_service_tracking(test_object):
@@ -2275,6 +2295,14 @@ class _Features:
         return _mark_test_object(test_object, feature_id=353, owner=_Owner.sdk_capabilities)
 
     @staticmethod
+    def org_propagation_guard(test_object):
+        """Org Propagation Guard: Org Propagation Marker (OPM) gates trace context continuation across orgs
+
+        https://feature-parity.us1.prod.dog/#/?feature=555
+        """
+        return _mark_test_object(test_object, feature_id=555, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
     def iast_sink_email_html_injection(test_object):
         """IAST Sink: Email HTML injection
 
@@ -2369,14 +2397,6 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=369
         """
         return _mark_test_object(test_object, feature_id=369, owner=_Owner.debugger)
-
-    @staticmethod
-    def datastreams_monitoring_protobuf_schema_tracking(test_object):
-        """Dynamically enable debugger products
-
-        https://feature-parity.us1.prod.dog/#/?feature=371
-        """
-        return _mark_test_object(test_object, feature_id=371, owner=_Owner.dsm)  # apm/dsm
 
     @staticmethod
     def trace_enablement(test_object):
@@ -2568,7 +2588,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=478
         """
-        return _mark_test_object(test_object, feature_id=478, owner=_Owner.auto_instrumentation)
+        return _mark_test_object(test_object, feature_id=478, owner=_Owner.injection_platform)
 
     @staticmethod
     def host_auto_installation_script_appsec(test_object):
@@ -2576,7 +2596,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=479
         """
-        return _mark_test_object(test_object, feature_id=479, owner=_Owner.auto_instrumentation)
+        return _mark_test_object(test_object, feature_id=479, owner=_Owner.injection_platform)
 
     @staticmethod
     def container_auto_installation_script_appsec(test_object):
@@ -2584,7 +2604,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=480
         """
-        return _mark_test_object(test_object, feature_id=480, owner=_Owner.auto_instrumentation)
+        return _mark_test_object(test_object, feature_id=480, owner=_Owner.injection_platform)
 
     @staticmethod
     def ssi_injection_metadata(test_object):
@@ -2659,6 +2679,14 @@ class _Features:
         return _mark_test_object(test_object, feature_id=538, owner=_Owner.ffe)
 
     @staticmethod
+    def feature_flags_agentless(test_object):
+        """Feature Flags Agentless
+
+        https://feature-parity.us1.prod.dog/#/?feature=561
+        """
+        return _mark_test_object(test_object, feature_id=561, owner=_Owner.ffe)
+
+    @staticmethod
     def feature_flags_exposures(test_object):
         """Feature Flags & Experimentation (FFE)
 
@@ -2673,6 +2701,22 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=548
         """
         return _mark_test_object(test_object, feature_id=548, owner=_Owner.ffe)
+
+    @staticmethod
+    def feature_flags_evp_flagevaluation(test_object):
+        """Feature Flags EVP Flagevaluation
+
+        https://feature-parity.us1.prod.dog/#/?feature=540
+        """
+        return _mark_test_object(test_object, feature_id=540, owner=_Owner.ffe)
+
+    @staticmethod
+    def feature_flags_event_enrichment(test_object):
+        """Feature Flags Event Enrichment (APM span tags)
+
+        https://feature-parity.us1.prod.dog/#/?feature=551
+        """
+        return _mark_test_object(test_object, feature_id=551, owner=_Owner.ffe)
 
     @staticmethod
     def appsec_extended_data_collection(test_object):
@@ -2827,6 +2871,14 @@ class _Features:
         return _mark_test_object(test_object, feature_id=528, owner=_Owner.asm)
 
     @staticmethod
+    def ai_guard_standalone(test_object):
+        """AI Guard standalone mode
+
+        https://feature-parity.us1.prod.dog/#/?feature=559
+        """
+        return _mark_test_object(test_object, feature_id=559, owner=_Owner.asm)
+
+    @staticmethod
     def apm_google_genai_generate_content(test_object):
         """APM supports Google GenAI generate content interactions
 
@@ -2943,6 +2995,672 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=556
         """
         return _mark_test_object(test_object, feature_id=556, owner=_Owner.asm)
+
+    @staticmethod
+    def api_security_normalized_route(test_object):
+        """API Security Testing - Normalized Route: tracers emit a per-request
+        `_dd.appsec.normalized_route` span tag on every request span that already
+        carries `http.route` when API Security is enabled. The tag follows the
+        RFC-1103 normalized-route grammar.
+
+        https://feature-parity.us1.prod.dog/#/?feature=557
+        """
+        return _mark_test_object(test_object, feature_id=557, owner=_Owner.asm)
+
+    @staticmethod
+    def auth_schemas(test_object):
+        """API Security - authentication token schema extraction: the extract-auth
+        processor reports schemas of JSON Web Tokens (`_dd.appsec.s.req.jwt`) and
+        cookies (`_dd.appsec.s.req.cookies`) when API Security is enabled.
+
+        https://feature-parity.us1.prod.dog/#/?feature=560
+        """
+        return _mark_test_object(test_object, feature_id=560, owner=_Owner.asm)
+
+    @staticmethod
+    def appsec_raw_response_body(test_object):
+        """AppSec sends the raw HTTP response body to the WAF for inspection
+        (server.response.body.raw address), enabled via DD_APPSEC_RAW_RESPONSE_BODY_ENABLED.
+
+        https://feature-parity.us1.prod.dog/#/?feature=565
+        """
+        return _mark_test_object(test_object, feature_id=565, owner=_Owner.asm)
+
+    @staticmethod
+    def otel_attribute_count_limit(test_object):
+        """OTEL_ATTRIBUTE_COUNT_LIMIT
+
+        https://feature-parity.us1.prod.dog/#/?feature=567
+        """
+        return _mark_test_object(test_object, feature_id=567, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_attribute_value_length_limit(test_object):
+        """OTEL_ATTRIBUTE_VALUE_LENGTH_LIMIT
+
+        https://feature-parity.us1.prod.dog/#/?feature=568
+        """
+        return _mark_test_object(test_object, feature_id=568, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_blrp_export_timeout(test_object):
+        """OTEL_BLRP_EXPORT_TIMEOUT
+
+        https://feature-parity.us1.prod.dog/#/?feature=569
+        """
+        return _mark_test_object(test_object, feature_id=569, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_blrp_max_export_batch_size(test_object):
+        """OTEL_BLRP_MAX_EXPORT_BATCH_SIZE
+
+        https://feature-parity.us1.prod.dog/#/?feature=570
+        """
+        return _mark_test_object(test_object, feature_id=570, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_blrp_max_queue_size(test_object):
+        """OTEL_BLRP_MAX_QUEUE_SIZE
+
+        https://feature-parity.us1.prod.dog/#/?feature=571
+        """
+        return _mark_test_object(test_object, feature_id=571, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_blrp_schedule_delay(test_object):
+        """OTEL_BLRP_SCHEDULE_DELAY
+
+        https://feature-parity.us1.prod.dog/#/?feature=572
+        """
+        return _mark_test_object(test_object, feature_id=572, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_bsp_export_timeout(test_object):
+        """OTEL_BSP_EXPORT_TIMEOUT
+
+        https://feature-parity.us1.prod.dog/#/?feature=573
+        """
+        return _mark_test_object(test_object, feature_id=573, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_bsp_max_export_batch_size(test_object):
+        """OTEL_BSP_MAX_EXPORT_BATCH_SIZE
+
+        https://feature-parity.us1.prod.dog/#/?feature=574
+        """
+        return _mark_test_object(test_object, feature_id=574, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_bsp_max_queue_size(test_object):
+        """OTEL_BSP_MAX_QUEUE_SIZE
+
+        https://feature-parity.us1.prod.dog/#/?feature=575
+        """
+        return _mark_test_object(test_object, feature_id=575, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_bsp_schedule_delay(test_object):
+        """OTEL_BSP_SCHEDULE_DELAY
+
+        https://feature-parity.us1.prod.dog/#/?feature=576
+        """
+        return _mark_test_object(test_object, feature_id=576, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_config_file(test_object):
+        """OTEL_CONFIG_FILE
+
+        https://feature-parity.us1.prod.dog/#/?feature=577
+        """
+        return _mark_test_object(test_object, feature_id=577, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_entities(test_object):
+        """OTEL_ENTITIES
+
+        https://feature-parity.us1.prod.dog/#/?feature=578
+        """
+        return _mark_test_object(test_object, feature_id=578, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_event_attribute_count_limit(test_object):
+        """OTEL_EVENT_ATTRIBUTE_COUNT_LIMIT
+
+        https://feature-parity.us1.prod.dog/#/?feature=579
+        """
+        return _mark_test_object(test_object, feature_id=579, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_experimental_config_file(test_object):
+        """OTEL_EXPERIMENTAL_CONFIG_FILE
+
+        https://feature-parity.us1.prod.dog/#/?feature=580
+        """
+        return _mark_test_object(test_object, feature_id=580, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_certificate(test_object):
+        """OTEL_EXPORTER_OTLP_CERTIFICATE
+
+        https://feature-parity.us1.prod.dog/#/?feature=581
+        """
+        return _mark_test_object(test_object, feature_id=581, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_client_certificate(test_object):
+        """OTEL_EXPORTER_OTLP_CLIENT_CERTIFICATE
+
+        https://feature-parity.us1.prod.dog/#/?feature=582
+        """
+        return _mark_test_object(test_object, feature_id=582, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_client_key(test_object):
+        """OTEL_EXPORTER_OTLP_CLIENT_KEY
+
+        https://feature-parity.us1.prod.dog/#/?feature=583
+        """
+        return _mark_test_object(test_object, feature_id=583, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_compression(test_object):
+        """OTEL_EXPORTER_OTLP_COMPRESSION
+
+        https://feature-parity.us1.prod.dog/#/?feature=584
+        """
+        return _mark_test_object(test_object, feature_id=584, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_endpoint(test_object):
+        """OTEL_EXPORTER_OTLP_ENDPOINT
+
+        https://feature-parity.us1.prod.dog/#/?feature=585
+        """
+        return _mark_test_object(test_object, feature_id=585, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_headers(test_object):
+        """OTEL_EXPORTER_OTLP_HEADERS
+
+        https://feature-parity.us1.prod.dog/#/?feature=586
+        """
+        return _mark_test_object(test_object, feature_id=586, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_insecure(test_object):
+        """OTEL_EXPORTER_OTLP_INSECURE
+
+        https://feature-parity.us1.prod.dog/#/?feature=587
+        """
+        return _mark_test_object(test_object, feature_id=587, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_logs_certificate(test_object):
+        """OTEL_EXPORTER_OTLP_LOGS_CERTIFICATE
+
+        https://feature-parity.us1.prod.dog/#/?feature=588
+        """
+        return _mark_test_object(test_object, feature_id=588, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_logs_client_certificate(test_object):
+        """OTEL_EXPORTER_OTLP_LOGS_CLIENT_CERTIFICATE
+
+        https://feature-parity.us1.prod.dog/#/?feature=589
+        """
+        return _mark_test_object(test_object, feature_id=589, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_logs_client_key(test_object):
+        """OTEL_EXPORTER_OTLP_LOGS_CLIENT_KEY
+
+        https://feature-parity.us1.prod.dog/#/?feature=590
+        """
+        return _mark_test_object(test_object, feature_id=590, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_logs_compression(test_object):
+        """OTEL_EXPORTER_OTLP_LOGS_COMPRESSION
+
+        https://feature-parity.us1.prod.dog/#/?feature=591
+        """
+        return _mark_test_object(test_object, feature_id=591, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_logs_endpoint(test_object):
+        """OTEL_EXPORTER_OTLP_LOGS_ENDPOINT
+
+        https://feature-parity.us1.prod.dog/#/?feature=592
+        """
+        return _mark_test_object(test_object, feature_id=592, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_logs_headers(test_object):
+        """OTEL_EXPORTER_OTLP_LOGS_HEADERS
+
+        https://feature-parity.us1.prod.dog/#/?feature=593
+        """
+        return _mark_test_object(test_object, feature_id=593, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_logs_insecure(test_object):
+        """OTEL_EXPORTER_OTLP_LOGS_INSECURE
+
+        https://feature-parity.us1.prod.dog/#/?feature=594
+        """
+        return _mark_test_object(test_object, feature_id=594, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_logs_protocol(test_object):
+        """OTEL_EXPORTER_OTLP_LOGS_PROTOCOL
+
+        https://feature-parity.us1.prod.dog/#/?feature=595
+        """
+        return _mark_test_object(test_object, feature_id=595, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_logs_timeout(test_object):
+        """OTEL_EXPORTER_OTLP_LOGS_TIMEOUT
+
+        https://feature-parity.us1.prod.dog/#/?feature=596
+        """
+        return _mark_test_object(test_object, feature_id=596, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_metrics_certificate(test_object):
+        """OTEL_EXPORTER_OTLP_METRICS_CERTIFICATE
+
+        https://feature-parity.us1.prod.dog/#/?feature=597
+        """
+        return _mark_test_object(test_object, feature_id=597, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_metrics_client_certificate(test_object):
+        """OTEL_EXPORTER_OTLP_METRICS_CLIENT_CERTIFICATE
+
+        https://feature-parity.us1.prod.dog/#/?feature=598
+        """
+        return _mark_test_object(test_object, feature_id=598, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_metrics_client_key(test_object):
+        """OTEL_EXPORTER_OTLP_METRICS_CLIENT_KEY
+
+        https://feature-parity.us1.prod.dog/#/?feature=599
+        """
+        return _mark_test_object(test_object, feature_id=599, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_metrics_compression(test_object):
+        """OTEL_EXPORTER_OTLP_METRICS_COMPRESSION
+
+        https://feature-parity.us1.prod.dog/#/?feature=600
+        """
+        return _mark_test_object(test_object, feature_id=600, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_metrics_endpoint(test_object):
+        """OTEL_EXPORTER_OTLP_METRICS_ENDPOINT
+
+        https://feature-parity.us1.prod.dog/#/?feature=601
+        """
+        return _mark_test_object(test_object, feature_id=601, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_metrics_headers(test_object):
+        """OTEL_EXPORTER_OTLP_METRICS_HEADERS
+
+        https://feature-parity.us1.prod.dog/#/?feature=602
+        """
+        return _mark_test_object(test_object, feature_id=602, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_metrics_insecure(test_object):
+        """OTEL_EXPORTER_OTLP_METRICS_INSECURE
+
+        https://feature-parity.us1.prod.dog/#/?feature=603
+        """
+        return _mark_test_object(test_object, feature_id=603, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_metrics_protocol(test_object):
+        """OTEL_EXPORTER_OTLP_METRICS_PROTOCOL
+
+        https://feature-parity.us1.prod.dog/#/?feature=604
+        """
+        return _mark_test_object(test_object, feature_id=604, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_metrics_temporality_preference(test_object):
+        """OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE
+
+        https://feature-parity.us1.prod.dog/#/?feature=645
+        """
+        return _mark_test_object(test_object, feature_id=645, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_metrics_timeout(test_object):
+        """OTEL_EXPORTER_OTLP_METRICS_TIMEOUT
+
+        https://feature-parity.us1.prod.dog/#/?feature=605
+        """
+        return _mark_test_object(test_object, feature_id=605, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_metric_insecure(test_object):
+        """OTEL_EXPORTER_OTLP_METRIC_INSECURE
+
+        https://feature-parity.us1.prod.dog/#/?feature=606
+        """
+        return _mark_test_object(test_object, feature_id=606, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_protocol(test_object):
+        """OTEL_EXPORTER_OTLP_PROTOCOL
+
+        https://feature-parity.us1.prod.dog/#/?feature=607
+        """
+        return _mark_test_object(test_object, feature_id=607, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_span_insecure(test_object):
+        """OTEL_EXPORTER_OTLP_SPAN_INSECURE
+
+        https://feature-parity.us1.prod.dog/#/?feature=608
+        """
+        return _mark_test_object(test_object, feature_id=608, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_timeout(test_object):
+        """OTEL_EXPORTER_OTLP_TIMEOUT
+
+        https://feature-parity.us1.prod.dog/#/?feature=609
+        """
+        return _mark_test_object(test_object, feature_id=609, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_traces_certificate(test_object):
+        """OTEL_EXPORTER_OTLP_TRACES_CERTIFICATE
+
+        https://feature-parity.us1.prod.dog/#/?feature=610
+        """
+        return _mark_test_object(test_object, feature_id=610, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_traces_client_certificate(test_object):
+        """OTEL_EXPORTER_OTLP_TRACES_CLIENT_CERTIFICATE
+
+        https://feature-parity.us1.prod.dog/#/?feature=611
+        """
+        return _mark_test_object(test_object, feature_id=611, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_traces_client_key(test_object):
+        """OTEL_EXPORTER_OTLP_TRACES_CLIENT_KEY
+
+        https://feature-parity.us1.prod.dog/#/?feature=612
+        """
+        return _mark_test_object(test_object, feature_id=612, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_traces_compression(test_object):
+        """OTEL_EXPORTER_OTLP_TRACES_COMPRESSION
+
+        https://feature-parity.us1.prod.dog/#/?feature=613
+        """
+        return _mark_test_object(test_object, feature_id=613, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_traces_endpoint(test_object):
+        """OTEL_EXPORTER_OTLP_TRACES_ENDPOINT
+
+        https://feature-parity.us1.prod.dog/#/?feature=614
+        """
+        return _mark_test_object(test_object, feature_id=614, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_traces_headers(test_object):
+        """OTEL_EXPORTER_OTLP_TRACES_HEADERS
+
+        https://feature-parity.us1.prod.dog/#/?feature=615
+        """
+        return _mark_test_object(test_object, feature_id=615, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_traces_insecure(test_object):
+        """OTEL_EXPORTER_OTLP_TRACES_INSECURE
+
+        https://feature-parity.us1.prod.dog/#/?feature=616
+        """
+        return _mark_test_object(test_object, feature_id=616, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_traces_protocol(test_object):
+        """OTEL_EXPORTER_OTLP_TRACES_PROTOCOL
+
+        https://feature-parity.us1.prod.dog/#/?feature=617
+        """
+        return _mark_test_object(test_object, feature_id=617, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_otlp_traces_timeout(test_object):
+        """OTEL_EXPORTER_OTLP_TRACES_TIMEOUT
+
+        https://feature-parity.us1.prod.dog/#/?feature=618
+        """
+        return _mark_test_object(test_object, feature_id=618, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_prometheus_host(test_object):
+        """OTEL_EXPORTER_PROMETHEUS_HOST
+
+        https://feature-parity.us1.prod.dog/#/?feature=619
+        """
+        return _mark_test_object(test_object, feature_id=619, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_prometheus_port(test_object):
+        """OTEL_EXPORTER_PROMETHEUS_PORT
+
+        https://feature-parity.us1.prod.dog/#/?feature=620
+        """
+        return _mark_test_object(test_object, feature_id=620, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_zipkin_endpoint(test_object):
+        """OTEL_EXPORTER_ZIPKIN_ENDPOINT
+
+        https://feature-parity.us1.prod.dog/#/?feature=621
+        """
+        return _mark_test_object(test_object, feature_id=621, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_zipkin_protocol(test_object):
+        """OTEL_EXPORTER_ZIPKIN_PROTOCOL
+
+        https://feature-parity.us1.prod.dog/#/?feature=622
+        """
+        return _mark_test_object(test_object, feature_id=622, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_exporter_zipkin_timeout(test_object):
+        """OTEL_EXPORTER_ZIPKIN_TIMEOUT
+
+        https://feature-parity.us1.prod.dog/#/?feature=623
+        """
+        return _mark_test_object(test_object, feature_id=623, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_link_attribute_count_limit(test_object):
+        """OTEL_LINK_ATTRIBUTE_COUNT_LIMIT
+
+        https://feature-parity.us1.prod.dog/#/?feature=624
+        """
+        return _mark_test_object(test_object, feature_id=624, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_logrecord_attribute_count_limit(test_object):
+        """OTEL_LOGRECORD_ATTRIBUTE_COUNT_LIMIT
+
+        https://feature-parity.us1.prod.dog/#/?feature=625
+        """
+        return _mark_test_object(test_object, feature_id=625, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_logrecord_attribute_value_length_limit(test_object):
+        """OTEL_LOGRECORD_ATTRIBUTE_VALUE_LENGTH_LIMIT
+
+        https://feature-parity.us1.prod.dog/#/?feature=626
+        """
+        return _mark_test_object(test_object, feature_id=626, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_logs_exporter(test_object):
+        """OTEL_LOGS_EXPORTER
+
+        https://feature-parity.us1.prod.dog/#/?feature=627
+        """
+        return _mark_test_object(test_object, feature_id=627, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_log_level(test_object):
+        """OTEL_LOG_LEVEL
+
+        https://feature-parity.us1.prod.dog/#/?feature=628
+        """
+        return _mark_test_object(test_object, feature_id=628, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_metrics_exemplar_filter(test_object):
+        """OTEL_METRICS_EXEMPLAR_FILTER
+
+        https://feature-parity.us1.prod.dog/#/?feature=629
+        """
+        return _mark_test_object(test_object, feature_id=629, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_metrics_exporter(test_object):
+        """OTEL_METRICS_EXPORTER
+
+        https://feature-parity.us1.prod.dog/#/?feature=630
+        """
+        return _mark_test_object(test_object, feature_id=630, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_metric_export_interval(test_object):
+        """OTEL_METRIC_EXPORT_INTERVAL
+
+        https://feature-parity.us1.prod.dog/#/?feature=631
+        """
+        return _mark_test_object(test_object, feature_id=631, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_metric_export_timeout(test_object):
+        """OTEL_METRIC_EXPORT_TIMEOUT
+
+        https://feature-parity.us1.prod.dog/#/?feature=632
+        """
+        return _mark_test_object(test_object, feature_id=632, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_propagators(test_object):
+        """OTEL_PROPAGATORS
+
+        https://feature-parity.us1.prod.dog/#/?feature=633
+        """
+        return _mark_test_object(test_object, feature_id=633, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_resource_attributes(test_object):
+        """OTEL_RESOURCE_ATTRIBUTES
+
+        https://feature-parity.us1.prod.dog/#/?feature=634
+        """
+        return _mark_test_object(test_object, feature_id=634, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_sdk_disabled(test_object):
+        """OTEL_SDK_DISABLED
+
+        https://feature-parity.us1.prod.dog/#/?feature=635
+        """
+        return _mark_test_object(test_object, feature_id=635, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_service_name(test_object):
+        """OTEL_SERVICE_NAME
+
+        https://feature-parity.us1.prod.dog/#/?feature=566
+        """
+        return _mark_test_object(test_object, feature_id=566, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_span_attribute_count_limit(test_object):
+        """OTEL_SPAN_ATTRIBUTE_COUNT_LIMIT
+
+        https://feature-parity.us1.prod.dog/#/?feature=636
+        """
+        return _mark_test_object(test_object, feature_id=636, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_span_attribute_value_length_limit(test_object):
+        """OTEL_SPAN_ATTRIBUTE_VALUE_LENGTH_LIMIT
+
+        https://feature-parity.us1.prod.dog/#/?feature=637
+        """
+        return _mark_test_object(test_object, feature_id=637, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_span_event_count_limit(test_object):
+        """OTEL_SPAN_EVENT_COUNT_LIMIT
+
+        https://feature-parity.us1.prod.dog/#/?feature=638
+        """
+        return _mark_test_object(test_object, feature_id=638, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_span_link_count_limit(test_object):
+        """OTEL_SPAN_LINK_COUNT_LIMIT
+
+        https://feature-parity.us1.prod.dog/#/?feature=639
+        """
+        return _mark_test_object(test_object, feature_id=639, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_traces_exporter(test_object):
+        """OTEL_TRACES_EXPORTER
+
+        https://feature-parity.us1.prod.dog/#/?feature=640
+        """
+        return _mark_test_object(test_object, feature_id=640, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_traces_sampler(test_object):
+        """OTEL_TRACES_SAMPLER
+
+        https://feature-parity.us1.prod.dog/#/?feature=641
+        """
+        return _mark_test_object(test_object, feature_id=641, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def otel_traces_sampler_arg(test_object):
+        """OTEL_TRACES_SAMPLER_ARG
+
+        https://feature-parity.us1.prod.dog/#/?feature=642
+        """
+        return _mark_test_object(test_object, feature_id=642, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def thread_context_sharing(test_object):
+        """Thread context sharing with system-probe (CWS trace correlation)
+
+        Workload Protection (the security agent) reads the trace and span IDs
+        for events triggered by a traced application from the application's published
+        thread context record (OTEP 4947).
+
+        https://feature-parity.us1.prod.dog/#/?feature=647
+        """
+        return _mark_test_object(test_object, feature_id=647, owner=_Owner.asm)
 
 
 features = _Features()

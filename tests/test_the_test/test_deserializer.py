@@ -8,7 +8,7 @@ from utils.proxy.traces.trace_v1 import (
 )
 import base64
 import msgpack
-import pytest
+from utils import pytest
 
 
 @scenarios.test_the_test
@@ -295,6 +295,43 @@ def test_deserialize_v1_trace_bytes_attributes_match_convert_bytes_values():
 
     assert attrs["msgpackAttr"] == {"nested": True}
     assert attrs["asciiAttr"] == "HELLO"
+
+
+@scenarios.test_the_test
+def test_deserialize_v1_trace_key_value_list_attribute():
+    """Test that span attributes with key_value_list type (V1AnyValueKeys.key_value_list=7)
+    are deserialized to a nested dict.
+    # TODO(v1-kvlist-e2e): add an E2E system test once a tracer emits keyValueList in a V1 payload.
+    """
+    content = msgpack.packb(
+        {
+            2: "cid",
+            11: [
+                {
+                    1: 1,
+                    4: [
+                        {
+                            1: "svc",
+                            2: "op",
+                            9: [
+                                "my-map",
+                                int(V1AnyValueKeys.key_value_list),
+                                {"nested-key": [int(V1AnyValueKeys.string), "nested-val"]},
+                            ],
+                        }
+                    ],
+                    6: bytes(
+                        [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x55, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x21, 0xE3]
+                    ),
+                    7: 0,
+                }
+            ],
+        }
+    )
+    result = deserialize_v1_trace(content)
+    attrs = result["chunks"][0]["spans"][0]["attributes"]
+    assert "my-map" in attrs
+    assert attrs["my-map"] == {"nested-key": "nested-val"}
 
 
 @scenarios.test_the_test

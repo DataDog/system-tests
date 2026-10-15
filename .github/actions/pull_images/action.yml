@@ -66,19 +66,9 @@ runs:
       env:
         PYTHONPATH: "."
 
-    - name: Login to Docker Hub
-      if: inputs.dockerhub_username != '' && inputs.dockerhub_token != ''
-      uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4.1.0
-      with:
-        username: ${{ inputs.dockerhub_username }}
-        password: ${{ inputs.dockerhub_token }}
-
-#retry
-    - name: Pull
-      uses: nick-fields/retry@ad984534de44a9489a53aefd81eb77f87c70dc60 # v4.0.0
-      with:
-        shell: bash
-        command: docker compose pull
-        timeout_minutes: 15
-        retry_wait_seconds: 10
-        max_attempts: 3
+    - name: Login to Docker Hub and pull images
+      shell: bash
+      run: .github/actions/pull_images/main.sh
+      env:
+        DOCKERHUB_USERNAME: ${{ inputs.dockerhub_username }}
+        DOCKERHUB_TOKEN: ${{ inputs.dockerhub_token }}

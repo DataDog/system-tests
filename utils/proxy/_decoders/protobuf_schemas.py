@@ -24,6 +24,9 @@ SketchPayload = _messages["datadog.agentpayload.SketchPayload"]
 _backend_messages = _get_mesages("backend.descriptor")
 BackendResponsePayload = _backend_messages["datadoghq.api.series.v2.Response"]
 
+_metrics_v3_messages = _get_mesages("metrics_v3.descriptor")
+MetricsV3Payload = _metrics_v3_messages["datadog.dogstatsdhttp.Payload"]
+
 _remoteconfig_messages = _get_mesages("remoteconfig.descriptor")
 LatestConfigsResponse = _remoteconfig_messages["datadog.config.LatestConfigsResponse"]
 ConfigMetas = _remoteconfig_messages["datadog.config.ConfigMetas"]

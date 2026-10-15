@@ -57,6 +57,9 @@ class FrameworkTestClientFactory(TestClientFactory):
         environment["DD_AGENT_HOST"] = test_agent.container_name
         environment["DD_TRACE_AGENT_PORT"] = str(test_agent.container_port)
         environment["FRAMEWORK_TEST_CLIENT_SERVER_PORT"] = str(container_port)
+        # AI Guard evaluations (when DD_AI_GUARD_ENABLED=true) are replayed by the test-agent VCR proxy.
+        # Harmless when AI Guard is disabled, which is the default for framework tests.
+        environment["DD_AI_GUARD_ENDPOINT"] = f"{environment['DD_TRACE_AGENT_URL']}/vcr/aiguard"
 
         # overwrite env with the one provided by the test
         environment |= library_env

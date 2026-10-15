@@ -33,6 +33,7 @@ import datadog.trace.api.interceptor.MutableSpan;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import org.springframework.boot.autoconfigure.r2dbc.R2dbcAutoConfiguration;
 import org.springframework.web.server.ResponseStatusException;
@@ -45,6 +46,7 @@ import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.SpanBuilder;
+import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.propagation.ContextPropagators;
 import io.opentelemetry.context.propagation.TextMapGetter;
@@ -93,6 +95,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.Collections;
@@ -104,11 +107,13 @@ import org.springframework.web.servlet.view.RedirectView;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import test.TestConnection;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Properties;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -123,6 +128,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import datadog.trace.api.DDTags;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
 
@@ -331,6 +337,41 @@ public class App {
         return new ResponseEntity<>(HttpStatus.valueOf(code));
     }
 
+    @GetMapping("/spawn_child")
+    ResponseEntity<String> spawnChild(
+            @RequestParam(required = false) Integer sleep,
+            @RequestParam(required = false) String crash,
+            @RequestParam(required = false) String fork) {
+        if (sleep == null || sleep < 0) {
+            return ResponseEntity.badRequest().body("sleep required");
+        }
+        if (crash == null || (!crash.equalsIgnoreCase("true") && !crash.equalsIgnoreCase("false"))) {
+            return ResponseEntity.badRequest().body("crash required (boolean)");
+        }
+        if (fork == null || (!fork.equalsIgnoreCase("true") && !fork.equalsIgnoreCase("false"))) {
+            return ResponseEntity.badRequest().body("fork required (boolean)");
+        }
+        if (fork.equalsIgnoreCase("true")) {
+            return ResponseEntity.badRequest().body("fork not supported");
+        }
+        try {
+            ProcessBuilder pb = new ProcessBuilder(
+                    "java", "-Xmx128m",
+                    "-javaagent:/app/dd-java-agent.jar",
+                    "-jar", "/app/app.jar");
+            pb.environment().put("DD_SYSTEM_TEST_CHILD_SLEEP", String.valueOf(sleep));
+            pb.environment().put("DD_SYSTEM_TEST_CHILD_CRASH", crash.toLowerCase());
+            pb.inheritIO();
+            Process p = pb.start();
+            // Do not block on the child's full lifetime: a JVM child (agent init + sleep)
+            // can exceed the test client timeout. Return promptly; the child emits its own
+            // telemetry independently and the test validates it asynchronously.
+            return ResponseEntity.ok("Spawned child process " + p.pid());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed: " + e.getMessage());
+        }
+    }
+
     @RequestMapping("/stats-unique")
     ResponseEntity<String> statsUnique(@RequestParam(defaultValue = "200") Integer code) {
         return new ResponseEntity<>(HttpStatus.valueOf(code));
@@ -355,6 +396,29 @@ public class App {
                 .forUser(user)
                 .blockIfMatch();
         return "Hello " + user;
+    }
+
+    @GetMapping("/security/thread_context_sharing")
+    ResponseEntity<Map<String, String>> threadContextSharing(@RequestParam String path) throws IOException {
+        final Span span = GlobalTracer.get().activeSpan();
+        if (span == null) {
+            return ResponseEntity.status(500).build();
+        }
+
+        try (FileWriter writer = new FileWriter(path)) {
+            writer.write("system-tests thread context sharing");
+        }
+
+        // The OpenTracing SpanContext only exposes the low-order 64 bits of the trace id;
+        // datadog.trace.api.GlobalTracer surfaces the full 128-bit trace id, as hex, while its
+        // span id is already decimal.
+        final String traceIdHex = datadog.trace.api.GlobalTracer.get().getTraceId();
+        final String spanId = datadog.trace.api.GlobalTracer.get().getSpanId();
+
+        final Map<String, String> body = new HashMap<>();
+        body.put("trace_id", new BigInteger(traceIdHex, 16).toString());
+        body.put("span_id", spanId);
+        return ResponseEntity.ok(body);
     }
 
     @GetMapping("/identify")
@@ -1019,6 +1083,21 @@ public class App {
         return "hi OGNL";
     }
 
+    @RequestMapping("/trace/manual_keep_drop")
+    ResponseEntity<?> traceManualKeepDrop(@RequestParam String decision) throws Exception {
+        if (!"keep".equals(decision) && !"drop".equals(decision)) {
+            return ResponseEntity.badRequest().body("decision must be keep or drop");
+        }
+
+        final Span span = GlobalTracer.get().activeSpan();
+        if (span != null) {
+            span.setTag("keep".equals(decision) ? DDTags.MANUAL_KEEP : DDTags.MANUAL_DROP, true);
+        }
+
+        // Call downstream so that tests can assert on the sampling decision that gets propagated
+        return ResponseEntity.ok(make_distant_call("http://localhost:7777/"));
+    }
+
     @RequestMapping("/make_distant_call")
     DistantCallResponse make_distant_call(@RequestParam String url) throws Exception {
         HashMap<String, String> request_headers = new HashMap<>();
@@ -1242,6 +1321,77 @@ public class App {
         return "OK";
     }
 
+    @RequestMapping("/dbm")
+    String dbm(@RequestParam String integration) throws Exception {
+        String sql = "mssql".equals(integration) ? "SELECT @@version" : "SELECT version()";
+        try (Connection con = getTracedJdbcConnection(integration)) {
+            con.createStatement().execute(sql);
+        }
+        return "OK";
+    }
+
+    private Connection getTracedJdbcConnection(String integration) throws Exception {
+        switch (integration) {
+            case "postgresql":
+                Class.forName("org.postgresql.Driver");
+                return DriverManager.getConnection(
+                        "jdbc:postgresql://postgres:5433/system_tests_dbname",
+                        "system_tests_user", "system_tests");
+            case "mysql":
+                Class.forName("com.mysql.jdbc.Driver");
+                return DriverManager.getConnection(
+                        "jdbc:mysql://mysqldb:3306/mysql_dbname",
+                        "mysqldb", "mysqldb");
+            case "mssql":
+                Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+                return DriverManager.getConnection(
+                        "jdbc:sqlserver://mssql:1433;DatabaseName=master;trustServerCertificate=true;encrypt=true",
+                        "SA", "yourStrong(!)Password");
+            default:
+                throw new UnsupportedOperationException("Unknown integration: " + integration);
+        }
+    }
+
+    @RequestMapping("/stub_dbm")
+    String stub_dbm(@RequestParam String integration,
+                    @RequestParam(defaultValue = "execute") String operation) throws Exception {
+        try (TestConnection testCon = new TestConnection(getRawJdbcConnection(integration))) {
+            testCon.createStatement().execute("SELECT version()");
+            Map<String, String> result = new HashMap<>();
+            result.put("status", "ok");
+            result.put("dbm_comment", testCon.getLastSql());
+            return new ObjectMapper().writeValueAsString(result);
+        }
+    }
+
+    private Connection getRawJdbcConnection(String integration) throws Exception {
+        switch (integration) {
+            case "postgresql": {
+                Properties p = new Properties();
+                p.setProperty("user", "system_tests_user");
+                p.setProperty("password", "system_tests");
+                return new org.postgresql.Driver()
+                        .connect("jdbc:postgresql://postgres:5433/system_tests_dbname", p);
+            }
+            case "mysql": {
+                Properties p = new Properties();
+                p.setProperty("user", "mysqldb");
+                p.setProperty("password", "mysqldb");
+                return new com.mysql.jdbc.Driver()
+                        .connect("jdbc:mysql://mysqldb:3306/mysql_dbname", p);
+            }
+            case "mssql": {
+                Properties p = new Properties();
+                p.setProperty("user", "SA");
+                p.setProperty("password", "yourStrong(!)Password");
+                return DriverManager.getConnection(
+                        "jdbc:sqlserver://mssql:1433;DatabaseName=master", p);
+            }
+            default:
+                throw new UnsupportedOperationException("Unknown integration: " + integration);
+        }
+    }
+
     @RequestMapping("/otel_drop_in")
     public String otelDropInSpan() {
         // exercise OpenTelemetry's R2DBC support on Java
@@ -1282,6 +1432,61 @@ public class App {
         String jsonString = mapper.writeValueAsString(map);
 
         return jsonString;
+    }
+
+    @RequestMapping("/otel_drop_in_extract_and_make_distant_call")
+    DistantCallResponse otelDropInExtractAndMakeDistantCall(
+            @RequestHeader Map<String, String> headers,
+            @RequestParam String url) throws Exception {
+
+        ContextPropagators propagators = GlobalOpenTelemetry.getPropagators();
+        TextMapPropagator textMapPropagator = propagators.getTextMapPropagator();
+
+        Context extractedContext = textMapPropagator.extract(Context.current(), headers, new TextMapGetter<Map<String, String>>() {
+            @Override
+            public Iterable<String> keys(Map<String, String> map) { return map.keySet(); }
+
+            @Override
+            public String get(Map<String, String> map, String key) { return map.get(key); }
+        });
+
+        Tracer tracer = GlobalOpenTelemetry.getTracer("system-tests");
+        io.opentelemetry.api.trace.Span span = tracer.spanBuilder("otel_extract_distant_call")
+                .setParent(extractedContext)
+                .setSpanKind(SpanKind.SERVER)
+                .startSpan();
+
+        HashMap<String, String> request_headers = new HashMap<>();
+        DistantCallResponse result = new DistantCallResponse();
+        try (Scope scope = span.makeCurrent()) {
+            OkHttpClient client = new OkHttpClient.Builder()
+                .addNetworkInterceptor(chain -> {
+                    Request req = chain.request();
+                    Response res = chain.proceed(req);
+                    for (String name : req.headers().names()) {
+                        request_headers.put(name, req.headers().get(name));
+                    }
+                    return res;
+                })
+                .build();
+
+            Request request = new Request.Builder().url(url).get().build();
+            Response response = client.newCall(request).execute();
+
+            int status_code = response.code();
+            HashMap<String, String> response_headers = new HashMap<>();
+            for (String name : response.headers().names()) {
+                response_headers.put(name, response.headers().get(name));
+            }
+
+            result.url = url;
+            result.status_code = status_code;
+            result.request_headers = request_headers;
+            result.response_headers = response_headers;
+        } finally {
+            span.end();
+        }
+        return result;
     }
 
     @RequestMapping("/otel_drop_in_default_propagator_inject")

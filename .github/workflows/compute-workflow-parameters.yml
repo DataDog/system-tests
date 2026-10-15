@@ -165,15 +165,18 @@ jobs:
 
         library_branch = ""
         agent_branch = ""
+        auto_inject_branch = ""
 
         if branch_map_str:
             branch_map = json.loads(branch_map_str)
             library_branch = branch_map.get(library, "")
             agent_branch = branch_map.get("agent", "")
+            auto_inject_branch = branch_map.get("auto_inject", "")
 
         with open(os.environ["GITHUB_OUTPUT"], "a") as f:
             f.write(f"library_branch={library_branch}\n")
             f.write(f"agent_branch={agent_branch}\n")
+            f.write(f"auto_inject_branch={auto_inject_branch}\n")
       env:
         TARGET_BRANCH_MAP: ${{ inputs._system_tests_library_target_branch_map }}
         LIBRARY: ${{ inputs.library }}
@@ -186,13 +189,20 @@ jobs:
       env:
         LIBRARY_TARGET_BRANCH: "${{ steps.extract_branch.outputs.library_branch }}"
         AGENT_TARGET_BRANCH: "${{ steps.extract_branch.outputs.agent_branch }}"
-        CIRCLECI_TOKEN: ${{ secrets.CIRCLECI_TOKEN }}
+        AUTO_INJECT_TARGET_BRANCH: "${{ steps.extract_branch.outputs.auto_inject_branch }}"
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Upload artifact
       if: ${{ inputs._system_tests_dev_mode }}
-      uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+      uses: ./.github/actions/upload_artifact
       with:
         name: binaries_dev_${{ inputs.library }}
         path: binaries/
         include-hidden-files: ${{ inputs.library == 'python' || inputs.library == 'python_lambda' }}
+
+    - name: Tag job
+      if: ${{ !cancelled() }}
+      continue-on-error: true
+      uses: ./.github/actions/datadog_ci
+      with:
+        _is_official_system_tests_job: true

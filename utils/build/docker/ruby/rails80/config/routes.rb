@@ -29,6 +29,7 @@ Rails.application.routes.draw do
   get '/spans' => 'system_test#generate_spans'
   get '/status' => 'system_test#status'
   get '/read_file' => 'system_test#read_file'
+  get '/trace/manual_keep_drop' => 'system_test#trace_manual_keep_drop'
   get '/make_distant_call' => 'system_test#make_distant_call'
 
   get '/headers' => 'system_test#test_headers'
@@ -64,7 +65,7 @@ Rails.application.routes.draw do
   get '/debugger/log' => 'debugger#log_probe'
   get '/debugger/mix/:string_arg/:int_arg' => 'debugger#mix_probe'
   get '/debugger/snapshot/limits' => 'debugger#snapshot_limits'
-  get '/debugger/expression' => 'debugger#expression'
+  get '/debugger/expression' => 'debugger#run_expression'
   %w(operators strings collections null exception).each do |sub|
     get "/debugger/expression/#{sub}" => "debugger#expression_#{sub}"
   end
@@ -83,6 +84,8 @@ Rails.application.routes.draw do
   get '/sample_rate_route/:i' => 'api_security#sample_rate_route'
   get '/api_security_sampling/:i' => 'api_security#sampling_by_path'
   get '/api_security/sampling/:status' => 'api_security#sampling_by_status'
+  get '/api_security/multi-params-in-segment/:id.:format' => 'api_security#multi_params_in_segment'
+  get '/api_security/optional-params/:id(.:format)' => 'api_security#optional_params'
 
   post '/ai_guard/evaluate' => 'ai_guard#evaluate'
 

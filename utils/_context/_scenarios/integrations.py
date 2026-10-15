@@ -14,6 +14,7 @@ from utils._context.containers import (
     MsSqlServerContainer,
     MySqlContainer,
 )
+from utils._context.constants import WeblogCategory
 
 from .core import scenario_groups
 from .endtoend import EndToEndScenario
@@ -68,11 +69,29 @@ class IntegrationsScenario(EndToEndScenario):
                 "Test the integrations of those databases with tracers"
             ),
             scenario_groups=[scenario_groups.integrations, scenario_groups.appsec, scenario_groups.essentials],
+            weblog_categories=[WeblogCategory.dd_trace],
         )
 
     def configure(self, config: pytest.Config):
         super().configure(config)
         self.unique_id = _get_unique_id(self.host_log_folder, replay=self.replay)
+
+
+class DbmDynamicServiceScenario(EndToEndScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "DBM_DYNAMIC_SERVICE",
+            weblog_env={
+                "DD_DBM_PROPAGATION_MODE": "dynamic_service",
+            },
+            other_weblog_containers=(PostgresContainer,),
+            doc=(
+                "Verifies DD_DBM_PROPAGATION_MODE=dynamic_service injects ddsh into SQL comments "
+                "and sets _dd.propagated_hash on SQL spans with the same value."
+            ),
+            scenario_groups=[scenario_groups.integrations],
+            weblog_categories=[WeblogCategory.dd_trace],
+        )
 
 
 class AWSIntegrationsScenario(EndToEndScenario):
@@ -96,6 +115,7 @@ class AWSIntegrationsScenario(EndToEndScenario):
             doc=doc,
             other_weblog_containers=(ElasticMQContainer, LocalstackContainer),
             scenario_groups=[scenario_groups.integrations, scenario_groups.essentials],
+            weblog_categories=[WeblogCategory.dd_trace],
         )
 
     def configure(self, config: pytest.Config):
@@ -122,6 +142,7 @@ class CrossedTracingLibraryScenario(EndToEndScenario):
                 KafkaContainer,
             ),
             scenario_groups=[scenario_groups.integrations, scenario_groups.essentials],
+            weblog_categories=[WeblogCategory.dd_trace],
         )
 
     def configure(self, config: pytest.Config):

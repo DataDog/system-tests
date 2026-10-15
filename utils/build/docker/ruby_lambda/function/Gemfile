@@ -1,0 +1,6 @@
+source 'https://rubygems.org'
+
+gem 'datadog-lambda'
+gem 'datadog'
+gem 'faraday'
+gem 'json'

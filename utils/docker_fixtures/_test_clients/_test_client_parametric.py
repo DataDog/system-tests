@@ -1,28 +1,28 @@
-from collections.abc import Generator, Iterable
 import contextlib
+from collections.abc import Generator, Iterable
 from dataclasses import asdict
 from http import HTTPStatus
 from types import TracebackType
 from typing import TypedDict, cast
 
-from requests.exceptions import RequestException
+import pytest
 from docker.models.containers import Container
 from opentelemetry.trace import SpanKind, StatusCode
-import pytest
+from requests.exceptions import RequestException
 
-from utils.docker_fixtures._core import get_host_port, docker_run
+from utils._logger import logger
+from utils.docker_fixtures._core import extra_hosts_for_environment, get_host_port, docker_run
 from utils.docker_fixtures._test_agent import TestAgentAPI
+from utils.docker_fixtures.parametric import Link, LogLevel
 from utils.docker_fixtures.spec.llm_observability import (
-    SpanRequest,
-    LlmObsAnnotationContextRequest,
     DatasetCreateRequest,
     DatasetResponse,
+    LlmObsAnnotationContextRequest,
+    SpanRequest,
 )
 from utils.docker_fixtures.spec.otel_trace import OtelSpanContext
-from utils.docker_fixtures.parametric import LogLevel, Link
-from utils._logger import logger
 
-from ._core import TestClientFactory, TestClientApi
+from ._core import TestClientApi, TestClientFactory
 
 
 class ParametricTestClientFactory(TestClientFactory):
@@ -88,6 +88,11 @@ class ParametricTestClientFactory(TestClientFactory):
                 volumes=self.container_volumes,
                 log_file=log_file,
                 network=test_agent.network,
+                extra_hosts=extra_hosts_for_environment(env),
+                # Give ddtrace/OTLP/gRPC background threads time to drain on SIGTERM before
+                # the next test on this xdist worker reuses the same host port. SIGKILLing
+                # mid-shutdown was the most likely cause of rare container-exit flakes.
+                stop_timeout=5,
             ) as container,
         ):
             test_server_timeout = 60
@@ -142,6 +147,12 @@ class _TestSpan:
                 assert all(c in "0123456789abcdefABCDEF" for c in span_id[2:]), f"{span_id} is not hexadecimal"
             else:
                 assert span_id.isdigit(), f"{span_id} is not decimal"
+
+    def get_trace_id(self) -> int:
+        return self.trace_id
+
+    def get_span_id(self) -> int | str:
+        return self.span_id
 
     def set_resource(self, resource: str):
         self._client.span_set_resource(self.span_id, resource)
@@ -277,6 +288,9 @@ class ParametricTestClientApi(TestClientApi):
             self._session.get(self._url("/trace/crash"))
         except RequestException as e:
             logger.info(f"Expected exception when calling /trace/crash: {e}")
+
+    def get_logs(self) -> str:
+        return self.container.logs().decode("utf-8")
 
     def container_exec_run_raw(self, command: str) -> tuple[bool, str]:
         try:
@@ -478,15 +492,46 @@ class ParametricTestClientApi(TestClientApi):
         )
         return resp.json()["span_id"]
 
+    def dd_log_level_diagnostics(self) -> bool:
+        """Ask the app to trigger identifiable SDK warning and error diagnostics."""
+        response = self._session.post(self._url("/trace/diagnostics/log_level"), json={})
+        return HTTPStatus(response.status_code).is_success and response.json().get("success") is True
+
     def dd_flush(self) -> bool:
         r = self._session.post(self._url("/trace/span/flush"), json={})
 
         if not HTTPStatus(r.status_code).is_success:
             return False
 
+        return self.dd_flush_stats()
+
+    def dd_flush_stats(self) -> bool:
         r = self._session.post(self._url("/trace/stats/flush"), json={})
 
         return HTTPStatus(r.status_code).is_success
+
+    def flush_remote_config(self, timeout: float = 10.0) -> list[dict[str, str]] | None:
+        """Synchronously drain pending Remote Config and return the applied set.
+
+        Contract: docs/parametric/remote-config-apply-contract.md. Returns None on
+        tracers that haven't implemented the endpoint yet (404), as distinct from
+        [] which means the endpoint ran and applied nothing. On any other non-2xx
+        response (e.g. a 504 when the server-side drain timed out), logs a WARNING
+        and returns None instead of raising: a non-2xx response can occur even when
+        the tracer applied RC correctly, so the test should assert on actual tracer
+        state rather than be killed prematurely.
+        """
+        resp = self._session.post(
+            self._url("/trace/remote-config/apply"),
+            json={},
+            timeout=timeout,
+        )
+        if resp.status_code == HTTPStatus.NOT_FOUND:
+            return None
+        if not resp.ok:
+            logger.warning("flush_remote_config got %s: %s", resp.status_code, resp.text)
+            return None
+        return resp.json().get("applied_configs", [])
 
     def write_log(
         self,
@@ -533,7 +578,7 @@ class ParametricTestClientApi(TestClientApi):
             )
             if HTTPStatus(resp.status_code).is_success:
                 data = resp.json()
-                return data["success"], data["message"]
+                return data["success"], data.get("message", "")
             return False, f"HTTP error: {resp.status_code}"
         except Exception as e:
             return False, f"Error: {e!s}"
@@ -695,18 +740,33 @@ class ParametricTestClientApi(TestClientApi):
         data = resp.json()
         return data["value"]
 
+    def ensure_agent_info(self) -> bool:
+        r = self._session.get(self._url("/trace/agent/ensure_agent_info"))
+        if not HTTPStatus(r.status_code).is_success:
+            return False
+        return r.json().get("ready", True)
+
     def config(self) -> dict[str, str | None]:
         resp = self._session.get(self._url("/trace/config")).json()
         config_dict = resp["config"]
+        if self.lang == "nodejs":
+            config_dict.update(self.otel_effective_config())
         return {
             "dd_service": config_dict.get("dd_service", None),
             "dd_log_level": config_dict.get("dd_log_level", None),
+            "dd_trace_effective_log_level": config_dict.get("dd_trace_effective_log_level", None),
             "dd_trace_sample_rate": config_dict.get("dd_trace_sample_rate", None),
             "dd_trace_enabled": config_dict.get("dd_trace_enabled", None),
             "dd_runtime_metrics_enabled": config_dict.get("dd_runtime_metrics_enabled", None),
+            "dd_metrics_otel_interval": config_dict.get("dd_metrics_otel_interval", None),
+            "otel_metrics_initialized": config_dict.get("otel_metrics_initialized", None),
+            "otel_exporter_otlp_traces_timeout_ms": config_dict.get("otel_exporter_otlp_traces_timeout_ms", None),
+            "otel_exporter_otlp_metrics_timeout_ms": config_dict.get("otel_exporter_otlp_metrics_timeout_ms", None),
+            "otel_exporter_otlp_logs_timeout_ms": config_dict.get("otel_exporter_otlp_logs_timeout_ms", None),
             "dd_tags": config_dict.get("dd_tags", None),
             "dd_trace_propagation_style": config_dict.get("dd_trace_propagation_style", None),
             "dd_trace_debug": config_dict.get("dd_trace_debug", None),
+            "dd_trace_startup_log_level": config_dict.get("dd_trace_startup_log_level", None),
             "dd_trace_otel_enabled": config_dict.get("dd_trace_otel_enabled", None),
             "dd_trace_sample_ignore_parent": config_dict.get("dd_trace_sample_ignore_parent", None),
             "dd_env": config_dict.get("dd_env", None),
@@ -718,6 +778,18 @@ class ParametricTestClientApi(TestClientApi):
             "dd_logs_injection": config_dict.get("dd_logs_injection", None),
             "dd_profiling_enabled": config_dict.get("dd_profiling_enabled", None),
             "dd_data_streams_enabled": config_dict.get("dd_data_streams_enabled", None),
+        }
+
+    def otel_effective_config(self) -> dict[str, str | None]:
+        """Read resolved OTLP exporter timeouts from each SDK's configuration endpoint."""
+        endpoint = "/otel/effective_config" if self.lang == "nodejs" else "/trace/config"
+        response = self._session.get(self._url(endpoint))
+        response.raise_for_status()
+        config = response.json()["config"]
+        return {
+            "otel_exporter_otlp_traces_timeout_ms": config.get("otel_exporter_otlp_traces_timeout_ms"),
+            "otel_exporter_otlp_metrics_timeout_ms": config.get("otel_exporter_otlp_metrics_timeout_ms"),
+            "otel_exporter_otlp_logs_timeout_ms": config.get("otel_exporter_otlp_logs_timeout_ms"),
         }
 
     def otel_current_span(self) -> _TestOtelSpan | None:
@@ -733,14 +805,18 @@ class ParametricTestClientApi(TestClientApi):
 
         return _TestOtelSpan(self, span_response["span_id"], span_response["trace_id"])
 
-    def ffe_start(self) -> bool:
+    def ffe_start(self, configuration: dict | None = None) -> bool:
         """Initialize the FFE (Feature Flagging & Experimentation) provider.
 
         Returns:
             bool: True if the provider was initialized successfully, False otherwise
 
         """
-        resp = self._session.post(self._url("/ffe/start"), json={})
+        payload = {}
+        if configuration is not None:
+            payload["configuration"] = configuration
+
+        resp = self._session.post(self._url("/ffe/start"), json=payload)
         return HTTPStatus(resp.status_code).is_success
 
     def ffe_evaluate(
@@ -751,6 +827,7 @@ class ParametricTestClientApi(TestClientApi):
         default_value: bool | str | float | dict,
         targeting_key: str,
         attributes: dict | None = None,
+        span_id: int | str | None = None,
     ) -> dict:
         """Evaluate a feature flag.
 
@@ -760,21 +837,23 @@ class ParametricTestClientApi(TestClientApi):
             default_value: The default value to return if evaluation fails
             targeting_key: The targeting key (usually user ID) for evaluation context
             attributes: Optional additional attributes for evaluation context
+            span_id: Optional span ID to activate during evaluation (for span enrichment)
 
         Returns:
             dict: Evaluation result containing 'value' and 'reason'
 
         """
-        resp = self._session.post(
-            self._url("/ffe/evaluate"),
-            json={
-                "flag": flag,
-                "variationType": variation_type,
-                "defaultValue": default_value,
-                "targetingKey": targeting_key,
-                "attributes": attributes or {},
-            },
-        )
+        payload = {
+            "flag": flag,
+            "variationType": variation_type,
+            "defaultValue": default_value,
+            "targetingKey": targeting_key,
+            "attributes": attributes or {},
+        }
+        if span_id is not None:
+            payload["span_id"] = str(span_id)
+
+        resp = self._session.post(self._url("/ffe/evaluate"), json=payload)
         return resp.json()
 
     def otel_get_meter(
@@ -994,6 +1073,9 @@ class APMLibrary:
     def container_exec_run_raw(self, command: str) -> tuple[bool, str]:
         return self._client.container_exec_run_raw(command)
 
+    def get_logs(self) -> str:
+        return self._client.get_logs()
+
     @contextlib.contextmanager
     def dd_start_span(
         self,
@@ -1045,8 +1127,25 @@ class APMLibrary:
         ) as span:
             yield span
 
+    def ensure_agent_info(self) -> bool:
+        return self._client.ensure_agent_info()
+
+    def dd_log_level_diagnostics(self) -> bool:
+        return self._client.dd_log_level_diagnostics()
+
     def dd_flush(self) -> bool:
         return self._client.dd_flush()
+
+    def dd_flush_stats(self) -> bool:
+        return self._client.dd_flush_stats()
+
+    def flush_remote_config(self, timeout: float = 10.0) -> list[dict[str, str]] | None:
+        """Synchronously drain pending Remote Config and return the applied set.
+
+        Returns None on tracers that haven't implemented the endpoint yet.
+        Tests rarely call this directly; set_and_wait_rc() invokes it after the ACK.
+        """
+        return self._client.flush_remote_config(timeout=timeout)
 
     def otel_flush(self, timeout_sec: int) -> bool:
         return self._client.otel_flush(timeout_sec)
@@ -1159,9 +1258,9 @@ class APMLibrary:
     ) -> bool:
         return self._client.write_log(logger_name, level, message, span_id=span_id)
 
-    def ffe_start(self) -> bool:
+    def ffe_start(self, configuration: dict | None = None) -> bool:
         """Initialize the FFE (Feature Flagging & Experimentation) provider."""
-        return self._client.ffe_start()
+        return self._client.ffe_start(configuration)
 
     def ffe_evaluate(
         self,
@@ -1171,6 +1270,7 @@ class APMLibrary:
         default_value: bool | str | float | dict,
         targeting_key: str,
         attributes: dict | None = None,
+        span_id: int | str | None = None,
     ) -> dict:
         """Evaluate a feature flag."""
         return self._client.ffe_evaluate(
@@ -1179,6 +1279,7 @@ class APMLibrary:
             default_value=default_value,
             targeting_key=targeting_key,
             attributes=attributes,
+            span_id=span_id,
         )
 
     def llmobs_trace(

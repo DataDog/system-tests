@@ -3,9 +3,11 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <signal.h>
 #include <stdio.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
 #define PORT 7778
@@ -308,6 +310,95 @@ static enum MHD_Result answer_to_connection(void *cls, struct MHD_Connection *co
         int ret = MHD_queue_response(connection, 200, response);
         MHD_destroy_response(response);
         return ret;
+    }
+
+    if (strcmp(url, "/spawn_child") == 0) {
+        const char *sleep_str = MHD_lookup_connection_value(connection, MHD_GET_ARGUMENT_KIND, "sleep");
+        const char *crash_str = MHD_lookup_connection_value(connection, MHD_GET_ARGUMENT_KIND, "crash");
+        const char *fork_str = MHD_lookup_connection_value(connection, MHD_GET_ARGUMENT_KIND, "fork");
+
+        if (!sleep_str || !crash_str || !fork_str) {
+            const char *msg = "sleep, crash, and fork parameters required";
+            struct MHD_Response *response = MHD_create_response_from_buffer(
+                strlen(msg), (void *)msg, MHD_RESPMEM_PERSISTENT);
+            int ret = MHD_queue_response(connection, 400, response);
+            MHD_destroy_response(response);
+            return ret;
+        }
+
+        char *sleep_end = NULL;
+        long sleep_val = strtol(sleep_str, &sleep_end, 10);
+        if (sleep_end == sleep_str || *sleep_end != '\0' || sleep_val < 0) {
+            const char *msg = "sleep must be a non-negative integer";
+            struct MHD_Response *response = MHD_create_response_from_buffer(
+                strlen(msg), (void *)msg, MHD_RESPMEM_PERSISTENT);
+            int ret = MHD_queue_response(connection, 400, response);
+            MHD_destroy_response(response);
+            return ret;
+        }
+        int sleep_secs = (int)sleep_val;
+        bool do_crash = strcasecmp(crash_str, "true") == 0;
+        bool use_fork = strcasecmp(fork_str, "true") == 0;
+
+        if (use_fork) {
+            pid_t pid = fork();
+            if (pid < 0) {
+                const char *msg = "fork failed";
+                struct MHD_Response *response = MHD_create_response_from_buffer(
+                    strlen(msg), (void *)msg, MHD_RESPMEM_PERSISTENT);
+                int ret = MHD_queue_response(connection, 500, response);
+                MHD_destroy_response(response);
+                return ret;
+            }
+            if (pid == 0) {
+                sleep(sleep_secs);
+                if (do_crash) {
+                    raise(SIGSEGV);
+                }
+                _exit(0);
+            }
+            int wstatus;
+            waitpid(pid, &wstatus, 0);
+            char buf[128];
+            snprintf(buf, sizeof(buf), "Child process %d exited with status %d", pid, WEXITSTATUS(wstatus));
+            struct MHD_Response *response = MHD_create_response_from_buffer(
+                strlen(buf), buf, MHD_RESPMEM_MUST_COPY);
+            int ret = MHD_queue_response(connection, 200, response);
+            MHD_destroy_response(response);
+            return ret;
+        }
+
+        /* exec path: fork + exec a child process */
+        {
+            pid_t pid = fork();
+            if (pid < 0) {
+                const char *msg = "fork failed";
+                struct MHD_Response *response = MHD_create_response_from_buffer(
+                    strlen(msg), (void *)msg, MHD_RESPMEM_PERSISTENT);
+                int ret = MHD_queue_response(connection, 500, response);
+                MHD_destroy_response(response);
+                return ret;
+            }
+            if (pid == 0) {
+                if (do_crash) {
+                    execlp("sh", "sh", "-c",
+                           sleep_str[0] ? "sleep $0 && kill -SEGV $$" : "kill -SEGV $$",
+                           sleep_str, (char *)NULL);
+                } else {
+                    execlp("sleep", "sleep", sleep_str, (char *)NULL);
+                }
+                _exit(1);
+            }
+            int wstatus;
+            waitpid(pid, &wstatus, 0);
+            char buf[128];
+            snprintf(buf, sizeof(buf), "Child process %d exited with status %d", pid, WEXITSTATUS(wstatus));
+            struct MHD_Response *response = MHD_create_response_from_buffer(
+                strlen(buf), buf, MHD_RESPMEM_MUST_COPY);
+            int ret = MHD_queue_response(connection, 200, response);
+            MHD_destroy_response(response);
+            return ret;
+        }
     }
 
     if (strcmp(url, "/content") != 0 || !status_str || !value)

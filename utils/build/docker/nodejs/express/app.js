@@ -1,4 +1,5 @@
 'use strict'
+/* eslint-disable camelcase */
 
 const opts = {}
 
@@ -9,6 +10,7 @@ if (process.env.CONFIG_CHAINING_TEST) {
 }
 
 const tracer = require('dd-trace').init(opts)
+const { tags: { MANUAL_KEEP, MANUAL_DROP } } = require('dd-trace/ext')
 
 const { promisify } = require('util')
 const app = require('express')()
@@ -53,11 +55,14 @@ const jsonLogger = winston.createLogger({
 
 iast.initData().catch(() => {})
 
-app.use(require('body-parser').json({
+const jsonBodyOptions = {
   verify: (req, res, buf) => {
     req.rawBody = buf
   }
-}))
+}
+// The shared degradation contract sends 12,000 targeting keys in one /ffe request.
+app.use('/ffe', require('body-parser').json({ ...jsonBodyOptions, limit: '1mb' }))
+app.use(require('body-parser').json(jsonBodyOptions))
 app.use(require('body-parser').urlencoded({ extended: true }))
 app.use(require('express-xml-bodyparser')())
 app.use(require('cookie-parser')())
@@ -71,6 +76,43 @@ app.get('/', (req, res) => {
   res.set('Content-Type', 'text/plain')
   res.send('Hello world!\n')
 })
+
+function subprocessAndExitHandler (req, res) {
+  const path = require('path')
+  const { spawn } = require('child_process')
+  const sleep = req.query.sleep != null ? String(req.query.sleep) : null
+  const crash = req.query.crash
+  if (sleep == null || sleep === '') {
+    res.status(400).send('sleep required')
+    return
+  }
+  const crashStr = String(crash || '').toLowerCase()
+  const forkStr = String(req.query.fork || '').toLowerCase()
+  if (crashStr !== 'true' && crashStr !== 'false') {
+    res.status(400).send('crash required (boolean)')
+    return
+  }
+  if (forkStr !== 'true' && forkStr !== 'false') {
+    res.status(400).send('fork required (boolean)')
+    return
+  }
+  const useFork = forkStr === 'true'
+
+  if (useFork) {
+    const child = require('child_process').fork(path.join(__dirname, 'fork_child.js'), [sleep, crashStr])
+    child.on('close', (code, signal) => {
+      res.send(`Child process ${child.pid} exited with code ${code}, signal ${signal}`)
+    })
+  } else {
+    const child = spawn(process.execPath, [path.join(__dirname, 'fork_child.js'), sleep, crashStr], {
+      stdio: 'inherit'
+    })
+    child.on('close', (code, signal) => {
+      res.send(`Child process ${child.pid} exited with code ${code}, signal ${signal}`)
+    })
+  }
+}
+app.get('/spawn_child', subprocessAndExitHandler)
 
 app.get('/healthcheck', (req, res) => {
   res.json({
@@ -102,6 +144,20 @@ app.get('/api_security/sampling/:status', (req, res) => {
 
 app.get('/api_security_sampling/:i', (req, res) => {
   res.send('OK')
+})
+
+// RFC-1103: two mandatory params in the same segment (rule 5 intra-segment combining)
+app.get('/api_security/multi-params-in-segment/:id.:format', (req, res) => {
+  res.send('ok')
+})
+
+// RFC-1103: optional intra-segment param (rules 5 + 6); more-specific route first
+app.get('/api_security/optional-params/:id.:format', (req, res) => {
+  res.send('ok')
+})
+
+app.get('/api_security/optional-params/:id', (req, res) => {
+  res.send('ok')
 })
 
 app.get('/params/:value', (req, res) => {
@@ -177,19 +233,47 @@ app.get('/status', (req, res) => {
   res.status(parseInt(req.query.code) || 400).send('OK')
 })
 
-app.get('/make_distant_call', (req, res) => {
-  const url = req.query.url
+app.get('/trace/manual_keep_drop', (req, res) => {
+  const decision = req.query.decision
 
-  const parsedUrl = new URL(url)
-
-  const options = {
-    hostname: parsedUrl.hostname,
-    port: parsedUrl.port || 80, // Use default port if not provided
-    path: parsedUrl.pathname,
-    method: 'GET'
+  if (decision !== 'keep' && decision !== 'drop') {
+    return res.status(400).send('decision must be keep or drop')
   }
 
-  const request = http.request(options, (response) => {
+  tracer.scope().active().setTag(decision === 'keep' ? MANUAL_KEEP : MANUAL_DROP, true)
+
+  // Call downstream so that tests can assert on the sampling decision that gets propagated
+  // The weblog listens on IPv4; localhost may resolve to IPv6 instead.
+  const url = 'http://127.0.0.1:7777/'
+  const request = http.request({ hostname: '127.0.0.1', port: 7777, path: '/', method: 'GET' }, (response) => {
+    response.on('data', () => {})
+
+    response.on('end', () => {
+      res.json({
+        url,
+        status_code: response.statusCode,
+        request_headers: response.req.getHeaders(),
+        response_headers: response.headers
+      })
+    })
+  })
+
+  request.on('error', (error) => {
+    console.log(error)
+    res.status(500).send(error.message)
+  })
+
+  request.end()
+})
+
+app.get('/make_distant_call', (req, res) => {
+  const url = req.query.url
+  const parsedUrl = new URL(url)
+  const method = req.query.method || 'GET'
+
+  // Passing the URL object preserves query strings and credentials. This endpoint is used by
+  // semantic-convention tests that need the tracer to observe the complete outbound request.
+  const request = http.request(parsedUrl, { method }, (response) => {
     let responseBody = ''
     response.on('data', (chunk) => {
       responseBody += chunk
@@ -296,15 +380,12 @@ app.get('/stub_dbm', async (req, res) => {
   const operation = req.query.operation
 
   if (integration === 'pg') {
-    tracer.use(integration, { dbmPropagationMode: 'full' })
     const dbmComment = await pgsql.doOperation(operation)
     res.send({ status: 'ok', dbm_comment: dbmComment })
   } else if (integration === 'mysql2') {
-    tracer.use(integration, { dbmPropagationMode: 'full' })
     const result = await mysql.doOperation(operation)
     res.send({ status: 'ok', dbm_comment: result })
   } else if (integration === 'mssql') {
-    tracer.use(integration, { dbmPropagationMode: 'full' })
     res.send(await mssql.doOperation(operation))
   }
 })
@@ -600,6 +681,8 @@ app.get('/flush', (req, res) => {
   tracer.dogstatsd?.flush?.()
   tracer._pluginManager?._pluginsByName?.openai?.metrics?.flush?.()
   tracer._tracer?._processor?._stats?.onInterval()
+  // force FFE exposure events out immediately instead of waiting for the writer's periodic flush
+  require('node:diagnostics_channel').channel('ffe:writers:flush').publish()
 
   // does have a callback :)
   const promises = []
@@ -667,12 +750,20 @@ app.get('/add_event', (req, res) => {
   res.status(200).json({ message: 'Event added' })
 })
 
-app.all('/external_request', (req, res) => {
+const DOWNSTREAM_RESPONSE_BODY_LIMIT_PROFILES = new Set([
+  'invalid_content_type',
+  'content_length_missing',
+  'content_length_too_big'
+])
+
+function forwardExternalRequest (req, res, downstreamPath) {
   const status = req.query.status || '200'
   const urlExtra = req.query.url_extra || ''
 
   const headers = {}
+  const queryParamsExcludedFromHeaders = new Set(['status', 'url_extra'])
   for (const [key, value] of Object.entries(req.query)) {
+    if (queryParamsExcludedFromHeaders.has(key)) continue
     headers[key] = String(value)
   }
 
@@ -682,10 +773,12 @@ app.all('/external_request', (req, res) => {
     headers['Content-Type'] = req.headers['content-type'] || 'application/json'
   }
 
+  const path = downstreamPath || `/mirror/${status}${urlExtra}`
+
   const options = {
     hostname: 'internal_server',
     port: 8089,
-    path: `/mirror/${status}${urlExtra}`,
+    path,
     method: req.method,
     headers
   }
@@ -706,12 +799,25 @@ app.all('/external_request', (req, res) => {
     })
   })
 
-  // Write body if present
   if (body) {
     request.write(body)
   }
 
   request.end()
+}
+
+app.all('/external_request', (req, res) => {
+  forwardExternalRequest(req, res)
+})
+
+app.all('/external_request/body_limit/:failureReason', (req, res) => {
+  const { failureReason } = req.params
+  if (!DOWNSTREAM_RESPONSE_BODY_LIMIT_PROFILES.has(failureReason)) {
+    res.status(404).json({ error: 'unknown failure reason' })
+    return
+  }
+
+  forwardExternalRequest(req, res, `/downstream_response/${failureReason}`)
 })
 
 app.get('/external_request/redirect', (req, res) => {
@@ -755,8 +861,15 @@ app.get('/external_request/redirect', (req, res) => {
 require('./rasp')(app)
 
 app.post('/ai_guard/evaluate', async (req, res) => {
-  // eslint-disable-next-line camelcase
-  const renameAttrs = ({ tagProbabilities: tag_probs, ...rest }) => ({ ...rest, tag_probs })
+  const renameAttrs = ({
+    tagProbabilities: tag_probs,
+    redactionReplacements: redaction_replacements,
+    ...rest
+  }) => ({
+    ...rest,
+    tag_probs,
+    redaction_replacements
+  })
   const block = req.headers['x-ai-guard-block'] === 'true'
   const messages = req.body
   const userId = req.headers['x-user-id']
@@ -777,45 +890,69 @@ app.post('/ai_guard/evaluate', async (req, res) => {
 })
 
 let openFeatureClient = null
+let openFeatureClientPromise = null
 
-// Initialize OpenFeature provider if FFE is enabled
-if (process.env.DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED === 'true') {
-  const { openfeature } = tracer
-  OpenFeature.setProvider(openfeature)
-  openFeatureClient = OpenFeature.getClient()
+async function getOpenFeatureClient () {
+  if (openFeatureClient) {
+    return openFeatureClient
+  }
+
+  if (process.env.DD_FEATURE_FLAGS_ENABLED === 'false') {
+    return null
+  }
+
+  if (!openFeatureClientPromise) {
+    const { openfeature } = tracer
+    openFeatureClientPromise = OpenFeature.setProviderAndWait(openfeature)
+      .then(() => {
+        openFeatureClient = OpenFeature.getClient()
+        return openFeatureClient
+      })
+      .catch(error => {
+        openFeatureClientPromise = null
+        throw error
+      })
+  }
+
+  return openFeatureClientPromise
 }
 
 // Single FFE endpoint that evaluates feature flags
 app.post('/ffe', async (req, res) => {
   try {
-    const { flag, variationType, defaultValue, targetingKey, attributes } = req.body
+    const { flag, variationType, defaultValue, targetingKey, targetingKeys, attributes } = req.body
+    const client = await getOpenFeatureClient()
 
-    if (!openFeatureClient) {
+    if (!client) {
       return res.status(500).json({ error: 'FFE provider not initialized' })
     }
 
     let value
-    const context = { targetingKey, ...attributes }
+    const keys = Array.isArray(targetingKeys) && targetingKeys.length > 0 ? targetingKeys : [targetingKey]
 
-    switch (variationType) {
-      case 'BOOLEAN':
-        value = await openFeatureClient.getBooleanValue(flag, defaultValue, context)
-        break
-      case 'STRING':
-        value = await openFeatureClient.getStringValue(flag, defaultValue, context)
-        break
-      case 'INTEGER':
-      case 'NUMERIC':
-        value = await openFeatureClient.getNumberValue(flag, defaultValue, context)
-        break
-      case 'JSON':
-        value = await openFeatureClient.getObjectValue(flag, defaultValue, context)
-        break
-      default:
-        return res.status(400).json({ error: `Unknown variation type: ${variationType}` })
+    for (const key of keys) {
+      const context = { targetingKey: key, ...attributes }
+
+      switch (variationType) {
+        case 'BOOLEAN':
+          value = await client.getBooleanValue(flag, defaultValue, context)
+          break
+        case 'STRING':
+          value = await client.getStringValue(flag, defaultValue, context)
+          break
+        case 'INTEGER':
+        case 'NUMERIC':
+          value = await client.getNumberValue(flag, defaultValue, context)
+          break
+        case 'JSON':
+          value = await client.getObjectValue(flag, defaultValue, context)
+          break
+        default:
+          return res.status(400).json({ error: `Unknown variation type: ${variationType}` })
+      }
     }
 
-    res.status(200).json({ value })
+    res.status(200).json({ value, count: keys.length })
   } catch (error) {
     console.error('[FFE] Error:', error)
     res.status(500).json({ error: error.message })
@@ -840,6 +977,25 @@ const startServer = () => {
         app(req, res)
       }
     })
+
+    // Direct-EVP shutdown coverage needs Docker's SIGTERM to reach the ordinary Node
+    // process and let dd-trace's beforeExit hooks flush. Keep this opt-in so other
+    // scenarios retain the weblog's historical signal behavior.
+    if (process.env.SYSTEM_TESTS_FFE_SHUTDOWN_FLUSH_ENABLED === 'true') {
+      process.once('SIGTERM', () => {
+        server.close(error => {
+          if (error) {
+            console.error('Failed to close server during SIGTERM:', error)
+            process.exitCode = 1
+            return
+          }
+          console.log(JSON.stringify({
+            event: 'system_tests.ffe.shutdown.server_closed',
+            timestamp: new Date().toISOString()
+          }))
+        })
+      })
+    }
 
     server.listen(7777, '0.0.0.0', () => {
       tracer.trace('init.service', () => {})

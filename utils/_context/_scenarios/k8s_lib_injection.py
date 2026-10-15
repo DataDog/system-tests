@@ -17,6 +17,8 @@ from utils.k8s.k8s_component_image import (
 from utils._logger import logger
 from .core import Scenario, scenario_groups, ScenarioGroup
 
+DEFAULT_K8S_SCENARIO_GROUPS = [scenario_groups.all, scenario_groups.lib_injection]
+
 
 class K8sScenarioWithClusterProvider:
     k8s_cluster_provider: K8sClusterProvider
@@ -31,17 +33,19 @@ class K8sScenario(Scenario, K8sScenarioWithClusterProvider):
         doc: str,
         *,
         use_uds: bool = False,
-        weblog_env: dict[str, str] = {},
-        dd_cluster_feature: dict[str, str] = {},
+        weblog_env: dict[str, str] | None = None,
+        dd_cluster_feature: dict[str, str] | None = None,
         with_datadog_operator: bool = False,
         with_cluster_agent: bool = True,
-        scenario_groups: list[ScenarioGroup] = [scenario_groups.all, scenario_groups.lib_injection],
+        scenario_groups: list[ScenarioGroup] | None = None,
     ) -> None:
+        if scenario_groups is None:
+            scenario_groups = DEFAULT_K8S_SCENARIO_GROUPS
         super().__init__(name, doc=doc, github_workflow="libinjection", scenario_groups=scenario_groups)
         self.use_uds = use_uds
         self.with_datadog_operator = with_datadog_operator
-        self.weblog_env = weblog_env
-        self.dd_cluster_feature = dd_cluster_feature
+        self.weblog_env = weblog_env or {}
+        self.dd_cluster_feature = dd_cluster_feature or {}
         self._configuration: dict[str, str] = {}
         self.with_cluster_agent = with_cluster_agent
         self.k8s_helm_chart_version: str | None = None
@@ -224,8 +228,8 @@ class K8sSparkScenario(K8sScenario):
         doc: str,
         *,
         use_uds: bool = False,
-        weblog_env: dict[str, str] = {},
-        dd_cluster_feature: dict[str, str] = {},
+        weblog_env: dict[str, str] | None = None,
+        dd_cluster_feature: dict[str, str] | None = None,
     ) -> None:
         super().__init__(
             name,

@@ -24,6 +24,7 @@ import (
 	"github.com/DataDog/dd-trace-go/v2/appsec"
 	"github.com/DataDog/dd-trace-go/v2/datastreams"
 	"github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry"
+	_ "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry/metric"
 	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 	"github.com/Shopify/sarama"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -144,6 +145,9 @@ func main() {
 		w.Write([]byte("OK"))
 	})
 
+	mux.HandleFunc("/trace/manual_keep_drop", common.ManualKeepDrop)
+	mux.HandleFunc("/security/thread_context_sharing", common.ThreadContextSharing)
+
 	mux.HandleFunc("/make_distant_call", func(w http.ResponseWriter, r *http.Request) {
 		url := r.URL.Query().Get("url")
 		if url == "" {
@@ -152,6 +156,11 @@ func main() {
 		}
 
 		req, _ := http.NewRequestWithContext(r.Context(), http.MethodGet, url, nil)
+		// Inject the current span's context into req.Header so headers are
+		// visible after Do (the instrumented client injects into a cloned request).
+		if span, ok := tracer.SpanFromContext(r.Context()); ok {
+			tracer.Inject(span.Context(), tracer.HTTPHeadersCarrier(req.Header))
+		}
 		res, err := http.DefaultClient.Do(req)
 		if err != nil {
 			log.Fatalln("client.Do", err)
@@ -161,7 +170,7 @@ func main() {
 
 		requestHeaders := make(map[string]string, len(req.Header))
 		for key, values := range req.Header {
-			requestHeaders[key] = strings.Join(values, ",")
+			requestHeaders[strings.ToLower(key)] = strings.Join(values, ",")
 		}
 
 		responseHeaders := make(map[string]string, len(res.Header))
@@ -607,9 +616,25 @@ func main() {
 	mux.HandleFunc("/rasp/multiple", rasp.LFIMultiple)
 	mux.HandleFunc("/rasp/ssrf", rasp.SSRF)
 	mux.HandleFunc("/rasp/sqli", rasp.SQLi)
+	mux.HandleFunc("/rasp/cmdi", rasp.CMDI)
 
 	mux.HandleFunc("/external_request", rasp.ExternalRequest)
 	mux.HandleFunc("GET /external_request/redirect", rasp.ExternalRedirectRequest)
+
+	mux.HandleFunc("/add_event", func(w http.ResponseWriter, r *http.Request) {
+		span, ok := tracer.SpanFromContext(r.Context())
+		if !ok {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(`span not found in context`))
+			return
+		}
+		span.AddEvent("span.event", tracer.WithSpanEventAttributes(map[string]any{
+			"string": "value",
+			"int":    1,
+		}))
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`[Event added]`))
+	})
 
 	mux.HandleFunc("/ffe", common.FFeEval())
 
@@ -617,6 +642,10 @@ func main() {
 	mux.HandleFunc("/debugger/log", d.logProbe)
 	mux.HandleFunc("/debugger/mix", d.mixProbe)
 	mux.HandleFunc("/debugger/expression", d.expression)
+	mux.HandleFunc("/debugger/budgets/{count}", func(w http.ResponseWriter, r *http.Request) {
+		loops, _ := strconv.Atoi(r.PathValue("count"))
+		d.budgets(w, r, loops)
+	})
 
 	srv := &http.Server{
 		Addr:    ":7777",

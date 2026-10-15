@@ -1,0 +1,38 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://app.datadoghq.com/api/v2/ai-guard/evaluate",
+    "headers": {
+      "Accept-Encoding": "identity",
+      "Content-Length": "417",
+      "Content-Type": "application/json",
+      "DD-AI-GUARD-VERSION": "4.10.6",
+      "DD-AI-GUARD-SOURCE": "SDK",
+      "DD-AI-GUARD-LANGUAGE": "python",
+      "Datadog-Entity-ID": "in-115716"
+    },
+    "body": "{\"data\": {\"attributes\": {\"messages\": [{\"role\": \"user\", \"content\": \"Bob is a student at Stanford University. He is studying computer science.\"}, {\"role\": \"assistant\", \"tool_calls\": [{\"id\": \"call_C5dXIRBkTQjYoQrBr3WrkQYY\", \"function\": {\"name\": \"extract_student_info\", \"arguments\": \"{\\\"name\\\":\\\"Bob\\\",\\\"major\\\":\\\"computer science\\\",\\\"school\\\":\\\"Stanford University\\\"}\"}}]}], \"meta\": {\"service\": \"openai\", \"env\": null}}}}"
+  },
+  "response": {
+    "status": {
+      "code": 200,
+      "message": "OK"
+    },
+    "headers": {
+      "content-security-policy": "frame-ancestors 'self'; report-uri https://logs.browser-intake-datadoghq.com/api/v2/logs?dd-api-key=pube4f163c23bbf91c16b8f57f56af9fc58&dd-evp-origin=content-security-policy&ddsource=csp-report&ddtags=site%3Adatadoghq.com",
+      "content-type": "application/vnd.api+json",
+      "vary": "Accept-Encoding",
+      "x-frame-options": "SAMEORIGIN",
+      "content-length": "219",
+      "date": "Fri, 03 Jul 2026 14:50:13 GMT",
+      "x-content-type-options": "nosniff",
+      "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+      "x-ratelimit-limit": "5000",
+      "x-ratelimit-period": "60",
+      "x-ratelimit-remaining": "4997",
+      "x-ratelimit-reset": "47",
+      "x-ratelimit-name": "ai_guard_evaluate_per_org"
+    },
+    "body": "{\"data\":{\"id\":\"4aefdbd6-761e-4bb5-ba69-f543586e8b4e\",\"type\":\"evaluations\",\"attributes\":{\"action\":\"ALLOW\",\"global_prob\":0.00628662109375,\"is_blocking_enabled\":false,\"reason\":\"No rule match.\",\"tag_probs\":null,\"tags\":[]}}}"
+  }
+}

@@ -66,6 +66,7 @@ node_modules/
 
 # debugger
 /tests/debugger/approvals/**/*received*
+/tests/debugger/utils/approvals/**/*received*
 .aider*
 
 # version check
@@ -73,8 +74,17 @@ version-check-output/
 
 tmp/
 
+# Materialized build context for utils/base_images/build_base_images.py
+/.base_image_build/
+/.base_images_build/
+
 # Go
 go.work*
 
 # Hypothesis Python package
 .hypothesis/
+
+# Git worktrees
+.claude/worktrees/
+.worktrees/
+.omc/

@@ -29,6 +29,9 @@ scenario_names = {scenario.name for scenario in get_all_scenarios()}
 LIBRARIES = COMPONENT_GROUPS.all - COMPONENT_GROUPS.otel
 OTEL_LIBRARIES = COMPONENT_GROUPS.otel - {"nodejs_otel"}  # nodejs_otel intentionally excluded
 ALL_LIBRARIES = LIBRARIES | OTEL_LIBRARIES
+GITHUB_EXCLUDED_LIBRARIES = {"c"}
+GITLAB_PR_LIBRARIES = {"c"}
+GITLAB_MAIN = {"python"}
 
 
 def check_scenarios(scenarios: set[str]) -> bool:
@@ -145,27 +148,42 @@ class LibraryProcessor:
             self.selected |= self.impacted
 
     def get_outputs(self) -> dict[str, Any]:
+        selected = self.selected - GITHUB_EXCLUDED_LIBRARIES
         populated_result = [
             {
                 "library": library,
                 "version": "prod",
             }
-            for library in sorted(self.selected)
+            for library in sorted(selected)
         ] + [
             {
                 "library": library,
                 "version": "dev",
             }
-            for library in sorted(self.selected)
-            if "otel" not in library and library not in ("otel_collector")
+            for library in sorted(selected)
+            if "otel" not in library and library != "otel_collector"
         ]
 
         libraries_with_dev = [item["library"] for item in populated_result if item["version"] == "dev"]
+        single_library_execution_time = 300 if self.selected == {"nodejs"} else 600
+        desired_execution_time = single_library_execution_time if len(self.selected) == 1 else 3600
+
         return {
             "library_matrix": populated_result,
             "libraries_with_dev": libraries_with_dev,
-            "desired_execution_time": 600 if len(self.selected) == 1 else 3600,
+            "desired_execution_time": desired_execution_time,
         }
+
+
+def filter_gitlab_libraries(inputs: Inputs, libraries: set[str]) -> set[str]:
+    """Limit the GitLab end-to-end rollout by pipeline context."""
+    if inputs.ref == "refs/heads/main" and inputs.event_name != "schedule":
+        return libraries & GITLAB_MAIN
+
+    if inputs.event_name in ("pull_request", "push"):
+        return libraries & GITLAB_PR_LIBRARIES
+
+    return set()
 
 
 class ScenarioProcessor:
@@ -284,8 +302,11 @@ class Inputs:
         scenario_map_file: str = "logs_mock_the_test/scenarios.json",
         new_manifests: Path = Path("manifests/"),
         old_manifests: Path = Path("original/manifests/"),
+        *,
+        select_main_push_from_diff: bool = False,
     ) -> None:
         self.is_gitlab = False
+        self.select_main_push_from_diff = select_main_push_from_diff
         self.load_git_info()
         self.output = output
         self.mapping_file = os.path.join(root_dir, mapping_file)
@@ -306,8 +327,10 @@ class Inputs:
     def load_git_info(self) -> None:
         # Get all relevant environment variables.
         if "GITLAB_CI" in os.environ:
-            self.event_name = os.environ.get("CI_PIPELINE_SOURCE", "push")
-            self.ref = os.environ.get("CI_COMMIT_REF_NAME", "")
+            source = os.environ.get("CI_PIPELINE_SOURCE", "push")
+            self.event_name = "pull_request" if source == "merge_request_event" else source
+            branch = os.environ.get("CI_COMMIT_REF_NAME", "")
+            self.ref = f"refs/heads/{branch}" if branch else ""
             self.pr_title = ""
             self.is_gitlab = True
         else:
@@ -329,11 +352,24 @@ class Inputs:
             for pattern, parameters in raw_impacts.items():
                 self.impacts[pattern] = Param(pattern, parameters) if parameters else default_param
 
+    def selects_scenarios_from_diff(self) -> bool:
+        """Select scenarios from the changed files, instead of the full matrix.
+
+        Scheduled pipelines and main pushes keep the full matrix by default.
+        Callers must explicitly opt main pushes into diff selection.
+        """
+        if self.event_name not in ("pull_request", "push"):
+            return False
+        if self.ref == "refs/heads/main":
+            return self.event_name == "push" and self.select_main_push_from_diff
+        return True
+
     def load_modified_files(self) -> None:
-        if self.ref != "refs/heads/main":
-            # Gets the modified files. Computed with gh in a previous ci step.
-            with open("modified_files.txt", "r", encoding="utf-8") as f:
-                self.modified_files = [line.strip() for line in f]
+        if not self.selects_scenarios_from_diff():
+            return
+        # Gets the modified files. Computed with gh in a previous ci step.
+        with open("modified_files.txt", "r", encoding="utf-8") as f:
+            self.modified_files = [line.strip() for line in f]
 
     def load_scenario_mappings(self) -> None:
         if self.event_name in ("pull_request", "push"):
@@ -376,7 +412,7 @@ def process(inputs: Inputs) -> list[str]:
 
     rebuild_lambda_proxy = False
 
-    if inputs.event_name not in ("pull_request", "push") or inputs.ref == "refs/heads/main":
+    if not inputs.selects_scenarios_from_diff():
         scenario_processor = ScenarioProcessor({all_scenario_groups.all.name})
         library_processor = LibraryProcessor(LIBRARIES)
 
@@ -405,6 +441,9 @@ def process(inputs: Inputs) -> list[str]:
         library_processor.selected |= scenario_processor.impacted_libraries
 
     if inputs.is_gitlab:
+        libraries = " ".join(sorted(filter_gitlab_libraries(inputs, library_processor.selected)))
+        if libraries:
+            outputs["libraries"] = libraries
         outputs |= scenario_processor.get_outputs()
     else:
         outputs |= (
@@ -428,9 +467,14 @@ def main() -> None:
         default="",
         help="Output file. If not provided, output to stdout",
     )
+    parser.add_argument(
+        "--select-main-push-from-diff",
+        action="store_true",
+        help="Select impacted scenarios for a main push instead of using the full matrix",
+    )
     args = parser.parse_args()
 
-    inputs = Inputs(output=args.output)
+    inputs = Inputs(output=args.output, select_main_push_from_diff=args.select_main_push_from_diff)
     strings_out = process(inputs)
     print_outputs(strings_out, inputs)
 

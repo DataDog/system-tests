@@ -40,7 +40,9 @@ readonly DEFAULT_cpp_kong=kong
 readonly DEFAULT_python_lambda=apigw-rest
 readonly DEFAULT_java_lambda=java-apigw-rest
 readonly DEFAULT_nodejs_lambda=nodejs-apigw-rest
+readonly DEFAULT_ruby_lambda=ruby-apigw-rest
 readonly DEFAULT_rust=axum
+readonly DEFAULT_c=perl-mojolicious
 
 readonly SCRIPT_NAME="${0}"
 readonly SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
@@ -72,7 +74,7 @@ print_usage() {
     echo -e "  ${CYAN}--default-weblog${NC}             Prints the name of the default weblog for a given library and exits."
     echo -e "  ${CYAN}--binary-path${NC}                Optional. Path of a directory binaries will be copied from. Should be used for local development only."
     echo -e "  ${CYAN}--binary-url${NC}                 Optional. Url of the client library redistributable. Should be used for local development only."
-    echo -e "  ${CYAN}--save-to-binaries${NC}           Optional. Save image in binaries folder as a tar.gz file."
+    echo -e "  ${CYAN}--save-to-binaries${NC}           Optional. Save image in binaries folder as a tar.zst file."
     echo -e "  ${CYAN}--help${NC}                       Prints this message and exits."
     echo
     echo -e "${WHITE_BOLD}EXAMPLES${NC}"
@@ -124,7 +126,7 @@ run_build_command() {
 	    exit_code=$?
 	    return $exit_code
     fi
-    log_file=$(mktemp /tmp/system-tests-build-XXXXXXX.log)
+    log_file=$(mktemp "${TMPDIR:-/tmp}/system-tests-build.XXXXXX")
     echo "Build log file: ${log_file}"
 
     set +e
@@ -142,22 +144,10 @@ run_build_command() {
 }
 
 build() {
-    CACHE_TO=
-    CACHE_FROM=
-    if [[ "$DOCKER_CACHE_MODE" == *"$ALIAS_CACHE_FROM"* ]]; then
-        echo "Setting remote cache for read"
-        CACHE_FROM="--cache-from type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache"
-    fi
-    if [[ "$DOCKER_CACHE_MODE" == *"$ALIAS_CACHE_TO"* ]]; then
-        echo "Setting remote cache for write"
-        CACHE_TO="--cache-to type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache"
-    fi
 
     echo "=================================="
     echo "build images for system tests"
     echo ""
-    echo "TEST_LIBRARY:      $TEST_LIBRARY"
-    echo "WEBLOG_VARIANT:    $WEBLOG_VARIANT"
     echo "BUILD_IMAGES:      $BUILD_IMAGES"
     echo "EXTRA_DOCKER_ARGS: $EXTRA_DOCKER_ARGS"
     echo ""
@@ -242,6 +232,23 @@ build() {
                 find . ! -name 'README.md' -type f -exec rm -f {} +
             }
 
+            if [[ ! -d "${SCRIPT_DIR}/docker/${TEST_LIBRARY}" ]]; then
+                echo "Library ${TEST_LIBRARY} not found"
+                echo "Available libraries: $(echo $(list-libraries))"
+                exit 1
+            fi
+
+            WEBLOG_VARIANT="${WEBLOG_VARIANT:-$(default-weblog)}"
+
+            if [[ (-n "$WEBLOG_VARIANT") && (! -f "${SCRIPT_DIR}/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile") ]]; then
+                echo "Variant ${WEBLOG_VARIANT} for library ${TEST_LIBRARY} not found"
+                echo "Available weblog variants for ${TEST_LIBRARY}: $(echo $(list-weblogs))"
+                exit 1
+            fi
+
+            echo "TEST_LIBRARY:      $TEST_LIBRARY"
+            echo "WEBLOG_VARIANT:    $WEBLOG_VARIANT"
+
             if ! [[ -z "$BINARY_URL" ]]; then
                 cd binaries
                 clean-binaries
@@ -257,11 +264,11 @@ build() {
             fi
 
             # keep this name consistent with WeblogContainer.get_image_list()
-            BINARIES_FILENAME=binaries/${TEST_LIBRARY}-${WEBLOG_VARIANT}-weblog.tar.gz
+            BINARIES_FILENAME=binaries/${TEST_LIBRARY}-${WEBLOG_VARIANT}-weblog.tar.zst
 
-            if [ -f $BINARIES_FILENAME ]; then
+            if [ -f "$BINARIES_FILENAME" ]; then
                 echo "Loading image from $BINARIES_FILENAME"
-                docker load --input $BINARIES_FILENAME
+                zstd -d -c "$BINARIES_FILENAME" | docker load
             else
 
                 if [[ $TEST_LIBRARY == python ]]; then
@@ -296,8 +303,38 @@ build() {
                 fi
 
                 DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
+                BASE_IMAGE_CONTEXT_ARGS=()
+                BASE_IMAGE_CONTEXTS=$(python3 utils/scripts/resolve-base-images-contexts.py --build-contexts "$DOCKERFILE")
+                if [[ -n "$BASE_IMAGE_CONTEXTS" ]]; then
+                    while IFS= read -r base_image_context; do
+                        BASE_IMAGE_CONTEXT_ARGS+=(--build-context "$base_image_context")
+                    done <<< "$BASE_IMAGE_CONTEXTS"
+                fi
+
+                # When the image mirror is enabled, create (or reuse) a buildx
+                # builder whose buildkitd daemon is configured to redirect all
+                # FROM pulls through registry.ddbuild.io/system-tests/mirror.
+                MIRROR_BUILDER_ARG=""
+                if [[ "${USE_IMAGE_MIRROR:-}" =~ ^(1|true|yes)$ ]]; then
+                    if ! docker buildx inspect system-tests-mirror &>/dev/null 2>&1; then
+                        docker buildx create \
+                            --name system-tests-mirror \
+                            --config "${SCRIPT_DIR}/docker/buildkitd.toml"
+                    fi
+                    MIRROR_BUILDER_ARG="--builder system-tests-mirror"
+                fi
 
                 GITHUB_TOKEN_SECRET_ARG=""
+                C_PACKAGE_BUILD_ARGS=()
+
+                if [[ $TEST_LIBRARY == c ]]; then
+                    if [[ -f binaries/c-library-image ]]; then
+                        C_PACKAGE_BUILD_ARGS+=(--build-arg "DD_TRACE_C_IMAGE=$(<binaries/c-library-image)")
+                    fi
+                    if [[ -f binaries/c-injector-image ]]; then
+                        C_PACKAGE_BUILD_ARGS+=(--build-arg "AUTO_INJECT_IMAGE=$(<binaries/c-injector-image)")
+                    fi
+                fi
 
                 if [ -n "${GITHUB_TOKEN_FILE:-}" ]; then
                     if [ ! -f "$GITHUB_TOKEN_FILE" ]; then
@@ -309,18 +346,32 @@ build() {
                     GITHUB_TOKEN_SECRET_ARG="--secret id=github_token,src=$GITHUB_TOKEN_FILE"
                 fi
 
+                CACHE_TO=
+                CACHE_FROM=
+                if [[ "$DOCKER_CACHE_MODE" == *"$ALIAS_CACHE_FROM"* ]]; then
+                    echo "Setting remote cache for read"
+                    CACHE_FROM="--cache-from type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache"
+                fi
+                if [[ "$DOCKER_CACHE_MODE" == *"$ALIAS_CACHE_TO"* ]]; then
+                    echo "Setting remote cache for write"
+                    CACHE_TO="--cache-to type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache"
+                fi
+
                 run_build_command docker buildx build \
                     --build-arg BUILDKIT_INLINE_CACHE=1 \
                     --load \
                     --progress=plain \
                     ${DOCKER_PLATFORM_ARGS} \
                     ${GITHUB_TOKEN_SECRET_ARG} \
+                    "${C_PACKAGE_BUILD_ARGS[@]}" \
+                    "${BASE_IMAGE_CONTEXT_ARGS[@]}" \
                     -f ${DOCKERFILE} \
                     --label "system-tests-library=${TEST_LIBRARY}" \
                     --label "system-tests-weblog-variant=${WEBLOG_VARIANT}" \
                     -t system_tests/weblog \
                     $CACHE_TO \
                     $CACHE_FROM \
+                    $MIRROR_BUILDER_ARG \
                     $EXTRA_DOCKER_ARGS \
                     .
 
@@ -333,13 +384,14 @@ build() {
                         ${DOCKER_PLATFORM_ARGS} \
                         -f utils/build/docker/overwrite_waf_rules.Dockerfile \
                         -t system_tests/weblog \
+                        $MIRROR_BUILDER_ARG \
                         $EXTRA_DOCKER_ARGS \
                         .
                 fi
 
                 if [[ $SAVE_TO_BINARIES == 1 ]]; then
                     echo "Saving image to $BINARIES_FILENAME"
-                    docker save system_tests/weblog | gzip > $BINARIES_FILENAME
+                    docker save system_tests/weblog | zstd > "$BINARIES_FILENAME"
                 fi
             fi
         elif [[ $IMAGE_NAME == lambda-proxy ]]; then
@@ -401,19 +453,5 @@ TEST_LIBRARY="${TEST_LIBRARY:-${DEFAULT_TEST_LIBRARY}}"
 BINARY_PATH="${BINARY_PATH:-}"
 BINARY_URL="${BINARY_URL:-}"
 GITHUB_TOKEN_FILE="${GITHUB_TOKEN_FILE:-}"
-
-if [[ "${BUILD_IMAGES}" =~ /weblog/ && ! -d "${SCRIPT_DIR}/docker/${TEST_LIBRARY}" ]]; then
-    echo "Library ${TEST_LIBRARY} not found"
-    echo "Available libraries: $(echo $(list-libraries))"
-    exit 1
-fi
-
-WEBLOG_VARIANT="${WEBLOG_VARIANT:-$(default-weblog)}"
-
-if [[ "${BUILD_IMAGES}" =~ /weblog/ && (-n "$WEBLOG_VARIANT") && (! -f "${SCRIPT_DIR}/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile") ]]; then
-    echo "Variant ${WEBLOG_VARIANT} for library ${TEST_LIBRARY} not found"
-    echo "Available weblog variants for ${TEST_LIBRARY}: $(echo $(list-weblogs))"
-    exit 1
-fi
 
 "${COMMAND}"

@@ -139,6 +139,33 @@ The response body may contain the following text:
 OK\n
 ```
 
+### GET /api_security/multi-params-in-segment/{id}.{format}
+
+This endpoint is used to test RFC-1103 rule 5: two mandatory path parameters within a single URL segment.
+
+The route must declare both `id` and `format` as path parameters within the same URL segment, separated by a literal `.`. The tracer must combine them into a single atomic element `{id+format}` in `_dd.appsec.normalized_route`.
+
+The response status code must be `200` and the response body must contain:
+
+```
+ok
+```
+
+### GET /api_security/optional-params/{id} and /api_security/optional-params/{id}.{format}
+
+These two routes together test RFC-1103 optional-element resolution (rule 5 + rule 6).
+
+- `/api_security/optional-params/{id}` — mandatory parameter only; `_dd.appsec.normalized_route` must be `/api_security/optional-params/{id}`.
+- `/api_security/optional-params/{id}.{format}` — both `id` and `format` in the same segment; `_dd.appsec.normalized_route` must be `/api_security/optional-params/{id+format}`.
+
+Frameworks with native optional-parameter support (e.g. Express `:id.:format?`, Rails `/:id(.:format)`) may declare these as a single route with an optional second sub-parameter. Frameworks without that support must declare them as two separate routes with the same handler.
+
+The response status code must be `200` and the response body must contain:
+
+```
+ok
+```
+
 ### GET /endpoint_fallback
 
 This endpoint tests RFC-1076: API Security sampling fallback behavior when
@@ -197,6 +224,20 @@ if the request to `internal_server` was a success (2xx code), it must return a j
 if the request to `internal_server` is a failure, it must return a json body with 2 keys:
 - `status` the status code of the `internal_server` response if available or a null value
 - `error` a string describing the error, for debug purposes
+
+### GET /external_request/body_limit/{failure_reason}
+### POST /external_request/body_limit/{failure_reason}
+### TRACE /external_request/body_limit/{failure_reason}
+### PUT /external_request/body_limit/{failure_reason}
+
+Same behavior as `/external_request`, but the downstream call targets `http://internal_server:8089/downstream_response/{failure_reason}`.
+
+Supported `{failure_reason}` values (defined in `internal_server`):
+- `invalid_content_type`
+- `content_length_missing`
+- `content_length_too_big`
+
+Unknown values must return HTTP 404 with a json error body.
 
 ### GET /external_request/redirect
 
@@ -507,7 +548,13 @@ A post request using a parameter with a value that triggers a vulnerability. The
 
 ### GET /make_distant_call
 
-This endpoint accept a mandatory parameter `url`. It'll make a call to these url, and should return a JSON response :
+This endpoint accepts a mandatory `url` parameter and an optional `method` parameter. `method` must be
+uppercase and defaults to `GET` when omitted. It makes a request to `url` using that method.
+
+For example, `/make_distant_call?url=http%3A%2F%2Fweblog%3A7777%2Fusers&method=POST` makes a `POST`
+request to `http://weblog:7777/users`.
+
+It returns a JSON response:
 
 ```js
 {
@@ -517,6 +564,38 @@ This endpoint accept a mandatory parameter `url`. It'll make a call to these url
     "response_headers": {} // response headers as a dict
 }
 ```
+
+### GET /trace/manual_keep_drop
+
+This endpoint forces the sampling decision of the current trace, using the tracer's manual keep/drop
+API (the `manual.keep` / `manual.drop` tags, or the equivalent idiomatic call in the library) applied
+to the currently active span.
+
+It accepts a mandatory query parameter `decision`, whose value must be either:
+
+- `keep`: force the trace to be kept (`manual.keep`)
+- `drop`: force the trace to be dropped (`manual.drop`)
+
+Examples:
+
+- `GET /trace/manual_keep_drop?decision=keep`
+- `GET /trace/manual_keep_drop?decision=drop`
+
+Once the decision has been applied, the endpoint makes an outgoing HTTP call to `http://localhost:7777/`,
+so that tests can assert on the sampling decision propagated downstream. Unlike `/make_distant_call`
+the target is not configurable. The response mirrors `/make_distant_call`, with a `200` status code:
+
+```js
+{
+    "url": "http://localhost:7777/",  // the hardcoded downstream url
+    "status_code": 200, // status code of the downstream response
+    "request_headers": {}, // headers sent downstream, including the propagated sampling decision
+    "response_headers": {} // headers of the downstream response
+}
+```
+
+Any other value for `decision`, or a missing `decision` parameter, returns a `400` status code and
+makes no downstream call.
 
 ### GET /dbm
 
@@ -888,6 +967,17 @@ Additionally, the method supports the following query parameters to use the sdk 
 
 These endpoints are used for the `Dynamic Instrumentation` tests.
 
+#### GET /debugger/budgets/<loops>
+
+Executes the same probe line `loops` times during one request. It is used to verify per-probe and global
+Dynamic Instrumentation rate limits.
+
+#### GET /debugger/snapshot/capture-timeout
+
+Creates a collection containing `collectionSize` object chains. Each chain has a leaf wrapped by
+`nestingDepth` nested objects and is exposed through `largeCollection` at the probe line. It is used
+to test the snapshot capture time budget without exceeding tracer collection-size guardrails.
+
 ### GET /exceptionreplay/*
 
 These endpoints will be used for `Exception Replay` tests.
@@ -911,6 +1001,22 @@ It supports the following body fields:
 ### GET /flush
 
 This endpoint is OPTIONAL and not related to any test, but to the testing process. When called, it should flush any remaining data from the library to the respective outputs, usually the agent. See more in `docs/edit/flushing.md`.
+
+### GET /spawn_child
+
+Used by the telemetry session ID header tests ([Stable Service Instance Identifier RFC](https://docs.google.com/document/d/1ECKj9_NnwaKYtFqm3p3Rlpicx5d-OQcdj9kI2jvRqVU/edit)). Forks or execs a child process, waits for it, and returns a response. Validates the `DD-Session-ID`, `DD-Root-Session-ID`, and `DD-Parent-Session-ID` headers across child processes.
+
+OPTIONAL: only one weblog variant per language needs it; others are skipped via the manifests.
+
+Required query parameters:
+
+- `sleep`: seconds the child sleeps before exiting
+- `crash`: `true` to kill the child with SIGSEGV after sleeping, else `false`
+- `fork`: `true` to fork, `false` to exec. Runtimes without fork support (e.g. Java, .NET) return 400 for `fork=true`
+
+Returns 200 on success, or 400 if any parameter is missing or invalid.
+
+Note: `/fork_and_crash` exists only in lib-injection weblogs.
 
 ### \[GET,POST\] /rasp/lfi
 
@@ -1026,6 +1132,20 @@ The endpoint must accept a query string parameter `code`, which should be an int
 This endpoint is used for client-stats tests to provide a separate "resource" via the endpoint path `stats-unique` to disambiguate those tests from other
 stats generating tests.
 
+### POST /ffe
+
+This endpoint is used by the Feature Flags & Experimentation scenario. It must
+accept a JSON body with these fields:
+
+- `flag`: the feature flag key to evaluate.
+- `variationType`: the expected variation type.
+- `defaultValue`: the value to return when evaluation cannot resolve the flag.
+- `targetingKey`: the evaluation subject key.
+- `attributes`: flat scalar targeting attributes.
+
+The response must be JSON and include at least `value` and `reason`. Error
+responses should also include `errorCode` and `errorMessage`.
+
 ### GET /healthcheck
 
 Returns a JSON dict, with those values :
@@ -1034,7 +1154,7 @@ Returns a JSON dict, with those values :
 {
   "status": "ok",
   "library": {
-    "name": "<library's name>", // one of cpp, cpp_nginx, cpp_httpd, dotnet, golang, java, nodejs, php, python, ruby
+    "name": "<library's name>", // one of c, cpp, cpp_nginx, cpp_httpd, dotnet, golang, java, nodejs, php, python, ruby, rust
     "version": "1.2.3" // version of the library
   }
 }
@@ -1254,9 +1374,36 @@ Successful evaluation:
   "tags": [],
   "tag_probs": {
     "jailbreak": 0.0
-  }
+  },
+  "sds": [],
+  "messages": [
+    {
+      "role": "user",
+      "content": "My SSN is <REDACTED>"
+    }
+  ],
+  "redaction_replacements": [
+    {
+      "path": "messages[0].content",
+      "replacement": "My SSN is <REDACTED>"
+    }
+  ]
 }
 ```
+
+The response must expose every field the SDK evaluation carries. A weblog that builds the JSON
+field by field instead of serializing the evaluation has to include, on top of `action`, `reason`,
+`tags` and `tag_probs`:
+
+- `sds`: the sensitive data detection metadata (`sds_findings`), reported whether or not anything
+  was redacted
+- `messages`: the message list the SDK hands back to the caller, which is the redacted list
+  whenever the backend asked for a redaction and the original one otherwise
+- `redaction_replacements`: the `{path, replacement}` pairs the backend returned
+
+The last two are omitted when the tracer's SDK does not expose them yet. The 403 response
+deliberately carries none of them: the abort error reports the outcome, and the messages surface
+on the span only (see `tests/ai_guard/test_ai_guard_sdk.py::Test_RedactionOnBlock`).
 
 ### POST /stripe/create_checkout_session
 
@@ -1280,6 +1427,31 @@ This endpoint acts as a webhook receiver of events sent by the Stripe backend.
 It takes a raw (unparsed) request body, and a signature located in header `Stripe-Signature`, that must be passed directly, along the secret key `whsec_FAKE`, to the Stripe SDK method that parses webhook events (`stripe.webhooks.constructEvent()` or equivalent).
 The endpoint must return as JSON in the response body, the sub-object `event.data.object` returned by the `constructEvent()` Stripe SDK method.
 If an error happens, the endpoint must respond with a 403 error code.
+
+### GET /security/thread_context_sharing
+
+This endpoint is used by the `THREAD_CONTEXT_SHARING` scenario to check that the tracer shares the
+trace_id/span_id of the currently active span with system-probe (CWS - Cloud Workload Security), so
+that a security event triggered on the same thread can be correlated back to the request that
+caused it.
+
+It must accept a mandatory query parameter `path`, and, from the same thread that is handling the
+request (i.e. while the request's span is the active one on that thread), open `path` for writing,
+creating it if it does not already exist, write any content to it, then close it. The operation
+must use `path` as provided, without any alteration.
+
+It must return a `200` response with a JSON body:
+
+```js
+{
+    "trace_id": "1234567890123456789", // decimal string, 128 bits trace_id
+    "span_id": "1234567890123456789" // decimal string, the active span's span_id
+}
+```
+
+Example:
+
+- `GET /security/thread_context_sharing?path=/tmp/system-tests-thread-context-sharing-abc123`
 
 ### GET /llm
 

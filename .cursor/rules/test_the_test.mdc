@@ -1,0 +1,9 @@
+---
+description: Rules for tests inside tests/test_the_test
+globs: 
+alwaysApply: true
+---
+
+# Which scenario contains tests/test_the_test functions and classes
+
+All tests inside tests/test_the_test should belong to either TEST_THE_TEST, MOCK_THE_TEST or MOCK_THE_TEST_2. For almost all situation, they should belong to TEST_THE_TEST,

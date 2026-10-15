@@ -1,18 +1,6 @@
-FROM node:22-alpine
+FROM system_tests_base_nodejs_fastify
 
-RUN apk add --no-cache bash curl git jq
-
-RUN uname -r
-
-# print versions
-RUN node --version && npm --version && curl --version
-
-WORKDIR /usr/app
-
-ENV NODE_ENV=production
-
-COPY utils/build/docker/nodejs/fastify /usr/app
-RUN npm ci || (sleep 30 && npm ci)
+COPY utils/build/docker/nodejs/fastify/debugger debugger
 
 EXPOSE 7777
 
@@ -24,6 +12,11 @@ ENV PGPORT=5433
 
 ENV DD_DATA_STREAMS_ENABLED=true
 
+# Refresh the application code and dependencies baked into the base image.
+COPY utils/build/docker/nodejs/fastify/package.json utils/build/docker/nodejs/fastify/bun.lock ./
+COPY utils/build/docker/nodejs/fastify/app.js app.js
+RUN bun install --frozen-lockfile --network-concurrency 8 --linker=hoisted
+
 # docker startup
 COPY utils/build/docker/nodejs/app.sh app.sh
 RUN chmod +x app.sh
@@ -31,5 +24,5 @@ RUN printf 'node app.js' >> app.sh
 CMD ./app.sh
 
 COPY utils/build/docker/nodejs/install_ddtrace.sh binaries* /binaries/
-RUN /binaries/install_ddtrace.sh
+RUN /binaries/install_ddtrace.sh && rm -rf /root/.bun
 ENV DD_TRACE_HEADER_TAGS=user-agent

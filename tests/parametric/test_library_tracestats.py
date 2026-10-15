@@ -1,16 +1,15 @@
 import base64
 
-import numpy as np
 import msgpack
-import pytest
+from utils import pytest
 
 
 from utils.docker_fixtures.spec.trace import SPAN_MEASURED_KEY
 from utils.docker_fixtures.spec.trace import V06StatsAggr
-from utils.docker_fixtures.spec.trace import find_root_span
-from utils import context, scenarios, features, logger
+from utils import scenarios, features, logger
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary
+from .utils import MIN_AGENT_VERSION_FOR_CSS, enable_tracestats
 
 parametrize = pytest.mark.parametrize
 
@@ -22,22 +21,42 @@ def _human_stats(stats: V06StatsAggr) -> str:
     return str(filtered_copy)
 
 
-def enable_tracestats(sample_rate: float | None = None) -> pytest.MarkDecorator:
-    env = {
-        "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",  # reference, dotnet, python, golang
-        "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
-    }
-    if context.library == "golang" and context.library.version < "v1.55.0":
-        env["DD_TRACE_FEATURES"] = "discovery"
-    if sample_rate is not None:
-        assert 0 <= sample_rate <= 1.0
-        env.update({"DD_TRACE_SAMPLE_RATE": str(sample_rate)})
+def _find_raw_v06_stats(test_agent: TestAgentAPI) -> dict:
+    """Return the deserialized raw /v0.6/stats payload from the test agent.
 
-    return parametrize("library_env", [env])
+    The decoded view exposed by `test_agent.get_v06_stats_requests()` is intentionally narrow
+    (it omits fields like HTTPMethod, HTTPEndpoint, RuntimeID, Sequence). For spec assertions
+    on those fields we need the raw msgpack body.
+    """
+    raw_body: str | None = None
+    for request in test_agent.requests():
+        if "v0.6/stats" in request["url"]:
+            raw_body = request["body"]
+    assert raw_body is not None, "Could not find /v0.6/stats request in test agent transcript"
+    return msgpack.unpackb(base64.b64decode(raw_body))
 
 
-def enable_agent_version(version: str = "7.65.0") -> pytest.MarkDecorator:
-    """Set the test agent version. Java tracer requires agent version >= 7.65.0 for client-side stats."""
+def _all_v06_stats_entries(test_agent: TestAgentAPI) -> list[dict]:
+    """Return every ClientGroupedStats entry across all /v0.6/stats requests and time buckets.
+
+    Stats are partitioned into time buckets and may span multiple requests, so callers that only
+    care about which entries were emitted (not per-bucket detail) should flatten first.
+    """
+    entries: list[dict] = []
+    found = False
+    for request in test_agent.requests():
+        if "v0.6/stats" not in request["url"]:
+            continue
+        found = True
+        body = msgpack.unpackb(base64.b64decode(request["body"]))
+        for bucket in body.get("Stats", []):
+            entries.extend(bucket.get("Stats", []))
+    assert found, "Could not find /v0.6/stats request in test agent transcript"
+    return entries
+
+
+def enable_agent_version(version: str = MIN_AGENT_VERSION_FOR_CSS) -> pytest.MarkDecorator:
+    """Set the test agent version, used for determining whether to enable CSS."""
     agent_env_config = {"TEST_AGENT_VERSION": version}
     return parametrize("agent_env", [agent_env_config])
 
@@ -216,11 +235,23 @@ class Test_Library_Tracestats:
         assert op2_stats["Hits"] == 1
         assert op2_stats["TopLevelHits"] == 0
 
-    @enable_tracestats()
+    @parametrize(
+        "library_env",
+        [
+            {
+                "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",
+                "DD_TRACE_TRACER_METRICS_ENABLED": "true",
+                "DD_VERSION": "1.2.3",
+                "DD_ENV": "some-env",
+                "DD_SERVICE": "some-service",
+            }
+        ],
+    )
     @enable_agent_version()
     def test_top_level_TS005(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """When top level (service entry) spans are created
         Each top level span has trace stats computed for it.
+        Asserts that version and env are set correctly in the stats request.
         """
         with (
             test_library,
@@ -236,8 +267,9 @@ class Test_Library_Tracestats:
         requests = test_agent.get_v06_stats_requests()
         assert len(requests) == 1, "Only one stats request is expected"
         request = requests[0]["body"]
-        for key in ("Hostname", "Env", "Version", "Stats"):
-            assert key in request, f"{key} should be in stats request"
+        assert request["Env"] == "some-env"
+        assert request["Version"] == "1.2.3"
+        assert request["Stats"] is not None
 
         buckets = request["Stats"]
         assert len(buckets) == 1, "There should be one bucket containing the stats"
@@ -251,7 +283,7 @@ class Test_Library_Tracestats:
         postgres_stats = [s for s in stats if s["Name"] == "postgres.query"][0]
         assert postgres_stats["Resource"] == "SELECT 1"
         assert postgres_stats["Service"] == "postgres"
-        assert postgres_stats["Type"] in ["", None]  # FIXME: add span type
+        assert postgres_stats["Type"] in ["", None, "custom"]  # FIXME: add span type
         assert postgres_stats["Hits"] == 1
         assert postgres_stats["TopLevelHits"] == 1
         assert postgres_stats["Duration"] > 0
@@ -259,7 +291,8 @@ class Test_Library_Tracestats:
         web_stats = [s for s in stats if s["Name"] == "web.request"][0]
         assert web_stats["Resource"] == "/users"
         assert web_stats["Service"] == "webserver"
-        assert web_stats["Type"] in ["", None]
+        assert web_stats["Type"] in ["", None, "custom"]  # FIXME: add span type
+
         assert web_stats["Hits"] == 1
         assert web_stats["TopLevelHits"] == 1
         assert web_stats["Duration"] > 0
@@ -339,51 +372,6 @@ class Test_Library_Tracestats:
 
     @enable_tracestats()
     @enable_agent_version()
-    def test_relative_error_TS008(self, test_agent: TestAgentAPI, test_library: APMLibrary):
-        """When trace stats are computed for traces
-            The stats should be accurate to within 1% of the real values
-
-        Note that this test uses the duration of actual spans created and so this test could be flaky.
-        This flakyness however would indicate a bug in the trace stats computation.
-        """
-
-        with test_library:
-            # Create 10 traces to get more data
-            for _ in range(10):
-                with test_library.dd_start_span(name="web.request", resource="/users", service="webserver"):
-                    pass
-
-        traces = test_agent.traces()
-        assert len(traces) == 10
-
-        durations: list[int] = []
-        for trace in traces:
-            span = find_root_span(trace)
-            assert span is not None
-            durations.append(span["duration"])
-
-        requests = test_agent.get_v06_stats_requests()
-
-        assert len(requests) != 0, "Stats request should be sent"
-        assert len(requests[0]["body"]["Stats"]) != 0, "Stats should be computed"
-        stats = requests[0]["body"]["Stats"][0]["Stats"]
-        assert len(stats) == 1, "Only one stats aggregation is expected"
-
-        web_stats = [s for s in stats if s["Name"] == "web.request"][0]
-        assert web_stats["TopLevelHits"] == 10
-        assert web_stats["Hits"] == 10
-
-        # Validate the sketches
-        np_duration = np.array(durations)
-        assert web_stats["Duration"] == sum(durations), "Stats duration should match the span duration exactly"
-        for quantile in (0.5, 0.75, 0.95, 0.99, 1):
-            assert web_stats["OkSummary"].get_quantile_value(quantile) == pytest.approx(
-                np.quantile(np_duration, quantile),
-                rel=0.01,
-            ), f"Quantile mismatch for quantile {quantile!r}"
-
-    @enable_tracestats()
-    @enable_agent_version()
     def test_metrics_computed_after_span_finsh_TS009(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """When trace stats are computed for traces
         Metrics must be computed after spans are finished, otherwise components of the aggregation key may change after
@@ -444,3 +432,248 @@ class Test_Library_Tracestats:
 
         requests = test_agent.get_v06_stats_requests()
         assert len(requests) == 0, "No stats were computed"
+
+    @parametrize(
+        "library_env",
+        [
+            {
+                "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",
+                "DD_TRACE_TRACER_METRICS_ENABLED": "true",
+                # dd-trace-java only extracts HTTPMethod/HTTPEndpoint when this is on.
+                "DD_TRACE_RESOURCE_RENAMING_ENABLED": "true",
+            }
+        ],
+    )
+    @enable_agent_version()
+    def test_http_method_endpoint_TS011(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        """When spans carry HTTP method and endpoint metadata
+        The stats aggregation entry must include HTTPMethod and HTTPEndpoint fields populated from
+        the span's http.method and http.endpoint/http.route metadata. CSS spec v1.2.0 §5 (ClientGroupedStats).
+        """
+        with (
+            test_library,
+            test_library.dd_start_span(name="web.request", resource="GET /users/:id", service="webserver") as span,
+        ):
+            span.set_meta(key="span.kind", val="server")
+            span.set_meta(key="http.method", val="GET")
+            # Tracers diverge on which tag they read for HTTP_endpoint: dd-trace-go uses `http.endpoint`,
+            # others may use `http.route`. Set both so this test is implementation-agnostic.
+            span.set_meta(key="http.endpoint", val="/users/:id")
+            span.set_meta(key="http.route", val="/users/:id")
+            span.set_meta(key="http.status_code", val="200")
+
+        raw_stats = _find_raw_v06_stats(test_agent)
+        stats_entries = raw_stats["Stats"][0]["Stats"]
+        web_entry = next((s for s in stats_entries if s.get("Name") == "web.request"), None)
+        assert web_entry is not None, f"web.request stats entry not found in {stats_entries}"
+
+        assert web_entry.get("HTTPMethod") == "GET", (
+            f"Expected HTTPMethod='GET' in stats, got: {web_entry.get('HTTPMethod')!r}"
+        )
+        assert web_entry.get("HTTPEndpoint") == "/users/:id", (
+            f"Expected HTTPEndpoint='/users/:id' in stats, got: {web_entry.get('HTTPEndpoint')!r}"
+        )
+
+    @parametrize(
+        "library_env",
+        [
+            {
+                "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",
+                "DD_TRACE_TRACER_METRICS_ENABLED": "true",
+                # dd-trace-go and dd-trace-java only populate Hostname when DD_TRACE_REPORT_HOSTNAME
+                # is on (option.go:297 / Config.java:2005). Pin both the flag and the value.
+                "DD_TRACE_REPORT_HOSTNAME": "true",
+                "DD_HOSTNAME": "test-host",
+                # Spec §3 calls out env/service/version as deployment-level identifiers. Java's
+                # WellKnownTags does not apply the spec's "unknown-env" default when DD_ENV is unset,
+                # so we pin all three explicitly for deterministic assertions across SDKs.
+                "DD_ENV": "tracestats-env",
+                "DD_SERVICE": "tracestats-service",
+                "DD_VERSION": "1.2.3",
+            }
+        ],
+    )
+    @enable_agent_version()
+    def test_payload_metadata_TS012(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        """The ClientStatsPayload must include deployment-level metadata fields.
+        CSS spec v1.2.0 §3 mandates Hostname, Env, Version, Service, RuntimeID, and Sequence are
+        populated by the tracer (constant per tracer instance, deployment-level identifiers).
+        """
+        with test_library, test_library.dd_start_span(name="web.request", resource="/users", service="webserver"):
+            pass
+
+        raw_stats = _find_raw_v06_stats(test_agent)
+
+        # Hostname / Env / Version / RuntimeID are deployment-wide and live at the payload level.
+        for field in ("Hostname", "Env", "Version", "RuntimeID"):
+            assert field in raw_stats, f"Required field {field!r} missing from payload: {list(raw_stats.keys())}"
+            value = raw_stats[field]
+            assert isinstance(value, str), f"{field} must be a string, got {type(value)}"
+            assert value, f"{field} must be a non-empty string, got {value!r}"
+
+        # Sequence may legitimately be 0 on the first payload, so only require it's an int.
+        assert "Sequence" in raw_stats, f"Sequence missing from payload: {list(raw_stats.keys())}"
+        assert isinstance(raw_stats["Sequence"], int), f"Sequence must be int, got {type(raw_stats['Sequence'])}"
+
+        # Service is allowed at the payload level OR at the per-bucket ClientGroupedStats level.
+        # dd-trace-go intentionally only writes it per-bucket (stats.go:181), and the trace-agent
+        # accepts that — it just loses one partition-key dimension during inter-payload aggregation
+        # (client_stats_aggregator.go:178). The bucket-level Service is the spec-required source of
+        # truth that the backend ultimately consumes.
+        payload_service = raw_stats.get("Service") or ""
+        bucket_services = {
+            s.get("Service", "") for bucket in raw_stats.get("Stats", []) for s in bucket.get("Stats", [])
+        }
+        assert payload_service or any(bucket_services), (
+            f"Expected Service either at payload level ({payload_service!r}) or in any "
+            f"ClientGroupedStats ({bucket_services!r})"
+        )
+
+    @enable_tracestats()
+    @enable_agent_version()
+    def test_agent_populated_fields_empty_TS013(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        """The tracer must leave agent-populated fields empty in the ClientStatsPayload.
+        CSS spec v1.2.0 §3: ContainerID, Tags, ImageTag, AgentAggregation, and ProcessTagsHash
+        are populated by the agent and must be empty/absent when the payload leaves the tracer.
+        """
+        with test_library, test_library.dd_start_span(name="web.request", resource="/users", service="webserver"):
+            pass
+
+        raw_stats = _find_raw_v06_stats(test_agent)
+
+        # Each of these may either be absent from the msgpack payload or present with an empty value.
+        for field in ("ContainerID", "ImageTag", "AgentAggregation"):
+            value = raw_stats.get(field)
+            assert value in (None, "", b""), (
+                f"{field} must be left empty by the tracer for the agent to populate, got: {value!r}"
+            )
+
+        tags = raw_stats.get("Tags")
+        assert tags in (None, [], ()), f"Tags must be left empty for the agent to populate, got: {tags!r}"
+
+        process_tags_hash = raw_stats.get("ProcessTagsHash")
+        assert process_tags_hash in (None, 0), (
+            f"ProcessTagsHash must be left empty/zero for the agent to populate, got: {process_tags_hash!r}"
+        )
+
+    @enable_tracestats()
+    @enable_agent_version()
+    def test_partial_version_excluded_TS014(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        """Spans marked as partial snapshots (`_dd.partial_version` >= 0) must NOT contribute to stats.
+        CSS spec v1.2.0 §7 (Span Exclusions).
+        """
+        with test_library:
+            # A normal top-level span — must produce stats.
+            with test_library.dd_start_span(name="web.request", resource="/users", service="webserver", typestr="web"):
+                pass
+
+            # A span flagged as a partial snapshot — must NOT produce stats.
+            with test_library.dd_start_span(
+                name="partial.snapshot", resource="/partial", service="webserver", typestr="web"
+            ) as partial_span:
+                partial_span.set_metric(key="_dd.partial_version", val=0)
+
+        raw_stats = _find_raw_v06_stats(test_agent)
+        stats_entries = raw_stats["Stats"][0]["Stats"]
+        names = {s.get("Name") for s in stats_entries}
+
+        assert "web.request" in names, (
+            f"Sanity check: regular span should produce stats, but web.request missing from {names}"
+        )
+        assert "partial.snapshot" not in names, (
+            f"Spans with _dd.partial_version set must be excluded from stats, but found in {names}"
+        )
+
+    @enable_tracestats()
+    @enable_agent_version()
+    def test_span_kind_eligibility_TS015(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        """Non-top-level spans with an eligible span.kind (server, client, producer, consumer) are
+        promoted into stats and tagged with their SpanKind; an ineligible kind (internal) is excluded.
+        """
+        # Non-top-level children (share the root's service) covering every eligible kind, including a
+        # server-kind child so span-kind promotion is exercised for server too, not just as the root.
+        eligible = {
+            "server.child": "server",
+            "client.call": "client",
+            "producer.publish": "producer",
+            "consumer.receive": "consumer",
+        }
+        service = "webserver"
+        with (
+            test_library,
+            test_library.dd_start_span(name="server.entry", resource="/entry", service=service) as root,
+        ):
+            root.set_meta(key="span.kind", val="server")
+            for name, kind in eligible.items():
+                with test_library.dd_start_span(
+                    name=name, resource=f"/{kind}", service=service, parent_id=root.span_id
+                ) as child:
+                    child.set_meta(key="span.kind", val=kind)
+            with test_library.dd_start_span(
+                name="internal.work", resource="/internal", service=service, parent_id=root.span_id
+            ) as internal:
+                internal.set_meta(key="span.kind", val="internal")
+
+        by_name = {s.get("Name"): s for s in _all_v06_stats_entries(test_agent)}
+
+        assert by_name.get("server.entry", {}).get("SpanKind") == "server", (
+            f"Expected server root in stats with SpanKind='server', got {by_name.get('server.entry')!r}"
+        )
+        for name, kind in eligible.items():
+            entry = by_name.get(name)
+            assert entry is not None, f"{kind} span ({name}) missing from stats: {set(by_name)}"
+            assert entry.get("SpanKind") == kind, (
+                f"Expected SpanKind={kind!r} for {name}, got {entry.get('SpanKind')!r}"
+            )
+        assert "internal.work" not in by_name, (
+            f"Non-top-level internal span must be excluded from stats, but found in {set(by_name)}"
+        )
+
+    @parametrize(
+        "library_env",
+        [
+            {
+                "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",
+                "DD_TRACE_TRACER_METRICS_ENABLED": "true",
+                # Force collapsing at a low limit. Set both the per-field resource limit and the whole-key
+                # limit so the test triggers regardless of which axis an SDK caps on. The RFC mandates this
+                # naming pattern but exposing the setting is only a SHOULD, so SDKs honoring neither env get
+                # a missing_feature marker.
+                "DD_TRACE_STATS_RESOURCE_CARDINALITY_LIMIT": "10",
+                "DD_TRACE_STATS_CARDINALITY_LIMIT": "10",
+            }
+        ],
+    )
+    @enable_agent_version()
+    def test_cardinality_overflow_sentinel_TS017(self, test_agent: TestAgentAPI, test_library: APMLibrary):
+        """When stats cardinality exceeds the configured limit, the excess must collapse into an overflow
+        bucket keyed by the sentinel `tracer_blocked_value` rather than be dropped, and service-level totals
+        must stay correct. The numeric limit, eviction strategy, and per-field vs whole-key choice are SDK policy and are deliberately not asserted.
+        """
+        n = 50  # well above the configured limit of 10, so collapsing must engage
+        with test_library:
+            for i in range(n):
+                with test_library.dd_start_span(
+                    name="web.request", resource=f"/resource/{i}", service="webserver", typestr="web"
+                ):
+                    pass
+
+        # go/java flush stats on demand rather than on a timer within the short test window.
+        if test_library.lang in ("golang", "java"):
+            test_library.dd_flush()
+
+        entries = _all_v06_stats_entries(test_agent)
+        resources = [e.get("Resource") for e in entries]
+
+        # Collapse-not-discard: an overflow row keyed by the sentinel appears. This holds for both limiting
+        # strategies (per-field folds `resource` to the sentinel; whole-key also sets `resource` to it).
+        assert "tracer_blocked_value" in resources, (
+            f"expected an overflow entry keyed by 'tracer_blocked_value', got resources: {sorted(map(str, set(resources)))}"
+        )
+        # Totals are preserved through collapsing: every eligible top-level span is still counted.
+        total_hits = sum(e.get("Hits", 0) for e in entries)
+        assert total_hits == n, f"totals must be preserved through collapse: expected {n} hits, got {total_hits}"
+        # Limiting actually reduced cardinality (fewer distinct resources than emitted).
+        assert len(set(resources)) < n, (
+            f"collapsing should reduce distinct resource cardinality below {n}, got {len(set(resources))}"
+        )

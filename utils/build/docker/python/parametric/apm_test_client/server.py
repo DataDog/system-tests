@@ -9,6 +9,11 @@ from typing import Union
 import logging
 import os
 import enum
+import threading
+
+# Starlette's synchronous endpoints access this public submodule through anyio.
+# Recent AnyIO releases no longer populate it on importing the parent package.
+import anyio.to_thread
 from fastapi import FastAPI
 from fastapi import Request
 from fastapi.responses import JSONResponse
@@ -23,6 +28,7 @@ from opentelemetry.metrics import Meter
 from opentelemetry.metrics import Observation
 from opentelemetry.metrics import Instrument
 from opentelemetry.metrics import get_meter_provider
+from opentelemetry.sdk.metrics import MeterProvider as SdkMeterProvider
 from opentelemetry.trace import set_tracer_provider
 from opentelemetry.trace.span import NonRecordingSpan as OtelNonRecordingSpan
 from opentelemetry.trace import SpanKind
@@ -67,9 +73,24 @@ from .llmobs import router as llmobs_router
 
 log = logging.getLogger(__name__)
 
-# OpenFeature client initialization
+# OpenFeature client initialization.
+#
+# The configuration-source contract requires lazy activation: no configuration
+# delivery may happen before the provider is accessed through /ffe/start. When any
+# Feature Flagging configuration variable is set, skip this eager initialization and
+# leave provider setup to /ffe/start. Tests that predate that contract keep the
+# original eager behavior.
+_FFE_CONFIGURATION_ENVVARS = (
+    "DD_FEATURE_FLAGS_ENABLED",
+    "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE",
+    "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL",
+    "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_POLL_INTERVAL_SECONDS",
+    "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_REQUEST_TIMEOUT_SECONDS",
+)
 openfeature_client = None
-if os.environ.get("DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED") == "true":
+if os.environ.get("DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED") == "true" and not any(
+    name in os.environ for name in _FFE_CONFIGURATION_ENVVARS
+):
     try:
         from openfeature import api
         from ddtrace.openfeature import DataDogProvider
@@ -171,15 +192,33 @@ class TraceConfigReturn(BaseModel):
     config: dict[str, Optional[str]]
 
 
+@app.get("/trace/agent/ensure_agent_info")
+def trace_ensure_agent_info():
+    return {"ready": True}
+
+
 @app.get("/trace/config")
 def trace_config() -> TraceConfigReturn:
     return TraceConfigReturn(
         config={
             "dd_service": config.service,
             "dd_log_level": None,
+            "dd_trace_effective_log_level": logging.getLevelName(
+                logging.getLogger("ddtrace").getEffectiveLevel()
+            ).lower(),
             "dd_trace_sample_rate": str(_global_sampling_rate()),
             "dd_trace_enabled": str(config._tracing_enabled).lower(),
             "dd_runtime_metrics_enabled": str(config._runtime_metrics_enabled).lower(),
+            "otel_metrics_initialized": str(isinstance(get_meter_provider(), SdkMeterProvider)).lower(),
+            "otel_exporter_otlp_traces_timeout_ms": otlp_trace_exporter_timeout(),
+            "otel_exporter_otlp_metrics_timeout_ms": otlp_exporter_timeout(
+                getattr(getattr(get_meter_provider(), "_sdk_config", None), "metric_readers", ())
+            ),
+            "otel_exporter_otlp_logs_timeout_ms": otlp_exporter_timeout(
+                getattr(
+                    getattr(get_logger_provider(), "_multi_log_record_processor", None), "_log_record_processors", ()
+                )
+            ),
             "dd_tags": ",".join(f"{k}:{v}" for k, v in config.tags.items()),
             "dd_trace_propagation_style": ",".join(config._propagation_style_extract),
             "dd_trace_debug": str(config._debug_mode).lower(),
@@ -196,6 +235,36 @@ def trace_config() -> TraceConfigReturn:
             "dd_data_streams_enabled": str(config._data_streams_enabled).lower(),
         }
     )
+
+
+def otlp_trace_exporter_timeout() -> Optional[str]:
+    try:
+        from ddtrace.internal.settings._opentelemetry import otel_config
+    except ImportError:
+        return None
+
+    # NativeWriter passes this resolved value to the native exporter in milliseconds.
+    # Older SDKs may have the settings module without trace exporter configuration.
+    exporter = getattr(otel_config, "exporter", None)
+    timeout = getattr(exporter, "TRACES_TIMEOUT", None)
+    return str(timeout) if isinstance(timeout, (int, float)) else None
+
+
+def otlp_exporter_timeout(processors: Any) -> Optional[str]:
+    timeouts = []
+    for processor in processors:
+        batch_processor = getattr(processor, "_batch_processor", processor)
+        exporter = getattr(batch_processor, "_exporter", None)
+        if exporter is None:
+            exporter = getattr(processor, "_exporter", None)
+        if exporter is None or not any(
+            cls.__module__.startswith("opentelemetry.exporter.otlp.") for cls in type(exporter).__mro__
+        ):
+            continue
+        timeout = getattr(exporter, "_timeout", None)
+        if isinstance(timeout, (int, float)):
+            timeouts.append(str(int(timeout * 1000)))
+    return timeouts[0] if len(timeouts) == 1 else None
 
 
 @app.post("/trace/span/finish")
@@ -423,15 +492,148 @@ class TraceStatsFlushReturn(BaseModel):
 
 @app.post("/trace/stats/flush")
 def trace_stats_flush(args: TraceStatsFlushArgs) -> TraceStatsFlushReturn:
-    stats_proc = [
-        p
-        for p in ddtrace.tracer._span_processors
-        if hasattr(ddtrace.internal.processor, "stats")
-        if isinstance(p, ddtrace.internal.processor.stats.SpanStatsProcessorV06)
-    ]
-    if len(stats_proc):
-        stats_proc[0].periodic()
+    span_aggregator = getattr(ddtrace.tracer, "_span_aggregator", None)
+    writer = getattr(span_aggregator, "writer", None)
+    if writer is None:
+        return TraceStatsFlushReturn()
+    stats_enabled = (
+        getattr(writer, "_compute_stats_enabled", False) and not getattr(writer, "_stats_opt_out", False)
+    ) or getattr(writer, "_otlp_metrics_endpoint", None)
+    if not stats_enabled:
+        return TraceStatsFlushReturn()
+    if hasattr(writer, "recreate"):
+        span_aggregator.writer = writer.recreate()
     return TraceStatsFlushReturn()
+
+
+class TraceRemoteConfigApplyArgs(BaseModel):
+    pass  # Reserved for future per-config_id semantics; see contract doc.
+
+
+class AppliedConfigEntry(BaseModel):
+    config_id: str
+    product: str
+
+
+class TraceRemoteConfigApplyReturn(BaseModel):
+    applied_configs: List[AppliedConfigEntry]
+
+
+# Serialize overlapping /trace/remote-config/apply calls (sync handlers run in a
+# threadpool). A timed-out drain keeps the lock until its worker thread exits.
+_rc_apply_lock = threading.Lock()
+
+# Currently-applied Remote Config set, keyed by config path.
+_applied_configs: Dict[str, "AppliedConfigEntry"] = {}
+
+
+@app.post("/trace/remote-config/apply")
+def trace_remote_config_apply(
+    args: TraceRemoteConfigApplyArgs,
+) -> JSONResponse:
+    """Synchronously drain pending Remote Config and return the applied set.
+
+    Contract: docs/parametric/remote-config-apply-contract.md. The drain runs in
+    a worker thread joined with a 10s deadline (504 on timeout).
+    """
+    # Imported lazily (matches /rc/start, /rc/stop) to avoid touching RC internals at module import time.
+    from ddtrace.internal.remoteconfig.worker import remoteconfig_poller
+
+    timeout_seconds = 10.0
+    client = remoteconfig_poller._client
+
+    # A prior drain timed out and still holds the lock.
+    if not _rc_apply_lock.acquire(blocking=False):
+        return JSONResponse(
+            status_code=504,
+            content={
+                "error": "previous remote-config apply still in progress",
+                "timeout_seconds": timeout_seconds,
+            },
+        )
+
+    # Detect which Remote Config client API is in use. The libdatadog rewrite
+    # replaced the pure-Python fetch/apply path (client.request() plus a
+    # Python-side client._applied_configs cache) with a native client
+    # (client.ensure_native().poll()) that owns the file set, so on the new
+    # API we reconstruct the applied set ourselves. Support both so this server
+    # works against tracer versions from before and after the rewrite.
+    uses_native_rc = hasattr(client, "ensure_native")
+
+    lock_ownership_transferred = False
+    try:
+        drain_error: List[BaseException] = []
+
+        def _drain() -> None:
+            try:
+                if uses_native_rc:
+                    native = client.ensure_native()
+                    changes = native.poll(
+                        list(client._enabled_products),
+                        list(ddtrace.config._get_extra_services()),
+                    )
+                    client._dispatch_to_products(client._build_payloads(changes))
+                    for change in changes:
+                        if change.content is None:
+                            _applied_configs.pop(change.path, None)
+                        else:
+                            _applied_configs[change.path] = AppliedConfigEntry(
+                                config_id=change.config_id, product=str(change.product)
+                            )
+                else:
+                    client.request()
+                    client._global_subscriber.periodic()
+            except BaseException as exc:  # noqa: BLE001
+                drain_error.append(exc)
+
+        worker = threading.Thread(target=_drain, name="rc-apply-drain", daemon=True)
+        worker.start()
+        worker.join(timeout=timeout_seconds)
+
+        if worker.is_alive():
+            # Drain didn't finish in time; a watcher releases the lock once the
+            # worker exits, so follow-up calls get 504 instead of overlapping it.
+            log.warning("rc-apply drain exceeded %.1fs; holding lock until worker exits", timeout_seconds)
+            lock_ownership_transferred = True
+
+            def _release_when_done(t: threading.Thread) -> None:
+                t.join()
+                _rc_apply_lock.release()
+
+            threading.Thread(
+                target=_release_when_done, args=(worker,), name="rc-apply-lock-releaser", daemon=True
+            ).start()
+            return JSONResponse(
+                status_code=504,
+                content={
+                    "error": "timeout waiting for remote config to apply",
+                    "timeout_seconds": timeout_seconds,
+                },
+            )
+
+        if drain_error:
+            # Report the failure rather than an optimistic 200 (the applied-config
+            # set alone doesn't prove the product callbacks ran).
+            log.warning("rc-apply drain raised: %r", drain_error[0])
+            return JSONResponse(
+                status_code=500,
+                content={"error": f"remote config apply failed: {drain_error[0]!r}"},
+            )
+
+        if uses_native_rc:
+            applied_configs = list(_applied_configs.values())
+        else:
+            # Old client: read the Python-side applied-config cache directly.
+            applied_configs = [
+                AppliedConfigEntry(config_id=metadata.id, product=metadata.product_name)
+                for metadata in client._applied_configs.values()
+            ]
+        success = TraceRemoteConfigApplyReturn(applied_configs=applied_configs)
+        # Pydantic v1 (fastapi==0.89.1): .dict(), not v2's .model_dump().
+        return JSONResponse(status_code=200, content=success.dict())
+    finally:
+        if not lock_ownership_transferred:
+            _rc_apply_lock.release()
 
 
 class TraceSpanErrorArgs(BaseModel):
@@ -1312,28 +1514,37 @@ async def ffe_evaluate(request: Request) -> JSONResponse:
         # Build context
         context = EvaluationContext(targeting_key=targeting_key, attributes=attributes)
 
-        # Evaluate based on variation type
+        # Evaluate based on variation type. The detailed variants are used so the
+        # provider's reason and error code reach the test, which the
+        # configuration-source contract asserts on (for example
+        # PROVIDER_NOT_READY while no configuration has been delivered yet).
         value = default_value
         reason = "DEFAULT"
+        error_code = None
 
         try:
             if variation_type == "BOOLEAN":
-                value = openfeature_client.get_boolean_value(flag, default_value, context)
+                details = openfeature_client.get_boolean_details(flag, default_value, context)
             elif variation_type == "STRING":
-                value = openfeature_client.get_string_value(flag, default_value, context)
+                details = openfeature_client.get_string_details(flag, default_value, context)
             elif variation_type == "INTEGER":
-                value = openfeature_client.get_integer_value(flag, default_value, context)
+                details = openfeature_client.get_integer_details(flag, default_value, context)
             elif variation_type == "NUMERIC":
-                value = openfeature_client.get_float_value(flag, default_value, context)
+                details = openfeature_client.get_float_details(flag, default_value, context)
             elif variation_type == "JSON":
-                value = openfeature_client.get_object_value(flag, default_value, context)
+                details = openfeature_client.get_object_details(flag, default_value, context)
             else:
-                value = default_value
+                details = None
+
+            if details is not None:
+                value = details.value
+                reason = getattr(details.reason, "value", details.reason) or "DEFAULT"
+                error_code = getattr(details.error_code, "value", details.error_code)
         except Exception:
             value = default_value
             reason = "ERROR"
 
-        return JSONResponse({"value": value, "reason": reason}, status_code=200)
+        return JSONResponse({"value": value, "reason": reason, "errorCode": error_code}, status_code=200)
     except Exception as e:
         log.error(f"[FFE] Error evaluating flag: {e}")
         return JSONResponse({"error": str(e)}, status_code=500)

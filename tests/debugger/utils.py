@@ -13,6 +13,7 @@ from typing import Any, Literal, TypedDict
 from collections.abc import Iterator
 
 from utils import interfaces, remote_config, weblog, context, logger
+from utils._weblog import HttpResponse
 from utils.dd_constants import RemoteConfigApplyState as ApplyState
 from utils.dd_types import DataDogAgentSpan
 
@@ -114,6 +115,37 @@ def get_env_bool(env_var_name: str, *, default: bool = False) -> bool:
     return value in {"true", "True", "1"}
 
 
+def capture_point_contains_data(point: object) -> bool:
+    """Return True iff a single capture point (entry / return / one line entry) contains data."""
+    if not isinstance(point, dict):
+        return False
+    for key in ("arguments", "locals", "staticFields"):
+        if point.get(key):
+            return True
+    return bool(point.get("throwable"))
+
+
+def captures_contain_data(captures: object) -> bool:
+    """Return True iff the ``captures`` field of a snapshot contains any captured probe data.
+
+    A snapshot whose ``captures`` is missing, ``None``, or only contains empty
+    ``entry`` / ``return`` / ``lines`` sub-structures (i.e. no captured arguments,
+    locals, static fields, or throwable) returns False -- it is an empty captures
+    container and acceptable as part of an evaluation-error snapshot.
+    """
+    if not isinstance(captures, dict):
+        return False
+    for key, value in captures.items():
+        # `entry` and `return` map directly to a capture-point dict.
+        # `lines` maps line-numbers to capture-point dicts, so descend one level.
+        if key == "lines" and isinstance(value, dict):
+            if any(capture_point_contains_data(v) for v in value.values()):
+                return True
+        elif capture_point_contains_data(value):
+            return True
+    return False
+
+
 class BaseDebuggerTest:
     tracer: dict[str, str] = {}
 
@@ -158,18 +190,44 @@ class BaseDebuggerTest:
     def method_and_language_to_line_number(self, method: str, language: str) -> list:
         """method_and_language_to_line_number returns the respective line number given the method and language"""
         definitions: dict[str, dict[str, list[int]]] = {
-            "Budgets": {"java": [138], "dotnet": [136], "python": [142]},
-            "Expression": {"java": [71], "dotnet": [74], "python": [72], "ruby": [82], "nodejs": [82], "golang": [71]},
+            "Budgets": {"java": [140], "dotnet": [138], "python": [144], "golang": [117], "nodejs": [163]},
+            "LogProbe": {"nodejs": [20]},
+            "Pii": {"java": [66], "dotnet": [66], "python": [66], "ruby": [66], "nodejs": [64]},
+            "Expression": {"java": [73], "dotnet": [76], "python": [74], "ruby": [82], "nodejs": [82], "golang": [71]},
+            # In-scope line for the probe_capture_expressions_line line probe. Kept separate
+            # from "Expression" because Node.js captures at a different line (71) than its
+            # expression-language probe (82); Ruby's weblog layout puts the line at 82, not 71.
+            "CaptureExpressionsLine": {"java": [73], "dotnet": [76], "nodejs": [71], "golang": [71], "ruby": [82]},
             # The `@exception` variable is not available in the context of line probes.
             "ExpressionException": {},
-            "ExpressionOperators": {"java": [82], "dotnet": [90], "python": [87], "ruby": [102], "nodejs": [90]},
-            "StringOperations": {"java": [87], "dotnet": [97], "python": [96], "ruby": [122], "nodejs": [96]},
-            "CollectionOperations": {"java": [114], "dotnet": [114], "python": [123], "ruby": [162], "nodejs": [120]},
-            "Nulls": {"java": [130], "dotnet": [127], "python": [136], "ruby": [192], "nodejs": [126]},
-            "SnapshotLimits": {"java": [153], "python": [172], "nodejs": [136], "ruby": [233], "dotnet": [150]},
+            "ExpressionOperators": {"java": [84], "dotnet": [92], "python": [89], "ruby": [102], "nodejs": [90]},
+            "StringOperations": {"java": [89], "dotnet": [99], "python": [98], "ruby": [122], "nodejs": [96]},
+            "CollectionOperations": {"java": [116], "dotnet": [116], "python": [125], "ruby": [162], "nodejs": [120]},
+            "Nulls": {"java": [132], "dotnet": [129], "python": [138], "ruby": [192], "nodejs": [126]},
+            "SnapshotLimits": {"java": [155], "python": [174], "nodejs": [136], "ruby": [233], "dotnet": [152]},
+            "CaptureTimeout": {"java": [174], "nodejs": [157], "dotnet": [173]},
         }
 
         return definitions.get(method, {}).get(language, [])
+
+    def _rewrite_where_for_lines(self, probes: list[dict], lines: list[int] | None) -> None:
+        """Point each probe's `where` at the given source lines.
+
+        Line numbers are serialized as strings: the Go system-probe rejects
+        integer line numbers, so an integer `lines` makes the probe never reach
+        INSTALLED status. When `lines` is None the probe's `where` is left
+        untouched, which is how method probes keep the type/method targeting
+        from their JSON definition.
+        """
+        if lines is None:
+            return
+
+        string_lines = [str(line) for line in lines]
+        for probe in probes:
+            probe["where"].pop("methodName", None)
+            probe["where"]["lines"] = string_lines
+            probe["where"]["sourceFile"] = "ACTUAL_SOURCE_FILE"
+            probe["where"]["typeName"] = None
 
     ###### set #####
     def set_probes(
@@ -232,7 +290,11 @@ class BaseDebuggerTest:
                     source_file = ""
 
                     if language == "dotnet":
-                        source_file = "DebuggerController.cs"
+                        # Docker COPY flattens weblog sources into WORKDIR /app, so the PDB
+                        # document is /app/DebuggerController.cs (not Controllers/...).
+                        # Include the app/ segment so prefix-stripping and Windows-separator
+                        # tests exercise trailing-segment matching (DEBUG-5101 / DEBUG-5108).
+                        source_file = "app/DebuggerController.cs"
                     elif language == "java":
                         source_file = "com/datadoghq/system_tests/springboot/debugger/DebuggerController.java"
                     elif language == "python":
@@ -253,16 +315,30 @@ class BaseDebuggerTest:
                         go_build_dir = {"uds-echo": "echo"}.get(variant, variant)
                         source_file = f"{go_build_dir}/debugger.go"
                     elif language == "php":
-                        source_file = "debugger.php"
+                        # PHP does not support line probes; convert to a method probe.
+                        php_line_to_method = {
+                            "20": "LogProbe",
+                            "71": "expression",
+                        }
+                        lines = probe["where"].get("lines", [])
+                        method = next((php_line_to_method[line] for line in lines if line in php_line_to_method), None)
+                        if method:
+                            probe["where"]["typeName"] = "DebuggerController"
+                            probe["where"]["methodName"] = method
+                            probe["where"]["sourceFile"] = None
+                            probe["where"]["lines"] = []
+                            probe["evaluateAt"] = "EXIT"
+                        else:
+                            source_file = "debugger.php"
 
-                    if uppercase_source_files:
-                        source_file = source_file.upper()
-                    if path_prefix:
-                        source_file = os.path.join(path_prefix, source_file)
-                    if use_backslashes:
-                        source_file = source_file.replace("/", "\\")
-
-                    probe["where"]["sourceFile"] = source_file
+                    if source_file != "":
+                        if uppercase_source_files:
+                            source_file = source_file.upper()
+                        if path_prefix:
+                            source_file = os.path.join(path_prefix, source_file)
+                        if use_backslashes:
+                            source_file = source_file.replace("/", "\\")
+                        probe["where"]["sourceFile"] = source_file
 
                     # Go system-probe requires methodName for line probes to identify the function.
                     # Other languages resolve this from sourceFile+line, but the eBPF-based
@@ -271,8 +347,9 @@ class BaseDebuggerTest:
                         golang_line_to_method = {
                             "20": "main.(*DebuggerController).logProbe",
                             "71": "main.(*DebuggerController).expression",
+                            "117": "main.(*DebuggerController).budgetStep",
                         }
-                        line = probe["where"]["lines"][0]
+                        line = str(probe["where"]["lines"][0])
                         if line in golang_line_to_method:
                             probe["where"]["methodName"] = golang_line_to_method[line]
 
@@ -299,9 +376,11 @@ class BaseDebuggerTest:
             remote_config.send_debugger_command(probes=self.probe_definitions, version=BaseDebuggerTest._rc_version)
         )
 
-        # PHP tracer requires a request to /debugger/* to start logging the probe information.
+        # PHP tracer requires requests to /debugger/* to process RC and resolve probe hooks.
+        # Pass probe IDs so the PHP endpoint polls until they appear in the loaded RC state.
         if context.library == "php":
-            weblog.get("/debugger/init")
+            probe_ids = ",".join(p["id"] for p in self.probe_definitions if "id" in p)
+            weblog.get(f"/debugger/init?probes={probe_ids}")
 
     def send_rc_apm_tracing(
         self,
@@ -378,6 +457,12 @@ class BaseDebuggerTest:
             )
         )
 
+        # PHP tracer requires requests to /debugger/* to process RC before the test request.
+        # Pass probe IDs so the PHP endpoint polls until they appear in the loaded RC state.
+        if context.library == "php":
+            probe_ids = ",".join(p["id"] for p in self.probe_definitions if "id" in p)
+            weblog.get(f"/debugger/init?probes={probe_ids}")
+
     def send_rc_symdb(self, *, reset: bool = True) -> None:
         BaseDebuggerTest._rc_version += 1
         if reset:
@@ -385,11 +470,13 @@ class BaseDebuggerTest:
 
         self.rc_states.append(remote_config.send_symdb_command(BaseDebuggerTest._rc_version))
 
-    def send_weblog_request(self, request_path: str, *, reset: bool = True) -> None:
+    def send_weblog_request(self, request_path: str, *, reset: bool = True) -> HttpResponse:
         if reset:
             self.weblog_responses = []
 
-        self.weblog_responses.append(weblog.get(request_path))
+        response = weblog.get(request_path)
+        self.weblog_responses.append(response)
+        return response
 
     ###### wait for #####
     _last_read = 0
@@ -581,6 +668,28 @@ class BaseDebuggerTest:
 
         return False
 
+    def wait_for_snapshot_count(self, count: int, timeout: int = 5) -> bool:
+        """Wait until `count` snapshots have been received for the expected probes.
+
+        Tests that assert an upper bound on the number of emitted snapshots use this instead of
+        sleeping: it returns as soon as `count` snapshots are on disk, and otherwise waits out the
+        timeout, which is the expected outcome for a tracer respecting the bound.
+        """
+        logger.debug(f"Waiting for {count} snapshots from probes: {self.probe_ids}")
+        seen: set[tuple[str, int]] = set()
+        return interfaces.agent.wait_for(lambda data: self._count_snapshots(data, seen=seen) >= count, timeout=timeout)
+
+    def _count_snapshots(self, data: dict, seen: set[tuple[str, int]]) -> int:
+        if data["path"] in [_LOGS_PATH, _DEBUGGER_PATH]:
+            contents = data["request"].get("content", []) or []
+
+            for index, content in enumerate(_iter_snapshot_content_items(contents)):
+                snapshot = content.get("debugger", {}).get("snapshot") or content.get("debugger.snapshot")
+                if snapshot and snapshot.get("probe", {}).get("id") in self.probe_ids:
+                    seen.add((data["log_filename"], index))
+
+        return len(seen)
+
     _no_capture_reason_span_found = False
 
     def wait_for_no_capture_reason_span(self, error_message: str, timeout: int) -> bool:
@@ -614,49 +723,45 @@ class BaseDebuggerTest:
         logger.debug(f"No capture reason span found: {self._no_capture_reason_span_found}")
         return self._no_capture_reason_span_found
 
-    def wait_for_code_origin_span(self, timeout: int = 5) -> bool:
+    def wait_for_code_origin_span(
+        self, request: HttpResponse, timeout: int = 5, *, stop_when_absent: bool = True
+    ) -> bool:
+        """Wait for the request's trace and report whether it contains a code origin span.
+
+        By default the wait ends as soon as the correlated trace arrives, even without code
+        origin metadata, so that disabled-state checks do not wait for the whole timeout. Pass
+        stop_when_absent=False for warmup requests, so that the wait keeps running until the
+        tracer has finished its asynchronous instrumentation.
+        """
         self._span_found = False
-        threshold = self._get_max_trace_file_number()
 
         interfaces.agent.wait_for(
-            lambda data: self._wait_for_code_origin_span(data, threshold=threshold),
+            lambda data: self._wait_for_code_origin_span(data, request=request, stop_when_absent=stop_when_absent),
             timeout=timeout,
         )
         return self._span_found
 
-    def _get_max_trace_file_number(self) -> int:
-        """Get the maximum trace file number currently in the agent interface."""
-        max_number = 0
-        for data in interfaces.agent.get_data(_TRACES_PATH):
-            log_filename_found = re.search(r"/(\d+)__", data["log_filename"])
-            if log_filename_found:
-                file_number = int(log_filename_found.group(1))
-                max_number = max(max_number, file_number)
-        return max_number
+    def _wait_for_code_origin_span(self, data: dict, *, request: HttpResponse, stop_when_absent: bool) -> bool:
+        if data["path"] != _TRACES_PATH:
+            return False
 
-    def _wait_for_code_origin_span(self, data: dict, *, threshold: int) -> bool:
-        if data["path"] == _TRACES_PATH:
-            log_filename_found = re.search(r"/(\d+)__", data["log_filename"])
-            if not log_filename_found:
-                return False
+        # Select the trace using the request ID, then inspect every span because the code origin
+        # entry span is not guaranteed to carry the request ID itself.
+        trace_found = False
+        for _, trace in interfaces.agent.get_traces(request=request):
+            trace_found = True
+            if any(
+                span.get_span_type() == "web"
+                and span.get_span_resource().startswith("GET")
+                and span.meta.get("_dd.code_origin.type", "") == "entry"
+                for span in trace.spans
+            ):
+                self._span_found = True
+                return True
 
-            log_number = int(log_filename_found.group(1))
-            if log_number > threshold:
-                content = data["request"]["content"]
-                if content:
-                    for payload in content["tracerPayloads"]:
-                        for chunk in payload["chunks"]:
-                            for span in chunk["spans"]:
-                                resource, resource_type = span.get("resource", ""), span.get("type")
-
-                                if resource.startswith("GET") and resource_type == "web":
-                                    code_origin_type = span["meta"].get("_dd.code_origin.type", "")
-
-                                    if code_origin_type == "entry":
-                                        self._span_found = True
-                                        return True
-
-        return False
+        # The correlated trace arrived without code origin metadata: that is a conclusive answer
+        # for a state check, but a warmup must keep waiting for instrumentation to complete.
+        return trace_found and stop_when_absent
 
     def wait_for_telemetry(self, telemetry_type: str, timeout: int = 5) -> dict | None:
         self._telemetry: dict | None = None
@@ -791,6 +896,45 @@ class BaseDebuggerTest:
 
         self.probe_snapshots = _get_snapshot_hash()
 
+    def get_snapshot_request_lengths(self, probe_id: str) -> list[int]:
+        """Return decoded body lengths for backend requests containing a probe snapshot."""
+        requests = list(interfaces.agent.get_data(_LOGS_PATH))
+        requests += list(interfaces.agent.get_data(_DEBUGGER_PATH))
+
+        lengths: list[int] = []
+        for request in requests:
+            content = request["request"].get("content", []) or []
+            for item in _iter_snapshot_content_items(content):
+                snapshot = item.get("debugger", {}).get("snapshot") or item.get("debugger.snapshot")
+                if snapshot and snapshot.get("probe", {}).get("id") == probe_id:
+                    length = request["request"].get("length")
+                    assert isinstance(length, int), f"Request length is missing or invalid: {length!r}"
+                    lengths.append(length)
+                    break
+
+        return lengths
+
+    def wait_for_additional_snapshots(self, timeout: int = 5) -> bool:
+        """Wait for another backend request containing a snapshot for an expected probe."""
+        existing_files = {
+            data["log_filename"] for path in (_LOGS_PATH, _DEBUGGER_PATH) for data in interfaces.agent.get_data(path)
+        }
+        expected_probe_ids = set(self.probe_ids)
+
+        def _contains_additional_snapshot(data: dict[str, Any]) -> bool:
+            if data["path"] not in (_LOGS_PATH, _DEBUGGER_PATH) or data["log_filename"] in existing_files:
+                return False
+
+            content = data["request"].get("content", []) or []
+            for item in _iter_snapshot_content_items(content):
+                snapshot = item.get("debugger", {}).get("snapshot") or item.get("debugger.snapshot")
+                if snapshot and snapshot.get("probe", {}).get("id") in expected_probe_ids:
+                    return True
+
+            return False
+
+        return interfaces.agent.wait_for(_contains_additional_snapshot, timeout=timeout)
+
     def _debugger_v2_input_snapshots_received(self):
         """Test that the library sends snapshots to the debugger/v2/input endpoint"""
         tracer_requests = interfaces.library.get_data(_DEBUGGER_V2_INPUT_PATH)
@@ -808,7 +952,7 @@ class BaseDebuggerTest:
             span_hash: dict[str, list[DataDogAgentSpan]] = {}
 
             span_decoration_line_key = None
-            if self.get_tracer()["language"] == "dotnet" or self.get_tracer()["language"] == "python":
+            if self.get_tracer()["language"] in ["dotnet", "python", "php"]:
                 span_decoration_line_key = "_dd.di.SpanDecorationArgsAndLocals.probe_id"
             else:
                 span_decoration_line_key = "_dd.di.spandecorationargsandlocals.probe_id"
@@ -909,7 +1053,8 @@ class BaseDebuggerTest:
         gzipped symbols attachment (collected by _collect_symbols) and a
         small JSON blob describing the upload (the "event" part). This
         populates self.symdb_upload_events with the parsed event JSON for
-        every captured upload, matched by Content-Disposition name="event".
+        every captured upload, matched by the Content-Disposition name
+        parameter equaling "event".
         """
         events: list[dict[str, Any]] = []
         raw_data = list(interfaces.library.get_data(_SYMBOLS_PATH))
@@ -920,7 +1065,9 @@ class BaseDebuggerTest:
                 if not isinstance(part, dict):
                     continue
                 disposition = part.get("headers", {}).get("content-disposition", "")
-                if 'name="event"' not in disposition:
+                # Disposition arrives quoted from some tracers (Python) and
+                # unquoted from others (.NET); normalize before checking.
+                if "name=event" not in disposition.replace('"', ""):
                     continue
                 content = part.get("content")
                 if isinstance(content, dict):

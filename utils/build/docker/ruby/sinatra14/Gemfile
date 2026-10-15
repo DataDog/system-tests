@@ -12,4 +12,5 @@ group :development do
 end
 
 gem 'dogstatsd-ruby'
+gem 'pg'
 gem 'datadog', '~> 2.0', require: 'datadog/auto_instrument'

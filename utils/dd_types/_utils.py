@@ -28,17 +28,22 @@ def get_rid_from_span_data(span_type: str, meta: dict, metrics: dict) -> str | N
     if not user_agent:  # last last last hope (python opentelemetry autoinstrumentation)
         user_agent = meta.get("http.user_agent")
 
+    if not user_agent:
+        # Weblogs can use this tag without emulating unsupported HTTP instrumentation.
+        user_agent = meta.get("system_tests.request.user_agent")
+
     return get_rid_from_user_agent(user_agent)
 
 
-# Protocol v1.0 may deserialize meta booleans as True/False; older formats use "true"/"false".
-def _normalize_for_compare(*, value: bool | str | None) -> str | None:
-    if value is True:
+# Protocol v1.0 may deserialize meta booleans as True/False; older formats use "true"/"false"; OTel can use 1/0.
+def _normalize_for_compare(*, value: bool | int | str | None) -> bool | int | str | None:
+    if value in (True, 1):
         return "true"
-    if value is False:
+    if value in (False, 0):
         return "false"
+    # compare by value as last resort
     return value
 
 
-def is_same_boolean(*, actual: bool | str | None, expected: bool | str | None) -> bool:
+def is_same_boolean(*, actual: bool | int | str | None, expected: bool | int | str | None) -> bool:
     return _normalize_for_compare(value=actual) == _normalize_for_compare(value=expected)

@@ -1,14 +1,33 @@
-from utils import scenarios
+from functools import lru_cache
+from pathlib import Path
+from unittest.mock import patch
 
-from utils.scripts.ci_orchestrators.workflow_data import get_endtoend_definitions
+from utils import scenarios
+from utils.const import COMPONENT_GROUPS
+from utils._context.weblog_metadata import WeblogMetaData
+from utils._context._scenarios import get_all_scenarios, Scenario
+from utils.scripts.ci_orchestrators.workflow_data import (
+    _get_execution_time,
+    _get_endtoend_weblogs,
+    get_endtoend_definitions,
+)
+
+
+@lru_cache
+def get_weblogs(library: str) -> dict[str, WeblogMetaData]:
+    return {w.name: w for w in WeblogMetaData.load(library)}
+
+
+def get_weblog(library: str, weblog: str) -> WeblogMetaData:
+    return get_weblogs(library)[weblog]
 
 
 @scenarios.test_the_test
 def test_get_endtoend_definitions():
     scenario_map = {
         "endtoend": [
-            "DEFAULT",
-            "GRAPHQL_APPSEC",
+            scenarios.default,
+            scenarios.graphql_appsec,
         ],
     }
 
@@ -22,3 +41,186 @@ def test_get_endtoend_definitions():
     # graphql_appsec is executed on  graphql23 weblog
     # so the job should be equals to weblog count
     assert len(defs["endtoend_defs"]["parallel_jobs"]) == weblog_count
+
+
+@scenarios.test_the_test
+def test_execution_time_logs_weblog_fallback() -> None:
+    run_stats = {"SCENARIO": {"ruby": {"*": 42.0}}}
+
+    with patch("utils.scripts.ci_orchestrators.workflow_data.logger.warning") as warning:
+        duration = _get_execution_time("ruby", "sinatra41", "SCENARIO", run_stats)
+
+    assert duration == 42.0
+    warning.assert_called_once_with(
+        "Missing weblog timing for %s/%s/%s; using library fallback %.2fs",
+        "SCENARIO",
+        "ruby",
+        "sinatra41",
+        42.0,
+    )
+
+
+@scenarios.test_the_test
+def test_execution_time_logs_library_fallback() -> None:
+    run_stats = {"SCENARIO": {"*": 42.0}}
+
+    with patch("utils.scripts.ci_orchestrators.workflow_data.logger.warning") as warning:
+        duration = _get_execution_time("ruby", "sinatra41", "SCENARIO", run_stats)
+
+    assert duration == 42.0
+    warning.assert_called_once_with(
+        "Missing library timing for %s/%s/%s; using scenario fallback %.2fs",
+        "SCENARIO",
+        "ruby",
+        "sinatra41",
+        42.0,
+    )
+
+
+@scenarios.test_the_test
+def test_execution_time_logs_scenario_fallback() -> None:
+    run_stats = {"*": 42.0}
+
+    with patch("utils.scripts.ci_orchestrators.workflow_data.logger.warning") as warning:
+        duration = _get_execution_time("ruby", "sinatra41", "SCENARIO", run_stats)
+
+    assert duration == 42.0
+    warning.assert_called_once_with(
+        "Missing scenario timing for %s/%s/%s; using global fallback %.2fs",
+        "SCENARIO",
+        "ruby",
+        "sinatra41",
+        42.0,
+    )
+
+
+@scenarios.test_the_test
+def test_execution_time_does_not_log_exact_match() -> None:
+    run_stats = {"SCENARIO": {"ruby": {"*": 42.0, "sinatra41": 84.0}}}
+
+    with patch("utils.scripts.ci_orchestrators.workflow_data.logger.warning") as warning:
+        duration = _get_execution_time("ruby", "sinatra41", "SCENARIO", run_stats)
+
+    assert duration == 84.0
+    warning.assert_not_called()
+
+
+@scenarios.test_the_test
+def test_ipv6_is_not_supported_for_uds_weblogs():
+    def _is_supported(weblog: WeblogMetaData, scenario: Scenario) -> bool:
+        return weblog.support_scenario(scenario.name, scenario.weblog_categories)
+
+    assert not _is_supported(get_weblog("dotnet", "uds"), scenarios.ipv6)
+    assert not _is_supported(get_weblog("python", "uds-flask"), scenarios.ipv6)
+    assert _is_supported(get_weblog("python", "flask-poc"), scenarios.ipv6)
+
+
+@scenarios.test_the_test
+def test_fiber_v2_orchestrion_weblog() -> None:
+    weblog = get_weblog("golang", "fiber-v2-orchestrion")
+    for scenario in (scenarios.default, scenarios.sampling, scenarios.ipv6):
+        assert weblog.support_scenario(scenario.name, scenario.weblog_categories)
+    assert not weblog.support_scenario(scenarios.graphql_appsec.name, scenarios.graphql_appsec.weblog_categories)
+
+    definitions = get_endtoend_definitions(
+        "golang", {"endtoend": [scenarios.default]}, [weblog.name], "dev", 200000, 256, "123", ""
+    )
+    jobs = definitions["endtoend_defs"]["parallel_jobs"]
+    assert len(jobs) == 1
+    assert jobs[0]["weblog"] == weblog.name
+    assert jobs[0]["weblog_build_required"]
+    assert jobs[0]["scenarios"] == ["DEFAULT"]
+
+
+@scenarios.test_the_test
+def test_get_endtoend_definitions_empty_scenario_map():
+    # Regression: previously raised KeyError when "endtoend" or "parametric" keys were absent
+    defs = get_endtoend_definitions("ruby", {}, [], "dev", 200000, 256, "123", "")
+    assert isinstance(defs["endtoend_defs"]["parallel_jobs"], list)
+
+
+@scenarios.test_the_test
+def test_get_endtoend_definitions_missing_endtoend_key():
+    defs = get_endtoend_definitions("ruby", {"other": ["X"]}, [], "dev", 200000, 256, "123", "")
+    assert defs["endtoend_defs"]["parallel_jobs"] == []
+
+
+@scenarios.test_the_test
+def test_nodejs_weblogs_dont_require_prebuild():
+    scenario_map = {"endtoend": [scenarios.default]}
+    defs = get_endtoend_definitions("nodejs", scenario_map, [], "dev", 200000, 256, "123", "")
+    # Node.js weblogs use build_mode="local": no dedicated build_end_to_end job
+    # (parallel_weblogs lists only "prebuild" weblogs, so it is empty), but the
+    # run_end_to_end jobs still build the weblog in-line (weblog_build_required=True).
+    parallel_jobs = defs["endtoend_defs"]["parallel_jobs"]
+    assert defs["endtoend_defs"]["parallel_weblogs"] == []
+    assert len(parallel_jobs) > 0
+    assert all(job["weblog_build_required"] for job in parallel_jobs)
+
+
+@scenarios.test_the_test
+def test_weblog_build_mode_is_resolved_from_metadata():
+    # build_mode is the single source of build requirement for every weblog, declared
+    # in each library's build.yml:
+    #   - weblog not listed in build.yml → "prebuild" (dedicated build job + local build)
+    #   - listed with a build_mode       → as declared
+    build_modes = {w.name: w.build_mode for w in _get_endtoend_weblogs("python", [], "123", "dev", "shared")}
+
+    # Dockerfile weblog absent from build.yml defaults to prebuild
+    assert build_modes["flask-poc"] == "prebuild"
+    # Node.js weblogs opt into local-only builds via build.yml
+    nodejs_modes = {w.name: w.build_mode for w in _get_endtoend_weblogs("nodejs", [], "123", "dev", "shared")}
+    assert nodejs_modes["express4"] == "local"
+    # integration-framework weblogs fan out per version and need no build
+    assert build_modes["openai-py@2.0.0"] == "none"
+
+
+@scenarios.test_the_test
+def test_otel_collector():
+    scenario_map = {"endtoend": [scenarios.otel_collector]}
+    defs = get_endtoend_definitions("otel_collector", scenario_map, [], "prod", 200000, 256, "123", "")
+
+    assert defs["endtoend_defs"]["parallel_jobs"] == [
+        {
+            "binaries_artifact": "",
+            "expected_job_time": 74.34217318962216,
+            "library": "otel_collector",
+            "runs_on": "ubuntu-latest",
+            "scenarios": ["OTEL_COLLECTOR"],
+            "weblog": "otel_collector",
+            "weblog_build_required": False,
+            "weblog_instance": 1,
+        }
+    ]
+
+
+@scenarios.test_the_test
+def test_weblog_metadata_scenario_names_are_valid():
+    valid_names = {scenario.name for scenario in get_all_scenarios()}
+
+    for library in sorted(COMPONENT_GROUPS.all):
+        for weblog in WeblogMetaData.load(library):
+            for scenario_name in weblog.supported_scenarios + weblog.excluded_scenarios:
+                assert scenario_name in valid_names, (
+                    f"{library}/{weblog.name}: '{scenario_name}' is not a known scenario name "
+                    f"(check utils/build/docker/{library}/weblog_metadata.yml)"
+                )
+
+
+@scenarios.test_the_test
+def test_all_weblog_has_metadata():
+    for library in sorted(COMPONENT_GROUPS.all):
+        folder = Path(f"utils/build/docker/{library}")
+        if folder.exists():  # some lib does not have any weblog
+            names = [
+                f.name.replace(".Dockerfile", "")
+                for f in folder.iterdir()
+                if f.suffix == ".Dockerfile" and ".base." not in f.name and f.is_file()
+            ]
+
+            known_weblog_names = {w.name.split("@")[0] for w in WeblogMetaData.load(library)}
+
+            for name in names:
+                assert name in known_weblog_names, (
+                    f"Please add {name} in utils/build/docker/{library}/weblog_metadata.yml"
+                )

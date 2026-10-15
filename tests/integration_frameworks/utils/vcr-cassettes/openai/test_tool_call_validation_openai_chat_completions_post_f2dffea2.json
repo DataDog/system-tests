@@ -1,0 +1,63 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://api.openai.com/v1/chat/completions",
+    "headers": {
+      "Accept-Encoding": "gzip, deflate",
+      "Connection": "keep-alive",
+      "Accept": "application/json",
+      "Content-Type": "application/json",
+      "User-Agent": "OpenAI/Python 2.0.0",
+      "X-Stainless-Lang": "python",
+      "X-Stainless-Package-Version": "2.0.0",
+      "X-Stainless-OS": "Linux",
+      "X-Stainless-Arch": "x64",
+      "X-Stainless-Runtime": "CPython",
+      "X-Stainless-Runtime-Version": "3.11.15",
+      "X-Stainless-Async": "false",
+      "x-stainless-retry-count": "0",
+      "x-stainless-read-timeout": "600",
+      "Content-Length": "535",
+      "x-datadog-trace-id": "11679812058723169118",
+      "x-datadog-parent-id": "17144347262350322105",
+      "x-datadog-sampling-priority": "2",
+      "x-datadog-tags": "_dd.p.dm=-4,_dd.p.tid=6a47cc2300000000",
+      "traceparent": "00-6a47cc2300000000a217072f6384b35e-edecf5001e54e9b9-01",
+      "tracestate": "dd=p:edecf5001e54e9b9;s:2;t.dm:-4;t.tid:6a47cc2300000000"
+    },
+    "body": "{\"messages\":[{\"role\":\"user\",\"content\":\"Bob is a student at Stanford University. He is studying computer science.\"}],\"model\":\"gpt-4o-mini\",\"tool_choice\":\"auto\",\"tools\":[{\"type\":\"function\",\"function\":{\"name\":\"extract_student_info\",\"description\":\"Get the student information from the body of the input text\",\"parameters\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\",\"description\":\"Name of the person\"},\"major\":{\"type\":\"string\",\"description\":\"Major subject.\"},\"school\":{\"type\":\"string\",\"description\":\"The university name.\"}}}}}]}"
+  },
+  "response": {
+    "status": {
+      "code": 200,
+      "message": "OK"
+    },
+    "headers": {
+      "Date": "Fri, 03 Jul 2026 14:50:12 GMT",
+      "Content-Type": "application/json",
+      "Transfer-Encoding": "chunked",
+      "Connection": "keep-alive",
+      "CF-Ray": "a156b3815dbe0142-MAD",
+      "CF-Cache-Status": "DYNAMIC",
+      "Server": "cloudflare",
+      "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
+      "X-Content-Type-Options": "nosniff",
+      "access-control-expose-headers": "X-Request-ID, CF-Ray, CF-Ray",
+      "openai-processing-ms": "690",
+      "openai-project": "proj_gt6TQZPRbZfoY2J9AQlEJMpd",
+      "openai-version": "2020-10-01",
+      "x-openai-proxy-wasm": "v0.1",
+      "x-ratelimit-limit-requests": "30000",
+      "x-ratelimit-limit-tokens": "150000000",
+      "x-ratelimit-remaining-requests": "29999",
+      "x-ratelimit-remaining-tokens": "149999980",
+      "x-ratelimit-reset-requests": "2ms",
+      "x-ratelimit-reset-tokens": "0s",
+      "x-request-id": "req_9b5983560f2c46209300bbc7dc7d1398",
+      "set-cookie": "__cf_bm=lFOi_XfqoatTdp8UUQviTl2ntLZoPNYZNNUPOmYoIS4-1783090212.0518818-1.0.1.1-8LZKca4JkZ_Z6AmofdkXp3ls.q2mUD2uefWtfGYruqEynmongOkfGw5EZnfsFEASpchoGpnXbCKtqo0tXp49uTvHNVExyvAYfGy1SUoqiGwyC7GwLjkxauXRvOdNrwjZ; HttpOnly; SameSite=None; Secure; Path=/; Domain=api.openai.com; Expires=Fri, 03 Jul 2026 15:20:12 GMT",
+      "Content-Encoding": "gzip",
+      "alt-svc": "h3=\":443\"; ma=86400"
+    },
+    "body": "{\n  \"id\": \"chatcmpl-DxZVUSEzvfuZVXYVyOwL7CSxKngPg\",\n  \"object\": \"chat.completion\",\n  \"created\": 1783090212,\n  \"model\": \"gpt-4o-mini-2024-07-18\",\n  \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\": \"assistant\",\n        \"content\": null,\n        \"tool_calls\": [\n          {\n            \"id\": \"call_C5dXIRBkTQjYoQrBr3WrkQYY\",\n            \"type\": \"function\",\n            \"function\": {\n              \"name\": \"extract_student_info\",\n              \"arguments\": \"{\\\"name\\\":\\\"Bob\\\",\\\"major\\\":\\\"computer science\\\",\\\"school\\\":\\\"Stanford University\\\"}\"\n            }\n          }\n        ],\n        \"refusal\": null,\n        \"annotations\": []\n      },\n      \"logprobs\": null,\n      \"finish_reason\": \"tool_calls\"\n    }\n  ],\n  \"usage\": {\n    \"prompt_tokens\": 85,\n    \"completion_tokens\": 26,\n    \"total_tokens\": 111,\n    \"prompt_tokens_details\": {\n      \"cached_tokens\": 0,\n      \"audio_tokens\": 0\n    },\n    \"completion_tokens_details\": {\n      \"reasoning_tokens\": 0,\n      \"audio_tokens\": 0,\n      \"accepted_prediction_tokens\": 0,\n      \"rejected_prediction_tokens\": 0\n    }\n  },\n  \"service_tier\": \"default\",\n  \"system_fingerprint\": \"fp_8d97543466\"\n}\n"
+  }
+}

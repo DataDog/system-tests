@@ -45,6 +45,7 @@ public class AppSecIast {
     private final ReflectionExamples reflectionExamples;
     private final DeserializationExamples deserializationExamples;
     private final EmailExamples emailExamples;
+    private final CodeInjectionExamples codeInjectionExamples;
 
 
     public AppSecIast(final DataSource dataSource) {
@@ -60,6 +61,7 @@ public class AppSecIast {
         this.reflectionExamples = new ReflectionExamples();
         this.deserializationExamples = new DeserializationExamples();
         this.emailExamples = new EmailExamples();
+        this.codeInjectionExamples = new CodeInjectionExamples();
     }
 
     @RequestMapping("/hardcoded_secrets/test_insecure")
@@ -255,6 +257,17 @@ public class AppSecIast {
     String secureXPath(final ServletRequest request) {
         xPathExamples.secureXPath();
         return "XPath secure";
+    }
+
+    @PostMapping("/code_injection/test_insecure")
+    String insecureCodeInjection(final ServletRequest request) {
+        final String code = request.getParameter("code");
+        return codeInjectionExamples.insecureCodeInjection(code);
+    }
+
+    @PostMapping("/code_injection/test_secure")
+    String secureCodeInjection(final ServletRequest request) {
+        return codeInjectionExamples.secureCodeInjection();
     }
 
     @GetMapping("/trust-boundary-violation/test_insecure")

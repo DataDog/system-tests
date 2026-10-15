@@ -173,6 +173,8 @@ class VirtualMachineProvisioner:
         installations = weblog["install"]
         # Use GIT does not work for windows machines
         ci_commit_branch = os.getenv("GITLAB_CI") if os_type != "windows" else None
+        # Only ruby uses git, because other languages don't need this checkout step,
+        # because they are handling less number of files
         installation = self._get_installation(
             env,
             library_name,
@@ -181,7 +183,7 @@ class VirtualMachineProvisioner:
             os_branch,
             os_cpu,
             installations,
-            use_git=ci_commit_branch is not None,
+            use_git=ci_commit_branch is not None and library_name == "ruby",
         )
         installation.id = weblog["name"]
         installation.nginx_config = weblog.get("nginx_config", None)

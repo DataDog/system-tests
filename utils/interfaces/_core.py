@@ -35,11 +35,15 @@ class InterfaceValidator:
 
     def __init__(self, name: str):
         self.name = name
+        self._configured: bool = False
+        """ Useful to prevent using an interface that has not been configured """
 
     def configure(self, host_log_folder: str, *, replay: bool):
         self.replay = replay
         self.log_folder = f"{host_log_folder}/interfaces/{self.name}"
         self.host_log_folder = host_log_folder
+
+        self._configured = True
 
     def __repr__(self):
         return f"{self.__class__.__name__}('{self.name}')"
@@ -121,6 +125,9 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
         self._data_list.append(data)
 
     def get_data(self, path_filters: Iterable[str] | str | None = None):
+        if not self._configured:
+            raise RuntimeError(f"{self} hasn't been configured; you can't use it")
+
         if path_filters is not None:
             if isinstance(path_filters, str):
                 path_filters = [path_filters]
@@ -129,7 +136,12 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
         else:
             path_regexes = None
 
-        for data in self._data_list:
+        # snapshot under the lock: the watchdog thread appends to and re-sorts
+        # _data_list, which would make an in-place walk skip or repeat entries
+        with self._lock:
+            data_list = list(self._data_list)
+
+        for data in data_list:
             if path_regexes is not None and all(path.fullmatch(data["path"]) is None for path in path_regexes):
                 continue
 
@@ -199,16 +211,17 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
         if not allow_no_data and data_is_missing:
             raise ValueError(f"No data has been observed on {path_filters}")
 
-    def wait_for(self, wait_for_function: Callable[[dict], bool], timeout: int) -> None:
+    def wait_for(self, wait_for_function: Callable[[dict], bool], timeout: int) -> bool:
         if self.replay:
-            return
+            # We actually don't know if the wait succeeded originally
+            return True
 
         # first, try existing data
         with self._lock:
             for data in self._data_list:
                 if wait_for_function(data):
                     logger.info(f"wait for {wait_for_function} finished in success with existing data")
-                    return
+                    return True
 
             # then set the lock, and wait for append_data to release it
             self._wait_for_event.clear()
@@ -217,10 +230,13 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
         # release the main lock, and sleep !
         if self._wait_for_event.wait(timeout):
             logger.info(f"wait for {wait_for_function} finished in success")
+            rv = True
         else:
             logger.error(f"Wait for {wait_for_function} finished in error")
+            rv = False
 
         self._wait_for_function = None
+        return rv
 
     def assert_response_header(
         self, path_filters: list[str] | str, header_name_pattern: str, header_value_pattern: str

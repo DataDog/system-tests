@@ -1,19 +1,14 @@
-FROM node:18-alpine
+FROM system_tests_base_nodejs_express4
 
-RUN apk add --no-cache bash curl git jq
+# The base image bakes in app.js; refresh it (and fork_child.js, which is loaded via a
+# runtime path so it is never bundled) so the /spawn_child endpoint is present.
+COPY utils/build/docker/nodejs/express/app.js app.js
+COPY utils/build/docker/nodejs/express/fork_child.js fork_child.js
+COPY utils/build/docker/nodejs/express/debugger debugger
 
-RUN uname -r
-
-# print versions
-RUN node --version && npm --version && curl --version
-
-WORKDIR /usr/app
-
-ENV NODE_ENV=production
-
-COPY utils/build/docker/nodejs/express /usr/app
-COPY utils/build/docker/nodejs/express4/package.json utils/build/docker/nodejs/express4/package-lock.json ./
-RUN npm ci || (sleep 30 && npm ci)
+# Refresh the dependencies baked into the base image.
+COPY utils/build/docker/nodejs/express4/package.json utils/build/docker/nodejs/express4/bun.lock ./
+RUN bun install --frozen-lockfile --network-concurrency 8 --linker=hoisted
 
 EXPOSE 7777
 
@@ -32,7 +27,7 @@ RUN printf 'node app.js' >> app.sh
 CMD ./app.sh
 
 COPY utils/build/docker/nodejs/install_ddtrace.sh binaries* /binaries/
-RUN /binaries/install_ddtrace.sh
+RUN /binaries/install_ddtrace.sh && rm -rf /root/.bun
 ENV DD_TRACE_HEADER_TAGS=user-agent
 
 # docker build -f utils/build/docker/nodejs/express4.Dockerfile -t test .

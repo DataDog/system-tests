@@ -1,6 +1,7 @@
 import pytest
 
 from utils._logger import logger
+from utils._context.constants import WeblogCategory
 
 from .core import scenario_groups
 from .endtoend import EndToEndScenario
@@ -10,7 +11,7 @@ class DebuggerScenario(EndToEndScenario):
     def __init__(self, name: str, doc: str, weblog_env: dict[str, str | None]) -> None:
         base_weblog_env: dict[str, str | None] = {
             "DD_REMOTE_CONFIG_ENABLED": "1",
-            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "1",
+            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
             # added temporarily to troubleshoot debugger test flakiness
             "JAVA_OPTS": " -Ddatadog.slf4j.simpleLogger.log.com.datadog.debugger=debug ",
         }
@@ -25,12 +26,17 @@ class DebuggerScenario(EndToEndScenario):
             library_interface_timeout=5,
             weblog_env=base_weblog_env,
             scenario_groups=[scenario_groups.debugger],
+            weblog_categories=[WeblogCategory.dd_trace],
         )
 
     def configure(self, config: pytest.Config):
         super().configure(config)
 
         library = self.weblog_infra.library_name
+        if library == "php":
+            # Disable appsec for PHP debugger tests so appsec-specific span tags don't
+            # appear in snapshot comparisons, which were generated without appsec.
+            self.weblog_container.environment["DD_APPSEC_ENABLED"] = "0"
         if library == "python":
             # Python v4.0+ only recognizes UPLOAD_INTERVAL_SECONDS, while v3.9 and
             # earlier only recognizes UPLOAD_FLUSH_INTERVAL (both use seconds as the

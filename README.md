@@ -2,7 +2,7 @@
 
 Having trouble? Reach out on slack: [#apm-shared-testing](https://dd.enterprise.slack.com/archives/C025TJ4RZ8X)
 
-System-tests is a black-box testing workbench for Datadog tracer libraries. It runs the **same tests** against every tracer implementation -- Java, Node.js, Python, PHP, Ruby, C++, .NET, Go, and Rust -- so shared features stay consistent across languages.
+System-tests is a black-box testing workbench for Datadog tracer libraries. It runs the **same tests** against every tracer implementation -- Java, Node.js, Python, PHP, Ruby, C, C++, .NET, Go, and Rust -- so shared features stay consistent across languages.
 
 Key principles:
 
@@ -15,7 +15,7 @@ You need **bash**, **Docker** (20.10+), and **Python 3.12**.
 
 ```bash
 # 1. Build images for the language you want to test
-./build.sh python          # or: java, nodejs, ruby, php, dotnet, golang
+./build.sh python          # or: c, java, nodejs, ruby, php, dotnet, golang
 
 # 2. Run the tests
 ./run.sh                   # run all default tests

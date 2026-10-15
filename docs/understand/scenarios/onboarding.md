@@ -787,9 +787,9 @@ These are the main important log/data files:
 
 Note: These files contain the VM name and will vary for each execution depending on the virtual machine used (e.g., Ubuntu_24_amd64, Amazon_Linux_2023_arm64, etc.).
 
-* **[vm_name].log:** Logs related with the remote commands executed on the machine (e.g., Ubuntu_24_amd64.log).
-* **[vm_name]_provision_script.log:** All the provision script for the current machine (e.g., Ubuntu_24_amd64_provision_script.log).
-* **[vm_name]_var_log.log:** Contains the var/log directory contents from the virtual machine (e.g., Ubuntu_24_amd64_var_log.log).
+* **[vm_name].log:** Live execution log of the remote commands run on the VM (e.g., Ubuntu_24_amd64.log). Contains Pulumi `command:remote:Command` stdout/stderr, framework banners, and per-step output blocks. This is the authoritative source for what actually happened on the machine. See [How to read VM log markers](#how-to-read-vm-log-markers-vm_namelog) below for a deterministic reading procedure.
+* **[vm_name]_provision_script.log:** The **rendered shell script template** (the provision script as it was written and uploaded to the VM) for the current machine. This is the **source code of the script**, NOT what the VM actually executed or printed at runtime. Lines such as `echo "Failed to ..."` inside `if` branches do not mean that branch ran.
+* **[vm_name]_var_log.log:** Contents of the `/var/log` directory copied from the virtual machine (e.g., Ubuntu_24_amd64_var_log.log).
 
 ## Datadog Agent and Component Logs
 
@@ -819,7 +819,43 @@ Located in: **var/log/datadog_weblog/**
 * **docker_list_dependencies.log:** Docker dependencies listing.
 * **docker_proccess.log:** Docker process information.
 * **journalctl_docker.log:** Systemd journal logs related to Docker.
+* **journalctl_test-app.log:** Systemd journal logs for the host weblog service (`test-app.service`).
 * **system.timers.log:** System timer logs.
+* **dd-agent-diagnostics.log:** Datadog Agent container diagnostics. Only present in container-based scenarios that start the agent via `docker-compose-agent-prod.yml`.
+* **core-diagnostics.txt:** Core dump configuration and the core files collected after a PHP host application crash.
+* **core.\* / systemd-coredump:** PHP process core dumps. Use these with `gdb` when investigating a segmentation fault or exit status 139.
+* **coredumpctl-list.txt:** PHP entries reported by `coredumpctl`, when the command is available on the VM.
+
+## How to read VM log markers (`[vm_name].log`)
+
+Every provision step that runs on the VM is written to `[vm_name].log` using a fixed marker structure. These markers are easy to misinterpret — read this section before attributing a failure to any step.
+
+### Marker reference
+
+| Marker | Meaning | When it appears |
+|---|---|---|
+| `🚀 Provision step: <name> 🚀` + `Status: ✅ SUCCESS` | The step **succeeded**. This whole block is only written when the Pulumi remote command output resolves successfully. | Only for successful steps. |
+| `📤 Provision step output (<name>) 📤` | The step's `stdout`. | Only for successful steps (same block as above). |
+| `🚨 error output (<name>) 🚨` | The step's `stderr`. **This is NOT a failure indicator** — many successful steps write to stderr (SSH dial retries, debconf warnings, deprecation notices, curl progress, etc.). | Only for successful steps (same block as above). |
+| `command:remote:Command -<vm>-<step> created (Ns)` | Pulumi terminal state: step **succeeded** in `Ns` seconds. | After every successful Pulumi remote command. |
+| `command:remote:Command -<vm>-<step> **creating failed**` | Pulumi terminal state: step **FAILED**. This is the authoritative failure signal. | The **first** occurrence is the root failure step. |
+| `❌ Exception launching aws provision step remote command ❌` | Framework-level confirmation that a provision step failed (emitted by `utils/virtual_machine/aws_provider.py`). | Once per failed scenario, after the failing Pulumi step. |
+| `❌ Exception launching aws provision infraestructure ❌` | Framework-level confirmation that the AWS infrastructure creation failed (before any provision step ran). See [Case 1 — AWS API interaction failure](#case-1--aws-api-interaction-failure). | Once per failed scenario. |
+
+### How to identify the failing step (deterministic procedure)
+
+1. Open `logs_<scenario>/<vm_name>.log`.
+2. Search for `**creating failed**`. The **first** occurrence is the root failure step. Everything after it is **cascade noise** (downstream steps and copy operations that depended on the failed step).
+3. Read the lines immediately preceding and following that `**creating failed**` for the actual error (e.g., `ProtocolError: Connection broken`, `exit status N`, `Connection reset by peer`, `Diagnostics:` block).
+4. Confirm prior steps actually succeeded by finding their `created (Ns)` Pulumi line. Do **NOT** conclude that a step failed just because it has a `🚨 error output` block — that marker is always emitted for stderr on successful steps too.
+5. Cross-check with the framework banner `❌ Exception launching aws provision step remote command ❌` — the failing step name appears in the lines that follow it (and in `tests.log` under the `Diagnostics:` marker, see [Troubleshooting Case 2](#case-2--vm-provisioning-failure-remote-command)).
+
+### Common mistakes to avoid
+
+- ❌ Treating `🚨 error output (<step>) 🚨` as a failure signal on its own. It is `stderr`, not a status word.
+- ❌ Quoting lines from `[vm_name]_provision_script.log` as proof that something ran on the VM. That file is the script source/template; only `[vm_name].log` shows live VM execution.
+- ❌ Skipping the Pulumi `created` / `**creating failed**` verdict and concluding the root cause from a downstream cascade error.
+- ❌ Stopping at the first `Exception` or `Error` substring without locating the step name in the Pulumi resource line.
 
 # How to debug a virtual machine at runtime
 
@@ -914,6 +950,7 @@ Exception launching aws provision step remote command
    grep -n "Diagnostics:" [vm_name].log
    ~~~
 4. Identify the failing command (package install, Docker/runtime setup, agent install, SSI packages, or test app build) and fix accordingly.
+5. If the PHP host weblog failed with a segmentation fault or exit status 139, inspect `core-diagnostics.txt`, `journalctl_test-app.log`, and any `core.*` or `systemd-coredump` file under `var/log/datadog_weblog/`.
 
 ---
 
@@ -982,6 +1019,8 @@ Exception during trace in backend verification: Reached overall timeout of 300 f
 
 > **Note:** Make sure profiling is actually enabled for the application (per language tracer guidance) before investigating backend intake.
 
+If the PHP host weblog crashes during `php --version` or while starting `test-app.service`, investigate the core dump under `var/log/datadog_weblog/` instead of treating it as a missing-profile timeout.
+
 ---
 
 ## Case 6 — Traces appear, but **AppSec** signals are missing
@@ -1033,6 +1072,7 @@ Whenever possible, please follow up by opening an issue or PR to properly addres
 Make sure to check the machine logs and confirm that the issue is not caused by your own software (such as the Agent, Installer, Injector, or any of the Tracers).
 You should only apply this workaround if the root cause is one of the following:
 * Issues with the original AMI on AWS.
+* A cached AMI that was generated incorrectly (for example the Docker daemon failed to install).
 * Problems with third-party repositories.
 * Failures when installing a third-party dependency required to run the tests.
 
@@ -1044,7 +1084,39 @@ If this kind of problem occurs, it could affect multiple components:
 * auto_inject: Could block merges to the main branch or delay releases.
 
 **Quick Solution:**
-  Open `utils/virtual_machine/virtual_machines.json` and set the `"enabled"` field to `false` for the problematic virtual machine to temporarily exclude it from test runs.
+
+1. **Temporarily exclude the VM.** Open `utils/virtual_machine/virtual_machines.json` and set `"disabled": true` for the problematic virtual machine.
+2. **Or delete the cached AMI** if the VM itself is fine but the snapshot is broken (see below). The next test run recreates it automatically.
+
+### Cached AMI is incorrect
+
+Cacheable provision steps (Docker, language runtime, …) are baked into an AMI. If that snapshot is wrong, every later run of the same VM + weblog reuses it.
+
+**Typical symptom:** Docker daemon failed during AMI creation. Tests fail with errors such as *Cannot connect to the Docker daemon* or *docker daemon does not exist*.
+
+**Find the AMI name** in the GitLab job stdout or in `tests.log` (near the start of the run):
+
+```
+14:14:56.472 STDOUT   We found an existing AMI  name:[CentOS_7_amd64_container-auto-inject-install-script_test-app-php-container-83_83cba9f5a8ae3b342e10f0a48ee1d6d5-3f871b1], ID:[ami-0b27aa90064f6603e], status:[available], expiration:[], created:[2026-08-18T09:56:10.000Z]
+```
+
+**Delete the AMI:**
+
+* **GitLab job `delete_amis_by_name_or_lang`** — targeted cleanup. Run a pipeline on [system-tests GitLab](https://gitlab.ddbuild.io/DataDog/system-tests/-/pipelines/new) with:
+  * `SCHEDULED_JOB=delete_amis_by_name_or_lang`
+  * `AMI_NAME` and/or `AMI_LANG` (at least one is required)
+
+  Matching rules (only AMIs tagged `CI=system-tests`):
+  * Both set → the AMI name must contain **both** substrings.
+  * One set → any AMI whose name contains that substring is deleted.
+
+  Use a precise value (VM name + weblog, or the unique hash from the log) so you do not delete unrelated AMIs.
+
+  Example: `AMI_NAME=CentOS_7_amd64` and `AMI_LANG=php`
+
+* **GitLab job `delete_amis`** — scheduled periodic cleanup of old AMIs (retention: 10 days / last launched: 10 days). It does **not** target a specific AMI.
+
+* **AWS console** — EC2 → AMIs → search by name → **Deregister**.
 
 ---
 
@@ -1073,6 +1145,15 @@ Identify the pipeline you want to use. For example, in the following build:
 Next, update your GitLab CI configuration file to include the variable `DD_INSTALLER_INJECTOR_VERSION` with the selected pipeline ID.
 You can see an example in the `dd-trace-java` repository:
 🔗 [GitLab CI example line](https://github.com/DataDog/dd-trace-java/blob/d2f5bb4248ea6ed459374919b357ac93c7d3a810/.gitlab-ci.yml#L961)
+
+Docker SSI, AWS SSI, and AWS SSI container apps choose the injector in this order. The environment does not change the first two cases:
+
+1. `DD_INSTALLER_INJECTOR_VERSION` is set. That value is installed as-is, in prod and in dev. The package comes from `installtesting.datad0g.com` (a pipeline build such as `pipeline-79059602`). `utils/build/auto_inject.lock` is not used.
+2. `DD_INSTALLER_INJECTOR_VERSION` is unset and `DD_INSTALLER_LIBRARY_VERSION` is set. The injector version is the one in `utils/build/auto_inject.lock`, in prod and in dev. The package comes from `install.datadoghq.com`.
+3. Both variables are unset and the install environment is prod (`CI_ENVIRONMENT=prod`). Same as case 2: the lock file version, from `install.datadoghq.com`.
+4. Both variables are unset and the install environment is dev (`CI_ENVIRONMENT=dev`). The install keeps the latest injector snapshot from the dev registry.
+
+The nightly `update_injector_version` job keeps `utils/build/auto_inject.lock` current: when `install.datadoghq.com` has a newer injector release, it opens a pull request that bumps the lock and merges automatically once the required checks pass.
 
 Here’s how the modified section would look:
 
@@ -1245,5 +1326,4 @@ A failure in the GitLab runners can propagate across all repositories that rely 
 
 1. If the problem persists, report it in the #ci-infra-support channel so the CI infrastructure team can investigate and assist.
 2. The runners used for SSI tests in system-tests can be found at: https://github.com/DataDog/libdatadog-build/tree/main/docker
-
 

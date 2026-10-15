@@ -2,11 +2,13 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+from collections.abc import Callable
+
 from utils import weblog, interfaces, rfc, features
-from utils.dd_types import DataDogLibrarySpan
+from utils.dd_types import DataDogLibrarySpan, DataDogLibraryTrace
 
 
-def assert_tag_in_span_meta(span: DataDogLibrarySpan, tag: str, expected: str):
+def assert_tag_in_span_meta(span: DataDogLibrarySpan, tag: str, expected: str) -> None:
     if tag not in span["meta"]:
         raise Exception(f"Can't find {tag} in span's meta")
 
@@ -15,8 +17,10 @@ def assert_tag_in_span_meta(span: DataDogLibrarySpan, tag: str, expected: str):
         raise Exception(f"{tag} value is '{val}', should be '{expected}'")
 
 
-def validate_identify_tags(tags: dict[str, str] | list[str]):
-    def inner_validate(span: DataDogLibrarySpan):
+def validate_identify_tags(
+    tags: dict[str, str] | list[str],
+) -> Callable[[DataDogLibrarySpan], bool]:
+    def inner_validate(span: DataDogLibrarySpan) -> bool:
         for tag in tags:
             if isinstance(tags, dict):
                 assert_tag_in_span_meta(span, tag, tags[tag])
@@ -24,6 +28,20 @@ def validate_identify_tags(tags: dict[str, str] | list[str]):
                 full_tag = f"usr.{tag}"
                 assert_tag_in_span_meta(span, full_tag, full_tag)
         return True
+
+    return inner_validate
+
+
+def validate_identify_tags_in_trace(
+    tags: dict[str, str],
+) -> Callable[[DataDogLibraryTrace], bool]:
+    validate_span = validate_identify_tags(tags)
+
+    def inner_validate(trace: DataDogLibraryTrace) -> bool:
+        for span in trace:
+            if all(tag in span["meta"] for tag in tags):
+                return validate_span(span)
+        return False
 
     return inner_validate
 
@@ -74,7 +92,7 @@ class Test_Propagate_Legacy:
     def test_identify_tags_incoming(self):
         """With W3C : this test expect to fail with DD_TRACE_PROPAGATION_STYLE_INJECT=W3C"""
         tag_table = {"_dd.p.usr.id": "dXNyLmlk"}
-        interfaces.library.validate_one_span(self.r_incoming, validator=validate_identify_tags(tag_table))
+        interfaces.library.validate_one_trace(self.r_incoming, validator=validate_identify_tags_in_trace(tag_table))
 
 
 @rfc("https://docs.google.com/document/d/1T3qAE5nol18psOaHESQ3r-WRiZWss9nyGmroShug8ao/edit#heading=h.3wmduzc8mwe1")
@@ -104,5 +122,5 @@ class Test_Propagate:
             return True
 
         tag_table = {"_dd.p.usr.id": "dXNyLmlk"}
-        interfaces.library.validate_one_span(self.r_incoming, validator=validate_identify_tags(tag_table))
+        interfaces.library.validate_one_trace(self.r_incoming, validator=validate_identify_tags_in_trace(tag_table))
         interfaces.library.validate_one_span(self.r_incoming, validator=usr_id_not_present)

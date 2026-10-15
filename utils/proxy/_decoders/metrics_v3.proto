@@ -1,0 +1,60 @@
+syntax = "proto3";
+
+// cherry pick from https://github.com/DataDog/datadog-agent/blob/main/pkg/proto/datadog/dogstatsdhttp/payload.proto
+// (the /api/intake/metrics/v3/series intake payload, produced by
+//  pkg/serializer/internal/metrics/iterable_series_v3.go).
+//
+// Each MetricData "column" is a separate protobuf field whose number matches the column id.
+// Protobuf parses the envelope and the packed scalar columns; the dictionary indirection,
+// the delta-encoding and the tagset framing layered on top are reconstructed in metrics_v3.py.
+//
+// if you modify this file, please run :
+//   > docker run --rm -v "$(pwd):/work" -w /work golang:1.24.5 /work/utils/scripts/update_protobuf.sh
+
+package datadog.dogstatsdhttp;
+
+message Payload {
+    reserved 1;  // formerly the series field of an older metric payload
+    Metadata metadata = 2;
+    // Wire-compatible with the upstream singular `MetricData metricData = 3`, but declared
+    // repeated so a request carrying several MetricData messages (one per internal payload
+    // split) yields a list instead of protobuf merging them into one.
+    repeated MetricData metricData = 3;
+}
+
+message Metadata {
+    repeated string tags = 1;
+    repeated string resources = 2;  // even number of elements, forming [Type, Name] pairs
+}
+
+message MetricData {
+    // Dictionaries. All dictionary indexes are base-1; index 0 means "empty / no value".
+    bytes dictNameStr = 1;          // varint length + raw bytes, repeated
+    bytes dictTagStr = 2;           // varint length + raw bytes, repeated
+    repeated sint64 dictTagsets = 3;  // self-framed: count then count delta-encoded indexes
+    bytes dictResourceStr = 4;
+    repeated int64 dictResourceLen = 5;
+    repeated sint64 dictResourceType = 6;
+    repeated sint64 dictResourceName = 7;
+    bytes dictSourceTypeName = 8;
+    repeated int32 dictOriginInfo = 9;
+
+    // Per-time-series columns (one entry per series).
+    repeated uint64 types = 10;       // metricType | valueType | metricFlags
+    repeated sint64 nameRefs = 11;    // delta-encoded
+    repeated sint64 tagsetRefs = 12;  // delta-encoded
+    repeated sint64 resourcesRefs = 13;
+    repeated uint64 intervals = 14;
+    repeated uint64 numPoints = 15;
+    repeated sint64 sourceTypeNameRefs = 23;
+    repeated sint64 originInfoRefs = 24;
+
+    // Per-point value columns (numPoints entries per series).
+    repeated sint64 timestamps = 16;
+    repeated sint64 valsSint64 = 17;
+    repeated float valsFloat32 = 18;
+    repeated double valsFloat64 = 19;
+    repeated uint64 sketchNumBins = 20;
+    repeated sint32 sketchBinKeys = 21;
+    repeated uint32 sketchBinCnts = 22;
+}

@@ -1,10 +1,4 @@
-FROM public.ecr.aws/lambda/nodejs:18
-
-RUN yum install -y unzip findutils socat && yum clean all
-
-# Add the Datadog Extension
-RUN mkdir -p /opt/extensions
-COPY --from=public.ecr.aws/datadog/lambda-extension:latest /opt/. /opt/
+FROM system_tests_base_nodejs_lambda_nodejs_lambda_runtime
 
 COPY utils/build/docker/nodejs_lambda/install_datadog_lambda.sh binaries* /binaries/
 RUN chmod +x /binaries/install_datadog_lambda.sh && /binaries/install_datadog_lambda.sh
