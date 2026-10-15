@@ -93,7 +93,11 @@ def test_parse_artifact_data_xpassed_tests():
         assert weblogs["python"] == {"flask"}
 
 
-def test_parse_artifact_data_xpassed_then_non_xpassed_removes_from_xpass_nodes():
+@pytest.mark.parametrize("outcome", ["xfailed", "skipped"])
+@pytest.mark.parametrize("reverse_order", [False, True])
+def test_parse_artifact_data_xpassed_then_non_xpassed_removes_from_xpass_nodes(
+    outcome: str, *, reverse_order: bool
+) -> None:
     """Test for parametric tests with mixed outcomes"""
     with tempfile.TemporaryDirectory() as tmpdir:
         data_dir = Path(tmpdir)
@@ -106,11 +110,13 @@ def test_parse_artifact_data_xpassed_then_non_xpassed_removes_from_xpass_nodes()
             weblog_variant="flask",
             tests=[
                 {"nodeid": "tests/test_module.py::Test_Class::test_mixed[param1]", "outcome": "xpassed"},
-                {"nodeid": "tests/test_module.py::Test_Class::test_mixed[param2]", "outcome": "xfailed"},
+                {"nodeid": "tests/test_module.py::Test_Class::test_mixed[param2]", "outcome": outcome},
                 {"nodeid": "tests/test_module.py::Test_Class::test_mixed[param3]", "outcome": "xpassed"},
                 {"nodeid": "tests/test_module.py::Test_Class::test_pass[param]", "outcome": "xpassed"},
             ],
         )
+        if reverse_order:
+            report["tests"].reverse()
         with (scenario_dir / "report.json").open("w") as f:
             json.dump(report, f)
 
@@ -118,11 +124,13 @@ def test_parse_artifact_data_xpassed_then_non_xpassed_removes_from_xpass_nodes()
 
         context = next(iter(test_data.keys()))
         assert "tests/test_module.py::Test_Class::test_mixed" not in test_data[context].xpass_nodes
+        assert "tests/test_module.py::Test_Class::test_mixed" in test_data[context].xfail_nodes
         assert "tests/test_module.py::Test_Class::test_pass" in test_data[context].xpass_nodes
 
 
-def test_parse_artifact_data_xfailed_tests():
-    """Test that xfailed tests result in XFAIL status in trie."""
+@pytest.mark.parametrize("outcome", ["xfailed", "skipped"])
+def test_parse_artifact_data_xfailed_tests(outcome: str) -> None:
+    """Test that xfailed and skipped tests block activation at every level."""
     with tempfile.TemporaryDirectory() as tmpdir:
         data_dir = Path(tmpdir)
         scenario_dir = data_dir / "test_run" / "scenario1"
@@ -133,7 +141,7 @@ def test_parse_artifact_data_xfailed_tests():
             library_version="1.5.0",
             weblog_variant="spring-boot",
             tests=[
-                {"nodeid": "tests/test_feature.py::Test_Feature::test_xfail", "outcome": "xfailed"},
+                {"nodeid": "tests/test_feature.py::Test_Feature::test_xfail", "outcome": outcome},
             ],
         )
         with (scenario_dir / "report.json").open("w") as f:
@@ -144,7 +152,12 @@ def test_parse_artifact_data_xfailed_tests():
         assert len(test_data) == 1
         context = next(iter(test_data.keys()))
         assert context.library == "java"
+        assert test_data[context].xpass_nodes == set()
+        assert test_data[context].xfail_nodes == {"tests/test_feature.py::Test_Feature::test_xfail"}
         assert test_data[context].trie.get("tests/test_feature.py/Test_Feature/test_xfail") == ActivationStatus.XFAIL
+        assert test_data[context].trie.get("tests/test_feature.py/Test_Feature") == ActivationStatus.XFAIL
+        assert test_data[context].trie.get("tests/test_feature.py") == ActivationStatus.XFAIL
+        assert test_data[context].trie.get("tests") == ActivationStatus.XFAIL
         assert weblogs["java"] == {"spring-boot"}
 
 
@@ -236,7 +249,9 @@ def test_parse_artifact_data_library_filter():
         assert "python" in weblogs
 
 
-def test_parse_artifact_data_trie_none_status_on_mixed_outcomes():
+@pytest.mark.parametrize("outcome", ["xfailed", "skipped"])
+@pytest.mark.parametrize("reverse_order", [False, True])
+def test_parse_artifact_data_trie_none_status_on_mixed_outcomes(outcome: str, *, reverse_order: bool) -> None:
     """Test that trie nodes get NONE status when children have mixed outcomes.
 
     The trie uses NONE to indicate that a parent node cannot be activated at that level
@@ -256,15 +271,17 @@ def test_parse_artifact_data_trie_none_status_on_mixed_outcomes():
             tests=[
                 # Class with mixed outcomes - should result in NONE at class level
                 {"nodeid": "tests/appsec/test_mixed.py::Test_Mixed::test_passes", "outcome": "xpassed"},
-                {"nodeid": "tests/appsec/test_mixed.py::Test_Mixed::test_fails", "outcome": "xfailed"},
+                {"nodeid": "tests/appsec/test_mixed.py::Test_Mixed::test_fails", "outcome": outcome},
                 # Class with all xpassed - should result in XPASS at class level
                 {"nodeid": "tests/appsec/test_all_pass.py::Test_AllPass::test_one", "outcome": "xpassed"},
                 {"nodeid": "tests/appsec/test_all_pass.py::Test_AllPass::test_two", "outcome": "xpassed"},
                 # Class with all xfailed - should result in XFAIL at class level
-                {"nodeid": "tests/appsec/test_all_fail.py::Test_AllFail::test_a", "outcome": "xfailed"},
-                {"nodeid": "tests/appsec/test_all_fail.py::Test_AllFail::test_b", "outcome": "xfailed"},
+                {"nodeid": "tests/appsec/test_all_fail.py::Test_AllFail::test_a", "outcome": outcome},
+                {"nodeid": "tests/appsec/test_all_fail.py::Test_AllFail::test_b", "outcome": outcome},
             ],
         )
+        if reverse_order:
+            report["tests"].reverse()
         with (scenario_dir / "report.json").open("w") as f:
             json.dump(report, f)
 
@@ -299,7 +316,9 @@ def test_parse_artifact_data_trie_none_status_on_mixed_outcomes():
         assert trie.get("tests") == ActivationStatus.NONE
 
 
-def test_parse_artifact_data_parametric_tests_mixed_params_not_activated():
+@pytest.mark.parametrize("outcome", ["xfailed", "skipped"])
+@pytest.mark.parametrize("reverse_order", [False, True])
+def test_parse_artifact_data_parametric_tests_mixed_params_not_activated(outcome: str, *, reverse_order: bool) -> None:
     """Test that parametric tests with mixed outcomes across parameters are not activated.
 
     When a test method has parameters (e.g., test_method[param1], test_method[param2]),
@@ -320,17 +339,19 @@ def test_parse_artifact_data_parametric_tests_mixed_params_not_activated():
             tests=[
                 # Same test method with different parameters - mixed outcomes
                 {"nodeid": "tests/parametric/test_params.py::Test_Params::test_mixed[param1]", "outcome": "xpassed"},
-                {"nodeid": "tests/parametric/test_params.py::Test_Params::test_mixed[param2]", "outcome": "xfailed"},
+                {"nodeid": "tests/parametric/test_params.py::Test_Params::test_mixed[param2]", "outcome": outcome},
                 {"nodeid": "tests/parametric/test_params.py::Test_Params::test_mixed[param3]", "outcome": "xpassed"},
                 # Same test method with all parameters passing
                 {"nodeid": "tests/parametric/test_params.py::Test_Params::test_all_pass[a]", "outcome": "xpassed"},
                 {"nodeid": "tests/parametric/test_params.py::Test_Params::test_all_pass[b]", "outcome": "xpassed"},
                 {"nodeid": "tests/parametric/test_params.py::Test_Params::test_all_pass[c]", "outcome": "xpassed"},
                 # Same test method with all parameters failing
-                {"nodeid": "tests/parametric/test_params.py::Test_Params::test_all_fail[x]", "outcome": "xfailed"},
-                {"nodeid": "tests/parametric/test_params.py::Test_Params::test_all_fail[y]", "outcome": "xfailed"},
+                {"nodeid": "tests/parametric/test_params.py::Test_Params::test_all_fail[x]", "outcome": outcome},
+                {"nodeid": "tests/parametric/test_params.py::Test_Params::test_all_fail[y]", "outcome": outcome},
             ],
         )
+        if reverse_order:
+            report["tests"].reverse()
         with (scenario_dir / "report.json").open("w") as f:
             json.dump(report, f)
 
@@ -803,8 +824,9 @@ def test_e2e_activation_tracks_activations_per_owner():
         assert logger.activations_per_owner.get("@DataDog/team-b", 0) == 1
 
 
-def test_e2e_activation_handles_mixed_outcomes():
-    """Test activation with mixed xpassed and xfailed outcomes for same test class."""
+@pytest.mark.parametrize("outcome", ["xfailed", "skipped"])
+def test_e2e_activation_handles_mixed_outcomes(outcome: str) -> None:
+    """Test activation preserves deactivation for xfailed and skipped siblings."""
     with tempfile.TemporaryDirectory() as tmpdir:
         data_dir = Path(tmpdir) / "data"
         manifest_dir = Path(tmpdir) / "manifests"
@@ -820,7 +842,7 @@ def test_e2e_activation_handles_mixed_outcomes():
             weblog_variant="rails70",
             tests=[
                 {"nodeid": "tests/mixed/test_mixed.py::Test_Mixed::test_passes", "outcome": "xpassed"},
-                {"nodeid": "tests/mixed/test_mixed.py::Test_Mixed::test_fails", "outcome": "xfailed"},
+                {"nodeid": "tests/mixed/test_mixed.py::Test_Mixed::test_fails", "outcome": outcome},
                 {"nodeid": "tests/passing/test_all_pass.py::Test_AllPass::test_one", "outcome": "xpassed"},
                 {"nodeid": "tests/passing/test_all_pass.py::Test_AllPass::test_two", "outcome": "xpassed"},
             ],
@@ -852,6 +874,7 @@ def test_e2e_activation_handles_mixed_outcomes():
         assert test_data[context].trie.get("tests/mixed/test_mixed.py/Test_Mixed") == ActivationStatus.NONE
         # The all-pass class should have XPASS status
         assert test_data[context].trie.get("tests/passing/test_all_pass.py/Test_AllPass") == ActivationStatus.XPASS
+        assert "tests/mixed/test_mixed.py::Test_Mixed::test_fails" in manifest_editor.added_rules
 
 
 def test_manifest_editor_add_condition_to_function_level_inline_declaration():
