@@ -90,12 +90,13 @@ class ThreadContextSharingScenario(EndToEndScenario):
         agent.security_opt = ["apparmor:unconfined"]
         agent.volumes["/etc/passwd"] = {"bind": "/etc/passwd", "mode": "ro"}
         agent.volumes["/etc/group"] = {"bind": "/etc/group", "mode": "ro"}
-        # rw: attaching kprobes means writing to /sys/kernel/debug/tracing/kprobe_events
-        agent.volumes["/sys/kernel/debug"] = {"bind": "/sys/kernel/debug", "mode": "rw"}
-        agent.volumes["/sys/kernel/security"] = {"bind": "/sys/kernel/security", "mode": "rw"}
 
         if guest_kernel_mounts:
             self._use_guest_kernel_mounts()
+        else:
+            # rw: attaching kprobes means writing to /sys/kernel/debug/tracing/kprobe_events
+            agent.volumes["/sys/kernel/debug"] = {"bind": "/sys/kernel/debug", "mode": "rw"}
+            agent.volumes["/sys/kernel/security"] = {"bind": "/sys/kernel/security", "mode": "rw"}
 
     @staticmethod
     def _guest_kernel_mounts_opted_in() -> bool:
@@ -123,8 +124,6 @@ class ThreadContextSharingScenario(EndToEndScenario):
         # are relative to the docker daemon's cgroup namespace, not to a private one of its own.
         agent.cgroupns = "host"
 
-        del agent.volumes["/sys/kernel/debug"]
-        del agent.volumes["/sys/kernel/security"]
         # Mounts, not volumes: a missing source (a runner without the /vm-host mounts) fails the
         # agent container creation, instead of being silently created as an empty directory.
         agent.mounts = [
