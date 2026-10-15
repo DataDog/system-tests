@@ -125,6 +125,9 @@ class OtelSemanticsOtlpSamplingRules(DdTraceEndToEndScenario):
     def __init__(self) -> None:
         super().__init__(
             "OTEL_SEMANTICS_OTLP_SAMPLING_RULES",
+            # Security findings can force-keep a trace before ordinary sampling rules run.
+            appsec_enabled=False,
+            iast_enabled=False,
             weblog_env={
                 "DD_TRACE_OTEL_SEMANTICS_ENABLED": "true",
                 "DD_TRACE_OTEL_ENABLED": "true",
