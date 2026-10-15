@@ -158,12 +158,17 @@ fn init_tracing(
     let _ = tracing_subscriber::registry()
         .with(EnvFilter::try_from_default_env().unwrap_or_else(|_| {
             format!(
-                "{}=debug", // ,hyper=debug,tower_http=debug
+                "{}=debug,datadog_opentelemetry=info", // ,hyper=debug,tower_http=debug
                 env!("CARGO_CRATE_NAME")
             )
             .into()
         }))
-        .with(fmt::layer().json().flatten_event(true))
+        .with(
+            fmt::layer()
+                .json()
+                .flatten_event(true)
+                .with_writer(std::io::stderr),
+        )
         .try_init()
         .context("initialize tracing subscriber");
 
@@ -193,8 +198,8 @@ fn log_error(error: &impl Display) {
         "error": format!("{error:#}")
     }));
 
-    // Not using `eprintln!`, because `tracing_subscriber::fmt` uses stdout by default.
-    println!("{}", error.unwrap());
+    // Same stream as the `tracing_subscriber::fmt` layer.
+    eprintln!("{}", error.unwrap());
 }
 
 #[derive(Debug, Deserialize)]
