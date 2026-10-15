@@ -621,12 +621,12 @@ class Test_OtelSemantics_Spans_Http_Client:
         )
 
     def setup_status_3xx_not_error(self) -> None:
-        self.response = _distant_call("http://weblog:7777/status?code=302")
+        self.response = _distant_call("http://weblog:7777/status?code=304")
 
     def test_status_3xx_not_error(self) -> None:
         span = _client_span(self.response)
-        _assert_int_attribute(span, "http.response.status_code", 302)
-        assert not _span_is_error(span), "HTTP 302 span must not be marked as an error"
+        _assert_int_attribute(span, "http.response.status_code", 304)
+        assert not _span_is_error(span), "HTTP 304 span must not be marked as an error"
         assert "error.type" not in _attributes(span)
 
     def setup_url_full_credential_redaction(self) -> None:
