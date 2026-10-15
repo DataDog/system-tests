@@ -223,7 +223,9 @@ manifest:
   tests/parametric/test_config_consistency.py::Test_Config_TraceLogDirectory: missing_feature  # Created by easy win activation script
   tests/parametric/test_config_consistency.py::Test_Stable_Config_Default: missing_feature  # Created by easy win activation script
   tests/parametric/test_config_consistency.py::Test_Stable_Config_Rules: missing_feature  # Created by easy win activation script
-  tests/parametric/test_crashtracking.py: missing_feature
+  tests/parametric/test_crashtracking.py: '>=0.5.3-dev+04d96da'  # TODO: a lower version might be supported
+  tests/parametric/test_crashtracking.py::Test_Crashtracking::test_report_crash: missing_feature
+  tests/parametric/test_crashtracking.py::Test_Crashtracking::test_report_crash_error_tracking: missing_feature
   tests/parametric/test_dynamic_configuration.py: '>=0.2.1'  # Modified by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_trace_sampling_rules_override_env: '>=0.4.1-dev+926c77a'  # Created by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_trace_sampling_rules_override_rate: '>=0.4.1-dev+926c77a'  # Created by easy win activation script
@@ -687,4 +689,19 @@ manifest:
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting: irrelevant (no expected configuration is defined for Rust)
   tests/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_propagated: missing_feature (DD_APPSEC_SCA_ENABLED telemetry reporting is not implemented)
   tests/test_telemetry.py::Test_TelemetryV2::test_app_started_product_info: missing_feature (Product information missing in app-started telemetry payload)
-  tests/test_v1_payloads.py: missing_feature
+  tests/test_v1_payloads.py:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        axum: '>=0.5.3-dev+04d96da'
+  tests/test_v1_payloads.py::Test_V1PayloadByDefault:
+    - weblog_declaration:
+        axum: missing_feature
+  tests/test_v1_payloads.py::Test_V1Payloads:
+    - weblog_declaration:
+        axum: missing_feature
+  tests/test_v1_payloads.py::Test_V1SpanLinks:
+    - weblog_declaration:
+        axum: missing_feature
+  tests/test_v1_payloads.py::Test_V1TopLevelSpans:
+    - weblog_declaration:
+        axum: missing_feature
