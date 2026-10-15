@@ -204,10 +204,10 @@ build() {
                     fi
                 fi
                 source venv/bin/activate
+                # remove the completion marker before any change to the venv, it's written back only if the install succeeds
+                rm -f venv/requirements.txt
                 run_build_command python -m pip install --upgrade pip setuptools==75.8.0
             fi
-            # remove the completion marker, it's written back only if the install succeeds
-            rm -f venv/requirements.txt
             run_build_command python -m pip install -e .
             if [[ -d "venv/" ]]; then
                 cp requirements.txt venv/requirements.txt
