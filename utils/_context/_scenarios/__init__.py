@@ -350,6 +350,9 @@ class _Scenarios:
 
     otel_semantics_otlp_sampling_rules = DdTraceEndToEndScenario(
         "OTEL_SEMANTICS_OTLP_SAMPLING_RULES",
+        # Security findings can force-keep a trace before ordinary sampling rules run.
+        appsec_enabled=False,
+        iast_enabled=False,
         weblog_env={
             "DD_TRACE_OTEL_SEMANTICS_ENABLED": "true",
             "DD_TRACE_OTEL_ENABLED": "true",

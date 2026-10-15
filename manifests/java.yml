@@ -4817,14 +4817,6 @@ manifest:
   tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_Spans_Http_ErrorStatusConfiguration: v1.66.0
   tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics: v1.66.0
   tests/test_otel_http_semantics.py::Test_OtelSemantics_SamplingRules: v1.66.0
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_SamplingRules::test_otel_span_name_is_available_to_sampling_rules:
-    - declaration: incomplete_test_app (The HTTP parser rejects PROPFIND before request instrumentation)
-      weblog: [play]
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_SamplingRules::test_server_span_name_is_available_before_client_sampling:
-    - declaration: missing_feature (IAST forces a keep for weak randomness in Play's multipart parser before sampling rules run, so _dd.rule_psr is unset)
-      weblog: [play]
-    - declaration: missing_feature (AppSec or IAST trace retention bypasses OTel sampling rule evaluation)
-      weblog: [vertx3, vertx4]
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client: v1.66.0
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server: v1.66.0
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_http_endpoint_retained_from_appsec: irrelevant (The AppSec endpoint retention request is specific to .NET)
