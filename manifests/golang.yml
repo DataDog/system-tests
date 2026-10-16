@@ -1720,6 +1720,7 @@ manifest:
       weblog: [echo, gin, chi, net-http-orchestrion, net-http, uds-echo]
     - declaration: bug (FFL-2184)
       excluded_weblog: [echo, gin, chi, net-http-orchestrion, net-http, uds-echo]
+  tests/ffe/test_dynamic_evaluation.py::Test_FFE_OpenFeature_Unavailable: irrelevant (OpenFeature SDK is available)
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_RC_Down_From_Start: v2.4.0
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_RC_Unavailable: v2.4.0
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_Unknown_Operator_Tolerance::test_unknown_operator_errors:  # TODO: a lower version might be supported

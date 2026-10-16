@@ -815,6 +815,7 @@ manifest:
       weblog: [poc, uds]
     - declaration: bug (FFL-2184)
       excluded_weblog: [poc, uds]
+  tests/ffe/test_dynamic_evaluation.py::Test_FFE_OpenFeature_Unavailable: irrelevant (OpenFeature SDK is available)
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_Unknown_Operator_Tolerance:  # TODO: a lower version might be supported
     - declaration: bug (FFL-2184)
       component_version: <3.54.0

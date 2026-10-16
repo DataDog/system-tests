@@ -1848,6 +1848,7 @@ manifest:
     - weblog_declaration:
         "*": incomplete_test_app
         express5: *ref_5_77_0
+  tests/ffe/test_dynamic_evaluation.py::Test_FFE_OpenFeature_Unavailable: irrelevant (OpenFeature SDK is available)
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_Unknown_Operator_Tolerance::test_unknown_operator_errors:  # TODO: a lower version might be supported
     - declaration: bug (FFL-2182)
       component_version: <6.19.0

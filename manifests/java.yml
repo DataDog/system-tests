@@ -3454,6 +3454,7 @@ manifest:
       weblog: [spring-boot]
     - declaration: bug (FFL-2184)
       excluded_weblog: [spring-boot]
+  tests/ffe/test_dynamic_evaluation.py::Test_FFE_OpenFeature_Unavailable: irrelevant (OpenFeature SDK is available)
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_Unknown_Operator_Tolerance:  # TODO: a lower version might be supported
     - declaration: bug (FFL-2184)
       component_version: <1.64.2
