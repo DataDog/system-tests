@@ -1,6 +1,8 @@
 from collections.abc import Mapping, Sequence
+from datetime import datetime, timedelta, UTC
 from typing import Protocol
 
+_CANDIDATE_BUILD_WINDOW = timedelta(hours=6)
 _REJECTED_AMI_STATE = "rejected"
 
 
@@ -41,6 +43,23 @@ def select_usable_ami[AmiT: _SelectableAmi](amis: Sequence[AmiT]) -> AmiT | None
         if _ami_state(ami) is None:
             return ami
     return next((ami for ami in usable if str(ami.state) != "available" or _ami_state(ami) == "candidate"), None)
+
+
+def cache_plan(ami: _SelectableAmi | None, *, now: datetime | None = None) -> str:
+    """Return create, wait, or use. A fresh candidate blocks a second build for six hours."""
+    if ami is None:
+        return "create"
+    if str(ami.state) != "available":
+        return "wait"
+    if _ami_state(ami) != "candidate":
+        return "use"
+    created = datetime.fromisoformat(str(ami.creation_date))
+    if created.tzinfo is None:
+        created = created.replace(tzinfo=UTC)
+    current = now or datetime.now(UTC)
+    if current - created < _CANDIDATE_BUILD_WINDOW:
+        return "wait"
+    return "create"
 
 
 def candidate_state_tags(tags: Mapping[str, str], cache_key: str, new_state: str) -> list[dict[str, str]] | None:

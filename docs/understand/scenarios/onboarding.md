@@ -1114,7 +1114,7 @@ Cacheable provision steps (Docker, language runtime, …) are baked into an AMI.
 
   Example: `AMI_NAME=CentOS_7_amd64` and `AMI_LANG=php`
 
-* **GitLab job `delete_amis`** — scheduled periodic cleanup of old AMIs (retention: 10 days / last launched: 10 days). It does **not** target a specific AMI.
+* **GitLab job `delete_amis`.** This job cleans AMIs on a schedule. Untagged AMIs follow `AMI_RETENTION_DAYS` (10) and `AMI_LAST_LAUNCHED_DAYS` (10). An `active` or `candidate` AMI is removed after 8 days without a launch. A `rejected` AMI is removed on the next run. The job does not target one AMI by name.
 
 * **AWS console** — EC2 → AMIs → search by name → **Deregister**.
 

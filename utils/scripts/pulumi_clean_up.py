@@ -37,9 +37,11 @@ def should_delete_ami(
     if state == "rejected":
         return True
     if state in {"active", "candidate"}:
+        if not launch_lookup_ok:
+            return False
         cutoff = now - timedelta(days=_STALE_AMI_DAYS + _LAUNCH_REPORT_DELAY_DAYS)
-        unused = launch_lookup_ok and (last_launched_date is None or last_launched_date < cutoff)
-        return launch_lookup_ok and creation_date < cutoff and unused
+        unused = last_launched_date is None or last_launched_date < cutoff
+        return creation_date < cutoff and unused
     old = creation_date < now - timedelta(days=retention_days)
     stale = last_launched_date is not None and last_launched_date < now - timedelta(days=last_launched_days)
     return old or stale
