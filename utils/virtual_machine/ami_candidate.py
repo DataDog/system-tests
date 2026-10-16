@@ -40,7 +40,7 @@ def select_usable_ami[AmiT: _SelectableAmi](amis: Sequence[AmiT]) -> AmiT | None
     for ami in available:
         if _ami_state(ami) is None:
             return ami
-    return next((ami for ami in usable if str(ami.state) != "available"), None)
+    return next((ami for ami in usable if str(ami.state) != "available" or _ami_state(ami) == "candidate"), None)
 
 
 def candidate_state_tags(tags: Mapping[str, str], cache_key: str, new_state: str) -> list[dict[str, str]] | None:

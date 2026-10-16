@@ -282,7 +282,7 @@ class AWSPulumiProvider(CandidateBoot, VmProvider):
         cached_ami = _select_cached_ami(self._get_cached_amis(vm))
         if cached_ami is None:
             vm.datadog_config.update_cache = True
-        elif str(cached_ami.state) != "available":
+        elif str(cached_ami.state) != "available" or (cached_ami.tags or {}).get("ami-state") == "candidate":
             logger.stdout(
                 f"We found an existing cache AMI for vm [{vm.name}] but we can no use it "
                 f"because the current status is {cached_ami.state}"

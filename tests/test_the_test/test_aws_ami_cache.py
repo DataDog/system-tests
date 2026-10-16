@@ -1,7 +1,8 @@
 from dataclasses import dataclass, field
+from unittest.mock import MagicMock
 
-from utils import features, scenarios
-from utils.virtual_machine.aws_provider import _select_cached_ami
+from utils import features, pytest, scenarios
+from utils.virtual_machine.aws_provider import AWSPulumiProvider, _select_cached_ami
 
 
 @dataclass(frozen=True)
@@ -74,9 +75,29 @@ class Test_AwsAmiCache:
         )
 
         assert _select_cached_ami([candidate_ami, rejected_ami, legacy_ami]) is legacy_ami
-        assert _select_cached_ami([rejected_ami, candidate_ami]) is None
-        assert _select_cached_ami([candidate_ami]) is None
+        assert _select_cached_ami([rejected_ami, candidate_ami]) is candidate_ami
+        assert _select_cached_ami([candidate_ami]) is candidate_ami
         assert _select_cached_ami([rejected_ami]) is None
+
+    def test_available_candidate_does_not_start_another_build(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        provider = AWSPulumiProvider()
+        candidate = _CachedAmi(
+            id="ami-candidate",
+            creation_date="2026-01-03T00:00:00Z",
+            tags={"ami-state": "candidate"},
+        )
+        monkeypatch.setattr(provider, "_get_cached_amis", lambda _vm: [candidate])
+        vm = MagicMock()
+        vm.name = "Ubuntu_24"
+        vm.datadog_config.skip_cache = False
+        vm.datadog_config.update_cache = False
+        vm.aws_config.ami_id = "ami-base"
+
+        provider._configure_cached_amis(vm)  # noqa: SLF001
+
+        assert vm.datadog_config.update_cache is False
+        assert vm.datadog_config.skip_cache is True
+        assert vm.aws_config.ami_id == "ami-base"
 
     def test_pending_ami_is_returned_so_another_job_does_not_create_one(self) -> None:
         pending_ami = _CachedAmi(id="ami-pending", creation_date="2026-01-01T00:00:00Z", state="pending")
