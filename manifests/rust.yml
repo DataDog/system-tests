@@ -337,6 +337,7 @@ manifest:
       component_version: <0.5.3-dev+729aaa7
   tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_ows_between_list_members: bug (APMSP-3974)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats: '>0.5.2'  # Fixed stats flushing behaviour
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_sample_rate_0_TS007: flaky (APMSP-4093)
   tests/parametric/test_llm_observability/: irrelevant (library does not implement LLM Observability)
   tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability: '>=0.2.1'  # Modified by easy win activation script
   tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability::test_concurrent_traces_in_order: missing_feature  # Created by easy win activation script
