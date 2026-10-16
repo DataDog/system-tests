@@ -8,6 +8,10 @@ if [ "${UDS_WEBLOG:-0}" = "1" ]; then
     ./set-uds-transport.sh
 fi
 
+if [ "${SYSTEM_TESTS_FFE_SHUTDOWN_FLUSH_ENABLED:-}" = "true" ]; then
+    exec dotnet app.dll
+fi
+
 if ( ! dotnet app.dll); then
     echo recovering dump to /var/log/system-tests/dumps
     mkdir -p /var/log/system-tests/dumps
