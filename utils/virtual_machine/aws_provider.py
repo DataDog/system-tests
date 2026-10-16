@@ -41,10 +41,12 @@ _EVENT_REQUEST_TIMEOUT = 15
 def _select_cached_ami(
     cached_amis: list[aws.ec2.GetAmiResult],
 ) -> aws.ec2.GetAmiResult | None:
-    return next(
-        (ami for ami in cached_amis if str(ami.state) == "available" and (ami.tags or {}).get("ami-state") == "active"),
-        next(iter(cached_amis), None),
-    )
+    active_amis = [
+        ami for ami in cached_amis if str(ami.state) == "available" and (ami.tags or {}).get("ami-state") == "active"
+    ]
+    if active_amis:
+        return max(active_amis, key=lambda ami: ami.creation_date)
+    return next(iter(cached_amis), None)
 
 
 class AWSPulumiProvider(VmProvider):
@@ -156,7 +158,10 @@ class AWSPulumiProvider(VmProvider):
             return json.load(f)
 
     def _handle_provision_error(self, exception: pulumi.automation.errors.CommandError):
-        """If the exception is known, we will raise the exception, if not,we will store it in the vm object."""
+        """Stop the session on any provision error, so that no test is run.
+
+        If the exception is known, exit with code 3 (GitLab retries the job). If not, exit with code 1.
+        """
 
         exception_message = str(exception)
         for known_message in self.aws_infra_exceptions.values():
@@ -176,6 +181,8 @@ class AWSPulumiProvider(VmProvider):
             repr(exception),
             ["operation:up", "result:fail", f"stack:{self.stack_name}"],
         )
+        # The stack is destroyed by the scenario's close_targets, called when a warmup fails
+        pytest.exit(f"Error on VM provisioning, check the log file: {self.vm.name}.log", returncode=1)
 
     def _download_vm_logs_after_provision_failure(self) -> None:
         """Pull /var/log from the VM while it is still up (provision may have failed mid-way)."""
@@ -385,21 +392,17 @@ class AWSCommander(Commander):
     def create_cache(
         self, vm: _VirtualMachine, server: aws.ec2.Instance, last_task: command.remote.Command
     ) -> aws.ec2.AmiFromInstance:
-        """Create a cache : Create an AMI from the server current status."""
+        """Create an AMI cache from the current server state."""
         ami_name = vm.get_cache_name()
-        # Ok. All third party software is installed, let's create the ami to reuse it in the future
         logger.stdout(f"Creating AMI with name [{ami_name}] from instance ")
         vm_logger(context.scenario.host_log_folder, "cache_created").info(f"[{context.scenario.name}] - [{ami_name}]")
 
-        # Expiration date for the ami
-        # expiration_date = (datetime.now() + timedelta(seconds=30)).strftime("%Y-%m-%dT%H:%M:%SZ")
         return aws.ec2.AmiFromInstance(
             ami_name,
             description=ami_name,
-            # deprecation_time=expiration_date,
             source_instance_id=server.id,
             opts=pulumi.ResourceOptions(depends_on=[last_task], retain_on_delete=True),
-            tags={"CI": "system-tests"},
+            tags={"CI": "system-tests", "ami-cache-key": ami_name, "ami-state": "candidate"},
         )
 
     def execute_local_command(
