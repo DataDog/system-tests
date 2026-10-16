@@ -132,6 +132,11 @@ class MockBackendV2RequestHandler(BaseHTTPRequestHandler):
     server: MockBackendV2Server
     _data: dict  # use to store request and response info
 
+    def parse_request(self) -> bool:
+        # send_error() may be called while parsing the request, before _handle() builds _data
+        self._data = {"request": {"headers": []}, "response": {"headers": []}}
+        return super().parse_request()
+
     # catch response events
     def send_response(self, code: int, message: str | None = None) -> None:
         self._data["response"]["status_code"] = code
@@ -160,9 +165,29 @@ class MockBackendV2RequestHandler(BaseHTTPRequestHandler):
     def do_PUT(self) -> None:
         self._handle("PUT")
 
-    def _handle(self, method: HttpMethod) -> None:
+    def _read_body(self) -> bytes:
+        if "chunked" in self.headers.get("Transfer-Encoding", "").lower():
+            # the trace agent forwards some payloads (e.g. profiles) with chunked encoding
+            chunks = []
+            while True:
+                size_line = self.rfile.readline()
+                if not size_line:
+                    break
+                size = int(size_line.split(b";", 1)[0].strip(), 16)
+                if size == 0:
+                    # consume optional trailers up to the terminating empty line
+                    while self.rfile.readline() not in (b"\r\n", b"\n", b""):
+                        pass
+                    break
+                chunks.append(self.rfile.read(size))
+                self.rfile.readline()  # CRLF after each chunk
+            return b"".join(chunks)
+
         content_length = int(self.headers.get("Content-Length", "0"))
-        raw_body = self.rfile.read(content_length) if content_length else b""
+        return self.rfile.read(content_length) if content_length else b""
+
+    def _handle(self, method: HttpMethod) -> None:
+        raw_body = self._read_body()
         url_parts = urlsplit(self.path)
         path = url_parts.path
 
