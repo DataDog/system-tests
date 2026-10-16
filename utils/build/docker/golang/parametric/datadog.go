@@ -347,6 +347,8 @@ func effectiveLogLevel(startupLogLevel string) string {
 	var threshold tracer.LogLevel
 	tracer.AdaptLogger(func(lvl tracer.LogLevel, _ string, _ ...any) { threshold = lvl }).Log("")
 	level := strings.ToLower(threshold.String())
+	// Tracers before v2.12.0 store a warn threshold by default but still print the
+	// INFO startup line, so a printed INFO line caps the effective level at info.
 	if startupLogLevel == "info" && (level == "warn" || level == "error") {
 		return "info"
 	}
