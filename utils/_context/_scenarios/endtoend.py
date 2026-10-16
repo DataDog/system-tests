@@ -107,6 +107,13 @@ class DockerScenario(Scenario):
             self.warmups.append(self._create_network)
             self.warmups.append(self._start_containers)
 
+            # MsSql fails to start (MinimumQpcFrequency) when it does not get enough CPU at startup:
+            # make all other containers depend on it, so it starts alone
+            mssql_containers = [c for c in self._containers if isinstance(c, MsSqlServerContainer)]
+            for container in self._containers:
+                if not isinstance(container, MsSqlServerContainer):
+                    container.depends_on.extend(mssql_containers)
+
         for container in reversed(self._containers):
             container.configure(host_log_folder=self.host_log_folder, replay=self.replay)
 
@@ -411,13 +418,6 @@ class EndToEndScenario(DockerScenario):
 
         for buddy in self.buddies:
             buddy.depends_on.append(self.agent_container)
-
-        # MsSql fails to start (MinimumQpcFrequency) when it does not get enough CPU at startup:
-        # make all other containers depend on it, so it starts alone
-        mssql_containers = [c for c in self._containers if isinstance(c, MsSqlServerContainer)]
-        for container in self._containers:
-            if not isinstance(container, MsSqlServerContainer):
-                container.depends_on.extend(mssql_containers)
 
     def _start_interfaces_watchdog(self):
         open_telemetry_interfaces: list[ProxyBasedInterfaceValidator] = (
