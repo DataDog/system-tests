@@ -1,7 +1,6 @@
 from collections.abc import Mapping, Sequence
 from typing import Protocol
 
-_CANDIDATE_AMI_STATE = "candidate"
 _REJECTED_AMI_STATE = "rejected"
 
 
@@ -32,21 +31,16 @@ def _ami_state(ami: _SelectableAmi) -> str | None:
 
 
 def select_usable_ami[AmiT: _SelectableAmi](amis: Sequence[AmiT]) -> AmiT | None:
-    """Prefer the newest active AMI, then an untagged AMI.
-
-    An available candidate or rejected AMI is never booted. A pending image is returned so another
-    job does not create a second AMI while the first one is still being registered.
-    """
-    not_rejected = [ami for ami in amis if _ami_state(ami) != _REJECTED_AMI_STATE]
-    available = [ami for ami in not_rejected if str(ami.state) == "available"]
-    bootable = [ami for ami in available if _ami_state(ami) != _CANDIDATE_AMI_STATE]
-    active_amis = [ami for ami in bootable if _ami_state(ami) == "active"]
+    """Prefer the newest active AMI, then an untagged AMI. Never boot a candidate or rejected AMI."""
+    usable = [ami for ami in amis if _ami_state(ami) != _REJECTED_AMI_STATE]
+    available = [ami for ami in usable if str(ami.state) == "available" and _ami_state(ami) != "candidate"]
+    active_amis = [ami for ami in available if _ami_state(ami) == "active"]
     if active_amis:
         return max(active_amis, key=lambda ami: ami.creation_date)
-    for ami in bootable:
+    for ami in available:
         if _ami_state(ami) is None:
             return ami
-    return next((ami for ami in not_rejected if str(ami.state) != "available"), None)
+    return next((ami for ami in usable if str(ami.state) != "available"), None)
 
 
 def candidate_state_tags(tags: Mapping[str, str], cache_key: str, new_state: str) -> list[dict[str, str]] | None:
