@@ -9,7 +9,6 @@ import tempfile
 from random import randint
 from retry import retry
 import json
-import random
 
 from pulumi import automation as auto
 import pulumi
@@ -25,6 +24,12 @@ from utils.virtual_machine.vm_logger import vm_logger
 from utils.onboarding.debug_vm import download_vm_logs
 from utils.virtual_machine.virtual_machine_provider import VmProvider, Commander
 from utils.virtual_machine.virtual_machines import _VirtualMachine
+from utils.virtual_machine.aws_candidate_boot import CandidateBoot
+from utils.virtual_machine.ami_candidate import (
+    boot_created_candidate_enabled,
+    select_usable_ami,
+    should_boot_created_candidate,
+)
 
 import pytest
 
@@ -41,21 +46,19 @@ _EVENT_REQUEST_TIMEOUT = 15
 def _select_cached_ami(
     cached_amis: list[aws.ec2.GetAmiResult],
 ) -> aws.ec2.GetAmiResult | None:
-    active_amis = [
-        ami for ami in cached_amis if str(ami.state) == "available" and (ami.tags or {}).get("ami-state") == "active"
-    ]
-    if active_amis:
-        return max(active_amis, key=lambda ami: ami.creation_date)
-    return next(iter(cached_amis), None)
+    return select_usable_ami(cached_amis)
 
 
-class AWSPulumiProvider(VmProvider):
+class AWSPulumiProvider(CandidateBoot, VmProvider):
     def __init__(self):
         super().__init__()
         self.commander = AWSCommander()
         self.pulumi_ssh = None
         self.datadog_event_sender = DatadogEventSender()
         self.stack_name = "system-tests_dev_onboarding"
+        self.booted_candidate_ami_id: str | None = None
+        self.boot_created_candidate = False
+        self.instance_user_data: str | None = None
 
     def configure(self, virtual_machine: _VirtualMachine) -> None:
         super().configure(virtual_machine)
@@ -211,47 +214,21 @@ class AWSPulumiProvider(VmProvider):
                 vm.aws_config.ami_id = ssm_parameter.value
             ec2_user_data = self.get_windows_user_data()
 
-        logger.info(
-            f"Starting VM: {vm.name} with iam_instance_profile: {vm.aws_config.aws_infra_config.iam_instance_profile}"
+        self.instance_user_data = ec2_user_data
+        self.boot_created_candidate = should_boot_created_candidate(
+            update_cache=vm.datadog_config.update_cache,
+            skip_cache=vm.datadog_config.skip_cache,
+            enabled=boot_created_candidate_enabled(os.getenv("AMI_BOOT_CREATED_CANDIDATE")),
         )
-        # Startup VM and prepare connection
-        # The resource name (not the "Name" tag) must be unique per CI job: several parallel jobs
-        # (one per weblog) can provision the same vm.name at the same time, and a shared resource
-        # identity can make AWS reuse the same RunInstances idempotency token for those concurrent,
-        # differently-tagged requests, causing IdempotentParameterMismatch.
-        ec2_resource_id = f"{vm.name}-{os.getenv('CI_JOB_ID', uuid.uuid4())}"
-        ec2_server = aws.ec2.Instance(
-            ec2_resource_id,
-            instance_type=vm.aws_config.ami_instance_type,
-            vpc_security_group_ids=vm.aws_config.aws_infra_config.vpc_security_group_ids,
-            subnet_id=random.choice(vm.aws_config.aws_infra_config.subnet_id),
-            key_name=self.pulumi_ssh.keypair_name,
-            ami=vm.aws_config.ami_id,
-            tags=self._get_ec2_tags(vm),
-            opts=self.pulumi_ssh.aws_key_resource,
-            root_block_device={"volume_size": vm.aws_config.volume_size},
-            iam_instance_profile=vm.aws_config.aws_infra_config.iam_instance_profile,
-            user_data=ec2_user_data,
+        ec2_server, server_connection = self._launch_instance(
+            vm,
+            vm.aws_config.ami_id,
+            None,
+            ec2_user_data,
+            publish_ip=True,
+            name_suffix="",
+            export_suffix="_builder" if self.boot_created_candidate else "",
         )
-        # Store the private ip of the vm: store it in the vm object and export it. Log to vm_desc.log
-        Output.all(vm, ec2_server.private_ip).apply(lambda args: args[0].set_ip(args[1]))
-        pulumi.export("privateIp_" + vm.name, ec2_server.private_ip)
-        Output.all(ec2_server.private_ip, vm.name, ec2_server.id).apply(
-            lambda args: vm_logger(context.scenario.host_log_folder, "vms_desc").info(f"{args[0]}:{args[1]}:{args[2]}")
-        )
-
-        vm.ssh_config.username = vm.aws_config.user
-
-        server_connection = command.remote.ConnectionArgs(
-            host=ec2_server.private_ip,
-            user=vm.aws_config.user,
-            private_key=self.pulumi_ssh.private_key_pem,
-            # dial_error_limit=30 retries, 10 seconds per retry=5 minutes.
-            # WARNING:: If you change that, please change  the key 'error_ssh_connection' in aws_infra_exceptions.json
-            dial_error_limit=30,
-            per_dial_timeout=10,
-        )
-        # Install provision on the started server
         self.install_provision(vm, ec2_server, server_connection)
 
     def stack_destroy(self) -> None:
