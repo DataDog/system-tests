@@ -341,6 +341,18 @@ func (l *CustomLogger) Log(logMessage string) {
 	}
 }
 
+// effectiveLogLevel reads the tracer's log threshold: calling Log directly on an
+// adapted Logger passes it the current threshold.
+func effectiveLogLevel(startupLogLevel string) string {
+	var threshold tracer.LogLevel
+	tracer.AdaptLogger(func(lvl tracer.LogLevel, _ string, _ ...any) { threshold = lvl }).Log("")
+	level := strings.ToLower(threshold.String())
+	if startupLogLevel == "info" && (level == "warn" || level == "error") {
+		return "info"
+	}
+	return level
+}
+
 func parseTracerConfig(l *CustomLogger, tracerEnabled string) map[string]string {
 	config := make(map[string]string)
 	config["dd_service"] = l.tracerConfig["Service"]
@@ -354,6 +366,7 @@ func parseTracerConfig(l *CustomLogger, tracerEnabled string) map[string]string 
 	if l.startupLogLevel != "" {
 		config["dd_trace_startup_log_level"] = l.startupLogLevel
 	}
+	config["dd_trace_effective_log_level"] = effectiveLogLevel(l.startupLogLevel)
 	// config["dd_trace_otel_enabled"] = nil         // golang doesn't support DD_TRACE_OTEL_ENABLED
 	// config["dd_trace_sample_ignore_parent"] = nil // golang doesn't support DD_TRACE_SAMPLE_IGNORE_PARENT
 	config["dd_env"] = l.tracerConfig["Env"]

@@ -2052,9 +2052,9 @@ manifest:
   : missing_feature
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_timeout.py::Test_OTEL_EXPORTER_OTLP_TRACES_TIMEOUT: missing_feature (OTLP exporter timeout configuration is not centralized)
   tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL: v2.6.0
-  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_case_insensitive_values: missing_feature (Only the debug-mode mapping is implemented)
-  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_otel_log_level_env: missing_feature (Only the debug-mode mapping is implemented)
-  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_stable_values: missing_feature (Only the debug-mode mapping is implemented)
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_case_insensitive_values: v2.12.0-dev
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_otel_log_level_env: v2.12.0-dev
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_stable_values: v2.12.0-dev
   tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_warning_threshold_diagnostic: irrelevant (Uses the PHP SDK diagnostic probe)
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER:  # TODO: a lower version might be supported
     - declaration: missing_feature (OTEL_LOGS_EXPORTER does not configure the logs pipeline)
