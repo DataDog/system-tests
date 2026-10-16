@@ -4,8 +4,10 @@ from http import HTTPStatus
 import json
 import os
 import time
+from typing import Any
 import requests
 import random
+from utils import interfaces
 from utils._logger import logger
 
 
@@ -13,9 +15,18 @@ API_HOST = "https://dd.datadoghq.com"
 _json_meta_values = frozenset(["_dd.appsec.json", "_dd.iast.json"])
 
 
+MOCKED_BACKEND_TRACE_TIMEOUT = 120
+MOCKED_BACKEND_PROFILE_TIMEOUT = 180
+_MOCKED_BACKEND_POLL_INTERVAL = 2
+
+
 def wait_backend_trace_id(trace_id: str, *, profile: bool = False, validator: Callable | None = None) -> None:
-    logger.info(f"Waiting for backend trace with trace_id: {trace_id}")
-    results = _query_for_trace_id(trace_id, validator=validator)
+    mocked = interfaces.backend_v2.mocked_backend_running
+    logger.info(f"Waiting for {'mocked ' if mocked else ''}backend trace with trace_id: {trace_id}")
+    if mocked:
+        results = _query_mocked_backend_for_trace_id(trace_id, validator=validator)
+    else:
+        results = _query_for_trace_id(trace_id, validator=validator)
     runtime_id = results["runtime_id"]
     if validator:
         validator_results = results["validator"]
@@ -24,7 +35,10 @@ def wait_backend_trace_id(trace_id: str, *, profile: bool = False, validator: Ca
     assert runtime_id, f"Could not find runtime-id for trace_id: {trace_id}"
 
     if profile:
-        _query_for_profile(runtime_id)
+        if mocked:
+            _query_mocked_backend_for_profile(runtime_id)
+        else:
+            _query_for_profile(runtime_id)
 
 
 def _headers():
@@ -193,3 +207,181 @@ def _query_for_profile(runtime_id: str):
         url, headers=headers, method="post", json=query_json, validator=_validate_profiler_response
     )["data"][0]["id"]
     logger.debug(f"Found profile in the backend with ID: {profile_id}")
+
+
+# Mocked backend
+#
+# When the scenario runs with the mocked backend (see `mocked_backend` in the VM scenarios), the agent
+# sends its payloads to `interfaces.backend_v2` instead of the Datadog intake. The functions below look
+# for the trace/profile in what the mock received, and rebuild the subset of the `/api/ui/trace` response
+# structure that the validators use: {"trace": {"root_id": ..., "spans": {span_id: {"meta", "metrics", "start"}}}}
+
+
+def _query_mocked_backend_for_trace_id(trace_id: str, validator: Callable | None = None) -> dict:
+    expected_trace_id = int(trace_id)
+    deadline = time.perf_counter() + MOCKED_BACKEND_TRACE_TIMEOUT
+    trace_data: dict | None = None
+    validator_result = None
+
+    while True:
+        trace_data = _get_mocked_backend_trace(expected_trace_id)
+        if trace_data is not None:
+            if validator is None:
+                break
+            validator_result = validator(trace_id, trace_data)
+            if validator_result:
+                break
+            # spans of a trace may come in several payloads (partial flush), retry until the deadline
+            logger.debug(f"Trace {trace_id} found in the mocked backend, but the validator failed, retrying")
+
+        if time.perf_counter() + _MOCKED_BACKEND_POLL_INTERVAL >= deadline:
+            break
+        time.sleep(_MOCKED_BACKEND_POLL_INTERVAL)
+
+    if trace_data is None:
+        raise TimeoutError(f"Trace {trace_id} not found in the mocked backend after {MOCKED_BACKEND_TRACE_TIMEOUT}s")
+
+    logger.info(f"Trace {trace_id} found in the mocked backend")
+    results: dict[str, Any] = {}
+    if validator:
+        logger.info("Validating mocked backend trace...")
+        results["validator"] = validator_result
+        if not validator_result:
+            logger.info("Validator failed")
+
+    root_id = trace_data["trace"]["root_id"]
+    results["runtime_id"] = trace_data["trace"]["spans"][root_id]["meta"].get("runtime-id")
+    return results
+
+
+def _get_mocked_backend_trace(trace_id: int) -> dict | None:
+    """Gather all spans of the trace received by the mocked backend, and build a structure
+    similar to the one returned by the backend `/api/ui/trace` endpoint
+    """
+    spans: dict[str, dict] = {}
+
+    for data in interfaces.backend_v2.get_data(path_filters="/api/v0.2/traces"):
+        content = data["request"].get("content")
+        if not isinstance(content, dict):
+            continue
+
+        if "tracerPayloads" in content:
+            payloads, is_v1 = content["tracerPayloads"], False
+        elif "idxTracerPayloads" in content:
+            payloads, is_v1 = content["idxTracerPayloads"], True
+        else:
+            continue
+
+        for payload in payloads:
+            payload_meta = _get_mocked_backend_payload_meta(payload, is_v1=is_v1)
+            for chunk in payload.get("chunks", []):
+                if is_v1:
+                    if (int(chunk["traceID"], 16) & 0xFFFFFFFFFFFFFFFF) != trace_id:
+                        continue
+                    chunk_meta = {k: v for k, v in chunk.get("attributes", {}).items() if k.startswith("_dd.p.")}
+                else:
+                    chunk_meta = {}
+
+                for raw_span in chunk.get("spans", []):
+                    if not is_v1 and int(raw_span.get("traceID", 0)) != trace_id:
+                        continue
+                    span = _to_backend_span(raw_span, is_v1=is_v1)
+                    span["meta"] = {**payload_meta, **chunk_meta, **span["meta"]}
+                    spans[span["span_id"]] = span
+
+    if not spans:
+        return None
+
+    # the root span is the one whose parent is not part of the trace (the weblog request
+    # propagates a trace id, so the parent id of the local root may not be 0)
+    roots = [span for span in spans.values() if span["parent_id"] not in spans]
+    root = min(roots or spans.values(), key=lambda span: span["start"])
+
+    trace_data = {"trace": {"root_id": root["span_id"], "spans": spans}}
+    _deserialize_meta(trace_data)
+    return trace_data
+
+
+def _get_mocked_backend_payload_meta(payload: dict, *, is_v1: bool) -> dict[str, Any]:
+    """The backend copies some payload level values on the spans. Reproduce the ones used by the tests"""
+    result: dict[str, Any] = {}
+
+    if is_v1:
+        tags = payload.get("attributes", {})
+        runtime_id = payload.get("runtimeID") or _get_v1_string_ref(payload, "runtimeIDRef")
+    else:
+        tags = payload.get("tags", {})
+        runtime_id = payload.get("runtimeID")
+
+    if "_dd.tags.container" in tags:
+        result["_dd.tags.container"] = tags["_dd.tags.container"]
+
+    if runtime_id:
+        result["runtime-id"] = runtime_id
+
+    return result
+
+
+def _get_v1_string_ref(payload: dict, key: str) -> str | None:
+    ref = payload.get(key)
+    strings = payload.get("strings", [])
+    if isinstance(ref, int) and 0 < ref < len(strings):
+        return strings[ref]
+    return None
+
+
+def _to_backend_span(raw_span: dict, *, is_v1: bool) -> dict:
+    if is_v1:
+        attributes: dict[str, Any] = raw_span.get("attributes", {})
+        meta = {k: v for k, v in attributes.items() if isinstance(v, (str, dict, list))}
+        metrics: dict[str, int | float] = {}
+        for k, v in attributes.items():
+            number = _as_number(v)
+            if number is not None:
+                metrics[k] = number
+    else:
+        meta = dict(raw_span.get("meta", {}))
+        metrics = dict(raw_span.get("metrics", {}))
+
+    span_id = raw_span.get("spanID", raw_span.get("span_id", "0"))
+    parent_id = raw_span.get("parentID", raw_span.get("parent_id", "0"))
+
+    return {
+        "span_id": str(span_id),
+        "parent_id": str(parent_id),
+        # agent payloads express start in nanoseconds, the backend in seconds
+        "start": int(raw_span.get("start", 0)) / 1e9,
+        "meta": meta,
+        "metrics": metrics,
+    }
+
+
+def _as_number(value: object) -> int | float | None:
+    """In v1 payloads, meta and metrics are merged in attributes, and protobuf int64 are serialized as strings"""
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, (int, float)):
+        return value
+    if isinstance(value, str):
+        try:
+            return int(value)
+        except ValueError:
+            return None
+    return None
+
+
+def _query_mocked_backend_for_profile(runtime_id: str) -> None:
+    deadline = time.perf_counter() + MOCKED_BACKEND_PROFILE_TIMEOUT
+
+    while True:
+        for data in interfaces.backend_v2.get_data(path_filters="/api/v2/profile"):
+            if runtime_id in json.dumps(data["request"].get("content"), default=repr):
+                logger.debug(f"Found profile in the mocked backend: {data['log_filename']}")
+                return
+
+        if time.perf_counter() + _MOCKED_BACKEND_POLL_INTERVAL >= deadline:
+            raise TimeoutError(
+                f"Profile for runtime-id {runtime_id} not found in the mocked backend "
+                f"after {MOCKED_BACKEND_PROFILE_TIMEOUT}s"
+            )
+        time.sleep(_MOCKED_BACKEND_POLL_INTERVAL)
