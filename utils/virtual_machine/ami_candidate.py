@@ -5,6 +5,7 @@ _REJECTED_AMI_STATE = "rejected"
 
 
 class _SelectableAmi(Protocol):
+    creation_date: str
     state: object
     tags: Mapping[str, str] | None
 
@@ -35,10 +36,13 @@ def _ami_state(ami: _SelectableAmi) -> str | None:
 
 
 def select_usable_ami[AmiT: _SelectableAmi](amis: Sequence[AmiT]) -> AmiT | None:
-    """Prefer active, then the current untagged AMI, then a candidate. Never boot rejected."""
+    """Prefer the newest active AMI, then an untagged AMI, then a candidate. Never boot rejected."""
     usable = [ami for ami in amis if _ami_state(ami) != _REJECTED_AMI_STATE]
     available = [ami for ami in usable if str(ami.state) == "available"]
-    for ami_state in ("active", None, "candidate"):
+    active_amis = [ami for ami in available if _ami_state(ami) == "active"]
+    if active_amis:
+        return max(active_amis, key=lambda ami: ami.creation_date)
+    for ami_state in (None, "candidate"):
         for ami in available:
             if _ami_state(ami) == ami_state:
                 return ami

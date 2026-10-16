@@ -45,6 +45,21 @@ class Test_AwsAmiCache:
     def test_no_cached_ami_returns_none(self) -> None:
         assert _select_cached_ami([]) is None
 
+    def test_newest_active_ami_is_selected(self) -> None:
+        older_active_ami = _CachedAmi(
+            id="ami-active-old",
+            creation_date="2026-01-01T00:00:00Z",
+            tags={"ami-state": "active"},
+        )
+        newer_active_ami = _CachedAmi(
+            id="ami-active-new",
+            creation_date="2026-02-01T00:00:00Z",
+            tags={"ami-state": "active"},
+        )
+        legacy_ami = _CachedAmi(id="ami-legacy", creation_date="2026-03-01T00:00:00Z")
+
+        assert _select_cached_ami([older_active_ami, legacy_ami, newer_active_ami]) is newer_active_ami
+
     def test_candidate_and_rejected_amis_are_not_selected(self) -> None:
         legacy_ami = _CachedAmi(id="ami-legacy", creation_date="2026-01-01T00:00:00Z")
         candidate_ami = _CachedAmi(

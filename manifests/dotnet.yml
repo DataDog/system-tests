@@ -691,7 +691,8 @@ manifest:
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_multiframe:
     - declaration: bug (DEBUG-2799)
       component_version: <3.10.0
-    - declaration: missing_feature (Static field guard is not released yet)
+    - declaration: missing_feature (Static field guard)
+      component_version: <3.48.0
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_20:
     - declaration: bug (DEBUG-2799)
       component_version: <3.10.0
@@ -1128,7 +1129,7 @@ manifest:
   tests/parametric/test_config_consistency.py::Test_Stable_Config_Default::test_unknown_key_skipped: v3.40.0
   tests/parametric/test_config_consistency.py::Test_Stable_Config_Rules: missing_feature
   tests/parametric/test_crashtracking.py::Test_Crashtracking: v3.2.0
-  tests/parametric/test_crashtracking.py::Test_Crashtracking::test_disable_crashtracking_error_tracking: missing_feature
+  tests/parametric/test_crashtracking.py::Test_Crashtracking::test_disable_crashtracking_error_tracking: '>=3.55.2'  # TODO: a lower version might be supported
   tests/parametric/test_crashtracking.py::Test_Crashtracking::test_report_crash_error_tracking: missing_feature
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules: v2.53.2
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_trace_sampling_rules_with_tags:
@@ -1644,7 +1645,6 @@ manifest:
   tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_configured_value: missing_feature (Some configured settings are unsupported or not reported as uppercase startup fields)
   tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_logs_blrp: irrelevant (The logs batching sink has no export timeout setting)
   tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_otlp_exporter: irrelevant (Only effective signal-specific OTLP settings are reported)
-  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_traces: irrelevant (OTEL_TRACES_SAMPLER_ARG is only reported for ratio sampling)
   tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5: v3.54.0
   tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh: v3.54.0
   tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchanged: v3.54.0

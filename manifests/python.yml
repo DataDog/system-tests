@@ -1299,8 +1299,18 @@ manifest:
     - declaration: irrelevant (PROF-11296)
       component_version: <3.0.0
   tests/cws/test_thread_context_sharing.py::Test_ThreadContextSharing: v4.16.0.dev0
-  tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Line_Capture_Expressions: missing_feature (Not yet implemented)
-  tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions: missing_feature (Not yet implemented)
+  tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Line_Capture_Expressions:
+    - weblog_declaration:
+        "*": missing_feature
+        *flask : v2.11.0
+    - declaration: bug (DEBUG-5601)
+      component_version: <4.9.0-rc2
+  tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions:
+    - weblog_declaration:
+        "*": missing_feature
+        *flask : v2.11.0
+    - declaration: bug (DEBUG-5601)
+      component_version: <4.9.0-rc2
   tests/debugger/test_debugger_capture_expressions_errors.py::Test_Debugger_Filter_Rejected_Capture_Expression_Error:  # TODO: a lower version might be supported
     - declaration: missing_feature (Not yet implemented)
       component_version: <4.14.0
@@ -2219,7 +2229,7 @@ manifest:
   tests/parametric/test_config_consistency.py::Test_Stable_Config_Default: v3.12.0.dev  # default value of log injection changed in v3.12.0
   tests/parametric/test_config_consistency.py::Test_Stable_Config_Rules: missing_feature
   tests/parametric/test_crashtracking.py::Test_Crashtracking: v2.11.2
-  tests/parametric/test_crashtracking.py::Test_Crashtracking::test_disable_crashtracking_error_tracking: missing_feature
+  tests/parametric/test_crashtracking.py::Test_Crashtracking::test_disable_crashtracking_error_tracking: '>=4.15.6'  # TODO: a lower version might be supported
   tests/parametric/test_crashtracking.py::Test_Crashtracking::test_report_crash_error_tracking: missing_feature
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules: v2.9.0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_trace_sampling_rules_with_tags: '>=4.3.1'  # Modified by easy win activation script
