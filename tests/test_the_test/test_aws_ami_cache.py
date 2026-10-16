@@ -74,10 +74,19 @@ class Test_AwsAmiCache:
         )
 
         assert _select_cached_ami([candidate_ami, rejected_ami, legacy_ami]) is legacy_ami
-        assert _select_cached_ami([rejected_ami, candidate_ami]) is candidate_ami
+        assert _select_cached_ami([rejected_ami, candidate_ami]) is None
+        assert _select_cached_ami([candidate_ami]) is None
         assert _select_cached_ami([rejected_ami]) is None
 
     def test_pending_ami_is_returned_so_another_job_does_not_create_one(self) -> None:
         pending_ami = _CachedAmi(id="ami-pending", creation_date="2026-01-01T00:00:00Z", state="pending")
 
+        pending_candidate = _CachedAmi(
+            id="ami-pending-candidate",
+            creation_date="2026-01-02T00:00:00Z",
+            state="pending",
+            tags={"ami-state": "candidate"},
+        )
+
         assert _select_cached_ami([pending_ami]) is pending_ami
+        assert _select_cached_ami([pending_candidate]) is pending_candidate

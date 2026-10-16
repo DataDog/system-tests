@@ -18,7 +18,7 @@ import pulumi_command as command
 # Define retention settings
 DEFAULT_AMI_RETENTION_DAYS = 100
 DEFAULT_AMI_LAST_LAUNCHED_DAYS = 111
-_CANDIDATE_UNUSED_DAYS = 7
+_STALE_AMI_DAYS = 7
 _LAUNCH_REPORT_DELAY_DAYS = 1
 
 
@@ -34,13 +34,15 @@ def should_delete_ami(
 ) -> bool:
     """Decide whether automatic cleanup can deregister an AMI."""
     state = (tags or {}).get("ami-state")
-    if state == "active" or (state == "candidate" and not launch_lookup_ok):
-        return False
-    days = _CANDIDATE_UNUSED_DAYS + _LAUNCH_REPORT_DELAY_DAYS if state == "candidate" else retention_days
-    old = creation_date < now - timedelta(days=days)
-    if state == "candidate":
-        unused = last_launched_date is None or last_launched_date < now - timedelta(days=days)
-        return old and unused
+    if state == "rejected":
+        return True
+    if state in {"active", "candidate"}:
+        if not launch_lookup_ok:
+            return False
+        cutoff = now - timedelta(days=_STALE_AMI_DAYS + _LAUNCH_REPORT_DELAY_DAYS)
+        unused = last_launched_date is None or last_launched_date < cutoff
+        return creation_date < cutoff and unused
+    old = creation_date < now - timedelta(days=retention_days)
     stale = last_launched_date is not None and last_launched_date < now - timedelta(days=last_launched_days)
     return old or stale
 

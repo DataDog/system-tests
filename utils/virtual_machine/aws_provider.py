@@ -25,11 +25,7 @@ from utils.onboarding.debug_vm import download_vm_logs
 from utils.virtual_machine.virtual_machine_provider import VmProvider, Commander
 from utils.virtual_machine.virtual_machines import _VirtualMachine
 from utils.virtual_machine.aws_candidate_boot import CandidateBoot
-from utils.virtual_machine.ami_candidate import (
-    boot_created_candidate_enabled,
-    select_usable_ami,
-    should_boot_created_candidate,
-)
+from utils.virtual_machine.ami_candidate import select_usable_ami, should_boot_created_candidate
 
 import pytest
 
@@ -218,7 +214,6 @@ class AWSPulumiProvider(CandidateBoot, VmProvider):
         self.boot_created_candidate = should_boot_created_candidate(
             update_cache=vm.datadog_config.update_cache,
             skip_cache=vm.datadog_config.skip_cache,
-            enabled=boot_created_candidate_enabled(os.getenv("AMI_BOOT_CREATED_CANDIDATE")),
         )
         ec2_server, server_connection = self._launch_instance(
             vm,

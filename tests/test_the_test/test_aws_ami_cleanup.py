@@ -30,8 +30,17 @@ def _delete(
 @features.not_reported
 @scenarios.test_the_test
 class Test_AwsAmiCleanup:
-    def test_active_ami_is_retained(self) -> None:
-        assert _delete({"ami-state": "active"}, age_days=200, launched_days_ago=200) is False
+    def test_recently_used_or_young_active_ami_is_retained(self) -> None:
+        assert _delete({"ami-state": "active"}, age_days=9, launched_days_ago=1) is False
+        assert _delete({"ami-state": "active"}, age_days=1, launched_days_ago=None) is False
+        assert _delete({"ami-state": "active"}, age_days=9, launched_days_ago=None, launch_lookup_ok=False) is False
+
+    def test_unused_active_ami_is_deleted(self) -> None:
+        assert _delete({"ami-state": "active"}, age_days=9, launched_days_ago=None) is True
+        assert _delete({"ami-state": "active"}, age_days=9, launched_days_ago=9) is True
+
+    def test_rejected_ami_is_deleted(self) -> None:
+        assert _delete({"ami-state": "rejected"}, age_days=1, launched_days_ago=1) is True
 
     def test_recent_or_used_candidate_is_retained(self) -> None:
         assert _delete({"ami-state": "candidate"}, age_days=1, launched_days_ago=None) is False

@@ -1,6 +1,7 @@
 from collections.abc import Mapping, Sequence
 from typing import Protocol
 
+_CANDIDATE_AMI_STATE = "candidate"
 _REJECTED_AMI_STATE = "rejected"
 
 
@@ -8,11 +9,6 @@ class _SelectableAmi(Protocol):
     creation_date: str
     state: object
     tags: Mapping[str, str] | None
-
-
-def boot_created_candidate_enabled(raw_value: str | None) -> bool:
-    """Keep the current AMI flow unless a pipeline sets AMI_BOOT_CREATED_CANDIDATE=true."""
-    return (raw_value or "false").lower() == "true"
 
 
 def candidate_result_state(exitstatus: int, *, provision_failed: bool, test_outcomes: Sequence[str]) -> str | None:
@@ -26,9 +22,9 @@ def candidate_result_state(exitstatus: int, *, provision_failed: bool, test_outc
     return None
 
 
-def should_boot_created_candidate(*, update_cache: bool, skip_cache: bool, enabled: bool) -> bool:
+def should_boot_created_candidate(*, update_cache: bool, skip_cache: bool) -> bool:
     """Boot the AMI created by this job, without replacing an existing cache."""
-    return enabled and update_cache and not skip_cache
+    return update_cache and not skip_cache
 
 
 def _ami_state(ami: _SelectableAmi) -> str | None:
@@ -36,17 +32,21 @@ def _ami_state(ami: _SelectableAmi) -> str | None:
 
 
 def select_usable_ami[AmiT: _SelectableAmi](amis: Sequence[AmiT]) -> AmiT | None:
-    """Prefer the newest active AMI, then an untagged AMI, then a candidate. Never boot rejected."""
-    usable = [ami for ami in amis if _ami_state(ami) != _REJECTED_AMI_STATE]
-    available = [ami for ami in usable if str(ami.state) == "available"]
-    active_amis = [ami for ami in available if _ami_state(ami) == "active"]
+    """Prefer the newest active AMI, then an untagged AMI.
+
+    An available candidate or rejected AMI is never booted. A pending image is returned so another
+    job does not create a second AMI while the first one is still being registered.
+    """
+    not_rejected = [ami for ami in amis if _ami_state(ami) != _REJECTED_AMI_STATE]
+    available = [ami for ami in not_rejected if str(ami.state) == "available"]
+    bootable = [ami for ami in available if _ami_state(ami) != _CANDIDATE_AMI_STATE]
+    active_amis = [ami for ami in bootable if _ami_state(ami) == "active"]
     if active_amis:
         return max(active_amis, key=lambda ami: ami.creation_date)
-    for ami_state in (None, "candidate"):
-        for ami in available:
-            if _ami_state(ami) == ami_state:
-                return ami
-    return next(iter(usable), None)
+    for ami in bootable:
+        if _ami_state(ami) is None:
+            return ami
+    return next((ami for ami in not_rejected if str(ami.state) != "available"), None)
 
 
 def candidate_state_tags(tags: Mapping[str, str], cache_key: str, new_state: str) -> list[dict[str, str]] | None:
