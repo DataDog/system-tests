@@ -150,7 +150,14 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_headers.py::Test_OTEL_EXPORTER_OTLP_TRACES_HEADERS: missing_feature
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_protocol.py::Test_OTEL_EXPORTER_OTLP_TRACES_PROTOCOL: missing_feature
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_timeout.py::Test_OTEL_EXPORTER_OTLP_TRACES_TIMEOUT: missing_feature
-  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL: missing_feature
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL: '>=0.5.3-dev+492e432'  # TODO: a lower version might be supported
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_case_insensitive_debug_mapping: missing_feature
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_case_insensitive_values: missing_feature
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_default_matches_specification: missing_feature
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_invalid_value_emits_warning: missing_feature
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_otel_log_level_to_debug_mapping: missing_feature
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_stable_values: missing_feature
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_warning_threshold_diagnostic: missing_feature
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER: v0.3.0
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER::test_console: missing_feature (Only otlp and none exporters are implemented)
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER::test_deprecated_values: missing_feature (Only otlp and none exporters are implemented)
@@ -568,8 +575,21 @@ manifest:
   tests/test_config_consistency.py::Test_Config_ClientIPHeader_Configured::test_ip_headers_sent_in_one_request: missing_feature (http.client_ip tagging is not implemented)
   tests/test_config_consistency.py::Test_Config_ClientIPHeader_Precedence::test_ip_headers_precedence: missing_feature (http.client_ip tagging not implemented)
   tests/test_config_consistency.py::Test_Config_ClientTagQueryString_Configured: missing_feature (HTTP client query-string tagging is not implemented)
-  tests/test_config_consistency.py::Test_Config_ClientTagQueryString_Empty: missing_feature (HTTP client query-string tagging is not implemented)
-  tests/test_config_consistency.py::Test_Config_HttpClientErrorStatuses_Default: missing_feature (HTTP client error statuses are not implemented)
+  tests/test_config_consistency.py::Test_Config_ClientTagQueryString_Empty:  # TODO: a lower version might be supported
+    - declaration: missing_feature (HTTP client query-string tagging is not implemented)
+      component_version: <0.5.3-dev+492e432
+      weblog: [axum]
+    - declaration: missing_feature (HTTP client query-string tagging is not implemented)
+      excluded_weblog: [axum]
+  tests/test_config_consistency.py::Test_Config_HttpClientErrorStatuses_Default:  # TODO: a lower version might be supported
+    - declaration: missing_feature (HTTP client error statuses are not implemented)
+      component_version: <0.5.3-dev+492e432
+      weblog: [axum]
+    - declaration: missing_feature (HTTP client error statuses are not implemented)
+      excluded_weblog: [axum]
+  tests/test_config_consistency.py::Test_Config_HttpClientErrorStatuses_Default::test_status_code_500:
+    - weblog_declaration:
+        axum: missing_feature (HTTP client error statuses are not implemented)
   tests/test_config_consistency.py::Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature (custom HTTP client error statuses are not implemented)
   tests/test_config_consistency.py::Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature (custom HTTP server error statuses are not implemented)
   tests/test_config_consistency.py::Test_Config_IntegrationEnabled_False::test_integration_enabled_false: missing_feature (dd-trace-rs has no Kafka integration)
