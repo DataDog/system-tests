@@ -1219,6 +1219,7 @@ class _Scenarios:
         "SIMPLE_INSTALLER_AUTO_INJECTION",
         "Onboarding Container Single Step Instrumentation scenario (minimal test scenario)",
         scenario_groups=[scenario_groups.simple_onboarding],
+        mocked_backend=True,
         github_workflow="aws_ssi",
     )
     multi_installer_auto_injection = InstallerAutoInjectionScenario(
@@ -1263,6 +1264,7 @@ class _Scenarios:
             "DD_PROFILING_START_FORCE_FIRST": "true",
         },
         scenario_groups=[scenario_groups.all, scenario_groups.simple_onboarding_profiling],
+        mocked_backend=True,
         github_workflow="aws_ssi",
     )
     host_auto_injection_install_script_profiling = InstallerAutoInjectionScenario(
@@ -1302,6 +1304,7 @@ class _Scenarios:
         "stable config (application_monitoring.yaml)",
         agent_env={"DD_APPSEC_ENABLED": "true"},
         scenario_groups=[scenario_groups.all, scenario_groups.simple_onboarding_appsec],
+        mocked_backend=True,
         github_workflow="aws_ssi",
     )
 

@@ -25,6 +25,15 @@ class _BackendV2InterfaceValidator(ProxyBasedInterfaceValidator):
         if self._mock_server is None:
             self._mock_server = MockBackendV2Server(self.log_folder, on_message=self._on_message)
 
+    @property
+    def mocked_backend_running(self) -> bool:
+        return self._mock_server is not None
+
+    @property
+    def mocked_backend_port(self) -> int:
+        assert self._mock_server is not None, "mocked backend is not running"
+        return self._mock_server.port
+
     def stop_mocked_backend(self) -> None:
         if self._mock_server is not None:
             self._mock_server.close()
