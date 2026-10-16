@@ -5,6 +5,7 @@ from pathlib import Path
 import subprocess
 
 from utils import scenarios
+from utils.target_artifacts.orchestrator import MANIFEST_FILENAME
 
 
 SCRIPT = Path("utils/scripts/load-binary.sh")
@@ -12,6 +13,7 @@ C_LIBRARY_PROD_IMAGE = "install.datadoghq.com/apm-library-c-package:latest"
 C_INJECTOR_PROD_IMAGE = "install.datadoghq.com/apm-inject-package:latest"
 C_LIBRARY_SHA = "1" * 40
 C_INJECTOR_SHA = "2" * 40
+PYTHON_SHA = "3" * 40
 
 
 def _write_executable(path: Path, contents: str) -> None:
@@ -158,3 +160,44 @@ class Test_LoadBinaryC:
 
         assert result.returncode != 0
         assert "OCI package does not exist or is not accessible" in result.stderr
+
+
+@scenarios.test_the_test
+class Test_LoadBinaryPython:
+    def test_development_branch_uses_target_artifact_staging(self, tmp_path: Path) -> None:
+        binaries_dir = tmp_path / "binaries"
+        env = {
+            **os.environ,
+            "BINARIES_DIR": str(binaries_dir),
+            "LIBRARY_TARGET_BRANCH": PYTHON_SHA,
+        }
+
+        result = subprocess.run(
+            ["bash", str(SCRIPT), "python", "dev"],
+            check=False,
+            capture_output=True,
+            text=True,
+            env=env,
+        )
+
+        assert result.returncode == 0, result.stderr
+        assert (binaries_dir / "python-load-from-s3").read_text(encoding="utf-8") == f"{PYTHON_SHA}\n"
+        assert (binaries_dir / MANIFEST_FILENAME).exists()
+
+    def test_custom_environment_preserves_manual_python_artifacts(self, tmp_path: Path) -> None:
+        binaries_dir = tmp_path / "binaries"
+        binaries_dir.mkdir()
+        manual_artifact = binaries_dir / "python-load-from-s3"
+        manual_artifact.write_text("manual\n", encoding="utf-8")
+
+        result = subprocess.run(
+            ["bash", str(SCRIPT), "python", "custom"],
+            check=False,
+            capture_output=True,
+            text=True,
+            env={**os.environ, "BINARIES_DIR": str(binaries_dir)},
+        )
+
+        assert result.returncode == 0, result.stderr
+        assert manual_artifact.read_text(encoding="utf-8") == "manual\n"
+        assert not (binaries_dir / MANIFEST_FILENAME).exists()
