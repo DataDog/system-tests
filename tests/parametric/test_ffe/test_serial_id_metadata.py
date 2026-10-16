@@ -135,7 +135,7 @@ class Test_FFE_Serial_Id_Metadata:
     def test_serial_id_present_in_flag_metadata(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """The serial ID of the selected split must appear in flagMetadata."""
         _set_and_wait_ffe_rc(test_agent, UFC_SERIAL_ID_METADATA_DATA)
-        assert test_library.ffe_start(UFC_SERIAL_ID_METADATA_DATA), "Failed to start FFE provider"
+        assert test_library.ffe_start(), "Failed to start FFE provider"
 
         result = _ffe_evaluate_with_rc_retry(
             test_library,
@@ -156,7 +156,7 @@ class Test_FFE_Serial_Id_Metadata:
     def test_serial_id_zero_is_not_treated_as_missing(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Serial ID 0 is a real, valid ID and must survive falsy-value checks."""
         _set_and_wait_ffe_rc(test_agent, UFC_SERIAL_ID_METADATA_DATA)
-        assert test_library.ffe_start(UFC_SERIAL_ID_METADATA_DATA), "Failed to start FFE provider"
+        assert test_library.ffe_start(), "Failed to start FFE provider"
 
         result = _ffe_evaluate_with_rc_retry(
             test_library,
@@ -182,7 +182,7 @@ class Test_FFE_Serial_Id_Metadata:
     ) -> None:
         """A split without a serialId must not have one fabricated for it."""
         _set_and_wait_ffe_rc(test_agent, UFC_SERIAL_ID_METADATA_DATA)
-        assert test_library.ffe_start(UFC_SERIAL_ID_METADATA_DATA), "Failed to start FFE provider"
+        assert test_library.ffe_start(), "Failed to start FFE provider"
 
         result = _ffe_evaluate_with_rc_retry(
             test_library,
@@ -208,7 +208,7 @@ class Test_FFE_Serial_Id_Metadata:
     ) -> None:
         """FlagMetadata must reflect whichever split targeting actually selected."""
         _set_and_wait_ffe_rc(test_agent, UFC_SERIAL_ID_METADATA_DATA)
-        assert test_library.ffe_start(UFC_SERIAL_ID_METADATA_DATA), "Failed to start FFE provider"
+        assert test_library.ffe_start(), "Failed to start FFE provider"
 
         vip_result = _ffe_evaluate_with_rc_retry(
             test_library,
@@ -249,7 +249,7 @@ class Test_FFE_Serial_Id_Metadata:
     ) -> None:
         """The same context evaluated twice must yield the same serial ID."""
         _set_and_wait_ffe_rc(test_agent, UFC_SERIAL_ID_METADATA_DATA)
-        assert test_library.ffe_start(UFC_SERIAL_ID_METADATA_DATA), "Failed to start FFE provider"
+        assert test_library.ffe_start(), "Failed to start FFE provider"
 
         first = _ffe_evaluate_with_rc_retry(
             test_library,
