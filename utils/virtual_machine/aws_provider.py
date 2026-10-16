@@ -36,6 +36,8 @@ _MAX_RUNNING_INSTANCES = 1200
 _MAX_EVENT_MESSAGE_LENGTH = 255
 # Timeout (seconds) for the Datadog event HTTP request.
 _EVENT_REQUEST_TIMEOUT = 15
+# Seconds to wait before retrying a stack up that failed on InsufficientInstanceCapacity.
+_INSUFFICIENT_CAPACITY_RETRY_DELAY = 30
 
 
 def _select_cached_ami(
@@ -56,6 +58,9 @@ class AWSPulumiProvider(VmProvider):
         self.pulumi_ssh = None
         self.datadog_event_sender = DatadogEventSender()
         self.stack_name = "system-tests_dev_onboarding"
+        # Subnet used by the last _start_vm call, and subnets that failed on InsufficientInstanceCapacity
+        self._current_subnet_id: str | None = None
+        self._excluded_subnet_ids: set[str] = set()
 
     def configure(self, virtual_machine: _VirtualMachine) -> None:
         super().configure(virtual_machine)
@@ -93,7 +98,7 @@ class AWSPulumiProvider(VmProvider):
             )
             if os.getenv("ONBOARDING_LOCAL_TEST") is None:
                 self.stack.set_config("aws:SkipMetadataApiCheck", auto.ConfigValue("false"))
-            self._stack_up_with_idempotency_retry()
+            self._stack_up_with_retry()
             self.datadog_event_sender.send_event_to_datadog(
                 f"[E2E] Stack {self.stack_name}  : success on Pulumi stack up",
                 "",
@@ -128,22 +133,47 @@ class AWSPulumiProvider(VmProvider):
             )
             self._handle_provision_error(pulumi_exception)
 
-    def _stack_up_with_idempotency_retry(self, attempts: int = 3) -> None:
-        """Retry the stack up in-process on IdempotentParameterMismatch.
+    def _stack_up_with_retry(self, attempts: int = 3) -> None:
+        """Retry the stack up in-process on transient EC2 creation errors.
 
-        This is a transient AWS-side token collision (see _start_vm's ec2_resource_id comment).
-        A fresh attempt gets a new idempotency token, so it's worth retrying here rather than
-        immediately failing the whole CI job (which is a much more expensive way to retry).
+        Retrying here is much cheaper than failing the whole CI job. Handled errors:
+        - IdempotentParameterMismatch: transient AWS-side token collision (see _start_vm's
+          ec2_resource_id comment). A fresh attempt gets a new idempotency token.
+        - InsufficientInstanceCapacity: the AZ of the chosen subnet has no capacity for the
+          instance type. The next attempt excludes that subnet, to try another AZ.
         """
         for attempt in range(1, attempts + 1):
             try:
                 self.stack.up(on_output=logger.info)
                 return
             except pulumi.automation.errors.CommandError as pulumi_command_exception:
-                if "IdempotentParameterMismatch" not in str(pulumi_command_exception) or attempt == attempts:
+                if attempt == attempts:
                     raise
-                logger.stdout(f"⚠️ IdempotentParameterMismatch on attempt {attempt}/{attempts}, retrying stack up ⚠️")
-                self.stack_destroy()
+                if "IdempotentParameterMismatch" in str(pulumi_command_exception):
+                    logger.stdout(f"⚠️ IdempotentParameterMismatch on attempt {attempt}/{attempts}, retrying stack up ⚠️")
+                    self.stack_destroy()
+                elif "InsufficientInstanceCapacity" in str(pulumi_command_exception):
+                    if self._current_subnet_id is not None:
+                        self._excluded_subnet_ids.add(self._current_subnet_id)
+                    logger.stdout(
+                        f"⚠️ InsufficientInstanceCapacity on attempt {attempt}/{attempts} "
+                        f"(subnet {self._current_subnet_id}), retrying stack up on another subnet ⚠️"
+                    )
+                    self.stack_destroy()
+                    time.sleep(_INSUFFICIENT_CAPACITY_RETRY_DELAY)
+                else:
+                    raise
+
+    def _pick_subnet_id(self, vm: _VirtualMachine) -> str:
+        """Pick a random subnet, avoiding those that already failed on InsufficientInstanceCapacity"""
+        subnet_ids = vm.aws_config.aws_infra_config.subnet_id
+        candidates = [subnet_id for subnet_id in subnet_ids if subnet_id not in self._excluded_subnet_ids]
+        if not candidates:
+            logger.stdout("⚠️ All subnets failed on InsufficientInstanceCapacity, picking among all of them ⚠️")
+            candidates = subnet_ids
+        self._current_subnet_id = random.choice(candidates)
+        logger.info(f"Using subnet: {self._current_subnet_id}")
+        return self._current_subnet_id
 
     def get_windows_user_data(self) -> str:
         windows_user_data_path = "utils/build/virtual_machine/provisions/windows_userdata/setup_ssh.ps1"
@@ -224,7 +254,7 @@ class AWSPulumiProvider(VmProvider):
             ec2_resource_id,
             instance_type=vm.aws_config.ami_instance_type,
             vpc_security_group_ids=vm.aws_config.aws_infra_config.vpc_security_group_ids,
-            subnet_id=random.choice(vm.aws_config.aws_infra_config.subnet_id),
+            subnet_id=self._pick_subnet_id(vm),
             key_name=self.pulumi_ssh.keypair_name,
             ami=vm.aws_config.ami_id,
             tags=self._get_ec2_tags(vm),
