@@ -18,7 +18,6 @@ import pulumi_command as command
 # Define retention settings
 DEFAULT_AMI_RETENTION_DAYS = 100
 DEFAULT_AMI_LAST_LAUNCHED_DAYS = 111
-_STALE_AMI_DAYS = 7
 _LAUNCH_REPORT_DELAY_DAYS = 1
 _RETIRE_TAG = "ami-retire-at"
 
@@ -46,16 +45,16 @@ def ami_cleanup_action(
     *,
     launch_lookup_ok: bool = True,
 ) -> str:
-    """Return delete, mark, clear, or keep. Active images wait one extra cleanup after they look unused."""
+    """Return delete, mark, clear, or keep. Active and candidate images wait one extra cleanup."""
     state = (tags or {}).get("ami-state")
     if state == "rejected":
         return "delete"
     if state in {"active", "candidate"}:
         if not launch_lookup_ok:
             return "keep"
-        cutoff = now - timedelta(days=_STALE_AMI_DAYS + _LAUNCH_REPORT_DELAY_DAYS)
-        unused = last_launched_date is None or last_launched_date < cutoff
-        if not (creation_date < cutoff and unused):
+        old = creation_date < now - timedelta(days=retention_days)
+        stale = last_launched_date is not None and last_launched_date < now - timedelta(days=last_launched_days)
+        if not (old or stale):
             return "clear" if _retire_at(tags) is not None else "keep"
         retire_at = _retire_at(tags)
         if retire_at is None:
