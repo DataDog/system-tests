@@ -68,6 +68,7 @@ manifest:
         apache-mod-8.4: v1.17.0-dev
         php-fpm-8.4: v1.17.0-dev
         php-fpm-8.5: v1.17.0-dev
+        php-fpm-8.6: v1.17.0-dev
   tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_latest_completions_create:
     - weblog_declaration:
         "*": irrelevant (openai only supports PHP >= 8.2)
@@ -78,6 +79,7 @@ manifest:
         apache-mod-8.4: v1.17.0-dev
         php-fpm-8.4: v1.17.0-dev
         php-fpm-8.5: v1.17.0-dev
+        php-fpm-8.6: v1.17.0-dev
   tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_latest_responses_create:
     - weblog_declaration:
         "*": irrelevant (openai only supports PHP >= 8.2)
@@ -88,6 +90,7 @@ manifest:
         apache-mod-8.4: v1.17.0-dev
         php-fpm-8.4: v1.17.0-dev
         php-fpm-8.5: v1.17.0-dev
+        php-fpm-8.6: v1.17.0-dev
   tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_legacy_chat_completions_create: irrelevant (language not implementing this feature)
   tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_legacy_completions_create: irrelevant (language not implementing this feature)
   tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_root_has_no_llm_tags: irrelevant (language not implementing this feature)
@@ -309,6 +312,7 @@ manifest:
         php-fpm-7.1: '>=1.23.3'
         apache-mod-8.0: '>=1.23.3'
         php-fpm-8.5: '>=1.23.3'
+        php-fpm-8.6: '>=1.23.3'
         php-fpm-8.2: '>=1.23.3'
         apache-mod-8.0-zts: '>=1.23.3'
         php-fpm-7.4: '>=1.23.3'
@@ -398,6 +402,7 @@ manifest:
         php-fpm-7.1: '>=1.23.3'
         apache-mod-8.0: '>=1.23.3'
         php-fpm-8.5: '>=1.23.3'
+        php-fpm-8.6: '>=1.23.3'
         php-fpm-8.2: '>=1.23.3'
         apache-mod-8.0-zts: '>=1.23.3'
         php-fpm-7.4: '>=1.23.3'
@@ -415,9 +420,9 @@ manifest:
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Telemetry::test_telemetry_smoke:  # TODO: a lower version might be supported
     - declaration: bug (APPSEC-69429)
       component_version: <1.23.3
-      weblog: [apache-mod-8.1-zts, apache-mod-7.4-zts, apache-mod-7.2-zts, php-fpm-8.1, apache-mod-8.2-zts, apache-mod-8.2, php-fpm-7.0, apache-mod-7.0, php-fpm-8.0, apache-mod-7.2, apache-mod-7.1-zts, apache-mod-7.3-zts, apache-mod-7.1, php-fpm-7.3, apache-mod-8.1, symfony7x, apache-mod-7.4, apache-mod-7.3, php-fpm-7.1, apache-mod-8.0, php-fpm-8.5, php-fpm-8.2, apache-mod-8.0-zts, php-fpm-7.4, apache-mod-7.0-zts, laravel11x, php-fpm-7.2]
+      weblog: [apache-mod-8.1-zts, apache-mod-7.4-zts, apache-mod-7.2-zts, php-fpm-8.1, apache-mod-8.2-zts, apache-mod-8.2, php-fpm-7.0, apache-mod-7.0, php-fpm-8.0, apache-mod-7.2, apache-mod-7.1-zts, apache-mod-7.3-zts, apache-mod-7.1, php-fpm-7.3, apache-mod-8.1, symfony7x, apache-mod-7.4, apache-mod-7.3, php-fpm-7.1, apache-mod-8.0, php-fpm-8.5, php-fpm-8.6, php-fpm-8.2, apache-mod-8.0-zts, php-fpm-7.4, apache-mod-7.0-zts, laravel11x, php-fpm-7.2]
     - declaration: bug (APPSEC-69429)
-      excluded_weblog: [apache-mod-8.1-zts, apache-mod-7.4-zts, apache-mod-7.2-zts, php-fpm-8.1, apache-mod-8.2-zts, apache-mod-8.2, php-fpm-7.0, apache-mod-7.0, php-fpm-8.0, apache-mod-7.2, apache-mod-7.1-zts, apache-mod-7.3-zts, apache-mod-7.1, php-fpm-7.3, apache-mod-8.1, symfony7x, apache-mod-7.4, apache-mod-7.3, php-fpm-7.1, apache-mod-8.0, php-fpm-8.5, php-fpm-8.2, apache-mod-8.0-zts, php-fpm-7.4, apache-mod-7.0-zts, laravel11x, php-fpm-7.2]
+      excluded_weblog: [apache-mod-8.1-zts, apache-mod-7.4-zts, apache-mod-7.2-zts, php-fpm-8.1, apache-mod-8.2-zts, apache-mod-8.2, php-fpm-7.0, apache-mod-7.0, php-fpm-8.0, apache-mod-7.2, apache-mod-7.1-zts, apache-mod-7.3-zts, apache-mod-7.1, php-fpm-7.3, apache-mod-8.1, symfony7x, apache-mod-7.4, apache-mod-7.3, php-fpm-7.1, apache-mod-8.0, php-fpm-8.5, php-fpm-8.6, php-fpm-8.2, apache-mod-8.0-zts, php-fpm-7.4, apache-mod-7.0-zts, laravel11x, php-fpm-7.2]
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_ApiSecurity::test_api_security_smoke:
     - weblog_declaration:
         apache-mod-7.2: flaky (APPSEC-70615)
@@ -429,9 +434,9 @@ manifest:
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Telemetry::test_telemetry_smoke:  # TODO: a lower version might be supported
     - declaration: bug (APPSEC-69429)
       component_version: <1.23.3
-      weblog: [apache-mod-8.1-zts, apache-mod-7.4-zts, apache-mod-7.2-zts, php-fpm-8.1, apache-mod-8.2-zts, apache-mod-8.2, php-fpm-7.0, apache-mod-7.0, php-fpm-8.0, apache-mod-7.2, apache-mod-7.1-zts, apache-mod-7.3-zts, apache-mod-7.1, php-fpm-7.3, apache-mod-8.1, symfony7x, apache-mod-7.4, apache-mod-7.3, php-fpm-7.1, apache-mod-8.0, php-fpm-8.5, php-fpm-8.2, apache-mod-8.0-zts, php-fpm-7.4, apache-mod-7.0-zts, laravel11x, php-fpm-7.2]
+      weblog: [apache-mod-8.1-zts, apache-mod-7.4-zts, apache-mod-7.2-zts, php-fpm-8.1, apache-mod-8.2-zts, apache-mod-8.2, php-fpm-7.0, apache-mod-7.0, php-fpm-8.0, apache-mod-7.2, apache-mod-7.1-zts, apache-mod-7.3-zts, apache-mod-7.1, php-fpm-7.3, apache-mod-8.1, symfony7x, apache-mod-7.4, apache-mod-7.3, php-fpm-7.1, apache-mod-8.0, php-fpm-8.5, php-fpm-8.6, php-fpm-8.2, apache-mod-8.0-zts, php-fpm-7.4, apache-mod-7.0-zts, laravel11x, php-fpm-7.2]
     - declaration: bug (APPSEC-69429)
-      excluded_weblog: [apache-mod-8.1-zts, apache-mod-7.4-zts, apache-mod-7.2-zts, php-fpm-8.1, apache-mod-8.2-zts, apache-mod-8.2, php-fpm-7.0, apache-mod-7.0, php-fpm-8.0, apache-mod-7.2, apache-mod-7.1-zts, apache-mod-7.3-zts, apache-mod-7.1, php-fpm-7.3, apache-mod-8.1, symfony7x, apache-mod-7.4, apache-mod-7.3, php-fpm-7.1, apache-mod-8.0, php-fpm-8.5, php-fpm-8.2, apache-mod-8.0-zts, php-fpm-7.4, apache-mod-7.0-zts, laravel11x, php-fpm-7.2]
+      excluded_weblog: [apache-mod-8.1-zts, apache-mod-7.4-zts, apache-mod-7.2-zts, php-fpm-8.1, apache-mod-8.2-zts, apache-mod-8.2, php-fpm-7.0, apache-mod-7.0, php-fpm-8.0, apache-mod-7.2, apache-mod-7.1-zts, apache-mod-7.3-zts, apache-mod-7.1, php-fpm-7.3, apache-mod-8.1, symfony7x, apache-mod-7.4, apache-mod-7.3, php-fpm-7.1, apache-mod-8.0, php-fpm-8.5, php-fpm-8.6, php-fpm-8.2, apache-mod-8.0-zts, php-fpm-7.4, apache-mod-7.0-zts, laravel11x, php-fpm-7.2]
   tests/appsec/test_agentic_onboarding.py::Test_AppsecAgenticOnboarding: v1.24.0+dev
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone: v1.11.0
   ? tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2
@@ -461,6 +466,7 @@ manifest:
         php-fpm-7.1: '>=1.23.3'
         apache-mod-8.0: '>=1.23.3'
         php-fpm-8.5: '>=1.23.3'
+        php-fpm-8.6: '>=1.23.3'
         php-fpm-8.2: '>=1.23.3'
         apache-mod-8.0-zts: '>=1.23.3'
         php-fpm-7.4: '>=1.23.3'
@@ -614,6 +620,7 @@ manifest:
         php-fpm-7.1: '>=1.23.3'
         apache-mod-8.0: '>=1.23.3'
         php-fpm-8.5: '>=1.23.3'
+        php-fpm-8.6: '>=1.23.3'
         php-fpm-8.2: '>=1.23.3'
         apache-mod-8.0-zts: '>=1.23.3'
         php-fpm-7.4: '>=1.23.3'
@@ -686,6 +693,7 @@ manifest:
         php-fpm-7.1: '>=1.23.3'
         apache-mod-8.0: '>=1.23.3'
         php-fpm-8.5: '>=1.23.3'
+        php-fpm-8.6: '>=1.23.3'
         php-fpm-8.2: '>=1.23.3'
         apache-mod-8.0-zts: '>=1.23.3'
         php-fpm-7.4: '>=1.23.3'
@@ -709,6 +717,7 @@ manifest:
         php-fpm-7.0: missing_feature
         symfony7x: missing_feature
         php-fpm-8.5: missing_feature
+        php-fpm-8.6: missing_feature
         php-fpm-8.0: missing_feature
         laravel11x: missing_feature
         apache-mod-7.2: missing_feature
@@ -738,6 +747,7 @@ manifest:
         php-fpm-7.0: missing_feature
         symfony7x: missing_feature
         php-fpm-8.5: missing_feature
+        php-fpm-8.6: missing_feature
         php-fpm-8.0: missing_feature
         laravel11x: missing_feature
         apache-mod-7.2: missing_feature
@@ -776,6 +786,7 @@ manifest:
         php-fpm-7.1: '>=1.23.3'
         apache-mod-8.0: '>=1.23.3'
         php-fpm-8.5: '>=1.23.3'
+        php-fpm-8.6: '>=1.23.3'
         php-fpm-8.2: '>=1.23.3'
         apache-mod-8.0-zts: '>=1.23.3'
         php-fpm-7.4: '>=1.23.3'
@@ -799,6 +810,7 @@ manifest:
         php-fpm-7.0: missing_feature
         symfony7x: missing_feature
         php-fpm-8.5: missing_feature
+        php-fpm-8.6: missing_feature
         php-fpm-8.0: missing_feature
         laravel11x: missing_feature
         apache-mod-7.2: missing_feature
@@ -828,6 +840,7 @@ manifest:
         php-fpm-7.0: missing_feature
         symfony7x: missing_feature
         php-fpm-8.5: missing_feature
+        php-fpm-8.6: missing_feature
         php-fpm-8.0: missing_feature
         laravel11x: missing_feature
         apache-mod-7.2: missing_feature
@@ -857,6 +870,7 @@ manifest:
         php-fpm-7.0: missing_feature
         symfony7x: missing_feature
         php-fpm-8.5: missing_feature
+        php-fpm-8.6: missing_feature
         php-fpm-8.0: missing_feature
         laravel11x: missing_feature
         apache-mod-7.2: missing_feature
@@ -926,6 +940,7 @@ manifest:
         php-fpm-7.1: '>=1.23.3'
         apache-mod-8.0: '>=1.23.3'
         php-fpm-8.5: '>=1.23.3'
+        php-fpm-8.6: '>=1.23.3'
         php-fpm-8.2: '>=1.23.3'
         apache-mod-8.0-zts: '>=1.23.3'
         php-fpm-7.4: '>=1.23.3'
@@ -1024,6 +1039,7 @@ manifest:
         "*": missing_feature (only the rust helper, default on PHP 8.4+, emits all boolean tags on every series; the c++ helper omits them when false)
         php-fpm-8.4: v1.20.0
         php-fpm-8.5: v1.20.0
+        php-fpm-8.6: v1.20.0
         apache-mod-8.4: v1.20.0
         apache-mod-8.5: v1.20.0
         apache-mod-8.1-zts: v1.23.3  # TODO: a lower version might be supported
@@ -1098,6 +1114,7 @@ manifest:
         apache-mod-7.1-zts: v1.23.3  # TODO: a lower version might be supported
         apache-mod-7.1: v1.23.3  # TODO: a lower version might be supported
         php-fpm-8.5: v1.23.3  # TODO: a lower version might be supported
+        php-fpm-8.6: v1.23.3  # TODO: a lower version might be supported
         apache-mod-8.1-zts: v1.23.3  # TODO: a lower version might be supported
         php-fpm-7.0: v1.23.3  # TODO: a lower version might be supported
         php-fpm-7.4: v1.23.3  # TODO: a lower version might be supported
@@ -1134,6 +1151,7 @@ manifest:
         apache-mod-7.1: missing_feature
         apache-mod-7.3-zts: missing_feature
         php-fpm-8.5: missing_feature
+        php-fpm-8.6: missing_feature
         apache-mod-7.2-zts: missing_feature
         php-fpm-7.1: missing_feature
         apache-mod-8.1-zts: missing_feature
@@ -1360,11 +1378,11 @@ manifest:
         symfony7x: incomplete_test_app
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation_v2: missing_feature
   tests/integrations/test_mongo.py::Test_Mongo:
-    - declaration: missing_feature (mongodb PHP extension not available in apache-mod containers)
+    - declaration: missing_feature (mongodb PHP extension not available in apache-mod and php-fpm-8.6 containers)
       excluded_weblog: [php-fpm-7.0, php-fpm-7.1, php-fpm-7.2, php-fpm-7.3, php-fpm-7.4, php-fpm-8.0, php-fpm-8.1, php-fpm-8.2, php-fpm-8.5]
   tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In:
     - declaration: missing_feature (OTel SDK requires PHP >= 8.1)
-      excluded_weblog: [apache-mod-8.1, apache-mod-8.1-zts, apache-mod-8.2, apache-mod-8.2-zts, php-fpm-8.1, php-fpm-8.2, php-fpm-8.5]
+      excluded_weblog: [apache-mod-8.1, apache-mod-8.1-zts, apache-mod-8.2, apache-mod-8.2-zts, php-fpm-8.1, php-fpm-8.2, php-fpm-8.5, php-fpm-8.6]
   tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In::test_otel_drop_in_span_metrics: missing_feature
   tests/integrations/test_service_overrides.py::Test_SqlServiceNameSource: irrelevant (Only implemented for Java)
   tests/integrations/test_sql.py::Test_Sql:
@@ -1984,15 +2002,15 @@ manifest:
   tests/test_data_integrity.py::Test_LibraryHeaders::test_datadog_entity_id:  # TODO: a lower version might be supported
     - declaration: missing_feature (not implemented yet)
       component_version: <1.17.0
-      weblog: [php-fpm-8.5]
+      weblog: [php-fpm-8.5, php-fpm-8.6]
     - declaration: missing_feature (not implemented yet)
-      excluded_weblog: [php-fpm-8.5]
+      excluded_weblog: [php-fpm-8.5, php-fpm-8.6]
   tests/test_data_integrity.py::Test_LibraryHeaders::test_datadog_external_env:  # TODO: a lower version might be supported
     - declaration: missing_feature (not implemented yet)
       component_version: <1.17.0
-      weblog: [php-fpm-8.5]
+      weblog: [php-fpm-8.5, php-fpm-8.6]
     - declaration: missing_feature (not implemented yet)
-      excluded_weblog: [php-fpm-8.5]
+      excluded_weblog: [php-fpm-8.5, php-fpm-8.6]
   tests/test_distributed.py::Test_DistributedHttp: v1.17.0
   tests/test_distributed.py::Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts: missing_feature
@@ -2020,6 +2038,7 @@ manifest:
         php-fpm-8.1: v1.24.0
         php-fpm-8.2: v1.24.0
         php-fpm-8.5: v1.24.0
+        php-fpm-8.6: v1.24.0
   tests/test_library_conf.py::Test_ExtractBehavior_Restart_With_Extract_First: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
   tests/test_library_conf.py::Test_HeaderTags: v0.68.2
   tests/test_library_conf.py::Test_HeaderTags_Colon_Leading: v0.74.0
@@ -2086,6 +2105,7 @@ manifest:
         apache-mod-8.1: missing_feature (profiling seems not to be activated)
     - weblog_declaration:
         php-fpm-8.5: missing_feature (profiling seems not to be activated)
+        php-fpm-8.6: missing_feature (profiling seems not to be activated)
         laravel11x: missing_feature (profiling seems not to be activated)
         symfony7x: missing_feature (profiling seems not to be activated)
   tests/test_profiling.py::Test_Profile::test_process_tags_svc:
@@ -2114,6 +2134,7 @@ manifest:
         apache-mod-8.1: missing_feature (profiling seems not to be activated)
     - weblog_declaration:
         php-fpm-8.5: missing_feature (profiling seems not to be activated)
+        php-fpm-8.6: missing_feature (profiling seems not to be activated)
         laravel11x: missing_feature (profiling seems not to be activated)
         symfony7x: missing_feature (profiling seems not to be activated)
   tests/test_resource_renaming.py: v1.14.0
@@ -2141,6 +2162,7 @@ manifest:
         php-fpm-7.1: '>=1.23.3'
         apache-mod-8.0: '>=1.23.3'
         php-fpm-8.5: '>=1.23.3'
+        php-fpm-8.6: '>=1.23.3'
         php-fpm-8.2: '>=1.23.3'
         apache-mod-8.0-zts: '>=1.23.3'
         php-fpm-7.4: '>=1.23.3'
@@ -2170,9 +2192,9 @@ manifest:
   tests/test_semantic_conventions.py::Test_Meta::test_meta_span_kind:  # TODO: a lower version might be supported
     - declaration: bug (APMAPI-924)
       component_version: <1.23.3
-      weblog: [apache-mod-8.1, apache-mod-7.4, apache-mod-7.4-zts, apache-mod-7.0-zts, apache-mod-7.0, apache-mod-7.2-zts, laravel11x, php-fpm-7.3, php-fpm-7.2, apache-mod-7.1-zts, apache-mod-7.1, php-fpm-8.5, apache-mod-8.1-zts, php-fpm-7.0, php-fpm-7.4, php-fpm-8.2, apache-mod-8.0, apache-mod-8.2, apache-mod-7.3, symfony7x, apache-mod-7.2, php-fpm-8.0, apache-mod-7.3-zts, apache-mod-8.2-zts, php-fpm-8.1, apache-mod-8.0-zts, php-fpm-7.1]
+      weblog: [apache-mod-8.1, apache-mod-7.4, apache-mod-7.4-zts, apache-mod-7.0-zts, apache-mod-7.0, apache-mod-7.2-zts, laravel11x, php-fpm-7.3, php-fpm-7.2, apache-mod-7.1-zts, apache-mod-7.1, php-fpm-8.5, php-fpm-8.6, apache-mod-8.1-zts, php-fpm-7.0, php-fpm-7.4, php-fpm-8.2, apache-mod-8.0, apache-mod-8.2, apache-mod-7.3, symfony7x, apache-mod-7.2, php-fpm-8.0, apache-mod-7.3-zts, apache-mod-8.2-zts, php-fpm-8.1, apache-mod-8.0-zts, php-fpm-7.1]
     - declaration: bug (APMAPI-924)
-      excluded_weblog: [apache-mod-8.1, apache-mod-7.4, apache-mod-7.4-zts, apache-mod-7.0-zts, apache-mod-7.0, apache-mod-7.2-zts, laravel11x, php-fpm-7.3, php-fpm-7.2, apache-mod-7.1-zts, apache-mod-7.1, php-fpm-8.5, apache-mod-8.1-zts, php-fpm-7.0, php-fpm-7.4, php-fpm-8.2, apache-mod-8.0, apache-mod-8.2, apache-mod-7.3, symfony7x, apache-mod-7.2, php-fpm-8.0, apache-mod-7.3-zts, apache-mod-8.2-zts, php-fpm-8.1, apache-mod-8.0-zts, php-fpm-7.1]
+      excluded_weblog: [apache-mod-8.1, apache-mod-7.4, apache-mod-7.4-zts, apache-mod-7.0-zts, apache-mod-7.0, apache-mod-7.2-zts, laravel11x, php-fpm-7.3, php-fpm-7.2, apache-mod-7.1-zts, apache-mod-7.1, php-fpm-8.5, php-fpm-8.6, apache-mod-8.1-zts, php-fpm-7.0, php-fpm-7.4, php-fpm-8.2, apache-mod-8.0, apache-mod-8.2, apache-mod-7.3, symfony7x, apache-mod-7.2, php-fpm-8.0, apache-mod-7.3-zts, apache-mod-8.2-zts, php-fpm-8.1, apache-mod-8.0-zts, php-fpm-7.1]
   tests/test_semantic_conventions.py::Test_MetricsStandardTags: v0.83.1
   tests/test_span_events.py: incomplete_test_app (Weblog `/add_event` not implemented)
   tests/test_standard_tags.py::Test_StandardTagsMethod: v0.75.0
@@ -2206,6 +2228,7 @@ manifest:
         php-fpm-8.0: '>=1.17.0'
         php-fpm-7.1: '>=1.17.0'
         php-fpm-8.5: '>=1.17.0'
+        php-fpm-8.6: '>=1.17.0'
         apache-mod-7.2-zts: '>=1.17.0'
         apache-mod-7.4-zts: '>=1.17.0'
         apache-mod-7.0: '>=1.17.0'
@@ -2243,6 +2266,7 @@ manifest:
         apache-mod-8.2-zts: missing_feature
         php-fpm-7.0: missing_feature
         php-fpm-8.5: missing_feature
+        php-fpm-8.6: missing_feature
         apache-mod-7.2: missing_feature
         apache-mod-7.4-zts: missing_feature
         apache-mod-8.1: missing_feature
@@ -2263,6 +2287,7 @@ manifest:
         php-fpm-8.0: '>=1.17.0'
         php-fpm-7.1: '>=1.17.0'
         php-fpm-8.5: '>=1.17.0'
+        php-fpm-8.6: '>=1.17.0'
         apache-mod-7.2-zts: '>=1.17.0'
         apache-mod-7.4-zts: '>=1.17.0'
         apache-mod-7.0: '>=1.17.0'
@@ -2300,6 +2325,7 @@ manifest:
         apache-mod-8.2-zts: missing_feature
         php-fpm-7.0: missing_feature
         php-fpm-8.5: missing_feature
+        php-fpm-8.6: missing_feature
         apache-mod-7.2: missing_feature
         apache-mod-7.4-zts: missing_feature
         apache-mod-8.1: missing_feature
@@ -2327,6 +2353,7 @@ manifest:
         apache-mod-8.2-zts: missing_feature
         php-fpm-7.0: missing_feature
         php-fpm-8.5: missing_feature
+        php-fpm-8.6: missing_feature
         apache-mod-7.2: missing_feature
         apache-mod-7.4-zts: missing_feature
         apache-mod-8.1: missing_feature
@@ -2354,6 +2381,7 @@ manifest:
         apache-mod-8.2-zts: missing_feature
         php-fpm-7.0: missing_feature
         php-fpm-8.5: missing_feature
+        php-fpm-8.6: missing_feature
         apache-mod-7.2: missing_feature
         apache-mod-7.4-zts: missing_feature
         apache-mod-8.1: missing_feature
@@ -2381,6 +2409,7 @@ manifest:
         apache-mod-8.2-zts: missing_feature
         php-fpm-7.0: missing_feature
         php-fpm-8.5: missing_feature
+        php-fpm-8.6: missing_feature
         apache-mod-7.2: missing_feature
         apache-mod-7.4-zts: missing_feature
         apache-mod-8.1: missing_feature
@@ -2408,6 +2437,7 @@ manifest:
         apache-mod-8.2-zts: missing_feature
         php-fpm-7.0: missing_feature
         php-fpm-8.5: missing_feature
+        php-fpm-8.6: missing_feature
         apache-mod-7.2: missing_feature
         apache-mod-7.4-zts: missing_feature
         apache-mod-8.1: missing_feature
@@ -2435,6 +2465,7 @@ manifest:
         apache-mod-8.2-zts: missing_feature
         php-fpm-7.0: missing_feature
         php-fpm-8.5: missing_feature
+        php-fpm-8.6: missing_feature
         apache-mod-7.2: missing_feature
         apache-mod-7.4-zts: missing_feature
         apache-mod-8.1: missing_feature
@@ -2462,6 +2493,7 @@ manifest:
         apache-mod-8.2-zts: missing_feature
         php-fpm-7.0: missing_feature
         php-fpm-8.5: missing_feature
+        php-fpm-8.6: missing_feature
         apache-mod-7.2: missing_feature
         apache-mod-7.4-zts: missing_feature
         apache-mod-8.1: missing_feature
@@ -2489,6 +2521,7 @@ manifest:
         apache-mod-8.2-zts: missing_feature
         php-fpm-7.0: missing_feature
         php-fpm-8.5: missing_feature
+        php-fpm-8.6: missing_feature
         apache-mod-7.2: missing_feature
         apache-mod-7.4-zts: missing_feature
         apache-mod-8.1: missing_feature
@@ -2516,6 +2549,7 @@ manifest:
         apache-mod-8.2-zts: missing_feature
         php-fpm-7.0: missing_feature
         php-fpm-8.5: missing_feature
+        php-fpm-8.6: missing_feature
         apache-mod-7.2: missing_feature
         apache-mod-7.4-zts: missing_feature
         apache-mod-8.1: missing_feature
@@ -2543,6 +2577,7 @@ manifest:
         apache-mod-8.2-zts: missing_feature
         php-fpm-7.0: missing_feature
         php-fpm-8.5: missing_feature
+        php-fpm-8.6: missing_feature
         apache-mod-7.2: missing_feature
         apache-mod-7.4-zts: missing_feature
         apache-mod-8.1: missing_feature
@@ -2570,6 +2605,7 @@ manifest:
         apache-mod-8.2-zts: missing_feature
         php-fpm-7.0: missing_feature
         php-fpm-8.5: missing_feature
+        php-fpm-8.6: missing_feature
         apache-mod-7.2: missing_feature
         apache-mod-7.4-zts: missing_feature
         apache-mod-8.1: missing_feature
