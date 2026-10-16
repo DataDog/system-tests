@@ -76,8 +76,8 @@ class Test_AwsAmiCache:
         )
 
         assert _select_cached_ami([candidate_ami, rejected_ami, legacy_ami]) is legacy_ami
-        assert _select_cached_ami([rejected_ami, candidate_ami]) is candidate_ami
-        assert _select_cached_ami([candidate_ami]) is candidate_ami
+        assert _select_cached_ami([rejected_ami, candidate_ami]) is None
+        assert _select_cached_ami([candidate_ami]) is None
         assert _select_cached_ami([rejected_ami]) is None
 
     def _configure(self, candidate: _CachedAmi, monkeypatch: pytest.MonkeyPatch) -> MagicMock:
@@ -112,14 +112,40 @@ class Test_AwsAmiCache:
         assert vm.aws_config.ami_id == "ami-base"
 
     def test_pending_ami_is_returned_so_another_job_does_not_create_one(self) -> None:
-        pending_ami = _CachedAmi(id="ami-pending", creation_date="2026-01-01T00:00:00Z", state="pending")
-
+        now = datetime(2026, 10, 14, 12, tzinfo=UTC)
+        pending_ami = _CachedAmi(id="ami-pending", creation_date="2026-10-14T11:00:00Z", state="pending")
         pending_candidate = _CachedAmi(
             id="ami-pending-candidate",
-            creation_date="2026-01-02T00:00:00Z",
+            creation_date="2026-10-14T10:00:00Z",
             state="pending",
             tags={"ami-state": "candidate"},
         )
 
-        assert _select_cached_ami([pending_ami]) is pending_ami
-        assert _select_cached_ami([pending_candidate]) is pending_candidate
+        assert _select_cached_ami([pending_ami], now=now) is pending_ami
+        assert _select_cached_ami([pending_candidate], now=now) is pending_candidate
+
+    def test_stale_pending_candidate_does_not_block_a_new_build(self) -> None:
+        now = datetime(2026, 10, 14, 12, tzinfo=UTC)
+        stale = _CachedAmi(
+            id="ami-stale",
+            creation_date="2026-10-13T00:00:00Z",
+            state="pending",
+            tags={"ami-state": "candidate"},
+        )
+
+        assert _select_cached_ami([stale], now=now) is None
+
+    def test_fresh_candidate_blocks_ahead_of_an_older_one(self) -> None:
+        now = datetime(2026, 10, 14, 12, tzinfo=UTC)
+        stale = _CachedAmi(
+            id="ami-old",
+            creation_date="2026-10-13T00:00:00Z",
+            tags={"ami-state": "candidate"},
+        )
+        fresh = _CachedAmi(
+            id="ami-fresh",
+            creation_date="2026-10-14T11:00:00Z",
+            tags={"ami-state": "candidate"},
+        )
+
+        assert _select_cached_ami([stale, fresh], now=now) is fresh

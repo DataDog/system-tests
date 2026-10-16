@@ -1,4 +1,5 @@
 from collections.abc import Callable
+from datetime import datetime
 from io import TextIOWrapper
 import os
 import pathlib
@@ -41,8 +42,10 @@ _EVENT_REQUEST_TIMEOUT = 15
 
 def _select_cached_ami(
     cached_amis: list[aws.ec2.GetAmiResult],
+    *,
+    now: datetime | None = None,
 ) -> aws.ec2.GetAmiResult | None:
-    return select_usable_ami(cached_amis)
+    return select_usable_ami(cached_amis, now=now)
 
 
 class AWSPulumiProvider(CandidateBoot, VmProvider):
