@@ -20,6 +20,7 @@ from utils._context.containers import (
     AgentContainer,
     ProxyContainer,
     BuddyContainer,
+    MsSqlServerContainer,
     TestedContainer,
 )
 from utils._context.weblog_infrastructure import EndToEndWeblogInfra
@@ -410,6 +411,13 @@ class EndToEndScenario(DockerScenario):
 
         for buddy in self.buddies:
             buddy.depends_on.append(self.agent_container)
+
+        # MsSql fails to start (MinimumQpcFrequency) when it does not get enough CPU at startup:
+        # make all other containers depend on it, so it starts alone
+        mssql_containers = [c for c in self._containers if isinstance(c, MsSqlServerContainer)]
+        for container in self._containers:
+            if not isinstance(container, MsSqlServerContainer):
+                container.depends_on.extend(mssql_containers)
 
     def _start_interfaces_watchdog(self):
         open_telemetry_interfaces: list[ProxyBasedInterfaceValidator] = (
