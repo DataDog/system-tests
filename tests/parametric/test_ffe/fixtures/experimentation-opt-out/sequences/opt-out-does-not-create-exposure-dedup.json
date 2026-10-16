@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "kind": "sequence",
+  "id": "opt-out-does-not-create-exposure-dedup",
+  "description": "Skipped experiment allocations create no deduplication entry. A later eligible evaluation can record its first exposure.",
+  "steps": [
+    {
+      "action": "configure",
+      "providerOptions": {
+        "enableExperimentationOptOutParameter": true
+      }
+    },
+    {
+      "action": "set-context",
+      "context": {
+        "targetingKey": "subject-2",
+        "attributes": {
+          "dd_experimentation_opt_out": true
+        }
+      },
+      "expectedPublishedCase": null
+    },
+    {
+      "action": "start-request",
+      "requestId": "excluded",
+      "expectedEvaluationOptions": {
+        "experimentation_opt_out": true
+      }
+    },
+    {
+      "action": "deliver-response",
+      "requestId": "excluded",
+      "caseId": "excluded-control",
+      "acknowledgement": "applied",
+      "expectedAccepted": true,
+      "expectedPublishedCase": "excluded-control"
+    },
+    {
+      "action": "evaluate",
+      "caseId": "excluded-control",
+      "expectedValue": "ordinary-baseline",
+      "expectedExposureCount": 0,
+      "expectedEvaluationTelemetry": true
+    },
+    {
+      "action": "set-context",
+      "context": {
+        "targetingKey": "subject-2",
+        "attributes": {
+          "dd_experimentation_opt_out": false
+        }
+      },
+      "expectedPublishedCase": null
+    },
+    {
+      "action": "start-request",
+      "requestId": "eligible",
+      "expectedEvaluationOptions": null
+    },
+    {
+      "action": "deliver-response",
+      "requestId": "eligible",
+      "caseId": "activation-enabled-false",
+      "acknowledgement": "missing",
+      "expectedAccepted": true,
+      "expectedPublishedCase": "activation-enabled-false"
+    },
+    {
+      "action": "evaluate",
+      "caseId": "activation-enabled-false",
+      "expectedValue": "experimental-control",
+      "expectedExposureCount": 1,
+      "expectedEvaluationTelemetry": true
+    },
+    {
+      "action": "evaluate",
+      "caseId": "activation-enabled-false",
+      "expectedValue": "experimental-control",
+      "expectedExposureCount": 0,
+      "expectedEvaluationTelemetry": true
+    }
+  ],
+  "flag": "two-arm",
+  "defaultValue": "application-default"
+}

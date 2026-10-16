@@ -138,6 +138,51 @@ class Test_Feature_Flag_Dynamic_Evaluation:
     """
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_large_integer_context(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        """Preserve JSON integers above int32 that remain exact IEEE-754 numbers."""
+        number = 1_234_567_890_123_456
+        fixture: dict[str, Any] = {
+            "createdAt": "2026-10-16T00:00:00Z",
+            "format": "SERVER",
+            "environment": {"name": "Test"},
+            "flags": {
+                "large-integer-context": {
+                    "key": "large-integer-context",
+                    "enabled": True,
+                    "variationType": "BOOLEAN",
+                    "variations": {"matched": {"key": "matched", "value": True}},
+                    "allocations": [
+                        {
+                            "key": "exact-number",
+                            "rules": [
+                                {
+                                    "conditions": [
+                                        {"attribute": "number", "operator": "GTE", "value": number},
+                                        {"attribute": "number", "operator": "LTE", "value": number},
+                                    ]
+                                }
+                            ],
+                            "splits": [{"variationKey": "matched", "shards": []}],
+                            "doLog": False,
+                        }
+                    ],
+                }
+            },
+        }
+        _set_and_wait_ffe_rc(test_agent, fixture)
+        assert test_library.ffe_start(fixture), "Failed to start FFE provider"
+        for actual in (number - 1, number, number + 1):
+            result = _ffe_evaluate_with_rc_retry(
+                test_library,
+                flag="large-integer-context",
+                variation_type="BOOLEAN",
+                default_value=False,
+                targeting_key="large-integer-subject",
+                attributes={"number": actual},
+            )
+            assert result["value"] is (actual == number), result
+
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_ffe_remote_config(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Test to verify FFE can receive and acknowledge UFC configurations via Remote Config."""
 

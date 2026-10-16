@@ -1,0 +1,56 @@
+{
+  "createdAt": "2026-10-16T12:00:00Z",
+  "format": "SERVER",
+  "observeFullEvaluationData": false,
+  "evaluationCapabilities": [
+    "experimentation-opt-out-v1"
+  ],
+  "environment": {
+    "name": "experimentation-opt-out"
+  },
+  "flags": {
+    "planner": {
+      "key": "planner",
+      "enabled": true,
+      "variationType": "STRING",
+      "variations": {
+        "baseline": {
+          "key": "baseline",
+          "value": "ordinary-baseline"
+        },
+        "treatment": {
+          "key": "treatment",
+          "value": "experimental-treatment"
+        }
+      },
+      "allocations": [
+        {
+          "key": "experiment",
+          "rules": [],
+          "splits": [
+            {
+              "shards": [],
+              "variationKey": "treatment",
+              "serialId": 102,
+              "reason": "STATIC"
+            }
+          ],
+          "doLog": true
+        },
+        {
+          "key": "allocation-default-7feefdf76b9e",
+          "rules": [],
+          "splits": [
+            {
+              "shards": [],
+              "variationKey": "baseline",
+              "serialId": 900,
+              "reason": "DEFAULT"
+            }
+          ],
+          "doLog": false
+        }
+      ]
+    }
+  }
+}

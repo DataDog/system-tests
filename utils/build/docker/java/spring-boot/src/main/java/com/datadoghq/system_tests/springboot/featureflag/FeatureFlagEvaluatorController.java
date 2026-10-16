@@ -6,6 +6,7 @@ import datadog.trace.api.openfeature.Provider;
 import dev.openfeature.sdk.Client;
 import dev.openfeature.sdk.EvaluationContext;
 import dev.openfeature.sdk.FeatureProvider;
+import dev.openfeature.sdk.FlagEvaluationDetails;
 import dev.openfeature.sdk.MutableContext;
 import dev.openfeature.sdk.NoOpProvider;
 import dev.openfeature.sdk.OpenFeatureAPI;
@@ -66,51 +67,58 @@ public class FeatureFlagEvaluatorController {
 
     @PostMapping(value = "/ffe", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, Object>> evaluate(@RequestBody final EvaluateRequest request) {
-        Object value;
-        String reason;
+        final Map<String, Object> result = new HashMap<>();
         final List<String> targetingKeys = request.getTargetingKeys() == null || request.getTargetingKeys().isEmpty()
                 ? List.of(request.getTargetingKey())
                 : request.getTargetingKeys();
         try {
-            value = request.getDefaultValue();
             for (final String targetingKey : targetingKeys) {
+                result.clear();
                 final EvaluationContext context = context(request, targetingKey);
+                final FlagEvaluationDetails<?> details;
                 switch (request.getVariationType()) {
                     case "BOOLEAN":
-                        value = client.getBooleanValue(request.getFlag(), (Boolean) request.getDefaultValue(), context);
+                        details = client.getBooleanDetails(request.getFlag(), (Boolean) request.getDefaultValue(), context);
                         break;
                     case "STRING":
-                        value = client.getStringValue(request.getFlag(), (String) request.getDefaultValue(), context);
+                        details = client.getStringDetails(request.getFlag(), (String) request.getDefaultValue(), context);
                         break;
                     case "INTEGER":
-                        value = client.getIntegerValue(request.getFlag(), (Integer) request.getDefaultValue(), context);
+                        details = client.getIntegerDetails(request.getFlag(), (Integer) request.getDefaultValue(), context);
                         break;
                     case "NUMERIC":
                         final Number number = (Number) request.getDefaultValue();
                         if (number instanceof Double) {
-                            value = client.getDoubleValue(request.getFlag(), number.doubleValue(), context);
+                            details = client.getDoubleDetails(request.getFlag(), number.doubleValue(), context);
                         } else {
-                            value = client.getIntegerValue(request.getFlag(), number.intValue(), context);
+                            details = client.getIntegerDetails(request.getFlag(), number.intValue(), context);
                         }
                         break;
                     case "JSON":
-                        final Value objectValue = client.getObjectValue(request.getFlag(), Value.objectToValue(request.getDefaultValue()), context);
-                        value = context.convertValue(objectValue);
+                        details = client.getObjectDetails(request.getFlag(), Value.objectToValue(request.getDefaultValue()), context);
                         break;
                     default:
-                        value = request.getDefaultValue();
+                        throw new IllegalArgumentException("Unsupported variation type: " + request.getVariationType());
+                }
+                final Object value = details.getValue();
+                result.put("value", value instanceof Value ? context.convertValue((Value) value) : value);
+                result.put("reason", details.getReason());
+                result.put("variant", details.getVariant());
+                result.put("errorCode", details.getErrorCode());
+                result.put("errorMessage", details.getErrorMessage());
+                if (details.getFlagMetadata() != null) {
+                    result.put("allocationKey", details.getFlagMetadata().getString("allocationKey"));
+                    result.put("serialId", details.getFlagMetadata().getInteger("__dd_split_serial_id"));
+                    result.put("flagMetadata", details.getFlagMetadata().asUnmodifiableMap());
                 }
             }
-
-            reason = "DEFAULT";
         } catch (Throwable e) {
             LOGGER.error("Error on resolution", e);
-            value = request.getDefaultValue();
-            reason = "ERROR";
+            result.clear();
+            result.put("value", request.getDefaultValue());
+            result.put("reason", "ERROR");
+            result.put("errorMessage", e.getMessage());
         }
-        final Map<String, Object> result = new HashMap<>();
-        result.put("reason", reason);
-        result.put("value", value);
         result.put("count", targetingKeys.size());
         return ResponseEntity.ok(result);
     }
@@ -123,6 +131,9 @@ public class FeatureFlagEvaluatorController {
                 context.add(key, (Boolean) value);
             } else if (value instanceof Integer) {
                 context.add(key, (Integer) value);
+            } else if (value instanceof Long) {
+                // OpenFeature represents numbers outside the Integer range as Double.
+                context.add(key, ((Long) value).doubleValue());
             } else if (value instanceof Double) {
                 context.add(key, (Double) value);
             } else if (value instanceof String) {

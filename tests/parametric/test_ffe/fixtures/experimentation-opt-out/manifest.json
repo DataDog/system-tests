@@ -1,0 +1,560 @@
+{
+  "schemaVersion": 1,
+  "kind": "manifest",
+  "capability": "experimentation-opt-out-v1",
+  "configurations": [
+    {
+      "id": "supported",
+      "path": "configurations/supported.json",
+      "provenance": {
+        "kind": "reviewed-contract-input",
+        "description": "Hand-authored expected UFC semantics. Not production compiler output. Winner lifecycle/link preservation and generated holdout correctness require compiler tests."
+      }
+    },
+    {
+      "id": "legacy-without-capability",
+      "path": "configurations/legacy-without-capability.json",
+      "provenance": {
+        "kind": "reviewed-contract-input",
+        "description": "Deliberately old artifact: no capability, winner still logs, and a full-enrollment experiment lacks its fallback."
+      }
+    },
+    {
+      "id": "missing-dolog",
+      "path": "configurations/missing-dolog.json",
+      "provenance": {
+        "kind": "reviewed-contract-input",
+        "description": "Deliberately malformed marked JSON: the first experimental allocation omits doLog. Ordinary legacy defaults differ by adapter and require a baseline-preservation test."
+      }
+    },
+    {
+      "id": "compiler-active-50-50",
+      "path": "configurations/compiler-active-50-50.json",
+      "provenance": {
+        "kind": "compiler-generated",
+        "description": "Verbatim output from the production UFC compiler with deterministic lifecycle inputs. Generation details are in compiler-generated/PROVENANCE.md.",
+        "scenario": "active-50-50"
+      }
+    },
+    {
+      "id": "compiler-active-100-single-arm",
+      "path": "configurations/compiler-active-100-single-arm.json",
+      "provenance": {
+        "kind": "compiler-generated",
+        "description": "Verbatim output from the production UFC compiler with deterministic lifecycle inputs. Generation details are in compiler-generated/PROVENANCE.md.",
+        "scenario": "active-100-single-arm"
+      }
+    },
+    {
+      "id": "compiler-completed-control",
+      "path": "configurations/compiler-completed-control.json",
+      "provenance": {
+        "kind": "compiler-generated",
+        "description": "Verbatim output from the production UFC compiler with deterministic lifecycle inputs. Generation details are in compiler-generated/PROVENANCE.md.",
+        "scenario": "completed-control"
+      }
+    },
+    {
+      "id": "compiler-completed-treatment",
+      "path": "configurations/compiler-completed-treatment.json",
+      "provenance": {
+        "kind": "compiler-generated",
+        "description": "Verbatim output from the production UFC compiler with deterministic lifecycle inputs. Generation details are in compiler-generated/PROVENANCE.md.",
+        "scenario": "completed-treatment"
+      }
+    },
+    {
+      "id": "compiler-holdout-active",
+      "path": "configurations/compiler-holdout-active.json",
+      "provenance": {
+        "kind": "compiler-generated",
+        "description": "Verbatim output from the production UFC compiler with deterministic lifecycle inputs. Generation details are in compiler-generated/PROVENANCE.md.",
+        "scenario": "holdout-active"
+      }
+    },
+    {
+      "id": "compiler-holdout-completed-control",
+      "path": "configurations/compiler-holdout-completed-control.json",
+      "provenance": {
+        "kind": "compiler-generated",
+        "description": "Verbatim output from the production UFC compiler with deterministic lifecycle inputs. Generation details are in compiler-generated/PROVENANCE.md.",
+        "scenario": "holdout-completed-control"
+      }
+    },
+    {
+      "id": "compiler-holdout-completed-treatment",
+      "path": "configurations/compiler-holdout-completed-treatment.json",
+      "provenance": {
+        "kind": "compiler-generated",
+        "description": "Verbatim output from the production UFC compiler with deterministic lifecycle inputs. Generation details are in compiler-generated/PROVENANCE.md.",
+        "scenario": "holdout-completed-treatment"
+      }
+    }
+  ],
+  "evaluationCases": [
+    {
+      "path": "cases/activation.json",
+      "ids": [
+        "activation-disabled-missing",
+        "activation-disabled-false",
+        "activation-disabled-true",
+        "activation-disabled-null",
+        "activation-disabled-string-true",
+        "activation-disabled-string-false",
+        "activation-disabled-number-one",
+        "activation-disabled-number-zero",
+        "activation-disabled-array",
+        "activation-disabled-object",
+        "activation-disabled-nested",
+        "activation-enabled-missing",
+        "activation-enabled-false",
+        "activation-enabled-true",
+        "activation-enabled-null",
+        "activation-enabled-string-true",
+        "activation-enabled-string-false",
+        "activation-enabled-number-one",
+        "activation-enabled-number-zero",
+        "activation-enabled-array",
+        "activation-enabled-object",
+        "activation-enabled-nested",
+        "activation-unconfigured-true"
+      ]
+    },
+    {
+      "path": "cases/evaluation.json",
+      "ids": [
+        "excluded-control",
+        "excluded-treatment",
+        "excluded-third-arm",
+        "excluded-full-enrollment",
+        "excluded-partial-enrollment",
+        "eligible-outside-enrollment",
+        "ordinary-beta-before-experiment",
+        "ordinary-targeted-after-experiment",
+        "ordinary-default-after-experiment",
+        "skip-multiple-experiments",
+        "equal-value-ordinary-fallback",
+        "equal-value-experimental-control",
+        "no-ordinary-assignment",
+        "ordinary-percentage-included",
+        "ordinary-percentage-not-included",
+        "boolean-fallback-is-true",
+        "winner-control-eligible",
+        "winner-control-excluded",
+        "winner-treatment-eligible",
+        "winner-treatment-excluded",
+        "excluded-canary",
+        "excluded-bandit",
+        "eligible-two-arm-subject-0",
+        "eligible-three-arm-subject-0",
+        "eligible-two-arm-subject-1",
+        "eligible-three-arm-subject-1",
+        "eligible-two-arm-subject-2",
+        "eligible-three-arm-subject-2",
+        "eligible-two-arm-subject-3",
+        "eligible-three-arm-subject-3",
+        "eligible-two-arm-subject-4",
+        "eligible-three-arm-subject-4",
+        "eligible-two-arm-subject-5",
+        "eligible-three-arm-subject-5",
+        "eligible-two-arm-subject-6",
+        "eligible-three-arm-subject-6",
+        "eligible-two-arm-subject-7",
+        "eligible-three-arm-subject-7",
+        "eligible-two-arm-subject-8",
+        "eligible-three-arm-subject-8",
+        "eligible-two-arm-subject-9",
+        "eligible-three-arm-subject-9",
+        "eligible-two-arm-subject-10",
+        "eligible-three-arm-subject-10",
+        "eligible-two-arm-subject-11",
+        "eligible-three-arm-subject-11",
+        "eligible-two-arm-subject-12",
+        "eligible-three-arm-subject-12",
+        "eligible-two-arm-subject-13",
+        "eligible-three-arm-subject-13",
+        "eligible-two-arm-subject-14",
+        "eligible-three-arm-subject-14",
+        "eligible-two-arm-subject-15",
+        "eligible-three-arm-subject-15"
+      ]
+    },
+    {
+      "path": "cases/holdouts.json",
+      "ids": [
+        "holdout-before-route-status-quo-eligible",
+        "holdout-before-route-status-quo-excluded",
+        "holdout-before-route-all-shipped-eligible",
+        "holdout-before-route-all-shipped-excluded",
+        "holdout-before-search-status-quo-eligible",
+        "holdout-before-search-status-quo-excluded",
+        "holdout-before-search-all-shipped-eligible",
+        "holdout-before-search-all-shipped-excluded",
+        "holdout-after-route-status-quo-eligible",
+        "holdout-after-route-status-quo-excluded",
+        "holdout-after-route-all-shipped-eligible",
+        "holdout-after-route-all-shipped-excluded",
+        "holdout-after-search-status-quo-eligible",
+        "holdout-after-search-status-quo-excluded",
+        "holdout-after-search-all-shipped-eligible",
+        "holdout-after-search-all-shipped-excluded",
+        "holdout-control-winner-route-status-quo-eligible",
+        "holdout-control-winner-route-status-quo-excluded",
+        "holdout-control-winner-route-all-shipped-eligible",
+        "holdout-control-winner-route-all-shipped-excluded"
+      ]
+    },
+    {
+      "path": "cases/compatibility.json",
+      "ids": [
+        "legacy-ordinary",
+        "legacy-excluded",
+        "missing-dolog-excluded",
+        "legacy-winner-not-misclassified",
+        "legacy-pruned-fallback-not-used"
+      ]
+    },
+    {
+      "path": "cases/telemetry.json",
+      "ids": [
+        "independent-experiment-false-telemetry-false",
+        "independent-experiment-false-telemetry-true",
+        "independent-experiment-true-telemetry-false",
+        "independent-experiment-true-telemetry-true"
+      ]
+    },
+    {
+      "path": "cases/compiler-generated.json",
+      "ids": [
+        "generated-active-50-50-0001-eligible",
+        "generated-active-50-50-0001-excluded",
+        "generated-active-50-50-0005-eligible",
+        "generated-active-50-50-0005-excluded",
+        "generated-active-100-single-arm-0001-eligible",
+        "generated-active-100-single-arm-0001-excluded",
+        "generated-completed-control-0001-eligible",
+        "generated-completed-control-0001-excluded",
+        "generated-completed-treatment-0001-eligible",
+        "generated-completed-treatment-0001-excluded",
+        "generated-holdout-active-0006-eligible",
+        "generated-holdout-active-0006-excluded",
+        "generated-holdout-active-0000-eligible",
+        "generated-holdout-active-0000-excluded",
+        "generated-holdout-active-0001-eligible",
+        "generated-holdout-active-0001-excluded",
+        "generated-holdout-active-0005-eligible",
+        "generated-holdout-active-0005-excluded",
+        "generated-holdout-completed-control-0006-eligible",
+        "generated-holdout-completed-control-0006-excluded",
+        "generated-holdout-completed-control-0000-eligible",
+        "generated-holdout-completed-control-0000-excluded",
+        "generated-holdout-completed-control-0001-eligible",
+        "generated-holdout-completed-control-0001-excluded",
+        "generated-holdout-completed-treatment-0006-eligible",
+        "generated-holdout-completed-treatment-0006-excluded",
+        "generated-holdout-completed-treatment-0000-eligible",
+        "generated-holdout-completed-treatment-0000-excluded",
+        "generated-holdout-completed-treatment-0001-eligible",
+        "generated-holdout-completed-treatment-0001-excluded"
+      ]
+    }
+  ],
+  "protocolCases": [
+    {
+      "path": "protocol/request-and-response.json",
+      "ids": [
+        "request-omitted",
+        "request-true",
+        "request-false",
+        "request-empty",
+        "request-string",
+        "request-number",
+        "request-null-value",
+        "request-null-options",
+        "request-array-options",
+        "response-applied",
+        "response-missing-ack",
+        "response-empty-ack",
+        "response-false-ack",
+        "response-string-ack",
+        "response-number-ack",
+        "response-null-ack",
+        "response-array-ack",
+        "response-legacy-ordinary",
+        "response-explicit-ordinary",
+        "response-contradictory-ordinary"
+      ]
+    }
+  ],
+  "sequences": [
+    {
+      "path": "sequences/late-response-after-opt-out.json",
+      "ids": [
+        "late-response-after-opt-out"
+      ]
+    },
+    {
+      "path": "sequences/failed-refresh-after-opt-out.json",
+      "ids": [
+        "failed-refresh-after-opt-out"
+      ]
+    },
+    {
+      "path": "sequences/opt-out-does-not-create-exposure-dedup.json",
+      "ids": [
+        "opt-out-does-not-create-exposure-dedup"
+      ]
+    },
+    {
+      "path": "sequences/missing-ack-never-publishes.json",
+      "ids": [
+        "missing-ack-never-publishes"
+      ]
+    },
+    {
+      "path": "sequences/cache-participation-and-subject-identity.json",
+      "ids": [
+        "cache-participation-and-subject-identity"
+      ]
+    },
+    {
+      "path": "sequences/logout-rejects-authenticated-response.json",
+      "ids": [
+        "logout-rejects-authenticated-response"
+      ]
+    },
+    {
+      "path": "sequences/same-state-compatible-cache-on-failure.json",
+      "ids": [
+        "same-state-compatible-cache-on-failure"
+      ]
+    },
+    {
+      "path": "sequences/cache-targeting-context-identity.json",
+      "ids": [
+        "cache-targeting-context-identity"
+      ]
+    },
+    {
+      "path": "sequences/cache-environment-identity.json",
+      "ids": [
+        "cache-environment-identity"
+      ]
+    }
+  ],
+  "expectedCounts": {
+    "configurations": 10,
+    "evaluations": 136,
+    "protocols": 20,
+    "sequences": 9
+  },
+  "bucketing": {
+    "salt": "opt-out:v1:assignment",
+    "totalShards": 10000,
+    "algorithm": "MD5(UTF-8(salt + \"-\" + targetingKey)); first four digest bytes, unsigned big-endian integer, modulo totalShards. MD5 is the existing assignment contract, not security.",
+    "vectors": [
+      {
+        "targetingKey": "subject-0",
+        "md5": "b55c51498344de9afe27a0b7af828588",
+        "shard": 6217
+      },
+      {
+        "targetingKey": "subject-1",
+        "md5": "d9a4857a0e8256823803b6d0390761e4",
+        "shard": 7946
+      },
+      {
+        "targetingKey": "subject-2",
+        "md5": "f43df548110636124d8adaed4685ea69",
+        "shard": 1192
+      },
+      {
+        "targetingKey": "subject-3",
+        "md5": "938d4c316f70119fb3a903261b04a263",
+        "shard": 833
+      },
+      {
+        "targetingKey": "subject-4",
+        "md5": "23aa9288dd462de95808cbc3f6331edb",
+        "shard": 1192
+      },
+      {
+        "targetingKey": "subject-5",
+        "md5": "516d48d600a20ed90531145eaba1c85f",
+        "shard": 6566
+      },
+      {
+        "targetingKey": "subject-6",
+        "md5": "e59fe9fe5c16cf70a259e46652b834b6",
+        "shard": 2590
+      },
+      {
+        "targetingKey": "subject-7",
+        "md5": "50959ccaea8e5cea276edbcf85374fff",
+        "shard": 2282
+      },
+      {
+        "targetingKey": "subject-8",
+        "md5": "1976130512646bd2d41e0529618b4729",
+        "shard": 8517
+      },
+      {
+        "targetingKey": "subject-9",
+        "md5": "e645ac19eca2592d6b832fbadffc5e44",
+        "shard": 5721
+      },
+      {
+        "targetingKey": "subject-10",
+        "md5": "23e3bd30e2d251ca082fe11c11518fa2",
+        "shard": 7664
+      },
+      {
+        "targetingKey": "subject-11",
+        "md5": "9a769814c5024df96b14f59625e64620",
+        "shard": 3444
+      },
+      {
+        "targetingKey": "subject-12",
+        "md5": "1ca1c768e15650ff1c75d0914a01d51a",
+        "shard": 4392
+      },
+      {
+        "targetingKey": "subject-13",
+        "md5": "86a2c5230d4d88e890468446d5b6eaaa",
+        "shard": 4243
+      },
+      {
+        "targetingKey": "subject-14",
+        "md5": "26ba02b495beabdeb051ad95a3626207",
+        "shard": 4596
+      },
+      {
+        "targetingKey": "subject-15",
+        "md5": "891195f0cd1c24872cdd5819d48e0bef",
+        "shard": 1088
+      }
+    ]
+  },
+  "invariants": {
+    "eligibleParityCaseIds": [
+      "eligible-two-arm-subject-0",
+      "eligible-three-arm-subject-0",
+      "eligible-two-arm-subject-1",
+      "eligible-three-arm-subject-1",
+      "eligible-two-arm-subject-2",
+      "eligible-three-arm-subject-2",
+      "eligible-two-arm-subject-3",
+      "eligible-three-arm-subject-3",
+      "eligible-two-arm-subject-4",
+      "eligible-three-arm-subject-4",
+      "eligible-two-arm-subject-5",
+      "eligible-three-arm-subject-5",
+      "eligible-two-arm-subject-6",
+      "eligible-three-arm-subject-6",
+      "eligible-two-arm-subject-7",
+      "eligible-three-arm-subject-7",
+      "eligible-two-arm-subject-8",
+      "eligible-three-arm-subject-8",
+      "eligible-two-arm-subject-9",
+      "eligible-three-arm-subject-9",
+      "eligible-two-arm-subject-10",
+      "eligible-three-arm-subject-10",
+      "eligible-two-arm-subject-11",
+      "eligible-three-arm-subject-11",
+      "eligible-two-arm-subject-12",
+      "eligible-three-arm-subject-12",
+      "eligible-two-arm-subject-13",
+      "eligible-three-arm-subject-13",
+      "eligible-two-arm-subject-14",
+      "eligible-three-arm-subject-14",
+      "eligible-two-arm-subject-15",
+      "eligible-three-arm-subject-15"
+    ],
+    "concurrentServerCaseIds": [
+      "activation-enabled-false",
+      "excluded-control"
+    ],
+    "concurrentServerRepetitions": 64,
+    "localRepresentations": [
+      "json",
+      "protobuf",
+      "rkyv"
+    ]
+  },
+  "compilerGeneration": {
+    "provenancePath": "compiler-generated/PROVENANCE.md",
+    "provenanceSha256": "3c280c6a20c1178394e51cdd542bbcc9960d39f9eea809be50ee97031eace22a",
+    "observationsPath": "compiler-generated/compiler-scenarios.json",
+    "observationsSha256": "cd1e3b7a27cf413a32d9849879721ee86769e36736b64846d9abd6bb1d1c1299",
+    "hashVectorsPath": "compiler-generated/hash-vectors.json",
+    "hashVectorsSha256": "f0e655675db16dfa2cb3fdfb13f54207204a5a8fca7718875bcafbecfb55966f",
+    "pairs": [
+      {
+        "scenario": "active-50-50",
+        "configurationId": "compiler-active-50-50",
+        "jsonSha256": "be254dddcbe9fb525de452c52be57b5ae7e501910181cc9cf02fbf7502f0e60d",
+        "protobufPath": "compiler-generated/compiler-active-50-50.pb",
+        "protobufSha256": "bbf851e5f3eaf28b6f00f19216bab0c18eda7cc9335e2218823afae85ab7a381"
+      },
+      {
+        "scenario": "active-100-single-arm",
+        "configurationId": "compiler-active-100-single-arm",
+        "jsonSha256": "08cf944c460776dc881c8c557f0cc621e3ef6bbab14a4a4575312480956c8dcc",
+        "protobufPath": "compiler-generated/compiler-active-100-single-arm.pb",
+        "protobufSha256": "cd47e5e0771f94cf81a68519d807955fe148facf09166008648bd7b9cac71456"
+      },
+      {
+        "scenario": "completed-control",
+        "configurationId": "compiler-completed-control",
+        "jsonSha256": "46adedaf2831cfff6b5915be609a9f1b535cd1b68ecb591a0bcaacfa2bc05c47",
+        "protobufPath": "compiler-generated/compiler-completed-control.pb",
+        "protobufSha256": "c49dcff900f74ce93aebf4a58653890f7d1acc8bd345a06cb7a8d9349d420649"
+      },
+      {
+        "scenario": "completed-treatment",
+        "configurationId": "compiler-completed-treatment",
+        "jsonSha256": "88747d93db3a69ec5614350ee1af5018ce4020162daa0f4fe95c2f9504e90afe",
+        "protobufPath": "compiler-generated/compiler-completed-treatment.pb",
+        "protobufSha256": "0b12e14714a72a0b915f715ef21af3de6c5b5c3fbb0c87c874236fc7b02a85a3"
+      },
+      {
+        "scenario": "holdout-active",
+        "configurationId": "compiler-holdout-active",
+        "jsonSha256": "77e74cfb44f94c5fc26a63f6458e1bb32006bd0ab9b3c18968e5c520be53aa52",
+        "protobufPath": "compiler-generated/compiler-holdout-active.pb",
+        "protobufSha256": "290aeba7f940c3c97b8d3596c26ad3e829e45b94c47f7ef0837eb28c21c33976"
+      },
+      {
+        "scenario": "holdout-completed-control",
+        "configurationId": "compiler-holdout-completed-control",
+        "jsonSha256": "9524a3b823a64aa4f12f1bfdfe0bf486b49923ab0ecec6ba1e5331c112576ca6",
+        "protobufPath": "compiler-generated/compiler-holdout-completed-control.pb",
+        "protobufSha256": "79228842a5881ccf0f7c6ecd2396ab5c3c0d39cbeff8dc65972b0bc5096d5ca3"
+      },
+      {
+        "scenario": "holdout-completed-treatment",
+        "configurationId": "compiler-holdout-completed-treatment",
+        "jsonSha256": "b12df3b3fa551ea56eae01b5ea1676da1f5317e304d4bd111a9dee9fb1f32e99",
+        "protobufPath": "compiler-generated/compiler-holdout-completed-treatment.pb",
+        "protobufSha256": "63c9a9495a54da2da565d51d63df177acb31581a058c1665045ec4d9c7f2c8d8"
+      }
+    ],
+    "eligibleParityCaseIds": [
+      "generated-active-50-50-0001-eligible",
+      "generated-active-50-50-0005-eligible",
+      "generated-active-100-single-arm-0001-eligible",
+      "generated-completed-control-0001-eligible",
+      "generated-completed-treatment-0001-eligible",
+      "generated-holdout-active-0006-eligible",
+      "generated-holdout-active-0000-eligible",
+      "generated-holdout-active-0001-eligible",
+      "generated-holdout-active-0005-eligible",
+      "generated-holdout-completed-control-0006-eligible",
+      "generated-holdout-completed-control-0000-eligible",
+      "generated-holdout-completed-control-0001-eligible",
+      "generated-holdout-completed-treatment-0006-eligible",
+      "generated-holdout-completed-treatment-0000-eligible",
+      "generated-holdout-completed-treatment-0001-eligible"
+    ]
+  }
+}

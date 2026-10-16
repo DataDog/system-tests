@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "kind": "sequence",
+  "id": "cache-environment-identity",
+  "description": "Assignments stored for one environment cannot be loaded into a different environment.",
+  "flag": "two-arm",
+  "defaultValue": "application-default",
+  "steps": [
+    {
+      "action": "configure",
+      "providerOptions": {
+        "enableExperimentationOptOutParameter": true
+      },
+      "environment": "production"
+    },
+    {
+      "action": "set-context",
+      "context": {
+        "targetingKey": "subject-2",
+        "attributes": {
+          "dd_experimentation_opt_out": true
+        }
+      },
+      "expectedPublishedCase": null
+    },
+    {
+      "action": "start-request",
+      "requestId": "first",
+      "expectedEvaluationOptions": {
+        "experimentation_opt_out": true
+      }
+    },
+    {
+      "action": "deliver-response",
+      "requestId": "first",
+      "caseId": "excluded-control",
+      "acknowledgement": "applied",
+      "expectedAccepted": true,
+      "expectedPublishedCase": "excluded-control"
+    },
+    {
+      "action": "persist-cache",
+      "cacheId": "excluded-cache"
+    },
+    {
+      "action": "restart",
+      "providerOptions": {
+        "enableExperimentationOptOutParameter": true
+      },
+      "environment": "staging",
+      "context": {
+        "targetingKey": "subject-2",
+        "attributes": {
+          "dd_experimentation_opt_out": true
+        }
+      },
+      "cacheId": "excluded-cache",
+      "expectedPublishedCase": null
+    },
+    {
+      "action": "evaluate",
+      "caseId": null,
+      "expectedValue": "application-default",
+      "expectedExposureCount": 0,
+      "expectedEvaluationTelemetry": true
+    },
+    {
+      "action": "restart",
+      "providerOptions": {
+        "enableExperimentationOptOutParameter": true
+      },
+      "environment": "production",
+      "context": {
+        "targetingKey": "subject-2",
+        "attributes": {
+          "dd_experimentation_opt_out": true
+        }
+      },
+      "cacheId": "excluded-cache",
+      "expectedPublishedCase": "excluded-control"
+    },
+    {
+      "action": "evaluate",
+      "caseId": "excluded-control",
+      "expectedValue": "ordinary-baseline",
+      "expectedExposureCount": 0,
+      "expectedEvaluationTelemetry": true
+    }
+  ]
+}

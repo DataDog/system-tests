@@ -1,0 +1,88 @@
+{
+  "createdAt": "2026-10-16T12:00:00Z",
+  "format": "SERVER",
+  "observeFullEvaluationData": false,
+  "evaluationCapabilities": [
+    "experimentation-opt-out-v1"
+  ],
+  "environment": {
+    "name": "experimentation-opt-out"
+  },
+  "flags": {
+    "planner": {
+      "key": "planner",
+      "enabled": true,
+      "variationType": "STRING",
+      "variations": {
+        "baseline": {
+          "key": "baseline",
+          "value": "ordinary-baseline"
+        },
+        "control": {
+          "key": "control",
+          "value": "experimental-control"
+        },
+        "treatment": {
+          "key": "treatment",
+          "value": "experimental-treatment"
+        }
+      },
+      "allocations": [
+        {
+          "key": "experiment",
+          "rules": [],
+          "splits": [
+            {
+              "shards": [
+                {
+                  "salt": "planner-experiment-variant",
+                  "ranges": [
+                    {
+                      "start": 0,
+                      "end": 4096
+                    }
+                  ],
+                  "totalShards": 8192
+                }
+              ],
+              "variationKey": "control",
+              "serialId": 101,
+              "reason": "SPLIT"
+            },
+            {
+              "shards": [
+                {
+                  "salt": "planner-experiment-variant",
+                  "ranges": [
+                    {
+                      "start": 4096,
+                      "end": 8192
+                    }
+                  ],
+                  "totalShards": 8192
+                }
+              ],
+              "variationKey": "treatment",
+              "serialId": 102,
+              "reason": "SPLIT"
+            }
+          ],
+          "doLog": true
+        },
+        {
+          "key": "allocation-default-7feefdf76b9e",
+          "rules": [],
+          "splits": [
+            {
+              "shards": [],
+              "variationKey": "baseline",
+              "serialId": 900,
+              "reason": "DEFAULT"
+            }
+          ],
+          "doLog": false
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 1,
+  "kind": "sequence",
+  "id": "cache-participation-and-subject-identity",
+  "description": "A cache survives only for the same subject, context, and effective participation option.",
+  "steps": [
+    {
+      "action": "configure",
+      "providerOptions": {
+        "enableExperimentationOptOutParameter": true
+      }
+    },
+    {
+      "action": "set-context",
+      "context": {
+        "targetingKey": "subject-2",
+        "attributes": {
+          "dd_experimentation_opt_out": true
+        }
+      },
+      "expectedPublishedCase": null
+    },
+    {
+      "action": "start-request",
+      "requestId": "excluded",
+      "expectedEvaluationOptions": {
+        "experimentation_opt_out": true
+      }
+    },
+    {
+      "action": "deliver-response",
+      "requestId": "excluded",
+      "caseId": "excluded-control",
+      "acknowledgement": "applied",
+      "expectedAccepted": true,
+      "expectedPublishedCase": "excluded-control"
+    },
+    {
+      "action": "persist-cache",
+      "cacheId": "excluded-cache"
+    },
+    {
+      "action": "restart",
+      "providerOptions": {
+        "enableExperimentationOptOutParameter": true
+      },
+      "context": {
+        "targetingKey": "subject-2",
+        "attributes": {
+          "dd_experimentation_opt_out": true
+        }
+      },
+      "cacheId": "excluded-cache",
+      "expectedPublishedCase": "excluded-control"
+    },
+    {
+      "action": "evaluate",
+      "caseId": "excluded-control",
+      "expectedValue": "ordinary-baseline",
+      "expectedExposureCount": 0,
+      "expectedEvaluationTelemetry": true
+    },
+    {
+      "action": "restart",
+      "providerOptions": {
+        "enableExperimentationOptOutParameter": true
+      },
+      "context": {
+        "targetingKey": "subject-2",
+        "attributes": {
+          "dd_experimentation_opt_out": false
+        }
+      },
+      "cacheId": "excluded-cache",
+      "expectedPublishedCase": null
+    },
+    {
+      "action": "evaluate",
+      "caseId": null,
+      "expectedValue": "application-default",
+      "expectedExposureCount": 0,
+      "expectedEvaluationTelemetry": true
+    },
+    {
+      "action": "restart",
+      "providerOptions": {
+        "enableExperimentationOptOutParameter": true
+      },
+      "context": {
+        "targetingKey": "subject-0",
+        "attributes": {
+          "dd_experimentation_opt_out": true
+        }
+      },
+      "cacheId": "excluded-cache",
+      "expectedPublishedCase": null
+    },
+    {
+      "action": "evaluate",
+      "caseId": null,
+      "expectedValue": "application-default",
+      "expectedExposureCount": 0,
+      "expectedEvaluationTelemetry": true
+    }
+  ],
+  "flag": "two-arm",
+  "defaultValue": "application-default"
+}

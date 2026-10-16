@@ -1,0 +1,1749 @@
+[
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "generated-active-50-50-0001-eligible",
+    "description": "Independent contract expectation for active-50-50: preserve the selected assignment and exposure context.",
+    "configuration": "compiler-active-50-50",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "contract-subject-0001",
+      "attributes": {
+        "dd_experimentation_opt_out": false
+      }
+    },
+    "evaluation": {
+      "flag": "planner",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": false,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-control",
+        "allocationKey": "experiment",
+        "variationKey": "control",
+        "doLog": true,
+        "serialId": 101,
+        "wireReason": "SPLIT"
+      },
+      "value": "experimental-control",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": null
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [
+        {
+          "_count": 1
+        }
+      ],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "compiler-generated",
+      "lifecycle",
+      "generated-eligible-parity"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "generated-active-50-50-0001-excluded",
+    "description": "Independent contract expectation for active-50-50: skip all experimental allocations and select ordinary delivery.",
+    "configuration": "compiler-active-50-50",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "contract-subject-0001",
+      "attributes": {
+        "dd_experimentation_opt_out": true
+      }
+    },
+    "evaluation": {
+      "flag": "planner",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": true,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "ordinary-baseline",
+        "allocationKey": "allocation-default-7feefdf76b9e",
+        "variationKey": "baseline",
+        "doLog": false,
+        "serialId": 900,
+        "wireReason": "DEFAULT"
+      },
+      "value": "ordinary-baseline",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": {
+        "experimentation_opt_out": true
+      }
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "compiler-generated",
+      "lifecycle"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "generated-active-50-50-0005-eligible",
+    "description": "Independent contract expectation for active-50-50: preserve the selected assignment and exposure context.",
+    "configuration": "compiler-active-50-50",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "contract-subject-0005",
+      "attributes": {
+        "dd_experimentation_opt_out": false
+      }
+    },
+    "evaluation": {
+      "flag": "planner",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": false,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-treatment",
+        "allocationKey": "experiment",
+        "variationKey": "treatment",
+        "doLog": true,
+        "serialId": 102,
+        "wireReason": "SPLIT"
+      },
+      "value": "experimental-treatment",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": null
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [
+        {
+          "_count": 1
+        }
+      ],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "compiler-generated",
+      "lifecycle",
+      "generated-eligible-parity"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "generated-active-50-50-0005-excluded",
+    "description": "Independent contract expectation for active-50-50: skip all experimental allocations and select ordinary delivery.",
+    "configuration": "compiler-active-50-50",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "contract-subject-0005",
+      "attributes": {
+        "dd_experimentation_opt_out": true
+      }
+    },
+    "evaluation": {
+      "flag": "planner",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": true,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "ordinary-baseline",
+        "allocationKey": "allocation-default-7feefdf76b9e",
+        "variationKey": "baseline",
+        "doLog": false,
+        "serialId": 900,
+        "wireReason": "DEFAULT"
+      },
+      "value": "ordinary-baseline",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": {
+        "experimentation_opt_out": true
+      }
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "compiler-generated",
+      "lifecycle"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "generated-active-100-single-arm-0001-eligible",
+    "description": "Independent contract expectation for active-100-single-arm: preserve the selected assignment and exposure context.",
+    "configuration": "compiler-active-100-single-arm",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "contract-subject-0001",
+      "attributes": {
+        "dd_experimentation_opt_out": false
+      }
+    },
+    "evaluation": {
+      "flag": "planner",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": false,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-treatment",
+        "allocationKey": "experiment",
+        "variationKey": "treatment",
+        "doLog": true,
+        "serialId": 102,
+        "wireReason": "STATIC"
+      },
+      "value": "experimental-treatment",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": null
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [
+        {
+          "_count": 1
+        }
+      ],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "compiler-generated",
+      "lifecycle",
+      "generated-eligible-parity"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "generated-active-100-single-arm-0001-excluded",
+    "description": "Independent contract expectation for active-100-single-arm: skip all experimental allocations and select ordinary delivery.",
+    "configuration": "compiler-active-100-single-arm",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "contract-subject-0001",
+      "attributes": {
+        "dd_experimentation_opt_out": true
+      }
+    },
+    "evaluation": {
+      "flag": "planner",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": true,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "ordinary-baseline",
+        "allocationKey": "allocation-default-7feefdf76b9e",
+        "variationKey": "baseline",
+        "doLog": false,
+        "serialId": 900,
+        "wireReason": "DEFAULT"
+      },
+      "value": "ordinary-baseline",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": {
+        "experimentation_opt_out": true
+      }
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "compiler-generated",
+      "lifecycle"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "generated-completed-control-0001-eligible",
+    "description": "Independent contract expectation for completed-control: preserve the selected assignment and exposure context.",
+    "configuration": "compiler-completed-control",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "contract-subject-0001",
+      "attributes": {
+        "dd_experimentation_opt_out": false
+      }
+    },
+    "evaluation": {
+      "flag": "planner",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": false,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-control",
+        "allocationKey": "experiment",
+        "variationKey": "control",
+        "doLog": false,
+        "serialId": 101,
+        "wireReason": "STATIC"
+      },
+      "value": "experimental-control",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": null
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "compiler-generated",
+      "lifecycle",
+      "generated-eligible-parity"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "generated-completed-control-0001-excluded",
+    "description": "Independent contract expectation for completed-control: skip all experimental allocations and select ordinary delivery.",
+    "configuration": "compiler-completed-control",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "contract-subject-0001",
+      "attributes": {
+        "dd_experimentation_opt_out": true
+      }
+    },
+    "evaluation": {
+      "flag": "planner",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": true,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-control",
+        "allocationKey": "experiment",
+        "variationKey": "control",
+        "doLog": false,
+        "serialId": 101,
+        "wireReason": "STATIC"
+      },
+      "value": "experimental-control",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": {
+        "experimentation_opt_out": true
+      }
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "compiler-generated",
+      "lifecycle"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "generated-completed-treatment-0001-eligible",
+    "description": "Independent contract expectation for completed-treatment: preserve the selected assignment and exposure context.",
+    "configuration": "compiler-completed-treatment",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "contract-subject-0001",
+      "attributes": {
+        "dd_experimentation_opt_out": false
+      }
+    },
+    "evaluation": {
+      "flag": "planner",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": false,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-treatment",
+        "allocationKey": "experiment",
+        "variationKey": "treatment",
+        "doLog": false,
+        "serialId": 102,
+        "wireReason": "STATIC"
+      },
+      "value": "experimental-treatment",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": null
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "compiler-generated",
+      "lifecycle",
+      "generated-eligible-parity"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "generated-completed-treatment-0001-excluded",
+    "description": "Independent contract expectation for completed-treatment: skip all experimental allocations and select ordinary delivery.",
+    "configuration": "compiler-completed-treatment",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "contract-subject-0001",
+      "attributes": {
+        "dd_experimentation_opt_out": true
+      }
+    },
+    "evaluation": {
+      "flag": "planner",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": true,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-treatment",
+        "allocationKey": "experiment",
+        "variationKey": "treatment",
+        "doLog": false,
+        "serialId": 102,
+        "wireReason": "STATIC"
+      },
+      "value": "experimental-treatment",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": {
+        "experimentation_opt_out": true
+      }
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "compiler-generated",
+      "lifecycle"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "generated-holdout-active-0006-eligible",
+    "description": "Independent contract expectation for holdout-active: preserve the selected assignment and exposure context.",
+    "configuration": "compiler-holdout-active",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "contract-subject-0006",
+      "attributes": {
+        "dd_experimentation_opt_out": false
+      }
+    },
+    "evaluation": {
+      "flag": "planner",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": false,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-control",
+        "allocationKey": "experiment-holdout-quarterly",
+        "variationKey": "control",
+        "doLog": true,
+        "serialId": 201,
+        "wireReason": "SPLIT",
+        "features": [
+          {
+            "key": "holdout.key",
+            "value": "quarterly",
+            "destinations": [
+              "HOOK"
+            ]
+          },
+          {
+            "key": "holdout.assignment_group",
+            "value": "status_quo",
+            "destinations": [
+              "HOOK"
+            ]
+          },
+          {
+            "key": "holdout.should_include_in_holdout_analysis",
+            "value": false,
+            "destinations": [
+              "HOOK"
+            ]
+          }
+        ]
+      },
+      "value": "experimental-control",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": null
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [
+        {
+          "_count": 1
+        }
+      ],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "compiler-generated",
+      "lifecycle",
+      "holdout",
+      "generated-eligible-parity"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "generated-holdout-active-0006-excluded",
+    "description": "Independent contract expectation for holdout-active: skip all experimental allocations and select ordinary delivery.",
+    "configuration": "compiler-holdout-active",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "contract-subject-0006",
+      "attributes": {
+        "dd_experimentation_opt_out": true
+      }
+    },
+    "evaluation": {
+      "flag": "planner",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": true,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "ordinary-baseline",
+        "allocationKey": "allocation-default-7feefdf76b9e",
+        "variationKey": "baseline",
+        "doLog": false,
+        "serialId": 900,
+        "wireReason": "DEFAULT"
+      },
+      "value": "ordinary-baseline",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": {
+        "experimentation_opt_out": true
+      }
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "compiler-generated",
+      "lifecycle",
+      "holdout"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "generated-holdout-active-0000-eligible",
+    "description": "Independent contract expectation for holdout-active: preserve the selected assignment and exposure context.",
+    "configuration": "compiler-holdout-active",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "contract-subject-0000",
+      "attributes": {
+        "dd_experimentation_opt_out": false
+      }
+    },
+    "evaluation": {
+      "flag": "planner",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": false,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-control",
+        "allocationKey": "experiment-holdout-quarterly",
+        "variationKey": "control",
+        "doLog": true,
+        "serialId": 202,
+        "wireReason": "SPLIT",
+        "features": [
+          {
+            "key": "holdout.key",
+            "value": "quarterly",
+            "destinations": [
+              "HOOK"
+            ]
+          },
+          {
+            "key": "holdout.assignment_group",
+            "value": "all_shipped",
+            "destinations": [
+              "HOOK"
+            ]
+          },
+          {
+            "key": "holdout.should_include_in_holdout_analysis",
+            "value": false,
+            "destinations": [
+              "HOOK"
+            ]
+          }
+        ]
+      },
+      "value": "experimental-control",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": null
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [
+        {
+          "_count": 1
+        }
+      ],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "compiler-generated",
+      "lifecycle",
+      "holdout",
+      "generated-eligible-parity"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "generated-holdout-active-0000-excluded",
+    "description": "Independent contract expectation for holdout-active: skip all experimental allocations and select ordinary delivery.",
+    "configuration": "compiler-holdout-active",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "contract-subject-0000",
+      "attributes": {
+        "dd_experimentation_opt_out": true
+      }
+    },
+    "evaluation": {
+      "flag": "planner",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": true,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "ordinary-baseline",
+        "allocationKey": "allocation-default-7feefdf76b9e",
+        "variationKey": "baseline",
+        "doLog": false,
+        "serialId": 900,
+        "wireReason": "DEFAULT"
+      },
+      "value": "ordinary-baseline",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": {
+        "experimentation_opt_out": true
+      }
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "compiler-generated",
+      "lifecycle",
+      "holdout"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "generated-holdout-active-0001-eligible",
+    "description": "Independent contract expectation for holdout-active: preserve the selected assignment and exposure context.",
+    "configuration": "compiler-holdout-active",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "contract-subject-0001",
+      "attributes": {
+        "dd_experimentation_opt_out": false
+      }
+    },
+    "evaluation": {
+      "flag": "planner",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": false,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-control",
+        "allocationKey": "experiment",
+        "variationKey": "control",
+        "doLog": true,
+        "serialId": 101,
+        "wireReason": "SPLIT"
+      },
+      "value": "experimental-control",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": null
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [
+        {
+          "_count": 1
+        }
+      ],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "compiler-generated",
+      "lifecycle",
+      "holdout",
+      "generated-eligible-parity"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "generated-holdout-active-0001-excluded",
+    "description": "Independent contract expectation for holdout-active: skip all experimental allocations and select ordinary delivery.",
+    "configuration": "compiler-holdout-active",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "contract-subject-0001",
+      "attributes": {
+        "dd_experimentation_opt_out": true
+      }
+    },
+    "evaluation": {
+      "flag": "planner",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": true,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "ordinary-baseline",
+        "allocationKey": "allocation-default-7feefdf76b9e",
+        "variationKey": "baseline",
+        "doLog": false,
+        "serialId": 900,
+        "wireReason": "DEFAULT"
+      },
+      "value": "ordinary-baseline",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": {
+        "experimentation_opt_out": true
+      }
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "compiler-generated",
+      "lifecycle",
+      "holdout"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "generated-holdout-active-0005-eligible",
+    "description": "Independent contract expectation for holdout-active: preserve the selected assignment and exposure context.",
+    "configuration": "compiler-holdout-active",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "contract-subject-0005",
+      "attributes": {
+        "dd_experimentation_opt_out": false
+      }
+    },
+    "evaluation": {
+      "flag": "planner",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": false,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-treatment",
+        "allocationKey": "experiment",
+        "variationKey": "treatment",
+        "doLog": true,
+        "serialId": 102,
+        "wireReason": "SPLIT"
+      },
+      "value": "experimental-treatment",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": null
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [
+        {
+          "_count": 1
+        }
+      ],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "compiler-generated",
+      "lifecycle",
+      "holdout",
+      "generated-eligible-parity"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "generated-holdout-active-0005-excluded",
+    "description": "Independent contract expectation for holdout-active: skip all experimental allocations and select ordinary delivery.",
+    "configuration": "compiler-holdout-active",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "contract-subject-0005",
+      "attributes": {
+        "dd_experimentation_opt_out": true
+      }
+    },
+    "evaluation": {
+      "flag": "planner",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": true,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "ordinary-baseline",
+        "allocationKey": "allocation-default-7feefdf76b9e",
+        "variationKey": "baseline",
+        "doLog": false,
+        "serialId": 900,
+        "wireReason": "DEFAULT"
+      },
+      "value": "ordinary-baseline",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": {
+        "experimentation_opt_out": true
+      }
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "compiler-generated",
+      "lifecycle",
+      "holdout"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "generated-holdout-completed-control-0006-eligible",
+    "description": "Independent contract expectation for holdout-completed-control: preserve the selected assignment and exposure context.",
+    "configuration": "compiler-holdout-completed-control",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "contract-subject-0006",
+      "attributes": {
+        "dd_experimentation_opt_out": false
+      }
+    },
+    "evaluation": {
+      "flag": "planner",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": false,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-control",
+        "allocationKey": "experiment-holdout-quarterly",
+        "variationKey": "control",
+        "doLog": true,
+        "serialId": 201,
+        "wireReason": "SPLIT",
+        "features": [
+          {
+            "key": "holdout.key",
+            "value": "quarterly",
+            "destinations": [
+              "HOOK"
+            ]
+          },
+          {
+            "key": "holdout.assignment_group",
+            "value": "status_quo",
+            "destinations": [
+              "HOOK"
+            ]
+          },
+          {
+            "key": "holdout.should_include_in_holdout_analysis",
+            "value": false,
+            "destinations": [
+              "HOOK"
+            ]
+          }
+        ]
+      },
+      "value": "experimental-control",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": null
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [
+        {
+          "_count": 1
+        }
+      ],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "compiler-generated",
+      "lifecycle",
+      "holdout",
+      "generated-eligible-parity"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "generated-holdout-completed-control-0006-excluded",
+    "description": "Independent contract expectation for holdout-completed-control: skip all experimental allocations and select ordinary delivery.",
+    "configuration": "compiler-holdout-completed-control",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "contract-subject-0006",
+      "attributes": {
+        "dd_experimentation_opt_out": true
+      }
+    },
+    "evaluation": {
+      "flag": "planner",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": true,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-control",
+        "allocationKey": "experiment",
+        "variationKey": "control",
+        "doLog": false,
+        "serialId": 101,
+        "wireReason": "DEFAULT"
+      },
+      "value": "experimental-control",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": {
+        "experimentation_opt_out": true
+      }
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "compiler-generated",
+      "lifecycle",
+      "holdout"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "generated-holdout-completed-control-0000-eligible",
+    "description": "Independent contract expectation for holdout-completed-control: preserve the selected assignment and exposure context.",
+    "configuration": "compiler-holdout-completed-control",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "contract-subject-0000",
+      "attributes": {
+        "dd_experimentation_opt_out": false
+      }
+    },
+    "evaluation": {
+      "flag": "planner",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": false,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-control",
+        "allocationKey": "experiment-holdout-quarterly",
+        "variationKey": "control",
+        "doLog": true,
+        "serialId": 202,
+        "wireReason": "SPLIT",
+        "features": [
+          {
+            "key": "holdout.key",
+            "value": "quarterly",
+            "destinations": [
+              "HOOK"
+            ]
+          },
+          {
+            "key": "holdout.assignment_group",
+            "value": "all_shipped",
+            "destinations": [
+              "HOOK"
+            ]
+          },
+          {
+            "key": "holdout.should_include_in_holdout_analysis",
+            "value": false,
+            "destinations": [
+              "HOOK"
+            ]
+          }
+        ]
+      },
+      "value": "experimental-control",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": null
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [
+        {
+          "_count": 1
+        }
+      ],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "compiler-generated",
+      "lifecycle",
+      "holdout",
+      "generated-eligible-parity"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "generated-holdout-completed-control-0000-excluded",
+    "description": "Independent contract expectation for holdout-completed-control: skip all experimental allocations and select ordinary delivery.",
+    "configuration": "compiler-holdout-completed-control",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "contract-subject-0000",
+      "attributes": {
+        "dd_experimentation_opt_out": true
+      }
+    },
+    "evaluation": {
+      "flag": "planner",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": true,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-control",
+        "allocationKey": "experiment",
+        "variationKey": "control",
+        "doLog": false,
+        "serialId": 101,
+        "wireReason": "DEFAULT"
+      },
+      "value": "experimental-control",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": {
+        "experimentation_opt_out": true
+      }
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "compiler-generated",
+      "lifecycle",
+      "holdout"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "generated-holdout-completed-control-0001-eligible",
+    "description": "Independent contract expectation for holdout-completed-control: preserve the selected assignment and exposure context.",
+    "configuration": "compiler-holdout-completed-control",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "contract-subject-0001",
+      "attributes": {
+        "dd_experimentation_opt_out": false
+      }
+    },
+    "evaluation": {
+      "flag": "planner",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": false,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-control",
+        "allocationKey": "experiment",
+        "variationKey": "control",
+        "doLog": false,
+        "serialId": 101,
+        "wireReason": "DEFAULT"
+      },
+      "value": "experimental-control",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": null
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "compiler-generated",
+      "lifecycle",
+      "holdout",
+      "generated-eligible-parity"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "generated-holdout-completed-control-0001-excluded",
+    "description": "Independent contract expectation for holdout-completed-control: skip all experimental allocations and select ordinary delivery.",
+    "configuration": "compiler-holdout-completed-control",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "contract-subject-0001",
+      "attributes": {
+        "dd_experimentation_opt_out": true
+      }
+    },
+    "evaluation": {
+      "flag": "planner",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": true,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-control",
+        "allocationKey": "experiment",
+        "variationKey": "control",
+        "doLog": false,
+        "serialId": 101,
+        "wireReason": "DEFAULT"
+      },
+      "value": "experimental-control",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": {
+        "experimentation_opt_out": true
+      }
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "compiler-generated",
+      "lifecycle",
+      "holdout"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "generated-holdout-completed-treatment-0006-eligible",
+    "description": "Independent contract expectation for holdout-completed-treatment: preserve the selected assignment and exposure context.",
+    "configuration": "compiler-holdout-completed-treatment",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "contract-subject-0006",
+      "attributes": {
+        "dd_experimentation_opt_out": false
+      }
+    },
+    "evaluation": {
+      "flag": "planner",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": false,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-control",
+        "allocationKey": "experiment-holdout-quarterly",
+        "variationKey": "control",
+        "doLog": true,
+        "serialId": 301,
+        "wireReason": "SPLIT",
+        "features": [
+          {
+            "key": "holdout.key",
+            "value": "quarterly",
+            "destinations": [
+              "HOOK"
+            ]
+          },
+          {
+            "key": "holdout.assignment_group",
+            "value": "status_quo",
+            "destinations": [
+              "HOOK"
+            ]
+          },
+          {
+            "key": "holdout.should_include_in_holdout_analysis",
+            "value": true,
+            "destinations": [
+              "HOOK"
+            ]
+          }
+        ]
+      },
+      "value": "experimental-control",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": null
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [
+        {
+          "_count": 1
+        }
+      ],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "compiler-generated",
+      "lifecycle",
+      "holdout",
+      "generated-eligible-parity"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "generated-holdout-completed-treatment-0006-excluded",
+    "description": "Independent contract expectation for holdout-completed-treatment: skip all experimental allocations and select ordinary delivery.",
+    "configuration": "compiler-holdout-completed-treatment",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "contract-subject-0006",
+      "attributes": {
+        "dd_experimentation_opt_out": true
+      }
+    },
+    "evaluation": {
+      "flag": "planner",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": true,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-treatment",
+        "allocationKey": "experiment",
+        "variationKey": "treatment",
+        "doLog": false,
+        "serialId": 102,
+        "wireReason": "DEFAULT"
+      },
+      "value": "experimental-treatment",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": {
+        "experimentation_opt_out": true
+      }
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "compiler-generated",
+      "lifecycle",
+      "holdout"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "generated-holdout-completed-treatment-0000-eligible",
+    "description": "Independent contract expectation for holdout-completed-treatment: preserve the selected assignment and exposure context.",
+    "configuration": "compiler-holdout-completed-treatment",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "contract-subject-0000",
+      "attributes": {
+        "dd_experimentation_opt_out": false
+      }
+    },
+    "evaluation": {
+      "flag": "planner",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": false,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-treatment",
+        "allocationKey": "experiment-holdout-quarterly",
+        "variationKey": "treatment",
+        "doLog": true,
+        "serialId": 302,
+        "wireReason": "SPLIT",
+        "features": [
+          {
+            "key": "holdout.key",
+            "value": "quarterly",
+            "destinations": [
+              "HOOK"
+            ]
+          },
+          {
+            "key": "holdout.assignment_group",
+            "value": "all_shipped",
+            "destinations": [
+              "HOOK"
+            ]
+          },
+          {
+            "key": "holdout.should_include_in_holdout_analysis",
+            "value": true,
+            "destinations": [
+              "HOOK"
+            ]
+          }
+        ]
+      },
+      "value": "experimental-treatment",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": null
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [
+        {
+          "_count": 1
+        }
+      ],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "compiler-generated",
+      "lifecycle",
+      "holdout",
+      "generated-eligible-parity"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "generated-holdout-completed-treatment-0000-excluded",
+    "description": "Independent contract expectation for holdout-completed-treatment: skip all experimental allocations and select ordinary delivery.",
+    "configuration": "compiler-holdout-completed-treatment",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "contract-subject-0000",
+      "attributes": {
+        "dd_experimentation_opt_out": true
+      }
+    },
+    "evaluation": {
+      "flag": "planner",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": true,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-treatment",
+        "allocationKey": "experiment",
+        "variationKey": "treatment",
+        "doLog": false,
+        "serialId": 102,
+        "wireReason": "DEFAULT"
+      },
+      "value": "experimental-treatment",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": {
+        "experimentation_opt_out": true
+      }
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "compiler-generated",
+      "lifecycle",
+      "holdout"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "generated-holdout-completed-treatment-0001-eligible",
+    "description": "Independent contract expectation for holdout-completed-treatment: preserve the selected assignment and exposure context.",
+    "configuration": "compiler-holdout-completed-treatment",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "contract-subject-0001",
+      "attributes": {
+        "dd_experimentation_opt_out": false
+      }
+    },
+    "evaluation": {
+      "flag": "planner",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": false,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-treatment",
+        "allocationKey": "experiment",
+        "variationKey": "treatment",
+        "doLog": false,
+        "serialId": 102,
+        "wireReason": "DEFAULT"
+      },
+      "value": "experimental-treatment",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": null
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "compiler-generated",
+      "lifecycle",
+      "holdout",
+      "generated-eligible-parity"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "generated-holdout-completed-treatment-0001-excluded",
+    "description": "Independent contract expectation for holdout-completed-treatment: skip all experimental allocations and select ordinary delivery.",
+    "configuration": "compiler-holdout-completed-treatment",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "contract-subject-0001",
+      "attributes": {
+        "dd_experimentation_opt_out": true
+      }
+    },
+    "evaluation": {
+      "flag": "planner",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": true,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-treatment",
+        "allocationKey": "experiment",
+        "variationKey": "treatment",
+        "doLog": false,
+        "serialId": 102,
+        "wireReason": "DEFAULT"
+      },
+      "value": "experimental-treatment",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": {
+        "experimentation_opt_out": true
+      }
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "compiler-generated",
+      "lifecycle",
+      "holdout"
+    ]
+  }
+]

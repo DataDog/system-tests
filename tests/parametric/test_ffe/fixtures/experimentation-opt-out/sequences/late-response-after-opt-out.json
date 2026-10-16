@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "kind": "sequence",
+  "id": "late-response-after-opt-out",
+  "description": "A previous eligible response cannot publish after opt-out, including before the replacement request finishes.",
+  "steps": [
+    {
+      "action": "configure",
+      "providerOptions": {
+        "enableExperimentationOptOutParameter": true
+      }
+    },
+    {
+      "action": "set-context",
+      "context": {
+        "targetingKey": "subject-2",
+        "attributes": {
+          "dd_experimentation_opt_out": false
+        }
+      },
+      "expectedPublishedCase": null
+    },
+    {
+      "action": "start-request",
+      "requestId": "eligible",
+      "expectedEvaluationOptions": null
+    },
+    {
+      "action": "set-context",
+      "context": {
+        "targetingKey": "subject-2",
+        "attributes": {
+          "dd_experimentation_opt_out": true
+        }
+      },
+      "expectedPublishedCase": null
+    },
+    {
+      "action": "start-request",
+      "requestId": "excluded",
+      "expectedEvaluationOptions": {
+        "experimentation_opt_out": true
+      }
+    },
+    {
+      "action": "deliver-response",
+      "requestId": "eligible",
+      "caseId": "activation-enabled-false",
+      "acknowledgement": "missing",
+      "expectedAccepted": false,
+      "expectedPublishedCase": null
+    },
+    {
+      "action": "evaluate",
+      "caseId": null,
+      "expectedValue": "application-default",
+      "expectedExposureCount": 0,
+      "expectedEvaluationTelemetry": true
+    },
+    {
+      "action": "deliver-response",
+      "requestId": "excluded",
+      "caseId": "excluded-control",
+      "acknowledgement": "applied",
+      "expectedAccepted": true,
+      "expectedPublishedCase": "excluded-control"
+    },
+    {
+      "action": "evaluate",
+      "caseId": "excluded-control",
+      "expectedValue": "ordinary-baseline",
+      "expectedExposureCount": 0,
+      "expectedEvaluationTelemetry": true
+    }
+  ],
+  "flag": "two-arm",
+  "defaultValue": "application-default"
+}

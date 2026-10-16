@@ -1,0 +1,210 @@
+[
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "independent-experiment-false-telemetry-false",
+    "description": "independent experiment false telemetry false",
+    "configuration": "supported",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true,
+      "enableEvaluationTelemetryOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "subject-2",
+      "attributes": {
+        "dd_experimentation_opt_out": false,
+        "dd_evaluation_telemetry_opt_out": false
+      }
+    },
+    "evaluation": {
+      "flag": "two-arm",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": false,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-control",
+        "allocationKey": "experiment",
+        "variationKey": "control",
+        "doLog": true,
+        "serialId": 101,
+        "wireReason": "SPLIT"
+      },
+      "value": "experimental-control",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": null
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [
+        {
+          "_count": 1
+        }
+      ],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "independent-telemetry"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "independent-experiment-false-telemetry-true",
+    "description": "independent experiment false telemetry true",
+    "configuration": "supported",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true,
+      "enableEvaluationTelemetryOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "subject-2",
+      "attributes": {
+        "dd_experimentation_opt_out": false,
+        "dd_evaluation_telemetry_opt_out": true
+      }
+    },
+    "evaluation": {
+      "flag": "two-arm",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": false,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-control",
+        "allocationKey": "experiment",
+        "variationKey": "control",
+        "doLog": true,
+        "serialId": 101,
+        "wireReason": "SPLIT"
+      },
+      "value": "experimental-control",
+      "evaluationTelemetryEnabled": false,
+      "requestEvaluationOptions": null
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [
+        {
+          "_count": 1
+        }
+      ],
+      "evaluationEvents": []
+    },
+    "tags": [
+      "independent-telemetry"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "independent-experiment-true-telemetry-false",
+    "description": "independent experiment true telemetry false",
+    "configuration": "supported",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true,
+      "enableEvaluationTelemetryOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "subject-2",
+      "attributes": {
+        "dd_experimentation_opt_out": true,
+        "dd_evaluation_telemetry_opt_out": false
+      }
+    },
+    "evaluation": {
+      "flag": "two-arm",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": true,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "ordinary-baseline",
+        "allocationKey": "ordinary-fallback",
+        "variationKey": "baseline",
+        "doLog": false,
+        "serialId": 900,
+        "wireReason": "DEFAULT"
+      },
+      "value": "ordinary-baseline",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": {
+        "experimentation_opt_out": true
+      }
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "independent-telemetry"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "independent-experiment-true-telemetry-true",
+    "description": "independent experiment true telemetry true",
+    "configuration": "supported",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true,
+      "enableEvaluationTelemetryOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "subject-2",
+      "attributes": {
+        "dd_experimentation_opt_out": true,
+        "dd_evaluation_telemetry_opt_out": true
+      }
+    },
+    "evaluation": {
+      "flag": "two-arm",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": true,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "ordinary-baseline",
+        "allocationKey": "ordinary-fallback",
+        "variationKey": "baseline",
+        "doLog": false,
+        "serialId": 900,
+        "wireReason": "DEFAULT"
+      },
+      "value": "ordinary-baseline",
+      "evaluationTelemetryEnabled": false,
+      "requestEvaluationOptions": {
+        "experimentation_opt_out": true
+      }
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [],
+      "evaluationEvents": []
+    },
+    "tags": [
+      "independent-telemetry"
+    ]
+  }
+]

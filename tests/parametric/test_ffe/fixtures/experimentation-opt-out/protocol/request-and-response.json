@@ -1,0 +1,643 @@
+[
+  {
+    "schemaVersion": 1,
+    "kind": "protocol",
+    "id": "request-omitted",
+    "description": "Validate the explicit evaluation option without inferring activation from targeting attributes.",
+    "operation": "request-validation",
+    "requestedOptOut": false,
+    "message": {
+      "data": {
+        "type": "precompute-assignments-request",
+        "attributes": {
+          "env": {
+            "dd_env": "production"
+          },
+          "subject": {
+            "targeting_key": "subject-2",
+            "targeting_attributes": {
+              "dd_experimentation_opt_out": true
+            }
+          }
+        }
+      }
+    },
+    "expected": {
+      "accepted": true,
+      "effectiveExperimentationOptOut": false,
+      "publishAssignments": false
+    }
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "protocol",
+    "id": "request-true",
+    "description": "Validate the explicit evaluation option without inferring activation from targeting attributes.",
+    "operation": "request-validation",
+    "requestedOptOut": true,
+    "message": {
+      "data": {
+        "type": "precompute-assignments-request",
+        "attributes": {
+          "env": {
+            "dd_env": "production"
+          },
+          "subject": {
+            "targeting_key": "subject-2",
+            "targeting_attributes": {
+              "dd_experimentation_opt_out": true
+            }
+          },
+          "evaluation_options": {
+            "experimentation_opt_out": true
+          }
+        }
+      }
+    },
+    "expected": {
+      "accepted": true,
+      "effectiveExperimentationOptOut": true,
+      "publishAssignments": false
+    }
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "protocol",
+    "id": "request-false",
+    "description": "Validate the explicit evaluation option without inferring activation from targeting attributes.",
+    "operation": "request-validation",
+    "requestedOptOut": false,
+    "message": {
+      "data": {
+        "type": "precompute-assignments-request",
+        "attributes": {
+          "env": {
+            "dd_env": "production"
+          },
+          "subject": {
+            "targeting_key": "subject-2",
+            "targeting_attributes": {
+              "dd_experimentation_opt_out": true
+            }
+          },
+          "evaluation_options": {
+            "experimentation_opt_out": false
+          }
+        }
+      }
+    },
+    "expected": {
+      "accepted": true,
+      "effectiveExperimentationOptOut": false,
+      "publishAssignments": false
+    }
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "protocol",
+    "id": "request-empty",
+    "description": "Validate the explicit evaluation option without inferring activation from targeting attributes.",
+    "operation": "request-validation",
+    "requestedOptOut": false,
+    "message": {
+      "data": {
+        "type": "precompute-assignments-request",
+        "attributes": {
+          "env": {
+            "dd_env": "production"
+          },
+          "subject": {
+            "targeting_key": "subject-2",
+            "targeting_attributes": {
+              "dd_experimentation_opt_out": true
+            }
+          },
+          "evaluation_options": {}
+        }
+      }
+    },
+    "expected": {
+      "accepted": true,
+      "effectiveExperimentationOptOut": false,
+      "publishAssignments": false
+    }
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "protocol",
+    "id": "request-string",
+    "description": "Validate the explicit evaluation option without inferring activation from targeting attributes.",
+    "operation": "request-validation",
+    "requestedOptOut": false,
+    "message": {
+      "data": {
+        "type": "precompute-assignments-request",
+        "attributes": {
+          "env": {
+            "dd_env": "production"
+          },
+          "subject": {
+            "targeting_key": "subject-2",
+            "targeting_attributes": {
+              "dd_experimentation_opt_out": true
+            }
+          },
+          "evaluation_options": {
+            "experimentation_opt_out": "true"
+          }
+        }
+      }
+    },
+    "expected": {
+      "accepted": false,
+      "effectiveExperimentationOptOut": null,
+      "publishAssignments": false
+    }
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "protocol",
+    "id": "request-number",
+    "description": "Validate the explicit evaluation option without inferring activation from targeting attributes.",
+    "operation": "request-validation",
+    "requestedOptOut": false,
+    "message": {
+      "data": {
+        "type": "precompute-assignments-request",
+        "attributes": {
+          "env": {
+            "dd_env": "production"
+          },
+          "subject": {
+            "targeting_key": "subject-2",
+            "targeting_attributes": {
+              "dd_experimentation_opt_out": true
+            }
+          },
+          "evaluation_options": {
+            "experimentation_opt_out": 1
+          }
+        }
+      }
+    },
+    "expected": {
+      "accepted": false,
+      "effectiveExperimentationOptOut": null,
+      "publishAssignments": false
+    }
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "protocol",
+    "id": "request-null-value",
+    "description": "Validate the explicit evaluation option without inferring activation from targeting attributes.",
+    "operation": "request-validation",
+    "requestedOptOut": false,
+    "message": {
+      "data": {
+        "type": "precompute-assignments-request",
+        "attributes": {
+          "env": {
+            "dd_env": "production"
+          },
+          "subject": {
+            "targeting_key": "subject-2",
+            "targeting_attributes": {
+              "dd_experimentation_opt_out": true
+            }
+          },
+          "evaluation_options": {
+            "experimentation_opt_out": null
+          }
+        }
+      }
+    },
+    "expected": {
+      "accepted": false,
+      "effectiveExperimentationOptOut": null,
+      "publishAssignments": false
+    }
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "protocol",
+    "id": "request-null-options",
+    "description": "Validate the explicit evaluation option without inferring activation from targeting attributes.",
+    "operation": "request-validation",
+    "requestedOptOut": false,
+    "message": {
+      "data": {
+        "type": "precompute-assignments-request",
+        "attributes": {
+          "env": {
+            "dd_env": "production"
+          },
+          "subject": {
+            "targeting_key": "subject-2",
+            "targeting_attributes": {
+              "dd_experimentation_opt_out": true
+            }
+          },
+          "evaluation_options": null
+        }
+      }
+    },
+    "expected": {
+      "accepted": false,
+      "effectiveExperimentationOptOut": null,
+      "publishAssignments": false
+    }
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "protocol",
+    "id": "request-array-options",
+    "description": "Validate the explicit evaluation option without inferring activation from targeting attributes.",
+    "operation": "request-validation",
+    "requestedOptOut": false,
+    "message": {
+      "data": {
+        "type": "precompute-assignments-request",
+        "attributes": {
+          "env": {
+            "dd_env": "production"
+          },
+          "subject": {
+            "targeting_key": "subject-2",
+            "targeting_attributes": {
+              "dd_experimentation_opt_out": true
+            }
+          },
+          "evaluation_options": []
+        }
+      }
+    },
+    "expected": {
+      "accepted": false,
+      "effectiveExperimentationOptOut": null,
+      "publishAssignments": false
+    }
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "protocol",
+    "id": "response-applied",
+    "description": "Publish assignments only when response acknowledgement matches the requested participation state.",
+    "operation": "response-validation",
+    "requestedOptOut": true,
+    "message": {
+      "data": {
+        "attributes": {
+          "createdAt": "2026-10-16T12:00:00Z",
+          "flags": {
+            "two-arm": {
+              "allocationKey": "ordinary-fallback",
+              "variationKey": "baseline",
+              "variationType": "string",
+              "variationValue": "ordinary-baseline",
+              "reason": "DEFAULT",
+              "doLog": false,
+              "serialId": 900
+            }
+          },
+          "evaluation_options": {
+            "experimentation_opt_out": true
+          }
+        }
+      }
+    },
+    "expected": {
+      "accepted": true,
+      "effectiveExperimentationOptOut": true,
+      "publishAssignments": true
+    }
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "protocol",
+    "id": "response-missing-ack",
+    "description": "Publish assignments only when response acknowledgement matches the requested participation state.",
+    "operation": "response-validation",
+    "requestedOptOut": true,
+    "message": {
+      "data": {
+        "attributes": {
+          "createdAt": "2026-10-16T12:00:00Z",
+          "flags": {
+            "two-arm": {
+              "allocationKey": "ordinary-fallback",
+              "variationKey": "baseline",
+              "variationType": "string",
+              "variationValue": "ordinary-baseline",
+              "reason": "DEFAULT",
+              "doLog": false,
+              "serialId": 900
+            }
+          }
+        }
+      }
+    },
+    "expected": {
+      "accepted": false,
+      "effectiveExperimentationOptOut": null,
+      "publishAssignments": false
+    }
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "protocol",
+    "id": "response-empty-ack",
+    "description": "Publish assignments only when response acknowledgement matches the requested participation state.",
+    "operation": "response-validation",
+    "requestedOptOut": true,
+    "message": {
+      "data": {
+        "attributes": {
+          "createdAt": "2026-10-16T12:00:00Z",
+          "flags": {
+            "two-arm": {
+              "allocationKey": "ordinary-fallback",
+              "variationKey": "baseline",
+              "variationType": "string",
+              "variationValue": "ordinary-baseline",
+              "reason": "DEFAULT",
+              "doLog": false,
+              "serialId": 900
+            }
+          },
+          "evaluation_options": {}
+        }
+      }
+    },
+    "expected": {
+      "accepted": false,
+      "effectiveExperimentationOptOut": null,
+      "publishAssignments": false
+    }
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "protocol",
+    "id": "response-false-ack",
+    "description": "Publish assignments only when response acknowledgement matches the requested participation state.",
+    "operation": "response-validation",
+    "requestedOptOut": true,
+    "message": {
+      "data": {
+        "attributes": {
+          "createdAt": "2026-10-16T12:00:00Z",
+          "flags": {
+            "two-arm": {
+              "allocationKey": "ordinary-fallback",
+              "variationKey": "baseline",
+              "variationType": "string",
+              "variationValue": "ordinary-baseline",
+              "reason": "DEFAULT",
+              "doLog": false,
+              "serialId": 900
+            }
+          },
+          "evaluation_options": {
+            "experimentation_opt_out": false
+          }
+        }
+      }
+    },
+    "expected": {
+      "accepted": false,
+      "effectiveExperimentationOptOut": null,
+      "publishAssignments": false
+    }
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "protocol",
+    "id": "response-string-ack",
+    "description": "Publish assignments only when response acknowledgement matches the requested participation state.",
+    "operation": "response-validation",
+    "requestedOptOut": true,
+    "message": {
+      "data": {
+        "attributes": {
+          "createdAt": "2026-10-16T12:00:00Z",
+          "flags": {
+            "two-arm": {
+              "allocationKey": "ordinary-fallback",
+              "variationKey": "baseline",
+              "variationType": "string",
+              "variationValue": "ordinary-baseline",
+              "reason": "DEFAULT",
+              "doLog": false,
+              "serialId": 900
+            }
+          },
+          "evaluation_options": {
+            "experimentation_opt_out": "true"
+          }
+        }
+      }
+    },
+    "expected": {
+      "accepted": false,
+      "effectiveExperimentationOptOut": null,
+      "publishAssignments": false
+    }
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "protocol",
+    "id": "response-number-ack",
+    "description": "Publish assignments only when response acknowledgement matches the requested participation state.",
+    "operation": "response-validation",
+    "requestedOptOut": true,
+    "message": {
+      "data": {
+        "attributes": {
+          "createdAt": "2026-10-16T12:00:00Z",
+          "flags": {
+            "two-arm": {
+              "allocationKey": "ordinary-fallback",
+              "variationKey": "baseline",
+              "variationType": "string",
+              "variationValue": "ordinary-baseline",
+              "reason": "DEFAULT",
+              "doLog": false,
+              "serialId": 900
+            }
+          },
+          "evaluation_options": {
+            "experimentation_opt_out": 1
+          }
+        }
+      }
+    },
+    "expected": {
+      "accepted": false,
+      "effectiveExperimentationOptOut": null,
+      "publishAssignments": false
+    }
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "protocol",
+    "id": "response-null-ack",
+    "description": "Publish assignments only when response acknowledgement matches the requested participation state.",
+    "operation": "response-validation",
+    "requestedOptOut": true,
+    "message": {
+      "data": {
+        "attributes": {
+          "createdAt": "2026-10-16T12:00:00Z",
+          "flags": {
+            "two-arm": {
+              "allocationKey": "ordinary-fallback",
+              "variationKey": "baseline",
+              "variationType": "string",
+              "variationValue": "ordinary-baseline",
+              "reason": "DEFAULT",
+              "doLog": false,
+              "serialId": 900
+            }
+          },
+          "evaluation_options": null
+        }
+      }
+    },
+    "expected": {
+      "accepted": false,
+      "effectiveExperimentationOptOut": null,
+      "publishAssignments": false
+    }
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "protocol",
+    "id": "response-array-ack",
+    "description": "Publish assignments only when response acknowledgement matches the requested participation state.",
+    "operation": "response-validation",
+    "requestedOptOut": true,
+    "message": {
+      "data": {
+        "attributes": {
+          "createdAt": "2026-10-16T12:00:00Z",
+          "flags": {
+            "two-arm": {
+              "allocationKey": "ordinary-fallback",
+              "variationKey": "baseline",
+              "variationType": "string",
+              "variationValue": "ordinary-baseline",
+              "reason": "DEFAULT",
+              "doLog": false,
+              "serialId": 900
+            }
+          },
+          "evaluation_options": []
+        }
+      }
+    },
+    "expected": {
+      "accepted": false,
+      "effectiveExperimentationOptOut": null,
+      "publishAssignments": false
+    }
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "protocol",
+    "id": "response-legacy-ordinary",
+    "description": "Publish assignments only when response acknowledgement matches the requested participation state.",
+    "operation": "response-validation",
+    "requestedOptOut": false,
+    "message": {
+      "data": {
+        "attributes": {
+          "createdAt": "2026-10-16T12:00:00Z",
+          "flags": {
+            "two-arm": {
+              "allocationKey": "ordinary-fallback",
+              "variationKey": "baseline",
+              "variationType": "string",
+              "variationValue": "ordinary-baseline",
+              "reason": "DEFAULT",
+              "doLog": false,
+              "serialId": 900
+            }
+          }
+        }
+      }
+    },
+    "expected": {
+      "accepted": true,
+      "effectiveExperimentationOptOut": false,
+      "publishAssignments": true
+    }
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "protocol",
+    "id": "response-explicit-ordinary",
+    "description": "Publish assignments only when response acknowledgement matches the requested participation state.",
+    "operation": "response-validation",
+    "requestedOptOut": false,
+    "message": {
+      "data": {
+        "attributes": {
+          "createdAt": "2026-10-16T12:00:00Z",
+          "flags": {
+            "two-arm": {
+              "allocationKey": "ordinary-fallback",
+              "variationKey": "baseline",
+              "variationType": "string",
+              "variationValue": "ordinary-baseline",
+              "reason": "DEFAULT",
+              "doLog": false,
+              "serialId": 900
+            }
+          },
+          "evaluation_options": {
+            "experimentation_opt_out": false
+          }
+        }
+      }
+    },
+    "expected": {
+      "accepted": true,
+      "effectiveExperimentationOptOut": false,
+      "publishAssignments": true
+    }
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "protocol",
+    "id": "response-contradictory-ordinary",
+    "description": "Publish assignments only when response acknowledgement matches the requested participation state.",
+    "operation": "response-validation",
+    "requestedOptOut": false,
+    "message": {
+      "data": {
+        "attributes": {
+          "createdAt": "2026-10-16T12:00:00Z",
+          "flags": {
+            "two-arm": {
+              "allocationKey": "ordinary-fallback",
+              "variationKey": "baseline",
+              "variationType": "string",
+              "variationValue": "ordinary-baseline",
+              "reason": "DEFAULT",
+              "doLog": false,
+              "serialId": 900
+            }
+          },
+          "evaluation_options": {
+            "experimentation_opt_out": true
+          }
+        }
+      }
+    },
+    "expected": {
+      "accepted": false,
+      "effectiveExperimentationOptOut": null,
+      "publishAssignments": false
+    }
+  }
+]

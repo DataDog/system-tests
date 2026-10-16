@@ -1,0 +1,234 @@
+[
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "legacy-ordinary",
+    "description": "legacy ordinary",
+    "configuration": "legacy-without-capability",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": false
+    },
+    "context": {
+      "targetingKey": "subject-2",
+      "attributes": {
+        "dd_experimentation_opt_out": true
+      }
+    },
+    "evaluation": {
+      "flag": "two-arm",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": false,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-control",
+        "allocationKey": "experiment",
+        "variationKey": "control",
+        "doLog": true,
+        "serialId": 101,
+        "wireReason": "SPLIT"
+      },
+      "value": "experimental-control",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": null
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [
+        {
+          "_count": 1
+        }
+      ],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "compatibility"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "legacy-excluded",
+    "description": "legacy excluded",
+    "configuration": "legacy-without-capability",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "subject-2",
+      "attributes": {
+        "dd_experimentation_opt_out": true
+      }
+    },
+    "evaluation": {
+      "flag": "two-arm",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": true,
+      "outcome": "incompatible-configuration",
+      "assignment": null,
+      "value": "application-default",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": {
+        "experimentation_opt_out": true
+      }
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "compatibility"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "missing-dolog-excluded",
+    "description": "missing dolog excluded",
+    "configuration": "missing-dolog",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "subject-2",
+      "attributes": {
+        "dd_experimentation_opt_out": true
+      }
+    },
+    "evaluation": {
+      "flag": "two-arm",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": true,
+      "outcome": "invalid-configuration",
+      "assignment": null,
+      "value": "application-default",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": {
+        "experimentation_opt_out": true
+      }
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "compatibility",
+      "missing-dolog"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "legacy-winner-not-misclassified",
+    "description": "legacy winner not misclassified",
+    "configuration": "legacy-without-capability",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "subject-2",
+      "attributes": {
+        "dd_experimentation_opt_out": true
+      }
+    },
+    "evaluation": {
+      "flag": "winner-treatment",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": true,
+      "outcome": "incompatible-configuration",
+      "assignment": null,
+      "value": "application-default",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": {
+        "experimentation_opt_out": true
+      }
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "compatibility",
+      "winner"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "legacy-pruned-fallback-not-used",
+    "description": "legacy pruned fallback not used",
+    "configuration": "legacy-without-capability",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "subject-2",
+      "attributes": {
+        "dd_experimentation_opt_out": true
+      }
+    },
+    "evaluation": {
+      "flag": "full-enrollment-experiment",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": true,
+      "outcome": "incompatible-configuration",
+      "assignment": null,
+      "value": "application-default",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": {
+        "experimentation_opt_out": true
+      }
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "compatibility",
+      "optimizer"
+    ]
+  }
+]

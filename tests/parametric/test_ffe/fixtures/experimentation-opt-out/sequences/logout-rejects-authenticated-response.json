@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "kind": "sequence",
+  "id": "logout-rejects-authenticated-response",
+  "description": "A response for the previous subject cannot publish after logout changes the subject.",
+  "steps": [
+    {
+      "action": "configure",
+      "providerOptions": {
+        "enableExperimentationOptOutParameter": true
+      }
+    },
+    {
+      "action": "set-context",
+      "context": {
+        "targetingKey": "subject-2",
+        "attributes": {
+          "dd_experimentation_opt_out": false
+        }
+      },
+      "expectedPublishedCase": null
+    },
+    {
+      "action": "start-request",
+      "requestId": "athlete",
+      "expectedEvaluationOptions": null
+    },
+    {
+      "action": "set-context",
+      "context": {
+        "targetingKey": "anonymous",
+        "attributes": {
+          "dd_experimentation_opt_out": true
+        }
+      },
+      "expectedPublishedCase": null
+    },
+    {
+      "action": "deliver-response",
+      "requestId": "athlete",
+      "caseId": "activation-enabled-false",
+      "acknowledgement": "missing",
+      "expectedAccepted": false,
+      "expectedPublishedCase": null
+    },
+    {
+      "action": "evaluate",
+      "caseId": null,
+      "expectedValue": "application-default",
+      "expectedExposureCount": 0,
+      "expectedEvaluationTelemetry": true
+    }
+  ],
+  "flag": "two-arm",
+  "defaultValue": "application-default"
+}

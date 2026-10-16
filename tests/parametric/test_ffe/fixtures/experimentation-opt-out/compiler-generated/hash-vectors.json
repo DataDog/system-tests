@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 1,
+  "kind": "independent-shard-vectors",
+  "algorithm": "MD5 UTF-8 salt-targetingKey; first four bytes as unsigned big-endian integer modulo totalShards. Computed independently with Python hashlib, not a Datadog evaluator.",
+  "vectors": [
+    {
+      "targetingKey": "contract-subject-0000",
+      "salt": "planner-experiment-variant",
+      "totalShards": 8192,
+      "md5": "e39414496e299eb70ee759f2a7207070",
+      "shard": 5193
+    },
+    {
+      "targetingKey": "contract-subject-0000",
+      "salt": "quarterly-holdout-traffic",
+      "totalShards": 1048576,
+      "md5": "593136accf9296a58bfc750b73f86b3a",
+      "shard": 79532
+    },
+    {
+      "targetingKey": "contract-subject-0000",
+      "salt": "quarterly-holdout-split",
+      "totalShards": 8192,
+      "md5": "24bc109583e09b9b3e1d6f47531ee4fd",
+      "shard": 4245
+    },
+    {
+      "targetingKey": "contract-subject-0001",
+      "salt": "planner-experiment-variant",
+      "totalShards": 8192,
+      "md5": "4e8f826f26fb3334ed4bd10e4ddb5f81",
+      "shard": 623
+    },
+    {
+      "targetingKey": "contract-subject-0001",
+      "salt": "quarterly-holdout-traffic",
+      "totalShards": 1048576,
+      "md5": "0e446b84c1679347890594b4bd1d64f1",
+      "shard": 289668
+    },
+    {
+      "targetingKey": "contract-subject-0001",
+      "salt": "quarterly-holdout-split",
+      "totalShards": 8192,
+      "md5": "690a4d2a935cb0ce5026878a0f364c88",
+      "shard": 3370
+    },
+    {
+      "targetingKey": "contract-subject-0005",
+      "salt": "planner-experiment-variant",
+      "totalShards": 8192,
+      "md5": "1180b0af3f603af395b85978075c62f3",
+      "shard": 4271
+    },
+    {
+      "targetingKey": "contract-subject-0005",
+      "salt": "quarterly-holdout-traffic",
+      "totalShards": 1048576,
+      "md5": "821c18a08ed0d52a418318d0c6c013c8",
+      "shard": 792736
+    },
+    {
+      "targetingKey": "contract-subject-0005",
+      "salt": "quarterly-holdout-split",
+      "totalShards": 8192,
+      "md5": "c26725b7d31575c43bbfe66f53902139",
+      "shard": 1463
+    },
+    {
+      "targetingKey": "contract-subject-0006",
+      "salt": "planner-experiment-variant",
+      "totalShards": 8192,
+      "md5": "26040e3bef8aeb6e639639c56451d8a8",
+      "shard": 3643
+    },
+    {
+      "targetingKey": "contract-subject-0006",
+      "salt": "quarterly-holdout-traffic",
+      "totalShards": 1048576,
+      "md5": "c061339433789c86027ffa700d193546",
+      "shard": 78740
+    },
+    {
+      "targetingKey": "contract-subject-0006",
+      "salt": "quarterly-holdout-split",
+      "totalShards": 8192,
+      "md5": "4b1926ba846ffeb8ee19020dc8feca8e",
+      "shard": 1722
+    }
+  ],
+  "subjectRoles": [
+    {
+      "targetingKey": "contract-subject-0000",
+      "role": "Holdout all_shipped: traffic 79532 < 209715; split 4245 >= 4096. Outside holdout, the experiment selects treatment."
+    },
+    {
+      "targetingKey": "contract-subject-0001",
+      "role": "Outside holdout: traffic 289668 >= 209715. Experiment control: variant shard 623 < 4096."
+    },
+    {
+      "targetingKey": "contract-subject-0005",
+      "role": "Outside holdout: traffic 792736 >= 209715. Experiment treatment: variant shard 4271 >= 4096."
+    },
+    {
+      "targetingKey": "contract-subject-0006",
+      "role": "Holdout status_quo: traffic 78740 < 209715; split 1722 < 4096."
+    }
+  ]
+}

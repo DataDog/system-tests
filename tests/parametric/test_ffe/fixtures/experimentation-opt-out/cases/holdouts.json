@@ -1,0 +1,1340 @@
+[
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "holdout-before-route-status-quo-eligible",
+    "description": "holdout before route status quo eligible",
+    "configuration": "supported",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "subject-2",
+      "attributes": {
+        "dd_experimentation_opt_out": false
+      }
+    },
+    "evaluation": {
+      "flag": "holdout-before-route",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": false,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-control",
+        "allocationKey": "generated-holdout-route",
+        "variationKey": "control",
+        "doLog": true,
+        "serialId": 401,
+        "wireReason": "SPLIT",
+        "features": [
+          {
+            "key": "holdout.key",
+            "value": "shared-holdout",
+            "destinations": [
+              "HOOK"
+            ]
+          },
+          {
+            "key": "holdout.assignment_group",
+            "value": "status_quo",
+            "destinations": [
+              "HOOK"
+            ]
+          },
+          {
+            "key": "holdout.should_include_in_holdout_analysis",
+            "value": false,
+            "destinations": [
+              "HOOK"
+            ]
+          }
+        ]
+      },
+      "value": "experimental-control",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": null
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [
+        {
+          "_count": 1
+        }
+      ],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "holdout",
+      "before",
+      "status-quo",
+      "shared-holdout"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "holdout-before-route-status-quo-excluded",
+    "description": "holdout before route status quo excluded",
+    "configuration": "supported",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "subject-2",
+      "attributes": {
+        "dd_experimentation_opt_out": true
+      }
+    },
+    "evaluation": {
+      "flag": "holdout-before-route",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": true,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "ordinary-baseline",
+        "allocationKey": "ordinary-fallback",
+        "variationKey": "baseline",
+        "doLog": false,
+        "serialId": 900,
+        "wireReason": "DEFAULT"
+      },
+      "value": "ordinary-baseline",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": {
+        "experimentation_opt_out": true
+      }
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "holdout",
+      "before",
+      "status-quo",
+      "shared-holdout"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "holdout-before-route-all-shipped-eligible",
+    "description": "holdout before route all shipped eligible",
+    "configuration": "supported",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "subject-0",
+      "attributes": {
+        "dd_experimentation_opt_out": false
+      }
+    },
+    "evaluation": {
+      "flag": "holdout-before-route",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": false,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-control",
+        "allocationKey": "generated-holdout-route",
+        "variationKey": "control",
+        "doLog": true,
+        "serialId": 402,
+        "wireReason": "SPLIT",
+        "features": [
+          {
+            "key": "holdout.key",
+            "value": "shared-holdout",
+            "destinations": [
+              "HOOK"
+            ]
+          },
+          {
+            "key": "holdout.assignment_group",
+            "value": "all_shipped",
+            "destinations": [
+              "HOOK"
+            ]
+          },
+          {
+            "key": "holdout.should_include_in_holdout_analysis",
+            "value": false,
+            "destinations": [
+              "HOOK"
+            ]
+          }
+        ]
+      },
+      "value": "experimental-control",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": null
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [
+        {
+          "_count": 1
+        }
+      ],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "holdout",
+      "before",
+      "all-shipped",
+      "shared-holdout"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "holdout-before-route-all-shipped-excluded",
+    "description": "holdout before route all shipped excluded",
+    "configuration": "supported",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "subject-0",
+      "attributes": {
+        "dd_experimentation_opt_out": true
+      }
+    },
+    "evaluation": {
+      "flag": "holdout-before-route",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": true,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "ordinary-baseline",
+        "allocationKey": "ordinary-fallback",
+        "variationKey": "baseline",
+        "doLog": false,
+        "serialId": 900,
+        "wireReason": "DEFAULT"
+      },
+      "value": "ordinary-baseline",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": {
+        "experimentation_opt_out": true
+      }
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "holdout",
+      "before",
+      "all-shipped",
+      "shared-holdout"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "holdout-before-search-status-quo-eligible",
+    "description": "holdout before search status quo eligible",
+    "configuration": "supported",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "subject-2",
+      "attributes": {
+        "dd_experimentation_opt_out": false
+      }
+    },
+    "evaluation": {
+      "flag": "holdout-before-search",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": false,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-control",
+        "allocationKey": "generated-holdout-search",
+        "variationKey": "control",
+        "doLog": true,
+        "serialId": 501,
+        "wireReason": "SPLIT",
+        "features": [
+          {
+            "key": "holdout.key",
+            "value": "shared-holdout",
+            "destinations": [
+              "HOOK"
+            ]
+          },
+          {
+            "key": "holdout.assignment_group",
+            "value": "status_quo",
+            "destinations": [
+              "HOOK"
+            ]
+          },
+          {
+            "key": "holdout.should_include_in_holdout_analysis",
+            "value": false,
+            "destinations": [
+              "HOOK"
+            ]
+          }
+        ]
+      },
+      "value": "experimental-control",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": null
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [
+        {
+          "_count": 1
+        }
+      ],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "holdout",
+      "before",
+      "status-quo",
+      "shared-holdout"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "holdout-before-search-status-quo-excluded",
+    "description": "holdout before search status quo excluded",
+    "configuration": "supported",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "subject-2",
+      "attributes": {
+        "dd_experimentation_opt_out": true
+      }
+    },
+    "evaluation": {
+      "flag": "holdout-before-search",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": true,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "ordinary-baseline",
+        "allocationKey": "ordinary-fallback",
+        "variationKey": "baseline",
+        "doLog": false,
+        "serialId": 900,
+        "wireReason": "DEFAULT"
+      },
+      "value": "ordinary-baseline",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": {
+        "experimentation_opt_out": true
+      }
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "holdout",
+      "before",
+      "status-quo",
+      "shared-holdout"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "holdout-before-search-all-shipped-eligible",
+    "description": "holdout before search all shipped eligible",
+    "configuration": "supported",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "subject-0",
+      "attributes": {
+        "dd_experimentation_opt_out": false
+      }
+    },
+    "evaluation": {
+      "flag": "holdout-before-search",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": false,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-control",
+        "allocationKey": "generated-holdout-search",
+        "variationKey": "control",
+        "doLog": true,
+        "serialId": 502,
+        "wireReason": "SPLIT",
+        "features": [
+          {
+            "key": "holdout.key",
+            "value": "shared-holdout",
+            "destinations": [
+              "HOOK"
+            ]
+          },
+          {
+            "key": "holdout.assignment_group",
+            "value": "all_shipped",
+            "destinations": [
+              "HOOK"
+            ]
+          },
+          {
+            "key": "holdout.should_include_in_holdout_analysis",
+            "value": false,
+            "destinations": [
+              "HOOK"
+            ]
+          }
+        ]
+      },
+      "value": "experimental-control",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": null
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [
+        {
+          "_count": 1
+        }
+      ],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "holdout",
+      "before",
+      "all-shipped",
+      "shared-holdout"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "holdout-before-search-all-shipped-excluded",
+    "description": "holdout before search all shipped excluded",
+    "configuration": "supported",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "subject-0",
+      "attributes": {
+        "dd_experimentation_opt_out": true
+      }
+    },
+    "evaluation": {
+      "flag": "holdout-before-search",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": true,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "ordinary-baseline",
+        "allocationKey": "ordinary-fallback",
+        "variationKey": "baseline",
+        "doLog": false,
+        "serialId": 900,
+        "wireReason": "DEFAULT"
+      },
+      "value": "ordinary-baseline",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": {
+        "experimentation_opt_out": true
+      }
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "holdout",
+      "before",
+      "all-shipped",
+      "shared-holdout"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "holdout-after-route-status-quo-eligible",
+    "description": "holdout after route status quo eligible",
+    "configuration": "supported",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "subject-2",
+      "attributes": {
+        "dd_experimentation_opt_out": false
+      }
+    },
+    "evaluation": {
+      "flag": "holdout-after-route",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": false,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-control",
+        "allocationKey": "generated-holdout-route",
+        "variationKey": "control",
+        "doLog": true,
+        "serialId": 411,
+        "wireReason": "SPLIT",
+        "features": [
+          {
+            "key": "holdout.key",
+            "value": "shared-holdout",
+            "destinations": [
+              "HOOK"
+            ]
+          },
+          {
+            "key": "holdout.assignment_group",
+            "value": "status_quo",
+            "destinations": [
+              "HOOK"
+            ]
+          },
+          {
+            "key": "holdout.should_include_in_holdout_analysis",
+            "value": true,
+            "destinations": [
+              "HOOK"
+            ]
+          }
+        ]
+      },
+      "value": "experimental-control",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": null
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [
+        {
+          "_count": 1
+        }
+      ],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "holdout",
+      "after",
+      "status-quo",
+      "shared-holdout"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "holdout-after-route-status-quo-excluded",
+    "description": "holdout after route status quo excluded",
+    "configuration": "supported",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "subject-2",
+      "attributes": {
+        "dd_experimentation_opt_out": true
+      }
+    },
+    "evaluation": {
+      "flag": "holdout-after-route",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": true,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-treatment",
+        "allocationKey": "winner-rollout",
+        "variationKey": "treatment",
+        "doLog": false,
+        "serialId": 802,
+        "wireReason": "DEFAULT"
+      },
+      "value": "experimental-treatment",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": {
+        "experimentation_opt_out": true
+      }
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "holdout",
+      "after",
+      "status-quo",
+      "shared-holdout"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "holdout-after-route-all-shipped-eligible",
+    "description": "holdout after route all shipped eligible",
+    "configuration": "supported",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "subject-0",
+      "attributes": {
+        "dd_experimentation_opt_out": false
+      }
+    },
+    "evaluation": {
+      "flag": "holdout-after-route",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": false,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-treatment",
+        "allocationKey": "generated-holdout-route",
+        "variationKey": "treatment",
+        "doLog": true,
+        "serialId": 412,
+        "wireReason": "SPLIT",
+        "features": [
+          {
+            "key": "holdout.key",
+            "value": "shared-holdout",
+            "destinations": [
+              "HOOK"
+            ]
+          },
+          {
+            "key": "holdout.assignment_group",
+            "value": "all_shipped",
+            "destinations": [
+              "HOOK"
+            ]
+          },
+          {
+            "key": "holdout.should_include_in_holdout_analysis",
+            "value": true,
+            "destinations": [
+              "HOOK"
+            ]
+          }
+        ]
+      },
+      "value": "experimental-treatment",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": null
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [
+        {
+          "_count": 1
+        }
+      ],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "holdout",
+      "after",
+      "all-shipped",
+      "shared-holdout"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "holdout-after-route-all-shipped-excluded",
+    "description": "holdout after route all shipped excluded",
+    "configuration": "supported",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "subject-0",
+      "attributes": {
+        "dd_experimentation_opt_out": true
+      }
+    },
+    "evaluation": {
+      "flag": "holdout-after-route",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": true,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-treatment",
+        "allocationKey": "winner-rollout",
+        "variationKey": "treatment",
+        "doLog": false,
+        "serialId": 802,
+        "wireReason": "DEFAULT"
+      },
+      "value": "experimental-treatment",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": {
+        "experimentation_opt_out": true
+      }
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "holdout",
+      "after",
+      "all-shipped",
+      "shared-holdout"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "holdout-after-search-status-quo-eligible",
+    "description": "holdout after search status quo eligible",
+    "configuration": "supported",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "subject-2",
+      "attributes": {
+        "dd_experimentation_opt_out": false
+      }
+    },
+    "evaluation": {
+      "flag": "holdout-after-search",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": false,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-control",
+        "allocationKey": "generated-holdout-search",
+        "variationKey": "control",
+        "doLog": true,
+        "serialId": 511,
+        "wireReason": "SPLIT",
+        "features": [
+          {
+            "key": "holdout.key",
+            "value": "shared-holdout",
+            "destinations": [
+              "HOOK"
+            ]
+          },
+          {
+            "key": "holdout.assignment_group",
+            "value": "status_quo",
+            "destinations": [
+              "HOOK"
+            ]
+          },
+          {
+            "key": "holdout.should_include_in_holdout_analysis",
+            "value": true,
+            "destinations": [
+              "HOOK"
+            ]
+          }
+        ]
+      },
+      "value": "experimental-control",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": null
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [
+        {
+          "_count": 1
+        }
+      ],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "holdout",
+      "after",
+      "status-quo",
+      "shared-holdout"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "holdout-after-search-status-quo-excluded",
+    "description": "holdout after search status quo excluded",
+    "configuration": "supported",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "subject-2",
+      "attributes": {
+        "dd_experimentation_opt_out": true
+      }
+    },
+    "evaluation": {
+      "flag": "holdout-after-search",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": true,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-treatment",
+        "allocationKey": "winner-rollout",
+        "variationKey": "treatment",
+        "doLog": false,
+        "serialId": 852,
+        "wireReason": "DEFAULT"
+      },
+      "value": "experimental-treatment",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": {
+        "experimentation_opt_out": true
+      }
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "holdout",
+      "after",
+      "status-quo",
+      "shared-holdout"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "holdout-after-search-all-shipped-eligible",
+    "description": "holdout after search all shipped eligible",
+    "configuration": "supported",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "subject-0",
+      "attributes": {
+        "dd_experimentation_opt_out": false
+      }
+    },
+    "evaluation": {
+      "flag": "holdout-after-search",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": false,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-treatment",
+        "allocationKey": "generated-holdout-search",
+        "variationKey": "treatment",
+        "doLog": true,
+        "serialId": 512,
+        "wireReason": "SPLIT",
+        "features": [
+          {
+            "key": "holdout.key",
+            "value": "shared-holdout",
+            "destinations": [
+              "HOOK"
+            ]
+          },
+          {
+            "key": "holdout.assignment_group",
+            "value": "all_shipped",
+            "destinations": [
+              "HOOK"
+            ]
+          },
+          {
+            "key": "holdout.should_include_in_holdout_analysis",
+            "value": true,
+            "destinations": [
+              "HOOK"
+            ]
+          }
+        ]
+      },
+      "value": "experimental-treatment",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": null
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [
+        {
+          "_count": 1
+        }
+      ],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "holdout",
+      "after",
+      "all-shipped",
+      "shared-holdout"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "holdout-after-search-all-shipped-excluded",
+    "description": "holdout after search all shipped excluded",
+    "configuration": "supported",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "subject-0",
+      "attributes": {
+        "dd_experimentation_opt_out": true
+      }
+    },
+    "evaluation": {
+      "flag": "holdout-after-search",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": true,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-treatment",
+        "allocationKey": "winner-rollout",
+        "variationKey": "treatment",
+        "doLog": false,
+        "serialId": 852,
+        "wireReason": "DEFAULT"
+      },
+      "value": "experimental-treatment",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": {
+        "experimentation_opt_out": true
+      }
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "holdout",
+      "after",
+      "all-shipped",
+      "shared-holdout"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "holdout-control-winner-route-status-quo-eligible",
+    "description": "A control winner does not begin primary holdout analysis. Opt-out skips the holdout and reaches the ordinary control winner.",
+    "configuration": "supported",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "subject-2",
+      "attributes": {
+        "dd_experimentation_opt_out": false
+      }
+    },
+    "evaluation": {
+      "flag": "holdout-control-winner-route",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": false,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-control",
+        "allocationKey": "generated-holdout-control-winner",
+        "variationKey": "control",
+        "doLog": true,
+        "serialId": 601,
+        "wireReason": "SPLIT",
+        "features": [
+          {
+            "key": "holdout.key",
+            "value": "shared-holdout",
+            "destinations": [
+              "HOOK"
+            ]
+          },
+          {
+            "key": "holdout.assignment_group",
+            "value": "status_quo",
+            "destinations": [
+              "HOOK"
+            ]
+          },
+          {
+            "key": "holdout.should_include_in_holdout_analysis",
+            "value": false,
+            "destinations": [
+              "HOOK"
+            ]
+          }
+        ]
+      },
+      "value": "experimental-control",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": null
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [
+        {
+          "_count": 1
+        }
+      ],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "holdout",
+      "before",
+      "status-quo",
+      "shared-holdout",
+      "control-winner",
+      "lifecycle"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "holdout-control-winner-route-status-quo-excluded",
+    "description": "A control winner does not begin primary holdout analysis. Opt-out skips the holdout and reaches the ordinary control winner.",
+    "configuration": "supported",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "subject-2",
+      "attributes": {
+        "dd_experimentation_opt_out": true
+      }
+    },
+    "evaluation": {
+      "flag": "holdout-control-winner-route",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": true,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-control",
+        "allocationKey": "winner-rollout",
+        "variationKey": "control",
+        "doLog": false,
+        "serialId": 803,
+        "wireReason": "DEFAULT"
+      },
+      "value": "experimental-control",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": {
+        "experimentation_opt_out": true
+      }
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "holdout",
+      "before",
+      "status-quo",
+      "shared-holdout",
+      "control-winner",
+      "lifecycle"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "holdout-control-winner-route-all-shipped-eligible",
+    "description": "A control winner does not begin primary holdout analysis. Opt-out skips the holdout and reaches the ordinary control winner.",
+    "configuration": "supported",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "subject-0",
+      "attributes": {
+        "dd_experimentation_opt_out": false
+      }
+    },
+    "evaluation": {
+      "flag": "holdout-control-winner-route",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": false,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-control",
+        "allocationKey": "generated-holdout-control-winner",
+        "variationKey": "control",
+        "doLog": true,
+        "serialId": 602,
+        "wireReason": "SPLIT",
+        "features": [
+          {
+            "key": "holdout.key",
+            "value": "shared-holdout",
+            "destinations": [
+              "HOOK"
+            ]
+          },
+          {
+            "key": "holdout.assignment_group",
+            "value": "all_shipped",
+            "destinations": [
+              "HOOK"
+            ]
+          },
+          {
+            "key": "holdout.should_include_in_holdout_analysis",
+            "value": false,
+            "destinations": [
+              "HOOK"
+            ]
+          }
+        ]
+      },
+      "value": "experimental-control",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": null
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [
+        {
+          "_count": 1
+        }
+      ],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "holdout",
+      "before",
+      "all-shipped",
+      "shared-holdout",
+      "control-winner",
+      "lifecycle"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "holdout-control-winner-route-all-shipped-excluded",
+    "description": "A control winner does not begin primary holdout analysis. Opt-out skips the holdout and reaches the ordinary control winner.",
+    "configuration": "supported",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "subject-0",
+      "attributes": {
+        "dd_experimentation_opt_out": true
+      }
+    },
+    "evaluation": {
+      "flag": "holdout-control-winner-route",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": true,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-control",
+        "allocationKey": "winner-rollout",
+        "variationKey": "control",
+        "doLog": false,
+        "serialId": 803,
+        "wireReason": "DEFAULT"
+      },
+      "value": "experimental-control",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": {
+        "experimentation_opt_out": true
+      }
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "holdout",
+      "before",
+      "all-shipped",
+      "shared-holdout",
+      "control-winner",
+      "lifecycle"
+    ]
+  }
+]

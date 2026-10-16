@@ -7,6 +7,7 @@ import datadog.trace.api.openfeature.Provider;
 import dev.openfeature.sdk.Client;
 import dev.openfeature.sdk.EvaluationContext;
 import dev.openfeature.sdk.FeatureProvider;
+import dev.openfeature.sdk.FlagEvaluationDetails;
 import dev.openfeature.sdk.MutableContext;
 import dev.openfeature.sdk.NoOpProvider;
 import dev.openfeature.sdk.OpenFeatureAPI;
@@ -69,7 +70,32 @@ public class FeatureFlagEvaluatorController {
     private Client client;
 
     @PostMapping(value = "/start")
-    public ResponseEntity<Boolean> start() {
+    public synchronized ResponseEntity<Boolean> start(@RequestBody(required = false) final Map<String, Object> request) {
+        if (request != null && request.containsKey("providerOptions")) {
+            final Object requestedOptions = request.get("providerOptions");
+            if (!(requestedOptions instanceof Map<?, ?> optionsMap)) {
+                return ResponseEntity.badRequest().body(false);
+            }
+            final Provider.Options options = new Provider.Options().initTimeout(100, TimeUnit.MILLISECONDS);
+            try {
+                for (Map.Entry<?, ?> entry : optionsMap.entrySet()) {
+                    final String name = String.valueOf(entry.getKey());
+                    if ((!name.equals("enableExperimentationOptOutParameter")
+                            && !name.equals("enableEvaluationTelemetryOptOutParameter"))
+                            || !(entry.getValue() instanceof Boolean)) {
+                        return ResponseEntity.badRequest().body(false);
+                    }
+                    // A missing public API is a start failure, not a behavioral negative control.
+                    Provider.Options.class.getMethod(name, boolean.class).invoke(options, entry.getValue());
+                }
+                // Resolve the lazy default provider before replacing it with explicit options.
+                client.getProviderState();
+                OpenFeatureAPI.getInstance().setProviderAndWait(new Provider(options));
+            } catch (ReflectiveOperationException error) {
+                LOGGER.error("Requested provider option is unavailable", error);
+                return ResponseEntity.internalServerError().body(false);
+            }
+        }
         final ProviderState state = client.getProviderState();
         if (state == ProviderState.READY) {
             return ResponseEntity.ok(true);
@@ -80,38 +106,42 @@ public class FeatureFlagEvaluatorController {
 
     @PostMapping(value = "/evaluate", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, Object>> evaluate(@RequestBody final EvaluateRequest request) {
-        Object value;
-        String reason;
+        final Map<String, Object> result = new HashMap<>();
         final EvaluationContext context = context(request);
         try {
-            value = switch (request.getVariationType()) {
+            final FlagEvaluationDetails<?> details = switch (request.getVariationType()) {
                 case "BOOLEAN" ->
-                        client.getBooleanValue(request.getFlag(), (Boolean) request.getDefaultValue(), context);
-                case "STRING" -> client.getStringValue(request.getFlag(), (String) request.getDefaultValue(), context);
+                        client.getBooleanDetails(request.getFlag(), (Boolean) request.getDefaultValue(), context);
+                case "STRING" -> client.getStringDetails(request.getFlag(), (String) request.getDefaultValue(), context);
                 case "INTEGER" -> {
                     final Number integerEval = (Number) request.getDefaultValue();
-                    yield client.getIntegerValue(request.getFlag(), integerEval.intValue(), context);
+                    yield client.getIntegerDetails(request.getFlag(), integerEval.intValue(), context);
                 }
                 case "NUMERIC" -> {
                     final Number doubleEval = (Number) request.getDefaultValue();
-                    yield client.getDoubleValue(request.getFlag(), doubleEval.doubleValue(), context);
+                    yield client.getDoubleDetails(request.getFlag(), doubleEval.doubleValue(), context);
                 }
-                case "JSON" -> {
-                    final Value objectValue = client.getObjectValue(request.getFlag(), Value.objectToValue(request.getDefaultValue()), context);
-                    yield context.convertValue(objectValue);
-                }
-                default -> request.getDefaultValue();
+                case "JSON" -> client.getObjectDetails(request.getFlag(), Value.objectToValue(request.getDefaultValue()), context);
+                default -> throw new IllegalArgumentException("Unsupported variation type: " + request.getVariationType());
             };
-
-            reason = "DEFAULT";
+            final Object value = details.getValue();
+            result.put("value", value instanceof Value ? context.convertValue((Value) value) : value);
+            result.put("reason", details.getReason());
+            result.put("variant", details.getVariant());
+            result.put("errorCode", details.getErrorCode());
+            result.put("errorMessage", details.getErrorMessage());
+            if (details.getFlagMetadata() != null) {
+                result.put("allocationKey", details.getFlagMetadata().getString("allocationKey"));
+                result.put("serialId", details.getFlagMetadata().getInteger("__dd_split_serial_id"));
+                result.put("flagMetadata", details.getFlagMetadata().asUnmodifiableMap());
+            }
         } catch (Throwable e) {
             LOGGER.error("Error on resolution", e);
-            value = request.getDefaultValue();
-            reason = "ERROR";
+            result.clear();
+            result.put("value", request.getDefaultValue());
+            result.put("reason", "ERROR");
+            result.put("errorMessage", e.getMessage());
         }
-        final Map<String, Object> result = new HashMap<>();
-        result.put("reason", reason);
-        result.put("value", value);
         return ResponseEntity.ok(result);
     }
 
@@ -123,6 +153,9 @@ public class FeatureFlagEvaluatorController {
                 context.add(key, (Boolean) value);
             } else if (value instanceof Integer) {
                 context.add(key, (Integer) value);
+            } else if (value instanceof Long) {
+                // OpenFeature represents numbers outside the Integer range as Double.
+                context.add(key, ((Long) value).doubleValue());
             } else if (value instanceof Double) {
                 context.add(key, (Double) value);
             } else if (value instanceof String) {

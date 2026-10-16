@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "kind": "sequence",
+  "id": "missing-ack-never-publishes",
+  "description": "An unsupported edge response never publishes assignments for an excluded request.",
+  "steps": [
+    {
+      "action": "configure",
+      "providerOptions": {
+        "enableExperimentationOptOutParameter": true
+      }
+    },
+    {
+      "action": "set-context",
+      "context": {
+        "targetingKey": "subject-2",
+        "attributes": {
+          "dd_experimentation_opt_out": true
+        }
+      },
+      "expectedPublishedCase": null
+    },
+    {
+      "action": "start-request",
+      "requestId": "excluded",
+      "expectedEvaluationOptions": {
+        "experimentation_opt_out": true
+      }
+    },
+    {
+      "action": "deliver-response",
+      "requestId": "excluded",
+      "caseId": "excluded-control",
+      "acknowledgement": "missing",
+      "expectedAccepted": false,
+      "expectedPublishedCase": null
+    },
+    {
+      "action": "evaluate",
+      "caseId": null,
+      "expectedValue": "application-default",
+      "expectedExposureCount": 0,
+      "expectedEvaluationTelemetry": true
+    }
+  ],
+  "flag": "two-arm",
+  "defaultValue": "application-default"
+}

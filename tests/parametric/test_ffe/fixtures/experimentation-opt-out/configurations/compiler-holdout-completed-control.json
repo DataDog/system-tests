@@ -1,0 +1,147 @@
+{
+  "createdAt": "2026-10-16T12:00:00Z",
+  "format": "SERVER",
+  "observeFullEvaluationData": false,
+  "evaluationCapabilities": [
+    "experimentation-opt-out-v1"
+  ],
+  "environment": {
+    "name": "experimentation-opt-out"
+  },
+  "flags": {
+    "planner": {
+      "key": "planner",
+      "enabled": true,
+      "variationType": "STRING",
+      "variations": {
+        "control": {
+          "key": "control",
+          "value": "experimental-control"
+        }
+      },
+      "allocations": [
+        {
+          "key": "experiment-holdout-quarterly",
+          "rules": [],
+          "endAt": "2026-10-17T12:00:00Z",
+          "splits": [
+            {
+              "shards": [
+                {
+                  "salt": "quarterly-holdout-traffic",
+                  "ranges": [
+                    {
+                      "start": 0,
+                      "end": 209715
+                    }
+                  ],
+                  "totalShards": 1048576
+                },
+                {
+                  "salt": "quarterly-holdout-split",
+                  "ranges": [
+                    {
+                      "start": 0,
+                      "end": 4096
+                    }
+                  ],
+                  "totalShards": 8192
+                }
+              ],
+              "variationKey": "control",
+              "serialId": 201,
+              "reason": "SPLIT",
+              "features": [
+                {
+                  "key": "holdout.key",
+                  "value": "quarterly",
+                  "destinations": [
+                    "HOOK"
+                  ]
+                },
+                {
+                  "key": "holdout.assignment_group",
+                  "value": "status_quo",
+                  "destinations": [
+                    "HOOK"
+                  ]
+                },
+                {
+                  "key": "holdout.should_include_in_holdout_analysis",
+                  "value": false,
+                  "destinations": [
+                    "HOOK"
+                  ]
+                }
+              ]
+            },
+            {
+              "shards": [
+                {
+                  "salt": "quarterly-holdout-traffic",
+                  "ranges": [
+                    {
+                      "start": 0,
+                      "end": 209715
+                    }
+                  ],
+                  "totalShards": 1048576
+                },
+                {
+                  "salt": "quarterly-holdout-split",
+                  "ranges": [
+                    {
+                      "start": 4096,
+                      "end": 8192
+                    }
+                  ],
+                  "totalShards": 8192
+                }
+              ],
+              "variationKey": "control",
+              "serialId": 202,
+              "reason": "SPLIT",
+              "features": [
+                {
+                  "key": "holdout.key",
+                  "value": "quarterly",
+                  "destinations": [
+                    "HOOK"
+                  ]
+                },
+                {
+                  "key": "holdout.assignment_group",
+                  "value": "all_shipped",
+                  "destinations": [
+                    "HOOK"
+                  ]
+                },
+                {
+                  "key": "holdout.should_include_in_holdout_analysis",
+                  "value": false,
+                  "destinations": [
+                    "HOOK"
+                  ]
+                }
+              ]
+            }
+          ],
+          "doLog": true
+        },
+        {
+          "key": "experiment",
+          "rules": [],
+          "splits": [
+            {
+              "shards": [],
+              "variationKey": "control",
+              "serialId": 101,
+              "reason": "DEFAULT"
+            }
+          ],
+          "doLog": false
+        }
+      ]
+    }
+  }
+}

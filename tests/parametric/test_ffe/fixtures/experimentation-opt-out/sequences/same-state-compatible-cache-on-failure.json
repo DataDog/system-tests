@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "kind": "sequence",
+  "id": "same-state-compatible-cache-on-failure",
+  "description": "A failed refresh may keep a compatible assignment. It must not erase valid same-context state unnecessarily.",
+  "steps": [
+    {
+      "action": "configure",
+      "providerOptions": {
+        "enableExperimentationOptOutParameter": true
+      }
+    },
+    {
+      "action": "set-context",
+      "context": {
+        "targetingKey": "subject-2",
+        "attributes": {
+          "dd_experimentation_opt_out": true
+        }
+      },
+      "expectedPublishedCase": null
+    },
+    {
+      "action": "start-request",
+      "requestId": "first",
+      "expectedEvaluationOptions": {
+        "experimentation_opt_out": true
+      }
+    },
+    {
+      "action": "deliver-response",
+      "requestId": "first",
+      "caseId": "excluded-control",
+      "acknowledgement": "applied",
+      "expectedAccepted": true,
+      "expectedPublishedCase": "excluded-control"
+    },
+    {
+      "action": "start-request",
+      "requestId": "refresh",
+      "expectedEvaluationOptions": {
+        "experimentation_opt_out": true
+      }
+    },
+    {
+      "action": "fail-request",
+      "requestId": "refresh",
+      "expectedPublishedCase": "excluded-control"
+    },
+    {
+      "action": "evaluate",
+      "caseId": "excluded-control",
+      "expectedValue": "ordinary-baseline",
+      "expectedExposureCount": 0,
+      "expectedEvaluationTelemetry": true
+    }
+  ],
+  "flag": "two-arm",
+  "defaultValue": "application-default"
+}

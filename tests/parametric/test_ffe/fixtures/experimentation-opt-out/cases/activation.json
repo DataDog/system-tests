@@ -1,0 +1,1247 @@
+[
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "activation-disabled-missing",
+    "description": "activation disabled missing",
+    "configuration": "supported",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": false
+    },
+    "context": {
+      "targetingKey": "subject-2",
+      "attributes": {}
+    },
+    "evaluation": {
+      "flag": "two-arm",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": false,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-control",
+        "allocationKey": "experiment",
+        "variationKey": "control",
+        "doLog": true,
+        "serialId": 101,
+        "wireReason": "SPLIT"
+      },
+      "value": "experimental-control",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": null
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [
+        {
+          "_count": 1
+        }
+      ],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "activation",
+      "strict-boolean"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "activation-disabled-false",
+    "description": "activation disabled false",
+    "configuration": "supported",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": false
+    },
+    "context": {
+      "targetingKey": "subject-2",
+      "attributes": {
+        "dd_experimentation_opt_out": false
+      }
+    },
+    "evaluation": {
+      "flag": "two-arm",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": false,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-control",
+        "allocationKey": "experiment",
+        "variationKey": "control",
+        "doLog": true,
+        "serialId": 101,
+        "wireReason": "SPLIT"
+      },
+      "value": "experimental-control",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": null
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [
+        {
+          "_count": 1
+        }
+      ],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "activation",
+      "strict-boolean"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "activation-disabled-true",
+    "description": "activation disabled true",
+    "configuration": "supported",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": false
+    },
+    "context": {
+      "targetingKey": "subject-2",
+      "attributes": {
+        "dd_experimentation_opt_out": true
+      }
+    },
+    "evaluation": {
+      "flag": "two-arm",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": false,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-control",
+        "allocationKey": "experiment",
+        "variationKey": "control",
+        "doLog": true,
+        "serialId": 101,
+        "wireReason": "SPLIT"
+      },
+      "value": "experimental-control",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": null
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [
+        {
+          "_count": 1
+        }
+      ],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "activation",
+      "strict-boolean"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "activation-disabled-null",
+    "description": "activation disabled null",
+    "configuration": "supported",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": false
+    },
+    "context": {
+      "targetingKey": "subject-2",
+      "attributes": {
+        "dd_experimentation_opt_out": null
+      }
+    },
+    "evaluation": {
+      "flag": "two-arm",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": false,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-control",
+        "allocationKey": "experiment",
+        "variationKey": "control",
+        "doLog": true,
+        "serialId": 101,
+        "wireReason": "SPLIT"
+      },
+      "value": "experimental-control",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": null
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [
+        {
+          "_count": 1
+        }
+      ],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "activation",
+      "strict-boolean"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "activation-disabled-string-true",
+    "description": "activation disabled string true",
+    "configuration": "supported",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": false
+    },
+    "context": {
+      "targetingKey": "subject-2",
+      "attributes": {
+        "dd_experimentation_opt_out": "true"
+      }
+    },
+    "evaluation": {
+      "flag": "two-arm",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": false,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-control",
+        "allocationKey": "experiment",
+        "variationKey": "control",
+        "doLog": true,
+        "serialId": 101,
+        "wireReason": "SPLIT"
+      },
+      "value": "experimental-control",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": null
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [
+        {
+          "_count": 1
+        }
+      ],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "activation",
+      "strict-boolean"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "activation-disabled-string-false",
+    "description": "activation disabled string false",
+    "configuration": "supported",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": false
+    },
+    "context": {
+      "targetingKey": "subject-2",
+      "attributes": {
+        "dd_experimentation_opt_out": "false"
+      }
+    },
+    "evaluation": {
+      "flag": "two-arm",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": false,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-control",
+        "allocationKey": "experiment",
+        "variationKey": "control",
+        "doLog": true,
+        "serialId": 101,
+        "wireReason": "SPLIT"
+      },
+      "value": "experimental-control",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": null
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [
+        {
+          "_count": 1
+        }
+      ],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "activation",
+      "strict-boolean"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "activation-disabled-number-one",
+    "description": "activation disabled number one",
+    "configuration": "supported",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": false
+    },
+    "context": {
+      "targetingKey": "subject-2",
+      "attributes": {
+        "dd_experimentation_opt_out": 1
+      }
+    },
+    "evaluation": {
+      "flag": "two-arm",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": false,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-control",
+        "allocationKey": "experiment",
+        "variationKey": "control",
+        "doLog": true,
+        "serialId": 101,
+        "wireReason": "SPLIT"
+      },
+      "value": "experimental-control",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": null
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [
+        {
+          "_count": 1
+        }
+      ],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "activation",
+      "strict-boolean"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "activation-disabled-number-zero",
+    "description": "activation disabled number zero",
+    "configuration": "supported",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": false
+    },
+    "context": {
+      "targetingKey": "subject-2",
+      "attributes": {
+        "dd_experimentation_opt_out": 0
+      }
+    },
+    "evaluation": {
+      "flag": "two-arm",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": false,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-control",
+        "allocationKey": "experiment",
+        "variationKey": "control",
+        "doLog": true,
+        "serialId": 101,
+        "wireReason": "SPLIT"
+      },
+      "value": "experimental-control",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": null
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [
+        {
+          "_count": 1
+        }
+      ],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "activation",
+      "strict-boolean"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "activation-disabled-array",
+    "description": "activation disabled array",
+    "configuration": "supported",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": false
+    },
+    "context": {
+      "targetingKey": "subject-2",
+      "attributes": {
+        "dd_experimentation_opt_out": [
+          true
+        ]
+      }
+    },
+    "evaluation": {
+      "flag": "two-arm",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": false,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-control",
+        "allocationKey": "experiment",
+        "variationKey": "control",
+        "doLog": true,
+        "serialId": 101,
+        "wireReason": "SPLIT"
+      },
+      "value": "experimental-control",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": null
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [
+        {
+          "_count": 1
+        }
+      ],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "activation",
+      "strict-boolean"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "activation-disabled-object",
+    "description": "activation disabled object",
+    "configuration": "supported",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": false
+    },
+    "context": {
+      "targetingKey": "subject-2",
+      "attributes": {
+        "dd_experimentation_opt_out": {
+          "value": true
+        }
+      }
+    },
+    "evaluation": {
+      "flag": "two-arm",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": false,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-control",
+        "allocationKey": "experiment",
+        "variationKey": "control",
+        "doLog": true,
+        "serialId": 101,
+        "wireReason": "SPLIT"
+      },
+      "value": "experimental-control",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": null
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [
+        {
+          "_count": 1
+        }
+      ],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "activation",
+      "strict-boolean"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "activation-disabled-nested",
+    "description": "activation disabled nested",
+    "configuration": "supported",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": false
+    },
+    "context": {
+      "targetingKey": "subject-2",
+      "attributes": {
+        "preferences": {
+          "dd_experimentation_opt_out": true
+        }
+      }
+    },
+    "evaluation": {
+      "flag": "two-arm",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": false,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-control",
+        "allocationKey": "experiment",
+        "variationKey": "control",
+        "doLog": true,
+        "serialId": 101,
+        "wireReason": "SPLIT"
+      },
+      "value": "experimental-control",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": null
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [
+        {
+          "_count": 1
+        }
+      ],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "activation",
+      "strict-boolean"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "activation-enabled-missing",
+    "description": "activation enabled missing",
+    "configuration": "supported",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "subject-2",
+      "attributes": {}
+    },
+    "evaluation": {
+      "flag": "two-arm",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": false,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-control",
+        "allocationKey": "experiment",
+        "variationKey": "control",
+        "doLog": true,
+        "serialId": 101,
+        "wireReason": "SPLIT"
+      },
+      "value": "experimental-control",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": null
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [
+        {
+          "_count": 1
+        }
+      ],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "activation",
+      "strict-boolean"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "activation-enabled-false",
+    "description": "activation enabled false",
+    "configuration": "supported",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "subject-2",
+      "attributes": {
+        "dd_experimentation_opt_out": false
+      }
+    },
+    "evaluation": {
+      "flag": "two-arm",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": false,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-control",
+        "allocationKey": "experiment",
+        "variationKey": "control",
+        "doLog": true,
+        "serialId": 101,
+        "wireReason": "SPLIT"
+      },
+      "value": "experimental-control",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": null
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [
+        {
+          "_count": 1
+        }
+      ],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "activation",
+      "strict-boolean"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "activation-enabled-true",
+    "description": "activation enabled true",
+    "configuration": "supported",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "subject-2",
+      "attributes": {
+        "dd_experimentation_opt_out": true
+      }
+    },
+    "evaluation": {
+      "flag": "two-arm",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": true,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "ordinary-baseline",
+        "allocationKey": "ordinary-fallback",
+        "variationKey": "baseline",
+        "doLog": false,
+        "serialId": 900,
+        "wireReason": "DEFAULT"
+      },
+      "value": "ordinary-baseline",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": {
+        "experimentation_opt_out": true
+      }
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "activation",
+      "strict-boolean"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "activation-enabled-null",
+    "description": "activation enabled null",
+    "configuration": "supported",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "subject-2",
+      "attributes": {
+        "dd_experimentation_opt_out": null
+      }
+    },
+    "evaluation": {
+      "flag": "two-arm",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": false,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-control",
+        "allocationKey": "experiment",
+        "variationKey": "control",
+        "doLog": true,
+        "serialId": 101,
+        "wireReason": "SPLIT"
+      },
+      "value": "experimental-control",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": null
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [
+        {
+          "_count": 1
+        }
+      ],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "activation",
+      "strict-boolean"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "activation-enabled-string-true",
+    "description": "activation enabled string true",
+    "configuration": "supported",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "subject-2",
+      "attributes": {
+        "dd_experimentation_opt_out": "true"
+      }
+    },
+    "evaluation": {
+      "flag": "two-arm",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": false,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-control",
+        "allocationKey": "experiment",
+        "variationKey": "control",
+        "doLog": true,
+        "serialId": 101,
+        "wireReason": "SPLIT"
+      },
+      "value": "experimental-control",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": null
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [
+        {
+          "_count": 1
+        }
+      ],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "activation",
+      "strict-boolean"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "activation-enabled-string-false",
+    "description": "activation enabled string false",
+    "configuration": "supported",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "subject-2",
+      "attributes": {
+        "dd_experimentation_opt_out": "false"
+      }
+    },
+    "evaluation": {
+      "flag": "two-arm",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": false,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-control",
+        "allocationKey": "experiment",
+        "variationKey": "control",
+        "doLog": true,
+        "serialId": 101,
+        "wireReason": "SPLIT"
+      },
+      "value": "experimental-control",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": null
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [
+        {
+          "_count": 1
+        }
+      ],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "activation",
+      "strict-boolean"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "activation-enabled-number-one",
+    "description": "activation enabled number one",
+    "configuration": "supported",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "subject-2",
+      "attributes": {
+        "dd_experimentation_opt_out": 1
+      }
+    },
+    "evaluation": {
+      "flag": "two-arm",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": false,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-control",
+        "allocationKey": "experiment",
+        "variationKey": "control",
+        "doLog": true,
+        "serialId": 101,
+        "wireReason": "SPLIT"
+      },
+      "value": "experimental-control",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": null
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [
+        {
+          "_count": 1
+        }
+      ],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "activation",
+      "strict-boolean"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "activation-enabled-number-zero",
+    "description": "activation enabled number zero",
+    "configuration": "supported",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "subject-2",
+      "attributes": {
+        "dd_experimentation_opt_out": 0
+      }
+    },
+    "evaluation": {
+      "flag": "two-arm",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": false,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-control",
+        "allocationKey": "experiment",
+        "variationKey": "control",
+        "doLog": true,
+        "serialId": 101,
+        "wireReason": "SPLIT"
+      },
+      "value": "experimental-control",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": null
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [
+        {
+          "_count": 1
+        }
+      ],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "activation",
+      "strict-boolean"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "activation-enabled-array",
+    "description": "activation enabled array",
+    "configuration": "supported",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "subject-2",
+      "attributes": {
+        "dd_experimentation_opt_out": [
+          true
+        ]
+      }
+    },
+    "evaluation": {
+      "flag": "two-arm",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": false,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-control",
+        "allocationKey": "experiment",
+        "variationKey": "control",
+        "doLog": true,
+        "serialId": 101,
+        "wireReason": "SPLIT"
+      },
+      "value": "experimental-control",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": null
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [
+        {
+          "_count": 1
+        }
+      ],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "activation",
+      "strict-boolean"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "activation-enabled-object",
+    "description": "activation enabled object",
+    "configuration": "supported",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "subject-2",
+      "attributes": {
+        "dd_experimentation_opt_out": {
+          "value": true
+        }
+      }
+    },
+    "evaluation": {
+      "flag": "two-arm",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": false,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-control",
+        "allocationKey": "experiment",
+        "variationKey": "control",
+        "doLog": true,
+        "serialId": 101,
+        "wireReason": "SPLIT"
+      },
+      "value": "experimental-control",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": null
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [
+        {
+          "_count": 1
+        }
+      ],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "activation",
+      "strict-boolean"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "activation-enabled-nested",
+    "description": "activation enabled nested",
+    "configuration": "supported",
+    "providerOptions": {
+      "enableExperimentationOptOutParameter": true
+    },
+    "context": {
+      "targetingKey": "subject-2",
+      "attributes": {
+        "preferences": {
+          "dd_experimentation_opt_out": true
+        }
+      }
+    },
+    "evaluation": {
+      "flag": "two-arm",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": false,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-control",
+        "allocationKey": "experiment",
+        "variationKey": "control",
+        "doLog": true,
+        "serialId": 101,
+        "wireReason": "SPLIT"
+      },
+      "value": "experimental-control",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": null
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [
+        {
+          "_count": 1
+        }
+      ],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "activation",
+      "strict-boolean"
+    ]
+  },
+  {
+    "schemaVersion": 1,
+    "kind": "evaluation",
+    "id": "activation-unconfigured-true",
+    "description": "activation unconfigured true",
+    "configuration": "supported",
+    "providerOptions": {},
+    "context": {
+      "targetingKey": "subject-2",
+      "attributes": {
+        "dd_experimentation_opt_out": true
+      }
+    },
+    "evaluation": {
+      "flag": "two-arm",
+      "variationType": "STRING",
+      "defaultValue": "application-default",
+      "now": "2026-10-16T12:00:00Z"
+    },
+    "expected": {
+      "effectiveExperimentationOptOut": false,
+      "outcome": "assignment",
+      "assignment": {
+        "value": "experimental-control",
+        "allocationKey": "experiment",
+        "variationKey": "control",
+        "doLog": true,
+        "serialId": 101,
+        "wireReason": "SPLIT"
+      },
+      "value": "experimental-control",
+      "evaluationTelemetryEnabled": true,
+      "requestEvaluationOptions": null
+    },
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [
+        {
+          "_count": 1
+        }
+      ],
+      "evaluationEvents": [
+        {
+          "_count": 1
+        }
+      ]
+    },
+    "tags": [
+      "activation"
+    ]
+  }
+]

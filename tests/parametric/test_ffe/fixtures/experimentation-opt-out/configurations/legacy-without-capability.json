@@ -1,0 +1,152 @@
+{
+  "createdAt": "2026-10-16T12:00:00Z",
+  "format": "SERVER",
+  "environment": {
+    "name": "experimentation-opt-out-fixtures"
+  },
+  "flags": {
+    "two-arm": {
+      "key": "two-arm",
+      "enabled": true,
+      "variationType": "STRING",
+      "variations": {
+        "control": {
+          "key": "control",
+          "value": "experimental-control"
+        },
+        "treatment": {
+          "key": "treatment",
+          "value": "experimental-treatment"
+        },
+        "baseline": {
+          "key": "baseline",
+          "value": "ordinary-baseline"
+        }
+      },
+      "allocations": [
+        {
+          "key": "experiment",
+          "rules": [],
+          "splits": [
+            {
+              "variationKey": "control",
+              "shards": [
+                {
+                  "salt": "opt-out:v1:assignment",
+                  "totalShards": 10000,
+                  "ranges": [
+                    {
+                      "start": 0,
+                      "end": 5000
+                    }
+                  ]
+                }
+              ],
+              "serialId": 101,
+              "reason": "SPLIT"
+            },
+            {
+              "variationKey": "treatment",
+              "shards": [
+                {
+                  "salt": "opt-out:v1:assignment",
+                  "totalShards": 10000,
+                  "ranges": [
+                    {
+                      "start": 5000,
+                      "end": 10000
+                    }
+                  ]
+                }
+              ],
+              "serialId": 102,
+              "reason": "SPLIT"
+            }
+          ],
+          "doLog": true
+        },
+        {
+          "key": "ordinary-fallback",
+          "rules": [],
+          "splits": [
+            {
+              "variationKey": "baseline",
+              "shards": [],
+              "serialId": 900,
+              "reason": "DEFAULT"
+            }
+          ],
+          "doLog": false
+        }
+      ]
+    },
+    "winner-treatment": {
+      "key": "winner-treatment",
+      "enabled": true,
+      "variationType": "STRING",
+      "variations": {
+        "control": {
+          "key": "control",
+          "value": "experimental-control"
+        },
+        "treatment": {
+          "key": "treatment",
+          "value": "experimental-treatment"
+        },
+        "baseline": {
+          "key": "baseline",
+          "value": "ordinary-baseline"
+        }
+      },
+      "allocations": [
+        {
+          "key": "winner-rollout",
+          "rules": [],
+          "splits": [
+            {
+              "variationKey": "treatment",
+              "shards": [],
+              "serialId": 802,
+              "reason": "STATIC"
+            }
+          ],
+          "doLog": true
+        }
+      ]
+    },
+    "full-enrollment-experiment": {
+      "key": "full-enrollment-experiment",
+      "enabled": true,
+      "variationType": "STRING",
+      "variations": {
+        "control": {
+          "key": "control",
+          "value": "experimental-control"
+        },
+        "treatment": {
+          "key": "treatment",
+          "value": "experimental-treatment"
+        },
+        "baseline": {
+          "key": "baseline",
+          "value": "ordinary-baseline"
+        }
+      },
+      "allocations": [
+        {
+          "key": "experiment",
+          "rules": [],
+          "splits": [
+            {
+              "variationKey": "treatment",
+              "shards": [],
+              "serialId": 103,
+              "reason": "STATIC"
+            }
+          ],
+          "doLog": true
+        }
+      ]
+    }
+  }
+}

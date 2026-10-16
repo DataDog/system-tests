@@ -1,0 +1,426 @@
+[
+  {
+    "name": "active-50-50",
+    "singleArm": false,
+    "holdout": false,
+    "configuration": "compiler-active-50-50.json",
+    "eligible": [
+      {
+        "targetingKey": "athlete-0000",
+        "allocationKey": "experiment",
+        "variationKey": "control",
+        "value": "experimental-control",
+        "serialId": 101,
+        "doLog": true,
+        "features": null
+      },
+      {
+        "targetingKey": "athlete-0002",
+        "allocationKey": "experiment",
+        "variationKey": "treatment",
+        "value": "experimental-treatment",
+        "serialId": 102,
+        "doLog": true,
+        "features": null
+      }
+    ],
+    "optedOut": {
+      "targetingKey": "",
+      "allocationKey": "allocation-default-7feefdf76b9e",
+      "variationKey": "baseline",
+      "value": "ordinary-baseline",
+      "serialId": 900,
+      "doLog": false,
+      "features": null
+    },
+    "allocationOrder": [
+      "experiment",
+      "allocation-default-7feefdf76b9e"
+    ],
+    "explanation": "Skip the active experiment before randomization; deliver the ordinary baseline."
+  },
+  {
+    "name": "active-100-single-arm",
+    "singleArm": true,
+    "holdout": false,
+    "configuration": "compiler-active-100-single-arm.json",
+    "eligible": [
+      {
+        "targetingKey": "athlete-0000",
+        "allocationKey": "experiment",
+        "variationKey": "treatment",
+        "value": "experimental-treatment",
+        "serialId": 102,
+        "doLog": true,
+        "features": null
+      }
+    ],
+    "optedOut": {
+      "targetingKey": "",
+      "allocationKey": "allocation-default-7feefdf76b9e",
+      "variationKey": "baseline",
+      "value": "ordinary-baseline",
+      "serialId": 900,
+      "doLog": false,
+      "features": null
+    },
+    "allocationOrder": [
+      "experiment",
+      "allocation-default-7feefdf76b9e"
+    ],
+    "explanation": "Full enrollment and a single arm do not make an active experiment ordinary delivery."
+  },
+  {
+    "name": "completed-control",
+    "winner": "control",
+    "singleArm": false,
+    "holdout": false,
+    "configuration": "compiler-completed-control.json",
+    "eligible": [
+      {
+        "targetingKey": "athlete-0000",
+        "allocationKey": "experiment",
+        "variationKey": "control",
+        "value": "experimental-control",
+        "serialId": 101,
+        "doLog": false,
+        "features": null
+      }
+    ],
+    "optedOut": {
+      "targetingKey": "",
+      "allocationKey": "experiment",
+      "variationKey": "control",
+      "value": "experimental-control",
+      "serialId": 101,
+      "doLog": false,
+      "features": null
+    },
+    "allocationOrder": [
+      "experiment"
+    ],
+    "explanation": "The completed control winner remains available without experiment exposures."
+  },
+  {
+    "name": "completed-treatment",
+    "winner": "treatment",
+    "singleArm": false,
+    "holdout": false,
+    "configuration": "compiler-completed-treatment.json",
+    "eligible": [
+      {
+        "targetingKey": "athlete-0000",
+        "allocationKey": "experiment",
+        "variationKey": "treatment",
+        "value": "experimental-treatment",
+        "serialId": 102,
+        "doLog": false,
+        "features": null
+      }
+    ],
+    "optedOut": {
+      "targetingKey": "",
+      "allocationKey": "experiment",
+      "variationKey": "treatment",
+      "value": "experimental-treatment",
+      "serialId": 102,
+      "doLog": false,
+      "features": null
+    },
+    "allocationOrder": [
+      "experiment"
+    ],
+    "explanation": "The completed treatment winner remains available without experiment exposures."
+  },
+  {
+    "name": "holdout-active",
+    "singleArm": false,
+    "holdout": true,
+    "configuration": "compiler-holdout-active.json",
+    "eligible": [
+      {
+        "targetingKey": "athlete-0000",
+        "allocationKey": "experiment",
+        "variationKey": "control",
+        "value": "experimental-control",
+        "serialId": 101,
+        "doLog": true,
+        "features": null
+      },
+      {
+        "targetingKey": "athlete-0001",
+        "allocationKey": "experiment-holdout-quarterly",
+        "variationKey": "control",
+        "value": "experimental-control",
+        "serialId": 201,
+        "doLog": true,
+        "features": [
+          {
+            "key": "holdout.key",
+            "value": "quarterly",
+            "destinations": [
+              "HOOK"
+            ]
+          },
+          {
+            "key": "holdout.assignment_group",
+            "value": "status_quo",
+            "destinations": [
+              "HOOK"
+            ]
+          },
+          {
+            "key": "holdout.should_include_in_holdout_analysis",
+            "value": false,
+            "destinations": [
+              "HOOK"
+            ]
+          }
+        ]
+      },
+      {
+        "targetingKey": "athlete-0003",
+        "allocationKey": "experiment",
+        "variationKey": "treatment",
+        "value": "experimental-treatment",
+        "serialId": 102,
+        "doLog": true,
+        "features": null
+      },
+      {
+        "targetingKey": "athlete-0006",
+        "allocationKey": "experiment-holdout-quarterly",
+        "variationKey": "control",
+        "value": "experimental-control",
+        "serialId": 202,
+        "doLog": true,
+        "features": [
+          {
+            "key": "holdout.key",
+            "value": "quarterly",
+            "destinations": [
+              "HOOK"
+            ]
+          },
+          {
+            "key": "holdout.assignment_group",
+            "value": "all_shipped",
+            "destinations": [
+              "HOOK"
+            ]
+          },
+          {
+            "key": "holdout.should_include_in_holdout_analysis",
+            "value": false,
+            "destinations": [
+              "HOOK"
+            ]
+          }
+        ]
+      }
+    ],
+    "optedOut": {
+      "targetingKey": "",
+      "allocationKey": "allocation-default-7feefdf76b9e",
+      "variationKey": "baseline",
+      "value": "ordinary-baseline",
+      "serialId": 900,
+      "doLog": false,
+      "features": null
+    },
+    "allocationOrder": [
+      "experiment-holdout-quarterly",
+      "experiment",
+      "allocation-default-7feefdf76b9e"
+    ],
+    "explanation": "Skip both holdout groups and the active experiment; deliver the ordinary baseline."
+  },
+  {
+    "name": "holdout-completed-control",
+    "winner": "control",
+    "singleArm": false,
+    "holdout": true,
+    "configuration": "compiler-holdout-completed-control.json",
+    "eligible": [
+      {
+        "targetingKey": "athlete-0000",
+        "allocationKey": "experiment",
+        "variationKey": "control",
+        "value": "experimental-control",
+        "serialId": 101,
+        "doLog": false,
+        "features": null
+      },
+      {
+        "targetingKey": "athlete-0001",
+        "allocationKey": "experiment-holdout-quarterly",
+        "variationKey": "control",
+        "value": "experimental-control",
+        "serialId": 201,
+        "doLog": true,
+        "features": [
+          {
+            "key": "holdout.key",
+            "value": "quarterly",
+            "destinations": [
+              "HOOK"
+            ]
+          },
+          {
+            "key": "holdout.assignment_group",
+            "value": "status_quo",
+            "destinations": [
+              "HOOK"
+            ]
+          },
+          {
+            "key": "holdout.should_include_in_holdout_analysis",
+            "value": false,
+            "destinations": [
+              "HOOK"
+            ]
+          }
+        ]
+      },
+      {
+        "targetingKey": "athlete-0006",
+        "allocationKey": "experiment-holdout-quarterly",
+        "variationKey": "control",
+        "value": "experimental-control",
+        "serialId": 202,
+        "doLog": true,
+        "features": [
+          {
+            "key": "holdout.key",
+            "value": "quarterly",
+            "destinations": [
+              "HOOK"
+            ]
+          },
+          {
+            "key": "holdout.assignment_group",
+            "value": "all_shipped",
+            "destinations": [
+              "HOOK"
+            ]
+          },
+          {
+            "key": "holdout.should_include_in_holdout_analysis",
+            "value": false,
+            "destinations": [
+              "HOOK"
+            ]
+          }
+        ]
+      }
+    ],
+    "optedOut": {
+      "targetingKey": "",
+      "allocationKey": "experiment",
+      "variationKey": "control",
+      "value": "experimental-control",
+      "serialId": 101,
+      "doLog": false,
+      "features": null
+    },
+    "allocationOrder": [
+      "experiment-holdout-quarterly",
+      "experiment"
+    ],
+    "explanation": "Skip the holdout and deliver the ordinary control winner; unchanged holdout groups keep pre-ship serials."
+  },
+  {
+    "name": "holdout-completed-treatment",
+    "winner": "treatment",
+    "singleArm": false,
+    "holdout": true,
+    "configuration": "compiler-holdout-completed-treatment.json",
+    "eligible": [
+      {
+        "targetingKey": "athlete-0000",
+        "allocationKey": "experiment",
+        "variationKey": "treatment",
+        "value": "experimental-treatment",
+        "serialId": 102,
+        "doLog": false,
+        "features": null
+      },
+      {
+        "targetingKey": "athlete-0001",
+        "allocationKey": "experiment-holdout-quarterly",
+        "variationKey": "control",
+        "value": "experimental-control",
+        "serialId": 301,
+        "doLog": true,
+        "features": [
+          {
+            "key": "holdout.key",
+            "value": "quarterly",
+            "destinations": [
+              "HOOK"
+            ]
+          },
+          {
+            "key": "holdout.assignment_group",
+            "value": "status_quo",
+            "destinations": [
+              "HOOK"
+            ]
+          },
+          {
+            "key": "holdout.should_include_in_holdout_analysis",
+            "value": true,
+            "destinations": [
+              "HOOK"
+            ]
+          }
+        ]
+      },
+      {
+        "targetingKey": "athlete-0006",
+        "allocationKey": "experiment-holdout-quarterly",
+        "variationKey": "treatment",
+        "value": "experimental-treatment",
+        "serialId": 302,
+        "doLog": true,
+        "features": [
+          {
+            "key": "holdout.key",
+            "value": "quarterly",
+            "destinations": [
+              "HOOK"
+            ]
+          },
+          {
+            "key": "holdout.assignment_group",
+            "value": "all_shipped",
+            "destinations": [
+              "HOOK"
+            ]
+          },
+          {
+            "key": "holdout.should_include_in_holdout_analysis",
+            "value": true,
+            "destinations": [
+              "HOOK"
+            ]
+          }
+        ]
+      }
+    ],
+    "optedOut": {
+      "targetingKey": "",
+      "allocationKey": "experiment",
+      "variationKey": "treatment",
+      "value": "experimental-treatment",
+      "serialId": 102,
+      "doLog": false,
+      "features": null
+    },
+    "allocationOrder": [
+      "experiment-holdout-quarterly",
+      "experiment"
+    ],
+    "explanation": "Skip the holdout and deliver the ordinary treatment winner; eligible holdouts keep post-ship serials."
+  }
+]
