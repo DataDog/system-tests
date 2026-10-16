@@ -34,20 +34,29 @@ def _load_ufc_fixture() -> dict[str, Any]:
         return json.load(f)
 
 
-def _get_test_case_files() -> list[str]:
-    """Get all test case files from the fixtures directory."""
+def _get_test_case_files() -> tuple[list[str], list[str]]:
+    """Get test case files grouped by whether they assert evaluation details."""
     test_data_dir = Path(__file__).parent
     if not test_data_dir.exists():
-        return []
+        return [], []
 
     # Exclude base fixtures that aren't test cases
     excluded = {"flags-v1.json", "span-enrichment-flags.json"}
-    return [f.name for f in test_data_dir.iterdir() if f.suffix == ".json" and f.name not in excluded]
+    value_only: list[str] = []
+    detailed: list[str] = []
+    for test_case_path in sorted(test_data_dir.glob("*.json")):
+        if test_case_path.name in excluded:
+            continue
+        with test_case_path.open() as f:
+            test_cases = json.load(f)
+        destination = detailed if any(set(test_case["result"]) != {"value"} for test_case in test_cases) else value_only
+        destination.append(test_case_path.name)
+    return value_only, detailed
 
 
 # Load fixture at module level for reuse across tests
 UFC_FIXTURE_DATA = _load_ufc_fixture()
-ALL_TEST_CASE_FILES = _get_test_case_files()
+VALUE_ONLY_TEST_CASE_FILES, DETAILED_TEST_CASE_FILES = _get_test_case_files()
 
 DEFAULT_ENVVARS = {
     "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
@@ -146,18 +155,12 @@ class Test_Feature_Flag_Dynamic_Evaluation:
         assert apply_state["apply_state"] == RemoteConfigApplyState.ACKNOWLEDGED.value
         assert apply_state["product"] == RC_PRODUCT
 
-    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    @parametrize("test_case_file", ALL_TEST_CASE_FILES)
-    def test_ffe_flag_evaluation(self, test_case_file: str, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
-        """Test FFE flag evaluation logic with various targeting scenarios.
-
-        This is the core FFE test that validates the OpenFeature provider correctly:
-        1. Loads flag configurations from Remote Config (UFC format)
-        2. Evaluates flags based on targeting rules and evaluation context
-        3. Returns correct variation values for different variation types
-        4. Handles user targeting, attribute matching, and rollout percentages
-
-        """
+    def _assert_evaluation_cases(
+        self,
+        test_case_file: str,
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+    ) -> None:
         # Load the test case file
         test_case_path = Path(__file__).parent / test_case_file
 
@@ -181,7 +184,7 @@ class Test_Feature_Flag_Dynamic_Evaluation:
             default_value = test_case["defaultValue"]
             targeting_key = test_case["targetingKey"]
             attributes = test_case.get("attributes", {})
-            expected_result = test_case["result"]["value"]
+            expected_result = test_case["result"]
 
             result = _ffe_evaluate_with_rc_retry(
                 test_library,
@@ -195,11 +198,23 @@ class Test_Feature_Flag_Dynamic_Evaluation:
                 f"Test case {i} in {test_case_file} failed: FFE provider did not load RC data after "
                 f"{FFE_READY_RETRY_ATTEMPTS} attempts; result={result}"
             )
-            actual_value = result.get("value")
+            for field, expected_value in expected_result.items():
+                assert result.get(field) == expected_value, (
+                    f"Test case {i} in {test_case_file} failed: "
+                    f"flag='{flag}', targetingKey='{targeting_key}', field='{field}', "
+                    f"expected={expected_value!r}, actual={result.get(field)!r}"
+                )
 
-            # Assert the evaluation result matches expected value
-            assert actual_value == expected_result, (
-                f"Test case {i} in {test_case_file} failed: "
-                f"flag='{flag}', targetingKey='{targeting_key}', "
-                f"expected={expected_result}, actual={actual_value}"
-            )
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @parametrize("test_case_file", VALUE_ONLY_TEST_CASE_FILES)
+    def test_ffe_flag_evaluation(self, test_case_file: str, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        """Test FFE flag evaluation logic with various targeting scenarios."""
+        self._assert_evaluation_cases(test_case_file, test_agent, test_library)
+
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @parametrize("test_case_file", DETAILED_TEST_CASE_FILES)
+    def test_ffe_detailed_flag_evaluation(
+        self, test_case_file: str, test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
+        """Test fields requested by detailed evaluation cases."""
+        self._assert_evaluation_cases(test_case_file, test_agent, test_library)
