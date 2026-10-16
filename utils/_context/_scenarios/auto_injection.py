@@ -182,14 +182,26 @@ class _VirtualMachineScenario(Scenario):
             "DD_APM_DD_URL": url,
             "DD_APM_PROFILING_DD_URL": f"{url}/api/v2/profile",
         }
-        env_lines = "".join(f"{key}={value}\\n" for key, value in agent_env.items())
+        # leading new line: the existing file may not end with one
+        env_lines = "\\n" + "".join(f"{key}={value}\\n" for key, value in agent_env.items())
         command = (
             "set -e; "
             f"printf '{env_lines}' | sudo tee -a /etc/datadog-agent/environment > /dev/null; "
+            # datadog-agent.service declares RuntimeDirectory=datadog: by default systemd deletes and re-creates
+            # /run/datadog on restart. Containers started by the weblog provision bind-mount that directory (SSI
+            # docker injection), so they would keep the deleted one and never see the new APM socket.
+            "sudo mkdir -p /etc/systemd/system/datadog-agent.service.d; "
+            "printf '[Service]\\nRuntimeDirectoryPreserve=yes\\n' "
+            "| sudo tee /etc/systemd/system/datadog-agent.service.d/system-tests-mocked-backend.conf > /dev/null; "
+            "sudo systemctl daemon-reload; "
             "sudo systemctl restart datadog-agent; "
             "sudo systemctl restart datadog-agent-trace || true; "
             # wait for the trace agent to listen again, so the weblog requests made by the tests are not lost
-            "for _ in $(seq 1 30); do timeout 1 bash -c '</dev/tcp/127.0.0.1/8126' 2>/dev/null && break; sleep 1; done"
+            "for _ in $(seq 1 30); do "
+            "timeout 1 bash -c '</dev/tcp/127.0.0.1/8126' 2>/dev/null && break; sleep 1; done; "
+            "if [ -d /var/run/datadog ]; then "
+            "for _ in $(seq 1 30); do [ -S /var/run/datadog/apm.socket ] && break; sleep 1; done; "
+            "ls -la /var/run/datadog; fi"
         )
         with self.virtual_machine.get_ssh_connection() as ssh:
             _, stdout, _ = ssh.exec_command(command, timeout=120)

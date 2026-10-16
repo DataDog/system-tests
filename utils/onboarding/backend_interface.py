@@ -239,6 +239,7 @@ def _query_mocked_backend_for_trace_id(trace_id: str, validator: Callable | None
         time.sleep(_MOCKED_BACKEND_POLL_INTERVAL)
 
     if trace_data is None:
+        _log_mocked_backend_content()
         raise TimeoutError(f"Trace {trace_id} not found in the mocked backend after {MOCKED_BACKEND_TRACE_TIMEOUT}s")
 
     logger.info(f"Trace {trace_id} found in the mocked backend")
@@ -300,6 +301,36 @@ def _get_mocked_backend_trace(trace_id: int) -> dict | None:
     trace_data = {"trace": {"root_id": root["span_id"], "spans": spans}}
     _deserialize_meta(trace_data)
     return trace_data
+
+
+def _log_mocked_backend_content() -> None:
+    """Help to understand why a trace is missing: did the agent reach the mock at all, and with which traces?"""
+    paths: dict[str, int] = {}
+    trace_ids: list[str] = []
+    for data in interfaces.backend_v2.get_data():
+        paths[data["path"]] = paths.get(data["path"], 0) + 1
+        if data["path"] != "/api/v0.2/traces":
+            continue
+        content = data["request"].get("content")
+        if not isinstance(content, dict):
+            trace_ids.append(f"<undeserialized payload in {data['log_filename']}>")
+            continue
+        for payload in content.get("tracerPayloads", []):
+            trace_ids.extend(
+                str(span.get("traceID")) for chunk in payload.get("chunks", []) for span in chunk.get("spans", [])[:1]
+            )
+        for payload in content.get("idxTracerPayloads", []):
+            trace_ids.extend(
+                str(int(chunk["traceID"], 16) & 0xFFFFFFFFFFFFFFFF)
+                for chunk in payload.get("chunks", [])
+                if "traceID" in chunk
+            )
+
+    if not paths:
+        logger.error("The mocked backend did not receive anything: the agent may not be able to reach it")
+    else:
+        logger.error(f"Requests received by the mocked backend: {paths}")
+        logger.error(f"Trace ids received by the mocked backend: {trace_ids}")
 
 
 def _get_mocked_backend_payload_meta(payload: dict, *, is_v1: bool) -> dict[str, Any]:
