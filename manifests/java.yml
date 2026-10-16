@@ -4814,17 +4814,19 @@ manifest:
         akka-http: irrelevant (integration injects Date header after bytecode injection occurs)
         play: irrelevant (integration injects Date header after bytecode injection occurs)
   tests/test_library_logs.py::Test_NoExceptions::test_dotnet: irrelevant (only for .NET)
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_Spans_Http_ErrorStatusConfiguration: v1.66.0
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics: v1.66.0
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_SamplingRules: v1.66.0
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client: v1.66.0
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server: v1.66.0
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_Spans_Http_ErrorStatusConfiguration: v1.68.0
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics: v1.68.0
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_SamplingRules: v1.68.0
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client: v1.68.0
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server: v1.68.0
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_http_endpoint_retained_from_appsec: irrelevant (The AppSec endpoint retention request is specific to .NET)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_span_name_route_invariance:
     - declaration: missing_feature (The root HTTP server span does not capture the route template)
+      component_version: <1.68.0
       weblog: [akka-http, play]
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_span_name_with_route:
     - declaration: missing_feature (The root HTTP server span does not capture the route template)
+      component_version: <1.68.0
       weblog: [akka-http, play]
   tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5:
     - weblog_declaration:
