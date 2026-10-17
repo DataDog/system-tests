@@ -2344,7 +2344,9 @@ manifest:
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats:  # Modified by easy win activation script
     - declaration: missing_feature (failure 2.8.0)
       component_version: <4.3.1
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_cardinality_overflow_sentinel_TS017: "missing_feature (CSS v1.2.0 Cardinality Limits: dd-trace-py/libdatadog does not honor DD_TRACE_STATS_*_CARDINALITY_LIMIT nor collapse excess cardinality to the tracer_blocked_value sentinel; all distinct resources are emitted)"
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_cardinality_overflow_sentinel_TS017:  # TODO: a lower version might be supported
+    - declaration: 'missing_feature (CSS v1.2.0 Cardinality Limits: dd-trace-py/libdatadog does not honor DD_TRACE_STATS_*_CARDINALITY_LIMIT nor collapse excess cardinality to the tracer_blocked_value sentinel; all distinct resources are emitted)'
+      component_version: <4.16.0
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_distinct_aggregationkeys_TS003:  # Created by easy win activation script
     - declaration: missing_feature (failure 2.8.0)
       component_version: <4.12.2
