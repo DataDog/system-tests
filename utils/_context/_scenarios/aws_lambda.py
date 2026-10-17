@@ -119,6 +119,8 @@ class LambdaScenario(DockerScenario):
     def _set_components(self):
         self.components["library"] = self.library.version
         self.components[self.library.name] = self.library.version
+        if tracer := self.lambda_weblog.tracer:
+            self.components[tracer.name] = tracer.version
 
     def _wait_for_app_readiness(self):
         logger.debug("Wait for app readiness")

@@ -6,6 +6,8 @@ from pathlib import Path
 
 
 from utils import pytest
+from utils._context.component_version import Version
+from utils.manifest import Manifest
 import yaml
 
 from utils.manifest._internal.types import Condition, SkipDeclaration, SemverRange
@@ -716,6 +718,136 @@ def test_e2e_activation_filters_by_component():
         # Verify only ruby was processed
         assert "ruby" in logger.tests_per_language
         assert "python" not in logger.tests_per_language
+
+
+@pytest.mark.parametrize("components", [["python"], ["python_lambda"], ["python", "python_lambda"]])
+@pytest.mark.parametrize("layer_declaration", ["missing_feature", "v8.0.0"])
+@pytest.mark.parametrize("tracer_declaration", ["missing_feature", "v4.16.0"])
+def test_lambda_activation_uses_each_component_version(
+    tmp_path: Path, components: list[str], layer_declaration: str, tracer_declaration: str
+) -> None:
+    node = "tests/test_feature.py::Test_Feature"
+    scenario_dir = tmp_path / "data" / "lambda_run" / "scenario"
+    scenario_dir.mkdir(parents=True)
+    report = create_report_json("python_lambda", "8.129.0", "alb", [{"nodeid": node, "outcome": "xpassed"}])
+    report["context"]["python"] = "4.15.0"
+    (scenario_dir / "report.json").write_text(json.dumps(report))
+    manifest_dir = tmp_path / "manifests"
+    manifest_dir.mkdir()
+    (manifest_dir / "python_lambda.yml").write_text(create_manifest_yaml({node: layer_declaration}))
+    (manifest_dir / "python.yml").write_text(
+        f'---\nmanifest:\n  {node}:\n    - weblog_declaration:\n        "*": v2.20.0\n        "alb, apigw-http": {tracer_declaration}\n'
+    )
+
+    test_data, weblogs, _ = parse_artifact_data(tmp_path / "data", components)
+    assert {context.library: str(context.library_version) for context in test_data} == {
+        component: "4.15.0" if component == "python" else "8.129.0" for component in components
+    }
+    editor = ManifestEditor(weblogs, manifests_path=manifest_dir, components=components)
+    update_manifest(editor, test_data)
+    editor.write(manifest_dir)
+
+    manifest = Manifest(path=manifest_dir)
+    for component, version in [("python", "4.15.0"), ("python_lambda", "8.129.0")]:
+        manifest.update_rules({component: Version(version)}, "alb")
+        if component == "python":
+            restricted = component not in components or tracer_declaration == "v4.16.0"
+        else:
+            restricted = component not in components and layer_declaration == "missing_feature"
+        assert bool(manifest.get_declarations(node)) is restricted
+        manifest.update_rules({component: Version("0.0.0")}, "alb")
+        assert manifest.get_declarations(node)
+    manifest.update_rules({"python": Version("4.15.0")}, "apigw-http")
+    assert manifest.get_declarations(node)
+    manifest.update_rules({"python": Version("2.20.0")}, "flask")
+    assert not manifest.get_declarations(node)
+    if "python" in components and tracer_declaration == "v4.16.0":
+        assert "Easy win for alb and version 4.15.0" in (manifest_dir / "python.yml").read_text()
+
+
+@pytest.mark.parametrize("other_tracer", ["4.14.2", "4.15.0"])
+def test_lambda_activation_combines_results_for_the_same_component_version(tmp_path: Path, other_tracer: str) -> None:
+    node = "tests/test_feature.py::Test_Feature::test_method"
+    for layer, tracer, outcome in [("8.129.0", "4.15.0", "xpassed"), ("8.127.0", other_tracer, "xfailed")]:
+        scenario_dir = tmp_path / "lambda_run" / layer
+        scenario_dir.mkdir(parents=True)
+        report = create_report_json("python_lambda", layer, "alb", [{"nodeid": node, "outcome": outcome}])
+        report["context"]["python"] = tracer
+        (scenario_dir / "report.json").write_text(json.dumps(report))
+
+    test_data, _, _ = parse_artifact_data(tmp_path, ["python", "python_lambda"])
+    for context, data in test_data.items():
+        if context.library == "python" and str(context.library_version) == "4.15.0":
+            assert (node in data.xpass_nodes) is (other_tracer != "4.15.0")
+        if context.library == "python_lambda" and str(context.library_version) == "8.129.0":
+            assert node in data.xpass_nodes
+
+
+@pytest.mark.parametrize("components", [["python", "python_lambda"], ["python"], ["python_lambda"]])
+def test_e2e_lambda_activation_updates_both_manifests(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, components: list[str]
+) -> None:
+    parent = "tests/test_feature.py::Test_Feature"
+    passing_node = f"{parent}::test_passes"
+    failing_node = f"{parent}::test_fails"
+    manifest_dir = tmp_path / "manifests"
+    manifest_dir.mkdir()
+    original_manifests = {
+        "python_lambda": create_manifest_yaml({parent: "missing_feature"}),
+        "python": (
+            f"---\nmanifest:\n  {parent}:\n    - weblog_declaration:\n"
+            '        "*": v2.20.0\n        "alb, apigw-http": missing_feature\n'
+        ),
+    }
+    for component, content in original_manifests.items():
+        (manifest_dir / f"{component}.yml").write_text(content)
+
+    for library, variant, outcomes in [
+        ("python_lambda", "alb", ("xpassed", "xfailed")),
+        ("python_lambda", "apigw-http", ("xfailed", "xfailed")),
+        ("python", "flask-poc", ("passed", "passed")),
+    ]:
+        scenario_dir = tmp_path / "data" / f"{library}_run" / variant
+        scenario_dir.mkdir(parents=True)
+        report = create_report_json(
+            library,
+            "8.129.0" if library == "python_lambda" else "4.15.0",
+            variant,
+            [
+                {"nodeid": passing_node, "outcome": outcomes[0]},
+                {"nodeid": failing_node, "outcome": outcomes[1]},
+            ],
+        )
+        if library == "python_lambda":
+            report["context"]["python"] = "4.15.0"
+        (scenario_dir / "report.json").write_text(json.dumps(report))
+
+    skipped_nodes_file = tmp_path / "skip.yml"
+    skipped_nodes_file.write_text("{}\n")
+    monkeypatch.setattr(activate_easy_wins_main, "SKIPPED_NODES_FILE", skipped_nodes_file)
+    monkeypatch.setattr(sys, "argv", ["activate_easy_wins", "--no-download", "--components", *components])
+    monkeypatch.chdir(tmp_path)
+    activate_easy_wins_main.main()
+
+    manifest = Manifest(path=manifest_dir)
+    versions = {"python_lambda": Version("8.129.0"), "python": Version("4.15.0")}
+    for component, version in versions.items():
+        manifest.update_rules({component: version}, "alb")
+        assert bool(manifest.get_declarations(passing_node)) is (component not in components)
+        assert manifest.get_declarations(failing_node)
+        manifest.update_rules({component: Version("8.128.0" if component == "python_lambda" else "4.14.2")}, "alb")
+        assert manifest.get_declarations(passing_node)
+        if component not in components:
+            assert (manifest_dir / f"{component}.yml").read_text() == original_manifests[component]
+
+    manifest.update_rules(versions, "alb")
+    assert bool(manifest.get_declarations(passing_node)) is (len(components) != len(versions))
+    assert manifest.get_declarations(failing_node)
+    manifest.update_rules(versions, "apigw-http")
+    assert manifest.get_declarations(passing_node)
+    manifest.update_rules({"python": versions["python"]}, "flask-poc")
+    assert not manifest.get_declarations(passing_node)
+    assert not manifest.get_declarations(failing_node)
 
 
 def test_e2e_activation_excludes_owners():

@@ -265,7 +265,11 @@ def pytest_sessionstart(session: pytest.Session) -> None:
 
     if os.environ.get("SYSTEM_TESTS_DEV_MODE", "").lower() == "true":
         logger.info("Checking that no version is ahead of main branch")
-        manifest = Manifest(context.scenario.components, context.weblog_variant)
+        components = context.scenario.components
+        if context.library.name in COMPONENT_GROUPS.lambda_lib:
+            # A development Lambda library can bundle a released language tracer.
+            components = {context.library.name: context.library.version}
+        manifest = Manifest(components, context.weblog_variant)
         errors = manifest.assert_versions_not_ahead_of_current()
         if errors:
             message = "Dev mode check: manifest declares versions ahead of the current tested version:\n"

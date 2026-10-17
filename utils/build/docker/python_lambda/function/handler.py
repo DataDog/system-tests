@@ -22,6 +22,7 @@ from aws_lambda_powertools.shared.cookies import Cookie
 from aws_lambda_powertools.event_handler import Response
 
 import datadog_lambda
+import ddtrace
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 from ddtrace.contrib.internal.trace_utils_base import set_user
 from ddtrace.trace import tracer
@@ -53,6 +54,10 @@ def version_info():
         "library": {
             "name": "python_lambda",
             "version": datadog_lambda.__version__,
+        },
+        "tracer": {
+            "name": "python",
+            "version": ddtrace.__version__,
         },
     }
 
