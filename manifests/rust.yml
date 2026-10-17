@@ -521,7 +521,9 @@ manifest:
   tests/parametric/test_tracer.py::Test_TracerBaseService:  # TODO: a lower version might be supported
     - declaration: missing_feature (_dd.base_service is not implemented)
       component_version: <0.5.1-dev+8efc582
-  tests/parametric/test_tracer.py::Test_TracerBaseService::test_base_service_set_when_service_overridden: missing_feature (_dd.base_service is not implemented)
+  tests/parametric/test_tracer.py::Test_TracerBaseService::test_base_service_set_when_service_overridden:  # TODO: a lower version might be supported
+    - declaration: missing_feature (_dd.base_service is not implemented)
+      component_version: <0.5.3-dev+62c80dc
   tests/parametric/test_tracer.py::Test_TracerSCITagging: missing_feature  # Created by easy win activation script
   tests/parametric/test_tracer.py::Test_TracerServiceNameSource: irrelevant
   tests/parametric/test_tracer.py::Test_TracerUniversalServiceTagging::test_tracer_service_name_environment_variable:  # TODO: a lower version might be supported
