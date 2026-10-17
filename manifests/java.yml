@@ -3488,11 +3488,135 @@ manifest:
         "*": irrelevant
         spring-boot: v1.56.0
   tests/ffe/test_exposures_datadog_agent.py::Test_FFE_EXP_5_Missing_Targeting_Key: bug (FFL-1729)
-  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Appears: missing_feature (EX-3415)
-  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Cycle: missing_feature (EX-3415)
-  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Disappears: missing_feature (EX-3415)
-  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Serial_Id: missing_feature (EX-3415)
-  tests/ffe/test_flag_eval_evp.py: missing_feature (FFL-2446)
+  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Appears:  # TODO: a lower version might be supported
+    - declaration: missing_feature (EX-3415)
+      component_version: <1.67.1
+      weblog: [spring-boot]
+    - declaration: missing_feature (EX-3415)
+      excluded_weblog: [spring-boot]
+  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Cycle:  # TODO: a lower version might be supported
+    - declaration: missing_feature (EX-3415)
+      component_version: <1.67.1
+      weblog: [spring-boot]
+    - declaration: missing_feature (EX-3415)
+      excluded_weblog: [spring-boot]
+  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Disappears:  # TODO: a lower version might be supported
+    - declaration: missing_feature (EX-3415)
+      component_version: <1.67.1
+      weblog: [spring-boot]
+    - declaration: missing_feature (EX-3415)
+      excluded_weblog: [spring-boot]
+  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Serial_Id:  # TODO: a lower version might be supported
+    - declaration: missing_feature (EX-3415)
+      component_version: <1.67.1
+      weblog: [spring-boot]
+    - declaration: missing_feature (EX-3415)
+      excluded_weblog: [spring-boot]
+  tests/ffe/test_flag_eval_evp.py:  # TODO: a lower version might be supported
+    - declaration: missing_feature (FFL-2446)
+      component_version: <1.67.1
+      weblog: [spring-boot-jetty, spring-boot-wildfly, spring-boot, spring-boot-undertow, uds-spring-boot, spring-boot-payara, spring-boot-openliberty]
+    - declaration: missing_feature (FFL-2446)
+      excluded_weblog: [spring-boot-jetty, spring-boot-wildfly, spring-boot, spring-boot-undertow, uds-spring-boot, spring-boot-payara, spring-boot-openliberty]
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Basic:
+    - weblog_declaration:
+        spring-boot-openliberty: missing_feature (FFL-2446)
+        spring-boot-undertow: missing_feature (FFL-2446)
+        spring-boot-jetty: missing_feature (FFL-2446)
+        spring-boot-payara: missing_feature (FFL-2446)
+        uds-spring-boot: missing_feature (FFL-2446)
+        spring-boot: missing_feature (FFL-2446)
+        spring-boot-wildfly: missing_feature (FFL-2446)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Burst_Aggregation:
+    - weblog_declaration:
+        spring-boot-openliberty: missing_feature (FFL-2446)
+        spring-boot-undertow: missing_feature (FFL-2446)
+        spring-boot-jetty: missing_feature (FFL-2446)
+        spring-boot-payara: missing_feature (FFL-2446)
+        uds-spring-boot: missing_feature (FFL-2446)
+        spring-boot: missing_feature (FFL-2446)
+        spring-boot-wildfly: missing_feature (FFL-2446)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Context_Bounds:
+    - weblog_declaration:
+        spring-boot-openliberty: missing_feature (FFL-2446)
+        spring-boot-undertow: missing_feature (FFL-2446)
+        spring-boot-jetty: missing_feature (FFL-2446)
+        spring-boot-payara: missing_feature (FFL-2446)
+        uds-spring-boot: missing_feature (FFL-2446)
+        spring-boot: missing_feature (FFL-2446)
+        spring-boot-wildfly: missing_feature (FFL-2446)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Count:
+    - weblog_declaration:
+        spring-boot-openliberty: missing_feature (FFL-2446)
+        spring-boot-undertow: missing_feature (FFL-2446)
+        spring-boot-jetty: missing_feature (FFL-2446)
+        spring-boot-payara: missing_feature (FFL-2446)
+        uds-spring-boot: missing_feature (FFL-2446)
+        spring-boot: missing_feature (FFL-2446)
+        spring-boot-wildfly: missing_feature (FFL-2446)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Degradation:
+    - weblog_declaration:
+        spring-boot-openliberty: missing_feature (FFL-2446)
+        spring-boot-undertow: missing_feature (FFL-2446)
+        spring-boot-jetty: missing_feature (FFL-2446)
+        spring-boot-payara: missing_feature (FFL-2446)
+        uds-spring-boot: missing_feature (FFL-2446)
+        spring-boot: missing_feature (FFL-2446)
+        spring-boot-wildfly: missing_feature (FFL-2446)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_High_Cardinality_Aggregation:
+    - weblog_declaration:
+        spring-boot-openliberty: missing_feature (FFL-2446)
+        spring-boot-undertow: missing_feature (FFL-2446)
+        spring-boot-jetty: missing_feature (FFL-2446)
+        spring-boot-payara: missing_feature (FFL-2446)
+        uds-spring-boot: missing_feature (FFL-2446)
+        spring-boot: missing_feature (FFL-2446)
+        spring-boot-wildfly: missing_feature (FFL-2446)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Load_Aggregation:
+    - weblog_declaration:
+        spring-boot-openliberty: missing_feature (FFL-2446)
+        spring-boot-undertow: missing_feature (FFL-2446)
+        spring-boot-jetty: missing_feature (FFL-2446)
+        spring-boot-payara: missing_feature (FFL-2446)
+        uds-spring-boot: missing_feature (FFL-2446)
+        spring-boot: missing_feature (FFL-2446)
+        spring-boot-wildfly: missing_feature (FFL-2446)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_ObserveFullData_Absent_Hashed:
+    - weblog_declaration:
+        spring-boot-openliberty: missing_feature (FFL-2446)
+        spring-boot-undertow: missing_feature (FFL-2446)
+        spring-boot-jetty: missing_feature (FFL-2446)
+        spring-boot-payara: missing_feature (FFL-2446)
+        uds-spring-boot: missing_feature (FFL-2446)
+        spring-boot: missing_feature (FFL-2446)
+        spring-boot-wildfly: missing_feature (FFL-2446)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_ObserveFullData_False_Hashed:
+    - weblog_declaration:
+        spring-boot-openliberty: missing_feature (FFL-2446)
+        spring-boot-undertow: missing_feature (FFL-2446)
+        spring-boot-jetty: missing_feature (FFL-2446)
+        spring-boot-payara: missing_feature (FFL-2446)
+        uds-spring-boot: missing_feature (FFL-2446)
+        spring-boot: missing_feature (FFL-2446)
+        spring-boot-wildfly: missing_feature (FFL-2446)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_ObserveFullData_True_Unhashed:
+    - weblog_declaration:
+        spring-boot-openliberty: missing_feature (FFL-2446)
+        spring-boot-undertow: missing_feature (FFL-2446)
+        spring-boot-jetty: missing_feature (FFL-2446)
+        spring-boot-payara: missing_feature (FFL-2446)
+        uds-spring-boot: missing_feature (FFL-2446)
+        spring-boot: missing_feature (FFL-2446)
+        spring-boot-wildfly: missing_feature (FFL-2446)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Runtime_Default:
+    - weblog_declaration:
+        spring-boot-openliberty: missing_feature (FFL-2446)
+        spring-boot-undertow: missing_feature (FFL-2446)
+        spring-boot-jetty: missing_feature (FFL-2446)
+        spring-boot-payara: missing_feature (FFL-2446)
+        uds-spring-boot: missing_feature (FFL-2446)
+        spring-boot: missing_feature (FFL-2446)
+        spring-boot-wildfly: missing_feature (FFL-2446)
   tests/ffe/test_flag_eval_metrics.py:
     - weblog_declaration:
         "*": irrelevant
