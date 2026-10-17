@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import tests.debugger.utils as debugger
-from utils import context, features, logger, scenarios, slow
+from utils import context, features, logger, remote_config, scenarios, slow, weblog
 import json
 import time
 
@@ -11,26 +11,25 @@ TIMEOUT = 5
 DEFAULT_ENVVARS = {
     "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
 }
+LOG_PROBE_TEMPLATE = """
+{
+    "version": 0,
+    "where": {
+        "typeName": null,
+        "sourceFile": "ACTUAL_SOURCE_FILE",
+        "lines": ["20"]
+    }
+}
+"""
 
 
 @features.debugger_inproduct_enablement
 @scenarios.debugger_inproduct_enablement
 class Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation(debugger.BaseDebuggerTest):
     ############ dynamic instrumentation ############
-    _probe_template = """
-    {
-        "version": 0,
-        "where": {
-            "typeName": null,
-            "sourceFile": "ACTUAL_SOURCE_FILE",
-            "lines": ["20"]
-        }
-    }
-    """
-
     def setup_inproduct_enablement_di(self):
         def _send_config(*, enabled: bool | None = None, reset: bool = True):
-            probe = json.loads(self._probe_template)
+            probe = json.loads(LOG_PROBE_TEMPLATE)
             probe["id"] = debugger.generate_probe_id("log")
             self.set_probes([probe])
 
@@ -263,3 +262,75 @@ class Test_Debugger_InProduct_Enablement_Code_Origin_Default_On(debugger.BaseDeb
         self.assert_all_weblog_responses_ok()
 
         assert self.code_origin_enabled_by_default, "Expected code origin enabled by default"
+
+
+@features.debugger_inproduct_enablement
+@scenarios.debugger_inproduct_enablement
+class Test_Debugger_InProduct_Enablement_Multiconfig_Partial_Update(debugger.BaseDebuggerTest):
+    """Updating one APM_TRACING config must not drop the other active configs.
+
+    An unchanged file keeps its hash, so libraries skip it, but it is still listed
+    in client_configs and must stay applied.
+    """
+
+    _WILDCARD_CONFIG_PATH = "datadog/2/APM_TRACING/inproduct-multiconfig-wildcard/config"
+    _SERVICE_CONFIG_PATH = "datadog/2/APM_TRACING/inproduct-multiconfig-service/config"
+
+    def _set_apm_tracing_config(self, path: str, settings: dict, *, service_name: str, env: str) -> None:
+        lib_config = {"library_language": "all", "library_version": "latest", "tracing_enabled": True} | settings
+        config = {
+            "schema_version": "v1.0.0",
+            "action": "enable",
+            "lib_config": lib_config,
+            "service_target": {"service": service_name, "env": env},
+        }
+        if remote_config.library_supports_sdk_configuration():
+            config = remote_config.to_sdk_config_payload(config)
+        remote_config.tracer_rc_state.set_config(path, config)
+
+    def _apply_with_new_probe_and_check_emitting(self) -> bool:
+        probe = json.loads(LOG_PROBE_TEMPLATE)
+        probe["id"] = debugger.generate_probe_id("log")
+        self.set_probes([probe])
+        remote_config.tracer_rc_state.set_config(
+            f"datadog/2/LIVE_DEBUGGING/logProbe_{probe['id']}/config", self.probe_definitions[0]
+        )
+
+        self.rc_states.append(remote_config.tracer_rc_state.apply())
+
+        # PHP tracer requires requests to /debugger/* to process RC and resolve probe hooks.
+        if context.library == "php":
+            weblog.get(f"/debugger/init?probes={probe['id']}")
+
+        self.send_weblog_request("/debugger/log", reset=False)
+        return self.wait_for_all_probes(statuses=["EMITTING"], timeout=TIMEOUT)
+
+    def setup_inproduct_enablement_multiconfig_partial_update(self):
+        self.initialize_weblog_remote_config()
+        self.weblog_responses = []
+        self.rc_states = []
+        remote_config.tracer_rc_state.reset().apply()
+
+        # The wildcard config enables dynamic instrumentation, the service config only sets code origin.
+        self._set_apm_tracing_config(
+            self._WILDCARD_CONFIG_PATH, {"dynamic_instrumentation_enabled": True}, service_name="*", env="*"
+        )
+        self._set_apm_tracing_config(
+            self._SERVICE_CONFIG_PATH, {"code_origin_enabled": True}, service_name="weblog", env="system-tests"
+        )
+        self.di_enabled = self._apply_with_new_probe_and_check_emitting()
+
+        # Change a single setting of the service config. The wildcard config is resent unchanged.
+        self._set_apm_tracing_config(
+            self._SERVICE_CONFIG_PATH, {"code_origin_enabled": False}, service_name="weblog", env="system-tests"
+        )
+        self.di_kept_enabled = self._apply_with_new_probe_and_check_emitting()
+
+    def test_inproduct_enablement_multiconfig_partial_update(self):
+        self.assert_rc_state_not_error()
+        self.assert_all_weblog_responses_ok()
+
+        assert self.di_enabled, (
+            "Expected probes to be emitting after the wildcard config enabled dynamic instrumentation"
+        )
+        assert self.di_kept_enabled, "Expected probes to keep emitting after updating only the service config"
