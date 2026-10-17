@@ -31,28 +31,25 @@ def _log_level(test_agent: TestAgentAPI, library: APMLibrary) -> str:
         accepted = [entry for entry in entries if not entry.get("error")]
         assert accepted, "No accepted DD_TRACE_LOG_LEVEL configuration in telemetry"
         value = accepted[0].get("value")
-    elif library.lang in ("golang", "dotnet"):
+    elif library.lang == "dotnet":
         # The debug-only mapping does not expose a scalar threshold. Require an
         # actual INFO diagnostic as well as the published effective debug flag.
         assert _debug_enabled(library) is False
-        if library.lang == "golang":
-            value = library.config().get("dd_trace_startup_log_level")
-        else:
-            with library.dd_start_span("otel-log-level-default"):
-                pass
-            library.dd_flush()
-            deadline = time.monotonic() + 5
-            while True:
-                logs = _diagnostic_logs(library)
-                if any("[INF]" in line and "DATADOG TRACER CONFIGURATION" in line for line in logs.splitlines()):
-                    value = "info"
-                    break
-                assert time.monotonic() < deadline, f"No INFO startup diagnostic from the SDK:\n{logs}"
-                time.sleep(0.1)
+        with library.dd_start_span("otel-log-level-default"):
+            pass
+        library.dd_flush()
+        deadline = time.monotonic() + 5
+        while True:
+            logs = _diagnostic_logs(library)
+            if any("[INF]" in line and "DATADOG TRACER CONFIGURATION" in line for line in logs.splitlines()):
+                value = "info"
+                break
+            assert time.monotonic() < deadline, f"No INFO startup diagnostic from the SDK:\n{logs}"
+            time.sleep(0.1)
     else:
         config = library.config()
         # Java's dd_log_level is raw input, so it cannot prove effective defaults or fallback.
-        key = "dd_trace_effective_log_level" if library.lang in ("java", "python", "ruby") else "dd_log_level"
+        key = "dd_trace_effective_log_level" if library.lang in ("golang", "java", "python", "ruby") else "dd_log_level"
         value = config.get(key)
     assert isinstance(value, str), "The parametric application does not expose the effective logger level"
     return value.lower()
