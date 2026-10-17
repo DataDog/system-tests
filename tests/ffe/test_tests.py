@@ -78,6 +78,44 @@ def test_flagevaluation_egress_validates_captured_data_without_waiting(
     interface.wait_for.assert_not_called()
 
 
+@pytest.mark.parametrize("mutation", [None, "protected", "degraded", "empty", "oversized", "too_many"])
+@scenarios.feature_flagging_contract_tests
+@features.not_reported
+def test_context_bounds_requires_retained_bounded_context(
+    monkeypatch: pytest.MonkeyPatch, mutation: str | None
+) -> None:
+    contract = flag_eval_evp_tests.Test_FFE_EVP_Flagevaluation_Context_Bounds()
+    contract.flag_key = "bounds-flag"
+    contract.oversized_field = "field_010"
+    contract.r = MagicMock(status_code=200)
+    evaluation = {"field_000": "value-0"}
+    event: dict[str, Any] = {
+        "flag": {"key": contract.flag_key},
+        "timestamp": 1,
+        "first_evaluation": 1,
+        "last_evaluation": 1,
+        "evaluation_count": 1,
+        "context": {"dd": {"service": "weblog"}, "evaluation": evaluation},
+    }
+    if mutation == "protected":
+        del event["context"]["evaluation"]
+    elif mutation == "degraded":
+        del event["context"]
+    elif mutation == "empty":
+        evaluation.clear()
+    elif mutation == "oversized":
+        evaluation[contract.oversized_field] = "x" * 300
+    elif mutation == "too_many":
+        evaluation.update({f"field_{index:03d}": f"value-{index}" for index in range(257) if index != 10})
+        evaluation["extra"] = "value"
+    monkeypatch.setattr(flag_eval_evp_tests, "find_evp_flagevaluation_events", lambda _key: [({}, event)])
+    if mutation is None:
+        contract.test_ffe_evp_flagevaluation_context_bounds()
+    else:
+        with pytest.raises(AssertionError):
+            contract.test_ffe_evp_flagevaluation_context_bounds()
+
+
 def _direct_runtime_evidence(library_name: str = "nodejs") -> dict[str, Any]:
     executable = {
         "dotnet": "dotnet",
@@ -413,6 +451,63 @@ def test_feature_flagging_agentless_evp_topology_supports_both_routes(
 @features.not_reported
 def test_feature_flagging_direct_runtime_evidence_accepts_live_minimal_topology() -> None:
     assert_direct_evp_runtime_evidence(_direct_runtime_evidence(), library_name="nodejs")
+
+
+def _php_fpm_runtime_evidence() -> dict[str, Any]:
+    evidence = _direct_runtime_evidence()
+    weblog = evidence["containers"][1]
+    weblog |= {
+        "library": "php",
+        "weblog_variant": "php-fpm-8.2",
+        "pid1_command": "dumb-init --single-child /entrypoint.sh",
+    }
+    weblog["processes"] = [
+        {"pid": "202", "ppid": "0", "command": "dumb-init --single-child /entrypoint.sh"},
+        {"pid": "203", "ppid": "202", "command": "/bin/bash -e /entrypoint.sh"},
+        {"pid": "204", "ppid": "203", "command": "php-fpm: master process (/etc/php/8.2/fpm/php-fpm.conf)"},
+        {"pid": "205", "ppid": "203", "command": "/usr/sbin/apache2 -k start"},
+        {"pid": "206", "ppid": "204", "command": "datadog-ipc-helper /opt/datadog/ddtrace.so"},
+    ]
+    return evidence
+
+
+@pytest.mark.parametrize("busybox_ps", [False, True])
+@scenarios.feature_flagging_contract_tests
+@features.not_reported
+def test_feature_flagging_direct_runtime_accepts_php_fpm_with_internal_library_helper(*, busybox_ps: bool) -> None:
+    evidence = _php_fpm_runtime_evidence()
+    if busybox_ps:
+        processes = evidence["containers"][1]["processes"]
+        processes[1]["command"] = "{entrypoint.sh} /bin/bash -e /entrypoint.sh"
+        processes[2]["command"] = "{php-fpm8.2} php-fpm: master process (/etc/php/8.2/fpm/php-fpm.conf)"
+    assert_direct_evp_runtime_evidence(evidence, library_name="php")
+
+
+@pytest.mark.parametrize(
+    "mutation",
+    ["shell_only", "wrong_launcher", "no_master", "no_frontend", "external_agent", "wrong_parent", "fake_script"],
+)
+@scenarios.feature_flagging_contract_tests
+@features.not_reported
+def test_feature_flagging_direct_runtime_rejects_incomplete_php_proof(mutation: str) -> None:
+    evidence = _php_fpm_runtime_evidence()
+    weblog = evidence["containers"][1]
+    if mutation == "shell_only":
+        weblog["processes"] = weblog["processes"][:1]
+    elif mutation == "wrong_launcher":
+        weblog["pid1_command"] = "/bin/bash arbitrary-wrapper.sh"
+    elif mutation == "no_master":
+        weblog["processes"] = [process for process in weblog["processes"] if process["pid"] != "204"]
+    elif mutation == "no_frontend":
+        weblog["processes"] = [process for process in weblog["processes"] if process["pid"] != "205"]
+    elif mutation == "wrong_parent":
+        weblog["processes"][1]["ppid"] = "999"
+    elif mutation == "fake_script":
+        weblog["processes"][1]["command"] = "{entrypoint.sh} /bin/bash -e /arbitrary-wrapper.sh"
+    else:
+        weblog["processes"].append({"pid": "207", "ppid": "203", "command": "trace-agent"})
+    with pytest.raises(AssertionError):
+        assert_direct_evp_runtime_evidence(evidence, library_name="php")
 
 
 @pytest.mark.parametrize("executable", ["python3.11", "python3.12"])
