@@ -1226,6 +1226,7 @@ manifest:
         laravel11x: v1.23.3  # TODO: a lower version might be supported
         symfony7x: v1.23.3  # TODO: a lower version might be supported
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry::test_telemetry_symdb: missing_feature (SymDb not implemented in PHP)
+  tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry_Metrics: missing_feature (Debugger telemetry metrics are not implemented)
   tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_injection_metadata:
     - declaration: missing_feature (Not implemented yet)
       component_version: <1.12.0

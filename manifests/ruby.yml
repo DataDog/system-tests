@@ -2077,6 +2077,7 @@ manifest:
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry::test_telemetry_co: missing_feature (feature not implemented)
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry::test_telemetry_er: missing_feature (feature not implemented)
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry::test_telemetry_symdb: missing_feature (feature not implemented)
+  tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry_Metrics: missing_feature (Debugger telemetry metrics are not sent in the debugger namespace yet)
   tests/docker_ssi/test_docker_ssi.py:
     - weblog_declaration:
         "*": v2.19.0
