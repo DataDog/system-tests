@@ -48,7 +48,7 @@ class Test_TraceHeaders:
 
         def validator(data: dict):
             request_headers = {h[0].lower() for h in data["request"]["headers"]}
-            if "x-datadog-diagnostic-check" in request_headers and len(data["request"]["content"]) != 0:
+            if "x-datadog-diagnostic-check" in request_headers and _trace_count(data) != 0:
                 raise ValueError("Tracer sent a dignostic request with traces in it")
 
         interfaces.library.validate_all_traces(validator=validator, allow_no_trace=True)
@@ -64,7 +64,7 @@ class Test_TraceHeaders:
                     except ValueError as e:
                         raise ValueError(f"'x-datadog-trace-count' request header is not an integer: {value}") from e
 
-                    if trace_count != len(data["request"]["content"]):
+                    if trace_count != _trace_count(data):
                         raise ValueError("x-datadog-trace-count request header didn't match the number of traces")
 
         interfaces.library.validate_all_traces(validator=validator, allow_no_trace=True)
@@ -234,7 +234,7 @@ class Test_Agent:
             # sampling priority tag will be returned. This is the same logic found on the trace-agent.
             span_with_sampling_data = None
             for span in trace:
-                if span.get("metrics", {}).get("_sampling_priority_v1", None) is not None:
+                if span.get_sampling_priority() is not None:
                     if span.get("parent_id") in (0, None):
                         return span
                     elif span_with_sampling_data is None:
@@ -250,8 +250,7 @@ class Test_Agent:
             if not span:
                 continue
 
-            metrics = span["metrics"]
-            sampling_priority = metrics.get("_sampling_priority_v1")
+            sampling_priority = span.get_sampling_priority()
             if sampling_priority in (SamplingPriority.AUTO_KEEP, SamplingPriority.USER_KEEP):
                 trace_ids_reported_by_tracer.add(trace.trace_id_as_int)
                 if trace.trace_id_as_int not in trace_ids_reported_by_agent:
@@ -264,6 +263,14 @@ class Test_Agent:
             logger.info(f"Tracer reported {len(trace_ids_reported_by_tracer)} traces")
             logger.info(f"Agent reported {len(trace_ids_reported_by_agent)} traces")
             raise ValueError("Some traces have not been reported by the agent. See logs for more details")
+
+
+def _trace_count(data: dict) -> int:
+    """Number of traces in a /traces request: v1.0 payloads carry them as chunks"""
+    content = data["request"]["content"]
+    if data["path"] == "/v1.0/traces":
+        return len(content.get("chunks") or [])
+    return len(content)
 
 
 def _empty_request(data: dict):
