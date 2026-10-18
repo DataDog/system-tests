@@ -1871,6 +1871,7 @@ manifest:
       weblog: [express5]
     - declaration: bug (FFL-2182)
       excluded_weblog: [express5]
+  tests/ffe/test_evaluation_telemetry_opt_out.py: missing_feature (Provisional per-subject evaluation telemetry opt-out coverage; enable after the SDK release)
   tests/ffe/test_exposure_egress.py:
     - weblog_declaration:
         "*": incomplete_test_app

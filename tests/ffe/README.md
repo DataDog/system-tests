@@ -11,6 +11,7 @@ This directory contains system tests for the Feature Flags & Experimentation (FF
 | `test_exposures_datadog_agent.py` | Flag exposure tracking and reporting through the Datadog Agent |
 | `test_flag_eval_metrics.py` | Evaluation metrics (OTel counter) |
 | `test_flag_eval_evp.py` | Server-side EVP flagevaluation payloads, aggregation, and bounds |
+| `test_evaluation_telemetry_opt_out.py` | Per-subject evaluation telemetry opt-out, default-off behavior, and unchanged exposures |
 
 ## Running FFE Tests
 
@@ -18,14 +19,46 @@ This directory contains system tests for the Feature Flags & Experimentation (FF
 ./run.sh FEATURE_FLAGGING_AND_EXPERIMENTATION --library <language>
 ```
 
+## Per-subject evaluation telemetry opt-out
+
+This provisional coverage runs in parallel with SDK delivery. It is not a release gate.
+Manifests leave it disabled until each SDK supports the feature in a release.
+Use a local candidate SDK and force these tests to validate unreleased changes:
+
+```bash
+./run.sh FEATURE_FLAGGING_EVALUATION_TELEMETRY_OPT_OUT tests/ffe/test_evaluation_telemetry_opt_out.py \
+  -F tests/ffe/test_evaluation_telemetry_opt_out.py
+./run.sh FEATURE_FLAGGING_EVALUATION_TELEMETRY_OPT_OUT_DISABLED tests/ffe/test_evaluation_telemetry_opt_out.py \
+  -F tests/ffe/test_evaluation_telemetry_opt_out.py
+```
+
+The enabled scenario sets `DD_FEATURE_FLAGS_EVALUATION_TELEMETRY_PER_SUBJECT_OPT_OUT_ENABLED=true`.
+The disabled scenario leaves the setting absent. Both use the same requests.
+
+| Context value | Enabled | Disabled |
+| --- | --- | --- |
+| Boolean `true` | No evaluation telemetry | Evaluation telemetry remains |
+| Boolean `false`, missing, string `"true"`, or number `1` | Evaluation telemetry remains | Evaluation telemetry remains |
+
+Separate tests check EVP counts, evaluation metrics, and automatic trace annotations.
+Each test includes allowed subjects as positive controls.
+Mixed subjects evaluate the same flag to detect a flag-scoped opt-out decision.
+One rule targets the opt-out attribute to verify that it remains available for evaluation.
+All requests must return the same flag value. Exposures must retain their ordinary deduplication and context attributes.
+Validation reads final captures after the scenario stops its application and drains the Agent.
+
+PHP uses `/ffe?openfeature=1` to exercise the OpenFeature provider instead of the native client.
+PHP and .NET have no EVP evaluation producer. Exclude the EVP class when forcing their local runs with `-k 'not EVP'`.
+Browser and mobile SDKs are outside this server harness and retain their repository integration tests.
+
 ## Test-contract self-tests
 
-The self-tests in `testing_tests/` validate the FFE assertions using synthetic
+The self-tests validate the FFE assertions using synthetic
 captures. They do not run SDKs or contact an intake. With the Python 3.12 runner
 environment installed, run them explicitly:
 
 ```bash
-./run.sh FEATURE_FLAGGING_CONTRACT_TESTS tests/ffe/testing_tests
+./run.sh FEATURE_FLAGGING_CONTRACT_TESTS tests/ffe/test_tests.py tests/ffe/test_evaluation_telemetry_opt_out_contract.py
 ```
 
 This no-container scenario has no CI workflow or scenario-group membership.

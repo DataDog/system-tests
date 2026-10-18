@@ -1240,6 +1240,8 @@ manifest:
         "*": v1.21.0-dev
         laravel11x: incomplete_test_app
         symfony7x: incomplete_test_app
+  tests/ffe/test_evaluation_telemetry_opt_out.py: missing_feature (Provisional per-subject evaluation telemetry opt-out coverage; enable after the SDK release)
+  tests/ffe/test_evaluation_telemetry_opt_out.py::Test_FFE_Evaluation_Telemetry_Opt_Out_EVP: missing_feature (PHP has no EVP evaluation producer; FFL-2446)
   tests/ffe/test_exposure_egress.py:
     - weblog_declaration:
         "*": v1.21.0-dev

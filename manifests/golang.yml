@@ -1728,6 +1728,7 @@ manifest:
       weblog: [echo, gin, chi, net-http-orchestrion, net-http, uds-echo]
     - declaration: bug (FFL-2182)
       excluded_weblog: [echo, gin, chi, net-http-orchestrion, net-http, uds-echo]
+  tests/ffe/test_evaluation_telemetry_opt_out.py: missing_feature (Provisional per-subject evaluation telemetry opt-out coverage; enable after the SDK release)
   tests/ffe/test_exposure_egress.py: v2.6.0-dev  # Easy win for chi, echo, gin, net-http, net-http-orchestrion, uds-echo and version 2.5.0
   tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Direct: v2.12.0-dev
   tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Direct_Shutdown:
