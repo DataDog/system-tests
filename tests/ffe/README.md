@@ -21,6 +21,8 @@ This directory contains system tests for the Feature Flags & Experimentation (FF
 
 ## Per-subject evaluation telemetry opt-out
 
+All four test classes report under [#649: Per-subject evaluation telemetry opt-out](https://feature-parity.us1.prod.dog/#/?feature=649).
+
 This provisional coverage runs in parallel with SDK delivery. It is not a release gate.
 Manifests leave it disabled until each SDK supports the feature in a release.
 Use a local candidate SDK and force these tests to validate unreleased changes:

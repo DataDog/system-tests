@@ -122,7 +122,7 @@ class _TelemetryContract:
 
 @scenarios.feature_flagging_evaluation_telemetry_opt_out_disabled
 @scenarios.feature_flagging_evaluation_telemetry_opt_out
-@features.feature_flags_evp_flagevaluation
+@features.feature_flags_evaluation_telemetry_opt_out
 @rfc(RFC)
 class Test_FFE_Evaluation_Telemetry_Opt_Out_EVP(_TelemetryContract):
     def setup_counts(self) -> None:
@@ -136,7 +136,7 @@ class Test_FFE_Evaluation_Telemetry_Opt_Out_EVP(_TelemetryContract):
 
 @scenarios.feature_flagging_evaluation_telemetry_opt_out_disabled
 @scenarios.feature_flagging_evaluation_telemetry_opt_out
-@features.feature_flags_eval_metrics
+@features.feature_flags_evaluation_telemetry_opt_out
 @rfc(RFC)
 class Test_FFE_Evaluation_Telemetry_Opt_Out_Metrics(_TelemetryContract):
     def setup_counts(self) -> None:
@@ -157,7 +157,7 @@ class Test_FFE_Evaluation_Telemetry_Opt_Out_Metrics(_TelemetryContract):
 
 @scenarios.feature_flagging_evaluation_telemetry_opt_out_disabled
 @scenarios.feature_flagging_evaluation_telemetry_opt_out
-@features.feature_flags_exposures
+@features.feature_flags_evaluation_telemetry_opt_out
 @rfc(RFC)
 class Test_FFE_Evaluation_Telemetry_Opt_Out_Exposures(_TelemetryContract):
     def setup_unchanged(self) -> None:
@@ -185,7 +185,7 @@ class Test_FFE_Evaluation_Telemetry_Opt_Out_Exposures(_TelemetryContract):
 
 @scenarios.feature_flagging_evaluation_telemetry_opt_out_disabled
 @scenarios.feature_flagging_evaluation_telemetry_opt_out
-@features.feature_flags_event_enrichment
+@features.feature_flags_evaluation_telemetry_opt_out
 @rfc(RFC)
 class Test_FFE_Evaluation_Telemetry_Opt_Out_Trace_Annotations(_TelemetryContract):
     def setup_annotations(self) -> None:
