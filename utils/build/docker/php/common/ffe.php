@@ -73,43 +73,22 @@ function dd_ffe_scalar_attributes(array $attributes)
     return $normalized;
 }
 
-function dd_ffe_openfeature_client()
+function dd_ffe_evaluate_with_client($flagKey, $variationType, $defaultValue, $targetingKey, array $attributes)
 {
-    static $client = null;
-    if ($client === null) {
-        require_once __DIR__ . '/vendor/autoload.php';
-        $api = \OpenFeature\OpenFeatureAPI::getInstance();
-        $api->setProvider(new \DDTrace\OpenFeature\DataDogProvider());
-        $client = $api->getClient();
+    if (!class_exists('\\DDTrace\\FeatureFlags\\Client')) {
+        return null;
     }
 
-    return $client;
-}
-
-function dd_ffe_evaluate_with_client($flagKey, $variationType, $defaultValue, $targetingKey, array $attributes, $useOpenFeature = false)
-{
-    if ($useOpenFeature) {
-        $client = dd_ffe_openfeature_client();
-        $context = new \OpenFeature\implementation\flags\EvaluationContext(
-            $targetingKey,
-            new \OpenFeature\implementation\flags\Attributes($attributes)
-        );
+    if (method_exists('\\DDTrace\\FeatureFlags\\Client', 'create')) {
+        $client = \DDTrace\FeatureFlags\Client::create();
     } else {
-        if (!class_exists('\\DDTrace\\FeatureFlags\\Client')) {
-            return null;
-        }
-
-        if (method_exists('\\DDTrace\\FeatureFlags\\Client', 'create')) {
-            $client = \DDTrace\FeatureFlags\Client::create();
-        } else {
-            $client = new \DDTrace\FeatureFlags\Client();
-        }
-
-        $context = array(
-            'targetingKey' => $targetingKey,
-            'attributes' => $attributes,
-        );
+        $client = new \DDTrace\FeatureFlags\Client();
     }
+
+    $context = array(
+        'targetingKey' => $targetingKey,
+        'attributes' => $attributes,
+    );
 
     switch (dd_ffe_normalized_variation_type($variationType)) {
         case 'BOOLEAN':
@@ -139,11 +118,11 @@ function dd_ffe_warning_handler($severity, $message)
     return false;
 }
 
-function dd_ffe_evaluate($flagKey, $variationType, $defaultValue, $targetingKey, array $attributes, $useOpenFeature = false)
+function dd_ffe_evaluate($flagKey, $variationType, $defaultValue, $targetingKey, array $attributes)
 {
     set_error_handler('dd_ffe_warning_handler');
     try {
-        return dd_ffe_evaluate_with_client($flagKey, $variationType, $defaultValue, $targetingKey, $attributes, $useOpenFeature);
+        return dd_ffe_evaluate_with_client($flagKey, $variationType, $defaultValue, $targetingKey, $attributes);
     } finally {
         restore_error_handler();
     }
@@ -151,19 +130,6 @@ function dd_ffe_evaluate($flagKey, $variationType, $defaultValue, $targetingKey,
 
 function dd_ffe_details_payload($details)
 {
-    if ($details instanceof \OpenFeature\interfaces\flags\EvaluationDetails) {
-        $error = $details->getError();
-        $errorCode = $error === null ? null : $error->getResolutionErrorCode()->getValue();
-        return array(
-            'value' => $details->getValue(),
-            'reason' => $details->getReason(),
-            'variant' => $details->getVariant(),
-            'errorCode' => $errorCode,
-            'errorMessage' => $error === null ? null : $error->getResolutionErrorMessage(),
-            'providerState' => array('ready' => $errorCode !== 'PROVIDER_NOT_READY'),
-        );
-    }
-
     $payload = array(
         'value' => $details->getValue(),
         'reason' => $details->getReason(),
@@ -211,13 +177,11 @@ $targetingKeys = isset($payload['targetingKeys']) && is_array($payload['targetin
 $attributes = isset($payload['attributes']) && is_array($payload['attributes'])
     ? dd_ffe_scalar_attributes($payload['attributes'])
     : array();
-// Keep native-client coverage unchanged. Opt-out tests exercise the provider API.
-$useOpenFeature = isset($_GET['openfeature']) && $_GET['openfeature'] === '1';
 
 try {
     $details = null;
     foreach ($targetingKeys as $key) {
-        $details = dd_ffe_evaluate($flagKey, $variationType, $defaultValue, $key, $attributes, $useOpenFeature);
+        $details = dd_ffe_evaluate($flagKey, $variationType, $defaultValue, $key, $attributes);
     }
     if ($details !== null) {
         $response = dd_ffe_details_payload($details);

@@ -1,8 +1,38 @@
 """Self-tests ensure the opt-out oracle rejects leaks and missing positive controls."""
 
 from typing import Any
-from tests.ffe.utils.evaluation_telemetry import assert_count, evaluation_count
-from utils import features, pytest, scenarios
+from tests.ffe.utils.evaluation_telemetry import assert_count, assert_evaluation_responses, evaluation_count
+from utils import HttpResponse, features, pytest, scenarios
+
+
+@scenarios.feature_flagging_contract_tests
+@features.not_reported
+@pytest.mark.parametrize(
+    ("status_code", "text", "count", "passes"),
+    [
+        (200, '{"value": "on-value"}', 3, True),
+        (500, '{"value": "on-value"}', 3, False),
+        (200, '{"value": "default"}', 3, False),
+        (200, "not JSON", 3, False),
+        (200, "{}", 3, False),
+        (200, '{"value": "on-value"}', 0, False),
+    ],
+)
+def test_evaluation_response_oracle(status_code: int, text: str, count: int, *, passes: bool) -> None:
+    response = HttpResponse(
+        {
+            "request": {"method": "POST", "url": "http://weblog/ffe", "params": None},
+            "status_code": status_code,
+            "text": text,
+            "cookies": {},
+        }
+    )
+    responses = [response] * count
+    if passes:
+        assert_evaluation_responses(responses, expected_count=3, expected_value="on-value")
+    else:
+        with pytest.raises((AssertionError, ValueError, KeyError)):
+            assert_evaluation_responses(responses, expected_count=3, expected_value="on-value")
 
 
 @scenarios.feature_flagging_contract_tests

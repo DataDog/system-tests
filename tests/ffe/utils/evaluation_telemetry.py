@@ -1,7 +1,17 @@
-"""Count evaluation telemetry from final Agent captures."""
+"""Validate evaluation responses and telemetry after the scenario stops."""
 
+import json
 from collections.abc import Iterable
 from typing import Any
+
+from utils import HttpResponse
+
+
+def assert_evaluation_responses(responses: list[HttpResponse], *, expected_count: int, expected_value: str) -> None:
+    assert len(responses) == expected_count, f"Expected {expected_count} evaluation responses, got {len(responses)}"
+    for response in responses:
+        assert response.status_code == 200, response.text
+        assert json.loads(response.text)["value"] == expected_value, response.text
 
 
 def assert_count(actual: float, expected: int, flag: str) -> None:

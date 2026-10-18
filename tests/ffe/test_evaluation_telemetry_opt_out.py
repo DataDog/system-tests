@@ -6,11 +6,10 @@ Validation reads the final captures after the scenario flushes and stops its
 containers. Positive controls prevent missing telemetry from passing as opt-out.
 """
 
-import json
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any, TypedDict
 
-from tests.ffe.utils.evaluation_telemetry import assert_count, evaluation_count
+from tests.ffe.utils.evaluation_telemetry import assert_count, assert_evaluation_responses, evaluation_count
 from tests.ffe.utils.exposures import exposure_events_from_data
 from tests.ffe.utils.fixtures import make_ufc_fixture
 from utils import HttpResponse, context, features, interfaces, remote_config as rc, rfc, scenarios, weblog
@@ -90,7 +89,7 @@ class _TelemetryContract:
         # and the ordinary exposure cache without changing the targeting context.
         def evaluate(case: EvaluationCase) -> None:
             response = weblog.post(
-                "/ffe?openfeature=1" if context.library.name == "php" else "/ffe",
+                "/ffe",
                 json={
                     "flag": case["flag"],
                     "targetingKey": case["subject"],
@@ -99,8 +98,6 @@ class _TelemetryContract:
                     "defaultValue": "default",
                 },
             )
-            assert response.status_code == 200, response.text
-            assert json.loads(response.text)["value"] == "on-value", response.text
             case["responses"].append(response)
 
         with ThreadPoolExecutor(max_workers=len(independent_cases)) as executor:
@@ -112,6 +109,10 @@ class _TelemetryContract:
         for _ in range(3):
             for case in shared_cases:
                 evaluate(case)
+
+    def assert_evaluations(self) -> None:
+        for case in self.cases:
+            assert_evaluation_responses(case["responses"], expected_count=3, expected_value="on-value")
 
     def expected_counts(self) -> dict[str, int]:
         counts: dict[str, int] = {}
@@ -129,6 +130,7 @@ class Test_FFE_Evaluation_Telemetry_Opt_Out_EVP(_TelemetryContract):
         self.prepare("evp")
 
     def test_counts(self) -> None:
+        self.assert_evaluations()
         captures = list(interfaces.agent.get_data(path_filters="/api/v2/flagevaluation"))
         for flag, expected_count in self.expected_counts().items():
             assert_count(evaluation_count(captures, flag), expected_count, flag)
@@ -143,6 +145,7 @@ class Test_FFE_Evaluation_Telemetry_Opt_Out_Metrics(_TelemetryContract):
         self.prepare("metrics")
 
     def test_counts(self) -> None:
+        self.assert_evaluations()
         for flag, expected_count in self.expected_counts().items():
             total = 0.0
             for _, metric in interfaces.agent.get_metrics():
@@ -164,6 +167,7 @@ class Test_FFE_Evaluation_Telemetry_Opt_Out_Exposures(_TelemetryContract):
         self.prepare("exposures")
 
     def test_unchanged(self) -> None:
+        self.assert_evaluations()
         captures = list(interfaces.agent.get_data(path_filters="/api/v2/exposures"))
         for case in self.cases:
             events = [
@@ -192,6 +196,7 @@ class Test_FFE_Evaluation_Telemetry_Opt_Out_Trace_Annotations(_TelemetryContract
         self.prepare("traces")
 
     def test_annotations(self) -> None:
+        self.assert_evaluations()
         for case in self.cases:
             for response in case["responses"]:
                 spans = [span for _, _, span in interfaces.library.get_spans(request=response, full_trace=True)]
