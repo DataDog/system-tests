@@ -1,0 +1,13 @@
+aiohttp==3.14.5
+gunicorn==26.2.0
+PyYAML==6.0.3
+cryptography==42.0.8
+pycryptodome==3.23.0
+jinja2==3.1.6
+psycopg2-binary==2.9.12
+xmltodict==0.14.2
+openfeature-sdk==0.8.3
+stripe==11.6.0
+# lets system-tests dump this weblog's thread stacks from outside the process
+# when a remote config apply stalls, see utils/_remote_config.py
+py-spy==0.4.2
