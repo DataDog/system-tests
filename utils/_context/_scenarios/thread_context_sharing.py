@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 
 from docker.errors import APIError
 from docker.models.networks import Network
@@ -13,13 +13,22 @@ from .core import scenario_groups
 from .endtoend import EndToEndScenario
 
 
-GUEST_KERNEL_MOUNTS_VARIABLE = "SYSTEM_TESTS_CWS_GUEST_KERNEL_MOUNTS"
 CWS_READINESS_TIMEOUT = 90
 
+# Where a Kata docker-in-docker runner mounts the VM's kernel filesystems (source -> agent target)
+VM_HOST = "/vm-host"
+_GUEST_KERNEL_MOUNTS = {
+    "proc": ("/host/proc", True),
+    "sys/fs/cgroup": ("/host/sys/fs/cgroup", True),
+    "sys/kernel/debug": ("/sys/kernel/debug", False),
+    "sys/kernel/tracing": ("/sys/kernel/tracing", False),
+    "sys/kernel/security": ("/sys/kernel/security", False),
+}
+
 _GUEST_KERNEL_MOUNTS_HELP = (
-    f"{GUEST_KERNEL_MOUNTS_VARIABLE}=v1 requires a Kata docker-in-docker job on a GitLab runner that "
-    "mounts the VM's /proc, /sys/fs/cgroup and /sys/kernel/{debug,tracing,security} into the docker "
-    "service under /vm-host (/vm-host/proc etc.), such as the micro-vms-cws runner pool."
+    f"Using the Kata guest kernel mounts because {VM_HOST} exists. They require a Kata docker-in-docker "
+    "job on a GitLab runner that mounts the VM's /proc, /sys/fs/cgroup and /sys/kernel/{debug,tracing,security} "
+    f"into the job's containers under {VM_HOST} ({VM_HOST}/proc etc.), such as the micro-vms-cws runner pool."
 )
 
 
@@ -39,9 +48,9 @@ class ThreadContextSharingScenario(EndToEndScenario):
     (`/api/v2/logs`), decoded via `tests/cws/utils.py` - the same way this scenario
     already observes telemetry, remote config, etc.
 
-    Setting SYSTEM_TESTS_CWS_GUEST_KERNEL_MOUNTS=v1 opts into a topology for running inside
-    a Kata VM's docker-in-docker container, where the kernel filesystems of the VM are mounted
-    under /vm-host by the CI runner. See docs/understand/scenarios/thread_context_sharing.md.
+    When /vm-host exists, the scenario assumes it runs inside a Kata VM's docker-in-docker
+    container, where the kernel filesystems of the VM are mounted under /vm-host by the CI
+    runner. See docs/understand/scenarios/thread_context_sharing.md.
     """
 
     def __init__(self, name: str, doc: str) -> None:
@@ -55,8 +64,8 @@ class ThreadContextSharingScenario(EndToEndScenario):
         )
 
     def configure(self, config: pytest.Config):
-        # checked first, so that a typo fails before anything else is prepared
-        guest_kernel_mounts = self._guest_kernel_mounts_opted_in()
+        # checked first, so that an incomplete /vm-host fails before anything else is prepared
+        guest_kernel_mounts = self._guest_kernel_mounts_detected()
 
         super().configure(config)
 
@@ -106,15 +115,24 @@ class ThreadContextSharingScenario(EndToEndScenario):
         agent.warmup = self._agent_warmup_then_wait_for_cws  # type: ignore[method-assign]
 
     @staticmethod
-    def _guest_kernel_mounts_opted_in() -> bool:
-        value = os.environ.get(GUEST_KERNEL_MOUNTS_VARIABLE, "")
-        if value not in ("", "v1"):
+    def _guest_kernel_mounts_detected() -> bool:
+        """Whether the CI runner provides the Kata VM's kernel filesystems under /vm-host.
+
+        This looks at the filesystem of the pytest process, while the binds are resolved by the
+        docker daemon. The two agree on the GitLab Kubernetes executor, which mounts the runner's
+        hostPath volumes into every container of the job pod, the DIND service included.
+        """
+        vm_host = Path(VM_HOST)
+        if not vm_host.exists():
+            return False
+        missing = [path for path in _GUEST_KERNEL_MOUNTS if not (vm_host / path).is_dir()]
+        if missing:
             pytest.exit(
-                f"Unsupported {GUEST_KERNEL_MOUNTS_VARIABLE}={value!r}: "
-                "leave it unset, or set it to v1 to use the Kata guest kernel mounts",
+                f"{VM_HOST} exists but lacks {', '.join(missing)}. {_GUEST_KERNEL_MOUNTS_HELP}",
                 1,
             )
-        return value == "v1"
+        logger.stdout(f"{VM_HOST} found: the CWS agent uses the Kata guest kernel mounts")
+        return True
 
     def _use_guest_kernel_mounts(self) -> None:
         """Take the kernel filesystems from the Kata VM instead of the docker daemon's host.
@@ -127,14 +145,11 @@ class ThreadContextSharingScenario(EndToEndScenario):
         """
         agent = self.agent_container
 
-        # Mounts, not volumes: a missing source (a runner without the /vm-host mounts) fails the
-        # agent container creation, instead of being silently created as an empty directory.
+        # Mounts, not volumes: should the docker daemon not see /vm-host as pytest does, the agent
+        # container creation fails, instead of the sources being silently created as empty dirs.
         agent.mounts = [
-            Mount(target="/host/proc", source="/vm-host/proc", type="bind", read_only=True),
-            Mount(target="/host/sys/fs/cgroup", source="/vm-host/sys/fs/cgroup", type="bind", read_only=True),
-            Mount(target="/sys/kernel/debug", source="/vm-host/sys/kernel/debug", type="bind", read_only=False),
-            Mount(target="/sys/kernel/tracing", source="/vm-host/sys/kernel/tracing", type="bind", read_only=False),
-            Mount(target="/sys/kernel/security", source="/vm-host/sys/kernel/security", type="bind", read_only=False),
+            Mount(target=target, source=f"{VM_HOST}/{source}", type="bind", read_only=read_only)
+            for source, (target, read_only) in _GUEST_KERNEL_MOUNTS.items()
         ]
 
         # The agent sees cgroup files relative to the VM's namespaces, not to its own: its
@@ -148,7 +163,7 @@ class ThreadContextSharingScenario(EndToEndScenario):
         try:
             self._agent_start(network)
         except APIError as e:
-            if "/vm-host" not in str(e):
+            if VM_HOST not in str(e):
                 raise
             message = (
                 f"The agent container could not mount the Kata guest kernel filesystems ({e}). "
