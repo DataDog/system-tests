@@ -1,4 +1,5 @@
 from collections.abc import Iterator
+from pathlib import Path
 from typing import Protocol
 from unittest.mock import MagicMock, patch
 
@@ -6,27 +7,36 @@ from docker.types import Mount
 
 from utils import pytest, scenarios
 from utils._context._scenarios.endtoend import EndToEndScenario
+from utils._context._scenarios import thread_context_sharing
 from utils._context._scenarios.thread_context_sharing import ThreadContextSharingScenario
 
-OPT_IN_VARIABLE = "SYSTEM_TESTS_CWS_GUEST_KERNEL_MOUNTS"
+VM_HOST_DIRS = ["proc", "sys/fs/cgroup", "sys/kernel/debug", "sys/kernel/tracing", "sys/kernel/security"]
 
 
 class ScenarioFactory(Protocol):
-    def __call__(self, value: str | None) -> ThreadContextSharingScenario: ...
+    def __call__(self, vm_host_dirs: list[str] | None) -> ThreadContextSharingScenario: ...
 
 
 @pytest.fixture
-def configured_scenario(monkeypatch: pytest.MonkeyPatch) -> Iterator[ScenarioFactory]:
-    """Configure a fresh THREAD_CONTEXT_SHARING scenario with the opt-in variable set to the given
-    value (None: unset), skipping the parent end-to-end configuration, which needs docker images.
+def vm_host(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
+    path = tmp_path / "vm-host"
+    monkeypatch.setattr(thread_context_sharing, "VM_HOST", str(path))
+    return path
+
+
+@pytest.fixture
+def configured_scenario(vm_host: Path) -> Iterator[ScenarioFactory]:
+    """Configure a fresh THREAD_CONTEXT_SHARING scenario with a fake /vm-host holding the given
+    directories (None: no /vm-host), skipping the parent end-to-end configuration, which needs
+    docker images.
     """
     created: list[ThreadContextSharingScenario] = []
 
-    def factory(value: str | None) -> ThreadContextSharingScenario:
-        if value is None:
-            monkeypatch.delenv(OPT_IN_VARIABLE, raising=False)
-        else:
-            monkeypatch.setenv(OPT_IN_VARIABLE, value)
+    def factory(vm_host_dirs: list[str] | None) -> ThreadContextSharingScenario:
+        if vm_host_dirs is not None:
+            vm_host.mkdir()
+            for path in vm_host_dirs:
+                (vm_host / path).mkdir(parents=True)
         scenario = ThreadContextSharingScenario("CWS_CONFIG_TEST", "")
         created.append(scenario)
         with patch.object(EndToEndScenario, "configure", MagicMock()):
@@ -53,16 +63,16 @@ def test_default_uses_docker_host_kernel_filesystems(configured_scenario: Scenar
 
 
 @scenarios.test_the_test
-def test_v1_uses_guest_kernel_mounts(configured_scenario: ScenarioFactory) -> None:
-    agent = configured_scenario("v1").agent_container
+def test_vm_host_uses_guest_kernel_mounts(configured_scenario: ScenarioFactory, vm_host: Path) -> None:
+    agent = configured_scenario(VM_HOST_DIRS).agent_container
 
     assert agent.cgroupns == "host"
     assert agent.mounts == [
-        Mount(target="/host/proc", source="/vm-host/proc", type="bind", read_only=True),
-        Mount(target="/host/sys/fs/cgroup", source="/vm-host/sys/fs/cgroup", type="bind", read_only=True),
-        Mount(target="/sys/kernel/debug", source="/vm-host/sys/kernel/debug", type="bind", read_only=False),
-        Mount(target="/sys/kernel/tracing", source="/vm-host/sys/kernel/tracing", type="bind", read_only=False),
-        Mount(target="/sys/kernel/security", source="/vm-host/sys/kernel/security", type="bind", read_only=False),
+        Mount(target="/host/proc", source=f"{vm_host}/proc", type="bind", read_only=True),
+        Mount(target="/host/sys/fs/cgroup", source=f"{vm_host}/sys/fs/cgroup", type="bind", read_only=True),
+        Mount(target="/sys/kernel/debug", source=f"{vm_host}/sys/kernel/debug", type="bind", read_only=False),
+        Mount(target="/sys/kernel/tracing", source=f"{vm_host}/sys/kernel/tracing", type="bind", read_only=False),
+        Mount(target="/sys/kernel/security", source=f"{vm_host}/sys/kernel/security", type="bind", read_only=False),
     ]
     assert "/sys/kernel/debug" not in agent.volumes
     assert "/sys/kernel/security" not in agent.volumes
@@ -70,6 +80,6 @@ def test_v1_uses_guest_kernel_mounts(configured_scenario: ScenarioFactory) -> No
 
 
 @scenarios.test_the_test
-def test_invalid_opt_in_value_is_an_error(configured_scenario: ScenarioFactory) -> None:
-    with pytest.raises(pytest.exit.Exception, match=OPT_IN_VARIABLE):
-        configured_scenario("v2")
+def test_incomplete_vm_host_is_an_error(configured_scenario: ScenarioFactory) -> None:
+    with pytest.raises(pytest.exit.Exception, match="lacks sys/kernel/tracing"):
+        configured_scenario([path for path in VM_HOST_DIRS if path != "sys/kernel/tracing"])

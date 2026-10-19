@@ -9,11 +9,11 @@ It is an [end-to-end scenario](README.md) whose agent runs the CWS runtime secur
 ./run.sh THREAD_CONTEXT_SHARING
 ```
 
-## Kata docker-in-docker: `SYSTEM_TESTS_CWS_GUEST_KERNEL_MOUNTS`
+## Kata docker-in-docker: `/vm-host`
 
 The default setup needs the docker daemon to run on the machine whose kernel CWS instruments. That is not the case when system-tests runs in a docker-in-docker (DIND) service of a Kubernetes pod using a Kata VM runtime, as in some tracer CI pipelines: the docker daemon's "host" is itself a container of the VM, so `--pid=host` only gives the DIND PID namespace, and the VM's kernel filesystems are not available.
 
-For that environment, setting `SYSTEM_TESTS_CWS_GUEST_KERNEL_MOUNTS=v1` makes the agent take the VM's kernel filesystems from `/vm-host` in the DIND container:
+For that environment, the CI runner mounts the VM's kernel filesystems under `/vm-host`. When `/vm-host` exists, system-tests detects it and makes the agent take them from there:
 
 | DIND source                    | Agent target                         | Mode |
 |--------------------------------|--------------------------------------|------|
@@ -25,7 +25,7 @@ For that environment, setting `SYSTEM_TESTS_CWS_GUEST_KERNEL_MOUNTS=v1` makes th
 
 In this mode, system-tests also disables CWS enforcement (`DD_RUNTIME_SECURITY_CONFIG_ENFORCEMENT_ENABLED=false`): cgroup files read by the agent are relative to the VM's namespaces rather than its own, so it can't reliably identify its own cgroup.
 
-Leaving the variable unset (or empty) keeps the default setup. Any other value is an error, so that a future version of the layout can't be silently misinterpreted.
+Without `/vm-host`, the default setup is used. A `/vm-host` lacking any of the sources above is an error.
 
 ### Prerequisites
 
@@ -43,4 +43,4 @@ On a Kata runtime, host paths under `/proc` and `/sys` are not shared from the K
 
 Never use such a runner configuration outside Kata: on a regular container runtime, the same host paths are the node's own `/proc` and kernel filesystems.
 
-All sources are docker bind mounts rather than volumes, so on a runner without the `/vm-host` mounts, the agent container fails to be created instead of starting with empty directories.
+system-tests checks for `/vm-host` in its own container, while the agent's binds are resolved by the docker daemon. This works because the GitLab Kubernetes executor mounts these volumes into every container of the job pod, the DIND service included. All sources are docker bind mounts rather than volumes, so should the daemon not see `/vm-host`, the agent container fails to be created instead of starting with empty directories.
