@@ -126,7 +126,7 @@ ssi_tests:
         - |
             # Run the tests and capture stdout+stderr to a file
             set -o pipefail
-            timeout 3000 ./run.sh "$SCENARIO" --vm-weblog "${WEBLOG}" --vm-env "${ONBOARDING_FILTER_ENV}" --vm-library "${TEST_LIBRARY}" --vm-provider aws --vm-default-vms All --vm-only "${VM}" --report-run-url "${CI_JOB_URL}" --report-environment "${ONBOARDING_FILTER_ENV}" 2>&1 | tee "${CI_PROJECT_DIR}/run_output.log"
+            HIDE_DEPWARNS=1 timeout 3000 ./run.sh "$SCENARIO" --vm-weblog "${WEBLOG}" --vm-env "${ONBOARDING_FILTER_ENV}" --vm-library "${TEST_LIBRARY}" --vm-provider aws --vm-default-vms All --vm-only "${VM}" --report-run-url "${CI_JOB_URL}" --report-environment "${ONBOARDING_FILTER_ENV}" 2>&1 | tee "${CI_PROJECT_DIR}/run_output.log"
     after_script: |
         # Tag the job as part of the official system-tests workflow, first so it's done even if a later command fails.
         # The image does not ship datadog-ci, so the standalone binary is downloaded.

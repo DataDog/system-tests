@@ -208,7 +208,19 @@ function run_scenario() {
             )
             ;;
         'direct')
-            cmd+=(pytest)
+            # Interpreter -W still applies with -p no:warnings. Pytest's own -W does not.
+            if [[ "${HIDE_DEPWARNS:-}" == 1 ]]; then
+                cmd+=(
+                    python
+                    -W "ignore:aws.ec2/getvpciam:DeprecationWarning"
+                    -W "ignore:ast.Str is deprecated:DeprecationWarning"
+                    -W "ignore:ast.NameConstant is deprecated:DeprecationWarning"
+                    -m
+                    pytest
+                )
+            else
+                cmd+=(pytest)
+            fi
             ;;
         *)
             die "unsupported run mode: ${mode}"
