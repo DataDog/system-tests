@@ -56,6 +56,7 @@ class _Owner(Enum):
                                 "dd-trace-php":     "@DataDog/apm-lang-platform-php",
                                 "dd-trace-py":      "@DataDog/lang-platform-python",
                                 "dd-trace-rb":      "@DataDog/lang-platform-ruby",
+                                "dd-trace-rs":      "@DataDog/apm-rust",
                                 "httpd-datadog":    "@DataDog/apm-idm-cpp",
                                 "nginx-datadog":    "@DataDog/apm-idm-cpp",
                             })
@@ -126,18 +127,7 @@ class _Owner(Enum):
                             })
     remote_config        = _OwnerDef("@DataDog/remote-config")
     rp                   = _OwnerDef("@DataDog/apm-reliability-and-performance")
-    sdk_capabilities     = _OwnerDef("@DataDog/apm-sdk-capabilities", repo_overrides={
-                                "dd-trace-cpp":     "@DataDog/apm-sdk-capabilities-cpp",
-                                "dd-trace-dotnet":  "@DataDog/apm-sdk-capabilities-dotnet",
-                                "dd-trace-go":      "@DataDog/apm-sdk-capabilities-go",
-                                "dd-trace-java":    "@DataDog/apm-sdk-capabilities-java",
-                                "dd-trace-js":      "@DataDog/apm-sdk-capabilities-js",
-                                "dd-trace-py":      "@DataDog/apm-sdk-capabilities-python",
-                                "dd-trace-rb":      "@DataDog/apm-sdk-capabilities-ruby",
-                                "dd-trace-rs":      "@DataDog/apm-sdk-capabilities-rust",
-                                "httpd-datadog":    "@DataDog/apm-sdk-capabilities-cpp",
-                                "nginx-datadog":    "@DataDog/apm-sdk-capabilities-cpp",
-                            })
+    sdk_capabilities     = _OwnerDef("@DataDog/apm-sdk-capabilities")
     # fmt: on
 
 
@@ -2728,6 +2718,14 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=551
         """
         return _mark_test_object(test_object, feature_id=551, owner=_Owner.ffe)
+
+    @staticmethod
+    def feature_flags_serial_id_metadata(test_object):
+        """Feature Flags Serial ID Metadata (UFC split serialId threaded through flagMetadata)
+
+        https://feature-parity.us1.prod.dog/#/?feature=648
+        """
+        return _mark_test_object(test_object, feature_id=648, owner=_Owner.ffe)
 
     @staticmethod
     def appsec_extended_data_collection(test_object):

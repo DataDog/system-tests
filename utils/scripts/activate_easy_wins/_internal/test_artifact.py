@@ -167,7 +167,7 @@ def parse_artifact_data(
                         else:
                             test_data[context].trie[nodeid_slice] = ActivationStatus.XPASS
 
-                    if outcome == "xfailed":
+                    if outcome in ("xfailed", "skipped"):
                         if part.end() == len(nodeid):
                             test_data[context].trie[nodeid_slice] = ActivationStatus.XFAIL
                         elif previous in (ActivationStatus.XPASS, ActivationStatus.PASS, ActivationStatus.NONE):
