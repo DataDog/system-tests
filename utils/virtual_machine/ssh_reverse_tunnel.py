@@ -22,8 +22,8 @@ if TYPE_CHECKING:
     from utils.virtual_machine.virtual_machines import _VirtualMachine
 
 _BUFFER_SIZE = 32768
-_KEEPALIVE_INTERVAL = 30
-_MONITOR_INTERVAL = 10
+_KEEPALIVE_INTERVAL = 2
+_MONITOR_INTERVAL = 2
 
 
 class SSHReverseTunnel:
