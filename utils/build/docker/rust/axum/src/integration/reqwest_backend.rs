@@ -82,13 +82,9 @@ impl DatadogClientSpanBackend {
                     "http.response.status_code",
                     i64::from(status),
                 ));
+                // Whether the status is an error is left to the tracer
+                // (DD_TRACE_HTTP_CLIENT_ERROR_STATUSES).
                 span.set_attribute(KeyValue::new("http.status_code", status.to_string()));
-                if status >= 400 {
-                    span.set_attribute(KeyValue::new("error.type", "HTTP Error"));
-                    span.set_status(Status::Error {
-                        description: format!("HTTP {status}").into(),
-                    });
-                }
             }
             Err(error) => {
                 if let Some(status) = error.status() {
