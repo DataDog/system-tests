@@ -669,7 +669,12 @@ manifest:
       weblog: [axum]
     - declaration: missing_feature (Rust does not implement query string obfuscation)
       excluded_weblog: [axum]
-  tests/test_semantic_conventions.py::Test_Meta::test_meta_runtime_id_tag: missing_feature (dd-trace-rs does not tag spans with runtime-id)
+  tests/test_semantic_conventions.py::Test_Meta::test_meta_runtime_id_tag:  # TODO: a lower version might be supported
+    - declaration: missing_feature (dd-trace-rs does not tag spans with runtime-id)
+      component_version: <0.5.3-dev+62c80dc
+      weblog: [axum]
+    - declaration: missing_feature (dd-trace-rs does not tag spans with runtime-id)
+      excluded_weblog: [axum]
   tests/test_span_events.py::Test_SpanEvents_WithAgentSupport::test_v04_v07_default_format: '>0.5.2'  # TODO: a lower version might be supported
   tests/test_span_events.py::Test_SpanEvents_WithAgentSupport::test_v05_default_format: irrelevant (v0.5 is not the default format)
   tests/test_span_events.py::Test_SpanEvents_WithoutAgentSupport: missing_feature (dd-trace-rs always sends native span events; no meta 'events' fallback)
