@@ -258,6 +258,7 @@ manifest:
   tests/parametric/test_ffe/test_configuration_sources.py: irrelevant (rust is not in scope for v1 agentless server SDK configuration-source coverage)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: '>=0.5.3-dev+fd1307f'  # TODO: a lower version might be supported
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_flag_evaluation: missing_feature
+  tests/parametric/test_ffe/test_serial_id_metadata.py: missing_feature
   tests/parametric/test_ffe/test_span_enrichment.py: '>=0.5.3-dev+fd1307f'  # TODO: a lower version might be supported
   tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Child_Span_Propagation: missing_feature
   tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Default_Fallback: missing_feature
@@ -520,7 +521,9 @@ manifest:
   tests/parametric/test_tracer.py::Test_TracerBaseService:  # TODO: a lower version might be supported
     - declaration: missing_feature (_dd.base_service is not implemented)
       component_version: <0.5.1-dev+8efc582
-  tests/parametric/test_tracer.py::Test_TracerBaseService::test_base_service_set_when_service_overridden: missing_feature (_dd.base_service is not implemented)
+  tests/parametric/test_tracer.py::Test_TracerBaseService::test_base_service_set_when_service_overridden:  # TODO: a lower version might be supported
+    - declaration: missing_feature (_dd.base_service is not implemented)
+      component_version: <0.5.3-dev+62c80dc
   tests/parametric/test_tracer.py::Test_TracerSCITagging: missing_feature  # Created by easy win activation script
   tests/parametric/test_tracer.py::Test_TracerServiceNameSource: irrelevant
   tests/parametric/test_tracer.py::Test_TracerUniversalServiceTagging::test_tracer_service_name_environment_variable:  # TODO: a lower version might be supported
@@ -666,7 +669,12 @@ manifest:
       weblog: [axum]
     - declaration: missing_feature (Rust does not implement query string obfuscation)
       excluded_weblog: [axum]
-  tests/test_semantic_conventions.py::Test_Meta::test_meta_runtime_id_tag: missing_feature (dd-trace-rs does not tag spans with runtime-id)
+  tests/test_semantic_conventions.py::Test_Meta::test_meta_runtime_id_tag:  # TODO: a lower version might be supported
+    - declaration: missing_feature (dd-trace-rs does not tag spans with runtime-id)
+      component_version: <0.5.3-dev+62c80dc
+      weblog: [axum]
+    - declaration: missing_feature (dd-trace-rs does not tag spans with runtime-id)
+      excluded_weblog: [axum]
   tests/test_span_events.py::Test_SpanEvents_WithAgentSupport::test_v04_v07_default_format: '>0.5.2'  # TODO: a lower version might be supported
   tests/test_span_events.py::Test_SpanEvents_WithAgentSupport::test_v05_default_format: irrelevant (v0.5 is not the default format)
   tests/test_span_events.py::Test_SpanEvents_WithoutAgentSupport: missing_feature (dd-trace-rs always sends native span events; no meta 'events' fallback)

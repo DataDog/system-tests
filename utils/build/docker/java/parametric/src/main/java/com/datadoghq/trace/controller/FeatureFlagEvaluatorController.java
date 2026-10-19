@@ -7,6 +7,7 @@ import datadog.trace.api.openfeature.Provider;
 import dev.openfeature.sdk.Client;
 import dev.openfeature.sdk.EvaluationContext;
 import dev.openfeature.sdk.FeatureProvider;
+import dev.openfeature.sdk.FlagEvaluationDetails;
 import dev.openfeature.sdk.MutableContext;
 import dev.openfeature.sdk.NoOpProvider;
 import dev.openfeature.sdk.OpenFeatureAPI;
@@ -82,28 +83,36 @@ public class FeatureFlagEvaluatorController {
     public ResponseEntity<Map<String, Object>> evaluate(@RequestBody final EvaluateRequest request) {
         Object value;
         String reason;
+        String errorCode = null;
+        Map<String, Object> flagMetadata = null;
         final EvaluationContext context = context(request);
         try {
-            value = switch (request.getVariationType()) {
+            final FlagEvaluationDetails<?> details = switch (request.getVariationType()) {
                 case "BOOLEAN" ->
-                        client.getBooleanValue(request.getFlag(), (Boolean) request.getDefaultValue(), context);
-                case "STRING" -> client.getStringValue(request.getFlag(), (String) request.getDefaultValue(), context);
+                        client.getBooleanDetails(request.getFlag(), (Boolean) request.getDefaultValue(), context);
+                case "STRING" -> client.getStringDetails(request.getFlag(), (String) request.getDefaultValue(), context);
                 case "INTEGER" -> {
                     final Number integerEval = (Number) request.getDefaultValue();
-                    yield client.getIntegerValue(request.getFlag(), integerEval.intValue(), context);
+                    yield client.getIntegerDetails(request.getFlag(), integerEval.intValue(), context);
                 }
                 case "NUMERIC" -> {
                     final Number doubleEval = (Number) request.getDefaultValue();
-                    yield client.getDoubleValue(request.getFlag(), doubleEval.doubleValue(), context);
+                    yield client.getDoubleDetails(request.getFlag(), doubleEval.doubleValue(), context);
                 }
-                case "JSON" -> {
-                    final Value objectValue = client.getObjectValue(request.getFlag(), Value.objectToValue(request.getDefaultValue()), context);
-                    yield context.convertValue(objectValue);
-                }
-                default -> request.getDefaultValue();
+                case "JSON" -> client.getObjectDetails(request.getFlag(), Value.objectToValue(request.getDefaultValue()), context);
+                default -> null;
             };
-
-            reason = "DEFAULT";
+            value = details == null ? request.getDefaultValue() : details.getValue();
+            if (value instanceof Value) {
+                value = context.convertValue((Value) value);
+            }
+            reason = details == null ? "DEFAULT" : details.getReason();
+            if (details != null && details.getErrorCode() != null) {
+                errorCode = details.getErrorCode().name();
+            }
+            if (details != null && details.getFlagMetadata() != null) {
+                flagMetadata = details.getFlagMetadata().asUnmodifiableMap();
+            }
         } catch (Throwable e) {
             LOGGER.error("Error on resolution", e);
             value = request.getDefaultValue();
@@ -111,7 +120,9 @@ public class FeatureFlagEvaluatorController {
         }
         final Map<String, Object> result = new HashMap<>();
         result.put("reason", reason);
+        result.put("errorCode", errorCode);
         result.put("value", value);
+        result.put("flagMetadata", flagMetadata);
         return ResponseEntity.ok(result);
     }
 
