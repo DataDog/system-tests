@@ -46,10 +46,5 @@ pub fn install_datadog_tracing() -> SdkTracerProvider {
 /// Used in both reqwest and axum middleware
 /// (necessary for test `validate_all_spans`)
 fn dd_tags() -> Vec<KeyValue> {
-    vec![
-        KeyValue::new("language", "rust"),
-        KeyValue::new("component", "axum"),
-        // process_id goes to the metrics map (numeric value).
-        KeyValue::new("process_id", std::process::id() as i64),
-    ]
+    vec![KeyValue::new("component", "axum")]
 }
