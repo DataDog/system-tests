@@ -34,15 +34,15 @@
     "system_tests_base_php_php_fpm_8_2": "datadog/system-tests:php-fpm-8.2.base-61d56dbb3829",
     "system_tests_base_php_php_fpm_8_5": "datadog/system-tests:php-fpm-8.5.base-b27ba28956cb",
     "system_tests_base_python_aiohttp": "datadog/system-tests:aiohttp.base-541813beaba9",
-    "system_tests_base_python_django_poc": "datadog/system-tests:django-poc.base-78e2159815b1",
+    "system_tests_base_python_django_poc": "datadog/system-tests:django-poc.base-af33e314cc27",
     "system_tests_base_python_django_py3_13": "datadog/system-tests:django-py3.13.base-d8262a2c816c",
-    "system_tests_base_python_fastapi": "datadog/system-tests:fastapi.base-2917769b3665",
-    "system_tests_base_python_flask_poc": "datadog/system-tests:flask-poc.base-fa81f4f89ea4",
+    "system_tests_base_python_fastapi": "datadog/system-tests:fastapi.base-3f8c364e396b",
+    "system_tests_base_python_flask_poc": "datadog/system-tests:flask-poc.base-20654ccc14bd",
     "system_tests_base_python_lambda_python_lambda_runtime": "datadog/system-tests:python-lambda-runtime.base-944cdc8541b3",
-    "system_tests_base_python_openai_py": "datadog/system-tests:openai-py.base-b4fd56aee3f2",
+    "system_tests_base_python_openai_py": "datadog/system-tests:openai-py.base-b7afba5174d9",
     "system_tests_base_python_python3_12": "datadog/system-tests:python3.12.base-604705958847",
     "system_tests_base_python_tornado": "datadog/system-tests:tornado.base-301b798ae137",
-    "system_tests_base_python_uwsgi_poc": "datadog/system-tests:uwsgi-poc.base-24176640f4fe",
+    "system_tests_base_python_uwsgi_poc": "datadog/system-tests:uwsgi-poc.base-f12ec8426a4b",
     "system_tests_base_ruby_lambda_ruby_lambda_runtime": "datadog/system-tests:ruby-lambda-runtime.base-78548bc44bd6"
   }
 }
