@@ -353,9 +353,7 @@ func parseTracerConfig(l *CustomLogger, tracerEnabled string, logLevel string) m
 	config["dd_service"] = l.tracerConfig["Service"]
 	// config["dd_log_level"] = nil // dd-trace-go does not support DD_LOG_LEVEL (use DD_TRACE_DEBUG instead)
 	config["dd_trace_sample_rate"] = l.tracerConfig["SampleRate"]
-	if tracerEnabled != "" {
-		config["dd_trace_enabled"] = tracerEnabled
-	}
+	config["dd_trace_enabled"] = tracerEnabled
 	config["dd_runtime_metrics_enabled"] = l.tracerConfig["RuntimeMetricsEnabled"]
 	config["dd_tags"] = l.tracerConfig["Tags"]
 	config["dd_trace_propagation_style"] = l.tracerConfig["PropagationStyleInject"]
@@ -395,20 +393,16 @@ func (s *apmClientServer) getTraceConfigHandler(w http.ResponseWriter, r *http.R
 	profiler.Start()
 	defer profiler.Stop()
 
-	logLevel := effectiveLogLevel()
 	tracerEnabled := "true"
 	// If tracerConfig is empty, then DATADOG TRACER CONFIGURATION startup log wasn't generated -- tracer must be disabled.
-	// That log is emitted at INFO, so above that threshold its absence does not tell whether the tracer is enabled.
+	// That log is emitted at INFO, so this misreports an enabled tracer as disabled when OTEL_LOG_LEVEL is warn or error.
+	// The threshold cannot tell the two apart: tracers before v2.12.0 store warn by default but still print INFO.
 	if len(log.tracerConfig) == 0 {
-		if logLevel == "warn" || logLevel == "error" {
-			tracerEnabled = ""
-		} else {
-			tracerEnabled = "false"
-		}
+		tracerEnabled = "false"
 	}
 
 	// Prepare the response
-	response := GetTraceConfigReturn{Config: parseTracerConfig(log, tracerEnabled, logLevel)}
+	response := GetTraceConfigReturn{Config: parseTracerConfig(log, tracerEnabled, effectiveLogLevel())}
 	if s.metricConfiguration != nil {
 		if interval, observed := s.metricConfiguration.intervalMilliseconds(); observed {
 			response.Config["dd_metrics_otel_interval"] = interval
