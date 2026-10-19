@@ -2,7 +2,6 @@ from unittest.mock import MagicMock
 
 from utils import features, pytest, scenarios
 from utils.virtual_machine.ami_candidate import (
-    boot_created_candidate_enabled,
     candidate_promotion_tags,
     candidate_result_state,
     promote_created_candidate,
@@ -39,17 +38,10 @@ class Test_AwsAmiCandidateBoot:
         assert candidate_result_state(0, provision_failed=False, test_outcomes=[]) is None
         assert candidate_result_state(3, provision_failed=False, test_outcomes=["pass"]) is None
 
-    def test_cache_creation_keeps_the_current_flow_unless_explicitly_enabled(self) -> None:
-        assert boot_created_candidate_enabled(None) is False
-        assert boot_created_candidate_enabled("true") is True
-        assert should_boot_created_candidate(update_cache=True, skip_cache=False, enabled=False) is False
-        assert should_boot_created_candidate(update_cache=True, skip_cache=False, enabled=True) is True
-
-    def test_candidate_boot_runs_only_for_an_explicit_cache_creation(self) -> None:
-        assert boot_created_candidate_enabled("true") is True
-        assert should_boot_created_candidate(update_cache=True, skip_cache=False, enabled=True) is True
-        assert should_boot_created_candidate(update_cache=False, skip_cache=False, enabled=True) is False
-        assert should_boot_created_candidate(update_cache=True, skip_cache=True, enabled=True) is False
+    def test_cache_creation_boots_the_candidate(self) -> None:
+        assert should_boot_created_candidate(update_cache=True, skip_cache=False) is True
+        assert should_boot_created_candidate(update_cache=False, skip_cache=False) is False
+        assert should_boot_created_candidate(update_cache=True, skip_cache=True) is False
 
     def test_only_the_candidate_created_for_this_cache_can_become_active(self) -> None:
         candidate = {"CI": "system-tests", "ami-state": "candidate", "ami-cache-key": _CACHE_KEY}

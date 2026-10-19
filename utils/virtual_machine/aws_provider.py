@@ -1,4 +1,5 @@
 from collections.abc import Callable
+from datetime import datetime
 from io import TextIOWrapper
 import os
 import pathlib
@@ -25,11 +26,7 @@ from utils.onboarding.debug_vm import download_vm_logs
 from utils.virtual_machine.virtual_machine_provider import VmProvider, Commander
 from utils.virtual_machine.virtual_machines import _VirtualMachine
 from utils.virtual_machine.aws_candidate_boot import CandidateBoot
-from utils.virtual_machine.ami_candidate import (
-    boot_created_candidate_enabled,
-    select_usable_ami,
-    should_boot_created_candidate,
-)
+from utils.virtual_machine.ami_candidate import cache_plan, select_usable_ami, should_boot_created_candidate
 
 import pytest
 
@@ -45,8 +42,10 @@ _EVENT_REQUEST_TIMEOUT = 15
 
 def _select_cached_ami(
     cached_amis: list[aws.ec2.GetAmiResult],
+    *,
+    now: datetime | None = None,
 ) -> aws.ec2.GetAmiResult | None:
-    return select_usable_ami(cached_amis)
+    return select_usable_ami(cached_amis, now=now)
 
 
 class AWSPulumiProvider(CandidateBoot, VmProvider):
@@ -218,7 +217,6 @@ class AWSPulumiProvider(CandidateBoot, VmProvider):
         self.boot_created_candidate = should_boot_created_candidate(
             update_cache=vm.datadog_config.update_cache,
             skip_cache=vm.datadog_config.skip_cache,
-            enabled=boot_created_candidate_enabled(os.getenv("AMI_BOOT_CREATED_CANDIDATE")),
         )
         ec2_server, server_connection = self._launch_instance(
             vm,
@@ -285,14 +283,15 @@ class AWSPulumiProvider(CandidateBoot, VmProvider):
 
         before_time = time.time()
         cached_ami = _select_cached_ami(self._get_cached_amis(vm))
-        if cached_ami is None:
+        plan = cache_plan(cached_ami)
+        if plan == "create":
             vm.datadog_config.update_cache = True
-        elif str(cached_ami.state) != "available":
+        elif plan == "wait" and cached_ami is not None:
             logger.stdout(
-                f"We found an existing cache AMI for vm [{vm.name}] but we can no use it "
-                f"because the current status is {cached_ami.state}"
+                f"Cache AMI [{cached_ami.id}] for [{vm.name}] is not ready "
+                f"(status={cached_ami.state}, ami-state={(cached_ami.tags or {}).get('ami-state')}). "
+                "This job will not create another AMI."
             )
-            logger.stdout("We are not going to create a new AMI and we are not going to use it (skip cache mode)")
             vm.datadog_config.update_cache = False
             vm.datadog_config.skip_cache = True
         else:
