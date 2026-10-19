@@ -8,7 +8,7 @@ use axum::{
 };
 use opentelemetry::{
     global,
-    trace::{FutureExt, SpanKind, Status, TraceContextExt, Tracer},
+    trace::{FutureExt, SpanKind, TraceContextExt, Tracer},
     KeyValue,
 };
 use opentelemetry_http::HeaderExtractor;
@@ -94,12 +94,8 @@ async fn datadog_specific_axum_layer(request: Request, next: Next) -> Response {
     // Record the response status on the span before it ends (on drop of `cx`).
     let span = cx.span();
     let status = response.status().as_u16();
+    // Whether the status is an error is left to the tracer (DD_TRACE_HTTP_SERVER_ERROR_STATUSES).
     span.set_attribute(KeyValue::new("http.response.status_code", i64::from(status)));
-    if status >= 500 {
-        span.set_status(Status::Error {
-            description: format!("HTTP {status}").into(),
-        });
-    }
 
     response
 }
