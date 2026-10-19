@@ -109,6 +109,7 @@ ssi_tests:
     variables:
       # Force gitlab to keep the exit code as 3 if the job fails with exit code 3
       FF_USE_NEW_BASH_EVAL_STRATEGY: true
+      PYTHONWARNINGS: "ignore:aws.ec2/getvpciam:DeprecationWarning:pulumi_aws.ec2.get_vpc_iam_pool,ignore:aws.ec2/getvpciam:DeprecationWarning:pulumi_aws.ec2.get_vpc_iam_pool_cidrs,ignore:aws.ec2/getvpciam:DeprecationWarning:pulumi_aws.ec2.get_vpc_iam_pools,ignore:ast.Str is deprecated:DeprecationWarning:_pytest.assertion.rewrite,ignore:ast.NameConstant is deprecated:DeprecationWarning:_pytest.assertion.rewrite"
     script:
         - |
             if [[ -n "${DD_INSTALL_SCRIPT_VERSION}" ]]; then
