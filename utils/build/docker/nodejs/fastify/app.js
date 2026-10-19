@@ -237,16 +237,12 @@ fastify.get('/make_distant_call', async (request, reply) => {
   console.log(url)
 
   const parsedUrl = new URL(url)
-
-  const options = {
-    hostname: parsedUrl.hostname,
-    port: parsedUrl.port || 80, // Use default port if not provided
-    path: parsedUrl.pathname,
-    method: 'GET'
-  }
+  const method = request.query.method || 'GET'
 
   return new Promise((resolve, reject) => {
-    const httpRequest = http.request(options, (response) => {
+    // Passing the URL object preserves query strings and credentials. This endpoint is used by
+    // semantic-convention tests that need the tracer to observe the complete outbound request.
+    const httpRequest = http.request(parsedUrl, { method }, (response) => {
       let responseBody = ''
       response.on('data', (chunk) => {
         responseBody += chunk
@@ -256,7 +252,7 @@ fastify.get('/make_distant_call', async (request, reply) => {
         resolve({
           url,
           status_code: response.statusCode,
-          request_headers: response.req._headers,
+          request_headers: response.req.getHeaders(),
           response_headers: response.headers,
           response_body: responseBody
         })
@@ -275,6 +271,24 @@ fastify.get('/make_distant_call', async (request, reply) => {
 
     httpRequest.end()
   })
+})
+
+fastify.get('/security/thread_context_sharing', async (request, reply) => {
+  const path = request.query.path
+  if (typeof path !== 'string' || path === '') {
+    reply.status(400)
+    return 'missing path query parameter'
+  }
+
+  // Synchronous on purpose: async fs opens the file on a libuv worker thread, which does not carry
+  // the request's thread context that the security agent reads.
+  require('fs').writeFileSync(path, 'thread context sharing')
+
+  const context = tracer.scope().active().context()
+  return {
+    trace_id: BigInt(`0x${context.toTraceId(true)}`).toString(),
+    span_id: context.toSpanId()
+  }
 })
 
 fastify.get('/user_login_success_event', async (request, reply) => {
@@ -685,7 +699,7 @@ fastify.get('/otel_drop_in_baggage_api_otel', async (request, reply) => {
           resolve({
             url,
             status_code: response.statusCode,
-            request_headers: response.req._headers,
+            request_headers: response.req.getHeaders(),
             response_headers: response.headers,
             response_body: responseBody
           })
@@ -747,7 +761,7 @@ fastify.get('/otel_drop_in_baggage_api_datadog', async (request, reply) => {
         resolve({
           url,
           status_code: response.statusCode,
-          request_headers: response.req._headers,
+          request_headers: response.req.getHeaders(),
           response_headers: response.headers,
           response_body: responseBody
         })
@@ -803,6 +817,8 @@ fastify.get('/flush', async (request, reply) => {
   tracer.dogstatsd?.flush?.()
   tracer._pluginManager?._pluginsByName?.openai?.metrics?.flush?.()
   tracer._tracer?._processor?._stats?.onInterval()
+  // force FFE exposure events out immediately instead of waiting for the writer's periodic flush
+  require('node:diagnostics_channel').channel('ffe:writers:flush').publish()
 
   // does have a callback :)
   const promises = []

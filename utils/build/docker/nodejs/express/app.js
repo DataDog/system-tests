@@ -1,4 +1,5 @@
 'use strict'
+/* eslint-disable camelcase */
 
 const opts = {}
 
@@ -54,11 +55,14 @@ const jsonLogger = winston.createLogger({
 
 iast.initData().catch(() => {})
 
-app.use(require('body-parser').json({
+const jsonBodyOptions = {
   verify: (req, res, buf) => {
     req.rawBody = buf
   }
-}))
+}
+// The shared degradation contract sends 12,000 targeting keys in one /ffe request.
+app.use('/ffe', require('body-parser').json({ ...jsonBodyOptions, limit: '1mb' }))
+app.use(require('body-parser').json(jsonBodyOptions))
 app.use(require('body-parser').urlencoded({ extended: true }))
 app.use(require('express-xml-bodyparser')())
 app.use(require('cookie-parser')())
@@ -239,8 +243,9 @@ app.get('/trace/manual_keep_drop', (req, res) => {
   tracer.scope().active().setTag(decision === 'keep' ? MANUAL_KEEP : MANUAL_DROP, true)
 
   // Call downstream so that tests can assert on the sampling decision that gets propagated
-  const url = 'http://localhost:7777/'
-  const request = http.request({ hostname: 'localhost', port: 7777, path: '/', method: 'GET' }, (response) => {
+  // The weblog listens on IPv4; localhost may resolve to IPv6 instead.
+  const url = 'http://127.0.0.1:7777/'
+  const request = http.request({ hostname: '127.0.0.1', port: 7777, path: '/', method: 'GET' }, (response) => {
     response.on('data', () => {})
 
     response.on('end', () => {
@@ -263,17 +268,12 @@ app.get('/trace/manual_keep_drop', (req, res) => {
 
 app.get('/make_distant_call', (req, res) => {
   const url = req.query.url
-
   const parsedUrl = new URL(url)
+  const method = req.query.method || 'GET'
 
-  const options = {
-    hostname: parsedUrl.hostname,
-    port: parsedUrl.port || 80, // Use default port if not provided
-    path: parsedUrl.pathname,
-    method: 'GET'
-  }
-
-  const request = http.request(options, (response) => {
+  // Passing the URL object preserves query strings and credentials. This endpoint is used by
+  // semantic-convention tests that need the tracer to observe the complete outbound request.
+  const request = http.request(parsedUrl, { method }, (response) => {
     let responseBody = ''
     response.on('data', (chunk) => {
       responseBody += chunk
@@ -302,6 +302,23 @@ app.get('/make_distant_call', (req, res) => {
   })
 
   request.end()
+})
+
+app.get('/security/thread_context_sharing', (req, res) => {
+  const path = req.query.path
+  if (typeof path !== 'string' || path === '') {
+    return res.status(400).send('missing path query parameter')
+  }
+
+  // Synchronous on purpose: async fs opens the file on a libuv worker thread, which does not carry
+  // the request's thread context that the security agent reads.
+  fs.writeFileSync(path, 'thread context sharing')
+
+  const context = tracer.scope().active().context()
+  res.json({
+    trace_id: BigInt(`0x${context.toTraceId(true)}`).toString(),
+    span_id: context.toSpanId()
+  })
 })
 
 app.get('/user_login_success_event', (req, res) => {
@@ -681,6 +698,8 @@ app.get('/flush', (req, res) => {
   tracer.dogstatsd?.flush?.()
   tracer._pluginManager?._pluginsByName?.openai?.metrics?.flush?.()
   tracer._tracer?._processor?._stats?.onInterval()
+  // force FFE exposure events out immediately instead of waiting for the writer's periodic flush
+  require('node:diagnostics_channel').channel('ffe:writers:flush').publish()
 
   // does have a callback :)
   const promises = []
@@ -859,8 +878,15 @@ app.get('/external_request/redirect', (req, res) => {
 require('./rasp')(app)
 
 app.post('/ai_guard/evaluate', async (req, res) => {
-  // eslint-disable-next-line camelcase
-  const renameAttrs = ({ tagProbabilities: tag_probs, ...rest }) => ({ ...rest, tag_probs })
+  const renameAttrs = ({
+    tagProbabilities: tag_probs,
+    redactionReplacements: redaction_replacements,
+    ...rest
+  }) => ({
+    ...rest,
+    tag_probs,
+    redaction_replacements
+  })
   const block = req.headers['x-ai-guard-block'] === 'true'
   const messages = req.body
   const userId = req.headers['x-user-id']
@@ -968,6 +994,25 @@ const startServer = () => {
         app(req, res)
       }
     })
+
+    // Direct-EVP shutdown coverage needs Docker's SIGTERM to reach the ordinary Node
+    // process and let dd-trace's beforeExit hooks flush. Keep this opt-in so other
+    // scenarios retain the weblog's historical signal behavior.
+    if (process.env.SYSTEM_TESTS_FFE_SHUTDOWN_FLUSH_ENABLED === 'true') {
+      process.once('SIGTERM', () => {
+        server.close(error => {
+          if (error) {
+            console.error('Failed to close server during SIGTERM:', error)
+            process.exitCode = 1
+            return
+          }
+          console.log(JSON.stringify({
+            event: 'system_tests.ffe.shutdown.server_closed',
+            timestamp: new Date().toISOString()
+          }))
+        })
+      })
+    }
 
     server.listen(7777, '0.0.0.0', () => {
       tracer.trace('init.service', () => {})

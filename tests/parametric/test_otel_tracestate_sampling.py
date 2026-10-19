@@ -1,6 +1,8 @@
 """Cross-tracer conformance for OpenTelemetry consistent probability sampling (ot.th / ot.rv) on the wire."""
 
-import pytest
+import json
+
+from utils import pytest
 
 from utils import features, scenarios
 from utils.dd_constants import SamplingPriority
@@ -47,6 +49,7 @@ def _library_env(rate: float) -> dict[str, str]:
     return {
         "DD_TRACE_RATE_LIMIT": "10000000",
         "DD_TRACE_SAMPLE_RATE": str(rate),
+        "DD_TRACE_SAMPLING_RULES": json.dumps([{"sample_rate": rate}]),
         "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
     }
 
@@ -237,7 +240,8 @@ class Test_OtelTracestateSampling:
             headers = _make_root_manual_keep_headers(test_library)
 
         traceparent, tracestate = get_tracecontext(headers)
-        assert traceparent.trace_flags == "01"
+        # A locally generated trace ID may also have the W3C random-trace-id flag set.
+        assert int(traceparent.trace_flags, 16) & 0x01
         assert "ot" not in tracestate
 
         (trace,) = test_agent.wait_for_num_traces(1)

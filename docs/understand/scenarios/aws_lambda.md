@@ -25,28 +25,26 @@ To do this, we rely on two tools from AWS to emulate Lambda and Load Balancers:
 
 To replace the **AWS Managed Load Balancer**, we run a dedicated container in front of the weblog named **Lambda Proxy**. It is responsible for converting the incoming request to a *lambda event* representation, invoking the lambda function running inside the weblog and converting back the return value of function to an http response.
 
-The **Lambda Function** runs inside the **Weblog Container** thanks to the *AWS Lambda Runtime Interface Emumlator*.
+The **Lambda Function** runs inside the **weblog** thanks to the *AWS Lambda Runtime Interface Emumlator*.
 
 
-There is no **Agent Container**, the **Datadog Extension** (equivalent to the  **Datadog Agent** in the context of lambda) needs to run inside the **Weblog Container**, the [**Application Proxy Container**](../architecture.md#application-proxy-container) therefore needs to send traces back to the **Weblog Container**.
+There is no **Agent Container**, the **Datadog Extension** (equivalent to the **Datadog Agent** in the context of lambda) needs to run inside the **weblog**, the [**proxy**](../architecture.md#proxy) therefore needs to send traces back to the weblog.
 
 
 ```mermaid
 flowchart TD
-    TESTS[Tests Container] -->|Send Requests| LambdaProxy
-    LambdaProxy[Lambda Proxy] -->|Send Lambda Event| Application
-    subgraph APP[Application Container]
-        socat[socat *:8127] --> Extension
-        Extension[Extension localhost:8126]
-        Application[Application *:8080]
+    HOST[Host pytest] -->|HTTP requests| LAMBDAPROXY
+    LAMBDAPROXY[Lambda Proxy] -->|lambda event| APP
+    subgraph WEBLOG[Customer application]
+        APP[Application *:8080]
+        SOCAT[socat *:8127]
+        EXT[Extension localhost:8126]
+        SOCAT --> EXT
     end
-    Application --> | Send Traces | APPPROXY
-    APPPROXY[Application Proxy] --> | Send back traces | socat
-    APPPROXY -->|mitmdump| TESTS
-    Extension --> AGENTPROXY
-    AGENTPROXY[Agent Proxy] -->|remote request| BACKEND
-    AGENTPROXY -->|mitmdump| TESTS
-    BACKEND[Datadog] -->|trace API| TESTS
+    APP -->|traces| PROXY
+    PROXY[Proxy] -->|forward| SOCAT
+    EXT -->|agent traffic| PROXY
+    PROXY -.->|JSON dumps| HOST
 ```
 
 ## Specific considerations for the weblogs

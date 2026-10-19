@@ -5,6 +5,7 @@
 import base64
 import binascii
 import re
+from typing import Any
 
 from tests.otel.utils import (
     FORWARD_RV,
@@ -15,6 +16,10 @@ from utils import context, features, interfaces, scenarios, weblog
 from utils._context._scenarios.endtoend import EndToEndScenario
 from utils.dd_constants import SpanKind, StatusCode
 from utils.docker_fixtures.spec.tracecontext import Tracestate
+from utils.interfaces._open_telemetry import is_otel_span_for_request
+
+
+type OtelSpanRecord = tuple[Any, Any, Any]
 
 
 def _trace_id_to_hex(tid: str | None) -> str:
@@ -37,6 +42,19 @@ def _trace_id_to_hex(tid: str | None) -> str:
     return decoded.hex()
 
 
+def _server_span_by_request_id(data: list[OtelSpanRecord], request_id: str) -> OtelSpanRecord:
+    matching_server_spans = []
+    for entry in data:
+        span = entry[2]
+        if span.get("kind") == SpanKind.SERVER.value and is_otel_span_for_request(span, request_id):
+            matching_server_spans.append(entry)
+
+    assert len(matching_server_spans) == 1, (
+        f"expected exactly one SERVER span correlated to request {request_id}, found {len(matching_server_spans)}"
+    )
+    return matching_server_spans[0]
+
+
 # @scenarios.apm_tracing_e2e_otel
 @features.otel_api
 @scenarios.apm_tracing_otlp
@@ -55,10 +73,7 @@ class Test_Otel_Tracing_OTLP:
     def test_single_server_trace(self):
         """Validates the required elements of the OTLP payload for a single trace"""
         data = list(interfaces.open_telemetry.get_otel_spans(self.req))
-
-        # Assert that there is only one OTLP request containing the desired server span
-        assert len(data) == 1
-        request, content, span = data[0]
+        request, content, span = _server_span_by_request_id(data, self.req.get_rid())
 
         # Determine if JSON Protobuf Encoding was used for the OTLP request (rather than Binary Protobuf)
         # We need to assert that we match the OTLP specification, which has some odd encoding rules when using JSON: https://opentelemetry.io/docs/specs/otlp/#json-protobuf-encoding
@@ -77,10 +92,7 @@ class Test_Otel_Tracing_OTLP:
         # TODO: Assert the following attributes: runtime-id, git.commit.sha, git.repository_url
         assert attributes.get("service.name") == "weblog"
         assert attributes.get("service.version") == "1.0.0"
-        assert (
-            attributes.get("deployment.environment.name") == "system-tests"
-            or attributes.get("deployment.environment") == "system-tests"
-        )
+        assert attributes.get("deployment.environment.name") == "system-tests"
         assert attributes.get("telemetry.sdk.name") == "datadog"
         assert "telemetry.sdk.language" in attributes
         # assert "telemetry.sdk.version" in attributes
@@ -152,9 +164,7 @@ class Test_Otel_Tracing_OTLP:
         """
         data = list(interfaces.open_telemetry.get_otel_spans(self.req))
 
-        # `get_otel_spans` yields the server span, identified by the user-agent header
-        assert len(data) >= 1, f"Expected at least one matching OTLP span, got {data}"
-        _, content, server_span = data[0]
+        _, _, server_span = _server_span_by_request_id(data, self.req.get_rid())
 
         root_span_tid = server_span.get("traceId")
         root_span_hex_id = _trace_id_to_hex(root_span_tid)
@@ -170,16 +180,15 @@ class Test_Otel_Tracing_OTLP:
             f"server traceId upper 64 bits are zero (expected a 128-bit ID): {root_span_tid!r}"
         )
 
-        # Group every span in the OTLP payload by the lower 64 bits of its traceId.
-        # If spans have a matching lower 64 bits, we expect them to have a matching full 128-bit traceId
+        # Group every correlated span by the lower 64 bits of its traceId. Correlated descendants
+        # can be exported in separate OTLP payloads, so inspect every span yielded by the interface.
+        # If spans have matching lower 64 bits, they must have matching full 128-bit trace IDs.
         anchor_lower_hex = root_span_hex_id[16:]
         single_trace_spans = []
-        for resource_span in content.get("resourceSpans", []):
-            for scope_span in resource_span.get("scopeSpans", []):
-                for s in scope_span.get("spans", []):
-                    hex_tid = _trace_id_to_hex(s.get("traceId"))
-                    if hex_tid and hex_tid[16:] == anchor_lower_hex:
-                        single_trace_spans.append((s, hex_tid))
+        for _, _, span in data:
+            hex_tid = _trace_id_to_hex(span.get("traceId"))
+            if hex_tid and hex_tid[16:] == anchor_lower_hex:
+                single_trace_spans.append((span, hex_tid))
 
         # The /make_distant_call trace produces a server entry span plus at least one child span.
         # (the outbound HTTP client span).

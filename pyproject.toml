@@ -89,7 +89,8 @@ indent-style = "space"
 exclude = [ 
     "docs/*", # ignore docs. But may be a good idea to enable rules here
     "utils/grpc/{weblog_pb2_grpc.py,weblog_pb2.py}", # generated files
-    "lib-injection/build/docker/python/dd-lib-python-init-test-protobuf-old/addressbook_pb2.py", # generated file
+    "lib-injection/build/docker/python/dd-lib-python-init-test-protobuf-old/addressbook_pb2.py", # generated file,
+    "pyproject.toml"
 ]
 select = ["ALL"]
 
@@ -224,6 +225,9 @@ ignore = [
     "ANN001", # missing-type-function-argument: obvious decorators
     "ANN205"  # missing-return-type-static-method: obvious decorators
 ]
+"utils/base_images/*" = [
+    "INP001",   # implicit-namespace-package: these scripts must stay importable before the runner virtualenv exists
+]
 "utils/build/*"  = ["ALL"]  # mostly python weblog code. it may be a good idea to enable rules here
 
 "utils/onboarding/weblog_interface.py" = [
@@ -246,4 +250,3 @@ ignore = [
     "S506",    # unsafe-yaml-load: TODO
 ]
 "utils/waf_rules.py" = ["N801"]  # generated file
-

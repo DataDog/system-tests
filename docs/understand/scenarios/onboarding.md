@@ -5,6 +5,7 @@
      - [Virtual Machine](#Virtual-Machine)
      - [Provision](#Provision)
      - [Provider](#Provider)
+     - [AMI cache](#ami-cache)
 2. [Run the tests](#Run-the-tests)
    * [Prerequisites](#Prerequisites)
 
@@ -320,6 +321,34 @@ We currently support two providers:
 
 We can find the available providers in the folder: `utils/virtual_machine.`
 The common interface that implemets all the existing providers is: `utils/virtual_machine/virtual_machine_provider.py`.
+
+### AMI cache
+
+AWS SSI saves the cacheable provision steps in an AMI. The cache key is the VM name, the provision name, the weblog id, and a hash of those steps. A change to a cacheable step creates a new key. AMIs for the old key stay in the account.
+
+A new AMI has tags `CI=system-tests` and `ami-state=candidate`. The job boots that AMI and runs the tests there.
+
+* Passing tests set `ami-state` to `active`.
+* A failed test sets `ami-state` to `rejected`.
+* A provision failure, or a run with no executed tests, leaves `ami-state` as `candidate`.
+
+The next job chooses an AMI in this order:
+
+1. The `active` AMI for that key with the latest creation time.
+2. An AMI with no `ami-state` tag.
+3. The job does not boot a `candidate` or a `rejected` AMI.
+
+A `candidate` created less than six hours ago blocks a second build. The job does not boot it and does not create another AMI. After six hours, the next job creates a new AMI.
+
+`AMI_UPDATE=true` creates a new AMI even when a usable AMI already exists.
+
+`SKIP_AMI_CACHE=true` installs the machine from scratch. The job does not create or reuse a cache AMI. The local wizard sets this variable.
+
+The scheduled job `delete_amis` reads only AMIs tagged `CI=system-tests`. It also deletes the AMI snapshot.
+
+* A `rejected` AMI is removed on that run.
+* An `active` or `candidate` AMI follows `AMI_RETENTION_DAYS` and `AMI_LAST_LAUNCHED_DAYS`. It matches when its age passes the retention value. It also matches when its last launch passes the launch value. The first match sets the tag `ami-retire-at`. A later run removes the AMI after one more day. A launch before that run removes the tag. A failed launch lookup keeps the AMI.
+* An AMI with no `ami-state` tag follows the same two variables. The job removes it on the first match.
 
 # Run the AWS SSI tests
 
@@ -819,8 +848,12 @@ Located in: **var/log/datadog_weblog/**
 * **docker_list_dependencies.log:** Docker dependencies listing.
 * **docker_proccess.log:** Docker process information.
 * **journalctl_docker.log:** Systemd journal logs related to Docker.
+* **journalctl_test-app.log:** Systemd journal logs for the host weblog service (`test-app.service`).
 * **system.timers.log:** System timer logs.
 * **dd-agent-diagnostics.log:** Datadog Agent container diagnostics. Only present in container-based scenarios that start the agent via `docker-compose-agent-prod.yml`.
+* **core-diagnostics.txt:** Core dump configuration and the core files collected after a PHP host application crash.
+* **core.\* / systemd-coredump:** PHP process core dumps. Use these with `gdb` when investigating a segmentation fault or exit status 139.
+* **coredumpctl-list.txt:** PHP entries reported by `coredumpctl`, when the command is available on the VM.
 
 ## How to read VM log markers (`[vm_name].log`)
 
@@ -946,6 +979,7 @@ Exception launching aws provision step remote command
    grep -n "Diagnostics:" [vm_name].log
    ~~~
 4. Identify the failing command (package install, Docker/runtime setup, agent install, SSI packages, or test app build) and fix accordingly.
+5. If the PHP host weblog failed with a segmentation fault or exit status 139, inspect `core-diagnostics.txt`, `journalctl_test-app.log`, and any `core.*` or `systemd-coredump` file under `var/log/datadog_weblog/`.
 
 ---
 
@@ -1014,6 +1048,8 @@ Exception during trace in backend verification: Reached overall timeout of 300 f
 
 > **Note:** Make sure profiling is actually enabled for the application (per language tracer guidance) before investigating backend intake.
 
+If the PHP host weblog crashes during `php --version` or while starting `test-app.service`, investigate the core dump under `var/log/datadog_weblog/` instead of treating it as a missing-profile timeout.
+
 ---
 
 ## Case 6 — Traces appear, but **AppSec** signals are missing
@@ -1065,6 +1101,7 @@ Whenever possible, please follow up by opening an issue or PR to properly addres
 Make sure to check the machine logs and confirm that the issue is not caused by your own software (such as the Agent, Installer, Injector, or any of the Tracers).
 You should only apply this workaround if the root cause is one of the following:
 * Issues with the original AMI on AWS.
+* A cached AMI that was generated incorrectly (for example the Docker daemon failed to install).
 * Problems with third-party repositories.
 * Failures when installing a third-party dependency required to run the tests.
 
@@ -1076,7 +1113,42 @@ If this kind of problem occurs, it could affect multiple components:
 * auto_inject: Could block merges to the main branch or delay releases.
 
 **Quick Solution:**
-  Open `utils/virtual_machine/virtual_machines.json` and set the `"enabled"` field to `false` for the problematic virtual machine to temporarily exclude it from test runs.
+
+1. **Temporarily exclude the VM.** Open `utils/virtual_machine/virtual_machines.json` and set `"disabled": true` for the problematic virtual machine.
+2. **Or delete the cached AMI** when the VM is fine and the snapshot is broken. See [Cached AMI is incorrect](#cached-ami-is-incorrect).
+
+### Cached AMI is incorrect
+
+Cacheable provision steps are stored in an AMI. Later runs reuse the newest `active` AMI for that key. If no `active` AMI exists, they reuse an AMI with no `ami-state` tag. See [AMI cache](#ami-cache).
+
+**Typical symptom:** Docker failed while the AMI was created. Tests fail with *Cannot connect to the Docker daemon* or *docker daemon does not exist*.
+
+**Find the AMI name** in the GitLab job stdout or in `tests.log`, near the start of the run:
+
+```
+14:14:56.472 STDOUT   We found an existing AMI  name:[CentOS_7_amd64_container-auto-inject-install-script_test-app-php-container-83_83cba9f5a8ae3b342e10f0a48ee1d6d5-3f871b1], ID:[ami-0b27aa90064f6603e], status:[available], expiration:[], created:[2026-08-18T09:56:10.000Z]
+```
+
+**Delete the AMI:**
+
+* **GitLab job `delete_amis_by_name_or_lang`.** This job deletes one AMI by name. Run a pipeline on [system-tests GitLab](https://gitlab.ddbuild.io/DataDog/system-tests/-/pipelines/new) with:
+  * `SCHEDULED_JOB=delete_amis_by_name_or_lang`
+  * `AMI_NAME` or `AMI_LANG`, or both
+
+  The job reads only AMIs tagged `CI=system-tests`.
+
+  * Both values set: the AMI name must contain both strings.
+  * One value set: the AMI name must contain that string.
+
+  Use a precise value, such as the VM name plus the weblog, or the hash from the log. A broad value deletes other AMIs.
+
+  Example: `AMI_NAME=CentOS_7_amd64` and `AMI_LANG=php`
+
+* **GitLab job `delete_amis`.** See [AMI cache](#ami-cache).
+
+* **AWS console.** Open EC2, then AMIs. Search by name and choose Deregister.
+
+The next run creates a new AMI when that key has no `active` AMI and no AMI without `ami-state`. The tests run on the new AMI. A passing run sets `ami-state` to `active`.
 
 ---
 
@@ -1105,6 +1177,15 @@ Identify the pipeline you want to use. For example, in the following build:
 Next, update your GitLab CI configuration file to include the variable `DD_INSTALLER_INJECTOR_VERSION` with the selected pipeline ID.
 You can see an example in the `dd-trace-java` repository:
 🔗 [GitLab CI example line](https://github.com/DataDog/dd-trace-java/blob/d2f5bb4248ea6ed459374919b357ac93c7d3a810/.gitlab-ci.yml#L961)
+
+Docker SSI, AWS SSI, and AWS SSI container apps choose the injector in this order. The environment does not change the first two cases:
+
+1. `DD_INSTALLER_INJECTOR_VERSION` is set. That value is installed as-is, in prod and in dev. The package comes from `installtesting.datad0g.com` (a pipeline build such as `pipeline-79059602`). `utils/build/auto_inject.lock` is not used.
+2. `DD_INSTALLER_INJECTOR_VERSION` is unset and `DD_INSTALLER_LIBRARY_VERSION` is set. The injector version is the one in `utils/build/auto_inject.lock`, in prod and in dev. The package comes from `install.datadoghq.com`.
+3. Both variables are unset and the install environment is prod (`CI_ENVIRONMENT=prod`). Same as case 2: the lock file version, from `install.datadoghq.com`.
+4. Both variables are unset and the install environment is dev (`CI_ENVIRONMENT=dev`). The install keeps the latest injector snapshot from the dev registry.
+
+The nightly `update_injector_version` job keeps `utils/build/auto_inject.lock` current: when `install.datadoghq.com` has a newer injector release, it opens a pull request that bumps the lock and merges automatically once the required checks pass.
 
 Here’s how the modified section would look:
 
@@ -1277,5 +1358,4 @@ A failure in the GitLab runners can propagate across all repositories that rely 
 
 1. If the problem persists, report it in the #ci-infra-support channel so the CI infrastructure team can investigate and assist.
 2. The runners used for SSI tests in system-tests can be found at: https://github.com/DataDog/libdatadog-build/tree/main/docker
-
 

@@ -308,6 +308,10 @@ elif [ "$TARGET" = "golang" ]; then
     echo "Using ghcr.io/datadog/dd-trace-go/haproxy-spoa:dev"
     echo "ghcr.io/datadog/dd-trace-go/haproxy-spoa:dev" > golang-haproxy-spoa-image
 
+    # azure apim integration
+    echo "Using ghcr.io/datadog/dd-trace-go/apim-callout:dev"
+    echo "ghcr.io/datadog/dd-trace-go/apim-callout:dev" > golang-apim-callout-image
+
 elif [ "$TARGET" = "cpp" ]; then
     assert_version_is_dev
     # PROFILER: The main version is stored in s3, though we can not access this in CI

@@ -6,6 +6,8 @@ weblog:
         copy_files:
           - name: copy-multicontainer-run-script
             local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_multicontainer.sh
+          - name: copy-pull-agent-image-script
+            local_path: utils/build/virtual_machine/weblogs/common/pull_agent_image.sh
           - name: copy-docker-compose-file
             local_path: utils/build/virtual_machine/weblogs/dotnet/test-app-dotnet-multicontainer/docker-compose.yml
           - name: copy-dotnet-app

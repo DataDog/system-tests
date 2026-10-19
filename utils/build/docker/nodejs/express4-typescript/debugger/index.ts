@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars, camelcase */
 
 import type { Express, Request, Response } from 'express'
-import { Pii } from './pii'
+import { Pii, createPiiLocals } from './pii'
 import { dataGenerator } from './data_generator'
 
 export function initRoutes (app: Express) {
@@ -60,7 +60,7 @@ export function initRoutes (app: Express) {
   // Padding
 
   app.get('/debugger/pii', (req: Request, res: Response) => {
-    const pii = new Pii()
+    const { pii, password, user, customPii } = createPiiLocals()
     res.send('Hello World') // This needs to be line 64
   })
 
@@ -141,6 +141,8 @@ export function initRoutes (app: Express) {
     const nestingDepth = parseInt(req.query.nestingDepth as string, 10) || 0
     res.send(captureTimeoutFixture(collectionSize, nestingDepth))
   })
+
+  app.get('/debugger/budgets/:loops', budgets)
 }
 
 function captureTimeoutFixture (collectionSize: number, nestingDepth: number): string {
@@ -152,5 +154,13 @@ function captureTimeoutFixture (collectionSize: number, nestingDepth: number): s
     return nested
   })
 
-  return 'Capture timeout probe' // This needs to be line 155
+  return 'Capture timeout probe' // This needs to be line 157
+}
+
+function budgets (request: Request, reply: Response): Response {
+  const loops = Number(request.params.loops)
+  for (let iteration = 0; iteration < loops; iteration++) {
+    const currentIteration = iteration // This needs to be line 163
+  }
+  return reply.send('Budgets')
 }

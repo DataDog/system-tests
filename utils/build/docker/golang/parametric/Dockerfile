@@ -1,5 +1,5 @@
 
-FROM golang:1.25
+FROM golang:1.26
 
 # install jq
 RUN apt-get update && apt-get -y install jq
@@ -17,4 +17,4 @@ RUN mkdir /parametric-tracer-logs
 
 RUN go install
 
-CMD ["main"]
+CMD ["sh", "-c", "main; status=$?; sleep 2; exit $status"]

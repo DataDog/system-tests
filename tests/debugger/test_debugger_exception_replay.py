@@ -40,6 +40,35 @@ def set_span_attrs(span: dict, span_format: AgentTraceFormat, meta: dict[str, st
         raise ValueError(f"Unknown span format: {span_format}")
 
 
+def normalize_approval_data(data: object) -> object:
+    """Makes approval data comparable across trace payload formats.
+
+    When the trace agent converts an incoming v0.4 payload to v1, it stamps the span with a
+    ``_dd.convertedv1`` provenance marker and carries the v0.4 string-only ``meta`` values through
+    as strings, whereas a natively emitted v1 payload keeps real booleans. Neither difference is
+    relevant to exception replay, so drop the marker and canonicalize booleans on both sides of the
+    comparison. This keeps a single set of approval files valid whether or not conversion is enabled.
+
+    The ``_dd.sdk.otlp_export`` tag describes trace export routing, not exception replay. Its presence
+    varies across tracer versions, so exclude it from both sides of the approval comparison too.
+    """
+    if isinstance(data, dict):
+        return {
+            key: normalize_approval_data(value)
+            for key, value in data.items()
+            if key not in {"_dd.convertedv1", "_dd.sdk.otlp_export"}
+        }
+
+    if isinstance(data, list):
+        return [normalize_approval_data(item) for item in data]
+
+    # bool must be checked before int, as bool is a subclass of int
+    if isinstance(data, bool):
+        return "true" if data else "false"
+
+    return data
+
+
 def get_env_bool(env_var_name: str, *, default: bool = False) -> bool:
     value = os.getenv(env_var_name, str(default)).lower()
     return value in {"true", "True", "1"}
@@ -52,6 +81,7 @@ _SKIP_SCRUB = get_env_bool("DI_SKIP_SCRUB")
 _max_retries = 2
 _timeout_first = 5
 _timeout_next = 30
+_python_capture_timeout = 2
 
 
 @features.debugger_exception_replay
@@ -77,6 +107,25 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
             timeout = _timeout_next
 
             retries += 1
+
+    def _send_request_until_captured(self, request_path: str, exception_message: str, timeout: int) -> bool:
+        """Send a weblog request and wait for the snapshot of the exception it raises."""
+        if self.get_tracer()["language"] != "python":
+            self.send_weblog_request(request_path, reset=False)
+            return self.wait_for_all_snapshots(exception_message, timeout)
+
+        # The Python tracer rate limits exception captures to 1/s, with a jitter that can
+        # refill as little as half the budget per elapsed second, so a request sent right
+        # after a capture may be skipped. Resend the request until its snapshot shows up.
+        # This cannot produce duplicates, as the tracer captures the same exception at most
+        # once per hour, and rate-limited requests do not count towards that limit.
+        deadline = time.monotonic() + timeout
+        while time.monotonic() < deadline:
+            self.send_weblog_request(request_path, reset=False)
+            if self.wait_for_all_snapshots(exception_message, _python_capture_timeout):
+                return True
+
+        return False
 
     ############ assert ############
     def _assert(self, test_name: str, expected_exception_messages: list[str]):
@@ -227,8 +276,14 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
         def __scrub_dotnet(key: str, value: dict | list | str, parent: dict):  # noqa: ARG001
             if key == "Id":
                 return "<scrubbed>"
+            elif key == "exceptionHash":
+                # The hash format differs between tracer versions, so approvals can't pin its value.
+                return "<scrubbed>"
             elif key == "StackTrace" and isinstance(value, dict):
                 value["value"] = "<scrubbed>"
+                # Clip is old; truncated:true is new (dd-trace-dotnet #9272). Drop it so
+                # approvals match tracers with and without the flag.
+                value.pop("truncated", None)
                 return value
             elif key == "staticFields" and isinstance(value, dict):
 
@@ -374,7 +429,12 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
                 keys_to_remove = []
                 span_meta = get_span_meta(span, span_format)
                 for meta_key, meta_value in span_meta.items():
-                    if meta_key in {
+                    if meta_key.startswith("_dd.appsec.s."):
+                        # API Security samples schemas per (route, method, status) on a time window, so
+                        # which request of the test carries them is not deterministic
+                        keys_to_remove.append(meta_key)
+                    elif meta_key in {
+                        "_dd.convertedv1",  # trace agent marker, only set when it converts v0.4 -> v1
                         "_dd.appsec.fp.http.endpoint",
                         "_dd.appsec.fp.http.header",
                         "_dd.appsec.fp.http.network",
@@ -444,7 +504,9 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
 
             expected = self._read_approval(test_name, expected_suffix)
 
-            assert expected == normalized_for_approval
+            # Normalize both sides so already-recorded approvals stay valid whether or not the
+            # trace agent converts v0.4 payloads to v1 (see normalize_approval_data).
+            assert normalize_approval_data(expected) == normalize_approval_data(normalized_for_approval)
 
             missing_keys_dict = {}
 
@@ -645,11 +707,8 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
                     continue
 
                 logger.debug(f"Waiting for snapshot for shape: {shape}, retry #{retries}")
-                self.send_weblog_request(f"/exceptionreplay/rps?shape={shape}", reset=False)
 
-                shapes[shape] = self.wait_for_all_snapshots(shape, timeout)
-                if self.get_tracer()["language"] == "python":
-                    time.sleep(1)
+                shapes[shape] = self._send_request_until_captured(f"/exceptionreplay/rps?shape={shape}", shape, timeout)
 
                 timeout = _timeout_next
 

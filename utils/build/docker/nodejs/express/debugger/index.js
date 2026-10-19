@@ -1,7 +1,7 @@
 'use strict'
 /* eslint-disable no-unused-vars, camelcase */
 
-const Pii = require('./pii')
+const { Pii, createPiiLocals } = require('./pii')
 const dataGenerator = require('./data_generator')
 
 module.exports = {
@@ -60,7 +60,7 @@ module.exports = {
     // Padding
 
     app.get('/debugger/pii', (req, res) => {
-      const pii = new Pii()
+      const { pii, password, user, customPii } = createPiiLocals()
       res.send('Hello World') // This needs to be line 64
     })
 
@@ -141,6 +141,8 @@ module.exports = {
       const nestingDepth = parseInt(req.query.nestingDepth, 10) || 0
       res.send(captureTimeoutFixture(collectionSize, nestingDepth))
     })
+
+    app.get('/debugger/budgets/:loops', budgets)
   }
 }
 
@@ -152,5 +154,13 @@ function captureTimeoutFixture (collectionSize, nestingDepth) {
     }
     return nested
   })
-  return 'Capture timeout probe' // This needs to be line 155
+  return 'Capture timeout probe' // This needs to be line 157
+}
+
+function budgets (request, reply) {
+  const loops = Number(request.params.loops)
+  for (let iteration = 0; iteration < loops; iteration++) {
+    const currentIteration = iteration // This needs to be line 163
+  }
+  return reply.send('Budgets')
 }

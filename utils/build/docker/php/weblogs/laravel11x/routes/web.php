@@ -19,6 +19,11 @@ Route::get('/', function () {
     ]);
 });
 
+Route::get('/await-agent-info', function () {
+    $ready = dd_trace_internal_fn('await_agent_info');
+    return response()->json(['ready' => $ready]);
+});
+
 Route::get('/stats-unique', function (Request $request) {
     $code = (int) $request->query('code', 200);
     return response('', $code);

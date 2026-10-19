@@ -105,7 +105,7 @@ class Test_EmitOtOnProbabilityDecision_Rate0_5(_EmitOtOnProbabilityDecisionBase)
 
 
 # Trace ID and rv/th below match the RFC's own verified worked example (rate 0.1, trace ID 0xfff972474538efff).
-@scenarios.default
+@scenarios.sampling
 @features.w3c_headers_injection_and_extraction
 class Test_ForwardInboundOtUnchanged:
     """A2: DD honors an already-decided upstream trace; ot=rv:...;th:... is forwarded unchanged, never re-derived."""
@@ -169,7 +169,7 @@ class Test_ForwardInboundOtUnchanged:
         assert "th" not in ot_only, "th was fabricated for an ot= that carried no sampling decision"
 
 
-@scenarios.default
+@scenarios.sampling
 @features.w3c_headers_injection_and_extraction
 class Test_ThOnlyDoesNotFabricateRv:
     """A2b: th alone is a valid OTel default-sampling decision (rv is only carried when the decision deviates
@@ -194,7 +194,7 @@ class Test_ThOnlyDoesNotFabricateRv:
         assert "rv" not in ot, "an rv was fabricated for a th-only (OTel default-sampling) decision"
 
 
-@scenarios.default
+@scenarios.sampling
 @features.w3c_headers_injection_and_extraction
 class Test_ForwardInboundOtUnchangedWhenDropped:
     """A2c: A2's forward-unchanged rule holds for a dropped decision too, not just a kept one."""
@@ -217,7 +217,7 @@ class Test_ForwardInboundOtUnchangedWhenDropped:
         assert ot.get("th") == FORWARD_TH, "inbound th was altered instead of being forwarded unchanged"
 
 
-@scenarios.default
+@scenarios.sampling
 @features.w3c_headers_injection_and_extraction
 class Test_ThOnlyDoesNotFabricateRvWhenDropped:
     """A2d: A2b's no-fabrication rule holds for a dropped decision too, not just a kept one."""
@@ -240,7 +240,7 @@ class Test_ThOnlyDoesNotFabricateRvWhenDropped:
         assert "rv" not in ot, "an rv was fabricated for a th-only (OTel default-sampling) decision"
 
 
-@scenarios.default
+@scenarios.sampling
 @features.w3c_headers_injection_and_extraction
 class Test_PreserveDdAndOtherVendors:
     """A3: ot= handling must not disturb dd= or an unrelated vendor tracestate member."""
@@ -273,14 +273,42 @@ class Test_PreserveDdAndOtherVendors:
         assert ot.get("th") == FORWARD_TH
 
 
-@scenarios.default
+@scenarios.sampling
+@features.w3c_headers_injection_and_extraction
+class Test_PreserveTracestateMemberOrder:
+    def setup_preserve_tracestate_member_order(self):
+        self.r = weblog.get(
+            "/make_distant_call",
+            params={"url": "http://weblog:7777"},
+            headers={
+                "traceparent": _traceparent(FORWARD_TRACE_ID, sampled=True),
+                "tracestate": "dd=s:1,foo=bar,ot=rv:6e6d1a75832a2f,something=else",
+            },
+        )
+
+    def test_preserve_tracestate_member_order(self):
+        assert self.r.status_code == 200
+
+        request_headers = json.loads(self.r.text)["request_headers"]
+        raw_tracestate = next(
+            (value for key, value in request_headers.items() if key.lower() == "tracestate"),
+            None,
+        )
+        assert raw_tracestate is not None, "tracestate header was dropped"
+
+        dd_member, separator, unmodified_members = raw_tracestate.partition(",")
+        assert separator, "tracestate did not preserve the unmodified members"
+        assert dd_member.startswith("dd="), "dd= must remain the leading tracestate member"
+        assert unmodified_members == "foo=bar,ot=rv:6e6d1a75832a2f,something=else"
+
+
+@scenarios.sampling
 @features.w3c_headers_injection_and_extraction
 class Test_ForceKeepClearsTh:
     """A4: a non-probability (force-keep) decision erases th but still forwards an inherited rv.
 
-    Modeled on the only existing e2e lever for a local, non-probability keep decision: an ASM /waf attack
-    detection (tests/appsec/test_traces.py::Test_RetainTraces). There is no dedicated manual-keep/drop
-    weblog endpoint today (tracked as a follow-up).
+    The manual-keep endpoint applies the decision before making its downstream request, whose propagated
+    headers are returned in the response.
     """
 
     INHERITED_RV = "1234567890abcd"
@@ -293,9 +321,8 @@ class Test_ForceKeepClearsTh:
 
     def setup_force_keep_with_no_inbound_ot(self):
         self.no_ot_request = weblog.get(
-            "/make_distant_call",
-            params={"url": "http://weblog:7777"},
-            headers={"User-Agent": "Arachni/v1"},
+            "/trace/manual_keep_drop",
+            params={"decision": "keep"},
         )
 
     def test_force_keep_with_no_inbound_ot(self):
@@ -310,12 +337,11 @@ class Test_ForceKeepClearsTh:
 
     def setup_force_keep_forwards_inherited_rv(self):
         self.rv_only_request = weblog.get(
-            "/make_distant_call",
-            params={"url": "http://weblog:7777"},
+            "/trace/manual_keep_drop",
+            params={"decision": "keep"},
             headers={
                 "traceparent": _traceparent(FORWARD_TRACE_ID, sampled=False),
                 "tracestate": f"ot=rv:{self.INHERITED_RV}",
-                "User-Agent": "Arachni/v1",
             },
         )
 
@@ -333,12 +359,11 @@ class Test_ForceKeepClearsTh:
 
     def setup_force_keep_overrides_inherited_drop_decision(self):
         self.dropped_request = weblog.get(
-            "/make_distant_call",
-            params={"url": "http://weblog:7777"},
+            "/trace/manual_keep_drop",
+            params={"decision": "keep"},
             headers={
                 "traceparent": _traceparent(self.DROPPED_TRACE_ID, sampled=False),
                 "tracestate": f"ot=rv:{self.DROPPED_RV};th:{self.DROPPED_TH}",
-                "User-Agent": "Arachni/v1",
             },
         )
 
@@ -356,7 +381,7 @@ class Test_ForceKeepClearsTh:
         assert span.get_sampling_priority() == SamplingPriority.USER_KEEP
 
 
-@scenarios.default
+@scenarios.sampling
 @features.w3c_headers_injection_and_extraction
 class Test_SampledWithoutOtNotFabricated:
     """A5: an inbound trace already sampled (W3C flag) but with no ot= is honored; th/rv are never fabricated."""

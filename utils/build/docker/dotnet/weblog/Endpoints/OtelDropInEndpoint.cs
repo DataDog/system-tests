@@ -107,7 +107,7 @@ namespace weblog
                     }
                 }
 
-                var response = await HttpClientWrapper.LocalGetRequest(parameters.Url);
+                var response = await HttpClientWrapper.LocalRequest(parameters.Url, "GET");
                 var endpointResponse = new BaggageApiEndpointResponse()
                 {
                     Url = parameters.Url,
@@ -145,7 +145,7 @@ namespace weblog
                     }
                 }
 
-                var response = await HttpClientWrapper.LocalGetRequest(parameters.Url);
+                var response = await HttpClientWrapper.LocalRequest(parameters.Url, "GET");
                 var endpointResponse = new BaggageApiEndpointResponse()
                 {
                     Url = parameters.Url,
@@ -172,7 +172,7 @@ namespace weblog
 
                 using var activity = _activitySource.StartActivity("otel_extract_distant_call", ActivityKind.Server, parentContext.ActivityContext);
 
-                var response = await HttpClientWrapper.LocalGetRequest(url);
+                var response = await HttpClientWrapper.LocalRequest(url, "GET");
                 var endpointResponse = new BaggageApiEndpointResponse()
                 {
                     Url = url,

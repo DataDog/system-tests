@@ -1,7 +1,7 @@
 from utils import weblog, interfaces, features, context, irrelevant
 
 
-@irrelevant(context.weblog_variant not in ("haproxy", "envoy"))
+@irrelevant(context.weblog_variant not in ("haproxy", "envoy", "apim"))
 @features.go_proxies
 class Test_GoProxies_Tracing:
     def setup_correct_span_structure(self):

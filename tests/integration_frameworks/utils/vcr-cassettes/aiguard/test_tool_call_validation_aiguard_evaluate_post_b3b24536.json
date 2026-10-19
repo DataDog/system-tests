@@ -1,0 +1,26 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://app.datadoghq.com/api/v2/ai-guard/evaluate",
+    "headers": {
+      "Accept-Encoding": "identity",
+      "Content-Length": "157",
+      "Content-Type": "application/json",
+      "DD-AI-GUARD-VERSION": "4.14.0rc1",
+      "DD-AI-GUARD-SOURCE": "SDK",
+      "DD-AI-GUARD-LANGUAGE": "python"
+    },
+    "body": "{\"data\": {\"attributes\": {\"messages\": [{\"role\": \"user\", \"content\": \"What is the weather in New York City?\"}], \"meta\": {\"service\": \"anthropic\", \"env\": null}}}}"
+  },
+  "response": {
+    "status": {
+      "code": 200,
+      "message": "OK"
+    },
+    "headers": {
+      "content-type": "application/vnd.api+json",
+      "content-length": "220"
+    },
+    "body": "{\"data\":{\"id\":\"b52d7f16-9a44-4c81-8ef0-3d6b0c7a1e94\",\"type\":\"evaluations\",\"attributes\":{\"action\":\"ALLOW\",\"global_prob\":0.003021240234375,\"is_blocking_enabled\":false,\"reason\":\"No rule match.\",\"tag_probs\":null,\"tags\":[]}}}"
+  }
+}

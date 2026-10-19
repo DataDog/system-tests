@@ -8,6 +8,7 @@ on: # yamllint disable-line rule:truthy
       - '*.nix'
       - 'flake.*'
       - '.github/workflows/nix.yml'
+      - 'tests/test_the_test/*'
   workflow_dispatch: {}
   schedule:
     - cron: "00 04 * * 0-6"

@@ -688,6 +688,20 @@ class TestAgentAPI:
             time.sleep(0.1)
         raise ValueError(f"Number ({num}) of metrics not available from test agent, got {len(metrics)}")
 
+    def wait_for_num_otlp_requests(self, num: int, *, wait_loops: int = 30) -> list[dict]:
+        """Wait for `num` OTLP requests to be received from the test agent."""
+        otlp_requests = []
+        for _ in range(wait_loops):
+            try:
+                otlp_requests = self.otlp_requests()
+            except requests.exceptions.RequestException:
+                pass
+            else:
+                if len(otlp_requests) >= num:
+                    return otlp_requests
+            time.sleep(0.1)
+        raise ValueError(f"Number ({num}) of OTLP requests not available from test agent, got {len(otlp_requests)}")
+
     def wait_for_telemetry_event(self, event_name: str, *, clear: bool = False, wait_loops: int = 200):
         """Wait for and return the given telemetry event from the test agent."""
         for _ in range(wait_loops):

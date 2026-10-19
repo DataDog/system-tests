@@ -1,9 +1,17 @@
 from collections.abc import Generator, Iterable
+import os
 
 from utils import interfaces
 from utils import remote_config
 from utils.dd_constants import RemoteConfigApplyState
 from utils.dd_types import DataDogLibrarySpan
+
+BLOCKED_IPS_COUNT_ENV_VAR = "_SYSTEM_TESTS_BLOCKED_IPS_COUNT"
+DEFAULT_BLOCKED_IPS_COUNT = 12500
+# _blocked_ip() lays the denylist out over 12.8.0.0-12.9.255.255, using the second octet as an
+# overflow digit for the two low ones. That range holds 2 * 65536 = 131072 addresses, so raising
+# this limit any further means picking a wider IP range first.
+MAX_BLOCKED_IPS_COUNT = 100000
 
 
 def assert_all_spans_have_apm_disabled_marker(spans: Iterable[DataDogLibrarySpan]) -> None:
@@ -42,14 +50,38 @@ def find_configuration() -> Generator:
         yield payload.get("configuration")
 
 
+def _get_blocked_ips_count() -> int:
+    """Size of the IP denylist sent through remote config.
+
+    `_SYSTEM_TESTS_BLOCKED_IPS_COUNT` overrides it, to probe by hand where a library starts
+    truncating the denylist. It is deliberately private and undocumented: it is an ad-hoc
+    debugging knob for this scenario, not a system-tests option.
+    """
+    raw_count = os.environ.get(BLOCKED_IPS_COUNT_ENV_VAR, str(DEFAULT_BLOCKED_IPS_COUNT))
+
+    try:
+        count = int(raw_count)
+    except ValueError as error:
+        raise ValueError(f"{BLOCKED_IPS_COUNT_ENV_VAR} must be an integer, got {raw_count!r}") from error
+
+    if not 1 <= count <= MAX_BLOCKED_IPS_COUNT:
+        raise ValueError(f"{BLOCKED_IPS_COUNT_ENV_VAR} must be between 1 and {MAX_BLOCKED_IPS_COUNT}, got {count}")
+
+    return count
+
+
+def _blocked_ip(index: int) -> str:
+    """Address at the given position of the denylist. The denylist is contiguous, so an index
+    fully determines an address, and only the sampled ones need to be materialized.
+    """
+    return f"12.{8 + index // 65536}.{index // 256 % 256}.{index % 256}"
+
+
 class BaseFullDenyListTest:
     states: remote_config.RemoteConfigStateResults | None = None
 
     def setup_scenario(self) -> None:
-        # Generate the list of 100 * 125 = 12500 blocked ips that are found in the
-        # file rc_mocked_responses_asm_data_full_denylist.json
-        # to edit or generate a new rc mocked response, use the DataDog/rc-tracer-client-test-generator repository
-        blocked_ips = [f"12.8.{a}.{b}" for a in range(100) for b in range(125)]
+        blocked_ips_count = _get_blocked_ips_count()
 
         if BaseFullDenyListTest.states is None:
             config = {
@@ -57,7 +89,10 @@ class BaseFullDenyListTest:
                     {
                         "id": "blocked_ips",
                         "type": "ip_with_expiration",
-                        "data": [{"value": ip, "expiration": 9999999999} for ip in blocked_ips],
+                        "data": [
+                            {"value": _blocked_ip(index), "expiration": 9999999999}
+                            for index in range(blocked_ips_count)
+                        ],
                     },
                     {
                         "id": "blocked_users",
@@ -73,7 +108,10 @@ class BaseFullDenyListTest:
             BaseFullDenyListTest.states = rc_state.apply()
 
         self.states = BaseFullDenyListTest.states
-        self.blocked_ips = [blocked_ips[0], blocked_ips[2500], blocked_ips[-1]]
+        # first, middle and last entries. The last one carries the test: libraries have
+        # historically truncated the tail of an oversized denylist.
+        sample_indices = sorted({0, blocked_ips_count // 2, blocked_ips_count - 1})
+        self.blocked_ips = [_blocked_ip(index) for index in sample_indices]
 
     def assert_protocol_is_respected(self) -> None:
         assert self.states is not None
