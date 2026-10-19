@@ -401,10 +401,13 @@ class Test_FFE_EVP_Flagevaluation_Context_Bounds:
     def setup_ffe_evp_flagevaluation_context_bounds(self) -> None:
         config_id = "ffe-evp-context-bounds"
         self.flag_key = "evp-context-bounds-flag"
-        self.oversized_field = "field_010_oversized"
-        rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key)).apply()
+        self.oversized_field = "field_010"
+        rc.tracer_rc_state.reset().set_config(
+            f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key, observe_full_evaluation_data=True)
+        ).apply()
 
         attributes: JSON = {f"field_{index:03d}": f"value-{index}" for index in range(300)}
+        # Replace an early value so omission cannot pass just by stopping at 256 fields.
         attributes[self.oversized_field] = "x" * 300
 
         self.r = evaluate_flag(self.flag_key, targeting_key="evp-context-user", attributes=attributes)
@@ -415,26 +418,15 @@ class Test_FFE_EVP_Flagevaluation_Context_Bounds:
         events = find_evp_flagevaluation_events(self.flag_key)
         assert events, f"Expected EVP flagevaluation event for flag {self.flag_key}"
 
-        full_context_events = 0
         for _, event in events:
             assert_event_contract(event, self.flag_key)
             context = event.get("context")
-            if context is None:
-                continue
-
-            assert isinstance(context, dict), "context must be an object when present"
+            assert isinstance(context, dict), "consented evaluation must retain context"
             evaluation_context = context.get("evaluation")
-            if evaluation_context is None:
-                continue
-
-            full_context_events += 1
             assert isinstance(evaluation_context, dict), "context.evaluation must be an object"
+            assert evaluation_context.get("field_000") == "value-0", "valid context fields must survive pruning"
             assert len(evaluation_context) <= 256, f"context.evaluation has too many fields: {len(evaluation_context)}"
             assert self.oversized_field not in evaluation_context, "oversized string context field must be omitted"
-
-        if full_context_events == 0:
-            for _, event in events:
-                assert "context" not in event, f"degraded event should omit context: {event}"
 
 
 @scenarios.feature_flagging_and_experimentation
@@ -620,6 +612,63 @@ class Test_FFE_EVP_Flagevaluation_Degradation:
             assert "targeting_key" not in event, f"degraded event must omit targeting_key: {event}"
             assert object_key(event.get("variant"), "variant") == "on"
             assert object_key(event.get("allocation"), "allocation") == "default-allocation"
+
+
+@scenarios.feature_flagging_and_experimentation
+@features.feature_flags_evp_flagevaluation
+@slow
+class Test_FFE_EVP_Flagevaluation_Oversized_Identity:
+    """Preserve PHP flag results and counts across native IPC size degradation."""
+
+    def setup_ffe_evp_flagevaluation_oversized_identity(self) -> None:
+        config_id = "ffe-evp-oversized-identity"
+        self.flag_key = "evp-oversized-identity-flag"
+        self.control_targeting_key = "evp-size-control-user"
+        rc.tracer_rc_state.reset().set_config(
+            f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key, observe_full_evaluation_data=True)
+        ).apply()
+
+        # PHP's native IPC path has a 5 MiB event limit; other SDKs are excluded in manifests.
+        # The normal successor also verifies that oversize fallback leaves IPC usable.
+        oversized_targeting_key = "x" * (5 * 1024 * 1024 + 1)
+        self.responses = [
+            evaluate_flag(
+                self.flag_key,
+                targeting_key=targeting_key,
+                attributes={"email": "evp-size-canary@example.invalid"},
+            )
+            for targeting_key in (oversized_targeting_key, self.control_targeting_key)
+        ]
+
+    def test_ffe_evp_flagevaluation_oversized_identity(self) -> None:
+        for response in self.responses:
+            assert response.status_code == 200, f"Flag evaluation failed: {response.text}"
+            assert json.loads(response.text).get("value") == "on-value", (
+                "telemetry limits must not change the flag result"
+            )
+
+        events = find_evp_flagevaluation_events(self.flag_key)
+        assert_total_evaluation_count(events, 2, self.flag_key)
+
+        degraded_events = [(batch, event) for batch, event in events if "targeting_key" not in event]
+        assert_total_evaluation_count(degraded_events, 1, self.flag_key)
+        for _, event in degraded_events:
+            assert "context" not in event, "size-degraded events must omit all event context"
+
+        control_events = [
+            (batch, event) for batch, event in events if event.get("targeting_key") == self.control_targeting_key
+        ]
+        assert_total_evaluation_count(control_events, 1, self.flag_key)
+        for _, event in control_events:
+            assert event.get("context", {}).get("evaluation", {}).get("email") == "evp-size-canary@example.invalid"
+
+        for batch, event in events:
+            assert_batch_context(batch)
+            assert_event_contract(event, self.flag_key)
+            assert object_key(event.get("variant"), "variant") == "on"
+            assert object_key(event.get("allocation"), "allocation") == "default-allocation"
+            assert "error" not in event
+            assert "runtime_default_used" not in event
 
 
 @scenarios.feature_flagging_and_experimentation
