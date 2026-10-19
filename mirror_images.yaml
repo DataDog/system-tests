@@ -15,6 +15,7 @@
 - "datadog/dd-appsec-php-ci:php-8.0-release"
 - "datadog/dd-appsec-php-ci:php-8.2-release"
 - "datadog/serverless-init:1.10.4"
+- "datadog/system-tests:aiohttp.base-8697afadfeae"
 - "datadog/system-tests:apache-mod-7.0-zts.base-9f0b91573353"
 - "datadog/system-tests:apache-mod-7.0.base-817e138f4813"
 - "datadog/system-tests:apache-mod-7.1-zts.base-671acda16008"

@@ -30,6 +30,10 @@ images:
     digest: sha256:f4943347f155505156ba5f594317ea64b59678b3a6522e8c0993581af20956ff
     target: registry.ddbuild.io/system-tests/mirror/datadog/serverless-init:1.10.4
     tag: 1.10.4
+  datadog/system-tests:aiohttp.base-8697afadfeae:
+    digest: sha256:bddfb45339ab796c2cbf7df6d679a85a128acb007b246b42f47ea59aa2b5f8e7
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:aiohttp.base-8697afadfeae
+    tag: aiohttp.base-8697afadfeae
   datadog/system-tests:apache-mod-7.0-zts.base-9f0b91573353:
     digest: sha256:004cd90a6bd8c44fad2ea716431b336c8af3d7cee97e19d8e78c58beb9a62679
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:apache-mod-7.0-zts.base-9f0b91573353
