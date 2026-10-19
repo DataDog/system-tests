@@ -1760,7 +1760,6 @@ manifest:
       weblog: [chi, gin, net-http-orchestrion, net-http, fiber-v2-orchestrion, uds-echo, echo]
     - declaration: missing_feature (EX-3414)
       excluded_weblog: [chi, gin, net-http-orchestrion, net-http, fiber-v2-orchestrion, uds-echo, echo]
-  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Serial_Id::test_ffe_exposure_serial_id: flaky (FFL-3403)
   tests/ffe/test_flag_eval_evp.py: v2.10.0-dev
   tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Egress_Agentless_Direct: v2.12.0-dev
   tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Egress_Agentless_Sidecar: v2.12.0-dev
