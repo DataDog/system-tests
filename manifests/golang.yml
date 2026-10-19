@@ -1760,6 +1760,7 @@ manifest:
       weblog: [chi, gin, net-http-orchestrion, net-http, fiber-v2-orchestrion, uds-echo, echo]
     - declaration: missing_feature (EX-3414)
       excluded_weblog: [chi, gin, net-http-orchestrion, net-http, fiber-v2-orchestrion, uds-echo, echo]
+  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Serial_Id::test_ffe_exposure_serial_id: flaky (FFL-3403)
   tests/ffe/test_flag_eval_evp.py: v2.10.0-dev
   tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Egress_Agentless_Direct: v2.12.0-dev
   tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Egress_Agentless_Sidecar: v2.12.0-dev
@@ -2051,10 +2052,7 @@ manifest:
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_protocol.py::Test_OTEL_EXPORTER_OTLP_TRACES_PROTOCOL::test_http_protocol_is_used_for_trace_export
   : missing_feature
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_timeout.py::Test_OTEL_EXPORTER_OTLP_TRACES_TIMEOUT: missing_feature (OTLP exporter timeout configuration is not centralized)
-  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL: v2.6.0
-  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_case_insensitive_values: missing_feature (Only the debug-mode mapping is implemented)
-  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_otel_log_level_env: missing_feature (Only the debug-mode mapping is implemented)
-  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_stable_values: missing_feature (Only the debug-mode mapping is implemented)
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL: v2.12.0-dev
   tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_warning_threshold_diagnostic: irrelevant (Uses the PHP SDK diagnostic probe)
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER:  # TODO: a lower version might be supported
     - declaration: missing_feature (OTEL_LOGS_EXPORTER does not configure the logs pipeline)
@@ -2169,6 +2167,7 @@ manifest:
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart_With_Extract_First: missing_feature (DD_TRACE_PROPAGATION_EXTRACT_FIRST=true is unsupported; dd-trace-go panics when extraction fails)
   tests/parametric/test_ffe/test_configuration_sources.py: v2.11.0-dev  # Easy win for all weblogs and version 2.10.1
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v2.5.0-dev
+  tests/parametric/test_ffe/test_serial_id_metadata.py: missing_feature
   tests/parametric/test_ffe/test_span_enrichment.py: '>=2.10.0'  # TODO: a lower version might be supported
   tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Child_Span_Propagation: missing_feature
   tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Default_Fallback: missing_feature

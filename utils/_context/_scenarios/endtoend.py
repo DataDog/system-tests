@@ -20,6 +20,7 @@ from utils._context.containers import (
     AgentContainer,
     ProxyContainer,
     BuddyContainer,
+    MsSqlServerContainer,
     TestedContainer,
 )
 from utils._context.weblog_infrastructure import EndToEndWeblogInfra
@@ -105,6 +106,13 @@ class DockerScenario(Scenario):
             self.components["docker.Cgroup"] = docker_info.get("CgroupVersion", None)
             self.warmups.append(self._create_network)
             self.warmups.append(self._start_containers)
+
+            # MsSql fails to start (MinimumQpcFrequency) when it does not get enough CPU at startup:
+            # make all other containers depend on it, so it starts alone
+            mssql_containers = [c for c in self._containers if isinstance(c, MsSqlServerContainer)]
+            for container in self._containers:
+                if not isinstance(container, MsSqlServerContainer):
+                    container.depends_on.extend(mssql_containers)
 
         for container in reversed(self._containers):
             container.configure(host_log_folder=self.host_log_folder, replay=self.replay)
