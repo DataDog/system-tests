@@ -23,6 +23,7 @@
     "docker_build_error_reading_from_server": "Unavailable desc = error reading from server: EOF",
     "docker_build_error_reading_from_server_2": "listing workers for Build: failed to list workers: Unavailable: error reading from server: EOF",
     "docker_build_error_reading_from_server_3": "ERROR: failed to solve: Unavailable: error reading from server: EOF",
+    "docker_daemon_socket": "dial unix /var/run/docker.sock: connect: no such file or directory",
     "java_buildpack_build_error": "java.io.IOException: Downloading from https://services.gradle.org/distributions/gradle-8.14.5-bin.zip failed: timeout",
     "java_buildpack_build_error_2": "BuildPack: Received an UnknownHostException when attempting to interact with a service.",
     "java_buildpack_build_error_3": "BuildPack: Execution failed for task ':bootBuildImage'.",
