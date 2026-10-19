@@ -327,9 +327,9 @@ manifest:
   : 'irrelevant (Issue: tracecontext,Datadog was never the default configuration)'
   tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_legacy: irrelevant (Implements the new 'datadog,tracecontext' default)
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext: v0.0.1
-  tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_duplicated: missing_feature (dd-trace-rs extractors read only the first header value; DataDog/dd-trace-rs#33)
-  tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_empty_header: missing_feature (dd-trace-rs extractors read only the first header value; DataDog/dd-trace-rs#33)
-  tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_multiple_headers_different_keys: missing_feature (dd-trace-rs extractors read only the first header value; DataDog/dd-trace-rs#33)
+  tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_duplicated: '>0.5.2'
+  tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_empty_header: '>0.5.2'
+  tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_multiple_headers_different_keys: '>0.5.2'
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_ows_handling: missing_feature (Invalid tracestate keys for OpenTelemetry's implementation)
   tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD: v0.0.1
   tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_propagate_propagatedtags:  # TODO: a lower version might be supported
@@ -397,7 +397,7 @@ manifest:
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_set_attributes_different_types_legacy: missing_feature (Old array encoding not supported)
   ? tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_extended_reserved_attributes_overrides_analytics_event
   : missing_feature (Not implemented)
-  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_link_attribute_handling: missing_feature (dd-trace-rs serializes array link attributes as JSON strings instead of flattening them to key.N)
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_link_attribute_handling: '>0.5.2'
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_started_with_link_from_another_span: missing_feature (APMSP-2059)
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_started_with_link_from_other_spans: missing_feature (APMSP-2059)
   ? tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_strict_reserved_attributes_overrides_analytics_event
@@ -465,7 +465,12 @@ manifest:
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags: missing_feature  # Created by easy win activation script
   tests/parametric/test_span_events.py: '>0.5.2'  # TODO: a lower version might be supported
   tests/parametric/test_span_events.py::Test_Span_Events::test_span_with_event_v05: missing_feature (dd-trace-rs always sends native span events; no meta 'events' fallback for v0.5)
-  tests/parametric/test_span_links.py::Test_Span_Links: missing_feature
+  tests/parametric/test_span_links.py::Test_Span_Links: '>0.5.2'
+  tests/parametric/test_span_links.py::Test_Span_Links::test_span_link_propagated_sampling_decisions: missing_feature (a span does not inherit the sampling decision of the context it links to)
+  tests/parametric/test_span_links.py::Test_Span_Links::test_span_started_with_link_v04: missing_feature (_dd.p.tid is not set on root spans)
+  tests/parametric/test_span_links.py::Test_Span_Links::test_span_started_with_link_v05: missing_feature (DD_TRACE_API_VERSION=v0.5 is not supported, span links are never sent as _dd.span_links meta)
+  tests/parametric/test_span_links.py::Test_Span_Links::test_span_started_with_link_v05_span_id_padding: missing_feature (DD_TRACE_API_VERSION=v0.5 is not supported, span links are never sent as _dd.span_links meta)
+  tests/parametric/test_span_links.py::Test_Span_Links::test_span_with_attached_links: missing_feature (_dd.p.tid is not set on root spans)
   tests/parametric/test_span_sampling.py: '>=0.2.1'  # Modified by easy win activation script
   ? tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_child_span_selected_and_root_dropped_by_sss_when_dropping_policy_is_active017
   : missing_feature  # Created by easy win activation script
@@ -492,7 +497,7 @@ manifest:
   tests/parametric/test_telemetry.py::Test_Environment: missing_feature
   tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin: missing_feature
   tests/parametric/test_telemetry.py::Test_TelemetryInstallSignature: '>=0.2.1'  # Modified by easy win activation script
-  tests/parametric/test_telemetry.py::Test_TelemetryInstallSignature::test_telemetry_event_propagated: missing_feature  # Created by easy win activation script
+  tests/parametric/test_telemetry.py::Test_TelemetryInstallSignature::test_telemetry_event_propagated: '>0.5.2'
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar: '>=0.2.1'  # Modified by easy win activation script
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_enabled_propagated: missing_feature  # Created by easy win activation script
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_enabled_propagated_specifics: irrelevant
@@ -520,7 +525,7 @@ manifest:
   tests/parametric/test_tracer.py::Test_TracerBaseService:  # TODO: a lower version might be supported
     - declaration: missing_feature (_dd.base_service is not implemented)
       component_version: <0.5.1-dev+8efc582
-  tests/parametric/test_tracer.py::Test_TracerBaseService::test_base_service_set_when_service_overridden: missing_feature (_dd.base_service is not implemented)
+  tests/parametric/test_tracer.py::Test_TracerBaseService::test_base_service_set_when_service_overridden: '>0.5.2'
   tests/parametric/test_tracer.py::Test_TracerSCITagging: missing_feature  # Created by easy win activation script
   tests/parametric/test_tracer.py::Test_TracerServiceNameSource: irrelevant
   tests/parametric/test_tracer.py::Test_TracerUniversalServiceTagging::test_tracer_service_name_environment_variable:  # TODO: a lower version might be supported
@@ -564,15 +569,15 @@ manifest:
   tests/stats/test_stats.py::Test_Stats_Service_Source::test_srv_src: irrelevant (Only implemented for Java)
   tests/test_baggage.py::Test_Baggage_Headers_Api_Datadog: irrelevant (no Datadog API for W3C Baggage; dd-trace-rs uses the OTel API)
   tests/test_baggage.py::Test_Baggage_Headers_Api_OTel: '>0.5.2'  # TODO: a lower version might be supported
-  tests/test_baggage.py::Test_Baggage_Headers_Max_Bytes: missing_feature (baggage maximum size is not configurable)
-  tests/test_baggage.py::Test_Baggage_Headers_Max_Items: missing_feature (baggage maximum item count is not configurable)
+  tests/test_baggage.py::Test_Baggage_Headers_Max_Bytes: '>0.5.2'
+  tests/test_baggage.py::Test_Baggage_Headers_Max_Items: '>0.5.2'
   tests/test_config_consistency.py::Test_Config_ClientIPHeader_Configured::test_ip_headers_sent_in_one_request: missing_feature (http.client_ip tagging is not implemented)
   tests/test_config_consistency.py::Test_Config_ClientIPHeader_Precedence::test_ip_headers_precedence: missing_feature (http.client_ip tagging not implemented)
   tests/test_config_consistency.py::Test_Config_ClientTagQueryString_Configured: missing_feature (HTTP client query-string tagging is not implemented)
   tests/test_config_consistency.py::Test_Config_ClientTagQueryString_Empty: missing_feature (HTTP client query-string tagging is not implemented)
-  tests/test_config_consistency.py::Test_Config_HttpClientErrorStatuses_Default: missing_feature (HTTP client error statuses are not implemented)
-  tests/test_config_consistency.py::Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature (custom HTTP client error statuses are not implemented)
-  tests/test_config_consistency.py::Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature (custom HTTP server error statuses are not implemented)
+  tests/test_config_consistency.py::Test_Config_HttpClientErrorStatuses_Default: '>0.5.2'
+  tests/test_config_consistency.py::Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: '>0.5.2'
+  tests/test_config_consistency.py::Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: '>0.5.2'
   tests/test_config_consistency.py::Test_Config_IntegrationEnabled_False::test_integration_enabled_false: missing_feature (dd-trace-rs has no Kafka integration)
   tests/test_config_consistency.py::Test_Config_IntegrationEnabled_True: missing_feature (dd-trace-rs has no Kafka integration)
   tests/test_config_consistency.py::Test_Config_LogInjection_128Bit_TraceId_Disabled: missing_feature (dd-trace-rs has no log injection)
@@ -602,7 +607,7 @@ manifest:
   tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Enabled: missing_feature (runtime metrics are not implemented)
   tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Enabled_WithRuntimeId: missing_feature (runtime metrics are not implemented)
   tests/test_data_integrity.py::Test_TraceHeaders::test_trace_header_container_tags: "irrelevant (cgroup in weblog is 0::/, so this test can't work)"
-  tests/test_data_integrity.py::Test_TraceHeaders::test_traces_header_present: missing_feature (datadog-meta-lang-interpreter not set)
+  tests/test_data_integrity.py::Test_TraceHeaders::test_traces_header_present: '>0.5.2'
   tests/test_distributed.py::Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   tests/test_distributed.py::Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   tests/test_identify.py::Test_Basic: missing_feature (dd-trace-rs has no user-identification API)
@@ -666,7 +671,7 @@ manifest:
       weblog: [axum]
     - declaration: missing_feature (Rust does not implement query string obfuscation)
       excluded_weblog: [axum]
-  tests/test_semantic_conventions.py::Test_Meta::test_meta_runtime_id_tag: missing_feature (dd-trace-rs does not tag spans with runtime-id)
+  tests/test_semantic_conventions.py::Test_Meta::test_meta_runtime_id_tag: '>0.5.2'
   tests/test_span_events.py::Test_SpanEvents_WithAgentSupport::test_v04_v07_default_format: '>0.5.2'  # TODO: a lower version might be supported
   tests/test_span_events.py::Test_SpanEvents_WithAgentSupport::test_v05_default_format: irrelevant (v0.5 is not the default format)
   tests/test_span_events.py::Test_SpanEvents_WithoutAgentSupport: missing_feature (dd-trace-rs always sends native span events; no meta 'events' fallback)
