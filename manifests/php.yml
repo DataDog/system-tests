@@ -1260,7 +1260,7 @@ manifest:
   tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Serial_Id: missing_feature (EX-3425)
   tests/ffe/test_flag_eval_evp.py: missing_feature (FFL-2446)
   tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Burst_Aggregation: bug (FFL-2676)
-  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Degradation: bug (FFL-2676)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_High_Cardinality_Accounting: missing_feature (FFL-2446)
   tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_High_Cardinality_Aggregation: bug (FFL-2676)
   tests/ffe/test_flag_eval_metrics.py:
     - weblog_declaration:

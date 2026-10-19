@@ -1143,6 +1143,13 @@ accept a JSON body with these fields:
 - `targetingKey`: the evaluation subject key.
 - `attributes`: flat scalar targeting attributes.
 
+For the high-cardinality FFE workload, the endpoint also accepts a non-empty
+`targetingKeys` array. Evaluate the same flag once per key through the public SDK
+API, using the same attributes and default value. The response includes `count`
+(the number of evaluations performed) and the final evaluation's `value`.
+Do not replace the loop with a direct telemetry submission or change SDK flush
+timing. When the array is absent or empty, evaluate the single `targetingKey`.
+
 The response must be JSON and include at least `value` and `reason`. Error
 responses should also include `errorCode` and `errorMessage`.
 

@@ -20,17 +20,59 @@ This directory contains system tests for the Feature Flags & Experimentation (FF
 
 ## Test-contract self-tests
 
-The self-tests in `testing_tests/` validate the FFE assertions using synthetic
+The self-tests in `test_tests.py` validate the FFE assertions using synthetic
 captures. They do not run SDKs or contact an intake. With the Python 3.12 runner
 environment installed, run them explicitly:
 
 ```bash
-./run.sh FEATURE_FLAGGING_CONTRACT_TESTS tests/ffe/testing_tests
+./run.sh FEATURE_FLAGGING_CONTRACT_TESTS tests/ffe/test_tests.py
 ```
 
 This no-container scenario has no CI workflow or scenario-group membership.
 Its tests do not run in `TEST_THE_TEST`, `DEFAULT`, or the FFE end-to-end scenarios.
 Framework mock-backend and lifecycle tests stay in `tests/test_the_test/`.
+
+## Bounds and overload coverage
+
+The consented context tests exercise field count and string length separately.
+The count case accepts any valid retained subset (SDK map iteration order is not
+part of the contract). The value case stays below the field-count cap, so that
+cap cannot hide a missing string-length check. Missing evaluation context and
+truncated, rather than omitted, oversized strings fail.
+
+`Test_FFE_EVP_Flagevaluation_Oversized_Identity` is PHP-native IPC coverage.
+It sends a targeting key over 5 MiB, then a normal evaluation through the public
+weblog endpoint. Counts and customer results must survive; the oversized event
+loses identity/context and the successor retains consented context. Existing
+manifests exclude this case from other SDKs. PHP release activation remains a
+separate task; use `-F` to validate an unreleased implementation locally.
+
+The high-cardinality workload runs in its own scenario:
+
+```sh
+./run.sh FEATURE_FLAGGING_EVP_STRESS --library php -F tests/ffe/test_flag_eval_evp.py
+```
+
+Do not add other evaluation workloads to this scenario: drop counters are
+process-wide, not flag-scoped. It checks that delivered evaluation counts plus
+reported capacity drops equal 12,000 attempted evaluations. It rejects missing
+accounting, total loss, serialization/delivery failures, and invalid counters.
+Degradation counts are not drops: degraded evaluations are already included in
+the delivered count. This is an overload-accounting test, not a lossless-delivery
+or throughput guarantee. Normal count and aggregation tests still require
+lossless delivery.
+
+The accepted drop counters are `flagevaluation.rows.dropped` (SDK submission)
+and `flagevaluation.evaluations.dropped` (native writer), in `tracers` or `general`
+telemetry namespaces. Only `pre_queue_overflow`, `queue_overflow`, `degraded_cap`,
+and `payload_limit` reasons count as capacity drops. A new SDK counter convention
+needs explicit coverage here, not an inferred allowance for missing evaluations.
+
+The external workload does not guarantee degradation: SDK flush windows can
+split it before the per-flag cap is reached. Exact cap-boundary proof belongs in
+SDK/native tests with synchronous enqueueing. PHP's pinned libdatadog has
+`coalescer_degrades_after_per_flag_cap` in `libdd-ffe`, which verifies 10,000 full
+rows plus 50 degraded evaluations. No production timing override is used.
 
 ---
 

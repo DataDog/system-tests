@@ -15,6 +15,7 @@ from tests.ffe.utils.evp import (
     assert_agentless_evp_topology,
     assert_direct_evp_runtime_evidence,
     assert_direct_evp_shutdown_evidence,
+    assert_flagevaluation_accounting,
     assert_no_evp_proxy_requests,
     expected_evp_origin,
 )
@@ -34,6 +35,191 @@ AGENTLESS_EVP_CAPTURE_CONTRACTS = (
     flag_eval_evp_tests.Test_FFE_EVP_Flagevaluation_Egress_Agentless_Direct,
     flag_eval_evp_tests.Test_FFE_EVP_Flagevaluation_Egress_Agentless_Sidecar,
 )
+
+
+@pytest.mark.parametrize(
+    ("delivered", "dropped", "reason", "valid"),
+    [
+        (12_000, None, "queue_overflow", True),
+        (11_852, 148.0, "queue_overflow", True),
+        (11_950, 50, "degraded_cap", True),
+        (11_999, None, "queue_overflow", False),
+        (12_000, 1, "queue_overflow", False),
+        (0, 12_000, "queue_overflow", False),
+        (11_999, 1, "serialization_error", False),
+        (11_999, 1, "delivery_failure", False),
+        (11_999, 1.5, "queue_overflow", False),
+        (12_001, -1, "queue_overflow", False),
+        (11_999, True, "queue_overflow", False),
+        (11_999, float("inf"), "queue_overflow", False),
+    ],
+)
+@scenarios.feature_flagging_contract_tests
+@features.not_reported
+def test_flagevaluation_isolated_accounting(delivered: int, dropped: float | None, reason: str, *, valid: bool) -> None:
+    series = [] if dropped is None else [{"type": "count", "tags": [f"reason:{reason}"], "points": [[1, dropped]]}]
+    if valid:
+        assert_flagevaluation_accounting(delivered, 12_000, series)
+    else:
+        with pytest.raises(AssertionError):
+            assert_flagevaluation_accounting(delivered, 12_000, series)
+
+
+@pytest.mark.parametrize(
+    "series",
+    [
+        {"type": "gauge", "tags": ["reason:queue_overflow"], "points": [[1, 1]]},
+        {"type": "count", "tags": [], "points": [[1, 1]]},
+        {"type": "count", "tags": ["reason:queue_overflow", "reason:degraded_cap"], "points": [[1, 1]]},
+        {"type": "count", "tags": ["reason:queue_overflow"], "points": []},
+    ],
+)
+@scenarios.feature_flagging_contract_tests
+@features.not_reported
+def test_flagevaluation_accounting_rejects_invalid_telemetry(series: dict[str, Any]) -> None:
+    with pytest.raises(AssertionError):
+        assert_flagevaluation_accounting(11_999, 12_000, [series])
+
+
+def _bounded_context_event(flag_key: str) -> dict[str, Any]:
+    return {
+        "flag": {"key": flag_key},
+        "variant": {"key": "on"},
+        "allocation": {"key": "default-allocation"},
+        "timestamp": 1,
+        "first_evaluation": 1,
+        "last_evaluation": 1,
+        "evaluation_count": 1,
+    }
+
+
+@pytest.mark.parametrize(
+    ("case", "valid"),
+    [
+        ("first subset", True),
+        ("last subset", True),
+        ("missing context", False),
+        ("empty evaluation", False),
+        ("too many fields", False),
+        ("changed value", False),
+        ("unexpected field", False),
+    ],
+)
+@scenarios.feature_flagging_contract_tests
+@features.not_reported
+def test_flagevaluation_context_count_contract(monkeypatch: pytest.MonkeyPatch, case: str, *, valid: bool) -> None:
+    check = flag_eval_evp_tests.Test_FFE_EVP_Flagevaluation_Context_Bounds()
+    check.flag_key = "bounds-contract"
+    check.r = MagicMock(status_code=200)
+    check.attributes = {f"field_{index:03d}": f"value-{index}" for index in range(300)}
+    retained = dict(list(check.attributes.items())[:256])
+    if case == "last subset":
+        retained = dict(list(check.attributes.items())[-256:])
+    elif case == "empty evaluation":
+        retained = {}
+    elif case == "too many fields":
+        retained = check.attributes
+    elif case == "changed value":
+        retained["field_000"] = "changed"
+    elif case == "unexpected field":
+        retained = {"not-supplied": "value"}
+    event = _bounded_context_event(check.flag_key)
+    if case != "missing context":
+        event["context"] = {"evaluation": retained}
+    monkeypatch.setattr(flag_eval_evp_tests, "find_evp_flagevaluation_events", lambda _: [({}, event)])
+    if valid:
+        check.test_ffe_evp_flagevaluation_context_bounds()
+    else:
+        with pytest.raises(AssertionError):
+            check.test_ffe_evp_flagevaluation_context_bounds()
+
+
+@pytest.mark.parametrize("case", ["valid", "missing context", "service only", "lost sibling", "long", "truncated"])
+@scenarios.feature_flagging_contract_tests
+@features.not_reported
+def test_flagevaluation_context_value_contract(monkeypatch: pytest.MonkeyPatch, case: str) -> None:
+    check = flag_eval_evp_tests.Test_FFE_EVP_Flagevaluation_Context_Bounds()
+    check.value_flag_key = "value-bounds-contract"
+    check.oversized_field = "oversized"
+    check.value_response = MagicMock(status_code=200)
+    event = _bounded_context_event(check.value_flag_key)
+    event["context"] = {"evaluation": {"valid": "retained"}}
+    if case == "missing context":
+        del event["context"]
+    elif case == "service only":
+        event["context"] = {"dd": {"service": "weblog"}}
+    elif case == "lost sibling":
+        event["context"]["evaluation"] = {}
+    elif case in ("long", "truncated"):
+        event["context"]["evaluation"]["oversized"] = "x" * (300 if case == "long" else 256)
+    monkeypatch.setattr(flag_eval_evp_tests, "find_evp_flagevaluation_events", lambda _: [({}, event)])
+    if case == "valid":
+        check.test_ffe_evp_flagevaluation_context_value_bounds()
+    else:
+        with pytest.raises(AssertionError):
+            check.test_ffe_evp_flagevaluation_context_value_bounds()
+
+
+@pytest.mark.parametrize("kind", ["count", "value"])
+@scenarios.feature_flagging_contract_tests
+@features.not_reported
+def test_flagevaluation_bounds_fixtures_enable_consent(monkeypatch: pytest.MonkeyPatch, kind: str) -> None:
+    state = MagicMock()
+    evaluate = MagicMock()
+    monkeypatch.setattr(flag_eval_evp_tests.rc, "tracer_rc_state", state)
+    monkeypatch.setattr(flag_eval_evp_tests, "evaluate_flag", evaluate)
+    check = flag_eval_evp_tests.Test_FFE_EVP_Flagevaluation_Context_Bounds()
+    if kind == "count":
+        check.setup_ffe_evp_flagevaluation_context_bounds()
+    else:
+        check.setup_ffe_evp_flagevaluation_context_value_bounds()
+    fixture = state.reset.return_value.set_config.call_args.args[1]
+    assert fixture["observeFullEvaluationData"] is True
+    attributes = evaluate.call_args.kwargs["attributes"]
+    if kind == "count":
+        assert len(attributes) > 256
+        assert all(len(value) <= 256 for value in attributes.values())
+    else:
+        assert len(attributes) < 256
+        assert len(attributes["oversized"]) > 256
+        assert attributes["valid"] == "retained"
+
+
+@pytest.mark.parametrize(
+    "case",
+    ["valid", "dropped count", "retained identity", "retained context", "lost control", "lost variant", "wrong result"],
+)
+@scenarios.feature_flagging_contract_tests
+@features.not_reported
+def test_flagevaluation_php_oversized_identity_contract(monkeypatch: pytest.MonkeyPatch, case: str) -> None:
+    check = flag_eval_evp_tests.Test_FFE_EVP_Flagevaluation_Oversized_Identity()
+    check.flag_key = "oversized-contract"
+    check.control_targeting_key = "control"
+    check.responses = [MagicMock(status_code=200, text='{"value":"on-value"}')] * 2
+    batch = {"context": {"service": "weblog"}}
+    degraded = _bounded_context_event(check.flag_key)
+    control = _bounded_context_event(check.flag_key)
+    control["targeting_key"] = check.control_targeting_key
+    control["context"] = {"evaluation": {"email": "evp-size-canary@example.invalid"}}
+    rows = [(batch, degraded), (batch, control)]
+    if case == "dropped count":
+        rows.pop(0)
+    elif case == "retained identity":
+        degraded["targeting_key"] = "must-not-survive"
+    elif case == "retained context":
+        degraded["context"] = {}
+    elif case == "lost control":
+        del control["context"]
+    elif case == "lost variant":
+        del degraded["variant"]
+    elif case == "wrong result":
+        check.responses = [MagicMock(status_code=200, text='{"value":"default"}')]
+    monkeypatch.setattr(flag_eval_evp_tests, "find_evp_flagevaluation_events", lambda _: rows)
+    if case == "valid":
+        check.test_ffe_evp_flagevaluation_oversized_identity()
+    else:
+        with pytest.raises(AssertionError):
+            check.test_ffe_evp_flagevaluation_oversized_identity()
 
 
 @pytest.mark.parametrize("has_capture", [True, False])
