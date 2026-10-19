@@ -106,7 +106,10 @@ class Test_FFE_Exposure_Egress_Agentless_Direct_Shutdown:
     def setup_exposure_egress_shutdown(self) -> None:
         register_shutdown_evp_evaluation(
             signal_path=EXPOSURES_PATH,
-            request_path="/ffe",
+            # PHP flushes at FPM request end; keep one request alive in its
+            # process fixture so this contract observes shutdown delivery.
+            request_path="/ffe_shutdown" if context.library.name == "php" else "/ffe",
+            priming_request_path="/ffe" if context.library.name == "php" else None,
             body={
                 "flag": self.flag_key,
                 "variationType": "STRING",
