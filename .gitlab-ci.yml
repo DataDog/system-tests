@@ -27,6 +27,40 @@ variables:
     # Destination registry for mirrored CI images.
     MIRROR_DEST_REGISTRY: "registry.ddbuild.io/system-tests/mirror"
 
+# Trial: publish an external link on the job page via artifacts:reports:annotations.
+# The link shows up in the job sidebar (not the merge request) once GitLab ingests the report.
+example_job_annotations:
+  image: registry.ddbuild.io/ci/libdatadog-build/ci_docker_base:100425777
+  tags: ["arch:amd64"]
+  stage: configure
+  needs: []
+  allow_failure: true
+  script:
+    - echo "Example job to publish an external link on the GitLab job page"
+    - |
+      cat > example-job-note.txt <<EOF
+      Example archived note from job ${CI_JOB_ID}.
+      Pipeline: ${CI_PIPELINE_URL}
+      EOF
+      echo "Wrote example-job-note.txt:"
+      cat example-job-note.txt
+  after_script:
+    - |
+      printf '{"logs":[{"external_link":{"label":"Open full log","url":"%s/viewer"}},{"external_link":{"label":"Open archived note","url":"%s/artifacts/file/example-job-note.txt"}}]}\n' \
+        "$CI_JOB_URL" "$CI_JOB_URL" > job-links.json
+      echo "Wrote job-links.json:"
+      cat job-links.json
+  artifacts:
+    paths:
+      - job-links.json
+      - example-job-note.txt
+    reports:
+      annotations: job-links.json
+    expire_in: 1 day
+  rules:
+    - if: '$SCHEDULED_JOB == ""'
+    - if: '$SCHEDULED_JOB == null'
+
 compute_pipeline:
   image: registry.ddbuild.io/ci/libdatadog-build/system-tests:144846811
   tags: ["arch:amd64"]
