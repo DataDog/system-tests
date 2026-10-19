@@ -113,6 +113,7 @@ nodejs_ssi_pipeline:
   needs: ["compute_pipeline"]
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
+    AMI_UPDATE: $AMI_UPDATE
   trigger:
     include:
       - artifact: nodejs_ssi_gitlab_pipeline.yml
@@ -128,6 +129,7 @@ java_ssi_pipeline:
   needs: ["compute_pipeline", "nodejs_ssi_pipeline"]
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
+    AMI_UPDATE: $AMI_UPDATE
   trigger:
     include:
       - artifact: java_ssi_gitlab_pipeline.yml
@@ -143,6 +145,7 @@ dotnet_ssi_pipeline:
   needs: ["compute_pipeline", "java_ssi_pipeline"]
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
+    AMI_UPDATE: $AMI_UPDATE
   trigger:
     include:
       - artifact: dotnet_ssi_gitlab_pipeline.yml
@@ -158,6 +161,7 @@ python_ssi_pipeline:
   needs: ["compute_pipeline", "dotnet_ssi_pipeline"]
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
+    AMI_UPDATE: $AMI_UPDATE
   trigger:
     include:
       - artifact: python_ssi_gitlab_pipeline.yml
@@ -173,6 +177,7 @@ php_ssi_pipeline:
   needs: ["compute_pipeline", "python_ssi_pipeline"]
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
+    AMI_UPDATE: $AMI_UPDATE
   trigger:
     include:
       - artifact: php_ssi_gitlab_pipeline.yml
@@ -188,6 +193,7 @@ ruby_ssi_pipeline:
   needs: ["compute_pipeline", "php_ssi_pipeline"]
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
+    AMI_UPDATE: $AMI_UPDATE
   trigger:
     include:
       - artifact: ruby_ssi_gitlab_pipeline.yml
