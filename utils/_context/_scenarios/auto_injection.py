@@ -119,6 +119,9 @@ class _VirtualMachineScenario(Scenario):
             else:
                 self.mocked_backend_enabled = True
                 interfaces.backend_v2.configure(self.host_log_folder, replay=False)
+                # The tunnel binds a fixed port on the VM loopback, so the URL is known before provisioning: the
+                # provision configures the agent with it before starting the weblog, no agent restart needed later
+                self.virtual_machine.set_agent_backend_url(f"http://127.0.0.1:{get_mocked_backend_v2_port()}")
 
         if self.is_main_worker:
             self.warmups.append(lambda: logger.terminal.write_sep("=", "Provisioning Virtual Machines", bold=True))
@@ -153,15 +156,14 @@ class _VirtualMachineScenario(Scenario):
             return "krunvm microVMs are not reachable through SSH"
         if self.virtual_machine.os_type != "linux":
             return f"{self.virtual_machine.os_type} VMs are not supported"
-        if self.vm_provision_name == "container-auto-inject-install-script":
-            # The agent runs in a container and can't reach the tunnel bound on the VM loopback
-            return "the agent runs in a container"
+        if self.vm_provision_name != "installer-auto-inject":
+            # Only this provision points the agent to DD_AGENT_BACKEND_URL
+            return f"the {self.vm_provision_name} provision does not support it"
         return None
 
     def _setup_mocked_backend(self) -> None:
-        """Start the mocked backend, expose it on the VM through an SSH reverse tunnel and point the
-        agent to it. Every agent service reads /etc/datadog-agent/environment, whatever the way it
-        was installed (install script, installer, deb/rpm or OCI packages).
+        """Start the mocked backend and expose it on the VM through an SSH reverse tunnel. The agent was
+        already pointed to the tunnel URL during the provision.
         """
         if self.virtual_machine.provision_install_error is not None:
             logger.info("VM provisioning failed, skipping the mocked backend setup")
@@ -175,42 +177,6 @@ class _VirtualMachineScenario(Scenario):
             local_port=interfaces.backend_v2.mocked_backend_port,
         )
         self._mocked_backend_tunnel.start()
-
-        url = self._mocked_backend_tunnel.remote_url
-        agent_env = {
-            "DD_DD_URL": url,
-            "DD_APM_DD_URL": url,
-            "DD_APM_PROFILING_DD_URL": f"{url}/api/v2/profile",
-        }
-        # leading new line: the existing file may not end with one
-        env_lines = "\\n" + "".join(f"{key}={value}\\n" for key, value in agent_env.items())
-        command = (
-            "set -e; "
-            f"printf '{env_lines}' | sudo tee -a /etc/datadog-agent/environment > /dev/null; "
-            # datadog-agent.service declares RuntimeDirectory=datadog: by default systemd deletes and re-creates
-            # /run/datadog on restart. Containers started by the weblog provision bind-mount that directory (SSI
-            # docker injection), so they would keep the deleted one and never see the new APM socket.
-            "sudo mkdir -p /etc/systemd/system/datadog-agent.service.d; "
-            "printf '[Service]\\nRuntimeDirectoryPreserve=yes\\n' "
-            "| sudo tee /etc/systemd/system/datadog-agent.service.d/system-tests-mocked-backend.conf > /dev/null; "
-            "sudo systemctl daemon-reload; "
-            "sudo systemctl restart datadog-agent; "
-            "sudo systemctl restart datadog-agent-trace || true; "
-            # wait for the trace agent to listen again, so the weblog requests made by the tests are not lost
-            "for _ in $(seq 1 30); do "
-            "timeout 1 bash -c '</dev/tcp/127.0.0.1/8126' 2>/dev/null && break; sleep 1; done; "
-            "if [ -d /var/run/datadog ]; then "
-            "for _ in $(seq 1 30); do [ -S /var/run/datadog/apm.socket ] && break; sleep 1; done; "
-            "ls -la /var/run/datadog; fi"
-        )
-        with self.virtual_machine.get_ssh_connection() as ssh:
-            _, stdout, _ = ssh.exec_command(command, timeout=120)
-            stdout.channel.set_combine_stderr(True)
-            output = stdout.read().decode("utf-8", errors="replace")
-            exit_status = stdout.channel.recv_exit_status()
-        logger.info(f"Agent redirected to the mocked backend ({url}), exit status {exit_status}:\n{output}")
-        if exit_status != 0:
-            raise RuntimeError(f"Failed to point the agent to the mocked backend: {output}")
 
     def _teardown_mocked_backend(self) -> None:
         if self._mocked_backend_tunnel is not None:
