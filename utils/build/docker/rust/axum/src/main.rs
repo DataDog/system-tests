@@ -553,14 +553,18 @@ async fn rasp_sqli(Query(params): Query<HashMap<String, String>>) -> Response {
     let user_id = params.get("user_id").cloned().unwrap_or_default();
     let statement = format!("SELECT * FROM users WHERE id = '{user_id}'");
 
-    let mut attributes = e2e_span_attributes(&statement, "", false, true);
-    attributes.push(KeyValue::new("db.system", "sqlite"));
-
-    let mut span = global::tracer("weblog")
+    // Stands in for a database integration span: a child of the request span, with the
+    // integration's own service name.
+    let tracer = global::tracer("weblog");
+    let mut span = tracer
         .span_builder("sqlite.query")
         .with_kind(SpanKind::Client)
-        .with_attributes(attributes)
-        .start_with_context(&global::tracer("weblog"), &Context::new());
+        .with_attributes([
+            KeyValue::new("resource.name", statement),
+            KeyValue::new("db.system", "sqlite"),
+            KeyValue::new("datadog.service", "sqlite"),
+        ])
+        .start_with_context(&tracer, &Context::current());
     span.end();
 
     StatusCode::OK.into_response()
