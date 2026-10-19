@@ -827,6 +827,7 @@ class ParametricTestClientApi(TestClientApi):
         targeting_key: str,
         attributes: dict | None = None,
         span_id: int | str | None = None,
+        exposure_hooks: bool = False,
     ) -> dict:
         """Evaluate a feature flag.
 
@@ -837,6 +838,7 @@ class ParametricTestClientApi(TestClientApi):
             targeting_key: The targeting key (usually user ID) for evaluation context
             attributes: Optional additional attributes for evaluation context
             span_id: Optional span ID to activate during evaluation (for span enrichment)
+            exposure_hooks: Capture two exposure-aware callback observations for this evaluation
 
         Returns:
             dict: Evaluation result containing 'value' and 'reason'
@@ -851,6 +853,8 @@ class ParametricTestClientApi(TestClientApi):
         }
         if span_id is not None:
             payload["span_id"] = str(span_id)
+        if exposure_hooks:
+            payload["exposureHooks"] = True
 
         resp = self._session.post(self._url("/ffe/evaluate"), json=payload)
         return resp.json()
@@ -1270,6 +1274,7 @@ class APMLibrary:
         targeting_key: str,
         attributes: dict | None = None,
         span_id: int | str | None = None,
+        exposure_hooks: bool = False,
     ) -> dict:
         """Evaluate a feature flag."""
         return self._client.ffe_evaluate(
@@ -1279,6 +1284,7 @@ class APMLibrary:
             targeting_key=targeting_key,
             attributes=attributes,
             span_id=span_id,
+            exposure_hooks=exposure_hooks,
         )
 
     def llmobs_trace(

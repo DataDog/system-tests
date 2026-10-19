@@ -80,6 +80,7 @@ func (s *apmClientServer) ffeEval(writer http.ResponseWriter, request *http.Requ
 		DefaultValue  any            `json:"defaultValue"`
 		TargetingKey  string         `json:"targetingKey"`
 		Attributes    map[string]any `json:"attributes"`
+		ExposureHooks bool           `json:"exposureHooks"`
 	}
 	if err := json.NewDecoder(request.Body).Decode(&body); err != nil {
 		http.Error(writer, "invalid request body: "+err.Error(), http.StatusBadRequest)
@@ -106,6 +107,11 @@ func (s *apmClientServer) ffeEval(writer http.ResponseWriter, request *http.Requ
 	var errorCode string
 
 	evalCtx := request.Context()
+	rows := make([]map[string]any, 0)
+	var options []of.Option
+	if body.ExposureHooks {
+		options = exposureHookOptions(&rows)
+	}
 
 	func() {
 		defer func() {
@@ -126,22 +132,22 @@ func (s *apmClientServer) ffeEval(writer http.ResponseWriter, request *http.Requ
 		switch body.VariationType {
 		case "BOOLEAN":
 			defaultValue, _ := body.DefaultValue.(bool)
-			d, e := s.ofClient.BooleanValueDetails(evalCtx, body.Flag, defaultValue, ctx)
+			d, e := s.ofClient.BooleanValueDetails(evalCtx, body.Flag, defaultValue, ctx, options...)
 			value, details, err = d.Value, d.EvaluationDetails, e
 		case "STRING":
 			defaultValue, _ := body.DefaultValue.(string)
-			d, e := s.ofClient.StringValueDetails(evalCtx, body.Flag, defaultValue, ctx)
+			d, e := s.ofClient.StringValueDetails(evalCtx, body.Flag, defaultValue, ctx, options...)
 			value, details, err = d.Value, d.EvaluationDetails, e
 		case "INTEGER":
 			defaultValue, _ := toInt64(body.DefaultValue)
-			d, e := s.ofClient.IntValueDetails(evalCtx, body.Flag, defaultValue, ctx)
+			d, e := s.ofClient.IntValueDetails(evalCtx, body.Flag, defaultValue, ctx, options...)
 			value, details, err = d.Value, d.EvaluationDetails, e
 		case "NUMERIC":
 			defaultValue, _ := toFloat64(body.DefaultValue)
-			d, e := s.ofClient.FloatValueDetails(evalCtx, body.Flag, defaultValue, ctx)
+			d, e := s.ofClient.FloatValueDetails(evalCtx, body.Flag, defaultValue, ctx, options...)
 			value, details, err = d.Value, d.EvaluationDetails, e
 		case "JSON":
-			d, e := s.ofClient.ObjectValueDetails(evalCtx, body.Flag, body.DefaultValue, ctx)
+			d, e := s.ofClient.ObjectValueDetails(evalCtx, body.Flag, body.DefaultValue, ctx, options...)
 			value, details, err = d.Value, d.EvaluationDetails, e
 		}
 
@@ -157,10 +163,11 @@ func (s *apmClientServer) ffeEval(writer http.ResponseWriter, request *http.Requ
 
 	writer.WriteHeader(http.StatusOK)
 	response := struct {
-		Value     any    `json:"value"`
-		Reason    string `json:"reason"`
-		ErrorCode string `json:"errorCode"`
-	}{value, reason, errorCode}
+		Value         any              `json:"value"`
+		Reason        string           `json:"reason"`
+		ErrorCode     string           `json:"errorCode"`
+		ExposureHooks []map[string]any `json:"exposureHooks,omitempty"`
+	}{value, reason, errorCode, rows}
 
 	if err := json.NewEncoder(writer).Encode(response); err != nil {
 		http.Error(writer, "failed to encode response: "+err.Error(), http.StatusInternalServerError)

@@ -86,3 +86,4 @@ manifest:
   tests/appsec/waf/test_blocking.py::Test_Blocking_strip_response_headers: v3.30.0
   tests/appsec/waf/test_blocking.py::Test_CustomBlockingResponse: v3.29.0
   tests/ffe/test_flag_eval_evp.py: irrelevant (server-side FFE EVP weblog scenario is not applicable to lambda)
+  tests/parametric/test_ffe/test_exposure_hooks.py: incomplete_test_app (Exposure hook observations are not implemented)
