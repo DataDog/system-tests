@@ -251,3 +251,26 @@
     }
 
     C:\Windows\SystemTemp\Install-Datadog.ps1
+
+    if ($env:DD_AGENT_BACKEND_URL) {
+      # Point the agent to the mocked backend, before the weblog is installed. Services don't see machine level
+      # environment variables until a reboot: use the per-service Environment registry value instead
+      $backendEnv = @(
+        "DD_DD_URL=$env:DD_AGENT_BACKEND_URL",
+        "DD_APM_DD_URL=$env:DD_AGENT_BACKEND_URL",
+        "DD_APM_PROFILING_DD_URL=$env:DD_AGENT_BACKEND_URL/api/v2/profile"
+      )
+      foreach ($service in @("datadogagent", "datadog-trace-agent")) {
+        $serviceKey = "HKLM:\SYSTEM\CurrentControlSet\Services\$service"
+        if (-not (Test-Path $serviceKey)) {
+          throw "Service '$service' not found, can't point it to the mocked backend"
+        }
+        $existingEnv = (Get-ItemProperty -Path $serviceKey -Name Environment -ErrorAction SilentlyContinue).Environment
+        $serviceEnv = @($existingEnv | Where-Object { $_ -and $_ -notmatch '^DD_(DD_URL|APM_DD_URL|APM_PROFILING_DD_URL)=' }) + $backendEnv
+        New-ItemProperty -Path $serviceKey -Name Environment -PropertyType MultiString -Value $serviceEnv -Force | Out-Null
+      }
+      # -Force stops the dependent services (trace agent...), they may not be started again with the core agent
+      Restart-Service -Name datadogagent -Force
+      Start-Service -Name datadog-trace-agent
+      Get-Service -Name datadogagent, datadog-trace-agent
+    }

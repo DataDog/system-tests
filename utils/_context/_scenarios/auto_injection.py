@@ -32,8 +32,7 @@ class _VirtualMachineScenario(Scenario):
         self.vm_provision_name = vm_provision
         # When True, the agent on the VM sends its payloads to the mocked backend (running in the pytest
         # process, reached through an SSH reverse tunnel) instead of the real Datadog backend
-        self._mocked_backend_requested = mocked_backend
-        self.mocked_backend_enabled = False
+        self.mocked_backend_enabled = mocked_backend
         self._mocked_backend_tunnel: SSHReverseTunnel | None = None
         self.vm_provider_id: str = "vagrant"
         self.vm_provider = None
@@ -112,16 +111,11 @@ class _VirtualMachineScenario(Scenario):
         self.virtual_machine.add_agent_env(self.agent_env)
         self.virtual_machine.add_app_env(self.app_env)
 
-        if self._mocked_backend_requested:
-            unsupported_reason = self._get_mocked_backend_unsupported_reason()
-            if unsupported_reason:
-                logger.stdout(f"⚠️ Mocked backend not supported ({unsupported_reason}), using the real backend")
-            else:
-                self.mocked_backend_enabled = True
-                interfaces.backend_v2.configure(self.host_log_folder, replay=False)
-                # The tunnel binds a fixed port on the VM loopback, so the URL is known before provisioning: the
-                # provision configures the agent with it before starting the weblog, no agent restart needed later
-                self.virtual_machine.set_agent_backend_url(f"http://127.0.0.1:{get_mocked_backend_v2_port()}")
+        if self.mocked_backend_enabled:
+            interfaces.backend_v2.configure(self.host_log_folder, replay=False)
+            # The tunnel binds a fixed port on the VM loopback, so the URL is known before provisioning: the
+            # provision configures the agent with it before starting the weblog, no agent restart needed later
+            self.virtual_machine.set_agent_backend_url(f"http://127.0.0.1:{get_mocked_backend_v2_port()}")
 
         if self.is_main_worker:
             self.warmups.append(lambda: logger.terminal.write_sep("=", "Provisioning Virtual Machines", bold=True))
@@ -150,16 +144,6 @@ class _VirtualMachineScenario(Scenario):
 
         assert os.getenv("DD_API_KEY_ONBOARDING") is not None, "DD_API_KEY_ONBOARDING is not set"
         assert os.getenv("DD_APP_KEY_ONBOARDING") is not None, "DD_APP_KEY_ONBOARDING is not set"
-
-    def _get_mocked_backend_unsupported_reason(self) -> str | None:
-        if self.vm_provider_id == "krunvm":
-            return "krunvm microVMs are not reachable through SSH"
-        if self.virtual_machine.os_type != "linux":
-            return f"{self.virtual_machine.os_type} VMs are not supported"
-        if self.vm_provision_name != "installer-auto-inject":
-            # Only this provision points the agent to DD_AGENT_BACKEND_URL
-            return f"the {self.vm_provision_name} provision does not support it"
-        return None
 
     def _setup_mocked_backend(self) -> None:
         """Start the mocked backend and expose it on the VM through an SSH reverse tunnel. The agent was
