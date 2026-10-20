@@ -182,12 +182,12 @@ manifest:
         aiohttp: v4.16.0  # TODO: a lower version might be supported
   tests/appsec/api_security/test_api_security_rc.py:
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_processors: v2.6.0
   tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_scanners: v2.6.0
   tests/appsec/api_security/test_apisec_sampling.py:
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Different_Endpoints: v2.6.0
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Different_Paths: v2.6.0
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Different_Status: v2.6.0
@@ -196,24 +196,24 @@ manifest:
   tests/appsec/api_security/test_apisecurity_telemetry.py:
     - weblog_declaration:
         '*': '>=4.3.0-dev0'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Capabilities: v3.17.0
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Multiple_Scanners:
     - weblog_declaration:
         '*': '>=3.17.0'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Negative:
     - weblog_declaration:
         '*': '>=3.17.0'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Processor_Override:
     - weblog_declaration:
         '*': '>=3.17.0'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Scanner:
     - weblog_declaration:
         '*': '>=3.17.0'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/api_security/test_endpoint_discovery.py:
     - weblog_declaration:
         aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
@@ -273,7 +273,7 @@ manifest:
         flask-poc: v4.12.0rc1
   tests/appsec/api_security/test_schemas.py:
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/api_security/test_schemas.py::Test_Scanners:
     - weblog_declaration:
         "*": v2.4.0
@@ -317,7 +317,7 @@ manifest:
   tests/appsec/api_security/test_schemas_auth.py:
     - weblog_declaration:
         '*': '>=4.14.0-rc1'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders: v4.11.0-rc1
   tests/appsec/api_security_testing/test_normalized_route.py:
     - weblog_declaration:
@@ -906,174 +906,174 @@ manifest:
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyJson:
     - weblog_declaration:
         '*': '>=2.20.0-dev'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyUrlEncoded:
     - weblog_declaration:
         '*': '>=2.20.0-dev'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyXml:
     - weblog_declaration:
         '*': '>=2.20.0-dev'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Capability: v2.20.0.dev
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Mandatory_SpanTags:
     - weblog_declaration:
         '*': '>=2.20.0-dev'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Optional_SpanTags:
     - weblog_declaration:
         '*': '>=2.20.0-dev'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Rules_Version: v2.18.0.dev
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_StackTrace:
     - weblog_declaration:
         '*': '>=2.20.0-dev'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry:
     - weblog_declaration:
         '*': '>=2.20.0-dev'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry_V2:
     - weblog_declaration:
         '*': '>=3.5.0-dev'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry_Variant_Tag:
     - weblog_declaration:
         '*': '>=2.20.0-dev'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_UrlQuery:
     - weblog_declaration:
         '*': '>=2.20.0-dev'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Waf_Version: v2.18.0.dev
   tests/appsec/rasp/test_lfi.py::Test_Lfi_BodyJson:
     - weblog_declaration:
         '*': '>=2.10.0'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_lfi.py::Test_Lfi_BodyUrlEncoded:
     - weblog_declaration:
         '*': '>=2.10.0'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_lfi.py::Test_Lfi_BodyXml:
     - weblog_declaration:
         '*': '>=2.10.0'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Capability: v2.11.0
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Mandatory_SpanTags:
     - weblog_declaration:
         '*': '>=2.10.0'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Optional_SpanTags:
     - weblog_declaration:
         '*': '>=2.10.0'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_lfi.py::Test_Lfi_RC_CustomAction:
     - weblog_declaration:
         '*': '>=2.14.0'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Rules_Version: v2.18.0.dev
   tests/appsec/rasp/test_lfi.py::Test_Lfi_StackTrace:
     - weblog_declaration:
         '*': '>=2.10.0'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Telemetry:
     - weblog_declaration:
         '*': '>=2.10.0'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Telemetry_Multiple_Exploits:
     - weblog_declaration:
         '*': '>=2.10.0'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Telemetry_V2:
     - weblog_declaration:
         '*': '>=3.5.0-dev'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_lfi.py::Test_Lfi_UrlQuery:
     - weblog_declaration:
         '*': '>=2.10.0'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Waf_Version: v2.15.0
   tests/appsec/rasp/test_shi.py::Test_Shi_BodyJson:
     - weblog_declaration:
         '*': '>=2.11.0-rc2'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_shi.py::Test_Shi_BodyUrlEncoded:
     - weblog_declaration:
         '*': '>=2.11.0-rc2'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_shi.py::Test_Shi_BodyXml:
     - weblog_declaration:
         '*': '>=2.11.0-rc2'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_shi.py::Test_Shi_Capability: v2.11.0
   tests/appsec/rasp/test_shi.py::Test_Shi_Mandatory_SpanTags:
     - weblog_declaration:
         '*': '>=2.11.0-rc2'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_shi.py::Test_Shi_Optional_SpanTags:
     - weblog_declaration:
         '*': '>=2.11.0-rc2'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_shi.py::Test_Shi_Rules_Version: v2.15.0
   tests/appsec/rasp/test_shi.py::Test_Shi_StackTrace:
     - weblog_declaration:
         '*': '>=2.11.0-rc2'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_shi.py::Test_Shi_Telemetry:
     - weblog_declaration:
         '*': '>=2.11.0-rc2'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_shi.py::Test_Shi_Telemetry_V2:
     - weblog_declaration:
         '*': '>=3.5.0-dev'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_shi.py::Test_Shi_Telemetry_Variant_Tag:
     - weblog_declaration:
         '*': '>=2.20.0-dev'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_shi.py::Test_Shi_UrlQuery:
     - weblog_declaration:
         '*': '>=2.11.0-rc2'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_shi.py::Test_Shi_Waf_Version: v2.15.0
   tests/appsec/rasp/test_sqli.py::Test_Sqli_BodyJson:
     - weblog_declaration:
         '*': '>=2.10.0'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_sqli.py::Test_Sqli_BodyUrlEncoded:
     - weblog_declaration:
         '*': '>=2.10.0'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_sqli.py::Test_Sqli_BodyXml:
     - weblog_declaration:
         '*': '>=2.10.0'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Capability: v2.11.0
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Mandatory_SpanTags:
     - weblog_declaration:
         '*': '>=2.10.0'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Optional_SpanTags:
     - weblog_declaration:
         '*': '>=2.10.0'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Rules_Version: v2.16.0
   tests/appsec/rasp/test_sqli.py::Test_Sqli_StackTrace:
     - weblog_declaration:
         '*': '>=2.10.0'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Telemetry:
     - weblog_declaration:
         '*': '>=2.10.0'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Telemetry_V2:
     - weblog_declaration:
         '*': '>=3.5.0-dev'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_sqli.py::Test_Sqli_UrlQuery:
     - weblog_declaration:
         '*': '>=2.10.0'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Waf_Version: v2.15.0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyJson:
     - weblog_declaration:
@@ -1135,38 +1135,38 @@ manifest:
   tests/appsec/smoke_tests/test_apm_standalone.py: v4.6.0
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_ApiSecurity:
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp:
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp::test_ssrf_smoke:
     - weblog_declaration:
         aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_RemoteConfig:
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Threats:
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_ApiSecurity:
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Rasp:
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Rasp::test_ssrf_smoke:
     - weblog_declaration:
         aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_RemoteConfig:
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Threats:
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_agentic_onboarding.py::Test_AppsecAgenticOnboarding: v4.13.0rc1
   tests/appsec/test_alpha.py:
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_alpha.py::Test_Basic:
     - weblog_declaration:
         "*": v1.1.0-rc2
@@ -1175,7 +1175,7 @@ manifest:
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone:
     - weblog_declaration:
         '*': '>=3.9.0-dev'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   ? tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1
   : - component_version: "<3.11.0"
       declaration: missing_feature (APPSEC-57830 python tracer was using MANUAL_KEEP for 1 trace in 60 seconds to keep instead of AUTO_KEEP)
@@ -1185,7 +1185,7 @@ manifest:
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2:
     - weblog_declaration:
         '*': '>=3.2.0-dev'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2:  # Easy win for flask-poc and version 4.6.4
     - weblog_declaration:
         "*": v3.2.0.dev
@@ -1249,10 +1249,10 @@ manifest:
         *django : v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events::test_login_failure_headers:
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events::test_login_success_headers:
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events::test_signup_local:
     - weblog_declaration:
         "*": irrelevant (No signup in frameworks except django)
@@ -1274,7 +1274,7 @@ manifest:
         "*": v2.20.0.dev
         *django : v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_RC: v2.11.0
   tests/appsec/test_automated_payment_events.py::Test_Automated_Payment_Events_Stripe_Custom_Rules: v4.2.0
   tests/appsec/test_automated_payment_events.py::Test_Automated_Payment_Events_Stripe_Default_Rules:
@@ -1288,13 +1288,13 @@ manifest:
         "*": v3.11.0.dev
         *django : v3.3.0.dev
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Blocking:
     - weblog_declaration:
         "*": v3.0.0.rc
         *django : v3.7.0.dev (is v3.0.0.rc but weblog use new SDK now)
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Blocking::test_user_blocking_auto:
     - weblog_declaration:
         "*": irrelevant (no possible auto-instrumentation for python except on Django)
@@ -1312,15 +1312,15 @@ manifest:
         django-poc: v1.10
         fastapi: v2.4.0
         flask-poc: v1.10
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_K8_private_ip:
     - weblog_declaration:
         '*': '>=2.4.0'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_forwarded:
     - weblog_declaration:
         '*': '>=3.13.0-dev'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body:
     - weblog_declaration:
         "*": v1.16.1
@@ -1328,7 +1328,7 @@ manifest:
         fastapi: v2.4.0
         flask-poc: v1.10
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_filenames:
     - declaration: missing_feature
     - weblog_declaration:
@@ -1343,7 +1343,7 @@ manifest:
         django-poc: v1.10
         fastapi: v2.4.0
         flask-poc: v1.10
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_cookies:
     - weblog_declaration:
         "*": v1.16.1
@@ -1351,7 +1351,7 @@ manifest:
         fastapi: v2.4.0
         flask-poc: v1.10
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_headers:
     - weblog_declaration:
         "*": v1.16.1
@@ -1359,7 +1359,7 @@ manifest:
         fastapi: v2.4.0
         flask-poc: v1.10
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_method:
     - weblog_declaration:
         "*": v1.16.1
@@ -1367,7 +1367,7 @@ manifest:
         fastapi: v2.4.0
         flask-poc: v1.10
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_path_params:
     - weblog_declaration:
         "*": v1.16.1
@@ -1375,7 +1375,7 @@ manifest:
         fastapi: v2.4.0
         flask-poc: v1.13
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query:
     - weblog_declaration:
         "*": v1.16.1
@@ -1384,16 +1384,16 @@ manifest:
         flask-poc: v1.10
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query::test_blocking:
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query::test_blocking_before:
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query::test_blocking_case_sensitive:
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query::test_non_blocking:
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_uri:
     - weblog_declaration:
         "*": v1.16.1
@@ -1401,21 +1401,21 @@ manifest:
         fastapi: v2.4.0
         flask-poc: v1.15
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_blocking_addresses.py::Test_Blocking_response_headers:
     - weblog_declaration:
         "*": v1.16.1
         django-poc: v1.10
         fastapi: v2.4.0
         flask-poc: v1.10
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_blocking_addresses.py::Test_Blocking_response_status:
     - weblog_declaration:
         "*": v1.16.1
         django-poc: v1.10
         fastapi: v2.4.0
         flask-poc: v1.10
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_blocking_addresses.py::Test_Blocking_user_id:
     - weblog_declaration:
         "*": v1.16.1
@@ -1423,13 +1423,13 @@ manifest:
         fastapi: v2.4.0
         flask-poc: v1.10
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_blocking_addresses.py::Test_Suspicious_Request_Blocking:
     - weblog_declaration:
         "*": v2.4.0
         *django : v3.7.0.dev (is v2.4.0 but weblog use new SDK now)
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_client_ip.py::Test_StandardTagsClientIp: v1.5.0
   tests/appsec/test_conf.py::Test_ConfigurationVariables:
     - weblog_declaration:
@@ -1437,29 +1437,29 @@ manifest:
         fastapi: v2.4.0
   tests/appsec/test_conf.py::Test_ConfigurationVariables::test_appsec_rules:
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_conf.py::Test_ConfigurationVariables::test_enabled:
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_conf.py::Test_ConfigurationVariables::test_obfuscation_parameter_key:
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_conf.py::Test_ConfigurationVariables::test_obfuscation_parameter_value:
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_conf.py::Test_ConfigurationVariables_New_Obfuscation:
     - weblog_declaration:
         '*': '>=3.9.0-dev'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_customconf.py::Test_ConfRuleSet: v1.1.0-rc2
   tests/appsec/test_customconf.py::Test_ConfRuleSet::test_requests:
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_customconf.py::Test_CorruptedRules_Telemetry: v3.15.0.dev
   tests/appsec/test_customconf.py::Test_NoLimitOnWafRules:
     - weblog_declaration:
         '*': '>=1.1.0-rc2'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_event_tracking.py::Test_CustomEvent:
     - weblog_declaration:
         "*": v1.10.0
@@ -1471,7 +1471,7 @@ manifest:
         *django : v3.7.0.dev (is v2.10.0 but weblog use new SDK now)
   tests/appsec/test_event_tracking.py::Test_UserLoginFailureEvent::test_user_login_failure_header_collection:
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_event_tracking.py::Test_UserLoginFailureEvent_Metrics: v3.10.0.dev
   tests/appsec/test_event_tracking.py::Test_UserLoginSuccessEvent:
     - weblog_declaration:
@@ -1479,7 +1479,7 @@ manifest:
         *django : v3.7.0.dev (is v2.10.0 but weblog use new SDK now)
   tests/appsec/test_event_tracking.py::Test_UserLoginSuccessEvent::test_user_login_success_header_collection:
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_event_tracking.py::Test_UserLoginSuccessEvent_Metrics: v3.10.0.dev
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled:
     - weblog_declaration:
@@ -1487,11 +1487,11 @@ manifest:
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_HeaderCollection_AppsecEnabled:
     - weblog_declaration:
         "*": v3.7.0.dev
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_Libddwaf:
     - weblog_declaration:
         "*": v3.7.0.dev
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_Metrics_AppsecDisabled:
     - weblog_declaration:
         "*": v3.7.0.dev
@@ -1510,11 +1510,11 @@ manifest:
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_HeaderCollection_AppsecEnabled:
     - weblog_declaration:
         "*": v3.7.0.dev
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Libddwaf:
     - weblog_declaration:
         "*": v3.7.0.dev
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Metrics_AppsecDisabled:
     - weblog_declaration:
         "*": v3.7.0.dev
@@ -1545,20 +1545,20 @@ manifest:
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Endpoint:
     - weblog_declaration:
         '*': '>=2.11.0'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Endpoint_Capability: v2.11.0
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Endpoint_Preprocessor:
     - weblog_declaration:
         '*': '>=2.11.0'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Header_And_Network:
     - weblog_declaration:
         '*': '>=2.11.0'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Header_And_Network_Preprocessor:
     - weblog_declaration:
         '*': '>=2.11.0'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Header_Capability: v2.11.0
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Network_Capability: v2.11.0
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session: v3.0.0
@@ -1566,16 +1566,16 @@ manifest:
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session_Preprocessor: v2.17.0.dev
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session_Preprocessor::test_session_blocking:
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session_Preprocessor::test_session_non_blocking: v3.0.0
   tests/appsec/test_identify.py::Test_Basic: v1.5.0-rc1
   tests/appsec/test_inferred_spans.py:
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_inferred_spans.py::Test_Proxy_Inferred_Span_Tags: v4.2.0
   tests/appsec/test_ip_blocking_full_denylist.py:
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_ip_blocking_full_denylist.py::Test_AppSecIPBlockingFullDenylist: v2.11.0
   tests/appsec/test_logs.py:
     - weblog_declaration:
@@ -1584,7 +1584,7 @@ manifest:
   tests/appsec/test_logs.py::Test_StandardizationBlockMode: missing_feature
   tests/appsec/test_metastruct.py:
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_metastruct.py::Test_SecurityEvents_Appsec_Metastruct_Disabled: irrelevant (no fallback will be implemented)
   tests/appsec/test_metastruct.py::Test_SecurityEvents_Appsec_Metastruct_Enabled: v3.0.0.rc
   tests/appsec/test_metastruct.py::Test_SecurityEvents_Iast_Metastruct_Disabled: irrelevant (no fallback will be implemented)
@@ -1597,7 +1597,7 @@ manifest:
   tests/appsec/test_only_python.py::Test_ImportError: v3.3.0 (was v2.20.0 but a regression was introduced in v3.2/v3.1)
   tests/appsec/test_rate_limiter.py:
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_rate_limiter.py::Test_Main:
     - weblog_declaration:
         "*": v2.0.0
@@ -1605,45 +1605,45 @@ manifest:
   tests/appsec/test_remote_config_rule_changes.py::Test_AsmDdMultiConfiguration: v3.10.0.dev (partial support in v3.9.0)
   tests/appsec/test_remote_config_rule_changes.py::Test_AsmDdMultiConfiguration::test_update_rules:
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_remote_config_rule_changes.py::Test_AsmDdMultiConfiguration::test_update_rules_with_rules_compat:
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_remote_config_rule_changes.py::Test_BlockingActionChangesWithRemoteConfig:
     - weblog_declaration:
         "*": v2.10.1
         django-py3.13: v3.15.0.dev (v2.10.1 but fixed incompatibility issue with gevent 25.8.2)
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_remote_config_rule_changes.py::Test_Empty_Config:
     - weblog_declaration:
         '*': '>=3.10.0'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_remote_config_rule_changes.py::Test_Invalid_Config:
     - weblog_declaration:
         '*': '>=3.15.0-dev'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_remote_config_rule_changes.py::Test_Multiple_Actions:
     - weblog_declaration:
         '*': '>=2.10.1'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_remote_config_rule_changes.py::Test_Unknown_Action:
     - weblog_declaration:
         '*': '>=2.10.1'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_remote_config_rule_changes.py::Test_UpdateRuleFileWithRemoteConfig:
     - weblog_declaration:
         '*': '>=2.16.0-rc'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_reports.py:
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_reports.py::Test_ExtraTagsFromRule: v1.14.0
   tests/appsec/test_reports.py::Test_Info: v1.1.1
   tests/appsec/test_reports.py::Test_RequestHeaders: v1.1.1
   tests/appsec/test_reports.py::Test_StatusCode: v1.1.1
   tests/appsec/test_request_blocking.py:
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_request_blocking.py::Test_AppSecRequestBlocking:
     - weblog_declaration:
         "*": v1.10.0
@@ -1651,13 +1651,13 @@ manifest:
   tests/appsec/test_runtime_activation.py::Test_RuntimeActivation:
     - weblog_declaration:
         '*': '>=2.10.1'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_runtime_activation.py::Test_RuntimeActivationCapabilities: v4.10.8
   tests/appsec/test_runtime_activation.py::Test_RuntimeActivationCapabilitiesCleared: v4.10.8
   tests/appsec/test_runtime_activation.py::Test_RuntimeDeactivation:
     - weblog_declaration:
         '*': '>=2.10.1'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_sca_reachability.py:
     - weblog_declaration:
         aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
@@ -1698,66 +1698,66 @@ manifest:
   tests/appsec/test_span_tags_headers.py:
     - weblog_declaration:
         '*': '>=3.19.0'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_suspicious_attacker_blocking.py:
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_suspicious_attacker_blocking.py::Test_Suspicious_Attacker_Blocking: v2.11.0-rc
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules:
     - weblog_declaration:
         '*': '>=3.10.0-dev'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRulesRcCapability: v3.10.0.dev
   tests/appsec/test_traces.py::Test_AppSecEventSpanTags: v0.58.5
   tests/appsec/test_traces.py::Test_AppSecEventSpanTags::test_header_collection:
     - weblog_declaration:
         '*': '>=1.5.0'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_traces.py::Test_AppSecObfuscator:
     - weblog_declaration:
         "*": v1.5.0-rc1
         fastapi: v2.6.0
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_traces.py::Test_CollectDefaultRequestHeader:
     - weblog_declaration:
         "*": v2.9.0
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_traces.py::Test_CollectRespondHeaders:
     - weblog_declaration:
         "*": v1.4.0-rc1
         fastapi: v2.4.0
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_traces.py::Test_ExternalWafRequestsIdentification:
     - weblog_declaration:
         '*': '>=2.9.0'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_traces.py::Test_RetainTraces:
     - weblog_declaration:
         '*': '>=1.1.1'
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_user_blocking_full_denylist.py::Test_UserBlocking_FullDenylist:
     - weblog_declaration:
         "*": v2.11.0
         *django : v3.7.0.dev (is v2.11.0 but weblog use new SDK now)
   tests/appsec/test_user_blocking_full_denylist.py::Test_UserBlocking_FullDenylist::test_blocking_test:
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_versions.py::Test_Events: v0.58.5
   tests/appsec/waf/test_addresses.py::Test_BodyJson:
     - weblog_declaration:
         "*": v1.4.0-rc1
         fastapi: v2.4.0
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/waf/test_addresses.py::Test_BodyUrlEncoded:
     - weblog_declaration:
         "*": v1.4.0-rc1
         fastapi: v2.4.0
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/waf/test_addresses.py::Test_BodyXml:
     - weblog_declaration:
         "*": v1.5.0-rc1
         fastapi: v2.4.0
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/waf/test_addresses.py::Test_Cookies:
     - weblog_declaration:
         *django : v1.1.0
@@ -1766,7 +1766,7 @@ manifest:
         uds-flask: v1.4.0-rc1
         uwsgi-poc: v1.16.1
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/waf/test_addresses.py::Test_Cookies::test_cookies_with_semicolon_custom_rules: irrelevant (Not handled by the Python standard cookie parser)
   tests/appsec/waf/test_addresses.py::Test_FullGrpc:
     - declaration: missing_feature
@@ -1780,16 +1780,16 @@ manifest:
   tests/appsec/waf/test_addresses.py::Test_Headers: v1.6
   tests/appsec/waf/test_addresses.py::Test_Headers::test_specific_key:
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/waf/test_addresses.py::Test_Headers::test_specific_key2:
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/waf/test_addresses.py::Test_Headers::test_specific_key3:
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/waf/test_addresses.py::Test_Headers::test_value:
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/waf/test_addresses.py::Test_IoFsFileWrite:
     - declaration: 'irrelevant (Java-only address: server.io.fs.file_write)'
     - weblog_declaration:
@@ -1802,34 +1802,34 @@ manifest:
         uds-flask: v1.4.0-rc1
         uwsgi-poc: v1.5.2
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/waf/test_addresses.py::Test_ResponseStatus:
     - weblog_declaration:
         "*": v0.58.5
         fastapi: v2.4.0
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/waf/test_addresses.py::Test_UrlQuery:
     - weblog_declaration:
         "*": v1.2.1
         fastapi: v2.4.0
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/waf/test_addresses.py::Test_UrlQueryKey:
     - weblog_declaration:
         "*": v1.2.1
         fastapi: v2.4.0
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/waf/test_addresses.py::Test_UrlRaw:
     - weblog_declaration:
         "*": v0.58.5
         fastapi: v2.4.0
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/waf/test_addresses.py::Test_gRPC:
     - declaration: missing_feature
     - weblog_declaration:
         aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/waf/test_blocking.py:
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/waf/test_blocking.py::Test_Blocking:
     - weblog_declaration:
         "*": v1.16.1
@@ -1848,14 +1848,14 @@ manifest:
         fastapi: v2.4.0
   tests/appsec/waf/test_blocking_security_response_id.py:
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_Custom_Redirect: v3.19.0
   tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_HTML_Response: v3.19.0
   tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_In_Span_Triggers: v3.19.0
   tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_JSON_Response: v3.19.0
   tests/appsec/waf/test_custom_rules.py:
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/waf/test_custom_rules.py::Test_CustomRules:
     - weblog_declaration:
         "*": v1.16.1
@@ -1870,13 +1870,13 @@ manifest:
         flask-poc: v1.12
   tests/appsec/waf/test_exclusions.py::Test_Exclusions::test_input_exclusion_negative_test:
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/waf/test_exclusions.py::Test_Exclusions::test_rule_exclusion_negative_test:
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/waf/test_miscs.py:
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/waf/test_miscs.py::Test_404: v1.1.1
   tests/appsec/waf/test_miscs.py::Test_CorrectOptionProcessing:
     - weblog_declaration:
@@ -1896,7 +1896,7 @@ manifest:
   tests/appsec/waf/test_raw_response_body.py::Test_RawResponseBody: missing_feature
   tests/appsec/waf/test_reports.py:
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/waf/test_reports.py::Test_Monitoring:
     - weblog_declaration:
         "*": v1.5.0-rc1
@@ -1904,7 +1904,7 @@ manifest:
   tests/appsec/waf/test_reports.py::Test_Monitoring::test_waf_monitoring_optional: irrelevant (optional tags)
   tests/appsec/waf/test_rules.py:
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/waf/test_rules.py::Test_CommandInjection:
     - weblog_declaration:
         "*": v1.2.1
@@ -1965,13 +1965,13 @@ manifest:
         fastapi: v2.4.0
   tests/appsec/waf/test_telemetry.py::Test_TelemetryMetrics::test_metric_waf_requests:
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/waf/test_telemetry.py::Test_TelemetryMetrics::test_waf_requests_match_traced_requests:
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/waf/test_truncation.py:
     - weblog_declaration:
-        aiohttp: v4.17.0-rc1  # TODO: a lower version might be supported
+        aiohttp: v4.17.0-rc1
   tests/appsec/waf/test_truncation.py::Test_Truncation: v3.3.0.dev
   tests/auto_inject:
     - weblog_declaration:
