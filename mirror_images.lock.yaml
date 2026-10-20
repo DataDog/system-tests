@@ -126,10 +126,10 @@ images:
     digest: sha256:3eacb4543dc280f94f50400f79c97bc505cdfb356cb2f911d34d71205bcae70a
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:fastify.base-0e63292ae2f1
     tag: fastify.base-0e63292ae2f1
-  datadog/system-tests:flask-poc.base-20654ccc14bd:
-    digest: sha256:293ce2e231baf6bceb33a8bf4d6bcb3cde2272cbc075917de8ae58ee5252ef0c
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:flask-poc.base-20654ccc14bd
-    tag: flask-poc.base-20654ccc14bd
+  datadog/system-tests:flask-poc.base-bbab781477db:
+    digest: sha256:5b3f28b110fb749c214e16a481ff776a8140a1a140b89efb3e88c138656498c3
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:flask-poc.base-bbab781477db
+    tag: flask-poc.base-bbab781477db
   datadog/system-tests:golang_buddy-v2:
     digest: sha256:b567fa2e328f24c74aab600e8bf07362b4265ac508413a83e06afddb399bee80
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:golang_buddy-v2
@@ -226,10 +226,10 @@ images:
     digest: sha256:f70f19529017e592b05be0f49669dda059c91ef608f53bdf460a2a437dc93bd8
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:tornado.base-301b798ae137
     tag: tornado.base-301b798ae137
-  datadog/system-tests:uwsgi-poc.base-f12ec8426a4b:
-    digest: sha256:e4808718dbcc00c2a1c25b7abd0107867ddfbb6e3c4dbbdec4eaf099ecc88a09
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:uwsgi-poc.base-f12ec8426a4b
-    tag: uwsgi-poc.base-f12ec8426a4b
+  datadog/system-tests:uwsgi-poc.base-61b8cb0fe7e0:
+    digest: sha256:12689302b497eef6587cd89d1df3d69c7aefcf5d80ffa55dc85d8e32c8131c4f
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:uwsgi-poc.base-61b8cb0fe7e0
+    tag: uwsgi-poc.base-61b8cb0fe7e0
   debian:bookworm-slim:
     digest: sha256:3783cc01769c7b2b1b83a5c5ad96c815348e28ed7da68e2e3687004faa906251
     target: registry.ddbuild.io/system-tests/mirror/debian:bookworm-slim
