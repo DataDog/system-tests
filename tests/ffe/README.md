@@ -14,6 +14,20 @@ This directory contains system tests for the Feature Flags & Experimentation (FF
 
 ## Running FFE Tests
 
+Standalone rules-configuration helpers are covered in `tests/parametric/test_ffe/test_rules_configuration.py` (Node.js only for now). These tests use `dd-trace/openfeature/rules-based` in a fresh process without initializing a tracer or provider, fetch protobuf over HTTP, and validate the portable wire output, channel credentials, typed errors, deadlines and cancellation during headers/body delivery, transport failures, invalid options, and redirect protection. They do not initialize a browser SDK or contact Datadog.
+
+These tests report to [Offline initialization and portable configuration helpers (#562)](https://feature-parity.us1.prod.dog/?feature=562). Current coverage is limited to Node's rules-based fetching and serialization; precomputed helpers and provider offline initialization are not covered here.
+
+With Docker and the Python 3.12 runner installed:
+
+```bash
+PYTEST_XDIST_AUTO_NUM_WORKERS=1 TEST_LIBRARY=nodejs ./run.sh PARAMETRIC tests/parametric/test_ffe/test_rules_configuration.py
+```
+
+Until the helpers are released, use a master build as described in the [custom Node.js binary instructions](../../docs/execute/binaries.md#nodejs-library). The Node manifest currently targets master's `7.0.0-pre` development version; update that gate to the actual release version once published.
+
+The protobuf fixture `tests/parametric/test_ffe/rules-wire.json` comes from `openfeature-js-client/packages/browser/test/data/rules-v1-wire.json`. The test checks serialization without evaluating flags or depending on a browser package.
+
 ```bash
 ./run.sh FEATURE_FLAGGING_AND_EXPERIMENTATION --library <language>
 ```
