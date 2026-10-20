@@ -1,4 +1,5 @@
 from tests.parametric.conftest import APMLibrary
+from tests.parametric.otel_env_vars import utils as otel_env_var_utils
 from utils import features, pytest, scenarios
 from utils.docker_fixtures import TestAgentAPI
 from utils.docker_fixtures._test_agent import AgentRequest
@@ -6,7 +7,7 @@ from utils.docker_fixtures._test_agent import AgentRequest
 
 OTLP_TRACE_PATH = "/v1/traces"
 ROUTING_HEADERS = "dd-protocol=otlp,dd-otlp-path=agent"
-DEFAULT_PROTOCOL = "http/protobuf"
+DEFAULT_PROTOCOL = otel_env_var_utils.default_protocol("traces")
 
 BASE_ENVIRONMENT = {
     "DD_TRACE_AGENT_PROTOCOL_VERSION": None,
