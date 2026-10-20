@@ -59,12 +59,11 @@ def _provision_step_name(resource_name: str, vm_name: str) -> str | None:
 
 
 def _provision_log_hint(vm_name: str, step: str | None) -> str:
-    """Where to read the failure: the VM log, and the provision script source."""
-    step_hint = f"step '{step}'" if step else "the failed step"
-    return (
-        f"👀 Check the log file: {vm_name}.log to see the full error trace.\n"
-        f"📝 Look for {step_hint} in {vm_name}_provision_script.log to see the source that failed."
-    )
+    """Where to read the failure. The script source is only relevant for a provision step."""
+    hint = f"👀 Check the log file: {vm_name}.log to see the full error trace."
+    if step:
+        hint += f"\n📝 Look for step '{step}' in {vm_name}_provision_script.log to see the source that failed."
+    return hint
 
 
 def _provision_failure_message(exception_message: str, vm_name: str) -> str:

@@ -55,17 +55,14 @@ class Test_AwsProvisionFailure:
 
         assert result == (
             "Error on VM provisioning (1 error occurred:).\n"
-            "👀 Check the log file: Ubuntu_24_amd64.log to see the full error trace.\n"
-            "📝 Look for the failed step in Ubuntu_24_amd64_provision_script.log to see the source that failed."
+            "👀 Check the log file: Ubuntu_24_amd64.log to see the full error trace."
         )
 
     def test_missing_marker_mentions_only_the_log_file(self) -> None:
         result = _provision_failure_message("pulumi crashed", "Ubuntu_24_amd64")
 
         assert result == (
-            "Error on VM provisioning.\n"
-            "👀 Check the log file: Ubuntu_24_amd64.log to see the full error trace.\n"
-            "📝 Look for the failed step in Ubuntu_24_amd64_provision_script.log to see the source that failed."
+            "Error on VM provisioning.\n👀 Check the log file: Ubuntu_24_amd64.log to see the full error trace."
         )
 
     def test_error_diagnostic_drops_the_remote_script(self) -> None:
