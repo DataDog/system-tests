@@ -2790,7 +2790,7 @@ manifest:
   tests/test_config_consistency.py::Test_Config_UnifiedServiceTagging_CustomService: v2.0.0
   tests/test_data_integrity.py:
     - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.16.0  # TODO: a lower version might be supported
   tests/test_data_integrity.py::Test_LibraryHeaders: v2.7.0
   tests/test_data_integrity.py::Test_TraceHeaders::test_trace_header_container_tags:
     - weblog_declaration:
