@@ -616,11 +616,35 @@ class DsmHelper:
         return all(expected_tag in actual_tags for expected_tag in expected_tags)
 
     @staticmethod
-    def assert_checkpoint_presence(hash_: int, parent_hash: int, tags: tuple) -> None:
+    def _data_contains_checkpoint(data: dict, hash_: int, parent_hash: int, tags: tuple) -> bool:
+        """Check if a single agent data payload contains the expected DSM checkpoint."""
+        for stats_bucket in data.get("request", {}).get("content", {}).get("Stats", {}):
+            for stats_point in stats_bucket.get("Stats", {}):
+                if (
+                    stats_point["Hash"] == hash_
+                    and stats_point["ParentHash"] == parent_hash
+                    and DsmHelper.is_tags_included(tuple(stats_point["EdgeTags"]), tags)
+                ):
+                    return True
+        return False
+
+    @staticmethod
+    def assert_checkpoint_presence(hash_: int, parent_hash: int, tags: tuple, timeout: int = 30) -> None:
         assert isinstance(tags, tuple)
 
         logger.info(f"Look for {hash_}, {parent_hash}, {tags}")
 
+        def _matches(data: dict) -> bool:
+            if data.get("path") != "/api/v0.1/pipeline_stats":
+                return False
+            return DsmHelper._data_contains_checkpoint(data, hash_, parent_hash, tags)
+
+        # Wait for matching DSM data to arrive (checks existing data first, then
+        # listens for new data up to timeout). This is needed because some tracers
+        # (e.g. Java) do not flush DSM stats immediately and rely on periodic flush.
+        interfaces.agent.wait_for(_matches, timeout)
+
+        # Final verification pass with detailed logging
         for data in interfaces.agent.get_dsm_data():
             # some tracers may send separate payloads with stats
             # or backlogs so "Stats" may be empty
