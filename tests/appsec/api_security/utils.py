@@ -1,6 +1,7 @@
 from collections.abc import Callable
 
-from utils import interfaces, logger, remote_config
+from utils import interfaces, remote_config
+from utils._logger import logger
 from utils._weblog import HttpResponse
 
 
