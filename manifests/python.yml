@@ -130,6 +130,9 @@ manifest:
       excluded_weblog: [flask-poc, uds-flask, uwsgi-poc]
   tests/apm_tracing_e2e:
     - weblog_declaration:
+        aiohttp: v4.16.0  # TODO: a lower version might be supported
+  tests/apm_tracing_e2e/test_otel.py:
+    - weblog_declaration:
         aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span: missing_feature (missing /e2e_otel_span endpoint on weblog)
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span::test_distributed_otel_trace: irrelevant (Golang specific test with OTel Go contrib package)
@@ -145,6 +148,7 @@ manifest:
         django-poc: '>=4.12.2'
         python3.12: '>=4.12.2'
         uwsgi-poc: '>=4.12.2'
+        aiohttp: v4.16.0  # TODO: a lower version might be supported
   tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_telemetry_process_tags_svc:  # TODO: a lower version might be supported
     - weblog_declaration:
         '*': missing_feature
@@ -156,6 +160,7 @@ manifest:
         django-poc: '>=4.12.2'
         python3.12: '>=4.12.2'
         uwsgi-poc: '>=4.12.2'
+        aiohttp: v4.16.0  # TODO: a lower version might be supported
   tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_tracing_process_tags_svc:  # TODO: a lower version might be supported
     - weblog_declaration:
         '*': missing_feature
@@ -167,6 +172,10 @@ manifest:
         django-poc: '>=4.12.2'
         python3.12: '>=4.12.2'
         uwsgi-poc: '>=4.12.2'
+        aiohttp: v4.16.0  # TODO: a lower version might be supported
+  tests/apm_tracing_e2e/test_single_span.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/apm_tracing_e2e/test_single_span.py::Test_SingleSpan: missing_feature (missing /e2e_otel_span endpoint on weblog)
   tests/appsec:
     - weblog_declaration:
@@ -2665,7 +2674,7 @@ manifest:
         uwsgi-poc: v4.3.1  # Modified by easy win activation script
   tests/stats:
     - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.16.0  # TODO: a lower version might be supported
   tests/stats/test_stats.py:
     - weblog_declaration:
         "*": v2.8.0
@@ -2673,7 +2682,10 @@ manifest:
   tests/stats/test_stats.py::Test_Client_Stats::test_client_stats:
     - weblog_declaration:
         "*": v2.8.0
-  tests/stats/test_stats.py::Test_Client_Stats::test_grpc_status_code: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats::test_grpc_status_code:
+    - declaration: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/stats/test_stats.py::Test_Client_Stats::test_is_trace_root:
     - weblog_declaration:
         "*": v2.8.0
@@ -2687,7 +2699,10 @@ manifest:
   tests/stats/test_stats.py::Test_Client_Stats_Missing_Obfuscation_Version: '>=4.11.0'
   tests/stats/test_stats.py::Test_Client_Stats_Obfuscation_Version_Zero: '>=4.11.0'
   tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation: '>=4.11.0'
-  tests/stats/test_stats.py::Test_Stats_Service_Source: irrelevant (Only implemented for Java)
+  tests/stats/test_stats.py::Test_Stats_Service_Source:
+    - declaration: irrelevant (Only implemented for Java)
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/stats/test_stats.py::Test_Time_Bucketing::test_client_side_stats_bucket_alignment:  # Modified by easy win activation script
     - weblog_declaration:
         '*': missing_feature
@@ -2699,6 +2714,7 @@ manifest:
         python3.12: '>=4.3.1'
         uds-flask: '>=4.3.1'
         uwsgi-poc: '>=4.3.1'
+        aiohttp: v4.16.0  # TODO: a lower version might be supported
   tests/test_baggage.py:
     - weblog_declaration:
         aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
@@ -2864,7 +2880,7 @@ manifest:
   tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
   tests/test_miscs.py:
     - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.16.0  # TODO: a lower version might be supported
   tests/test_no_ip_is_reported.py:
     - weblog_declaration:
         aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
@@ -2934,6 +2950,7 @@ manifest:
         django-poc: '>=4.12.2'
         python3.12: '>=4.12.2'
         uwsgi-poc: '>=4.12.2'
+        aiohttp: v4.16.0  # TODO: a lower version might be supported
   tests/test_resource_renaming.py:
     - weblog_declaration:
         aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
