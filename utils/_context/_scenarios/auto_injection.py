@@ -55,8 +55,8 @@ class _VirtualMachineScenario(Scenario):
         # Check if the datadog-apm-library is installed.
         apm_library_version = self.components.get("datadog-apm-library", None)
         if (
-             not apm_library_version or apm_library_version == "0.0.0"
-         ) and self.vm_provider.vm.provision_install_error is None:
+            not apm_library_version or apm_library_version == "0.0.0"
+        ) and self.vm_provider.vm.provision_install_error is None:
             logger.stdout("❌ SSI installer finished, but the tracer library was not installed ❌")
             logger.stdout("Review the agent + SSI installation provision.")
             logger.stdout(f"Log file: {self.host_log_folder}/{self.virtual_machine.name}.log")
