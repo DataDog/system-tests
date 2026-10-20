@@ -2916,7 +2916,7 @@ manifest:
         django-py3.13: '>=4.10.5'
   tests/test_profiling.py:
     - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.16.0  # TODO: a lower version might be supported
   tests/test_profiling.py::Test_Profile:
     - weblog_declaration:
         "*": v0.1  # actual version unknown
