@@ -1,4 +1,5 @@
 import base64
+import uuid
 from collections.abc import Generator
 from urllib.parse import urlparse
 
@@ -6,7 +7,8 @@ from utils import pytest
 
 from utils import scenarios, features, logger
 from utils.docker_fixtures.parametric import LogLevel
-from utils.docker_fixtures import TestAgentAPI
+from utils.docker_fixtures import TestAgentAPI, docker_run
+from utils.docker_fixtures._test_agent import DEFAULT_OTLP_HTTP_PORT
 from utils.docker_fixtures.spec.trace import find_only_span
 from utils.docker_fixtures.spec.trace import extract_trace_id_from_otel_span
 
@@ -65,6 +67,75 @@ def otlp_endpoint_library_env(
         del library_env[endpoint_env]
     else:
         library_env[endpoint_env] = prev_value
+
+
+# Minimal OTLP/HTTP forwarder run inside the test-agent image (python stdlib only).
+# The test agent only routes the exact path /v1/logs, so it cannot tell whether a library kept the base path of
+# OTEL_EXPORTER_OTLP_ENDPOINT. This proxy only accepts POST <base path>/v1/logs and forwards it to the test
+# agent's /v1/logs; any other path gets a 404, so logs reach the test agent only if the library used the
+# expected URL.
+_OTLP_PREFIX_PROXY = """
+import os, urllib.request
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+EXPECTED_PATH = os.environ["PROXY_EXPECTED_PATH"]
+UPSTREAM = os.environ["PROXY_UPSTREAM"]
+
+
+class Handler(BaseHTTPRequestHandler):
+    def do_POST(self):
+        body = self.rfile.read(int(self.headers.get("Content-Length", 0)))
+        print("POST", self.path, flush=True)
+        if self.path != EXPECTED_PATH:
+            self.send_response(404)
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return
+        headers = {k: v for k, v in self.headers.items() if k.lower() in ("content-type", "content-encoding")}
+        req = urllib.request.Request(UPSTREAM, data=body, headers=headers, method="POST")
+        with urllib.request.urlopen(req) as resp:
+            data = resp.read()
+            self.send_response(resp.status)
+            self.send_header("Content-Type", resp.headers.get("Content-Type", "application/x-protobuf"))
+            self.send_header("Content-Length", str(len(data)))
+            self.end_headers()
+            self.wfile.write(data)
+
+
+ThreadingHTTPServer(("0.0.0.0", 4330), Handler).serve_forever()
+"""
+
+
+@pytest.fixture
+def otlp_base_path_library_env(
+    library_env: dict[str, str],
+    base_path: str,
+    test_agent: TestAgentAPI,
+) -> Generator[dict[str, str], None, None]:
+    """Point OTEL_EXPORTER_OTLP_ENDPOINT to a proxy that only serves <base_path>/v1/logs."""
+    # DNS labels are limited to 63 characters, so keep the name short
+    proxy_name = f"otlp-proxy-{uuid.uuid4().hex[:12]}"
+    env = {
+        "PROXY_EXPECTED_PATH": base_path.rstrip("/") + "/v1/logs",
+        "PROXY_UPSTREAM": f"http://{test_agent.container_name}:{DEFAULT_OTLP_HTTP_PORT}/v1/logs",
+    }
+    log_path = f"{test_agent.log_path}.otlp_proxy.log"
+    with (
+        open(log_path, "w+", encoding="utf-8") as log_file,
+        docker_run(
+            image=scenarios.parametric._test_agent_factory.image,  # noqa: SLF001
+            name=proxy_name,
+            env=env,
+            volumes={},
+            network=test_agent.network,
+            ports={},
+            log_file=log_file,
+            command=["python", "-c", _OTLP_PREFIX_PROXY],
+        ),
+    ):
+        library_env["OTEL_EXPORTER_OTLP_ENDPOINT"] = f"http://{proxy_name}:4330{base_path}"
+        yield library_env
+        del library_env["OTEL_EXPORTER_OTLP_ENDPOINT"]
 
 
 @features.otel_logs_enabled
@@ -253,6 +324,32 @@ class Test_FR05_Custom_Endpoints:
         )
         log_payloads = test_agent.wait_for_num_log_payloads(1)
         assert find_log_record(log_payloads, "otlp_custom_endpoint", "test_otlp_custom_endpoint") is not None
+
+    @pytest.mark.parametrize(
+        "base_path", ["/mycollector", "/mycollector/"], ids=["no_trailing_slash", "trailing_slash"]
+    )
+    @pytest.mark.parametrize(
+        "library_env",
+        [{"DD_LOGS_OTEL_ENABLED": "true", "DD_TRACE_DEBUG": None, "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf"}],
+    )
+    def test_otlp_generic_endpoint_with_base_path(
+        self,
+        base_path: str,  # noqa: ARG002
+        otlp_base_path_library_env: dict[str, str],  # noqa: ARG002
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+    ):
+        """When OTEL_EXPORTER_OTLP_LOGS_ENDPOINT is unset, logs are exported to <OTEL_EXPORTER_OTLP_ENDPOINT>/v1/logs.
+
+        The base path of the generic endpoint must be kept (OTLP spec, "Endpoint URLs for OTLP/HTTP"),
+        e.g. http://collector:4318/mycollector -> http://collector:4318/mycollector/v1/logs.
+        """
+        with test_library as library:
+            library.create_logger("otlp_base_path", LogLevel.INFO)
+            library.write_log("otlp_base_path", LogLevel.INFO, "test_otlp_generic_endpoint_with_base_path")
+
+        log_payloads = test_agent.wait_for_num_log_payloads(1)
+        assert find_log_record(log_payloads, "otlp_base_path", "test_otlp_generic_endpoint_with_base_path") is not None
 
 
 @features.otel_logs_enabled
