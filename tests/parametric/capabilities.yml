@@ -160,3 +160,8 @@ capabilities:
   ruby:
     base:
       - APM_TRACING_ENABLED
+
+  rust:
+    base:
+      - APM_TRACING_SAMPLE_RATE
+      - APM_TRACING_SAMPLE_RULES
