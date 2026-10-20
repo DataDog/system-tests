@@ -14,6 +14,8 @@ def library_env() -> dict[str, str]:
     return {
         "DD_LLMOBS_ENABLED": "true",
         "DD_LLMOBS_ML_APP": "test-app",
+        # ddtrace 5.0 removed DD_LLMOBS_ML_APP; ml_app falls back to DD_SERVICE
+        "DD_SERVICE": "test-app",
     }
 
 

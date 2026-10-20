@@ -264,7 +264,10 @@ def reset_dsm_context():
 
 def flush_dsm_checkpoints():
     # force flush stats to ensure they're available to agent after test setup is complete
-    tracer.data_streams_processor.periodic()
+    # Tracer.data_streams_processor was removed in ddtrace 5.0
+    legacy_processor = getattr(tracer, "data_streams_processor", None)
+    if legacy_processor is not None:
+        legacy_processor.periodic()
     data_streams_processor().periodic()
 
 
@@ -1055,9 +1058,7 @@ def dsm():
         logging.info("[Kinesis] Returning response")
         response = Response("ok")
 
-    # force flush stats to ensure they're available to agent after test setup is complete
-    tracer.data_streams_processor.periodic()
-    data_streams_processor().periodic()
+    flush_dsm_checkpoints()
     return response
 
 

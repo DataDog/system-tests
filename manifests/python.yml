@@ -2986,10 +2986,19 @@ manifest:
       component_version: <4.15.2
   tests/parametric/otel_env_vars/test_otel_traces_sampler_arg.py::Test_OTEL_TRACES_SAMPLER_ARG::test_below_range_is_ignored: missing_feature (Out-of-range sampler arguments are not ignored)
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids: v2.6.0
+  tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3multi_128_bit_generation_disabled:
+    - declaration: irrelevant (DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED was removed in ddtrace 5.0)
+      component_version: '>=5.0.0-dev'
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3single_128_bit_generation_disabled: irrelevant (Supports the value `b3` instead of the deprecated `B3 single header`)
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3single_128_bit_generation_enabled: irrelevant (Supports the value `b3` instead of the deprecated `B3 single header`)
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3single_128_bit_propagation: irrelevant (Supports the value `b3` instead of the deprecated `B3 single header`)
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3single_128_bit_propagation_and_generation: irrelevant (Supports the value `b3` instead of the deprecated `B3 single header`)
+  tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_datadog_128_bit_generation_disabled:
+    - declaration: irrelevant (DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED was removed in ddtrace 5.0)
+      component_version: '>=5.0.0-dev'
+  tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_w3c_128_bit_generation_disabled:
+    - declaration: irrelevant (DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED was removed in ddtrace 5.0)
+      component_version: '>=5.0.0-dev'
   tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd: v3.3.0.dev
   tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd::test_dogstatsd_default:  # TODO: a lower version might be supported
     - declaration: incomplete_test_app (PHP parameteric app can not access the dogstatsd default values, this logic is internal to the tracer)
@@ -3145,7 +3154,13 @@ manifest:
       component_version: <4.12.2
   tests/parametric/test_llm_observability/test_llm_observability.py::Test_CostTags: v4.9.0
   tests/parametric/test_llm_observability/test_llm_observability.py::Test_Enablement: v3.14.0
+  tests/parametric/test_llm_observability/test_llm_observability.py::Test_Enablement::test_ml_app:
+    - declaration: irrelevant (DD_LLMOBS_ML_APP was removed in ddtrace 5.0)
+      component_version: '>=5.0.0-dev'
   tests/parametric/test_llm_observability/test_llm_observability.py::Test_Prompts: v3.15.0
+  tests/parametric/test_llm_observability/test_llm_observability.py::Test_Prompts::test_prompt_annotation_default_id:
+    - declaration: irrelevant (DD_LLMOBS_ML_APP was removed in ddtrace 5.0)
+      component_version: '>=5.0.0-dev'
   tests/parametric/test_llm_observability/test_llm_observability_dne.py::Test_Dataset: v4.2.0
   tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability: '>=4.3.1'  # Modified by easy win activation script
   tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability::test_concurrent_traces_in_order: missing_feature  # Created by easy win activation script
