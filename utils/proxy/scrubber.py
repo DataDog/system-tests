@@ -26,7 +26,7 @@ def _get_secrets() -> set[str]:
         if (
             len(stripped_value) > _MINIMUM_SECRET_LENGTH
             and name not in _not_secret_names
-            and value not in _not_secret_values
+            and stripped_value not in _not_secret_values
             and _name_filter.search(name)
         ):
             secrets.add(stripped_value)
