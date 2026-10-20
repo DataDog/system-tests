@@ -150,6 +150,14 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_headers.py::Test_OTEL_EXPORTER_OTLP_TRACES_HEADERS: missing_feature
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_protocol.py::Test_OTEL_EXPORTER_OTLP_TRACES_PROTOCOL: missing_feature
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_timeout.py::Test_OTEL_EXPORTER_OTLP_TRACES_TIMEOUT: missing_feature
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL: '>=0.5.3-dev+2349288'  # TODO: a lower version might be supported
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_case_insensitive_debug_mapping: missing_feature
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_case_insensitive_values: missing_feature
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_default_matches_specification: missing_feature
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_invalid_value_emits_warning: missing_feature
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_otel_log_level_to_debug_mapping: missing_feature
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_stable_values: missing_feature
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_warning_threshold_diagnostic: missing_feature
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER: v0.3.0
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER::test_console: missing_feature (Only otlp and none exporters are implemented)
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER::test_deprecated_values: missing_feature (Only otlp and none exporters are implemented)
@@ -177,7 +185,8 @@ manifest:
   :  # TODO: a lower version might be supported
     - declaration: missing_feature (deployment.environment.name is not supported)
       component_version: <0.5.3-dev+729aaa7
-  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED: missing_feature
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED: '>=0.5.3-dev+04d96da'  # TODO: a lower version might be supported
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_stable_true: missing_feature
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME: v0.5.0
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_default_follows_otel_spec: irrelevant
   tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER: '>=0.5.3-dev+671276b'  # TODO: a lower version might be supported
@@ -190,8 +199,14 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_none_exporter: missing_feature
   tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_otlp_exporter: missing_feature
   tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_zipkin_exporter: missing_feature
-  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER: missing_feature
-  tests/parametric/otel_env_vars/test_otel_traces_sampler_arg.py::Test_OTEL_TRACES_SAMPLER_ARG: missing_feature
+  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER: '>=0.5.3-dev+04d96da'  # TODO: a lower version might be supported
+  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER::test_dd_trace_sample_ignore_parent_false: missing_feature
+  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER::test_dd_trace_sample_ignore_parent_true: missing_feature
+  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER::test_jaeger_remote_values: missing_feature
+  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER::test_rate_values: missing_feature
+  tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER::test_third_party_values: missing_feature
+  tests/parametric/otel_env_vars/test_otel_traces_sampler_arg.py::Test_OTEL_TRACES_SAMPLER_ARG: '>=0.5.3-dev+04d96da'  # TODO: a lower version might be supported
+  tests/parametric/otel_env_vars/test_otel_traces_sampler_arg.py::Test_OTEL_TRACES_SAMPLER_ARG::test_stable_values: missing_feature
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids: v0.0.1
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3multi_128_bit_generation_disabled: missing_feature (propagation style not supported)
   tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_b3multi_128_bit_generation_enabled: missing_feature (propagation style not supported)
@@ -217,13 +232,15 @@ manifest:
   tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd: v0.3.3
   tests/parametric/test_config_consistency.py::Test_Config_RateLimit::test_default_trace_rate_limit: '>=0.4.1-dev+926c77a'  # Created by easy win activation script
   tests/parametric/test_config_consistency.py::Test_Config_RateLimit::test_setting_trace_rate_limit_strict: '>=0.4.1-dev+926c77a'  # Created by easy win activation script
-  tests/parametric/test_config_consistency.py::Test_Config_Tags::test_comma_space_tag_separation: missing_feature  # Created by easy win activation script
+  tests/parametric/test_config_consistency.py::Test_Config_Tags::test_comma_space_tag_separation: '>=0.5.3-dev+04d96da'  # Created by easy win activation script
   tests/parametric/test_config_consistency.py::Test_Config_Tags::test_dd_service_override: missing_feature  # Created by easy win activation script
   tests/parametric/test_config_consistency.py::Test_Config_TraceAgentURL: v0.3.3
   tests/parametric/test_config_consistency.py::Test_Config_TraceLogDirectory: missing_feature  # Created by easy win activation script
   tests/parametric/test_config_consistency.py::Test_Stable_Config_Default: missing_feature  # Created by easy win activation script
   tests/parametric/test_config_consistency.py::Test_Stable_Config_Rules: missing_feature  # Created by easy win activation script
-  tests/parametric/test_crashtracking.py: missing_feature
+  tests/parametric/test_crashtracking.py: '>=0.5.3-dev+04d96da'  # TODO: a lower version might be supported
+  tests/parametric/test_crashtracking.py::Test_Crashtracking::test_report_crash: missing_feature
+  tests/parametric/test_crashtracking.py::Test_Crashtracking::test_report_crash_error_tracking: missing_feature
   tests/parametric/test_dynamic_configuration.py: '>=0.2.1'  # Modified by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_trace_sampling_rules_override_env: '>=0.4.1-dev+926c77a'  # Created by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_trace_sampling_rules_override_rate: '>=0.4.1-dev+926c77a'  # Created by easy win activation script
@@ -248,6 +265,7 @@ manifest:
   tests/parametric/test_ffe/test_configuration_sources.py: irrelevant (rust is not in scope for v1 agentless server SDK configuration-source coverage)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: '>=0.5.3-dev+fd1307f'  # TODO: a lower version might be supported
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_flag_evaluation: missing_feature
+  tests/parametric/test_ffe/test_serial_id_metadata.py: missing_feature
   tests/parametric/test_ffe/test_span_enrichment.py: '>=0.5.3-dev+fd1307f'  # TODO: a lower version might be supported
   tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Child_Span_Propagation: missing_feature
   tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Default_Fallback: missing_feature
@@ -317,9 +335,15 @@ manifest:
   : 'irrelevant (Issue: tracecontext,Datadog was never the default configuration)'
   tests/parametric/test_headers_precedence.py::Test_Headers_Precedence::test_headers_precedence_propagationstyle_legacy: irrelevant (Implements the new 'datadog,tracecontext' default)
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext: v0.0.1
-  tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_duplicated: missing_feature (dd-trace-rs extractors read only the first header value; DataDog/dd-trace-rs#33)
-  tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_empty_header: missing_feature (dd-trace-rs extractors read only the first header value; DataDog/dd-trace-rs#33)
-  tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_multiple_headers_different_keys: missing_feature (dd-trace-rs extractors read only the first header value; DataDog/dd-trace-rs#33)
+  tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_duplicated:  # TODO: a lower version might be supported
+    - declaration: missing_feature (dd-trace-rs extractors read only the first header value; DataDog/dd-trace-rs#33)
+      component_version: <0.5.3-dev+2349288
+  tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_empty_header:  # TODO: a lower version might be supported
+    - declaration: missing_feature (dd-trace-rs extractors read only the first header value; DataDog/dd-trace-rs#33)
+      component_version: <0.5.3-dev+2349288
+  tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_multiple_headers_different_keys:  # TODO: a lower version might be supported
+    - declaration: missing_feature (dd-trace-rs extractors read only the first header value; DataDog/dd-trace-rs#33)
+      component_version: <0.5.3-dev+2349288
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_ows_handling: missing_feature (Invalid tracestate keys for OpenTelemetry's implementation)
   tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD: v0.0.1
   tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_dd_propagate_propagatedtags:  # TODO: a lower version might be supported
@@ -327,6 +351,7 @@ manifest:
       component_version: <0.5.3-dev+729aaa7
   tests/parametric/test_headers_tracestate_dd.py::Test_Headers_Tracestate_DD::test_headers_tracestate_ows_between_list_members: bug (APMSP-3974)
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats: '>0.5.2'  # Fixed stats flushing behaviour
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_sample_rate_0_TS007: flaky (APMSP-4093)
   tests/parametric/test_llm_observability/: irrelevant (library does not implement LLM Observability)
   tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability: '>=0.2.1'  # Modified by easy win activation script
   tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability::test_concurrent_traces_in_order: missing_feature  # Created by easy win activation script
@@ -347,7 +372,6 @@ manifest:
       component_version: <0.4.1-dev+926c77a
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_dd_env_var_take_precedence: missing_feature (dd-trace-rs has no runtime metrics)
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_env_vars_set: missing_feature (dd-trace-rs does not read OTEL_TRACES_SAMPLER/OTEL_TRACES_SAMPLER_ARG)
-  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_log_level_env: missing_feature (dd-trace-rs does not read OTEL_LOG_LEVEL)
   tests/parametric/test_otel_logs.py: v0.3.0
   tests/parametric/test_otel_logs.py::Test_FR03_Resource_Attributes::test_dd_env_vars_override_otel: missing_feature (deployment.environment.name is not supported)
   tests/parametric/test_otel_logs.py::Test_FR03_Resource_Attributes::test_otel_resource_attributes:  # TODO: a lower version might be supported
@@ -387,7 +411,9 @@ manifest:
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_set_attributes_different_types_legacy: missing_feature (Old array encoding not supported)
   ? tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_extended_reserved_attributes_overrides_analytics_event
   : missing_feature (Not implemented)
-  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_link_attribute_handling: missing_feature (dd-trace-rs serializes array link attributes as JSON strings instead of flattening them to key.N)
+  tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_link_attribute_handling:  # TODO: a lower version might be supported
+    - declaration: missing_feature (dd-trace-rs serializes array link attributes as JSON strings instead of flattening them to key.N)
+      component_version: <0.5.3-dev+2349288
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_started_with_link_from_another_span: missing_feature (APMSP-2059)
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_started_with_link_from_other_spans: missing_feature (APMSP-2059)
   ? tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_span_strict_reserved_attributes_overrides_analytics_event
@@ -455,7 +481,12 @@ manifest:
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags: missing_feature  # Created by easy win activation script
   tests/parametric/test_span_events.py: '>0.5.2'  # TODO: a lower version might be supported
   tests/parametric/test_span_events.py::Test_Span_Events::test_span_with_event_v05: missing_feature (dd-trace-rs always sends native span events; no meta 'events' fallback for v0.5)
-  tests/parametric/test_span_links.py::Test_Span_Links: missing_feature
+  tests/parametric/test_span_links.py::Test_Span_Links: '>=0.5.3-dev+2349288'  # TODO: a lower version might be supported
+  tests/parametric/test_span_links.py::Test_Span_Links::test_span_link_propagated_sampling_decisions: missing_feature
+  tests/parametric/test_span_links.py::Test_Span_Links::test_span_started_with_link_v04: missing_feature
+  tests/parametric/test_span_links.py::Test_Span_Links::test_span_started_with_link_v05: missing_feature
+  tests/parametric/test_span_links.py::Test_Span_Links::test_span_started_with_link_v05_span_id_padding: missing_feature
+  tests/parametric/test_span_links.py::Test_Span_Links::test_span_with_attached_links: missing_feature
   tests/parametric/test_span_sampling.py: '>=0.2.1'  # Modified by easy win activation script
   ? tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_child_span_selected_and_root_dropped_by_sss_when_dropping_policy_is_active017
   : missing_feature  # Created by easy win activation script
@@ -482,7 +513,7 @@ manifest:
   tests/parametric/test_telemetry.py::Test_Environment: missing_feature
   tests/parametric/test_telemetry.py::Test_Stable_Configuration_Origin: missing_feature
   tests/parametric/test_telemetry.py::Test_TelemetryInstallSignature: '>=0.2.1'  # Modified by easy win activation script
-  tests/parametric/test_telemetry.py::Test_TelemetryInstallSignature::test_telemetry_event_propagated: missing_feature  # Created by easy win activation script
+  tests/parametric/test_telemetry.py::Test_TelemetryInstallSignature::test_telemetry_event_propagated: '>=0.5.3-dev+2349288'  # Created by easy win activation script
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar: '>=0.2.1'  # Modified by easy win activation script
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_enabled_propagated: missing_feature  # Created by easy win activation script
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_enabled_propagated_specifics: irrelevant
@@ -510,7 +541,9 @@ manifest:
   tests/parametric/test_tracer.py::Test_TracerBaseService:  # TODO: a lower version might be supported
     - declaration: missing_feature (_dd.base_service is not implemented)
       component_version: <0.5.1-dev+8efc582
-  tests/parametric/test_tracer.py::Test_TracerBaseService::test_base_service_set_when_service_overridden: missing_feature (_dd.base_service is not implemented)
+  tests/parametric/test_tracer.py::Test_TracerBaseService::test_base_service_set_when_service_overridden:  # TODO: a lower version might be supported
+    - declaration: missing_feature (_dd.base_service is not implemented)
+      component_version: <0.5.3-dev+62c80dc
   tests/parametric/test_tracer.py::Test_TracerSCITagging: missing_feature  # Created by easy win activation script
   tests/parametric/test_tracer.py::Test_TracerServiceNameSource: irrelevant
   tests/parametric/test_tracer.py::Test_TracerUniversalServiceTagging::test_tracer_service_name_environment_variable:  # TODO: a lower version might be supported
@@ -554,21 +587,56 @@ manifest:
   tests/stats/test_stats.py::Test_Stats_Service_Source::test_srv_src: irrelevant (Only implemented for Java)
   tests/test_baggage.py::Test_Baggage_Headers_Api_Datadog: irrelevant (no Datadog API for W3C Baggage; dd-trace-rs uses the OTel API)
   tests/test_baggage.py::Test_Baggage_Headers_Api_OTel: '>0.5.2'  # TODO: a lower version might be supported
-  tests/test_baggage.py::Test_Baggage_Headers_Max_Bytes: missing_feature (baggage maximum size is not configurable)
-  tests/test_baggage.py::Test_Baggage_Headers_Max_Items: missing_feature (baggage maximum item count is not configurable)
+  tests/test_baggage.py::Test_Baggage_Headers_Max_Bytes:  # TODO: a lower version might be supported
+    - declaration: missing_feature (baggage maximum size is not configurable)
+      component_version: <0.5.3-dev+2349288
+      weblog: [axum]
+    - declaration: missing_feature (baggage maximum size is not configurable)
+      excluded_weblog: [axum]
+  tests/test_baggage.py::Test_Baggage_Headers_Max_Items:  # TODO: a lower version might be supported
+    - declaration: missing_feature (baggage maximum item count is not configurable)
+      component_version: <0.5.3-dev+2349288
+      weblog: [axum]
+    - declaration: missing_feature (baggage maximum item count is not configurable)
+      excluded_weblog: [axum]
   tests/test_config_consistency.py::Test_Config_ClientIPHeader_Configured::test_ip_headers_sent_in_one_request: missing_feature (http.client_ip tagging is not implemented)
   tests/test_config_consistency.py::Test_Config_ClientIPHeader_Precedence::test_ip_headers_precedence: missing_feature (http.client_ip tagging not implemented)
   tests/test_config_consistency.py::Test_Config_ClientTagQueryString_Configured: missing_feature (HTTP client query-string tagging is not implemented)
-  tests/test_config_consistency.py::Test_Config_ClientTagQueryString_Empty: missing_feature (HTTP client query-string tagging is not implemented)
-  tests/test_config_consistency.py::Test_Config_HttpClientErrorStatuses_Default: missing_feature (HTTP client error statuses are not implemented)
-  tests/test_config_consistency.py::Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature (custom HTTP client error statuses are not implemented)
-  tests/test_config_consistency.py::Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature (custom HTTP server error statuses are not implemented)
+  tests/test_config_consistency.py::Test_Config_ClientTagQueryString_Empty:  # TODO: a lower version might be supported
+    - declaration: missing_feature (HTTP client query-string tagging is not implemented)
+      component_version: <0.5.3-dev+2349288
+      weblog: [axum]
+    - declaration: missing_feature (HTTP client query-string tagging is not implemented)
+      excluded_weblog: [axum]
+  tests/test_config_consistency.py::Test_Config_HttpClientErrorStatuses_Default:  # TODO: a lower version might be supported
+    - declaration: missing_feature (HTTP client error statuses are not implemented)
+      component_version: <0.5.3-dev+2349288
+      weblog: [axum]
+    - declaration: missing_feature (HTTP client error statuses are not implemented)
+      excluded_weblog: [axum]
+  tests/test_config_consistency.py::Test_Config_HttpClientErrorStatuses_FeatureFlagCustom:  # TODO: a lower version might be supported
+    - declaration: missing_feature (custom HTTP client error statuses are not implemented)
+      component_version: <0.5.3-dev+2349288
+      weblog: [axum]
+    - declaration: missing_feature (custom HTTP client error statuses are not implemented)
+      excluded_weblog: [axum]
+  tests/test_config_consistency.py::Test_Config_HttpServerErrorStatuses_FeatureFlagCustom:  # TODO: a lower version might be supported
+    - declaration: missing_feature (custom HTTP server error statuses are not implemented)
+      component_version: <0.5.3-dev+2349288
+      weblog: [axum]
+    - declaration: missing_feature (custom HTTP server error statuses are not implemented)
+      excluded_weblog: [axum]
   tests/test_config_consistency.py::Test_Config_IntegrationEnabled_False::test_integration_enabled_false: missing_feature (dd-trace-rs has no Kafka integration)
   tests/test_config_consistency.py::Test_Config_IntegrationEnabled_True: missing_feature (dd-trace-rs has no Kafka integration)
   tests/test_config_consistency.py::Test_Config_LogInjection_128Bit_TraceId_Disabled: missing_feature (dd-trace-rs has no log injection)
   tests/test_config_consistency.py::Test_Config_LogInjection_128Bit_TraceId_Enabled: missing_feature (dd-trace-rs has no log injection)
   tests/test_config_consistency.py::Test_Config_LogInjection_Default_Structured: missing_feature (dd-trace-rs has no log injection)
-  tests/test_config_consistency.py::Test_Config_LogInjection_Default_Unstructured: missing_feature (dd-trace-rs has no log injection)
+  tests/test_config_consistency.py::Test_Config_LogInjection_Default_Unstructured:  # TODO: a lower version might be supported
+    - declaration: missing_feature (dd-trace-rs has no log injection)
+      component_version: <0.5.3-dev+04d96da
+      weblog: [axum]
+    - declaration: missing_feature (dd-trace-rs has no log injection)
+      excluded_weblog: [axum]
   tests/test_config_consistency.py::Test_Config_LogInjection_Enabled: missing_feature (dd-trace-rs has no log injection)
   ? tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Configured::test_query_string_obfuscation_configured_client
   : missing_feature (query string obfuscation not implemented)
@@ -587,13 +655,23 @@ manifest:
   tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Enabled: missing_feature (runtime metrics are not implemented)
   tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Enabled_WithRuntimeId: missing_feature (runtime metrics are not implemented)
   tests/test_data_integrity.py::Test_TraceHeaders::test_trace_header_container_tags: "irrelevant (cgroup in weblog is 0::/, so this test can't work)"
-  tests/test_data_integrity.py::Test_TraceHeaders::test_traces_header_present: missing_feature (datadog-meta-lang-interpreter not set)
+  tests/test_data_integrity.py::Test_TraceHeaders::test_traces_header_present:  # TODO: a lower version might be supported
+    - declaration: missing_feature (datadog-meta-lang-interpreter not set)
+      component_version: <0.5.3-dev+2349288
+      weblog: [axum]
+    - declaration: missing_feature (datadog-meta-lang-interpreter not set)
+      excluded_weblog: [axum]
   tests/test_distributed.py::Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   tests/test_distributed.py::Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   tests/test_identify.py::Test_Basic: missing_feature (dd-trace-rs has no user-identification API)
   tests/test_identify.py::Test_Propagate::test_identify_tags_outgoing: missing_feature (dd-trace-rs has no user-identification API)
   tests/test_identify.py::Test_Propagate_Legacy::test_identify_tags_outgoing: missing_feature (dd-trace-rs has no user-identification API)
-  tests/test_ipv6.py::Test_Basic: bug (APMSP-4081)
+  tests/test_ipv6.py::Test_Basic:  # TODO: a lower version might be supported
+    - declaration: bug (APMSP-4081)
+      component_version: <0.5.3-dev+04d96da
+      weblog: [axum]
+    - declaration: bug (APMSP-4081)
+      excluded_weblog: [axum]
   tests/test_library_conf.py::Test_ExtractBehavior_Default: v0.0.1
   tests/test_library_conf.py::Test_ExtractBehavior_Ignore: ">=0.3.4-dev"
   tests/test_library_conf.py::Test_ExtractBehavior_Restart_Otel: '>0.5.2'  # TODO: a lower version might be supported
@@ -646,7 +724,12 @@ manifest:
       weblog: [axum]
     - declaration: missing_feature (Rust does not implement query string obfuscation)
       excluded_weblog: [axum]
-  tests/test_semantic_conventions.py::Test_Meta::test_meta_runtime_id_tag: missing_feature (dd-trace-rs does not tag spans with runtime-id)
+  tests/test_semantic_conventions.py::Test_Meta::test_meta_runtime_id_tag:  # TODO: a lower version might be supported
+    - declaration: missing_feature (dd-trace-rs does not tag spans with runtime-id)
+      component_version: <0.5.3-dev+62c80dc
+      weblog: [axum]
+    - declaration: missing_feature (dd-trace-rs does not tag spans with runtime-id)
+      excluded_weblog: [axum]
   tests/test_span_events.py::Test_SpanEvents_WithAgentSupport::test_v04_v07_default_format: '>0.5.2'  # TODO: a lower version might be supported
   tests/test_span_events.py::Test_SpanEvents_WithAgentSupport::test_v05_default_format: irrelevant (v0.5 is not the default format)
   tests/test_span_events.py::Test_SpanEvents_WithoutAgentSupport: missing_feature (dd-trace-rs always sends native span events; no meta 'events' fallback)
@@ -687,4 +770,19 @@ manifest:
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting: irrelevant (no expected configuration is defined for Rust)
   tests/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_propagated: missing_feature (DD_APPSEC_SCA_ENABLED telemetry reporting is not implemented)
   tests/test_telemetry.py::Test_TelemetryV2::test_app_started_product_info: missing_feature (Product information missing in app-started telemetry payload)
-  tests/test_v1_payloads.py: missing_feature
+  tests/test_v1_payloads.py:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        axum: '>=0.5.3-dev+04d96da'
+  tests/test_v1_payloads.py::Test_V1PayloadByDefault:
+    - weblog_declaration:
+        axum: missing_feature
+  tests/test_v1_payloads.py::Test_V1Payloads:
+    - weblog_declaration:
+        axum: missing_feature
+  tests/test_v1_payloads.py::Test_V1SpanLinks:
+    - weblog_declaration:
+        axum: missing_feature
+  tests/test_v1_payloads.py::Test_V1TopLevelSpans:
+    - weblog_declaration:
+        axum: missing_feature

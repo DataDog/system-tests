@@ -2527,6 +2527,12 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_headers.py::Test_OTEL_EXPORTER_OTLP_TRACES_HEADERS: missing_feature
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_protocol.py::Test_OTEL_EXPORTER_OTLP_TRACES_PROTOCOL: missing_feature
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_timeout.py::Test_OTEL_EXPORTER_OTLP_TRACES_TIMEOUT: missing_feature
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL: v2.22.0
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_case_insensitive_values: missing_feature (Only the debug-mode mapping is implemented)
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_invalid_value_emits_warning: bug (APMAPI-2539)
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_otel_log_level_env: missing_feature (Only the debug-mode mapping is implemented)
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_stable_values: missing_feature (Only the debug-mode mapping is implemented)
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_warning_threshold_diagnostic: irrelevant (Uses the PHP SDK diagnostic probe)
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER: v2.34.0
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER::test_console: missing_feature (Only otlp and none exporters are implemented)
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER::test_deprecated_values: missing_feature (Only otlp and none exporters are implemented)
@@ -2629,7 +2635,7 @@ manifest:
       component_version: <=2.22.0
   tests/parametric/test_config_consistency.py::Test_Stable_Config_Rules: missing_feature
   tests/parametric/test_crashtracking.py::Test_Crashtracking: v2.3.0
-  tests/parametric/test_crashtracking.py::Test_Crashtracking::test_disable_crashtracking_error_tracking: missing_feature
+  tests/parametric/test_crashtracking.py::Test_Crashtracking::test_disable_crashtracking_error_tracking: '>=2.45.0'  # TODO: a lower version might be supported
   tests/parametric/test_crashtracking.py::Test_Crashtracking::test_report_crash_error_tracking: missing_feature
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules: v2.0.0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_remote_sampling_rules_retention: v2.31.0
@@ -2674,6 +2680,7 @@ manifest:
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart_With_Extract_First: incomplete_test_app (The parametric test app does not emit restart span links or preserve baggage)
   tests/parametric/test_ffe/test_configuration_sources.py: v2.46.0-dev
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v2.23.0
+  tests/parametric/test_ffe/test_serial_id_metadata.py: missing_feature
   tests/parametric/test_ffe/test_span_enrichment.py: missing_feature
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_extract_invalid:  # Easy win for all weblogs and version 2.27.0
     - declaration: missing_feature (Missing for 2.x)
@@ -2790,7 +2797,6 @@ manifest:
   tests/parametric/test_llm_observability/: irrelevant (library does not implement LLM Observability)
   tests/parametric/test_otel_api_interoperability.py: missing_feature
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: v2.1.0
-  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_log_level_env: missing_feature (DD_LOG_LEVEL is not supported in ruby)
   tests/parametric/test_otel_logs.py: '>=2.34.0-dev'
   tests/parametric/test_otel_logs.py::Test_FR03_Resource_Attributes::test_dd_env_vars_override_otel:  # TODO: a lower version might be supported
     - declaration: missing_feature (deployment.environment.name output is not supported)
@@ -3636,18 +3642,18 @@ manifest:
         uds-sinatra: missing_feature
   tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_spans_enqueued_for_serialization:  # Created by easy win activation script
     - weblog_declaration:
-        rails42: missing_feature
-        uds-rails: missing_feature
-        sinatra22: missing_feature
-        rails61: missing_feature
-        rails72: missing_feature
-        rails52: missing_feature
-        sinatra32: missing_feature
-        rack: missing_feature
-        sinatra41: missing_feature
-        sinatra14: missing_feature
-        rails80: missing_feature
-        uds-sinatra: missing_feature
+        rails42: v2.46.0  # TODO: a lower version might be supported
+        uds-rails: v2.46.0  # TODO: a lower version might be supported
+        sinatra22: v2.46.0  # TODO: a lower version might be supported
+        rails61: v2.46.0  # TODO: a lower version might be supported
+        rails72: v2.46.0  # TODO: a lower version might be supported
+        rails52: v2.46.0  # TODO: a lower version might be supported
+        sinatra32: v2.46.0  # TODO: a lower version might be supported
+        rack: v2.46.0  # TODO: a lower version might be supported
+        sinatra41: v2.46.0  # TODO: a lower version might be supported
+        sinatra14: v2.46.0  # TODO: a lower version might be supported
+        rails80: v2.46.0  # TODO: a lower version might be supported
+        uds-sinatra: v2.46.0  # TODO: a lower version might be supported
   tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_spans_finished:  # Created by easy win activation script
     - weblog_declaration:
         rails42: missing_feature
@@ -3664,32 +3670,32 @@ manifest:
         uds-sinatra: missing_feature
   tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_api_requests:  # Created by easy win activation script
     - weblog_declaration:
-        rails42: missing_feature
-        uds-rails: missing_feature
-        sinatra22: missing_feature
-        rails61: missing_feature
-        rails72: missing_feature
-        rails52: missing_feature
-        sinatra32: missing_feature
-        rack: missing_feature
-        sinatra41: missing_feature
-        sinatra14: missing_feature
-        rails80: missing_feature
-        uds-sinatra: missing_feature
+        rails42: v2.46.0  # TODO: a lower version might be supported
+        uds-rails: v2.46.0  # TODO: a lower version might be supported
+        sinatra22: v2.46.0  # TODO: a lower version might be supported
+        rails61: v2.46.0  # TODO: a lower version might be supported
+        rails72: v2.46.0  # TODO: a lower version might be supported
+        rails52: v2.46.0  # TODO: a lower version might be supported
+        sinatra32: v2.46.0  # TODO: a lower version might be supported
+        rack: v2.46.0  # TODO: a lower version might be supported
+        sinatra41: v2.46.0  # TODO: a lower version might be supported
+        sinatra14: v2.46.0  # TODO: a lower version might be supported
+        rails80: v2.46.0  # TODO: a lower version might be supported
+        uds-sinatra: v2.46.0  # TODO: a lower version might be supported
   tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_api_responses:  # Created by easy win activation script
     - weblog_declaration:
-        rails42: missing_feature
-        uds-rails: missing_feature
-        sinatra22: missing_feature
-        rails61: missing_feature
-        rails72: missing_feature
-        rails52: missing_feature
-        sinatra32: missing_feature
-        rack: missing_feature
-        sinatra41: missing_feature
-        sinatra14: missing_feature
-        rails80: missing_feature
-        uds-sinatra: missing_feature
+        rails42: v2.46.0  # TODO: a lower version might be supported
+        uds-rails: v2.46.0  # TODO: a lower version might be supported
+        sinatra22: v2.46.0  # TODO: a lower version might be supported
+        rails61: v2.46.0  # TODO: a lower version might be supported
+        rails72: v2.46.0  # TODO: a lower version might be supported
+        rails52: v2.46.0  # TODO: a lower version might be supported
+        sinatra32: v2.46.0  # TODO: a lower version might be supported
+        rack: v2.46.0  # TODO: a lower version might be supported
+        sinatra41: v2.46.0  # TODO: a lower version might be supported
+        sinatra14: v2.46.0  # TODO: a lower version might be supported
+        rails80: v2.46.0  # TODO: a lower version might be supported
+        uds-sinatra: v2.46.0  # TODO: a lower version might be supported
   tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_chunks_enqueued_for_serialization:  # Created by easy win activation script
     - weblog_declaration:
         rails42: missing_feature
@@ -3706,18 +3712,18 @@ manifest:
         uds-sinatra: missing_feature
   tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_chunks_sent:  # Created by easy win activation script
     - weblog_declaration:
-        rails42: missing_feature
-        uds-rails: missing_feature
-        sinatra22: missing_feature
-        rails61: missing_feature
-        rails72: missing_feature
-        rails52: missing_feature
-        sinatra32: missing_feature
-        rack: missing_feature
-        sinatra41: missing_feature
-        sinatra14: missing_feature
-        rails80: missing_feature
-        uds-sinatra: missing_feature
+        rails42: v2.46.0  # TODO: a lower version might be supported
+        uds-rails: v2.46.0  # TODO: a lower version might be supported
+        sinatra22: v2.46.0  # TODO: a lower version might be supported
+        rails61: v2.46.0  # TODO: a lower version might be supported
+        rails72: v2.46.0  # TODO: a lower version might be supported
+        rails52: v2.46.0  # TODO: a lower version might be supported
+        sinatra32: v2.46.0  # TODO: a lower version might be supported
+        rack: v2.46.0  # TODO: a lower version might be supported
+        sinatra41: v2.46.0  # TODO: a lower version might be supported
+        sinatra14: v2.46.0  # TODO: a lower version might be supported
+        rails80: v2.46.0  # TODO: a lower version might be supported
+        uds-sinatra: v2.46.0  # TODO: a lower version might be supported
   tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_segments_closed:  # Created by easy win activation script
     - weblog_declaration:
         rails42: missing_feature
