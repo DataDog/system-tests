@@ -828,6 +828,7 @@ class ParametricTestClientApi(TestClientApi):
         attributes: dict | None = None,
         span_id: int | str | None = None,
         exposure_hooks: bool = False,
+        fail_after_hook: bool = False,
     ) -> dict:
         """Evaluate a feature flag.
 
@@ -839,6 +840,7 @@ class ParametricTestClientApi(TestClientApi):
             attributes: Optional additional attributes for evaluation context
             span_id: Optional span ID to activate during evaluation (for span enrichment)
             exposure_hooks: Capture two exposure-aware callback observations for this evaluation
+            fail_after_hook: Reject the resolved result in an application After hook
 
         Returns:
             dict: Evaluation result containing 'value' and 'reason'
@@ -855,6 +857,8 @@ class ParametricTestClientApi(TestClientApi):
             payload["span_id"] = str(span_id)
         if exposure_hooks:
             payload["exposureHooks"] = True
+        if fail_after_hook:
+            payload["failAfterHook"] = True
 
         resp = self._session.post(self._url("/ffe/evaluate"), json=payload)
         return resp.json()
@@ -1275,6 +1279,7 @@ class APMLibrary:
         attributes: dict | None = None,
         span_id: int | str | None = None,
         exposure_hooks: bool = False,
+        fail_after_hook: bool = False,
     ) -> dict:
         """Evaluate a feature flag."""
         return self._client.ffe_evaluate(
@@ -1285,6 +1290,7 @@ class APMLibrary:
             attributes=attributes,
             span_id=span_id,
             exposure_hooks=exposure_hooks,
+            fail_after_hook=fail_after_hook,
         )
 
     def llmobs_trace(

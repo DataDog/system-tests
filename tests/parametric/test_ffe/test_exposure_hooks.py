@@ -57,14 +57,23 @@ def install(test_agent: TestAgentAPI, fixture: dict[str, Any], *, wait: bool = T
     pytest.fail("The SDK did not acknowledge the updated configuration content")
 
 
-def evaluate(test_library: APMLibrary, subject: str, *, flag: str = "hook-flag") -> dict[str, Any]:
+def evaluate(
+    test_library: APMLibrary, subject: str, *, flag: str = "hook-flag", fail_after: bool = False
+) -> dict[str, Any]:
     return test_library.ffe_evaluate(
-        flag=flag, variation_type="STRING", default_value="fallback", targeting_key=subject, exposure_hooks=True
+        flag=flag,
+        variation_type="STRING",
+        default_value="fallback",
+        targeting_key=subject,
+        exposure_hooks=True,
+        fail_after_hook=fail_after,
     )
 
 
-def observations(result: dict[str, Any], *, exposure: bool, hit: bool) -> None:
-    assert result["errorCode"] == "", result
+def observations(
+    result: dict[str, Any], *, exposure: bool, hit: bool, error_code: str = "", flag: str = "hook-flag"
+) -> None:
+    assert result["errorCode"] == error_code, result
     rows = result.get("exposureHooks", [])
     assert len(rows) == 2, result
     assert {row["hook"] for row in rows} == {0, 1}
@@ -72,7 +81,9 @@ def observations(result: dict[str, Any], *, exposure: bool, hit: bool) -> None:
         assert row["isExposure"] is exposure
         assert row["isCacheHit"] is hit
         assert row["shouldSend"] is (exposure and not hit)
-        assert row["flag"] == "hook-flag"
+        assert row["flag"] == flag
+        assert row["errorCode"] == error_code
+        assert row["value"] == result["value"]
 
 
 def events(test_agent: TestAgentAPI, path: str, field: str) -> list[dict[str, Any]]:
@@ -100,6 +111,11 @@ class Test_FFE_ExposureHooks:
         test_agent.wait_for_rc_apply_state(
             "FFE_FLAGS", state=RemoteConfigApplyState.ACKNOWLEDGED, config_id="exposure-hooks"
         )
+        rejected = evaluate(test_library, "athlete", fail_after=True)
+        assert rejected["value"] == "fallback"
+        assert rejected["reason"] == "ERROR"
+        observations(rejected, exposure=False, hit=False, error_code="GENERAL")
+        # The failed evaluation must not consume the first successful exposure.
         first = evaluate(test_library, "athlete")
         observations(first, exposure=True, hit=False)
         assert first["value"] == "on-value"
@@ -118,8 +134,7 @@ class Test_FFE_ExposureHooks:
         install(test_agent, fixture)
         observations(evaluate(test_library, "athlete"), exposure=False, hit=False)
         failed = evaluate(test_library, "athlete", flag="missing")
-        assert failed["errorCode"] == "FLAG_NOT_FOUND"
-        assert not failed.get("exposureHooks")
+        observations(failed, exposure=False, hit=False, error_code="FLAG_NOT_FOUND", flag="missing")
 
         # Evaluation metrics are a positive control when Datadog exposure logging is off.
         # The pinned test-agent image does not accept EVP /api/v2/flagevaluation yet.
@@ -134,10 +149,10 @@ class Test_FFE_ExposureHooks:
                 for metric in scope.get("metrics", [])
                 if metric["name"] == "feature_flag.evaluations"
             ]
-            if 7 in counts:
+            if 8 in counts:
                 break
             time.sleep(0.2)
-        assert 7 in counts, counts
+        assert 8 in counts, counts
         exposures = events(test_agent, "/api/v2/exposures", "exposures")
         if library_env.get("DD_FEATURE_FLAGS_EXPOSURES_DATADOG_LOGGING_ENABLED") == "false":
             assert exposures == []

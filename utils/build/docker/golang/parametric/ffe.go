@@ -81,6 +81,7 @@ func (s *apmClientServer) ffeEval(writer http.ResponseWriter, request *http.Requ
 		TargetingKey  string         `json:"targetingKey"`
 		Attributes    map[string]any `json:"attributes"`
 		ExposureHooks bool           `json:"exposureHooks"`
+		FailAfterHook bool           `json:"failAfterHook"`
 	}
 	if err := json.NewDecoder(request.Body).Decode(&body); err != nil {
 		http.Error(writer, "invalid request body: "+err.Error(), http.StatusBadRequest)
@@ -110,7 +111,7 @@ func (s *apmClientServer) ffeEval(writer http.ResponseWriter, request *http.Requ
 	rows := make([]map[string]any, 0)
 	var options []of.Option
 	if body.ExposureHooks {
-		options = exposureHookOptions(&rows)
+		options = exposureHookOptions(&rows, body.FailAfterHook)
 	}
 
 	func() {
