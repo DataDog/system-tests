@@ -15,15 +15,46 @@ BASE_ENV = {
     "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE": "remote_config",
     "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
     "DD_FLAGGING_EVALUATION_COUNTS_ENABLED": "true",
+    "DD_METRICS_OTEL_ENABLED": "true",
+    "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": "http/protobuf",
+    "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE": "cumulative",
 }
+RC_PATH = "datadog/2/FFE_FLAGS/exposure-hooks/config"
+
+
+@pytest.fixture(autouse=True)
+def evaluation_metrics_endpoint(library_env: dict[str, str], test_agent: TestAgentAPI) -> None:
+    library_env["OTEL_EXPORTER_OTLP_METRICS_ENDPOINT"] = f"http://{test_agent.container_name}:4318/v1/metrics"
 
 
 def install(test_agent: TestAgentAPI, fixture: dict[str, Any], *, wait: bool = True) -> None:
-    allocation = fixture["flags"]["hook-flag"]["allocations"][0]
-    config_id = f"hook-{allocation['splits'][0]['serialId']}-{allocation['doLog']}"
-    test_agent.set_remote_config(path=f"datadog/2/FFE_FLAGS/{config_id}/config", payload=fixture)
+    previous = None
+    previous_requests = test_agent.rc_requests() if wait else []
     if wait:
-        test_agent.wait_for_rc_apply_state("FFE_FLAGS", state=RemoteConfigApplyState.ACKNOWLEDGED, config_id=config_id)
+        for request in previous_requests:
+            for target in request["body"].get("cached_target_files", []):
+                if target["path"] == RC_PATH:
+                    previous = target
+        assert previous is not None, "The initial configuration must be acknowledged before an update"
+    test_agent.set_remote_config(path=RC_PATH, payload=fixture)
+    if not wait:
+        return
+    # Keep the same file ID. Wait for its new content hash and ACK, not a stale ACK.
+    deadline = time.monotonic() + 10
+    while time.monotonic() < deadline:
+        for request in test_agent.rc_requests()[len(previous_requests) :]:
+            body = request["body"]
+            changed = any(
+                target["path"] == RC_PATH and target != previous for target in body.get("cached_target_files", [])
+            )
+            acknowledged = any(
+                state["id"] == "exposure-hooks" and state["apply_state"] == RemoteConfigApplyState.ACKNOWLEDGED.value
+                for state in body["client"]["state"].get("config_states", [])
+            )
+            if changed and acknowledged:
+                return
+        time.sleep(0.05)
+    pytest.fail("The SDK did not acknowledge the updated configuration content")
 
 
 def evaluate(test_library: APMLibrary, subject: str, *, flag: str = "hook-flag") -> dict[str, Any]:
@@ -66,6 +97,9 @@ class Test_FFE_ExposureHooks:
         fixture = make_ufc_fixture("hook-flag", serial_id=0)
         install(test_agent, fixture, wait=False)
         assert test_library.ffe_start()
+        test_agent.wait_for_rc_apply_state(
+            "FFE_FLAGS", state=RemoteConfigApplyState.ACKNOWLEDGED, config_id="exposure-hooks"
+        )
         first = evaluate(test_library, "athlete")
         observations(first, exposure=True, hit=False)
         assert first["value"] == "on-value"
@@ -87,14 +121,23 @@ class Test_FFE_ExposureHooks:
         assert failed["errorCode"] == "FLAG_NOT_FOUND"
         assert not failed.get("exposureHooks")
 
-        # Evaluation events are a positive control for egress when exposure logging is off.
+        # Evaluation metrics are a positive control when Datadog exposure logging is off.
+        # The pinned test-agent image does not accept EVP /api/v2/flagevaluation yet.
         deadline = time.monotonic() + 20
+        counts = []
         while time.monotonic() < deadline:
-            evaluations = events(test_agent, "/api/v2/flagevaluation", "flagEvaluations")
-            if sum(event["evaluation_count"] for event in evaluations) >= 7:
+            counts = [
+                sum(int(point["as_int"]) for point in metric["sum"]["data_points"])
+                for export in test_agent.metrics()
+                for resource in export.get("resource_metrics", [])
+                for scope in resource.get("scope_metrics", [])
+                for metric in scope.get("metrics", [])
+                if metric["name"] == "feature_flag.evaluations"
+            ]
+            if 7 in counts:
                 break
             time.sleep(0.2)
-        assert sum(event["evaluation_count"] for event in evaluations) == 7, evaluations
+        assert 7 in counts, counts
         exposures = events(test_agent, "/api/v2/exposures", "exposures")
         if library_env.get("DD_FEATURE_FLAGS_EXPOSURES_DATADOG_LOGGING_ENABLED") == "false":
             assert exposures == []
