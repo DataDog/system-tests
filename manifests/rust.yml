@@ -464,12 +464,10 @@ manifest:
   tests/parametric/test_sampling_span_tags.py::Test_Knuth_Sample_Rate: '>=0.4.0'
   tests/parametric/test_sampling_span_tags.py::Test_Sampling_Span_Tags: missing_feature  # Created by easy win activation script
   tests/parametric/test_span_events.py: '>0.5.2'  # TODO: a lower version might be supported
-  tests/parametric/test_span_events.py::Test_Span_Events::test_span_with_event_v05: missing_feature (dd-trace-rs always sends native span events; no meta 'events' fallback for v0.5)
   tests/parametric/test_span_links.py::Test_Span_Links: '>0.5.2'
   tests/parametric/test_span_links.py::Test_Span_Links::test_span_link_propagated_sampling_decisions: missing_feature (a span does not inherit the sampling decision of the context it links to)
   tests/parametric/test_span_links.py::Test_Span_Links::test_span_started_with_link_v04: missing_feature (_dd.p.tid is not set on root spans)
-  tests/parametric/test_span_links.py::Test_Span_Links::test_span_started_with_link_v05: missing_feature (DD_TRACE_API_VERSION=v0.5 is not supported, span links are never sent as _dd.span_links meta)
-  tests/parametric/test_span_links.py::Test_Span_Links::test_span_started_with_link_v05_span_id_padding: missing_feature (DD_TRACE_API_VERSION=v0.5 is not supported, span links are never sent as _dd.span_links meta)
+  tests/parametric/test_span_links.py::Test_Span_Links::test_span_started_with_link_v05: missing_feature (_dd.p.tid is not set on root spans)
   tests/parametric/test_span_links.py::Test_Span_Links::test_span_with_attached_links: missing_feature (_dd.p.tid is not set on root spans)
   tests/parametric/test_span_sampling.py: '>=0.2.1'  # Modified by easy win activation script
   ? tests/parametric/test_span_sampling.py::Test_Span_Sampling::test_child_span_selected_and_root_dropped_by_sss_when_dropping_policy_is_active017
