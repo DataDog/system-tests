@@ -70,6 +70,12 @@ The following dependencies are required to run the tests locally:
 
 ### Running the tests
 
+Initialize pinned shared fixtures before running feature flag contract tests:
+
+```sh
+git submodule update --init tests/parametric/test_ffe/ffe-system-test-data
+```
+
 Build will happen at the beginning of the run statements.
 
 Run all the tests for a particular tracer library:

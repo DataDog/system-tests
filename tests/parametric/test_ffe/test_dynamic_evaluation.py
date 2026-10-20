@@ -138,6 +138,39 @@ class Test_Feature_Flag_Dynamic_Evaluation:
     """
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_ffe_dolog_required(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        """Reject flags with non-boolean doLog values without rejecting valid neighboring flags."""
+        fixture_dir = Path(__file__).parent / "ffe-system-test-data"
+        assert (fixture_dir / "ufc-config.json").is_file(), (
+            "Initialize shared fixtures with: git submodule update --init tests/parametric/test_ffe/ffe-system-test-data"
+        )
+        with (fixture_dir / "ufc-config.json").open() as fixture_file:
+            config = json.load(fixture_file)
+        with (fixture_dir / "evaluation-cases" / "test-case-dolog-required.json").open() as case_file:
+            cases = json.load(case_file)
+        assert cases, "Shared doLog cases must not be empty"
+
+        _set_and_wait_ffe_rc(test_agent, config)
+        assert test_library.ffe_start(config), "Failed to start FFE provider"
+
+        for case in cases:
+            result = _ffe_evaluate_with_rc_retry(
+                test_library,
+                flag=case["flag"],
+                variation_type=case["variationType"],
+                default_value=case["defaultValue"],
+                targeting_key=case["targetingKey"],
+                attributes=case.get("attributes", {}),
+            )
+            expected = case["result"]
+            actual = {key: result.get(key) for key in ("value", "reason", "errorCode")}
+            if actual["errorCode"] == "":
+                actual["errorCode"] = None
+            assert actual == {key: expected.get(key) for key in actual}, (
+                f"{case['flag']}: {case['description']}; expected={expected}, actual={result}"
+            )
+
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_ffe_remote_config(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Test to verify FFE can receive and acknowledge UFC configurations via Remote Config."""
 
