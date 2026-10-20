@@ -87,7 +87,6 @@ class LambdaScenario(DockerScenario):
 
         interfaces.agent.configure(self.host_log_folder, replay=self.replay)
         interfaces.library.configure(self.host_log_folder, replay=self.replay)
-        interfaces.backend.configure(self.host_log_folder, replay=self.replay)
         interfaces.library_stdout.configure(self.host_log_folder, replay=self.replay)
 
         if not self.replay:
@@ -142,15 +141,12 @@ class LambdaScenario(DockerScenario):
             interfaces.library.load_data_from_logs()
             interfaces.library.check_deserialization_errors()
 
-            interfaces.backend.load_data_from_logs()
         else:
             self._wait_interface(interfaces.library, 0 if force_interface_timeout_to_zero else 5)
             self._wait_interface(interfaces.agent, 0 if force_interface_timeout_to_zero else 5)
             self.lambda_weblog.stop()
             interfaces.library.check_deserialization_errors()
             interfaces.agent.check_deserialization_errors()
-
-            self._wait_interface(interfaces.backend, 0)
 
     def post_setup(self, session: pytest.Session):
         is_empty_test_run = session.config.option.skip_empty_scenario and len(session.items) == 0

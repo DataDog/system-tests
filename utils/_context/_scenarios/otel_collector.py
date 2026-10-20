@@ -16,14 +16,14 @@ class OtelCollectorScenario(DockerScenario):
     otel_collector_version: Version
     postgres_container: PostgresContainer
 
-    def __init__(self, name: str, *, use_proxy: bool = True, mocked_backend: bool = True):
+    def __init__(self, name: str, *, use_proxy: bool = True):
         super().__init__(
             name,
             github_workflow="endtoend",
             doc="TODO",
             scenario_groups=[scenario_groups.end_to_end, scenario_groups.all, scenario_groups.open_telemetry],
             use_proxy=use_proxy,
-            mocked_backend=mocked_backend,
+            mocked_backend=True,
         )
 
         self.postgres_container = PostgresContainer()
@@ -54,14 +54,6 @@ class OtelCollectorScenario(DockerScenario):
         super().configure(config)
 
         self.collector_container.depends_on.append(self.postgres_container)
-
-        if not self.proxy_container.mocked_backend:
-            interfaces.backend.configure(self.host_log_folder, replay=self.replay)
-
-            if "DD_API_KEY" not in os.environ:
-                pytest.exit(f"{self.name} scenario requires a valid DD_API_KEY")
-
-            self.collector_container.environment["DD_API_KEY"] = os.environ["DD_API_KEY"]
 
         postgres_image = self.postgres_container.image.name
         image_parts = postgres_image.split(":")

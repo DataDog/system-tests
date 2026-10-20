@@ -3901,7 +3901,7 @@
     "OTEL_TRACING_E2E"
   ],
   "tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E::test_main": [
-    "OTEL_METRIC_E2E"
+    "OTEL_LOG_E2E"
   ],
   "tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E::test_main": [
     "OTEL_LOG_E2E"

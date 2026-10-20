@@ -120,18 +120,6 @@ on:
         required: false
       DOCKERHUB_TOKEN:
         required: false
-      DD_API_KEY:
-        required: false
-      DD_APPLICATION_KEY:
-        required: false
-      DD_API_KEY_2:
-        required: false
-      DD_APP_KEY_2:
-        required: false
-      DD_API_KEY_3:
-        required: false
-      DD_APP_KEY_3:
-        required: false
 
 jobs:
   compute_parameters:
