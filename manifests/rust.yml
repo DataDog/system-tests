@@ -347,7 +347,7 @@ manifest:
   ? tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability::test_distributed_headers_are_propagated_datadog
   : missing_feature  # Created by easy win activation script
   tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability::test_otel_start_after_datadog_span: missing_feature  # Created by easy win activation script
-  tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability::test_set_attribute_from_datadog: missing_feature  # Created by easy win activation script
+  tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability::test_set_attribute_from_datadog: missing_feature (nested arrays can't be OTel attribute values)
   tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability::test_set_attribute_from_otel: missing_feature  # Created by easy win activation script
   tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability::test_set_update_remove_meta: missing_feature  # Created by easy win activation script
   tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability::test_set_update_remove_metric: missing_feature  # Created by easy win activation script

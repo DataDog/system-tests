@@ -122,7 +122,7 @@ async fn start_span(
         // hack to fix some test_otel_span_methods.py with wrong resorce name
         opentelemetry::KeyValue::new("resource.name".to_string(), args.name),
     ];
-    attributes.append(&mut parse_attributes(args.attributes.as_ref()));
+    attributes.append(&mut parse_attributes_native(args.attributes.as_ref()));
     builder = builder.with_attributes(attributes);
 
     let parent_ctx = if let Some(parent_id) = args.parent_id {
@@ -275,7 +275,7 @@ async fn set_attributes(State(state): State<AppState>, Json(args): Json<SetAttri
     let span_id = args.span_id;
     if let Some(ctx) = state.contexts.lock().unwrap().get_mut(&span_id) {
         let span = ctx.context.span();
-        let attributes = parse_attributes(args.attributes.as_ref());
+        let attributes = parse_attributes_native(args.attributes.as_ref());
         debug!("set_attributes span found: {span_id} {attributes:#?}");
         span.set_attributes(attributes);
     } else {

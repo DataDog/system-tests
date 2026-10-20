@@ -272,8 +272,8 @@ pub fn parse_attributes(attributes: Option<&HashMap<String, JsonValue>>) -> Vec<
 }
 
 /// Like [`parse_attributes`], but keeps arrays as native OTel arrays instead of
-/// flattening them to `key.N`. Used for span events and links, whose attributes the
-/// tracer serializes with their original types. Values the OTel API can't represent
+/// flattening them to `key.N`. Used for span attributes, events and links, which the
+/// tracer serializes itself. Values the OTel API can't represent
 /// (mixed or nested arrays, integers beyond 64 bits) are dropped.
 pub fn parse_attributes_native(attributes: Option<&HashMap<String, JsonValue>>) -> Vec<KeyValue> {
     let Some(attributes) = attributes else {
