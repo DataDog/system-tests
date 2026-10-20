@@ -702,16 +702,16 @@ manifest:
   tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_chunks_enqueued_for_serialization:
     - weblog_declaration:
         axum: missing_feature (telemetry metric generation is not implemented)
-  tests/test_telemetry.py::Test_ProductsDisabled: missing_feature (product state is not reported in app-started telemetry)
+  tests/test_telemetry.py::Test_ProductsDisabled: irrelevant (no AppSec, profiler or dynamic instrumentation in dd-trace-rs)
   tests/test_telemetry.py::Test_Telemetry::test_api_still_v1: irrelevant
   tests/test_telemetry.py::Test_Telemetry::test_app_dependencies_loaded: missing_feature (/load_dependency endpoint not implemented)
-  tests/test_telemetry.py::Test_Telemetry::test_app_product_change: missing_feature (dd-trace-rs has no appsec or profiler product to enable)
+  tests/test_telemetry.py::Test_Telemetry::test_app_product_change: irrelevant (no AppSec, profiler or dynamic instrumentation in dd-trace-rs)
   tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_forks: missing_feature (fork is not safe under tokio; /spawn_child only supports fork=false)
   tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_spawned: '>0.5.2'  # TODO: a lower version might be supported
   tests/test_telemetry.py::Test_Telemetry::test_telemetry_message_has_datadog_container_id: "irrelevant (cgroup in weblog is 0::/, so this test can't work)"
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting: irrelevant (no expected configuration is defined for Rust)
   tests/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_propagated: missing_feature (DD_APPSEC_SCA_ENABLED telemetry reporting is not implemented)
-  tests/test_telemetry.py::Test_TelemetryV2::test_app_started_product_info: missing_feature (Product information missing in app-started telemetry payload)
+  tests/test_telemetry.py::Test_TelemetryV2::test_app_started_product_info: irrelevant (no AppSec, profiler or dynamic instrumentation in dd-trace-rs)
   tests/test_v1_payloads.py:  # TODO: a lower version might be supported
     - weblog_declaration:
         '*': missing_feature
