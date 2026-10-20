@@ -2620,15 +2620,21 @@ manifest:
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1: v3.12.0.dev
   tests/remote_config:
     - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.16.0  # TODO: a lower version might be supported
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationExtraServices:
     - weblog_declaration:
         "*": v2.1.1
         django-py3.13: v3.15.0.dev (v2.1.1 but fixed incompatibility issue with gevent 25.8.2)
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDD: v2.9.0
-  tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDDNoCache: missing_feature
+  tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDDNoCache:
+    - declaration: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeatures: v1.7.4
-  tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
+  tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeaturesNoCache:
+    - declaration: irrelevant (cache is implemented)
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceLiveDebugging: v2.8.0
   tests/schemas:
     - weblog_declaration:
