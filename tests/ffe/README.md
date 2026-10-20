@@ -35,10 +35,13 @@ Framework mock-backend and lifecycle tests stay in `tests/test_the_test/`.
 ## Bounds and overload coverage
 
 The consented context tests exercise field count and string length separately.
-The count case accepts any valid retained subset (SDK map iteration order is not
-part of the contract). The value case stays below the field-count cap, so that
-cap cannot hide a missing string-length check. Missing evaluation context and
-truncated, rather than omitted, oversized strings fail.
+At the 256-field limit, every valid field must survive unchanged. Above the
+limit, SDKs may retain any valid subset or omit evaluation context entirely to
+bound capture work; map iteration order is not part of the contract. Both cases
+require the correct flag result, consented identity, and exact evaluation count.
+The value case stays below the field-count cap, so that cap cannot hide a missing
+string-length check. Missing in-limit context and truncated, rather than omitted,
+oversized strings fail.
 
 `Test_FFE_EVP_Flagevaluation_Oversized_Identity` is PHP-native IPC coverage.
 It sends a targeting key over 5 MiB, then a normal evaluation through the public

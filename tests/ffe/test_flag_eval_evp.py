@@ -398,6 +398,24 @@ class Test_FFE_EVP_Flagevaluation_Count:
 class Test_FFE_EVP_Flagevaluation_Context_Bounds:
     """Test that EVP evaluation context is bounded before it reaches payloads."""
 
+    def setup_ffe_evp_flagevaluation_context_within_bounds(self) -> None:
+        self.within_flag_key = "evp-context-within-bounds-flag"
+        rc.tracer_rc_state.reset().set_config(
+            f"{RC_PATH}/ffe-evp-context-within-bounds/config",
+            make_ufc_fixture(self.within_flag_key, observe_full_evaluation_data=True),
+        ).apply()
+        self.within_attributes: JSON = {f"field_{index:03d}": f"value-{index}" for index in range(256)}
+        self.within_response = evaluate_flag(
+            self.within_flag_key, targeting_key="evp-context-user", attributes=self.within_attributes
+        )
+
+    def test_ffe_evp_flagevaluation_context_within_bounds(self) -> None:
+        events = self._assert_context_evaluation(self.within_response, self.within_flag_key)
+        for _, event in events:
+            context = event.get("context")
+            assert isinstance(context, dict), "in-limit consented evaluation must retain context"
+            assert context.get("evaluation") == self.within_attributes, "in-limit context fields must survive unchanged"
+
     def setup_ffe_evp_flagevaluation_context_bounds(self) -> None:
         config_id = "ffe-evp-context-bounds"
         self.flag_key = "evp-context-bounds-flag"
@@ -409,23 +427,38 @@ class Test_FFE_EVP_Flagevaluation_Context_Bounds:
         self.r = evaluate_flag(self.flag_key, targeting_key="evp-context-user", attributes=self.attributes)
 
     def test_ffe_evp_flagevaluation_context_bounds(self) -> None:
-        assert self.r.status_code == 200, f"Flag evaluation failed: {self.r.text}"
-
-        events = find_evp_flagevaluation_events(self.flag_key)
-        assert events, f"Expected EVP flagevaluation event for flag {self.flag_key}"
-
+        events = self._assert_context_evaluation(self.r, self.flag_key)
         for _, event in events:
-            assert_event_contract(event, self.flag_key)
-            context = event.get("context")
-            assert isinstance(context, dict), "consented evaluation must retain context"
-            evaluation_context = context.get("evaluation")
+            # SDKs may omit an over-limit map entirely to bound capture work.
+            # The separate in-limit case prevents unconditional context loss from passing.
+            if "context" not in event:
+                continue
+            context = event["context"]
+            assert isinstance(context, dict), "context must be an object when present"
+            if "evaluation" not in context:
+                continue
+            evaluation_context = context["evaluation"]
             assert isinstance(evaluation_context, dict), "context.evaluation must be an object"
-            assert evaluation_context, "valid context fields must survive pruning"
             assert len(evaluation_context) <= 256, f"context.evaluation has too many fields: {len(evaluation_context)}"
             # SDK maps need not preserve input order or choose the same retained subset.
             for key, value in evaluation_context.items():
                 assert key in self.attributes, f"unexpected context field: {key}"
                 assert value == self.attributes[key], f"context field {key} changed during pruning"
+
+    @staticmethod
+    def _assert_context_evaluation(response: HttpResponse, flag_key: str) -> list[tuple[JSON, JSON]]:
+        assert response.status_code == 200, f"Flag evaluation failed: {response.text}"
+        assert json.loads(response.text).get("value") == "on-value", "context limits must not change the flag result"
+        events = find_evp_flagevaluation_events(flag_key)
+        assert_total_evaluation_count(events, 1, flag_key)
+        for _, event in events:
+            assert_event_contract(event, flag_key)
+            assert event.get("targeting_key") == "evp-context-user", "context limits must preserve consented identity"
+            assert object_key(event.get("variant"), "variant") == "on"
+            assert object_key(event.get("allocation"), "allocation") == "default-allocation"
+            assert "error" not in event
+            assert "runtime_default_used" not in event
+        return events
 
     def setup_ffe_evp_flagevaluation_context_value_bounds(self) -> None:
         self.value_flag_key = "evp-context-value-bounds-flag"

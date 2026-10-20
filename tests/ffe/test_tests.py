@@ -98,11 +98,24 @@ def _bounded_context_event(flag_key: str) -> dict[str, Any]:
     [
         ("first subset", True),
         ("last subset", True),
-        ("missing context", False),
-        ("empty evaluation", False),
+        ("missing context", True),
+        ("service only", True),
+        ("empty evaluation", True),
+        ("null context", False),
+        ("null evaluation", False),
+        ("invalid evaluation", False),
         ("too many fields", False),
         ("changed value", False),
         ("unexpected field", False),
+        ("missing identity", False),
+        ("wrong identity", False),
+        ("wrong count", False),
+        ("no event", False),
+        ("wrong result", False),
+        ("missing variant", False),
+        ("missing allocation", False),
+        ("runtime default", False),
+        ("error", False),
     ],
 )
 @scenarios.feature_flagging_contract_tests
@@ -110,7 +123,7 @@ def _bounded_context_event(flag_key: str) -> dict[str, Any]:
 def test_flagevaluation_context_count_contract(monkeypatch: pytest.MonkeyPatch, case: str, *, valid: bool) -> None:
     check = flag_eval_evp_tests.Test_FFE_EVP_Flagevaluation_Context_Bounds()
     check.flag_key = "bounds-contract"
-    check.r = MagicMock(status_code=200)
+    check.r = MagicMock(status_code=200, text='{"value":"on-value"}')
     check.attributes = {f"field_{index:03d}": f"value-{index}" for index in range(300)}
     retained = dict(list(check.attributes.items())[:256])
     if case == "last subset":
@@ -124,14 +137,74 @@ def test_flagevaluation_context_count_contract(monkeypatch: pytest.MonkeyPatch, 
     elif case == "unexpected field":
         retained = {"not-supplied": "value"}
     event = _bounded_context_event(check.flag_key)
+    event["targeting_key"] = "evp-context-user"
     if case != "missing context":
         event["context"] = {"evaluation": retained}
-    monkeypatch.setattr(flag_eval_evp_tests, "find_evp_flagevaluation_events", lambda _: [({}, event)])
+    if case == "service only":
+        event["context"] = {"dd": {"service": "weblog"}}
+    elif case == "null context":
+        event["context"] = None
+    elif case == "null evaluation":
+        event["context"]["evaluation"] = None
+    elif case == "invalid evaluation":
+        event["context"]["evaluation"] = []
+    elif case == "missing identity":
+        del event["targeting_key"]
+    elif case == "wrong identity":
+        event["targeting_key"] = "different-user"
+    elif case == "wrong count":
+        event["evaluation_count"] = 2
+    elif case == "wrong result":
+        check.r.text = '{"value":"default"}'
+    elif case == "missing variant":
+        del event["variant"]
+    elif case == "missing allocation":
+        del event["allocation"]
+    elif case == "runtime default":
+        event["runtime_default_used"] = True
+    elif case == "error":
+        event["error"] = {"message": "failed"}
+    events: list[tuple[dict[str, Any], dict[str, Any]]] = [] if case == "no event" else [({}, event)]
+    monkeypatch.setattr(flag_eval_evp_tests, "find_evp_flagevaluation_events", lambda _: events)
     if valid:
         check.test_ffe_evp_flagevaluation_context_bounds()
     else:
         with pytest.raises(AssertionError):
             check.test_ffe_evp_flagevaluation_context_bounds()
+
+
+@pytest.mark.parametrize(
+    "case",
+    ["valid", "missing context", "service only", "empty evaluation", "lost field", "changed value", "extra field"],
+)
+@scenarios.feature_flagging_contract_tests
+@features.not_reported
+def test_flagevaluation_context_within_bounds_contract(monkeypatch: pytest.MonkeyPatch, case: str) -> None:
+    check = flag_eval_evp_tests.Test_FFE_EVP_Flagevaluation_Context_Bounds()
+    check.within_flag_key = "within-bounds-contract"
+    check.within_response = MagicMock(status_code=200, text='{"value":"on-value"}')
+    check.within_attributes = {f"field_{index:03d}": f"value-{index}" for index in range(256)}
+    event = _bounded_context_event(check.within_flag_key)
+    event["targeting_key"] = "evp-context-user"
+    event["context"] = {"evaluation": dict(check.within_attributes)}
+    if case == "missing context":
+        del event["context"]
+    elif case == "service only":
+        event["context"] = {"dd": {"service": "weblog"}}
+    elif case == "empty evaluation":
+        event["context"]["evaluation"] = {}
+    elif case == "lost field":
+        del event["context"]["evaluation"]["field_000"]
+    elif case == "changed value":
+        event["context"]["evaluation"]["field_000"] = "changed"
+    elif case == "extra field":
+        event["context"]["evaluation"]["extra"] = "not supplied"
+    monkeypatch.setattr(flag_eval_evp_tests, "find_evp_flagevaluation_events", lambda _: [({}, event)])
+    if case == "valid":
+        check.test_ffe_evp_flagevaluation_context_within_bounds()
+    else:
+        with pytest.raises(AssertionError):
+            check.test_ffe_evp_flagevaluation_context_within_bounds()
 
 
 @pytest.mark.parametrize("case", ["valid", "missing context", "service only", "lost sibling", "long", "truncated"])
@@ -160,7 +233,7 @@ def test_flagevaluation_context_value_contract(monkeypatch: pytest.MonkeyPatch, 
             check.test_ffe_evp_flagevaluation_context_value_bounds()
 
 
-@pytest.mark.parametrize("kind", ["count", "value"])
+@pytest.mark.parametrize("kind", ["count", "within", "value"])
 @scenarios.feature_flagging_contract_tests
 @features.not_reported
 def test_flagevaluation_bounds_fixtures_enable_consent(monkeypatch: pytest.MonkeyPatch, kind: str) -> None:
@@ -171,6 +244,8 @@ def test_flagevaluation_bounds_fixtures_enable_consent(monkeypatch: pytest.Monke
     check = flag_eval_evp_tests.Test_FFE_EVP_Flagevaluation_Context_Bounds()
     if kind == "count":
         check.setup_ffe_evp_flagevaluation_context_bounds()
+    elif kind == "within":
+        check.setup_ffe_evp_flagevaluation_context_within_bounds()
     else:
         check.setup_ffe_evp_flagevaluation_context_value_bounds()
     fixture = state.reset.return_value.set_config.call_args.args[1]
@@ -178,6 +253,9 @@ def test_flagevaluation_bounds_fixtures_enable_consent(monkeypatch: pytest.Monke
     attributes = evaluate.call_args.kwargs["attributes"]
     if kind == "count":
         assert len(attributes) > 256
+        assert all(len(value) <= 256 for value in attributes.values())
+    elif kind == "within":
+        assert len(attributes) == 256
         assert all(len(value) <= 256 for value in attributes.values())
     else:
         assert len(attributes) < 256
