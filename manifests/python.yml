@@ -1316,6 +1316,9 @@ manifest:
   tests/cws/test_thread_context_sharing.py::Test_ThreadContextSharing: v4.16.0.dev0
   tests/debugger:
     - weblog_declaration:
+        aiohttp: v4.16.0  # TODO: a lower version might be supported
+  tests/debugger/test_debugger_capture_expressions.py:
+    - weblog_declaration:
         aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Line_Capture_Expressions:
     - weblog_declaration:
@@ -1329,16 +1332,25 @@ manifest:
         *flask : v2.11.0
     - declaration: bug (DEBUG-5601)
       component_version: <4.9.0-rc2
+  tests/debugger/test_debugger_capture_expressions_errors.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/debugger/test_debugger_capture_expressions_errors.py::Test_Debugger_Filter_Rejected_Capture_Expression_Error:  # TODO: a lower version might be supported
     - declaration: missing_feature (Not yet implemented)
       component_version: <4.14.0
       weblog: [uds-flask, flask-poc, uwsgi-poc]
     - declaration: missing_feature (Not yet implemented)
       excluded_weblog: [uds-flask, flask-poc, uwsgi-poc]
+  tests/debugger/test_debugger_code_origins.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/debugger/test_debugger_code_origins.py::Test_Debugger_Code_Origins:
     - weblog_declaration:
         "*": missing_feature
         *flask : v2.11.0
+  tests/debugger/test_debugger_condition_errors.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/debugger/test_debugger_condition_errors.py::Test_Debugger_Invalid_Condition_DSL:
     - weblog_declaration:
         "*": missing_feature
@@ -1348,6 +1360,9 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         *flask : v2.11.0
+  tests/debugger/test_debugger_exception_replay.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay:
     - weblog_declaration:
         "*": missing_feature
@@ -1356,14 +1371,23 @@ manifest:
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_outofmemory: missing_feature (Implemented only for dotnet)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_inlined: irrelevant (Test for specific bug in dotnet)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_stackoverflow: missing_feature (Implemented only for dotnet)
+  tests/debugger/test_debugger_expression_language.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language:
     - weblog_declaration:
         "*": missing_feature
         *flask : v2.11.0
+  tests/debugger/test_debugger_guardrails.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/debugger/test_debugger_guardrails.py::Test_Debugger_Capture_Timeout_Guardrail: missing_feature (Configurable capture timeout is not available)
   tests/debugger/test_debugger_guardrails.py::Test_Debugger_Evaluation_Timeout_Line_Probe: irrelevant (Line-probe variant is only used by Node.js and Ruby)
   tests/debugger/test_debugger_guardrails.py::Test_Debugger_Evaluation_Timeout_Method_Probe: missing_feature (Debugger evaluation timeout guardrail not implemented yet)
   tests/debugger/test_debugger_guardrails.py::Test_Debugger_Snapshot_Size_Guardrail: missing_feature (Debugger snapshot size guardrail not implemented yet)
+  tests/debugger/test_debugger_inproduct_enablement.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin:
     - weblog_declaration:
         "*": missing_feature
@@ -1388,6 +1412,9 @@ manifest:
       component_version: <4.9.0
   ? tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay::test_inproduct_enablement_exception_replay_apm_multiconfig
   : missing_feature
+  tests/debugger/test_debugger_pii.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction:
     - weblog_declaration:
         "*": missing_feature
@@ -1407,12 +1434,18 @@ manifest:
       weblog: [uds-flask, uwsgi-poc, flask-poc]
   ? tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers::test_pii_redaction_log_probe_sensitive_type
   : bug (DEBUG-5959)
+  tests/debugger/test_debugger_probe_budgets.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets:
     - weblog_declaration:
         "*": missing_feature
         *flask : v2.11.0
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_log_line_capture_expression_budgets: bug (DEBUG-5743)
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_span_probe_expression_budgets: irrelevant (Python emits evaluation errors as span tags, not error snapshots to the debugger endpoint)
+  tests/debugger/test_debugger_probe_snapshot.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots:
     - weblog_declaration:
         "*": missing_feature
@@ -1441,6 +1474,9 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         *flask : v2.11.0
+  tests/debugger/test_debugger_probe_status.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses:
     - weblog_declaration:
         "*": missing_feature
@@ -1489,10 +1525,20 @@ manifest:
         django-poc: missing_feature
         tornado: missing_feature
         python3.12: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry: v2.11.0
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry::test_telemetry_co:
     - declaration: missing_feature (DEBUG-3550)
       component_version: <4.3.1
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry::test_telemetry_er:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry::test_telemetry_symdb:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/docker_ssi:
     - weblog_declaration:
         aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
