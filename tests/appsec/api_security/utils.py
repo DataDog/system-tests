@@ -1,4 +1,76 @@
-from utils import remote_config
+from collections.abc import Callable
+
+from utils import interfaces, logger, remote_config
+from utils._weblog import HttpResponse
+
+
+def _has_schemas(request: HttpResponse, addresses: tuple[str, ...]) -> bool:
+    """True if a root span of the request carries every _dd.appsec.s.<address> tag. Never asserts."""
+    for _, span in interfaces.library.get_root_spans(request=request):
+        meta = span.get("meta", {})
+        if all(f"_dd.appsec.s.{address}" in meta for address in addresses):
+            return True
+    return False
+
+
+def _has_root_span(request: HttpResponse) -> bool:
+    return any(True for _ in interfaces.library.get_root_spans(request=request))
+
+
+def _wait_for_root_span(request: HttpResponse, timeout: int) -> bool:
+    trace_paths = interfaces.library.trace_paths
+    # wait_for evaluates every existing payload before waiting: skip the ones already checked here,
+    # so each wait costs one scan per new trace payload instead of one per existing payload
+    checked = {data["log_filename"] for data in interfaces.library.get_data(path_filters=trace_paths)}
+    if _has_root_span(request):
+        return True
+
+    def trace_arrived(data: dict) -> bool:
+        return data["path"] in trace_paths and data["log_filename"] not in checked and _has_root_span(request)
+
+    return interfaces.library.wait_for(trace_arrived, timeout=timeout)
+
+
+def send_until_schema(
+    send: Callable[[], HttpResponse], *addresses: str, attempts: int = 3, timeout: int = 10
+) -> list[HttpResponse]:
+    """Send a request until its root span carries a schema for every address (use in setup_*).
+
+    API Security sampling is best-effort: a library may skip a request under load. Back-to-back
+    retries tend to be skipped together, so each retry waits for the previous request's trace.
+    Retries only help in scenarios with DD_API_SECURITY_SAMPLE_DELAY=0, otherwise the sampler
+    deduplicates the endpoint. Stops early if the weblog fails or no trace shows up. Never asserts
+    or raises: a setup failure aborts the scenario.
+    """
+    responses: list[HttpResponse] = []
+    for attempt in range(1, attempts + 1):
+        response = send()
+        responses.append(response)
+
+        if response.status_code is None or response.status_code >= 400:
+            break
+
+        if not _wait_for_root_span(response, timeout):
+            break
+
+        if _has_schemas(response, addresses):
+            break
+
+        if attempt < attempts:
+            logger.warning(f"No schema for {addresses} on attempt {attempt}/{attempts}, retrying")
+
+    return responses
+
+
+def get_sampled_response(requests: list[HttpResponse], *addresses: str) -> HttpResponse:
+    """Return the first response whose root span carries every address schema (use in test_*)."""
+    for request in requests:
+        if _has_schemas(request, addresses):
+            return request
+    attempts = [
+        f"rid={r.get_rid()} status={r.status_code} trace={'yes' if _has_root_span(r) else 'no'}" for r in requests
+    ]
+    raise AssertionError(f"no schema in {len(requests)} attempts for addresses {addresses}: {attempts}")
 
 
 class BaseAppsecApiSecurityRcTest:
