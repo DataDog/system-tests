@@ -647,7 +647,10 @@ app.post('/ffe/evaluate', async (req, res) => {
     await doEvaluate()
   }
 
-  res.json(details);
+  res.json({
+    ...details,
+    flagMetadata: details.flagMetadata ?? null
+  });
 });
 
 // OpenTelemetry Metrics Endpoints

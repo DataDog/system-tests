@@ -1,0 +1,95 @@
+from collections.abc import Mapping, Sequence
+from typing import Protocol
+
+_REJECTED_AMI_STATE = "rejected"
+
+
+class _SelectableAmi(Protocol):
+    creation_date: str
+    state: object
+    tags: Mapping[str, str] | None
+
+
+def boot_created_candidate_enabled(raw_value: str | None) -> bool:
+    """Keep the current AMI flow unless a pipeline sets AMI_BOOT_CREATED_CANDIDATE=true."""
+    return (raw_value or "false").lower() == "true"
+
+
+def candidate_result_state(exitstatus: int, *, provision_failed: bool, test_outcomes: Sequence[str]) -> str | None:
+    """Promote only after a real pass. Reject only after a real test failure."""
+    if provision_failed or not any(outcome in {"pass", "fail"} for outcome in test_outcomes):
+        return None
+    if "fail" in test_outcomes:
+        return "rejected"
+    if exitstatus == 0:
+        return "active"
+    return None
+
+
+def should_boot_created_candidate(*, update_cache: bool, skip_cache: bool, enabled: bool) -> bool:
+    """Boot the AMI created by this job, without replacing an existing cache."""
+    return enabled and update_cache and not skip_cache
+
+
+def _ami_state(ami: _SelectableAmi) -> str | None:
+    return (ami.tags or {}).get("ami-state")
+
+
+def select_usable_ami[AmiT: _SelectableAmi](amis: Sequence[AmiT]) -> AmiT | None:
+    """Prefer the newest active AMI, then an untagged AMI, then a candidate. Never boot rejected."""
+    usable = [ami for ami in amis if _ami_state(ami) != _REJECTED_AMI_STATE]
+    available = [ami for ami in usable if str(ami.state) == "available"]
+    active_amis = [ami for ami in available if _ami_state(ami) == "active"]
+    if active_amis:
+        return max(active_amis, key=lambda ami: ami.creation_date)
+    for ami_state in (None, "candidate"):
+        for ami in available:
+            if _ami_state(ami) == ami_state:
+                return ami
+    return next(iter(usable), None)
+
+
+def candidate_state_tags(tags: Mapping[str, str], cache_key: str, new_state: str) -> list[dict[str, str]] | None:
+    """Return a tag update for the candidate created by this job."""
+    owned_candidate = (
+        tags.get("CI") == "system-tests"
+        and tags.get("ami-state") == "candidate"
+        and tags.get("ami-cache-key") == cache_key
+    )
+    if not owned_candidate:
+        return None
+    return [{"Key": "ami-state", "Value": new_state}]
+
+
+def candidate_promotion_tags(tags: Mapping[str, str], cache_key: str) -> list[dict[str, str]] | None:
+    """Return the active tag for the candidate created by this job."""
+    return candidate_state_tags(tags, cache_key, "active")
+
+
+class _Ec2Images(Protocol):
+    def describe_images(self, **kwargs: object) -> dict[str, list[dict[str, list[dict[str, str]]]]]: ...
+
+    def create_tags(self, **kwargs: object) -> None: ...
+
+
+def set_created_candidate_state(ec2: _Ec2Images, ami_id: str, cache_key: str, new_state: str) -> bool:
+    """Update one candidate tag. This never deregisters or deletes an AMI."""
+    images = ec2.describe_images(ImageIds=[ami_id], Owners=["self"]).get("Images", [])
+    if len(images) != 1:
+        return False
+    tags = {item["Key"]: item["Value"] for item in images[0].get("Tags", [])}
+    update = candidate_state_tags(tags, cache_key, new_state)
+    if update is None:
+        return False
+    ec2.create_tags(Resources=[ami_id], Tags=update)
+    return True
+
+
+def promote_created_candidate(ec2: _Ec2Images, ami_id: str, cache_key: str) -> bool:
+    """Mark one candidate active."""
+    return set_created_candidate_state(ec2, ami_id, cache_key, "active")
+
+
+def reject_created_candidate(ec2: _Ec2Images, ami_id: str, cache_key: str) -> bool:
+    """Mark one candidate rejected so later jobs create a replacement."""
+    return set_created_candidate_state(ec2, ami_id, cache_key, "rejected")
