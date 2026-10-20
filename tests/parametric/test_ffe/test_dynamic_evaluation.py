@@ -43,21 +43,28 @@ def _load_ufc_fixture() -> dict[str, Any]:
         return json.load(f)
 
 
-def _get_test_case_files() -> list[str]:
-    """Get all test case files from the fixtures directory."""
+def _get_test_case_files() -> tuple[list[str], list[str]]:
+    """Get test case files grouped by whether they assert evaluation details."""
     test_data_dir = Path(__file__).parent
     if not test_data_dir.exists():
-        return []
+        return [], []
 
-    # Exclude base fixtures that aren't test cases
-    excluded = {"flags-v1.json", "span-enrichment-flags.json", "test-case-dependent-flags.json"}
-    return [f.name for f in test_data_dir.iterdir() if f.suffix == ".json" and f.name not in excluded]
+    value_only: list[str] = []
+    detailed: list[str] = []
+    for test_case_path in sorted(test_data_dir.glob("test-case-*.json")):
+        with test_case_path.open() as f:
+            test_cases = json.load(f)
+        needs_details = any(
+            "expectations" in test_case or set(test_case["result"]) != {"value"} for test_case in test_cases
+        )
+        destination = detailed if needs_details else value_only
+        destination.append(test_case_path.name)
+    return value_only, detailed
 
 
 # Load fixture at module level for reuse across tests
 UFC_FIXTURE_DATA = _load_ufc_fixture()
-ALL_TEST_CASE_FILES = _get_test_case_files()
-DEPENDENT_FLAGS_TEST_CASE_FILE = "test-case-dependent-flags.json"
+VALUE_ONLY_TEST_CASE_FILES, DETAILED_TEST_CASE_FILES = _get_test_case_files()
 
 DEFAULT_ENVVARS = {
     "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
@@ -229,7 +236,7 @@ def _events_match(actual: list[dict[str, Any]], expected: list[dict[str, Any]], 
     return not exact or not unmatched
 
 
-def _assert_dependent_flag_telemetry(test_agent: TestAgentAPI, test_cases: list[dict[str, Any]]) -> None:
+def _assert_evaluation_telemetry(test_agent: TestAgentAPI, test_cases: list[dict[str, Any]]) -> None:
     last_signature: tuple[tuple[str, str], ...] | None = None
     stable_polls = 0
     captured: dict[str, tuple[list[dict[str, Any]], list[dict[str, Any]]]] = {}
@@ -269,7 +276,7 @@ def _assert_dependent_flag_telemetry(test_agent: TestAgentAPI, test_cases: list[
         last_signature = signature
         time.sleep(FFE_EVENT_WAIT_INTERVAL_SECONDS)
     else:
-        raise AssertionError(f"dependent-flag telemetry did not stabilize: {captured}")
+        raise AssertionError(f"evaluation telemetry did not stabilize: {captured}")
 
     for test_case in test_cases:
         expectations = test_case["expectations"]
@@ -306,8 +313,6 @@ class Test_Feature_Flag_Dynamic_Evaluation:
         test_case_file: str,
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
-        *,
-        assert_details: bool = False,
     ) -> list[dict[str, Any]]:
         # Load the test case file
         test_case_path = Path(__file__).parent / test_case_file
@@ -346,34 +351,27 @@ class Test_Feature_Flag_Dynamic_Evaluation:
                 f"Test case {i} in {test_case_file} failed: FFE provider did not load RC data after "
                 f"{FFE_READY_RETRY_ATTEMPTS} attempts; result={result}"
             )
-            fields = ("value", "reason", "errorCode") if assert_details else ("value",)
-            for field in fields:
-                if field in expected_result:
-                    assert result.get(field) == expected_result[field], (
-                        f"Test case {i} in {test_case_file} failed: "
-                        f"flag='{flag}', targetingKey='{targeting_key}', field='{field}', "
-                        f"expected={expected_result[field]!r}, actual={result.get(field)!r}"
-                    )
-                elif field == "errorCode":
-                    assert result.get(field) is None, (
-                        f"Test case {i} in {test_case_file} failed: "
-                        f"flag='{flag}' unexpectedly returned errorCode={result.get(field)!r}"
-                    )
+            for field, expected_value in expected_result.items():
+                assert result.get(field) == expected_value, (
+                    f"Test case {i} in {test_case_file} failed: "
+                    f"flag='{flag}', targetingKey='{targeting_key}', field='{field}', "
+                    f"expected={expected_value!r}, actual={result.get(field)!r}"
+                )
         return test_cases
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    @parametrize("test_case_file", ALL_TEST_CASE_FILES)
+    @parametrize("test_case_file", VALUE_ONLY_TEST_CASE_FILES)
     def test_ffe_flag_evaluation(self, test_case_file: str, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Test FFE flag evaluation logic with various targeting scenarios."""
         self._assert_evaluation_cases(test_case_file, test_agent, test_library)
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_ffe_dependent_flag_evaluation(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
-        """Test dependent flags through the standard dynamic-evaluation path."""
-        test_cases = self._assert_evaluation_cases(
-            DEPENDENT_FLAGS_TEST_CASE_FILE,
-            test_agent,
-            test_library,
-            assert_details=True,
-        )
-        _assert_dependent_flag_telemetry(test_agent, test_cases)
+    @parametrize("test_case_file", DETAILED_TEST_CASE_FILES)
+    def test_ffe_detailed_flag_evaluation(
+        self, test_case_file: str, test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
+        """Test fields requested by detailed evaluation cases."""
+        test_cases = self._assert_evaluation_cases(test_case_file, test_agent, test_library)
+        telemetry_cases = [test_case for test_case in test_cases if "expectations" in test_case]
+        if telemetry_cases:
+            _assert_evaluation_telemetry(test_agent, telemetry_cases)

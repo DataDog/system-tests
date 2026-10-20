@@ -6,6 +6,7 @@ import pytest
 from utils._context.component_version import ComponentVersion
 from utils._logger import logger
 from utils.onboarding.debug_vm import download_vm_logs
+from utils.virtual_machine.ami_candidate import candidate_result_state
 from utils.virtual_machine.virtual_machines import _VirtualMachine, load_virtual_machines
 from .core import Scenario, ScenarioGroup
 
@@ -153,7 +154,18 @@ class _VirtualMachineScenario(Scenario):
                 # different version
                 del self.components[key]
 
-    def pytest_sessionfinish(self, session: pytest.Session, exitstatus: int) -> None:  # noqa: ARG002
+    def pytest_sessionfinish(self, session: pytest.Session, exitstatus: int) -> None:
+        if self.vm_provider is not None:
+            outcomes = [
+                value
+                for item in session.items
+                for key, value in item.user_properties
+                if key == "dd_tags[test.final_status]"
+            ]
+            provision_failed = self.vm_provider.vm.provision_install_error is not None
+            self.vm_provider.promote_booted_candidate(
+                candidate_result_state(exitstatus, provision_failed=provision_failed, test_outcomes=outcomes)
+            )
         self.close_targets()
 
     def close_targets(self):
