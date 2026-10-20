@@ -153,6 +153,7 @@ manifest:
   tests/appsec/waf/test_blocking.py::Test_CustomBlockingResponse: missing_feature (blocking not supported in Java Lambda)
   tests/ffe/test_evaluation_telemetry_opt_out.py: irrelevant (This server weblog scenario does not apply to Lambda)
   tests/ffe/test_flag_eval_evp.py: irrelevant (server-side FFE EVP weblog scenario is not applicable to lambda)
+  tests/parametric/test_ffe/test_rules_configuration.py: missing_feature (Standalone rules configuration helpers are currently tested only in Node.js)
   tests/test_resource_renaming.py: missing_feature
   tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)
   tests/test_v1_payloads.py: missing_feature

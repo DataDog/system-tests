@@ -218,6 +218,12 @@ Note: These are based off of the Python tracer's http server which should be hel
 
 Not all endpoint implementations per language are up to spec with regards to their parameters and return values. To view endpoints that are not up to spec, see the [feature parity board](https://feature-parity.us1.prod.dog/#/?runDateFilter=7d&feature=339)
 
+#### Standalone Rules Configuration
+
+`test_library.ffe_fetch_rules_configuration(options)` calls `POST /ffe/fetch-rules-configuration` (currently implemented in Node.js only). It fetches and serializes configuration using the public standalone FFE helpers in a fresh process, without initializing a tracer or OpenFeature provider. The response is either `{ "wire": "..." }` or `{ "error": { "name": "ConfigurationFetchError", "code": "...", "message": "...", "status": 403 } }`. `status` is present only for HTTP failures. Unexpected failures return HTTP 500.
+
+Options use the Node helper's names (`distributionChannel`, `apiKey`, `clientToken`, `env`, `site`, `timeoutMs`). The test-only `abort` option supplies an already-aborted signal; `abortAfterMs` cancels an in-flight operation after the specified delay. `SYSTEM_TESTS_FFE_RULES_BASE_URL` routes the helper's custom Fetch transport to the mock backend, preserving paths, queries, headers, and redirect/cancellation options. No browser handoff is performed.
+
 #### Effective OpenTelemetry configuration
 
 Use `test_library.otel_effective_config()` to inspect resolved OTLP exporter timeouts.
