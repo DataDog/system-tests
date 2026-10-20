@@ -17,7 +17,15 @@ def _has_root_span(request: HttpResponse) -> bool:
     return any(True for _ in interfaces.library.get_root_spans(request=request))
 
 
+class _TraceWait:
+    # set after the first timeout: if traces stop arriving, later setups must not wait again,
+    # so the whole session pays at most one timeout
+    disabled = False
+
+
 def _wait_for_root_span(request: HttpResponse, timeout: int) -> bool:
+    if _TraceWait.disabled:
+        return False
     trace_paths = interfaces.library.trace_paths
     # wait_for evaluates every existing payload before waiting: skip the ones already checked here,
     # so each wait costs one scan per new trace payload instead of one per existing payload
@@ -28,16 +36,22 @@ def _wait_for_root_span(request: HttpResponse, timeout: int) -> bool:
     def trace_arrived(data: dict) -> bool:
         return data["path"] in trace_paths and data["log_filename"] not in checked and _has_root_span(request)
 
-    return interfaces.library.wait_for(trace_arrived, timeout=timeout)
+    if interfaces.library.wait_for(trace_arrived, timeout=timeout):
+        return True
+    logger.warning("No trace received while waiting for a schema; disabling further waits")
+    _TraceWait.disabled = True
+    return False
 
 
 def send_until_schema(
-    send: Callable[[], HttpResponse], *addresses: str, attempts: int = 3, timeout: int = 10
+    send: Callable[[], HttpResponse], *addresses: str, attempts: int = 3, timeout: int = 5
 ) -> list[HttpResponse]:
     """Send a request until its root span carries a schema for every address (use in setup_*).
 
     API Security sampling is best-effort: a library may skip a request under load. Back-to-back
-    retries tend to be skipped together, so each retry waits for the previous request's trace.
+    retries tend to be skipped together (same trace flush window), so the decision to retry needs
+    the previous request's trace: this is an event-driven wait, not a sleep, and it ends as soon as
+    the trace arrives. After one timeout no further waits happen in the session.
     Retries only help in scenarios with DD_API_SECURITY_SAMPLE_DELAY=0, otherwise the sampler
     deduplicates the endpoint. Stops early if the weblog fails or no trace shows up. Never asserts
     or raises: a setup failure aborts the scenario.
