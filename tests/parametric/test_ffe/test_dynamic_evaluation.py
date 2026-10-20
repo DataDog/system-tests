@@ -40,13 +40,9 @@ def _get_test_case_files() -> tuple[list[str], list[str]]:
     if not test_data_dir.exists():
         return [], []
 
-    # Exclude base fixtures that aren't test cases
-    excluded = {"flags-v1.json", "span-enrichment-flags.json"}
     value_only: list[str] = []
     detailed: list[str] = []
-    for test_case_path in sorted(test_data_dir.glob("*.json")):
-        if test_case_path.name in excluded:
-            continue
+    for test_case_path in sorted(test_data_dir.glob("test-case-*.json")):
         with test_case_path.open() as f:
             test_cases = json.load(f)
         destination = detailed if any(set(test_case["result"]) != {"value"} for test_case in test_cases) else value_only
