@@ -103,6 +103,48 @@ class Test_FFE_ExposureHooks:
         "library_env",
         [{**BASE_ENV}, {**BASE_ENV, "DD_FEATURE_FLAGS_EXPOSURES_DATADOG_LOGGING_ENABLED": "false"}],
     )
+    def test_after_hook_failure_compatibility(
+        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
+        install(test_agent, make_ufc_fixture("hook-flag", serial_id=0), wait=False)
+        test_agent.wait_for_rc_apply_state(
+            "FFE_FLAGS", state=RemoteConfigApplyState.ACKNOWLEDGED, config_id="exposure-hooks", wait_loops=500
+        )
+        assert test_library.ffe_start()
+        rejected = evaluate(test_library, "athlete", fail_after=True)
+        assert rejected["value"] == "fallback"
+        rows = rejected["exposureHooks"]
+        assert len(rows) == 2
+        assert {row["hook"] for row in rows} == {0, 1}
+        for row in rows:
+            assert row["value"] == "fallback"
+            assert row["errorCode"] == "GENERAL"
+            assert row["reason"] == "ERROR"
+            assert row["isExposure"] is False
+            assert row["isCacheHit"] is False
+            assert row["shouldSend"] is False
+        # This test covers the exposure-hook bridge. The full contract test below
+        # also checks OpenFeature's returned error details, which need go-sdk#623.
+        observations(evaluate(test_library, "athlete"), exposure=True, hit=False)
+        observations(evaluate(test_library, "athlete"), exposure=True, hit=True)
+
+        deadline = time.monotonic() + 5
+        while time.monotonic() < deadline:
+            exposures = events(test_agent, "/api/v2/exposures", "exposures")
+            if library_env.get("DD_FEATURE_FLAGS_EXPOSURES_DATADOG_LOGGING_ENABLED") == "false":
+                assert exposures == []
+            else:
+                assert len(exposures) <= 1
+            time.sleep(0.2)
+        exposures = events(test_agent, "/api/v2/exposures", "exposures")
+        if library_env.get("DD_FEATURE_FLAGS_EXPOSURES_DATADOG_LOGGING_ENABLED") != "false":
+            assert len(exposures) == 1
+            assert exposures[0]["serial_id"] == 0
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [{**BASE_ENV}, {**BASE_ENV, "DD_FEATURE_FLAGS_EXPOSURES_DATADOG_LOGGING_ENABLED": "false"}],
+    )
     def test_shared_cache_and_destination_control(
         self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
     ) -> None:
