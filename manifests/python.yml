@@ -2693,7 +2693,7 @@ manifest:
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceLiveDebugging: v2.8.0
   tests/schemas:
     - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.16.0  # TODO: a lower version might be supported
   tests/serverless:
     - weblog_declaration:
         aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
