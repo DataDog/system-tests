@@ -206,6 +206,12 @@ elif [ "$TARGET" = "java" ] || [ "$TARGET" = "java_lambda" ]; then
 
     curl --fail --location --silent --show-error --output dd-java-agent.jar "https://s3.us-east-1.amazonaws.com/dd-trace-java-builds/${LIBRARY_TARGET_BRANCH}/dd-java-agent.jar"
 
+    if [ "$TARGET" = "java" ]; then
+        # Parametric tests need the development APIs, not the latest Maven release.
+        curl --fail --location --silent --show-error --output dd-trace-api.jar "https://s3.us-east-1.amazonaws.com/dd-trace-java-builds/${LIBRARY_TARGET_BRANCH}/dd-trace-api.jar"
+        curl --fail --location --silent --show-error --output dd-openfeature.jar "https://s3.us-east-1.amazonaws.com/dd-trace-java-builds/${LIBRARY_TARGET_BRANCH}/dd-openfeature.jar"
+    fi
+
 elif [ "$TARGET" = "dotnet" ]; then
     assert_version_is_dev
 

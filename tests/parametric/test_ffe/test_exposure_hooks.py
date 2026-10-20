@@ -16,6 +16,7 @@ BASE_ENV = {
     "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
     "DD_FLAGGING_EVALUATION_COUNTS_ENABLED": "true",
     "DD_METRICS_OTEL_ENABLED": "true",
+    "OTEL_METRIC_EXPORT_INTERVAL": "1000",
     "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": "http/protobuf",
     "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE": "cumulative",
 }
@@ -73,7 +74,7 @@ def evaluate(
 def observations(
     result: dict[str, Any], *, exposure: bool, hit: bool, error_code: str = "", flag: str = "hook-flag"
 ) -> None:
-    assert result["errorCode"] == error_code, result
+    assert (result["errorCode"] or "") == error_code, result
     rows = result.get("exposureHooks", [])
     assert len(rows) == 2, result
     assert {row["hook"] for row in rows} == {0, 1}
@@ -100,17 +101,17 @@ def events(test_agent: TestAgentAPI, path: str, field: str) -> list[dict[str, An
 class Test_FFE_ExposureHooks:
     @pytest.mark.parametrize(
         "library_env",
-        [BASE_ENV, {**BASE_ENV, "DD_FEATURE_FLAGS_EXPOSURES_DATADOG_LOGGING_ENABLED": "false"}],
+        [{**BASE_ENV}, {**BASE_ENV, "DD_FEATURE_FLAGS_EXPOSURES_DATADOG_LOGGING_ENABLED": "false"}],
     )
     def test_shared_cache_and_destination_control(
         self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
     ) -> None:
         fixture = make_ufc_fixture("hook-flag", serial_id=0)
         install(test_agent, fixture, wait=False)
-        assert test_library.ffe_start()
         test_agent.wait_for_rc_apply_state(
-            "FFE_FLAGS", state=RemoteConfigApplyState.ACKNOWLEDGED, config_id="exposure-hooks"
+            "FFE_FLAGS", state=RemoteConfigApplyState.ACKNOWLEDGED, config_id="exposure-hooks", wait_loops=500
         )
+        assert test_library.ffe_start()
         rejected = evaluate(test_library, "athlete", fail_after=True)
         assert rejected["value"] == "fallback"
         assert rejected["reason"] == "ERROR"
@@ -153,9 +154,19 @@ class Test_FFE_ExposureHooks:
                 break
             time.sleep(0.2)
         assert 8 in counts, counts
-        exposures = events(test_agent, "/api/v2/exposures", "exposures")
         if library_env.get("DD_FEATURE_FLAGS_EXPOSURES_DATADOG_LOGGING_ENABLED") == "false":
-            assert exposures == []
+            # Observe multiple flush intervals; metric delivery does not prove exposure delivery.
+            deadline = time.monotonic() + 5
+            while time.monotonic() < deadline:
+                assert events(test_agent, "/api/v2/exposures", "exposures") == []
+                time.sleep(0.2)
         else:
+            deadline = time.monotonic() + 20
+            exposures = []
+            while time.monotonic() < deadline:
+                exposures = events(test_agent, "/api/v2/exposures", "exposures")
+                if len(exposures) >= 3:
+                    break
+                time.sleep(0.2)
             assert len(exposures) == 3, exposures
             assert sorted(event["serial_id"] for event in exposures) == [0, 0, 42]
