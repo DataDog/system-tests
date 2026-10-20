@@ -151,6 +151,7 @@ def otlp_traces_and_metrics_library_env(library_env: dict[str, str], test_agent:
     """
     library_env["OTEL_EXPORTER_OTLP_METRICS_ENDPOINT"] = f"http://{test_agent.container_name}:4318/v1/metrics"
     library_env["OTEL_EXPORTER_OTLP_TRACES_ENDPOINT"] = f"http://{test_agent.container_name}:4318/v1/traces"
+    library_env["OTEL_EXPORTER_OTLP_TRACES_PROTOCOL"] = "http/protobuf"
     return library_env
 
 
