@@ -7,7 +7,11 @@ from utils import context, features, logger, scenarios, slow
 import json
 import time
 
-TIMEOUT = 5
+# Configs reach the tracer through the agent, which polls the Remote Config
+# backend every 5 seconds, so allow for at least two agent refreshes.
+TIMEOUT = 15
+# Interval at which the agent refreshes its Remote Config configs, in seconds.
+AGENT_REFRESH_INTERVAL = 5
 DEFAULT_ENVVARS = {
     "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
 }
@@ -29,12 +33,33 @@ class Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation(debugger.BaseDe
     """
 
     def setup_inproduct_enablement_di(self):
-        def _send_config(*, enabled: bool | None = None, reset: bool = True):
+        def _send_config(
+            *,
+            enabled: bool | None = None,
+            reset: bool = True,
+            expect_installed: bool = False,
+            expect_removed: bool = False,
+        ):
             probe = json.loads(self._probe_template)
             probe["id"] = debugger.generate_probe_id("log")
             self.set_probes([probe])
 
             self.send_rc_apm_tracing_and_probes(dynamic_instrumentation_enabled=enabled, reset=reset)
+            if expect_installed:
+                # Probes are not necessarily installed by the time the library
+                # receives the config (e.g. for Go, system-probe installs them
+                # afterwards); make sure the request below hits them.
+                self.wait_for_all_probes(statuses=["INSTALLED", "EMITTING"], timeout=TIMEOUT)
+            if expect_removed:
+                # Probes are not necessarily removed by the time the library
+                # receives the config. For Go, system-probe learns that the
+                # tracer stopped subscribing to LIVE_DEBUGGING only when the
+                # agent next refreshes its configs from the backend, which it
+                # does every 5 seconds while Live Debugger is in use. Until
+                # then, it keeps the probes installed, including the ones sent
+                # together with the disablement. No status reports the removal,
+                # so wait for the refresh.
+                time.sleep(AGENT_REFRESH_INTERVAL + 1)
             self.send_weblog_request("/debugger/log")
 
         self.initialize_weblog_remote_config()
@@ -44,13 +69,13 @@ class Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation(debugger.BaseDe
         _send_config()
         self.di_initial_disabled = not self.wait_for_all_probes(statuses=["EMITTING"], timeout=TIMEOUT)
 
-        _send_config(enabled=True, reset=False)
+        _send_config(enabled=True, reset=False, expect_installed=True)
         self.di_explicit_enabled = self.wait_for_all_probes(statuses=["EMITTING"], timeout=TIMEOUT)
 
-        _send_config(reset=False)
+        _send_config(reset=False, expect_installed=True)
         self.di_empty_config = self.wait_for_all_probes(statuses=["EMITTING"], timeout=TIMEOUT)
 
-        _send_config(enabled=False, reset=False)
+        _send_config(enabled=False, reset=False, expect_removed=True)
         self.di_explicit_disabled = not self.wait_for_all_probes(statuses=["EMITTING"], timeout=TIMEOUT)
 
     def test_inproduct_enablement_di(self):
