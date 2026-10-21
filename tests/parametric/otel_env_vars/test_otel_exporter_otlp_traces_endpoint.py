@@ -1,3 +1,5 @@
+import time
+
 from tests.parametric.conftest import APMLibrary
 from utils import features, pytest, scenarios
 from utils.docker_fixtures import TestAgentAPI
@@ -112,6 +114,12 @@ class Test_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:
                 pass
             library.dd_flush()
 
-        # The proxy only forwards requests received on <base path>/v1/traces, so any request here proves it
-        requests = test_agent.wait_for_num_otlp_requests(1)
+        # The proxy only forwards requests received on <base path>/v1/traces, so any trace request here proves it.
+        # The test agent also lists other requests (e.g. telemetry), so wait for a trace request specifically.
+        requests: list[dict] = []
+        for _ in range(30):
+            requests = test_agent.otlp_requests()
+            if any(request["url"].endswith(DEFAULT_PATH) for request in requests):
+                break
+            time.sleep(0.1)
         assert any(request["url"].endswith(DEFAULT_PATH) for request in requests), requests
