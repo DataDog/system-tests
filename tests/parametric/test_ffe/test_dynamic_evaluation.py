@@ -203,11 +203,17 @@ class Test_Feature_Flag_Dynamic_Evaluation:
                 f"Test case {i} in {test_case_file} failed: FFE provider did not load RC data after "
                 f"{FFE_READY_RETRY_ATTEMPTS} attempts; result={result}"
             )
-            for field, expected_value in expected_result.items():
-                assert result.get(field) == expected_value, (
+            for field in ("value", "reason", "errorCode"):
+                if field not in expected_result:
+                    continue
+                assert result.get(field) == expected_result[field], (
                     f"Test case {i} in {test_case_file} failed: "
                     f"flag='{flag}', targetingKey='{targeting_key}', field='{field}', "
-                    f"expected={expected_value!r}, actual={result.get(field)!r}"
+                    f"expected={expected_result[field]!r}, actual={result.get(field)!r}"
+                )
+            if "errorCode" not in expected_result and expected_result.get("reason") != "ERROR":
+                assert result.get("errorCode") in {None, ""}, (
+                    f"Test case {i} in {test_case_file}: unexpected evaluation error; result={result}"
                 )
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
