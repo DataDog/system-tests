@@ -26,7 +26,6 @@ from utils._context.containers import (
 from utils._context.weblog_infrastructure import EndToEndWeblogInfra
 from utils._context.constants import WeblogCategory
 from utils._logger import logger
-from utils.mocked_backend.backend_v2 import get_mocked_backend_v2_container_url
 
 from .core import Scenario, ScenarioGroup, scenario_groups as all_scenario_groups
 
@@ -275,12 +274,6 @@ class EndToEndScenario(DockerScenario):
                 "traffic to both the proxy and the mocked backend. Set use_proxy_for_agent=False."
             )
 
-        if mocked_backend_v2:
-            agent_env = dict(agent_env) if agent_env else {}
-            mocked_backend_url = get_mocked_backend_v2_container_url()
-            agent_env.setdefault("DD_DD_URL", mocked_backend_url)
-            agent_env.setdefault("DD_APM_DD_URL", mocked_backend_url)
-
         self.agent_container = AgentContainer(
             use_proxy=use_proxy_for_agent, rc_backend_enabled=rc_backend_enabled, environment=agent_env
         )
@@ -358,6 +351,10 @@ class EndToEndScenario(DockerScenario):
             interfaces.backend_v2.configure(self.host_log_folder, replay=self.replay)
             if not self.replay:
                 interfaces.backend_v2.start_mocked_backend()
+                mocked_backend_url = interfaces.backend_v2.server.container_url
+                self.agent_container.environment.setdefault("DD_DD_URL", mocked_backend_url)
+                self.agent_container.environment.setdefault("DD_APM_DD_URL", mocked_backend_url)
+
         interfaces.library_dotnet_managed.configure(self.host_log_folder, replay=self.replay)
         interfaces.library_stdout.configure(self.host_log_folder, replay=self.replay)
         if self.include_agent:

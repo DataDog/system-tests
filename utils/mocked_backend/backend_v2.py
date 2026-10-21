@@ -66,11 +66,6 @@ def get_mocked_backend_v2_port() -> int:
     return _PORT_BASE
 
 
-def get_mocked_backend_v2_container_url() -> str:
-    """The URL a container can use to reach the mock server on the docker host."""
-    return f"http://{HOST_DOCKER_INTERNAL}:{get_mocked_backend_v2_port()}"
-
-
 class MockBackendV2Server(ThreadingHTTPServer):
     """Base HTTP server for every mocked backend, and, used as-is, a local HTTP server standing in
     for the Datadog backend API: it binds on every interface (not just loopback) so containers can
@@ -108,6 +103,11 @@ class MockBackendV2Server(ThreadingHTTPServer):
     def base_url(self) -> str:
         return f"http://127.0.0.1:{self.port}"
 
+    @property
+    def container_url(self) -> str:
+        """The URL a container can use to reach the mock server on the docker host."""
+        return f"http://{HOST_DOCKER_INTERNAL}:{self.port}"
+
     def add_handler(self, method: HttpMethod, path: str, handler: RouteHandler) -> None:
         """Register a handler for an exact (method, path) pair. ``path`` is matched without its
         query string; the handler is responsible for validating query params/headers/body itself
@@ -134,11 +134,13 @@ class MockBackendV2RequestHandler(BaseHTTPRequestHandler):
 
     # catch response events
     def send_response(self, code: int, message: str | None = None) -> None:
-        self._data["response"]["status_code"] = code
+        if hasattr(self, "_data"):
+            self._data["response"]["status_code"] = code
         return super().send_response(code, message)
 
     def send_header(self, keyword: str, value: str) -> None:
-        self._data["response"]["headers"].append((keyword, value))
+        if hasattr(self, "_data"):
+            self._data["response"]["headers"].append((keyword, value))
         return super().send_header(keyword, value)
 
     def log_message(self, _format: str, *_args: object) -> None:

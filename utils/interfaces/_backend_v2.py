@@ -21,6 +21,11 @@ class _BackendV2InterfaceValidator(ProxyBasedInterfaceValidator):
         super().__init__("backend_v2")
         self._mock_server: MockBackendV2Server | None = None
 
+    @property
+    def server(self) -> MockBackendV2Server:
+        assert self._mock_server is not None
+        return self._mock_server
+
     def start_mocked_backend(self) -> None:
         if self._mock_server is None:
             self._mock_server = MockBackendV2Server(self.log_folder, on_message=self._on_message)
