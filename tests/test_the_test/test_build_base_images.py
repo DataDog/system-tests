@@ -798,6 +798,13 @@ class Test_BaseImageTag:
     def test_weblog_without_dockerfile(self):
         assert _base_image_tag("golang", "envoy") is None
 
+    def test_parametric_with_base_image(self):
+        lock = load_base_image_lock()
+        assert _base_image_tag("python", "parametric") == lock["system_tests_base_python_python_parametric"]
+
+    def test_parametric_without_base_image(self):
+        assert _base_image_tag("golang", "parametric") is None
+
     def test_unknown_weblog_fails(self):
         with pytest.raises(SystemExit):
             _base_image_tag("golang", "unknown")
