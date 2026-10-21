@@ -25,7 +25,9 @@ This directory contains system tests for the Feature Flags & Experimentation (FF
 All four test classes report under [#649: Per-subject evaluation telemetry opt-out](https://feature-parity.us1.prod.dog/#/?feature=649).
 
 Candidate SDK implementations must pass the applicable local checks before delivery.
-Released-version CI activation is a separate step. Manifests keep the tests disabled until supported SDK versions are known.
+Released-version CI activation is a separate step. Both scenarios are excluded from the default
+`all`, `end_to_end`, and `tracer_release` groups. They remain selectable by name or through the `ffe` group.
+Manifests mark unsupported SDK versions as expected failures; this does not prevent their setup from running.
 Use a local candidate SDK and force these tests to validate unreleased changes:
 
 ```bash
@@ -43,12 +45,14 @@ The disabled scenario leaves the setting absent. Both use the same requests.
 | Boolean `true` | No evaluation telemetry | Evaluation telemetry remains |
 | Boolean `false`, missing, string `"true"`, or number `1` | Evaluation telemetry remains | Evaluation telemetry remains |
 
-Separate tests check EVP counts, evaluation metrics, and automatic trace annotations.
+Separate tests check exact EVP counts, evaluation metric presence, and automatic trace annotations.
+Metric checks accept delta exports and repeated cumulative exports. Opted-out flags must have no nonzero metric points.
 Each test includes allowed subjects as positive controls.
 Mixed subjects evaluate the same flag to detect a flag-scoped opt-out decision.
 One rule targets the opt-out attribute to verify that it remains available for evaluation.
 All requests must return the same flag value. Exposures must retain their ordinary deduplication and context attributes.
 Validation reads final captures after the scenario stops its application and drains the Agent.
+Remote Configuration and evaluation-request errors are reported during validation, without aborting the remaining setups.
 
 PHP coverage is deferred until its OpenFeature test-app foundation is available.
 .NET has no EVP evaluation producer. Exclude the EVP class when forcing its local runs with `-k 'not EVP'`.
@@ -78,6 +82,9 @@ Each scenario starts a separate SDK process. The tests cover:
 - Deduplicated exposures for eligible allocations, no exposures for skipped allocations, and independent evaluation telemetry.
 
 Manifests keep this coverage provisional until supported SDK versions are known.
+All three scenarios have explicit steps in `run-end-to-end.yml`.
+They remain selectable by name or through `ffe`, but not through `all`, `end_to_end`, or `tracer_release`.
+Setup errors are reported during validation without aborting the remaining setups.
 Load the exact candidate Go commit with the [binary override](../../docs/execute/binaries.md),
 then build the weblog and force the selected tests:
 

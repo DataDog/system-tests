@@ -2,7 +2,12 @@
 # it means that we cannot b y design make some group part of another group
 # waiting for a clean solution to this problem, let's just test it
 
-from utils import scenarios, scenario_groups
+import json
+from pathlib import Path
+
+import yaml
+
+from utils import pytest, scenarios, scenario_groups
 from utils._context._scenarios import get_all_scenarios
 
 
@@ -20,6 +25,21 @@ def test_tracer_release():
     contract_self_tests = scenarios.feature_flagging_contract_tests
     assert contract_self_tests.github_workflow is None
     assert contract_self_tests.scenario_groups == []
+
+    provisional_opt_out_scenarios = [
+        scenarios.feature_flagging_evaluation_telemetry_opt_out,
+        scenarios.feature_flagging_evaluation_telemetry_opt_out_disabled,
+        scenarios.feature_flagging_experimentation_opt_out_disabled,
+        scenarios.feature_flagging_experimentation_opt_out_immediate,
+        scenarios.feature_flagging_experimentation_opt_out_future,
+    ]
+    for opt_out_scenario in provisional_opt_out_scenarios:
+        assert opt_out_scenario.github_workflow == "endtoend"
+        assert scenario_groups.ffe in opt_out_scenario.scenario_groups
+        assert opt_out_scenario in scenario_groups.ffe.scenarios
+        for group in (scenario_groups.all, scenario_groups.end_to_end, scenario_groups.tracer_release):
+            assert group not in opt_out_scenario.scenario_groups
+            assert opt_out_scenario not in group.scenarios
 
     dormant_agentless_scenario = scenarios.feature_flagging_and_experimentation_agentless
     assert dormant_agentless_scenario.include_agent is False
@@ -50,6 +70,7 @@ def test_tracer_release():
         scenarios.mock_the_test_2,
         scenarios.test_the_test,
         contract_self_tests,
+        *provisional_opt_out_scenarios,
         scenarios.todo,
         # targetting OTEL
         scenarios.otel_integrations,
@@ -103,3 +124,30 @@ def test_tracer_release():
 
             if scenario in not_in_tracer_release_group:
                 assert scenario_groups.tracer_release not in scenario.scenario_groups
+
+
+@scenarios.test_the_test
+@pytest.mark.parametrize(
+    "scenario_name",
+    [
+        "FEATURE_FLAGGING_EVALUATION_TELEMETRY_OPT_OUT",
+        "FEATURE_FLAGGING_EVALUATION_TELEMETRY_OPT_OUT_DISABLED",
+        "FEATURE_FLAGGING_EXPERIMENTATION_OPT_OUT_DISABLED",
+        "FEATURE_FLAGGING_EXPERIMENTATION_OPT_OUT_IMMEDIATE",
+        "FEATURE_FLAGGING_EXPERIMENTATION_OPT_OUT_FUTURE",
+    ],
+)
+def test_opt_out_workflow_selection(scenario_name: str) -> None:
+    workflow = yaml.safe_load(Path(".github/workflows/run-end-to-end.yml").read_text())
+    matching_steps = [
+        step
+        for job in workflow["jobs"].values()
+        for step in job.get("steps", [])
+        if step.get("run") == f"./run.sh {scenario_name}"
+    ]
+    assert len(matching_steps) == 1, f"Expected one workflow step for {scenario_name}"
+    # Match the quoted JSON name, not a prefix shared with another scenario.
+    expected_guard = (
+        f"steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '{json.dumps(scenario_name)}')"
+    )
+    assert matching_steps[0]["if"] == expected_guard

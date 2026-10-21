@@ -10,7 +10,13 @@ from dataclasses import dataclass, field
 import json
 from typing import Any
 
-from tests.ffe.utils.evaluation_telemetry import assert_count, assert_evaluation_responses, evaluation_count
+from tests.ffe.utils.evaluation_telemetry import (
+    assert_count,
+    assert_evaluation_responses,
+    assert_setup_succeeded,
+    evaluation_count,
+    evaluation_setup_error,
+)
 from tests.ffe.utils.experimentation_opt_out import Exposure, assert_exposures, opt_out_fixture
 from utils import HttpResponse, context, features, interfaces, remote_config as rc, rfc, scenarios, weblog
 
@@ -75,6 +81,9 @@ class Test_FFE_Experimentation_Opt_Out:
         )
 
     def setup_cutoff_matrix(self) -> None:
+        self.cutoff_matrix_setup_error = evaluation_setup_error(self.prepare_cutoff_matrix)
+
+    def prepare_cutoff_matrix(self) -> None:
         # Expected values are explicit: disabled, immediate, future-only.
         rows: list[tuple[str, str | None, dict[str, Any], tuple[str, str, str]]] = [
             ("older", OLD, {ATTRIBUTE: CUTOFF}, (ON, OFF, ON)),
@@ -134,9 +143,13 @@ class Test_FFE_Experimentation_Opt_Out:
                 list(executor.map(lambda case: case.run(), self.matrix))
 
     def test_cutoff_matrix(self) -> None:
+        assert_setup_succeeded(self.cutoff_matrix_setup_error)
         self.assert_delivery(self.matrix)
 
     def setup_configuration_updates(self) -> None:
+        self.configuration_updates_setup_error = evaluation_setup_error(self.prepare_configuration_updates)
+
+    def prepare_configuration_updates(self) -> None:
         self.updates: list[Evaluation] = []
         flag = "experiment-opt-out-refresh"
         path = "datadog/2/FFE_FLAGS/opt-out-refresh/config"
@@ -169,9 +182,13 @@ class Test_FFE_Experimentation_Opt_Out:
             self.updates.extend(cases)
 
     def test_configuration_updates(self) -> None:
+        assert_setup_succeeded(self.configuration_updates_setup_error)
         self.assert_delivery(self.updates)
 
     def setup_holdout_assignments(self) -> None:
+        self.holdout_assignments_setup_error = evaluation_setup_error(self.prepare_holdout_assignments)
+
+    def prepare_holdout_assignments(self) -> None:
         # The same salt and subject must retain the same 10/90 assignment.
         # Distinct flags keep baseline exposures from hiding opted-out emissions.
         self.holdouts: dict[str, list[Evaluation]] = {}
@@ -205,6 +222,7 @@ class Test_FFE_Experimentation_Opt_Out:
                 list(executor.map(lambda case: case.run(), cases))
 
     def test_holdout_assignments(self) -> None:
+        assert_setup_succeeded(self.holdout_assignments_setup_error)
         expected: set[Exposure] = set()
         baseline_values: set[str] = set()
         for index, baseline in enumerate(self.holdouts["baseline"]):
@@ -230,6 +248,9 @@ class Test_FFE_Experimentation_Opt_Out:
         )
 
     def setup_independent_telemetry_control(self) -> None:
+        self.independent_telemetry_setup_error = evaluation_setup_error(self.prepare_independent_telemetry_control)
+
+    def prepare_independent_telemetry_control(self) -> None:
         self.telemetry: list[Evaluation] = []
         fixture = opt_out_fixture("placeholder")
         fixture["flags"] = {}
@@ -253,6 +274,7 @@ class Test_FFE_Experimentation_Opt_Out:
                 case.run()
 
     def test_independent_telemetry_control(self) -> None:
+        assert_setup_succeeded(self.independent_telemetry_setup_error)
         self.assert_delivery(self.telemetry)
         captures = list(interfaces.agent.get_data(path_filters="/api/v2/flagevaluation"))
         for case in self.telemetry:
