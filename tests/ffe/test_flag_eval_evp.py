@@ -242,7 +242,7 @@ def assert_no_duplicate_visible_events(events: list[tuple[JSON, JSON]]) -> None:
 class FlagevaluationEgressContract:
     """One flag-evaluation contract inherited by each supported topology adapter."""
 
-    # Agentless scenarios preload flags-v1.json before the weblog starts. Use the
+    # Agentless scenarios preload the canonical UFC before the weblog starts. Use the
     # same known fixture key in every topology; the Agent scenario installs an
     # equivalent fixture through Remote Config below.
     flag_key = "empty-targeting-key-flag"
@@ -589,10 +589,13 @@ class Test_FFE_EVP_Flagevaluation_Degradation:
     def setup_ffe_evp_flagevaluation_degradation(self) -> None:
         config_id = "ffe-evp-degradation"
         self.flag_key = "evp-degradation-flag"
-        self.eval_count = EVP_FULL_TIER_PER_FLAG_CAP + EVP_DEGRADATION_OVERFLOW_EVALS
+        # The cap resets on each periodic flush. Cover two windows so a flush during
+        # the request still leaves at least one window over the cap.
+        self.eval_count = 2 * (EVP_FULL_TIER_PER_FLAG_CAP + EVP_DEGRADATION_OVERFLOW_EVALS)
         rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key)).apply()
 
-        targeting_keys = [f"evp-degradation-user-{index}" for index in range(self.eval_count)]
+        # Keep unique keys short so the batch fits weblog request body limits.
+        targeting_keys = [str(index) for index in range(self.eval_count)]
         self.responses = [
             evaluate_flag(
                 self.flag_key,

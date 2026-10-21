@@ -27,6 +27,9 @@ FFE_EVENT_WAIT_INTERVAL_SECONDS = 0.1
 FFE_EVENT_STABLE_POLLS = 3
 EXPOSURES_PATH = "/api/v2/exposures"
 EVALUATIONS_PATH = "/api/v2/flagevaluation"
+FFE_SYSTEM_TEST_DATA_DIR = Path(__file__).parent / "ffe-system-test-data"
+FFE_EVALUATION_CASES_DIR = FFE_SYSTEM_TEST_DATA_DIR / "evaluation-cases"
+FFE_SYSTEM_TEST_CASES_DIR = Path(__file__).parent / "system-test-cases"
 
 parametrize = pytest.mark.parametrize
 
@@ -34,40 +37,43 @@ parametrize = pytest.mark.parametrize
 # Load the UFC fixture file at module level
 def _load_ufc_fixture() -> dict[str, Any]:
     """Load the UFC fixture file."""
-    fixture_path = Path(__file__).parent / "flags-v1.json"
-
-    if not fixture_path.exists():
-        pytest.skip(f"Fixture file not found: {fixture_path}")
+    fixture_path = FFE_SYSTEM_TEST_DATA_DIR / "ufc-config.json"
 
     with fixture_path.open() as f:
         return json.load(f)
 
 
-def _get_test_case_files() -> tuple[list[str], list[str]]:
-    """Get test case files grouped by whether they assert evaluation details."""
-    test_data_dir = Path(__file__).parent
-    if not test_data_dir.exists():
-        return [], []
+def _contains_flag_evaluation(value: object) -> bool:
+    if isinstance(value, dict):
+        return "flagEvaluation" in value or any(_contains_flag_evaluation(child) for child in value.values())
+    if isinstance(value, list):
+        return any(_contains_flag_evaluation(child) for child in value)
+    return False
 
-    excluded = {"flags-v1.json", "serial-id-metadata-flags.json", "span-enrichment-flags.json"}
-    value_only: list[str] = []
-    detailed: list[str] = []
-    for test_case_path in sorted(
-        path for path in test_data_dir.iterdir() if path.suffix == ".json" and path.name not in excluded
-    ):
-        with test_case_path.open() as f:
-            test_cases = json.load(f)
-        needs_details = any(
-            "expectations" in test_case or set(test_case["result"]) != {"value"} for test_case in test_cases
+
+def _get_test_case_files(ufc: dict[str, Any]) -> tuple[list[Path], list[Path]]:
+    """Partition canonical cases by evaluator capability without naming fixture files."""
+    case_paths = sorted(FFE_EVALUATION_CASES_DIR.glob("*.json"))
+    if not case_paths:
+        raise FileNotFoundError(f"No canonical evaluation cases found in {FFE_EVALUATION_CASES_DIR}")
+
+    ordinary: list[Path] = []
+    dependent: list[Path] = []
+    flags = ufc["flags"]
+    for case_path in case_paths:
+        with case_path.open() as fixture_file:
+            cases = json.load(fixture_file)
+        destination = (
+            dependent if any(_contains_flag_evaluation(flags.get(case["flag"], {})) for case in cases) else ordinary
         )
-        destination = detailed if needs_details else value_only
-        destination.append(test_case_path.name)
-    return value_only, detailed
+        destination.append(case_path)
+    return ordinary, dependent
 
 
 # Load fixture at module level for reuse across tests
 UFC_FIXTURE_DATA = _load_ufc_fixture()
-VALUE_ONLY_TEST_CASE_FILES, DETAILED_TEST_CASE_FILES = _get_test_case_files()
+ORDINARY_TEST_CASE_FILES, DEPENDENT_TEST_CASE_FILES = _get_test_case_files(UFC_FIXTURE_DATA)
+DEPENDENT_TEST_CASE_FILES.extend(sorted(FFE_SYSTEM_TEST_CASES_DIR.glob("*.json")))
 
 DEFAULT_ENVVARS = {
     "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
@@ -123,7 +129,7 @@ def _ffe_evaluate_with_rc_retry(
     flag: str,
     variation_type: str,
     default_value: bool | str | float | dict[str, Any],
-    targeting_key: str,
+    targeting_key: str | None,
     attributes: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     result = test_library.ffe_evaluate(
@@ -313,18 +319,15 @@ class Test_Feature_Flag_Dynamic_Evaluation:
 
     def _assert_evaluation_cases(
         self,
-        test_case_file: str,
+        test_case_file: Path,
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ) -> list[dict[str, Any]]:
         # Load the test case file
-        test_case_path = Path(__file__).parent / test_case_file
-
-        if not test_case_path.exists():
-            pytest.skip(f"Test case file not found: {test_case_path}")
-
-        with test_case_path.open() as f:
+        with test_case_file.open() as f:
             test_cases = json.load(f)
+        assert isinstance(test_cases, list), f"Expected an evaluation-case array in {test_case_file.name}"
+        assert test_cases, f"No evaluation cases in {test_case_file.name}"
 
         # Set up UFC Remote Config and wait for it to be applied
         _set_and_wait_ffe_rc(test_agent, UFC_FIXTURE_DATA)
@@ -351,29 +354,31 @@ class Test_Feature_Flag_Dynamic_Evaluation:
                 attributes=attributes,
             )
             assert not _is_ffe_waiting_for_rc(result), (
-                f"Test case {i} in {test_case_file} failed: FFE provider did not load RC data after "
+                f"Test case {i} in {test_case_file.name} failed: FFE provider did not load RC data after "
                 f"{FFE_READY_RETRY_ATTEMPTS} attempts; result={result}"
             )
             for field, expected_value in expected_result.items():
                 assert result.get(field) == expected_value, (
-                    f"Test case {i} in {test_case_file} failed: "
+                    f"Test case {i} in {test_case_file.name} failed: "
                     f"flag='{flag}', targetingKey='{targeting_key}', field='{field}', "
                     f"expected={expected_value!r}, actual={result.get(field)!r}"
                 )
         return test_cases
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    @parametrize("test_case_file", VALUE_ONLY_TEST_CASE_FILES)
-    def test_ffe_flag_evaluation(self, test_case_file: str, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
-        """Test FFE flag evaluation logic with various targeting scenarios."""
+    @parametrize("test_case_file", ORDINARY_TEST_CASE_FILES)
+    def test_ffe_flag_evaluation(
+        self, test_case_file: Path, test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
+        """Test every expected result field present in each canonical fixture case."""
         self._assert_evaluation_cases(test_case_file, test_agent, test_library)
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    @parametrize("test_case_file", DETAILED_TEST_CASE_FILES)
-    def test_ffe_detailed_flag_evaluation(
-        self, test_case_file: str, test_agent: TestAgentAPI, test_library: APMLibrary
+    @parametrize("test_case_file", DEPENDENT_TEST_CASE_FILES)
+    def test_ffe_dependent_flag_evaluation(
+        self, test_case_file: Path, test_agent: TestAgentAPI, test_library: APMLibrary
     ) -> None:
-        """Test fields requested by detailed evaluation cases."""
+        """Run dependency cases and infer optional telemetry assertions from each case."""
         test_cases = self._assert_evaluation_cases(test_case_file, test_agent, test_library)
         telemetry_cases = [test_case for test_case in test_cases if "expectations" in test_case]
         if telemetry_cases:

@@ -209,6 +209,19 @@ class Test_ComputeLibrariesAndScenarios:
                 "end_to_end,integration_frameworks,open_telemetry",
             )
 
+    def test_python_parametric_base_docker_file(self):
+        inputs = build_inputs(["utils/build/docker/python/parametric.base.Dockerfile"])
+
+        assert_github_processor(
+            inputs,
+            ["python"],
+            ["python"],
+            600,
+            "false",
+            "DEFAULT,PARAMETRIC",
+            "",
+        )
+
     def test_nodejs_docker_file(self):
         inputs = build_inputs(["utils/build/docker/nodejs/express5.Dockerfile"])
 

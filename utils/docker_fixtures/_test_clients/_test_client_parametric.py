@@ -766,7 +766,6 @@ class ParametricTestClientApi(TestClientApi):
             "dd_tags": config_dict.get("dd_tags", None),
             "dd_trace_propagation_style": config_dict.get("dd_trace_propagation_style", None),
             "dd_trace_debug": config_dict.get("dd_trace_debug", None),
-            "dd_trace_startup_log_level": config_dict.get("dd_trace_startup_log_level", None),
             "dd_trace_otel_enabled": config_dict.get("dd_trace_otel_enabled", None),
             "dd_trace_sample_ignore_parent": config_dict.get("dd_trace_sample_ignore_parent", None),
             "dd_env": config_dict.get("dd_env", None),
@@ -825,7 +824,7 @@ class ParametricTestClientApi(TestClientApi):
         flag: str,
         variation_type: str,
         default_value: bool | str | float | dict,
-        targeting_key: str,
+        targeting_key: str | None,
         attributes: dict | None = None,
         span_id: int | str | None = None,
     ) -> dict:
@@ -1268,7 +1267,7 @@ class APMLibrary:
         flag: str,
         variation_type: str,
         default_value: bool | str | float | dict,
-        targeting_key: str,
+        targeting_key: str | None,
         attributes: dict | None = None,
         span_id: int | str | None = None,
     ) -> dict:
