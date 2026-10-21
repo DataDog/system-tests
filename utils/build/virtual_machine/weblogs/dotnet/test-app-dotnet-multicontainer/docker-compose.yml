@@ -30,7 +30,7 @@ services:
       context: .
       dockerfile: Dockerfile.dotnet_8
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS --max-time 4 http://localhost:18080/ >/dev/null"]
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/18080"]
       interval: 10s
       timeout: 5s
       retries: 6
@@ -44,7 +44,7 @@ services:
       context: .
       dockerfile: Dockerfile.dotnet_6
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS --max-time 4 http://localhost:18080/ >/dev/null"]
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/18080"]
       interval: 10s
       timeout: 5s
       retries: 6
