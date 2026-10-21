@@ -33,8 +33,20 @@ def assert_count(actual: float, expected: int, flag: str) -> None:
     assert actual == expected, f"{flag}: expected {expected} evaluations, captured {actual}"
 
 
+def assert_opt_out_exposure_attribute(actual: dict[str, Any], expected: dict[str, Any], attribute: str) -> None:
+    if attribute not in expected:
+        assert attribute not in actual, actual
+    elif expected[attribute] is None:
+        # SDKs may omit null attributes or retain them as null.
+        assert actual.get(attribute) is None, actual
+    else:
+        assert actual[attribute] == expected[attribute], actual
+        # Python considers 1 == True. Preserve bool-ness in both directions.
+        assert isinstance(actual[attribute], bool) == isinstance(expected[attribute], bool), actual
+
+
 def assert_metric_activity(
-    metrics: Iterable[dict[str, Any]], flag: str, *, allocation_key: str, suppressed: bool
+    metrics: Iterable[dict[str, Any]], flag: str, *, allocation_key: str | None, suppressed: bool
 ) -> None:
     # Agent series do not retain the source OTel aggregation temporality. Check
     # presence, not a sum that can count repeated cumulative exports twice.
@@ -44,7 +56,7 @@ def assert_metric_activity(
         for metric in metrics
         if metric.get("metric") == "feature_flag.evaluations"
         and f"feature_flag.key:{flag}" in metric.get("tags", [])
-        and f"feature_flag.result.allocation_key:{allocation_key}" in metric.get("tags", [])
+        and (allocation_key is None or f"feature_flag.result.allocation_key:{allocation_key}" in metric.get("tags", []))
         for point in metric.get("points", [])
     ]
     if suppressed:

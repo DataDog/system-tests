@@ -62,10 +62,15 @@ _AI_GUARD_WEBLOG_ENV = {
     "DD_APP_KEY": "mock_app_key",
 }
 
-# Keep the opt-out scenario identical to the ordinary FFE scenario except for activation.
+# Shared by the ordinary FFE scenario and both evaluation telemetry opt-out scenarios.
+# Both opt-out scenarios also enable span enrichment; one enables the opt-out option.
 _FFE_WEBLOG_ENV: dict[str, str | None] = {
     "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
     "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE": "remote_config",
+    # Python's set_provider() waits for Remote Configuration, which arrives only
+    # after the weblog starts. The OpenFeature API has no nonblocking alternative.
+    # Fail initialization promptly so the weblog starts; the provider recovers
+    # when the tests supply Remote Configuration.
     "DD_EXPERIMENTAL_FLAGGING_PROVIDER_INITIALIZATION_TIMEOUT_MS": "100",
     "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
     "DD_METRICS_OTEL_ENABLED": "true",
@@ -903,7 +908,6 @@ class _Scenarios:
         rc_api_enabled=True,
         # Allow final EVP batches to reach the backend after the weblog flushes and stops.
         agent_interface_timeout=15,
-        # Fail initial provider setup promptly; the fixture delivers RC after startup.
         weblog_env=_FFE_WEBLOG_ENV,
         doc="",
         scenario_groups=[scenario_groups.ffe],

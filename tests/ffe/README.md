@@ -26,6 +26,8 @@ All four test classes report under [#649: Per-subject evaluation telemetry opt-o
 Candidate SDK implementations must pass the applicable local checks before delivery.
 Released-version CI activation is a separate step. Both scenarios are excluded from the default
 `all`, `end_to_end`, and `tracer_release` groups. They remain selectable by name or through the `ffe` group.
+When activating released versions in manifests, restore the default scenario groups too.
+Otherwise tracer CI that selects only `tracer_release` does not run these tests.
 Manifests mark unsupported SDK versions as expected failures; this does not prevent their setup from running.
 Use a local candidate SDK and force these tests to validate unreleased changes:
 
@@ -42,7 +44,11 @@ The disabled scenario leaves the setting absent. Both use the same requests.
 | Context value | Enabled | Disabled |
 | --- | --- | --- |
 | Boolean `true` | No evaluation telemetry | Evaluation telemetry remains |
-| Boolean `false`, missing, string `"true"`, or number `1` | Evaluation telemetry remains | Evaluation telemetry remains |
+| Boolean `false`, missing, `null`, string `"true"`, or number `1` | Evaluation telemetry remains | Evaluation telemetry remains |
+
+The SDK reads the attribute on every evaluation. A subject stays opted out only while each evaluation context carries it.
+Set the attribute in the context supplied to the evaluation call.
+These tests do not cover opt-outs added by application hooks; SDK behavior differs for those hooks.
 
 Separate tests check exact EVP counts, evaluation metric presence, and automatic trace annotations.
 Metric checks accept delta exports and repeated cumulative exports. Opted-out flags must have no nonzero metric points.
@@ -52,13 +58,45 @@ EVP counts match both the flag and the subject's raw or hashed targeting key.
 Shared-flag subjects receive the same value from distinct fixture allocations.
 Metric assertions use the allocation tags to check each subject separately, without adding subject tags to metrics.
 One rule targets the opt-out attribute to verify that it remains available for evaluation.
-All requests must return the same flag value. Exposures must retain their ordinary deduplication and context attributes.
+One subject opts out, then removes the attribute; later evaluations must emit telemetry again.
+Missing flags test suppression on the error path and return the application default.
+Configured flags must return the same flag value for every request.
+Exposures must retain their context attributes and ordinary deduplication for an unchanged context.
+After an attribute changes, exposure deduplication can differ between SDKs; these tests do not check it.
 Validation reads final captures after the scenario stops its application and drains the Agent.
 Remote Configuration and evaluation-request errors are reported during validation, without aborting the remaining setups.
 
 PHP coverage is deferred until its OpenFeature test-app foundation is available.
-.NET has no EVP evaluation producer. Exclude the EVP class when forcing its local runs with `-k 'not EVP'`.
+.NET EVP coverage requires a tracer release containing [dd-trace-dotnet#9351](https://github.com/DataDog/dd-trace-dotnet/pull/9351).
+For older candidates without that producer, exclude the EVP class with `-k 'not EVP'`.
 Browser and mobile SDKs are outside this server harness and retain their repository integration tests.
+
+### Release activation and follow-up coverage
+
+Replace each provisional manifest entry with the first released SDK version containing its opt-out implementation.
+For Node.js, this must include [dd-trace-js#10776](https://github.com/DataDog/dd-trace-js/pull/10776); a merged PR is not a released version.
+.NET needs a tracer release containing [dd-trace-dotnet#9426](https://github.com/DataDog/dd-trace-dotnet/pull/9426)
+and a weblog using `Datadog.FeatureFlags.OpenFeature` 2.3.3 or later.
+Its EVP class has a separate dependency on #9351. The tracer manifest does not gate the NuGet provider version.
+
+These scenarios activate opt-out through the process environment only.
+Coverage for other configuration sources, such as `application_monitoring.yaml`, is separate follow-up work.
+
+### Local .NET candidate packages
+
+Put the `Datadog.Trace` and `Datadog.FeatureFlags.OpenFeature` packages in `binaries/`.
+Also supply the matching tracer archive (`datadog-dotnet-apm-<version>*.tar.gz`) or extracted tracer files.
+For the `poc` weblog, pass exact NuGet version ranges through the Docker build arguments:
+
+```bash
+./build.sh dotnet -w poc --extra-docker-args \
+  "--build-arg DD_TRACE_PACKAGE_VERSION=[<tracer-package-version>] --build-arg DD_OPENFEATURE_PACKAGE_VERSION=[<provider-package-version>]"
+```
+
+Brackets require that exact version. A plain version is a minimum; NuGet can select a higher version with warning NU1603.
+Use unique candidate versions that are not published on nuget.org, so only `binaries/` can supply them.
+Verify the resolved packages before reporting local validation. These arguments do not select the installed tracer binary.
+The `uds` weblog does not support these build arguments or the local package source.
 
 ## Test-contract self-tests
 

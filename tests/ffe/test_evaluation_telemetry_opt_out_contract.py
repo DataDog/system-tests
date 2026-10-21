@@ -7,6 +7,7 @@ from typing import Any
 from tests.ffe.utils.evaluation_telemetry import (
     assert_count,
     assert_evaluation_responses,
+    assert_opt_out_exposure_attribute,
     assert_metric_activity,
     assert_setup_succeeded,
     evaluation_count,
@@ -26,6 +27,8 @@ from utils import HttpResponse, features, pytest, scenarios
         (200, "not JSON", 3, False),
         (200, "{}", 3, False),
         (200, '{"value": "on-value"}', 0, False),
+        (200, '{"value": "on-value"}', 2, False),
+        (200, '{"value": "on-value"}', 4, False),
     ],
 )
 def test_evaluation_response_oracle(status_code: int, text: str, count: int, *, passes: bool) -> None:
@@ -206,3 +209,55 @@ def test_evaluation_setup_does_not_swallow_interrupts() -> None:
 
     with pytest.raises(KeyboardInterrupt):
         evaluation_setup_error(interrupt)
+
+
+@scenarios.feature_flagging_contract_tests
+@features.not_reported
+@pytest.mark.parametrize(
+    ("actual", "expected", "passes"),
+    [
+        ({"opt_out": True}, {"opt_out": True}, True),
+        ({"opt_out": 1}, {"opt_out": 1}, True),
+        ({"opt_out": 1}, {"opt_out": True}, False),
+        ({"opt_out": True}, {"opt_out": 1}, False),
+        ({"opt_out": "true"}, {"opt_out": "true"}, True),
+        ({"opt_out": True}, {"opt_out": "true"}, False),
+        ({"opt_out": None}, {"opt_out": None}, True),
+        ({}, {"opt_out": None}, True),
+        ({"opt_out": False}, {"opt_out": None}, False),
+        ({"opt_out": True}, {"opt_out": None}, False),
+        ({}, {}, True),
+        ({"opt_out": True}, {}, False),
+    ],
+)
+def test_opt_out_exposure_attribute_oracle(actual: dict[str, Any], expected: dict[str, Any], *, passes: bool) -> None:
+    if passes:
+        assert_opt_out_exposure_attribute(actual, expected, "opt_out")
+    else:
+        with pytest.raises(AssertionError):
+            assert_opt_out_exposure_attribute(actual, expected, "opt_out")
+
+
+@scenarios.feature_flagging_contract_tests
+@features.not_reported
+@pytest.mark.parametrize(
+    ("count", "suppressed", "passes"), [(3, False, True), (0, False, False), (0, True, True), (3, True, False)]
+)
+def test_opt_out_error_metric_oracle(count: int, *, suppressed: bool, passes: bool) -> None:
+    metrics: list[dict[str, Any]] = [
+        {
+            "metric": "feature_flag.evaluations",
+            "tags": ["feature_flag.key:missing-flag", "error.type:flag_not_found"],
+            "points": [[1, count]],
+        },
+        {
+            "metric": "feature_flag.evaluations",
+            "tags": ["feature_flag.key:unrelated-flag"],
+            "points": [[1, 99]],
+        },
+    ]
+    if passes:
+        assert_metric_activity(metrics, "missing-flag", allocation_key=None, suppressed=suppressed)
+    else:
+        with pytest.raises(AssertionError, match="missing-flag"):
+            assert_metric_activity(metrics, "missing-flag", allocation_key=None, suppressed=suppressed)
