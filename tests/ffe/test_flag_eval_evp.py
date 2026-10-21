@@ -242,7 +242,7 @@ def assert_no_duplicate_visible_events(events: list[tuple[JSON, JSON]]) -> None:
 class FlagevaluationEgressContract:
     """One flag-evaluation contract inherited by each supported topology adapter."""
 
-    # Agentless scenarios preload flags-v1.json before the weblog starts. Use the
+    # Agentless scenarios preload the canonical UFC before the weblog starts. Use the
     # same known fixture key in every topology; the Agent scenario installs an
     # equivalent fixture through Remote Config below.
     flag_key = "empty-targeting-key-flag"

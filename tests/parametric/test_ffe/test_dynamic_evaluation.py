@@ -18,6 +18,8 @@ RC_PRODUCT = "FFE_FLAGS"
 RC_PATH = f"datadog/2/{RC_PRODUCT}"
 FFE_READY_RETRY_ATTEMPTS = 10
 FFE_READY_RETRY_INTERVAL_SECONDS = 0.2
+FFE_SYSTEM_TEST_DATA_DIR = Path(__file__).parent / "ffe-system-test-data"
+FFE_EVALUATION_CASES_DIR = FFE_SYSTEM_TEST_DATA_DIR / "evaluation-cases"
 
 parametrize = pytest.mark.parametrize
 
@@ -25,10 +27,7 @@ parametrize = pytest.mark.parametrize
 # Load the UFC fixture file at module level
 def _load_ufc_fixture() -> dict[str, Any]:
     """Load the UFC fixture file."""
-    fixture_path = Path(__file__).parent / "flags-v1.json"
-
-    if not fixture_path.exists():
-        pytest.skip(f"Fixture file not found: {fixture_path}")
+    fixture_path = FFE_SYSTEM_TEST_DATA_DIR / "ufc-config.json"
 
     with fixture_path.open() as f:
         return json.load(f)
@@ -36,13 +35,10 @@ def _load_ufc_fixture() -> dict[str, Any]:
 
 def _get_test_case_files() -> list[str]:
     """Get all test case files from the fixtures directory."""
-    test_data_dir = Path(__file__).parent
-    if not test_data_dir.exists():
-        return []
-
-    # Exclude base fixtures that aren't test cases
-    excluded = {"flags-v1.json", "serial-id-metadata-flags.json", "span-enrichment-flags.json"}
-    return [f.name for f in test_data_dir.iterdir() if f.suffix == ".json" and f.name not in excluded]
+    case_files = sorted(path.name for path in FFE_EVALUATION_CASES_DIR.glob("*.json"))
+    if not case_files:
+        raise FileNotFoundError(f"No canonical evaluation cases found in {FFE_EVALUATION_CASES_DIR}")
+    return case_files
 
 
 # Load fixture at module level for reuse across tests
@@ -103,7 +99,7 @@ def _ffe_evaluate_with_rc_retry(
     flag: str,
     variation_type: str,
     default_value: bool | str | float | dict[str, Any],
-    targeting_key: str,
+    targeting_key: str | None,
     attributes: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     result = test_library.ffe_evaluate(
@@ -159,13 +155,12 @@ class Test_Feature_Flag_Dynamic_Evaluation:
 
         """
         # Load the test case file
-        test_case_path = Path(__file__).parent / test_case_file
-
-        if not test_case_path.exists():
-            pytest.skip(f"Test case file not found: {test_case_path}")
+        test_case_path = FFE_EVALUATION_CASES_DIR / test_case_file
 
         with test_case_path.open() as f:
             test_cases = json.load(f)
+        assert isinstance(test_cases, list), f"Expected an evaluation-case array in {test_case_file}"
+        assert test_cases, f"No evaluation cases in {test_case_file}"
 
         # Set up UFC Remote Config and wait for it to be applied
         _set_and_wait_ffe_rc(test_agent, UFC_FIXTURE_DATA)
@@ -181,7 +176,7 @@ class Test_Feature_Flag_Dynamic_Evaluation:
             default_value = test_case["defaultValue"]
             targeting_key = test_case["targetingKey"]
             attributes = test_case.get("attributes", {})
-            expected_result = test_case["result"]["value"]
+            expected_result = test_case["result"]
 
             result = _ffe_evaluate_with_rc_retry(
                 test_library,
@@ -198,8 +193,19 @@ class Test_Feature_Flag_Dynamic_Evaluation:
             actual_value = result.get("value")
 
             # Assert the evaluation result matches expected value
-            assert actual_value == expected_result, (
+            assert actual_value == expected_result["value"], (
                 f"Test case {i} in {test_case_file} failed: "
                 f"flag='{flag}', targetingKey='{targeting_key}', "
-                f"expected={expected_result}, actual={actual_value}"
+                f"expected={expected_result}, actual={result}"
             )
+            assert result.get("reason") == expected_result["reason"], (
+                f"Test case {i} in {test_case_file}: expected reason={expected_result['reason']}, result={result}"
+            )
+            if "errorCode" in expected_result:
+                assert result.get("errorCode") == expected_result["errorCode"], (
+                    f"Test case {i} in {test_case_file}: expected errorCode={expected_result['errorCode']}, result={result}"
+                )
+            elif expected_result["reason"] != "ERROR":
+                assert result.get("errorCode") in {None, ""}, (
+                    f"Test case {i} in {test_case_file}: unexpected evaluation error; result={result}"
+                )

@@ -1,0 +1,87 @@
+---
+name: Update FFE fixtures
+
+on:
+  workflow_dispatch:
+    inputs:
+      fixture_ref:
+        description: Branch, tag, or commit from DataDog/ffe-system-test-data
+        required: true
+        default: main
+        type: string
+  schedule:
+    - cron: "0 0 * * 0"
+
+concurrency:
+  group: update-ffe-fixtures
+  cancel-in-progress: false
+
+jobs:
+  update-ffe-fixtures:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
+        with:
+          persist-credentials: false
+
+      - name: Update fixture snapshot
+        id: fixtures
+        env:
+          FFE_FIXTURE_REF: ${{ inputs.fixture_ref || 'main' }}
+        run: python3 utils/scripts/update_ffe_fixtures.py --ref "$FFE_FIXTURE_REF"
+
+      - uses: DataDog/dd-octo-sts-action@96a25462dbcb10ebf0bfd6e2ccc917d2ab235b9a  # v1.0.4
+        if: steps.fixtures.outputs.changed == 'true'
+        id: octo-sts
+        with:
+          scope: DataDog/system-tests
+          policy: self.update-ffe-fixtures.create-pr
+
+      - name: Check for an open fixture update PR
+        if: steps.fixtures.outputs.changed == 'true'
+        id: existing-pr
+        env:
+          GH_TOKEN: ${{ steps.octo-sts.outputs.token }}
+        run: |
+          count=$(gh pr list --repo "$GITHUB_REPOSITORY" \
+            --head actions/update-ffe-fixtures --state open \
+            --json headRefName,headRepositoryOwner,isCrossRepository \
+            --jq '[.[] | select(
+              .headRefName == "actions/update-ffe-fixtures" and
+              .headRepositoryOwner.login == "DataDog" and
+              (.isCrossRepository | not)
+            )] | length')
+          echo "count=$count" >> "$GITHUB_OUTPUT"
+
+      - name: Create Pull Request
+        if: >-
+          steps.fixtures.outputs.changed == 'true' && steps.existing-pr.outputs.count == '0'
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1  # v8.1.1
+        with:
+          token: ${{ steps.octo-sts.outputs.token }}
+          branch: actions/update-ffe-fixtures
+          base: main
+          commit-message: "test(ffe): update canonical fixtures"
+          title: "test(ffe): update canonical fixtures"
+          draft: true
+          sign-commits: true
+          add-paths: tests/parametric/test_ffe/ffe-system-test-data
+          body: |
+            ## Motivation
+
+            Keep SDK behavior consistent with the shared FFE evaluator contract.
+
+            ## Changes
+
+            Refresh the checked-in snapshot to [${{ steps.fixtures.outputs.source_commit }}](https://github.com/DataDog/ffe-system-test-data/commit/${{ steps.fixtures.outputs.source_commit }}), containing ${{ steps.fixtures.outputs.fixture_count }} evaluation cases.
+
+            Ordinary test runs use the snapshot without network access. Resolve newly exposed evaluator failures before merging; correct shared expectations upstream only when they are wrong. Scheduled updates leave an existing update PR untouched to preserve review and fixes.
+
+            ## Workflow
+
+            1. Keep this PR as a draft while validating the updated fixtures against the supported SDKs.
+            2. Follow the repository's [review workflow](https://github.com/DataDog/system-tests/blob/main/.github/pull_request_template.md).

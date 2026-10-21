@@ -11,10 +11,24 @@ Example: [100, 108, 128, 130] -> deltas [100, 8, 20, 2] -> varint bytes -> base6
 
 import base64
 import hashlib
+import json
+from pathlib import Path
+from typing import Any
 
 # Varint encoding constants
 VARINT_DATA_BITS = 0x7F  # Lower 7 bits contain data
 VARINT_CONTINUATION_BIT = 0x80  # MSB indicates more bytes follow
+
+
+def load_ufc_fixture_for_cases(case_filename: str) -> dict[str, Any]:
+    """Load the canonical flag definitions used by a specific integration suite."""
+    fixture_root = Path(__file__).parent / "ffe-system-test-data"
+    config = json.loads((fixture_root / "ufc-config.json").read_text())
+    cases = json.loads((fixture_root / "evaluation-cases" / case_filename).read_text())
+    # Keep unrelated evaluator edge cases out of transport/span integration tests.
+    flag_keys = dict.fromkeys(case["flag"] for case in cases)
+    config["flags"] = {key: config["flags"][key] for key in flag_keys}
+    return config
 
 
 def decode_varint(data: bytes, offset: int = 0) -> tuple[int, int]:
