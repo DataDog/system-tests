@@ -48,6 +48,9 @@ Separate tests check exact EVP counts, evaluation metric presence, and automatic
 Metric checks accept delta exports and repeated cumulative exports. Opted-out flags must have no nonzero metric points.
 Each test includes allowed subjects as positive controls.
 Mixed subjects evaluate the same flag to detect a flag-scoped opt-out decision.
+EVP counts match both the flag and the subject's raw or hashed targeting key.
+Shared-flag subjects receive the same value from distinct fixture allocations.
+Metric assertions use the allocation tags to check each subject separately, without adding subject tags to metrics.
 One rule targets the opt-out attribute to verify that it remains available for evaluation.
 All requests must return the same flag value. Exposures must retain their ordinary deduplication and context attributes.
 Validation reads final captures after the scenario stops its application and drains the Agent.

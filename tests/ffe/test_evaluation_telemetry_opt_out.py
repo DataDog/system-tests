@@ -37,6 +37,7 @@ ANNOTATIONS = {"ffe_flags_enc", "ffe_subjects_enc", "ffe_runtime_defaults"}
 class EvaluationCase(TypedDict):
     flag: str
     subject: str
+    allocation_key: str
     attributes: dict[str, Any]
     expected_count: int
     responses: list[HttpResponse]
@@ -72,6 +73,7 @@ class _TelemetryContract:
                 EvaluationCase(
                     flag=flag,
                     subject=f"subject-{signal}-{label}",
+                    allocation_key="default-allocation",
                     attributes=attributes,
                     expected_count=0 if enabled and label == "true" else 3,
                     responses=[],
@@ -80,17 +82,29 @@ class _TelemetryContract:
 
         independent_cases = list(self.cases)
         shared_flag = f"opt-out-{signal}-shared"
-        fixture["flags"].update(make_ufc_fixture(shared_flag, serial_id=106)["flags"])
+        fixture["flags"].update(make_ufc_fixture(shared_flag)["flags"])
+        fixture["flags"][shared_flag]["allocations"] = []
         shared_cases = [
             EvaluationCase(
                 flag=shared_flag,
                 subject=f"subject-{signal}-shared-{label}",
+                allocation_key=f"shared-{label}",
                 attributes={ATTRIBUTE: opted_out},
                 expected_count=0 if enabled and opted_out else 3,
                 responses=[],
             )
             for label, opted_out in [("true", True), ("false", False)]
         ]
+        # Metrics do not contain subject identifiers. Distinct allocations let
+        # their existing tags identify each subject without changing the value.
+        for index, case in enumerate(shared_cases):
+            allocation = make_ufc_fixture(shared_flag, allocation_key=case["allocation_key"], serial_id=106 + index)[
+                "flags"
+            ][shared_flag]["allocations"][0]
+            allocation["rules"] = [
+                {"conditions": [{"attribute": "targetingKey", "operator": "ONE_OF", "value": [case["subject"]]}]}
+            ]
+            fixture["flags"][shared_flag]["allocations"].append(allocation)
         self.cases.extend(shared_cases)
 
         rc.tracer_rc_state.reset().set_config(f"datadog/2/FFE_FLAGS/opt-out-{signal}/config", fixture).apply()
@@ -125,12 +139,6 @@ class _TelemetryContract:
         for case in self.cases:
             assert_evaluation_responses(case["responses"], expected_count=3, expected_value="on-value")
 
-    def expected_counts(self) -> dict[str, int]:
-        counts: dict[str, int] = {}
-        for case in self.cases:
-            counts[case["flag"]] = counts.get(case["flag"], 0) + case["expected_count"]
-        return counts
-
 
 @scenarios.feature_flagging_evaluation_telemetry_opt_out_disabled
 @scenarios.feature_flagging_evaluation_telemetry_opt_out
@@ -143,8 +151,12 @@ class Test_FFE_Evaluation_Telemetry_Opt_Out_EVP(_TelemetryContract):
     def test_counts(self) -> None:
         self.assert_evaluations()
         captures = list(interfaces.agent.get_data(path_filters="/api/v2/flagevaluation"))
-        for flag, expected_count in self.expected_counts().items():
-            assert_count(evaluation_count(captures, flag), expected_count, flag)
+        for case in self.cases:
+            assert_count(
+                evaluation_count(captures, case["flag"], subject=case["subject"]),
+                case["expected_count"],
+                f"{case['flag']} ({case['subject']})",
+            )
 
 
 @scenarios.feature_flagging_evaluation_telemetry_opt_out_disabled
@@ -158,8 +170,13 @@ class Test_FFE_Evaluation_Telemetry_Opt_Out_Metrics(_TelemetryContract):
     def test_counts(self) -> None:
         self.assert_evaluations()
         metrics = [metric for _, metric in interfaces.agent.get_metrics()]
-        for flag, expected_count in self.expected_counts().items():
-            assert_metric_activity(metrics, flag, suppressed=expected_count == 0)
+        for case in self.cases:
+            assert_metric_activity(
+                metrics,
+                case["flag"],
+                allocation_key=case["allocation_key"],
+                suppressed=case["expected_count"] == 0,
+            )
 
 
 @scenarios.feature_flagging_evaluation_telemetry_opt_out_disabled
@@ -179,6 +196,7 @@ class Test_FFE_Evaluation_Telemetry_Opt_Out_Exposures(_TelemetryContract):
             ]
             assert len(events) == 1, f"{case['flag']}: expected one deduplicated exposure, got {events}"
             assert events[0]["variant"]["key"] == "on"
+            assert events[0]["allocation"]["key"] == case["allocation_key"]
             attributes = events[0]["subject"].get("attributes", {})
             # Some providers also include targetingKey in exposure attributes.
             # Check the customer input without forbidding that existing behavior.
