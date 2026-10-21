@@ -25,11 +25,14 @@ from utils.base_images.build_base_images import (
     _write_lock,
     alias_for_base_tag,
     build_and_push,
+    build_platform,
     compute_hash,
     image_exists,
     lock_images,
     materialize_build_context,
+    merge_platforms,
     parse_copy_dependencies,
+    platform_tag,
 )
 from utils.base_images import wait_for_base_image
 from utils.base_images.wait_for_base_image import _base_image_tag
@@ -664,6 +667,20 @@ class Test_ComputeHash:
             tmp_path, {"args": {"B": "2", "A": "1"}}
         )
 
+    def test_different_platforms_change_the_hash(self, tmp_path: Path):
+        (tmp_path / "app.js").write_text("console.log(1);")
+
+        assert compute_hash(tmp_path, {"tags": ["x"]}, ("linux/amd64",)) != compute_hash(
+            tmp_path, {"tags": ["x"]}, ("linux/amd64", "linux/arm64")
+        )
+
+    def test_platform_order_is_irrelevant(self, tmp_path: Path):
+        (tmp_path / "app.js").write_text("console.log(1);")
+
+        assert compute_hash(tmp_path, {"tags": ["x"]}, ("linux/amd64", "linux/arm64")) == compute_hash(
+            tmp_path, {"tags": ["x"]}, ("linux/arm64", "linux/amd64")
+        )
+
     def test_unsupported_bake_field_is_rejected(self, tmp_path: Path):
         with pytest.raises(ValueError, match="Unsupported Bake target field"):
             compute_hash(tmp_path, {"network": "host"})
@@ -710,6 +727,7 @@ class Test_BuildAndPush:
             "datadog/system-tests:test.base-123456789abc",
             tmp_path / "build",
             "Dockerfile",
+            "linux/arm64",
         )
 
         assert calls == [
@@ -726,6 +744,8 @@ class Test_BuildAndPush:
                     f"target.context={tmp_path / 'build'}",
                     "--set",
                     "target.dockerfile=Dockerfile",
+                    "--set",
+                    "target.platform=linux/arm64",
                     "-f",
                     str(tmp_path / "docker-bake.hcl"),
                     "target",
@@ -923,6 +943,77 @@ class Test_WaitForBaseImage:
 
 
 @scenarios.test_the_test
+class Test_MultiArch:
+    """The per-platform build step and the manifest-list merge step. Registry and docker calls are mocked."""
+
+    tag = "datadog/system-tests:test.base-123456789abc"
+
+    def _target(self, tmp_path: Path) -> tuple:
+        return ("nodejs", tmp_path / "docker-bake.hcl", "t", self.tag, tmp_path / "build", "df")
+
+    def test_platform_tag(self):
+        assert platform_tag(self.tag, "linux/amd64") == f"{self.tag}-amd64"
+        assert platform_tag(self.tag, "linux/arm64") == f"{self.tag}-arm64"
+
+    def test_build_platform_pushes_the_single_platform_tag(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        builds: list[tuple] = []
+        monkeypatch.setattr(build_base_images, "image_exists", lambda _tag: False)
+        monkeypatch.setattr(build_base_images, "build_and_push", lambda *args: builds.append(args))
+
+        build_platform(*self._target(tmp_path), platform="linux/arm64")
+
+        assert builds == [
+            (tmp_path / "docker-bake.hcl", "t", f"{self.tag}-arm64", tmp_path / "build", "df", "linux/arm64")
+        ]
+
+    @pytest.mark.parametrize("existing", ["", "-arm64"])
+    def test_build_platform_skips_published_images(
+        self, existing: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ):
+        monkeypatch.setattr(build_base_images, "image_exists", lambda tag: tag == f"{self.tag}{existing}")
+        monkeypatch.setattr(build_base_images, "build_and_push", lambda *_a: pytest.fail("must not build"))
+
+        build_platform(*self._target(tmp_path), platform="linux/arm64")
+
+    def test_merge_creates_the_manifest_list(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        merges: list[tuple] = []
+        monkeypatch.setattr(build_base_images, "image_exists", lambda tag: tag != self.tag)
+        monkeypatch.setattr(build_base_images, "create_manifest_list", lambda *args: merges.append(args))
+
+        merge_platforms(*self._target(tmp_path))
+
+        assert merges == [(self.tag, [f"{self.tag}-amd64", f"{self.tag}-arm64"])]
+
+    def test_merge_skips_published_image(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        monkeypatch.setattr(build_base_images, "image_exists", lambda tag: tag == self.tag)
+        monkeypatch.setattr(build_base_images, "create_manifest_list", lambda *_a: pytest.fail("must not merge"))
+
+        merge_platforms(*self._target(tmp_path))
+
+    def test_merge_fails_when_a_platform_is_missing(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        monkeypatch.setattr(build_base_images, "image_exists", lambda tag: tag == f"{self.tag}-amd64")
+        monkeypatch.setattr(build_base_images, "create_manifest_list", lambda *_a: pytest.fail("must not merge"))
+
+        with pytest.raises(RuntimeError, match=r"-arm64"):
+            merge_platforms(*self._target(tmp_path))
+
+    def test_create_manifest_list_command(self, monkeypatch: pytest.MonkeyPatch):
+        calls: list[list[str]] = []
+
+        def fake_run(cmd: list[str], **_kwargs: object) -> subprocess.CompletedProcess:
+            calls.append(cmd)
+            return subprocess.CompletedProcess(cmd, 0)
+
+        monkeypatch.setattr(build_base_images.subprocess, "run", fake_run)
+
+        build_base_images.create_manifest_list(self.tag, [f"{self.tag}-amd64", f"{self.tag}-arm64"])
+
+        assert calls == [
+            ["docker", "buildx", "imagetools", "create", "--tag", self.tag, f"{self.tag}-amd64", f"{self.tag}-arm64"]
+        ]
+
+
+@scenarios.test_the_test
 class Test_Main:
     """Orchestration-layer tests for utils.base_images.build_base_images: the main() fail-propagation
     path, the explicit --library check, and the --changed-only library mapping. All docker/git
@@ -941,7 +1032,7 @@ class Test_Main:
         def boom(*_args: object, **_kwargs: object) -> None:
             raise RuntimeError("buildx bake --push failed")
 
-        monkeypatch.setattr(build_base_images, "process_target", boom)
+        monkeypatch.setattr(build_base_images, "build_platform", boom)
         monkeypatch.setattr(build_base_images, "_lock_drift", lambda *_a, **_k: False)
 
         with pytest.raises(SystemExit) as exc:
@@ -956,10 +1047,89 @@ class Test_Main:
             "process_library",
             lambda library: [(library, tmp_path, "t", "datadog/system-tests:test.base-123456789abc", tmp_path, "df")],
         )
-        monkeypatch.setattr(build_base_images, "process_target", lambda *_a, **_k: None)
+        monkeypatch.setattr(build_base_images, "build_platform", lambda *_a, **_k: None)
+        monkeypatch.setattr(build_base_images, "merge_platforms", lambda *_a, **_k: None)
         monkeypatch.setattr(build_base_images, "_lock_drift", lambda *_a, **_k: False)
 
         build_base_images.main()  # must not raise SystemExit
+
+    def test_platform_mode_only_builds_that_platform_and_skips_lock_check(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ):
+        calls: list[tuple[str, str | None]] = []
+        monkeypatch.setattr(sys, "argv", ["build_base_images.py", "--library", "nodejs", "--platform", "linux/arm64"])
+        monkeypatch.setattr(build_base_images, "_bake_file", lambda _library: tmp_path)
+        monkeypatch.setattr(
+            build_base_images,
+            "process_library",
+            lambda library: [(library, tmp_path, "t", "datadog/system-tests:test.base-123456789abc", tmp_path, "df")],
+        )
+        monkeypatch.setattr(
+            build_base_images, "build_platform", lambda *_a, platform: calls.append(("build", platform))
+        )
+        monkeypatch.setattr(build_base_images, "merge_platforms", lambda *_a: calls.append(("merge", None)))
+        monkeypatch.setattr(build_base_images, "_lock_drift", lambda *_a, **_k: True)
+
+        build_base_images.main()  # a stale lock must not fail the per-platform job
+
+        assert calls == [("build", "linux/arm64")]
+
+    def test_merge_mode_fails_on_stale_lock(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        calls: list[str] = []
+        monkeypatch.setattr(sys, "argv", ["build_base_images.py", "--library", "nodejs", "--merge"])
+        monkeypatch.setattr(build_base_images, "_bake_file", lambda _library: tmp_path)
+        monkeypatch.setattr(
+            build_base_images,
+            "process_library",
+            lambda library: [(library, tmp_path, "t", "datadog/system-tests:test.base-123456789abc", tmp_path, "df")],
+        )
+        monkeypatch.setattr(build_base_images, "build_platform", lambda *_a, **_k: calls.append("build"))
+        monkeypatch.setattr(build_base_images, "merge_platforms", lambda *_a: calls.append("merge"))
+        monkeypatch.setattr(build_base_images, "_lock_drift", lambda *_a, **_k: True)
+
+        with pytest.raises(SystemExit) as exc:
+            build_base_images.main()
+
+        assert exc.value.code == 1
+        assert calls == ["merge"]
+
+    def test_default_mode_builds_every_platform_then_merges(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        calls: list[str] = []
+        monkeypatch.setattr(sys, "argv", ["build_base_images.py", "--library", "nodejs"])
+        monkeypatch.setattr(build_base_images, "_bake_file", lambda _library: tmp_path)
+        monkeypatch.setattr(
+            build_base_images,
+            "process_library",
+            lambda library: [(library, tmp_path, "t", "datadog/system-tests:test.base-123456789abc", tmp_path, "df")],
+        )
+        monkeypatch.setattr(build_base_images, "build_platform", lambda *_a, platform: calls.append(platform))
+        monkeypatch.setattr(build_base_images, "merge_platforms", lambda *_a: calls.append("merge"))
+        monkeypatch.setattr(build_base_images, "_lock_drift", lambda *_a, **_k: False)
+
+        build_base_images.main()
+
+        assert calls == ["linux/amd64", "linux/arm64", "merge"]
+
+    @pytest.mark.parametrize(("drift", "expected_code"), [(True, 1), (False, 0)])
+    def test_dry_run_exit_code_reflects_lock_drift(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, *, drift: bool, expected_code: int
+    ):
+        reported: list[str] = []
+        monkeypatch.setattr(sys, "argv", ["build_base_images.py", "--library", "nodejs", "--dry-run"])
+        monkeypatch.setattr(build_base_images, "_bake_file", lambda _library: tmp_path)
+        monkeypatch.setattr(
+            build_base_images,
+            "process_library",
+            lambda library: [(library, tmp_path, "t", "datadog/system-tests:test.base-123456789abc", tmp_path, "df")],
+        )
+        monkeypatch.setattr(build_base_images, "report_target", lambda *a: reported.append(a[2]))
+        monkeypatch.setattr(build_base_images, "_lock_drift", lambda *_a, **_k: drift)
+
+        with pytest.raises(SystemExit) as exc:
+            build_base_images.main()
+
+        assert exc.value.code == expected_code
+        assert reported == ["t"]  # every target is still reported when the lock is stale
 
     def test_unknown_explicit_library_exits_nonzero(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
         monkeypatch.setattr(sys, "argv", ["build_base_images.py", "--library", "bogus"])
