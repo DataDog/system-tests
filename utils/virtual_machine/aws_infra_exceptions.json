@@ -44,5 +44,6 @@
     "Failed_get_info_Microsoft.AspNetCore'":"Failed to retrieve information about 'Microsoft.AspNetCore'",
     "error_download_failed_with_curl_install_script":"Error: Download failed with curl",
     "error_response_from_docker_daemon":"dial tcp: lookup auth.docker.io: no such host",
-    "pulumi_command_short_write":"error: short write: running"
+    "pulumi_command_short_write":"error: short write: running",
+    "yum_cache_directory_missing": "OSError: [Errno 2] No such file or directory: '/var/cache/yum/"
 }
