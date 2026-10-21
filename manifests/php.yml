@@ -1177,6 +1177,7 @@ manifest:
         laravel11x: incomplete_test_app
         symfony7x: incomplete_test_app
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature (blocked by exception replay throwable gap)
+  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Telemetry: missing_feature (dynamic_instrumentation product not reported in telemetry)
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction:
     - weblog_declaration:
         "*": v1.19.0
@@ -1226,6 +1227,7 @@ manifest:
         laravel11x: v1.23.3  # TODO: a lower version might be supported
         symfony7x: v1.23.3  # TODO: a lower version might be supported
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry::test_telemetry_symdb: missing_feature (SymDb not implemented in PHP)
+  tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry_Products: missing_feature (dynamic_instrumentation product not reported in telemetry)
   tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_injection_metadata:
     - declaration: missing_feature (Not implemented yet)
       component_version: <1.12.0

@@ -45,6 +45,12 @@ ProbeDiagnosticsCollection = dict[str, ProbeDiagnosticsData]
 _CUR_DIR = str(Path(__file__).resolve().parent)
 
 
+def _log_number(data: dict) -> int | None:
+    """Return the number of an interface request, from its log file name."""
+    found = re.search(r"/(\d+)__", data["log_filename"])
+    return int(found.group(1)) if found else None
+
+
 def read_probes(test_name: str) -> list:
     with open(os.path.join(_CUR_DIR, "utils", "probes", test_name + ".json"), "r", encoding="utf-8") as f:
         return json.load(f)
@@ -788,6 +794,42 @@ class BaseDebuggerTest:
         # The correlated trace arrived without code origin metadata: that is a conclusive answer
         # for a state check, but a warmup must keep waiting for instrumentation to complete.
         return trace_found and stop_when_absent
+
+    @staticmethod
+    def last_agent_request_number() -> int:
+        """Return the number of the last request the agent sent, or -1 if there is none."""
+        numbers = [_log_number(data) for data in interfaces.agent.get_data()]
+        return max((number for number in numbers if number is not None), default=-1)
+
+    def wait_for_di_product_telemetry(self, *, enabled: bool, after: int, timeout: int) -> int | None:
+        """Wait for telemetry reporting the dynamic_instrumentation product as enabled or not.
+
+        Only telemetry forwarded by the agent in requests numbered higher than `after` is
+        considered. Returns the number of the request that carried it, or None if none arrived
+        in time.
+        """
+        found: int | None = None
+
+        def _reports_di_product(data: dict) -> bool:
+            nonlocal found
+            if data["path"] != _TELEMETRY_PATH:
+                return False
+            number = _log_number(data)
+            if number is None or number <= after:
+                return False
+            content = data.get("request", {}).get("content", {})
+            events = content.get("payload", []) if content.get("request_type") == "message-batch" else [content]
+            for event in events:
+                if event.get("request_type") not in ("app-started", "app-product-change"):
+                    continue
+                product = (event.get("payload", {}).get("products") or {}).get("dynamic_instrumentation")
+                if product is not None and bool(product.get("enabled")) == enabled:
+                    found = number
+                    return True
+            return False
+
+        interfaces.agent.wait_for(_reports_di_product, timeout=timeout)
+        return found
 
     def wait_for_telemetry(self, telemetry_type: str, timeout: int = 5) -> dict | None:
         self._telemetry: dict | None = None

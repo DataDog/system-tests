@@ -97,3 +97,19 @@ class Test_Debugger_Telemetry(debugger.BaseDebuggerTest):
     @slow
     def test_telemetry_co(self):
         self._assert(required_telemetry=["code_origin_for_spans_enabled"])
+
+
+@features.debugger
+@scenarios.debugger_telemetry
+class Test_Debugger_Telemetry_Products(debugger.BaseDebuggerTest):
+    """Dynamic Instrumentation enabled through the environment is reported in telemetry.
+
+    The library reports the dynamic_instrumentation product as enabled in its app-started event,
+    or in an app-product-change event.
+    """
+
+    def setup_telemetry_di_product(self):
+        self.enabled_reported_at = self.wait_for_di_product_telemetry(enabled=True, after=-1, timeout=30)
+
+    def test_telemetry_di_product(self):
+        assert self.enabled_reported_at is not None, "Expected telemetry reporting dynamic_instrumentation as enabled"

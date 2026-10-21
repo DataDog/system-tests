@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import tests.debugger.utils as debugger
-from utils import context, features, logger, scenarios, slow
+from utils import context, features, logger, remote_config, scenarios, slow
 import json
 import time
 
@@ -86,6 +86,49 @@ class Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation(debugger.BaseDe
         assert self.di_explicit_enabled, "Expected probes to be emitting after enabling dynamic instrumentation"
         assert self.di_empty_config, "Expected probes to continue emitting with empty config"
         assert self.di_explicit_disabled, "Expected probes to stop emitting after explicit disable"
+
+
+@features.debugger_inproduct_enablement
+@scenarios.debugger_inproduct_enablement
+class Test_Debugger_InProduct_Enablement_Telemetry(debugger.BaseDebuggerTest):
+    """Enabling and disabling Dynamic Instrumentation through Remote Config is reported in telemetry.
+
+    The library reports the dynamic_instrumentation product as enabled, then as disabled, in
+    app-started or app-product-change events.
+    """
+
+    rc_states: list[remote_config.RemoteConfigStateResults]
+
+    def setup_inproduct_enablement_di_telemetry(self):
+        self.initialize_weblog_remote_config()
+        self.enabled_reported_at = None
+        self.disabled_reported_at = None
+
+        before_enable = self.last_agent_request_number()
+        self.send_rc_apm_tracing(dynamic_instrumentation_enabled=True)
+        enable_rc_states = list(self.rc_states)
+        self.enabled_reported_at = self.wait_for_di_product_telemetry(
+            enabled=True, after=before_enable, timeout=TIMEOUT
+        )
+        if self.enabled_reported_at is None:
+            return
+
+        # Replace the config rather than adding a second one (reset=False), so
+        # that the library does not merge the two.
+        self.send_rc_apm_tracing(dynamic_instrumentation_enabled=False)
+        self.rc_states = enable_rc_states + self.rc_states
+        self.disabled_reported_at = self.wait_for_di_product_telemetry(
+            enabled=False, after=self.enabled_reported_at, timeout=TIMEOUT
+        )
+
+    def test_inproduct_enablement_di_telemetry(self):
+        self.assert_rc_state_not_error()
+        assert self.enabled_reported_at is not None, (
+            "Expected telemetry reporting dynamic_instrumentation as enabled after enabling it"
+        )
+        assert self.disabled_reported_at is not None, (
+            "Expected telemetry reporting dynamic_instrumentation as disabled after disabling it"
+        )
 
 
 @features.debugger_inproduct_enablement
