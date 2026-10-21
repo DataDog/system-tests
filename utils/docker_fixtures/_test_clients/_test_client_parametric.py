@@ -847,10 +847,11 @@ class ParametricTestClientApi(TestClientApi):
             dict: Evaluation result containing 'value', 'reason', and 'errorCode'.
                 When exposure_hooks=True, 'exposureHooks' contains two callback rows,
                 identified by 'hook' (0 or 1), with no required callback order.
-                Each row contains flag, subject, variant, metadata, value, errorCode,
+                Each row contains flag, subject, variant, allocationKey, metadata, value, errorCode,
                 reason, features, isExposure, isCacheHit, and shouldSend from the
                 public exposure hook. Unsupported provider compositions can return
                 no rows when their SDK explicitly disables customer exposure hooks.
+                allocationKey normalizes the SDK metadata name; metadata retains the original keys.
 
         """
         payload = {

@@ -37,7 +37,8 @@ func exposureHookOptions(rows *[]map[string]any, failAfter bool) []of.Option {
 			*rows = append(*rows, map[string]any{
 				"hook": id, "flag": e.Details.FlagKey, "subject": e.Context.TargetingKey(),
 				"variant": e.Details.Variant, "metadata": e.Details.FlagMetadata,
-				"value": e.Details.Value, "errorCode": e.Details.ErrorCode, "reason": e.Details.Reason,
+				"allocationKey": e.Details.FlagMetadata["dd.allocation.key"],
+				"value":         e.Details.Value, "errorCode": e.Details.ErrorCode, "reason": e.Details.Reason,
 				"isExposure": e.IsExposure(), "isCacheHit": e.IsCacheHit(), "shouldSend": e.ShouldSend(),
 				"features": e.Features(),
 			})

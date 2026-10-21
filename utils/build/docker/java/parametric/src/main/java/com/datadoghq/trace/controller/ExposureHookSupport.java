@@ -57,8 +57,10 @@ final class ExposureHookSupport {
             row.put("flag", details.getFlagKey());
             row.put("subject", context.getTargetingKey());
             row.put("variant", details.getVariant());
-            row.put("metadata", details.getFlagMetadata() == null
-                    ? Map.of() : details.getFlagMetadata().asUnmodifiableMap());
+            final var metadata = details.getFlagMetadata() == null
+                    ? Map.of() : details.getFlagMetadata().asUnmodifiableMap();
+            row.put("metadata", metadata);
+            row.put("allocationKey", metadata.get("allocationKey"));
             row.put("value", details.getValue() instanceof Value
                     ? context.convertValue((Value) details.getValue()) : details.getValue());
             row.put("errorCode", details.getErrorCode() == null ? "" : details.getErrorCode().name());

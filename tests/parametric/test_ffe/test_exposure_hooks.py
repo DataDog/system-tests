@@ -350,7 +350,7 @@ class Test_FFE_ExposureHooks:
             for row in result["exposureHooks"]:
                 assert row["subject"] == subject
                 assert row["variant"] == "on"
-                assert row["metadata"]["dd.allocation.key"] == "default-allocation"
+                assert row["allocationKey"] == "default-allocation"
                 if serial is None:
                     assert "__dd_split_serial_id" not in row["metadata"]
                 else:
