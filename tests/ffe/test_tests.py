@@ -1,6 +1,7 @@
 """Opt-in unit coverage for the shared Feature Flags EVP test contract."""
 
 from copy import deepcopy
+import json
 from typing import Any, Literal
 from unittest.mock import MagicMock
 
@@ -91,6 +92,69 @@ def _bounded_context_event(flag_key: str) -> dict[str, Any]:
         "last_evaluation": 1,
         "evaluation_count": 1,
     }
+
+
+@scenarios.feature_flagging_contract_tests
+@features.not_reported
+def test_flagevaluation_stress_request_uses_compact_unique_keys(monkeypatch: pytest.MonkeyPatch) -> None:
+    post = MagicMock()
+    monkeypatch.setattr(flag_eval_evp_tests.rc, "tracer_rc_state", MagicMock())
+    monkeypatch.setattr(flag_eval_evp_tests.weblog, "post", post)
+    check = flag_eval_evp_tests.Test_FFE_EVP_Flagevaluation_High_Cardinality_Accounting()
+    check.setup_ffe_evp_flagevaluation_high_cardinality_accounting()
+
+    post.assert_called_once()
+    assert post.call_args.args == ("/ffe",)
+    payload = post.call_args.kwargs["json"]
+    assert payload["targetingKeys"] == [str(index) for index in range(12_000)]
+    assert len(set(payload["targetingKeys"])) == check.eval_count == 12_000
+    assert payload["targetingKey"] == "0"
+    assert len(json.dumps(payload).encode("utf-8")) < 256 * 1024
+
+
+@pytest.mark.parametrize("windows", [(12_000,), (6_000, 6_000), (3_000, 3_000, 3_000, 3_000)])
+@pytest.mark.parametrize("mutation", ["none", "missing count", "duplicate", "invalid tier shape"])
+@scenarios.feature_flagging_contract_tests
+@features.not_reported
+def test_flagevaluation_stress_contract_across_flush_windows(
+    monkeypatch: pytest.MonkeyPatch, windows: tuple[int, ...], mutation: str
+) -> None:
+    check = flag_eval_evp_tests.Test_FFE_EVP_Flagevaluation_High_Cardinality_Accounting()
+    check.flag_key = "stress-window-contract"
+    check.eval_count = 12_000
+    check.responses = [MagicMock(status_code=200, text='{"value":"on-value","count":12000}')]
+    rows = []
+    next_key = 0
+    for count in windows:
+        batch = {"context": {"service": "weblog"}}
+        # Model native per-window coalescing; this exercises the external assertion,
+        # not the SDK cap itself. Split windows can legitimately contain no degradation.
+        for _ in range(min(count, 10_000)):
+            event = _bounded_context_event(check.flag_key)
+            event["targeting_key"] = str(next_key)
+            next_key += 1
+            rows.append((batch, event))
+        if count > 10_000:
+            event = _bounded_context_event(check.flag_key)
+            event["evaluation_count"] = count - 10_000
+            rows.append((batch, event))
+    if mutation == "missing count":
+        rows.pop(0)
+    elif mutation == "duplicate":
+        rows[1] = rows[0]
+    elif mutation == "invalid tier shape":
+        event = rows[-1][1]
+        if "targeting_key" in event:
+            event["targeting_key"] = ""
+        else:
+            event["context"] = {}
+    monkeypatch.setattr(flag_eval_evp_tests, "find_evp_flagevaluation_events", lambda _: rows)
+    monkeypatch.setattr(interfaces.library, "get_telemetry_metric_series", MagicMock(return_value=[]))
+    if mutation == "none":
+        check.test_ffe_evp_flagevaluation_high_cardinality_accounting()
+    else:
+        with pytest.raises(AssertionError):
+            check.test_ffe_evp_flagevaluation_high_cardinality_accounting()
 
 
 @pytest.mark.parametrize(

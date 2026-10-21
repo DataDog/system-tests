@@ -645,7 +645,8 @@ class Test_FFE_EVP_Flagevaluation_High_Cardinality_Accounting:
         self.eval_count = EVP_HIGH_CARDINALITY_EVALS
         rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key)).apply()
 
-        targeting_keys = [f"evp-degradation-user-{index}" for index in range(self.eval_count)]
+        # Keep unique keys short so the batch fits weblog request body limits.
+        targeting_keys = [str(index) for index in range(self.eval_count)]
         self.responses = [
             evaluate_flag(
                 self.flag_key,

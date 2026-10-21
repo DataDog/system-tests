@@ -77,6 +77,14 @@ SDK/native tests with synchronous enqueueing. PHP's pinned libdatadog has
 `coalescer_degrades_after_per_flag_cap` in `libdd-ffe`, which verifies 10,000 full
 rows plus 50 degraded evaluations. No production timing override is used.
 
+This replaces the two-window degradation workload from
+[PR #8133](https://github.com/DataDog/system-tests/pull/8133), retaining its short
+numeric targeting keys to stay within weblog request-body limits. Doubling the
+workload handles one flush boundary, but does not guarantee degradation when a
+slow request spans more windows. The isolated accounting test therefore keeps
+12,000 evaluations and validates both full and degraded rows without requiring
+degradation to occur.
+
 ---
 
 # Eval Metrics Implementation Guide
