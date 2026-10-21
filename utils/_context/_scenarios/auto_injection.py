@@ -1,6 +1,7 @@
 import copy
 import json
 import os
+import warnings
 from pathlib import Path
 import pytest
 from utils._context.component_version import ComponentVersion
@@ -64,6 +65,18 @@ class _VirtualMachineScenario(Scenario):
             pytest.exit("No datadog-apm-library found", returncode=3)
 
     def configure(self, config: pytest.Config):
+        # pytest shows every warning during pytest_configure. Pulumi and the
+        # assertion rewriter are imported here, and only for AWS SSI scenarios.
+        warnings.filterwarnings(
+            "ignore",
+            message=r"^aws\.ec2/getvpciam",
+            category=DeprecationWarning,
+        )
+        warnings.filterwarnings(
+            "ignore",
+            message=r"^ast\.(?:Str|NameConstant) is deprecated",
+            category=DeprecationWarning,
+        )
         from utils.virtual_machine.virtual_machine_provider import VmProviderFactory
         from utils.virtual_machine.virtual_machine_provisioner import provisioner
 
