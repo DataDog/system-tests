@@ -245,7 +245,23 @@ def _events_match(actual: list[dict[str, Any]], expected: list[dict[str, Any]], 
     return not exact or not unmatched
 
 
-def _assert_evaluation_telemetry(test_agent: TestAgentAPI, test_cases: list[dict[str, Any]]) -> None:
+def _assert_evaluation_telemetry(
+    test_agent: TestAgentAPI, test_library: APMLibrary, test_cases: list[dict[str, Any]]
+) -> None:
+    marker_case = next(
+        test_case for test_case in test_cases if _expected_event_matchers(test_case["expectations"], "exposures")
+    )
+    marker_targeting_key = f"{marker_case['targetingKey']}-telemetry-drain-marker"
+    marker_result = _ffe_evaluate_with_rc_retry(
+        test_library,
+        flag=marker_case["flag"],
+        variation_type=marker_case["variationType"],
+        default_value=marker_case["defaultValue"],
+        targeting_key=marker_targeting_key,
+        attributes=marker_case.get("attributes", {}),
+    )
+    assert marker_result.get("reason") != "ERROR", f"telemetry drain marker evaluation failed: {marker_result}"
+
     captured: dict[str, tuple[list[dict[str, Any]], list[dict[str, Any]]]] = {}
 
     for _ in range(FFE_EVENT_WAIT_ATTEMPTS):
@@ -259,16 +275,12 @@ def _assert_evaluation_telemetry(test_agent: TestAgentAPI, test_cases: list[dict
             for test_case in test_cases
         }
 
-        # Exact-count and forbidden-event assertions are safe only after both independent
-        # writers have delivered telemetry produced by this batch of evaluation cases.
-        delivered_paths = {
-            path
-            for path in FFE_EVENT_PATHS
-            if any(
-                _events_from_requests(relevant_requests, path, test_case["targetingKey"]) for test_case in test_cases
-            )
+        # Each writer preserves event order. Seeing the post-batch marker from both writers
+        # proves that all telemetry from the evaluation cases has drained before exact checks.
+        drained_paths = {
+            path for path in FFE_EVENT_PATHS if _events_from_requests(relevant_requests, path, marker_targeting_key)
         }
-        complete = delivered_paths == set(FFE_EVENT_PATHS)
+        complete = drained_paths == set(FFE_EVENT_PATHS)
         for test_case in test_cases:
             expectations = test_case.get("expectations", {})
             assert isinstance(expectations, dict)
@@ -388,4 +400,4 @@ class Test_Feature_Flag_Dynamic_Evaluation:
         test_cases = self._assert_evaluation_cases(test_case_file, test_agent, test_library)
         telemetry_cases = [test_case for test_case in test_cases if "expectations" in test_case]
         if telemetry_cases:
-            _assert_evaluation_telemetry(test_agent, telemetry_cases)
+            _assert_evaluation_telemetry(test_agent, test_library, telemetry_cases)
