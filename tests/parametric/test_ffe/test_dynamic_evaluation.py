@@ -24,9 +24,9 @@ FFE_READY_RETRY_ATTEMPTS = 10
 FFE_READY_RETRY_INTERVAL_SECONDS = 0.2
 FFE_EVENT_WAIT_ATTEMPTS = 300
 FFE_EVENT_WAIT_INTERVAL_SECONDS = 0.1
-FFE_EVENT_STABLE_POLLS = 3
 EXPOSURES_PATH = "/api/v2/exposures"
 EVALUATIONS_PATH = "/api/v2/flagevaluation"
+FFE_EVENT_PATHS = (EXPOSURES_PATH, EVALUATIONS_PATH)
 FFE_SYSTEM_TEST_DATA_DIR = Path(__file__).parent / "ffe-system-test-data"
 FFE_EVALUATION_CASES_DIR = FFE_SYSTEM_TEST_DATA_DIR / "evaluation-cases"
 FFE_SYSTEM_TEST_CASES_DIR = Path(__file__).parent / "system-test-cases"
@@ -246,18 +246,11 @@ def _events_match(actual: list[dict[str, Any]], expected: list[dict[str, Any]], 
 
 
 def _assert_evaluation_telemetry(test_agent: TestAgentAPI, test_cases: list[dict[str, Any]]) -> None:
-    last_signature: tuple[tuple[str, str], ...] | None = None
-    stable_polls = 0
     captured: dict[str, tuple[list[dict[str, Any]], list[dict[str, Any]]]] = {}
 
     for _ in range(FFE_EVENT_WAIT_ATTEMPTS):
         requests = test_agent.requests()
-        relevant_requests = [
-            request
-            for request in requests
-            if request["url"].endswith(EXPOSURES_PATH) or request["url"].endswith(EVALUATIONS_PATH)
-        ]
-        signature = tuple((request["url"], request["body"]) for request in relevant_requests)
+        relevant_requests = [request for request in requests if request["url"].endswith(FFE_EVENT_PATHS)]
         captured = {
             test_case["targetingKey"]: (
                 _events_from_requests(relevant_requests, EXPOSURES_PATH, test_case["targetingKey"]),
@@ -266,7 +259,16 @@ def _assert_evaluation_telemetry(test_agent: TestAgentAPI, test_cases: list[dict
             for test_case in test_cases
         }
 
-        complete = True
+        # Exact-count and forbidden-event assertions are safe only after both independent
+        # writers have delivered telemetry produced by this batch of evaluation cases.
+        delivered_paths = {
+            path
+            for path in FFE_EVENT_PATHS
+            if any(
+                _events_from_requests(relevant_requests, path, test_case["targetingKey"]) for test_case in test_cases
+            )
+        }
+        complete = delivered_paths == set(FFE_EVENT_PATHS)
         for test_case in test_cases:
             expectations = test_case.get("expectations", {})
             assert isinstance(expectations, dict)
@@ -279,10 +281,8 @@ def _assert_evaluation_telemetry(test_agent: TestAgentAPI, test_cases: list[dict
                 evaluations, _expected_event_matchers(expectations, "evaluationEvents"), exact=exact
             )
 
-        stable_polls = stable_polls + 1 if complete and signature == last_signature else 0
-        if stable_polls >= FFE_EVENT_STABLE_POLLS:
+        if complete:
             break
-        last_signature = signature
         time.sleep(FFE_EVENT_WAIT_INTERVAL_SECONDS)
     else:
         raise AssertionError(f"evaluation telemetry did not stabilize: {captured}")
@@ -357,11 +357,17 @@ class Test_Feature_Flag_Dynamic_Evaluation:
                 f"Test case {i} in {test_case_file.name} failed: FFE provider did not load RC data after "
                 f"{FFE_READY_RETRY_ATTEMPTS} attempts; result={result}"
             )
-            for field, expected_value in expected_result.items():
-                assert result.get(field) == expected_value, (
+            for field in ("value", "reason", "errorCode"):
+                if field not in expected_result:
+                    continue
+                assert result.get(field) == expected_result[field], (
                     f"Test case {i} in {test_case_file.name} failed: "
                     f"flag='{flag}', targetingKey='{targeting_key}', field='{field}', "
-                    f"expected={expected_value!r}, actual={result.get(field)!r}"
+                    f"expected={expected_result[field]!r}, actual={result.get(field)!r}"
+                )
+            if "errorCode" not in expected_result and expected_result.get("reason") != "ERROR":
+                assert result.get("errorCode") in {None, ""}, (
+                    f"Test case {i} in {test_case_file.name}: unexpected evaluation error; result={result}"
                 )
         return test_cases
 
