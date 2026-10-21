@@ -1,54 +1,86 @@
+---
 version: '3'
 services:
   reverseproxy:
-      image: reverseproxy:latest
-      ports:
-          - 5985:8080
-      restart: always
-      build:
-          context: .
-          dockerfile: Dockerfile.reverseproxy
-      healthcheck:
-        test: "curl -f http://localhost:8080"
+    image: reverseproxy:latest
+    ports:
+      - 5985:8080
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile.reverseproxy
+    depends_on:
+      java_8:
+        condition: service_healthy
+      java_11:
+        condition: service_healthy
+      java_15:
+        condition: service_healthy
+      java_17:
+        condition: service_healthy
+      java_21:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS --max-time 4 http://localhost:8080/ >/dev/null"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
   java_8:
-      env_file: "scenario_app.env"
-      image: system-tests/java_8:latest
-      restart: always
-      build:
-          context: .
-          dockerfile: Dockerfile.jdk8
-      healthcheck:
-        test: "curl -f http://localhost:18080"
+    env_file: "scenario_app.env"
+    image: system-tests/java_8:latest
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile.jdk8
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS --max-time 4 http://localhost:18080/ >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 35s
 
   java_11:
-      env_file: "scenario_app.env"
-      image: system-tests/java_11:latest
-      restart: always
-      build:
-          context: .
-          dockerfile: Dockerfile.jdk11
-      healthcheck:
-        test: "curl -f http://localhost:18080"
+    env_file: "scenario_app.env"
+    image: system-tests/java_11:latest
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile.jdk11
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS --max-time 4 http://localhost:18080/ >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 35s
 
   java_15:
-      env_file: "scenario_app.env"
-      image: system-tests/java_15:latest
-      restart: always
-      build:
-          context: .
-          dockerfile: Dockerfile.jdk15
-      healthcheck:
-        test: "curl -f http://localhost:18080"
+    env_file: "scenario_app.env"
+    image: system-tests/java_15:latest
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile.jdk15
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS --max-time 4 http://localhost:18080/ >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 35s
 
   java_17:
-      env_file: "scenario_app.env"
-      image: system-tests/java_17:latest
-      restart: always
-      build:
-          context: .
-          dockerfile: Dockerfile.jdk17
-      healthcheck:
-        test: "curl -f http://localhost:18080"
+    env_file: "scenario_app.env"
+    image: system-tests/java_17:latest
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile.jdk17
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS --max-time 4 http://localhost:18080/ >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 35s
 
   java_21:
     env_file: "scenario_app.env"
@@ -58,4 +90,8 @@ services:
       context: .
       dockerfile: Dockerfile.jdk21
     healthcheck:
-      test: "curl -f http://localhost:18080"
+      test: ["CMD-SHELL", "curl -fsS --max-time 4 http://localhost:18080/ >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 35s

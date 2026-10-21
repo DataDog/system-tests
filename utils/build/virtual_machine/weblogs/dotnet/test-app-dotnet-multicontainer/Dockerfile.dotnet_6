@@ -3,6 +3,9 @@ ARG RUNTIME="bullseye-slim"
 # We only ship the published app in the image
 # so we only use ASPNET runtime as the base-image
 FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS base
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
