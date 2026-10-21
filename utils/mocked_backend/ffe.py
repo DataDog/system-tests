@@ -196,8 +196,6 @@ class MockFFEAgentlessBackendServer(MockBackendV2Server):
     # - POST /control/responses
     # - POST /control/reset
 
-    thread_name = "mock-ffe-agentless-backend"
-
     def __init__(self, *, port: int = MockBackendV2Server.DEFAULT_PORT) -> None:
         super().__init__(port=port)
         self.state = MockFFEAgentlessBackendState()
