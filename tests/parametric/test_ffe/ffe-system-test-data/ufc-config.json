@@ -5170,6 +5170,110 @@
         }
       ]
     },
+    "dependent-one-of-miss-root": {
+      "key": "dependent-one-of-miss-root",
+      "enabled": true,
+      "variationType": "STRING",
+      "variations": {
+        "matched": {
+          "key": "matched",
+          "value": "must-not-be-returned"
+        },
+        "fallback": {
+          "key": "fallback",
+          "value": "one-of-fallback"
+        }
+      },
+      "allocations": [
+        {
+          "key": "variant-not-in-list",
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "flagEvaluation": {
+                    "key": "dependent-leaf-on"
+                  },
+                  "operator": "ONE_OF",
+                  "value": [
+                    "off"
+                  ]
+                }
+              ]
+            }
+          ],
+          "splits": [
+            {
+              "variationKey": "matched",
+              "shards": []
+            }
+          ],
+          "doLog": true
+        },
+        {
+          "key": "fallback",
+          "splits": [
+            {
+              "variationKey": "fallback",
+              "shards": []
+            }
+          ],
+          "doLog": true
+        }
+      ]
+    },
+    "dependent-not-one-of-hit-root": {
+      "key": "dependent-not-one-of-hit-root",
+      "enabled": true,
+      "variationType": "STRING",
+      "variations": {
+        "matched": {
+          "key": "matched",
+          "value": "must-not-be-returned"
+        },
+        "fallback": {
+          "key": "fallback",
+          "value": "not-one-of-fallback"
+        }
+      },
+      "allocations": [
+        {
+          "key": "variant-in-excluded-list",
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "flagEvaluation": {
+                    "key": "dependent-leaf-on"
+                  },
+                  "operator": "NOT_ONE_OF",
+                  "value": [
+                    "on"
+                  ]
+                }
+              ]
+            }
+          ],
+          "splits": [
+            {
+              "variationKey": "matched",
+              "shards": []
+            }
+          ],
+          "doLog": true
+        },
+        {
+          "key": "fallback",
+          "splits": [
+            {
+              "variationKey": "fallback",
+              "shards": []
+            }
+          ],
+          "doLog": true
+        }
+      ]
+    },
     "dependent-transitive-parent": {
       "key": "dependent-transitive-parent",
       "enabled": true,

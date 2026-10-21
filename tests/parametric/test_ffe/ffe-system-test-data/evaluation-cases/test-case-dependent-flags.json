@@ -12,6 +12,30 @@
     "variationType": "STRING"
   },
   {
+    "description": "ONE_OF does not match when the prerequisite variant key is absent from the allowed list.",
+    "attributes": {},
+    "defaultValue": "caller-default",
+    "flag": "dependent-one-of-miss-root",
+    "result": {
+      "reason": "STATIC",
+      "value": "one-of-fallback"
+    },
+    "targetingKey": "dependent-one-of-miss",
+    "variationType": "STRING"
+  },
+  {
+    "description": "NOT_ONE_OF does not match when the prerequisite variant key is present in the excluded list.",
+    "attributes": {},
+    "defaultValue": "caller-default",
+    "flag": "dependent-not-one-of-hit-root",
+    "result": {
+      "reason": "STATIC",
+      "value": "not-one-of-fallback"
+    },
+    "targetingKey": "dependent-not-one-of-hit",
+    "variationType": "STRING"
+  },
+  {
     "description": "A depth-two tree evaluates its leaf and intermediate prerequisite before matching the root.",
     "attributes": {},
     "defaultValue": "caller-default",
