@@ -1736,10 +1736,30 @@ manifest:
         net-http: v2.12.0-dev
   tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Sidecar: v2.12.0-dev
   tests/ffe/test_exposures_datadog_agent.py: v2.6.0-dev  # Easy win for chi, echo, gin, net-http, net-http-orchestrion, uds-echo and version 2.5.0
-  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Appears: missing_feature (EX-3414)
-  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Cycle: missing_feature (EX-3414)
-  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Disappears: missing_feature (EX-3414)
-  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Serial_Id: missing_feature (EX-3414)
+  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Appears:  # TODO: a lower version might be supported
+    - declaration: missing_feature (EX-3414)
+      component_version: <2.11.2
+      weblog: [chi, gin, net-http-orchestrion, net-http, fiber-v2-orchestrion, uds-echo, echo]
+    - declaration: missing_feature (EX-3414)
+      excluded_weblog: [chi, gin, net-http-orchestrion, net-http, fiber-v2-orchestrion, uds-echo, echo]
+  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Cycle:  # TODO: a lower version might be supported
+    - declaration: missing_feature (EX-3414)
+      component_version: <2.11.2
+      weblog: [chi, gin, net-http-orchestrion, net-http, fiber-v2-orchestrion, uds-echo, echo]
+    - declaration: missing_feature (EX-3414)
+      excluded_weblog: [chi, gin, net-http-orchestrion, net-http, fiber-v2-orchestrion, uds-echo, echo]
+  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Disappears:  # TODO: a lower version might be supported
+    - declaration: missing_feature (EX-3414)
+      component_version: <2.11.2
+      weblog: [chi, gin, net-http-orchestrion, net-http, fiber-v2-orchestrion, uds-echo, echo]
+    - declaration: missing_feature (EX-3414)
+      excluded_weblog: [chi, gin, net-http-orchestrion, net-http, fiber-v2-orchestrion, uds-echo, echo]
+  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Serial_Id:  # TODO: a lower version might be supported
+    - declaration: missing_feature (EX-3414)
+      component_version: <2.11.2
+      weblog: [chi, gin, net-http-orchestrion, net-http, fiber-v2-orchestrion, uds-echo, echo]
+    - declaration: missing_feature (EX-3414)
+      excluded_weblog: [chi, gin, net-http-orchestrion, net-http, fiber-v2-orchestrion, uds-echo, echo]
   tests/ffe/test_flag_eval_evp.py: v2.10.0-dev
   tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Egress_Agentless_Direct: v2.12.0-dev
   tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Egress_Agentless_Sidecar: v2.12.0-dev
@@ -2031,6 +2051,8 @@ manifest:
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_protocol.py::Test_OTEL_EXPORTER_OTLP_TRACES_PROTOCOL::test_http_protocol_is_used_for_trace_export
   : missing_feature
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_timeout.py::Test_OTEL_EXPORTER_OTLP_TRACES_TIMEOUT: missing_feature (OTLP exporter timeout configuration is not centralized)
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL: v2.12.0-dev  # Easy win for all weblogs and version 2.11.2
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_warning_threshold_diagnostic: irrelevant (Uses the PHP SDK diagnostic probe)
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER:  # TODO: a lower version might be supported
     - declaration: missing_feature (OTEL_LOGS_EXPORTER does not configure the logs pipeline)
       component_version: <2.10.1
@@ -2050,6 +2072,13 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_metrics_exporter.py::Test_OTEL_METRICS_EXPORTER::test_deprecated_values: missing_feature (Only otlp and none metrics exporters are implemented)
   tests/parametric/otel_env_vars/test_otel_metrics_exporter.py::Test_OTEL_METRICS_EXPORTER::test_development_values: missing_feature (Only otlp and none metrics exporters are implemented)
   tests/parametric/otel_env_vars/test_otel_metrics_exporter.py::Test_OTEL_METRICS_EXPORTER::test_prometheus: missing_feature (Only otlp and none metrics exporters are implemented)
+  tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS: v2.6.0
+  tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS::test_baggage: missing_feature (OTEL_PROPAGATORS does not configure W3C baggage)
+  tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS::test_composite_propagators: missing_feature (OTEL_PROPAGATORS does not configure W3C baggage)
+  tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS::test_default_matches_specification: irrelevant (Datadog intentionally includes the Datadog propagator by default)
+  tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS::test_deprecated_values: missing_feature (Jaeger and OT Trace propagators are not implemented)
+  tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS::test_duplicate_propagators: bug (APMAPI-2582)
+  tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS::test_xray: missing_feature (X-Ray propagation is not implemented)
   tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES: v2.3.0
   tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES::test_invalid_value_is_discarded: bug (APMAPI-2432)
   tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES::test_percent_encoded_separators: bug (APMAPI-2425)
@@ -2100,7 +2129,11 @@ manifest:
   tests/parametric/test_config_consistency.py::Test_Stable_Config_Default: v2.1.0-dev.2
   tests/parametric/test_config_consistency.py::Test_Stable_Config_Default::test_extended_configs: missing_feature (extended configs are not supported)
   tests/parametric/test_config_consistency.py::Test_Stable_Config_Rules: missing_feature
-  tests/parametric/test_crashtracking.py: missing_feature
+  tests/parametric/test_crashtracking.py::Test_Crashtracking::test_disable_crashtracking: irrelevant (Go crashtracking reports through Error Tracking EVP, not telemetry logs)
+  tests/parametric/test_crashtracking.py::Test_Crashtracking::test_disable_crashtracking_error_tracking: v2.11.0
+  tests/parametric/test_crashtracking.py::Test_Crashtracking::test_report_crash: irrelevant (Go crashtracking reports through Error Tracking EVP, not telemetry logs)
+  tests/parametric/test_crashtracking.py::Test_Crashtracking::test_report_crash_error_tracking: v2.11.0
+  tests/parametric/test_crashtracking.py::Test_Crashtracking::test_telemetry_timeout: irrelevant (Go crashtracking reports through Error Tracking EVP, not telemetry logs)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules: v1.64.0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled: v1.61.0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_tracing_client_tracing_disable_one_way: irrelevant
@@ -2133,6 +2166,7 @@ manifest:
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart_With_Extract_First: missing_feature (DD_TRACE_PROPAGATION_EXTRACT_FIRST=true is unsupported; dd-trace-go panics when extraction fails)
   tests/parametric/test_ffe/test_configuration_sources.py: v2.11.0-dev  # Easy win for all weblogs and version 2.10.1
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v2.5.0-dev
+  tests/parametric/test_ffe/test_serial_id_metadata.py: missing_feature
   tests/parametric/test_ffe/test_span_enrichment.py: '>=2.10.0'  # TODO: a lower version might be supported
   tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Child_Span_Propagation: missing_feature
   tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Default_Fallback: missing_feature
@@ -2221,7 +2255,6 @@ manifest:
   tests/parametric/test_llm_observability/: incomplete_test_app
   tests/parametric/test_otel_api_interoperability.py: missing_feature
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: v1.66.0
-  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_log_level_env: missing_feature (DD_LOG_LEVEL is not supported in go)
   tests/parametric/test_otel_logs.py: '>=2.5.0'  # Modified by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR01_Enable_OTLP_Log_Collection::test_otlp_logs_enabled: v2.10.1
   tests/parametric/test_otel_logs.py::Test_FR03_Resource_Attributes: '>=2.10.1'  # Created by easy win activation script
@@ -2293,7 +2326,7 @@ manifest:
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Add_Link: missing_feature (add_link endpoint is not implemented)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDSpan_Set_Resource: missing_feature (does not support setting a resource name after span creation)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Baggage: missing_feature (baggage endpoints are not implemented)
-  tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Crash: missing_feature (crash endpoint is not implemented)
+  tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Crash: v2.11.0
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Current_Span: missing_feature (spans are stored in a local context, there is no global current span in the go tracer)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_FFE_Start: v2.5.0-dev
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_OtelSpan_Events::test_record_exception: irrelevant (OTEL does not expose an API for recording exceptions)
@@ -2790,7 +2823,13 @@ manifest:
         net-http: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
         uds-echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
         gin: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs: missing_feature
+  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs: v2.12.0-dev
+  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_configured_value: irrelevant (DD_TRACE_OTEL_ENABLED and the shared OTLP settings are not reported)
+  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_metrics:
+    - declaration: incomplete_test_app (weblog does not import ddtrace/opentelemetry/metric)
+      weblog: [net-http-span-pool]
+  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_otlp_exporter: irrelevant (Only effective signal-specific OTLP settings are reported)
+  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_traces: irrelevant (DD_TRACE_OTEL_ENABLED is not reported)
   tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5: v2.11.0-dev
   tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh:  # Easy win for chi, echo, fiber-v2-orchestrion, gin, net-http, net-http-orchestrion, uds-echo and version 2.10.1
     - weblog_declaration:

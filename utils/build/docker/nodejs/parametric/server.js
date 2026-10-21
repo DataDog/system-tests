@@ -462,10 +462,30 @@ app.post('/trace/otel/set_attributes', (req, res) => {
 app.get('/trace/config', (req, res) => {
   // The tracer's resolved config is an internal shape whose property paths rename across
   // refactors, so this endpoint reports nothing from it. Node config consistency is asserted
-  // via telemetry and observable behaviour in the parametric suite; the test client fills
-  // every documented key with null, so the cross-language parity contract still holds.
+  // via telemetry and observable behaviour in the parametric suite. Missing keys default
+  // to null in the test client; OTLP timeouts use the dedicated diagnostic endpoint below.
   res.json({ config: {} })
 });
+
+app.get('/otel/effective_config', (req, res) => {
+  // Isolate the SDK's private configuration shape behind stable diagnostic fields.
+  // Keep validation and default resolution inside the SDK.
+  // Older tracers may not expose these fields; preserve null in that case.
+  const config = tracer?._tracer?._config
+  res.json({ config: {
+    otel_exporter_otlp_traces_timeout_ms: otlpExporterTimeout(config?.OTEL_EXPORTER_OTLP_TRACES_TIMEOUT),
+    otel_exporter_otlp_metrics_timeout_ms: otlpExporterTimeout(
+      config?.OTEL_EXPORTER_OTLP_METRICS_TIMEOUT ?? config?.otelMetricsTimeout
+    ),
+    otel_exporter_otlp_logs_timeout_ms: otlpExporterTimeout(
+      config?.OTEL_EXPORTER_OTLP_LOGS_TIMEOUT ?? config?.otelLogsTimeout
+    )
+  } })
+});
+
+function otlpExporterTimeout (value) {
+  return typeof value === 'number' && Number.isFinite(value) ? String(value) : null
+}
 
 app.post("/otel/logger/create", (req, res) => {
   const { name, level, version, schema_url, attributes } = req.body
@@ -589,7 +609,7 @@ app.post('/ffe/start', async (req, res) => {
 
 app.post('/ffe/evaluate', async (req, res) => {
   const { flag, variationType, defaultValue, targetingKey, attributes, span_id } = req.body;
-  let value, reason;
+  let details;
   const context = { targetingKey, ...attributes }
 
   // Helper function to perform the actual flag evaluation
@@ -597,28 +617,25 @@ app.post('/ffe/evaluate', async (req, res) => {
     try {
       switch (variationType) {
         case 'BOOLEAN':
-          value = await openFeatureClient.getBooleanValue(flag, defaultValue, context)
+          details = await openFeatureClient.getBooleanDetails(flag, defaultValue, context)
           break;
         case 'STRING':
-          value = await openFeatureClient.getStringValue(flag, defaultValue, context)
+          details = await openFeatureClient.getStringDetails(flag, defaultValue, context)
           break;
         case 'INTEGER':
-          value = await openFeatureClient.getNumberValue(flag, defaultValue, context)
+          details = await openFeatureClient.getNumberDetails(flag, defaultValue, context)
           break;
         case 'NUMERIC':
-          value = await openFeatureClient.getNumberValue(flag, defaultValue, context)
+          details = await openFeatureClient.getNumberDetails(flag, defaultValue, context)
           break;
         case 'JSON':
-          value = await openFeatureClient.getObjectValue(flag, defaultValue, context)
+          details = await openFeatureClient.getObjectDetails(flag, defaultValue, context)
           break;
         default:
-          value = defaultValue;
+          details = { value: defaultValue, reason: 'DEFAULT' };
       }
-
-      reason = 'DEFAULT';
     } catch (error) {
-      value = defaultValue;
-      reason = 'ERROR';
+      details = { value: defaultValue, reason: 'ERROR' };
     }
   }
 
@@ -631,8 +648,9 @@ app.post('/ffe/evaluate', async (req, res) => {
   }
 
   res.json({
-    value: value,
-    reason: reason
+    value: details.value,
+    reason: details.reason,
+    flagMetadata: details.flagMetadata ?? null
   });
 });
 

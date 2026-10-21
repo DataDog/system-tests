@@ -1,4 +1,5 @@
 from collections.abc import Callable
+from datetime import datetime
 from io import TextIOWrapper
 import os
 import pathlib
@@ -9,7 +10,6 @@ import tempfile
 from random import randint
 from retry import retry
 import json
-import random
 
 from pulumi import automation as auto
 import pulumi
@@ -25,6 +25,8 @@ from utils.virtual_machine.vm_logger import vm_logger
 from utils.onboarding.debug_vm import download_vm_logs
 from utils.virtual_machine.virtual_machine_provider import VmProvider, Commander
 from utils.virtual_machine.virtual_machines import _VirtualMachine
+from utils.virtual_machine.aws_candidate_boot import CandidateBoot
+from utils.virtual_machine.ami_candidate import cache_plan, select_usable_ami, should_boot_created_candidate
 
 import pytest
 
@@ -38,13 +40,24 @@ _MAX_EVENT_MESSAGE_LENGTH = 255
 _EVENT_REQUEST_TIMEOUT = 15
 
 
-class AWSPulumiProvider(VmProvider):
+def _select_cached_ami(
+    cached_amis: list[aws.ec2.GetAmiResult],
+    *,
+    now: datetime | None = None,
+) -> aws.ec2.GetAmiResult | None:
+    return select_usable_ami(cached_amis, now=now)
+
+
+class AWSPulumiProvider(CandidateBoot, VmProvider):
     def __init__(self):
         super().__init__()
         self.commander = AWSCommander()
         self.pulumi_ssh = None
         self.datadog_event_sender = DatadogEventSender()
         self.stack_name = "system-tests_dev_onboarding"
+        self.booted_candidate_ami_id: str | None = None
+        self.boot_created_candidate = False
+        self.instance_user_data: str | None = None
 
     def configure(self, virtual_machine: _VirtualMachine) -> None:
         super().configure(virtual_machine)
@@ -147,7 +160,10 @@ class AWSPulumiProvider(VmProvider):
             return json.load(f)
 
     def _handle_provision_error(self, exception: pulumi.automation.errors.CommandError):
-        """If the exception is known, we will raise the exception, if not,we will store it in the vm object."""
+        """Stop the session on any provision error, so that no test is run.
+
+        If the exception is known, exit with code 3 (GitLab retries the job). If not, exit with code 1.
+        """
 
         exception_message = str(exception)
         for known_message in self.aws_infra_exceptions.values():
@@ -167,6 +183,8 @@ class AWSPulumiProvider(VmProvider):
             repr(exception),
             ["operation:up", "result:fail", f"stack:{self.stack_name}"],
         )
+        # The stack is destroyed by the scenario's close_targets, called when a warmup fails
+        pytest.exit(f"Error on VM provisioning, check the log file: {self.vm.name}.log", returncode=1)
 
     def _download_vm_logs_after_provision_failure(self) -> None:
         """Pull /var/log from the VM while it is still up (provision may have failed mid-way)."""
@@ -195,47 +213,20 @@ class AWSPulumiProvider(VmProvider):
                 vm.aws_config.ami_id = ssm_parameter.value
             ec2_user_data = self.get_windows_user_data()
 
-        logger.info(
-            f"Starting VM: {vm.name} with iam_instance_profile: {vm.aws_config.aws_infra_config.iam_instance_profile}"
+        self.instance_user_data = ec2_user_data
+        self.boot_created_candidate = should_boot_created_candidate(
+            update_cache=vm.datadog_config.update_cache,
+            skip_cache=vm.datadog_config.skip_cache,
         )
-        # Startup VM and prepare connection
-        # The resource name (not the "Name" tag) must be unique per CI job: several parallel jobs
-        # (one per weblog) can provision the same vm.name at the same time, and a shared resource
-        # identity can make AWS reuse the same RunInstances idempotency token for those concurrent,
-        # differently-tagged requests, causing IdempotentParameterMismatch.
-        ec2_resource_id = f"{vm.name}-{os.getenv('CI_JOB_ID', uuid.uuid4())}"
-        ec2_server = aws.ec2.Instance(
-            ec2_resource_id,
-            instance_type=vm.aws_config.ami_instance_type,
-            vpc_security_group_ids=vm.aws_config.aws_infra_config.vpc_security_group_ids,
-            subnet_id=random.choice(vm.aws_config.aws_infra_config.subnet_id),
-            key_name=self.pulumi_ssh.keypair_name,
-            ami=vm.aws_config.ami_id,
-            tags=self._get_ec2_tags(vm),
-            opts=self.pulumi_ssh.aws_key_resource,
-            root_block_device={"volume_size": vm.aws_config.volume_size},
-            iam_instance_profile=vm.aws_config.aws_infra_config.iam_instance_profile,
-            user_data=ec2_user_data,
+        ec2_server, server_connection = self._launch_instance(
+            vm,
+            vm.aws_config.ami_id,
+            None,
+            ec2_user_data,
+            publish_ip=True,
+            name_suffix="",
+            export_suffix="_builder" if self.boot_created_candidate else "",
         )
-        # Store the private ip of the vm: store it in the vm object and export it. Log to vm_desc.log
-        Output.all(vm, ec2_server.private_ip).apply(lambda args: args[0].set_ip(args[1]))
-        pulumi.export("privateIp_" + vm.name, ec2_server.private_ip)
-        Output.all(ec2_server.private_ip, vm.name, ec2_server.id).apply(
-            lambda args: vm_logger(context.scenario.host_log_folder, "vms_desc").info(f"{args[0]}:{args[1]}:{args[2]}")
-        )
-
-        vm.ssh_config.username = vm.aws_config.user
-
-        server_connection = command.remote.ConnectionArgs(
-            host=ec2_server.private_ip,
-            user=vm.aws_config.user,
-            private_key=self.pulumi_ssh.private_key_pem,
-            # dial_error_limit=30 retries, 10 seconds per retry=5 minutes.
-            # WARNING:: If you change that, please change  the key 'error_ssh_connection' in aws_infra_exceptions.json
-            dial_error_limit=30,
-            per_dial_timeout=10,
-        )
-        # Install provision on the started server
         self.install_provision(vm, ec2_server, server_connection)
 
     def stack_destroy(self) -> None:
@@ -262,71 +253,53 @@ class AWSPulumiProvider(VmProvider):
                 "To destroy them, re-run the test without this env var."
             )
 
-    def _get_cached_amis(self, vm: _VirtualMachine):
+    def _get_cached_amis(self, vm: _VirtualMachine) -> list[aws.ec2.GetAmiResult]:
         """Get all the cached AMIs for the VM"""
-        names_filter_to_check = []
-        cached_amis = []
-        # Create search filter if vm is not marked as skip_cache or update_cache
-
-        if not vm.datadog_config.skip_cache and not vm.datadog_config.update_cache:
-            names_filter_to_check.append(vm.get_cache_name() + "-*")
-
-        # There are vms that should use the cache
-        if len(names_filter_to_check) > 0:
-            # Check for existing ami cache for the vm
-            ami_existing = aws.ec2.get_ami_ids(
-                filters=[aws.ec2.GetAmiIdsFilterArgs(name="name", values=names_filter_to_check)], owners=["self"]
+        ami_ids = aws.ec2.get_ami_ids(
+            filters=[aws.ec2.GetAmiIdsFilterArgs(name="name", values=[vm.get_cache_name() + "-*"])],
+            owners=["self"],
+        ).ids
+        cached_amis = [
+            aws.ec2.get_ami(
+                filters=[aws.ec2.GetAmiIdsFilterArgs(name="image-id", values=[ami_id])],
+                owners=["self"],
+                most_recent=True,
             )
-            # We found some cached AMIsm let's check the details: status, expiration, etc
-            for ami in ami_existing.ids:
-                # Latest ami details
-                ami_recent = aws.ec2.get_ami(
-                    filters=[aws.ec2.GetAmiIdsFilterArgs(name="image-id", values=[ami])],
-                    owners=["self"],
-                    most_recent=True,
-                )
-                logger.stdout(
-                    f"We found an existing AMI  name:[{ami_recent.name}], ID:[{ami_recent.id}], "
-                    f"status:[{ami_recent.state}], expiration:[{ami_recent.deprecation_time}], "
-                    f"created:[{ami_recent.creation_date}]"
-                )
-                cached_amis.append(ami_recent)
+            for ami_id in ami_ids
+        ]
+        for cached_ami in cached_amis:
+            logger.stdout(
+                f"We found an existing AMI  name:[{cached_ami.name}], ID:[{cached_ami.id}], "
+                f"status:[{cached_ami.state}], expiration:[{cached_ami.deprecation_time}], "
+                f"created:[{cached_ami.creation_date}]"
+            )
         return cached_amis
 
-    def _configure_cached_amis(self, vm: _VirtualMachine):
+    def _configure_cached_amis(self, vm: _VirtualMachine) -> None:
         """Configure the cached AMIs for the VM"""
-        before_time = time.time()
-        cached_amis = self._get_cached_amis(vm)
         # We don't want to use cache ami for skip_ami_cache or ami_update
         if vm.datadog_config.skip_cache or vm.datadog_config.update_cache:
             return
-        # Let's search the cached AMI for the VM
-        cached_ami_found = False
-        for cached_ami in cached_amis:
-            # The final name it's the vm.get_cache_name() + "-somethingaddedbyaws"
-            if vm.name in cached_ami.name:
-                if str(cached_ami.state) != "available":
-                    logger.stdout(
-                        f"We found an existing cache AMI for vm [{vm.name}] but we can no use it "
-                        f"because the current status is {cached_ami.state}"
-                    )
-                    logger.stdout(
-                        "We are not going to create a new AMI and we are not going to use it (skip cache mode)"
-                    )
-                    vm.datadog_config.update_cache = False
-                    vm.datadog_config.skip_cache = True
-                else:
-                    logger.stdout(
-                        f"Setting cached AMI for VM [{vm.name}] from base AMI ID [{vm.aws_config.ami_id}] "
-                        f"to cached AMI ID [{cached_ami.id}]"
-                    )
-                    vm.aws_config.ami_id = cached_ami.id
-                cached_ami_found = True
-                break
 
-        # Here we don't find a cached AMI for the VM. Force creation
-        if not cached_ami_found:
+        before_time = time.time()
+        cached_ami = _select_cached_ami(self._get_cached_amis(vm))
+        plan = cache_plan(cached_ami)
+        if plan == "create":
             vm.datadog_config.update_cache = True
+        elif plan == "wait" and cached_ami is not None:
+            logger.stdout(
+                f"Cache AMI [{cached_ami.id}] for [{vm.name}] is not ready "
+                f"(status={cached_ami.state}, ami-state={(cached_ami.tags or {}).get('ami-state')}). "
+                "This job will not create another AMI."
+            )
+            vm.datadog_config.update_cache = False
+            vm.datadog_config.skip_cache = True
+        else:
+            logger.stdout(
+                f"Setting cached AMI for VM [{vm.name}] from base AMI ID [{vm.aws_config.ami_id}] "
+                f"to cached AMI ID [{cached_ami.id}]"
+            )
+            vm.aws_config.ami_id = cached_ami.id
 
         logger.info(f"Time cache for AMIs: {time.time() - before_time}")
 
@@ -395,21 +368,17 @@ class AWSCommander(Commander):
     def create_cache(
         self, vm: _VirtualMachine, server: aws.ec2.Instance, last_task: command.remote.Command
     ) -> aws.ec2.AmiFromInstance:
-        """Create a cache : Create an AMI from the server current status."""
+        """Create an AMI cache from the current server state."""
         ami_name = vm.get_cache_name()
-        # Ok. All third party software is installed, let's create the ami to reuse it in the future
         logger.stdout(f"Creating AMI with name [{ami_name}] from instance ")
         vm_logger(context.scenario.host_log_folder, "cache_created").info(f"[{context.scenario.name}] - [{ami_name}]")
 
-        # Expiration date for the ami
-        # expiration_date = (datetime.now() + timedelta(seconds=30)).strftime("%Y-%m-%dT%H:%M:%SZ")
         return aws.ec2.AmiFromInstance(
             ami_name,
             description=ami_name,
-            # deprecation_time=expiration_date,
             source_instance_id=server.id,
             opts=pulumi.ResourceOptions(depends_on=[last_task], retain_on_delete=True),
-            tags={"CI": "system-tests"},
+            tags={"CI": "system-tests", "ami-cache-key": ami_name, "ami-state": "candidate"},
         )
 
     def execute_local_command(
