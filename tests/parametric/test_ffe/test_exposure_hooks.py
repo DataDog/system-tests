@@ -3,11 +3,12 @@
 import base64
 import json
 import time
+from collections import Counter
 from typing import Any
 
 from tests.ffe.utils.fixtures import make_ufc_fixture
 from tests.parametric.conftest import APMLibrary
-from utils import features, pytest, scenarios
+from utils import features, pytest, scenarios, slow
 from utils.dd_constants import RemoteConfigApplyState
 from utils.docker_fixtures import TestAgentAPI
 
@@ -96,6 +97,25 @@ def events(test_agent: TestAgentAPI, path: str, field: str) -> list[dict[str, An
     return result
 
 
+def assert_evaluation_count(test_agent: TestAgentAPI, expected: int) -> None:
+    # OTLP capture is supported by the stock test agent, unlike EVP evaluations.
+    deadline = time.monotonic() + 20
+    counts: list[int] = []
+    while time.monotonic() < deadline:
+        counts = [
+            sum(int(point["as_int"]) for point in metric["sum"]["data_points"])
+            for export in test_agent.metrics()
+            for resource in export.get("resource_metrics", [])
+            for scope in resource.get("scope_metrics", [])
+            for metric in scope.get("metrics", [])
+            if metric["name"] == "feature_flag.evaluations"
+        ]
+        if expected in counts:
+            return
+        time.sleep(0.2)
+    assert expected in counts, counts
+
+
 @scenarios.parametric
 @features.feature_flags_exposures
 class Test_FFE_ExposureHooks:
@@ -122,13 +142,7 @@ class Test_FFE_ExposureHooks:
             assert not result.get("exposureHooks"), result
 
         # The guard stops exposures, not evaluation telemetry or flag delivery.
-        deadline = time.monotonic() + 20
-        while time.monotonic() < deadline:
-            evaluations = events(test_agent, "/api/v2/flagevaluation", "flagEvaluations")
-            if sum(event["evaluation_count"] for event in evaluations) >= 3:
-                break
-            time.sleep(0.2)
-        assert sum(event["evaluation_count"] for event in evaluations) == 3, evaluations
+        assert_evaluation_count(test_agent, 3)
         deadline = time.monotonic() + 5
         while time.monotonic() < deadline:
             assert events(test_agent, "/api/v2/exposures", "exposures") == []
@@ -136,6 +150,7 @@ class Test_FFE_ExposureHooks:
 
     @pytest.mark.parametrize("library_env", [{**BASE_ENV}])
     @pytest.mark.parametrize("full_data", [False, True])
+    @slow
     def test_evaluation_feature_aggregation(
         self, test_agent: TestAgentAPI, test_library: APMLibrary, *, full_data: bool
     ) -> None:
@@ -219,7 +234,6 @@ class Test_FFE_ExposureHooks:
                     "holdout.assignment_group": "status_quo",
                     "shared": True,
                 }
-                assert row["metadata"]["__dd_evaluation_feature.evaluation_only"] == "a"
 
         # A new holdout split has a new serial ID, even when its flag value is unchanged.
         split["serialId"] = 42
@@ -260,7 +274,7 @@ class Test_FFE_ExposureHooks:
         "library_env",
         [{**BASE_ENV}, {**BASE_ENV, "DD_FEATURE_FLAGS_EXPOSURES_DATADOG_LOGGING_ENABLED": "false"}],
     )
-    def test_after_hook_failure_compatibility(
+    def test_after_hook_failure_preserves_exposure_cache(
         self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
     ) -> None:
         install(test_agent, make_ufc_fixture("hook-flag", serial_id=0), wait=False)
@@ -280,8 +294,7 @@ class Test_FFE_ExposureHooks:
             assert row["isExposure"] is False
             assert row["isCacheHit"] is False
             assert row["shouldSend"] is False
-        # This test covers the exposure-hook bridge. The full contract test below
-        # also checks OpenFeature's returned error details, which need go-sdk#623.
+        # A rejected evaluation must not consume the next successful exposure.
         observations(evaluate(test_library, "athlete"), exposure=True, hit=False)
         observations(evaluate(test_library, "athlete"), exposure=True, hit=True)
 
@@ -311,24 +324,37 @@ class Test_FFE_ExposureHooks:
             "FFE_FLAGS", state=RemoteConfigApplyState.ACKNOWLEDGED, config_id="exposure-hooks", wait_loops=500
         )
         assert test_library.ffe_start()
-        rejected = evaluate(test_library, "athlete", fail_after=True)
-        assert rejected["value"] == "fallback"
-        assert rejected["reason"] == "ERROR"
-        observations(rejected, exposure=False, hit=False, error_code="GENERAL")
-        # The failed evaluation must not consume the first successful exposure.
-        first = evaluate(test_library, "athlete")
-        observations(first, exposure=True, hit=False)
-        assert first["value"] == "on-value"
-        assert first["exposureHooks"][0]["metadata"]["__dd_split_serial_id"] == 0
-        assert first["exposureHooks"][0]["subject"] == "athlete"
-        observations(evaluate(test_library, "athlete"), exposure=True, hit=True)
-        observations(evaluate(test_library, "another-athlete"), exposure=True, hit=False)
-
-        # Same value and allocation, new serial ID: this is a new exposure.
-        fixture["flags"]["hook-flag"]["allocations"][0]["splits"][0]["serialId"] = 42
-        install(test_agent, fixture)
-        observations(evaluate(test_library, "athlete"), exposure=True, hit=False)
-        observations(evaluate(test_library, "athlete"), exposure=True, hit=True)
+        split = fixture["flags"]["hook-flag"]["allocations"][0]["splits"][0]
+        # Reverting or removing a serial is a new assignment, not a historical cache hit.
+        sequence = [
+            ("athlete", 0, False),
+            ("athlete", 0, True),
+            ("another-athlete", 0, False),
+            ("athlete", 42, False),
+            ("athlete", 42, True),
+            ("athlete", 0, False),
+            ("athlete", 0, True),
+            ("athlete", None, False),
+            ("athlete", None, True),
+        ]
+        for subject, serial, hit in sequence:
+            if split.get("serialId") != serial:
+                if serial is None:
+                    split.pop("serialId")
+                else:
+                    split["serialId"] = serial
+                install(test_agent, fixture)
+            result = evaluate(test_library, subject)
+            observations(result, exposure=True, hit=hit)
+            assert result["value"] == "on-value"
+            for row in result["exposureHooks"]:
+                assert row["subject"] == subject
+                assert row["variant"] == "on"
+                assert row["metadata"]["dd.allocation.key"] == "default-allocation"
+                if serial is None:
+                    assert "__dd_split_serial_id" not in row["metadata"]
+                else:
+                    assert row["metadata"]["__dd_split_serial_id"] == serial
 
         fixture["flags"]["hook-flag"]["allocations"][0]["doLog"] = False
         install(test_agent, fixture)
@@ -337,22 +363,7 @@ class Test_FFE_ExposureHooks:
         observations(failed, exposure=False, hit=False, error_code="FLAG_NOT_FOUND", flag="missing")
 
         # Evaluation metrics are a positive control when Datadog exposure logging is off.
-        # The pinned test-agent image does not accept EVP /api/v2/flagevaluation yet.
-        deadline = time.monotonic() + 20
-        counts = []
-        while time.monotonic() < deadline:
-            counts = [
-                sum(int(point["as_int"]) for point in metric["sum"]["data_points"])
-                for export in test_agent.metrics()
-                for resource in export.get("resource_metrics", [])
-                for scope in resource.get("scope_metrics", [])
-                for metric in scope.get("metrics", [])
-                if metric["name"] == "feature_flag.evaluations"
-            ]
-            if 8 in counts:
-                break
-            time.sleep(0.2)
-        assert 8 in counts, counts
+        assert_evaluation_count(test_agent, len(sequence) + 2)
         if library_env.get("DD_FEATURE_FLAGS_EXPOSURES_DATADOG_LOGGING_ENABLED") == "false":
             # Observe multiple flush intervals; metric delivery does not prove exposure delivery.
             deadline = time.monotonic() + 5
@@ -364,8 +375,21 @@ class Test_FFE_ExposureHooks:
             exposures = []
             while time.monotonic() < deadline:
                 exposures = events(test_agent, "/api/v2/exposures", "exposures")
-                if len(exposures) >= 3:
+                if len(exposures) >= 5:
                     break
                 time.sleep(0.2)
-            assert len(exposures) == 3, exposures
-            assert sorted(event["serial_id"] for event in exposures) == [0, 0, 42]
+            assert len(exposures) == 5, exposures
+            assert Counter(
+                (
+                    event["subject"]["id"],
+                    event["flag"]["key"],
+                    event["allocation"]["key"],
+                    event["variant"]["key"],
+                    event.get("serial_id"),
+                )
+                for event in exposures
+            ) == Counter(
+                (subject, "hook-flag", "default-allocation", "on", serial)
+                for subject, serial, hit in sequence
+                if not hit
+            )

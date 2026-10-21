@@ -840,10 +840,17 @@ class ParametricTestClientApi(TestClientApi):
             attributes: Optional additional attributes for evaluation context
             span_id: Optional span ID to activate during evaluation (for span enrichment)
             exposure_hooks: Capture two exposure-aware callback observations for this evaluation
-            fail_after_hook: Reject the resolved result in an application After hook
+            fail_after_hook: Reject the resolved result in an application After hook;
+                requires exposure_hooks=True
 
         Returns:
-            dict: Evaluation result containing 'value' and 'reason'
+            dict: Evaluation result containing 'value', 'reason', and 'errorCode'.
+                When exposure_hooks=True, 'exposureHooks' contains two callback rows,
+                identified by 'hook' (0 or 1), with no required callback order.
+                Each row contains flag, subject, variant, metadata, value, errorCode,
+                reason, features, isExposure, isCacheHit, and shouldSend from the
+                public exposure hook. Unsupported provider compositions can return
+                no rows when their SDK explicitly disables customer exposure hooks.
 
         """
         payload = {

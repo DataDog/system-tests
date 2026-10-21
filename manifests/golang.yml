@@ -2167,6 +2167,7 @@ manifest:
   tests/parametric/test_ffe/test_configuration_sources.py: v2.11.0-dev  # Easy win for all weblogs and version 2.10.1
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v2.5.0-dev
   tests/parametric/test_ffe/test_exposure_hooks.py: missing_feature (Customer exposure hook MVP is not released)
+  tests/parametric/test_ffe/test_exposure_hooks.py::Test_FFE_ExposureHooks::test_evaluation_feature_aggregation: missing_feature (Test agent needs EVP flagevaluation capture)
   tests/parametric/test_ffe/test_serial_id_metadata.py: missing_feature
   tests/parametric/test_ffe/test_span_enrichment.py: '>=2.10.0'  # TODO: a lower version might be supported
   tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Child_Span_Propagation: missing_feature
