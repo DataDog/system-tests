@@ -112,18 +112,17 @@ class AgentlessEndToEndScenario(DdTraceEndToEndScenario):
         assert self._mock_backend is None, "mock FFE agentless backend is already running"
 
         self._mock_backend = MockFFEAgentlessBackendServer()
-        self._mock_backend.reset()
 
         environment = self.weblog_infra.library_container.environment
         environment |= {
             "DD_API_KEY": EXPECTED_API_KEY,
-            "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL": self._mock_backend.library_config_url,
+            "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL": self._mock_backend.ffe_library_config_url,
         }
         self.weblog_infra.library_container.extra_hosts = extra_hosts_for_environment(environment)
 
     def mock_backend_status(self) -> MockFFEAgentlessBackendStatus | None:
         if self._mock_backend is not None:
-            return self._mock_backend.status()
+            return self._mock_backend.ffe_status()
         return self._last_mock_backend_status
 
     @property
@@ -144,7 +143,7 @@ class AgentlessEndToEndScenario(DdTraceEndToEndScenario):
         self._mock_backend = None
         try:
             if persist_status:
-                self._last_mock_backend_status = backend.status()
+                self._last_mock_backend_status = backend.ffe_status()
                 self._mock_backend_status_path.parent.mkdir(parents=True, exist_ok=True)
                 self._mock_backend_status_path.write_text(
                     json.dumps(self._last_mock_backend_status, indent=2) + "\n",

@@ -51,6 +51,7 @@ REPO_ROOT = Path(__file__).parents[2]
 UFC_FIXTURE_PATH = REPO_ROOT / "tests" / "parametric" / "test_ffe" / "flags-v1.json"
 MALFORMED_UFC_BYTES = b'{"flags": ['
 UFC_RESPONSE_TYPE = "universal-flag-configuration"
+FFE_CONTROL_PATH = f"{MockBackendV2Server.CONTROL_URL_PREFIX}/ffe"
 
 
 class MockFFEAgentlessBackendStatus(TypedDict):
@@ -192,22 +193,25 @@ def _strip_config_path(url: str) -> str:
 class MockFFEAgentlessBackendServer(MockBackendV2Server):
     # Endpoint contract:
     # - GET /api/v2/feature-flagging/config/rules-based/server?dd_env=test
-    # - GET /status
-    # - POST /control/responses
-    # - POST /control/reset
+    # - GET /system-tests/ffe/status
+    # - POST /system-tests/ffe/responses
+    # - POST /system-tests/ffe/reset
 
     def __init__(self, *, port: int = MockBackendV2Server.DEFAULT_PORT) -> None:
         super().__init__(port=port)
+        self._ffe_configure()
+
+    def _ffe_configure(self) -> None:
         self.state = MockFFEAgentlessBackendState()
 
-        self.add_handler("GET", "/status", self.handle_status)
-        self.add_handler("GET", CONFIG_PATH, self.handle_config)
+        self.add_handler("GET", CONFIG_PATH, self._ffe_handle_config)
 
-        self.add_handler("POST", "/control/responses", self.handle_control_responses)
-        self.add_handler("POST", "/control/reset", self.handle_control_reset)
+        self.add_handler("GET", f"{FFE_CONTROL_PATH}/status", self._ffe_handle_status)
+        self.add_handler("POST", f"{FFE_CONTROL_PATH}/responses", self._ffe_handle_control_responses)
+        self.add_handler("POST", f"{FFE_CONTROL_PATH}/reset", self._ffe_handle_control_reset)
 
     @property
-    def library_base_url(self) -> str:
+    def _ffe_library_base_url(self) -> str:
         configured_url = os.environ.get("SYSTEM_TESTS_MOCK_FFE_AGENTLESS_BACKEND_BASE_URL") or os.environ.get(
             "SYSTEM_TESTS_MOCK_AGENTLESS_BACKEND_BASE_URL"
         )
@@ -220,41 +224,41 @@ class MockFFEAgentlessBackendServer(MockBackendV2Server):
         return f"http://{host}:{self.port}"
 
     @property
-    def library_config_url(self) -> str:
-        return f"{self.library_base_url}{CONFIG_PATH}?{CONFIG_QUERY}"
+    def ffe_library_config_url(self) -> str:
+        return f"{self._ffe_library_base_url}{CONFIG_PATH}?{CONFIG_QUERY}"
 
-    def reset(self) -> None:
-        response = requests.post(f"{self.base_url}/control/reset", timeout=5)
+    def ffe_reset(self) -> None:
+        response = requests.post(f"{self.base_url}{FFE_CONTROL_PATH}/reset", timeout=5)
         response.raise_for_status()
 
-    def set_response(self, response_id: str) -> None:
-        self.set_responses([response_id])
+    def ffe_set_response(self, response_id: str) -> None:
+        self.ffe_set_responses([response_id])
 
-    def set_responses(self, responses: object) -> None:
+    def ffe_set_responses(self, responses: object) -> None:
         validated_responses = validate_responses(responses)
         response = requests.post(
-            f"{self.base_url}/control/responses", json={"responses": validated_responses}, timeout=5
+            f"{self.base_url}{FFE_CONTROL_PATH}/responses", json={"responses": validated_responses}, timeout=5
         )
         response.raise_for_status()
 
-    def status(self) -> MockFFEAgentlessBackendStatus:
-        response = requests.get(f"{self.base_url}/status", timeout=5)
+    def ffe_status(self) -> MockFFEAgentlessBackendStatus:
+        response = requests.get(f"{self.base_url}{FFE_CONTROL_PATH}/status", timeout=5)
         response.raise_for_status()
         return cast("MockFFEAgentlessBackendStatus", response.json())
 
-    def handle_status(self, request: MockBackendV2RequestHandler, _: bytes | dict | None) -> tuple[Mapping, bytes]:
+    def _ffe_handle_status(self, request: MockBackendV2RequestHandler, _: bytes | dict | None) -> tuple[Mapping, bytes]:
         return request.write_json(HTTPStatus.OK, self.state.status())
 
-    def handle_config(
+    def _ffe_handle_config(
         self, request: MockBackendV2RequestHandler, _: bytes | dict | None
     ) -> tuple[Mapping | bytes, bytes]:
         parsed = urlparse(request.path)
         if parse_qs(parsed.query, keep_blank_values=True) == {"dd_env": [EXPECTED_DD_ENV]}:
-            return self._handle_config(request)
+            return self._ffe_handle_config_exec(request)
 
         return request.write_json(HTTPStatus.NOT_FOUND, {"error": "not found"})
 
-    def _handle_config(self, request: MockBackendV2RequestHandler) -> tuple[bytes, bytes]:
+    def _ffe_handle_config_exec(self, request: MockBackendV2RequestHandler) -> tuple[bytes, bytes]:
         request_headers = dict(request.headers)
         response = self.state.record_request(request_headers, request.path)
         try:
@@ -273,7 +277,7 @@ class MockFFEAgentlessBackendServer(MockBackendV2Server):
 
         return body, body
 
-    def handle_control_responses(
+    def _ffe_handle_control_responses(
         self, request: MockBackendV2RequestHandler, payload: bytes | dict | None
     ) -> tuple[Mapping, bytes]:
         content_length = int(request.headers.get("Content-Length", "0"))
@@ -292,7 +296,7 @@ class MockFFEAgentlessBackendServer(MockBackendV2Server):
         self.state.set_responses(validated_responses)
         return request.write_json(HTTPStatus.OK, self.state.status())
 
-    def handle_control_reset(
+    def _ffe_handle_control_reset(
         self, request: MockBackendV2RequestHandler, _: bytes | dict | None
     ) -> tuple[Mapping, bytes]:
         self.state.reset()
@@ -304,7 +308,6 @@ def mock_ffe_agentless_backend(worker_id: str) -> Generator[MockFFEAgentlessBack
     port = get_host_port(worker_id, 4900)
     server = MockFFEAgentlessBackendServer(port=port)
     try:
-        server.reset()
         yield server
     finally:
         server.close()

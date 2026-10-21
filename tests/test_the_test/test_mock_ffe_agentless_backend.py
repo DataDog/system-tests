@@ -55,20 +55,20 @@ def test_mock_ffe_agentless_backend_serves_fixture_and_tracks_metadata() -> None
         assert payload["data"]["attributes"]["environment"]["name"] == "Test"
         assert "new-user-onboarding" in payload["data"]["attributes"]["flags"]
 
-        status = server.status()
+        status = server.ffe_status()
         assert status["requests_total"] == 1
         assert status["last_auth_present"] is False
         assert status["last_path"] == CONFIG_PATH
         assert status["last_status_code"] == 200
 
-        server.set_response("unauthorized")
+        server.ffe_set_response("unauthorized")
         response = requests.get(
             f"{server.base_url}{CONFIG_PATH}?{CONFIG_QUERY}",
             timeout=5,
         )
         assert response.status_code == 401
 
-        status = server.status()
+        status = server.ffe_status()
         assert status["requests_total"] == 2
         assert status["last_auth_present"] is False
         assert status["last_status_code"] == 401
@@ -85,8 +85,8 @@ def test_mock_ffe_agentless_backend_host_gateway_mapping(monkeypatch: pytest.Mon
 
     server = MockFFEAgentlessBackendServer()
     try:
-        assert server.library_config_url.endswith(f"{CONFIG_PATH}?{CONFIG_QUERY}")
-        env = {"DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL": server.library_config_url}
+        assert server.ffe_library_config_url.endswith(f"{CONFIG_PATH}?{CONFIG_QUERY}")
+        env = {"DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL": server.ffe_library_config_url}
         assert extra_hosts_for_environment(env) == HOST_GATEWAY_EXTRA_HOSTS
     finally:
         server.close()
@@ -96,7 +96,7 @@ def test_mock_ffe_agentless_backend_host_gateway_mapping(monkeypatch: pytest.Mon
 def test_mock_ffe_agentless_backend_status_is_metadata_only() -> None:
     server = MockFFEAgentlessBackendServer()
     try:
-        status = server.status()
+        status = server.ffe_status()
         assert set(status) == {
             "requests_total",
             "in_flight",

@@ -68,6 +68,9 @@ class MockBackendV2Server(ThreadingHTTPServer):
 
     DEFAULT_PORT = 4900
 
+    CONTROL_URL_PREFIX = "/system-tests"
+    """Prefix of every endpoint that controls the mock rather than mimicking the real backend."""
+
     daemon_threads = True
     thread_name = "mock-backend-v2"
 

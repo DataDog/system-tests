@@ -98,9 +98,9 @@ def library_env(
         )
 
     if responses is not None:
-        mock_ffe_agentless_backend.set_responses(responses)
+        mock_ffe_agentless_backend.ffe_set_responses(responses)
     elif response is not None:
-        mock_ffe_agentless_backend.set_response(str(response))
+        mock_ffe_agentless_backend.ffe_set_response(str(response))
 
     if configuration_source is not None:
         env["DD_FEATURE_FLAGS_CONFIGURATION_SOURCE"] = str(configuration_source)
@@ -116,7 +116,7 @@ def library_env(
                 params["request_timeout"]
             )
         env |= agentless_env
-        env[AGENTLESS_BASE_URL] = mock_ffe_agentless_backend.library_config_url
+        env[AGENTLESS_BASE_URL] = mock_ffe_agentless_backend.ffe_library_config_url
 
     return env
 
@@ -128,7 +128,7 @@ def _wait_for_status(
 ) -> MockFFEAgentlessBackendStatus:
     last_status: MockFFEAgentlessBackendStatus | None = None
     for _ in range(MOCK_STATUS_ATTEMPTS):
-        last_status = mock_ffe_agentless_backend.status()
+        last_status = mock_ffe_agentless_backend.ffe_status()
         if predicate(last_status):
             return last_status
         time.sleep(MOCK_STATUS_INTERVAL_SECONDS)
@@ -145,7 +145,7 @@ def _assert_no_mock_requests(mock_ffe_agentless_backend: MockFFEAgentlessBackend
     # Seven samples span more than the configured one-second polling interval, so an
     # incorrect eager poll cannot occur just after this assertion and before provider access.
     for _ in range(NO_MOCK_REQUEST_ATTEMPTS):
-        status = mock_ffe_agentless_backend.status()
+        status = mock_ffe_agentless_backend.ffe_status()
         assert status["requests_total"] == 0, f"unexpected mock FFE agentless backend request: status={status}"
         time.sleep(MOCK_STATUS_INTERVAL_SECONDS)
 
@@ -675,7 +675,7 @@ class Test_Feature_Flag_Configuration_Source_Warm_State_Preservation:
         assert test_library.ffe_start(), "failed to start FFE provider before unauthorized_warm"
         _assert_expected_value(_evaluate(test_library))
 
-        mock_ffe_agentless_backend.set_response("unauthorized")
+        mock_ffe_agentless_backend.ffe_set_response("unauthorized")
         status = _wait_for_status(
             mock_ffe_agentless_backend,
             lambda current: current["last_status_code"] in {401, 403},
@@ -749,15 +749,15 @@ class Test_Feature_Flag_Configuration_Source_Warm_State_Preservation:
         assert test_library.ffe_start(), "failed to start FFE provider before malformed_warm"
         _assert_expected_value(_evaluate(test_library))
 
-        requests_before = mock_ffe_agentless_backend.status()["requests_total"]
-        mock_ffe_agentless_backend.set_response("malformed")
+        requests_before = mock_ffe_agentless_backend.ffe_status()["requests_total"]
+        mock_ffe_agentless_backend.ffe_set_response("malformed")
         _wait_for_status(
             mock_ffe_agentless_backend,
             lambda current: (current["requests_total"] > requests_before and current["last_status_code"] == 200),
             "malformed_warm response",
         )
         _assert_expected_value(_evaluate(test_library))
-        assert mock_ffe_agentless_backend.status()["last_path"] == CONFIG_PATH
+        assert mock_ffe_agentless_backend.ffe_status()["last_path"] == CONFIG_PATH
 
 
 @scenarios.parametric
@@ -787,8 +787,8 @@ class Test_Feature_Flag_Configuration_Source_Poller_Concurrency:
         assert test_library.ffe_start(), "failed to start FFE provider for delayed_no_overlap"
         _assert_expected_value(_evaluate(test_library))
 
-        mock_ffe_agentless_backend.set_response("delayed_valid")
-        requests_before = mock_ffe_agentless_backend.status()["requests_total"]
+        mock_ffe_agentless_backend.ffe_set_response("delayed_valid")
+        requests_before = mock_ffe_agentless_backend.ffe_status()["requests_total"]
         status = _wait_for_status(
             mock_ffe_agentless_backend,
             lambda current: (
