@@ -2,6 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+from typing import Any
+
 import tests.debugger.utils as debugger
 from utils import features, logger, scenarios, slow
 from utils.telemetry import load_telemetry_json, get_lang_configs
@@ -16,11 +18,14 @@ class Test_Debugger_Telemetry(debugger.BaseDebuggerTest):
     telemetry_data: dict | None = None
 
     ############ setup ############
-    def _setup(self):
+    def _load_normalization_rules(self) -> None:
         # Load the telemetry intake general and language-specific configuration normalization rules.
         self.config_norm_rules = load_telemetry_json("config_norm_rules")
         self.lang_configs = get_lang_configs()
         self.lang_configs["java"] = self.lang_configs["jvm"]
+
+    def _setup(self):
+        self._load_normalization_rules()
 
         if not Test_Debugger_Telemetry.telemetry_data:
             telemetry_type = "app-started"
@@ -31,6 +36,15 @@ class Test_Debugger_Telemetry(debugger.BaseDebuggerTest):
             Test_Debugger_Telemetry.telemetry_data = self.wait_for_telemetry(telemetry_type)
 
         self.telemetry = Test_Debugger_Telemetry.telemetry_data
+
+    def _canonical_config_name(self, name: str) -> str | None:
+        lowered = name.lower()
+        language = self.get_tracer()["language"]
+        if lowered in self.lang_configs[language]:
+            return self.lang_configs[language][lowered]
+        if lowered in self.config_norm_rules:
+            return self.config_norm_rules[lowered]
+        return None
 
     ########### assert ############
     def _assert(self, required_telemetry: list[str]):
@@ -45,16 +59,12 @@ class Test_Debugger_Telemetry(debugger.BaseDebuggerTest):
             configuration = self.telemetry["configuration"]
 
         # Normalize the telemetry names using the configuration normalization rules.
-        language = self.get_tracer()["language"]
-        normalized = {}
+        normalized: dict[str, tuple[str | None, Any]] = {}
         for item in configuration:
-            name = item["name"].lower()
-            if name not in self.lang_configs[language] and name not in self.config_norm_rules:
-                logger.warning(f"Unmapped telemetry name: {name}")
-            elif name in self.lang_configs[language]:
-                name = self.lang_configs[language][name]
-            else:
-                name = self.config_norm_rules[name]
+            name = self._canonical_config_name(item["name"])
+            if name is None:
+                logger.warning(f"Unmapped telemetry name: {item['name'].lower()}")
+                continue
 
             # Store the origin and and value for future validation.
             normalized[name] = (item.get("origin", None), item.get("value", None))
@@ -76,7 +86,13 @@ class Test_Debugger_Telemetry(debugger.BaseDebuggerTest):
 
     # ### Exception Replay ###
     def setup_telemetry_er(self):
-        self._setup()
+        # The key is on app-started or the next configuration-change, so it cannot use the shared payload.
+        self._load_normalization_rules()
+        self.telemetry = self.wait_for_startup_telemetry(
+            lambda configuration: any(
+                self._canonical_config_name(item["name"]) == "exception_replay_enabled" for item in configuration
+            )
+        )
 
     @slow
     def test_telemetry_er(self):
