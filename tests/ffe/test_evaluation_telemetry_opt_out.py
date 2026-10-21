@@ -89,7 +89,7 @@ class _TelemetryContract:
                 flag=shared_flag,
                 subject=f"subject-{signal}-shared-{label}",
                 allocation_key=f"shared-{label}",
-                attributes={ATTRIBUTE: opted_out},
+                attributes={ATTRIBUTE: opted_out, "test_subject": f"subject-{signal}-shared-{label}"},
                 expected_count=0 if enabled and opted_out else 3,
                 responses=[],
             )
@@ -102,7 +102,7 @@ class _TelemetryContract:
                 "flags"
             ][shared_flag]["allocations"][0]
             allocation["rules"] = [
-                {"conditions": [{"attribute": "targetingKey", "operator": "ONE_OF", "value": [case["subject"]]}]}
+                {"conditions": [{"attribute": "test_subject", "operator": "ONE_OF", "value": [case["subject"]]}]}
             ]
             fixture["flags"][shared_flag]["allocations"].append(allocation)
         self.cases.extend(shared_cases)
