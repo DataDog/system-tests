@@ -46,15 +46,23 @@ def build_alb_event(request: Request, multi: bool) -> dict:
         "isBase64Encoded": is_b64,
     }
 
+    multi_value_headers = defaultdict(list)
+    for k, v in request.headers.to_wsgi_list():
+        multi_value_headers[k.lower()].append(v)
+
+    # ALB supplies the client address and listener information on every invocation.
+    client_ip = request.remote_addr or "127.0.0.1"
+    forwarded_for = multi_value_headers.get("x-forwarded-for", [])
+    multi_value_headers["x-forwarded-for"] = [", ".join([*forwarded_for, client_ip])]
+    multi_value_headers.setdefault("x-forwarded-proto", [request.scheme])
+    multi_value_headers.setdefault("x-forwarded-port", [str(request.environ["SERVER_PORT"])])
+
     if multi:
         event["multiValueQueryStringParameters"] = request.args.to_dict(flat=False)
-        multi_value_headers = defaultdict(list)
-        for k, v in request.headers.to_wsgi_list():
-            multi_value_headers[k].append(v)
         event["multiValueHeaders"] = dict(multi_value_headers)
     else:
         event["queryStringParameters"] = request.args.to_dict(flat=True)
-        event["headers"] = dict(request.headers)
+        event["headers"] = {k: v[-1] for k, v in multi_value_headers.items()}
 
     return event
 

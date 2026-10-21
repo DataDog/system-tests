@@ -66,6 +66,10 @@ def invoke_lambda_function_api_gateway_http():
     path = PathConverter.convert_path_to_api_gateway(request.path)
     route_key = LocalApigwService._v2_route_key(request.method, path, is_default_route=False)
     converted_event = construct_v2_event_http(request, PORT, binary_types=BINARY_TYPES, route_key=route_key)
+    # Payload v2 carries cookies in its dedicated field, not in both representations.
+    converted_event["headers"] = {
+        name: value for name, value in converted_event["headers"].items() if name.lower() != "cookie"
+    }
     converted_event["requestContext"]["http"]["userAgent"] = request.user_agent.string
 
     response = post(
@@ -94,6 +98,9 @@ def invoke_lambda_function_function_url_service():
         stage_name="$default",
         route_key="$default",
     )
+    converted_event["headers"] = {
+        name: value for name, value in converted_event["headers"].items() if name.lower() != "cookie"
+    }
 
     rc: dict[str, str] = converted_event["requestContext"]
     rc["domainName"] = "abcde"
