@@ -242,9 +242,6 @@ class MockFFEAgentlessBackendServer(MockBackendV2Server):
         response.raise_for_status()
         return cast("MockFFEAgentlessBackendStatus", response.json())
 
-    def _default_handler(self, request: MockBackendV2RequestHandler, _: bytes | dict | None) -> tuple[Mapping, bytes]:
-        return request.write_json(HTTPStatus.NOT_FOUND, {"error": "not found"})
-
     def handle_status(self, request: MockBackendV2RequestHandler, _: bytes | dict | None) -> tuple[Mapping, bytes]:
         return request.write_json(HTTPStatus.OK, self.state.status())
 
