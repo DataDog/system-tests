@@ -66,6 +66,7 @@ final class ExposureHookSupport {
             row.put("isExposure", type.getMethod("isExposure").invoke(evaluation));
             row.put("isCacheHit", type.getMethod("isCacheHit").invoke(evaluation));
             row.put("shouldSend", type.getMethod("shouldSend").invoke(evaluation));
+            row.put("features", type.getMethod("getFeatures").invoke(evaluation));
             return row;
         } catch (ReflectiveOperationException e) {
             throw new IllegalStateException("Could not read the public ExposureHook evaluation", e);

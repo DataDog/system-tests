@@ -99,6 +99,128 @@ def events(test_agent: TestAgentAPI, path: str, field: str) -> list[dict[str, An
 @scenarios.parametric
 @features.feature_flags_exposures
 class Test_FFE_ExposureHooks:
+    @pytest.mark.parametrize("library_env", [{**BASE_ENV}])
+    @pytest.mark.parametrize("full_data", [False, True])
+    def test_evaluation_feature_aggregation(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary, *, full_data: bool
+    ) -> None:
+        fixture = make_ufc_fixture("hook-flag", serial_id=42, observe_full_evaluation_data=full_data)
+        allocation = fixture["flags"]["hook-flag"]["allocations"][0]
+        allocation["doLog"] = False
+        split = allocation["splits"][0]
+        split["features"] = [
+            {"key": "group", "value": "a", "destinations": ["EVALUATION"]},
+            {"key": "shared", "value": True, "destinations": ["EVALUATION", "HOOK"]},
+            {"key": "hook_only", "value": 2.5, "destinations": ["HOOK"]},
+        ]
+        install(test_agent, fixture, wait=False)
+        test_agent.wait_for_rc_apply_state(
+            "FFE_FLAGS", state=RemoteConfigApplyState.ACKNOWLEDGED, config_id="exposure-hooks", wait_loops=500
+        )
+        assert test_library.ffe_start()
+        for group in ("a", "b"):
+            if group == "b":
+                split["features"][0]["value"] = group
+                install(test_agent, fixture)
+            for _ in range(2):
+                result = evaluate(test_library, "athlete")
+                observations(result, exposure=False, hit=False)
+                assert result["value"] == "on-value"
+                for row in result["exposureHooks"]:
+                    assert row["features"] == {"shared": True, "hook_only": 2.5}
+
+        deadline = time.monotonic() + 20
+        evaluations: list[dict[str, Any]] = []
+        while time.monotonic() < deadline:
+            evaluations = events(test_agent, "/api/v2/flagevaluation", "flagEvaluations")
+            if sum(event["evaluation_count"] for event in evaluations) >= 4:
+                break
+            time.sleep(0.2)
+        counts = {"a": 0, "b": 0}
+        for event in evaluations:
+            group = event["features"]["group"]
+            assert event["features"] == {"group": group, "shared": True}
+            counts[group] += event["evaluation_count"]
+            assert event["flag"]["key"] == "hook-flag"
+            assert event["variant"]["key"] == "on"
+            if not full_data:
+                assert "context" not in event
+                assert event.get("targeting_key") != "athlete"
+        assert counts == {"a": 2, "b": 2}, evaluations
+        assert events(test_agent, "/api/v2/exposures", "exposures") == []
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [{**BASE_ENV}, {**BASE_ENV, "DD_FEATURE_FLAGS_EXPOSURES_DATADOG_LOGGING_ENABLED": "false"}],
+    )
+    def test_split_feature_destinations(
+        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
+        fixture = make_ufc_fixture("hook-flag", serial_id=0)
+        split = fixture["flags"]["hook-flag"]["allocations"][0]["splits"][0]
+        split["features"] = [
+            {"key": "holdout.key", "value": "q3-holdout", "destinations": ["HOOK"]},
+            {"key": "holdout.assignment_group", "value": "status_quo", "destinations": ["HOOK"]},
+            {"key": "shared", "value": True, "destinations": ["HOOK", "EXPOSURE", "EVALUATION"]},
+            {"key": "exposure_only", "value": 2.5, "destinations": ["EXPOSURE"]},
+            {"key": "evaluation_only", "value": "a", "destinations": ["EVALUATION"]},
+            {"key": "unknown", "value": True, "destinations": ["FUTURE"]},
+            {"key": "invalid", "value": {"nested": True}, "destinations": ["HOOK"]},
+            {"key": "holdout.key", "value": "duplicate", "destinations": ["HOOK", "EXPOSURE"]},
+            None,
+        ]
+        install(test_agent, fixture, wait=False)
+        test_agent.wait_for_rc_apply_state(
+            "FFE_FLAGS", state=RemoteConfigApplyState.ACKNOWLEDGED, config_id="exposure-hooks", wait_loops=500
+        )
+        assert test_library.ffe_start()
+        for hit in (False, True):
+            result = evaluate(test_library, "athlete")
+            observations(result, exposure=True, hit=hit)
+            assert result["value"] == "on-value"
+            for row in result["exposureHooks"]:
+                assert row["features"] == {
+                    "holdout.key": "q3-holdout",
+                    "holdout.assignment_group": "status_quo",
+                    "shared": True,
+                }
+                assert row["metadata"]["__dd_evaluation_feature.evaluation_only"] == "a"
+
+        # A new holdout split has a new serial ID, even when its flag value is unchanged.
+        split["serialId"] = 42
+        split["features"][1]["value"] = "all_shipped"
+        install(test_agent, fixture)
+        changed = evaluate(test_library, "athlete")
+        observations(changed, exposure=True, hit=False)
+        for row in changed["exposureHooks"]:
+            assert row["features"]["holdout.assignment_group"] == "all_shipped"
+            assert row["metadata"]["__dd_split_serial_id"] == 42
+
+        # Old configurations remain valid and produce no features field in the event.
+        split.pop("features")
+        split["serialId"] = 43
+        install(test_agent, fixture)
+        plain = evaluate(test_library, "athlete")
+        observations(plain, exposure=True, hit=False)
+        for row in plain["exposureHooks"]:
+            assert not row["features"]
+
+        disabled = library_env.get("DD_FEATURE_FLAGS_EXPOSURES_DATADOG_LOGGING_ENABLED") == "false"
+        deadline = time.monotonic() + (5 if disabled else 20)
+        while time.monotonic() < deadline:
+            exposures = events(test_agent, "/api/v2/exposures", "exposures")
+            if disabled:
+                assert exposures == []
+            elif len(exposures) >= 3:
+                break
+            time.sleep(0.2)
+        if not disabled:
+            assert len(exposures) == 3, exposures
+            by_serial = {event["serial_id"]: event for event in exposures}
+            assert by_serial[0]["features"] == {"shared": True, "exposure_only": 2.5}
+            assert by_serial[42]["features"] == {"shared": True, "exposure_only": 2.5}
+            assert "features" not in by_serial[43]
+
     @pytest.mark.parametrize(
         "library_env",
         [{**BASE_ENV}, {**BASE_ENV, "DD_FEATURE_FLAGS_EXPOSURES_DATADOG_LOGGING_ENABLED": "false"}],

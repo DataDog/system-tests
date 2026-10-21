@@ -30,6 +30,7 @@ func exposureHookOptions(rows *[]map[string]any, failAfter bool) []of.Option {
 				"variant": e.Details.Variant, "metadata": e.Details.FlagMetadata,
 				"value": e.Details.Value, "errorCode": e.Details.ErrorCode, "reason": e.Details.Reason,
 				"isExposure": e.IsExposure(), "isCacheHit": e.IsCacheHit(), "shouldSend": e.ShouldSend(),
+				"features": e.Features(),
 			})
 		}))
 	}
