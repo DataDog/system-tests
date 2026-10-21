@@ -12,6 +12,7 @@ This directory contains system tests for the Feature Flags & Experimentation (FF
 | `test_flag_eval_metrics.py` | Evaluation metrics (OTel counter) |
 | `test_flag_eval_evp.py` | Server-side EVP flagevaluation payloads, aggregation, and bounds |
 | `test_evaluation_telemetry_opt_out.py` | Per-subject evaluation telemetry opt-out, default-off behavior, and unchanged exposures |
+| `test_experimentation_opt_out.py` | Experimentation activation cutoff, configuration updates, holdout assignments, and exposure delivery |
 
 ## Running FFE Tests
 
@@ -53,6 +54,47 @@ PHP coverage is deferred until its OpenFeature test-app foundation is available.
 .NET has no EVP evaluation producer. Exclude the EVP class when forcing its local runs with `-k 'not EVP'`.
 Browser and mobile SDKs are outside this server harness and retain their repository integration tests.
 
+## Per-subject experimentation opt-out
+
+The tests report under [#650: Per-subject experimentation opt-out](https://feature-parity.us1.prod.dog/#/?feature=650).
+They extend the [shared evaluator fixtures](https://github.com/DataDog/ffe-system-test-data/pull/52)
+with Remote Config and captured EVP requests from a running SDK.
+The first candidate is [Go future mode](https://github.com/DataDog/dd-trace-go/pull/5700), stacked on immediate mode.
+
+| Scenario suffix | `DD_FEATURE_FLAGS_EXPERIMENTATION_OPT_OUT_MODE` | Expected behavior with a valid subject cutoff |
+| --- | --- | --- |
+| `DISABLED` | Unset | All allocations remain eligible. |
+| `IMMEDIATE` | `immediate` | Skip exposure-logging allocations; continue ordinary delivery. |
+| `FUTURE` | `future_experiments_only` | Keep older allocations; skip equal, newer, or unknown activation. |
+
+All three scenarios enable the independent evaluation-telemetry opt-out control.
+Each scenario starts a separate SDK process. The tests cover:
+
+- Cutoff equality, offsets, fractions, unknown activation, invalid preferences, and absent preferences.
+- Ordinary allocation fallback and the application default when no allocation matches.
+- Concurrent subjects on one flag, with positive controls and repeated evaluations.
+- Configuration edits that retain activation, followed by a new allocation with a new activation.
+- Unchanged 10/90 holdout assignments for eligible subjects. This tests delivery, not downstream holdout analysis.
+- Deduplicated exposures for eligible allocations, no exposures for skipped allocations, and independent evaluation telemetry.
+
+Manifests keep this coverage provisional until supported SDK versions are known.
+Load the exact candidate Go commit with the [binary override](../../docs/execute/binaries.md),
+then build the weblog and force the selected tests:
+
+```bash
+./build.sh golang -w net-http
+./run.sh FEATURE_FLAGGING_EXPERIMENTATION_OPT_OUT_DISABLED tests/ffe/test_experimentation_opt_out.py \
+  -F tests/ffe/test_experimentation_opt_out.py
+./run.sh FEATURE_FLAGGING_EXPERIMENTATION_OPT_OUT_IMMEDIATE tests/ffe/test_experimentation_opt_out.py \
+  -F tests/ffe/test_experimentation_opt_out.py
+./run.sh FEATURE_FLAGGING_EXPERIMENTATION_OPT_OUT_FUTURE tests/ffe/test_experimentation_opt_out.py \
+  -F tests/ffe/test_experimentation_opt_out.py
+```
+
+The current shared weblog returns the flag value, not OpenFeature error details.
+Invalid-preference cases therefore check default delivery and no exposure.
+The shared evaluator fixtures separately require `INVALID_CONTEXT`.
+
 ## Test-contract self-tests
 
 The self-tests validate the FFE assertions using synthetic
@@ -60,7 +102,8 @@ captures. They do not run SDKs or contact an intake. With the Python 3.12 runner
 environment installed, run them explicitly:
 
 ```bash
-./run.sh FEATURE_FLAGGING_CONTRACT_TESTS tests/ffe/test_tests.py tests/ffe/test_evaluation_telemetry_opt_out_contract.py
+./run.sh FEATURE_FLAGGING_CONTRACT_TESTS tests/ffe/test_tests.py \
+  tests/ffe/test_evaluation_telemetry_opt_out_contract.py tests/ffe/test_experimentation_opt_out_contract.py
 ```
 
 This no-container scenario has no CI workflow or scenario-group membership.

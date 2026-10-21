@@ -3477,6 +3477,7 @@ manifest:
     - declaration: bug (FFL-2184)
       excluded_weblog: [spring-boot]
   tests/ffe/test_evaluation_telemetry_opt_out.py: missing_feature (Provisional per-subject evaluation telemetry opt-out coverage; enable after the SDK release)
+  tests/ffe/test_experimentation_opt_out.py: missing_feature (Provisional experimentation activation-cutoff coverage; enable after the SDK release)
   tests/ffe/test_exposure_egress.py:
     - weblog_declaration:
         "*": irrelevant

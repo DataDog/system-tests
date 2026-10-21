@@ -929,6 +929,45 @@ class _Scenarios:
         scenario_groups=[scenario_groups.ffe],
     )
 
+    feature_flagging_experimentation_opt_out_disabled = DdTraceEndToEndScenario(
+        "FEATURE_FLAGGING_EXPERIMENTATION_OPT_OUT_DISABLED",
+        rc_api_enabled=True,
+        agent_interface_timeout=15,
+        weblog_env={
+            **_FFE_WEBLOG_ENV,
+            "DD_FEATURE_FLAGS_EXPERIMENTATION_OPT_OUT_MODE": None,
+            "DD_FEATURE_FLAGS_EVALUATION_TELEMETRY_PER_SUBJECT_OPT_OUT_ENABLED": "true",
+        },
+        doc="An opt-out timestamp alone does not activate experimentation opt-out.",
+        scenario_groups=[scenario_groups.ffe],
+    )
+
+    feature_flagging_experimentation_opt_out_immediate = DdTraceEndToEndScenario(
+        "FEATURE_FLAGGING_EXPERIMENTATION_OPT_OUT_IMMEDIATE",
+        rc_api_enabled=True,
+        agent_interface_timeout=15,
+        weblog_env={
+            **_FFE_WEBLOG_ENV,
+            "DD_FEATURE_FLAGS_EXPERIMENTATION_OPT_OUT_MODE": "immediate",
+            "DD_FEATURE_FLAGS_EVALUATION_TELEMETRY_PER_SUBJECT_OPT_OUT_ENABLED": "true",
+        },
+        doc="Immediate experimentation exclusion, ordinary delivery, and independent evaluation telemetry.",
+        scenario_groups=[scenario_groups.ffe],
+    )
+
+    feature_flagging_experimentation_opt_out_future = DdTraceEndToEndScenario(
+        "FEATURE_FLAGGING_EXPERIMENTATION_OPT_OUT_FUTURE",
+        rc_api_enabled=True,
+        agent_interface_timeout=15,
+        weblog_env={
+            **_FFE_WEBLOG_ENV,
+            "DD_FEATURE_FLAGS_EXPERIMENTATION_OPT_OUT_MODE": "future_experiments_only",
+            "DD_FEATURE_FLAGS_EVALUATION_TELEMETRY_PER_SUBJECT_OPT_OUT_ENABLED": "true",
+        },
+        doc="Allocation activation cutoff across Remote Config updates, with ordinary exposure delivery.",
+        scenario_groups=[scenario_groups.ffe],
+    )
+
     feature_flagging_and_experimentation_agentless = FeatureFlaggingAgentlessEndToEndScenario(
         "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS"
     )

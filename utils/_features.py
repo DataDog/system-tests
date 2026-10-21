@@ -2735,6 +2735,14 @@ class _Features:
         return _mark_test_object(test_object, feature_id=649, owner=_Owner.ffe)
 
     @staticmethod
+    def feature_flags_experimentation_opt_out(test_object):
+        """Per-subject experimentation opt-out
+
+        https://feature-parity.us1.prod.dog/#/?feature=650
+        """
+        return _mark_test_object(test_object, feature_id=650, owner=_Owner.ffe)
+
+    @staticmethod
     def appsec_extended_data_collection(test_object):
         """AppSec supports extended data collection including headers and body
 
