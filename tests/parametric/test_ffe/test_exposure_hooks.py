@@ -379,6 +379,9 @@ class Test_FFE_ExposureHooks:
                     break
                 time.sleep(0.2)
             assert len(exposures) == 5, exposures
+            for event in exposures:
+                if event.get("serial_id") is None:
+                    assert "serial_id" not in event
             assert Counter(
                 (
                     event["subject"]["id"],
