@@ -656,18 +656,39 @@ async def _external_request(method: str, url: str, headers: dict[str, str], body
         return {"status": None, "error": repr(e)}
 
 
-@routes.get("/external_request")
-@routes.post("/external_request")
-@routes.put("/external_request")
-async def external_request(request: web.Request) -> web.Response:
+async def _forward_external_request(request: web.Request, downstream_path: str | None = None) -> web.Response:
     queries = dict(request.query)
     status = queries.pop("status", "200")
     url_extra = queries.pop("url_extra", "")
     body = await request.read() or None
     if body:
         queries["Content-Type"] = request.headers.get("Content-Type") or "application/json"
-    url = f"http://internal_server:8089/mirror/{status}{url_extra}"
+    path = downstream_path or f"/mirror/{status}{url_extra}"
+    url = f"http://internal_server:8089{path}"
     return web.json_response(await _external_request(request.method, url, queries, body))
+
+
+@routes.get("/external_request")
+@routes.post("/external_request")
+@routes.put("/external_request")
+async def external_request(request: web.Request) -> web.Response:
+    return await _forward_external_request(request)
+
+
+# Downstream response profiles served by internal_server for the API10 response body limit guards
+_DOWNSTREAM_RESPONSE_BODY_LIMIT_PROFILES = frozenset(
+    ("invalid_content_type", "content_length_missing", "content_length_too_big"),
+)
+
+
+@routes.get("/external_request/body_limit/{failure_reason}")
+@routes.post("/external_request/body_limit/{failure_reason}")
+@routes.put("/external_request/body_limit/{failure_reason}")
+async def external_request_body_limit(request: web.Request) -> web.Response:
+    failure_reason = request.match_info["failure_reason"]
+    if failure_reason not in _DOWNSTREAM_RESPONSE_BODY_LIMIT_PROFILES:
+        return web.json_response({"error": "unknown failure reason"}, status=404)
+    return await _forward_external_request(request, f"/downstream_response/{failure_reason}")
 
 
 @routes.get("/external_request/redirect")
@@ -1205,6 +1226,7 @@ def make_app() -> web.Application:
     application.add_routes(routes)
     # RouteTableDef has no helper for TRACE (it looks up a missing router.add_trace)
     application.router.add_route("TRACE", "/external_request", external_request)
+    application.router.add_route("TRACE", "/external_request/body_limit/{failure_reason}", external_request_body_limit)
     return application
 
 
