@@ -50,7 +50,11 @@ func (s *apmClientServer) ffeStart(writer http.ResponseWriter, request *http.Req
 		ctx, cancel := context.WithTimeout(context.Background(), ffeStartTimeout)
 		defer cancel()
 
-		if err := of.SetProviderWithContextAndWait(ctx, provider); err != nil {
+		registered, err := exposureTestProvider(provider)
+		if err != nil {
+			return err
+		}
+		if err := of.SetProviderWithContextAndWait(ctx, registered); err != nil {
 			var initErr *of.ProviderInitError
 			if !errors.As(err, &initErr) || initErr.ErrorCode != of.ProviderNotReadyCode {
 				return err

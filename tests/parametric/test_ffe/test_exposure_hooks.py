@@ -99,6 +99,41 @@ def events(test_agent: TestAgentAPI, path: str, field: str) -> list[dict[str, An
 @scenarios.parametric
 @features.feature_flags_exposures
 class Test_FFE_ExposureHooks:
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {**BASE_ENV, "SYSTEM_TESTS_FFE_MULTI_PROVIDER": "true"},
+            {
+                **BASE_ENV,
+                "SYSTEM_TESTS_FFE_MULTI_PROVIDER": "true",
+                "DD_FEATURE_FLAGS_EXPOSURES_DATADOG_LOGGING_ENABLED": "false",
+            },
+        ],
+    )
+    def test_multiprovider_exposure_guard(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        install(test_agent, make_ufc_fixture("hook-flag", serial_id=42), wait=False)
+        test_agent.wait_for_rc_apply_state(
+            "FFE_FLAGS", state=RemoteConfigApplyState.ACKNOWLEDGED, config_id="exposure-hooks", wait_loops=500
+        )
+        assert test_library.ffe_start()
+        for rejected in (True, False, False):
+            result = evaluate(test_library, "athlete", fail_after=rejected)
+            assert result["value"] == ("fallback" if rejected else "on-value")
+            assert not result.get("exposureHooks"), result
+
+        # The guard stops exposures, not evaluation telemetry or flag delivery.
+        deadline = time.monotonic() + 20
+        while time.monotonic() < deadline:
+            evaluations = events(test_agent, "/api/v2/flagevaluation", "flagEvaluations")
+            if sum(event["evaluation_count"] for event in evaluations) >= 3:
+                break
+            time.sleep(0.2)
+        assert sum(event["evaluation_count"] for event in evaluations) == 3, evaluations
+        deadline = time.monotonic() + 5
+        while time.monotonic() < deadline:
+            assert events(test_agent, "/api/v2/exposures", "exposures") == []
+            time.sleep(0.2)
+
     @pytest.mark.parametrize("library_env", [{**BASE_ENV}])
     @pytest.mark.parametrize("full_data", [False, True])
     def test_evaluation_feature_aggregation(

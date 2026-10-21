@@ -5,10 +5,19 @@ package main
 import (
 	"context"
 	"errors"
+	"os"
 
 	ddof "github.com/DataDog/dd-trace-go/v2/openfeature"
 	of "github.com/open-feature/go-sdk/openfeature"
+	"github.com/open-feature/go-sdk/openfeature/multi"
 )
+
+func exposureTestProvider(provider of.FeatureProvider) (of.FeatureProvider, error) {
+	if os.Getenv("SYSTEM_TESTS_FFE_MULTI_PROVIDER") == "true" {
+		return multi.NewProvider(multi.StrategyFirstMatch, multi.WithProvider("datadog", provider))
+	}
+	return provider, nil
+}
 
 type rejectingAfterHook struct{ of.UnimplementedHook }
 
