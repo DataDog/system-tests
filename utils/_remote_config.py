@@ -486,12 +486,14 @@ def build_debugger_command(probes: list | None, version: int):
     return _build_base_command(path_payloads, version)
 
 
-def send_debugger_command(probes: list, version: int = 1) -> RemoteConfigStateResults:
+def send_debugger_command(
+    probes: list, version: int = 1, *, wait_for_acknowledged_status: bool = True
+) -> RemoteConfigStateResults:
     """Send a debugger command."""
     raw_payload = build_debugger_command(probes, version)
     # Use backend target for scenarios with rc_backend_enabled, tracer target otherwise
     target: RemoteConfigTarget = "backend" if context.scenario.rc_backend_enabled else "tracer"
-    return send_state(raw_payload, target=target)
+    return send_state(raw_payload, target=target, wait_for_acknowledged_status=wait_for_acknowledged_status)
 
 
 def build_symdb_command(version: int):
@@ -499,12 +501,12 @@ def build_symdb_command(version: int):
     return _build_base_command(path_payloads, version)
 
 
-def send_symdb_command(version: int = 1) -> RemoteConfigStateResults:
+def send_symdb_command(version: int = 1, *, wait_for_acknowledged_status: bool = True) -> RemoteConfigStateResults:
     """Send a symbol database command."""
     raw_payload = build_symdb_command(version)
     # Use backend target for scenarios with rc_backend_enabled, tracer target otherwise
     target: RemoteConfigTarget = "backend" if context.scenario.rc_backend_enabled else "tracer"
-    return send_state(raw_payload, target=target)
+    return send_state(raw_payload, target=target, wait_for_acknowledged_status=wait_for_acknowledged_status)
 
 
 ####################################################################################
@@ -914,6 +916,7 @@ def send_combined_apm_tracing_and_debugger_command(
     service_name: str | None = "weblog",
     env: str | None = "system-tests",
     version: int = 1,
+    wait_for_acknowledged_status: bool = True,
 ) -> RemoteConfigStateResults:
     """Send a single RC command containing both APM_TRACING and LIVE_DEBUGGING configs.
 
@@ -940,7 +943,7 @@ def send_combined_apm_tracing_and_debugger_command(
 
     # Use backend target for scenarios with rc_backend_enabled, tracer target otherwise
     target: RemoteConfigTarget = "backend" if context.scenario.rc_backend_enabled else "tracer"
-    return send_state(raw_payload, target=target)
+    return send_state(raw_payload, target=target, wait_for_acknowledged_status=wait_for_acknowledged_status)
 
 
 def _json_to_base64(json_object: dict) -> str:

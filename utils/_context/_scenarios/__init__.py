@@ -1165,6 +1165,9 @@ class _Scenarios:
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
             "DD_SYMBOL_DATABASE_UPLOAD_ENABLED": "1",
         },
+        # Leave the library time to upload symbols: the setup does not wait
+        # for it, nor, for Go, for the symdb config to be applied.
+        library_interface_timeout=30,
         doc="Test scenario for checking symdb.",
     )
 
