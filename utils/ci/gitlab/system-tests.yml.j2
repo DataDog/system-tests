@@ -131,6 +131,12 @@ system_tests_run_{{library}}_{{scenario}}_{{variant}}:
 {% if push_to_test_optimization %}
     - .push_to_test_optimization
 {% endif %}
+{% if scenario == "THREAD_CONTEXT_SHARING" %}
+  # CWS needs the Kata VM's kernel filesystems, which this runner pool mounts under /vm-host
+  # (see docs/understand/scenarios/thread_context_sharing.md)
+  tags:
+    - docker-in-docker:amd64-cws
+{% endif %}
   id_tokens:
     DD_STS_OIDC_TOKEN:
       aud: dd-sts

@@ -134,3 +134,31 @@ class Test_BuildPipeline:
 
         for job_name in expected_run_jobs:
             assert ".system_tests_base" in pipeline[job_name]["extends"]
+
+    def test_thread_context_sharing_runs_on_cws_runner(self, tmp_path: Path) -> None:
+        params = {
+            "endtoend_defs": {
+                "parallel_weblogs": [{"name": "flask"}],
+                "parallel_jobs": [
+                    {
+                        "weblog": "flask",
+                        "scenarios": ["DEFAULT", "THREAD_CONTEXT_SHARING"],
+                        "weblog_build_required": True,
+                    }
+                ],
+            },
+            "miscs": {"binaries_artifact": ""},
+            "parametric": {"enable": False, "parallel_jobs": []},
+        }
+        (tmp_path / "params_python.json").write_text(json.dumps(params))
+        out = tmp_path / "out"
+
+        build(["python"], tmp_path, out, stage="e2e", ci_image="myimage", chunks=1)
+
+        pipeline = yaml.safe_load((out / "generated-pipeline-chunk-0.yml").read_text())
+        assert pipeline["system_tests_run_python_THREAD_CONTEXT_SHARING_flask"]["tags"] == [
+            "docker-in-docker:amd64-cws"
+        ]
+        # other jobs keep the default runner, from .system_tests_base
+        assert "tags" not in pipeline["system_tests_run_python_DEFAULT_flask"]
+        assert "tags" not in pipeline["system_tests_build_python_flask"]
