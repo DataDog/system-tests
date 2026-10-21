@@ -10,7 +10,7 @@ from pathlib import Path
 import uuid
 from urllib.parse import parse_qs
 from typing import Any, Literal, TypedDict
-from collections.abc import Callable, Iterator
+from collections.abc import Iterator
 
 from utils import interfaces, remote_config, weblog, context, logger
 from utils._weblog import HttpResponse
@@ -776,48 +776,6 @@ class BaseDebuggerTest:
             lambda data: self._wait_for_telemetry(data, telemetry_type=telemetry_type), timeout=timeout
         )
         return self._telemetry
-
-    def wait_for_startup_telemetry(
-        self, accept: Callable[[list[dict[str, Any]]], bool], timeout: int = 5
-    ) -> dict[str, Any] | None:
-        """Wait until app-started or app-client-configuration-change contains an accepted configuration."""
-        self._telemetry = None
-
-        def _on_data(data: dict) -> bool:
-            for configuration in self._startup_configurations(data):
-                if accept(configuration):
-                    self._telemetry = {"configuration": configuration}
-                    return True
-            return False
-
-        interfaces.agent.wait_for(_on_data, timeout=timeout)
-        return self._telemetry
-
-    def _startup_configurations(self, data: dict) -> list[list[dict[str, Any]]]:
-        if data.get("path") != _TELEMETRY_PATH:
-            return []
-
-        content = data.get("request", {}).get("content", {})
-        payload = content.get("payload")
-        request_type = content.get("request_type")
-        if request_type == "message-batch" and isinstance(payload, list):
-            entries = [item for item in payload if isinstance(item, dict)]
-        elif isinstance(payload, dict):
-            entries = [{"request_type": request_type, "payload": payload}]
-        else:
-            return []
-
-        configurations: list[list[dict[str, Any]]] = []
-        for entry in entries:
-            if entry.get("request_type") not in ("app-started", "app-client-configuration-change"):
-                continue
-            body = entry.get("payload")
-            if not isinstance(body, dict):
-                continue
-            configuration = body.get("configuration")
-            if configuration:
-                configurations.append(configuration)
-        return configurations
 
     def _wait_for_telemetry(self, data: dict, telemetry_type: str) -> bool:
         if data["path"] != _TELEMETRY_PATH:
