@@ -254,9 +254,12 @@ public class Handler implements RequestHandler<Object, Object> {
     }
 
     private Object handleHeaders(RequestContext ctx) {
+        String body = "OK";
         Map<String, String> responseHeaders = new HashMap<>();
+        responseHeaders.put("Content-Type", "text/plain");
+        responseHeaders.put("Content-Length", Integer.toString(body.getBytes(StandardCharsets.UTF_8).length));
         responseHeaders.put("Content-Language", "en-US");
-        return createResponse(ctx, "OK", 200, responseHeaders);
+        return createResponse(ctx, body, 200, responseHeaders);
     }
 
     private Object handleHealthcheck(RequestContext ctx) {
@@ -290,7 +293,14 @@ public class Handler implements RequestHandler<Object, Object> {
         // Track custom AppSec event
         trackCustomEvent(tagValue);
 
-        return createResponse(ctx, "Value tagged", statusCode);
+        Map<String, String> responseHeaders = new HashMap<>(ctx.queryParams);
+        if ("POST".equals(ctx.method) && tagValue.startsWith("payload_in_response_body")) {
+            Map<String, Object> responseBody = new HashMap<>();
+            responseBody.put("payload", parseFormData(ctx.body));
+            return createJsonResponse(ctx, responseBody, statusCode, responseHeaders);
+        }
+
+        return createResponse(ctx, "Value tagged", statusCode, responseHeaders);
     }
 
     private Object handleUserLoginSuccessEvent(RequestContext ctx) {
@@ -591,8 +601,13 @@ public class Handler implements RequestHandler<Object, Object> {
     }
 
     private Object createJsonResponse(RequestContext ctx, Object data, int statusCode) {
+        return createJsonResponse(ctx, data, statusCode, null);
+    }
+
+    private Object createJsonResponse(RequestContext ctx, Object data, int statusCode,
+                                      Map<String, String> extraHeaders) {
         String body = gson.toJson(data);
-        Map<String, String> headers = new HashMap<>();
+        Map<String, String> headers = extraHeaders != null ? new HashMap<>(extraHeaders) : new HashMap<>();
         headers.put("Content-Type", "application/json");
         return createResponse(ctx, body, statusCode, headers);
     }
