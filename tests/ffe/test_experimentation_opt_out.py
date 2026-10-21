@@ -6,7 +6,6 @@ fixtures; they do not implement a second evaluator in the test harness.
 """
 
 from concurrent.futures import ThreadPoolExecutor
-from dataclasses import dataclass, field
 import json
 from typing import Any
 
@@ -17,8 +16,16 @@ from tests.ffe.utils.evaluation_telemetry import (
     evaluation_count,
     evaluation_setup_error,
 )
-from tests.ffe.utils.experimentation_opt_out import Exposure, assert_exposures, opt_out_fixture
-from utils import HttpResponse, context, features, interfaces, remote_config as rc, rfc, scenarios, weblog
+from tests.ffe.utils.experimentation_opt_out import (
+    DEFAULT_VALUE as DEFAULT,
+    Evaluation,
+    Exposure,
+    assert_exposures,
+    evaluation_case,
+    opt_out_fixture,
+    run_evaluation,
+)
+from utils import context, features, interfaces, remote_config as rc, rfc, scenarios
 
 
 ATTRIBUTE = "dd_experimentation_opt_out_at"
@@ -27,32 +34,6 @@ OLD = "2026-01-01T00:00:00Z"
 NEW = "2026-03-01T00:00:00Z"
 ON = "on-value"
 OFF = "off-value"
-DEFAULT = "application-default"
-
-
-@dataclass
-class Evaluation:
-    flag: str
-    subject: str
-    attributes: dict[str, Any]
-    value: str
-    exposure: bool
-    allocation: str = "experiment"
-    responses: list[HttpResponse] = field(default_factory=list)
-
-    def run(self) -> None:
-        self.responses.append(
-            weblog.post(
-                "/ffe",
-                json={
-                    "flag": self.flag,
-                    "targetingKey": self.subject,
-                    "attributes": self.attributes,
-                    "variationType": "STRING",
-                    "defaultValue": DEFAULT,
-                },
-            )
-        )
 
 
 @scenarios.feature_flagging_experimentation_opt_out_disabled
@@ -71,12 +52,12 @@ class Test_FFE_Experimentation_Opt_Out:
     def assert_delivery(self, cases: list[Evaluation]) -> None:
         expected: set[Exposure] = set()
         for case in cases:
-            assert_evaluation_responses(case.responses, expected_count=3, expected_value=case.value)
-            if case.exposure:
-                expected.add((case.flag, case.subject, case.allocation, "on"))
+            assert_evaluation_responses(case["responses"], expected_count=3, expected_value=case["value"])
+            if case["exposure"]:
+                expected.add((case["flag"], case["subject"], case["allocation"], "on"))
         assert_exposures(
             interfaces.agent.get_data(path_filters="/api/v2/exposures"),
-            flags={case.flag for case in cases},
+            flags={case["flag"] for case in cases},
             expected=expected,
         )
 
@@ -124,23 +105,29 @@ class Test_FFE_Experimentation_Opt_Out:
                 )["flags"]
             )
             value = values[self.mode_index()]
-            self.matrix.append(Evaluation(flag, f"subject-{label}", attributes, value, experiment and value == ON))
+            self.matrix.append(
+                evaluation_case(flag, f"subject-{label}", attributes, value, exposure=experiment and value == ON)
+            )
 
         # Alternate subjects on one flag to detect leaked per-subject decisions.
         shared = "experiment-opt-out-shared"
         fixture["flags"].update(opt_out_fixture(shared, NEW)["flags"])
         self.matrix.extend(
             [
-                Evaluation(shared, "allowed", {}, ON, exposure=True),
-                Evaluation(
-                    shared, "excluded", {ATTRIBUTE: CUTOFF}, (ON, OFF, OFF)[self.mode_index()], self.mode_index() == 0
+                evaluation_case(shared, "allowed", {}, ON, exposure=True),
+                evaluation_case(
+                    shared,
+                    "excluded",
+                    {ATTRIBUTE: CUTOFF},
+                    (ON, OFF, OFF)[self.mode_index()],
+                    exposure=self.mode_index() == 0,
                 ),
             ]
         )
         rc.tracer_rc_state.reset().set_config("datadog/2/FFE_FLAGS/opt-out-matrix/config", fixture).apply()
         with ThreadPoolExecutor(max_workers=4) as executor:
             for _ in range(3):
-                list(executor.map(lambda case: case.run(), self.matrix))
+                list(executor.map(run_evaluation, self.matrix))
 
     def test_cutoff_matrix(self) -> None:
         assert_setup_succeeded(self.cutoff_matrix_setup_error)
@@ -173,12 +160,14 @@ class Test_FFE_Experimentation_Opt_Out:
             rc.tracer_rc_state.set_config(path, fixture).apply()
             value = values[self.mode_index()]
             cases = [
-                Evaluation(flag, "opted-out", {ATTRIBUTE: CUTOFF}, value, value == ON, allocation),
-                Evaluation(flag, "positive-control", {}, ON, exposure=True, allocation=allocation),
+                evaluation_case(
+                    flag, "opted-out", {ATTRIBUTE: CUTOFF}, value, exposure=value == ON, allocation=allocation
+                ),
+                evaluation_case(flag, "positive-control", {}, ON, exposure=True, allocation=allocation),
             ]
             for _ in range(3):
                 for case in cases:
-                    case.run()
+                    run_evaluation(case)
             self.updates.extend(cases)
 
     def test_configuration_updates(self) -> None:
@@ -213,21 +202,21 @@ class Test_FFE_Experimentation_Opt_Out:
             fixture["flags"][flag] = config
             attributes = {} if label == "baseline" else {ATTRIBUTE: CUTOFF}
             self.holdouts[label] = [
-                Evaluation(flag, f"holdout-subject-{index}", attributes, "", exposure=False) for index in range(64)
+                evaluation_case(flag, f"holdout-subject-{index}", attributes, "", exposure=False) for index in range(64)
             ]
         rc.tracer_rc_state.reset().set_config("datadog/2/FFE_FLAGS/opt-out-holdouts/config", fixture).apply()
         cases = [case for group in self.holdouts.values() for case in group]
         with ThreadPoolExecutor(max_workers=4) as executor:
             for _ in range(3):
-                list(executor.map(lambda case: case.run(), cases))
+                list(executor.map(run_evaluation, cases))
 
     def test_holdout_assignments(self) -> None:
         assert_setup_succeeded(self.holdout_assignments_setup_error)
         expected: set[Exposure] = set()
         baseline_values: set[str] = set()
         for index, baseline in enumerate(self.holdouts["baseline"]):
-            assert baseline.responses[0].status_code == 200
-            value = json.loads(baseline.responses[0].text)["value"]
+            assert baseline["responses"][0].status_code == 200
+            value = json.loads(baseline["responses"][0].text)["value"]
             assert value in {ON, OFF}, f"Baseline did not assign a holdout variant: {value!r}"
             baseline_values.add(value)
             for label, group in self.holdouts.items():
@@ -236,14 +225,14 @@ class Test_FFE_Experimentation_Opt_Out:
                     label == "baseline" or self.mode_index() == 0 or (label == "older" and self.mode_index() == 2)
                 )
                 assert_evaluation_responses(
-                    case.responses, expected_count=3, expected_value=value if continues else "fallback-value"
+                    case["responses"], expected_count=3, expected_value=value if continues else "fallback-value"
                 )
                 if continues:
-                    expected.add((case.flag, case.subject, "experiment", "on" if value == ON else "off"))
+                    expected.add((case["flag"], case["subject"], "experiment", "on" if value == ON else "off"))
         assert baseline_values == {ON, OFF}, "Both holdout groups must have positive controls"
         assert_exposures(
             interfaces.agent.get_data(path_filters="/api/v2/exposures"),
-            flags={case.flag for group in self.holdouts.values() for case in group},
+            flags={case["flag"] for group in self.holdouts.values() for case in group},
             expected=expected,
         )
 
@@ -260,23 +249,23 @@ class Test_FFE_Experimentation_Opt_Out:
                 fixture["flags"].update(opt_out_fixture(flag, OLD, experiment=experiment)["flags"])
                 value = OFF if experiment and self.mode_index() == 1 else ON
                 self.telemetry.append(
-                    Evaluation(
+                    evaluation_case(
                         flag,
                         "subject",
                         {ATTRIBUTE: CUTOFF, "dd_evaluation_telemetry_opt_out": suppress},
                         value,
-                        experiment and value == ON,
+                        exposure=experiment and value == ON,
                     )
                 )
         rc.tracer_rc_state.reset().set_config("datadog/2/FFE_FLAGS/opt-out-telemetry/config", fixture).apply()
         for _ in range(3):
             for case in self.telemetry:
-                case.run()
+                run_evaluation(case)
 
     def test_independent_telemetry_control(self) -> None:
         assert_setup_succeeded(self.independent_telemetry_setup_error)
         self.assert_delivery(self.telemetry)
         captures = list(interfaces.agent.get_data(path_filters="/api/v2/flagevaluation"))
         for case in self.telemetry:
-            expected = 0 if case.attributes["dd_evaluation_telemetry_opt_out"] else 3
-            assert_count(evaluation_count(captures, case.flag), expected, case.flag)
+            expected = 0 if case["attributes"]["dd_evaluation_telemetry_opt_out"] else 3
+            assert_count(evaluation_count(captures, case["flag"]), expected, case["flag"])

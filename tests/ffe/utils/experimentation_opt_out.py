@@ -2,13 +2,61 @@
 
 from collections import Counter
 from collections.abc import Iterable
-from typing import Any
+from typing import Any, TypedDict
 
 from tests.ffe.utils.exposures import exposure_events_from_data
 from tests.ffe.utils.fixtures import make_ufc_fixture
+from utils import HttpResponse, weblog
 
 
 Exposure = tuple[str, str, str, str]  # flag, subject, allocation, variant
+DEFAULT_VALUE = "application-default"
+
+
+class Evaluation(TypedDict):
+    flag: str
+    subject: str
+    attributes: dict[str, Any]
+    value: str
+    exposure: bool
+    allocation: str
+    responses: list[HttpResponse]
+
+
+def evaluation_case(
+    flag: str,
+    subject: str,
+    attributes: dict[str, Any],
+    value: str,
+    *,
+    exposure: bool,
+    allocation: str = "experiment",
+) -> Evaluation:
+    # The harness stores setup properties as JSON and restores them for replay.
+    return {
+        "flag": flag,
+        "subject": subject,
+        "attributes": attributes,
+        "value": value,
+        "exposure": exposure,
+        "allocation": allocation,
+        "responses": [],
+    }
+
+
+def run_evaluation(case: Evaluation) -> None:
+    case["responses"].append(
+        weblog.post(
+            "/ffe",
+            json={
+                "flag": case["flag"],
+                "targetingKey": case["subject"],
+                "attributes": case["attributes"],
+                "variationType": "STRING",
+                "defaultValue": DEFAULT_VALUE,
+            },
+        )
+    )
 
 
 def opt_out_fixture(
