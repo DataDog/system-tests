@@ -1,0 +1,88 @@
+[
+  {
+    "description": "A root flag matches a direct prerequisite by variant key.",
+    "attributes": {},
+    "defaultValue": "caller-default",
+    "flag": "dependent-direct-root",
+    "result": {
+      "reason": "TARGETING_MATCH",
+      "value": "direct-match"
+    },
+    "targetingKey": "dependent-direct",
+    "variationType": "STRING"
+  },
+  {
+    "description": "A depth-two tree evaluates its leaf and intermediate prerequisite before matching the root.",
+    "attributes": {},
+    "defaultValue": "caller-default",
+    "flag": "dependent-transitive-root",
+    "result": {
+      "reason": "TARGETING_MATCH",
+      "value": "transitive-match"
+    },
+    "targetingKey": "dependent-transitive",
+    "variationType": "STRING"
+  },
+  {
+    "description": "A false attribute condition short-circuits before an otherwise fatal missing prerequisite and selects the root fallback.",
+    "attributes": {
+      "gate": "closed"
+    },
+    "defaultValue": "caller-default",
+    "flag": "dependent-short-circuit-root",
+    "result": {
+      "reason": "STATIC",
+      "value": "short-circuit-fallback"
+    },
+    "targetingKey": "dependent-short-circuit",
+    "variationType": "STRING"
+  },
+  {
+    "description": "Two membership conditions against the same prerequisite evaluate successfully.",
+    "attributes": {},
+    "defaultValue": "caller-default",
+    "flag": "dependent-memoized-root",
+    "result": {
+      "reason": "TARGETING_MATCH",
+      "value": "memoized-match"
+    },
+    "targetingKey": "dependent-memoized",
+    "variationType": "STRING"
+  },
+  {
+    "description": "A successful prerequisite followed by a missing prerequisite aborts the graph and returns the caller default.",
+    "attributes": {},
+    "defaultValue": "atomic-default",
+    "flag": "dependent-atomic-error-root",
+    "result": {
+      "reason": "ERROR",
+      "value": "atomic-default"
+    },
+    "targetingKey": "dependent-atomic-error",
+    "variationType": "STRING"
+  },
+  {
+    "description": "With maxDependencyDepth 2, a third dependency edge aborts the graph and returns the caller default.",
+    "attributes": {},
+    "defaultValue": "depth-default",
+    "flag": "dependent-depth-three-root",
+    "result": {
+      "reason": "ERROR",
+      "value": "depth-default"
+    },
+    "targetingKey": "dependent-over-depth",
+    "variationType": "STRING"
+  },
+  {
+    "description": "A dependency cycle aborts the graph and returns the caller default.",
+    "attributes": {},
+    "defaultValue": "cycle-default",
+    "flag": "dependent-cycle-a",
+    "result": {
+      "reason": "ERROR",
+      "value": "cycle-default"
+    },
+    "targetingKey": "dependent-cycle",
+    "variationType": "STRING"
+  }
+]

@@ -56,6 +56,7 @@ class _Owner(Enum):
                                 "dd-trace-php":     "@DataDog/apm-lang-platform-php",
                                 "dd-trace-py":      "@DataDog/lang-platform-python",
                                 "dd-trace-rb":      "@DataDog/lang-platform-ruby",
+                                "dd-trace-rs":      "@DataDog/apm-rust",
                                 "httpd-datadog":    "@DataDog/apm-idm-cpp",
                                 "nginx-datadog":    "@DataDog/apm-idm-cpp",
                             })

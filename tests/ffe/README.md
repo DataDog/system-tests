@@ -12,6 +12,35 @@ This directory contains system tests for the Feature Flags & Experimentation (FF
 | `test_flag_eval_metrics.py` | Evaluation metrics (OTel counter) |
 | `test_flag_eval_evp.py` | Server-side EVP flagevaluation payloads, aggregation, and bounds |
 
+## Canonical parametric fixtures
+
+The parametric evaluation suite reads the checked-in snapshot under
+`tests/parametric/test_ffe/ffe-system-test-data`. Its upstream source and exact
+commit are recorded in `SOURCE.md` inside that directory.
+
+Change shared evaluator cases in
+[`DataDog/ffe-system-test-data`](https://github.com/DataDog/ffe-system-test-data)
+first, then refresh the snapshot:
+
+```bash
+python3 utils/scripts/update_ffe_fixtures.py --ref <branch-tag-or-commit>
+```
+
+The updater imports `ufc-config.json` and `evaluation-cases/*.json` only. Ordinary
+test runs use those checked-in files without submodules or network access. A
+weekly/manual workflow opens a signed draft PR when their contents change and
+leaves any existing fixture update PR untouched. Review and resolve newly exposed
+SDK failures before merging an update.
+
+Dynamic evaluation checks each case's value, reason, and explicit error code.
+Cases with optional `capabilities` still run their baseline `result`; enabling
+capability-specific provider options requires separate harness support.
+Remote Configuration tests and the mocked agentless backend read the same UFC.
+Serial-ID metadata and span-enrichment tests select their flag definitions from
+the shared corpus using their dedicated evaluation-case files. Their integration
+harnesses retain trace construction and metadata assertions; no separate local
+configuration copies are needed.
+
 ## Running FFE Tests
 
 ```bash
@@ -197,7 +226,7 @@ The tests use `interfaces.agent.get_metrics()` to retrieve metrics from the agen
 
 ### 1. Test returns `parse_error` instead of expected reason
 - Check UFC fixture format (especially `totalShards` placement)
-- Verify the fixture matches `flags-v1.json` format in dd-trace-py
+- Verify the fixture matches the canonical `ffe-system-test-data/ufc-config.json` format
 
 ### 2. Test returns `static` instead of `split`
 - Need multiple variations with different shard ranges

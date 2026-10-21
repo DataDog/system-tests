@@ -99,7 +99,7 @@ class CandidateBoot:
     def use_created_cache(
         self, vm: _VirtualMachine, server: object, server_connection: object, created_cache: object
     ) -> tuple[object, object, object]:
-        """Boot the candidate created by this job when the pipeline explicitly opts in."""
+        """Boot the candidate created by this job and continue the provision on it."""
         if not self.boot_created_candidate:
             return server, server_connection, created_cache
         logger.stdout(f"Booting [{vm.name}] from the candidate AMI created in this job")

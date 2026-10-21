@@ -13,6 +13,7 @@ import pytest
 import requests
 from _pytest.outcomes import Failed
 
+from utils._context._image_mirror import mirror_enabled
 from utils._logger import logger
 from utils.base_images.base_image import base_image_contexts
 from utils.docker_fixtures._core import get_docker_client
@@ -22,6 +23,21 @@ def _fail(message: str):
     """Used to mak a test as failed"""
     logger.error(message)
     raise Failed(message, pytrace=False) from None
+
+
+_MIRROR_BUILDER = "system-tests-mirror"
+_BUILDKITD_CONFIG = "utils/build/docker/buildkitd.toml"
+
+
+def _ensure_mirror_builder(docker_bin: str) -> str:
+    """Create (or reuse) the buildx builder configured to pull through the image mirror."""
+    inspect = subprocess.run([docker_bin, "buildx", "inspect", _MIRROR_BUILDER], capture_output=True, check=False)
+    if inspect.returncode != 0:
+        subprocess.run(
+            [docker_bin, "buildx", "create", "--name", _MIRROR_BUILDER, "--config", _BUILDKITD_CONFIG],
+            check=True,
+        )
+    return _MIRROR_BUILDER
 
 
 class TestClientFactory:
@@ -64,11 +80,14 @@ class TestClientFactory:
             if docker_bin is None:
                 raise FileNotFoundError("Docker not found in PATH")
 
-            cmd = [
-                docker_bin,
-                "build",
-                "--progress=plain",
-            ]
+            if mirror_enabled():
+                # Same builder as weblog builds (utils/build/build.sh): its buildkitd
+                # daemon redirects all FROM pulls through the system-tests mirror.
+                # It does not use the docker driver, so the image must be loaded back.
+                cmd = [docker_bin, "buildx", "build", "--builder", _ensure_mirror_builder(docker_bin), "--load"]
+            else:
+                cmd = [docker_bin, "build"]
+            cmd += ["--progress=plain"]
 
             if github_token_file and github_token_file.strip():
                 cmd += ["--secret", f"id=github_token,src={github_token_file}"]

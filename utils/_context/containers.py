@@ -99,6 +99,8 @@ class TestedContainer:
         volumes: dict | None = None,
         working_dir: str | None = None,
         pid_mode: str | None = None,
+        cgroupns: str | None = None,
+        mounts: list[docker.types.Mount] | None = None,
     ) -> None:
         assert name
         assert image_name
@@ -133,6 +135,10 @@ class TestedContainer:
         self.ulimits: list | None = None
         self.privileged = False
         self.pid_mode = pid_mode
+        self.cgroupns = cgroupns
+        # Unlike volumes, a bind mount listed here fails container creation when its source is
+        # missing, instead of being created as an empty directory by the docker daemon.
+        self.mounts = mounts
 
     def _get_image_name(self, binary_file_name: str | None, default_name: str) -> str:
         # if the container provide binary_file_name, then a file named binaries/{binary_file_name}
@@ -256,6 +262,8 @@ class TestedContainer:
             privileged=self.privileged,
             ulimits=self.ulimits,
             pid_mode=self.pid_mode,
+            cgroupns=self.cgroupns,
+            mounts=self.mounts,
         )
 
         self.healthy = self.wait_for_health()
@@ -951,6 +959,35 @@ class BuddyContainer(TestedContainer):
         return result
 
 
+def dockerfile_image_list(dockerfile: Path) -> list[str]:
+    """Return the images referenced in the FROM lines of a Dockerfile.
+
+    system-tests base-image aliases are resolved to their locked reference, and
+    ARG defaults are substituted. Unresolved placeholders are kept as-is.
+    """
+    result: list[str] = []
+    args: dict[str, str] = {}
+
+    pattern = re.compile(r"^FROM\s+(?:--\S+\s+)*(?P<image_name>\S+)", re.IGNORECASE)
+    arg_pattern = re.compile(r"^ARG\s+(?P<arg_name>[^\s]+)\s*=\s*(?P<arg_value>[^\s]+)")
+    dockerfile_text = dockerfile.read_text()
+    base_contexts = base_image_contexts(dockerfile_text)
+    for line in dockerfile_text.splitlines():
+        if match := arg_pattern.match(line):
+            args[match.group("arg_name")] = match.group("arg_value")
+
+        if match := pattern.match(line):
+            image_name = match.group("image_name")
+            image_name = base_contexts.get(image_name, image_name)
+
+            for name, value in args.items():
+                image_name = image_name.replace(f"${name}", value)
+
+            result.append(image_name)
+
+    return result
+
+
 class WeblogContainer(TestedContainer):
     stdout_interface: LibraryStdoutInterface
 
@@ -1077,27 +1114,7 @@ class WeblogContainer(TestedContainer):
             # Those are not based on a dockerfile. TODO : weblog abstraction
             return result
 
-        args = {}
-
-        pattern = re.compile(r"^FROM\s+(?:--\S+\s+)*(?P<image_name>\S+)", re.IGNORECASE)
-        arg_pattern = re.compile(r"^ARG\s+(?P<arg_name>[^\s]+)\s*=\s*(?P<arg_value>[^\s]+)")
-        dockerfile = Path(f"utils/build/docker/{library}/{weblog}.Dockerfile")
-        dockerfile_text = dockerfile.read_text()
-        base_contexts = base_image_contexts(dockerfile_text)
-        for line in dockerfile_text.splitlines():
-            if match := arg_pattern.match(line):
-                args[match.group("arg_name")] = match.group("arg_value")
-
-            if match := pattern.match(line):
-                image_name = match.group("image_name")
-                image_name = base_contexts.get(image_name, image_name)
-
-                for name, value in args.items():
-                    image_name = image_name.replace(f"${name}", value)
-
-                result.append(image_name)
-
-        return result
+        return dockerfile_image_list(Path(f"utils/build/docker/{library}/{weblog}.Dockerfile"))
 
     def configure(self, *, host_log_folder: str, replay: bool):
         super().configure(host_log_folder=host_log_folder, replay=replay)

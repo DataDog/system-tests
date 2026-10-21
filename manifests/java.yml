@@ -316,6 +316,9 @@ manifest:
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         vertx3: v1.51.0-SNAPSHOT
         vertx4: v1.51.0-SNAPSHOT
+  tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Json_Body::test_request_method:
+    - weblog_declaration:
+        vertx4: flaky (APPSEC-71153)
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Path_Parameters:
     - weblog_declaration:
         "*": v1.36.0
@@ -3150,15 +3153,14 @@ manifest:
     - declaration: bug (DEBUG-3285)
       component_version: <1.46.0
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_firsthit: missing_feature (Implemented only for dotnet)
-  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_inner: bug (DEBUG-5838)
-  #  - declaration: bug (DEBUG-3285)
-  #    component_version: <1.46.0
-  # Added by easy win activation script
-  #  - weblog_declaration:
-  #      spring-boot-undertow: missing_feature
-  #      spring-boot-openliberty: missing_feature
-  #      spring-boot-jetty: missing_feature
-  #      spring-boot-payara: missing_feature
+  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_inner:
+    - declaration: bug (DEBUG-5838)
+      component_version: <1.67.1
+    - weblog_declaration:
+        spring-boot-undertow: missing_feature
+        spring-boot-openliberty: missing_feature
+        spring-boot-jetty: missing_feature
+        spring-boot-payara: missing_feature
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_multiframe:
     - declaration: bug (DEBUG-3285)
       component_version: <1.46.0
@@ -3302,7 +3304,8 @@ manifest:
         spring-boot-wildfly: v1.49.0
         uds-spring-boot: v1.49.0
   ? tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers::test_pii_redaction_log_probe_map_rendering
-  : bug (DEBUG-5958)
+  : - declaration: bug (DEBUG-5958)
+      component_version: <1.67.1
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets:
     - weblog_declaration:
         "*": missing_feature
@@ -4083,7 +4086,7 @@ manifest:
   : bug (APMAPI-2474)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_protocol.py::Test_OTEL_EXPORTER_OTLP_TRACES_PROTOCOL: v1.61.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_protocol.py::Test_OTEL_EXPORTER_OTLP_TRACES_PROTOCOL::test_grpc_protocol_is_used_for_trace_export
-  : incomplete_test_app (gRPC trace requests are not captured by the HTTP request assertion)
+  : bug (APMAPI-2503)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_timeout.py::Test_OTEL_EXPORTER_OTLP_TRACES_TIMEOUT: v1.61.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_timeout.py::Test_OTEL_EXPORTER_OTLP_TRACES_TIMEOUT::test_stable_values
   : bug (APMAPI-2485)
@@ -4242,7 +4245,7 @@ manifest:
   : v1.65.0
   tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Warm_State_Preservation: v1.65.0
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v1.56.0
-  tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_detailed_flag_evaluation: missing_feature (FFL-1694)
+  tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_dependent_flag_evaluation: missing_feature (FFL-1694)
   tests/parametric/test_ffe/test_serial_id_metadata.py: v1.66.0
   tests/parametric/test_ffe/test_span_enrichment.py: '>=1.64.2'  # TODO: a lower version might be supported
   tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Child_Span_Propagation: missing_feature

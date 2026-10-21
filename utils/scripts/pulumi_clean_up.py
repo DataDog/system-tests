@@ -18,8 +18,53 @@ import pulumi_command as command
 # Define retention settings
 DEFAULT_AMI_RETENTION_DAYS = 100
 DEFAULT_AMI_LAST_LAUNCHED_DAYS = 111
-_CANDIDATE_UNUSED_DAYS = 7
 _LAUNCH_REPORT_DELAY_DAYS = 1
+_RETIRE_TAG = "ami-retire-at"
+
+
+def _retire_at(tags: Mapping[str, str] | None) -> datetime | None:
+    raw = (tags or {}).get(_RETIRE_TAG)
+    if not raw:
+        return None
+    try:
+        parsed = datetime.fromisoformat(raw)
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        return parsed.replace(tzinfo=UTC)
+    return parsed
+
+
+def ami_cleanup_action(
+    tags: Mapping[str, str] | None,
+    creation_date: datetime,
+    last_launched_date: datetime | None,
+    now: datetime,
+    retention_days: int,
+    last_launched_days: int,
+    *,
+    launch_lookup_ok: bool = True,
+) -> str:
+    """Return delete, mark, clear, or keep. Active and candidate images wait one extra cleanup."""
+    state = (tags or {}).get("ami-state")
+    if state == "rejected":
+        return "delete"
+    if state in {"active", "candidate"}:
+        if not launch_lookup_ok:
+            return "keep"
+        old = creation_date < now - timedelta(days=retention_days)
+        stale = last_launched_date is not None and last_launched_date < now - timedelta(days=last_launched_days)
+        if not (old or stale):
+            return "clear" if _retire_at(tags) is not None else "keep"
+        retire_at = _retire_at(tags)
+        if retire_at is None:
+            return "mark"
+        if retire_at <= now:
+            return "delete"
+        return "keep"
+    old = creation_date < now - timedelta(days=retention_days)
+    stale = last_launched_date is not None and last_launched_date < now - timedelta(days=last_launched_days)
+    return "delete" if old or stale else "keep"
 
 
 def should_delete_ami(
@@ -33,16 +78,30 @@ def should_delete_ami(
     launch_lookup_ok: bool = True,
 ) -> bool:
     """Decide whether automatic cleanup can deregister an AMI."""
-    state = (tags or {}).get("ami-state")
-    if state == "active" or (state == "candidate" and not launch_lookup_ok):
-        return False
-    days = _CANDIDATE_UNUSED_DAYS + _LAUNCH_REPORT_DELAY_DAYS if state == "candidate" else retention_days
-    old = creation_date < now - timedelta(days=days)
-    if state == "candidate":
-        unused = last_launched_date is None or last_launched_date < now - timedelta(days=days)
-        return old and unused
-    stale = last_launched_date is not None and last_launched_date < now - timedelta(days=last_launched_days)
-    return old or stale
+    return (
+        ami_cleanup_action(
+            tags,
+            creation_date,
+            last_launched_date,
+            now,
+            retention_days,
+            last_launched_days,
+            launch_lookup_ok=launch_lookup_ok,
+        )
+        == "delete"
+    )
+
+
+def _set_retire_tag(ami_id: str, when: datetime) -> None:
+    value = when.strftime("%Y-%m-%dT%H:%M:%SZ")
+    subprocess.run(
+        ["aws", "ec2", "create-tags", "--resources", ami_id, "--tags", f"Key={_RETIRE_TAG},Value={value}"],
+        check=False,
+    )
+
+
+def _clear_retire_tag(ami_id: str) -> None:
+    subprocess.run(["aws", "ec2", "delete-tags", "--resources", ami_id, "--tags", f"Key={_RETIRE_TAG}"], check=False)
 
 
 def get_last_launched_time(ami_id: str) -> tuple[bool, datetime | None]:
@@ -219,18 +278,23 @@ async def clean_up_amis() -> None:
         )
         creation_date = datetime.fromisoformat(ami.creation_date)
         launch_lookup_ok, last_launched_date = get_last_launched_time(ami_id)
-        delete = should_delete_ami(
+        now = datetime.now(UTC)
+        action = ami_cleanup_action(
             ami.tags,
             creation_date,
             last_launched_date,
-            datetime.now(UTC),
+            now,
             ami_retention_days,
             ami_last_launched_days,
             launch_lookup_ok=launch_lookup_ok,
         )
-        print(f"AMI {ami.id} created={creation_date} launched={last_launched_date} delete={delete}")
-        if delete:
+        print(f"AMI {ami.id} created={creation_date} launched={last_launched_date} action={action}")
+        if action == "delete":
             delete_ami(ami)
+        elif action == "mark":
+            _set_retire_tag(ami.id, now + timedelta(days=_LAUNCH_REPORT_DELAY_DAYS))
+        elif action == "clear":
+            _clear_retire_tag(ami.id)
 
 
 async def clean_up_amis_by_name() -> None:

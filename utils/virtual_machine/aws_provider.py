@@ -1,7 +1,9 @@
 from collections.abc import Callable
+from datetime import datetime
 from io import TextIOWrapper
 import os
 import pathlib
+import re
 import uuid
 import time
 import requests
@@ -25,11 +27,7 @@ from utils.onboarding.debug_vm import download_vm_logs
 from utils.virtual_machine.virtual_machine_provider import VmProvider, Commander
 from utils.virtual_machine.virtual_machines import _VirtualMachine
 from utils.virtual_machine.aws_candidate_boot import CandidateBoot
-from utils.virtual_machine.ami_candidate import (
-    boot_created_candidate_enabled,
-    select_usable_ami,
-    should_boot_created_candidate,
-)
+from utils.virtual_machine.ami_candidate import cache_plan, select_usable_ami, should_boot_created_candidate
 
 import pytest
 
@@ -41,12 +39,69 @@ _MAX_RUNNING_INSTANCES = 1200
 _MAX_EVENT_MESSAGE_LENGTH = 255
 # Timeout (seconds) for the Datadog event HTTP request.
 _EVENT_REQUEST_TIMEOUT = 15
+# Short error kept in the pytest exit line. The rest of the Pulumi script stays in the VM log.
+_MAX_PROVISION_ERROR_LENGTH = 200
+# First Pulumi resource that failed. Later "**creating failed**" lines are cascade noise.
+_FAILED_PROVISION_STEP = re.compile(
+    r"[\w:]+\s+(?P<name>\S+)\s+\*\*creating failed\*\*"
+    r"(?: error: (?P<error>.+?))?(?:: running |\n|$)",
+    re.DOTALL,
+)
+
+
+def _provision_step_name(resource_name: str, vm_name: str) -> str | None:
+    """Step id from a remote-command resource name, `-{vm}-{step}`. An EC2 instance name is not a step."""
+    marker = f"-{vm_name}-"
+    index = resource_name.find(marker)
+    if index < 0:
+        return None
+    return resource_name[index + len(marker) :] or None
+
+
+def _provision_log_hint(vm_name: str, step: str | None) -> str:
+    """Where to read the failure. The script source is only relevant for a provision step."""
+    hint = f"👀 Check the log file: {vm_name}.log to see the full error trace."
+    if step:
+        hint += f"\n📝 Look for step '{step}' in {vm_name}_provision_script.log to see the source that failed."
+    return hint
+
+
+def _provision_failure_message(exception_message: str, vm_name: str) -> str:
+    """Name the first Pulumi resource that failed, plus a short error."""
+    match = _FAILED_PROVISION_STEP.search(exception_message)
+    step = _provision_step_name(match.group("name"), vm_name) if match else None
+    error = (match.group("error") or "").strip()[:_MAX_PROVISION_ERROR_LENGTH].rstrip() if match else ""
+    detail = f" ({error})" if error else ""
+    where = f" at step '{step}'" if step else ""
+    return f"Error on VM provisioning{where}{detail}.\n{_provision_log_hint(vm_name, step)}"
+
+
+def _error_diagnostic_line(diagnostic: auto.DiagnosticEvent) -> str | None:
+    """One log line for a Pulumi error diagnostic. The remote script after ': running' is dropped."""
+    if diagnostic.severity != "error" or diagnostic.ephemeral:
+        return None
+    message = diagnostic.message.strip()
+    marker = ": running "
+    running = message.find(marker)
+    if running >= 0:
+        head = message[:running].strip()
+        stderr = message[running + len(marker) :].rsplit("\n", 1)[-1].strip()
+        message = head if not stderr or stderr.startswith('"') else f"{head}: {stderr}"
+    detail = f"error: {message}"
+    # URN shape: urn:pulumi:<stack>::<project>::<type>::<name>
+    left, separator, name = diagnostic.urn.rpartition("::") if diagnostic.urn else ("", "", "")
+    resource_type = left.rpartition("::")[2]
+    if separator and resource_type:
+        return f"  {resource_type} ({name}):\n    {detail}"
+    return f"  {detail}"
 
 
 def _select_cached_ami(
     cached_amis: list[aws.ec2.GetAmiResult],
+    *,
+    now: datetime | None = None,
 ) -> aws.ec2.GetAmiResult | None:
-    return select_usable_ami(cached_amis)
+    return select_usable_ami(cached_amis, now=now)
 
 
 class AWSPulumiProvider(CandidateBoot, VmProvider):
@@ -59,6 +114,7 @@ class AWSPulumiProvider(CandidateBoot, VmProvider):
         self.booted_candidate_ami_id: str | None = None
         self.boot_created_candidate = False
         self.instance_user_data: str | None = None
+        self._error_diagnostics: list[str] = []
 
     def configure(self, virtual_machine: _VirtualMachine) -> None:
         super().configure(virtual_machine)
@@ -104,30 +160,15 @@ class AWSPulumiProvider(CandidateBoot, VmProvider):
             )
         except pulumi.automation.errors.CommandError as pulumi_command_exception:
             logger.stdout("❌ Exception launching aws provision step remote command ❌")
-            logger.stdout(f"(Please, check the log file: {context.scenario.host_log_folder}/{context.vm_name}.log)")
-            logger.stdout(
-                "📖 Learn more in the Troubleshooting guide: https://github.com/DataDog/system-tests/blob/main/docs/understand/scenarios/onboarding.md#troubleshooting"
-            )
-            logger.stdout(
-                "📖 Learn more about how to understand the logs: https://github.com/DataDog/system-tests/blob/main/docs/understand/scenarios/onboarding.md#how-to-debug-your-environment-and-tests-results"
-            )
             vm_logger(context.scenario.host_log_folder, context.vm_name).error(
                 "\n \n \n ❌ ❌ ❌ Exception launching aws provision step remote command ❌ ❌ ❌ \n \n \n "
             )
-            vm_logger(context.scenario.host_log_folder, context.vm_name).exception(pulumi_command_exception)
             self._handle_provision_error(pulumi_command_exception)
         except Exception as pulumi_exception:
             logger.stdout("❌ Exception launching aws provision infraestructure ❌ ")
             logger.stdout(
                 f"(Please, check the log file: {context.scenario.host_log_folder}/tests.log "
                 "and search for the text chain 'Diagnostics:')"
-            )
-            logger.debug(f"The error class name: {pulumi_exception.__class__.__name__}")
-            logger.stdout(
-                "📖 Learn more in the Troubleshooting guide: https://github.com/DataDog/system-tests/blob/main/docs/understand/scenarios/onboarding.md#troubleshooting"
-            )
-            logger.stdout(
-                "📖 Learn more about how to understand the logs: https://github.com/DataDog/system-tests/blob/main/docs/understand/scenarios/onboarding.md#how-to-debug-your-environment-and-tests-results"
             )
             self._handle_provision_error(pulumi_exception)
 
@@ -140,13 +181,22 @@ class AWSPulumiProvider(CandidateBoot, VmProvider):
         """
         for attempt in range(1, attempts + 1):
             try:
-                self.stack.up(on_output=logger.info)
+                self._error_diagnostics = []
+                self.stack.up(on_output=logger.info, on_event=self._on_pulumi_event)
                 return
             except pulumi.automation.errors.CommandError as pulumi_command_exception:
                 if "IdempotentParameterMismatch" not in str(pulumi_command_exception) or attempt == attempts:
                     raise
                 logger.stdout(f"⚠️ IdempotentParameterMismatch on attempt {attempt}/{attempts}, retrying stack up ⚠️")
                 self.stack_destroy()
+
+    def _on_pulumi_event(self, event: auto.EngineEvent) -> None:
+        diagnostic = event.diagnostic_event
+        if diagnostic is None:
+            return
+        line = _error_diagnostic_line(diagnostic)
+        if line is not None:
+            self._error_diagnostics.append(line)
 
     def get_windows_user_data(self) -> str:
         windows_user_data_path = "utils/build/virtual_machine/provisions/windows_userdata/setup_ssh.ps1"
@@ -160,22 +210,40 @@ class AWSPulumiProvider(CandidateBoot, VmProvider):
         with open("utils/virtual_machine/aws_infra_exceptions.json", "r") as f:
             return json.load(f)
 
-    def _handle_provision_error(self, exception: pulumi.automation.errors.CommandError):
+    def _handle_provision_error(self, exception: BaseException) -> None:
         """Stop the session on any provision error, so that no test is run.
 
         If the exception is known, exit with code 3 (GitLab retries the job). If not, exit with code 1.
         """
 
         exception_message = str(exception)
-        for known_message in self.aws_infra_exceptions.values():
+        log = vm_logger(context.scenario.host_log_folder, context.vm_name)
+        if self._error_diagnostics:
+            match = _FAILED_PROVISION_STEP.search(exception_message)
+            step = _provision_step_name(match.group("name"), self.vm.name) if match else None
+            title = f"🔧 Diagnostics: {step}" if step else "🔧 Diagnostics:"
+            block = title + "\n" + "\n".join(self._error_diagnostics)
+            logger.stdout(block)
+            log.error(block)
+        log.exception(exception)
+        for known_id, known_message in self.aws_infra_exceptions.items():
             if known_message in exception_message:
+                match = _FAILED_PROVISION_STEP.search(exception_message)
+                step = _provision_step_name(match.group("name"), self.vm.name) if match else None
+                trace = (
+                    f"⚠️ Known infrastructure exception ({known_id}). GitLab will retry this job.\n"
+                    f"{known_message}\n"
+                    f"{_provision_log_hint(self.vm.name, step)}"
+                )
+                logger.stdout(trace)
+                log.error(trace)
                 self.stack_destroy()
                 self.datadog_event_sender.send_event_to_datadog(
                     f"[E2E] Stack {self.stack_name} : error on Pulumi stack up. retrying",
                     repr(exception),
                     ["operation:up", "result:retry", f"stack:{self.stack_name}"],
                 )
-                pytest.exit(f"Known infraestructure exception:: {known_message}", returncode=3)
+                pytest.exit(f"Known infrastructure exception ({known_id})", returncode=3)
         # If the exception is not known, we will store it in the vm object and error event to dd
         self.vm.provision_install_error = exception
         self._download_vm_logs_after_provision_failure()
@@ -184,8 +252,12 @@ class AWSPulumiProvider(CandidateBoot, VmProvider):
             repr(exception),
             ["operation:up", "result:fail", f"stack:{self.stack_name}"],
         )
-        # The stack is destroyed by the scenario's close_targets, called when a warmup fails
-        pytest.exit(f"Error on VM provisioning, check the log file: {self.vm.name}.log", returncode=1)
+        # The stack is destroyed by the scenario's close_targets, called when a warmup fails.
+        # Pytest repeats the exit reason, so the log hints are printed once here.
+        failure_message = _provision_failure_message(exception_message, self.vm.name)
+        logger.stdout(failure_message)
+        log.error(failure_message)
+        pytest.exit(failure_message.split("\n", 1)[0], returncode=1)
 
     def _download_vm_logs_after_provision_failure(self) -> None:
         """Pull /var/log from the VM while it is still up (provision may have failed mid-way)."""
@@ -218,7 +290,6 @@ class AWSPulumiProvider(CandidateBoot, VmProvider):
         self.boot_created_candidate = should_boot_created_candidate(
             update_cache=vm.datadog_config.update_cache,
             skip_cache=vm.datadog_config.skip_cache,
-            enabled=boot_created_candidate_enabled(os.getenv("AMI_BOOT_CREATED_CANDIDATE")),
         )
         ec2_server, server_connection = self._launch_instance(
             vm,
@@ -285,14 +356,15 @@ class AWSPulumiProvider(CandidateBoot, VmProvider):
 
         before_time = time.time()
         cached_ami = _select_cached_ami(self._get_cached_amis(vm))
-        if cached_ami is None:
+        plan = cache_plan(cached_ami)
+        if plan == "create":
             vm.datadog_config.update_cache = True
-        elif str(cached_ami.state) != "available":
+        elif plan == "wait" and cached_ami is not None:
             logger.stdout(
-                f"We found an existing cache AMI for vm [{vm.name}] but we can no use it "
-                f"because the current status is {cached_ami.state}"
+                f"Cache AMI [{cached_ami.id}] for [{vm.name}] is not ready "
+                f"(status={cached_ami.state}, ami-state={(cached_ami.tags or {}).get('ami-state')}). "
+                "This job will not create another AMI."
             )
-            logger.stdout("We are not going to create a new AMI and we are not going to use it (skip cache mode)")
             vm.datadog_config.update_cache = False
             vm.datadog_config.skip_cache = True
         else:

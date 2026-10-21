@@ -648,7 +648,9 @@ app.post('/ffe/evaluate', async (req, res) => {
   }
 
   res.json({
-    ...details,
+    value: details.value,
+    reason: details.reason,
+    errorCode: details.errorCode,
     flagMetadata: details.flagMetadata ?? null
   });
 });
