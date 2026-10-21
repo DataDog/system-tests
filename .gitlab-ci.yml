@@ -424,6 +424,42 @@ system_tests_param:
     - export EXCLUDED_SCENARIOS='DEBUGGER_EXPRESSION_LANGUAGE'
     - export SYSTEM_TESTS_PUSH_TO_TEST_OPTIMIZATION=true
 
+# THREAD_CONTEXT_SHARING needs a dedicated runner pool, so it is run on every PR, whatever the
+# modified files are, to catch any breakage of this setup. One PHP weblog is enough for that.
+system_tests_run_php_THREAD_CONTEXT_SHARING_apache-mod-8.0:
+  extends: .system_tests_base
+  stage: e2e
+  timeout: 30 minutes
+  # CWS needs the Kata VM's kernel filesystems, which this runner pool mounts under /vm-host
+  # (see docs/understand/scenarios/thread_context_sharing.md)
+  tags:
+    - docker-in-docker:amd64-cws
+  variables:
+    KUBERNETES_CPU_REQUEST: 0.5
+    KUBERNETES_MEMORY_REQUEST: 1.3Gi
+  id_tokens:
+    DD_STS_OIDC_TOKEN:
+      aud: dd-sts
+  needs:
+    - job: build_ci_image
+      artifacts: false
+      optional: true
+    - job: mirror_images
+      artifacts: false
+      optional: true
+    - job: build_base_images
+      artifacts: false
+      optional: true
+  rules:
+    - if: '$CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH'
+  script:
+    - ./build.sh php -i weblog --weblog-variant apache-mod-8.0
+    - ./run.sh THREAD_CONTEXT_SHARING
+  artifacts:
+    when: always
+    paths:
+      - system-tests/logs*
+
 build_ci_image:
   image: registry.ddbuild.io/system-tests/image-builder:496bc0863a74
   interruptible: false
