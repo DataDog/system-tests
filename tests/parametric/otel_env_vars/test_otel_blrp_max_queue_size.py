@@ -8,7 +8,7 @@ from .utils import BLRP_LIBRARY_ENV, assert_blrp_configuration
 
 VARIABLE_NAME = "OTEL_BLRP_MAX_QUEUE_SIZE"
 DEFAULT_VALUE = 2048
-STABLE_VALUE = 64
+STABLE_VALUE = 1024
 INVALID_VALUE = 0
 
 
@@ -17,7 +17,7 @@ INVALID_VALUE = 0
 class Test_OTEL_BLRP_MAX_QUEUE_SIZE:
     @pytest.mark.parametrize(
         ("library_env", "expected_value"),
-        [pytest.param({**BLRP_LIBRARY_ENV, VARIABLE_NAME: STABLE_VALUE}, STABLE_VALUE, id="64")],
+        [pytest.param({**BLRP_LIBRARY_ENV, VARIABLE_NAME: STABLE_VALUE}, STABLE_VALUE, id="1024")],
     )
     def test_stable_value(
         self,
