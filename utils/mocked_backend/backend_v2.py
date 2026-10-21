@@ -56,16 +56,6 @@ def _decode_content(raw_body: bytes, content_encoding: str) -> bytes:
     return raw_body
 
 
-_PORT_BASE = 4901
-
-
-def get_mocked_backend_v2_port() -> int:
-    """The port MockBackendV2Server listens on, computable ahead of starting it (e.g. to
-    configure a container's environment before the server is actually running).
-    """
-    return _PORT_BASE
-
-
 class MockBackendV2Server(ThreadingHTTPServer):
     """Base HTTP server for every mocked backend, and, used as-is, a local HTTP server standing in
     for the Datadog backend API: it binds on every interface (not just loopback) so containers can
@@ -76,6 +66,8 @@ class MockBackendV2Server(ThreadingHTTPServer):
     own ``request_handler_cls`` and override that handler's do_GET/do_POST/do_PUT.
     """
 
+    DEFAULT_PORT = 4900
+
     daemon_threads = True
     thread_name = "mock-backend-v2"
 
@@ -84,9 +76,8 @@ class MockBackendV2Server(ThreadingHTTPServer):
         log_folder: str | None = None,
         on_message: Callable[[dict], None] | None = None,
         *,
-        port: int | None = None,
+        port: int = DEFAULT_PORT,
     ) -> None:
-        port = get_mocked_backend_v2_port() if port is None else port
         super().__init__(("0.0.0.0", port), MockBackendV2RequestHandler)  # noqa: S104
         self.log_folder = log_folder
         self.on_message = on_message

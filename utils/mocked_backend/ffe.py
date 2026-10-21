@@ -198,8 +198,7 @@ class MockFFEAgentlessBackendServer(MockBackendV2Server):
 
     thread_name = "mock-ffe-agentless-backend"
 
-    def __init__(self, *, worker_id: str = "master", port: int | None = None) -> None:
-        port = get_host_port(worker_id, 4900) if port is None else port
+    def __init__(self, *, port: int = MockBackendV2Server.DEFAULT_PORT) -> None:
         super().__init__(port=port)
         self.state = MockFFEAgentlessBackendState()
 
@@ -307,7 +306,8 @@ class MockFFEAgentlessBackendServer(MockBackendV2Server):
 
 @pytest.fixture
 def mock_ffe_agentless_backend(worker_id: str) -> Generator[MockFFEAgentlessBackendServer, None, None]:
-    server = MockFFEAgentlessBackendServer(worker_id=worker_id)
+    port = get_host_port(worker_id, 4900)
+    server = MockFFEAgentlessBackendServer(port=port)
     try:
         server.reset()
         yield server
