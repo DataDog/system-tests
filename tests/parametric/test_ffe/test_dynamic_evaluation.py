@@ -49,9 +49,12 @@ def _get_test_case_files() -> tuple[list[str], list[str]]:
     if not test_data_dir.exists():
         return [], []
 
+    excluded = {"flags-v1.json", "serial-id-metadata-flags.json", "span-enrichment-flags.json"}
     value_only: list[str] = []
     detailed: list[str] = []
-    for test_case_path in sorted(test_data_dir.glob("test-case-*.json")):
+    for test_case_path in sorted(
+        path for path in test_data_dir.iterdir() if path.suffix == ".json" and path.name not in excluded
+    ):
         with test_case_path.open() as f:
             test_cases = json.load(f)
         needs_details = any(
