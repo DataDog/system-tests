@@ -12,9 +12,10 @@ DEBUGGER_METRICS_NAMESPACE = "debugger"
 # Namespaces that tracers used for debugger metrics before agreeing on `debugger`. The intake drops metrics sent in them.
 LEGACY_DEBUGGER_METRICS_NAMESPACES = ("live_debugger", "dynamic_instrumentation")
 METRICS_REQUEST_TYPES = ("generate-metrics", "distributions", "sketches")
-# Snapshot probes are rate limited to one snapshot per second by default, so a quick burst of this many hits makes the
-# tracer skip events because of the probe rate limit.
-RATE_LIMIT_BURST_SIZE = 10
+# Snapshot probes are rate limited to one snapshot per second by default, but Java and .NET use an adaptive sampler that
+# also lets a probe spend an unused budget of 16 more snapshots. A quick burst of this many hits exceeds that budget, so
+# every tracer skips events because of the probe rate limit.
+RATE_LIMIT_BURST_SIZE = 50
 
 
 def _get_metric_series(namespace: str) -> list[dict]:
