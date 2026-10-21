@@ -208,3 +208,17 @@ class Test_UpdateMirrorImages:
     def test_main_rejects_refresh_with_skip_lock(self):
         with pytest.raises(ValueError, match="refresh cannot be used when skip_lock is true"):
             update_mirror_images.main(set(), skip_lock=True, refresh=True)
+
+    def test_collect_images_includes_parametric_images(self):
+        """The parametric test clients are not weblogs, but their FROM images must be mirrored."""
+        images = set(update_mirror_images.collect_images(set()))
+
+        # public image, and system-tests base image resolved from its alias
+        assert "golang:1.26" in images
+        assert any(image.startswith("datadog/system-tests:python-parametric.base-") for image in images)
+
+    def test_collect_images_skips_parametric_images_when_excluded(self, monkeypatch: pytest.MonkeyPatch):
+        monkeypatch.setattr(update_mirror_images, "_parametric_images", lambda: {"parametric:only"})
+
+        assert "parametric:only" in update_mirror_images.collect_images(set())
+        assert "parametric:only" not in update_mirror_images.collect_images({"PARAMETRIC"})
