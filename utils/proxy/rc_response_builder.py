@@ -35,7 +35,46 @@ def _build_tuf_root() -> bytes:
     return get_tuf_root_json().encode()
 
 
-def build_rc_configurations_protobuf(rc_state: dict | None) -> bytes:
+# The production backend gives the director targets a new, time-based version
+# on every response. The mocked backend emulates this by deriving the director
+# version from the version of the RC state: director version =
+# state version * DIRECTOR_VERSION_MULTIPLIER + revision, where the revision
+# counts the responses served for that state. Tracers report the director
+# version as their targets_version; integer division by the multiplier maps it
+# back to the state version.
+DIRECTOR_VERSION_MULTIPLIER = 1000
+
+# Number of director revisions built for each RC state. With the agent polling
+# the backend every 5 seconds in system-tests, this covers 5 minutes, after
+# which the last revision is served again.
+DIRECTOR_REVISIONS = 60
+
+
+def director_version_to_state_version(director_version: int) -> int:
+    """Return the version of the RC state a director targets version was built for."""
+    return director_version // DIRECTOR_VERSION_MULTIPLIER
+
+
+def _build_snapshot_and_timestamp(version: int, targets_json: bytes) -> tuple[bytes, bytes]:
+    """Build the signed snapshot and timestamp metadata referencing targets_json."""
+    snapshot_content = build_snapshot_content(version, targets_json)
+    snapshot_json = json.dumps(sign_tuf_document(snapshot_content), separators=(",", ":")).encode()
+    timestamp_content = build_timestamp_content(version, snapshot_json)
+    timestamp_json = json.dumps(sign_tuf_document(timestamp_content), separators=(",", ":")).encode()
+    return snapshot_json, timestamp_json
+
+
+def build_rc_configurations_protobufs_with_director_revisions(rc_state: dict) -> list[bytes]:
+    """Build the responses that successive agent requests get for rc_state.
+
+    See DIRECTOR_VERSION_MULTIPLIER.
+    """
+    return [
+        build_rc_configurations_protobuf(rc_state, director_revision=revision) for revision in range(DIRECTOR_REVISIONS)
+    ]
+
+
+def build_rc_configurations_protobuf(rc_state: dict | None, director_revision: int | None = None) -> bytes:
     """Build a LatestConfigsResponse protobuf with proper TUF metadata.
 
     This builds a complete RC response that the agent can validate using TUF.
@@ -45,6 +84,11 @@ def build_rc_configurations_protobuf(rc_state: dict | None) -> bytes:
         rc_state: RC state dict with 'targets' (base64 signed JSON) and
                   'target_files' (list of {path, raw} dicts). If None,
                   returns empty targets at version 0.
+        director_revision: If set, the director metadata is re-signed with
+                  version state version * DIRECTOR_VERSION_MULTIPLIER +
+                  director_revision. Must be smaller than
+                  DIRECTOR_VERSION_MULTIPLIER. If None, the director metadata
+                  uses the state version.
 
     Returns:
         Protobuf-encoded LatestConfigsResponse bytes
@@ -63,22 +107,31 @@ def build_rc_configurations_protobuf(rc_state: dict | None) -> bytes:
         targets_content = build_targets_content(version)
         targets_json = json.dumps(sign_tuf_document(targets_content), separators=(",", ":")).encode()
 
-    # Build snapshot referencing targets
-    snapshot_content = build_snapshot_content(version, targets_json)
-    snapshot_json = json.dumps(sign_tuf_document(snapshot_content), separators=(",", ":")).encode()
-
-    # Build timestamp referencing snapshot
-    timestamp_content = build_timestamp_content(version, snapshot_json)
-    timestamp_json = json.dumps(sign_tuf_document(timestamp_content), separators=(",", ":")).encode()
+    # Build snapshot and timestamp referencing targets
+    snapshot_json, timestamp_json = _build_snapshot_and_timestamp(version, targets_json)
 
     # Build DirectorMetas using protobuf
+    director_version = version
+    director_targets_json = targets_json
+    director_snapshot_json = snapshot_json
+    director_timestamp_json = timestamp_json
+    if director_revision is not None:
+        if not 0 <= director_revision < DIRECTOR_VERSION_MULTIPLIER:
+            raise ValueError(f"director_revision must be in [0, {DIRECTOR_VERSION_MULTIPLIER}): {director_revision}")
+        director_version = version * DIRECTOR_VERSION_MULTIPLIER + director_revision
+        director_targets_content = json.loads(targets_json)["signed"]
+        director_targets_content["version"] = director_version
+        director_targets_json = json.dumps(sign_tuf_document(director_targets_content), separators=(",", ":")).encode()
+        director_snapshot_json, director_timestamp_json = _build_snapshot_and_timestamp(
+            director_version, director_targets_json
+        )
     director_metas = DirectorMetas()
     director_metas.roots.append(TopMeta(version=1, raw=root_json))  # type: ignore[attr-defined]
-    director_metas.timestamp.CopyFrom(TopMeta(version=version, raw=timestamp_json))  # type: ignore[attr-defined]
-    director_metas.snapshot.CopyFrom(TopMeta(version=version, raw=snapshot_json))  # type: ignore[attr-defined]
-    director_metas.targets.CopyFrom(TopMeta(version=version, raw=targets_json))  # type: ignore[attr-defined]
+    director_metas.timestamp.CopyFrom(TopMeta(version=director_version, raw=director_timestamp_json))  # type: ignore[attr-defined]
+    director_metas.snapshot.CopyFrom(TopMeta(version=director_version, raw=director_snapshot_json))  # type: ignore[attr-defined]
+    director_metas.targets.CopyFrom(TopMeta(version=director_version, raw=director_targets_json))  # type: ignore[attr-defined]
 
-    # Build ConfigMetas (same structure as director)
+    # Build ConfigMetas
     config_metas = ConfigMetas()
     config_metas.roots.append(TopMeta(version=1, raw=root_json))  # type: ignore[attr-defined]
     config_metas.timestamp.CopyFrom(TopMeta(version=version, raw=timestamp_json))  # type: ignore[attr-defined]

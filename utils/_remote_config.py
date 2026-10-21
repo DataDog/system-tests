@@ -23,10 +23,13 @@ from utils._logger import logger
 from utils.proxy.mocked_response import (
     StaticJsonMockedTracerResponse,
     SequentialRemoteConfigJsonMockedTracerResponse,
-    MockedBackendResponse,
+    RemoteConfigBackendResponse,
 )
 from utils.proxy.tuf import build_signed_targets
-from utils.proxy.rc_response_builder import build_rc_configurations_protobuf
+from utils.proxy.rc_response_builder import (
+    build_rc_configurations_protobufs_with_director_revisions,
+    director_version_to_state_version,
+)
 
 RemoteConfigTarget = Literal["tracer", "backend"]
 
@@ -284,9 +287,10 @@ def send_state(
 
     if target == "backend":
         assert backend_enabled, f"Remote config backend is not enabled on {context.scenario}"
-        # Build protobuf on test runner side, send bytes to proxy
-        rc_protobuf = build_rc_configurations_protobuf(raw_payload)
-        MockedBackendResponse(path="/api/v0.1/configurations", content=rc_protobuf).send()
+        # Build and sign the protobufs on test runner side, send bytes to proxy
+        RemoteConfigBackendResponse(
+            contents=build_rc_configurations_protobufs_with_director_revisions(raw_payload)
+        ).send()
     elif target == "tracer":
         assert not backend_enabled, f"Remote config backend is enabled on {context.scenario}"
         StaticJsonMockedTracerResponse(path="/v0.7/config", mocked_json=raw_payload).send()
@@ -319,6 +323,10 @@ def send_state(
         # inside this callback, which is not a useful way to report a malformed payload.
         # It now reads as "not the version we are waiting for" and the wait continues.
         targets_version = last_client_state.get("targets_version")
+        if backend_enabled and targets_version is not None:
+            # Tracers report the director targets version, which the mocked
+            # backend derives from the version of the state.
+            targets_version = director_version_to_state_version(targets_version)
         config_states = last_client_state.get("config_states", [])
         logger.info(
             f"RC poll: targets_version={targets_version} (waiting for {version}), config_states={config_states}"
