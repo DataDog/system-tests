@@ -697,6 +697,7 @@ manifest:
     - declaration: bug (DEBUG-2799)
       component_version: <3.10.0
     - declaration: bug (DEBUG-3283)
+      component_version: <3.36.0
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_3:
     - declaration: bug (DEBUG-2799)
       component_version: <3.10.0

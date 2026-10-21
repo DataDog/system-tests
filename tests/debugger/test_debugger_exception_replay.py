@@ -674,7 +674,9 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
 
     def test_exception_replay_recursion_20(self):
         self._assert("exception_replay_recursion_20", ["recursion exception depth 20"])
-        self._validate_recursion_snapshots(self.snapshots, 9)
+        # .NET always captures the outermost user frame on top of DD_EXCEPTION_REPLAY_CAPTURE_MAX_FRAMES frames
+        limit = 10 if self.get_tracer()["language"] == "dotnet" else 9
+        self._validate_recursion_snapshots(self.snapshots, limit)
 
     def setup_exception_replay_recursion_inlined(self):
         self._setup("/exceptionreplay/recursion_inline?depth=4", "recursion exception depth 4")
