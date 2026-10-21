@@ -9,7 +9,14 @@ containers. Positive controls prevent missing telemetry from passing as opt-out.
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any, TypedDict
 
-from tests.ffe.utils.evaluation_telemetry import assert_count, assert_evaluation_responses, evaluation_count
+from tests.ffe.utils.evaluation_telemetry import (
+    assert_count,
+    assert_evaluation_responses,
+    assert_metric_activity,
+    assert_setup_succeeded,
+    evaluation_count,
+    evaluation_setup_error,
+)
 from tests.ffe.utils.exposures import exposure_events_from_data
 from tests.ffe.utils.fixtures import make_ufc_fixture
 from utils import HttpResponse, context, features, interfaces, remote_config as rc, rfc, scenarios, weblog
@@ -39,6 +46,9 @@ class _TelemetryContract:
     cases: list[EvaluationCase]
 
     def prepare(self, signal: str) -> None:
+        self.setup_error = evaluation_setup_error(lambda: self._prepare(signal))
+
+    def _prepare(self, signal: str) -> None:
         enabled = context.scenario == scenarios.feature_flagging_evaluation_telemetry_opt_out
         self.cases = []
         fixture = make_ufc_fixture(f"opt-out-{signal}-true", serial_id=101)
@@ -111,6 +121,7 @@ class _TelemetryContract:
                 evaluate(case)
 
     def assert_evaluations(self) -> None:
+        assert_setup_succeeded(self.setup_error)
         for case in self.cases:
             assert_evaluation_responses(case["responses"], expected_count=3, expected_value="on-value")
 
@@ -146,16 +157,9 @@ class Test_FFE_Evaluation_Telemetry_Opt_Out_Metrics(_TelemetryContract):
 
     def test_counts(self) -> None:
         self.assert_evaluations()
+        metrics = [metric for _, metric in interfaces.agent.get_metrics()]
         for flag, expected_count in self.expected_counts().items():
-            total = 0.0
-            for _, metric in interfaces.agent.get_metrics():
-                if metric.get("metric") != "feature_flag.evaluations":
-                    continue
-                if f"feature_flag.key:{flag}" not in metric.get("tags", []):
-                    continue
-                for point in metric.get("points", []):
-                    total += float(point["value"] if isinstance(point, dict) else point[1])
-            assert_count(total, expected_count, flag)
+            assert_metric_activity(metrics, flag, suppressed=expected_count == 0)
 
 
 @scenarios.feature_flagging_evaluation_telemetry_opt_out_disabled

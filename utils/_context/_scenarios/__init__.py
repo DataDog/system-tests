@@ -5,7 +5,7 @@ from utils.proxy.ports import ProxyPorts
 from utils.tools import update_environ_with_local_env
 
 from .aws_lambda import LambdaScenario
-from .core import Scenario, scenario_groups
+from .core import Scenario, ScenarioGroup, scenario_groups
 from .default import DefaultScenario
 from .agentless_endtoend import FeatureFlaggingAgentlessEndToEndScenario
 from .endtoend import (
@@ -73,6 +73,12 @@ _FFE_WEBLOG_ENV: dict[str, str | None] = {
     "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT": "http://agent:4318/v1/metrics",
     "OTEL_METRIC_EXPORT_INTERVAL": "1000",
 }
+
+
+class _ProvisionalFeatureFlaggingScenario(DdTraceEndToEndScenario):
+    """Allow explicit FFE runs without scheduling unsupported SDKs in default CI."""
+
+    _default_scenario_groups: tuple[ScenarioGroup, ...] = ()
 
 
 class _Scenarios:
@@ -903,7 +909,7 @@ class _Scenarios:
         scenario_groups=[scenario_groups.ffe],
     )
 
-    feature_flagging_evaluation_telemetry_opt_out = DdTraceEndToEndScenario(
+    feature_flagging_evaluation_telemetry_opt_out = _ProvisionalFeatureFlaggingScenario(
         "FEATURE_FLAGGING_EVALUATION_TELEMETRY_OPT_OUT",
         rc_api_enabled=True,
         agent_interface_timeout=15,
@@ -916,7 +922,7 @@ class _Scenarios:
         scenario_groups=[scenario_groups.ffe],
     )
 
-    feature_flagging_evaluation_telemetry_opt_out_disabled = DdTraceEndToEndScenario(
+    feature_flagging_evaluation_telemetry_opt_out_disabled = _ProvisionalFeatureFlaggingScenario(
         "FEATURE_FLAGGING_EVALUATION_TELEMETRY_OPT_OUT_DISABLED",
         rc_api_enabled=True,
         agent_interface_timeout=15,
