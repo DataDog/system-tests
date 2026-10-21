@@ -1299,6 +1299,176 @@ class Test_AIGuardEvent_Tag:
         interfaces.library.validate_one_trace(self.r, validator=self._assert_trace)
 
 
+# Extra tags scenarios and the matching VCR cassettes are generated together by
+# utils/scripts/gen_extra_tags_cassettes.py: each entry keeps the messages we send and the exact
+# extra_tags value the backend returns. Regenerate both after editing.
+EXTRA_TAGS_SCENARIOS: dict = json.loads((Path(__file__).parent / "extra_tags_scenarios.json").read_text())
+
+# What the tracer itself writes to the ai_guard meta struct. Anything else there came from extra_tags.
+TRACER_META_STRUCT_KEYS = frozenset(("messages", "attack_categories", "sds", "tag_probs"))
+
+
+def _post_extra_tags_scenario(scenario_key: str, *, block: str = "false") -> tuple[dict, HttpResponse]:
+    scenario = EXTRA_TAGS_SCENARIOS[scenario_key]
+    response = weblog.post("/ai_guard/evaluate", headers={BLOCKING_HEADER: block}, json=scenario["messages"])
+    return scenario, response
+
+
+def _assert_scalar_extra_tag(span: DataDogLibrarySpan, key: str, expected: str | float | bool) -> None:  # noqa: FBT001
+    """A scalar extra tag is on the span under the key exactly as returned, in any faithful encoding.
+
+    Tracers differ in where a number lands (a string in meta or a numeric metric) and how a boolean
+    is spelled, so the value is compared semantically rather than byte for byte.
+    """
+    raw = _span_tag(span, key)
+    assert raw is not None, f"Extra tag '{key}' not set on the ai_guard span (meta: {span.get('meta')})"
+    if isinstance(expected, bool):
+        assert isinstance(raw, (bool, int, str)), f"Extra tag '{key}' should be a boolean, got '{raw}'"
+        assert is_same_boolean(actual=raw, expected=expected), f"Extra tag '{key}' should be '{expected}', got '{raw}'"
+    elif isinstance(expected, (int, float)):
+        assert isinstance(raw, (int, float, str)), f"Extra tag '{key}' should be a number, got '{raw}'"
+        assert float(raw) == expected, f"Extra tag '{key}' should be '{expected}', got '{raw}'"
+    else:
+        assert raw == expected, f"Extra tag '{key}' should be '{expected}', got '{raw}'"
+
+
+def _assert_extra_tags_applied(extra_tags: dict):
+    """Validator asserting every extra tag landed where the contract puts it.
+
+    Scalars become span tags and structured values go to the ai_guard meta struct, both under the
+    key exactly as the backend returned it: the backend owns the ai_guard prefix, so the tracer
+    neither adds it nor filters keys by namespace.
+    """
+
+    def validate(span: DataDogLibrarySpan):
+        if span["resource"] != "ai_guard":
+            return False
+
+        ai_guard = _assert_key(span["meta_struct"], "ai_guard")
+        for key, value in extra_tags.items():
+            if isinstance(value, (dict, list)):
+                assert key in ai_guard, f"Structured extra tag '{key}' not found in the ai_guard meta struct {ai_guard}"
+                assert ai_guard[key] == value, f"Extra tag '{key}' in meta struct: {ai_guard[key]} != {value}"
+                assert _span_tag(span, key) is None, f"Structured extra tag '{key}' should not be a span tag"
+            else:
+                _assert_scalar_extra_tag(span, key, value)
+            assert _span_tag(span, f"ai_guard.{key}") is None, f"The tracer must not prefix extra tag '{key}'"
+        return True
+
+    return validate
+
+
+@rfc("https://datadoghq.atlassian.net/browse/APPSEC-70724")
+@features.ai_guard
+@scenarios.ai_guard
+class Test_ExtraTags:
+    """The AI Guard backend enriches the ai_guard span through extra_tags in the evaluate response.
+
+    Lets an AI Guard policy attach its own context to traces without a tracer change per tag.
+    """
+
+    def setup_scalar_extra_tags(self):
+        self.scenario, self.r = _post_extra_tags_scenario("EXTRA_TAGS_SCALARS")
+
+    def test_scalar_extra_tags(self):
+        """String, integer, float and boolean values are set as tags on the ai_guard span."""
+        assert self.r.status_code == 200
+        interfaces.library.validate_one_span(
+            self.r, validator=_assert_extra_tags_applied(self.scenario["extra_tags"]), full_trace=True
+        )
+
+    def setup_structured_extra_tags(self):
+        self.scenario, self.r = _post_extra_tags_scenario("EXTRA_TAGS_STRUCTURED")
+
+    def test_structured_extra_tags(self):
+        """Object and array values are added to the ai_guard meta struct, not flattened into tags."""
+        assert self.r.status_code == 200
+        interfaces.library.validate_one_span(
+            self.r, validator=_assert_extra_tags_applied(self.scenario["extra_tags"]), full_trace=True
+        )
+
+    def setup_mixed_extra_tags(self):
+        self.scenario, self.r = _post_extra_tags_scenario("EXTRA_TAGS_MIXED")
+
+    def test_mixed_extra_tags(self):
+        """One response mixing both kinds routes each value by its own type."""
+        assert self.r.status_code == 200
+        interfaces.library.validate_one_span(
+            self.r, validator=_assert_extra_tags_applied(self.scenario["extra_tags"]), full_trace=True
+        )
+
+    def setup_keys_not_prefixed_or_filtered(self):
+        self.scenario, self.r = _post_extra_tags_scenario("EXTRA_TAGS_UNPREFIXED_KEY")
+
+    def test_keys_not_prefixed_or_filtered(self):
+        """Keys outside the ai_guard namespace land verbatim: namespacing is the backend's job, not the tracer's."""
+        assert self.r.status_code == 200
+        interfaces.library.validate_one_span(
+            self.r, validator=_assert_extra_tags_applied(self.scenario["extra_tags"]), full_trace=True
+        )
+
+    def setup_extra_tags_on_block(self):
+        self.scenario, self.r = _post_extra_tags_scenario("EXTRA_TAGS_ON_DENY", block="true")
+
+    def test_extra_tags_on_block(self):
+        """A blocked evaluation still carries the extra tags, alongside ai_guard.blocked."""
+        assert self.r.status_code == 403
+        extra_tags_validator = _assert_extra_tags_applied(self.scenario["extra_tags"])
+
+        def validate(span: DataDogLibrarySpan):
+            if not extra_tags_validator(span):
+                return False
+            _assert_key(span["meta"], "ai_guard.action", "DENY")
+            assert is_same_boolean(actual=span["meta"].get("ai_guard.blocked"), expected="true"), (
+                f"'ai_guard.blocked' with value 'true' not found in '{span['meta']}'"
+            )
+            return True
+
+        interfaces.library.validate_one_span(self.r, validator=validate, full_trace=True)
+
+
+@rfc("https://datadoghq.atlassian.net/browse/APPSEC-70724")
+@features.ai_guard
+@scenarios.ai_guard
+class Test_ExtraTagsFailSafe:
+    """A malformed extra_tags payload is ignored and never changes the evaluation.
+
+    The field only enriches the span, so a backend shape the tracer does not understand must leave
+    the action, the SDK response and the span exactly as they would be without it.
+    """
+
+    def _assert_ignored(self, response: HttpResponse, scenario: dict) -> None:
+        assert response.status_code == 200
+        _assert_key(json.loads(response.text), "action", scenario["action"])
+
+        def validate(span: DataDogLibrarySpan):
+            if span["resource"] != "ai_guard":
+                return False
+            assert span.get("error", 0) == 0, f"A malformed extra_tags must not flag the span as an error: {span}"
+            _assert_key(span["meta"], "ai_guard.action", scenario["action"])
+            ai_guard = _assert_key(span["meta_struct"], "ai_guard")
+            unexpected = set(ai_guard) - TRACER_META_STRUCT_KEYS
+            assert not unexpected, f"Unexpected keys in the ai_guard meta struct: {unexpected}"
+            assert _span_tag(span, "ai_guard.policy_name") is None, "A malformed extra_tags must not set any tag"
+            return True
+
+        interfaces.library.validate_one_span(response, validator=validate, full_trace=True)
+
+    def setup_extra_tags_not_an_object(self):
+        self.scenario, self.r = _post_extra_tags_scenario("EXTRA_TAGS_NOT_AN_OBJECT")
+
+    def test_extra_tags_not_an_object(self):
+        """A string where an object is expected is skipped."""
+        self._assert_ignored(self.r, self.scenario)
+
+    def setup_extra_tags_array(self):
+        self.scenario, self.r = _post_extra_tags_scenario("EXTRA_TAGS_ARRAY")
+
+    def test_extra_tags_array(self):
+        """An array where an object is expected is skipped, even when its items look like tags."""
+        self._assert_ignored(self.r, self.scenario)
+
+
 TELEMETRY_NAMESPACE = "ai_guard"
 
 

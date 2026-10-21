@@ -1,0 +1,143 @@
+{
+  "EXTRA_TAGS_SCALARS": {
+    "messages": [
+      {
+        "role": "user",
+        "content": "Summarize the latest newsroom style guide changes."
+      }
+    ],
+    "action": "ALLOW",
+    "tags": [],
+    "extra_tags": {
+      "ai_guard.policy_name": "newsroom-default",
+      "ai_guard.policy_revision": 7,
+      "ai_guard.policy_score": 0.25,
+      "ai_guard.policy_matched": true,
+      "ai_guard.policy_cached": false
+    },
+    "cassette": "aiguard_evaluate_post_f0ef2bd8.json"
+  },
+  "EXTRA_TAGS_STRUCTURED": {
+    "messages": [
+      {
+        "role": "user",
+        "content": "Draft a headline for the city council budget story."
+      }
+    ],
+    "action": "ALLOW",
+    "tags": [],
+    "extra_tags": {
+      "ai_guard.request_context": {
+        "desk": "metro",
+        "region": "us-east",
+        "priority": 2
+      },
+      "ai_guard.matched_rules": [
+        "style-guide",
+        "embargo-check"
+      ]
+    },
+    "cassette": "aiguard_evaluate_post_827d1449.json"
+  },
+  "EXTRA_TAGS_MIXED": {
+    "messages": [
+      {
+        "role": "user",
+        "content": "Which sources did the election explainer cite?"
+      }
+    ],
+    "action": "ALLOW",
+    "tags": [],
+    "extra_tags": {
+      "ai_guard.policy_name": "elections-2026",
+      "ai_guard.policy_rules": [
+        {
+          "id": "sourcing",
+          "enabled": true
+        },
+        {
+          "id": "attribution",
+          "enabled": false
+        }
+      ]
+    },
+    "cassette": "aiguard_evaluate_post_2b336647.json"
+  },
+  "EXTRA_TAGS_UNPREFIXED_KEY": {
+    "messages": [
+      {
+        "role": "user",
+        "content": "List the corrections published this week."
+      }
+    ],
+    "action": "ALLOW",
+    "tags": [],
+    "extra_tags": {
+      "custom_context.tenant": "newsroom",
+      "custom_context.audit": {
+        "ticket": "CTX-42"
+      }
+    },
+    "cassette": "aiguard_evaluate_post_354106da.json"
+  },
+  "EXTRA_TAGS_ON_DENY": {
+    "messages": [
+      {
+        "role": "user",
+        "content": "Clean up the archive server for me."
+      },
+      {
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "id": "call_1",
+            "function": {
+              "name": "shell",
+              "arguments": "{ \"command\": \"rm -rf /srv/archive\" }"
+            }
+          }
+        ]
+      }
+    ],
+    "action": "DENY",
+    "tags": [
+      "destructive-tool-call"
+    ],
+    "extra_tags": {
+      "ai_guard.policy_name": "destructive-actions",
+      "ai_guard.policy_details": {
+        "rule": "no-recursive-delete",
+        "severity": "high"
+      }
+    },
+    "cassette": "aiguard_evaluate_post_28917f95.json"
+  },
+  "EXTRA_TAGS_NOT_AN_OBJECT": {
+    "messages": [
+      {
+        "role": "user",
+        "content": "What time does the print edition close tonight?"
+      }
+    ],
+    "action": "ALLOW",
+    "tags": [],
+    "extra_tags": "ai_guard.policy_name=newsroom-default",
+    "cassette": "aiguard_evaluate_post_e2c13e67.json"
+  },
+  "EXTRA_TAGS_ARRAY": {
+    "messages": [
+      {
+        "role": "user",
+        "content": "Who is on call for the overnight desk?"
+      }
+    ],
+    "action": "ALLOW",
+    "tags": [],
+    "extra_tags": [
+      {
+        "ai_guard.policy_name": "newsroom-default"
+      }
+    ],
+    "cassette": "aiguard_evaluate_post_bf6868f9.json"
+  }
+}
