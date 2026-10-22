@@ -269,18 +269,14 @@ class EndToEndScenario(DockerScenario):
         self._require_api_key = require_api_key
         self._mocked_backend_v2 = mocked_backend_v2
 
-        dd_api_key = FAKE_DD_API_KEY
-        if mocked_backend_v2:
-            if self._use_proxy_for_agent:
-                raise ValueError(
-                    "mocked_backend_v2 is not compatible with use_proxy_for_agent: the agent can't send its "
-                    "traffic to both the proxy and the mocked backend. Set use_proxy_for_agent=False."
-                )
-        else:
-            dd_api_key = os.environ.get("DD_API_KEY", FAKE_DD_API_KEY)
+        if mocked_backend_v2 and self._use_proxy_for_agent:
+            raise ValueError(
+                "mocked_backend_v2 is not compatible with use_proxy_for_agent: the agent can't send its "
+                "traffic to both the proxy and the mocked backend. Set use_proxy_for_agent=False."
+            )
 
-        self.dd_api_key = dd_api_key
-        """ the API key used by the agent to send data to the backend """
+        self.dd_api_key = FAKE_DD_API_KEY if mocked_backend_v2 else os.environ.get("DD_API_KEY", FAKE_DD_API_KEY)
+        """The API key used by the agent to send data to the backend"""
 
         self.agent_container = AgentContainer(
             dd_api_key=self.dd_api_key,
