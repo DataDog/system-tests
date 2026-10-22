@@ -1310,7 +1310,7 @@ class LambdaWeblogContainer(WeblogContainer):
     ):
         environment = (environment or {}) | {
             "DD_HOSTNAME": "test",
-            "DD_SITE": os.environ.get("DD_SITE", "datad0g.com"),
+            "DD_SITE": "datad0g.com",
             "DD_API_KEY": FAKE_DD_API_KEY,
             "DD_SERVERLESS_FLUSH_STRATEGY": "periodically,100",
             "DD_TRACE_MANAGED_SERVICES": str(trace_managed_services).lower(),
