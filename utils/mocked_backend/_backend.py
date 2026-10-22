@@ -1,6 +1,6 @@
 """MockedBackendServer: the base class for every mocked HTTP backend, and, used as-is, the generic
 mocked backend standing in for the real Datadog backend API used by ``interfaces.backend_v2``
-(``utils/interfaces/_backend_v2.py``).
+(``utils/interfaces/_backend.py``).
 
 Used directly, its only job is to record every request it receives into the interface's log folder
 (``logs/interfaces/backend_v2``), the same way every other interface persists what it observes.

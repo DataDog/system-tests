@@ -4,7 +4,7 @@
 
 """Mocked backend (v2) interface: owns the lifecycle of a local HTTP server that stands in for
 the real Datadog backend and records everything it receives. See
-utils/mocked_backend/_backend_v2.py.
+utils/mocked_backend/_backend.py.
 """
 
 from collections.abc import Callable, Generator
