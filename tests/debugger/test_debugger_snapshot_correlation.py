@@ -16,12 +16,17 @@ from utils import scenarios, features, rfc, slow
 class Test_Debugger_Coordinated_Sampling(debugger.BaseDebuggerTest):
     """The sampling decision is made once per trace, so a trace emits its whole probe chain or none of it.
 
-    Correlation rides on the dd.trace_id already in the snapshot envelope. The endpoint spaces its
-    probed call sites in time, so today's independent per-probe rate limiters land in different
-    windows and emit partial chains, which is what makes the assertion discriminating.
+    Correlation rides on the dd.trace_id already in the snapshot envelope. The probes get different
+    per-probe rates, so independent per-probe sampling emits partial chains, which is what makes the
+    assertion discriminating.
     """
 
     _INVOCATIONS = 30
+    # The leaf is the first probe hit in each request, so it makes the trace's sampling decision, and
+    # its rate allows every request to be sampled. A request takes about 800ms, so the probes limited
+    # to one snapshot per second are skipped in about every other request unless they follow the
+    # trace's decision.
+    _SNAPSHOTS_PER_SECOND = {"CorrelationLeaf": 5, "CorrelationMiddle": 1, "Correlation": 1}
 
     def setup_coordinated_per_trace_sampling(self):
         self.initialize_weblog_remote_config()
@@ -29,10 +34,7 @@ class Test_Debugger_Coordinated_Sampling(debugger.BaseDebuggerTest):
         probes = debugger.read_probes("probe_snapshot_log_correlation")
         for probe in probes:
             probe["id"] = debugger.generate_probe_id("log")
-            # This is the per-probe time limiter, not a per-trace rate: it is set only to put the
-            # chain under sampling pressure so that an uncoordinated implementation splits it.
-            # Swap it for the per-trace rate once one exists.
-            probe["sampling"] = {"snapshotsPerSecond": 1}
+            probe["sampling"] = {"snapshotsPerSecond": self._SNAPSHOTS_PER_SECOND[probe["where"]["methodName"]]}
         self.set_probes(probes)
 
         self.send_rc_probes()
