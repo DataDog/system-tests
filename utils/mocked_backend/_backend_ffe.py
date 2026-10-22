@@ -57,7 +57,7 @@ MALFORMED_UFC_BYTES = b'{"flags": ['
 UFC_RESPONSE_TYPE = "universal-flag-configuration"
 
 
-class MockFFEAgentlessBackendStatus(TypedDict):
+class MockedBackendFFEStatus(TypedDict):
     requests_total: int
     in_flight: int
     max_in_flight: int
@@ -68,7 +68,7 @@ class MockFFEAgentlessBackendStatus(TypedDict):
     status_codes: list[int]
 
 
-class MockFFEAgentlessBackendState:
+class _MockedBackendFFEState:
     def __init__(self) -> None:
         self._lock = threading.Lock()
         self.responses = [DEFAULT_RESPONSE]
@@ -126,7 +126,7 @@ class MockFFEAgentlessBackendState:
         with self._lock:
             self.in_flight = max(0, self.in_flight - 1)
 
-    def status(self) -> MockFFEAgentlessBackendStatus:
+    def status(self) -> MockedBackendFFEStatus:
         with self._lock:
             return {
                 "requests_total": self.requests_total,
@@ -201,7 +201,7 @@ class MockedBackendServerFfeMixin(_Base):
     # - POST /system-tests/ffe/reset
 
     def _ffe_configure(self) -> None:
-        self._ffe_state = MockFFEAgentlessBackendState()
+        self._ffe_state = _MockedBackendFFEState()
         self._ffe_control_path = f"{CONTROL_URL_PREFIX}/ffe"
 
         self.add_handler("GET", CONFIG_PATH, self._ffe_handle_config)
@@ -241,10 +241,10 @@ class MockedBackendServerFfeMixin(_Base):
         )
         response.raise_for_status()
 
-    def ffe_status(self) -> MockFFEAgentlessBackendStatus:
+    def ffe_status(self) -> MockedBackendFFEStatus:
         response = requests.get(f"{self.base_url}{self._ffe_control_path}/status", timeout=5)
         response.raise_for_status()
-        return cast("MockFFEAgentlessBackendStatus", response.json())
+        return cast("MockedBackendFFEStatus", response.json())
 
     def _ffe_handle_status(self, request: MockBackendV2RequestHandler, _: bytes | dict | None) -> tuple[Mapping, bytes]:
         return request.write_json(HTTPStatus.OK, self._ffe_state.status())

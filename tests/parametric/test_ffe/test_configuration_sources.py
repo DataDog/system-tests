@@ -28,7 +28,7 @@ from utils.docker_fixtures import TestAgentAPI
 from utils.mocked_backend import MockedBackendServer
 from utils.mocked_backend.ffe import (
     CONFIG_PATH,
-    MockFFEAgentlessBackendStatus,
+    MockedBackendFFEStatus,
 )
 
 parametrize = pytest.mark.parametrize
@@ -121,10 +121,10 @@ def library_env(request: pytest.FixtureRequest, mocked_backend: MockedBackendSer
 
 def _wait_for_status(
     mocked_backend: MockedBackendServer,
-    predicate: Callable[[MockFFEAgentlessBackendStatus], bool],
+    predicate: Callable[[MockedBackendFFEStatus], bool],
     description: str,
-) -> MockFFEAgentlessBackendStatus:
-    last_status: MockFFEAgentlessBackendStatus | None = None
+) -> MockedBackendFFEStatus:
+    last_status: MockedBackendFFEStatus | None = None
     for _ in range(MOCK_STATUS_ATTEMPTS):
         last_status = mocked_backend.ffe_status()
         if predicate(last_status):
@@ -139,7 +139,7 @@ def _wait_for_status(
 
 
 def _assert_no_mock_requests(mocked_backend: MockedBackendServer) -> None:
-    status: MockFFEAgentlessBackendStatus | None = None
+    status: MockedBackendFFEStatus | None = None
     # Seven samples span more than the configured one-second polling interval, so an
     # incorrect eager poll cannot occur just after this assertion and before provider access.
     for _ in range(NO_MOCK_REQUEST_ATTEMPTS):

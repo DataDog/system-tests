@@ -18,7 +18,7 @@ from utils._weblog import weblog
 from utils.mocked_backend import MockedBackendServer
 from utils.mocked_backend.ffe import (
     EXPECTED_API_KEY,
-    MockFFEAgentlessBackendStatus,
+    MockedBackendFFEStatus,
 )
 from utils.proxy.ports import ProxyPorts
 
@@ -71,7 +71,7 @@ class AgentlessEndToEndScenario(DdTraceEndToEndScenario):
     _mock_backend_status_filename = "mock_agentless_backend_status.json"
 
     _mock_backend: MockedBackendServer | None = None
-    _last_mock_backend_status: MockFFEAgentlessBackendStatus | None = None
+    _last_mock_backend_status: MockedBackendFFEStatus | None = None
 
     def __init__(
         self,
@@ -120,7 +120,7 @@ class AgentlessEndToEndScenario(DdTraceEndToEndScenario):
         }
         self.weblog_infra.library_container.extra_hosts = extra_hosts_for_environment(environment)
 
-    def mock_backend_status(self) -> MockFFEAgentlessBackendStatus | None:
+    def mock_backend_status(self) -> MockedBackendFFEStatus | None:
         if self._mock_backend is not None:
             return self._mock_backend.ffe_status()
         return self._last_mock_backend_status
@@ -131,7 +131,7 @@ class AgentlessEndToEndScenario(DdTraceEndToEndScenario):
 
     def _load_mock_backend_status(self) -> None:
         self._last_mock_backend_status = cast(
-            "MockFFEAgentlessBackendStatus",
+            "MockedBackendFFEStatus",
             json.loads(self._mock_backend_status_path.read_text(encoding="utf-8")),
         )
 
