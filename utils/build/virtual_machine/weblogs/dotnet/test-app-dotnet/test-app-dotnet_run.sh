@@ -5,10 +5,6 @@ set -e
 sudo chmod -R 755 *
 
 echo "START dotnet APP (debug active)"
-echo "DEBUG-APMSP-4036 BEGIN"
-rpm -q dotnet-host || true
-dotnet --info || true
-echo "DEBUG-APMSP-4036 END"
 #If we are trying to inject the library on the "restore" or "build" command we should show the traces
 export DD_APM_INSTRUMENTATION_DEBUG=false
 export DOTNET_DbgEnableMiniDump=1
