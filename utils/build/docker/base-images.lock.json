@@ -41,6 +41,7 @@
     "system_tests_base_python_lambda_python_lambda_runtime": "datadog/system-tests:python-lambda-runtime.base-aec497f8192f",
     "system_tests_base_python_openai_py": "datadog/system-tests:openai-py.base-31091e40843e",
     "system_tests_base_python_python3_12": "datadog/system-tests:python3.12.base-001b21793b9d",
+    "system_tests_base_python_python_parametric": "datadog/system-tests:python-parametric.base-be1a47c3d761",
     "system_tests_base_python_tornado": "datadog/system-tests:tornado.base-3edec3b229d1",
     "system_tests_base_python_uwsgi_poc": "datadog/system-tests:uwsgi-poc.base-6c2040a5b9bb",
     "system_tests_base_ruby_lambda_ruby_lambda_runtime": "datadog/system-tests:ruby-lambda-runtime.base-982447eea92c"
