@@ -131,7 +131,7 @@ class Test_OTEL_SDK_DISABLED:
         with test_library as library:
             with library.dd_start_span(name=SPAN_NAME):
                 pass
-            assert library.dd_flush()
+            library.dd_flush()
 
         urls = [request["url"] for request in test_agent.otlp_requests()]
         assert not any(url.endswith("/v1/traces") for url in urls), urls
@@ -167,13 +167,48 @@ class Test_OTEL_SDK_DISABLED:
             }
         ],
     )
-    def test_datadog_configuration_takes_precedence(
+    def test_true_overrides_dd_trace_otel_enabled(
         self,
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
         with test_library as library:
-            assert _otel_sdk_disabled(test_agent, library) is False
-            config = library.config()
+            assert _otel_sdk_disabled(test_agent, library) is True
 
-        assert config["dd_trace_otel_enabled"] == "true"
+    # OTEL_SDK_DISABLED=true maps to DD_TRACE_ENABLED=false.
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                "OTEL_SDK_DISABLED": "true",
+                "DD_TRACE_OTEL_ENABLED": None,
+                "DD_TRACE_ENABLED": None,
+            }
+        ],
+    )
+    def test_true_disables_tracing(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        with test_library as library:
+            with library.dd_start_span(name=SPAN_NAME):
+                pass
+            library.dd_flush()
+
+        with pytest.raises(ValueError):
+            test_agent.wait_for_num_traces(num=1)
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                "OTEL_SDK_DISABLED": "true",
+                "DD_TRACE_OTEL_ENABLED": None,
+                "DD_TRACE_ENABLED": "true",
+            }
+        ],
+    )
+    def test_datadog_configuration_takes_precedence(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        with test_library as library:
+            with library.dd_start_span(name=SPAN_NAME):
+                pass
+            library.dd_flush()
+
+        assert test_agent.wait_for_num_traces(num=1)
