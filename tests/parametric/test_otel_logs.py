@@ -254,33 +254,6 @@ class Test_FR05_Custom_Endpoints:
         log_payloads = test_agent.wait_for_num_log_payloads(1)
         assert find_log_record(log_payloads, "otlp_custom_endpoint", "test_otlp_custom_endpoint") is not None
 
-    @pytest.mark.parametrize("otlp_signal", ["logs"])
-    @pytest.mark.parametrize(
-        "base_path", ["/mycollector", "/mycollector/"], ids=["no_trailing_slash", "trailing_slash"]
-    )
-    @pytest.mark.parametrize(
-        "library_env",
-        [{"DD_LOGS_OTEL_ENABLED": "true", "DD_TRACE_DEBUG": None, "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf"}],
-    )
-    def test_otlp_generic_endpoint_with_base_path(
-        self,
-        base_path: str,  # noqa: ARG002
-        otlp_base_path_library_env: dict[str, str],  # noqa: ARG002
-        test_agent: TestAgentAPI,
-        test_library: APMLibrary,
-    ):
-        """When OTEL_EXPORTER_OTLP_LOGS_ENDPOINT is unset, logs are exported to <OTEL_EXPORTER_OTLP_ENDPOINT>/v1/logs.
-
-        The base path of the generic endpoint must be kept (OTLP spec, "Endpoint URLs for OTLP/HTTP"),
-        e.g. http://collector:4318/mycollector -> http://collector:4318/mycollector/v1/logs.
-        """
-        with test_library as library:
-            library.create_logger("otlp_base_path", LogLevel.INFO)
-            library.write_log("otlp_base_path", LogLevel.INFO, "test_otlp_generic_endpoint_with_base_path")
-
-        log_payloads = test_agent.wait_for_num_log_payloads(1)
-        assert find_log_record(log_payloads, "otlp_base_path", "test_otlp_generic_endpoint_with_base_path") is not None
-
 
 @features.otel_logs_enabled
 @scenarios.parametric

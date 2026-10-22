@@ -959,39 +959,6 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
         scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
         assert scope_metrics is not None
 
-    @pytest.mark.parametrize("otlp_signal", ["metrics"])
-    @pytest.mark.parametrize(
-        "base_path", ["/mycollector", "/mycollector/"], ids=["no_trailing_slash", "trailing_slash"]
-    )
-    @pytest.mark.parametrize(
-        "library_env",
-        [
-            {
-                **DEFAULT_ENVVARS,
-                "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
-                "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT": None,
-            }
-        ],
-    )
-    def test_otlp_generic_endpoint_with_base_path(
-        self,
-        base_path: str,  # noqa: ARG002
-        otlp_base_path_library_env: dict[str, str | None],  # noqa: ARG002
-        test_agent: TestAgentAPI,
-        test_library: APMLibrary,
-    ):
-        """When OTEL_EXPORTER_OTLP_METRICS_ENDPOINT is unset, metrics are exported to <OTEL_EXPORTER_OTLP_ENDPOINT>/v1/metrics.
-
-        The base path of the generic endpoint must be kept (OTLP spec, "Endpoint URLs for OTLP/HTTP"),
-        e.g. http://collector:4318/mycollector -> http://collector:4318/mycollector/v1/metrics.
-        """
-        with test_library as t:
-            generate_default_counter_data_point(t, "test_otlp_generic_endpoint_with_base_path-counter")
-
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
-        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
-        assert scope_metrics is not None
-
     @pytest.mark.parametrize(
         ("library_env", "endpoint_env", "test_agent_otlp_grpc_port"),
         [
