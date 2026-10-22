@@ -4,7 +4,7 @@ from collections.abc import Callable
 import hashlib
 from pathlib import Path
 from typing import Any, Literal
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, PropertyMock
 
 import requests
 from utils import pytest
@@ -510,14 +510,15 @@ def test_agentless_end_to_end_scenario_closes_backend_when_startup_fails(
 ) -> None:
     scenario = FeatureFlaggingAgentlessEndToEndScenario("MOCK_FFE_AGENTLESS_STARTUP_FAILURE", doc="test")
     backend = MagicMock(spec=MockedBackendServer)
-    backend.reset.side_effect = RuntimeError("reset failed")
+    # fails once the mock is created, while the weblog is being configured to use it
+    type(backend).ffe_library_config_url = PropertyMock(side_effect=RuntimeError("config url failed"))
 
     def create_backend() -> MagicMock:
         return backend
 
     monkeypatch.setattr(agentless_endtoend_scenarios, "MockedBackendServer", create_backend)
 
-    with pytest.raises(RuntimeError, match="reset failed"):
+    with pytest.raises(RuntimeError, match="config url failed"):
         scenario.configure(MagicMock(spec=pytest.Config))
 
     backend.close.assert_called_once_with()
@@ -528,7 +529,7 @@ def test_agentless_end_to_end_scenario_closes_backend_when_startup_fails(
 def test_agentless_end_to_end_scenario_closes_backend_when_status_fails() -> None:
     scenario = FeatureFlaggingAgentlessEndToEndScenario("MOCK_FFE_AGENTLESS_STATUS_FAILURE", doc="test")
     backend = MagicMock(spec=MockedBackendServer)
-    backend.status.side_effect = RuntimeError("status failed")
+    backend.ffe_get_status.side_effect = RuntimeError("status failed")
     scenario._mock_backend = backend  # noqa: SLF001 - focused lifecycle test
 
     with pytest.raises(RuntimeError, match="status failed"):
