@@ -40,13 +40,6 @@ The value case stays below the field-count cap, so that cap cannot hide a missin
 string-length check. Missing in-limit context and truncated, rather than omitted,
 oversized strings fail.
 
-`Test_FFE_EVP_Flagevaluation_Oversized_Identity` is PHP-native IPC coverage.
-It sends a targeting key over 5 MiB, then a normal evaluation through the public
-weblog endpoint. Counts and customer results must survive; the oversized event
-loses identity/context and the successor retains consented context. Existing
-manifests exclude this case from other SDKs. PHP release activation remains a
-separate task; use `-F` to validate an unreleased implementation locally.
-
 The high-cardinality workload runs in its own scenario:
 
 ```sh

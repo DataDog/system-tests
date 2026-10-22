@@ -2270,7 +2270,6 @@ manifest:
   tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_ObserveFullData_Absent_Hashed: missing_feature (FFL-2446)
   tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_ObserveFullData_False_Hashed: missing_feature (FFL-2446)
   tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_ObserveFullData_True_Unhashed: missing_feature (FFL-2446)
-  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Oversized_Identity: irrelevant (PHP native IPC size limit regression)
   tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Runtime_Default: missing_feature (FFL-2446)
   tests/ffe/test_flag_eval_metrics.py: v4.7.0
   tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Nested_Attributes_Ignored: irrelevant (FFL-1980)

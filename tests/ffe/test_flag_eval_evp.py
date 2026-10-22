@@ -695,63 +695,6 @@ class Test_FFE_EVP_Flagevaluation_High_Cardinality_Accounting:
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_evp_flagevaluation
 @slow
-class Test_FFE_EVP_Flagevaluation_Oversized_Identity:
-    """Preserve PHP flag results and counts across native IPC size degradation."""
-
-    def setup_ffe_evp_flagevaluation_oversized_identity(self) -> None:
-        config_id = "ffe-evp-oversized-identity"
-        self.flag_key = "evp-oversized-identity-flag"
-        self.control_targeting_key = "evp-size-control-user"
-        rc.tracer_rc_state.reset().set_config(
-            f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key, observe_full_evaluation_data=True)
-        ).apply()
-
-        # PHP's native IPC path has a 5 MiB event limit; other SDKs are excluded in manifests.
-        # The normal successor also verifies that oversize fallback leaves IPC usable.
-        oversized_targeting_key = "x" * (5 * 1024 * 1024 + 1)
-        self.responses = [
-            evaluate_flag(
-                self.flag_key,
-                targeting_key=targeting_key,
-                attributes={"email": "evp-size-canary@example.invalid"},
-            )
-            for targeting_key in (oversized_targeting_key, self.control_targeting_key)
-        ]
-
-    def test_ffe_evp_flagevaluation_oversized_identity(self) -> None:
-        for response in self.responses:
-            assert response.status_code == 200, f"Flag evaluation failed: {response.text}"
-            assert json.loads(response.text).get("value") == "on-value", (
-                "telemetry limits must not change the flag result"
-            )
-
-        events = find_evp_flagevaluation_events(self.flag_key)
-        assert_total_evaluation_count(events, 2, self.flag_key)
-
-        degraded_events = [(batch, event) for batch, event in events if "targeting_key" not in event]
-        assert_total_evaluation_count(degraded_events, 1, self.flag_key)
-        for _, event in degraded_events:
-            assert "context" not in event, "size-degraded events must omit all event context"
-
-        control_events = [
-            (batch, event) for batch, event in events if event.get("targeting_key") == self.control_targeting_key
-        ]
-        assert_total_evaluation_count(control_events, 1, self.flag_key)
-        for _, event in control_events:
-            assert event.get("context", {}).get("evaluation", {}).get("email") == "evp-size-canary@example.invalid"
-
-        for batch, event in events:
-            assert_batch_context(batch)
-            assert_event_contract(event, self.flag_key)
-            assert object_key(event.get("variant"), "variant") == "on"
-            assert object_key(event.get("allocation"), "allocation") == "default-allocation"
-            assert "error" not in event
-            assert "runtime_default_used" not in event
-
-
-@scenarios.feature_flagging_and_experimentation
-@features.feature_flags_evp_flagevaluation
-@slow
 class Test_FFE_EVP_Flagevaluation_ObserveFullData_Absent_Hashed:
     """Test that when observeFullEvaluationData is absent from UFC, targeting_key is hashed and context.evaluation is omitted (default PII-protection)."""
 

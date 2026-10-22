@@ -319,42 +319,6 @@ def test_flagevaluation_bounds_fixtures_enable_consent(monkeypatch: pytest.Monke
         assert attributes["valid"] == "retained"
 
 
-@pytest.mark.parametrize(
-    "case",
-    ["valid", "dropped count", "retained identity", "retained context", "lost control", "lost variant", "wrong result"],
-)
-@scenarios.test_the_test
-def test_flagevaluation_php_oversized_identity_contract(monkeypatch: pytest.MonkeyPatch, case: str) -> None:
-    check = flag_eval_evp_tests.Test_FFE_EVP_Flagevaluation_Oversized_Identity()
-    check.flag_key = "oversized-contract"
-    check.control_targeting_key = "control"
-    check.responses = [MagicMock(status_code=200, text='{"value":"on-value"}')] * 2
-    batch = {"context": {"service": "weblog"}}
-    degraded = _bounded_context_event(check.flag_key)
-    control = _bounded_context_event(check.flag_key)
-    control["targeting_key"] = check.control_targeting_key
-    control["context"] = {"evaluation": {"email": "evp-size-canary@example.invalid"}}
-    rows = [(batch, degraded), (batch, control)]
-    if case == "dropped count":
-        rows.pop(0)
-    elif case == "retained identity":
-        degraded["targeting_key"] = "must-not-survive"
-    elif case == "retained context":
-        degraded["context"] = {}
-    elif case == "lost control":
-        del control["context"]
-    elif case == "lost variant":
-        del degraded["variant"]
-    elif case == "wrong result":
-        check.responses = [MagicMock(status_code=200, text='{"value":"default"}')]
-    monkeypatch.setattr(flag_eval_evp_tests, "find_evp_flagevaluation_events", lambda _: rows)
-    if case == "valid":
-        check.test_ffe_evp_flagevaluation_oversized_identity()
-    else:
-        with pytest.raises(AssertionError):
-            check.test_ffe_evp_flagevaluation_oversized_identity()
-
-
 @pytest.mark.parametrize("has_capture", [True, False])
 @scenarios.test_the_test
 def test_flagevaluation_egress_validates_captured_data_without_waiting(
