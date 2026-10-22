@@ -5,7 +5,7 @@ import pytest
 
 from utils.docker_fixtures._core import get_host_port
 
-from .backend_v2 import MockBackendV2Server as MockedBackendServer
+from .backend_v2 import MockedBackendServer
 
 
 @pytest.fixture

@@ -1,4 +1,4 @@
-"""Unit coverage for MockBackendV2Server (utils.mocked_backend.backend_v2)."""
+"""Unit coverage for MockedBackendServer (utils.mocked_backend.backend_v2)."""
 
 import gzip
 import json
@@ -10,12 +10,12 @@ import requests
 import zstandard
 
 from utils import scenarios
-from utils.mocked_backend.backend_v2 import MockBackendV2Server
+from utils.mocked_backend import MockedBackendServer
 
 
 @pytest.fixture
-def server(tmp_path: Path) -> Generator[MockBackendV2Server, None, None]:
-    server = MockBackendV2Server(str(tmp_path), port=0)
+def server(tmp_path: Path) -> Generator[MockedBackendServer, None, None]:
+    server = MockedBackendServer(str(tmp_path), port=0)
 
     yield server
 
@@ -23,7 +23,7 @@ def server(tmp_path: Path) -> Generator[MockBackendV2Server, None, None]:
 
 
 @scenarios.test_the_test
-def test_writes_one_file_per_request(server: MockBackendV2Server, tmp_path: Path):
+def test_writes_one_file_per_request(server: MockedBackendServer, tmp_path: Path):
     response = requests.post(
         f"{server.base_url}/api/v2/series",
         data=json.dumps({"hello": "world"}),
@@ -42,7 +42,7 @@ def test_writes_one_file_per_request(server: MockBackendV2Server, tmp_path: Path
 
 
 @scenarios.test_the_test
-def test_query_string_is_stripped_from_the_log_filename(server: MockBackendV2Server, tmp_path: Path):
+def test_query_string_is_stripped_from_the_log_filename(server: MockedBackendServer, tmp_path: Path):
     response = requests.get(f"{server.base_url}/info?trace_count=42", timeout=5)
     assert response.status_code == 200
 
@@ -56,7 +56,7 @@ def test_query_string_is_stripped_from_the_log_filename(server: MockBackendV2Ser
 
 
 @scenarios.test_the_test
-def test_message_count_is_reflected_in_successive_log_filenames(server: MockBackendV2Server, tmp_path: Path):
+def test_message_count_is_reflected_in_successive_log_filenames(server: MockedBackendServer, tmp_path: Path):
     for _ in range(3):
         requests.get(f"{server.base_url}/info", timeout=5)
 
@@ -65,7 +65,7 @@ def test_message_count_is_reflected_in_successive_log_filenames(server: MockBack
 
 
 @scenarios.test_the_test
-def test_gzip_content_encoding_is_decoded_before_being_logged(server: MockBackendV2Server, tmp_path: Path):
+def test_gzip_content_encoding_is_decoded_before_being_logged(server: MockedBackendServer, tmp_path: Path):
     body = gzip.compress(json.dumps({"compressed": "gzip"}).encode())
     response = requests.post(
         f"{server.base_url}/api/v2/series",
@@ -80,7 +80,7 @@ def test_gzip_content_encoding_is_decoded_before_being_logged(server: MockBacken
 
 
 @scenarios.test_the_test
-def test_zstd_content_encoding_is_decoded_before_being_logged(server: MockBackendV2Server, tmp_path: Path):
+def test_zstd_content_encoding_is_decoded_before_being_logged(server: MockedBackendServer, tmp_path: Path):
     body = zstandard.ZstdCompressor().compress(json.dumps({"compressed": "zstd"}).encode())
     response = requests.post(
         f"{server.base_url}/api/v2/series",
@@ -95,7 +95,7 @@ def test_zstd_content_encoding_is_decoded_before_being_logged(server: MockBacken
 
 
 @scenarios.test_the_test
-def test_undecodable_content_is_logged_without_crashing_the_server(server: MockBackendV2Server, tmp_path: Path):
+def test_undecodable_content_is_logged_without_crashing_the_server(server: MockedBackendServer, tmp_path: Path):
     response = requests.post(
         f"{server.base_url}/api/v2/series",
         data=b"not actually zstd",
@@ -112,7 +112,7 @@ def test_undecodable_content_is_logged_without_crashing_the_server(server: MockB
 @scenarios.test_the_test
 def test_on_message_callback_is_invoked_with_the_logged_data(tmp_path: Path):
     received: list[dict] = []
-    server = MockBackendV2Server(str(tmp_path), on_message=received.append, port=0)
+    server = MockedBackendServer(str(tmp_path), on_message=received.append, port=0)
 
     try:
         requests.post(

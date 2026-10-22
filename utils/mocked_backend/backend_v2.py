@@ -1,4 +1,4 @@
-"""MockBackendV2Server: the base class for every mocked HTTP backend, and, used as-is, the generic
+"""MockedBackendServer: the base class for every mocked HTTP backend, and, used as-is, the generic
 mocked backend standing in for the real Datadog backend API used by ``interfaces.backend_v2``
 (``utils/interfaces/_backend_v2.py``).
 
@@ -24,7 +24,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable, Mapping
 
 
-class MockBackendV2Server(MockedBackendServerFfeMixin, MockedBackendServerCore):
+class MockedBackendServer(MockedBackendServerFfeMixin, MockedBackendServerCore):
     """Base HTTP server for every mocked backend, and, used as-is, a local HTTP server standing in
     for the Datadog backend API: it binds on every interface (not just loopback) so containers can
     reach it through host.docker.internal, runs requests on daemon threads, starts itself on its
