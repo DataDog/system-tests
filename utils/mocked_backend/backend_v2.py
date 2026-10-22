@@ -18,12 +18,13 @@ from utils._logger import logger
 from utils.docker_fixtures._core import HOST_DOCKER_INTERNAL
 
 from ._request_handler import MockedBackendServerCore, MockBackendV2RequestHandler, HttpMethod, RouteHandler
+from ._backend_ffe import MockedBackendServerFfeMixin
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping
 
 
-class MockBackendV2Server(MockedBackendServerCore):
+class MockBackendV2Server(MockedBackendServerFfeMixin, MockedBackendServerCore):
     """Base HTTP server for every mocked backend, and, used as-is, a local HTTP server standing in
     for the Datadog backend API: it binds on every interface (not just loopback) so containers can
     reach it through host.docker.internal, runs requests on daemon threads, starts itself on its
@@ -35,7 +36,6 @@ class MockBackendV2Server(MockedBackendServerCore):
 
     DEFAULT_PORT = 4900
 
-    CONTROL_URL_PREFIX = "/system-tests"
     """Prefix of every endpoint that controls the mock rather than mimicking the real backend."""
 
     daemon_threads = True
@@ -55,6 +55,9 @@ class MockBackendV2Server(MockedBackendServerCore):
         self._count_lock = threading.Lock()
         self._routes: dict[tuple[HttpMethod, str], RouteHandler] = {}
         self.port = self.server_port
+
+        self._ffe_configure()
+
         self._thread = threading.Thread(target=self.serve_forever, name=self.thread_name, daemon=True)
         self._thread.start()
         logging_into = f"logging into {log_folder}" if log_folder else "not logging to disk"

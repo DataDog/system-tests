@@ -55,9 +55,17 @@ def _decode_content(raw_body: bytes, content_encoding: str) -> bytes:
 # in this "core" class
 class MockedBackendServerCore(ABC, ThreadingHTTPServer):
     on_message: Callable[[dict], None]
+    port: int
 
     @abstractmethod
     def get_handler(self, method: HttpMethod, path: str) -> tuple[RouteHandler, str | None, str | None]: ...
+
+    @abstractmethod
+    def add_handler(self, method: HttpMethod, path: str, handler: RouteHandler) -> None: ...
+
+    @property
+    @abstractmethod
+    def base_url(self) -> str: ...
 
 
 class MockBackendV2RequestHandler(BaseHTTPRequestHandler):

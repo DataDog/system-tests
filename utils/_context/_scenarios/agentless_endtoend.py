@@ -15,9 +15,9 @@ from utils._context.docker import get_docker_client
 from utils.docker_fixtures._core import extra_hosts_for_environment
 from utils._logger import logger
 from utils._weblog import weblog
+from utils.mocked_backend import MockedBackendServer
 from utils.mocked_backend.ffe import (
     EXPECTED_API_KEY,
-    MockFFEAgentlessBackendServer,
     MockFFEAgentlessBackendStatus,
 )
 from utils.proxy.ports import ProxyPorts
@@ -70,7 +70,7 @@ class AgentlessEndToEndScenario(DdTraceEndToEndScenario):
     _default_scenario_groups: tuple[ScenarioGroup, ...] = ()  # exclude those scenario from tracer_release
     _mock_backend_status_filename = "mock_agentless_backend_status.json"
 
-    _mock_backend: MockFFEAgentlessBackendServer | None = None
+    _mock_backend: MockedBackendServer | None = None
     _last_mock_backend_status: MockFFEAgentlessBackendStatus | None = None
 
     def __init__(
@@ -111,7 +111,7 @@ class AgentlessEndToEndScenario(DdTraceEndToEndScenario):
     def _start_mock_backend(self) -> None:
         assert self._mock_backend is None, "mock FFE agentless backend is already running"
 
-        self._mock_backend = MockFFEAgentlessBackendServer()
+        self._mock_backend = MockedBackendServer()
 
         environment = self.weblog_infra.library_container.environment
         environment |= {
