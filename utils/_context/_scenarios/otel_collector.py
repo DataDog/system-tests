@@ -56,7 +56,7 @@ class OtelCollectorScenario(DockerScenario):
         self.collector_container.depends_on.append(self.postgres_container)
 
         if not self.proxy_container.mocked_backend:
-            interfaces.backend.configure(self.host_log_folder, replay=self.replay)
+            interfaces.backend_legacy.configure(self.host_log_folder, replay=self.replay)
 
             if "DD_API_KEY" not in os.environ:
                 pytest.exit(f"{self.name} scenario requires a valid DD_API_KEY")
