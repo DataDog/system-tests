@@ -4,16 +4,12 @@
 
 import tests.debugger.utils as debugger
 
-from utils import scenarios, features, rfc, slow
+from utils import context, scenarios, features, rfc, slow
+
+_RFC = "https://docs.google.com/document/d/17BQ1cEcJuumpMWMtBItIx9x_akG99dzjBA1NoaBFuBE/edit?tab=t.4l0zjxovcnz3#heading=h.kejjaf501thi"
 
 
-@rfc(
-    "https://docs.google.com/document/d/17BQ1cEcJuumpMWMtBItIx9x_akG99dzjBA1NoaBFuBE/edit?tab=t.4l0zjxovcnz3#heading=h.kejjaf501thi"
-)
-@features.debugger_snapshot_correlation
-@scenarios.debugger_probes_snapshot
-@slow
-class Test_Debugger_Coordinated_Sampling(debugger.BaseDebuggerTest):
+class _DebuggerCoordinatedSamplingTest(debugger.BaseDebuggerTest):
     """The sampling decision is made once per trace, so a trace emits its whole probe chain or none of it.
 
     Correlation rides on the dd.trace_id already in the snapshot envelope. The probes get different
@@ -28,6 +24,9 @@ class Test_Debugger_Coordinated_Sampling(debugger.BaseDebuggerTest):
     # trace's decision.
     _SNAPSHOTS_PER_SECOND = {"CorrelationLeaf": 5, "CorrelationMiddle": 1, "Correlation": 1}
 
+    def _prepare_probe(self, probe: dict) -> None:
+        pass
+
     def setup_coordinated_per_trace_sampling(self):
         self.initialize_weblog_remote_config()
 
@@ -35,6 +34,7 @@ class Test_Debugger_Coordinated_Sampling(debugger.BaseDebuggerTest):
         for probe in probes:
             probe["id"] = debugger.generate_probe_id("log")
             probe["sampling"] = {"snapshotsPerSecond": self._SNAPSHOTS_PER_SECOND[probe["where"]["methodName"]]}
+            self._prepare_probe(probe)
         self.set_probes(probes)
 
         self.send_rc_probes()
@@ -75,6 +75,26 @@ class Test_Debugger_Coordinated_Sampling(debugger.BaseDebuggerTest):
             f"partial probe chains were emitted, the sampling decision is not made once per trace: {partial}"
         )
         assert full, "no trace emitted the full probe chain"
+
+
+@rfc(_RFC)
+@features.debugger_snapshot_correlation
+@scenarios.debugger_probes_snapshot
+@slow
+class Test_Debugger_Coordinated_Sampling(_DebuggerCoordinatedSamplingTest):
+    """Probes the methods of the correlation endpoint."""
+
+
+@rfc(_RFC)
+@features.debugger_snapshot_correlation
+@scenarios.debugger_probes_snapshot
+@slow
+class Test_Debugger_Coordinated_Sampling_Line_Probe(_DebuggerCoordinatedSamplingTest):
+    """Probes the line each method of the correlation endpoint returns on, for tracers without method probes."""
+
+    def _prepare_probe(self, probe: dict) -> None:
+        lines = self.method_and_language_to_line_number(probe["where"]["methodName"], context.library.name)
+        self._rewrite_where_for_lines([probe], lines)
 
 
 # Follow-on work, split out of feature 564 (which is coordinated sampling via trace_id only). There
