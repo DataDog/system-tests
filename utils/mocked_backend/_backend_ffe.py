@@ -250,6 +250,25 @@ def _strip_config_path(url: str) -> str:
     return parsed._replace(path=base_path, params="", query="", fragment="").geturl().rstrip("/")
 
 
+def _accepts_protobuf(accept: str) -> bool:
+    # Require an explicit protobuf range so wildcard-only clients keep receiving JSON.
+    for media_range in accept.split(","):
+        media_type, *parameters = media_range.split(";")
+        if media_type.strip().lower() != "application/protobuf":
+            continue
+        quality = "1"
+        for parameter in parameters:
+            name, _, value = parameter.partition("=")
+            if name.strip().lower() == "q":
+                quality = value.strip()
+        try:
+            if 0 < float(quality) <= 1:
+                return True
+        except ValueError:
+            continue
+    return False
+
+
 class MockedBackendServerFfeMixin(_Base):
     # Endpoint contract:
     # - GET /api/v2/feature-flagging/config/rules-based/server?dd_env=test
@@ -264,7 +283,7 @@ class MockedBackendServerFfeMixin(_Base):
 
         self.add_handler("GET", CONFIG_PATH, self._ffe_handle_config)
         self.add_handler("GET", f"{RULES_CONFIG_PATH}/client", self._ffe_handle_rules_config)
-        self.add_handler("GET", "/redirected", self._ffe_handle_rules_config)
+        self.add_handler("GET", f"{RULES_CONFIG_PATH}/redirected", self._ffe_handle_rules_config)
 
         self.add_handler("GET", f"{self._ffe_control_path}/status", self._ffe_handle_status)
         self.add_handler("POST", f"{self._ffe_control_path}/responses", self._ffe_handle_control_responses)
@@ -318,7 +337,7 @@ class MockedBackendServerFfeMixin(_Base):
     def _ffe_handle_config(
         self, request: MockBackendV2RequestHandler, _: bytes | dict | None
     ) -> tuple[Mapping | bytes, bytes]:
-        if request.headers.get("Accept") == "application/protobuf":
+        if _accepts_protobuf(",".join(request.headers.get_all("Accept", []))):
             return self._ffe_handle_rules_config(request, _)
 
         parsed = urlparse(request.path)
@@ -366,7 +385,7 @@ class MockedBackendServerFfeMixin(_Base):
                 body = RESPONSE_SECRET.encode()
             elif response == "redirect":
                 status = HTTPStatus.FOUND
-                headers["Location"] = f"{self.ffe_library_base_url}/redirected"
+                headers["Location"] = f"{self.ffe_library_base_url}{RULES_CONFIG_PATH}/redirected"
             elif response == "malformed":
                 body = b"\xff"
             elif response == "empty":
