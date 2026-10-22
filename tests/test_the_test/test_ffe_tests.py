@@ -1,4 +1,4 @@
-"""Opt-in unit coverage for the shared Feature Flags EVP test contract."""
+"""Unit coverage for the shared Feature Flags EVP test contract."""
 
 from copy import deepcopy
 import json
@@ -20,7 +20,7 @@ from tests.ffe.utils.evp import (
     assert_no_evp_proxy_requests,
     expected_evp_origin,
 )
-from utils import context, features, interfaces, scenarios
+from utils import context, interfaces, scenarios
 from utils._context.component_version import ComponentVersion, Version
 from utils._context._scenarios.agentless_endtoend import (
     DIRECT_EVP_CA_BUNDLE_CONTAINER_PATH,
@@ -55,8 +55,7 @@ AGENTLESS_EVP_CAPTURE_CONTRACTS = (
         (11_999, float("inf"), "queue_overflow", False),
     ],
 )
-@scenarios.feature_flagging_contract_tests
-@features.not_reported
+@scenarios.test_the_test
 def test_flagevaluation_isolated_accounting(delivered: int, dropped: float | None, reason: str, *, valid: bool) -> None:
     series = [] if dropped is None else [{"type": "count", "tags": [f"reason:{reason}"], "points": [[1, dropped]]}]
     if valid:
@@ -75,8 +74,7 @@ def test_flagevaluation_isolated_accounting(delivered: int, dropped: float | Non
         {"type": "count", "tags": ["reason:queue_overflow"], "points": []},
     ],
 )
-@scenarios.feature_flagging_contract_tests
-@features.not_reported
+@scenarios.test_the_test
 def test_flagevaluation_accounting_rejects_invalid_telemetry(series: dict[str, Any]) -> None:
     with pytest.raises(AssertionError):
         assert_flagevaluation_accounting(11_999, 12_000, [series])
@@ -94,8 +92,7 @@ def _bounded_context_event(flag_key: str) -> dict[str, Any]:
     }
 
 
-@scenarios.feature_flagging_contract_tests
-@features.not_reported
+@scenarios.test_the_test
 def test_flagevaluation_stress_request_uses_compact_unique_keys(monkeypatch: pytest.MonkeyPatch) -> None:
     post = MagicMock()
     monkeypatch.setattr(flag_eval_evp_tests.rc, "tracer_rc_state", MagicMock())
@@ -114,8 +111,7 @@ def test_flagevaluation_stress_request_uses_compact_unique_keys(monkeypatch: pyt
 
 @pytest.mark.parametrize("windows", [(12_000,), (6_000, 6_000), (3_000, 3_000, 3_000, 3_000)])
 @pytest.mark.parametrize("mutation", ["none", "missing count", "duplicate", "invalid tier shape"])
-@scenarios.feature_flagging_contract_tests
-@features.not_reported
+@scenarios.test_the_test
 def test_flagevaluation_stress_contract_across_flush_windows(
     monkeypatch: pytest.MonkeyPatch, windows: tuple[int, ...], mutation: str
 ) -> None:
@@ -182,8 +178,7 @@ def test_flagevaluation_stress_contract_across_flush_windows(
         ("error", False),
     ],
 )
-@scenarios.feature_flagging_contract_tests
-@features.not_reported
+@scenarios.test_the_test
 def test_flagevaluation_context_count_contract(monkeypatch: pytest.MonkeyPatch, case: str, *, valid: bool) -> None:
     check = flag_eval_evp_tests.Test_FFE_EVP_Flagevaluation_Context_Bounds()
     check.flag_key = "bounds-contract"
@@ -241,8 +236,7 @@ def test_flagevaluation_context_count_contract(monkeypatch: pytest.MonkeyPatch, 
     "case",
     ["valid", "missing context", "service only", "empty evaluation", "lost field", "changed value", "extra field"],
 )
-@scenarios.feature_flagging_contract_tests
-@features.not_reported
+@scenarios.test_the_test
 def test_flagevaluation_context_within_bounds_contract(monkeypatch: pytest.MonkeyPatch, case: str) -> None:
     check = flag_eval_evp_tests.Test_FFE_EVP_Flagevaluation_Context_Bounds()
     check.within_flag_key = "within-bounds-contract"
@@ -272,8 +266,7 @@ def test_flagevaluation_context_within_bounds_contract(monkeypatch: pytest.Monke
 
 
 @pytest.mark.parametrize("case", ["valid", "missing context", "service only", "lost sibling", "long", "truncated"])
-@scenarios.feature_flagging_contract_tests
-@features.not_reported
+@scenarios.test_the_test
 def test_flagevaluation_context_value_contract(monkeypatch: pytest.MonkeyPatch, case: str) -> None:
     check = flag_eval_evp_tests.Test_FFE_EVP_Flagevaluation_Context_Bounds()
     check.value_flag_key = "value-bounds-contract"
@@ -298,8 +291,7 @@ def test_flagevaluation_context_value_contract(monkeypatch: pytest.MonkeyPatch, 
 
 
 @pytest.mark.parametrize("kind", ["count", "within", "value"])
-@scenarios.feature_flagging_contract_tests
-@features.not_reported
+@scenarios.test_the_test
 def test_flagevaluation_bounds_fixtures_enable_consent(monkeypatch: pytest.MonkeyPatch, kind: str) -> None:
     state = MagicMock()
     evaluate = MagicMock()
@@ -331,8 +323,7 @@ def test_flagevaluation_bounds_fixtures_enable_consent(monkeypatch: pytest.Monke
     "case",
     ["valid", "dropped count", "retained identity", "retained context", "lost control", "lost variant", "wrong result"],
 )
-@scenarios.feature_flagging_contract_tests
-@features.not_reported
+@scenarios.test_the_test
 def test_flagevaluation_php_oversized_identity_contract(monkeypatch: pytest.MonkeyPatch, case: str) -> None:
     check = flag_eval_evp_tests.Test_FFE_EVP_Flagevaluation_Oversized_Identity()
     check.flag_key = "oversized-contract"
@@ -365,8 +356,7 @@ def test_flagevaluation_php_oversized_identity_contract(monkeypatch: pytest.Monk
 
 
 @pytest.mark.parametrize("has_capture", [True, False])
-@scenarios.feature_flagging_contract_tests
-@features.not_reported
+@scenarios.test_the_test
 def test_flagevaluation_egress_validates_captured_data_without_waiting(
     monkeypatch: pytest.MonkeyPatch, *, has_capture: bool
 ) -> None:
@@ -549,8 +539,7 @@ def _direct_capture(*, path: str = "/api/v2/exposures", headers: list[list[str]]
 
 
 @pytest.mark.parametrize("contract", AGENTLESS_EVP_CAPTURE_CONTRACTS)
-@scenarios.feature_flagging_contract_tests
-@features.not_reported
+@scenarios.test_the_test
 def test_agentless_evp_capture_contracts_skip_manifest_xfails_before_setup(contract: type[Any]) -> None:
     marker_names = {marker.name for marker in getattr(contract, "pytestmark", ())}
 
@@ -558,14 +547,12 @@ def test_agentless_evp_capture_contracts_skip_manifest_xfails_before_setup(contr
 
 
 @pytest.mark.parametrize(("library_name", "origin"), sorted(EVP_ORIGINS.items()))
-@scenarios.feature_flagging_contract_tests
-@features.not_reported
+@scenarios.test_the_test
 def test_feature_flagging_evp_origin_contract(library_name: str, origin: str) -> None:
     assert expected_evp_origin(library_name) == origin
 
 
-@scenarios.feature_flagging_contract_tests
-@features.not_reported
+@scenarios.test_the_test
 def test_feature_flagging_agentless_evp_wire_contract_accepts_exact_identity() -> None:
     assert_agentless_evp_intake_request(
         _direct_capture(),
@@ -577,8 +564,7 @@ def test_feature_flagging_agentless_evp_wire_contract_accepts_exact_identity() -
     )
 
 
-@scenarios.feature_flagging_contract_tests
-@features.not_reported
+@scenarios.test_the_test
 def test_feature_flagging_agentless_evp_wire_contract_accepts_canonical_go_version() -> None:
     capture = _direct_capture(
         headers=[
@@ -610,8 +596,7 @@ def test_feature_flagging_agentless_evp_wire_contract_accepts_canonical_go_versi
         )
 
 
-@scenarios.feature_flagging_contract_tests
-@features.not_reported
+@scenarios.test_the_test
 def test_feature_flagging_agentless_evp_wire_contract_rejects_missing_identity() -> None:
     capture = _direct_capture(
         headers=[
@@ -631,8 +616,7 @@ def test_feature_flagging_agentless_evp_wire_contract_rejects_missing_identity()
         )
 
 
-@scenarios.feature_flagging_contract_tests
-@features.not_reported
+@scenarios.test_the_test
 def test_feature_flagging_agentless_evp_wire_contract_rejects_proxy_header() -> None:
     capture = _direct_capture()
     capture["request"]["headers"].append(["X-Datadog-EVP-Subdomain", "event-platform-intake"])
@@ -648,8 +632,7 @@ def test_feature_flagging_agentless_evp_wire_contract_rejects_proxy_header() -> 
         )
 
 
-@scenarios.feature_flagging_contract_tests
-@features.not_reported
+@scenarios.test_the_test
 def test_feature_flagging_agentless_evp_wire_contract_scopes_producer_identity_to_direct_route() -> None:
     capture = _direct_capture(
         headers=[
@@ -679,8 +662,7 @@ def test_feature_flagging_agentless_evp_wire_contract_scopes_producer_identity_t
         )
 
 
-@scenarios.feature_flagging_contract_tests
-@features.not_reported
+@scenarios.test_the_test
 def test_feature_flagging_direct_capture_rejects_local_proxy_routes() -> None:
     with pytest.raises(AssertionError, match="local EVP proxy requests"):
         assert_no_evp_proxy_requests(
@@ -692,8 +674,7 @@ def test_feature_flagging_direct_capture_rejects_local_proxy_routes() -> None:
 
 
 @pytest.mark.parametrize("route", ["direct", "sidecar"])
-@scenarios.feature_flagging_contract_tests
-@features.not_reported
+@scenarios.test_the_test
 def test_feature_flagging_agentless_evp_topology_supports_both_routes(
     route: Literal["direct", "sidecar"],
     monkeypatch: pytest.MonkeyPatch,
@@ -737,15 +718,13 @@ def test_feature_flagging_agentless_evp_topology_supports_both_routes(
         assert DIRECT_EVP_CA_BUNDLE_SOURCE not in scenario.weblog_infra.library_container.volumes
 
 
-@scenarios.feature_flagging_contract_tests
-@features.not_reported
+@scenarios.test_the_test
 def test_feature_flagging_direct_runtime_evidence_accepts_live_minimal_topology() -> None:
     assert_direct_evp_runtime_evidence(_direct_runtime_evidence(), library_name="nodejs")
 
 
 @pytest.mark.parametrize("executable", ["python3.11", "python3.12"])
-@scenarios.feature_flagging_contract_tests
-@features.not_reported
+@scenarios.test_the_test
 def test_feature_flagging_direct_runtime_evidence_accepts_versioned_python(executable: str) -> None:
     evidence = _direct_runtime_evidence("python")
     evidence["containers"][1]["pid1_command"] = f"/usr/local/bin/{executable} -m gunicorn app:app"
@@ -755,8 +734,7 @@ def test_feature_flagging_direct_runtime_evidence_accepts_versioned_python(execu
 
 
 @pytest.mark.parametrize("executable", ["python3.x", "python3.11-wrapper"])
-@scenarios.feature_flagging_contract_tests
-@features.not_reported
+@scenarios.test_the_test
 def test_feature_flagging_direct_runtime_evidence_rejects_python_prefix_wrappers(executable: str) -> None:
     evidence = _direct_runtime_evidence("python")
     evidence["containers"][1]["pid1_command"] = f"{executable} app"
@@ -778,8 +756,7 @@ def test_feature_flagging_direct_runtime_evidence_rejects_python_prefix_wrappers
         ("failed_top", "docker top failed"),
     ],
 )
-@scenarios.feature_flagging_contract_tests
-@features.not_reported
+@scenarios.test_the_test
 def test_feature_flagging_direct_runtime_evidence_rejects_false_proofs(
     mutation: str,
     message: str,
@@ -810,8 +787,7 @@ def test_feature_flagging_direct_runtime_evidence_rejects_false_proofs(
         assert_direct_evp_runtime_evidence(evidence, library_name="nodejs")
 
 
-@scenarios.feature_flagging_contract_tests
-@features.not_reported
+@scenarios.test_the_test
 def test_feature_flagging_direct_shutdown_evidence_accepts_bounded_post_stop_delivery() -> None:
     assert_direct_evp_shutdown_evidence(_direct_shutdown_evidence())
 
@@ -834,8 +810,7 @@ def test_feature_flagging_direct_shutdown_evidence_accepts_bounded_post_stop_del
         ("same_prime_subject", "subject distinct"),
     ],
 )
-@scenarios.feature_flagging_contract_tests
-@features.not_reported
+@scenarios.test_the_test
 def test_feature_flagging_direct_shutdown_evidence_rejects_false_proofs(
     mutation: str,
     message: str,

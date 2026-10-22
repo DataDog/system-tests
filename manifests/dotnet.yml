@@ -966,6 +966,8 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_endpoint.py::Test_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT: v3.37.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_endpoint.py::Test_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT::test_empty_falls_back_to_global_endpoint
   : bug (APMAPI-2509)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_endpoint.py::Test_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT::test_generic_endpoint_with_base_path
+  : bug (APMAPI-2620)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_headers.py::Test_OTEL_EXPORTER_OTLP_LOGS_HEADERS: v3.37.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_headers.py::Test_OTEL_EXPORTER_OTLP_LOGS_HEADERS::test_empty_falls_back
   : bug (APMAPI-2479)
