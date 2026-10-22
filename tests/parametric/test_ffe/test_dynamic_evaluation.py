@@ -34,7 +34,7 @@ def _load_ufc_fixture() -> dict[str, Any]:
 
 
 def _get_test_case_files() -> list[str]:
-    """Get all test case files from the fixtures directory."""
+    """Get all canonical evaluation case files."""
     case_files = sorted(path.name for path in FFE_EVALUATION_CASES_DIR.glob("*.json"))
     if not case_files:
         raise FileNotFoundError(f"No canonical evaluation cases found in {FFE_EVALUATION_CASES_DIR}")
@@ -145,15 +145,7 @@ class Test_Feature_Flag_Dynamic_Evaluation:
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     @parametrize("test_case_file", ALL_TEST_CASE_FILES)
     def test_ffe_flag_evaluation(self, test_case_file: str, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
-        """Test FFE flag evaluation logic with various targeting scenarios.
-
-        This is the core FFE test that validates the OpenFeature provider correctly:
-        1. Loads flag configurations from Remote Config (UFC format)
-        2. Evaluates flags based on targeting rules and evaluation context
-        3. Returns correct variation values for different variation types
-        4. Handles user targeting, attribute matching, and rollout percentages
-
-        """
+        """Test every expected result field present in each canonical fixture case."""
         # Load the test case file
         test_case_path = FFE_EVALUATION_CASES_DIR / test_case_file
 
@@ -190,22 +182,15 @@ class Test_Feature_Flag_Dynamic_Evaluation:
                 f"Test case {i} in {test_case_file} failed: FFE provider did not load RC data after "
                 f"{FFE_READY_RETRY_ATTEMPTS} attempts; result={result}"
             )
-            actual_value = result.get("value")
-
-            # Assert the evaluation result matches expected value
-            assert actual_value == expected_result["value"], (
-                f"Test case {i} in {test_case_file} failed: "
-                f"flag='{flag}', targetingKey='{targeting_key}', "
-                f"expected={expected_result}, actual={result}"
-            )
-            assert result.get("reason") == expected_result["reason"], (
-                f"Test case {i} in {test_case_file}: expected reason={expected_result['reason']}, result={result}"
-            )
-            if "errorCode" in expected_result:
-                assert result.get("errorCode") == expected_result["errorCode"], (
-                    f"Test case {i} in {test_case_file}: expected errorCode={expected_result['errorCode']}, result={result}"
+            for field in ("value", "reason", "errorCode"):
+                if field not in expected_result:
+                    continue
+                assert result.get(field) == expected_result[field], (
+                    f"Test case {i} in {test_case_file} failed: "
+                    f"flag='{flag}', targetingKey='{targeting_key}', field='{field}', "
+                    f"expected={expected_result[field]!r}, actual={result.get(field)!r}"
                 )
-            elif expected_result["reason"] != "ERROR":
+            if "errorCode" not in expected_result and expected_result.get("reason") != "ERROR":
                 assert result.get("errorCode") in {None, ""}, (
                     f"Test case {i} in {test_case_file}: unexpected evaluation error; result={result}"
                 )
