@@ -14,10 +14,7 @@ from utils._context.containers import ServerlessInitContainer, TestedContainer
 from utils._context.docker import get_docker_client
 from utils._logger import logger
 from utils._weblog import weblog
-from utils.mocked_backend.ffe import (
-    EXPECTED_API_KEY,
-    MockedBackendFFEStatus,
-)
+from utils.mocked_backend.ffe import MockedBackendFFEStatus
 from utils.proxy.ports import ProxyPorts
 
 from .core import ScenarioGroup, scenario_groups as all_scenario_groups
@@ -114,7 +111,7 @@ class AgentlessEndToEndScenario(DdTraceEndToEndScenario):
         """
         environment = self.weblog_infra.library_container.environment
         environment |= {
-            "DD_API_KEY": EXPECTED_API_KEY,
+            "DD_API_KEY": self.dd_api_key,
             "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL": (
                 interfaces.backend_v2.server.ffe_library_config_url
             ),
@@ -389,7 +386,7 @@ class FeatureFlaggingAgentlessEndToEndScenario(AgentlessEndToEndScenario):
                     "agent_variables_present": sorted(
                         name for name in DIRECT_EVP_AGENT_VARIABLES if name in environment
                     ),
-                    "api_key_matches_expected": environment.get("DD_API_KEY") == EXPECTED_API_KEY,
+                    "api_key_matches_expected": environment.get("DD_API_KEY") == self.dd_api_key,
                     "api_key_present": bool(environment.get("DD_API_KEY")),
                     "configuration_source": environment.get("DD_FEATURE_FLAGS_CONFIGURATION_SOURCE"),
                     "custom_configuration_url_present": bool(

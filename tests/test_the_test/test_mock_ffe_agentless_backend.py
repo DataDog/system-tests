@@ -19,7 +19,6 @@ from utils.mocked_backend import MockedBackendServer
 from utils.mocked_backend.ffe import (
     CONFIG_PATH,
     CONFIG_QUERY,
-    EXPECTED_API_KEY,
     EXPECTED_DD_ENV,
     UFC_RESPONSE_TYPE,
 )
@@ -61,7 +60,7 @@ def test_mock_ffe_agentless_backend_serves_fixture_and_tracks_metadata() -> None
 
         status = server.ffe_get_status()
         assert status["requests_total"] == 1
-        assert status["last_auth_present"] is False
+        assert status["observed_dd_api_key"] is None
         assert status["last_path"] == CONFIG_PATH
         assert status["last_status_code"] == 200
 
@@ -74,7 +73,7 @@ def test_mock_ffe_agentless_backend_serves_fixture_and_tracks_metadata() -> None
 
         status = server.ffe_get_status()
         assert status["requests_total"] == 2
-        assert status["last_auth_present"] is False
+        assert status["observed_dd_api_key"] is None
         assert status["last_status_code"] == 401
     finally:
         server.close()
@@ -107,7 +106,7 @@ def test_mock_ffe_agentless_backend_status_is_metadata_only() -> None:
             "max_in_flight",
             "last_path",
             "last_if_none_match",
-            "last_auth_present",
+            "observed_dd_api_key",
             "last_status_code",
             "status_codes",
         }
@@ -140,7 +139,7 @@ def test_agentless_end_to_end_scenario_points_weblog_to_mocked_backend(
         assert "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED" not in environment
         assert "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE" not in environment
         assert "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT" not in environment
-        assert environment["DD_API_KEY"] == EXPECTED_API_KEY
+        assert environment["DD_API_KEY"] == scenario.dd_api_key
         base_url = environment["DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL"]
         assert isinstance(base_url, str)
         assert base_url == interfaces.backend_v2.server.ffe_library_config_url
@@ -574,7 +573,7 @@ def test_agentless_end_to_end_scenario_persists_backend_status_for_replay(
         "max_in_flight": 1,
         "last_path": CONFIG_PATH,
         "last_if_none_match": None,
-        "last_auth_present": True,
+        "observed_dd_api_key": recording_scenario.dd_api_key,
         "last_status_code": 200,
         "status_codes": [200],
     }

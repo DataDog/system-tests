@@ -310,7 +310,7 @@ class Test_Feature_Flag_Configuration_Source_Selection:
             lambda current: current["requests_total"] > 0 and current["last_status_code"] == 200,
             "valid response request",
         )
-        assert status["last_auth_present"] is False
+        assert status["observed_dd_api_key"] is None
         assert status["last_path"] == CONFIG_PATH
         _assert_no_ffe_remote_config_activation(test_agent)
 
@@ -340,7 +340,7 @@ class Test_Feature_Flag_Configuration_Source_Selection:
             lambda current: current["requests_total"] > 0 and current["last_status_code"] == 200,
             "stable-enabled default agentless response request",
         )
-        assert status["last_auth_present"] is False
+        assert status["observed_dd_api_key"] is None
         assert status["last_path"] == CONFIG_PATH
         _assert_no_ffe_remote_config_activation(test_agent)
 
@@ -543,7 +543,7 @@ class Test_Feature_Flag_Configuration_Source_Cold_Failure_And_Recovery:
             "unauthorized_cold auth failure",
         )
         _assert_cold_not_ready(test_library, started=started)
-        assert status["last_auth_present"] is False
+        assert status["observed_dd_api_key"] is None
         assert status["last_path"] == CONFIG_PATH
 
     @parametrize(
@@ -564,7 +564,7 @@ class Test_Feature_Flag_Configuration_Source_Cold_Failure_And_Recovery:
             "malformed_cold response",
         )
         _assert_cold_not_ready(test_library, started=started)
-        assert status["last_auth_present"] is False
+        assert status["observed_dd_api_key"] is None
         assert status["last_path"] == CONFIG_PATH
 
     @parametrize(
@@ -585,7 +585,7 @@ class Test_Feature_Flag_Configuration_Source_Cold_Failure_And_Recovery:
             "request_timeout_cold delayed valid response",
         )
         _assert_cold_not_ready(test_library, started=started)
-        assert status["last_auth_present"] is False
+        assert status["observed_dd_api_key"] is None
         assert status["last_path"] == CONFIG_PATH
 
     @parametrize(
@@ -673,7 +673,7 @@ class Test_Feature_Flag_Configuration_Source_Warm_State_Preservation:
         )
         _assert_expected_value(_evaluate(test_library))
         assert status["requests_total"] > 0
-        assert status["last_auth_present"] is False
+        assert status["observed_dd_api_key"] is None
         assert status["last_path"] == CONFIG_PATH
 
     @parametrize(
