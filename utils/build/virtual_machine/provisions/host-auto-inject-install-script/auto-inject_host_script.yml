@@ -29,7 +29,8 @@
         # file may not end with one
         printf '\nDD_DD_URL=%s\nDD_APM_DD_URL=%s\nDD_APM_PROFILING_DD_URL=%s/api/v2/profile\n' \
             "${DD_AGENT_BACKEND_URL}" "${DD_AGENT_BACKEND_URL}" "${DD_AGENT_BACKEND_URL}" \
-            | sudo tee -a /etc/datadog-agent/environment > /dev/null
+            | sudo tee -a /etc/datadog-agent/environment > /dev/null \
+            || echo "Warning: Could not point the agent to the mocked backend"
         sudo systemctl restart datadog-agent
     fi
 

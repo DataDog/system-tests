@@ -3,6 +3,7 @@ from datetime import UTC, datetime, timedelta
 from http import HTTPStatus
 import json
 import os
+from pathlib import Path
 import time
 from typing import Any
 import requests
@@ -408,6 +409,7 @@ def _query_mocked_backend_for_profile(runtime_id: str) -> None:
         for data in interfaces.backend_v2.get_data(path_filters="/api/v2/profile"):
             if runtime_id in json.dumps(data["request"].get("content"), default=repr):
                 logger.debug(f"Found profile in the mocked backend: {data['log_filename']}")
+                _validate_mocked_backend_profile(data)
                 return
 
         if time.perf_counter() + _MOCKED_BACKEND_POLL_INTERVAL >= deadline:
@@ -416,3 +418,42 @@ def _query_mocked_backend_for_profile(runtime_id: str) -> None:
                 f"after {MOCKED_BACKEND_PROFILE_TIMEOUT}s"
             )
         time.sleep(_MOCKED_BACKEND_POLL_INTERVAL)
+
+
+def _validate_mocked_backend_profile(data: dict) -> None:
+    """Light checks, only to catch an obviously malformed profile: the event can be decoded, and the
+    attachments it lists are present and not empty. The attachments content is not decoded: some are
+    compressed (e.g. code-provenance.json), whatever their file name
+    """
+    log_filename = data["log_filename"]
+    parts = data["request"].get("content")
+    assert isinstance(parts, list), f"Profile is not a multipart payload: {log_filename}"
+
+    # Compressed parts may have a .gz suffix, the attachments listed in the event don't
+    files = {_get_multipart_filename(part).removesuffix(".gz"): part for part in parts}
+
+    event_part = files.get("event.json")
+    assert event_part is not None, f"No event.json in profile {log_filename}"
+    event = event_part.get("content")
+    assert isinstance(event, dict), f"Malformed event.json in profile {log_filename}: {event_part}"
+    attachments = event.get("attachments")
+    assert attachments, f"No attachments listed in event.json of profile {log_filename}"
+
+    for attachment in attachments:
+        part = files.get(attachment.removesuffix(".gz"))
+        assert part is not None, f"Attachment {attachment} missing from profile {log_filename}"
+        file_path = part.get("system-tests-file-path")
+        if file_path is not None:
+            assert Path(file_path).stat().st_size > 0, f"Attachment {attachment} is empty in profile {log_filename}"
+        elif "content" in part:
+            assert part["content"], f"Attachment {attachment} is empty in profile {log_filename}"
+
+
+def _get_multipart_filename(part: dict) -> str:
+    """The deserializer only sets system-tests-filename on binary parts: read it from the part headers"""
+    content_disposition = part.get("headers", {}).get("content-disposition", "")
+    for item in content_disposition.split(";"):
+        key, _, value = item.partition("=")
+        if key.strip() == "filename":
+            return value.strip().strip('"')
+    return part.get("system-tests-filename", "")

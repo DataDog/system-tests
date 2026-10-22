@@ -117,6 +117,9 @@ class _VirtualMachineScenario(Scenario):
             # The tunnel binds a fixed port on the VM loopback, so the URL is known before provisioning: the
             # provision configures the agent with it before starting the weblog, no agent restart needed later
             self.virtual_machine.set_agent_backend_url(f"http://127.0.0.1:{get_mocked_backend_v2_port()}")
+            # The agent install script and the agent itself refuse to run without an API key, the mock ignores it
+            if not self.virtual_machine.datadog_config.dd_api_key:
+                self.virtual_machine.datadog_config.dd_api_key = "0" * 32
 
         if self.is_main_worker:
             self.warmups.append(lambda: logger.terminal.write_sep("=", "Provisioning Virtual Machines", bold=True))
@@ -143,8 +146,9 @@ class _VirtualMachineScenario(Scenario):
         provision_file = f"{base_folder}/provisions/{self.vm_provision_name}/provision.yml"
         assert Path(provision_file).is_file(), f"Provision file not found: {provision_file}"
 
-        assert os.getenv("DD_API_KEY_ONBOARDING") is not None, "DD_API_KEY_ONBOARDING is not set"
-        assert os.getenv("DD_APP_KEY_ONBOARDING") is not None, "DD_APP_KEY_ONBOARDING is not set"
+        if not self.mocked_backend_enabled:
+            assert os.getenv("DD_API_KEY_ONBOARDING") is not None, "DD_API_KEY_ONBOARDING is not set"
+            assert os.getenv("DD_APP_KEY_ONBOARDING") is not None, "DD_APP_KEY_ONBOARDING is not set"
 
     def _setup_mocked_backend(self) -> None:
         """Start the mocked backend and expose it on the VM through an SSH reverse tunnel. The agent was

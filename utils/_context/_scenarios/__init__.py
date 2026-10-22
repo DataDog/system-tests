@@ -1363,7 +1363,6 @@ class _Scenarios:
         ),
         vm_provision="local-auto-inject-install-script",
         scenario_groups=[],
-        mocked_backend=True,
         github_workflow="aws_ssi",
     )
 

@@ -39,5 +39,6 @@
         # the agent
         printf 'services:\n  datadog:\n    network_mode: host\n    environment:\n      - DD_DD_URL=%s\n      - DD_APM_DD_URL=%s\n      - DD_APM_PROFILING_DD_URL=%s/api/v2/profile\n' \
             "${DD_AGENT_BACKEND_URL}" "${DD_AGENT_BACKEND_URL}" "${DD_AGENT_BACKEND_URL}" \
-            > docker-compose-agent-mocked-backend.yml
+            > docker-compose-agent-mocked-backend.yml \
+            || echo "Warning: Could not point the agent to the mocked backend"
     fi
