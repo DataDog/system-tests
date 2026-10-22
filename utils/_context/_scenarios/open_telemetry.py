@@ -85,7 +85,7 @@ class OpenTelemetryScenario(DockerScenario):
             self.weblog_container.environment["OTEL_SYSTEST_INCLUDE_AGENT"] = "True"
             interfaces.agent.configure(self.host_log_folder, replay=self.replay)
 
-        interfaces.backend.configure(self.host_log_folder, replay=self.replay)
+        interfaces.backend_legacy.configure(self.host_log_folder, replay=self.replay)
         interfaces.open_telemetry.configure(self.host_log_folder, replay=self.replay)
         interfaces.library_dotnet_managed.configure(self.host_log_folder, replay=self.replay)
 
@@ -153,10 +153,10 @@ class OpenTelemetryScenario(DockerScenario):
                 interfaces.agent.load_data_from_logs()
                 interfaces.agent.check_deserialization_errors()
 
-            interfaces.backend.load_data_from_logs()
+            interfaces.backend_legacy.load_data_from_logs()
         elif self.use_proxy:
             self._wait_interface(interfaces.open_telemetry, 5)
-            self._wait_interface(interfaces.backend, self.backend_interface_timeout)
+            self._wait_interface(interfaces.backend_legacy, self.backend_interface_timeout)
 
         self.close_targets()
 

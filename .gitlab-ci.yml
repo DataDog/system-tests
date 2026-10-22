@@ -424,6 +424,37 @@ system_tests_param:
     - export EXCLUDED_SCENARIOS='DEBUGGER_EXPRESSION_LANGUAGE'
     - export SYSTEM_TESTS_PUSH_TO_TEST_OPTIMIZATION=true
 
+# THREAD_CONTEXT_SHARING needs a dedicated runner pool, so it is run on every PR, whatever the
+# modified files are, to catch any breakage of this setup. It uses the official workflow, as tracer
+# repos do, in a child pipeline: including main.yml a second time here would override the jobs of
+# the include above. One PHP weblog is enough.
+system_tests_php_thread_context_sharing:
+  stage: e2e
+  needs:
+    - job: build_ci_image
+      artifacts: false
+      optional: true
+    - job: mirror_images
+      artifacts: false
+      optional: true
+    - job: build_base_images
+      artifacts: false
+      optional: true
+  rules:
+    - if: '$CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH'
+  trigger:
+    include:
+      - local: /utils/ci/gitlab/main.yml
+        inputs:
+          # main.yml declares no stage, so use one of GitLab's default stages
+          stage: "test"
+          ref: "$CI_COMMIT_SHA"
+          libraries: "php"
+          scenarios: "THREAD_CONTEXT_SHARING"
+          weblogs: "apache-mod-8.0"
+          push_to_test_optimization: true
+    strategy: depend
+
 build_ci_image:
   image: registry.ddbuild.io/system-tests/image-builder:496bc0863a74
   interruptible: false

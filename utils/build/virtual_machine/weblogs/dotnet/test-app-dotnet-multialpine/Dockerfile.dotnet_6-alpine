@@ -3,6 +3,7 @@ ARG RUNTIME="bullseye-slim"
 # We only ship the published app in the image
 # so we only use ASPNET runtime as the base-image
 FROM mcr.microsoft.com/dotnet/aspnet:6.0-alpine AS base
+RUN apk add --no-cache curl
 WORKDIR /app
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0-alpine AS build

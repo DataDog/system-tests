@@ -510,6 +510,9 @@ patterns:
     manifests/python.yml:
         scenario_groups: null  # already handled by the manifest comparison
         libraries: python
+    utils/build/docker/python/parametric.base.Dockerfile:
+        libraries: python
+        scenarios: PARAMETRIC
     utils/build/docker/python/*:
         libraries: python
         scenario_groups: [ end_to_end, open_telemetry, integration_frameworks]
