@@ -976,6 +976,12 @@ Dynamic Instrumentation rate limits.
 
 Calls `Correlation`, `CorrelationMiddle`, and `CorrelationLeaf` in one request, pausing between the probed method exits. Used to check that snapshot sampling emits a whole probe chain together.
 
+#### GET /debugger/correlation/loop/<count>
+
+Runs a loop `count` times in one request, sleeping one second per iteration. The loop body and the line right
+after the loop are probed. Used to check that a probe emits at most one snapshot per trace, without starving a
+sibling probe in the same trace.
+
 #### GET /debugger/snapshot/capture-timeout
 
 Creates a collection containing `collectionSize` object chains. Each chain has a leaf wrapped by
