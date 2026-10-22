@@ -1,8 +1,10 @@
 import json
 import subprocess
 from pathlib import Path
+from unittest.mock import MagicMock
 
-from utils import logger
+from utils import logger, pytest
+from utils._context.containers import TestedContainer
 
 
 def get_scenario_map() -> dict[str, list[str]]:
@@ -76,3 +78,15 @@ def _execute_system_tests(
     if print_stdout:
         logger.info(result.stdout)
     assert result.returncode == expected_return_code, f"Command failed with return code {result.returncode}"
+
+
+def extra_hosts_at_start(monkeypatch: pytest.MonkeyPatch, container: TestedContainer) -> dict[str, str] | None:
+    """Start ``container`` without docker, and return the extra hosts it would be started with."""
+    started_with: list[dict[str, str] | None] = []
+
+    def fake_start(self: TestedContainer, network) -> None:  # noqa: ANN001, ARG001
+        started_with.append(self.extra_hosts)
+
+    monkeypatch.setattr(TestedContainer, "start", fake_start)
+    container.start(MagicMock())
+    return started_with[0]

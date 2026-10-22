@@ -4,7 +4,7 @@ from collections.abc import Callable
 import hashlib
 from pathlib import Path
 from typing import Any, Literal
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, PropertyMock
 
 import requests
 from utils import pytest
@@ -14,11 +14,12 @@ from utils._context.containers import ServerlessInitContainer
 from utils._context._scenarios import agentless_endtoend as agentless_endtoend_scenarios
 from utils._context._scenarios import endtoend as endtoend_scenarios
 from utils.docker_fixtures._core import HOST_GATEWAY_EXTRA_HOSTS, extra_hosts_for_environment
+from utils.mocked_backend import MockedBackendServer
+
 from utils.mocked_backend.ffe import (
     CONFIG_PATH,
     CONFIG_QUERY,
     EXPECTED_DD_ENV,
-    MockFFEAgentlessBackendServer,
     UFC_RESPONSE_TYPE,
 )
 from utils._context._scenarios.agentless_endtoend import (
@@ -31,10 +32,12 @@ from utils._context._scenarios.agentless_endtoend import (
 )
 from utils.proxy.ports import ProxyPorts
 
+from .utils import extra_hosts_at_start
+
 
 @scenarios.test_the_test
-def test_mock_ffe_agentless_backend_serves_fixture_and_tracks_metadata(worker_id: str) -> None:
-    server = MockFFEAgentlessBackendServer(worker_id=worker_id, port=0)
+def test_mock_ffe_agentless_backend_serves_fixture_and_tracks_metadata() -> None:
+    server = MockedBackendServer()
     try:
         for invalid_query in ("", "?dd_env=", "?dd_env=wrong", f"?dd_env={EXPECTED_DD_ENV}&dd_env=wrong"):
             response = requests.get(
@@ -55,20 +58,20 @@ def test_mock_ffe_agentless_backend_serves_fixture_and_tracks_metadata(worker_id
         assert payload["data"]["attributes"]["environment"]["name"] == "Test"
         assert "new-user-onboarding" in payload["data"]["attributes"]["flags"]
 
-        status = server.status()
+        status = server.ffe_get_status()
         assert status["requests_total"] == 1
         assert status["last_auth_present"] is False
         assert status["last_path"] == CONFIG_PATH
         assert status["last_status_code"] == 200
 
-        server.set_response("unauthorized")
+        server.ffe_set_response("unauthorized")
         response = requests.get(
             f"{server.base_url}{CONFIG_PATH}?{CONFIG_QUERY}",
             timeout=5,
         )
         assert response.status_code == 401
 
-        status = server.status()
+        status = server.ffe_get_status()
         assert status["requests_total"] == 2
         assert status["last_auth_present"] is False
         assert status["last_status_code"] == 401
@@ -77,26 +80,26 @@ def test_mock_ffe_agentless_backend_serves_fixture_and_tracks_metadata(worker_id
 
 
 @scenarios.test_the_test
-def test_mock_ffe_agentless_backend_host_gateway_mapping(monkeypatch: pytest.MonkeyPatch, worker_id: str) -> None:
+def test_mock_ffe_agentless_backend_host_gateway_mapping(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("SYSTEM_TESTS_MOCK_FFE_AGENTLESS_BACKEND_BASE_URL", raising=False)
     monkeypatch.delenv("SYSTEM_TESTS_MOCK_AGENTLESS_BACKEND_BASE_URL", raising=False)
     monkeypatch.delenv("SYSTEM_TESTS_MOCK_FFE_AGENTLESS_BACKEND_HOST", raising=False)
     monkeypatch.delenv("SYSTEM_TESTS_MOCK_AGENTLESS_BACKEND_HOST", raising=False)
 
-    server = MockFFEAgentlessBackendServer(worker_id=worker_id, port=0)
+    server = MockedBackendServer()
     try:
-        assert server.library_config_url.endswith(f"{CONFIG_PATH}?{CONFIG_QUERY}")
-        env = {"DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL": server.library_config_url}
+        assert server.ffe_library_config_url.endswith(f"{CONFIG_PATH}?{CONFIG_QUERY}")
+        env = {"DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL": server.ffe_library_config_url}
         assert extra_hosts_for_environment(env) == HOST_GATEWAY_EXTRA_HOSTS
     finally:
         server.close()
 
 
 @scenarios.test_the_test
-def test_mock_ffe_agentless_backend_status_is_metadata_only(worker_id: str) -> None:
-    server = MockFFEAgentlessBackendServer(worker_id=worker_id, port=0)
+def test_mock_ffe_agentless_backend_status_is_metadata_only() -> None:
+    server = MockedBackendServer()
     try:
-        status = server.status()
+        status = server.ffe_get_status()
         assert set(status) == {
             "requests_total",
             "in_flight",
@@ -115,7 +118,7 @@ def test_mock_ffe_agentless_backend_status_is_metadata_only(worker_id: str) -> N
 
 
 @scenarios.test_the_test
-def test_agentless_end_to_end_scenario_starts_backend_before_weblog() -> None:
+def test_agentless_end_to_end_scenario_starts_backend_before_weblog(monkeypatch: pytest.MonkeyPatch) -> None:
     scenario = FeatureFlaggingAgentlessEndToEndScenario("MOCK_FFE_AGENTLESS_E2E", doc="test")
 
     try:
@@ -129,7 +132,7 @@ def test_agentless_end_to_end_scenario_starts_backend_before_weblog() -> None:
         base_url = environment["DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL"]
         assert isinstance(base_url, str)
         assert base_url.endswith(f"{CONFIG_PATH}?{CONFIG_QUERY}")
-        assert scenario.weblog_infra.library_container.extra_hosts == HOST_GATEWAY_EXTRA_HOSTS
+        assert extra_hosts_at_start(monkeypatch, scenario.weblog_infra.library_container) == HOST_GATEWAY_EXTRA_HOSTS
 
         status = scenario.mock_backend_status()
         assert status is not None
@@ -508,15 +511,16 @@ def test_agentless_end_to_end_scenario_closes_backend_when_startup_fails(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     scenario = FeatureFlaggingAgentlessEndToEndScenario("MOCK_FFE_AGENTLESS_STARTUP_FAILURE", doc="test")
-    backend = MagicMock(spec=MockFFEAgentlessBackendServer)
-    backend.reset.side_effect = RuntimeError("reset failed")
+    backend = MagicMock(spec=MockedBackendServer)
+    # fails once the mock is created, while the weblog is being configured to use it
+    type(backend).ffe_library_config_url = PropertyMock(side_effect=RuntimeError("config url failed"))
 
     def create_backend() -> MagicMock:
         return backend
 
-    monkeypatch.setattr(agentless_endtoend_scenarios, "MockFFEAgentlessBackendServer", create_backend)
+    monkeypatch.setattr(agentless_endtoend_scenarios, "MockedBackendServer", create_backend)
 
-    with pytest.raises(RuntimeError, match="reset failed"):
+    with pytest.raises(RuntimeError, match="config url failed"):
         scenario.configure(MagicMock(spec=pytest.Config))
 
     backend.close.assert_called_once_with()
@@ -526,8 +530,8 @@ def test_agentless_end_to_end_scenario_closes_backend_when_startup_fails(
 @scenarios.test_the_test
 def test_agentless_end_to_end_scenario_closes_backend_when_status_fails() -> None:
     scenario = FeatureFlaggingAgentlessEndToEndScenario("MOCK_FFE_AGENTLESS_STATUS_FAILURE", doc="test")
-    backend = MagicMock(spec=MockFFEAgentlessBackendServer)
-    backend.status.side_effect = RuntimeError("status failed")
+    backend = MagicMock(spec=MockedBackendServer)
+    backend.ffe_get_status.side_effect = RuntimeError("status failed")
     scenario._mock_backend = backend  # noqa: SLF001 - focused lifecycle test
 
     with pytest.raises(RuntimeError, match="status failed"):
@@ -557,8 +561,8 @@ def test_agentless_end_to_end_scenario_persists_backend_status_for_replay(
         "last_status_code": 200,
         "status_codes": [200],
     }
-    backend = MagicMock(spec=MockFFEAgentlessBackendServer)
-    backend.status.return_value = expected_status
+    backend = MagicMock(spec=MockedBackendServer)
+    backend.ffe_get_status.return_value = expected_status
     recording_scenario._mock_backend = backend  # noqa: SLF001 - focused lifecycle test
 
     recording_scenario._stop_mock_backend()  # noqa: SLF001 - focused lifecycle test

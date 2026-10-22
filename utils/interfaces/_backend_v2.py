@@ -4,7 +4,7 @@
 
 """Mocked backend (v2) interface: owns the lifecycle of a local HTTP server that stands in for
 the real Datadog backend and records everything it receives. See
-utils/mocked_backend/backend_v2.py.
+utils/mocked_backend/_backend.py.
 """
 
 from collections.abc import Callable, Generator
@@ -13,17 +13,22 @@ from utils._logger import logger
 from utils._weblog import HttpResponse
 from utils.dd_types import DataDogAgentSpan, DataDogAgentTrace
 from utils.interfaces._core import ProxyBasedInterfaceValidator
-from utils.mocked_backend.backend_v2 import MockBackendV2Server
+from utils.mocked_backend import MockedBackendServer
 
 
 class _BackendV2InterfaceValidator(ProxyBasedInterfaceValidator):
     def __init__(self):
         super().__init__("backend_v2")
-        self._mock_server: MockBackendV2Server | None = None
+        self._mock_server: MockedBackendServer | None = None
+
+    @property
+    def server(self) -> MockedBackendServer:
+        assert self._mock_server is not None
+        return self._mock_server
 
     def start_mocked_backend(self) -> None:
         if self._mock_server is None:
-            self._mock_server = MockBackendV2Server(self.log_folder, on_message=self._on_message)
+            self._mock_server = MockedBackendServer(self.log_folder, on_message=self._on_message)
 
     def stop_mocked_backend(self) -> None:
         if self._mock_server is not None:

@@ -805,6 +805,17 @@ class LambdaProxyContainer(TestedContainer):
         logger.stdout(f"Proxied event type: {self.environment.get('LAMBDA_EVENT_TYPE')}")
 
 
+def _add_environment_extra_hosts(container: TestedContainer) -> None:
+    """Map host.docker.internal when the container's environment points to it. Done right before the
+    container starts, as scenarios may still update the environment after it is instantiated (e.g. to
+    point it to a mocked backend). On Linux docker hosts, host.docker.internal only resolves with it.
+    """
+    container.extra_hosts = {
+        **(container.extra_hosts or {}),
+        **(extra_hosts_for_environment(container.environment) or {}),
+    } or None
+
+
 class AgentContainer(TestedContainer):
     apm_receiver_port: int = 8127
     dogstatsd_port: int = 8125
@@ -849,7 +860,6 @@ class AgentContainer(TestedContainer):
             image_name="datadog/agent:latest",
             binary_file_name="agent-image",
             environment=environment,
-            extra_hosts=extra_hosts_for_environment(environment),
             healthcheck={
                 "test": f"curl --fail --silent --show-error --max-time 2 http://localhost:{self.apm_receiver_port}/info",
                 "retries": 60,
@@ -873,6 +883,10 @@ class AgentContainer(TestedContainer):
 
         logger.stdout(f"Agent: {self.agent_version}")
         logger.stdout(f"Backend: {self.dd_site}")
+
+    def start(self, network: Network) -> Container:
+        _add_environment_extra_hosts(self)
+        return super().start(network)
 
     @property
     def dd_site(self):
@@ -1068,7 +1082,6 @@ class WeblogContainer(TestedContainer):
             image_name="system_tests/weblog",
             name="weblog",
             environment=environment,
-            extra_hosts=extra_hosts_for_environment(environment),
             volumes=volumes,
             # ddprof's perf event open is blocked by default by docker's seccomp profile
             # This is worse than the line above though prevents mmap bugs locally
@@ -1091,6 +1104,10 @@ class WeblogContainer(TestedContainer):
 
         self.weblog_variant = ""
         self._library: ComponentVersion | None = None
+
+    def start(self, network: Network) -> Container:
+        _add_environment_extra_hosts(self)
+        return super().start(network)
 
     @property
     def trace_agent_port(self):
