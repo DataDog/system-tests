@@ -51,7 +51,6 @@ REPO_ROOT = Path(__file__).parents[2]
 UFC_FIXTURE_PATH = REPO_ROOT / "tests" / "parametric" / "test_ffe" / "flags-v1.json"
 MALFORMED_UFC_BYTES = b'{"flags": ['
 UFC_RESPONSE_TYPE = "universal-flag-configuration"
-FFE_CONTROL_PATH = f"{MockBackendV2Server.CONTROL_URL_PREFIX}/ffe"
 
 
 class MockFFEAgentlessBackendStatus(TypedDict):
@@ -203,12 +202,13 @@ class MockFFEAgentlessBackendServer(MockBackendV2Server):
 
     def _ffe_configure(self) -> None:
         self.state = MockFFEAgentlessBackendState()
+        self._ffe_control_path = f"{self.CONTROL_URL_PREFIX}/ffe"
 
         self.add_handler("GET", CONFIG_PATH, self._ffe_handle_config)
 
-        self.add_handler("GET", f"{FFE_CONTROL_PATH}/status", self._ffe_handle_status)
-        self.add_handler("POST", f"{FFE_CONTROL_PATH}/responses", self._ffe_handle_control_responses)
-        self.add_handler("POST", f"{FFE_CONTROL_PATH}/reset", self._ffe_handle_control_reset)
+        self.add_handler("GET", f"{self._ffe_control_path}/status", self._ffe_handle_status)
+        self.add_handler("POST", f"{self._ffe_control_path}/responses", self._ffe_handle_control_responses)
+        self.add_handler("POST", f"{self._ffe_control_path}/reset", self._ffe_handle_control_reset)
 
     @property
     def _ffe_library_base_url(self) -> str:
@@ -228,7 +228,7 @@ class MockFFEAgentlessBackendServer(MockBackendV2Server):
         return f"{self._ffe_library_base_url}{CONFIG_PATH}?{CONFIG_QUERY}"
 
     def ffe_reset(self) -> None:
-        response = requests.post(f"{self.base_url}{FFE_CONTROL_PATH}/reset", timeout=5)
+        response = requests.post(f"{self.base_url}{self._ffe_control_path}/reset", timeout=5)
         response.raise_for_status()
 
     def ffe_set_response(self, response_id: str) -> None:
@@ -237,12 +237,12 @@ class MockFFEAgentlessBackendServer(MockBackendV2Server):
     def ffe_set_responses(self, responses: object) -> None:
         validated_responses = validate_responses(responses)
         response = requests.post(
-            f"{self.base_url}{FFE_CONTROL_PATH}/responses", json={"responses": validated_responses}, timeout=5
+            f"{self.base_url}{self._ffe_control_path}/responses", json={"responses": validated_responses}, timeout=5
         )
         response.raise_for_status()
 
     def ffe_status(self) -> MockFFEAgentlessBackendStatus:
-        response = requests.get(f"{self.base_url}{FFE_CONTROL_PATH}/status", timeout=5)
+        response = requests.get(f"{self.base_url}{self._ffe_control_path}/status", timeout=5)
         response.raise_for_status()
         return cast("MockFFEAgentlessBackendStatus", response.json())
 
