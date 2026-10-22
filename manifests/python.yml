@@ -2216,6 +2216,7 @@ manifest:
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry::test_telemetry_symdb:
     - weblog_declaration:
         aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry_Metrics: missing_feature (Guardrail metrics are not reported as events.skipped in the debugger namespace)
   tests/docker_ssi:
     - weblog_declaration:
         aiohttp: missing_feature (new weblog, tests are enabled with easy wins)

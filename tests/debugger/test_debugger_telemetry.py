@@ -3,10 +3,43 @@
 # Copyright 2021 Datadog, Inc.
 
 import tests.debugger.utils as debugger
-from utils import features, logger, scenarios, slow
+from utils import features, interfaces, logger, scenarios, slow, weblog
 from utils.telemetry import load_telemetry_json, get_lang_configs
 
 ALLOWED_ORIGINS = {"env_var", "code", "dd_config", "remote_config", "app.config", "default", "unknown"}
+
+DEBUGGER_METRICS_NAMESPACE = "debugger"
+# Namespaces that tracers used for debugger metrics before agreeing on `debugger`. The intake drops metrics sent in them.
+LEGACY_DEBUGGER_METRICS_NAMESPACES = ("live_debugger", "dynamic_instrumentation")
+METRICS_REQUEST_TYPES = ("generate-metrics", "distributions", "sketches")
+# Snapshot probes are rate limited to one snapshot per second by default, but Java and .NET use an adaptive sampler that
+# also lets a probe spend an unused budget of 16 more snapshots. A quick burst of this many hits exceeds that budget, so
+# every tracer skips events because of the probe rate limit.
+RATE_LIMIT_BURST_SIZE = 50
+
+
+def _get_metric_series(namespace: str) -> list[dict]:
+    """Return every telemetry metric series that the tracer sent in the given namespace."""
+    series_list: list[dict] = []
+    for data in interfaces.library.get_telemetry_data():
+        content = data["request"]["content"]
+        if content.get("request_type") not in METRICS_REQUEST_TYPES:
+            continue
+        payload = content["payload"]
+        series_list.extend(
+            series
+            for series in payload.get("series", [])
+            if series.get("namespace", payload.get("namespace")) == namespace
+        )
+    return series_list
+
+
+def _get_rate_limit_probe_skips() -> list[dict]:
+    return [
+        series
+        for series in _get_metric_series(DEBUGGER_METRICS_NAMESPACE)
+        if series["metric"] == "events.skipped" and "reason:rateLimitProbe" in series.get("tags", [])
+    ]
 
 
 @features.debugger
@@ -97,3 +130,52 @@ class Test_Debugger_Telemetry(debugger.BaseDebuggerTest):
     @slow
     def test_telemetry_co(self):
         self._assert(required_telemetry=["code_origin_for_spans_enabled"])
+
+
+@features.debugger
+@scenarios.debugger_telemetry
+@slow
+class Test_Debugger_Telemetry_Metrics(debugger.BaseDebuggerTest):
+    """Debugger metrics are sent through instrumentation telemetry in the `debugger` namespace shared by all tracers."""
+
+    def setup_events_skipped_rate_limit_probe(self):
+        self.initialize_weblog_remote_config()
+
+        probes = debugger.read_probes("probe_snapshot_log_line")
+        for probe in probes:
+            probe["id"] = debugger.generate_probe_id("log")
+        self.set_probes(probes)
+
+        self.send_rc_probes()
+        if not self.wait_for_all_probes(statuses=["INSTALLED"], timeout=60):
+            self.setup_failures.append("Probes did not reach INSTALLED status")
+            return
+
+        self.weblog_responses = [weblog.get("/debugger/log") for _ in range(RATE_LIMIT_BURST_SIZE)]
+
+        # Telemetry metrics are flushed periodically, so wait for the skipped events to be reported. A missing metric is
+        # reported by the test itself, together with whatever debugger metrics were sent in a legacy namespace.
+        interfaces.library.wait_for(lambda _: len(_get_rate_limit_probe_skips()) > 0, timeout=60)
+
+    def test_events_skipped_rate_limit_probe(self):
+        self.assert_setup_ok()
+        self.assert_rc_state_not_error()
+        self.assert_all_weblog_responses_ok()
+
+        legacy_metrics = {
+            namespace: sorted({series["metric"] for series in _get_metric_series(namespace)})
+            for namespace in LEGACY_DEBUGGER_METRICS_NAMESPACES
+        }
+        legacy_metrics = {namespace: metrics for namespace, metrics in legacy_metrics.items() if metrics}
+        assert not legacy_metrics, (
+            f"Debugger metrics must be sent in the {DEBUGGER_METRICS_NAMESPACE!r} namespace, got {legacy_metrics}"
+        )
+
+        skips = _get_rate_limit_probe_skips()
+        assert skips, (
+            f"No events.skipped metric tagged reason:rateLimitProbe in the {DEBUGGER_METRICS_NAMESPACE!r} namespace, "
+            f"even though the probe was hit {RATE_LIMIT_BURST_SIZE} times in a row"
+        )
+        for series in skips:
+            assert series["type"] == "count", f"events.skipped must be a count metric, got {series['type']!r}"
+        assert sum(point[1] for series in skips for point in series["points"]) > 0
