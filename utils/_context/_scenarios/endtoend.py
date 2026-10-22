@@ -22,15 +22,13 @@ from utils._context.containers import (
     BuddyContainer,
     MsSqlServerContainer,
     TestedContainer,
+    FAKE_DD_API_KEY,
 )
 from utils._context.weblog_infrastructure import EndToEndWeblogInfra
 from utils._context.constants import WeblogCategory
 from utils._logger import logger
 
 from .core import Scenario, ScenarioGroup, scenario_groups as all_scenario_groups
-
-# fake key of length 32
-FAKE_DD_API_KEY = "0123456789abcdef0123456789abcdef"
 
 
 class DockerScenario(Scenario):
