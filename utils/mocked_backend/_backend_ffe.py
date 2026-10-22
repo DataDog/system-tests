@@ -15,10 +15,8 @@ import os
 from pathlib import Path
 import threading
 import time
-from typing import TYPE_CHECKING, TypedDict, cast
+from typing import TYPE_CHECKING, TypedDict
 from urllib.parse import parse_qs, urlencode, urlparse
-
-import requests
 
 from ._utils import CONTROL_URL_PREFIX
 
@@ -225,25 +223,6 @@ class MockedBackendServerFfeMixin(_Base):
     @property
     def ffe_library_config_url(self) -> str:
         return f"{self._ffe_library_base_url}{CONFIG_PATH}?{CONFIG_QUERY}"
-
-    def ffe_reset(self) -> None:
-        response = requests.post(f"{self.base_url}{self._ffe_control_path}/reset", timeout=5)
-        response.raise_for_status()
-
-    def ffe_set_response(self, response_id: str) -> None:
-        self.ffe_set_responses([response_id])
-
-    def ffe_set_responses(self, responses: object) -> None:
-        validated_responses = validate_responses(responses)
-        response = requests.post(
-            f"{self.base_url}{self._ffe_control_path}/responses", json={"responses": validated_responses}, timeout=5
-        )
-        response.raise_for_status()
-
-    def ffe_get_status(self) -> MockedBackendFFEStatus:
-        response = requests.get(f"{self.base_url}{self._ffe_control_path}/status", timeout=5)
-        response.raise_for_status()
-        return cast("MockedBackendFFEStatus", response.json())
 
     def _ffe_handle_status(self, request: MockBackendV2RequestHandler, _: bytes | dict | None) -> tuple[Mapping, bytes]:
         return request.write_json(HTTPStatus.OK, self._ffe_state.status())

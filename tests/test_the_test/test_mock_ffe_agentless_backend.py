@@ -58,20 +58,20 @@ def test_mock_ffe_agentless_backend_serves_fixture_and_tracks_metadata() -> None
         assert payload["data"]["attributes"]["environment"]["name"] == "Test"
         assert "new-user-onboarding" in payload["data"]["attributes"]["flags"]
 
-        status = server.ffe_get_status()
+        status = server.client.ffe_get_status()
         assert status["requests_total"] == 1
         assert status["observed_dd_api_key"] is None
         assert status["last_path"] == CONFIG_PATH
         assert status["last_status_code"] == 200
 
-        server.ffe_set_response("unauthorized")
+        server.client.ffe_set_response("unauthorized")
         response = requests.get(
             f"{server.base_url}{CONFIG_PATH}?{CONFIG_QUERY}",
             timeout=5,
         )
         assert response.status_code == 401
 
-        status = server.ffe_get_status()
+        status = server.client.ffe_get_status()
         assert status["requests_total"] == 2
         assert status["observed_dd_api_key"] is None
         assert status["last_status_code"] == 401
@@ -99,7 +99,7 @@ def test_mock_ffe_agentless_backend_host_gateway_mapping(monkeypatch: pytest.Mon
 def test_mock_ffe_agentless_backend_status_is_metadata_only() -> None:
     server = MockedBackendServer()
     try:
-        status = server.ffe_get_status()
+        status = server.client.ffe_get_status()
         assert set(status) == {
             "requests_total",
             "in_flight",
@@ -527,7 +527,7 @@ def test_agentless_end_to_end_scenario_closes_backend_when_status_fails(
     monkeypatch.chdir(tmp_path)
     scenario = FeatureFlaggingAgentlessEndToEndScenario("MOCK_FFE_AGENTLESS_STATUS_FAILURE", doc="test")
     backend = MagicMock(spec=MockedBackendServer)
-    backend.ffe_get_status.side_effect = RuntimeError("status failed")
+    backend.client.ffe_get_status.side_effect = RuntimeError("status failed")
     monkeypatch.setattr(interfaces.backend_v2, "_mock_server", backend)
 
     with pytest.raises(RuntimeError, match="status failed"):
@@ -557,7 +557,7 @@ def test_agentless_end_to_end_scenario_persists_backend_status_for_replay(
         "status_codes": [200],
     }
     backend = MagicMock(spec=MockedBackendServer)
-    backend.ffe_get_status.return_value = expected_status
+    backend.client.ffe_get_status.return_value = expected_status
     monkeypatch.setattr(interfaces.backend_v2, "_mock_server", backend)
 
     recording_scenario._stop_mocked_backend_v2()  # noqa: SLF001 - focused lifecycle test
