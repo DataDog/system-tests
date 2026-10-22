@@ -79,7 +79,6 @@ class Test_OTEL_SDK_DISABLED:
         [
             {
                 "OTEL_SDK_DISABLED": "true",
-                "DD_TRACE_OTEL_ENABLED": None,
                 "DD_METRICS_OTEL_ENABLED": "true",
                 "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": "http/protobuf",
             }
@@ -98,7 +97,6 @@ class Test_OTEL_SDK_DISABLED:
         [
             {
                 "OTEL_SDK_DISABLED": "true",
-                "DD_TRACE_OTEL_ENABLED": None,
                 "DD_LOGS_OTEL_ENABLED": "true",
                 "OTEL_EXPORTER_OTLP_LOGS_PROTOCOL": "http/protobuf",
             }
@@ -120,7 +118,6 @@ class Test_OTEL_SDK_DISABLED:
         [
             {
                 "OTEL_SDK_DISABLED": "true",
-                "DD_TRACE_OTEL_ENABLED": None,
                 "OTEL_TRACES_EXPORTER": "otlp",
                 "OTEL_EXPORTER_OTLP_TRACES_PROTOCOL": "http/protobuf",
             }
@@ -181,7 +178,6 @@ class Test_OTEL_SDK_DISABLED:
         [
             {
                 "OTEL_SDK_DISABLED": "true",
-                "DD_TRACE_OTEL_ENABLED": None,
                 "DD_TRACE_ENABLED": None,
             }
         ],
@@ -200,7 +196,6 @@ class Test_OTEL_SDK_DISABLED:
         [
             {
                 "OTEL_SDK_DISABLED": "true",
-                "DD_TRACE_OTEL_ENABLED": None,
                 "DD_TRACE_ENABLED": "true",
             }
         ],
