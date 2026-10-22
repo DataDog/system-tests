@@ -46,7 +46,14 @@ def _decode_content(raw_body: bytes, content_encoding: str) -> bytes:
     return raw_body
 
 
-class MockBackendV2ServerHandlerInterface(ABC, ThreadingHTTPServer):
+# We need to do some shenanigans to avoid circular import:
+#
+# * MockBackendV2RequestHandler needs to know MockedBackendV2Server
+# * MockedBackendV2Server needs to know MockBackendV2RequestHandler
+#
+# So we extract the part of MockedBackendV2Server that needs to be known by MockBackendV2RequestHandler
+# in this "core" class
+class MockedBackendServerCore(ABC, ThreadingHTTPServer):
     on_message: Callable[[dict], None]
 
     @abstractmethod
@@ -54,7 +61,7 @@ class MockBackendV2ServerHandlerInterface(ABC, ThreadingHTTPServer):
 
 
 class MockBackendV2RequestHandler(BaseHTTPRequestHandler):
-    server: MockBackendV2ServerHandlerInterface
+    server: MockedBackendServerCore
     _data: dict  # use to store request and response info
 
     # catch response events

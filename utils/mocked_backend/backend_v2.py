@@ -17,13 +17,13 @@ from typing import TYPE_CHECKING
 from utils._logger import logger
 from utils.docker_fixtures._core import HOST_DOCKER_INTERNAL
 
-from ._request_handler import MockBackendV2ServerHandlerInterface, MockBackendV2RequestHandler, HttpMethod, RouteHandler
+from ._request_handler import MockedBackendServerCore, MockBackendV2RequestHandler, HttpMethod, RouteHandler
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping
 
 
-class MockBackendV2Server(MockBackendV2ServerHandlerInterface):
+class MockBackendV2Server(MockedBackendServerCore):
     """Base HTTP server for every mocked backend, and, used as-is, a local HTTP server standing in
     for the Datadog backend API: it binds on every interface (not just loopback) so containers can
     reach it through host.docker.internal, runs requests on daemon threads, starts itself on its
