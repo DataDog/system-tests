@@ -201,7 +201,7 @@ class MockFFEAgentlessBackendServer(MockBackendV2Server):
         self._ffe_configure()
 
     def _ffe_configure(self) -> None:
-        self.state = MockFFEAgentlessBackendState()
+        self._ffe_state = MockFFEAgentlessBackendState()
         self._ffe_control_path = f"{self.CONTROL_URL_PREFIX}/ffe"
 
         self.add_handler("GET", CONFIG_PATH, self._ffe_handle_config)
@@ -247,7 +247,7 @@ class MockFFEAgentlessBackendServer(MockBackendV2Server):
         return cast("MockFFEAgentlessBackendStatus", response.json())
 
     def _ffe_handle_status(self, request: MockBackendV2RequestHandler, _: bytes | dict | None) -> tuple[Mapping, bytes]:
-        return request.write_json(HTTPStatus.OK, self.state.status())
+        return request.write_json(HTTPStatus.OK, self._ffe_state.status())
 
     def _ffe_handle_config(
         self, request: MockBackendV2RequestHandler, _: bytes | dict | None
@@ -260,20 +260,20 @@ class MockFFEAgentlessBackendServer(MockBackendV2Server):
 
     def _ffe_handle_config_exec(self, request: MockBackendV2RequestHandler) -> tuple[bytes, bytes]:
         request_headers = dict(request.headers)
-        response = self.state.record_request(request_headers, request.path)
+        response = self._ffe_state.record_request(request_headers, request.path)
         try:
             if response in {"delayed_valid", "timeout"}:
                 time.sleep(TIMEOUT_RESPONSE_SECONDS if response == "timeout" else DELAYED_RESPONSE_SECONDS)
 
             status_code, body, headers = _response_for_response(response)
-            self.state.record_response(status_code)
+            self._ffe_state.record_response(status_code)
             with contextlib.suppress(BrokenPipeError, ConnectionResetError):
                 request.send_response(status_code)
                 for key, value in headers.items():
                     request.send_header(key, value)
 
         finally:
-            self.state.finish_request()
+            self._ffe_state.finish_request()
 
         return body, body
 
@@ -293,14 +293,14 @@ class MockFFEAgentlessBackendServer(MockBackendV2Server):
         except ValueError as error:
             return request.write_json(HTTPStatus.BAD_REQUEST, {"error": str(error)})
 
-        self.state.set_responses(validated_responses)
-        return request.write_json(HTTPStatus.OK, self.state.status())
+        self._ffe_state.set_responses(validated_responses)
+        return request.write_json(HTTPStatus.OK, self._ffe_state.status())
 
     def _ffe_handle_control_reset(
         self, request: MockBackendV2RequestHandler, _: bytes | dict | None
     ) -> tuple[Mapping, bytes]:
-        self.state.reset()
-        return request.write_json(HTTPStatus.OK, self.state.status())
+        self._ffe_state.reset()
+        return request.write_json(HTTPStatus.OK, self._ffe_state.status())
 
 
 @pytest.fixture
