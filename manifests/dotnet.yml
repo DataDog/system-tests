@@ -1185,6 +1185,7 @@ manifest:
       component_version: <3.55.0
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: '>=3.36.0'  # Modified by easy win activation script
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_flag_evaluation: missing_feature  # Created by easy win activation script
+  tests/parametric/test_ffe/test_rules_configuration.py: missing_feature (Standalone rules configuration helpers are currently tested only in Node.js)
   tests/parametric/test_ffe/test_serial_id_metadata.py: missing_feature
   tests/parametric/test_ffe/test_span_enrichment.py: '>=3.54.0'  # TODO: a lower version might be supported
   tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Child_Span_Propagation: missing_feature
