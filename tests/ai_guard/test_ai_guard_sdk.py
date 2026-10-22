@@ -541,19 +541,25 @@ def _span_tag(span: DataDogLibrarySpan, key: str) -> object | None:
     return None
 
 
-def _assert_redacted_tag(span: DataDogLibrarySpan, *, expected: bool) -> None:
-    """The ai_guard.redacted span tag must state whether the evaluation redacted anything."""
-    raw = _span_tag(span, REDACTED_TAG)
-    assert raw is not None, f"'{REDACTED_TAG}' not set on the ai_guard span"
+def _assert_boolean_tag(span: DataDogLibrarySpan, key: str, *, expected: bool) -> None:
+    """A boolean span tag, whether the tracer wrote it to meta or to metrics, must have the expected value."""
+    raw = _span_tag(span, key)
+    assert raw is not None, f"'{key}' not set on the ai_guard span"
     if isinstance(raw, (int, float)) and not isinstance(raw, bool):
-        # A tracer reporting the tag as a metric uses exactly 1 or 0: the tag is a boolean, so
-        # any other number is a bug rather than a truthy value to be coerced.
-        assert raw in (0, 1), f"'{REDACTED_TAG}' reported as a metric should be 1 or 0, got '{raw}'"
+        # A tracer reporting the tag as a metric uses exactly 1 or 0 (decoded as 1.0 or 0.0, metrics
+        # being float64): the tag is a boolean, so any other number is a bug rather than a truthy
+        # value to be coerced.
+        assert raw in (0, 1), f"'{key}' reported as a metric should be 1 or 0, got '{raw}'"
         actual: bool | str = raw == 1
     else:
-        assert isinstance(raw, (bool, str)), f"'{REDACTED_TAG}' should be a boolean or a string, got '{raw}'"
+        assert isinstance(raw, (bool, str)), f"'{key}' should be a boolean or a string, got '{raw}'"
         actual = raw
-    assert is_same_boolean(actual=actual, expected=expected), f"'{REDACTED_TAG}' should be '{expected}', got '{actual}'"
+    assert is_same_boolean(actual=actual, expected=expected), f"'{key}' should be '{expected}', got '{actual}'"
+
+
+def _assert_redacted_tag(span: DataDogLibrarySpan, *, expected: bool) -> None:
+    """The ai_guard.redacted span tag must state whether the evaluation redacted anything."""
+    _assert_boolean_tag(span, REDACTED_TAG, expected=expected)
 
 
 def _assert_redaction_scenario(scenario: dict):
@@ -1323,8 +1329,7 @@ def _assert_scalar_extra_tag(span: DataDogLibrarySpan, key: str, expected: str |
     raw = _span_tag(span, key)
     assert raw is not None, f"Extra tag '{key}' not set on the ai_guard span (meta: {span.get('meta')})"
     if isinstance(expected, bool):
-        assert isinstance(raw, (bool, int, str)), f"Extra tag '{key}' should be a boolean, got '{raw}'"
-        assert is_same_boolean(actual=raw, expected=expected), f"Extra tag '{key}' should be '{expected}', got '{raw}'"
+        _assert_boolean_tag(span, key, expected=expected)
     elif isinstance(expected, (int, float)):
         assert isinstance(raw, (int, float, str)), f"Extra tag '{key}' should be a number, got '{raw}'"
         assert float(raw) == expected, f"Extra tag '{key}' should be '{expected}', got '{raw}'"
