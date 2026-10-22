@@ -12,13 +12,12 @@ import pytest
 from utils import interfaces
 from utils._context.containers import ServerlessInitContainer, TestedContainer
 from utils._context.docker import get_docker_client
-from utils.docker_fixtures._core import extra_hosts_for_environment
 from utils._logger import logger
 from utils._weblog import weblog
+from utils.mocked_backend import MockedBackendServer
 from utils.mocked_backend.ffe import (
     EXPECTED_API_KEY,
-    MockFFEAgentlessBackendServer,
-    MockFFEAgentlessBackendStatus,
+    MockedBackendFFEStatus,
 )
 from utils.proxy.ports import ProxyPorts
 
@@ -70,8 +69,8 @@ class AgentlessEndToEndScenario(DdTraceEndToEndScenario):
     _default_scenario_groups: tuple[ScenarioGroup, ...] = ()  # exclude those scenario from tracer_release
     _mock_backend_status_filename = "mock_agentless_backend_status.json"
 
-    _mock_backend: MockFFEAgentlessBackendServer | None = None
-    _last_mock_backend_status: MockFFEAgentlessBackendStatus | None = None
+    _mock_backend: MockedBackendServer | None = None
+    _last_mock_backend_status: MockedBackendFFEStatus | None = None
 
     def __init__(
         self,
@@ -111,19 +110,17 @@ class AgentlessEndToEndScenario(DdTraceEndToEndScenario):
     def _start_mock_backend(self) -> None:
         assert self._mock_backend is None, "mock FFE agentless backend is already running"
 
-        self._mock_backend = MockFFEAgentlessBackendServer()
-        self._mock_backend.reset()
+        self._mock_backend = MockedBackendServer()
 
         environment = self.weblog_infra.library_container.environment
         environment |= {
             "DD_API_KEY": EXPECTED_API_KEY,
-            "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL": self._mock_backend.library_config_url,
+            "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL": self._mock_backend.ffe_library_config_url,
         }
-        self.weblog_infra.library_container.extra_hosts = extra_hosts_for_environment(environment)
 
-    def mock_backend_status(self) -> MockFFEAgentlessBackendStatus | None:
+    def mock_backend_status(self) -> MockedBackendFFEStatus | None:
         if self._mock_backend is not None:
-            return self._mock_backend.status()
+            return self._mock_backend.ffe_get_status()
         return self._last_mock_backend_status
 
     @property
@@ -132,7 +129,7 @@ class AgentlessEndToEndScenario(DdTraceEndToEndScenario):
 
     def _load_mock_backend_status(self) -> None:
         self._last_mock_backend_status = cast(
-            "MockFFEAgentlessBackendStatus",
+            "MockedBackendFFEStatus",
             json.loads(self._mock_backend_status_path.read_text(encoding="utf-8")),
         )
 
@@ -144,7 +141,7 @@ class AgentlessEndToEndScenario(DdTraceEndToEndScenario):
         self._mock_backend = None
         try:
             if persist_status:
-                self._last_mock_backend_status = backend.status()
+                self._last_mock_backend_status = backend.ffe_get_status()
                 self._mock_backend_status_path.parent.mkdir(parents=True, exist_ok=True)
                 self._mock_backend_status_path.write_text(
                     json.dumps(self._last_mock_backend_status, indent=2) + "\n",
