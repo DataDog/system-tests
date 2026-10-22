@@ -31,49 +31,22 @@ Framework mock-backend and lifecycle tests stay in `tests/test_the_test/`.
 
 ## Bounds and overload coverage
 
-The consented context tests exercise field count and string length separately.
-At the 256-field limit, every valid field must survive unchanged. Above the
-limit, SDKs may retain any valid subset or omit evaluation context entirely to
-bound capture work; map iteration order is not part of the contract. Both cases
-require the correct flag result, consented identity, and exact evaluation count.
-The value case stays below the field-count cap, so that cap cannot hide a missing
-string-length check. Missing in-limit context and truncated, rather than omitted,
-oversized strings fail.
+With full-data consent, the context tests require all 256 valid attributes to
+survive unchanged at the field-count limit. Over-limit contexts may retain an
+unchanged subset of at most 256 attributes or be omitted entirely. A separate
+string-length test requires oversized values to be omitted while valid fields survive.
 
-The high-cardinality workload runs in its own scenario:
+Run the high-cardinality accounting test in its dedicated scenario:
 
 ```sh
-./run.sh FEATURE_FLAGGING_EVP_STRESS --library php -F tests/ffe/test_flag_eval_evp.py
+./run.sh FEATURE_FLAGGING_EVP_STRESS --library <language> -F tests/ffe/test_flag_eval_evp.py
 ```
 
-Do not add other evaluation workloads to this scenario: drop counters are
-process-wide, not flag-scoped. It checks that delivered evaluation counts plus
-reported capacity drops equal 12,000 attempted evaluations. It rejects missing
-accounting, total loss, serialization/delivery failures, and invalid counters.
-Degradation counts are not drops: degraded evaluations are already included in
-the delivered count. This is an overload-accounting test, not a lossless-delivery
-or throughput guarantee. Normal count and aggregation tests still require
-lossless delivery.
-
-The accepted drop counters are `flagevaluation.rows.dropped` (SDK submission)
-and `flagevaluation.evaluations.dropped` (native writer), in `tracers` or `general`
-telemetry namespaces. Only `pre_queue_overflow`, `queue_overflow`, `degraded_cap`,
-and `payload_limit` reasons count as capacity drops. A new SDK counter convention
-needs explicit coverage here, not an inferred allowance for missing evaluations.
-
-The external workload does not guarantee degradation: SDK flush windows can
-split it before the per-flag cap is reached. Exact cap-boundary proof belongs in
-SDK/native tests with synchronous enqueueing. PHP's pinned libdatadog has
-`coalescer_degrades_after_per_flag_cap` in `libdd-ffe`, which verifies 10,000 full
-rows plus 50 degraded evaluations. No production timing override is used.
-
-This replaces the two-window degradation workload from
-[PR #8133](https://github.com/DataDog/system-tests/pull/8133), retaining its short
-numeric targeting keys to stay within weblog request-body limits. Doubling the
-workload handles one flush boundary, but does not guarantee degradation when a
-slow request spans more windows. The isolated accounting test therefore keeps
-12,000 evaluations and validates both full and degraded rows without requiring
-degradation to occur.
+Keep this scenario limited to one evaluation workload: its drop counters are
+process-wide. Delivered evaluation counts (including degraded delivery) plus
+accepted reported drops must equal attempted evaluations, and some delivery is
+required. See the [accounting helper](utils/evp.py) for accepted counters and validation.
+Periodic flushes may prevent degradation, so the test does not require it to occur.
 
 ---
 
