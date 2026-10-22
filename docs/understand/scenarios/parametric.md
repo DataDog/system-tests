@@ -224,7 +224,7 @@ Not all endpoint implementations per language are up to spec with regards to the
 
 Options use the Node helper's names (`distributionChannel`, `apiKey`, `clientToken`, `env`, `site`, `timeoutMs`). The test-only `abort` option supplies an already-aborted signal; `abortAfterMs` cancels an in-flight operation after the specified delay. `SYSTEM_TESTS_FFE_RULES_BASE_URL` routes the helper's custom Fetch transport to the mock backend, preserving paths, queries, headers, and redirect/cancellation options. No browser handoff is performed.
 
-The shared `mocked_backend` fixture serves these protobuf responses from `utils/mocked_backend/_backend_ffe.py`. On the server distribution endpoint, `Accept: application/protobuf` selects protobuf; existing agentless provider tests continue to receive JSON. Use `ffe_set_response` or `ffe_set_responses` to configure failures and `ffe_get_requests` to inspect paths, queries, and headers without including fixture control traffic.
+The shared `mocked_backend` fixture serves these protobuf responses from `utils/mocked_backend/_backend_ffe.py`. On the server distribution endpoint, `Accept: application/protobuf` selects protobuf; existing agentless provider tests continue to receive JSON. Use `ffe_set_response` or `ffe_set_responses` with `response_format="protobuf"` to configure these responses; the default format is JSON. Each format has an independent response timeline, and controls reject response IDs unsupported by the selected format. `ffe_reset` resets both timelines and the shared request history. Use `ffe_get_requests` to inspect paths, queries, and headers without including fixture control traffic.
 
 #### Effective OpenTelemetry configuration
 

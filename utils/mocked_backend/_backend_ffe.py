@@ -1,9 +1,10 @@
 """FFE JSON and protobuf delivery for agentless providers and standalone configuration helpers.
 
 Tests configure the response timeline with ``mocked_backend.ffe_set_response(...)`` or
-``mocked_backend.ffe_set_responses([...])`` before starting the test library. They can
-then call ``mocked_backend.ffe_get_status()`` to assert request counts, auth, ETag, response
-codes, and paths observed by the mock server.
+``mocked_backend.ffe_set_responses([...])`` before starting the test library. Controls
+default to JSON; use ``response_format="protobuf"`` for an independent protobuf timeline.
+``mocked_backend.ffe_get_status()`` reports request counts, auth, ETag, response codes,
+and paths observed across both formats.
 """
 
 from __future__ import annotations
@@ -17,7 +18,7 @@ from pathlib import Path
 import socket
 import threading
 import time
-from typing import TYPE_CHECKING, TypedDict, cast
+from typing import TYPE_CHECKING, Literal, TypedDict, cast
 from urllib.parse import parse_qs, urlencode, urlparse
 
 import requests
@@ -33,25 +34,35 @@ if TYPE_CHECKING:
 else:
     _Base = object
 
-VALID_RESPONSE_IDS = frozenset(
-    {
-        "valid",
-        "unauthorized",
-        "malformed",
-        "not_modified",
-        "server_error",
-        "delayed_valid",
-        "timeout",
-        "forbidden",
-        "redirect",
-        "empty",
-        "wrong_content_type",
-        "delayed",
-        "delayed_body",
-        "disconnect",
-        "truncated_body",
-    }
-)
+ResponseFormat = Literal["json", "protobuf"]
+VALID_RESPONSE_IDS: dict[ResponseFormat, frozenset[str]] = {
+    "json": frozenset(
+        {
+            "valid",
+            "unauthorized",
+            "malformed",
+            "not_modified",
+            "server_error",
+            "delayed_valid",
+            "timeout",
+        }
+    ),
+    "protobuf": frozenset(
+        {
+            "valid",
+            "malformed",
+            "server_error",
+            "forbidden",
+            "redirect",
+            "empty",
+            "wrong_content_type",
+            "delayed",
+            "delayed_body",
+            "disconnect",
+            "truncated_body",
+        }
+    ),
+}
 DEFAULT_RESPONSE = "valid"
 UFC_ETAG = '"ufc-v1"'
 DELAYED_RESPONSE_SECONDS = 1.5
@@ -98,7 +109,7 @@ class MockedBackendFFEStatus(TypedDict):
 class _MockedBackendFFEState:
     def __init__(self) -> None:
         self._lock = threading.Lock()
-        self.responses = [DEFAULT_RESPONSE]
+        self.responses = {response_format: [DEFAULT_RESPONSE] for response_format in VALID_RESPONSE_IDS}
         self.requests_total = 0
         self.in_flight = 0
         self.max_in_flight = 0
@@ -111,7 +122,7 @@ class _MockedBackendFFEState:
 
     def reset(self) -> None:
         with self._lock:
-            self.responses = [DEFAULT_RESPONSE]
+            self.responses = {response_format: [DEFAULT_RESPONSE] for response_format in VALID_RESPONSE_IDS}
             self.requests_total = 0
             self.in_flight = 0
             self.max_in_flight = 0
@@ -122,15 +133,15 @@ class _MockedBackendFFEState:
             self.status_codes = []
             self.requests = []
 
-    def set_responses(self, responses: object) -> None:
-        validated_responses = validate_responses(responses)
+    def set_responses(self, responses: object, response_format: ResponseFormat) -> None:
+        validated_responses = validate_responses(responses, response_format)
         with self._lock:
-            self.responses = list(validated_responses)
+            self.responses[response_format] = list(validated_responses)
             self.last_if_none_match = None
             self.last_status_code = None
             self.status_codes = []
 
-    def record_request(self, headers: Mapping[str, str], path: str) -> str:
+    def record_request(self, headers: Mapping[str, str], path: str, response_format: ResponseFormat) -> str:
         parsed = urlparse(path)
         normalized_headers = {key.lower(): value for key, value in headers.items()}
 
@@ -142,9 +153,10 @@ class _MockedBackendFFEState:
             self.last_if_none_match = normalized_headers.get("if-none-match")
             self.observed_dd_api_key = _get_dd_api_key(headers)
             self.requests.append({"path": path, "headers": normalized_headers})
-            response = self.responses[0]
-            if len(self.responses) > 1:
-                self.responses.pop(0)
+            responses = self.responses[response_format]
+            response = responses[0]
+            if len(responses) > 1:
+                responses.pop(0)
             return response
 
     def record_response(self, status_code: int) -> None:
@@ -192,16 +204,25 @@ def _valid_ufc_bytes() -> bytes:
     ).encode("utf-8")
 
 
-def validate_responses(responses: object) -> list[str]:
+def _validate_response_format(response_format: object) -> ResponseFormat:
+    if response_format not in ("json", "protobuf"):
+        raise ValueError("response_format must be json or protobuf")
+    return cast("ResponseFormat", response_format)
+
+
+def validate_responses(responses: object, response_format: ResponseFormat = "json") -> list[str]:
+    response_format = _validate_response_format(response_format)
     if not isinstance(responses, list) or not responses:
         raise ValueError("responses must be a non-empty list")
 
     if any(not isinstance(response, str) for response in responses):
         raise ValueError("responses must contain only strings")
 
-    unknown_responses = sorted({response for response in responses if response not in VALID_RESPONSE_IDS})
+    unknown_responses = sorted(
+        {response for response in responses if response not in VALID_RESPONSE_IDS[response_format]}
+    )
     if unknown_responses:
-        raise ValueError(f"unknown response: {', '.join(unknown_responses)}")
+        raise ValueError(f"unsupported {response_format} response: {', '.join(unknown_responses)}")
 
     return responses
 
@@ -215,7 +236,9 @@ def _response_for_response(response: str) -> tuple[int, bytes, dict[str, str]]:
         return HTTPStatus.NOT_MODIFIED, b"", {"ETag": UFC_ETAG}
     if response == "server_error":
         return HTTPStatus.INTERNAL_SERVER_ERROR, b"", {}
-    return HTTPStatus.OK, _valid_ufc_bytes(), {"Content-Type": "application/json", "ETag": UFC_ETAG}
+    if response in {"valid", "delayed_valid", "timeout"}:
+        return HTTPStatus.OK, _valid_ufc_bytes(), {"Content-Type": "application/json", "ETag": UFC_ETAG}
+    raise ValueError(f"Unsupported JSON response: {response}")
 
 
 def _strip_config_path(url: str) -> str:
@@ -272,13 +295,15 @@ class MockedBackendServerFfeMixin(_Base):
         response = requests.post(f"{self.base_url}{self._ffe_control_path}/reset", timeout=5)
         response.raise_for_status()
 
-    def ffe_set_response(self, response_id: str) -> None:
-        self.ffe_set_responses([response_id])
+    def ffe_set_response(self, response_id: str, *, response_format: ResponseFormat = "json") -> None:
+        self.ffe_set_responses([response_id], response_format=response_format)
 
-    def ffe_set_responses(self, responses: object) -> None:
-        validated_responses = validate_responses(responses)
+    def ffe_set_responses(self, responses: object, *, response_format: ResponseFormat = "json") -> None:
+        validated_responses = validate_responses(responses, response_format)
         response = requests.post(
-            f"{self.base_url}{self._ffe_control_path}/responses", json={"responses": validated_responses}, timeout=5
+            f"{self.base_url}{self._ffe_control_path}/responses",
+            json={"responses": validated_responses, "response_format": response_format},
+            timeout=5,
         )
         response.raise_for_status()
 
@@ -304,7 +329,7 @@ class MockedBackendServerFfeMixin(_Base):
 
     def _ffe_handle_config_exec(self, request: MockBackendV2RequestHandler) -> tuple[bytes, bytes]:
         request_headers = dict(request.headers)
-        response = self._ffe_state.record_request(request_headers, request.path)
+        response = self._ffe_state.record_request(request_headers, request.path, "json")
         try:
             if response in {"delayed_valid", "timeout"}:
                 time.sleep(TIMEOUT_RESPONSE_SECONDS if response == "timeout" else DELAYED_RESPONSE_SECONDS)
@@ -324,7 +349,7 @@ class MockedBackendServerFfeMixin(_Base):
     def _ffe_handle_rules_config(
         self, request: MockBackendV2RequestHandler, _: bytes | dict | None
     ) -> tuple[bytes, bytes]:
-        response = self._ffe_state.record_request(dict(request.headers), request.path)
+        response = self._ffe_state.record_request(dict(request.headers), request.path, "protobuf")
         try:
             status = HTTPStatus.OK
             wire_fixture = load_rules_wire_fixture()
@@ -376,16 +401,18 @@ class MockedBackendServerFfeMixin(_Base):
         if content_length > MAX_CONTROL_BODY_BYTES:
             return request.write_json(HTTPStatus.BAD_REQUEST, {"error": "control body too large"})
 
-        if not isinstance(payload, dict) or set(payload) != {"responses"}:
-            return request.write_json(HTTPStatus.BAD_REQUEST, {"error": "control body must contain only responses"})
+        if not isinstance(payload, dict) or set(payload) not in ({"responses"}, {"responses", "response_format"}):
+            return request.write_json(
+                HTTPStatus.BAD_REQUEST, {"error": "control body must contain responses and optional response_format"}
+            )
 
         responses = payload["responses"]
         try:
-            validated_responses = validate_responses(responses)
+            response_format = _validate_response_format(payload.get("response_format", "json"))
+            self._ffe_state.set_responses(responses, response_format)
         except ValueError as error:
             return request.write_json(HTTPStatus.BAD_REQUEST, {"error": str(error)})
 
-        self._ffe_state.set_responses(validated_responses)
         return request.write_json(HTTPStatus.OK, self._ffe_state.status())
 
     def _ffe_handle_control_reset(
