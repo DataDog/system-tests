@@ -32,6 +32,8 @@ from utils._context._scenarios.agentless_endtoend import (
 )
 from utils.proxy.ports import ProxyPorts
 
+from .utils import extra_hosts_at_start
+
 
 @scenarios.test_the_test
 def test_mock_ffe_agentless_backend_serves_fixture_and_tracks_metadata() -> None:
@@ -116,7 +118,7 @@ def test_mock_ffe_agentless_backend_status_is_metadata_only() -> None:
 
 
 @scenarios.test_the_test
-def test_agentless_end_to_end_scenario_starts_backend_before_weblog() -> None:
+def test_agentless_end_to_end_scenario_starts_backend_before_weblog(monkeypatch: pytest.MonkeyPatch) -> None:
     scenario = FeatureFlaggingAgentlessEndToEndScenario("MOCK_FFE_AGENTLESS_E2E", doc="test")
 
     try:
@@ -130,7 +132,7 @@ def test_agentless_end_to_end_scenario_starts_backend_before_weblog() -> None:
         base_url = environment["DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL"]
         assert isinstance(base_url, str)
         assert base_url.endswith(f"{CONFIG_PATH}?{CONFIG_QUERY}")
-        assert scenario.weblog_infra.library_container.extra_hosts == HOST_GATEWAY_EXTRA_HOSTS
+        assert extra_hosts_at_start(monkeypatch, scenario.weblog_infra.library_container) == HOST_GATEWAY_EXTRA_HOSTS
 
         status = scenario.mock_backend_status()
         assert status is not None

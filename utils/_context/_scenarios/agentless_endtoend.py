@@ -12,7 +12,6 @@ import pytest
 from utils import interfaces
 from utils._context.containers import ServerlessInitContainer, TestedContainer
 from utils._context.docker import get_docker_client
-from utils.docker_fixtures._core import extra_hosts_for_environment
 from utils._logger import logger
 from utils._weblog import weblog
 from utils.mocked_backend import MockedBackendServer
@@ -118,7 +117,6 @@ class AgentlessEndToEndScenario(DdTraceEndToEndScenario):
             "DD_API_KEY": EXPECTED_API_KEY,
             "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL": self._mock_backend.ffe_library_config_url,
         }
-        self.weblog_infra.library_container.extra_hosts = extra_hosts_for_environment(environment)
 
     def mock_backend_status(self) -> MockedBackendFFEStatus | None:
         if self._mock_backend is not None:
