@@ -1,4 +1,4 @@
-"""Unit coverage for MockedBackendServer (utils.mocked_backend.backend_v2)."""
+"""Unit coverage for MockedBackendServer (utils.mocked_backend)."""
 
 import gzip
 import json
