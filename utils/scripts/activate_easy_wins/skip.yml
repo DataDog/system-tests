@@ -3,3 +3,6 @@
 
 "nodejs":
   - tests/test_telemetry.py::Test_DependencyEnable::test_app_dependency_loaded_not_sent_dependency_collection_disabled
+
+"rust":
+  - tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_true_disables_otlp_traces_export
