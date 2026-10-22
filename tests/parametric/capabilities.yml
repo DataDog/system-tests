@@ -165,3 +165,6 @@ capabilities:
     base:
       - APM_TRACING_SAMPLE_RATE
       - APM_TRACING_SAMPLE_RULES
+
+    '>0.5.2':
+      - APM_TRACING_ENABLED

@@ -238,10 +238,10 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_trace_sampling_rules_override_env: '>=0.4.1-dev+926c77a'  # Created by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_trace_sampling_rules_override_rate: '>=0.4.1-dev+926c77a'  # Created by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_trace_sampling_rules_with_tags: '>=0.4.1-dev+926c77a'  # Created by easy win activation script
-  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_capability_tracing_enabled: missing_feature  # Created by easy win activation script
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_capability_tracing_enabled: '>0.5.2'
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_default_capability_completeness: '>=0.4.1-dev+926c77a'
-  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_tracing_client_tracing_disable_one_way: missing_feature  # Created by easy win activation script
-  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_tracing_client_tracing_enabled: missing_feature  # Created by easy win activation script
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_tracing_client_tracing_disable_one_way: missing_feature (remote config is not polled when DD_TRACE_ENABLED=false)
+  tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled::test_tracing_client_tracing_enabled: '>0.5.2'
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1::test_apply_state: '>=0.4.1-dev+926c77a'  # Created by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1::test_log_injection_enabled: '>=0.4.1-dev+926c77a'  # Created by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1::test_trace_sampling_rate_override_default: '>=0.4.1-dev+926c77a'  # Created by easy win activation script
@@ -253,7 +253,10 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_capability_tracing_http_header_tags: missing_feature
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_capability_tracing_logs_injection: missing_feature
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_tracing_client_tracing_tags: missing_feature
-  tests/parametric/test_dynamic_configuration.py::Test_DynamicConfigSdkConfiguration: missing_feature (SDK_CONFIGURATION capability not yet implemented)
+  tests/parametric/test_dynamic_configuration.py::Test_DynamicConfigSdkConfiguration::test_capability_sdk_configuration: missing_feature (SDK_CONFIGURATION capability not yet implemented)
+  tests/parametric/test_dynamic_configuration.py::Test_DynamicConfigSdkConfiguration::test_sdk_config_field_is_applied: missing_feature (SDK_CONFIGURATION capability not yet implemented)
+  tests/parametric/test_dynamic_configuration.py::Test_DynamicConfigSdkConfiguration::test_sdk_config_profiling_enabled: missing_feature (SDK_CONFIGURATION capability not yet implemented)
+  tests/parametric/test_dynamic_configuration.py::Test_DynamicConfigSdkConfiguration::test_sdk_config_tracing_enabled_matches_lib_config: '>0.5.2'
   tests/parametric/test_extract_behavior.py: '>=0.4.1-dev'
   tests/parametric/test_ffe/test_configuration_sources.py: irrelevant (rust is not in scope for v1 agentless server SDK configuration-source coverage)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: '>=0.5.3-dev+fd1307f'  # TODO: a lower version might be supported
