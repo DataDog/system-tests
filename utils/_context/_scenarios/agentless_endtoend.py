@@ -122,7 +122,7 @@ class AgentlessEndToEndScenario(DdTraceEndToEndScenario):
 
     def mock_backend_status(self) -> MockedBackendFFEStatus | None:
         if self._mock_backend is not None:
-            return self._mock_backend.ffe_status()
+            return self._mock_backend.ffe_get_status()
         return self._last_mock_backend_status
 
     @property
@@ -143,7 +143,7 @@ class AgentlessEndToEndScenario(DdTraceEndToEndScenario):
         self._mock_backend = None
         try:
             if persist_status:
-                self._last_mock_backend_status = backend.ffe_status()
+                self._last_mock_backend_status = backend.ffe_get_status()
                 self._mock_backend_status_path.parent.mkdir(parents=True, exist_ok=True)
                 self._mock_backend_status_path.write_text(
                     json.dumps(self._last_mock_backend_status, indent=2) + "\n",

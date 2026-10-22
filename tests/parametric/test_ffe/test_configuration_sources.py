@@ -126,7 +126,7 @@ def _wait_for_status(
 ) -> MockedBackendFFEStatus:
     last_status: MockedBackendFFEStatus | None = None
     for _ in range(MOCK_STATUS_ATTEMPTS):
-        last_status = mocked_backend.ffe_status()
+        last_status = mocked_backend.ffe_get_status()
         if predicate(last_status):
             return last_status
         time.sleep(MOCK_STATUS_INTERVAL_SECONDS)
@@ -143,7 +143,7 @@ def _assert_no_mock_requests(mocked_backend: MockedBackendServer) -> None:
     # Seven samples span more than the configured one-second polling interval, so an
     # incorrect eager poll cannot occur just after this assertion and before provider access.
     for _ in range(NO_MOCK_REQUEST_ATTEMPTS):
-        status = mocked_backend.ffe_status()
+        status = mocked_backend.ffe_get_status()
         assert status["requests_total"] == 0, f"unexpected mock FFE agentless backend request: status={status}"
         time.sleep(MOCK_STATUS_INTERVAL_SECONDS)
 
@@ -737,7 +737,7 @@ class Test_Feature_Flag_Configuration_Source_Warm_State_Preservation:
         assert test_library.ffe_start(), "failed to start FFE provider before malformed_warm"
         _assert_expected_value(_evaluate(test_library))
 
-        requests_before = mocked_backend.ffe_status()["requests_total"]
+        requests_before = mocked_backend.ffe_get_status()["requests_total"]
         mocked_backend.ffe_set_response("malformed")
         _wait_for_status(
             mocked_backend,
@@ -745,7 +745,7 @@ class Test_Feature_Flag_Configuration_Source_Warm_State_Preservation:
             "malformed_warm response",
         )
         _assert_expected_value(_evaluate(test_library))
-        assert mocked_backend.ffe_status()["last_path"] == CONFIG_PATH
+        assert mocked_backend.ffe_get_status()["last_path"] == CONFIG_PATH
 
 
 @scenarios.parametric
@@ -774,7 +774,7 @@ class Test_Feature_Flag_Configuration_Source_Poller_Concurrency:
         _assert_expected_value(_evaluate(test_library))
 
         mocked_backend.ffe_set_response("delayed_valid")
-        requests_before = mocked_backend.ffe_status()["requests_total"]
+        requests_before = mocked_backend.ffe_get_status()["requests_total"]
         status = _wait_for_status(
             mocked_backend,
             lambda current: (

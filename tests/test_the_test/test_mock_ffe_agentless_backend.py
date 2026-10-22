@@ -56,7 +56,7 @@ def test_mock_ffe_agentless_backend_serves_fixture_and_tracks_metadata() -> None
         assert payload["data"]["attributes"]["environment"]["name"] == "Test"
         assert "new-user-onboarding" in payload["data"]["attributes"]["flags"]
 
-        status = server.ffe_status()
+        status = server.ffe_get_status()
         assert status["requests_total"] == 1
         assert status["last_auth_present"] is False
         assert status["last_path"] == CONFIG_PATH
@@ -69,7 +69,7 @@ def test_mock_ffe_agentless_backend_serves_fixture_and_tracks_metadata() -> None
         )
         assert response.status_code == 401
 
-        status = server.ffe_status()
+        status = server.ffe_get_status()
         assert status["requests_total"] == 2
         assert status["last_auth_present"] is False
         assert status["last_status_code"] == 401
@@ -97,7 +97,7 @@ def test_mock_ffe_agentless_backend_host_gateway_mapping(monkeypatch: pytest.Mon
 def test_mock_ffe_agentless_backend_status_is_metadata_only() -> None:
     server = MockedBackendServer()
     try:
-        status = server.ffe_status()
+        status = server.ffe_get_status()
         assert set(status) == {
             "requests_total",
             "in_flight",
@@ -559,7 +559,7 @@ def test_agentless_end_to_end_scenario_persists_backend_status_for_replay(
         "status_codes": [200],
     }
     backend = MagicMock(spec=MockedBackendServer)
-    backend.status.return_value = expected_status
+    backend.ffe_get_status.return_value = expected_status
     recording_scenario._mock_backend = backend  # noqa: SLF001 - focused lifecycle test
 
     recording_scenario._stop_mock_backend()  # noqa: SLF001 - focused lifecycle test

@@ -241,7 +241,7 @@ class MockedBackendServerFfeMixin(_Base):
         )
         response.raise_for_status()
 
-    def ffe_status(self) -> MockedBackendFFEStatus:
+    def ffe_get_status(self) -> MockedBackendFFEStatus:
         response = requests.get(f"{self.base_url}{self._ffe_control_path}/status", timeout=5)
         response.raise_for_status()
         return cast("MockedBackendFFEStatus", response.json())
