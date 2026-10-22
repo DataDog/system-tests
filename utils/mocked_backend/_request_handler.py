@@ -15,10 +15,9 @@ import zlib
 import brotli
 import zstandard
 
-from utils._logger import logger
 from utils.proxy._deserializer import deserialize
 
-from ._utils import CONTROL_URL_PREFIX
+from ._utils import CONTROL_URL_PREFIX, logger
 
 
 if TYPE_CHECKING:
