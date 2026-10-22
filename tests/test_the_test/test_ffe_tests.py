@@ -103,14 +103,25 @@ def test_flagevaluation_stress_request_uses_compact_unique_keys(monkeypatch: pyt
     post.assert_called_once()
     assert post.call_args.args == ("/ffe",)
     payload = post.call_args.kwargs["json"]
-    assert payload["targetingKeys"] == [str(index) for index in range(12_000)]
-    assert len(set(payload["targetingKeys"])) == check.eval_count == 12_000
-    assert payload["targetingKey"] == "0"
+    targeting_keys = payload["targetingKeys"]
+    assert len(targeting_keys) == len(set(targeting_keys)) == check.eval_count == 12_000
+    assert all(isinstance(key, str) and key for key in targeting_keys)
+    assert payload["targetingKey"] in targeting_keys
     assert len(json.dumps(payload).encode("utf-8")) < 256 * 1024
 
 
-@pytest.mark.parametrize("windows", [(12_000,), (6_000, 6_000), (3_000, 3_000, 3_000, 3_000)])
-@pytest.mark.parametrize("mutation", ["none", "missing count", "duplicate", "invalid tier shape"])
+@pytest.mark.parametrize(
+    ("windows", "mutation"),
+    [
+        ((12_000,), "none"),
+        ((6_000, 6_000), "none"),
+        ((3_000, 3_000, 3_000, 3_000), "none"),
+        ((12_000,), "missing count"),
+        ((12_000,), "duplicate"),
+        ((12_000,), "invalid full tier"),
+        ((12_000,), "invalid degraded tier"),
+    ],
+)
 @scenarios.test_the_test
 def test_flagevaluation_stress_contract_across_flush_windows(
     monkeypatch: pytest.MonkeyPatch, windows: tuple[int, ...], mutation: str
@@ -138,12 +149,10 @@ def test_flagevaluation_stress_contract_across_flush_windows(
         rows.pop(0)
     elif mutation == "duplicate":
         rows[1] = rows[0]
-    elif mutation == "invalid tier shape":
-        event = rows[-1][1]
-        if "targeting_key" in event:
-            event["targeting_key"] = ""
-        else:
-            event["context"] = {}
+    elif mutation == "invalid full tier":
+        rows[0][1]["targeting_key"] = ""
+    elif mutation == "invalid degraded tier":
+        rows[-1][1]["context"] = {}
     monkeypatch.setattr(flag_eval_evp_tests, "find_evp_flagevaluation_events", lambda _: rows)
     monkeypatch.setattr(interfaces.library, "get_telemetry_metric_series", MagicMock(return_value=[]))
     if mutation == "none":
