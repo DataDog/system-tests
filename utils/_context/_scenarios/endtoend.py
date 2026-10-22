@@ -26,7 +26,6 @@ from utils._context.containers import (
 from utils._context.weblog_infrastructure import EndToEndWeblogInfra
 from utils._context.constants import WeblogCategory
 from utils._logger import logger
-from utils.mocked_backend.backend_v2 import get_mocked_backend_v2_container_url
 
 from .core import Scenario, ScenarioGroup, scenario_groups as all_scenario_groups
 
@@ -275,12 +274,6 @@ class EndToEndScenario(DockerScenario):
                 "traffic to both the proxy and the mocked backend. Set use_proxy_for_agent=False."
             )
 
-        if mocked_backend_v2:
-            agent_env = dict(agent_env) if agent_env else {}
-            mocked_backend_url = get_mocked_backend_v2_container_url()
-            agent_env.setdefault("DD_DD_URL", mocked_backend_url)
-            agent_env.setdefault("DD_APM_DD_URL", mocked_backend_url)
-
         self.agent_container = AgentContainer(
             use_proxy=use_proxy_for_agent, rc_backend_enabled=rc_backend_enabled, environment=agent_env
         )
@@ -353,11 +346,15 @@ class EndToEndScenario(DockerScenario):
         if self.include_agent:
             interfaces.agent.configure(self.host_log_folder, replay=self.replay)
         interfaces.library.configure(self.host_log_folder, replay=self.replay)
-        interfaces.backend.configure(self.host_log_folder, replay=self.replay)
+        interfaces.backend_legacy.configure(self.host_log_folder, replay=self.replay)
         if self._mocked_backend_v2:
             interfaces.backend_v2.configure(self.host_log_folder, replay=self.replay)
             if not self.replay:
                 interfaces.backend_v2.start_mocked_backend()
+                mocked_backend_url = interfaces.backend_v2.server.container_url
+                self.agent_container.environment.setdefault("DD_DD_URL", mocked_backend_url)
+                self.agent_container.environment.setdefault("DD_APM_DD_URL", mocked_backend_url)
+
         interfaces.library_dotnet_managed.configure(self.host_log_folder, replay=self.replay)
         interfaces.library_stdout.configure(self.host_log_folder, replay=self.replay)
         if self.include_agent:
@@ -488,7 +485,7 @@ class EndToEndScenario(DockerScenario):
                 interfaces.agent.load_data_from_logs()
                 interfaces.agent.check_deserialization_errors()
 
-            interfaces.backend.load_data_from_logs()
+            interfaces.backend_legacy.load_data_from_logs()
 
             if self._mocked_backend_v2:
                 interfaces.backend_v2.load_data_from_logs()
@@ -517,7 +514,7 @@ class EndToEndScenario(DockerScenario):
                 self.agent_container.stop()
                 interfaces.agent.check_deserialization_errors()
 
-            self._wait_interface(interfaces.backend, 0 if is_empty_test_run else self.backend_interface_timeout)
+            self._wait_interface(interfaces.backend_legacy, 0 if is_empty_test_run else self.backend_interface_timeout)
 
             if self.include_opentelemetry:
                 self._wait_interface(

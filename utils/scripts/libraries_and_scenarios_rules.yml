@@ -321,9 +321,15 @@ patterns:
     utils/interfaces/_library/*:
         scenario_groups: [end_to_end, open_telemetry]
 
+    utils/mocked_backend/_backend_ffe.py:
+        scenario_groups: agentless
+        scenarios: PARAMETRIC
     utils/mocked_backend/ffe.py:
         scenario_groups: agentless
         scenarios: PARAMETRIC
+    utils/mocked_backend/*:  # generic mocked backend, also used by interfaces.backend_v2
+        scenario_groups: agentless
+        scenarios: [PARAMETRIC, APM_TRACING_E2E_OTEL, APM_TRACING_E2E_SINGLE_SPAN]
 
     utils/_context/virtual_machine.py:
         scenario_groups: onboarding
