@@ -353,7 +353,7 @@ class EndToEndScenario(DockerScenario):
         if self.include_agent:
             interfaces.agent.configure(self.host_log_folder, replay=self.replay)
         interfaces.library.configure(self.host_log_folder, replay=self.replay)
-        interfaces.backend.configure(self.host_log_folder, replay=self.replay)
+        interfaces.backend_legacy.configure(self.host_log_folder, replay=self.replay)
         if self._mocked_backend_v2:
             interfaces.backend_v2.configure(self.host_log_folder, replay=self.replay)
             if not self.replay:
@@ -488,7 +488,7 @@ class EndToEndScenario(DockerScenario):
                 interfaces.agent.load_data_from_logs()
                 interfaces.agent.check_deserialization_errors()
 
-            interfaces.backend.load_data_from_logs()
+            interfaces.backend_legacy.load_data_from_logs()
 
             if self._mocked_backend_v2:
                 interfaces.backend_v2.load_data_from_logs()
@@ -517,7 +517,7 @@ class EndToEndScenario(DockerScenario):
                 self.agent_container.stop()
                 interfaces.agent.check_deserialization_errors()
 
-            self._wait_interface(interfaces.backend, 0 if is_empty_test_run else self.backend_interface_timeout)
+            self._wait_interface(interfaces.backend_legacy, 0 if is_empty_test_run else self.backend_interface_timeout)
 
             if self.include_opentelemetry:
                 self._wait_interface(
