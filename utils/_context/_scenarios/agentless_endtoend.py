@@ -91,19 +91,15 @@ class AgentlessEndToEndScenario(DdTraceEndToEndScenario):
         )
 
     def configure(self, config: pytest.Config) -> None:
-        try:
-            if self.replay:
-                self._load_mock_backend_status()
-            else:
-                self._last_mock_backend_status = None
+        if self.replay:
+            self._load_mock_backend_status()
+        else:
+            self._last_mock_backend_status = None
 
-            super().configure(config)
+        super().configure(config)
 
-            if not self.replay:
-                self._point_weblog_to_mocked_backend()
-        except BaseException:
-            interfaces.backend_v2.stop_mocked_backend()
-            raise
+        if not self.replay:
+            self._point_weblog_to_mocked_backend()
 
     def _point_weblog_to_mocked_backend(self) -> None:
         """Make the tested library fetch its agentless configuration from the mocked backend, started
@@ -220,14 +216,10 @@ class FeatureFlaggingAgentlessEndToEndScenario(AgentlessEndToEndScenario):
                 self.weblog_infra.library_container.environment.pop(env_name, None)
 
     def configure(self, config: pytest.Config) -> None:
-        try:
-            super().configure(config)
-            if self.exposure_egress is not None:
-                interfaces.datadog_sidecar.configure(self.host_log_folder, replay=self.replay)
-                interfaces.datadog_direct.configure(self.host_log_folder, replay=self.replay)
-        except BaseException:
-            interfaces.backend_v2.stop_mocked_backend()
-            raise
+        super().configure(config)
+        if self.exposure_egress is not None:
+            interfaces.datadog_sidecar.configure(self.host_log_folder, replay=self.replay)
+            interfaces.datadog_direct.configure(self.host_log_folder, replay=self.replay)
 
     @property
     def serverless_init_container(self) -> ServerlessInitContainer:

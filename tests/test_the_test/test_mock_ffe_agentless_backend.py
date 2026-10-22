@@ -521,27 +521,6 @@ def test_direct_evp_shutdown_probe_uses_sigterm_without_explicit_flush(
 
 
 @scenarios.test_the_test
-def test_agentless_end_to_end_scenario_closes_backend_when_startup_fails(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    scenario = FeatureFlaggingAgentlessEndToEndScenario("MOCK_FFE_AGENTLESS_STARTUP_FAILURE", doc="test")
-    backend = MagicMock(spec=MockedBackendServer)
-
-    def failing_configure(_self: object, _config: pytest.Config) -> None:
-        # the parent scenario starts the mocked backend, then something else fails
-        monkeypatch.setattr(interfaces.backend_v2, "_mock_server", backend)
-        raise RuntimeError("configure failed")
-
-    monkeypatch.setattr(endtoend_scenarios.DdTraceEndToEndScenario, "configure", failing_configure)
-
-    with pytest.raises(RuntimeError, match="configure failed"):
-        scenario.configure(MagicMock(spec=pytest.Config))
-
-    backend.close.assert_called_once_with()
-    assert not interfaces.backend_v2.is_mocked_backend_running
-
-
-@scenarios.test_the_test
 def test_agentless_end_to_end_scenario_closes_backend_when_status_fails(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
