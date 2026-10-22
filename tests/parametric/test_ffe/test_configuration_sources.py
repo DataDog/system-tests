@@ -32,7 +32,7 @@ from utils.mocked_backend.ffe import (
 )
 
 parametrize = pytest.mark.parametrize
-pytest_plugins = ["utils.mocked_backend.ffe"]
+pytest_plugins = ["utils.mocked_backend"]
 
 UFC_VALID_FIXTURE = Path(__file__).parent / "flags-v1.json"
 RC_PRODUCT = "FFE_FLAGS"

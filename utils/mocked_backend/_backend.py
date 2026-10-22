@@ -4,8 +4,6 @@ mocked backend standing in for the real Datadog backend API used by ``interfaces
 
 Used directly, its only job is to record every request it receives into the interface's log folder
 (``logs/interfaces/backend_v2``), the same way every other interface persists what it observes.
-Other mocked backends (e.g. ``utils.mocked_backend.ffe``) extend it and pass their own
-``request_handler_cls`` to add their own request handling.
 """
 
 from __future__ import annotations
@@ -34,9 +32,7 @@ class MockedBackendServer(MockedBackendServerFfeMixin, MockedBackendServerCore):
     own ``request_handler_cls`` and override that handler's do_GET/do_POST/do_PUT.
     """
 
-    DEFAULT_PORT = 4900
-
-    """Prefix of every endpoint that controls the mock rather than mimicking the real backend."""
+    _DEFAULT_PORT = 4900
 
     daemon_threads = True
     thread_name = "mock-backend-v2"
@@ -46,7 +42,7 @@ class MockedBackendServer(MockedBackendServerFfeMixin, MockedBackendServerCore):
         log_folder: str | None = None,
         on_message: Callable[[dict], None] | None = None,
         *,
-        port: int = DEFAULT_PORT,
+        port: int = _DEFAULT_PORT,
     ) -> None:
         super().__init__(("0.0.0.0", port), MockBackendV2RequestHandler)  # noqa: S104
         self.log_folder = log_folder
