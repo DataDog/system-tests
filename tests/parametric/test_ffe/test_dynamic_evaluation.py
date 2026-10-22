@@ -33,36 +33,17 @@ def _load_ufc_fixture() -> dict[str, Any]:
         return json.load(f)
 
 
-def _contains_flag_evaluation(value: object) -> bool:
-    if isinstance(value, dict):
-        return "flagEvaluation" in value or any(_contains_flag_evaluation(child) for child in value.values())
-    if isinstance(value, list):
-        return any(_contains_flag_evaluation(child) for child in value)
-    return False
-
-
-def _get_test_case_files(ufc: dict[str, Any]) -> tuple[list[str], list[str]]:
-    """Partition canonical cases by evaluator capability without naming fixture files."""
+def _get_test_case_files() -> list[str]:
+    """Get all canonical evaluation case files."""
     case_files = sorted(path.name for path in FFE_EVALUATION_CASES_DIR.glob("*.json"))
     if not case_files:
         raise FileNotFoundError(f"No canonical evaluation cases found in {FFE_EVALUATION_CASES_DIR}")
-
-    ordinary: list[str] = []
-    dependent: list[str] = []
-    flags = ufc["flags"]
-    for case_file in case_files:
-        with (FFE_EVALUATION_CASES_DIR / case_file).open() as fixture_file:
-            cases = json.load(fixture_file)
-        destination = (
-            dependent if any(_contains_flag_evaluation(flags.get(case["flag"], {})) for case in cases) else ordinary
-        )
-        destination.append(case_file)
-    return ordinary, dependent
+    return case_files
 
 
 # Load fixture at module level for reuse across tests
 UFC_FIXTURE_DATA = _load_ufc_fixture()
-ORDINARY_TEST_CASE_FILES, DEPENDENT_TEST_CASE_FILES = _get_test_case_files(UFC_FIXTURE_DATA)
+ALL_TEST_CASE_FILES = _get_test_case_files()
 
 DEFAULT_ENVVARS = {
     "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
@@ -161,12 +142,10 @@ class Test_Feature_Flag_Dynamic_Evaluation:
         assert apply_state["apply_state"] == RemoteConfigApplyState.ACKNOWLEDGED.value
         assert apply_state["product"] == RC_PRODUCT
 
-    def _assert_evaluation_cases(
-        self,
-        test_case_file: str,
-        test_agent: TestAgentAPI,
-        test_library: APMLibrary,
-    ) -> None:
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @parametrize("test_case_file", ALL_TEST_CASE_FILES)
+    def test_ffe_flag_evaluation(self, test_case_file: str, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        """Test every expected result field present in each canonical fixture case."""
         # Load the test case file
         test_case_path = FFE_EVALUATION_CASES_DIR / test_case_file
 
@@ -215,17 +194,3 @@ class Test_Feature_Flag_Dynamic_Evaluation:
                 assert result.get("errorCode") in {None, ""}, (
                     f"Test case {i} in {test_case_file}: unexpected evaluation error; result={result}"
                 )
-
-    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    @parametrize("test_case_file", ORDINARY_TEST_CASE_FILES)
-    def test_ffe_flag_evaluation(self, test_case_file: str, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
-        """Test every expected result field present in each canonical fixture case."""
-        self._assert_evaluation_cases(test_case_file, test_agent, test_library)
-
-    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    @parametrize("test_case_file", DEPENDENT_TEST_CASE_FILES)
-    def test_ffe_dependent_flag_evaluation(
-        self, test_case_file: str, test_agent: TestAgentAPI, test_library: APMLibrary
-    ) -> None:
-        """Run canonical cases whose root flag requires dependent evaluation support."""
-        self._assert_evaluation_cases(test_case_file, test_agent, test_library)
