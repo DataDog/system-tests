@@ -8,7 +8,7 @@ from urllib.parse import parse_qs, urlsplit
 from utils import features, pytest, scenarios, slow
 from utils.docker_fixtures import ParametricTestClientApi as APMLibrary
 from utils.mocked_backend import MockedBackendServer
-from utils.mocked_backend._backend_ffe import RULES_CONFIG_PATH, RESPONSE_SECRET, load_rules_wire_fixture
+from utils.mocked_backend.ffe import RULES_CONFIG_PATH, RESPONSE_SECRET, load_rules_wire_fixture
 
 WIRE_FIXTURE = load_rules_wire_fixture()
 CLIENT_TOKEN = "system-tests-client-token"
