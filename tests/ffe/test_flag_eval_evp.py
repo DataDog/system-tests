@@ -677,8 +677,8 @@ class Test_FFE_EVP_Flagevaluation_High_Cardinality_Accounting:
         ]
         assert_flagevaluation_accounting(sum_evaluation_count(events), self.eval_count, drop_series)
 
-        # A slow run may span many flushes and never degrade. Native tests prove
-        # the exact cap; every delivered row must still have a valid tier shape.
+        # A run may span multiple flushes and never degrade.
+        # Every delivered row must still have a valid tier shape.
         for _, event in events:
             assert_event_contract(event, self.flag_key)
             if "targeting_key" not in event:
