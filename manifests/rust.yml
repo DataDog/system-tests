@@ -187,6 +187,8 @@ manifest:
       component_version: <0.5.3-dev+729aaa7
   tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED: '>=0.5.3-dev+04d96da'  # TODO: a lower version might be supported
   tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_stable_true: missing_feature
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_true_disables_otlp_logs_export: missing_feature (OTEL_SDK_DISABLED does not disable OTLP logs export)
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_true_disables_otlp_metrics_export: missing_feature (OTEL_SDK_DISABLED does not disable OTLP metrics export)
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME: v0.5.0
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_default_follows_otel_spec: irrelevant
   tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER: '>=0.5.3-dev+671276b'  # TODO: a lower version might be supported
