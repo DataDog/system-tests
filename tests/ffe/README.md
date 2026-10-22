@@ -20,12 +20,12 @@ This directory contains system tests for the Feature Flags & Experimentation (FF
 
 ## Test-contract self-tests
 
-The self-tests in `test_tests.py` validate the FFE assertions using synthetic
+The self-tests in `tests/test_the_test/test_ffe_tests.py` validate the FFE assertions using synthetic
 captures. They do not run SDKs or contact an intake. They are part of the
 `TEST_THE_TEST` scenario, which runs on every PR:
 
 ```bash
-./run.sh TEST_THE_TEST tests/ffe/test_tests.py
+./run.sh TEST_THE_TEST tests/test_the_test/test_ffe_tests.py
 ```
 Framework mock-backend and lifecycle tests stay in `tests/test_the_test/`.
 
