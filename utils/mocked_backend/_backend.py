@@ -12,12 +12,9 @@ from http import HTTPStatus
 import threading
 from typing import TYPE_CHECKING
 
-from utils._logger import logger
-from utils.docker_fixtures._core import HOST_DOCKER_INTERNAL
-
 from ._request_handler import MockedBackendServerCore, MockBackendV2RequestHandler, HttpMethod, RouteHandler
 from ._backend_ffe import MockedBackendServerFfeMixin
-from ._utils import CONTROL_URL_PREFIX
+from ._utils import CONTROL_URL_PREFIX, HOST_DOCKER_INTERNAL, logger
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping
