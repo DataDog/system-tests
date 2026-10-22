@@ -155,20 +155,26 @@ def test_runs_without_the_rest_of_utils(tmp_path: Path):
     """The mocked backend must be importable with only utils/mocked_backend and utils/proxy, and without
     pytest, so it can run in its own container.
     """
-    repo_utils = Path(__file__).parents[2] / "utils"
+    repo_root = Path(__file__).parents[2]
     (tmp_path / "utils").mkdir()  # no __init__.py: a namespace package, as in the proxy image
     for package in ("mocked_backend", "proxy"):
-        (tmp_path / "utils" / package).symlink_to(repo_utils / package)
+        (tmp_path / "utils" / package).symlink_to(repo_root / "utils" / package)
 
+    # Not `python -I`: third-party packages may come from PYTHONPATH (e.g. Nix). Instead, drop the repository
+    # from sys.path, otherwise the real utils package would be imported, and this test would always pass.
     code = (
         "import sys\n"
+        "from pathlib import Path\n"
+        f"sys.path = [p for p in sys.path if Path(p or '.').resolve() != Path({str(repo_root)!r}).resolve()]\n"
         f"sys.path.insert(0, {str(tmp_path)!r})\n"
         "sys.modules['pytest'] = sys.modules['_pytest'] = None  # importing them raises ImportError\n"
+        "import utils\n"
+        "assert getattr(utils, '__file__', None) is None, f'not the namespace package: {utils.__file__}'\n"
         "from utils.mocked_backend import MockedBackendServer\n"
         "from utils.mocked_backend.ffe import CONFIG_PATH\n"
         "server = MockedBackendServer(port=0)\n"
         "server.close()\n"
     )
-    result = subprocess.run([sys.executable, "-I", "-c", code], capture_output=True, text=True, check=False)
+    result = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, check=False, cwd=tmp_path)
 
     assert result.returncode == 0, result.stderr
