@@ -10,53 +10,20 @@ Other mocked backends (e.g. ``utils.mocked_backend.ffe``) extend it and pass the
 
 from __future__ import annotations
 
-import contextlib
-import gzip
 from http import HTTPStatus
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-import io
-import json
 import threading
-import traceback
-from typing import TYPE_CHECKING, Any, Literal
-from urllib.parse import urlsplit
-import zlib
-
-import brotli
-import zstandard
+from typing import TYPE_CHECKING
 
 from utils._logger import logger
 from utils.docker_fixtures._core import HOST_DOCKER_INTERNAL
-from utils.proxy._deserializer import deserialize
+
+from ._request_handler import MockBackendV2ServerHandlerInterface, MockBackendV2RequestHandler, HttpMethod, RouteHandler
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping
 
-    RouteHandler = Callable[["MockBackendV2RequestHandler", bytes | dict | None], tuple[list | Mapping | bytes, bytes]]
 
-HttpMethod = Literal["GET", "POST", "PUT"]
-
-
-def _decode_content(raw_body: bytes, content_encoding: str) -> bytes:
-    """Undo the request's Content-Encoding, mirroring utils.proxy.core.get_decoded_content()
-    (mitmproxy applies the same decoding transparently for the proxy interface).
-    """
-    content_encoding = content_encoding.lower()
-    if content_encoding == "gzip":
-        return gzip.decompress(raw_body)
-    if content_encoding == "deflate":
-        return zlib.decompress(raw_body)
-    if content_encoding == "br":
-        return brotli.decompress(raw_body)
-    if content_encoding == "zstd":
-        # stream_reader().read() consumes every concatenated frame, unlike decompress(),
-        # which only decodes the first one (see utils.proxy.core.get_decoded_content).
-        with zstandard.ZstdDecompressor().stream_reader(io.BytesIO(raw_body)) as reader:
-            return reader.read()
-    return raw_body
-
-
-class MockBackendV2Server(ThreadingHTTPServer):
+class MockBackendV2Server(MockBackendV2ServerHandlerInterface):
     """Base HTTP server for every mocked backend, and, used as-is, a local HTTP server standing in
     for the Datadog backend API: it binds on every interface (not just loopback) so containers can
     reach it through host.docker.internal, runs requests on daemon threads, starts itself on its
@@ -83,7 +50,7 @@ class MockBackendV2Server(ThreadingHTTPServer):
     ) -> None:
         super().__init__(("0.0.0.0", port), MockBackendV2RequestHandler)  # noqa: S104
         self.log_folder = log_folder
-        self.on_message = on_message
+        self.on_message = on_message if on_message else lambda _: None
         self.message_count = 0
         self._count_lock = threading.Lock()
         self._routes: dict[tuple[HttpMethod, str], RouteHandler] = {}
@@ -109,8 +76,19 @@ class MockBackendV2Server(ThreadingHTTPServer):
         """
         self._routes[(method, path)] = handler
 
-    def get_handler(self, method: HttpMethod, path: str) -> RouteHandler:
-        return self._routes.get((method, path), self._default_handler)
+    def get_handler(self, method: HttpMethod, path: str) -> tuple[RouteHandler, str | None, str | None]:
+        with self._count_lock:
+            message_count = self.message_count
+            self.message_count += 1
+
+        if self.log_folder:
+            log_filename = f"{self.log_folder}/{message_count:03d}_{path.replace('/', '_')}.json"
+            export_content_files_to = f"{self.log_folder}/files"
+        else:
+            log_filename = None
+            export_content_files_to = None
+
+        return self._routes.get((method, path), self._default_handler), log_filename, export_content_files_to
 
     def _default_handler(self, request: MockBackendV2RequestHandler, _: bytes | dict | None) -> tuple[Mapping, bytes]:
         return request.write_json(HTTPStatus.OK, {})
@@ -120,99 +98,3 @@ class MockBackendV2Server(ThreadingHTTPServer):
         self.shutdown()
         self.server_close()
         self._thread.join(timeout=5)
-
-
-class MockBackendV2RequestHandler(BaseHTTPRequestHandler):
-    server: MockBackendV2Server
-    _data: dict  # use to store request and response info
-
-    # catch response events
-    def send_response(self, code: int, message: str | None = None) -> None:
-        if hasattr(self, "_data"):
-            self._data["response"]["status_code"] = code
-        return super().send_response(code, message)
-
-    def send_header(self, keyword: str, value: str) -> None:
-        if hasattr(self, "_data"):
-            self._data["response"]["headers"].append((keyword, value))
-        return super().send_header(keyword, value)
-
-    def log_message(self, _format: str, *_args: object) -> None:
-        return
-
-    def write_json(self, status_code: HTTPStatus, payload: Mapping[str, Any]) -> tuple[Mapping[str, Any], bytes]:
-        with contextlib.suppress(BrokenPipeError, ConnectionResetError):
-            self.send_response(status_code)
-            self.send_header("Content-Type", "application/json")
-
-        return payload, json.dumps(payload).encode("utf-8")
-
-    def do_GET(self) -> None:
-        self._handle("GET")
-
-    def do_POST(self) -> None:
-        self._handle("POST")
-
-    def do_PUT(self) -> None:
-        self._handle("PUT")
-
-    def _handle(self, method: HttpMethod) -> None:
-        content_length = int(self.headers.get("Content-Length", "0"))
-        raw_body = self.rfile.read(content_length) if content_length else b""
-        url_parts = urlsplit(self.path)
-        path = url_parts.path
-
-        with self.server._count_lock:  # noqa: SLF001
-            message_count = self.server.message_count
-            self.server.message_count += 1
-
-        if self.server.log_folder:
-            log_filename = f"{self.server.log_folder}/{message_count:03d}_{path.replace('/', '_')}.json"
-            export_content_files_to = f"{self.server.log_folder}/files"
-        else:
-            log_filename = None
-            export_content_files_to = None
-
-        self._data: dict[str, Any] = {
-            "log_filename": log_filename,
-            "method": self.command,
-            "path": path,
-            "request": {"headers": list(self.headers.items())},
-            "response": {"headers": []},
-        }
-
-        content = None
-
-        try:
-            content = _decode_content(raw_body, self.headers.get("Content-Encoding", "")) if raw_body else None
-        except Exception:
-            self._data["request"]["raw_content"] = repr(raw_body)
-            self._data["request"]["traceback"] = traceback.format_exc()
-        else:
-            deserialize(
-                self._data,
-                key="request",
-                content=content,
-                interface="agent",
-                export_content_files_to=export_content_files_to,
-            )
-
-        handler = self.server.get_handler(method, path)
-        response, response_as_bytes = handler(self, self._data["request"].get("content", content))
-
-        self._data["response"]["content"] = str(response) if isinstance(response, bytes) else response
-
-        logger.debug(f"Mocked backend v2 received {self.command} {self.path}, logging into {log_filename}")
-
-        if log_filename:
-            with open(log_filename, mode="w", encoding="utf-8") as f:
-                json.dump(self._data, f, indent=2, default=repr)
-
-        if self.server.on_message is not None:
-            self.server.on_message(self._data)
-
-        # we need to send data AFTER we wrote the file
-        with contextlib.suppress(BrokenPipeError, ConnectionResetError):
-            self.send_header("Content-Length", str(len(response_as_bytes)))
-            self.end_headers()
-            self.wfile.write(response_as_bytes)
