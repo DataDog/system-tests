@@ -29,6 +29,9 @@ from utils._logger import logger
 
 from .core import Scenario, ScenarioGroup, scenario_groups as all_scenario_groups
 
+# fake key of length 32
+FAKE_DD_API_KEY = "0123456789abcdef0123456789abcdef"
+
 
 class DockerScenario(Scenario):
     """Scenario that tests docker containers"""
@@ -268,14 +271,24 @@ class EndToEndScenario(DockerScenario):
         self._require_api_key = require_api_key
         self._mocked_backend_v2 = mocked_backend_v2
 
-        if mocked_backend_v2 and self._use_proxy_for_agent:
-            raise ValueError(
-                "mocked_backend_v2 is not compatible with use_proxy_for_agent: the agent can't send its "
-                "traffic to both the proxy and the mocked backend. Set use_proxy_for_agent=False."
-            )
+        dd_api_key = FAKE_DD_API_KEY
+        if mocked_backend_v2:
+            if self._use_proxy_for_agent:
+                raise ValueError(
+                    "mocked_backend_v2 is not compatible with use_proxy_for_agent: the agent can't send its "
+                    "traffic to both the proxy and the mocked backend. Set use_proxy_for_agent=False."
+                )
+        else:
+            dd_api_key = os.environ.get("DD_API_KEY", FAKE_DD_API_KEY)
+
+        self.dd_api_key = dd_api_key
+        """ the API key used by the agent to send data to the backend """
 
         self.agent_container = AgentContainer(
-            use_proxy=use_proxy_for_agent, rc_backend_enabled=rc_backend_enabled, environment=agent_env
+            dd_api_key=self.dd_api_key,
+            use_proxy=use_proxy_for_agent,
+            rc_backend_enabled=rc_backend_enabled,
+            environment=agent_env,
         )
         if include_agent:
             self._containers.append(self.agent_container)
@@ -351,9 +364,10 @@ class EndToEndScenario(DockerScenario):
             interfaces.backend_v2.configure(self.host_log_folder, replay=self.replay)
             if not self.replay:
                 interfaces.backend_v2.start_mocked_backend()
-                mocked_backend_url = interfaces.backend_v2.server.container_url
-                self.agent_container.environment.setdefault("DD_DD_URL", mocked_backend_url)
-                self.agent_container.environment.setdefault("DD_APM_DD_URL", mocked_backend_url)
+                if self.include_agent:
+                    mocked_backend_url = interfaces.backend_v2.server.container_url
+                    self.agent_container.environment.setdefault("DD_DD_URL", mocked_backend_url)
+                    self.agent_container.environment.setdefault("DD_APM_DD_URL", mocked_backend_url)
 
         interfaces.library_dotnet_managed.configure(self.host_log_folder, replay=self.replay)
         interfaces.library_stdout.configure(self.host_log_folder, replay=self.replay)
@@ -403,7 +417,13 @@ class EndToEndScenario(DockerScenario):
             super().close_targets()
         finally:
             if self._mocked_backend_v2:
-                interfaces.backend_v2.stop_mocked_backend()
+                self._stop_mocked_backend_v2()
+
+    def _stop_mocked_backend_v2(self) -> None:
+        """Called once the targets are closed. Subclasses can extend it to read the mocked backend
+        state before it stops.
+        """
+        interfaces.backend_v2.stop_mocked_backend()
 
     def _set_containers_dependancies(self) -> None:
         if self._use_proxy_for_agent:

@@ -16,6 +16,7 @@ from utils._context.containers import (
     OpenTelemetryCollectorContainer,
     TestedContainer,
     WeblogContainer,
+    FAKE_DD_API_KEY,
 )
 
 
@@ -51,7 +52,7 @@ class OpenTelemetryScenario(DockerScenario):
             extra_containers=extra_containers,
         )
         if include_agent:
-            self.agent_container = AgentContainer(use_proxy=True)
+            self.agent_container = AgentContainer(dd_api_key=FAKE_DD_API_KEY, use_proxy=True)
             self._containers.append(self.agent_container)
         if include_collector:
             self.collector_container = OpenTelemetryCollectorContainer()

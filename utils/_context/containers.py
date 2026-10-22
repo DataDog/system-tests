@@ -50,7 +50,7 @@ from utils.interfaces._library.core import LibraryInterfaceValidator
 from utils.interfaces import StdoutLogsInterface, LibraryStdoutInterface
 
 # fake key of length 32
-_FAKE_DD_API_KEY = "0123456789abcdef0123456789abcdef"
+FAKE_DD_API_KEY = "0123456789abcdef0123456789abcdef"
 
 _DEFAULT_NETWORK_NAME = "system-tests_default"
 _NETWORK_NAME = "bridge" if "GITLAB_CI" in os.environ else _DEFAULT_NETWORK_NAME
@@ -674,7 +674,7 @@ class ProxyContainer(TestedContainer):
             name="proxy",
             environment={
                 "DD_SITE": os.environ.get("DD_SITE"),
-                "DD_API_KEY": os.environ.get("DD_API_KEY", _FAKE_DD_API_KEY),
+                "DD_API_KEY": os.environ.get("DD_API_KEY"),
                 "DD_APP_KEY": os.environ.get("DD_APP_KEY"),
                 "SYSTEM_TESTS_IPV6": str(enable_ipv6),
                 "SYSTEM_TESTS_MOCKED_BACKEND": str(mocked_backend),
@@ -824,6 +824,7 @@ class AgentContainer(TestedContainer):
     def __init__(
         self,
         *,
+        dd_api_key: str,
         use_proxy: bool = True,
         rc_backend_enabled: bool = False,
         environment: dict[str, str | None] | None = None,
@@ -836,7 +837,7 @@ class AgentContainer(TestedContainer):
                 "DD_SITE": self.dd_site,
                 "DD_APM_RECEIVER_PORT": str(self.apm_receiver_port),
                 "DD_DOGSTATSD_PORT": str(self.dogstatsd_port),
-                "DD_API_KEY": os.environ.get("DD_API_KEY", _FAKE_DD_API_KEY),
+                "DD_API_KEY": dd_api_key,
             }
         )
 
@@ -904,7 +905,7 @@ class ServerlessInitContainer(TestedContainer):
             name="ffe-serverless-init",
             image_name="datadog/serverless-init:1.10.4",
             environment={
-                "DD_API_KEY": _FAKE_DD_API_KEY,
+                "DD_API_KEY": FAKE_DD_API_KEY,
                 "DD_SITE": "mock-intake.invalid",
                 "DD_SERVICE": "ffe-system-tests-serverless-init",
                 "DD_ENV": "system-tests",
@@ -1310,7 +1311,7 @@ class LambdaWeblogContainer(WeblogContainer):
         environment = (environment or {}) | {
             "DD_HOSTNAME": "test",
             "DD_SITE": os.environ.get("DD_SITE", "datad0g.com"),
-            "DD_API_KEY": os.environ.get("DD_API_KEY", _FAKE_DD_API_KEY),
+            "DD_API_KEY": FAKE_DD_API_KEY,
             "DD_SERVERLESS_FLUSH_STRATEGY": "periodically,100",
             "DD_TRACE_MANAGED_SERVICES": str(trace_managed_services).lower(),
         }

@@ -4,7 +4,7 @@ from collections.abc import Callable
 import hashlib
 from pathlib import Path
 from typing import Any, Literal
-from unittest.mock import MagicMock, PropertyMock
+from unittest.mock import MagicMock
 
 import requests
 from utils import pytest
@@ -19,6 +19,7 @@ from utils.mocked_backend import MockedBackendServer
 from utils.mocked_backend.ffe import (
     CONFIG_PATH,
     CONFIG_QUERY,
+    EXPECTED_API_KEY,
     EXPECTED_DD_ENV,
     UFC_RESPONSE_TYPE,
 )
@@ -118,19 +119,31 @@ def test_mock_ffe_agentless_backend_status_is_metadata_only() -> None:
 
 
 @scenarios.test_the_test
-def test_agentless_end_to_end_scenario_starts_backend_before_weblog(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_agentless_end_to_end_scenario_points_weblog_to_mocked_backend(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.chdir(tmp_path)
     scenario = FeatureFlaggingAgentlessEndToEndScenario("MOCK_FFE_AGENTLESS_E2E", doc="test")
 
+    assert scenario.agent_container not in scenario._containers  # noqa: SLF001 - focused topology test
+    assert scenario._mocked_backend_v2  # noqa: SLF001 - uses the parent scenario mocked backend
+
+    # what the parent scenario configure() does with the interface
+    monkeypatch.setattr(interfaces.backend_v2, "log_folder", str(tmp_path / "backend_v2"), raising=False)
+    (tmp_path / "backend_v2").mkdir()
+
+    interfaces.backend_v2.start_mocked_backend()
     try:
-        assert scenario.agent_container not in scenario._containers  # noqa: SLF001 - focused topology test
-        scenario._start_mock_backend()  # noqa: SLF001 - focused lifecycle test
+        scenario._point_weblog_to_mocked_backend()  # noqa: SLF001 - focused lifecycle test
 
         environment = scenario.weblog_infra.library_container.environment
         assert "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED" not in environment
         assert "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE" not in environment
         assert "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT" not in environment
+        assert environment["DD_API_KEY"] == EXPECTED_API_KEY
         base_url = environment["DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL"]
         assert isinstance(base_url, str)
+        assert base_url == interfaces.backend_v2.server.ffe_library_config_url
         assert base_url.endswith(f"{CONFIG_PATH}?{CONFIG_QUERY}")
         assert extra_hosts_at_start(monkeypatch, scenario.weblog_infra.library_container) == HOST_GATEWAY_EXTRA_HOSTS
 
@@ -138,7 +151,9 @@ def test_agentless_end_to_end_scenario_starts_backend_before_weblog(monkeypatch:
         assert status is not None
         assert status["requests_total"] == 0
     finally:
-        scenario._stop_mock_backend()  # noqa: SLF001 - focused lifecycle test
+        scenario._stop_mocked_backend_v2()  # noqa: SLF001 - focused lifecycle test
+
+    assert not interfaces.backend_v2.is_mocked_backend_running
 
 
 @scenarios.test_the_test
@@ -512,33 +527,36 @@ def test_agentless_end_to_end_scenario_closes_backend_when_startup_fails(
 ) -> None:
     scenario = FeatureFlaggingAgentlessEndToEndScenario("MOCK_FFE_AGENTLESS_STARTUP_FAILURE", doc="test")
     backend = MagicMock(spec=MockedBackendServer)
-    # fails once the mock is created, while the weblog is being configured to use it
-    type(backend).ffe_library_config_url = PropertyMock(side_effect=RuntimeError("config url failed"))
 
-    def create_backend() -> MagicMock:
-        return backend
+    def failing_configure(_self: object, _config: pytest.Config) -> None:
+        # the parent scenario starts the mocked backend, then something else fails
+        monkeypatch.setattr(interfaces.backend_v2, "_mock_server", backend)
+        raise RuntimeError("configure failed")
 
-    monkeypatch.setattr(agentless_endtoend_scenarios, "MockedBackendServer", create_backend)
+    monkeypatch.setattr(endtoend_scenarios.DdTraceEndToEndScenario, "configure", failing_configure)
 
-    with pytest.raises(RuntimeError, match="config url failed"):
+    with pytest.raises(RuntimeError, match="configure failed"):
         scenario.configure(MagicMock(spec=pytest.Config))
 
     backend.close.assert_called_once_with()
-    assert scenario._mock_backend is None  # noqa: SLF001 - focused lifecycle test
+    assert not interfaces.backend_v2.is_mocked_backend_running
 
 
 @scenarios.test_the_test
-def test_agentless_end_to_end_scenario_closes_backend_when_status_fails() -> None:
+def test_agentless_end_to_end_scenario_closes_backend_when_status_fails(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.chdir(tmp_path)
     scenario = FeatureFlaggingAgentlessEndToEndScenario("MOCK_FFE_AGENTLESS_STATUS_FAILURE", doc="test")
     backend = MagicMock(spec=MockedBackendServer)
     backend.ffe_get_status.side_effect = RuntimeError("status failed")
-    scenario._mock_backend = backend  # noqa: SLF001 - focused lifecycle test
+    monkeypatch.setattr(interfaces.backend_v2, "_mock_server", backend)
 
     with pytest.raises(RuntimeError, match="status failed"):
-        scenario._stop_mock_backend()  # noqa: SLF001 - focused lifecycle test
+        scenario._stop_mocked_backend_v2()  # noqa: SLF001 - focused lifecycle test
 
     backend.close.assert_called_once_with()
-    assert scenario._mock_backend is None  # noqa: SLF001 - focused lifecycle test
+    assert not interfaces.backend_v2.is_mocked_backend_running
 
 
 @scenarios.test_the_test
@@ -549,7 +567,6 @@ def test_agentless_end_to_end_scenario_persists_backend_status_for_replay(
     monkeypatch.chdir(tmp_path)
 
     recording_scenario = FeatureFlaggingAgentlessEndToEndScenario("MOCK_FFE_AGENTLESS_REPLAY", doc="test")
-    recording_scenario._mock_backend_status_path.parent.mkdir()  # noqa: SLF001 - focused lifecycle test
 
     expected_status = {
         "requests_total": 1,
@@ -563,9 +580,9 @@ def test_agentless_end_to_end_scenario_persists_backend_status_for_replay(
     }
     backend = MagicMock(spec=MockedBackendServer)
     backend.ffe_get_status.return_value = expected_status
-    recording_scenario._mock_backend = backend  # noqa: SLF001 - focused lifecycle test
+    monkeypatch.setattr(interfaces.backend_v2, "_mock_server", backend)
 
-    recording_scenario._stop_mock_backend()  # noqa: SLF001 - focused lifecycle test
+    recording_scenario._stop_mocked_backend_v2()  # noqa: SLF001 - focused lifecycle test
 
     replay_scenario = FeatureFlaggingAgentlessEndToEndScenario("MOCK_FFE_AGENTLESS_REPLAY", doc="test")
     replay_scenario.replay = True

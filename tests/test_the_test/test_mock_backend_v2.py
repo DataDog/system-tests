@@ -130,3 +130,19 @@ def test_on_message_callback_is_invoked_with_the_logged_data(tmp_path: Path):
     written = json.loads(next(tmp_path.glob("*.json")).read_text())
     assert written["log_filename"] == received[0]["log_filename"]
     assert written["request"]["content"] == received[0]["request"]["content"]
+
+
+@scenarios.test_the_test
+def test_control_requests_are_not_recorded(tmp_path: Path):
+    received: list[dict] = []
+    server = MockedBackendServer(str(tmp_path), on_message=received.append, port=0)
+
+    try:
+        server.ffe_set_response("valid")
+        assert server.ffe_get_status()["requests_total"] == 0
+        requests.post(f"{server.base_url}/api/v2/series", json={"hello": "recorded"}, timeout=5)
+    finally:
+        server.close()
+
+    assert [data["path"] for data in received] == ["/api/v2/series"]
+    assert [path.name for path in tmp_path.glob("*.json")] == ["000__api_v2_series.json"]
