@@ -66,8 +66,7 @@ class _DebuggerCoordinatedSamplingTest(debugger.BaseDebuggerTest):
         probes_by_trace: dict[str, set[str]] = {}
         for probe_id in self.probe_ids:
             for snapshot in self.probe_snapshots.get(probe_id, []):
-                # Tolerate the nested dd object (Python/Node/Ruby nest) and the flat dotted
-                # key (Java/.NET/Go/Ruby dotted) for the trace id.
+                # Tracers send either a nested dd object or a flat dd.trace_id key.
                 trace_id = snapshot.get("dd", {}).get("trace_id") or snapshot.get("dd.trace_id")
                 assert trace_id, f"snapshot for probe {probe_id} is missing dd.trace_id on the wire"
                 probes_by_trace.setdefault(trace_id, set()).add(probe_id)
