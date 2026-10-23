@@ -169,7 +169,7 @@ class Test_Debugger_Probe_Budgets(debugger.BaseDebuggerTest):
             f"Span probe expression error logging should be rate-limited."
         )
 
-    def setup_per_span_budget(self):
+    def setup_per_trace_budget(self):
         self.initialize_weblog_remote_config()
 
         language = self.get_tracer()["language"]
@@ -185,20 +185,18 @@ class Test_Debugger_Probe_Budgets(debugger.BaseDebuggerTest):
         self.send_rc_probes()
         self.wait_for_all_probes(statuses=["INSTALLED"])
 
-        # The loop sleeps one second per iteration, so the time-based budget above would emit more
-        # than one snapshot while a span-scoped budget emits exactly one.
+        # The loop sleeps one second per iteration, so a time-based budget would emit more than one
+        # snapshot while a trace-scoped budget emits exactly one.
         self.send_weblog_request("/debugger/correlation/loop/3")
 
         self.wait_for_all_probes(statuses=["EMITTING"])
         self.wait_for_all_snapshots()
 
-    def test_per_span_budget(self):
-        """A probe in a loop emits one snapshot per span and does not starve a sibling probe."""
+    def test_per_trace_budget(self):
+        """A probe in a loop emits one snapshot per trace and does not starve a sibling probe."""
         self._assert()
 
-        # A single request is a single span, so every probe must have emitted exactly once.
+        # A single request is a single trace, so every probe must have emitted exactly once.
         for probe_id in self.probe_ids:
-            snapshots = [s for s in self.probe_snapshots.get(probe_id, []) if s.get("debugger", {}).get("snapshot")]
-            assert len(snapshots) == 1, (
-                f"probe {probe_id} emitted {len(snapshots)} snapshots for one span, expected exactly 1"
-            )
+            count = len(self.probe_snapshots.get(probe_id, []))
+            assert count == 1, f"probe {probe_id} emitted {count} snapshots in one trace, expected exactly 1"
