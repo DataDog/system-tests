@@ -1,0 +1,101 @@
+{
+  "$id": "/library/v1.0/traces-request.json",
+  "description": "ETP/v1 (efficient trace payload) sent by tracers to /v1.0/traces. It describes the payload as deserialized by deserialize_v1_trace (utils/proxy/traces/trace_v1.py): msgpack integer keys are replaced by their name, string references are resolved against the payload string table, attribute lists are flattened into objects, and trace ids are hex encoded",
+  "type": "object",
+  "properties": {
+    "strings": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "String table, when the tracer sends it explicitly. Streamed payloads inline strings on first use, and the deserializer rebuilds the table"
+    },
+    "container_id": { "type": "string", "description": "Container id, as reported by the tracer" },
+    "language_name": { "type": "string", "description": "Language identifier (e.g., 'go', 'python', 'java')" },
+    "language_version": { "type": "string", "description": "Language runtime version" },
+    "tracer_version": { "type": "string", "description": "Tracer library version" },
+    "runtime_id": { "type": "string", "description": "Runtime identifier" },
+    "env": { "type": "string", "description": "Environment tag from configuration" },
+    "hostname": { "type": "string", "description": "Tracer hostname from configuration" },
+    "app_version": { "type": "string", "description": "Service version from configuration" },
+    "attributes": { "$ref": "#/definitions/attributes" },
+    "chunks": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/chunk" },
+      "description": "Trace chunks: spans of a single trace sharing the same sampling decision"
+    }
+  },
+  "definitions": {
+    "chunk": {
+      "type": "object",
+      "required": ["trace_id", "spans"],
+      "properties": {
+        "trace_id": { "$ref": "#/definitions/trace-id" },
+        "spans": { "type": "array", "items": { "$ref": "#/definitions/span" } },
+        "priority": { "type": "integer", "description": "Sampling priority (SamplingPriority), from -1 to 2" },
+        "sampling_mechanism": { "type": "integer", "description": "Mechanism that made the sampling decision (SamplingMechanism)" },
+        "origin": { "type": "string", "description": "Trace origin (e.g., 'rum', 'synthetics')" },
+        "dropped_trace": { "type": "boolean", "description": "True when the chunk was dropped by the tracer sampler, and is only sent for stats computation" },
+        "attributes": { "$ref": "#/definitions/attributes" }
+      }
+    },
+    "span": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "service": { "type": "string" },
+        "name": { "type": "string" },
+        "resource": { "type": "string" },
+        "type": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+        "env": { "type": "string", "description": "v1 promotes env out of the attributes into a span field" },
+        "version": { "type": "string", "description": "v1 promotes version out of the attributes into a span field" },
+        "component": { "type": "string", "description": "v1 promotes the integration name out of the attributes into a span field" },
+        "span_id": { "type": "integer" },
+        "parent_id": { "anyOf": [{ "type": "integer" }, { "type": "null" }] },
+        "start": { "type": "integer", "minimum": 0, "description": "Span start time in nanoseconds" },
+        "duration": { "type": "integer", "minimum": 0, "description": "Span duration in nanoseconds" },
+        "error": { "type": "boolean", "description": "v1 carries the error flag as a boolean, and not as an integer like v0.4 and v0.5" },
+        "span_kind": { "type": "integer", "minimum": 0, "maximum": 5, "description": "Span kind (SpanKind), as an integer and not as a string like v0.4 and v0.5" },
+        "attributes": { "$ref": "#/definitions/attributes" },
+        "span_links": { "type": "array", "items": { "$ref": "#/definitions/span-link" } },
+        "span_events": { "type": "array", "items": { "$ref": "#/definitions/span-event" } }
+      }
+    },
+    "span-link": {
+      "type": "object",
+      "required": ["trace_id", "span_id"],
+      "properties": {
+        "trace_id": { "$ref": "#/definitions/trace-id" },
+        "span_id": { "type": "integer" },
+        "attributes": { "$ref": "#/definitions/attributes" },
+        "trace_state": {
+          "anyOf": [{ "type": "string" }, { "type": "integer" }],
+          "description": "W3C tracestate, either inlined or as an index in the string table. In the latter case, the deserializer adds the resolved value in tracestate"
+        },
+        "tracestate": { "type": "string", "description": "Resolved trace_state, added by the deserializer" },
+        "flags": { "type": "integer", "description": "W3C trace flags, with the bit 31 set when they are known" }
+      }
+    },
+    "span-event": {
+      "type": "object",
+      "required": ["name", "time_unix_nano"],
+      "properties": {
+        "name": { "type": "string" },
+        "time_unix_nano": { "type": "integer", "minimum": 0, "description": "Event timestamp in nanoseconds" },
+        "attributes": { "$ref": "#/definitions/attributes" }
+      }
+    },
+    "attributes": {
+      "type": "object",
+      "description": "Attribute map. v1 carries meta and metrics of a span in a single attributes object, and the payload and each chunk have their own attributes, shared by the spans below them. Each AnyValue has been reduced by the deserializer to a string, a boolean, a number, an array or an object, and attributes carrying serialized JSON (_dd.appsec.json, _dd.appsec.s.*, ...) are deserialized as well",
+      "properties": {
+        "_dd.appsec.json": { "type": "object" },
+        "_dd.span_links": { "type": "array" },
+        "_dd.top_level": { "type": "number", "description": "1 on top level spans, and absent otherwise" }
+      }
+    },
+    "trace-id": {
+      "type": "string",
+      "pattern": "^0x[0-9A-F]{32}$",
+      "description": "128 bits trace id. Tracers send 16 raw bytes, that the deserializer hex encodes and prefixes with 0x"
+    }
+  }
+}

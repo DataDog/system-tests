@@ -1,3 +1,4 @@
+from tests.schemas.utils.schemas_validators import SchemaValidator
 from utils import scenarios
 from utils.proxy.traces.trace_v1 import (
     V1AnyValueKeys,
@@ -332,6 +333,80 @@ def test_deserialize_v1_trace_key_value_list_attribute():
     attrs = result["chunks"][0]["spans"][0]["attributes"]
     assert "my-map" in attrs
     assert attrs["my-map"] == {"nested-key": "nested-val"}
+
+
+@scenarios.test_the_test
+def test_deserialize_v1_trace_validates_against_schema():
+    """A full featured v1 payload must validate against /library/v1.0/traces-request.json.
+
+    /v1.0/traces is only used by the APM_TRACING_EFFICIENT_PAYLOAD scenario, and SchemaValidator
+    silently skips endpoints without a schema file. This test keeps the schema in sync with what
+    deserialize_v1_trace produces, without requiring an end-to-end run.
+    """
+    trace_id = bytes(range(16))
+    content = msgpack.packb(
+        {
+            2: "container-id",
+            3: "java",
+            4: "17.0.1",
+            5: "1.42.0",
+            6: "runtime-id",
+            7: "system-tests",
+            8: "weblog-host",
+            9: "1.0.0",
+            10: ["_dd.p.tid", 1, "6666666666666666"],
+            11: [
+                {
+                    1: 2,
+                    2: "synthetics",
+                    3: ["_dd.p.dm", 1, "-3"],
+                    4: [
+                        {
+                            1: "weblog",
+                            2: "servlet.request",
+                            3: "GET /status",
+                            4: 1234567890,
+                            5: 0,
+                            6: 1700000000000000000,
+                            7: 150000,
+                            8: True,
+                            9: ["_dd.top_level", 3, 1.0, "http.status_code", 4, 500],
+                            10: "web",
+                            11: [
+                                {
+                                    1: bytes(range(16, 32)),
+                                    2: 987654321,
+                                    3: ["link-key", 1, "link-value"],
+                                    # tracestate as an index in the string table: the deserializer
+                                    # keeps trace_state, and adds the resolved value in tracestate
+                                    4: 1,
+                                    5: 2147483649,
+                                }
+                            ],
+                            12: [{1: 1700000000000000001, 2: "exception", 3: ["type", 1, "RuntimeException"]}],
+                            13: "system-tests",
+                            14: "1.0.0",
+                            15: "servlet",
+                            16: 2,
+                        }
+                    ],
+                    5: False,
+                    6: trace_id,
+                    7: 3,
+                }
+            ],
+        }
+    )
+
+    payload = deserialize_v1_trace(content)
+    data = {"path": "/v1.0/traces", "log_filename": "v1.0_traces.json", "request": {"content": payload}}
+    validator = SchemaValidator("library")
+
+    assert [error.message for error in validator.get_errors(data)] == []
+
+    # a tracer keeping the v0.4 integer error flag must be reported, and not silently ignored
+    payload["chunks"][0]["spans"][0]["error"] = 1
+    assert [error.data_path for error in validator.get_errors(data)] == ["$.chunks[].spans[].error"]
 
 
 @scenarios.test_the_test
