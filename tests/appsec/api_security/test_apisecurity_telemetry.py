@@ -29,6 +29,7 @@ FRAMEWORKS: dict[str, dict[str, str | list[str]]] = {
         "django-py3.13": "django",
         "python3.12": "django",
         "fastapi": "fastapi",
+        "aiohttp": "aiohttp",
     },
     "golang": {
         "chi": "github.com/go-chi/chi/v5",
