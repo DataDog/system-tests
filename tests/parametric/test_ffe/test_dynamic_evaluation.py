@@ -24,19 +24,6 @@ FFE_EVALUATION_CASES_DIR = FFE_SYSTEM_TEST_DATA_DIR / "evaluation-cases"
 
 parametrize = pytest.mark.parametrize
 
-CORPUS_PLATFORM_BY_LIBRARY = {
-    "cpp": "cpp",
-    "dotnet": "dotnet",
-    "golang": "golang",
-    "java": "java",
-    "nodejs": "nodejs",
-    "php": "php",
-    "python": "python",
-    "ruby": "ruby",
-    "rust": "rust",
-    "web": "web",
-}
-
 
 # Load the UFC fixture file at module level
 def _load_ufc_fixture() -> dict[str, Any]:
@@ -192,12 +179,7 @@ class Test_Feature_Flag_Dynamic_Evaluation:
         assert isinstance(test_cases, list), f"Expected an evaluation-case array in {test_case_file}"
         assert test_cases, f"No evaluation cases in {test_case_file}"
 
-        try:
-            platform = CORPUS_PLATFORM_BY_LIBRARY[context.library.name]
-        except KeyError as error:
-            raise ValueError(
-                f"No canonical FFE corpus platform for system-tests library {context.library.name!r}"
-            ) from error
+        platform = context.library.name
         test_cases = _filter_test_cases_for_platform(test_cases, platform)
         if not test_cases:
             pytest.skip(f"No cases in {test_case_file} apply to platform {platform}")
