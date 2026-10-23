@@ -1,19 +1,20 @@
-"""Build (and sign) the CI images used to run system-tests jobs.
+"""Build (and sign) the CI images used to run system-tests jobs, and the proxy image they use.
 
 Called by the ``build_ci_image*`` jobs in .gitlab-ci.yml. Computes the expected
 tags from the content of the Dockerfiles (and requirements.txt for the
 ci-runner) and checks that $CI_IMAGE (utils/ci/gitlab/main.yml) matches the
 computed ci-runner tag.
 
-The ci-runner image is multi-arch (see ``PLATFORMS``) so jobs can run on both
-amd64 and arm64 runners. docker-in-docker runners cannot build multi-platform
-images, so (like utils/base_images/build_base_images.py):
+The ci-runner and proxy images are multi-arch (see ``PLATFORMS``) so jobs can run on
+both amd64 and arm64 runners. The proxy tag is the hash of its Dockerfile, which
+utils/_context/containers.py recomputes to pull it when USE_IMAGE_MIRROR is set.
+docker-in-docker runners cannot build multi-platform images, so (like utils/base_images/build_base_images.py):
 
-* ``--platform <platform>`` natively builds and pushes ``ci-runner:<tag>-<arch>``
+* ``--platform <platform>`` natively builds and pushes ``<image>:<tag>-<arch>``
   (one CI job per architecture). The amd64 job also builds the amd64-only
   image-builder at ``image-builder:<tag>`` and signs it.
 * ``--merge`` combines the single-platform images into the multi-arch
-  ``ci-runner:<tag>`` and signs it with ddsign.
+  ``<image>:<tag>`` and signs it with ddsign.
 
 Each step skips images that are already published, so it is safe to re-run.
 
@@ -37,6 +38,9 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 DOCKER_DIR = REPO_ROOT / "utils" / "ci" / "gitlab" / "docker"
 REGISTRY = "registry.ddbuild.io/system-tests"
 BAKE_FILE = DOCKER_DIR / "docker-bake.hcl"
+# Proxy used by the system-tests scenarios. GitLab CI pulls it from REGISTRY rather than
+# docker.io, as docker.io only has an amd64 datadog/system-tests:proxy-v1.
+PROXY_DOCKERFILE = REPO_ROOT / "utils" / "build" / "docker" / "proxy.Dockerfile"
 PLATFORMS = ("linux/amd64", "linux/arm64")
 # image-builder only runs the build_ci_image* amd64 jobs, so it stays single-platform.
 IMAGE_BUILDER_PLATFORM = "linux/amd64"
@@ -124,48 +128,49 @@ def _bake(target: str, tag: str, platform: str) -> str:
     return json.loads(Path(metadata_path).read_text())[target]["containerimage.digest"]
 
 
-def build_platform(platform: str, image_builder: str, ci_runner: str) -> None:
+def build_platform(platform: str, image_builder: str, multi_arch_images: dict[str, str]) -> None:
     if platform == IMAGE_BUILDER_PLATFORM:
         if _image_exists(image_builder):
             print(f"Image {image_builder} already exists, skipping build")  # noqa: T201
         else:
             _sign(image_builder, _bake("image-builder", image_builder, platform))
 
-    single_platform_tag = _platform_tag(ci_runner, platform)
-    if platform in _index_platforms(ci_runner):
-        print(f"Image {ci_runner} already exists for {platform}, skipping build")  # noqa: T201
-    elif _image_exists(single_platform_tag):
-        print(f"Image {single_platform_tag} already exists, skipping build")  # noqa: T201
-    else:
-        # Signed by --merge, which runs on a runner that has ddsign.
-        _bake("ci-runner", single_platform_tag, platform)
+    for target, image in multi_arch_images.items():
+        single_platform_tag = _platform_tag(image, platform)
+        if platform in _index_platforms(image):
+            print(f"Image {image} already exists for {platform}, skipping build")  # noqa: T201
+        elif _image_exists(single_platform_tag):
+            print(f"Image {single_platform_tag} already exists, skipping build")  # noqa: T201
+        else:
+            # Signed by --merge, which runs on a runner that has ddsign.
+            _bake(target, single_platform_tag, platform)
 
 
-def merge_platforms(ci_runner: str) -> None:
-    if _index_platforms(ci_runner) >= set(PLATFORMS):
-        print(f"Image {ci_runner} already exists for {', '.join(PLATFORMS)}, skipping merge")  # noqa: T201
+def merge_platforms(image: str) -> None:
+    if _index_platforms(image) >= set(PLATFORMS):
+        print(f"Image {image} already exists for {', '.join(PLATFORMS)}, skipping merge")  # noqa: T201
         return
 
-    sources = [_platform_tag(ci_runner, platform) for platform in PLATFORMS]
+    sources = [_platform_tag(image, platform) for platform in PLATFORMS]
     missing = [source for source in sources if not _image_exists(source)]
     if missing:
-        print(f"❌ Cannot create {ci_runner}, single-platform image(s) not published: {', '.join(missing)}")  # noqa: T201
+        print(f"❌ Cannot create {image}, single-platform image(s) not published: {', '.join(missing)}")  # noqa: T201
         print("   Did every build_ci_image_<arch> job succeed?")  # noqa: T201
         sys.exit(1)
 
-    print(f"Creating multi-arch image {ci_runner} from {', '.join(sources)}")  # noqa: T201
-    subprocess.run(["docker", "buildx", "imagetools", "create", "--tag", ci_runner, *sources], check=True)
+    print(f"Creating multi-arch image {image} from {', '.join(sources)}")  # noqa: T201
+    subprocess.run(["docker", "buildx", "imagetools", "create", "--tag", image, *sources], check=True)
 
     # The manifest list digest is the sha256 of its raw bytes.
     raw_index = subprocess.run(
-        ["docker", "buildx", "imagetools", "inspect", "--raw", ci_runner], capture_output=True, check=True
+        ["docker", "buildx", "imagetools", "inspect", "--raw", image], capture_output=True, check=True
     ).stdout
     index = json.loads(raw_index)
 
     # Sign the manifest list and each per-platform image it references.
-    _sign(ci_runner, f"sha256:{hashlib.sha256(raw_index).hexdigest()}")
+    _sign(image, f"sha256:{hashlib.sha256(raw_index).hexdigest()}")
     for entry in index["manifests"]:
-        _sign(ci_runner, entry["digest"])
+        _sign(image, entry["digest"])
 
 
 def parse_args() -> argparse.Namespace:
@@ -174,13 +179,13 @@ def parse_args() -> argparse.Namespace:
     mode.add_argument(
         "--platform",
         choices=PLATFORMS,
-        help="Build and push the single-platform ci-runner:<tag>-<arch> (plus image-builder on "
-        f"{IMAGE_BUILDER_PLATFORM})",
+        help="Build and push the single-platform <image>:<tag>-<arch> of ci-runner and proxy (plus image-builder "
+        f"on {IMAGE_BUILDER_PLATFORM})",
     )
     mode.add_argument(
         "--merge",
         action="store_true",
-        help="Combine the already pushed single-platform images into the multi-arch ci-runner:<tag>, and sign it",
+        help="Combine the already pushed single-platform images into the multi-arch ci-runner and proxy, and sign them",
     )
     mode.add_argument(
         "--check-only",
@@ -199,10 +204,15 @@ def main() -> None:
         DOCKER_DIR / "system-tests.Dockerfile", REPO_ROOT / "requirements.txt"
     )
 
+    # Must match the tag computed by utils/_context/containers.py:_proxy_image_name
+    proxy = f"{REGISTRY}/proxy:{_sha256_tag(PROXY_DOCKERFILE)}"
+    multi_arch_images = {"ci-runner": ci_runner, "proxy": proxy}
+
     if args.platform:
-        build_platform(args.platform, image_builder, ci_runner)
+        build_platform(args.platform, image_builder, multi_arch_images)
     elif args.merge:
-        merge_platforms(ci_runner)
+        for image in multi_arch_images.values():
+            merge_platforms(image)
 
     _check_ci_image(ci_runner, ci_image)
 

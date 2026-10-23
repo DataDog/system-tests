@@ -1,4 +1,5 @@
 from abc import ABC
+import hashlib
 import os
 import platform
 import re
@@ -20,7 +21,7 @@ import requests
 
 from utils._context.component_version import ComponentVersion, Version
 from utils._context.docker import get_docker_client
-from utils._context._image_mirror import mirror_image
+from utils._context._image_mirror import mirror_enabled, mirror_image
 from utils._context.constants import ContainerPorts
 from utils.base_images.base_image import base_image_contexts
 from utils._context.weblog_metadata import WeblogMetaData
@@ -643,6 +644,20 @@ class ImageInfo:
             json.dump(self._image.attrs, f, indent=2)
 
 
+def _proxy_image_name() -> str:
+    """Return the proxy image: docker.io's amd64-only proxy-v1, or the internal multi-arch one in GitLab CI.
+
+    With USE_IMAGE_MIRROR (GitLab CI), pull the multi-arch proxy that the build_ci_image* jobs publish
+    to registry.ddbuild.io, so it also runs on arm64 runners. Its tag is the hash of proxy.Dockerfile,
+    and must match the one computed by utils/ci/gitlab/build_ci_image.py.
+    """
+    if not mirror_enabled():
+        return "datadog/system-tests:proxy-v1"
+
+    tag = hashlib.sha256(Path("utils/build/docker/proxy.Dockerfile").read_bytes()).hexdigest()[:12]
+    return f"registry.ddbuild.io/system-tests/proxy:{tag}"
+
+
 class ProxyContainer(TestedContainer):
     def __init__(
         self,
@@ -670,7 +685,7 @@ class ProxyContainer(TestedContainer):
         socket_family = "socket.AF_INET6" if enable_ipv6 else "socket.AF_INET"
 
         super().__init__(
-            image_name="datadog/system-tests:proxy-v1",
+            image_name=_proxy_image_name(),
             name="proxy",
             environment={
                 "DD_SITE": os.environ.get("DD_SITE"),

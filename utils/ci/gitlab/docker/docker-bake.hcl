@@ -3,7 +3,7 @@
 # content of each Dockerfile.
 #
 # build_ci_image.py overrides the tags and platform of each target: ci-runner is built
-# natively once per architecture, then merged into a multi-arch image.
+# natively once per architecture, then merged into a multi-arch image (as is proxy).
 
 variable "IMAGE_BUILDER_TAG" {
   default = "latest"
@@ -14,7 +14,7 @@ variable "CI_RUNNER_TAG" {
 }
 
 group "default" {
-  targets = ["image-builder", "ci-runner"]
+  targets = ["image-builder", "ci-runner", "proxy"]
 }
 
 target "_common" {
@@ -33,4 +33,10 @@ target "ci-runner" {
   inherits   = ["_common"]
   dockerfile = "utils/ci/gitlab/docker/system-tests.Dockerfile"
   tags       = ["registry.ddbuild.io/system-tests/ci-runner:${CI_RUNNER_TAG}"]
+}
+
+target "proxy" {
+  inherits   = ["_common"]
+  dockerfile = "utils/build/docker/proxy.Dockerfile"
+  tags       = ["registry.ddbuild.io/system-tests/proxy:latest"]
 }
