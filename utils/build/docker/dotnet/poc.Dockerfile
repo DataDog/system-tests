@@ -1,7 +1,7 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-app
 WORKDIR /app
 
-# Pin local SDK packages when building an unreleased implementation.
+# Pass [version] to pin local SDK packages exactly; a plain version is a minimum.
 ARG DD_TRACE_PACKAGE_VERSION=*
 ARG DD_OPENFEATURE_PACKAGE_VERSION=*
 

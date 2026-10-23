@@ -447,4 +447,4 @@ class Test_FFE_Experimentation_Opt_Out:
         captures = list(interfaces.agent.get_data(path_filters="/api/v2/flagevaluation"))
         for case in self.telemetry:
             expected = 0 if case["attributes"]["dd_evaluation_telemetry_opt_out"] else 3
-            assert_count(evaluation_count(captures, case["flag"]), expected, case["flag"])
+            assert_count(evaluation_count(captures, case["flag"], subject=case["subject"]), expected, case["flag"])
