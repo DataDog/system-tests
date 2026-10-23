@@ -71,32 +71,56 @@ func FFeEval() func(writer http.ResponseWriter, request *http.Request) {
 		}
 
 		var val any
+		var details of.EvaluationDetails
 		for _, targetingKey := range targetingKeys {
 			evalCtx := of.NewEvaluationContext(targetingKey, body.Attributes)
 			switch body.VariationType {
 			case "BOOLEAN":
 				defBool, _ := body.DefaultValue.(bool)
-				val, _ = ofClient.BooleanValue(ctx, body.Flag, defBool, evalCtx)
+				result, _ := ofClient.BooleanValueDetails(ctx, body.Flag, defBool, evalCtx)
+				val, details = result.Value, result.EvaluationDetails
 			case "STRING":
 				defStr, _ := body.DefaultValue.(string)
-				val, _ = ofClient.StringValue(ctx, body.Flag, defStr, evalCtx)
+				result, _ := ofClient.StringValueDetails(ctx, body.Flag, defStr, evalCtx)
+				val, details = result.Value, result.EvaluationDetails
 			case "INTEGER":
 				defFloat, _ := body.DefaultValue.(float64)
-				val, _ = ofClient.IntValue(ctx, body.Flag, int64(defFloat), evalCtx)
+				result, _ := ofClient.IntValueDetails(ctx, body.Flag, int64(defFloat), evalCtx)
+				val, details = result.Value, result.EvaluationDetails
 			case "NUMERIC":
 				defFloat, _ := body.DefaultValue.(float64)
-				val, _ = ofClient.FloatValue(ctx, body.Flag, defFloat, evalCtx)
+				result, _ := ofClient.FloatValueDetails(ctx, body.Flag, defFloat, evalCtx)
+				val, details = result.Value, result.EvaluationDetails
 			default:
-				val = ofClient.Object(ctx, body.Flag, body.DefaultValue, evalCtx)
+				result, _ := ofClient.ObjectValueDetails(ctx, body.Flag, body.DefaultValue, evalCtx)
+				val, details = result.Value, result.EvaluationDetails
 			}
 		}
 
 		writer.WriteHeader(http.StatusOK)
 
+		metadata := details.FlagMetadata
+		if metadata == nil {
+			metadata = of.FlagMetadata{}
+		}
+		allocationKey, _ := metadata["dd.allocation.key"].(string)
 		response := struct {
-			Value any `json:"value"`
-			Count int `json:"count"`
-		}{val, len(targetingKeys)}
+			Value         any             `json:"value"`
+			Count         int             `json:"count"`
+			Reason        of.Reason       `json:"reason"`
+			ErrorCode     of.ErrorCode    `json:"errorCode"`
+			Variant       string          `json:"variant"`
+			FlagMetadata  of.FlagMetadata `json:"flagMetadata"`
+			AllocationKey string          `json:"allocationKey,omitempty"`
+		}{
+			Value:         val,
+			Count:         len(targetingKeys),
+			Reason:        details.Reason,
+			ErrorCode:     details.ErrorCode,
+			Variant:       details.Variant,
+			FlagMetadata:  metadata,
+			AllocationKey: allocationKey,
+		}
 
 		if err := json.NewEncoder(writer).Encode(response); err != nil {
 			http.Error(writer, "failed to encode response", http.StatusInternalServerError)

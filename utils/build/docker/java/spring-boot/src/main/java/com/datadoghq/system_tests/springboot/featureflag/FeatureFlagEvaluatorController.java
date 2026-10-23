@@ -6,11 +6,12 @@ import datadog.trace.api.openfeature.Provider;
 import dev.openfeature.sdk.Client;
 import dev.openfeature.sdk.EvaluationContext;
 import dev.openfeature.sdk.FeatureProvider;
+import dev.openfeature.sdk.FlagEvaluationDetails;
 import dev.openfeature.sdk.MutableContext;
+import dev.openfeature.sdk.MutableStructure;
 import dev.openfeature.sdk.NoOpProvider;
 import dev.openfeature.sdk.OpenFeatureAPI;
 import dev.openfeature.sdk.ProviderState;
-import dev.openfeature.sdk.Structure;
 import dev.openfeature.sdk.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +24,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -67,9 +70,11 @@ public class FeatureFlagEvaluatorController {
     @PostMapping(value = "/ffe", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, Object>> evaluate(@RequestBody final EvaluateRequest request) {
         Object value;
-        String reason;
+        FlagEvaluationDetails<?> details = null;
+        String reason = "DEFAULT";
+        String errorMessage = null;
         final List<String> targetingKeys = request.getTargetingKeys() == null || request.getTargetingKeys().isEmpty()
-                ? List.of(request.getTargetingKey())
+                ? Collections.singletonList(request.getTargetingKey())
                 : request.getTargetingKeys();
         try {
             value = request.getDefaultValue();
@@ -77,65 +82,78 @@ public class FeatureFlagEvaluatorController {
                 final EvaluationContext context = context(request, targetingKey);
                 switch (request.getVariationType()) {
                     case "BOOLEAN":
-                        value = client.getBooleanValue(request.getFlag(), (Boolean) request.getDefaultValue(), context);
+                        details = client.getBooleanDetails(request.getFlag(), (Boolean) request.getDefaultValue(), context);
                         break;
                     case "STRING":
-                        value = client.getStringValue(request.getFlag(), (String) request.getDefaultValue(), context);
+                        details = client.getStringDetails(request.getFlag(), (String) request.getDefaultValue(), context);
                         break;
                     case "INTEGER":
-                        value = client.getIntegerValue(request.getFlag(), (Integer) request.getDefaultValue(), context);
+                        details = client.getIntegerDetails(request.getFlag(), ((Number) request.getDefaultValue()).intValue(), context);
                         break;
                     case "NUMERIC":
-                        final Number number = (Number) request.getDefaultValue();
-                        if (number instanceof Double) {
-                            value = client.getDoubleValue(request.getFlag(), number.doubleValue(), context);
-                        } else {
-                            value = client.getIntegerValue(request.getFlag(), number.intValue(), context);
-                        }
+                        details = client.getDoubleDetails(request.getFlag(), ((Number) request.getDefaultValue()).doubleValue(), context);
                         break;
                     case "JSON":
-                        final Value objectValue = client.getObjectValue(request.getFlag(), Value.objectToValue(request.getDefaultValue()), context);
-                        value = context.convertValue(objectValue);
+                        details = client.getObjectDetails(request.getFlag(), valueOf(request.getDefaultValue()), context);
                         break;
                     default:
-                        value = request.getDefaultValue();
+                        details = null;
+                }
+                if (details != null) {
+                    value = details.getValue() instanceof Value
+                            ? context.convertValue((Value) details.getValue())
+                            : details.getValue();
+                    reason = details.getReason();
+                    errorMessage = details.getErrorMessage();
                 }
             }
-
-            reason = "DEFAULT";
         } catch (Throwable e) {
             LOGGER.error("Error on resolution", e);
+            details = null;
             value = request.getDefaultValue();
             reason = "ERROR";
+            errorMessage = e.getMessage();
         }
+        final Map<String, Object> flagMetadata = details == null || details.getFlagMetadata() == null
+                ? Collections.emptyMap() : details.getFlagMetadata().asUnmodifiableMap();
         final Map<String, Object> result = new HashMap<>();
         result.put("reason", reason);
         result.put("value", value);
         result.put("count", targetingKeys.size());
+        result.put("errorCode", details == null || details.getErrorCode() == null ? null : details.getErrorCode().name());
+        result.put("errorMessage", errorMessage);
+        result.put("variant", details == null ? null : details.getVariant());
+        result.put("flagMetadata", flagMetadata);
+        if (flagMetadata.containsKey("allocationKey")) {
+            result.put("allocationKey", flagMetadata.get("allocationKey"));
+        }
         return ResponseEntity.ok(result);
     }
 
     private static EvaluationContext context(final EvaluateRequest request, final String targetingKey) {
-        final MutableContext context = new MutableContext();
-        context.setTargetingKey(targetingKey);
-        request.attributes.forEach((key, value) -> {
-            if (value instanceof Boolean) {
-                context.add(key, (Boolean) value);
-            } else if (value instanceof Integer) {
-                context.add(key, (Integer) value);
-            } else if (value instanceof Double) {
-                context.add(key, (Double) value);
-            } else if (value instanceof String) {
-                context.add(key, (String) value);
-            } else if (value instanceof Map) {
-                context.add(key, Value.objectToValue(value).asStructure());
-            } else if (value instanceof List) {
-                context.add(key, Value.objectToValue(value).asList());
-            } else {
-                context.add(key, (Structure) null);
-            }
-        });
-        return context;
+        final Map<String, Value> attributes = new HashMap<>();
+        if (request.getAttributes() != null) {
+            request.getAttributes().forEach((key, value) -> attributes.put(key, valueOf(value)));
+        }
+        return new MutableContext(targetingKey, attributes);
+    }
+
+    private static Value valueOf(final Object value) {
+        if (value instanceof Long) {
+            // OpenFeature 1.18.2 represents numbers as Integer or Double.
+            return new Value(((Long) value).doubleValue());
+        }
+        if (value instanceof Map) {
+            final Map<String, Value> fields = new HashMap<>();
+            ((Map<?, ?>) value).forEach((key, field) -> fields.put((String) key, valueOf(field)));
+            return new Value(new MutableStructure(fields));
+        }
+        if (value instanceof List) {
+            final List<Value> values = new ArrayList<>();
+            ((List<?>) value).forEach(item -> values.add(valueOf(item)));
+            return new Value(values);
+        }
+        return Value.objectToValue(value);
     }
 
     public static class EvaluateRequest {

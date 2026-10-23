@@ -1,0 +1,185 @@
+[
+  {
+    "id": "lookup/disabled/absent",
+    "decision_ids": [
+      "D016"
+    ],
+    "mode": "disabled",
+    "flag": "lean-missing-disabled-absent",
+    "subject": "subject-lean-missing-disabled-absent",
+    "attributes": {},
+    "defaultValue": "same-value",
+    "expected": {
+      "value": "same-value",
+      "errorCode": "FLAG_NOT_FOUND",
+      "reason": "ERROR",
+      "variant": null,
+      "allocationKey": null,
+      "exposure": false
+    }
+  },
+  {
+    "id": "lookup/disabled/valid",
+    "decision_ids": [
+      "D016"
+    ],
+    "mode": "disabled",
+    "flag": "lean-missing-disabled-valid",
+    "subject": "subject-lean-missing-disabled-valid",
+    "attributes": {
+      "dd_experimentation_opt_out_at": "2026-02-01T00:00:00.000000002Z"
+    },
+    "defaultValue": "same-value",
+    "expected": {
+      "value": "same-value",
+      "errorCode": "FLAG_NOT_FOUND",
+      "reason": "ERROR",
+      "variant": null,
+      "allocationKey": null,
+      "exposure": false
+    }
+  },
+  {
+    "id": "lookup/disabled/invalid",
+    "decision_ids": [
+      "D016"
+    ],
+    "mode": "disabled",
+    "flag": "lean-missing-disabled-invalid",
+    "subject": "subject-lean-missing-disabled-invalid",
+    "attributes": {
+      "dd_experimentation_opt_out_at": "not-a-date"
+    },
+    "defaultValue": "same-value",
+    "expected": {
+      "value": "same-value",
+      "errorCode": "FLAG_NOT_FOUND",
+      "reason": "ERROR",
+      "variant": null,
+      "allocationKey": null,
+      "exposure": false
+    }
+  },
+  {
+    "id": "lookup/immediate/absent",
+    "decision_ids": [
+      "D016"
+    ],
+    "mode": "immediate",
+    "flag": "lean-missing-immediate-absent",
+    "subject": "subject-lean-missing-immediate-absent",
+    "attributes": {},
+    "defaultValue": "same-value",
+    "expected": {
+      "value": "same-value",
+      "errorCode": "FLAG_NOT_FOUND",
+      "reason": "ERROR",
+      "variant": null,
+      "allocationKey": null,
+      "exposure": false
+    }
+  },
+  {
+    "id": "lookup/immediate/valid",
+    "decision_ids": [
+      "D016"
+    ],
+    "mode": "immediate",
+    "flag": "lean-missing-immediate-valid",
+    "subject": "subject-lean-missing-immediate-valid",
+    "attributes": {
+      "dd_experimentation_opt_out_at": "2026-02-01T00:00:00.000000002Z"
+    },
+    "defaultValue": "same-value",
+    "expected": {
+      "value": "same-value",
+      "errorCode": "FLAG_NOT_FOUND",
+      "reason": "ERROR",
+      "variant": null,
+      "allocationKey": null,
+      "exposure": false
+    }
+  },
+  {
+    "id": "lookup/immediate/invalid",
+    "decision_ids": [
+      "D016"
+    ],
+    "mode": "immediate",
+    "flag": "lean-missing-immediate-invalid",
+    "subject": "subject-lean-missing-immediate-invalid",
+    "attributes": {
+      "dd_experimentation_opt_out_at": "not-a-date"
+    },
+    "defaultValue": "same-value",
+    "expected": {
+      "value": "same-value",
+      "errorCode": "INVALID_CONTEXT",
+      "reason": "ERROR",
+      "variant": null,
+      "allocationKey": null,
+      "exposure": false
+    }
+  },
+  {
+    "id": "lookup/future_experiments_only/absent",
+    "decision_ids": [
+      "D016"
+    ],
+    "mode": "future_experiments_only",
+    "flag": "lean-missing-future_experiments_only-absent",
+    "subject": "subject-lean-missing-future_experiments_only-absent",
+    "attributes": {},
+    "defaultValue": "same-value",
+    "expected": {
+      "value": "same-value",
+      "errorCode": "FLAG_NOT_FOUND",
+      "reason": "ERROR",
+      "variant": null,
+      "allocationKey": null,
+      "exposure": false
+    }
+  },
+  {
+    "id": "lookup/future_experiments_only/valid",
+    "decision_ids": [
+      "D016"
+    ],
+    "mode": "future_experiments_only",
+    "flag": "lean-missing-future_experiments_only-valid",
+    "subject": "subject-lean-missing-future_experiments_only-valid",
+    "attributes": {
+      "dd_experimentation_opt_out_at": "2026-02-01T00:00:00.000000002Z"
+    },
+    "defaultValue": "same-value",
+    "expected": {
+      "value": "same-value",
+      "errorCode": "FLAG_NOT_FOUND",
+      "reason": "ERROR",
+      "variant": null,
+      "allocationKey": null,
+      "exposure": false
+    }
+  },
+  {
+    "id": "lookup/future_experiments_only/invalid",
+    "decision_ids": [
+      "D016"
+    ],
+    "mode": "future_experiments_only",
+    "flag": "lean-missing-future_experiments_only-invalid",
+    "subject": "subject-lean-missing-future_experiments_only-invalid",
+    "attributes": {
+      "dd_experimentation_opt_out_at": "not-a-date"
+    },
+    "defaultValue": "same-value",
+    "expected": {
+      "value": "same-value",
+      "errorCode": "INVALID_CONTEXT",
+      "reason": "ERROR",
+      "variant": null,
+      "allocationKey": null,
+      "exposure": false
+    }
+  }
+]

@@ -1,0 +1,53 @@
+{
+  "repository": "https://github.com/DataDog/ffe-system-test-data",
+  "commit": "f8a4176cd8360b12b56a8b6ec6ef215e2cc21077",
+  "manifest_sha256": "15f68a067872c0f11dd494586eab32116b6dddae42754a2870375f85b55327f4",
+  "contract_path": "contracts/experimentation-opt-out",
+  "policy_case_count": 90,
+  "runtime_case_count": 252,
+  "theorems": [
+    "disabled_preserves_evaluation",
+    "absent_preserves_evaluation",
+    "invalid_context_precedes_activation",
+    "immediate_ignores_activation",
+    "invalid_activation_fails_future_flag_even_without_logging",
+    "only_future_cutoff_needs_activation",
+    "before_cutoff_retains_experiment",
+    "equality_excludes_experiment",
+    "missing_excludes_experiment",
+    "ordinary_allocation_never_excluded"
+  ],
+  "lookup_theorems": [
+    "invalid_context_precedes_lookup",
+    "disabled_ignores_invalid_attribute"
+  ],
+  "lookup_case_count": 9,
+  "decision_revisions": {
+    "D002": 1,
+    "D004": 2,
+    "D010": 1,
+    "D011": 1,
+    "D016": 1
+  },
+  "source_files": {
+    "lean/Contract.lean": "4e6fb44f6aa3354dc264c6e74a9cf6239e9273ef19b61e90cd36d6e6288a88c8",
+    "lean/Proofs.lean": "842c4d2bbd95fa259eca266d93495bcd638d4263452a1b3ecdb5b17a67602ef5",
+    "lean/Oracle.lean": "f8133b0a96eeb3a3b9d368b727ed0247cfc3c2da19177beca2c573aca8b43786",
+    "lean/Review.lean": "e8778f0911e114b675af7d9d061c4b44611140e812489c0742767eaeb521bfa7",
+    "corpus/browser-proposal.jsonl": "c4a1b9c9eed7197b8d66c1d3e46fcaaa4ec70143a2583b31baa04086c8f652dd"
+  },
+  "files": {
+    "runtime-cases.json": "c47cf29d64d176b418c916229208875b904cb871ed43a78c57a3838987911226",
+    "policy-oracle.jsonl": "435fcb0a47386bba8c5a025a757d199076b3db13bbc0b821bb02b2996f29613b",
+    "policy-axioms.txt": "e5d1d2744b68bdaff1812dc411cb1221a48fbd4da51f1fa701d5fd2f50d92f16",
+    "lookup-oracle.jsonl": "467ed9254b3ba3d47366c3d0b249b281859cd8ce242fc847f74f84c74d8d91f1",
+    "lookup-cases.json": "2538e44437c075adba6a58b354a307d6d67901f1b653daeaf3898fe5d5104961",
+    "lean/LookupOracle.lean": "3cbbaefe84d87d5d3eac76e6d542c283ca4fcac8d8176e6e28fc4d7657f7ea3c",
+    "lean/Contract.lean": "4e6fb44f6aa3354dc264c6e74a9cf6239e9273ef19b61e90cd36d6e6288a88c8",
+    "lean/Proofs.lean": "842c4d2bbd95fa259eca266d93495bcd638d4263452a1b3ecdb5b17a67602ef5",
+    "lean/Oracle.lean": "f8133b0a96eeb3a3b9d368b727ed0247cfc3c2da19177beca2c573aca8b43786",
+    "lean/Review.lean": "e8778f0911e114b675af7d9d061c4b44611140e812489c0742767eaeb521bfa7",
+    "corpus/browser-proposal.jsonl": "c4a1b9c9eed7197b8d66c1d3e46fcaaa4ec70143a2583b31baa04086c8f652dd"
+  },
+  "limits": "Policy outputs come from Lean. UFC/context materialization, public API details, transport, telemetry and lifecycle require native execution. Browser timestamp grammar, acknowledgement, compiler and operation-count profiles are not asserted."
+}

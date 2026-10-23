@@ -63,7 +63,7 @@ Browser and mobile SDKs are outside this server harness and retain their reposit
 The tests report under [#650: Per-subject experimentation opt-out](https://feature-parity.us1.prod.dog/#/?feature=650).
 They extend the [shared evaluator fixtures](https://github.com/DataDog/ffe-system-test-data/pull/52)
 with Remote Config and captured EVP requests from a running SDK.
-The first candidate is [Go future mode](https://github.com/DataDog/dd-trace-go/pull/5700), stacked on immediate mode.
+The Go and Java weblogs expose public OpenFeature evaluation details for these tests.
 
 | Scenario suffix | `DD_FEATURE_FLAGS_EXPERIMENTATION_OPT_OUT_MODE` | Expected behavior with a valid subject cutoff |
 | --- | --- | --- |
@@ -85,7 +85,7 @@ Manifests keep this coverage provisional until supported SDK versions are known.
 All three scenarios have explicit steps in `run-end-to-end.yml`.
 They remain selectable by name or through `ffe`, but not through `all`, `end_to_end`, or `tracer_release`.
 Setup errors are reported during validation without aborting the remaining setups.
-Load the exact candidate Go commit with the [binary override](../../docs/execute/binaries.md),
+Load the exact candidate SDK commit with the [binary override](../../docs/execute/binaries.md),
 then build the weblog and force the selected tests:
 
 ```bash
@@ -98,9 +98,46 @@ then build the weblog and force the selected tests:
   -F tests/ffe/test_experimentation_opt_out.py
 ```
 
-The current shared weblog returns the flag value, not OpenFeature error details.
-Invalid-preference cases therefore check default delivery and no exposure.
-The shared evaluator fixtures separately require `INVALID_CONTEXT`.
+### Lean policy coverage
+
+The [pinned contract](https://github.com/DataDog/ffe-system-test-data/tree/f8a4176cd8360b12b56a8b6ec6ef215e2cc21077/contracts/experimentation-opt-out)
+provides the policy expectations. The generator checks its source hashes, compiles its Lean proofs,
+audits the policy theorem axioms, and executes the policy oracle.
+
+The snapshot contains all 90 policy cases and 252 runtime cases. Each mode runs 84 cases with
+both evaluation-telemetry states. Each subject receives three evaluations, with four concurrent workers.
+The generated cases cover:
+
+- Disabled, immediate, and future modes; absent, valid, and invalid subject cutoffs.
+- Missing, null, invalid, earlier, equal, and later allocation activation timestamps.
+- Exposure-logging and ordinary allocations, fallback allocation, and application default.
+- Invalid activation behind an earlier ordinary allocation, including error precedence.
+- Invalid context types and retained targeting rules, including attribute-based matches and misses.
+
+Candidate, fallback, and default values are identical. Assertions therefore also require the public
+error code, reason, variant, and allocation key. Complete intake captures must contain exactly the
+expected exposures and evaluation counts for each subject. Suppressed subjects retain the same assignment
+and exposure behavior. Four sequences reuse each subject after an opt-out or invalid context.
+They verify recovery without stale policy or lost exposures. Nine additional Lean-generated cases check
+invalid-context precedence over missing-flag errors, with a valid flag as a readiness control.
+Assertion controls reject missing, duplicate,
+misattributed, and leaked events.
+
+The generator binds policy outputs to Remote Config fixtures. This binding is reviewed code, not a
+formal proof of the SDK or transport. Native runs verify the API details and delivery behavior.
+Browser timestamp grammar, mobile acknowledgements, compiler rules, and operation counts remain outside
+this suite. Java runs use the legacy provider through Remote Config; standalone transport is separate.
+
+Regenerate the snapshot from the pinned contract checkout with Lean 4.19.0:
+
+```bash
+python utils/scripts/generate_ffe_opt_out_contract.py \
+  --contract-root /path/to/ffe-system-test-data/contracts/experimentation-opt-out \
+  --lean /path/to/lean-4.19.0/bin/lean --check
+```
+
+Omit `--check` to write generated files. Review the source and generated differences before updating
+`SOURCE_SHA256` in `tests/ffe/utils/lean_experimentation_opt_out.py`. The generator does not update this acceptance pin.
 
 ## Test-contract self-tests
 
