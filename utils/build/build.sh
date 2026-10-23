@@ -282,9 +282,6 @@ build() {
                 zstd -d -c "$BINARIES_FILENAME" | docker load
             else
 
-                if [[ $TEST_LIBRARY == python ]]; then
-                    DOCKER_PLATFORM_ARGS="${DOCKER_PLATFORM:-"--platform linux/amd64"}"
-                fi
                 # dd-trace-py compilation if required
                 if [[ $TEST_LIBRARY == python ]] && [[ -d "binaries/dd-trace-py" ]]; then
                     echo "Compiling dd-trace-py"
