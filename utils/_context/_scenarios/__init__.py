@@ -611,7 +611,6 @@ class _Scenarios:
             "DD_API_SECURITY_ENABLED": "true",
             "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
             "DD_API_SECURITY_SAMPLE_DELAY": "0.0",
-            "DD_API_SECURITY_MAX_CONCURRENT_REQUESTS": "50",
             "DD_API_SECURITY_ENDPOINT_COLLECTION_ENABLED": "true",
             "DD_API_SECURITY_ENDPOINT_COLLECTION_MESSAGE_LIMIT": "30",
         },
@@ -646,7 +645,6 @@ class _Scenarios:
             "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
             "DD_API_SECURITY_ENABLED": "true",
             "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
-            "DD_API_SECURITY_MAX_CONCURRENT_REQUESTS": "50",
             "DD_API_SECURITY_PARSE_RESPONSE_BODY": "false",
         },
         doc="""
@@ -1561,7 +1559,6 @@ class _Scenarios:
             "DD_API_SECURITY_ENABLED": "true",
             "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
             "DD_API_SECURITY_SAMPLE_DELAY": "0.0",
-            "DD_API_SECURITY_MAX_CONCURRENT_REQUESTS": "50",
             "DD_API_SECURITY_ENDPOINT_COLLECTION_ENABLED": "true",
             "DD_API_SECURITY_ENDPOINT_COLLECTION_MESSAGE_LIMIT": "30",
         },
