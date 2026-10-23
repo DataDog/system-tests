@@ -12,6 +12,7 @@ This directory contains system tests for the Feature Flags & Experimentation (FF
 | `test_flag_eval_metrics.py` | Evaluation metrics (OTel counter) |
 | `test_flag_eval_evp.py` | Server-side EVP flagevaluation payloads, aggregation, and bounds |
 | `test_evaluation_telemetry_opt_out.py` | Per-subject evaluation telemetry opt-out, default-off behavior, and unchanged exposures |
+| `test_experimentation_opt_out.py` | Experimentation activation cutoff, configuration updates, holdout assignments, and exposure delivery |
 
 ## Running FFE Tests
 
@@ -98,18 +99,98 @@ Use unique candidate versions that are not published on nuget.org, so only `bina
 Verify the resolved packages before reporting local validation. These arguments do not select the installed tracer binary.
 The `uds` weblog does not support these build arguments or the local package source.
 
-## Test-contract self-tests
+## Per-subject experimentation opt-out
 
-The self-tests validate the FFE assertions using synthetic
-captures. They do not run SDKs or contact an intake. With the Python 3.12 runner
-environment installed, run them explicitly:
+The tests report under [#650: Per-subject experimentation opt-out](https://feature-parity.us1.prod.dog/#/?feature=650).
+They extend the [shared evaluator fixtures](https://github.com/DataDog/ffe-system-test-data/pull/52)
+with Remote Config and captured EVP requests from a running SDK.
+The Go and Java weblogs expose public OpenFeature evaluation details for these tests.
+
+| Scenario suffix | `DD_FEATURE_FLAGS_EXPERIMENTATION_OPT_OUT_MODE` | Expected behavior with a valid subject cutoff |
+| --- | --- | --- |
+| `DISABLED` | Unset | All allocations remain eligible. |
+| `IMMEDIATE` | `immediate` | Skip exposure-logging allocations; continue ordinary delivery. |
+| `FUTURE` | `future_experiments_only` | Keep older allocations; skip equal, newer, or unknown activation. |
+
+All three scenarios enable the independent evaluation-telemetry opt-out control.
+Each scenario starts a separate SDK process. The tests cover:
+
+- Cutoff equality, offsets, fractions, unknown activation, invalid preferences, and absent preferences.
+- Ordinary allocation fallback and the application default when no allocation matches.
+- Concurrent subjects on one flag, with positive controls and repeated evaluations.
+- Configuration edits that retain activation, followed by a new allocation with a new activation.
+- Unchanged 10/90 holdout assignments for eligible subjects. This tests delivery, not downstream holdout analysis.
+- Deduplicated exposures for eligible allocations, no exposures for skipped allocations, and independent evaluation telemetry.
+
+Manifests keep this coverage provisional until supported SDK versions are known.
+All three scenarios have explicit steps in `run-end-to-end.yml`.
+They remain selectable by name or through `ffe`, but not through `all`, `end_to_end`, or `tracer_release`.
+Setup errors are reported during validation without aborting the remaining setups.
+Load the exact candidate SDK commit with the [binary override](../../docs/execute/binaries.md),
+then build the weblog and force the selected tests:
 
 ```bash
-./run.sh FEATURE_FLAGGING_CONTRACT_TESTS tests/ffe/test_tests.py tests/ffe/test_evaluation_telemetry_opt_out_contract.py
+./build.sh golang -w net-http
+./run.sh FEATURE_FLAGGING_EXPERIMENTATION_OPT_OUT_DISABLED tests/ffe/test_experimentation_opt_out.py \
+  -F tests/ffe/test_experimentation_opt_out.py
+./run.sh FEATURE_FLAGGING_EXPERIMENTATION_OPT_OUT_IMMEDIATE tests/ffe/test_experimentation_opt_out.py \
+  -F tests/ffe/test_experimentation_opt_out.py
+./run.sh FEATURE_FLAGGING_EXPERIMENTATION_OPT_OUT_FUTURE tests/ffe/test_experimentation_opt_out.py \
+  -F tests/ffe/test_experimentation_opt_out.py
 ```
 
-This no-container scenario has no CI workflow or scenario-group membership.
-Its tests do not run in `TEST_THE_TEST`, `DEFAULT`, or the FFE end-to-end scenarios.
+### Lean policy coverage
+
+The [pinned contract](https://github.com/DataDog/ffe-system-test-data/tree/f8a4176cd8360b12b56a8b6ec6ef215e2cc21077/contracts/experimentation-opt-out)
+provides the policy expectations. The generator checks its source hashes, compiles its Lean proofs,
+audits the policy theorem axioms, and executes the policy oracle.
+
+The snapshot contains all 90 policy cases and 252 runtime cases. Each mode runs 84 cases with
+both evaluation-telemetry states. Each subject receives three evaluations, with four concurrent workers.
+The generated cases cover:
+
+- Disabled, immediate, and future modes; absent, valid, and invalid subject cutoffs.
+- Missing, null, invalid, earlier, equal, and later allocation activation timestamps.
+- Exposure-logging and ordinary allocations, fallback allocation, and application default.
+- Invalid activation behind an earlier ordinary allocation, including error precedence.
+- Invalid context types and retained targeting rules, including attribute-based matches and misses.
+
+Candidate, fallback, and default values are identical. Assertions therefore also require the public
+error code, reason, variant, and allocation key. Complete intake captures must contain exactly the
+expected exposures and evaluation counts for each subject. Suppressed subjects retain the same assignment
+and exposure behavior. Four sequences reuse each subject after an opt-out or invalid context.
+They verify recovery without stale policy or lost exposures. Nine additional Lean-generated cases check
+invalid-context precedence over missing-flag errors, with a valid flag as a readiness control.
+Assertion controls reject missing, duplicate,
+misattributed, and leaked events.
+
+The generator binds policy outputs to Remote Config fixtures. This binding is reviewed code, not a
+formal proof of the SDK or transport. Native runs verify the API details and delivery behavior.
+Browser timestamp grammar, mobile acknowledgements, compiler rules, and operation counts remain outside
+this suite. Java runs use the legacy provider through Remote Config; standalone transport is separate.
+
+Regenerate the snapshot from the pinned contract checkout with Lean 4.19.0:
+
+```bash
+python utils/scripts/generate_ffe_opt_out_contract.py \
+  --contract-root /path/to/ffe-system-test-data/contracts/experimentation-opt-out \
+  --lean /path/to/lean-4.19.0/bin/lean --check
+```
+
+Omit `--check` to write generated files. Review the source and generated differences before updating
+`SOURCE_SHA256` in `tests/ffe/utils/lean_experimentation_opt_out.py`. The generator does not update this acceptance pin.
+
+## Test-contract self-tests
+
+The self-tests in `tests/test_the_test/test_ffe_tests.py` and the two opt-out contract files
+validate the FFE assertions using synthetic captures. They do not run SDKs or contact an intake.
+They are part of the `TEST_THE_TEST` scenario, which runs on every PR:
+
+```bash
+./run.sh TEST_THE_TEST tests/test_the_test/test_ffe_tests.py \
+  tests/test_the_test/test_ffe_evaluation_telemetry_opt_out_contract.py \
+  tests/test_the_test/test_ffe_experimentation_opt_out_contract.py
+```
 Framework mock-backend and lifecycle tests stay in `tests/test_the_test/`.
 
 ---

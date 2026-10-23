@@ -55,6 +55,7 @@ manifest:
   tests/ffe/test_agentless_configuration.py: missing_feature (C++ is not in scope for v1 agentless server SDK coverage; FFL-2731 tracks the system-tests contract)
   tests/ffe/test_dynamic_evaluation.py: missing_feature
   tests/ffe/test_evaluation_telemetry_opt_out.py: missing_feature (C++ does not implement per-subject evaluation telemetry opt-out)
+  tests/ffe/test_experimentation_opt_out.py: missing_feature (Provisional experimentation activation-cutoff coverage; enable after the SDK release)
   tests/ffe/test_exposure_egress.py: missing_feature (Not yet implemented)
   tests/ffe/test_exposures_datadog_agent.py: missing_feature
   tests/ffe/test_flag_eval_evp.py: missing_feature (FFL-2446)

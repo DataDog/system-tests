@@ -56,6 +56,7 @@ class _Owner(Enum):
                                 "dd-trace-php":     "@DataDog/apm-lang-platform-php",
                                 "dd-trace-py":      "@DataDog/lang-platform-python",
                                 "dd-trace-rb":      "@DataDog/lang-platform-ruby",
+                                "dd-trace-rs":      "@DataDog/apm-rust",
                                 "httpd-datadog":    "@DataDog/apm-idm-cpp",
                                 "nginx-datadog":    "@DataDog/apm-idm-cpp",
                             })
@@ -2733,6 +2734,14 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=649
         """
         return _mark_test_object(test_object, feature_id=649, owner=_Owner.ffe)
+
+    @staticmethod
+    def feature_flags_experimentation_opt_out(test_object):
+        """Per-subject experimentation opt-out
+
+        https://feature-parity.us1.prod.dog/#/?feature=650
+        """
+        return _mark_test_object(test_object, feature_id=650, owner=_Owner.ffe)
 
     @staticmethod
     def appsec_extended_data_collection(test_object):

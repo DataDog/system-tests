@@ -969,6 +969,39 @@ function otlpExporterTimeout(iterable $processors): ?string
     return count($timeouts) === 1 ? $timeouts[0] : null;
 }
 
+function batchLogRecordProcessors(iterable $processors): array
+{
+    $batchProcessors = [];
+    foreach ($processors as $processor) {
+        $children = readOtelProperty($processor, 'processors');
+        if ($children !== null) {
+            $batchProcessors = array_merge($batchProcessors, batchLogRecordProcessors($children));
+        } elseif ($processor instanceof \OpenTelemetry\SDK\Logs\Processor\BatchLogRecordProcessor) {
+            $batchProcessors[] = $processor;
+        }
+    }
+    return $batchProcessors;
+}
+
+function blrpEffectiveConfig(?object $processor): array
+{
+    $batchProcessors = batchLogRecordProcessors([$processor]);
+    if (count($batchProcessors) !== 1) {
+        return [];
+    }
+    $batchProcessor = $batchProcessors[0];
+    return [
+        'otel_blrp_schedule_delay_ms' => (string) intdiv(readOtelProperty($batchProcessor, 'scheduledDelayNanos'), 1_000_000),
+        // The processor validates the export timeout but does not store it, so
+        // report the value its factory resolved and passed to the constructor.
+        'otel_blrp_export_timeout_ms' => (string) \OpenTelemetry\SDK\Common\Configuration\Configuration::getInt(
+            \OpenTelemetry\SDK\Common\Configuration\Variables::OTEL_BLRP_EXPORT_TIMEOUT
+        ),
+        'otel_blrp_max_queue_size' => (string) readOtelProperty($batchProcessor, 'maxQueueSize'),
+        'otel_blrp_max_export_batch_size' => (string) readOtelProperty($batchProcessor, 'maxExportBatchSize'),
+    ];
+}
+
 $router->addRoute('GET', '/trace/config', new ClosureRequestHandler(function (Request $req) use ($sdkMeterProvider, $sdkLoggerProvider) {
 
     $tags_array = \dd_trace_env_config("DD_TAGS");
@@ -1009,7 +1042,7 @@ $router->addRoute('GET', '/trace/config', new ClosureRequestHandler(function (Re
         'dd_profiling_enabled' => strtolower(trim(ini_get("datadog.profiling.enabled"), "'")),
         'dd_data_streams_enabled' => 'false', // PHP doesn't implement DD_DATA_STREAMS_ENABLED
         'dd_logs_injection' => strtolower(trim(ini_get("datadog.logs_injection"), "'")),
-    );
+    ) + blrpEffectiveConfig(readOtelProperty(readOtelProperty($sdkLoggerProvider, 'loggerSharedState'), 'processor'));
     return jsonResponse(array(
         'config' => $config
     ));

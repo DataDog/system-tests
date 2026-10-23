@@ -763,10 +763,13 @@ class ParametricTestClientApi(TestClientApi):
             "otel_exporter_otlp_traces_timeout_ms": config_dict.get("otel_exporter_otlp_traces_timeout_ms", None),
             "otel_exporter_otlp_metrics_timeout_ms": config_dict.get("otel_exporter_otlp_metrics_timeout_ms", None),
             "otel_exporter_otlp_logs_timeout_ms": config_dict.get("otel_exporter_otlp_logs_timeout_ms", None),
+            "otel_blrp_schedule_delay_ms": config_dict.get("otel_blrp_schedule_delay_ms", None),
+            "otel_blrp_export_timeout_ms": config_dict.get("otel_blrp_export_timeout_ms", None),
+            "otel_blrp_max_queue_size": config_dict.get("otel_blrp_max_queue_size", None),
+            "otel_blrp_max_export_batch_size": config_dict.get("otel_blrp_max_export_batch_size", None),
             "dd_tags": config_dict.get("dd_tags", None),
             "dd_trace_propagation_style": config_dict.get("dd_trace_propagation_style", None),
             "dd_trace_debug": config_dict.get("dd_trace_debug", None),
-            "dd_trace_startup_log_level": config_dict.get("dd_trace_startup_log_level", None),
             "dd_trace_otel_enabled": config_dict.get("dd_trace_otel_enabled", None),
             "dd_trace_sample_ignore_parent": config_dict.get("dd_trace_sample_ignore_parent", None),
             "dd_env": config_dict.get("dd_env", None),
@@ -781,7 +784,7 @@ class ParametricTestClientApi(TestClientApi):
         }
 
     def otel_effective_config(self) -> dict[str, str | None]:
-        """Read resolved OTLP exporter timeouts from each SDK's configuration endpoint."""
+        """Read resolved OTLP exporter timeouts and BLRP settings from each SDK's configuration endpoint."""
         endpoint = "/otel/effective_config" if self.lang == "nodejs" else "/trace/config"
         response = self._session.get(self._url(endpoint))
         response.raise_for_status()
@@ -790,6 +793,10 @@ class ParametricTestClientApi(TestClientApi):
             "otel_exporter_otlp_traces_timeout_ms": config.get("otel_exporter_otlp_traces_timeout_ms"),
             "otel_exporter_otlp_metrics_timeout_ms": config.get("otel_exporter_otlp_metrics_timeout_ms"),
             "otel_exporter_otlp_logs_timeout_ms": config.get("otel_exporter_otlp_logs_timeout_ms"),
+            "otel_blrp_schedule_delay_ms": config.get("otel_blrp_schedule_delay_ms"),
+            "otel_blrp_export_timeout_ms": config.get("otel_blrp_export_timeout_ms"),
+            "otel_blrp_max_queue_size": config.get("otel_blrp_max_queue_size"),
+            "otel_blrp_max_export_batch_size": config.get("otel_blrp_max_export_batch_size"),
         }
 
     def otel_current_span(self) -> _TestOtelSpan | None:

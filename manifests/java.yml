@@ -316,6 +316,9 @@ manifest:
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         vertx3: v1.51.0-SNAPSHOT
         vertx4: v1.51.0-SNAPSHOT
+  tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Json_Body::test_request_method:
+    - weblog_declaration:
+        vertx4: flaky (APPSEC-71153)
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Path_Parameters:
     - weblog_declaration:
         "*": v1.36.0
@@ -3150,15 +3153,14 @@ manifest:
     - declaration: bug (DEBUG-3285)
       component_version: <1.46.0
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_firsthit: missing_feature (Implemented only for dotnet)
-  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_inner: bug (DEBUG-5838)
-  #  - declaration: bug (DEBUG-3285)
-  #    component_version: <1.46.0
-  # Added by easy win activation script
-  #  - weblog_declaration:
-  #      spring-boot-undertow: missing_feature
-  #      spring-boot-openliberty: missing_feature
-  #      spring-boot-jetty: missing_feature
-  #      spring-boot-payara: missing_feature
+  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_inner:
+    - declaration: bug (DEBUG-5838)
+      component_version: <1.67.1
+    - weblog_declaration:
+        spring-boot-undertow: missing_feature
+        spring-boot-openliberty: missing_feature
+        spring-boot-jetty: missing_feature
+        spring-boot-payara: missing_feature
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_multiframe:
     - declaration: bug (DEBUG-3285)
       component_version: <1.46.0
@@ -3302,7 +3304,8 @@ manifest:
         spring-boot-wildfly: v1.49.0
         uds-spring-boot: v1.49.0
   ? tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers::test_pii_redaction_log_probe_map_rendering
-  : bug (DEBUG-5958)
+  : - declaration: bug (DEBUG-5958)
+      component_version: <1.67.1
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets:
     - weblog_declaration:
         "*": missing_feature
@@ -3477,6 +3480,7 @@ manifest:
     - declaration: bug (FFL-2184)
       excluded_weblog: [spring-boot]
   tests/ffe/test_evaluation_telemetry_opt_out.py: missing_feature (Provisional per-subject evaluation telemetry opt-out coverage; enable after the SDK release)
+  tests/ffe/test_experimentation_opt_out.py: missing_feature (Provisional experimentation activation-cutoff coverage; enable after the SDK release)
   tests/ffe/test_exposure_egress.py:
     - weblog_declaration:
         "*": irrelevant
@@ -3955,19 +3959,11 @@ manifest:
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
   tests/parametric/otel_env_vars/test_otel_blrp_export_timeout.py::Test_OTEL_BLRP_EXPORT_TIMEOUT: v1.62.0
-  tests/parametric/otel_env_vars/test_otel_blrp_export_timeout.py::Test_OTEL_BLRP_EXPORT_TIMEOUT::test_empty_is_treated_as_unset: bug (APMAPI-2412)
-  tests/parametric/otel_env_vars/test_otel_blrp_export_timeout.py::Test_OTEL_BLRP_EXPORT_TIMEOUT::test_invalid_value_is_ignored: bug (APMAPI-2446)
   tests/parametric/otel_env_vars/test_otel_blrp_max_export_batch_size.py::Test_OTEL_BLRP_MAX_EXPORT_BATCH_SIZE: v1.62.0
-  ? tests/parametric/otel_env_vars/test_otel_blrp_max_export_batch_size.py::Test_OTEL_BLRP_MAX_EXPORT_BATCH_SIZE::test_empty_is_treated_as_unset
-  : bug (APMAPI-2412)
   ? tests/parametric/otel_env_vars/test_otel_blrp_max_export_batch_size.py::Test_OTEL_BLRP_MAX_EXPORT_BATCH_SIZE::test_invalid_value_is_ignored
-  : bug (APMAPI-2446)
+  : bug (APMAPI-2446)  # dd-trace-java accepts a batch size larger than the queue
   tests/parametric/otel_env_vars/test_otel_blrp_max_queue_size.py::Test_OTEL_BLRP_MAX_QUEUE_SIZE: v1.62.0
-  tests/parametric/otel_env_vars/test_otel_blrp_max_queue_size.py::Test_OTEL_BLRP_MAX_QUEUE_SIZE::test_empty_is_treated_as_unset: bug (APMAPI-2412)
-  tests/parametric/otel_env_vars/test_otel_blrp_max_queue_size.py::Test_OTEL_BLRP_MAX_QUEUE_SIZE::test_invalid_value_is_ignored: bug (APMAPI-2446)
   tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY: v1.62.0
-  tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY::test_empty_is_treated_as_unset: bug (APMAPI-2412)
-  tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY::test_invalid_value_is_ignored: bug (APMAPI-2446)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_compression.py::Test_OTEL_EXPORTER_OTLP_COMPRESSION: v1.60.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_endpoint.py::Test_OTEL_EXPORTER_OTLP_ENDPOINT: v1.56.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_endpoint.py::Test_OTEL_EXPORTER_OTLP_ENDPOINT::test_empty_endpoint_falls_back_to_default
@@ -4084,7 +4080,7 @@ manifest:
   : bug (APMAPI-2474)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_protocol.py::Test_OTEL_EXPORTER_OTLP_TRACES_PROTOCOL: v1.61.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_protocol.py::Test_OTEL_EXPORTER_OTLP_TRACES_PROTOCOL::test_grpc_protocol_is_used_for_trace_export
-  : incomplete_test_app (gRPC trace requests are not captured by the HTTP request assertion)
+  : bug (APMAPI-2503)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_timeout.py::Test_OTEL_EXPORTER_OTLP_TRACES_TIMEOUT: v1.61.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_timeout.py::Test_OTEL_EXPORTER_OTLP_TRACES_TIMEOUT::test_stable_values
   : bug (APMAPI-2485)

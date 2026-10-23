@@ -1872,6 +1872,7 @@ manifest:
     - declaration: bug (FFL-2182)
       excluded_weblog: [express5]
   tests/ffe/test_evaluation_telemetry_opt_out.py: missing_feature (Provisional per-subject evaluation telemetry opt-out coverage; enable after the SDK release)
+  tests/ffe/test_experimentation_opt_out.py: missing_feature (Provisional experimentation activation-cutoff coverage; enable after the SDK release)
   tests/ffe/test_exposure_egress.py:
     - weblog_declaration:
         "*": incomplete_test_app
@@ -2739,6 +2740,8 @@ manifest:
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_distinct_aggregationkeys_TS003:  # TODO: a lower version might be supported
     - declaration: 'missing_feature (CSS v1.2.0: dd-trace-js aggregation key uses span name as Resource instead of the explicit resource field, so distinct-resource buckets collapse)'
       component_version: <6.8.0
+    - declaration: flaky (APMLP-2085)
+      component_version: '>=6.21.0'
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_msgpack_serialization_TS001:  # TODO: a lower version might be supported
     - declaration: 'missing_feature (CSS v1.2.0: dd-trace-js sets ClientGroupedStats.Resource to the span name instead of the explicit resource passed to startSpan)'
       component_version: <6.8.0

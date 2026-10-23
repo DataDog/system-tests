@@ -1,0 +1,12 @@
+'PR423.disabled_preserves_evaluation' does not depend on any axioms
+'PR423.absent_preserves_evaluation' does not depend on any axioms
+'PR423.invalid_context_precedes_activation' depends on axioms: [propext]
+'PR423.immediate_ignores_activation' does not depend on any axioms
+'PR423.invalid_activation_fails_future_flag_even_without_logging' does not depend on any axioms
+'PR423.only_future_cutoff_needs_activation' depends on axioms: [propext]
+'PR423.before_cutoff_retains_experiment' does not depend on any axioms
+'PR423.equality_excludes_experiment' does not depend on any axioms
+'PR423.missing_excludes_experiment' does not depend on any axioms
+'PR423.ordinary_allocation_never_excluded' does not depend on any axioms
+'GoReview.invalid_context_precedes_lookup' does not depend on any axioms
+'GoReview.disabled_ignores_invalid_attribute' does not depend on any axioms

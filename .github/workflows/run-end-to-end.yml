@@ -308,6 +308,15 @@ jobs:
     - name: Run FEATURE_FLAGGING_EVALUATION_TELEMETRY_OPT_OUT_DISABLED scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"FEATURE_FLAGGING_EVALUATION_TELEMETRY_OPT_OUT_DISABLED"')
       run: ./run.sh FEATURE_FLAGGING_EVALUATION_TELEMETRY_OPT_OUT_DISABLED
+    - name: Run FEATURE_FLAGGING_EXPERIMENTATION_OPT_OUT_DISABLED scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"FEATURE_FLAGGING_EXPERIMENTATION_OPT_OUT_DISABLED"')
+      run: ./run.sh FEATURE_FLAGGING_EXPERIMENTATION_OPT_OUT_DISABLED
+    - name: Run FEATURE_FLAGGING_EXPERIMENTATION_OPT_OUT_IMMEDIATE scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"FEATURE_FLAGGING_EXPERIMENTATION_OPT_OUT_IMMEDIATE"')
+      run: ./run.sh FEATURE_FLAGGING_EXPERIMENTATION_OPT_OUT_IMMEDIATE
+    - name: Run FEATURE_FLAGGING_EXPERIMENTATION_OPT_OUT_FUTURE scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"FEATURE_FLAGGING_EXPERIMENTATION_OPT_OUT_FUTURE"')
+      run: ./run.sh FEATURE_FLAGGING_EXPERIMENTATION_OPT_OUT_FUTURE
     - name: Run FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS"')
       run: ./run.sh FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS

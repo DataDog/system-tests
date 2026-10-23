@@ -16,7 +16,7 @@ from tests.ffe.utils.evaluation_telemetry import (
 from utils import HttpResponse, features, pytest, scenarios
 
 
-@scenarios.feature_flagging_contract_tests
+@scenarios.test_the_test
 @features.not_reported
 @pytest.mark.parametrize(
     ("status_code", "text", "count", "passes"),
@@ -48,7 +48,7 @@ def test_evaluation_response_oracle(status_code: int, text: str, count: int, *, 
             assert_evaluation_responses(responses, expected_count=3, expected_value="on-value")
 
 
-@scenarios.feature_flagging_contract_tests
+@scenarios.test_the_test
 @features.not_reported
 @pytest.mark.parametrize(
     ("suppressed_count", "allowed_count", "passes"),
@@ -84,7 +84,7 @@ def test_opt_out_evp_oracle(
             validate()
 
 
-@scenarios.feature_flagging_contract_tests
+@scenarios.test_the_test
 @features.not_reported
 @pytest.mark.parametrize(
     ("values", "suppressed", "passes"),
@@ -136,7 +136,7 @@ def test_opt_out_metric_oracle(values: list[int], point_format: str, *, suppress
             assert_metric_activity(metrics, "subject-flag", allocation_key="subject-allocation", suppressed=suppressed)
 
 
-@scenarios.feature_flagging_contract_tests
+@scenarios.test_the_test
 @features.not_reported
 @pytest.mark.parametrize(
     ("suppressed_count", "allowed_count", "enabled", "passes"),
@@ -172,7 +172,7 @@ def test_shared_flag_metric_oracle(suppressed_count: int, allowed_count: int, *,
             validate()
 
 
-@scenarios.feature_flagging_contract_tests
+@scenarios.test_the_test
 @features.not_reported
 @pytest.mark.parametrize("failure_source", ["remote-config", "worker-request"])
 def test_evaluation_setup_failure_is_deferred(failure_source: str) -> None:
@@ -201,7 +201,7 @@ def test_evaluation_setup_failure_is_deferred(failure_source: str) -> None:
         assert_setup_succeeded(restored_error)
 
 
-@scenarios.feature_flagging_contract_tests
+@scenarios.test_the_test
 @features.not_reported
 def test_evaluation_setup_does_not_swallow_interrupts() -> None:
     def interrupt() -> None:
@@ -211,7 +211,7 @@ def test_evaluation_setup_does_not_swallow_interrupts() -> None:
         evaluation_setup_error(interrupt)
 
 
-@scenarios.feature_flagging_contract_tests
+@scenarios.test_the_test
 @features.not_reported
 @pytest.mark.parametrize(
     ("actual", "expected", "passes"),
@@ -238,7 +238,7 @@ def test_opt_out_exposure_attribute_oracle(actual: dict[str, Any], expected: dic
             assert_opt_out_exposure_attribute(actual, expected, "opt_out")
 
 
-@scenarios.feature_flagging_contract_tests
+@scenarios.test_the_test
 @features.not_reported
 @pytest.mark.parametrize(
     ("count", "suppressed", "passes"), [(3, False, True), (0, False, False), (0, True, True), (3, True, False)]

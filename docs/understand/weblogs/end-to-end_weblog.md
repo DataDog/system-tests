@@ -1141,10 +1141,20 @@ accept a JSON body with these fields:
 - `variationType`: the expected variation type.
 - `defaultValue`: the value to return when evaluation cannot resolve the flag.
 - `targetingKey`: the evaluation subject key.
-- `attributes`: flat scalar targeting attributes.
+- `attributes`: targeting attributes, including invalid values used to exercise SDK context validation.
 
 The response must be JSON and include at least `value` and `reason`. Error
 responses should also include `errorCode` and `errorMessage`.
+
+Go and Java experimentation opt-out tests also require these public SDK details:
+
+- `variant`: the selected variant, or null/empty when absent.
+- `flagMetadata`: the SDK flag metadata as a JSON object; `{}` when absent.
+- `allocationKey`: the allocation key from SDK metadata, when present.
+- `count`: the number of evaluations performed by the request.
+
+The endpoint must copy these values from the public evaluation result. It must not infer
+an error, reason, variant, or allocation from the returned flag value.
 
 ### GET /healthcheck
 

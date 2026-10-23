@@ -1,0 +1,9 @@
+{"mode":"disabled","error":"FLAG_NOT_FOUND","attribute":"absent"}
+{"mode":"disabled","error":"FLAG_NOT_FOUND","attribute":"valid"}
+{"mode":"disabled","error":"FLAG_NOT_FOUND","attribute":"invalid"}
+{"mode":"immediate","error":"FLAG_NOT_FOUND","attribute":"absent"}
+{"mode":"immediate","error":"FLAG_NOT_FOUND","attribute":"valid"}
+{"mode":"immediate","error":"INVALID_CONTEXT","attribute":"invalid"}
+{"mode":"future_experiments_only","error":"FLAG_NOT_FOUND","attribute":"absent"}
+{"mode":"future_experiments_only","error":"FLAG_NOT_FOUND","attribute":"valid"}
+{"mode":"future_experiments_only","error":"INVALID_CONTEXT","attribute":"invalid"}
