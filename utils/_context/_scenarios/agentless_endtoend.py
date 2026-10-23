@@ -115,7 +115,7 @@ class AgentlessEndToEndScenario(DdTraceEndToEndScenario):
 
     def mock_backend_status(self) -> MockedBackendFFEStatus | None:
         if interfaces.backend_v2.is_mocked_backend_running:
-            return interfaces.backend_v2.server.ffe_get_status()
+            return interfaces.backend_v2.server.client.ffe_get_status()
         return self._last_mock_backend_status
 
     @property
@@ -132,7 +132,7 @@ class AgentlessEndToEndScenario(DdTraceEndToEndScenario):
         # The mocked backend counters are not recorded as interface data: persist them for replay
         try:
             if interfaces.backend_v2.is_mocked_backend_running:
-                self._last_mock_backend_status = interfaces.backend_v2.server.ffe_get_status()
+                self._last_mock_backend_status = interfaces.backend_v2.server.client.ffe_get_status()
                 self._mock_backend_status_path.parent.mkdir(parents=True, exist_ok=True)
                 self._mock_backend_status_path.write_text(
                     json.dumps(self._last_mock_backend_status, indent=2) + "\n",
