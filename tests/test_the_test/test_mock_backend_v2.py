@@ -221,3 +221,13 @@ def test_entry_point_serves_until_sigterm(tmp_path: Path):
 
     # control requests are not recorded
     assert [path.name for path in log_folder.glob("*.json")] == ["000__api_v2_series.json"]
+
+
+@scenarios.test_the_test
+def test_health_endpoint(server: MockedBackendServer, tmp_path: Path):
+    response = requests.get(f"{server.base_url}/system-tests/health", timeout=5)
+
+    assert response.status_code == 200
+    assert response.json() == {"status": "ok"}
+    # a control endpoint: not recorded
+    assert list(tmp_path.glob("*.json")) == []
