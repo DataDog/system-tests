@@ -828,53 +828,44 @@ manifest:
   tests/appsec/rasp/test_api10.py::Test_API10_all:
     - weblog_declaration:
         '*': '>=4.5.0-rc1'
-    - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_request_tag:
     - weblog_declaration:
         "*": v3.18.0
         *django : v4.3.0-dev0 (with httpx support)
-    - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_ssrf_telemetry:
     - weblog_declaration:
         "*": v3.18.0
         *django : v4.3.0-dev0 (with httpx support)
-    - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_api10.py::Test_API10_redirect:
     - weblog_declaration:
         '*': '>=4.3.0-dev'
-    - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_api10.py::Test_API10_redirect_status:
     - weblog_declaration:
         "*": v4.1.0
         *django : v4.3.0-dev0 (with httpx support)
-    - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_api10.py::Test_API10_request_body:
     - weblog_declaration:
         '*': '>=4.5.0-rc1'
-    - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_api10.py::Test_API10_request_headers:
     - weblog_declaration:
         '*': '>=4.3.0-dev'
-    - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_api10.py::Test_API10_request_method:
     - weblog_declaration:
         "*": v3.14.0.rc
         fastapi: v3.15.0.dev (with requests support)
         *django : v4.3.0-dev0 (with httpx support)
-    - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_api10.py::Test_API10_response_body:
     - weblog_declaration:
         '*': '>=4.5.0-rc1'
-    - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_api10.py::Test_API10_response_body_ignored_content_length_missing:
     - declaration: missing_feature
     - weblog_declaration:
@@ -892,15 +883,13 @@ manifest:
         "*": v3.14.0.rc
         fastapi: v3.15.0.dev (with requests support)
         *django : v4.3.0-dev0 (with httpx support)
-    - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_api10.py::Test_API10_response_status:
     - weblog_declaration:
         "*": v3.14.0.rc
         fastapi: v3.15.0.dev (with requests support)
         *django : v4.3.0-dev0 (with httpx support)
-    - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_max: v3.15.0
   tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_sample_rate: v4.5.0-rc1
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyJson:
@@ -1079,58 +1068,49 @@ manifest:
     - weblog_declaration:
         "*": v2.10.0
         *django : v4.3.0-dev0 (with httpx support)
-    - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyUrlEncoded:
     - weblog_declaration:
         "*": v2.10.0
         *django : v4.3.0-dev0 (with httpx support)
-    - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyXml:
     - weblog_declaration:
         "*": v2.10.0
         *django : v4.3.0-dev0 (with httpx support)
-    - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Capability: v2.11.0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Mandatory_SpanTags:
     - weblog_declaration:
         "*": v2.10.0
         *django : v4.3.0-dev0 (with httpx support)
-    - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Optional_SpanTags:
     - weblog_declaration:
         "*": v2.10.0
         *django : v4.3.0-dev0 (with httpx support)
-    - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Rules_Version: v2.16.0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_StackTrace:
     - weblog_declaration:
         "*": v2.10.0
         *django : v4.3.0-dev0 (with httpx support)
-    - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry:
     - weblog_declaration:
         "*": v2.10.0
         *django : v4.3.0-dev0 (with httpx support)
-    - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry_V2:
     - weblog_declaration:
         "*": v3.5.0.dev
         *django : v4.3.0-dev0 (with httpx support)
-    - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_UrlQuery:
     - weblog_declaration:
         "*": v2.10.0
         *django : v4.3.0-dev0 (with httpx support)
-    - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Waf_Version: v2.15.0
   tests/appsec/smoke_tests/test_apm_standalone.py: v4.6.0
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_ApiSecurity:
@@ -1141,7 +1121,7 @@ manifest:
         aiohttp: v4.17.0-rc1
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp::test_ssrf_smoke:
     - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.17.0-rc1
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_RemoteConfig:
     - weblog_declaration:
         aiohttp: v4.17.0-rc1
@@ -1156,7 +1136,7 @@ manifest:
         aiohttp: v4.17.0-rc1
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Rasp::test_ssrf_smoke:
     - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.17.0-rc1
   tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_RemoteConfig:
     - weblog_declaration:
         aiohttp: v4.17.0-rc1
@@ -2790,10 +2770,19 @@ manifest:
   tests/parametric:
     - weblog_declaration:
         aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
-  tests/parametric/otel_env_vars/test_otel_blrp_export_timeout.py::Test_OTEL_BLRP_EXPORT_TIMEOUT: missing_feature
-  tests/parametric/otel_env_vars/test_otel_blrp_max_export_batch_size.py::Test_OTEL_BLRP_MAX_EXPORT_BATCH_SIZE: missing_feature
-  tests/parametric/otel_env_vars/test_otel_blrp_max_queue_size.py::Test_OTEL_BLRP_MAX_QUEUE_SIZE: missing_feature
-  tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY: missing_feature
+  tests/parametric/otel_env_vars/test_otel_blrp_export_timeout.py::Test_OTEL_BLRP_EXPORT_TIMEOUT: '>=4.16.0'  # TODO: a lower version might be supported
+  tests/parametric/otel_env_vars/test_otel_blrp_export_timeout.py::Test_OTEL_BLRP_EXPORT_TIMEOUT::test_invalid_value_is_ignored: missing_feature
+  tests/parametric/otel_env_vars/test_otel_blrp_max_export_batch_size.py::Test_OTEL_BLRP_MAX_EXPORT_BATCH_SIZE: '>=4.16.0'  # TODO: a lower version might be supported
+  ? tests/parametric/otel_env_vars/test_otel_blrp_max_export_batch_size.py::Test_OTEL_BLRP_MAX_EXPORT_BATCH_SIZE::test_invalid_value_is_ignored
+  : missing_feature
+  tests/parametric/otel_env_vars/test_otel_blrp_max_queue_size.py::Test_OTEL_BLRP_MAX_QUEUE_SIZE: '>=4.16.0'  # TODO: a lower version might be supported
+  tests/parametric/otel_env_vars/test_otel_blrp_max_queue_size.py::Test_OTEL_BLRP_MAX_QUEUE_SIZE::test_invalid_value_is_ignored: missing_feature
+  tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY: '>=4.16.0'  # TODO: a lower version might be supported
+  ? tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY::test_default_matches_specification
+  : missing_feature
+  tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY::test_empty_is_treated_as_unset: missing_feature
+  tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY::test_invalid_value_is_ignored: missing_feature
+  tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY::test_zero_value: missing_feature
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_compression.py::Test_OTEL_EXPORTER_OTLP_COMPRESSION: v4.11.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_compression.py::Test_OTEL_EXPORTER_OTLP_COMPRESSION::test_empty: bug (APMAPI-2476)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_compression.py::Test_OTEL_EXPORTER_OTLP_COMPRESSION::test_invalid: bug (APMAPI-2481)

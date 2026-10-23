@@ -27,5 +27,7 @@ ignore_imports =
     tests.parametric.test_parametric_endpoints -> tests.parametric.test_dynamic_configuration
     tests.test_telemetry -> tests.test_telemetry_heartbeat_utils
     tests.test_the_test.test_telemetry_heartbeat -> tests.test_telemetry_heartbeat_utils
+    tests.test_the_test.test_ffe_tests -> tests.ffe.test_exposure_egress
+    tests.test_the_test.test_ffe_tests -> tests.ffe.test_flag_eval_evp
     tests.test_the_test.test_otlp_request_correlation -> tests.otel.test_tracing_otlp
     tests.parametric.otel_env_vars.test_otel_logs_exporter -> tests.parametric.test_otel_logs

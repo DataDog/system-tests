@@ -700,10 +700,11 @@ manifest:
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_3:
     - declaration: bug (DEBUG-2799)
       component_version: <3.10.0
-  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_5:  # Easy win for poc, uds and version 3.36.0
+  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_5:
     - declaration: bug (DEBUG-2799)
       component_version: <3.10.0
     - declaration: bug (DEBUG-3283)
+      component_version: <3.36.0
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_inlined: bug (DEBUG-3447)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_rockpaperscissors:
     - declaration: bug (DEBUG-2799)
@@ -800,7 +801,6 @@ manifest:
       weblog: [uds, poc]
     - declaration: missing_feature (feature not implemented)
       excluded_weblog: [uds, poc]
-  tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry::test_telemetry_er: flaky (DEBUG-3322)
   tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_injection_metadata:
     - declaration: missing_feature (Not implemented yet)
       component_version: <3.22.0
@@ -965,6 +965,8 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_endpoint.py::Test_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT: v3.37.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_endpoint.py::Test_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT::test_empty_falls_back_to_global_endpoint
   : bug (APMAPI-2509)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_endpoint.py::Test_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT::test_generic_endpoint_with_base_path
+  : bug (APMAPI-2620)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_headers.py::Test_OTEL_EXPORTER_OTLP_LOGS_HEADERS: v3.37.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_headers.py::Test_OTEL_EXPORTER_OTLP_LOGS_HEADERS::test_empty_falls_back
   : bug (APMAPI-2479)

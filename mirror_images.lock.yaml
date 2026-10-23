@@ -26,6 +26,10 @@ images:
     digest: sha256:223c336b2fc1a000e22315a8762254b7171016d4400d556cc24ca41a499aa7af
     target: registry.ddbuild.io/system-tests/mirror/datadog/dd-appsec-php-ci:php-8.2-release
     tag: php-8.2-release
+  datadog/dd-trace-ci:php-8.2_bookworm-6:
+    digest: sha256:1263e78409cc0800948e86463689c21d2b84733dde3ced048d751b04fdff7b9a
+    target: registry.ddbuild.io/system-tests/mirror/datadog/dd-trace-ci:php-8.2_bookworm-6
+    tag: php-8.2_bookworm-6
   datadog/serverless-init:1.10.4:
     digest: sha256:f4943347f155505156ba5f594317ea64b59678b3a6522e8c0993581af20956ff
     target: registry.ddbuild.io/system-tests/mirror/datadog/serverless-init:1.10.4
@@ -206,6 +210,10 @@ images:
     digest: sha256:8ee0e934006e6448a1291c91e9e7f591d3d674e7b818e3fa71a7136fb067b6d2
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:python-lambda-runtime.base-aec497f8192f
     tag: python-lambda-runtime.base-aec497f8192f
+  datadog/system-tests:python-parametric.base-be1a47c3d761:
+    digest: sha256:388fad50bc0c8e319810ca25ea7ca2e6d227987ba7dc0b857dc73ff27ac8d5c0
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:python-parametric.base-be1a47c3d761
+    tag: python-parametric.base-be1a47c3d761
   datadog/system-tests:python3.12.base-001b21793b9d:
     digest: sha256:8a33611a27bf9dcfd43304b34ce806e46ed8218c00728b748ee7f57ba04d4803
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:python3.12.base-001b21793b9d
@@ -298,6 +306,10 @@ images:
     digest: sha256:97ccc65daec3542bd2cb3160d7355f11e89ad8027fd3c834b9d1197d197d866f
     target: registry.ddbuild.io/system-tests/mirror/localstack/localstack:4.1
     tag: '4.1'
+  maven:3-eclipse-temurin-21:
+    digest: sha256:d23342b1a070a07555f4ef20c085a81aa40e5f5b3288ebf8ddae2f67e9d760c8
+    target: registry.ddbuild.io/system-tests/mirror/maven:3-eclipse-temurin-21
+    tag: 3-eclipse-temurin-21
   maven:3.6-jdk-11:
     digest: sha256:1d29ccf46ef2a5e64f7de3d79a63f9bcffb4dc56be0ae3daed5ca5542b38aa2d
     target: registry.ddbuild.io/system-tests/mirror/maven:3.6-jdk-11
@@ -346,6 +358,10 @@ images:
     digest: sha256:8d6421d663b4c28fd3ebc498332f249011d118945588d0a35cb9bc4b8ca09d9e
     target: registry.ddbuild.io/system-tests/mirror/node:18-alpine
     tag: 18-alpine
+  node:18.20.8-bookworm-slim:
+    digest: sha256:f9ab18e354e6855ae56ef2b290dd225c1e51a564f87584b9bd21dd651838830e
+    target: registry.ddbuild.io/system-tests/mirror/node:18.20.8-bookworm-slim
+    tag: 18.20.8-bookworm-slim
   node:20-alpine:
     digest: sha256:fb4cd12c85ee03686f6af5362a0b0d56d50c58a04632e6c0fb8363f609372293
     target: registry.ddbuild.io/system-tests/mirror/node:20-alpine
@@ -410,6 +426,14 @@ images:
     digest: sha256:d7be1c094cc5845ee815d4632fe377514ee6ebcf8efaed6892889657e5ddaaa6
     target: registry.ddbuild.io/system-tests/mirror/rockylinux:9
     tag: '9'
+  ruby:3.2.1-bullseye:
+    digest: sha256:b38264d66820f3696906ed5fa51b1317d83215515f4a45500c9bf403bf2c9b47
+    target: registry.ddbuild.io/system-tests/mirror/ruby:3.2.1-bullseye
+    tag: 3.2.1-bullseye
+  rust:1.87-slim-bookworm:
+    digest: sha256:437507c3e719e4f968033b88d851ffa9f5aceeb2dcc2482cc6cb7647811a55eb
+    target: registry.ddbuild.io/system-tests/mirror/rust:1.87-slim-bookworm
+    tag: 1.87-slim-bookworm
   rust:1.94.1-slim-bookworm:
     digest: sha256:cf9dd0ec73e75f827fe59123fff9dc65af1a1c8363c3c31ee8d7f8ad0b6a5fb2
     target: registry.ddbuild.io/system-tests/mirror/rust:1.94.1-slim-bookworm
@@ -418,6 +442,10 @@ images:
     digest: sha256:fe3af4a8dd59f310b20e07ec3499cfdeb16a14f518c95ad7e70f200845dce3f5
     target: registry.ddbuild.io/system-tests/mirror/softwaremill/elasticmq-native:1.6.11
     tag: 1.6.11
+  ubuntu:22.04:
+    digest: sha256:0a9887931b0e38af2e3487ed39e29436b0535c4f3f52e57745baaf79d1898956
+    target: registry.ddbuild.io/system-tests/mirror/ubuntu:22.04
+    tag: '22.04'
   ubuntu:24.04:
     digest: sha256:534baea6a22c03a63003dbc8dbe78fe34bc0d7e595d9a9dc9834884ff530eb55
     target: registry.ddbuild.io/system-tests/mirror/ubuntu:24.04
