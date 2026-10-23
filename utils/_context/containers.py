@@ -26,6 +26,8 @@ from utils.base_images.base_image import base_image_contexts
 from utils._context.weblog_metadata import WeblogMetaData
 from utils.docker_fixtures._core import extra_hosts_for_environment
 from utils.proxy.tuf import get_tuf_root_json
+from utils.mocked_backend import MockedBackendClient
+from utils.mocked_backend.ffe import UFC_FIXTURE_RELATIVE_PATH
 from utils.proxy.ports import ProxyPorts
 from utils.proxy.mocked_response import (
     RemoveMetaStructsSupport,
@@ -770,6 +772,55 @@ class ProxyContainer(TestedContainer):
             "bind": f"/app/logs/{MockedBackendResponse.internal_filename}",
             "mode": "ro",
         }
+
+
+class MockedBackendContainer(TestedContainer):
+    """The mocked backend (utils/mocked_backend), standing in for the Datadog backend in its own container.
+    What it receives is recorded in the logs folder, and read by interfaces.backend_v2.
+    """
+
+    port = 4900
+
+    def __init__(self) -> None:
+        super().__init__(
+            # it has every dependency of utils/mocked_backend
+            image_name="datadog/system-tests:proxy-v1",
+            # a valid hostname: some HTTP clients reject an underscore
+            name="mocked-backend",
+            working_dir="/app",
+            volumes={
+                # without utils/__init__.py: utils is a namespace package, and the rest of utils is not needed
+                "./utils/mocked_backend": {"bind": "/app/utils/mocked_backend", "mode": "ro"},
+                "./utils/proxy": {"bind": "/app/utils/proxy", "mode": "ro"},
+                # served as the FFE agentless configuration
+                f"./{UFC_FIXTURE_RELATIVE_PATH}": {"bind": f"/app/{UFC_FIXTURE_RELATIVE_PATH}", "mode": "ro"},
+            },
+            # for the control endpoints, used from the host. Docker picks a free host port
+            ports={f"{self.port}/tcp": ("127.0.0.1", None)},
+            healthcheck={
+                "test": f"python -c \"import socket; s=socket.socket(); s.settimeout(2); s.connect(('localhost', {self.port})); s.close()\"",  # noqa: E501
+                "retries": 30,
+            },
+        )
+
+    def configure(self, *, host_log_folder: str, replay: bool):
+        super().configure(host_log_folder=host_log_folder, replay=replay)
+
+        # Same relative path in the container and on the host, so recorded log filenames are the same
+        log_folder = f"{host_log_folder}/interfaces/backend_v2"
+        self.volumes[f"./{log_folder}"] = {"bind": f"/app/{log_folder}", "mode": "rw"}
+        self.command = ["python", "-m", "utils.mocked_backend", "--port", str(self.port), "--log-folder", log_folder]
+
+    @property
+    def container_url(self) -> str:
+        """The URL other containers use to reach the mocked backend"""
+        return f"http://{self.name}:{self.port}"
+
+    @property
+    def client(self) -> MockedBackendClient:
+        """Client of the control endpoints, from the host"""
+        host_port = self.runtime_container.attrs["NetworkSettings"]["Ports"][f"{self.port}/tcp"][0]["HostPort"]
+        return MockedBackendClient(f"http://127.0.0.1:{host_port}")
 
 
 class LambdaProxyContainer(TestedContainer):
