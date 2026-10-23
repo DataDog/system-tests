@@ -126,6 +126,10 @@ system_tests_run_{{library}}_{{scenario}}_{{variant}}:
   variables:
     KUBERNETES_CPU_REQUEST: 0.5
     KUBERNETES_MEMORY_REQUEST: 1.3Gi
+{% if scenario == "INTEGRATION_FRAMEWORKS" %}
+    # The test client build must time out before the job does (the mirror default is 1200s)
+    SYSTEM_TESTS_TEST_CLIENT_BUILD_TIMEOUT: "600"
+{% endif %}
   extends:
     - .system_tests_base
 {% if push_to_test_optimization %}
