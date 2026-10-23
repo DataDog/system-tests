@@ -9,9 +9,10 @@ from utils.docker_fixtures import TestAgentAPI, new_test_id
 APMLibraryFactory = Callable[[dict[str, str | None]], AbstractContextManager[APMLibrary]]
 
 
-# This fixture serves the small SDK-default comparison use case in
-# OTEL_PROPAGATORS and OTEL_LOG_LEVEL. Do not use it outside these tests;
-# contact the apm-shared-testing team if another use case needs it.
+# This fixture serves two small use cases: the SDK-default comparison in
+# OTEL_PROPAGATORS and OTEL_LOG_LEVEL, and the exporting control run in
+# OTEL_SDK_DISABLED. Do not use it outside these tests; contact the
+# apm-shared-testing team if another use case needs it.
 @pytest.fixture
 def test_library_factory(
     worker_id: str,
