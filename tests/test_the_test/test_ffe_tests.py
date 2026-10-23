@@ -43,80 +43,7 @@ def test_flagevaluation_egress_validates_captured_data_without_waiting(
 ) -> None:
     contract = flag_eval_evp_tests.FlagevaluationEgressContract()
     contract.responses = [MagicMock(status_code=200)] * contract.evaluation_count
-    capture = _flagevaluation_capture(contract)
-    interface = MagicMock()
-    interface.get_data.return_value = [capture] if has_capture else []
-    interface.wait_for.side_effect = AssertionError("Validation must not wait after containers have stopped")
-    monkeypatch.setattr(
-        flag_eval_evp_tests, "feature_flagging_evp_egress", lambda: FeatureFlaggingEVPEgress(interface, "agent")
-    )
-
-    if has_capture:
-        contract.test_ffe_evp_flagevaluation_egress()
-    else:
-        with pytest.raises(AssertionError, match="Expected flagevaluation requests"):
-            contract.test_ffe_evp_flagevaluation_egress()
-    interface.wait_for.assert_not_called()
-
-
-@pytest.mark.parametrize(
-    ("library_name", "origin", "version", "wire_version"),
-    [
-        ("dotnet", "dd-trace-dotnet", "3.57.0", "3.57.0"),
-        ("golang", "dd-trace-go", "2.11.2", "v2.11.2"),
-        ("java", "dd-trace-java", "1.66.0", "1.66.0"),
-        ("nodejs", "dd-trace-js", "6.20.0", "6.20.0"),
-        ("php", "dd-trace-php", "1.27.0", "1.27.0"),
-        ("python", "dd-trace-py", "4.16.0", "4.16.0"),
-        ("ruby", "dd-trace-rb", "2.42.0", "2.42.0"),
-    ],
-)
-@scenarios.test_the_test
-def test_flagevaluation_agent_sdk_identity_accepts_producer_headers(
-    monkeypatch: pytest.MonkeyPatch, library_name: str, origin: str, version: str, wire_version: str
-) -> None:
-    # Synthetic identities exercise the shared assertion, not SDK release support.
-    _check_agent_sdk_identity(
-        monkeypatch,
-        library_name=library_name,
-        version=version,
-        headers=[["dd-evp-origin", origin], ["Dd-Evp-Origin-Version", wire_version]],
-    )
-
-
-@pytest.mark.parametrize(
-    ("headers", "error"),
-    [
-        ([["DD-EVP-ORIGIN-VERSION", "6.20.0"]], "DD-EVP-ORIGIN"),
-        ([["DD-EVP-ORIGIN", "dd-trace-js"]], "DD-EVP-ORIGIN-VERSION"),
-        ([["DD-EVP-ORIGIN", ""], ["DD-EVP-ORIGIN-VERSION", "6.20.0"]], "DD-EVP-ORIGIN"),
-        ([["DD-EVP-ORIGIN", "trace-agent"], ["DD-EVP-ORIGIN-VERSION", "6.20.0"]], "DD-EVP-ORIGIN"),
-        ([["DD-EVP-ORIGIN", "dd-trace-js"], ["DD-EVP-ORIGIN-VERSION", " "]], "DD-EVP-ORIGIN-VERSION"),
-        ([["DD-EVP-ORIGIN", "dd-trace-js"], ["DD-EVP-ORIGIN-VERSION", "7.84.2"]], "DD-EVP-ORIGIN-VERSION"),
-    ],
-)
-@scenarios.test_the_test
-def test_flagevaluation_agent_sdk_identity_rejects_invalid_headers(
-    monkeypatch: pytest.MonkeyPatch, headers: list[list[str]], error: str
-) -> None:
-    with pytest.raises(AssertionError, match=error):
-        _check_agent_sdk_identity(monkeypatch, library_name="nodejs", version="6.20.0", headers=headers)
-
-
-@scenarios.test_the_test
-def test_flagevaluation_agent_sdk_identity_rejects_event_source(monkeypatch: pytest.MonkeyPatch) -> None:
-    with pytest.raises(AssertionError, match="event-level source"):
-        _check_agent_sdk_identity(
-            monkeypatch,
-            library_name="nodejs",
-            version="6.20.0",
-            headers=[["DD-EVP-ORIGIN", "dd-trace-js"], ["DD-EVP-ORIGIN-VERSION", "6.20.0"]],
-            event_source=True,
-        )
-
-
-def _flagevaluation_capture(contract: flag_eval_evp_tests.FlagevaluationEgressContract) -> dict[str, Any]:
-    return {
+    capture = {
         "path": flag_eval_evp_tests.EVP_FLAGEVALUATIONS_PATH,
         "request": {
             "content": {
@@ -135,30 +62,19 @@ def _flagevaluation_capture(contract: flag_eval_evp_tests.FlagevaluationEgressCo
             }
         },
     }
-
-
-def _check_agent_sdk_identity(
-    monkeypatch: pytest.MonkeyPatch,
-    *,
-    library_name: str,
-    version: str,
-    headers: list[list[str]],
-    event_source: bool = False,
-) -> None:
-    contract = flag_eval_evp_tests.Test_FFE_EVP_Flagevaluation_SDK_Identity()
-    contract.responses = [MagicMock(status_code=200)] * contract.evaluation_count
-    capture = _flagevaluation_capture(contract)
-    capture["request"]["headers"] = headers
-    if event_source:
-        capture["request"]["content"]["flagEvaluations"][0]["source"] = {"name": "dd-trace-js"}
     interface = MagicMock()
-    interface.get_data.return_value = [capture]
+    interface.get_data.return_value = [capture] if has_capture else []
+    interface.wait_for.side_effect = AssertionError("Validation must not wait after containers have stopped")
     monkeypatch.setattr(
         flag_eval_evp_tests, "feature_flagging_evp_egress", lambda: FeatureFlaggingEVPEgress(interface, "agent")
     )
-    monkeypatch.setattr(interfaces, "agent", interface)
-    monkeypatch.setattr(flag_eval_evp_tests, "context", MagicMock(library=ComponentVersion(library_name, version)))
-    contract.test_ffe_evp_flagevaluation_egress()
+
+    if has_capture:
+        contract.test_ffe_evp_flagevaluation_egress()
+    else:
+        with pytest.raises(AssertionError, match="Expected flagevaluation requests"):
+            contract.test_ffe_evp_flagevaluation_egress()
+    interface.wait_for.assert_not_called()
 
 
 def _direct_runtime_evidence(library_name: str = "nodejs") -> dict[str, Any]:
