@@ -183,6 +183,23 @@ class Test_OTEL_SDK_DISABLED:
         with test_library as library:
             assert _otel_sdk_disabled(test_agent, library) is True
 
+    # OTEL_SDK_DISABLED=true maps to DD_TRACE_ENABLED=false.
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                "OTEL_SDK_DISABLED": "true",
+                "DD_TRACE_ENABLED": None,
+            }
+        ],
+    )
+    def test_true_disables_tracing(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        with test_library as library:
+            _emit_span(library)
+
+        with pytest.raises(ValueError):
+            test_agent.wait_for_num_traces(num=1)
+
     @pytest.mark.parametrize(
         "library_env",
         [
