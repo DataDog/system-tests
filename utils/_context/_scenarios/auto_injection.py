@@ -6,10 +6,15 @@ from pathlib import Path
 import pytest
 from utils._context.component_version import ComponentVersion
 from utils._logger import logger
+from utils import interfaces
 from utils.onboarding.debug_vm import download_vm_logs
+from utils.virtual_machine.ssh_reverse_tunnel import SSHReverseTunnel
 from utils.virtual_machine.ami_candidate import candidate_result_state
 from utils.virtual_machine.virtual_machines import _VirtualMachine, load_virtual_machines
 from .core import Scenario, ScenarioGroup
+
+# Port the SSH reverse tunnel binds on the VM loopback to expose the mocked backend
+_MOCKED_BACKEND_VM_PORT = 4901
 
 
 class _VirtualMachineScenario(Scenario):
@@ -25,9 +30,14 @@ class _VirtualMachineScenario(Scenario):
         agent_env: dict | None = None,
         app_env: dict | None = None,
         scenario_groups: list[ScenarioGroup] | None = None,
+        mocked_backend: bool = False,
     ) -> None:
         super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
         self.vm_provision_name = vm_provision
+        # When True, the agent on the VM sends its payloads to the mocked backend (running in the pytest
+        # process, reached through an SSH reverse tunnel) instead of the real Datadog backend
+        self.mocked_backend_enabled = mocked_backend
+        self._mocked_backend_tunnel: SSHReverseTunnel | None = None
         self.vm_provider_id: str = "vagrant"
         self.vm_provider = None
         self.required_vms = []
@@ -136,9 +146,20 @@ class _VirtualMachineScenario(Scenario):
         self.virtual_machine.add_agent_env(self.agent_env)
         self.virtual_machine.add_app_env(self.app_env)
 
+        if self.mocked_backend_enabled:
+            interfaces.backend_v2.configure(self.host_log_folder, replay=False)
+            # The tunnel binds a fixed port on the VM loopback, so the URL is known before provisioning: the
+            # provision configures the agent with it before starting the weblog, no agent restart needed later
+            self.virtual_machine.set_agent_backend_url(f"http://127.0.0.1:{_MOCKED_BACKEND_VM_PORT}")
+            # The agent install script and the agent itself refuse to run without an API key, the mock ignores it
+            if not self.virtual_machine.datadog_config.dd_api_key:
+                self.virtual_machine.datadog_config.dd_api_key = "0" * 32
+
         if self.is_main_worker:
             self.warmups.append(lambda: logger.terminal.write_sep("=", "Provisioning Virtual Machines", bold=True))
             self.warmups.append(self.vm_provider.stack_up)
+            if self.mocked_backend_enabled:
+                self.warmups.append(self._setup_mocked_backend)
 
             self.warmups.append(self.fill_context)
 
@@ -159,8 +180,32 @@ class _VirtualMachineScenario(Scenario):
         provision_file = f"{base_folder}/provisions/{self.vm_provision_name}/provision.yml"
         assert Path(provision_file).is_file(), f"Provision file not found: {provision_file}"
 
-        assert os.getenv("DD_API_KEY_ONBOARDING") is not None, "DD_API_KEY_ONBOARDING is not set"
-        assert os.getenv("DD_APP_KEY_ONBOARDING") is not None, "DD_APP_KEY_ONBOARDING is not set"
+        if not self.mocked_backend_enabled:
+            assert os.getenv("DD_API_KEY_ONBOARDING") is not None, "DD_API_KEY_ONBOARDING is not set"
+            assert os.getenv("DD_APP_KEY_ONBOARDING") is not None, "DD_APP_KEY_ONBOARDING is not set"
+
+    def _setup_mocked_backend(self) -> None:
+        """Start the mocked backend and expose it on the VM through an SSH reverse tunnel. The agent was
+        already pointed to the tunnel URL during the provision.
+        """
+        if self.virtual_machine.provision_install_error is not None:
+            logger.info("VM provisioning failed, skipping the mocked backend setup")
+            return
+
+        logger.terminal.write_sep("=", "Starting mocked backend", bold=True)
+        interfaces.backend_v2.start_mocked_backend()
+        self._mocked_backend_tunnel = SSHReverseTunnel(
+            self.virtual_machine,
+            remote_port=_MOCKED_BACKEND_VM_PORT,
+            local_port=interfaces.backend_v2.mocked_backend_port,
+        )
+        self._mocked_backend_tunnel.start()
+
+    def _teardown_mocked_backend(self) -> None:
+        if self._mocked_backend_tunnel is not None:
+            self._mocked_backend_tunnel.stop()
+            self._mocked_backend_tunnel = None
+        interfaces.backend_v2.stop_mocked_backend()
 
     def fill_context(self):
         for key in self.virtual_machine.tested_components:
@@ -202,12 +247,15 @@ class _VirtualMachineScenario(Scenario):
 
     def close_targets(self):
         if self.is_main_worker:
-            # Extract logs from the VM before destroy
-            download_vm_logs(
-                vm=self.virtual_machine,
-                remote_folder_paths=["/var/log/datadog", "/var/log/datadog_weblog", "/tmp/datadog/java"],  # noqa: S108
-                local_base_logs_folder=self.host_log_folder,
-            )
+            try:
+                # Extract logs from the VM before destroy
+                download_vm_logs(
+                    vm=self.virtual_machine,
+                    remote_folder_paths=["/var/log/datadog", "/var/log/datadog_weblog", "/tmp/datadog/java"],  # noqa: S108
+                    local_base_logs_folder=self.host_log_folder,
+                )
+            finally:
+                self._teardown_mocked_backend()
             logger.info("Destroying virtual machines")
             self.vm_provider.stack_destroy()
 
@@ -278,6 +326,8 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
         app_env: dict | None = None,
         scenario_groups: list[ScenarioGroup] | None = None,
         github_workflow: str | None = None,
+        *,
+        mocked_backend: bool = False,
     ) -> None:
         # Force full tracing without limits
         app_env_defaults = {
@@ -295,4 +345,5 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
             doc=doc,
             github_workflow=github_workflow,
             scenario_groups=scenario_groups,
+            mocked_backend=mocked_backend,
         )

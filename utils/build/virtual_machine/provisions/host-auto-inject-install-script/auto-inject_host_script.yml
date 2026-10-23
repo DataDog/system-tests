@@ -24,6 +24,16 @@
     DD_APM_INSTRUMENTATION_ENABLED=host bash execute_install_script.sh
     sudo cp debug_config.yaml /etc/datadog-agent/inject/debug_config.yaml
 
+    if [ -n "${DD_AGENT_BACKEND_URL}" ]; then
+        # Point the agent to the mocked backend, before the weblog is installed. Leading new line: the existing
+        # file may not end with one
+        printf '\nDD_DD_URL=%s\nDD_APM_DD_URL=%s\nDD_APM_PROFILING_DD_URL=%s/api/v2/profile\n' \
+            "${DD_AGENT_BACKEND_URL}" "${DD_AGENT_BACKEND_URL}" "${DD_AGENT_BACKEND_URL}" \
+            | sudo tee -a /etc/datadog-agent/environment > /dev/null \
+            || echo "Warning: Could not point the agent to the mocked backend"
+        sudo systemctl restart datadog-agent
+    fi
+
 - os_type: windows
   remote-command: |
     echo "TODO. Windows is not supported for installation script yet. TODO."

@@ -1212,18 +1212,21 @@ class _Scenarios:
         "SIMPLE_INSTALLER_AUTO_INJECTION",
         "Onboarding Container Single Step Instrumentation scenario (minimal test scenario)",
         scenario_groups=[scenario_groups.simple_onboarding],
+        mocked_backend=True,
         github_workflow="aws_ssi",
     )
     multi_installer_auto_injection = InstallerAutoInjectionScenario(
         "MULTI_INSTALLER_AUTO_INJECTION",
         "Onboarding Container Single Step Instrumentation scenario for multicontainer apps",
         scenario_groups=[scenario_groups.all, scenario_groups.onboarding],
+        mocked_backend=True,
         github_workflow="aws_ssi",
     )
     installer_auto_injection = InstallerAutoInjectionScenario(
         "INSTALLER_AUTO_INJECTION",
         doc="Installer auto injection scenario",
         scenario_groups=[scenario_groups.all, scenario_groups.onboarding],
+        mocked_backend=True,
         github_workflow="aws_ssi",
     )
 
@@ -1231,6 +1234,7 @@ class _Scenarios:
         "INSTALLER_NOT_SUPPORTED_AUTO_INJECTION",
         "Onboarding host Single Step Instrumentation scenario for not supported languages",
         scenario_groups=[scenario_groups.all, scenario_groups.onboarding],
+        mocked_backend=True,
         github_workflow="aws_ssi",
     )
 
@@ -1242,6 +1246,7 @@ class _Scenarios:
         ),
         vm_provision="auto-inject-ld-preload",
         scenario_groups=[scenario_groups.all, scenario_groups.onboarding],
+        mocked_backend=True,
         github_workflow="aws_ssi",
     )
 
@@ -1256,6 +1261,7 @@ class _Scenarios:
             "DD_PROFILING_START_FORCE_FIRST": "true",
         },
         scenario_groups=[scenario_groups.all, scenario_groups.simple_onboarding_profiling],
+        mocked_backend=True,
         github_workflow="aws_ssi",
     )
     host_auto_injection_install_script_profiling = InstallerAutoInjectionScenario(
@@ -1272,6 +1278,7 @@ class _Scenarios:
             "DD_PROFILING_START_FORCE_FIRST": "true",
         },
         scenario_groups=[scenario_groups.all, scenario_groups.onboarding],
+        mocked_backend=True,
         github_workflow="aws_ssi",
     )
 
@@ -1286,6 +1293,7 @@ class _Scenarios:
             "DD_PROFILING_START_FORCE_FIRST": "true",
         },
         scenario_groups=[scenario_groups.all, scenario_groups.onboarding],
+        mocked_backend=True,
         github_workflow="aws_ssi",
     )
 
@@ -1295,6 +1303,7 @@ class _Scenarios:
         "stable config (application_monitoring.yaml)",
         agent_env={"DD_APPSEC_ENABLED": "true"},
         scenario_groups=[scenario_groups.all, scenario_groups.simple_onboarding_appsec],
+        mocked_backend=True,
         github_workflow="aws_ssi",
     )
 
@@ -1307,6 +1316,7 @@ class _Scenarios:
         vm_provision="host-auto-inject-install-script",
         agent_env={"DD_APPSEC_ENABLED": "true"},
         scenario_groups=[scenario_groups.all],
+        mocked_backend=True,
         github_workflow="aws_ssi",
     )
 
@@ -1316,6 +1326,7 @@ class _Scenarios:
         vm_provision="container-auto-inject-install-script",
         agent_env={"DD_APPSEC_ENABLED": "true"},
         scenario_groups=[scenario_groups.all],
+        mocked_backend=True,
         github_workflow="aws_ssi",
     )
 
@@ -1324,6 +1335,7 @@ class _Scenarios:
         "Onboarding Host Single Step Instrumentation scenario using agent auto install script",
         vm_provision="host-auto-inject-install-script",
         scenario_groups=[scenario_groups.all],
+        mocked_backend=True,
         github_workflow="aws_ssi",
     )
 
@@ -1332,6 +1344,7 @@ class _Scenarios:
         "Onboarding Container Single Step Instrumentation scenario using agent auto install script",
         vm_provision="container-auto-inject-install-script",
         scenario_groups=[scenario_groups.all],
+        mocked_backend=True,
         github_workflow="aws_ssi",
     )
 
