@@ -62,7 +62,7 @@ def assert_details(responses: list[HttpResponse], case: dict[str, Any], *, expec
 
 
 def assert_evaluation_delivery(captures: Iterable[dict[str, Any]], cases: list[dict[str, Any]]) -> None:
-    """Check exact subjects and counts, including positive controls and unexpected events."""
+    """Check exact hashed subjects and counts under the default evaluation-data policy."""
     flags = {case["flag"] for case in cases}
     actual: Counter[tuple[str, str]] = Counter()
     for capture in captures:
@@ -72,14 +72,16 @@ def assert_evaluation_delivery(captures: Iterable[dict[str, Any]], cases: list[d
         for event in content.get("flagEvaluations", []):
             flag = event.get("flag", {}).get("key")
             if flag in flags:
-                subject = event.get("subject", {}).get("id")
+                subject = event.get("targeting_key")
                 count = event["evaluation_count"]
                 assert type(count) is int, event
                 assert count > 0, event
                 actual[(flag, subject)] += count
     expected = Counter(
         {
-            (case["flag"], case["subject"]): case["expected_evaluations"]
+            (case["flag"], "sha256_" + hashlib.sha256(case["subject"].encode()).hexdigest()): case[
+                "expected_evaluations"
+            ]
             for case in cases
             if case["expected_evaluations"]
         }

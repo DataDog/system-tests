@@ -161,25 +161,35 @@ def test_lean_details_reject_wrong_observation(field: str) -> None:
 
 @scenarios.feature_flagging_contract_tests
 @features.not_reported
-@pytest.mark.parametrize("mutation", ["missing", "wrong-subject", "suppression-leak", "duplicate", "wrong-count"])
+@pytest.mark.parametrize(
+    "mutation",
+    ["missing", "wrong-subject", "suppression-leak", "duplicate", "wrong-count", "raw-subject", "exposure-schema"],
+)
 def test_lean_evaluation_delivery_negative_controls(mutation: str) -> None:
     cases: list[dict[str, Any]] = [
         {"flag": "flag", "subject": "observed", "expected_evaluations": 3},
         {"flag": "flag", "subject": "suppressed", "expected_evaluations": 0},
     ]
-    event: dict[str, Any] = {"flag": {"key": "flag"}, "subject": {"id": "observed"}, "evaluation_count": 3}
+    observed = "sha256_604cee807f644af47487bf2bbab442b94212ac5119f36f995f78e9e4694dae8c"
+    suppressed = "sha256_f63d5b6b4de4fca716f2be8a179211b92682dc2e030b7063aea1d4a210f40033"
+    event: dict[str, Any] = {"flag": {"key": "flag"}, "targeting_key": observed, "evaluation_count": 3}
     content: dict[str, Any] = {"flagEvaluations": [event]}
     captures: list[dict[str, Any]] = [{"request": {"content": content}}]
     assert_evaluation_delivery(captures, cases)
     if mutation == "missing":
         content["flagEvaluations"] = []
     elif mutation == "wrong-subject":
-        event["subject"]["id"] = "suppressed"
+        event["targeting_key"] = suppressed
     elif mutation == "suppression-leak":
-        content["flagEvaluations"].append({**event, "subject": {"id": "suppressed"}})
+        content["flagEvaluations"].append({**event, "targeting_key": suppressed})
     elif mutation == "duplicate":
         content["flagEvaluations"].append(deepcopy(event))
-    else:
+    elif mutation == "wrong-count":
         event["evaluation_count"] = 2
+    elif mutation == "raw-subject":
+        event["targeting_key"] = "observed"
+    else:
+        event.pop("targeting_key")
+        event["subject"] = {"id": "observed"}
     with pytest.raises(AssertionError):
         assert_evaluation_delivery(captures, cases)
