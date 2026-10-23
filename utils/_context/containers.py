@@ -644,18 +644,25 @@ class ImageInfo:
             json.dump(self._image.attrs, f, indent=2)
 
 
-def _proxy_image_name() -> str:
-    """Return the proxy image: docker.io's amd64-only proxy-v1, or the internal multi-arch one in GitLab CI.
+def _ci_multi_arch_image_name(dockerfile: str, image: str, default: str) -> str:
+    """Return ``default``, or the internal multi-arch build of ``dockerfile`` in GitLab CI.
 
-    With USE_IMAGE_MIRROR (GitLab CI), pull the multi-arch proxy that the build_ci_image* jobs publish
-    to registry.ddbuild.io, so it also runs on arm64 runners. Its tag is the hash of proxy.Dockerfile,
+    With USE_IMAGE_MIRROR (GitLab CI), pull the multi-arch image that the build_ci_image* jobs publish
+    to registry.ddbuild.io, so it also runs on arm64 runners. Its tag is the hash of ``dockerfile``,
     and must match the one computed by utils/ci/gitlab/build_ci_image.py.
     """
     if not mirror_enabled():
-        return "datadog/system-tests:proxy-v1"
+        return default
 
-    tag = hashlib.sha256(Path("utils/build/docker/proxy.Dockerfile").read_bytes()).hexdigest()[:12]
-    return f"registry.ddbuild.io/system-tests/proxy:{tag}"
+    tag = hashlib.sha256(Path(dockerfile).read_bytes()).hexdigest()[:12]
+    return f"registry.ddbuild.io/system-tests/{image}:{tag}"
+
+
+def _proxy_image_name() -> str:
+    """Return docker.io's amd64-only proxy-v1, or the internal multi-arch one in GitLab CI."""
+    return _ci_multi_arch_image_name(
+        "utils/build/docker/proxy.Dockerfile", "proxy", default="datadog/system-tests:proxy-v1"
+    )
 
 
 class ProxyContainer(TestedContainer):
@@ -1749,7 +1756,12 @@ class DummyServerContainer(TestedContainer):
 class InternalServerContainer(TestedContainer):
     def __init__(self) -> None:
         super().__init__(
-            image_name="demisto/fastapi:0.116.1.4266494",
+            # demisto/fastapi is amd64-only: GitLab CI uses a multi-arch equivalent instead.
+            image_name=_ci_multi_arch_image_name(
+                "utils/build/docker/internal_server.Dockerfile",
+                "internal_server",
+                default="demisto/fastapi:0.116.1.4266494",
+            ),
             name="internal_server",
             healthcheck={"test": "wget http://internal_server:8089", "retries": 10},
             working_dir="/app",

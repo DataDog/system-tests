@@ -1,13 +1,14 @@
-"""Build (and sign) the CI images used to run system-tests jobs, and the proxy image they use.
+"""Build (and sign) the CI images used to run system-tests jobs, and the proxy/internal_server images they use.
 
 Called by the ``build_ci_image*`` jobs in .gitlab-ci.yml. Computes the expected
 tags from the content of the Dockerfiles (and requirements.txt for the
 ci-runner) and checks that $CI_IMAGE (utils/ci/gitlab/main.yml) matches the
 computed ci-runner tag.
 
-The ci-runner and proxy images are multi-arch (see ``PLATFORMS``) so jobs can run on
-both amd64 and arm64 runners. The proxy tag is the hash of its Dockerfile, which
-utils/_context/containers.py recomputes to pull it when USE_IMAGE_MIRROR is set.
+The ci-runner, proxy and internal_server images are multi-arch (see ``PLATFORMS``) so jobs
+can run on both amd64 and arm64 runners. The proxy and internal_server tags are the hash of
+their Dockerfile, which utils/_context/containers.py recomputes to pull them when
+USE_IMAGE_MIRROR is set.
 docker-in-docker runners cannot build multi-platform images, so (like utils/base_images/build_base_images.py):
 
 * ``--platform <platform>`` natively builds and pushes ``<image>:<tag>-<arch>``
@@ -41,6 +42,8 @@ BAKE_FILE = DOCKER_DIR / "docker-bake.hcl"
 # Proxy used by the system-tests scenarios. GitLab CI pulls it from REGISTRY rather than
 # docker.io, as docker.io only has an amd64 datadog/system-tests:proxy-v1.
 PROXY_DOCKERFILE = REPO_ROOT / "utils" / "build" / "docker" / "proxy.Dockerfile"
+# Replaces the amd64-only demisto/fastapi used by InternalServerContainer, for the same reason.
+INTERNAL_SERVER_DOCKERFILE = REPO_ROOT / "utils" / "build" / "docker" / "internal_server.Dockerfile"
 PLATFORMS = ("linux/amd64", "linux/arm64")
 # image-builder only runs the build_ci_image* amd64 jobs, so it stays single-platform.
 IMAGE_BUILDER_PLATFORM = "linux/amd64"
@@ -179,13 +182,15 @@ def parse_args() -> argparse.Namespace:
     mode.add_argument(
         "--platform",
         choices=PLATFORMS,
-        help="Build and push the single-platform <image>:<tag>-<arch> of ci-runner and proxy (plus image-builder "
+        help="Build and push the single-platform <image>:<tag>-<arch> of ci-runner, proxy and internal_server "
+        "(plus image-builder "
         f"on {IMAGE_BUILDER_PLATFORM})",
     )
     mode.add_argument(
         "--merge",
         action="store_true",
-        help="Combine the already pushed single-platform images into the multi-arch ci-runner and proxy, and sign them",
+        help="Combine the already pushed single-platform images into the multi-arch ci-runner, proxy and "
+        "internal_server, and sign them",
     )
     mode.add_argument(
         "--check-only",
@@ -204,9 +209,10 @@ def main() -> None:
         DOCKER_DIR / "system-tests.Dockerfile", REPO_ROOT / "requirements.txt"
     )
 
-    # Must match the tag computed by utils/_context/containers.py:_proxy_image_name
+    # Must match the tags computed by utils/_context/containers.py:_ci_multi_arch_image_name
     proxy = f"{REGISTRY}/proxy:{_sha256_tag(PROXY_DOCKERFILE)}"
-    multi_arch_images = {"ci-runner": ci_runner, "proxy": proxy}
+    internal_server = f"{REGISTRY}/internal_server:{_sha256_tag(INTERNAL_SERVER_DOCKERFILE)}"
+    multi_arch_images = {"ci-runner": ci_runner, "proxy": proxy, "internal_server": internal_server}
 
     if args.platform:
         build_platform(args.platform, image_builder, multi_arch_images)

@@ -458,8 +458,8 @@ system_tests_php_thread_context_sharing:
 # ──────────────────────────────────────────────
 # Build the CI images (see utils/ci/gitlab/build_ci_image.py).
 #
-# $CI_IMAGE (ci-runner) and the proxy image used by the scenarios in GitLab CI
-# (utils/build/docker/proxy.Dockerfile) are multi-arch so system-tests jobs can run on both
+# $CI_IMAGE (ci-runner) and the proxy and internal_server images used by the scenarios in
+# GitLab CI (utils/build/docker/{proxy,internal_server}.Dockerfile) are multi-arch so system-tests jobs can run on both
 # amd64 and arm64 runners. docker-in-docker runners cannot build multi-platform images, so each
 # architecture is built natively on its own runner and pushed as <tag>-<arch>, then
 # build_ci_image merges them into the multi-arch <tag> and signs it. build_ci_image keeps
@@ -475,6 +475,7 @@ system_tests_php_thread_context_sharing:
         - utils/ci/gitlab/docker/**/*
         - utils/ci/gitlab/build_ci_image.py
         - utils/build/docker/proxy.Dockerfile
+        - utils/build/docker/internal_server.Dockerfile
         - requirements.txt
         - utils/ci/gitlab/main.yml
 
