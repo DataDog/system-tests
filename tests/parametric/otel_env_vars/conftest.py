@@ -10,7 +10,7 @@ APMLibraryFactory = Callable[[dict[str, str | None]], AbstractContextManager[APM
 
 
 # This fixture serves two small use cases: the SDK-default comparison in
-# OTEL_PROPAGATORS and OTEL_LOG_LEVEL, and the exporting control run in
+# OTEL_PROPAGATORS and OTEL_LOG_LEVEL, and the control runs in
 # OTEL_SDK_DISABLED. Do not use it outside these tests; contact the
 # apm-shared-testing team if another use case needs it.
 @pytest.fixture

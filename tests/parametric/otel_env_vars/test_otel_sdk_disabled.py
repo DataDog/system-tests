@@ -226,8 +226,16 @@ class Test_OTEL_SDK_DISABLED:
             }
         ],
     )
-    def test_datadog_configuration_takes_precedence(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
-        with test_library as library:
+    def test_datadog_configuration_takes_precedence(
+        self, test_agent: TestAgentAPI, test_library_factory: APMLibraryFactory, library_env: dict[str, str | None]
+    ) -> None:
+        # Control: OTEL_SDK_DISABLED=true alone disables tracing, so DD_TRACE_ENABLED=true
+        # below overrides it rather than leaving tracing that was never disabled.
+        with test_library_factory({**library_env, "DD_TRACE_ENABLED": None}) as library:
             _emit_span(library)
+        with pytest.raises(ValueError):
+            test_agent.wait_for_num_traces(num=1)
 
+        with test_library_factory(library_env) as library:
+            _emit_span(library)
         assert test_agent.wait_for_num_traces(num=1)
