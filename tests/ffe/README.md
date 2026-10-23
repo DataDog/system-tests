@@ -11,6 +11,7 @@ This directory contains system tests for the Feature Flags & Experimentation (FF
 | `test_exposures_datadog_agent.py` | Flag exposure tracking and reporting through the Datadog Agent |
 | `test_flag_eval_metrics.py` | Evaluation metrics (OTel counter) |
 | `test_flag_eval_evp.py` | Server-side EVP flagevaluation payloads, aggregation, and bounds |
+| `test_evaluation_telemetry_opt_out.py` | Per-subject evaluation telemetry opt-out, default-off behavior, and unchanged exposures |
 
 ## Running FFE Tests
 
@@ -18,14 +19,104 @@ This directory contains system tests for the Feature Flags & Experimentation (FF
 ./run.sh FEATURE_FLAGGING_AND_EXPERIMENTATION --library <language>
 ```
 
-## Test-contract self-tests
+## Per-subject evaluation telemetry opt-out
 
-The self-tests in `tests/test_the_test/test_ffe_tests.py` validate the FFE assertions using synthetic
-captures. They do not run SDKs or contact an intake. They are part of the
-`TEST_THE_TEST` scenario, which runs on every PR:
+All four test classes report under [#649: Per-subject evaluation telemetry opt-out](https://feature-parity.us1.prod.dog/#/?feature=649).
+
+The [customer solutions document](https://docs.google.com/document/d/15rai-S0NmGO2sKsMgy6cGf4963Y--9qdEfAj5MiytUg/edit)
+describes the customer capability. The implemented name is `dd_evaluation_telemetry_opt_out`.
+The [explicit scope decision](https://github.com/DataDog/dd-sdk-ios/pull/3305#discussion_r4326232944)
+preserves experiment exposures, and the
+[attribute decision](https://github.com/DataDog/dd-trace-go/pull/5611#discussion_r4307380659)
+retains the control in targeting and exposure attributes.
+
+Candidate SDK implementations must pass the applicable local checks before delivery.
+Released-version CI activation is a separate step. Both scenarios are excluded from the default
+`all`, `end_to_end`, and `tracer_release` groups. They remain selectable by name or through the `ffe` group.
+When activating released versions in manifests, restore the default scenario groups too.
+Otherwise tracer CI that selects only `tracer_release` does not run these tests.
+Manifests mark unsupported SDK versions as expected failures; this does not prevent their setup from running.
+Use a local candidate SDK and force these tests to validate unreleased changes:
 
 ```bash
-./run.sh TEST_THE_TEST tests/test_the_test/test_ffe_tests.py
+./run.sh FEATURE_FLAGGING_EVALUATION_TELEMETRY_OPT_OUT tests/ffe/test_evaluation_telemetry_opt_out.py \
+  -F tests/ffe/test_evaluation_telemetry_opt_out.py
+./run.sh FEATURE_FLAGGING_EVALUATION_TELEMETRY_OPT_OUT_DISABLED tests/ffe/test_evaluation_telemetry_opt_out.py \
+  -F tests/ffe/test_evaluation_telemetry_opt_out.py
+```
+
+The enabled scenario sets `DD_FEATURE_FLAGS_EVALUATION_TELEMETRY_PER_SUBJECT_OPT_OUT_ENABLED=true`.
+The disabled scenario leaves the setting absent. Both use the same requests.
+
+| Context value | Enabled | Disabled |
+| --- | --- | --- |
+| Boolean `true` | No evaluation telemetry | Evaluation telemetry remains |
+| Boolean `false`, missing, `null`, string `"true"`, or number `1` | Evaluation telemetry remains | Evaluation telemetry remains |
+| Wrong-case key or legacy `dd_telemetry_opt_out` key | Evaluation telemetry remains | Evaluation telemetry remains |
+
+The SDK reads the attribute on every evaluation. A subject stays opted out only while each evaluation context carries it.
+Set the attribute in the context supplied to the evaluation call.
+These tests do not cover opt-outs added by application hooks; SDK behavior differs for those hooks.
+
+Separate tests check exact EVP counts, evaluation metric presence, and automatic trace annotations.
+Metric checks accept delta exports and repeated cumulative exports. Opted-out flags must have no nonzero metric points.
+Each test includes allowed subjects as positive controls.
+Mixed subjects evaluate the same flag to detect a flag-scoped opt-out decision.
+EVP counts match both the flag and the subject's raw or hashed targeting key.
+Shared-flag subjects receive the same value from distinct fixture allocations.
+Metric assertions use the allocation tags to check each subject separately, without adding subject tags to metrics.
+One rule targets the opt-out attribute to verify that it remains available for evaluation.
+One subject opts out, then removes the attribute; later evaluations must emit telemetry again.
+Those two phases use distinct allocation tags with the same flag value, so resumed metrics cannot hide an earlier leak.
+Missing flags test suppression on the error path, return the application default, and produce no exposures.
+Configured flags must return the same flag value for every request.
+Exposures must retain their context attributes and ordinary deduplication for an unchanged context.
+After an attribute changes, exposure deduplication can differ between SDKs; these tests do not check it.
+Validation reads final captures after the scenario stops its application and drains the Agent.
+Remote Configuration and evaluation-request errors are reported during validation, without aborting the remaining setups.
+
+PHP coverage is deferred until its OpenFeature test-app foundation is available.
+.NET EVP coverage requires a tracer release containing [dd-trace-dotnet#9351](https://github.com/DataDog/dd-trace-dotnet/pull/9351).
+For older candidates without that producer, exclude the EVP class with `-k 'not EVP'`.
+Browser and mobile SDKs are outside this server harness and retain their repository integration tests.
+
+### Release activation and follow-up coverage
+
+Replace each provisional manifest entry with the first released SDK version containing its opt-out implementation.
+For Node.js, this must include [dd-trace-js#10776](https://github.com/DataDog/dd-trace-js/pull/10776); a merged PR is not a released version.
+.NET needs a tracer release containing [dd-trace-dotnet#9426](https://github.com/DataDog/dd-trace-dotnet/pull/9426)
+and a weblog using `Datadog.FeatureFlags.OpenFeature` 2.3.3 or later.
+Its EVP class has a separate dependency on #9351. The tracer manifest does not gate the NuGet provider version.
+
+These scenarios activate opt-out through the process environment only.
+Coverage for other configuration sources, such as `application_monitoring.yaml`, is separate follow-up work.
+
+### Local .NET candidate packages
+
+Put the `Datadog.Trace` and `Datadog.FeatureFlags.OpenFeature` packages in `binaries/`.
+Also supply the matching tracer archive (`datadog-dotnet-apm-<version>*.tar.gz`) or extracted tracer files.
+For the `poc` weblog, pass exact NuGet version ranges through the Docker build arguments:
+
+```bash
+./build.sh dotnet -w poc --extra-docker-args \
+  "--build-arg DD_TRACE_PACKAGE_VERSION=[<tracer-package-version>] --build-arg DD_OPENFEATURE_PACKAGE_VERSION=[<provider-package-version>]"
+```
+
+Brackets require that exact version. A plain version is a minimum; NuGet can select a higher version with warning NU1603.
+Use unique candidate versions that are not published on nuget.org, so only `binaries/` can supply them.
+Verify the resolved packages before reporting local validation. These arguments do not select the installed tracer binary.
+The `uds` weblog does not support these build arguments or the local package source.
+
+## Test-contract self-tests
+
+The self-tests in `tests/test_the_test/test_ffe_tests.py` and
+`tests/test_the_test/test_ffe_evaluation_telemetry_opt_out.py` validate the FFE assertions
+using synthetic captures. They do not run SDKs or contact an intake. They are part of
+the `TEST_THE_TEST` scenario, which runs on every PR. With the Python 3.12 runner
+environment installed, run them explicitly:
+
+```bash
+./run.sh TEST_THE_TEST tests/test_the_test/test_ffe_tests.py tests/test_the_test/test_ffe_evaluation_telemetry_opt_out.py
 ```
 Framework mock-backend and lifecycle tests stay in `tests/test_the_test/`.
 

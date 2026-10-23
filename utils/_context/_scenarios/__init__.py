@@ -5,7 +5,7 @@ from utils.proxy.ports import ProxyPorts
 from utils.tools import update_environ_with_local_env
 
 from .aws_lambda import LambdaScenario
-from .core import Scenario, scenario_groups
+from .core import Scenario, ScenarioGroup, scenario_groups
 from .default import DefaultScenario
 from .agentless_endtoend import FeatureFlaggingAgentlessEndToEndScenario
 from .endtoend import (
@@ -61,6 +61,29 @@ _AI_GUARD_WEBLOG_ENV = {
     "DD_API_KEY": "mock_api_key",
     "DD_APP_KEY": "mock_app_key",
 }
+
+# Shared by the ordinary FFE scenario and both evaluation telemetry opt-out scenarios.
+# Both opt-out scenarios also enable span enrichment; one enables the opt-out option.
+_FFE_WEBLOG_ENV: dict[str, str | None] = {
+    "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
+    "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE": "remote_config",
+    # Python's set_provider() waits for Remote Configuration, which arrives only
+    # after the weblog starts. The OpenFeature API has no nonblocking alternative.
+    # Fail initialization promptly so the weblog starts; the provider recovers
+    # when the tests supply Remote Configuration.
+    "DD_EXPERIMENTAL_FLAGGING_PROVIDER_INITIALIZATION_TIMEOUT_MS": "100",
+    "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
+    "DD_METRICS_OTEL_ENABLED": "true",
+    "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": "http/protobuf",
+    "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT": "http://agent:4318/v1/metrics",
+    "OTEL_METRIC_EXPORT_INTERVAL": "1000",
+}
+
+
+class _ProvisionalFeatureFlaggingScenario(DdTraceEndToEndScenario):
+    """Allow explicit FFE runs without scheduling unsupported SDKs in default CI."""
+
+    _default_scenario_groups: tuple[ScenarioGroup, ...] = ()
 
 
 class _Scenarios:
@@ -878,25 +901,34 @@ class _Scenarios:
         rc_api_enabled=True,
         # Allow final EVP batches to reach the backend after the weblog flushes and stops.
         agent_interface_timeout=15,
-        weblog_env={
-            "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
-            "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE": "remote_config",
-            # set_provider() in Python blocks until we receive RC
-            # configuration for feature flags. But it is only sent
-            # after weblog sucessfully boots and tests start
-            # executing. Unfortunately, Python's OpenFeature SDK does
-            # not have "set provider and don't wait," so we reduce the
-            # timeout here, so that the provider initialization fails
-            # fast, weblog boots, and provider recovers when we set RC
-            # configuration later.
-            "DD_EXPERIMENTAL_FLAGGING_PROVIDER_INITIALIZATION_TIMEOUT_MS": "100",
-            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
-            "DD_METRICS_OTEL_ENABLED": "true",
-            "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": "http/protobuf",
-            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT": "http://agent:4318/v1/metrics",
-            "OTEL_METRIC_EXPORT_INTERVAL": "1000",
-        },
+        weblog_env=_FFE_WEBLOG_ENV,
         doc="",
+        scenario_groups=[scenario_groups.ffe],
+    )
+
+    feature_flagging_evaluation_telemetry_opt_out = _ProvisionalFeatureFlaggingScenario(
+        "FEATURE_FLAGGING_EVALUATION_TELEMETRY_OPT_OUT",
+        rc_api_enabled=True,
+        agent_interface_timeout=15,
+        weblog_env={
+            **_FFE_WEBLOG_ENV,
+            "DD_EXPERIMENTAL_FLAGGING_PROVIDER_SPAN_ENRICHMENT_ENABLED": "true",
+            "DD_FEATURE_FLAGS_EVALUATION_TELEMETRY_PER_SUBJECT_OPT_OUT_ENABLED": "true",
+        },
+        doc="Per-subject evaluation telemetry opt-out, with unchanged assignments and exposures.",
+        scenario_groups=[scenario_groups.ffe],
+    )
+
+    feature_flagging_evaluation_telemetry_opt_out_disabled = _ProvisionalFeatureFlaggingScenario(
+        "FEATURE_FLAGGING_EVALUATION_TELEMETRY_OPT_OUT_DISABLED",
+        rc_api_enabled=True,
+        agent_interface_timeout=15,
+        weblog_env={
+            **_FFE_WEBLOG_ENV,
+            "DD_EXPERIMENTAL_FLAGGING_PROVIDER_SPAN_ENRICHMENT_ENABLED": "true",
+            # Omit the opt-out option: an attribute must not activate the feature by itself.
+        },
+        doc="Default-disabled control for per-subject evaluation telemetry opt-out.",
         scenario_groups=[scenario_groups.ffe],
     )
 
