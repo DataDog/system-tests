@@ -73,23 +73,6 @@ UNSET_AND_EMPTY_VALUES = [
 @scenarios.parametric
 @features.otel_sdk_disabled
 class Test_OTEL_SDK_DISABLED:
-    @pytest.mark.parametrize(
-        "library_env",
-        [
-            {
-                "OTEL_SDK_DISABLED": "true",
-                "DD_TRACE_OTEL_ENABLED": None,
-            }
-        ],
-    )
-    def test_stable_true(
-        self,
-        test_agent: TestAgentAPI,
-        test_library: APMLibrary,
-    ):
-        with test_library as library:
-            assert _otel_sdk_disabled(test_agent, library) is True
-
     # Each signal is opted in through its own setting, as an operator auto-install would do.
     # A control run without OTEL_SDK_DISABLED first proves that the setup exports, so a
     # missing exporter cannot pass as disabled. OTEL_SDK_DISABLED=true must then keep it off.
@@ -200,23 +183,6 @@ class Test_OTEL_SDK_DISABLED:
         with test_library as library:
             assert _otel_sdk_disabled(test_agent, library) is True
 
-    # OTEL_SDK_DISABLED=true maps to DD_TRACE_ENABLED=false.
-    @pytest.mark.parametrize(
-        "library_env",
-        [
-            {
-                "OTEL_SDK_DISABLED": "true",
-                "DD_TRACE_ENABLED": None,
-            }
-        ],
-    )
-    def test_true_disables_tracing(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
-        with test_library as library:
-            _emit_span(library)
-
-        with pytest.raises(ValueError):
-            test_agent.wait_for_num_traces(num=1)
-
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -229,8 +195,9 @@ class Test_OTEL_SDK_DISABLED:
     def test_datadog_configuration_takes_precedence(
         self, test_agent: TestAgentAPI, test_library_factory: APMLibraryFactory, library_env: dict[str, str | None]
     ) -> None:
-        # Control: OTEL_SDK_DISABLED=true alone disables tracing, so DD_TRACE_ENABLED=true
-        # below overrides it rather than leaving tracing that was never disabled.
+        # Control: OTEL_SDK_DISABLED=true alone maps to DD_TRACE_ENABLED=false and disables
+        # tracing, so DD_TRACE_ENABLED=true below overrides it rather than leaving tracing
+        # that was never disabled.
         with test_library_factory({**library_env, "DD_TRACE_ENABLED": None}) as library:
             _emit_span(library)
         with pytest.raises(ValueError):
