@@ -12,16 +12,20 @@ _RFC = "https://docs.google.com/document/d/17BQ1cEcJuumpMWMtBItIx9x_akG99dzjBA1N
 class _DebuggerCoordinatedSamplingTest(debugger.BaseDebuggerTest):
     """The sampling decision is made once per trace, so a trace emits its whole probe chain or none of it.
 
+    As the RFC specifies, the first snapshot probe hit in a trace decides for the whole trace. If it
+    drops, every probe in the trace drops. If it emits, every probe in the trace may emit until it
+    reaches its cap of one snapshot per trace, even where its own per-probe rate would have skipped it.
+
     Correlation rides on the dd.trace_id already in the snapshot envelope. The probes get different
     per-probe rates, so independent per-probe sampling emits partial chains, which is what makes the
     assertion discriminating.
     """
 
     _INVOCATIONS = 30
-    # The leaf is the first probe hit in each request, so it makes the trace's sampling decision, and
-    # its rate allows every request to be sampled. A request takes about 800ms, so the probes limited
-    # to one snapshot per second are skipped in about every other request unless they follow the
-    # trace's decision.
+    # The leaf samples every request on its own. A request takes about 800ms, so without coordination
+    # the probes limited to one snapshot per second are skipped in about every other request while the
+    # leaf is not. With line probes on the return lines, the leaf is also the first probe hit, so it
+    # makes the trace's decision.
     _SNAPSHOTS_PER_SECOND = {"CorrelationLeaf": 5, "CorrelationMiddle": 1, "Correlation": 1}
 
     def _prepare_probe(self, probe: dict) -> None:
