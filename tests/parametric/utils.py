@@ -238,3 +238,52 @@ def generate_default_counter_data_point(test_library: APMLibrary, instrument_nam
         DEFAULT_MEASUREMENT_ATTRIBUTES,
     )
     test_library.otel_metrics_force_flush()
+
+
+def _get_dotnet_startup_logs(test_library: APMLibrary, *, required: bool = True) -> str | None:
+    """Get .NET tracer startup logs from the container (dotnet-tracer-managed* file).
+
+    If required is True, fails the test when the file is not found or empty.
+    If required is False, returns None when the file is not found or empty.
+    """
+    success, log_files = test_library.container_exec_run(
+        "sh -c 'find / -name \"dotnet-tracer-managed*\" -type f 2>/dev/null | head -1'"
+    )
+    if not success or not log_files or not log_files.strip():
+        if required:
+            pytest.fail("Failed to find .NET startup log file: no file matching 'dotnet-tracer-managed*' found")
+        return None
+    log_file = log_files.strip()
+    success, logs = test_library.container_exec_run(f"sh -c 'cat {log_file} 2>/dev/null || true'")
+    if not success or not logs:
+        if required:
+            pytest.fail(f"Failed to read .NET startup log file: {log_file}")
+        return None
+    return logs
+
+
+def get_startup_logs(test_library: APMLibrary, *, required: bool = True) -> str | None:
+    """Get startup logs from container, handling language-specific differences.
+
+    - .NET: Reads from dotnet-tracer-managed* file
+    - Other libraries: Reads from stderr
+
+    Args:
+        test_library: The APMLibrary test client
+        required: If True, fails test when logs not found. If False, returns None.
+
+    Returns:
+        Log content as string, or None if not found and not required.
+
+    """
+    if context.library == "dotnet":
+        return _get_dotnet_startup_logs(test_library, required=required)
+    else:
+        try:
+            logs = test_library.container.logs(stderr=True, stdout=False).decode("utf-8")
+        except Exception as e:
+            if required:
+                pytest.fail(f"Failed to retrieve container logs: {e}")
+            return None
+
+    return logs
