@@ -206,6 +206,13 @@ elif [ "$TARGET" = "java" ] || [ "$TARGET" = "java_lambda" ]; then
 
     curl --fail --location --silent --show-error --output dd-java-agent.jar "https://s3.us-east-1.amazonaws.com/dd-trace-java-builds/${LIBRARY_TARGET_BRANCH}/dd-java-agent.jar"
 
+    if [ "$TARGET" = "java" ]; then
+        # Only the parametric application uses these APIs. Ordinary weblogs retain
+        # their published Maven dependencies, including transitive dependencies.
+        curl --fail --location --silent --show-error --output parametric-dd-trace-api.jar "https://s3.us-east-1.amazonaws.com/dd-trace-java-builds/${LIBRARY_TARGET_BRANCH}/dd-trace-api.jar"
+        curl --fail --location --silent --show-error --output parametric-dd-openfeature.jar "https://s3.us-east-1.amazonaws.com/dd-trace-java-builds/${LIBRARY_TARGET_BRANCH}/dd-openfeature.jar"
+    fi
+
 elif [ "$TARGET" = "dotnet" ]; then
     assert_version_is_dev
 

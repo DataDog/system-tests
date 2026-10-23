@@ -7,13 +7,13 @@ configure_custom_jar() {
     local artifact_name="$2"
     local maven_property="$3"
     local jar_count
-    jar_count=$(find /binaries/ -name "${jar_pattern}" 2>/dev/null | wc -l)
+    jar_count=$(find /binaries/ \( -name "${jar_pattern}" -o -name "parametric-${jar_pattern}" \) 2>/dev/null | wc -l)
 
     if [ "$jar_count" = 0 ]; then
         echo "Using default $artifact_name"
     elif [ "$jar_count" = 1 ]; then
         local custom_jar
-        custom_jar=$(find /binaries/ -name "${jar_pattern}")
+        custom_jar=$(find /binaries/ \( -name "${jar_pattern}" -o -name "parametric-${jar_pattern}" \))
         echo "Using custom $artifact_name: ${custom_jar}"
         MAVEN_PROFILES="$MAVEN_PROFILES -D${maven_property}=${custom_jar}"
     else

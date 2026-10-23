@@ -114,7 +114,14 @@ By default you will be on the `master` branch, but if you'd like to run system-t
   * The Java tracer agent artifact `dd-java-agent-*.jar` from `dd-java-agent/build/libs/`
   * Its public API `dd-trace-api-*.jar` from `dd-trace-api/build/libs/` into
 
-Note, you should have only TWO jar files in `system-tests/binaries`. Do NOT copy sources or javadoc jars.
+For ordinary Java tests, copy these two JARs. Do not copy sources or Javadoc JARs.
+
+For OpenFeature parametric tests, also build `:dd-openfeature:jar` and copy its
+`dd-openfeature-*.jar` from the same SDK revision. The development artifact loader
+names its companion APIs `parametric-dd-trace-api.jar` and
+`parametric-dd-openfeature.jar`. Only the parametric application loads these names;
+ordinary weblogs retain their published Maven API dependencies. Do not combine an
+automatically downloaded API with a second custom copy of that API.
 
 4. Build your selected weblog:
 
