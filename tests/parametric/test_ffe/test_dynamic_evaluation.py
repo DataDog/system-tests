@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 from utils import (
+    context,
     features,
     scenarios,
 )
@@ -22,6 +23,19 @@ FFE_SYSTEM_TEST_DATA_DIR = Path(__file__).parent / "ffe-system-test-data"
 FFE_EVALUATION_CASES_DIR = FFE_SYSTEM_TEST_DATA_DIR / "evaluation-cases"
 
 parametrize = pytest.mark.parametrize
+
+CORPUS_PLATFORM_BY_LIBRARY = {
+    "cpp": "cpp",
+    "dotnet": "dotnet",
+    "golang": "golang",
+    "java": "java",
+    "nodejs": "nodejs",
+    "php": "php",
+    "python": "python",
+    "ruby": "ruby",
+    "rust": "rust",
+    "web": "web",
+}
 
 
 # Load the UFC fixture file at module level
@@ -39,6 +53,22 @@ def _get_test_case_files() -> list[str]:
     if not case_files:
         raise FileNotFoundError(f"No canonical evaluation cases found in {FFE_EVALUATION_CASES_DIR}")
     return case_files
+
+
+def _filter_test_cases_for_platform(test_cases: list[dict[str, Any]], platform: str) -> list[dict[str, Any]]:
+    """Apply the canonical corpus _skip/_include selection rules."""
+    applicable_cases = []
+    for test_case in test_cases:
+        if "_skip" in test_case and "_include" in test_case:
+            raise ValueError("Evaluation cases cannot define both _skip and _include")
+        skipped_platforms = {entry["platform"] for entry in test_case.get("_skip", [])}
+        included_platforms = {entry["platform"] for entry in test_case.get("_include", [])}
+        if platform in skipped_platforms:
+            continue
+        if included_platforms and platform not in included_platforms:
+            continue
+        applicable_cases.append(test_case)
+    return applicable_cases
 
 
 # Load fixture at module level for reuse across tests
@@ -161,6 +191,16 @@ class Test_Feature_Flag_Dynamic_Evaluation:
             test_cases = json.load(f)
         assert isinstance(test_cases, list), f"Expected an evaluation-case array in {test_case_file}"
         assert test_cases, f"No evaluation cases in {test_case_file}"
+
+        try:
+            platform = CORPUS_PLATFORM_BY_LIBRARY[context.library.name]
+        except KeyError as error:
+            raise ValueError(
+                f"No canonical FFE corpus platform for system-tests library {context.library.name!r}"
+            ) from error
+        test_cases = _filter_test_cases_for_platform(test_cases, platform)
+        if not test_cases:
+            pytest.skip(f"No cases in {test_case_file} apply to platform {platform}")
 
         # Set up UFC Remote Config and wait for it to be applied
         _set_and_wait_ffe_rc(test_agent, UFC_FIXTURE_DATA)
