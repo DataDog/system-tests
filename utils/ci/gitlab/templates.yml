@@ -23,6 +23,10 @@ spec:
     USE_IMAGE_MIRROR: "1"
   stage: $[[ inputs.stage ]]
   interruptible: true
+  id_tokens:
+    # required by the dd-sts exchanges below
+    DD_STS_OIDC_TOKEN:
+      aud: dd-sts
   before_script:
     # first command, before the clone, so the job is tagged even if it fails later
     - dd-sts exchange --policy system-tests-gitlab -- datadog-ci tag --level job --tags "ci.framework.name:system-tests" || true

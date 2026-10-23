@@ -1,3 +1,10 @@
+"""Generate the GitLab child pipeline(s) running system-tests end-to-end and parametric scenarios.
+
+Generated jobs only carry what differs from one job to another (variables, needs, runner tags). Their
+script, artifacts and other static settings come from the hidden jobs of child-pipeline.yml, and the job
+logic lives in the scripts of utils/ci/gitlab/jobs/.
+"""
+
 from __future__ import annotations
 
 import argparse
@@ -5,10 +12,14 @@ import json
 import sys
 from pathlib import Path
 
-from jinja2 import Environment, FileSystemLoader, select_autoescape
+import yaml
 
-_env = Environment(loader=FileSystemLoader(Path(__file__).resolve().parent), autoescape=select_autoescape())
-_template = _env.get_template("system-tests.yml.j2")
+TEMPLATES_FILE = "utils/ci/gitlab/templates.yml"
+CHILD_PIPELINE_FILE = "utils/ci/gitlab/child-pipeline.yml"
+
+# CWS needs the Kata VM's kernel filesystems, which this runner pool mounts under /vm-host
+# (see docs/understand/scenarios/thread_context_sharing.md)
+SCENARIO_RUNNER_TAGS: dict[str, list[str]] = {"THREAD_CONTEXT_SHARING": ["docker-in-docker:amd64-cws"]}
 
 
 def noop_stub(stage: str) -> str:
@@ -26,54 +37,140 @@ noop:
 """
 
 
-def render_library(
+def pipeline_header(*, stage: str, ci_image: str, ref: str, docker_auth: bool, pipeline_start_time: str) -> dict:
+    """Top-level keys of a chunk. Static content lives in the included files."""
+    return {
+        "workflow": {"name": "System-tests end to end"},
+        "include": [
+            {
+                "project": "DataDog/system-tests",
+                "ref": ref,
+                "file": TEMPLATES_FILE,
+                "inputs": {"stage": stage, "ref": ref},
+            },
+            {"project": "DataDog/system-tests", "ref": ref, "file": CHILD_PIPELINE_FILE},
+        ],
+        "stages": [stage],
+        "variables": {
+            "CI_IMAGE": ci_image,
+            "SYSTEM_TESTS_GENERATED_PIPELINE_START_TIME": pipeline_start_time,
+            "SYSTEM_TESTS_DOCKER_AUTH": _bool(docker_auth),
+        },
+    }
+
+
+def library_jobs(
     library: str,
     params: dict,
     *,
-    skip_header: bool,
-    stage: str,
-    ci_image: str,
-    ref: str,
     push_to_test_optimization: bool,
-    docker_auth: bool,
     binaries_artifact_path: str,
     binaries_artifacts: str,
-    pipeline_start_time: str,
-) -> str:
-    parallel_weblogs = params.get("endtoend_defs", {}).get("parallel_weblogs", [])
-    parallel_jobs = params.get("endtoend_defs", {}).get("parallel_jobs", [])
-    weblog_variants = [w["name"] for w in parallel_weblogs]
-    scenario_pairs = [
-        (job["weblog"], scenario, job.get("weblog_build_required", True))
-        for job in parallel_jobs
-        for scenario in job.get("scenarios", [])
-    ]
-    binaries_artifact = params["miscs"]["binaries_artifact"]
+) -> dict[str, dict]:
+    """Jobs of one library. They only carry what differs between jobs, the rest comes from child-pipeline.yml.
+
+    Job variables are read by the job scripts (utils/ci/gitlab/jobs/) and by system-tests commands.
+    """
+    endtoend_defs = params.get("endtoend_defs", {})
     parametric = params["parametric"]
-    # Build the full list of artifact jobs for cross-pipeline downloads.
-    # If binaries_artifacts is provided, use it; otherwise fall back to the single job.
-    if binaries_artifacts:
-        binaries_artifacts_list = [j.strip() for j in binaries_artifacts.split(";") if j.strip()]
-    elif binaries_artifact:
-        binaries_artifacts_list = [binaries_artifact]
-    else:
-        binaries_artifacts_list = []
-    return _template.render(
-        scenario_pairs=scenario_pairs,
-        stage=stage,
-        library=library,
-        weblog_variants=weblog_variants,
-        binaries_artifact=binaries_artifact,
-        binaries_artifacts_list=binaries_artifacts_list,
-        binaries_artifact_path=binaries_artifact_path,
-        parametric=parametric,
-        ci_image=ci_image,
-        ref=ref,
-        push_to_test_optimization=push_to_test_optimization,
-        skip_header=skip_header,
-        docker_auth_enabled=docker_auth,
-        pipeline_start_time=pipeline_start_time,
+
+    upstream_jobs = _upstream_artifact_jobs(binaries_artifacts, params["miscs"]["binaries_artifact"])
+    upstream_needs = [{"job": job, "artifacts": True, "pipeline": "$UPSTREAM_PIPELINE_ID"} for job in upstream_jobs]
+    # copy upstream binaries into binaries/, only on jobs that download them
+    copy_binaries = (
+        {"SYSTEM_TESTS_BINARIES_ARTIFACT_PATH": binaries_artifact_path}
+        if upstream_jobs and binaries_artifact_path
+        else {}
     )
+    test_mixins = [".push_to_test_optimization"] if push_to_test_optimization else []
+
+    jobs: dict[str, dict] = {}
+
+    for weblog_def in endtoend_defs.get("parallel_weblogs", []):
+        weblog = weblog_def["name"]
+        jobs[_build_job_name(library, weblog)] = _job(
+            ".system_tests_build",
+            variables=_weblog_variables(library, weblog) | copy_binaries,
+            needs=upstream_needs,
+        )
+
+    for job_def in endtoend_defs.get("parallel_jobs", []):
+        weblog = job_def["weblog"]
+        build_required = job_def.get("weblog_build_required", True)
+        for scenario in job_def.get("scenarios", []):
+            variables = _weblog_variables(library, weblog) | {
+                "SYSTEM_TESTS_SCENARIO": scenario,
+                "SYSTEM_TESTS_WEBLOG_BUILD_REQUIRED": _bool(build_required),
+            }
+            if build_required:
+                needs = [{"job": _build_job_name(library, weblog), "artifacts": True}]
+            else:
+                variables |= copy_binaries
+                needs = upstream_needs
+            jobs[f"system_tests_run_{library}_{scenario}_{weblog}"] = _job(
+                [".system_tests_run", *test_mixins],
+                variables=variables,
+                needs=needs,
+                tags=SCENARIO_RUNNER_TAGS.get(scenario),
+            )
+
+    if parametric["enable"]:
+        for group in parametric["job_matrix"]:
+            jobs[f"system_tests_run_{library}_PARAMETRIC_{group}"] = _job(
+                [".system_tests_parametric", *test_mixins],
+                variables={
+                    "TEST_LIBRARY": library,
+                    "SYSTEM_TESTS_PARAMETRIC_GROUP": str(group),
+                    "SYSTEM_TESTS_PARAMETRIC_JOB_COUNT": str(parametric["job_count"]),
+                    "SYSTEM_TESTS_PARAMETRIC_WORKERS": str(parametric["workers"]),
+                }
+                | copy_binaries,
+                needs=upstream_needs,
+            )
+
+    return jobs
+
+
+def _upstream_artifact_jobs(binaries_artifacts: str, binaries_artifact: str) -> list[str]:
+    """Upstream jobs to download artifacts from: binaries_artifacts if provided, else the job from params."""
+    if binaries_artifacts:
+        return [job.strip() for job in binaries_artifacts.split(";") if job.strip()]
+    if binaries_artifact:
+        return [binaries_artifact]
+    return []
+
+
+def _build_job_name(library: str, weblog: str) -> str:
+    return f"system_tests_build_{library}_{weblog}"
+
+
+def _weblog_variables(library: str, weblog: str) -> dict[str, str]:
+    # TEST_LIBRARY/WEBLOG_VARIANT are read by build.sh, TEST_LIBRARY/SYSTEM_TESTS_WEBLOG by run.sh
+    return {"TEST_LIBRARY": library, "WEBLOG_VARIANT": weblog, "SYSTEM_TESTS_WEBLOG": weblog}
+
+
+def _job(
+    extends: str | list[str],
+    *,
+    variables: dict[str, str],
+    needs: list[dict],
+    tags: list[str] | None = None,
+) -> dict:
+    job: dict = {"extends": extends, "variables": variables}
+    if needs:
+        job["needs"] = needs
+    if tags:
+        job["tags"] = tags
+    return job
+
+
+def _bool(value: bool) -> str:  # noqa: FBT001
+    return "true" if value else "false"
+
+
+def to_yaml(pipeline: dict) -> str:
+    """Dump each top-level key separately, with a blank line in between, for readability."""
+    return "\n".join(yaml.safe_dump({key: value}, sort_keys=False, width=1000) for key, value in pipeline.items())
 
 
 def build(
@@ -109,31 +206,29 @@ def build(
             chunk_file.write_text(noop_stub(stage))
             continue
 
-        parts = []
-        for lib_idx, library in enumerate(chunk_libs):
+        pipeline = pipeline_header(
+            stage=stage,
+            ci_image=ci_image,
+            ref=ref,
+            docker_auth=docker_auth,
+            pipeline_start_time=pipeline_start_time,
+        )
+        for library in chunk_libs:
             params_file = params_dir / f"params_{library}.json"
             if not params_file.exists():
                 print(f"ERROR: params file not found for library '{library}': {params_file}", file=sys.stderr)  # noqa: T201
                 sys.exit(1)
             with open(params_file) as f:
                 params = json.load(f)
-            parts.append(
-                render_library(
-                    library,
-                    params,
-                    skip_header=(lib_idx > 0),
-                    stage=stage,
-                    ci_image=ci_image,
-                    ref=ref,
-                    push_to_test_optimization=push_to_test_optimization,
-                    docker_auth=docker_auth,
-                    binaries_artifact_path=binaries_artifact_path,
-                    binaries_artifacts=binaries_artifacts,
-                    pipeline_start_time=pipeline_start_time,
-                )
+            pipeline |= library_jobs(
+                library,
+                params,
+                push_to_test_optimization=push_to_test_optimization,
+                binaries_artifact_path=binaries_artifact_path,
+                binaries_artifacts=binaries_artifacts,
             )
 
-        chunk_file.write_text("\n".join(parts))
+        chunk_file.write_text(to_yaml(pipeline))
 
 
 def main(argv: list[str] | None = None) -> int:

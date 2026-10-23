@@ -122,7 +122,7 @@ class Test_BuildPipeline:
         assert expected_run_jobs <= pipeline.keys()
 
         build_job = pipeline["system_tests_build_c_perl-mojolicious"]
-        assert build_job["extends"] == ".system_tests_base"
+        assert build_job["extends"] == ".system_tests_build"
         assert build_job["needs"] == [
             {
                 "job": "system_tests_package_refs",
@@ -130,10 +130,104 @@ class Test_BuildPipeline:
                 "pipeline": "$UPSTREAM_PIPELINE_ID",
             }
         ]
-        assert any("system-tests-binaries/." in command for command in build_job["script"])
+        assert build_job["variables"] == {
+            "TEST_LIBRARY": "c",
+            "WEBLOG_VARIANT": "perl-mojolicious",
+            "SYSTEM_TESTS_WEBLOG": "perl-mojolicious",
+            "SYSTEM_TESTS_BINARIES_ARTIFACT_PATH": "system-tests-binaries",
+        }
 
         for job_name in expected_run_jobs:
-            assert ".system_tests_base" in pipeline[job_name]["extends"]
+            run_job = pipeline[job_name]
+            assert run_job["extends"] == [".system_tests_run"]
+            # binaries come from the build job, not from upstream
+            assert run_job["needs"] == [{"job": "system_tests_build_c_perl-mojolicious", "artifacts": True}]
+            assert run_job["variables"]["SYSTEM_TESTS_WEBLOG_BUILD_REQUIRED"] == "true"
+            assert "SYSTEM_TESTS_BINARIES_ARTIFACT_PATH" not in run_job["variables"]
+
+    def test_run_job_without_build_uses_upstream_binaries(self, tmp_path: Path) -> None:
+        params = {
+            "endtoend_defs": {
+                "parallel_weblogs": [],
+                "parallel_jobs": [
+                    {"weblog": "envoy", "scenarios": ["GO_PROXIES_DEFAULT"], "weblog_build_required": False}
+                ],
+            },
+            "miscs": {"binaries_artifact": "envoy-binaries"},
+            "parametric": {"enable": False, "parallel_jobs": []},
+        }
+        (tmp_path / "params_golang.json").write_text(json.dumps(params))
+        out = tmp_path / "out"
+
+        build(
+            ["golang"],
+            tmp_path,
+            out,
+            stage="e2e",
+            ci_image="myimage",
+            chunks=1,
+            push_to_test_optimization=True,
+            binaries_artifact_path="bin",
+        )
+
+        pipeline = yaml.safe_load((out / "generated-pipeline-chunk-0.yml").read_text())
+        assert pipeline["system_tests_run_golang_GO_PROXIES_DEFAULT_envoy"] == {
+            "extends": [".system_tests_run", ".push_to_test_optimization"],
+            "variables": {
+                "TEST_LIBRARY": "golang",
+                "WEBLOG_VARIANT": "envoy",
+                "SYSTEM_TESTS_WEBLOG": "envoy",
+                "SYSTEM_TESTS_SCENARIO": "GO_PROXIES_DEFAULT",
+                "SYSTEM_TESTS_WEBLOG_BUILD_REQUIRED": "false",
+                "SYSTEM_TESTS_BINARIES_ARTIFACT_PATH": "bin",
+            },
+            "needs": [{"job": "envoy-binaries", "artifacts": True, "pipeline": "$UPSTREAM_PIPELINE_ID"}],
+        }
+
+    def test_header_includes_static_files_and_pipeline_variables(self, tmp_path: Path) -> None:
+        write_params(tmp_path, "python")
+        out = tmp_path / "out"
+        build(
+            ["python"],
+            tmp_path,
+            out,
+            stage="e2e",
+            ci_image="img",
+            ref="my-ref",
+            chunks=1,
+            docker_auth=True,
+            pipeline_start_time="1700000000",
+        )
+
+        pipeline = yaml.safe_load((out / "generated-pipeline-chunk-0.yml").read_text())
+        assert [include["file"] for include in pipeline["include"]] == [
+            "utils/ci/gitlab/templates.yml",
+            "utils/ci/gitlab/child-pipeline.yml",
+        ]
+        assert all(include["ref"] == "my-ref" for include in pipeline["include"])
+        assert pipeline["variables"] == {
+            "CI_IMAGE": "img",
+            "SYSTEM_TESTS_GENERATED_PIPELINE_START_TIME": "1700000000",
+            "SYSTEM_TESTS_DOCKER_AUTH": "true",
+        }
+
+    def test_generated_jobs_extend_hidden_jobs_of_child_pipeline(self, tmp_path: Path) -> None:
+        params = dict(MINIMAL_PARAMS)
+        params["parametric"] = {"enable": True, "job_count": 1, "job_matrix": [1], "workers": 2}
+        (tmp_path / "params_python.json").write_text(json.dumps(params))
+        out = tmp_path / "out"
+        build(["python"], tmp_path, out, stage="e2e", ci_image="img", chunks=1, push_to_test_optimization=True)
+
+        pipeline = yaml.safe_load((out / "generated-pipeline-chunk-0.yml").read_text())
+        child = yaml.safe_load(Path("utils/ci/gitlab/child-pipeline.yml").read_text())
+        templates = list(yaml.safe_load_all(Path("utils/ci/gitlab/templates.yml").read_text()))[-1]
+        for name, job in pipeline.items():
+            if name in ("workflow", "include", "stages", "variables"):
+                continue
+            extends = job["extends"] if isinstance(job["extends"], list) else [job["extends"]]
+            for parent in extends:
+                assert parent in child, f"{name} extends unknown job {parent}"
+                assert child[parent].get("extends", ".system_tests_base") in child.keys() | templates.keys()
 
     def test_thread_context_sharing_runs_on_cws_runner(self, tmp_path: Path) -> None:
         params = {

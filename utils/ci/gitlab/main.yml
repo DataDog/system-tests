@@ -107,9 +107,6 @@ system_tests_build_pipeline:
   allow_failure: $[[ inputs.allow_failure ]]
   tags:
     - arch:amd64
-  id_tokens:
-    DD_STS_OIDC_TOKEN:
-      aud: dd-sts
   rules:
     - if: $[[ inputs.condition ]]
     - when: never
