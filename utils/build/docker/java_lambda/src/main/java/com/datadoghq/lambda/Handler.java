@@ -53,7 +53,7 @@ public class Handler implements RequestHandler<Object, Object> {
     private static final String TRACK_CUSTOM_APPSEC_EVENT_NAME = "system_tests_appsec_event";
     private static final String TRACK_USER = "system_tests_user";
 
-    private enum ResponseType { API_GATEWAY_REST, API_GATEWAY_HTTP }
+    private enum ResponseType { API_GATEWAY_REST, API_GATEWAY_HTTP, ALB_MULTI }
 
     /**
      * Request context containing response type and request data
@@ -116,7 +116,7 @@ public class Handler implements RequestHandler<Object, Object> {
                 event.getHttpMethod(),
                 event.getQueryStringParameters(),
                 event.getHeaders(),
-                event.getBody(),
+                decodeBody(event.getBody(), event.getIsBase64Encoded()),
                 event.getPathParameters()
         );
         return routeRequest(ctx);
@@ -133,23 +133,50 @@ public class Handler implements RequestHandler<Object, Object> {
                 event.getRequestContext().getHttp().getMethod(),
                 queryParams,
                 event.getHeaders(),
-                event.getBody(),
+                decodeBody(event.getBody(), event.getIsBase64Encoded()),
                 event.getPathParameters()
         );
         return routeRequest(ctx);
     }
 
     private Object handleALBEvent(ApplicationLoadBalancerRequestEvent event) {
+        boolean multiValue = event.getMultiValueHeaders() != null;
+        Map<String, String> headers = multiValue ?
+                flattenHeaders(event.getMultiValueHeaders()) : event.getHeaders();
+        Map<String, String> queryParams = event.getQueryStringParameters();
+        if (multiValue && event.getMultiValueQueryStringParameters() != null) {
+            queryParams = new HashMap<>();
+            for (Map.Entry<String, List<String>> entry : event.getMultiValueQueryStringParameters().entrySet()) {
+                List<String> values = entry.getValue();
+                if (values != null && !values.isEmpty()) {
+                    queryParams.put(entry.getKey(), values.get(values.size() - 1));
+                }
+            }
+        }
         RequestContext ctx = new RequestContext(
-                ResponseType.API_GATEWAY_REST,
+                multiValue ? ResponseType.ALB_MULTI : ResponseType.API_GATEWAY_REST,
                 event.getPath(),
                 event.getHttpMethod(),
-                event.getQueryStringParameters(),
-                event.getHeaders(),
-                event.getBody(),
+                queryParams,
+                headers,
+                decodeBody(event.getBody(), event.getIsBase64Encoded()),
                 null
         );
         return routeRequest(ctx);
+    }
+
+    private Map<String, String> flattenHeaders(Map<String, List<String>> multiValueHeaders) {
+        Map<String, String> headers = new HashMap<>();
+        for (Map.Entry<String, List<String>> entry : multiValueHeaders.entrySet()) {
+            String separator = "cookie".equalsIgnoreCase(entry.getKey()) ? "; " : ", ";
+            headers.put(entry.getKey(), String.join(separator, entry.getValue()));
+        }
+        return headers;
+    }
+
+    private String decodeBody(String body, Boolean base64Encoded) {
+        return body != null && Boolean.TRUE.equals(base64Encoded) ?
+                new String(Base64.getDecoder().decode(body), StandardCharsets.UTF_8) : body;
     }
 
     private Object handleMapEvent(Map<String, Object> eventMap) {
@@ -254,9 +281,12 @@ public class Handler implements RequestHandler<Object, Object> {
     }
 
     private Object handleHeaders(RequestContext ctx) {
+        String body = "OK";
         Map<String, String> responseHeaders = new HashMap<>();
+        responseHeaders.put("Content-Type", "text/plain");
+        responseHeaders.put("Content-Length", Integer.toString(body.getBytes(StandardCharsets.UTF_8).length));
         responseHeaders.put("Content-Language", "en-US");
-        return createResponse(ctx, "OK", 200, responseHeaders);
+        return createResponse(ctx, body, 200, responseHeaders);
     }
 
     private Object handleHealthcheck(RequestContext ctx) {
@@ -290,7 +320,14 @@ public class Handler implements RequestHandler<Object, Object> {
         // Track custom AppSec event
         trackCustomEvent(tagValue);
 
-        return createResponse(ctx, "Value tagged", statusCode);
+        Map<String, String> responseHeaders = new HashMap<>(ctx.queryParams);
+        if ("POST".equals(ctx.method) && tagValue.startsWith("payload_in_response_body")) {
+            Map<String, Object> responseBody = new HashMap<>();
+            responseBody.put("payload", parseFormData(ctx.body));
+            return createJsonResponse(ctx, responseBody, statusCode, responseHeaders);
+        }
+
+        return createResponse(ctx, "Value tagged", statusCode, responseHeaders);
     }
 
     private Object handleUserLoginSuccessEvent(RequestContext ctx) {
@@ -585,14 +622,28 @@ public class Handler implements RequestHandler<Object, Object> {
             APIGatewayProxyResponseEvent response = new APIGatewayProxyResponseEvent();
             response.setStatusCode(statusCode);
             response.setBody(body);
-            response.setHeaders(headers != null ? headers : new HashMap<>());
+            response.setIsBase64Encoded(false);
+            if (ctx.responseType == ResponseType.ALB_MULTI) {
+                Map<String, List<String>> multiValueHeaders = new HashMap<>();
+                if (headers != null) {
+                    headers.forEach((name, value) -> multiValueHeaders.put(name, Collections.singletonList(value)));
+                }
+                response.setMultiValueHeaders(multiValueHeaders);
+            } else {
+                response.setHeaders(headers != null ? headers : new HashMap<>());
+            }
             return response;
         }
     }
 
     private Object createJsonResponse(RequestContext ctx, Object data, int statusCode) {
+        return createJsonResponse(ctx, data, statusCode, null);
+    }
+
+    private Object createJsonResponse(RequestContext ctx, Object data, int statusCode,
+                                      Map<String, String> extraHeaders) {
         String body = gson.toJson(data);
-        Map<String, String> headers = new HashMap<>();
+        Map<String, String> headers = extraHeaders != null ? new HashMap<>(extraHeaders) : new HashMap<>();
         headers.put("Content-Type", "application/json");
         return createResponse(ctx, body, statusCode, headers);
     }
@@ -629,8 +680,12 @@ public class Handler implements RequestHandler<Object, Object> {
                         .map(e -> e.getKey() + "=" + e.getValue() + "; Path=/; HttpOnly")
                         .collect(Collectors.toList());
                 multiValueHeaders.put("Set-Cookie", setCookieValues);
-
-                response.setHeaders(headers);
+                if (ctx.responseType == ResponseType.ALB_MULTI) {
+                    headers.forEach((name, value) -> multiValueHeaders.put(name, Collections.singletonList(value)));
+                } else {
+                    response.setHeaders(headers);
+                }
+                response.setIsBase64Encoded(false);
                 response.setMultiValueHeaders(multiValueHeaders);
                 return response;
             }
