@@ -12,11 +12,10 @@ from http import HTTPStatus
 import threading
 from typing import TYPE_CHECKING
 
-from utils._logger import logger
-from utils.docker_fixtures._core import HOST_DOCKER_INTERNAL
-
 from ._request_handler import MockedBackendServerCore, MockBackendV2RequestHandler, HttpMethod, RouteHandler
 from ._backend_ffe import MockedBackendServerFfeMixin
+from ._client import MockedBackendClient
+from ._utils import CONTROL_URL_PREFIX, HOST_DOCKER_INTERNAL, logger
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Mapping
@@ -64,6 +63,11 @@ class MockedBackendServer(MockedBackendServerFfeMixin, MockedBackendServerCore):
         return f"http://127.0.0.1:{self.port}"
 
     @property
+    def client(self) -> MockedBackendClient:
+        """Client of the control endpoints of this server"""
+        return MockedBackendClient(self.base_url)
+
+    @property
     def container_url(self) -> str:
         """The URL a container can use to reach the mock server on the docker host."""
         return f"http://{HOST_DOCKER_INTERNAL}:{self.port}"
@@ -76,6 +80,12 @@ class MockedBackendServer(MockedBackendServerFfeMixin, MockedBackendServerCore):
         self._routes[(method, path)] = handler
 
     def get_handler(self, method: HttpMethod, path: str) -> tuple[RouteHandler, str | None, str | None]:
+        handler = self._routes.get((method, path), self._default_handler)
+
+        if path.startswith(CONTROL_URL_PREFIX):
+            # requests controlling the mock are not traffic it stands in for: never record them
+            return handler, None, None
+
         with self._count_lock:
             message_count = self.message_count
             self.message_count += 1
@@ -87,7 +97,7 @@ class MockedBackendServer(MockedBackendServerFfeMixin, MockedBackendServerCore):
             log_filename = None
             export_content_files_to = None
 
-        return self._routes.get((method, path), self._default_handler), log_filename, export_content_files_to
+        return handler, log_filename, export_content_files_to
 
     def _default_handler(self, request: MockBackendV2RequestHandler, _: bytes | dict | None) -> tuple[Mapping, bytes]:
         return request.write_json(HTTPStatus.OK, {})

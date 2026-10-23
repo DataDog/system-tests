@@ -15,8 +15,9 @@ import zlib
 import brotli
 import zstandard
 
-from utils._logger import logger
 from utils.proxy._deserializer import deserialize
+
+from ._utils import CONTROL_URL_PREFIX, logger
 
 
 if TYPE_CHECKING:
@@ -144,7 +145,8 @@ class MockBackendV2RequestHandler(BaseHTTPRequestHandler):
             with open(log_filename, mode="w", encoding="utf-8") as f:
                 json.dump(self._data, f, indent=2, default=repr)
 
-        self.server.on_message(self._data)
+        if not path.startswith(CONTROL_URL_PREFIX):
+            self.server.on_message(self._data)
 
         # we need to send data AFTER we wrote the file
         with contextlib.suppress(BrokenPipeError, ConnectionResetError):

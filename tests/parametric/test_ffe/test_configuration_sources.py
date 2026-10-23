@@ -32,7 +32,6 @@ from utils.mocked_backend.ffe import (
 )
 
 parametrize = pytest.mark.parametrize
-pytest_plugins = ["utils.mocked_backend"]
 
 UFC_VALID_FIXTURE = Path(__file__).parent / "flags-v1.json"
 RC_PRODUCT = "FFE_FLAGS"
@@ -96,9 +95,9 @@ def library_env(request: pytest.FixtureRequest, mocked_backend: MockedBackendSer
         )
 
     if responses is not None:
-        mocked_backend.ffe_set_responses(responses)
+        mocked_backend.client.ffe_set_responses(responses)
     elif response is not None:
-        mocked_backend.ffe_set_response(str(response))
+        mocked_backend.client.ffe_set_response(str(response))
 
     if configuration_source is not None:
         env["DD_FEATURE_FLAGS_CONFIGURATION_SOURCE"] = str(configuration_source)
@@ -126,7 +125,7 @@ def _wait_for_status(
 ) -> MockedBackendFFEStatus:
     last_status: MockedBackendFFEStatus | None = None
     for _ in range(MOCK_STATUS_ATTEMPTS):
-        last_status = mocked_backend.ffe_get_status()
+        last_status = mocked_backend.client.ffe_get_status()
         if predicate(last_status):
             return last_status
         time.sleep(MOCK_STATUS_INTERVAL_SECONDS)
@@ -143,7 +142,7 @@ def _assert_no_mock_requests(mocked_backend: MockedBackendServer) -> None:
     # Seven samples span more than the configured one-second polling interval, so an
     # incorrect eager poll cannot occur just after this assertion and before provider access.
     for _ in range(NO_MOCK_REQUEST_ATTEMPTS):
-        status = mocked_backend.ffe_get_status()
+        status = mocked_backend.client.ffe_get_status()
         assert status["requests_total"] == 0, f"unexpected mock FFE agentless backend request: status={status}"
         time.sleep(MOCK_STATUS_INTERVAL_SECONDS)
 
@@ -310,7 +309,7 @@ class Test_Feature_Flag_Configuration_Source_Selection:
             lambda current: current["requests_total"] > 0 and current["last_status_code"] == 200,
             "valid response request",
         )
-        assert status["last_auth_present"] is False
+        assert status["observed_dd_api_key"] is None
         assert status["last_path"] == CONFIG_PATH
         _assert_no_ffe_remote_config_activation(test_agent)
 
@@ -340,7 +339,7 @@ class Test_Feature_Flag_Configuration_Source_Selection:
             lambda current: current["requests_total"] > 0 and current["last_status_code"] == 200,
             "stable-enabled default agentless response request",
         )
-        assert status["last_auth_present"] is False
+        assert status["observed_dd_api_key"] is None
         assert status["last_path"] == CONFIG_PATH
         _assert_no_ffe_remote_config_activation(test_agent)
 
@@ -543,7 +542,7 @@ class Test_Feature_Flag_Configuration_Source_Cold_Failure_And_Recovery:
             "unauthorized_cold auth failure",
         )
         _assert_cold_not_ready(test_library, started=started)
-        assert status["last_auth_present"] is False
+        assert status["observed_dd_api_key"] is None
         assert status["last_path"] == CONFIG_PATH
 
     @parametrize(
@@ -564,7 +563,7 @@ class Test_Feature_Flag_Configuration_Source_Cold_Failure_And_Recovery:
             "malformed_cold response",
         )
         _assert_cold_not_ready(test_library, started=started)
-        assert status["last_auth_present"] is False
+        assert status["observed_dd_api_key"] is None
         assert status["last_path"] == CONFIG_PATH
 
     @parametrize(
@@ -585,7 +584,7 @@ class Test_Feature_Flag_Configuration_Source_Cold_Failure_And_Recovery:
             "request_timeout_cold delayed valid response",
         )
         _assert_cold_not_ready(test_library, started=started)
-        assert status["last_auth_present"] is False
+        assert status["observed_dd_api_key"] is None
         assert status["last_path"] == CONFIG_PATH
 
     @parametrize(
@@ -665,7 +664,7 @@ class Test_Feature_Flag_Configuration_Source_Warm_State_Preservation:
         assert test_library.ffe_start(), "failed to start FFE provider before unauthorized_warm"
         _assert_expected_value(_evaluate(test_library))
 
-        mocked_backend.ffe_set_response("unauthorized")
+        mocked_backend.client.ffe_set_response("unauthorized")
         status = _wait_for_status(
             mocked_backend,
             lambda current: current["last_status_code"] in {401, 403},
@@ -673,7 +672,7 @@ class Test_Feature_Flag_Configuration_Source_Warm_State_Preservation:
         )
         _assert_expected_value(_evaluate(test_library))
         assert status["requests_total"] > 0
-        assert status["last_auth_present"] is False
+        assert status["observed_dd_api_key"] is None
         assert status["last_path"] == CONFIG_PATH
 
     @parametrize(
@@ -737,15 +736,15 @@ class Test_Feature_Flag_Configuration_Source_Warm_State_Preservation:
         assert test_library.ffe_start(), "failed to start FFE provider before malformed_warm"
         _assert_expected_value(_evaluate(test_library))
 
-        requests_before = mocked_backend.ffe_get_status()["requests_total"]
-        mocked_backend.ffe_set_response("malformed")
+        requests_before = mocked_backend.client.ffe_get_status()["requests_total"]
+        mocked_backend.client.ffe_set_response("malformed")
         _wait_for_status(
             mocked_backend,
             lambda current: (current["requests_total"] > requests_before and current["last_status_code"] == 200),
             "malformed_warm response",
         )
         _assert_expected_value(_evaluate(test_library))
-        assert mocked_backend.ffe_get_status()["last_path"] == CONFIG_PATH
+        assert mocked_backend.client.ffe_get_status()["last_path"] == CONFIG_PATH
 
 
 @scenarios.parametric
@@ -773,8 +772,8 @@ class Test_Feature_Flag_Configuration_Source_Poller_Concurrency:
         assert test_library.ffe_start(), "failed to start FFE provider for delayed_no_overlap"
         _assert_expected_value(_evaluate(test_library))
 
-        mocked_backend.ffe_set_response("delayed_valid")
-        requests_before = mocked_backend.ffe_get_status()["requests_total"]
+        mocked_backend.client.ffe_set_response("delayed_valid")
+        requests_before = mocked_backend.client.ffe_get_status()["requests_total"]
         status = _wait_for_status(
             mocked_backend,
             lambda current: (

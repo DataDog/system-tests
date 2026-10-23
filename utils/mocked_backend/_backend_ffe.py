@@ -15,10 +15,8 @@ import os
 from pathlib import Path
 import threading
 import time
-from typing import TYPE_CHECKING, TypedDict, cast
+from typing import TYPE_CHECKING, TypedDict
 from urllib.parse import parse_qs, urlencode, urlparse
-
-import requests
 
 from ._utils import CONTROL_URL_PREFIX
 
@@ -44,7 +42,6 @@ VALID_RESPONSE_IDS = frozenset(
 )
 DEFAULT_RESPONSE = "valid"
 UFC_ETAG = '"ufc-v1"'
-EXPECTED_API_KEY = "system-tests-mock-api-key"
 DELAYED_RESPONSE_SECONDS = 1.5
 TIMEOUT_RESPONSE_SECONDS = 1.5
 MAX_CONTROL_BODY_BYTES = 512
@@ -63,7 +60,7 @@ class MockedBackendFFEStatus(TypedDict):
     max_in_flight: int
     last_path: str | None
     last_if_none_match: str | None
-    last_auth_present: bool
+    observed_dd_api_key: str | None
     last_status_code: int | None
     status_codes: list[int]
 
@@ -77,7 +74,7 @@ class _MockedBackendFFEState:
         self.max_in_flight = 0
         self.last_path: str | None = None
         self.last_if_none_match: str | None = None
-        self.last_auth_present = False
+        self.observed_dd_api_key: str | None = None
         self.last_status_code: int | None = None
         self.status_codes: list[int] = []
 
@@ -89,7 +86,7 @@ class _MockedBackendFFEState:
             self.max_in_flight = 0
             self.last_path = None
             self.last_if_none_match = None
-            self.last_auth_present = False
+            self.observed_dd_api_key = None
             self.last_status_code = None
             self.status_codes = []
 
@@ -111,7 +108,7 @@ class _MockedBackendFFEState:
             self.max_in_flight = max(self.max_in_flight, self.in_flight)
             self.last_path = parsed.path
             self.last_if_none_match = normalized_headers.get("if-none-match")
-            self.last_auth_present = _has_auth(headers)
+            self.observed_dd_api_key = _get_dd_api_key(headers)
             response = self.responses[0]
             if len(self.responses) > 1:
                 self.responses.pop(0)
@@ -134,15 +131,15 @@ class _MockedBackendFFEState:
                 "max_in_flight": self.max_in_flight,
                 "last_path": self.last_path,
                 "last_if_none_match": self.last_if_none_match,
-                "last_auth_present": self.last_auth_present,
+                "observed_dd_api_key": self.observed_dd_api_key,
                 "last_status_code": self.last_status_code,
                 "status_codes": list(self.status_codes),
             }
 
 
-def _has_auth(headers: Mapping[str, str]) -> bool:
+def _get_dd_api_key(headers: Mapping[str, str]) -> str | None:
     normalized = {key.lower(): value for key, value in headers.items()}
-    return normalized.get("dd-api-key") == EXPECTED_API_KEY
+    return normalized.get("dd-api-key")
 
 
 def _valid_ufc_bytes() -> bytes:
@@ -226,25 +223,6 @@ class MockedBackendServerFfeMixin(_Base):
     @property
     def ffe_library_config_url(self) -> str:
         return f"{self._ffe_library_base_url}{CONFIG_PATH}?{CONFIG_QUERY}"
-
-    def ffe_reset(self) -> None:
-        response = requests.post(f"{self.base_url}{self._ffe_control_path}/reset", timeout=5)
-        response.raise_for_status()
-
-    def ffe_set_response(self, response_id: str) -> None:
-        self.ffe_set_responses([response_id])
-
-    def ffe_set_responses(self, responses: object) -> None:
-        validated_responses = validate_responses(responses)
-        response = requests.post(
-            f"{self.base_url}{self._ffe_control_path}/responses", json={"responses": validated_responses}, timeout=5
-        )
-        response.raise_for_status()
-
-    def ffe_get_status(self) -> MockedBackendFFEStatus:
-        response = requests.get(f"{self.base_url}{self._ffe_control_path}/status", timeout=5)
-        response.raise_for_status()
-        return cast("MockedBackendFFEStatus", response.json())
 
     def _ffe_handle_status(self, request: MockBackendV2RequestHandler, _: bytes | dict | None) -> tuple[Mapping, bytes]:
         return request.write_json(HTTPStatus.OK, self._ffe_state.status())

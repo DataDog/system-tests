@@ -14,11 +14,7 @@ from utils._context.containers import ServerlessInitContainer, TestedContainer
 from utils._context.docker import get_docker_client
 from utils._logger import logger
 from utils._weblog import weblog
-from utils.mocked_backend import MockedBackendServer
-from utils.mocked_backend.ffe import (
-    EXPECTED_API_KEY,
-    MockedBackendFFEStatus,
-)
+from utils.mocked_backend.ffe import MockedBackendFFEStatus
 from utils.proxy.ports import ProxyPorts
 
 from .core import ScenarioGroup, scenario_groups as all_scenario_groups
@@ -69,7 +65,6 @@ class AgentlessEndToEndScenario(DdTraceEndToEndScenario):
     _default_scenario_groups: tuple[ScenarioGroup, ...] = ()  # exclude those scenario from tracer_release
     _mock_backend_status_filename = "mock_agentless_backend_status.json"
 
-    _mock_backend: MockedBackendServer | None = None
     _last_mock_backend_status: MockedBackendFFEStatus | None = None
 
     def __init__(
@@ -92,35 +87,35 @@ class AgentlessEndToEndScenario(DdTraceEndToEndScenario):
             use_proxy_for_agent=False,
             use_proxy_for_weblog=use_proxy_for_weblog,
             weblog_env=weblog_env,
+            mocked_backend_v2=True,
         )
 
     def configure(self, config: pytest.Config) -> None:
-        try:
-            if self.replay:
-                self._load_mock_backend_status()
-            else:
-                self._last_mock_backend_status = None
-                self._start_mock_backend()
+        if self.replay:
+            self._load_mock_backend_status()
+        else:
+            self._last_mock_backend_status = None
 
-            super().configure(config)
-        except BaseException:
-            self._stop_mock_backend(persist_status=False)
-            raise
+        super().configure(config)
 
-    def _start_mock_backend(self) -> None:
-        assert self._mock_backend is None, "mock FFE agentless backend is already running"
+        if not self.replay:
+            self._point_weblog_to_mocked_backend()
 
-        self._mock_backend = MockedBackendServer()
-
+    def _point_weblog_to_mocked_backend(self) -> None:
+        """Make the tested library fetch its agentless configuration from the mocked backend, started
+        by the parent scenario (mocked_backend_v2).
+        """
         environment = self.weblog_infra.library_container.environment
         environment |= {
-            "DD_API_KEY": EXPECTED_API_KEY,
-            "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL": self._mock_backend.ffe_library_config_url,
+            "DD_API_KEY": self.dd_api_key,
+            "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL": (
+                interfaces.backend_v2.server.ffe_library_config_url
+            ),
         }
 
     def mock_backend_status(self) -> MockedBackendFFEStatus | None:
-        if self._mock_backend is not None:
-            return self._mock_backend.ffe_get_status()
+        if interfaces.backend_v2.is_mocked_backend_running:
+            return interfaces.backend_v2.server.client.ffe_get_status()
         return self._last_mock_backend_status
 
     @property
@@ -133,28 +128,18 @@ class AgentlessEndToEndScenario(DdTraceEndToEndScenario):
             json.loads(self._mock_backend_status_path.read_text(encoding="utf-8")),
         )
 
-    def _stop_mock_backend(self, *, persist_status: bool = True) -> None:
-        backend = self._mock_backend
-        if backend is None:
-            return
-
-        self._mock_backend = None
+    def _stop_mocked_backend_v2(self) -> None:
+        # The mocked backend counters are not recorded as interface data: persist them for replay
         try:
-            if persist_status:
-                self._last_mock_backend_status = backend.ffe_get_status()
+            if interfaces.backend_v2.is_mocked_backend_running:
+                self._last_mock_backend_status = interfaces.backend_v2.server.client.ffe_get_status()
                 self._mock_backend_status_path.parent.mkdir(parents=True, exist_ok=True)
                 self._mock_backend_status_path.write_text(
                     json.dumps(self._last_mock_backend_status, indent=2) + "\n",
                     encoding="utf-8",
                 )
         finally:
-            backend.close()
-
-    def close_targets(self) -> None:
-        try:
-            super().close_targets()
-        finally:
-            self._stop_mock_backend()
+            super()._stop_mocked_backend_v2()
 
 
 class FeatureFlaggingAgentlessEndToEndScenario(AgentlessEndToEndScenario):
@@ -231,14 +216,10 @@ class FeatureFlaggingAgentlessEndToEndScenario(AgentlessEndToEndScenario):
                 self.weblog_infra.library_container.environment.pop(env_name, None)
 
     def configure(self, config: pytest.Config) -> None:
-        try:
-            super().configure(config)
-            if self.exposure_egress is not None:
-                interfaces.datadog_sidecar.configure(self.host_log_folder, replay=self.replay)
-                interfaces.datadog_direct.configure(self.host_log_folder, replay=self.replay)
-        except BaseException:
-            self._stop_mock_backend(persist_status=False)
-            raise
+        super().configure(config)
+        if self.exposure_egress is not None:
+            interfaces.datadog_sidecar.configure(self.host_log_folder, replay=self.replay)
+            interfaces.datadog_direct.configure(self.host_log_folder, replay=self.replay)
 
     @property
     def serverless_init_container(self) -> ServerlessInitContainer:
@@ -397,7 +378,7 @@ class FeatureFlaggingAgentlessEndToEndScenario(AgentlessEndToEndScenario):
                     "agent_variables_present": sorted(
                         name for name in DIRECT_EVP_AGENT_VARIABLES if name in environment
                     ),
-                    "api_key_matches_expected": environment.get("DD_API_KEY") == EXPECTED_API_KEY,
+                    "api_key_matches_expected": environment.get("DD_API_KEY") == self.dd_api_key,
                     "api_key_present": bool(environment.get("DD_API_KEY")),
                     "configuration_source": environment.get("DD_FEATURE_FLAGS_CONFIGURATION_SOURCE"),
                     "custom_configuration_url_present": bool(
