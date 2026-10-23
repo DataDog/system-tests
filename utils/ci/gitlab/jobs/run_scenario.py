@@ -11,7 +11,7 @@ import os
 import shutil
 from pathlib import Path
 
-from utils.ci.gitlab.jobs import _common as ci
+from . import _common as ci
 
 
 def import_built_binaries() -> None:

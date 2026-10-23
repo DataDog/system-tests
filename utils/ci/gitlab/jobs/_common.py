@@ -5,7 +5,8 @@ Variables that system-tests commands already understand (TEST_LIBRARY, WEBLOG_VA
 ...) are left in the environment and reach build.sh/run.sh untouched. Everything else (static flags, values
 computed here, inputs without an env var counterpart) is passed as command line arguments.
 
-Scripts run from the system-tests clone, with its venv activated (see .system_tests_base in templates.yml).
+Scripts run from the system-tests clone (see .system_tests_base in templates.yml), started by run_job.py.
+They must only use the standard library: they are imported without the system-tests framework.
 """
 
 from __future__ import annotations

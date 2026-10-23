@@ -8,7 +8,8 @@ from utils import pytest
 import yaml
 
 from utils import scenarios
-from utils.ci.gitlab.build_pipeline import build, main
+from utils.ci.gitlab import build_pipeline
+from utils.ci.gitlab.build_pipeline import build, main, parse_args, resolve_inputs
 
 
 MINIMAL_PARAMS = {
@@ -70,9 +71,8 @@ class Test_BuildPipeline:
                     "x",
                     "--output-dir",
                     str(tmp_path / "out"),
-                    "--chunks",
-                    "3",
-                ]
+                ],
+                environ={},
             )
         assert exc.value.code != 0
 
@@ -195,7 +195,7 @@ class Test_BuildPipeline:
             ci_image="img",
             ref="my-ref",
             chunks=1,
-            pipeline_start_time="1700000000",
+            pipeline_variables={"SYSTEM_TESTS_GENERATED_PIPELINE_START_TIME": "1700000000"},
         )
 
         pipeline = yaml.safe_load((out / "generated-pipeline-chunk-0.yml").read_text())
@@ -254,3 +254,98 @@ class Test_BuildPipeline:
         # other jobs keep the default runner, from .system_tests_base
         assert "tags" not in pipeline["system_tests_run_python_DEFAULT_flask"]
         assert "tags" not in pipeline["system_tests_build_python_flask"]
+
+    def test_inputs_are_merged_with_pipeline_variables(self) -> None:
+        args = parse_args(
+            [
+                *("--stage", "e2e", "--ci-image", "img", "--output-dir", "out"),
+                *("--libraries", "python, java", "--scenarios", "DEFAULT", "--weblogs", "flask"),
+                *("--excluded-scenarios", "OTEL_LOG_E2E,INTEGRATION_FRAMEWORKS"),
+                *("--force-execute", "tests/a.py::Test_A[with space]"),
+                *("--parametric-job-count", "6", "--parametric-workers", "4"),
+                *("--push-to-test-optimization", "false", "--split-pipeline", "false"),
+            ]
+        )
+        inputs = resolve_inputs(
+            args,
+            {
+                "LIBRARIES": "java golang",
+                "SCENARIOS": "SAMPLING,DEFAULT",
+                "EXCLUDED_SCENARIOS": "APPSEC_BLOCKING,OTEL_LOG_E2E",
+                "FORCE_EXECUTE": "tests/b.py::Test_B",
+                "SYSTEM_TESTS_PARAMETRIC_JOB_COUNT": "2",
+                "SYSTEM_TESTS_PUSH_TO_TEST_OPTIMIZATION": "true",
+                "SYSTEM_TESTS_SPLIT_PIPELINE": "true",
+                "SYSTEM_TESTS_PIPELINE_START_TIME": "1700000000",
+            },
+        )
+
+        # lists are merged with the inputs, without duplicates
+        assert inputs.libraries == ["python", "java", "golang"]
+        assert inputs.scenarios == ["DEFAULT", "SAMPLING"]
+        assert inputs.weblogs == ["flask"]
+        assert inputs.excluded_scenarios == ["APPSEC_BLOCKING", "INTEGRATION_FRAMEWORKS", "OTEL_LOG_E2E"]
+        # only libraries are split on spaces, node IDs may contain some
+        assert inputs.force_execute == ["tests/a.py::Test_A[with space]", "tests/b.py::Test_B"]
+        # scalars are replaced
+        assert inputs.parametric_job_count == 2
+        assert inputs.parametric_workers == 4
+        assert inputs.push_to_test_optimization is True
+        assert inputs.split_pipeline is True
+        assert inputs.pipeline_start_time == "1700000000"
+
+    def test_main_computes_params_and_writes_parent_values_in_child_pipeline(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        computed: list[list[str]] = []
+
+        def fake_compute(command: list[str], *, check: bool) -> object:  # noqa: ARG001
+            computed.append(command)
+            Path(command[command.index("--output") + 1]).write_text(json.dumps(MINIMAL_PARAMS))
+            return type("Result", (), {"returncode": 0})()
+
+        monkeypatch.setattr(build_pipeline.subprocess, "run", fake_compute)
+        out = tmp_path / "out"
+
+        main(
+            [
+                *("--stage", "e2e", "--ci-image", "img", "--output-dir", str(out)),
+                *("--libraries", "python", "--scenarios", "DEFAULT", "--parametric-job-count", "3"),
+                *("--skip-empty-scenario", "true", "--force-execute", "tests/a.py::Test_A"),
+            ],
+            environ={
+                "LIBRARIES": "java",
+                "SYSTEM_TESTS_SPLIT_PIPELINE": "true",
+                "CI_PIPELINE_ID": "42",
+                "SYSTEM_TESTS_PIPELINE_START_TIME": "1700000000",
+            },
+        )
+
+        assert [command[2] for command in computed] == ["python", "java"]
+        python_command = computed[0]
+        assert python_command[python_command.index("--scenarios") + 1] == "DEFAULT"
+        assert python_command[python_command.index("--parametric-job-count") + 1] == "3"
+        # trigger jobs don't forward variables, values of the parent pipeline are written in the child pipeline
+        chunk = yaml.safe_load((out / "generated-pipeline-chunk-0.yml").read_text())
+        assert chunk["variables"] == {
+            "CI_IMAGE": "img",
+            "UPSTREAM_PIPELINE_ID": "42",
+            "SYSTEM_TESTS_FORCE_EXECUTE": "tests/a.py::Test_A",
+            "SYSTEM_TESTS_SKIP_EMPTY_SCENARIO": "true",
+            "SYSTEM_TESTS_GENERATED_PIPELINE_START_TIME": "1700000000",
+        }
+        # split pipeline: one chunk per trigger job of main.yml
+        assert sorted(path.name for path in out.glob("generated-pipeline-chunk-*.yml")) == [
+            f"generated-pipeline-chunk-{i}.yml" for i in range(build_pipeline.SPLIT_PIPELINE_CHUNKS)
+        ]
+
+    def test_chunk_count_matches_trigger_jobs_of_main_yml(self) -> None:
+        _, pipeline = yaml.safe_load_all(Path("utils/ci/gitlab/main.yml").read_text())
+        triggers = [name for name in pipeline if name.startswith("system_tests_e2e_run_pipeline_")]
+        assert len(triggers) == build_pipeline.SPLIT_PIPELINE_CHUNKS
+
+    def test_trigger_jobs_do_not_forward_variables(self) -> None:
+        _, pipeline = yaml.safe_load_all(Path("utils/ci/gitlab/main.yml").read_text())
+        base = pipeline[".run_test_pipeline_base"]
+        assert base["trigger"]["forward"] == {"yaml_variables": False}
+        assert "variables" not in base

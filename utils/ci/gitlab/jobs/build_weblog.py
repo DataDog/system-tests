@@ -7,7 +7,7 @@ Environment:
 
 import shutil
 
-from utils.ci.gitlab.jobs import _common as ci
+from . import _common as ci
 
 
 def export_built_binaries() -> None:

@@ -8,7 +8,7 @@ Environment:
     SYSTEM_TESTS_BINARIES_ARTIFACT_PATH: optional, upstream binaries to copy into binaries/
 """
 
-from utils.ci.gitlab.jobs import _common as ci
+from . import _common as ci
 
 
 def main() -> None:

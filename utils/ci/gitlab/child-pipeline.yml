@@ -4,6 +4,8 @@
 # (variables, needs, runner tags). The job logic lives in utils/ci/gitlab/jobs/: scripts read their
 # inputs from the job variables, which also reach system-tests commands (build.sh, run.sh) untouched.
 #
+# Job scripts are started through run_job.py, which imports them without loading the system-tests framework.
+#
 # Relies on .system_tests_base from templates.yml, included alongside this file.
 
 default:
@@ -27,12 +29,12 @@ setup:
 .push_to_test_optimization:
   after_script:
     # after_script runs in a fresh shell, from $CI_PROJECT_DIR
-    - cd system-tests && venv/bin/python -m utils.ci.gitlab.jobs.push_to_test_optimization
+    - cd system-tests && python3 utils/ci/gitlab/run_job.py push_to_test_optimization
 
 .system_tests_build:
   extends: .system_tests_base
   script:
-    - python -m utils.ci.gitlab.jobs.build_weblog
+    - python utils/ci/gitlab/run_job.py build_weblog
   artifacts:
     paths:
       - binaries/
@@ -44,7 +46,7 @@ setup:
     KUBERNETES_CPU_REQUEST: 0.5
     KUBERNETES_MEMORY_REQUEST: 1.3Gi
   script:
-    - python -m utils.ci.gitlab.jobs.run_scenario
+    - python utils/ci/gitlab/run_job.py run_scenario
   artifacts:
     when: always
     paths:
@@ -53,7 +55,7 @@ setup:
 .system_tests_parametric:
   extends: .system_tests_base
   script:
-    - python -m utils.ci.gitlab.jobs.run_parametric
+    - python utils/ci/gitlab/run_job.py run_parametric
   artifacts:
     when: always
     paths:

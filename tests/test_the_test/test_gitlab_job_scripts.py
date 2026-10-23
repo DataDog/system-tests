@@ -1,5 +1,7 @@
 """Tests for the scripts run by the jobs of the generated GitLab child pipeline (utils/ci/gitlab/jobs/)."""
 
+import subprocess
+import sys
 from pathlib import Path
 
 from utils import pytest
@@ -143,7 +145,6 @@ class Test_GitlabJobScripts:
     def test_push_to_test_optimization(
         self, commands: list[list[str]], monkeypatch: pytest.MonkeyPatch, tmp_path: Path
     ) -> None:
-        (tmp_path / "dd_api_key.env").write_text("export DD_API_KEY=secret\n")
         Path("logs_default").mkdir()
         Path("logs_default/reportJunit.xml").write_text("<testsuites/>")
         monkeypatch.delenv("DD_API_KEY", raising=False)
@@ -151,5 +152,32 @@ class Test_GitlabJobScripts:
         push_to_test_optimization.main()
 
         assert commands[0] == ["dd-sts", "debug"]
-        assert commands[1][:4] == ["datadog-ci", "junit", "upload", "logs_default/reportJunit.xml"]
-        assert _common.os.environ["DD_API_KEY"] == "secret"
+        # the API key is passed by dd-sts to the upload command only
+        assert commands[1][:9] == [
+            *("dd-sts", "exchange", "--policy", "system-tests-gitlab", "--"),
+            *("datadog-ci", "junit", "upload", "logs_default/reportJunit.xml"),
+        ]
+        assert "DD_API_KEY" not in _common.os.environ
+        assert not list(tmp_path.glob("*.env"))
+
+    def test_push_to_test_optimization_without_report(self, commands: list[list[str]]) -> None:
+        push_to_test_optimization.main()
+
+        assert commands == []
+
+    def test_job_scripts_do_not_load_the_framework(self) -> None:
+        """run_job.py imports the job scripts without utils/__init__.py: they must only use the standard library."""
+        code = (
+            "import sys; sys.path.insert(0, 'utils/ci/gitlab'); import run_job; "
+            "[__import__(f'jobs.{job}') for job in run_job.JOBS]; "
+            "assert not [m for m in sys.modules if m.split('.')[0] == 'utils'], 'utils was imported'"
+        )
+        # -I: ignore PYTHONPATH, so that the system-tests clone is not importable
+        subprocess.run([sys.executable, "-I", "-c", code], check=True)
+
+    def test_run_job_rejects_unknown_job(self) -> None:
+        result = subprocess.run(
+            [sys.executable, "utils/ci/gitlab/run_job.py", "unknown"], check=False, capture_output=True, text=True
+        )
+        assert result.returncode != 0
+        assert "usage: run_job.py" in result.stderr
