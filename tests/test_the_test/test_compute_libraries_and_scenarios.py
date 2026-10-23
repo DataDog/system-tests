@@ -209,6 +209,19 @@ class Test_ComputeLibrariesAndScenarios:
                 "end_to_end,integration_frameworks,open_telemetry",
             )
 
+    def test_python_parametric_base_docker_file(self):
+        inputs = build_inputs(["utils/build/docker/python/parametric.base.Dockerfile"])
+
+        assert_github_processor(
+            inputs,
+            ["python"],
+            ["python"],
+            600,
+            "false",
+            "DEFAULT,PARAMETRIC",
+            "",
+        )
+
     def test_nodejs_docker_file(self):
         inputs = build_inputs(["utils/build/docker/nodejs/express5.Dockerfile"])
 
@@ -544,8 +557,9 @@ class Test_ComputeLibrariesAndScenarios:
             "",
         )
 
-    def test_agentless_ffe_mocked_backend_file(self):
-        inputs = build_inputs(modified_files=["utils/mocked_backend/ffe.py"])
+    @pytest.mark.parametrize("file", ["utils/mocked_backend/ffe.py", "utils/mocked_backend/_backend_ffe.py"])
+    def test_agentless_ffe_mocked_backend_file(self, file: str):
+        inputs = build_inputs(modified_files=[file])
         assert_github_processor(
             inputs,
             default_libs_with_prod,
@@ -553,6 +567,27 @@ class Test_ComputeLibrariesAndScenarios:
             3600,
             "false",
             "DEFAULT,PARAMETRIC",
+            "agentless",
+        )
+
+    @pytest.mark.parametrize(
+        "file",
+        [
+            "utils/mocked_backend/__init__.py",
+            "utils/mocked_backend/_backend.py",
+            "utils/mocked_backend/_request_handler.py",
+            "utils/mocked_backend/_utils.py",
+        ],
+    )
+    def test_generic_mocked_backend_file(self, file: str):
+        inputs = build_inputs(modified_files=[file])
+        assert_github_processor(
+            inputs,
+            default_libs_with_prod,
+            default_libs_with_dev,
+            3600,
+            "false",
+            "APM_TRACING_E2E_OTEL,APM_TRACING_E2E_SINGLE_SPAN,DEFAULT,PARAMETRIC",
             "agentless",
         )
 

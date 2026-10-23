@@ -14,7 +14,7 @@ from tests.ffe.utils.evaluation_telemetry import (
 from utils import HttpResponse, features, pytest, scenarios
 
 
-@scenarios.feature_flagging_contract_tests
+@scenarios.test_the_test
 @features.not_reported
 @pytest.mark.parametrize(
     ("status_code", "text", "count", "passes"),
@@ -44,7 +44,7 @@ def test_evaluation_response_oracle(status_code: int, text: str, count: int, *, 
             assert_evaluation_responses(responses, expected_count=3, expected_value="on-value")
 
 
-@scenarios.feature_flagging_contract_tests
+@scenarios.test_the_test
 @features.not_reported
 @pytest.mark.parametrize(
     ("suppressed_count", "allowed_count", "passes"),
@@ -71,7 +71,7 @@ def test_opt_out_evp_oracle(suppressed_count: int, allowed_count: int, *, passes
             validate()
 
 
-@scenarios.feature_flagging_contract_tests
+@scenarios.test_the_test
 @features.not_reported
 @pytest.mark.parametrize(
     ("values", "suppressed", "passes"),
@@ -106,7 +106,7 @@ def test_opt_out_metric_oracle(values: list[int], point_format: str, *, suppress
             assert_metric_activity(metrics, "subject-flag", suppressed=suppressed)
 
 
-@scenarios.feature_flagging_contract_tests
+@scenarios.test_the_test
 @features.not_reported
 @pytest.mark.parametrize("failure_source", ["remote-config", "worker-request"])
 def test_evaluation_setup_failure_is_deferred(failure_source: str) -> None:
@@ -135,7 +135,7 @@ def test_evaluation_setup_failure_is_deferred(failure_source: str) -> None:
         assert_setup_succeeded(restored_error)
 
 
-@scenarios.feature_flagging_contract_tests
+@scenarios.test_the_test
 @features.not_reported
 def test_evaluation_setup_does_not_swallow_interrupts() -> None:
     def interrupt() -> None:

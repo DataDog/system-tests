@@ -1,6 +1,8 @@
 from collections.abc import Mapping, Sequence
+from datetime import datetime, timedelta, UTC
 from typing import Protocol
 
+_CANDIDATE_BUILD_WINDOW = timedelta(hours=6)
 _REJECTED_AMI_STATE = "rejected"
 
 
@@ -8,11 +10,6 @@ class _SelectableAmi(Protocol):
     creation_date: str
     state: object
     tags: Mapping[str, str] | None
-
-
-def boot_created_candidate_enabled(raw_value: str | None) -> bool:
-    """Keep the current AMI flow unless a pipeline sets AMI_BOOT_CREATED_CANDIDATE=true."""
-    return (raw_value or "false").lower() == "true"
 
 
 def candidate_result_state(exitstatus: int, *, provision_failed: bool, test_outcomes: Sequence[str]) -> str | None:
@@ -26,27 +23,53 @@ def candidate_result_state(exitstatus: int, *, provision_failed: bool, test_outc
     return None
 
 
-def should_boot_created_candidate(*, update_cache: bool, skip_cache: bool, enabled: bool) -> bool:
+def should_boot_created_candidate(*, update_cache: bool, skip_cache: bool) -> bool:
     """Boot the AMI created by this job, without replacing an existing cache."""
-    return enabled and update_cache and not skip_cache
+    return update_cache and not skip_cache
 
 
 def _ami_state(ami: _SelectableAmi) -> str | None:
     return (ami.tags or {}).get("ami-state")
 
 
-def select_usable_ami[AmiT: _SelectableAmi](amis: Sequence[AmiT]) -> AmiT | None:
-    """Prefer the newest active AMI, then an untagged AMI, then a candidate. Never boot rejected."""
+def _created_at(ami: _SelectableAmi) -> datetime:
+    created = datetime.fromisoformat(str(ami.creation_date))
+    if created.tzinfo is None:
+        return created.replace(tzinfo=UTC)
+    return created
+
+
+def _still_building(ami: _SelectableAmi, now: datetime) -> bool:
+    in_progress = str(ami.state) != "available" or _ami_state(ami) == "candidate"
+    return in_progress and now - _created_at(ami) < _CANDIDATE_BUILD_WINDOW
+
+
+def select_usable_ami[AmiT: _SelectableAmi](amis: Sequence[AmiT], *, now: datetime | None = None) -> AmiT | None:
+    """Prefer the newest active AMI, then an untagged AMI. Never boot a candidate or rejected AMI."""
+    current = now or datetime.now(UTC)
     usable = [ami for ami in amis if _ami_state(ami) != _REJECTED_AMI_STATE]
-    available = [ami for ami in usable if str(ami.state) == "available"]
+    available = [ami for ami in usable if str(ami.state) == "available" and _ami_state(ami) != "candidate"]
     active_amis = [ami for ami in available if _ami_state(ami) == "active"]
     if active_amis:
         return max(active_amis, key=lambda ami: ami.creation_date)
-    for ami_state in (None, "candidate"):
-        for ami in available:
-            if _ami_state(ami) == ami_state:
-                return ami
-    return next(iter(usable), None)
+    for ami in available:
+        if _ami_state(ami) is None:
+            return ami
+    building = [ami for ami in usable if _still_building(ami, current)]
+    if not building:
+        return None
+    return max(building, key=lambda ami: ami.creation_date)
+
+
+def cache_plan(ami: _SelectableAmi | None, *, now: datetime | None = None) -> str:
+    """Return create, wait, or use. A candidate blocks a second build for six hours."""
+    if ami is None:
+        return "create"
+    if str(ami.state) == "available" and _ami_state(ami) != "candidate":
+        return "use"
+    if _still_building(ami, now or datetime.now(UTC)):
+        return "wait"
+    return "create"
 
 
 def candidate_state_tags(tags: Mapping[str, str], cache_key: str, new_state: str) -> list[dict[str, str]] | None:

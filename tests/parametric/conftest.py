@@ -4,14 +4,17 @@ import json
 from pathlib import Path
 import shutil
 import subprocess
+import uuid
 
 from utils import pytest
 import yaml
 
 from utils import scenarios, logger
-from utils.docker_fixtures import TestAgentAPI, ParametricTestClientApi as APMLibrary, new_test_id
+from utils.docker_fixtures import TestAgentAPI, ParametricTestClientApi as APMLibrary, docker_run, new_test_id
 from utils.docker_fixtures._test_agent import DEFAULT_OTLP_HTTP_PORT, DEFAULT_OTLP_GRPC_PORT
+from utils.docker_fixtures._core import get_host_port
 from utils.docker_fixtures._test_agent_pool import WorkerAgentPool
+from utils.mocked_backend import MockedBackendServer
 
 
 # Max timeout in seconds to keep a container running
@@ -34,6 +37,15 @@ def pytest_configure(config: pytest.Config) -> None:
 @pytest.fixture
 def library_env() -> dict[str, str]:
     return {}
+
+
+@pytest.fixture
+def mocked_backend(worker_id: str) -> Generator[MockedBackendServer, None, None]:
+    server = MockedBackendServer(port=get_host_port(worker_id, 4900))
+    try:
+        yield server
+    finally:
+        server.close()
 
 
 @pytest.fixture
@@ -121,6 +133,79 @@ def test_agent(
         container_otlp_grpc_port=test_agent_otlp_grpc_port,
     ) as result:
         yield result
+
+
+# Minimal OTLP/HTTP forwarder run inside the test-agent image (python stdlib only).
+# The test agent only routes the exact paths /v1/<signal>, so it cannot tell whether a library kept the base path of
+# OTEL_EXPORTER_OTLP_ENDPOINT. This proxy only accepts POST <base path>/v1/<signal> and forwards it to the test
+# agent's /v1/<signal>; any other path gets a 404, so data reaches the test agent only if the library used the
+# expected URL.
+_OTLP_PREFIX_PROXY = """
+import os, urllib.request
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+EXPECTED_PATH = os.environ["PROXY_EXPECTED_PATH"]
+UPSTREAM = os.environ["PROXY_UPSTREAM"]
+
+
+class Handler(BaseHTTPRequestHandler):
+    def do_POST(self):
+        body = self.rfile.read(int(self.headers.get("Content-Length", 0)))
+        print("POST", self.path, flush=True)
+        if self.path != EXPECTED_PATH:
+            self.send_response(404)
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return
+        headers = {k: v for k, v in self.headers.items() if k.lower() in ("content-type", "content-encoding")}
+        req = urllib.request.Request(UPSTREAM, data=body, headers=headers, method="POST")
+        with urllib.request.urlopen(req) as resp:
+            data = resp.read()
+            self.send_response(resp.status)
+            self.send_header("Content-Type", resp.headers.get("Content-Type", "application/x-protobuf"))
+            self.send_header("Content-Length", str(len(data)))
+            self.end_headers()
+            self.wfile.write(data)
+
+
+ThreadingHTTPServer(("0.0.0.0", 4330), Handler).serve_forever()
+"""
+
+
+@pytest.fixture
+def otlp_base_path_library_env(
+    library_env: dict[str, str | None],
+    base_path: str,
+    otlp_signal: str,
+    test_agent: TestAgentAPI,
+) -> Generator[dict[str, str | None], None, None]:
+    """Point OTEL_EXPORTER_OTLP_ENDPOINT to a proxy that only serves <base_path>/v1/<otlp_signal>.
+
+    `base_path` and `otlp_signal` ("logs", "metrics" or "traces") must be parametrized by the test.
+    """
+    # DNS labels are limited to 63 characters, so keep the name short
+    proxy_name = f"otlp-proxy-{uuid.uuid4().hex[:12]}"
+    env = {
+        "PROXY_EXPECTED_PATH": f"{base_path.rstrip('/')}/v1/{otlp_signal}",
+        "PROXY_UPSTREAM": f"http://{test_agent.container_name}:{DEFAULT_OTLP_HTTP_PORT}/v1/{otlp_signal}",
+    }
+    log_path = f"{test_agent.log_path}.otlp_proxy.log"
+    with (
+        open(log_path, "w+", encoding="utf-8") as log_file,
+        docker_run(
+            image=scenarios.parametric._test_agent_factory.image,  # noqa: SLF001
+            name=proxy_name,
+            env=env,
+            volumes={},
+            network=test_agent.network,
+            ports={},
+            log_file=log_file,
+            command=["python", "-c", _OTLP_PREFIX_PROXY],
+        ),
+    ):
+        library_env["OTEL_EXPORTER_OTLP_ENDPOINT"] = f"http://{proxy_name}:4330{base_path}"
+        yield library_env
+        del library_env["OTEL_EXPORTER_OTLP_ENDPOINT"]
 
 
 @pytest.fixture

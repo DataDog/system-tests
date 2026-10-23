@@ -20,7 +20,7 @@ from utils import HttpResponse, features, pytest, scenarios
 from utils.properties_serialization import SetupProperties
 
 
-@scenarios.feature_flagging_contract_tests
+@scenarios.test_the_test
 @features.not_reported
 @pytest.mark.parametrize(
     ("subjects", "variant", "allocation", "passes"),
@@ -56,7 +56,7 @@ def test_experimentation_exposure_oracle(subjects: list[str], variant: str, allo
             validate()
 
 
-@scenarios.feature_flagging_contract_tests
+@scenarios.test_the_test
 @features.not_reported
 @pytest.mark.parametrize("shape", ["list", "holdout-groups"])
 def test_evaluation_setup_replay(tmp_path: Path, shape: str) -> None:
@@ -91,7 +91,7 @@ def test_evaluation_setup_replay(tmp_path: Path, shape: str) -> None:
     assert restored["responses"][0].text == response.text
 
 
-@scenarios.feature_flagging_contract_tests
+@scenarios.test_the_test
 @features.not_reported
 def test_lean_runtime_inventory() -> None:
     cases = load_runtime_cases()
@@ -110,7 +110,7 @@ def test_lean_runtime_inventory() -> None:
     assert {case["expected"]["value"] for case in cases} == {"same-value"}
 
 
-@scenarios.feature_flagging_contract_tests
+@scenarios.test_the_test
 @features.not_reported
 @pytest.mark.parametrize(
     "name",
@@ -133,7 +133,7 @@ def test_lean_runtime_rejects_changed_snapshot(tmp_path: Path, name: str) -> Non
         load_runtime_cases(snapshot)
 
 
-@scenarios.feature_flagging_contract_tests
+@scenarios.test_the_test
 @features.not_reported
 @pytest.mark.parametrize("field", ["value", "reason", "errorCode", "variant", "allocationKey", "count"])
 def test_lean_details_reject_wrong_observation(field: str) -> None:
@@ -159,7 +159,7 @@ def test_lean_details_reject_wrong_observation(field: str) -> None:
         assert_details([response(incorrect)], case, expected_count=1)
 
 
-@scenarios.feature_flagging_contract_tests
+@scenarios.test_the_test
 @features.not_reported
 @pytest.mark.parametrize(
     "mutation",

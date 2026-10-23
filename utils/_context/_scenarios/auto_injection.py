@@ -1,6 +1,7 @@
 import copy
 import json
 import os
+import warnings
 from pathlib import Path
 import pytest
 from utils._context.component_version import ComponentVersion
@@ -57,13 +58,44 @@ class _VirtualMachineScenario(Scenario):
         if (
             not apm_library_version or apm_library_version == "0.0.0"
         ) and self.vm_provider.vm.provision_install_error is None:
-            logger.stdout("❌ No datadog-apm-library found ❌ ")
-            logger.stdout("This is not a valid scenario")
-            logger.stdout("Please, check the log file for more details")
-            logger.stdout(f"Log file: {self.host_log_folder}/tests.log")
-            pytest.exit("No datadog-apm-library found", returncode=3)
+            logger.stdout("❌ SSI installer finished, but the tracer library was not installed ❌")
+            logger.stdout("Review the agent + SSI installation provision.")
+            logger.stdout(f"Log file: {self.host_log_folder}/{self.virtual_machine.name}.log")
+            event_sender = getattr(self.vm_provider, "datadog_event_sender", None)
+            if event_sender is not None:
+                try:
+                    event_sender.send_event_to_datadog(
+                        f"[E2E] Stack {self.vm_provider.stack_name} : SSI installer finished without tracer library",
+                        "SSI installer finished without installing the tracer library. "
+                        "Review the agent + SSI installation provision.",
+                        [
+                            "operation:up",
+                            "result:fail",
+                            "failure:ssi_installer_finished_without_library",
+                            f"stack:{self.vm_provider.stack_name}",
+                        ],
+                    )
+                except Exception as error:
+                    logger.warning("Could not send the SSI installer Datadog event: %s", error)
+            pytest.exit(
+                "SSI installer finished without installing the tracer library. "
+                "Review the agent + SSI installation provision.",
+                returncode=3,
+            )
 
     def configure(self, config: pytest.Config):
+        # pytest shows every warning during pytest_configure. Pulumi and the
+        # assertion rewriter are imported here, and only for AWS SSI scenarios.
+        warnings.filterwarnings(
+            "ignore",
+            message=r"^aws\.ec2/getvpciam",
+            category=DeprecationWarning,
+        )
+        warnings.filterwarnings(
+            "ignore",
+            message=r"^ast\.(?:Str|NameConstant) is deprecated",
+            category=DeprecationWarning,
+        )
         from utils.virtual_machine.virtual_machine_provider import VmProviderFactory
         from utils.virtual_machine.virtual_machine_provisioner import provisioner
 

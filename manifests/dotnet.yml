@@ -700,10 +700,11 @@ manifest:
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_3:
     - declaration: bug (DEBUG-2799)
       component_version: <3.10.0
-  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_5:  # Easy win for poc, uds and version 3.36.0
+  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_5:
     - declaration: bug (DEBUG-2799)
       component_version: <3.10.0
     - declaration: bug (DEBUG-3283)
+      component_version: <3.36.0
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_inlined: bug (DEBUG-3447)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_rockpaperscissors:
     - declaration: bug (DEBUG-2799)
@@ -800,7 +801,6 @@ manifest:
       weblog: [uds, poc]
     - declaration: missing_feature (feature not implemented)
       excluded_weblog: [uds, poc]
-  tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry::test_telemetry_er: flaky (DEBUG-3322)
   tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_injection_metadata:
     - declaration: missing_feature (Not implemented yet)
       component_version: <3.22.0
@@ -968,6 +968,8 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_endpoint.py::Test_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT: v3.37.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_endpoint.py::Test_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT::test_empty_falls_back_to_global_endpoint
   : bug (APMAPI-2509)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_endpoint.py::Test_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT::test_generic_endpoint_with_base_path
+  : bug (APMAPI-2620)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_headers.py::Test_OTEL_EXPORTER_OTLP_LOGS_HEADERS: v3.37.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_headers.py::Test_OTEL_EXPORTER_OTLP_LOGS_HEADERS::test_empty_falls_back
   : bug (APMAPI-2479)
@@ -1307,14 +1309,14 @@ manifest:
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: v2.53.0
   tests/parametric/test_otel_logs.py: '>=3.36.0'  # Modified by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR01_Enable_OTLP_Log_Collection::test_otlp_logs_enabled: v3.53.0
-  tests/parametric/test_otel_logs.py::Test_FR03_Resource_Attributes: missing_feature
+  tests/parametric/test_otel_logs.py::Test_FR03_Resource_Attributes: '>=3.56.0'  # TODO: a lower version might be supported
   tests/parametric/test_otel_logs.py::Test_FR04_Trace_Span_IDs: '>=3.54.0'  # Created by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR04_Trace_Span_IDs::test_dd_span_context_injection: missing_feature
   tests/parametric/test_otel_logs.py::Test_FR05_Custom_Endpoints: '>=3.54.0'  # Created by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR07_Host_Name::test_hostname_from_dd_hostname: irrelevant (DD_HOSTNAME is only supported in Python)
   tests/parametric/test_otel_logs.py::Test_FR07_Host_Name::test_hostname_from_otel_resources: '>=3.54.0'  # Created by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR09_Log_Injection: '>=3.54.0'  # Created by easy win activation script
-  tests/parametric/test_otel_logs.py::Test_FR09_Log_Injection::test_log_injection_when_otel_enabled: missing_feature
+  tests/parametric/test_otel_logs.py::Test_FR09_Log_Injection::test_log_injection_when_otel_enabled: '>=3.56.0'  # TODO: a lower version might be supported
   tests/parametric/test_otel_logs.py::Test_FR09_Log_Injection::test_log_without_active_span: missing_feature
   tests/parametric/test_otel_logs.py::Test_FR10_Timeout_Configuration: '>=3.54.0'  # Created by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR11_Telemetry: '>=3.54.0'  # Created by easy win activation script
@@ -1617,33 +1619,13 @@ manifest:
   tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)
   tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_Spans_Http_ErrorStatusConfiguration: v3.52.0
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics: v3.52.0
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics::test_trace_metric_agrees_with_client_success:  # TODO: a lower version might be supported
-    - declaration: missing_feature (successful client trace metrics report OTel OK status instead of leaving status unset)
-      component_version: <3.54.0
-      weblog: [poc, uds]
-    - declaration: missing_feature (successful client trace metrics report OTel OK status instead of leaving status unset)
-      excluded_weblog: [poc, uds]
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics::test_trace_metric_agrees_with_server_success:  # TODO: a lower version might be supported
-    - declaration: missing_feature (successful server trace metrics report OTel OK status instead of leaving status unset)
-      component_version: <3.54.0
-      weblog: [poc, uds]
-    - declaration: missing_feature (successful server trace metrics report OTel OK status instead of leaving status unset)
-      excluded_weblog: [poc, uds]
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_SamplingRules: missing_feature (HTTP server span names use Datadog semantics when sampling rules run)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics: v3.53.0
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_SamplingRules: v3.53.0
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_SamplingRules::test_otel_span_name_is_available_to_sampling_rules: missing_feature
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_SamplingRules::test_server_span_name_is_available_before_client_sampling: missing_feature
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client: v3.52.0
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server:  # TODO: a lower version might be supported
-    - declaration: missing_feature (OTel HTTP server semantics not implemented over OTLP export)
-      component_version: <3.54.0
-      weblog: [poc, uds]
-    - declaration: missing_feature (OTel HTTP server semantics not implemented over OTLP export)
-      excluded_weblog: [poc, uds]
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_http_endpoint_retained_from_appsec:  # TODO: a lower version might be supported
-    - declaration: missing_feature (OTel HTTP server semantics not implemented over OTLP export)
-      component_version: <3.54.0
-      weblog: [poc, uds]
-    - declaration: missing_feature (OTel HTTP server semantics not implemented over OTLP export)
-      excluded_weblog: [poc, uds]
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server: v3.53.0
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_http_endpoint_retained_from_appsec: v3.53.0
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_http_endpoint_retained_from_resource_renaming: irrelevant (The .NET tracer creates http.endpoint from routed AppSec requests)
   tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs: v3.56.0
   tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_configured_value: missing_feature (Some configured settings are unsupported or not reported as uppercase startup fields)

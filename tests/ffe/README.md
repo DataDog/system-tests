@@ -141,17 +141,15 @@ Omit `--check` to write generated files. Review the source and generated differe
 
 ## Test-contract self-tests
 
-The self-tests validate the FFE assertions using synthetic
-captures. They do not run SDKs or contact an intake. With the Python 3.12 runner
-environment installed, run them explicitly:
+The self-tests in `tests/test_the_test/test_ffe_tests.py` and the two opt-out contract files
+validate the FFE assertions using synthetic captures. They do not run SDKs or contact an intake.
+They are part of the `TEST_THE_TEST` scenario, which runs on every PR:
 
 ```bash
-./run.sh FEATURE_FLAGGING_CONTRACT_TESTS tests/ffe/test_tests.py \
-  tests/ffe/test_evaluation_telemetry_opt_out_contract.py tests/ffe/test_experimentation_opt_out_contract.py
+./run.sh TEST_THE_TEST tests/test_the_test/test_ffe_tests.py \
+  tests/test_the_test/test_ffe_evaluation_telemetry_opt_out_contract.py \
+  tests/test_the_test/test_ffe_experimentation_opt_out_contract.py
 ```
-
-This no-container scenario has no CI workflow or scenario-group membership.
-Its tests do not run in `TEST_THE_TEST`, `DEFAULT`, or the FFE end-to-end scenarios.
 Framework mock-backend and lifecycle tests stay in `tests/test_the_test/`.
 
 ---

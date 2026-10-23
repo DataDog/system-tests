@@ -26,114 +26,122 @@ images:
     digest: sha256:223c336b2fc1a000e22315a8762254b7171016d4400d556cc24ca41a499aa7af
     target: registry.ddbuild.io/system-tests/mirror/datadog/dd-appsec-php-ci:php-8.2-release
     tag: php-8.2-release
+  datadog/dd-trace-ci:php-8.2_bookworm-6:
+    digest: sha256:1263e78409cc0800948e86463689c21d2b84733dde3ced048d751b04fdff7b9a
+    target: registry.ddbuild.io/system-tests/mirror/datadog/dd-trace-ci:php-8.2_bookworm-6
+    tag: php-8.2_bookworm-6
   datadog/serverless-init:1.10.4:
     digest: sha256:f4943347f155505156ba5f594317ea64b59678b3a6522e8c0993581af20956ff
     target: registry.ddbuild.io/system-tests/mirror/datadog/serverless-init:1.10.4
     tag: 1.10.4
-  datadog/system-tests:apache-mod-7.0-zts.base-c32a9f8fabfa:
-    digest: sha256:2e97ebed44524aee0bf6cb7b5cf431b19f6a22c2dbeaa832814b2e9dc6dc9954
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:apache-mod-7.0-zts.base-c32a9f8fabfa
-    tag: apache-mod-7.0-zts.base-c32a9f8fabfa
-  datadog/system-tests:apache-mod-7.0.base-d171f9d9cd49:
-    digest: sha256:497ac0f938508a874c9d0eab4b81631f5a674ca062f4a4cef17b2a6d88a53643
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:apache-mod-7.0.base-d171f9d9cd49
-    tag: apache-mod-7.0.base-d171f9d9cd49
-  datadog/system-tests:apache-mod-7.1-zts.base-f85be52b50fb:
-    digest: sha256:f42800a11e903307a059fcd80116ec8ba9b92534cfbd77a7ea61556881ebb1ec
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:apache-mod-7.1-zts.base-f85be52b50fb
-    tag: apache-mod-7.1-zts.base-f85be52b50fb
-  datadog/system-tests:apache-mod-7.1.base-3f1b6ccb42bf:
-    digest: sha256:1ec4c45e3e342d086cc53ccf1b9ecd59ca3cd953ea8e76353f349badded171f7
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:apache-mod-7.1.base-3f1b6ccb42bf
-    tag: apache-mod-7.1.base-3f1b6ccb42bf
-  datadog/system-tests:apache-mod-7.2-zts.base-d72a52462af8:
-    digest: sha256:86944ed43a0a43292a040f8384f2f84979be711c1441f3486cf46a4e8597ce80
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:apache-mod-7.2-zts.base-d72a52462af8
-    tag: apache-mod-7.2-zts.base-d72a52462af8
-  datadog/system-tests:apache-mod-7.2.base-97b4ad113bf7:
-    digest: sha256:a6e747ed430695a9722049c8b3db839380e741dbfdbba4af315618d9075e2b61
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:apache-mod-7.2.base-97b4ad113bf7
-    tag: apache-mod-7.2.base-97b4ad113bf7
-  datadog/system-tests:apache-mod-7.3-zts.base-474465995b7d:
-    digest: sha256:d3b0eb27db9977251d77b90d70f31c78865c35ad7b6d160458b0523a267e5629
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:apache-mod-7.3-zts.base-474465995b7d
-    tag: apache-mod-7.3-zts.base-474465995b7d
-  datadog/system-tests:apache-mod-7.3.base-7b5f5e879531:
-    digest: sha256:69be42a2c717af62fe98db35f6afe6a62d9f37fabb99051b81aef2ba3d423785
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:apache-mod-7.3.base-7b5f5e879531
-    tag: apache-mod-7.3.base-7b5f5e879531
-  datadog/system-tests:apache-mod-7.4-zts.base-70c7e290c9da:
-    digest: sha256:f3b54d1e10cf2fad87fd18aacd5381e892ee3b3d809e29801d1ea102e832513a
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:apache-mod-7.4-zts.base-70c7e290c9da
-    tag: apache-mod-7.4-zts.base-70c7e290c9da
-  datadog/system-tests:apache-mod-7.4.base-c9eeb1f5d7a0:
-    digest: sha256:3454ab26d3d8a287b1916fdd9351c6614d9a4b79fe09fb04137898c7c33dea41
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:apache-mod-7.4.base-c9eeb1f5d7a0
-    tag: apache-mod-7.4.base-c9eeb1f5d7a0
-  datadog/system-tests:apache-mod-8.0-zts.base-14f418bd9fe1:
-    digest: sha256:b175bb0ed88989156141cecdb175e3d655fa52893b5893545a8e43859c85ef5b
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:apache-mod-8.0-zts.base-14f418bd9fe1
-    tag: apache-mod-8.0-zts.base-14f418bd9fe1
-  datadog/system-tests:apache-mod-8.0.base-8eb5122e172d:
-    digest: sha256:701a42d8fbf08e43f2a8b139a3e4a2c6931291b40bb16ff544674adeb823c425
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:apache-mod-8.0.base-8eb5122e172d
-    tag: apache-mod-8.0.base-8eb5122e172d
-  datadog/system-tests:apache-mod-8.1-zts.base-730619193062:
-    digest: sha256:d630c75483086ef5758459550b54b8baee91ef8a070ddd811311e6c7eb14d02c
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:apache-mod-8.1-zts.base-730619193062
-    tag: apache-mod-8.1-zts.base-730619193062
-  datadog/system-tests:apache-mod-8.1.base-636387903f6f:
-    digest: sha256:a4c4c2cef850b212a217a73c35569219c3c5aa726d02afd0bde5b2d256c8a8e0
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:apache-mod-8.1.base-636387903f6f
-    tag: apache-mod-8.1.base-636387903f6f
-  datadog/system-tests:apache-mod-8.2-zts.base-e2da877df5a0:
-    digest: sha256:45c7f0aa3186f1cf19f1f10ea34e567483457cd86f721c0f790b45079d50c67b
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:apache-mod-8.2-zts.base-e2da877df5a0
-    tag: apache-mod-8.2-zts.base-e2da877df5a0
-  datadog/system-tests:apache-mod-8.2.base-35dff2a6fda0:
-    digest: sha256:25af4880ac7aa09b822b60c8f350ab5b6d804488c23ed89eae3d6efb5a317c8a
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:apache-mod-8.2.base-35dff2a6fda0
-    tag: apache-mod-8.2.base-35dff2a6fda0
-  datadog/system-tests:django-poc.base-78e2159815b1:
-    digest: sha256:0758657f4abcdaf68506c9eeefd034517c943ce10da8efe1f1689f944965285d
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:django-poc.base-78e2159815b1
-    tag: django-poc.base-78e2159815b1
-  datadog/system-tests:django-py3.13.base-d8262a2c816c:
-    digest: sha256:b71678692a476b6acc3eb235edbb98bbb9c6b943e17c246ecb24937276807bc3
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:django-py3.13.base-d8262a2c816c
-    tag: django-py3.13.base-d8262a2c816c
-  datadog/system-tests:express4-typescript.base-adccc0959572:
-    digest: sha256:58f7fd87566eca253f33c8197bf75a35761f12420cba96718de6010b4cac194b
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:express4-typescript.base-adccc0959572
-    tag: express4-typescript.base-adccc0959572
-  datadog/system-tests:express4.base-9840fcdd0dc3:
-    digest: sha256:2a06c70c7f8ca79c9b5c49fdd9ae13099e8da5b7f06a41edb5ff07d2ad7d19b8
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:express4.base-9840fcdd0dc3
-    tag: express4.base-9840fcdd0dc3
-  datadog/system-tests:express5.base-6629626fb992:
-    digest: sha256:0732e7a068b980afc063dbde4fee98f7c95027c26e462210042fcbb753a0ecc7
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:express5.base-6629626fb992
-    tag: express5.base-6629626fb992
-  datadog/system-tests:fastapi.base-2917769b3665:
-    digest: sha256:f72a31702ffaabc1ba5e43042963e9cea965d1be6256d9d8a58e7e2381090d40
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:fastapi.base-2917769b3665
-    tag: fastapi.base-2917769b3665
-  datadog/system-tests:fastify.base-0e63292ae2f1:
-    digest: sha256:3eacb4543dc280f94f50400f79c97bc505cdfb356cb2f911d34d71205bcae70a
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:fastify.base-0e63292ae2f1
-    tag: fastify.base-0e63292ae2f1
-  datadog/system-tests:flask-poc.base-fa81f4f89ea4:
-    digest: sha256:f300cff471470574ce8263292f54ab745ffacfa8af741dd41be15a8c947e2e0e
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:flask-poc.base-fa81f4f89ea4
-    tag: flask-poc.base-fa81f4f89ea4
+  datadog/system-tests:aiohttp.base-8697afadfeae:
+    digest: sha256:bddfb45339ab796c2cbf7df6d679a85a128acb007b246b42f47ea59aa2b5f8e7
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:aiohttp.base-8697afadfeae
+    tag: aiohttp.base-8697afadfeae
+  datadog/system-tests:apache-mod-7.0-zts.base-9f0b91573353:
+    digest: sha256:004cd90a6bd8c44fad2ea716431b336c8af3d7cee97e19d8e78c58beb9a62679
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:apache-mod-7.0-zts.base-9f0b91573353
+    tag: apache-mod-7.0-zts.base-9f0b91573353
+  datadog/system-tests:apache-mod-7.0.base-817e138f4813:
+    digest: sha256:367b47b18f334f0066287d05f448f5809e7e2d52f6c57643511fea67630c9d49
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:apache-mod-7.0.base-817e138f4813
+    tag: apache-mod-7.0.base-817e138f4813
+  datadog/system-tests:apache-mod-7.1-zts.base-671acda16008:
+    digest: sha256:a896f3e86678672d404fc2a8c81c8291fc1356767c1594c8744e0c022807c52e
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:apache-mod-7.1-zts.base-671acda16008
+    tag: apache-mod-7.1-zts.base-671acda16008
+  datadog/system-tests:apache-mod-7.1.base-ca6dc88f44c0:
+    digest: sha256:951385187754dbd06a4b9c610ac8d66a44446d8a75c198049cf19479901f6d98
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:apache-mod-7.1.base-ca6dc88f44c0
+    tag: apache-mod-7.1.base-ca6dc88f44c0
+  datadog/system-tests:apache-mod-7.2-zts.base-899891410f95:
+    digest: sha256:b87dee18cc4c8a198e42591d5f121a12acb76e629d398a37a22aaf400936d2ae
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:apache-mod-7.2-zts.base-899891410f95
+    tag: apache-mod-7.2-zts.base-899891410f95
+  datadog/system-tests:apache-mod-7.2.base-e5ad77c9e8ba:
+    digest: sha256:28aa1b93288278575457224918c178d3890e2df257be2ac518fc92f6fa561cc5
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:apache-mod-7.2.base-e5ad77c9e8ba
+    tag: apache-mod-7.2.base-e5ad77c9e8ba
+  datadog/system-tests:apache-mod-7.3-zts.base-1ee4336f01ad:
+    digest: sha256:dcf00d48c0a422eb081558028224c3ed5b72129658af59801830af16733dad93
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:apache-mod-7.3-zts.base-1ee4336f01ad
+    tag: apache-mod-7.3-zts.base-1ee4336f01ad
+  datadog/system-tests:apache-mod-7.3.base-1f1cad57ac02:
+    digest: sha256:907c4344bbc0548ef745a0151da84ab496d15063155a212381c3261c11363376
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:apache-mod-7.3.base-1f1cad57ac02
+    tag: apache-mod-7.3.base-1f1cad57ac02
+  datadog/system-tests:apache-mod-7.4-zts.base-f45e366809fd:
+    digest: sha256:730ba57e20097fa5283dca28095fd9634f309bb389c9b9f0e985b0920533ffeb
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:apache-mod-7.4-zts.base-f45e366809fd
+    tag: apache-mod-7.4-zts.base-f45e366809fd
+  datadog/system-tests:apache-mod-7.4.base-16e66f43d8f4:
+    digest: sha256:d0e69970bae8309d6adb0bd80691cb7fcbab1b582aa1c99d273a57bdcb690f65
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:apache-mod-7.4.base-16e66f43d8f4
+    tag: apache-mod-7.4.base-16e66f43d8f4
+  datadog/system-tests:apache-mod-8.0-zts.base-cf4b1537a58c:
+    digest: sha256:55a04cf89c80db425766f6e1335b6bae2f266b6f4171f913e1bd20daa0700687
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:apache-mod-8.0-zts.base-cf4b1537a58c
+    tag: apache-mod-8.0-zts.base-cf4b1537a58c
+  datadog/system-tests:apache-mod-8.0.base-d325a0686aa1:
+    digest: sha256:84dd497271b3c2c161ace7f671a6596b078a5c8f5627fbbd3cc85759a8d1464f
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:apache-mod-8.0.base-d325a0686aa1
+    tag: apache-mod-8.0.base-d325a0686aa1
+  datadog/system-tests:apache-mod-8.1-zts.base-407ad5c9b435:
+    digest: sha256:2844bef183f79f2a6fd8478ac144d0694f62d16bb08937c7f0a37372b161f59e
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:apache-mod-8.1-zts.base-407ad5c9b435
+    tag: apache-mod-8.1-zts.base-407ad5c9b435
+  datadog/system-tests:apache-mod-8.1.base-4b2b2ba1c70b:
+    digest: sha256:83595d9bc075b1597afca2a9b399633dce81217b9bce5ad6d08017ae81839144
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:apache-mod-8.1.base-4b2b2ba1c70b
+    tag: apache-mod-8.1.base-4b2b2ba1c70b
+  datadog/system-tests:apache-mod-8.2-zts.base-1d89dacb5f9c:
+    digest: sha256:f68abc9906a2f727fa72afa655cfc2b3567f3f5fa180b4245419e0b70336e929
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:apache-mod-8.2-zts.base-1d89dacb5f9c
+    tag: apache-mod-8.2-zts.base-1d89dacb5f9c
+  datadog/system-tests:apache-mod-8.2.base-5771d89e2b55:
+    digest: sha256:192e69b55762cced546d59062bb142bf95508e2d15c55600806471e320c6cb40
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:apache-mod-8.2.base-5771d89e2b55
+    tag: apache-mod-8.2.base-5771d89e2b55
+  datadog/system-tests:django-poc.base-1d15b551f35b:
+    digest: sha256:d8b6e61bd612769bbecdbb3c4b6f45c73aa2c62b87f85de93f5e5c56d35791f0
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:django-poc.base-1d15b551f35b
+    tag: django-poc.base-1d15b551f35b
+  datadog/system-tests:django-py3.13.base-8fa5fb488bac:
+    digest: sha256:c2d8a505dfd121933b113e0717f8fbe2e8352f4533d99c85cc5456d9aaf77bde
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:django-py3.13.base-8fa5fb488bac
+    tag: django-py3.13.base-8fa5fb488bac
+  datadog/system-tests:express4-typescript.base-be5138693a38:
+    digest: sha256:6e66aa1b5da64a0d04a108c78f35c3f9f26a941f8233160c5eb78f08d0d3834d
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:express4-typescript.base-be5138693a38
+    tag: express4-typescript.base-be5138693a38
+  datadog/system-tests:express4.base-7a16285d66a9:
+    digest: sha256:3b3365bb8748df3ff993459149705c08a127589ccba72a1a5691f8905b742db2
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:express4.base-7a16285d66a9
+    tag: express4.base-7a16285d66a9
+  datadog/system-tests:express5.base-fb385bd8cf2f:
+    digest: sha256:bd622fa20feba4e54e5c4aebe3e069b9f9b5ffb8a3d016c66749640e44c943fd
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:express5.base-fb385bd8cf2f
+    tag: express5.base-fb385bd8cf2f
+  datadog/system-tests:fastapi.base-7f1b67ecf0c2:
+    digest: sha256:6ee0374d82b4cb777189b4e5f9a6ceb8697ee92be2ab455691445b1c86e2df4a
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:fastapi.base-7f1b67ecf0c2
+    tag: fastapi.base-7f1b67ecf0c2
+  datadog/system-tests:fastify.base-8f4f6cf42bfb:
+    digest: sha256:4ebcb8a7ec9cf2152633cec3d907d90ce50c076420e98e15e2322f9bb25682d8
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:fastify.base-8f4f6cf42bfb
+    tag: fastify.base-8f4f6cf42bfb
+  datadog/system-tests:flask-poc.base-ac207107ea25:
+    digest: sha256:1df044be7f3766d2f8208420b010d485bf270f98f955344997029ac732b3fca4
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:flask-poc.base-ac207107ea25
+    tag: flask-poc.base-ac207107ea25
   datadog/system-tests:golang_buddy-v2:
     digest: sha256:b567fa2e328f24c74aab600e8bf07362b4265ac508413a83e06afddb399bee80
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:golang_buddy-v2
     tag: golang_buddy-v2
-  datadog/system-tests:java-lambda-runtime.base-e849230b09df:
-    digest: sha256:0ed8d03a1d80c5e8dc78991a6fd9d32021f6282898a73ce9c5e43b444b630327
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:java-lambda-runtime.base-e849230b09df
-    tag: java-lambda-runtime.base-e849230b09df
+  datadog/system-tests:java-lambda-runtime.base-e9a494d2bc57:
+    digest: sha256:074f19da54c870131b674f184ff5a392c79e42a3f86055dbcdefceb7c9836fb7
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:java-lambda-runtime.base-e9a494d2bc57
+    tag: java-lambda-runtime.base-e9a494d2bc57
   datadog/system-tests:java_buddy-v1:
     digest: sha256:67aac2b7c0c88b40da498fbc74b48f0a62702148e5c9256c5752a9e624d972ce
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:java_buddy-v1
@@ -142,90 +150,94 @@ images:
     digest: sha256:2b09f33c61b2b19f4a239e4d8f10164ece66d925b72337720998ce43d7090d2f
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:lambda-proxy-v1
     tag: lambda-proxy-v1
-  datadog/system-tests:nextjs.base-312a008bf0e8:
-    digest: sha256:e7c6ccd084c27819ea41b0ca2c2a03b6b372c18f2c8ac4cac2891fe9d1e54661
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:nextjs.base-312a008bf0e8
-    tag: nextjs.base-312a008bf0e8
-  datadog/system-tests:nodejs-lambda-runtime.base-f7f78c7298cf:
-    digest: sha256:6f2d40e78bc96937010874e2b7f23ef9effb5e087c0cdf674f9b1ca0bcb631a8
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:nodejs-lambda-runtime.base-f7f78c7298cf
-    tag: nodejs-lambda-runtime.base-f7f78c7298cf
+  datadog/system-tests:nextjs.base-5c42165eff3e:
+    digest: sha256:6bd2ee0978706e19660e8ca881079f2157e85a8ea581358128856d168591a1f5
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:nextjs.base-5c42165eff3e
+    tag: nextjs.base-5c42165eff3e
+  datadog/system-tests:nodejs-lambda-runtime.base-93b9660a8ce9:
+    digest: sha256:1f0911d1c060b4fd062f4a521edd8faa5cb677b2cb51ee465de482b8dff7ced9
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:nodejs-lambda-runtime.base-93b9660a8ce9
+    tag: nodejs-lambda-runtime.base-93b9660a8ce9
   datadog/system-tests:nodejs_buddy-v1:
     digest: sha256:71d124f74d4d7ac706f1afa8d5950864e1e931ec3b511f540b49eb6328c0338e
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:nodejs_buddy-v1
     tag: nodejs_buddy-v1
-  datadog/system-tests:openai-py.base-b4fd56aee3f2:
-    digest: sha256:197c03e69fb63974baaa169769ad1e36deb751703e7a77f3bc2a76fe4346c1ff
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:openai-py.base-b4fd56aee3f2
-    tag: openai-py.base-b4fd56aee3f2
-  datadog/system-tests:php-fpm-7.0.base-c49018c745e1:
-    digest: sha256:f1b3f111a5d1c3f7de4d233edcd0052017af27adaca65e71f3964c5d69a65a8c
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:php-fpm-7.0.base-c49018c745e1
-    tag: php-fpm-7.0.base-c49018c745e1
-  datadog/system-tests:php-fpm-7.1.base-910d557560fe:
-    digest: sha256:1feb3ee62007a8af472f6b78542eb47628cfe5560f7a9081870c866c7a659f57
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:php-fpm-7.1.base-910d557560fe
-    tag: php-fpm-7.1.base-910d557560fe
-  datadog/system-tests:php-fpm-7.2.base-3fc07ca7d612:
-    digest: sha256:cb604af37c5cda100cd96b0a61ffad8993891e948c9f9abe7a71610e3b4cbbdf
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:php-fpm-7.2.base-3fc07ca7d612
-    tag: php-fpm-7.2.base-3fc07ca7d612
-  datadog/system-tests:php-fpm-7.3.base-57170013e791:
-    digest: sha256:3b83af877b6cc0679bcee74e5a7806268a6110b2f1a3a976fdd1cf9782a9e3cf
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:php-fpm-7.3.base-57170013e791
-    tag: php-fpm-7.3.base-57170013e791
-  datadog/system-tests:php-fpm-7.4.base-5785e22b9e7a:
-    digest: sha256:8da6374532e3fb2860171b4515f0c137c016d84d32aab92b27f5912f882639d8
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:php-fpm-7.4.base-5785e22b9e7a
-    tag: php-fpm-7.4.base-5785e22b9e7a
-  datadog/system-tests:php-fpm-8.0.base-f188ce9edd45:
-    digest: sha256:20221895cb35afad4a1e5e38e1f564276c0ab1162d877a7c9e30fd02b6de7822
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:php-fpm-8.0.base-f188ce9edd45
-    tag: php-fpm-8.0.base-f188ce9edd45
-  datadog/system-tests:php-fpm-8.1.base-0e71904f30d8:
-    digest: sha256:cfd6c035c402004bac3d8c6d528dfb7f9ca3177e1c6846c6e3ff891bf4d0b11e
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:php-fpm-8.1.base-0e71904f30d8
-    tag: php-fpm-8.1.base-0e71904f30d8
-  datadog/system-tests:php-fpm-8.2.base-1be933a8c32c:
-    digest: sha256:6615ed84ae925ca56e633ec3f73bff7db9633800e9e69cdfe678e9f61337c8a0
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:php-fpm-8.2.base-1be933a8c32c
-    tag: php-fpm-8.2.base-1be933a8c32c
-  datadog/system-tests:php-fpm-8.5.base-1f31aeca4e5b:
-    digest: sha256:41ad96b8a25f778e4d1360b0ac3927ad458401adc736facd3b5c92764854742e
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:php-fpm-8.5.base-1f31aeca4e5b
-    tag: php-fpm-8.5.base-1f31aeca4e5b
+  datadog/system-tests:openai-py.base-31091e40843e:
+    digest: sha256:f9ff2f770ebdfce6110d730f089a4dd025d17220bc0c5626d858252003f22f86
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:openai-py.base-31091e40843e
+    tag: openai-py.base-31091e40843e
+  datadog/system-tests:php-fpm-7.0.base-2362129a4bd7:
+    digest: sha256:30a19b327c5fe67c03fe19c2865ac1ce261ad196c44e45872f67b67844f08f11
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:php-fpm-7.0.base-2362129a4bd7
+    tag: php-fpm-7.0.base-2362129a4bd7
+  datadog/system-tests:php-fpm-7.1.base-65aec431b15d:
+    digest: sha256:1483cfdd8284a07763a5069ebd78265d682967ece34497c9577a3d675079c384
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:php-fpm-7.1.base-65aec431b15d
+    tag: php-fpm-7.1.base-65aec431b15d
+  datadog/system-tests:php-fpm-7.2.base-4db3b3c5e45a:
+    digest: sha256:dd826c3e8916af70c3b2fa0e3504a71ffbd8b8cd36fb89d3e79ec21433b7ac5e
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:php-fpm-7.2.base-4db3b3c5e45a
+    tag: php-fpm-7.2.base-4db3b3c5e45a
+  datadog/system-tests:php-fpm-7.3.base-a585ba1c5c6b:
+    digest: sha256:7487bf21d8ed6f49774faacecd8d55c8d7d18b7c178c8cec3563805f080c6c22
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:php-fpm-7.3.base-a585ba1c5c6b
+    tag: php-fpm-7.3.base-a585ba1c5c6b
+  datadog/system-tests:php-fpm-7.4.base-a6d28dd9d3e7:
+    digest: sha256:900887bb6ac0e26087f30e92baf4b6b833bfccf38fb6efb0425dd2d079c12a11
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:php-fpm-7.4.base-a6d28dd9d3e7
+    tag: php-fpm-7.4.base-a6d28dd9d3e7
+  datadog/system-tests:php-fpm-8.0.base-1c3690557100:
+    digest: sha256:776e76f9f8b1296a4223026ab489affec3dc44a635d2529d2dd9eeca047931c5
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:php-fpm-8.0.base-1c3690557100
+    tag: php-fpm-8.0.base-1c3690557100
+  datadog/system-tests:php-fpm-8.1.base-952e5a1d024f:
+    digest: sha256:5cf87e7a79a2f905d13955277c99f7ae526958da1164b180a0d5560a2c2ecd94
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:php-fpm-8.1.base-952e5a1d024f
+    tag: php-fpm-8.1.base-952e5a1d024f
+  datadog/system-tests:php-fpm-8.2.base-fa4b3373d360:
+    digest: sha256:0a20a09d354bab4cd77eb5def56473e03253f85d13a8df1eee7f0d0086fbd9e7
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:php-fpm-8.2.base-fa4b3373d360
+    tag: php-fpm-8.2.base-fa4b3373d360
+  datadog/system-tests:php-fpm-8.5.base-584c4309d774:
+    digest: sha256:4a2d48fbc3e0a08b0d418bf6e1561b0a5c13617fa700eecad12970671b5ef67e
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:php-fpm-8.5.base-584c4309d774
+    tag: php-fpm-8.5.base-584c4309d774
   datadog/system-tests:proxy-v1:
     digest: sha256:02ce356eafacfe04d3022ff505e2dbb9e47cd3c55244b7918ff6fc824db85f02
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:proxy-v1
     tag: proxy-v1
-  datadog/system-tests:python-lambda-runtime.base-944cdc8541b3:
-    digest: sha256:cf99198e2bf2d697238f3b1d1962ce805c41a52ac7939038e5a8a524994655f4
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:python-lambda-runtime.base-944cdc8541b3
-    tag: python-lambda-runtime.base-944cdc8541b3
-  datadog/system-tests:python3.12.base-604705958847:
-    digest: sha256:a55c34668794e06a125ea3882fc9d0e31a8b84b4742b6a778c2fba82513cfb65
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:python3.12.base-604705958847
-    tag: python3.12.base-604705958847
+  datadog/system-tests:python-lambda-runtime.base-aec497f8192f:
+    digest: sha256:8ee0e934006e6448a1291c91e9e7f591d3d674e7b818e3fa71a7136fb067b6d2
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:python-lambda-runtime.base-aec497f8192f
+    tag: python-lambda-runtime.base-aec497f8192f
+  datadog/system-tests:python-parametric.base-be1a47c3d761:
+    digest: sha256:388fad50bc0c8e319810ca25ea7ca2e6d227987ba7dc0b857dc73ff27ac8d5c0
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:python-parametric.base-be1a47c3d761
+    tag: python-parametric.base-be1a47c3d761
+  datadog/system-tests:python3.12.base-001b21793b9d:
+    digest: sha256:8a33611a27bf9dcfd43304b34ce806e46ed8218c00728b748ee7f57ba04d4803
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:python3.12.base-001b21793b9d
+    tag: python3.12.base-001b21793b9d
   datadog/system-tests:python_buddy-v2:
     digest: sha256:abbd02d4495d83c66af12b5562ccca0077800cb920142375cd48dcfc8aeb1596
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:python_buddy-v2
     tag: python_buddy-v2
-  datadog/system-tests:ruby-lambda-runtime.base-78548bc44bd6:
-    digest: sha256:7d9e2dbb7c34f2eab2431fcdba3d0b695350f29e24e074319f74815a5c3b5f00
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:ruby-lambda-runtime.base-78548bc44bd6
-    tag: ruby-lambda-runtime.base-78548bc44bd6
+  datadog/system-tests:ruby-lambda-runtime.base-982447eea92c:
+    digest: sha256:be31866b76472dc9cb854ecd6fc3cbb29eb72e3af2698b5eac593e1f13289c18
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:ruby-lambda-runtime.base-982447eea92c
+    tag: ruby-lambda-runtime.base-982447eea92c
   datadog/system-tests:ruby_buddy-v2:
     digest: sha256:939d3828d85666a598c0349a6dd933fe1d92c5daa5d01438512d950ea3ccc258
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:ruby_buddy-v2
     tag: ruby_buddy-v2
-  datadog/system-tests:tornado.base-301b798ae137:
-    digest: sha256:f70f19529017e592b05be0f49669dda059c91ef608f53bdf460a2a437dc93bd8
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:tornado.base-301b798ae137
-    tag: tornado.base-301b798ae137
-  datadog/system-tests:uwsgi-poc.base-24176640f4fe:
-    digest: sha256:2af80513f222e32ba1b75f76cbcefabf757961e8882f99c4df7ee92cb5a9b9a1
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:uwsgi-poc.base-24176640f4fe
-    tag: uwsgi-poc.base-24176640f4fe
+  datadog/system-tests:tornado.base-3edec3b229d1:
+    digest: sha256:305722b96bfb70cc291fa11a717cfdc56d26ebfac386c882d59a34fcb94efac1
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:tornado.base-3edec3b229d1
+    tag: tornado.base-3edec3b229d1
+  datadog/system-tests:uwsgi-poc.base-6c2040a5b9bb:
+    digest: sha256:e49b909d4819f43ba50d034b273341a43e3c7a6c5bee70b287e9ca661479d5a0
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:uwsgi-poc.base-6c2040a5b9bb
+    tag: uwsgi-poc.base-6c2040a5b9bb
   debian:bookworm-slim:
     digest: sha256:3783cc01769c7b2b1b83a5c5ad96c815348e28ed7da68e2e3687004faa906251
     target: registry.ddbuild.io/system-tests/mirror/debian:bookworm-slim
@@ -294,6 +306,10 @@ images:
     digest: sha256:97ccc65daec3542bd2cb3160d7355f11e89ad8027fd3c834b9d1197d197d866f
     target: registry.ddbuild.io/system-tests/mirror/localstack/localstack:4.1
     tag: '4.1'
+  maven:3-eclipse-temurin-21:
+    digest: sha256:d23342b1a070a07555f4ef20c085a81aa40e5f5b3288ebf8ddae2f67e9d760c8
+    target: registry.ddbuild.io/system-tests/mirror/maven:3-eclipse-temurin-21
+    tag: 3-eclipse-temurin-21
   maven:3.6-jdk-11:
     digest: sha256:1d29ccf46ef2a5e64f7de3d79a63f9bcffb4dc56be0ae3daed5ca5542b38aa2d
     target: registry.ddbuild.io/system-tests/mirror/maven:3.6-jdk-11
@@ -342,6 +358,10 @@ images:
     digest: sha256:8d6421d663b4c28fd3ebc498332f249011d118945588d0a35cb9bc4b8ca09d9e
     target: registry.ddbuild.io/system-tests/mirror/node:18-alpine
     tag: 18-alpine
+  node:18.20.8-bookworm-slim:
+    digest: sha256:f9ab18e354e6855ae56ef2b290dd225c1e51a564f87584b9bd21dd651838830e
+    target: registry.ddbuild.io/system-tests/mirror/node:18.20.8-bookworm-slim
+    tag: 18.20.8-bookworm-slim
   node:20-alpine:
     digest: sha256:fb4cd12c85ee03686f6af5362a0b0d56d50c58a04632e6c0fb8363f609372293
     target: registry.ddbuild.io/system-tests/mirror/node:20-alpine
@@ -382,6 +402,10 @@ images:
     digest: sha256:6f31d6e9ba2b0a787a3f81c37b004155b87b9efa1b771182bd550c1615745be5
     target: registry.ddbuild.io/system-tests/mirror/python:3.11-slim
     tag: 3.11-slim
+  python:3.11.16-slim:
+    digest: sha256:e41613d42d4891e4930f79523f93f81bbc7632584ec65e36ab055f41a800b41e
+    target: registry.ddbuild.io/system-tests/mirror/python:3.11.16-slim
+    tag: 3.11.16-slim
   python:3.12-slim:
     digest: sha256:02108f5d322dd89f1c9e552442c25acb0543dfdbc455693a5599624f20d9155d
     target: registry.ddbuild.io/system-tests/mirror/python:3.12-slim
@@ -402,6 +426,14 @@ images:
     digest: sha256:d7be1c094cc5845ee815d4632fe377514ee6ebcf8efaed6892889657e5ddaaa6
     target: registry.ddbuild.io/system-tests/mirror/rockylinux:9
     tag: '9'
+  ruby:3.2.1-bullseye:
+    digest: sha256:b38264d66820f3696906ed5fa51b1317d83215515f4a45500c9bf403bf2c9b47
+    target: registry.ddbuild.io/system-tests/mirror/ruby:3.2.1-bullseye
+    tag: 3.2.1-bullseye
+  rust:1.87-slim-bookworm:
+    digest: sha256:437507c3e719e4f968033b88d851ffa9f5aceeb2dcc2482cc6cb7647811a55eb
+    target: registry.ddbuild.io/system-tests/mirror/rust:1.87-slim-bookworm
+    tag: 1.87-slim-bookworm
   rust:1.94.1-slim-bookworm:
     digest: sha256:cf9dd0ec73e75f827fe59123fff9dc65af1a1c8363c3c31ee8d7f8ad0b6a5fb2
     target: registry.ddbuild.io/system-tests/mirror/rust:1.94.1-slim-bookworm
@@ -410,6 +442,10 @@ images:
     digest: sha256:fe3af4a8dd59f310b20e07ec3499cfdeb16a14f518c95ad7e70f200845dce3f5
     target: registry.ddbuild.io/system-tests/mirror/softwaremill/elasticmq-native:1.6.11
     tag: 1.6.11
+  ubuntu:22.04:
+    digest: sha256:0a9887931b0e38af2e3487ed39e29436b0535c4f3f52e57745baaf79d1898956
+    target: registry.ddbuild.io/system-tests/mirror/ubuntu:22.04
+    tag: '22.04'
   ubuntu:24.04:
     digest: sha256:534baea6a22c03a63003dbc8dbe78fe34bc0d7e595d9a9dc9834884ff530eb55
     target: registry.ddbuild.io/system-tests/mirror/ubuntu:24.04
