@@ -60,6 +60,32 @@ def test_parametric_jobs_limit_xdist_workers_and_preserve_throughput(tmp_path: P
 
 
 @scenarios.test_the_test
+def test_integration_frameworks_client_build_times_out_before_the_job(tmp_path: Path) -> None:
+    params = {
+        "endtoend_defs": {
+            "parallel_weblogs": [],
+            "parallel_jobs": [
+                {"weblog": "openai-py", "scenarios": ["INTEGRATION_FRAMEWORKS"], "weblog_build_required": False},
+                {"weblog": "flask", "scenarios": ["DEFAULT"], "weblog_build_required": False},
+            ],
+        },
+        "miscs": {"binaries_artifact": ""},
+        "parametric": {"enable": False, "parallel_jobs": []},
+    }
+    (tmp_path / "params_python.json").write_text(json.dumps(params))
+    out = tmp_path / "out"
+    build(["python"], tmp_path, out, stage="e2e", ci_image="myimage", chunks=1)
+
+    pipeline = yaml.safe_load((out / "generated-pipeline-chunk-0.yml").read_text())
+    job = pipeline["system_tests_run_python_INTEGRATION_FRAMEWORKS_openai-py"]
+    job_timeout = int(job["timeout"].removesuffix(" minutes")) * 60
+    # leave room for the job setup before the build, and for the scenario to report the failure
+    assert int(job["variables"]["SYSTEM_TESTS_TEST_CLIENT_BUILD_TIMEOUT"]) <= job_timeout - 5 * 60
+    other_job = pipeline["system_tests_run_python_DEFAULT_flask"]
+    assert "SYSTEM_TESTS_TEST_CLIENT_BUILD_TIMEOUT" not in other_job["variables"]
+
+
+@scenarios.test_the_test
 def test_generated_chunk_jobs_have_required_keys(tmp_path: Path):
     (tmp_path / "params_python.json").write_text(json.dumps(MINIMAL_PARAMS))
     out = tmp_path / "out"
