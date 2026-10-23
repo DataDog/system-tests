@@ -30,7 +30,7 @@ class OpenFeatureController < ApplicationController
         else
           [args[:targeting_key]]
         end
-      value = nil
+      details = nil
 
       targeting_keys.each do |targeting_key|
         context = OpenFeature::SDK::EvaluationContext.new(
@@ -40,18 +40,30 @@ class OpenFeatureController < ApplicationController
           flag_key: args[:flag], default_value: args[:default_value], evaluation_context: context
         }
 
-        value =
+        details =
           case args[:variation_type]
-          when 'BOOLEAN'then client.fetch_boolean_value(**options)
-          when 'STRING' then client.fetch_string_value(**options)
-          when 'INTEGER' then client.fetch_integer_value(**options)
-          when 'NUMERIC' then client.fetch_float_value(**options)
-          when 'JSON' then client.fetch_object_value(**options)
-          else 'FATAL_UNEXPECTED_VARIATION_TYPE'
+          when 'BOOLEAN' then client.fetch_boolean_details(**options)
+          when 'STRING' then client.fetch_string_details(**options)
+          when 'INTEGER' then client.fetch_integer_details(**options)
+          when 'NUMERIC' then client.fetch_float_details(**options)
+          when 'JSON' then client.fetch_object_details(**options)
+          else
+            return render json: {value: 'FATAL_UNEXPECTED_VARIATION_TYPE', reason: 'DEFAULT', count: targeting_keys.length}
           end
       end
 
-      render json: {value: value, reason: 'DEFAULT', count: targeting_keys.length}
+      return render json: {value: nil, reason: 'DEFAULT', count: 0} if details.nil?
+
+      metadata = details.flag_metadata || {}
+      render json: {
+        value: details.value,
+        reason: details.reason,
+        errorCode: details.error_code,
+        variant: details.variant,
+        flagMetadata: metadata,
+        allocationKey: metadata['__dd_allocation_key'],
+        count: targeting_keys.length
+      }
     rescue
       render json: {value: args[:default_value], reason: 'ERROR'}
     end
