@@ -23,10 +23,13 @@ from utils._logger import logger
 from utils.proxy.mocked_response import (
     StaticJsonMockedTracerResponse,
     SequentialRemoteConfigJsonMockedTracerResponse,
-    MockedBackendResponse,
+    RemoteConfigBackendResponse,
 )
 from utils.proxy.tuf import build_signed_targets
-from utils.proxy.rc_response_builder import build_rc_configurations_protobuf
+from utils.proxy.rc_response_builder import (
+    build_rc_configurations_protobufs_with_director_revisions,
+    director_version_to_state_version,
+)
 
 RemoteConfigTarget = Literal["tracer", "backend"]
 
@@ -284,9 +287,10 @@ def send_state(
 
     if target == "backend":
         assert backend_enabled, f"Remote config backend is not enabled on {context.scenario}"
-        # Build protobuf on test runner side, send bytes to proxy
-        rc_protobuf = build_rc_configurations_protobuf(raw_payload)
-        MockedBackendResponse(path="/api/v0.1/configurations", content=rc_protobuf).send()
+        # Build and sign the protobufs on test runner side, send bytes to proxy
+        RemoteConfigBackendResponse(
+            contents=build_rc_configurations_protobufs_with_director_revisions(raw_payload)
+        ).send()
     elif target == "tracer":
         assert not backend_enabled, f"Remote config backend is enabled on {context.scenario}"
         StaticJsonMockedTracerResponse(path="/v0.7/config", mocked_json=raw_payload).send()
@@ -319,6 +323,10 @@ def send_state(
         # inside this callback, which is not a useful way to report a malformed payload.
         # It now reads as "not the version we are waiting for" and the wait continues.
         targets_version = last_client_state.get("targets_version")
+        if backend_enabled and targets_version is not None:
+            # Tracers report the director targets version, which the mocked
+            # backend derives from the version of the state.
+            targets_version = director_version_to_state_version(targets_version)
         config_states = last_client_state.get("config_states", [])
         logger.info(
             f"RC poll: targets_version={targets_version} (waiting for {version}), config_states={config_states}"
@@ -486,12 +494,14 @@ def build_debugger_command(probes: list | None, version: int):
     return _build_base_command(path_payloads, version)
 
 
-def send_debugger_command(probes: list, version: int = 1) -> RemoteConfigStateResults:
+def send_debugger_command(
+    probes: list, version: int = 1, *, wait_for_acknowledged_status: bool = True
+) -> RemoteConfigStateResults:
     """Send a debugger command."""
     raw_payload = build_debugger_command(probes, version)
     # Use backend target for scenarios with rc_backend_enabled, tracer target otherwise
     target: RemoteConfigTarget = "backend" if context.scenario.rc_backend_enabled else "tracer"
-    return send_state(raw_payload, target=target)
+    return send_state(raw_payload, target=target, wait_for_acknowledged_status=wait_for_acknowledged_status)
 
 
 def build_symdb_command(version: int):
@@ -499,12 +509,12 @@ def build_symdb_command(version: int):
     return _build_base_command(path_payloads, version)
 
 
-def send_symdb_command(version: int = 1) -> RemoteConfigStateResults:
+def send_symdb_command(version: int = 1, *, wait_for_acknowledged_status: bool = True) -> RemoteConfigStateResults:
     """Send a symbol database command."""
     raw_payload = build_symdb_command(version)
     # Use backend target for scenarios with rc_backend_enabled, tracer target otherwise
     target: RemoteConfigTarget = "backend" if context.scenario.rc_backend_enabled else "tracer"
-    return send_state(raw_payload, target=target)
+    return send_state(raw_payload, target=target, wait_for_acknowledged_status=wait_for_acknowledged_status)
 
 
 ####################################################################################
@@ -914,6 +924,7 @@ def send_combined_apm_tracing_and_debugger_command(
     service_name: str | None = "weblog",
     env: str | None = "system-tests",
     version: int = 1,
+    wait_for_acknowledged_status: bool = True,
 ) -> RemoteConfigStateResults:
     """Send a single RC command containing both APM_TRACING and LIVE_DEBUGGING configs.
 
@@ -940,7 +951,7 @@ def send_combined_apm_tracing_and_debugger_command(
 
     # Use backend target for scenarios with rc_backend_enabled, tracer target otherwise
     target: RemoteConfigTarget = "backend" if context.scenario.rc_backend_enabled else "tracer"
-    return send_state(raw_payload, target=target)
+    return send_state(raw_payload, target=target, wait_for_acknowledged_status=wait_for_acknowledged_status)
 
 
 def _json_to_base64(json_object: dict) -> str:

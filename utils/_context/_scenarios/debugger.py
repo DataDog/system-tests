@@ -8,7 +8,9 @@ from .endtoend import EndToEndScenario
 
 
 class DebuggerScenario(EndToEndScenario):
-    def __init__(self, name: str, doc: str, weblog_env: dict[str, str | None]) -> None:
+    def __init__(
+        self, name: str, doc: str, weblog_env: dict[str, str | None], library_interface_timeout: int = 5
+    ) -> None:
         base_weblog_env: dict[str, str | None] = {
             "DD_REMOTE_CONFIG_ENABLED": "1",
             "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
@@ -23,7 +25,7 @@ class DebuggerScenario(EndToEndScenario):
             doc=doc,
             rc_api_enabled=True,
             rc_backend_enabled=True,
-            library_interface_timeout=5,
+            library_interface_timeout=library_interface_timeout,
             weblog_env=base_weblog_env,
             scenario_groups=[scenario_groups.debugger],
             weblog_categories=[WeblogCategory.dd_trace],

@@ -490,6 +490,38 @@ class MockedBackendResponse(MockedResponse):
         self._send_to_endpoint(MOCKED_BACKEND_RESPONSES_PATH)
 
 
+class RemoteConfigBackendResponse(MockedBackendResponse):
+    """Serves a sequence of RC responses to the agent on /api/v0.1/configurations.
+
+    Each request gets the next response of the sequence; once the sequence is
+    exhausted, the last response is served again. The responses are built and
+    signed by the caller, as the proxy cannot sign TUF metadata.
+    """
+
+    def __init__(self, contents: list[bytes], path: str = "/api/v0.1/configurations"):
+        super().__init__(path=path, content=contents[0])
+        self.contents = contents
+        """Pre-built response bytes, in serving order"""
+        self._served = 0
+
+    def execute(self, flow: HTTPFlow) -> None:
+        content = self.contents[min(self._served, len(self.contents) - 1)]
+        self._served += 1
+        flow.response = HTTPResponse.make(self.status_code, content, {"Content-Type": self.content_type})
+
+    def to_json(self) -> dict:
+        return {
+            "type": self.__class__.__name__,
+            "path": self.path,
+            "contents": [base64.b64encode(content).decode("utf-8") for content in self.contents],
+        }
+
+    @classmethod
+    def from_json(cls, source: dict) -> RemoteConfigBackendResponse:
+        source["contents"] = [base64.b64decode(content) for content in source["contents"]]
+        return cls(**source)
+
+
 class _InternalMockedBackendResponse(MockedBackendResponse):
     """Backend mocked responses that will be applied on the entire test session.
 

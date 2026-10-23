@@ -373,6 +373,16 @@ class BaseDebuggerTest:
     ###### send #####
     _rc_version = 0
 
+    @staticmethod
+    def _wait_for_rc_acknowledgement() -> bool:
+        """Whether to wait for the library to acknowledge the debugger configs it receives.
+
+        The Go tracer does not apply Dynamic Instrumentation configs, the agent's
+        system-probe does, so it reports them with apply state UNKNOWN and never
+        acknowledges them. Probe statuses report on their application instead.
+        """
+        return context.library != "golang"
+
     def send_rc_probes(self, *, reset: bool = True) -> None:
         BaseDebuggerTest._rc_version += 1
 
@@ -380,7 +390,11 @@ class BaseDebuggerTest:
             self.rc_states = []
 
         self.rc_states.append(
-            remote_config.send_debugger_command(probes=self.probe_definitions, version=BaseDebuggerTest._rc_version)
+            remote_config.send_debugger_command(
+                probes=self.probe_definitions,
+                version=BaseDebuggerTest._rc_version,
+                wait_for_acknowledged_status=self._wait_for_rc_acknowledgement(),
+            )
         )
 
         # PHP tracer requires requests to /debugger/* to process RC and resolve probe hooks.
@@ -461,6 +475,7 @@ class BaseDebuggerTest:
                 version=BaseDebuggerTest._rc_version,
                 service_name=service_name,
                 env=env,
+                wait_for_acknowledged_status=self._wait_for_rc_acknowledgement(),
             )
         )
 
@@ -475,7 +490,11 @@ class BaseDebuggerTest:
         if reset:
             self.rc_states = []
 
-        self.rc_states.append(remote_config.send_symdb_command(BaseDebuggerTest._rc_version))
+        self.rc_states.append(
+            remote_config.send_symdb_command(
+                BaseDebuggerTest._rc_version, wait_for_acknowledged_status=self._wait_for_rc_acknowledgement()
+            )
+        )
 
     def send_weblog_request(self, request_path: str, *, reset: bool = True) -> HttpResponse:
         if reset:
