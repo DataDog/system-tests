@@ -23,10 +23,10 @@ This directory contains system tests for the Feature Flags & Experimentation (FF
 
 `Test_FFE_EVP_Flagevaluation_SDK_Identity` checks SDK origin and version headers on
 Agent-to-intake captures while retaining the shared payload and evaluation-count checks.
-The new case runs alongside the existing Go and Node.js express5 egress coverage,
-with additional gates for Agent 7.84+ and Go 2.11.0+. Other languages retain their
-current exclusions; enabling them remains separate. Event-level `source` is rejected:
-producer identity belongs in the request headers.
+The case requires Agent 7.84+ and is enabled for Go 2.11.0+, Python 4.16.0+, and
+Node.js express5 under its existing version gate. Other languages retain their
+current exclusions. Event-level `source` is rejected: source identity belongs in
+the request headers.
 
 ## Per-subject evaluation telemetry opt-out
 

@@ -162,11 +162,11 @@ def _assert_single_header(data: dict[str, Any], name: str, expected: str | set[s
     assert values[0] in allowed, f"expected {name} in {sorted(allowed)!r}, got {values[0]!r}"
 
 
-def assert_evp_sdk_identity(data: dict[str, Any], *, library_name: str, library_version: str) -> None:
-    """Require the SDK producer identity on an intake-side capture."""
-    _assert_single_header(data, "DD-EVP-ORIGIN", expected_evp_origin(library_name))
-    assert library_version.strip(), "expected SDK version must be non-empty"
-    _assert_single_header(data, "DD-EVP-ORIGIN-VERSION", expected_evp_origin_version(library_name, library_version))
+def assert_evp_sdk_identity(data: dict[str, Any], *, source_name: str, source_version: str) -> None:
+    """Require the SDK source identity on an intake-side capture."""
+    _assert_single_header(data, "DD-EVP-ORIGIN", expected_evp_origin(source_name))
+    assert source_version.strip(), "expected source version must be non-empty"
+    _assert_single_header(data, "DD-EVP-ORIGIN-VERSION", expected_evp_origin_version(source_name, source_version))
 
 
 def assert_agentless_evp_intake_request(
@@ -205,7 +205,7 @@ def assert_agentless_evp_intake_request(
         # SDK local-route identity and credential omission remain covered by SDK unit tests.
         return
 
-    assert_evp_sdk_identity(data, library_name=library_name, library_version=library_version)
+    assert_evp_sdk_identity(data, source_name=library_name, source_version=library_version)
 
 
 def assert_no_evp_proxy_requests(captures: Iterable[dict[str, Any]]) -> None:
