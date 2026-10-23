@@ -110,6 +110,7 @@ refs:
   - &ref_6_17_0 '>=6.17.0 || ^5.128.0'
   - &ref_6_20_0 '>=6.20.0 || ^5.131.0'
   - &ref_6_20_1 '>=6.20.1 || ^5.131.1'
+  - &ref_6_21_0 '>=6.21.0 || ^5.132.0'
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag:
     - weblog_declaration:
@@ -1788,6 +1789,7 @@ manifest:
         fastify: *ref_5_46_0
         uds-express4: *ref_5_46_0
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_log_line_capture_expression_budgets: '>=6.16.0 || ^5.127.0'
+  tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_per_trace_budget: *ref_6_21_0
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_span_probe_expression_budgets: missing_feature (Method probes are not supported by Node.js)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots:
     - weblog_declaration:
@@ -1846,6 +1848,11 @@ manifest:
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses::test_metric_line_status: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses::test_span_decoration_line_status: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Method_Probe_Statuses: missing_feature
+  tests/debugger/test_debugger_snapshot_correlation.py::Test_Debugger_Coordinated_Sampling: irrelevant (Method-probe variant is not used by Node.js)
+  tests/debugger/test_debugger_snapshot_correlation.py::Test_Debugger_Coordinated_Sampling_Line_Probe:
+    - weblog_declaration:
+        "*": *ref_6_21_0
+        nextjs: irrelevant
   tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb: missing_feature (feature not implented)
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry:
     - weblog_declaration:
