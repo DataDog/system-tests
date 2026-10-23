@@ -271,9 +271,8 @@ func (s *apmClientServer) spanSetErrorHandler(w http.ResponseWriter, r *http.Req
 
 type CustomLogger struct {
 	*logrus.Logger
-	tracerConfig    map[string]string
-	profilerConfig  map[string]string
-	startupLogLevel string
+	tracerConfig   map[string]string
+	profilerConfig map[string]string
 }
 
 type TracerConfig struct {
@@ -289,6 +288,11 @@ type TracerConfig struct {
 	RateLimit              string            `json:"sample_rate_limit"`
 	DogstatsdAddr          string            `json:"dogstatsd_address"`
 	DataStreamsEnabled     bool              `json:"data_streams_enabled"`
+	// Effective logs batch processor settings, reported once the tracer validates them.
+	BLRPScheduleDelay      json.Number `json:"otel_blrp_schedule_delay"`
+	BLRPExportTimeout      json.Number `json:"otel_blrp_export_timeout"`
+	BLRPMaxQueueSize       json.Number `json:"otel_blrp_max_queue_size"`
+	BLRPMaxExportBatchSize json.Number `json:"otel_blrp_max_export_batch_size"`
 }
 
 type ProfilerConfig struct {
@@ -341,7 +345,15 @@ func (l *CustomLogger) Log(logMessage string) {
 	}
 }
 
-func parseTracerConfig(l *CustomLogger, tracerEnabled string) map[string]string {
+// effectiveLogLevel reads the tracer's log threshold: calling Log directly on an
+// adapted Logger passes it the current threshold.
+func effectiveLogLevel() string {
+	var threshold tracer.LogLevel
+	tracer.AdaptLogger(func(lvl tracer.LogLevel, _ string, _ ...any) { threshold = lvl }).Log("")
+	return strings.ToLower(threshold.String())
+}
+
+func parseTracerConfig(l *CustomLogger, tracerEnabled string, logLevel string) map[string]string {
 	config := make(map[string]string)
 	config["dd_service"] = l.tracerConfig["Service"]
 	// config["dd_log_level"] = nil // dd-trace-go does not support DD_LOG_LEVEL (use DD_TRACE_DEBUG instead)
@@ -351,9 +363,7 @@ func parseTracerConfig(l *CustomLogger, tracerEnabled string) map[string]string 
 	config["dd_tags"] = l.tracerConfig["Tags"]
 	config["dd_trace_propagation_style"] = l.tracerConfig["PropagationStyleInject"]
 	config["dd_trace_debug"] = l.tracerConfig["Debug"]
-	if l.startupLogLevel != "" {
-		config["dd_trace_startup_log_level"] = l.startupLogLevel
-	}
+	config["dd_trace_effective_log_level"] = logLevel
 	// config["dd_trace_otel_enabled"] = nil         // golang doesn't support DD_TRACE_OTEL_ENABLED
 	// config["dd_trace_sample_ignore_parent"] = nil // golang doesn't support DD_TRACE_SAMPLE_IGNORE_PARENT
 	config["dd_env"] = l.tracerConfig["Env"]
@@ -368,6 +378,17 @@ func parseTracerConfig(l *CustomLogger, tracerEnabled string) map[string]string 
 		config["dd_dogstatsd_host"], config["dd_dogstatsd_port"] = "", ""
 	}
 	config["dd_data_streams_enabled"] = l.tracerConfig["DataStreamsEnabled"]
+	for key, field := range map[string]string{
+		"otel_blrp_schedule_delay_ms":     "BLRPScheduleDelay",
+		"otel_blrp_export_timeout_ms":     "BLRPExportTimeout",
+		"otel_blrp_max_queue_size":        "BLRPMaxQueueSize",
+		"otel_blrp_max_export_batch_size": "BLRPMaxExportBatchSize",
+	} {
+		// Tracers before v2.13.0 do not report these settings.
+		if value := l.tracerConfig[field]; value != "" {
+			config[key] = value
+		}
+	}
 	// Add profiling enabled configuration
 	if profilingEnabled, exists := l.profilerConfig["ProfilingEnabled"]; exists {
 		config["dd_profiling_enabled"] = profilingEnabled
@@ -379,12 +400,9 @@ func parseTracerConfig(l *CustomLogger, tracerEnabled string) map[string]string 
 func (s *apmClientServer) getTraceConfigHandler(w http.ResponseWriter, r *http.Request) {
 	var log = &CustomLogger{Logger: logrus.New(), tracerConfig: make(map[string]string), profilerConfig: make(map[string]string)}
 
-	tracer.Start(tracer.WithLogger(tracer.AdaptLogger(func(level tracer.LogLevel, message string, args ...any) {
+	tracer.Start(tracer.WithLogger(tracer.AdaptLogger(func(_ tracer.LogLevel, message string, args ...any) {
 		if len(args) != 0 {
 			message = fmt.Sprintf(message, args...)
-		}
-		if strings.Contains(message, "DATADOG TRACER CONFIGURATION ") {
-			log.startupLogLevel = strings.ToLower(level.String())
 		}
 		log.Log(message)
 	})))
@@ -393,12 +411,14 @@ func (s *apmClientServer) getTraceConfigHandler(w http.ResponseWriter, r *http.R
 
 	tracerEnabled := "true"
 	// If tracerConfig is empty, then DATADOG TRACER CONFIGURATION startup log wasn't generated -- tracer must be disabled.
+	// That log is emitted at INFO, so this misreports an enabled tracer as disabled when OTEL_LOG_LEVEL is warn or error.
+	// The threshold cannot tell the two apart: tracers before v2.12.0 store warn by default but still print INFO.
 	if len(log.tracerConfig) == 0 {
 		tracerEnabled = "false"
 	}
 
 	// Prepare the response
-	response := GetTraceConfigReturn{Config: parseTracerConfig(log, tracerEnabled)}
+	response := GetTraceConfigReturn{Config: parseTracerConfig(log, tracerEnabled, effectiveLogLevel())}
 	if s.metricConfiguration != nil {
 		if interval, observed := s.metricConfiguration.intervalMilliseconds(); observed {
 			response.Config["dd_metrics_otel_interval"] = interval

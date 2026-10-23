@@ -26,6 +26,7 @@ VARIANT_COMPONENT_MAP = {
     "chi": ["go-chi/chi", "go-chi/chi.v5"],
     "flask-poc": "flask",
     "fastapi": "fastapi",
+    "aiohttp": "aiohttp",
     "echo": ["labstack/echo.v4", "labstack/echo"],
     "express4": "express",
     "express4-typescript": "express",

@@ -24,7 +24,7 @@ from utils import HttpResponse, context, features, interfaces, remote_config as 
 
 
 ATTRIBUTE = "dd_evaluation_telemetry_opt_out"
-RFC = "https://docs.google.com/document/d/153tRlj46l-XfBGCA2X_NvxW4vwYObaH8zm2moP_AqMk/edit"
+RFC = "https://docs.google.com/document/d/15rai-S0NmGO2sKsMgy6cGf4963Y--9qdEfAj5MiytUg/edit"
 ATTRIBUTES: dict[str, dict[str, Any]] = {
     "true": {ATTRIBUTE: True},
     "false": {ATTRIBUTE: False},
@@ -32,6 +32,8 @@ ATTRIBUTES: dict[str, dict[str, Any]] = {
     "string-true": {ATTRIBUTE: "true"},
     "number-one": {ATTRIBUTE: 1},
     "null": {ATTRIBUTE: None},
+    "wrong-case": {"DD_EVALUATION_TELEMETRY_OPT_OUT": True},
+    "legacy-name": {"dd_telemetry_opt_out": True},
 }
 ANNOTATIONS = {"ffe_flags_enc", "ffe_subjects_enc", "ffe_runtime_defaults"}
 
@@ -43,7 +45,7 @@ class EvaluationCase(TypedDict):
     attributes: dict[str, Any]
     expected_count: int
     expected_value: str
-    check_exposure: bool
+    expected_exposures: int | None
     responses: list[HttpResponse]
 
 
@@ -81,7 +83,7 @@ class _TelemetryContract:
                     attributes=attributes,
                     expected_count=0 if enabled and label == "true" else 3,
                     expected_value="on-value",
-                    check_exposure=True,
+                    expected_exposures=1,
                     responses=[],
                 )
             )
@@ -95,7 +97,7 @@ class _TelemetryContract:
                 attributes={ATTRIBUTE: opted_out},
                 expected_count=0 if enabled and opted_out else 3,
                 expected_value="default",
-                check_exposure=False,
+                expected_exposures=0,
                 responses=[],
             )
             for label, opted_out in [("true", True), ("false", False)]
@@ -112,7 +114,7 @@ class _TelemetryContract:
                 attributes={ATTRIBUTE: opted_out, "test_subject": f"subject-{signal}-shared-{label}"},
                 expected_count=0 if enabled and opted_out else 3,
                 expected_value="on-value",
-                check_exposure=True,
+                expected_exposures=1,
                 responses=[],
             )
             for label, opted_out in [("true", True), ("false", False)]
@@ -132,17 +134,30 @@ class _TelemetryContract:
         # The same subject opts out, then removes the attribute. Suppression is
         # per evaluation, not a permanent decision cached for the subject.
         per_evaluation_flag = f"opt-out-{signal}-per-evaluation"
-        fixture["flags"].update(make_ufc_fixture(per_evaluation_flag, serial_id=120)["flags"])
+        fixture["flags"].update(
+            make_ufc_fixture(per_evaluation_flag, allocation_key="opted-out", serial_id=120)["flags"]
+        )
+        per_evaluation_allocations = fixture["flags"][per_evaluation_flag]["allocations"]
+        per_evaluation_allocations[0]["rules"] = [
+            {"conditions": [{"attribute": ATTRIBUTE, "operator": "ONE_OF", "value": ["true"]}]}
+        ]
+        # Separate allocation tags keep the later positive control from hiding
+        # metric leakage during the first phase. Both phases return the same value.
+        per_evaluation_allocations.extend(
+            make_ufc_fixture(per_evaluation_flag, allocation_key="resumed", serial_id=121)["flags"][
+                per_evaluation_flag
+            ]["allocations"]
+        )
         per_evaluation_cases = [
             EvaluationCase(
                 flag=per_evaluation_flag,
                 subject=f"subject-{signal}-per-evaluation",
-                allocation_key="default-allocation",
+                allocation_key="opted-out" if attributes else "resumed",
                 attributes=attributes,
                 expected_count=0 if enabled and attributes else 3,
                 expected_value="on-value",
                 # Exposure deduplication after an attribute change is SDK-defined.
-                check_exposure=False,
+                expected_exposures=None,
                 responses=[],
             )
             for attributes in [{ATTRIBUTE: True}, {}]
@@ -246,12 +261,16 @@ class Test_FFE_Evaluation_Telemetry_Opt_Out_Exposures(_TelemetryContract):
         self.assert_evaluations()
         captures = list(interfaces.agent.get_data(path_filters="/api/v2/exposures"))
         for case in self.cases:
-            if not case["check_exposure"]:
+            if case["expected_exposures"] is None:
                 continue
             events = [
                 event for data in captures for event in exposure_events_from_data(data, {case["flag"]}, case["subject"])
             ]
-            assert len(events) == 1, f"{case['flag']}: expected one deduplicated exposure, got {events}"
+            assert len(events) == case["expected_exposures"], (
+                f"{case['flag']}: expected {case['expected_exposures']} exposures, got {events}"
+            )
+            if not events:
+                continue
             assert events[0]["variant"]["key"] == "on"
             assert events[0]["allocation"]["key"] == case["allocation_key"]
             attributes = events[0]["subject"].get("attributes", {})

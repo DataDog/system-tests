@@ -74,6 +74,16 @@ def _base_image_tag(library: str, weblog: str) -> str | None:
     """system-tests base image the weblog Dockerfile builds FROM (see base_image.py)."""
 
     dockerfile: Path
+
+    if weblog == "parametric":
+        # the parametric test client is not a weblog, and lives in its own folder
+        dockerfile = Path(f"utils/build/docker/{library}/parametric/Dockerfile")
+        if not dockerfile.exists():
+            logger.error(f"Error: {dockerfile} does not exists")
+            sys.exit(1)
+
+        return base_image_ref(dockerfile.read_text())
+
     metadata = Path(f"utils/build/docker/{library}/weblog_metadata.yml")
 
     if not metadata.exists():

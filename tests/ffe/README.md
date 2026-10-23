@@ -23,6 +23,13 @@ This directory contains system tests for the Feature Flags & Experimentation (FF
 
 All four test classes report under [#649: Per-subject evaluation telemetry opt-out](https://feature-parity.us1.prod.dog/#/?feature=649).
 
+The [customer solutions document](https://docs.google.com/document/d/15rai-S0NmGO2sKsMgy6cGf4963Y--9qdEfAj5MiytUg/edit)
+describes the customer capability. The implemented name is `dd_evaluation_telemetry_opt_out`.
+The [explicit scope decision](https://github.com/DataDog/dd-sdk-ios/pull/3305#discussion_r4326232944)
+preserves experiment exposures, and the
+[attribute decision](https://github.com/DataDog/dd-trace-go/pull/5611#discussion_r4307380659)
+retains the control in targeting and exposure attributes.
+
 Candidate SDK implementations must pass the applicable local checks before delivery.
 Released-version CI activation is a separate step. Both scenarios are excluded from the default
 `all`, `end_to_end`, and `tracer_release` groups. They remain selectable by name or through the `ffe` group.
@@ -45,6 +52,7 @@ The disabled scenario leaves the setting absent. Both use the same requests.
 | --- | --- | --- |
 | Boolean `true` | No evaluation telemetry | Evaluation telemetry remains |
 | Boolean `false`, missing, `null`, string `"true"`, or number `1` | Evaluation telemetry remains | Evaluation telemetry remains |
+| Wrong-case key or legacy `dd_telemetry_opt_out` key | Evaluation telemetry remains | Evaluation telemetry remains |
 
 The SDK reads the attribute on every evaluation. A subject stays opted out only while each evaluation context carries it.
 Set the attribute in the context supplied to the evaluation call.
@@ -59,7 +67,8 @@ Shared-flag subjects receive the same value from distinct fixture allocations.
 Metric assertions use the allocation tags to check each subject separately, without adding subject tags to metrics.
 One rule targets the opt-out attribute to verify that it remains available for evaluation.
 One subject opts out, then removes the attribute; later evaluations must emit telemetry again.
-Missing flags test suppression on the error path and return the application default.
+Those two phases use distinct allocation tags with the same flag value, so resumed metrics cannot hide an earlier leak.
+Missing flags test suppression on the error path, return the application default, and produce no exposures.
 Configured flags must return the same flag value for every request.
 Exposures must retain their context attributes and ordinary deduplication for an unchanged context.
 After an attribute changes, exposure deduplication can differ between SDKs; these tests do not check it.
@@ -100,16 +109,15 @@ The `uds` weblog does not support these build arguments or the local package sou
 
 ## Test-contract self-tests
 
-The self-tests validate the FFE assertions using synthetic
-captures. They do not run SDKs or contact an intake. With the Python 3.12 runner
+The self-tests in `tests/test_the_test/test_ffe_tests.py` and
+`tests/test_the_test/test_ffe_evaluation_telemetry_opt_out.py` validate the FFE assertions
+using synthetic captures. They do not run SDKs or contact an intake. They are part of
+the `TEST_THE_TEST` scenario, which runs on every PR. With the Python 3.12 runner
 environment installed, run them explicitly:
 
 ```bash
-./run.sh FEATURE_FLAGGING_CONTRACT_TESTS tests/ffe/test_tests.py tests/ffe/test_evaluation_telemetry_opt_out_contract.py
+./run.sh TEST_THE_TEST tests/test_the_test/test_ffe_tests.py tests/test_the_test/test_ffe_evaluation_telemetry_opt_out.py
 ```
-
-This no-container scenario has no CI workflow or scenario-group membership.
-Its tests do not run in `TEST_THE_TEST`, `DEFAULT`, or the FFE end-to-end scenarios.
 Framework mock-backend and lifecycle tests stay in `tests/test_the_test/`.
 
 ---

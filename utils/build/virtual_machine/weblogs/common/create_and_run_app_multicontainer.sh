@@ -40,7 +40,7 @@ then
     echo "APP VARIABLES CONFIGURED FROM THE SCENARIO:"
     cat scenario_app.env
 fi
-sudo -E docker-compose -f docker-compose.yml up -d --wait --wait-timeout 180 || true
+sudo -E docker-compose -f docker-compose.yml up -d --wait --wait-timeout 200
 
 echo "..:: RUNNING DOCKER SERVICES ::.." 
 sudo docker-compose -f docker-compose.yml ps

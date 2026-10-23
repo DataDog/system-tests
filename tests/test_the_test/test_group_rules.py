@@ -17,10 +17,6 @@ def test_appsec():
 def test_tracer_release():
     # make an exclusion list
 
-    contract_self_tests = scenarios.feature_flagging_contract_tests
-    assert contract_self_tests.github_workflow is None
-    assert contract_self_tests.scenario_groups == []
-
     provisional_opt_out_scenarios = [
         scenarios.feature_flagging_evaluation_telemetry_opt_out,
         scenarios.feature_flagging_evaluation_telemetry_opt_out_disabled,
@@ -61,7 +57,6 @@ def test_tracer_release():
         scenarios.mock_the_test,
         scenarios.mock_the_test_2,
         scenarios.test_the_test,
-        contract_self_tests,
         *provisional_opt_out_scenarios,
         scenarios.todo,
         # targetting OTEL

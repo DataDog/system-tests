@@ -2739,6 +2739,8 @@ manifest:
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_distinct_aggregationkeys_TS003:  # TODO: a lower version might be supported
     - declaration: 'missing_feature (CSS v1.2.0: dd-trace-js aggregation key uses span name as Resource instead of the explicit resource field, so distinct-resource buckets collapse)'
       component_version: <6.8.0
+    - declaration: flaky (APMLP-2085)
+      component_version: '>=6.21.0'
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_msgpack_serialization_TS001:  # TODO: a lower version might be supported
     - declaration: 'missing_feature (CSS v1.2.0: dd-trace-js sets ClientGroupedStats.Resource to the span name instead of the explicit resource passed to startSpan)'
       component_version: <6.8.0
