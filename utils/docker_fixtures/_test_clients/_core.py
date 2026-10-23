@@ -111,7 +111,9 @@ class TestClientFactory:
             env = os.environ.copy()
             env["DOCKER_SCAN_SUGGEST"] = "false"
 
-            timeout = 600
+            # `--load` exports the image from the mirror builder back into docker: minutes more for big images
+            default_timeout = 1200 if mirror_enabled() else 600
+            timeout = int(os.environ.get("SYSTEM_TESTS_TEST_CLIENT_BUILD_TIMEOUT") or default_timeout)
 
             p = subprocess.run(
                 cmd,
