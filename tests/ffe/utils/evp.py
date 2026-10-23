@@ -3,6 +3,7 @@
 from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import datetime
+from math import isfinite
 from pathlib import Path
 from typing import Any, Literal
 
@@ -49,6 +50,39 @@ EVP_ORIGINS = {
 }
 
 EVPRoute = Literal["agent", "sidecar", "direct"]
+
+
+def assert_flagevaluation_accounting(delivered: int, attempted: int, drop_series: Iterable[dict[str, Any]]) -> None:
+    """Account for isolated stress traffic; never count degradation as lost evaluations."""
+    dropped = 0
+    capacity_reasons = {
+        "reason:pre_queue_overflow",
+        "reason:queue_overflow",
+        "reason:degraded_cap",
+        "reason:payload_limit",
+    }
+    for series in drop_series:
+        assert series.get("type") == "count", "drop telemetry must be a delta count"
+        reasons = {tag for tag in series.get("tags", []) if tag.startswith("reason:")}
+        assert len(reasons) == 1, f"expected one drop reason: {reasons}"
+        assert reasons <= capacity_reasons, f"unexpected drop reason: {reasons}"
+        points = series.get("points")
+        assert isinstance(points, list), "drop metric points must be a list"
+        assert points, "drop metric must contain points"
+        for point in points:
+            assert isinstance(point, list), "invalid drop metric point"
+            assert len(point) == 2, "invalid drop metric point"
+            count = point[1]
+            assert type(count) in (int, float), "invalid drop count type"
+            assert isfinite(count), "drop count must be finite"
+            assert count >= 0, "drop count must be nonnegative"
+            assert count == int(count), "drop count must be integral"
+            dropped += int(count)
+    assert delivered > 0, "stress workload must deliver evaluations, not only report drops"
+    assert delivered + dropped == attempted, (
+        f"Expected delivered + reported drops == {attempted}, got {delivered} + {dropped}. "
+        "Missing telemetry is not evidence of an accounted drop."
+    )
 
 
 def _is_expected_pid1_executable(library_name: str, executable: str, expected: set[str]) -> bool:

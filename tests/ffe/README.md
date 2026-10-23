@@ -29,6 +29,25 @@ captures. They do not run SDKs or contact an intake. They are part of the
 ```
 Framework mock-backend and lifecycle tests stay in `tests/test_the_test/`.
 
+## Bounds and overload coverage
+
+With full-data consent, the context tests require all 256 valid attributes to
+survive unchanged at the field-count limit. Over-limit contexts may retain an
+unchanged subset of at most 256 attributes or be omitted entirely. A separate
+string-length test requires oversized values to be omitted while valid fields survive.
+
+Run the high-cardinality accounting test in its dedicated scenario:
+
+```sh
+./run.sh FEATURE_FLAGGING_EVP_STRESS --library <language> -F tests/ffe/test_flag_eval_evp.py
+```
+
+Keep this scenario limited to one evaluation workload: its drop counters are
+process-wide. Delivered evaluation counts (including degraded delivery) plus
+accepted reported drops must equal attempted evaluations, and some delivery is
+required. See the [accounting helper](utils/evp.py) for accepted counters and validation.
+Periodic flushes may prevent degradation, so the test does not require it to occur.
+
 ---
 
 # Eval Metrics Implementation Guide

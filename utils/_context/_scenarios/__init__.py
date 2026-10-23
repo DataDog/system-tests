@@ -63,6 +63,20 @@ _AI_GUARD_WEBLOG_ENV = {
 }
 
 
+_FFE_WEBLOG_ENV: dict[str, str | None] = {
+    "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
+    "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE": "remote_config",
+    # Python set_provider() blocks waiting for RC, which arrives only after boot.
+    # Fail initialization fast; the provider recovers when the test installs RC.
+    "DD_EXPERIMENTAL_FLAGGING_PROVIDER_INITIALIZATION_TIMEOUT_MS": "100",
+    "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
+    "DD_METRICS_OTEL_ENABLED": "true",
+    "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": "http/protobuf",
+    "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT": "http://agent:4318/v1/metrics",
+    "OTEL_METRIC_EXPORT_INTERVAL": "1000",
+}
+
+
 class _Scenarios:
     todo = Scenario("TODO", doc="scenario that skips tests not yet executed", github_workflow=None)
     test_the_test = TestTheTestScenario("TEST_THE_TEST", doc="Small scenario that check system-tests internals")
@@ -878,25 +892,17 @@ class _Scenarios:
         rc_api_enabled=True,
         # Allow final EVP batches to reach the backend after the weblog flushes and stops.
         agent_interface_timeout=15,
-        weblog_env={
-            "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
-            "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE": "remote_config",
-            # set_provider() in Python blocks until we receive RC
-            # configuration for feature flags. But it is only sent
-            # after weblog sucessfully boots and tests start
-            # executing. Unfortunately, Python's OpenFeature SDK does
-            # not have "set provider and don't wait," so we reduce the
-            # timeout here, so that the provider initialization fails
-            # fast, weblog boots, and provider recovers when we set RC
-            # configuration later.
-            "DD_EXPERIMENTAL_FLAGGING_PROVIDER_INITIALIZATION_TIMEOUT_MS": "100",
-            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
-            "DD_METRICS_OTEL_ENABLED": "true",
-            "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": "http/protobuf",
-            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT": "http://agent:4318/v1/metrics",
-            "OTEL_METRIC_EXPORT_INTERVAL": "1000",
-        },
+        weblog_env=_FFE_WEBLOG_ENV.copy(),
         doc="",
+        scenario_groups=[scenario_groups.ffe],
+    )
+
+    feature_flagging_evp_stress = DdTraceEndToEndScenario(
+        "FEATURE_FLAGGING_EVP_STRESS",
+        rc_api_enabled=True,
+        agent_interface_timeout=15,
+        weblog_env=_FFE_WEBLOG_ENV.copy(),
+        doc="Isolated high-cardinality EVP accounting: delivered evaluations plus reported capacity drops.",
         scenario_groups=[scenario_groups.ffe],
     )
 
