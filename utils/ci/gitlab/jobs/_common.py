@@ -36,10 +36,6 @@ def env(name: str) -> str:
     return value
 
 
-def env_flag(name: str) -> bool:
-    return os.environ.get(name, "").strip().lower() == "true"
-
-
 def project_dir() -> Path:
     """$CI_PROJECT_DIR, parent of the system-tests clone, where artifacts are collected."""
     return Path(env("CI_PROJECT_DIR"))
@@ -47,7 +43,7 @@ def project_dir() -> Path:
 
 @contextmanager
 def section(name: str, description: str, *, collapsed: bool = True) -> Iterator[None]:
-    """Collapsible section in the GitLab job log (same output as utils/ci/gitlab/section.sh)."""
+    """Collapsible section in the GitLab job log."""
     log(f"section_start:{int(time.time())}:{name}[collapsed={str(collapsed).lower()}]\r\x1b[0K{description}")
     try:
         yield
@@ -77,38 +73,6 @@ def traced(name: str, command: list[str], *, scenario: str | None = None) -> Non
 
     tag_args = [arg for tag in tags for arg in ("--tags", tag)]
     run(["datadog-ci", "trace", "--name", name, *tag_args, "--", *command])
-
-
-def docker_auth() -> None:
-    """Log in to docker hub when SYSTEM_TESTS_DOCKER_AUTH is true, to avoid pull rate limits."""
-    if not env_flag("SYSTEM_TESTS_DOCKER_AUTH"):
-        return
-
-    with section("docker_auth", "Docker hub auth"):
-        vault_path = f"kv/k8s/gitlab-runner/{env('CI_PROJECT_NAME')}/system-tests/docker-login-write"
-        username = _vault_field(vault_path, "username")
-        password = _vault_field(vault_path, "password")
-
-        attempts = 3
-        for attempt in range(1, attempts + 1):
-            login = subprocess.run(
-                ["docker", "login", "--username", username, "--password-stdin"],
-                input=password,
-                text=True,
-                check=False,
-            )
-            if login.returncode == 0:
-                return
-            if attempt == attempts:
-                sys.exit(f"docker login failed after {attempts} attempts")
-            log(f"docker login failed (attempt {attempt}), retrying in {attempt * 5}s...")
-            time.sleep(attempt * 5)
-
-
-def _vault_field(path: str, field: str) -> str:
-    return subprocess.run(
-        ["vault", "kv", "get", f"-field={field}", path], check=True, capture_output=True, text=True
-    ).stdout.strip()
 
 
 def copy_upstream_binaries() -> None:

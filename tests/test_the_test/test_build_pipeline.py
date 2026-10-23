@@ -195,7 +195,6 @@ class Test_BuildPipeline:
             ci_image="img",
             ref="my-ref",
             chunks=1,
-            docker_auth=True,
             pipeline_start_time="1700000000",
         )
 
@@ -208,7 +207,6 @@ class Test_BuildPipeline:
         assert pipeline["variables"] == {
             "CI_IMAGE": "img",
             "SYSTEM_TESTS_GENERATED_PIPELINE_START_TIME": "1700000000",
-            "SYSTEM_TESTS_DOCKER_AUTH": "true",
         }
 
     def test_generated_jobs_extend_hidden_jobs_of_child_pipeline(self, tmp_path: Path) -> None:

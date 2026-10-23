@@ -5,9 +5,9 @@ Environment:
     SYSTEM_TESTS_WEBLOG_BUILD_REQUIRED: "true" if the weblog image comes from a build job of this pipeline
     TEST_LIBRARY, WEBLOG_VARIANT, SYSTEM_TESTS_WEBLOG: read by build.sh and run.sh
     SYSTEM_TESTS_BINARIES_ARTIFACT_PATH: optional, upstream binaries to copy into binaries/
-    SYSTEM_TESTS_DOCKER_AUTH: optional, log in to docker hub before running
 """
 
+import os
 import shutil
 from pathlib import Path
 
@@ -27,9 +27,7 @@ def main() -> None:
     library = ci.env("TEST_LIBRARY")
     weblog = ci.env("SYSTEM_TESTS_WEBLOG")
     scenario = ci.env("SYSTEM_TESTS_SCENARIO")
-    build_required = ci.env_flag("SYSTEM_TESTS_WEBLOG_BUILD_REQUIRED")
-
-    ci.docker_auth()
+    build_required = os.environ.get("SYSTEM_TESTS_WEBLOG_BUILD_REQUIRED", "").lower() == "true"
 
     with ci.section("weblog_setup", "Setting up the weblog"):
         if build_required:

@@ -3,7 +3,6 @@
 Environment:
     TEST_LIBRARY, WEBLOG_VARIANT: read by build.sh
     SYSTEM_TESTS_BINARIES_ARTIFACT_PATH: optional, upstream binaries to copy into binaries/ before building
-    SYSTEM_TESTS_DOCKER_AUTH: optional, log in to docker hub before building
 """
 
 import shutil
@@ -20,7 +19,6 @@ def main() -> None:
     library = ci.env("TEST_LIBRARY")
     weblog = ci.env("WEBLOG_VARIANT")
 
-    ci.docker_auth()
     ci.copy_upstream_binaries()
 
     with ci.section("build", "Building weblog", collapsed=False):

@@ -26,7 +26,6 @@ def commands(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> list[list[str]]
     monkeypatch.chdir(clone)
     monkeypatch.setenv("CI_PROJECT_DIR", str(tmp_path))
     for name in (
-        "SYSTEM_TESTS_DOCKER_AUTH",
         "SYSTEM_TESTS_BINARIES_ARTIFACT_PATH",
         "SYSTEM_TESTS_GENERATED_PIPELINE_START_TIME",
         "SYSTEM_TESTS_WEBLOG",
@@ -140,27 +139,6 @@ class Test_GitlabJobScripts:
         with pytest.raises(SystemExit, match="SYSTEM_TESTS_SCENARIO"):
             run_scenario.main()
         assert commands == []
-
-    def test_docker_auth_retries(self, commands: list[list[str]], monkeypatch: pytest.MonkeyPatch) -> None:  # noqa: ARG002
-        monkeypatch.setenv("SYSTEM_TESTS_DOCKER_AUTH", "true")
-        monkeypatch.setenv("CI_PROJECT_NAME", "dd-trace-py")
-        monkeypatch.setattr(_common, "_vault_field", lambda _path, field: f"my-{field}")
-        monkeypatch.setattr(_common.time, "sleep", lambda _seconds: None)
-        logins: list[tuple[list[str], str]] = []
-
-        class _Result:
-            def __init__(self, returncode: int) -> None:
-                self.returncode = returncode
-
-        def fake_run(command: list[str], *, input: str, text: bool, check: bool) -> _Result:  # noqa: A002, ARG001
-            logins.append((command, input))
-            return _Result(0 if len(logins) == 2 else 1)
-
-        monkeypatch.setattr(_common.subprocess, "run", fake_run)
-
-        _common.docker_auth()
-
-        assert logins == [(["docker", "login", "--username", "my-username", "--password-stdin"], "my-password")] * 2
 
     def test_push_to_test_optimization(
         self, commands: list[list[str]], monkeypatch: pytest.MonkeyPatch, tmp_path: Path

@@ -96,7 +96,6 @@ CHECKS: list[tuple[str, object]] = [
     ("FORCE_EXECUTE", None),  # pytest node IDs are too complex to validate by format
     ("SYSTEM_TESTS_PARAMETRIC_JOB_COUNT", validate_positive_int),
     ("SYSTEM_TESTS_PUSH_TO_TEST_OPTIMIZATION", validate_bool),
-    ("SYSTEM_TESTS_DOCKER_AUTH", validate_bool),
     ("SYSTEM_TESTS_SKIP_EMPTY_SCENARIO", validate_bool),
     ("BINARIES_ARTIFACTS", validate_semicolon_nonempty),
     ("BINARIES_ARTIFACT_PATH", validate_path),

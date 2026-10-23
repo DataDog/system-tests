@@ -37,7 +37,7 @@ noop:
 """
 
 
-def pipeline_header(*, stage: str, ci_image: str, ref: str, docker_auth: bool, pipeline_start_time: str) -> dict:
+def pipeline_header(*, stage: str, ci_image: str, ref: str, pipeline_start_time: str) -> dict:
     """Top-level keys of a chunk. Static content lives in the included files."""
     return {
         "workflow": {"name": "System-tests end to end"},
@@ -54,7 +54,6 @@ def pipeline_header(*, stage: str, ci_image: str, ref: str, docker_auth: bool, p
         "variables": {
             "CI_IMAGE": ci_image,
             "SYSTEM_TESTS_GENERATED_PIPELINE_START_TIME": pipeline_start_time,
-            "SYSTEM_TESTS_DOCKER_AUTH": _bool(docker_auth),
         },
     }
 
@@ -183,7 +182,6 @@ def build(
     ref: str = "",
     push_to_test_optimization: bool = False,
     chunks: int = 3,
-    docker_auth: bool = False,
     binaries_artifact_path: str = "",
     binaries_artifacts: str = "",
     pipeline_start_time: str = "",
@@ -210,7 +208,6 @@ def build(
             stage=stage,
             ci_image=ci_image,
             ref=ref,
-            docker_auth=docker_auth,
             pipeline_start_time=pipeline_start_time,
         )
         for library in chunk_libs:
@@ -241,7 +238,6 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--push-to-test-optimization", default="false", help="Generate the push_test_optimization job")
     parser.add_argument("--output-dir", required=True, help="Output directory for generated-pipeline-chunk-N.yml files")
     parser.add_argument("--chunks", type=int, default=3, help="Number of pipeline chunks (default: 3)")
-    parser.add_argument("--docker-auth", default="false", help="Whether to authenticate calls to docker hub")
     parser.add_argument(
         "--binaries-artifact-path",
         default="",
@@ -276,7 +272,6 @@ def main(argv: list[str] | None = None) -> int:
         ref=args.ref,
         push_to_test_optimization=args.push_to_test_optimization == "true",
         chunks=args.chunks,
-        docker_auth=args.docker_auth == "true",
         binaries_artifact_path=args.binaries_artifact_path,
         binaries_artifacts=args.binaries_artifacts,
         pipeline_start_time=args.pipeline_start_time,
