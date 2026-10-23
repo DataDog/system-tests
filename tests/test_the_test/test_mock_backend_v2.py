@@ -1,6 +1,7 @@
 """Unit coverage for MockedBackendServer (utils.mocked_backend)."""
 
 import gzip
+import signal
 import json
 from collections.abc import Generator
 from pathlib import Path
@@ -12,7 +13,7 @@ import requests
 import zstandard
 
 from utils import scenarios
-from utils.mocked_backend import MockedBackendServer
+from utils.mocked_backend import MockedBackendClient, MockedBackendServer
 
 
 @pytest.fixture
@@ -140,8 +141,8 @@ def test_control_requests_are_not_recorded(tmp_path: Path):
     server = MockedBackendServer(str(tmp_path), on_message=received.append, port=0)
 
     try:
-        server.ffe_set_response("valid")
-        assert server.ffe_get_status()["requests_total"] == 0
+        server.client.ffe_set_response("valid")
+        assert server.client.ffe_get_status()["requests_total"] == 0
         requests.post(f"{server.base_url}/api/v2/series", json={"hello": "recorded"}, timeout=5)
     finally:
         server.close()
@@ -172,9 +173,42 @@ def test_runs_without_the_rest_of_utils(tmp_path: Path):
         "assert getattr(utils, '__file__', None) is None, f'not the namespace package: {utils.__file__}'\n"
         "from utils.mocked_backend import MockedBackendServer\n"
         "from utils.mocked_backend.ffe import CONFIG_PATH\n"
+        "import utils.mocked_backend.__main__\n"
         "server = MockedBackendServer(port=0)\n"
         "server.close()\n"
     )
     result = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, check=False, cwd=tmp_path)
 
     assert result.returncode == 0, result.stderr
+
+
+@scenarios.test_the_test
+def test_entry_point_serves_until_sigterm(tmp_path: Path):
+    """`python -m utils.mocked_backend` is how the mocked backend will run in its own container."""
+    log_folder = tmp_path / "backend_v2"  # created by the entry point
+    process = subprocess.Popen(
+        [sys.executable, "-m", "utils.mocked_backend", "--port", "0", "--log-folder", str(log_folder)],
+        cwd=Path(__file__).parents[2],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+    try:
+        assert process.stdout is not None
+        first_line = process.stdout.readline()
+        assert first_line.startswith("Mocked backend listening on port "), process.stderr.read()  # type: ignore[union-attr]
+        client = MockedBackendClient(f"http://127.0.0.1:{first_line.split()[-1]}")
+
+        requests.post(f"{client.base_url}/api/v2/series", json={"hello": "entry point"}, timeout=5)
+        client.ffe_set_response("unauthorized")
+        assert client.ffe_get_status()["requests_total"] == 0
+
+        process.send_signal(signal.SIGTERM)
+        assert process.wait(timeout=10) == 0
+    finally:
+        if process.poll() is None:
+            process.kill()
+            process.wait()
+
+    # control requests are not recorded
+    assert [path.name for path in log_folder.glob("*.json")] == ["000__api_v2_series.json"]
