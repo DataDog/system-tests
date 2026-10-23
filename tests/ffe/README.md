@@ -19,6 +19,15 @@ This directory contains system tests for the Feature Flags & Experimentation (FF
 ./run.sh FEATURE_FLAGGING_AND_EXPERIMENTATION --library <language>
 ```
 
+## SDK identity through the Agent
+
+`Test_FFE_EVP_Flagevaluation_SDK_Identity` checks SDK origin and version headers on
+Agent-to-intake captures while retaining the shared payload and evaluation-count checks.
+The case requires Agent 7.84+ and is enabled for Go 2.11.0+, Python 4.16.0+, and
+Node.js express5 under its existing version gate. Other languages retain their
+current exclusions. Event-level `source` is rejected: source identity belongs in
+the request headers.
+
 ## Per-subject evaluation telemetry opt-out
 
 All four test classes report under [#649: Per-subject evaluation telemetry opt-out](https://feature-parity.us1.prod.dog/#/?feature=649).
