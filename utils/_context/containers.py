@@ -798,7 +798,7 @@ class MockedBackendContainer(TestedContainer):
             # for the control endpoints, used from the host. Docker picks a free host port
             ports={f"{self.port}/tcp": ("127.0.0.1", None)},
             healthcheck={
-                "test": f"python -c \"import socket; s=socket.socket(); s.settimeout(2); s.connect(('localhost', {self.port})); s.close()\"",  # noqa: E501
+                "test": f"python -c \"import urllib.request; urllib.request.urlopen('http://localhost:{self.port}/system-tests/health', timeout=2)\"",  # noqa: E501
                 "retries": 30,
             },
         )

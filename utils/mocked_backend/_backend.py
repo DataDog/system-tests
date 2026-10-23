@@ -51,6 +51,7 @@ class MockedBackendServer(MockedBackendServerFfeMixin, MockedBackendServerCore):
         self._routes: dict[tuple[HttpMethod, str], RouteHandler] = {}
         self.port = self.server_port
 
+        self.add_handler("GET", f"{CONTROL_URL_PREFIX}/health", self._handle_health)
         self._ffe_configure()
 
         self._thread = threading.Thread(target=self.serve_forever, name=self.thread_name, daemon=True)
@@ -98,6 +99,9 @@ class MockedBackendServer(MockedBackendServerFfeMixin, MockedBackendServerCore):
             export_content_files_to = None
 
         return handler, log_filename, export_content_files_to
+
+    def _handle_health(self, request: MockBackendV2RequestHandler, _: bytes | dict | None) -> tuple[Mapping, bytes]:
+        return request.write_json(HTTPStatus.OK, {"status": "ok"})
 
     def _default_handler(self, request: MockBackendV2RequestHandler, _: bytes | dict | None) -> tuple[Mapping, bytes]:
         return request.write_json(HTTPStatus.OK, {})
