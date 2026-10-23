@@ -65,7 +65,8 @@
               "shards": []
             }
           ],
-          "doLog": true
+          "doLog": true,
+          "randomizationActivatedAt": null
         }
       ]
     },
@@ -1016,7 +1017,8 @@
             }
           ],
           "endAt": "2002-10-31T09:00:00.594Z",
-          "doLog": true
+          "doLog": true,
+          "randomizationActivatedAt": "2000-01-01T00:00:00Z"
         },
         {
           "key": "future-versions",
@@ -1027,7 +1029,8 @@
             }
           ],
           "startAt": "2052-10-31T09:00:00.594Z",
-          "doLog": true
+          "doLog": true,
+          "randomizationActivatedAt": "2026-10-01T12:00:00Z"
         },
         {
           "key": "current-versions",
@@ -1039,7 +1042,8 @@
           ],
           "startAt": "2022-10-31T09:00:00.594Z",
           "endAt": "2050-10-31T09:00:00.594Z",
-          "doLog": true
+          "doLog": true,
+          "randomizationActivatedAt": "2026-10-20T12:00:00Z"
         }
       ]
     },
@@ -1278,7 +1282,8 @@
               ]
             }
           ],
-          "doLog": true
+          "doLog": true,
+          "randomizationActivatedAt": "2026-10-01T12:00:00Z"
         },
         {
           "key": "rollout",
@@ -1384,7 +1389,8 @@
               ]
             }
           ],
-          "doLog": true
+          "doLog": true,
+          "randomizationActivatedAt": "2026-10-20T12:00:00Z"
         },
         {
           "key": "50/50 split",
@@ -1421,7 +1427,8 @@
               ]
             }
           ],
-          "doLog": true
+          "doLog": true,
+          "randomizationActivatedAt": "2026-10-01T12:00:00Z"
         }
       ]
     },
@@ -1644,7 +1651,8 @@
               ]
             }
           ],
-          "doLog": true
+          "doLog": true,
+          "randomizationActivatedAt": "2026-10-19T12:00:00.123Z"
         },
         {
           "key": "allocation-default",
@@ -5341,6 +5349,7 @@
       "allocations": [
         {
           "key": "no-log-allocation",
+          "randomizationActivatedAt": "2026-10-19T12:00:00Z",
           "rules": [],
           "splits": [
             {
@@ -5400,6 +5409,289 @@
             }
           ],
           "doLog": true
+        }
+      ]
+    },
+    "split-features-destinations": {
+      "key": "split-features-destinations",
+      "enabled": true,
+      "variationType": "BOOLEAN",
+      "variations": {
+        "on": {
+          "key": "on",
+          "value": true
+        }
+      },
+      "allocations": [
+        {
+          "key": "allocation",
+          "doLog": true,
+          "splits": [
+            {
+              "variationKey": "on",
+              "serialId": 7,
+              "shards": [],
+              "features": [
+                {
+                  "key": "holdout.key",
+                  "value": "holdout-q3",
+                  "destinations": [
+                    "HOOK"
+                  ]
+                },
+                {
+                  "key": "holdout.assignment_group",
+                  "value": "status_quo",
+                  "destinations": [
+                    "HOOK",
+                    "EXPOSURE"
+                  ]
+                },
+                {
+                  "key": "exposure.only",
+                  "value": false,
+                  "destinations": [
+                    "EXPOSURE"
+                  ]
+                },
+                {
+                  "key": "evaluation.only",
+                  "value": 1.25,
+                  "destinations": [
+                    "EVALUATION"
+                  ]
+                },
+                {
+                  "key": "shared",
+                  "value": true,
+                  "destinations": [
+                    "HOOK",
+                    "EXPOSURE",
+                    "EVALUATION",
+                    "HOOK",
+                    "FUTURE"
+                  ]
+                },
+                {
+                  "key": "empty",
+                  "value": "",
+                  "destinations": [
+                    "HOOK"
+                  ]
+                },
+                {
+                  "key": "zero",
+                  "value": 0,
+                  "destinations": [
+                    "EVALUATION"
+                  ]
+                },
+                {
+                  "key": "unknown.only",
+                  "value": true,
+                  "destinations": [
+                    "FUTURE",
+                    "hook"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "split-features-first-valid-key": {
+      "key": "split-features-first-valid-key",
+      "enabled": true,
+      "variationType": "BOOLEAN",
+      "variations": {
+        "on": {
+          "key": "on",
+          "value": true
+        }
+      },
+      "allocations": [
+        {
+          "key": "allocation",
+          "doLog": true,
+          "splits": [
+            {
+              "variationKey": "on",
+              "serialId": 7,
+              "shards": [],
+              "features": [
+                {
+                  "key": "invalid-first",
+                  "value": {},
+                  "destinations": [
+                    "HOOK"
+                  ]
+                },
+                {
+                  "key": "invalid-first",
+                  "value": "accepted",
+                  "destinations": [
+                    "HOOK"
+                  ]
+                },
+                {
+                  "key": "invalid-first",
+                  "value": "later",
+                  "destinations": [
+                    "EXPOSURE"
+                  ]
+                },
+                {
+                  "key": "first-wins",
+                  "value": "first",
+                  "destinations": [
+                    "EXPOSURE"
+                  ]
+                },
+                {
+                  "key": "first-wins",
+                  "value": "later",
+                  "destinations": [
+                    "HOOK",
+                    "EVALUATION"
+                  ]
+                },
+                {
+                  "key": "unknown-first",
+                  "value": "first",
+                  "destinations": [
+                    "FUTURE"
+                  ]
+                },
+                {
+                  "key": "unknown-first",
+                  "value": "later",
+                  "destinations": [
+                    "HOOK"
+                  ]
+                },
+                {
+                  "key": "empty-destinations",
+                  "value": "invalid",
+                  "destinations": []
+                },
+                {
+                  "key": "empty-destinations",
+                  "value": false,
+                  "destinations": [
+                    "EXPOSURE"
+                  ]
+                },
+                null,
+                {
+                  "key": "array",
+                  "value": [],
+                  "destinations": [
+                    "HOOK"
+                  ]
+                },
+                {
+                  "key": "null",
+                  "value": null,
+                  "destinations": [
+                    "HOOK"
+                  ]
+                },
+                {
+                  "key": "",
+                  "value": true,
+                  "destinations": [
+                    "HOOK"
+                  ]
+                },
+                {
+                  "key": "mixed",
+                  "value": "kept",
+                  "destinations": [
+                    "HOOK",
+                    null,
+                    42,
+                    ""
+                  ]
+                },
+                {
+                  "key": "bad-destinations",
+                  "value": true,
+                  "destinations": "HOOK"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "split-features-selected-allocation": {
+      "key": "split-features-selected-allocation",
+      "enabled": true,
+      "variationType": "BOOLEAN",
+      "variations": {
+        "on": {
+          "key": "on",
+          "value": true
+        }
+      },
+      "allocations": [
+        {
+          "key": "vip",
+          "doLog": true,
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "attribute": "tier",
+                  "operator": "ONE_OF",
+                  "value": [
+                    "vip"
+                  ]
+                }
+              ]
+            }
+          ],
+          "splits": [
+            {
+              "variationKey": "on",
+              "serialId": 0,
+              "shards": [],
+              "features": [
+                {
+                  "key": "selected",
+                  "value": "vip",
+                  "destinations": [
+                    "HOOK",
+                    "EXPOSURE",
+                    "EVALUATION"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "key": "allocation",
+          "doLog": false,
+          "splits": [
+            {
+              "variationKey": "on",
+              "serialId": 7,
+              "shards": [],
+              "features": [
+                {
+                  "key": "selected",
+                  "value": "fallback",
+                  "destinations": [
+                    "HOOK",
+                    "EXPOSURE",
+                    "EVALUATION"
+                  ]
+                }
+              ]
+            }
+          ]
         }
       ]
     }
