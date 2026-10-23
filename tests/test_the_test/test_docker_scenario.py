@@ -7,7 +7,6 @@ from utils import interfaces, scenarios
 from utils._context._scenarios._core import endtoend as endtoend_scenarios
 from utils._context._scenarios._core.endtoend import DdTraceEndToEndScenario, DockerScenario
 from utils._context.containers import TestedContainer as _TestedContainer
-from utils.docker_fixtures._core import HOST_GATEWAY_EXTRA_HOSTS
 
 from .utils import extra_hosts_at_start
 
@@ -141,25 +140,31 @@ def test_end_to_end_scenario_only_flushes_agent_backed_non_empty_test_runs(
 
 
 @scenarios.test_the_test
-def test_mocked_backend_v2_agent_can_reach_the_mocked_backend(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_mocked_backend_v2_agent_sends_to_the_mocked_backend_container(monkeypatch: pytest.MonkeyPatch) -> None:
     scenario = DdTraceEndToEndScenario(
         "FAKE_MOCKED_BACKEND_V2", doc="", mocked_backend_v2=True, use_proxy_for_agent=False
     )
-    scenario.replay = False
-    scenario.weblog_infra = MagicMock()
-    monkeypatch.setattr(DockerScenario, "configure", MagicMock())
-
-    fake_interfaces = MagicMock()
-    fake_interfaces.backend_v2.server.container_url = "http://host.docker.internal:4900"
-    monkeypatch.setattr(endtoend_scenarios, "interfaces", fake_interfaces)
-
-    scenario.configure(MagicMock(spec=pytest.Config))
+    mocked_backend = scenario.mocked_backend_container
+    assert mocked_backend in scenario._containers  # noqa: SLF001
 
     agent = scenario.agent_container
-    assert agent.environment["DD_DD_URL"] == "http://host.docker.internal:4900"
-    assert agent.environment["DD_APM_DD_URL"] == "http://host.docker.internal:4900"
-    # without it, host.docker.internal does not resolve on Linux docker hosts
-    assert extra_hosts_at_start(monkeypatch, agent) == HOST_GATEWAY_EXTRA_HOSTS
+    assert agent.environment["DD_DD_URL"] == "http://mocked-backend:4900"
+    assert agent.environment["DD_APM_DD_URL"] == "http://mocked-backend:4900"
+    # reached by its name on the scenario network: no mapping to the docker host
+    assert extra_hosts_at_start(monkeypatch, agent) is None
+
+    weblog = MagicMock(depends_on=[])
+    scenario.weblog_infra = MagicMock(get_containers=MagicMock(return_value=[weblog]))
+    scenario._set_containers_dependancies()  # noqa: SLF001
+    assert mocked_backend in agent.depends_on
+    assert mocked_backend in weblog.depends_on
+
+
+@scenarios.test_the_test
+def test_no_mocked_backend_container_without_mocked_backend_v2() -> None:
+    scenario = DdTraceEndToEndScenario("FAKE_NO_MOCKED_BACKEND_V2", doc="", use_proxy_for_agent=False)
+    assert scenario.mocked_backend_container not in scenario._containers  # noqa: SLF001
+    assert "DD_DD_URL" not in scenario.agent_container.environment
 
 
 @scenarios.test_the_test
