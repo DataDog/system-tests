@@ -71,111 +71,6 @@ UNSET_AND_EMPTY_VALUES = [
 @scenarios.parametric
 @features.otel_sdk_disabled
 class Test_OTEL_SDK_DISABLED:
-    # Each signal is opted in through its own setting, as an operator auto-install would do.
-    # A control run without OTEL_SDK_DISABLED first proves that the setup exports, so a
-    # missing exporter cannot pass as disabled. OTEL_SDK_DISABLED=true must then keep it off.
-    @pytest.mark.parametrize(
-        "library_env",
-        [
-            {
-                "OTEL_SDK_DISABLED": "true",
-                "DD_METRICS_OTEL_ENABLED": "true",
-                "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": "http/protobuf",
-            }
-        ],
-    )
-    @pytest.mark.usefixtures("otlp_endpoints")
-    def test_true_disables_otlp_metrics_export(
-        self, test_agent: TestAgentAPI, test_library_factory: APMLibraryFactory, library_env: dict[str, str | None]
-    ) -> None:
-        with test_library_factory({**library_env, "OTEL_SDK_DISABLED": None}) as library:
-            generate_default_counter_data_point(library, COUNTER)
-        test_agent.wait_for_num_otlp_metrics(num=1)
-
-        with test_library_factory(library_env) as library:
-            generate_default_counter_data_point(library, COUNTER)
-        with pytest.raises(ValueError):
-            test_agent.wait_for_num_otlp_metrics(num=1)
-
-    @pytest.mark.parametrize(
-        "library_env",
-        [
-            {
-                "OTEL_SDK_DISABLED": "true",
-                "DD_LOGS_OTEL_ENABLED": "true",
-                "OTEL_EXPORTER_OTLP_LOGS_PROTOCOL": "http/protobuf",
-            }
-        ],
-    )
-    @pytest.mark.usefixtures("otlp_endpoints")
-    def test_true_disables_otlp_logs_export(
-        self, test_agent: TestAgentAPI, test_library_factory: APMLibraryFactory, library_env: dict[str, str | None]
-    ) -> None:
-        with test_library_factory({**library_env, "OTEL_SDK_DISABLED": None}) as library:
-            _emit_log(library)
-        test_agent.wait_for_num_log_payloads(1)
-
-        with test_library_factory(library_env) as library:
-            _emit_log(library)
-        with pytest.raises(ValueError):
-            test_agent.wait_for_num_log_payloads(1)
-
-    @pytest.mark.parametrize(
-        "library_env",
-        [
-            {
-                "OTEL_SDK_DISABLED": "true",
-                "OTEL_TRACES_EXPORTER": "otlp",
-                "OTEL_EXPORTER_OTLP_TRACES_PROTOCOL": "http/protobuf",
-            }
-        ],
-    )
-    @pytest.mark.usefixtures("otlp_endpoints")
-    def test_true_disables_otlp_traces_export(
-        self, test_agent: TestAgentAPI, test_library_factory: APMLibraryFactory, library_env: dict[str, str | None]
-    ) -> None:
-        with test_library_factory({**library_env, "OTEL_SDK_DISABLED": None}) as library:
-            _emit_span(library)
-        assert _otlp_trace_urls(test_agent), "The control run did not export OTLP traces"
-
-        with test_library_factory(library_env) as library:
-            _emit_span(library)
-        assert not _otlp_trace_urls(test_agent)
-
-    @pytest.mark.parametrize("library_env", [{"OTEL_SDK_DISABLED": "false"}])
-    def test_stable_false(
-        self, test_agent: TestAgentAPI, test_library_factory: APMLibraryFactory, library_env: dict[str, str | None]
-    ) -> None:
-        _assert_tracing_kept(test_agent, test_library_factory, library_env)
-
-    @pytest.mark.parametrize("library_env", UNSET_AND_EMPTY_VALUES)
-    def test_default_matches_specification(
-        self, test_agent: TestAgentAPI, test_library_factory: APMLibraryFactory, library_env: dict[str, str | None]
-    ) -> None:
-        _assert_tracing_kept(test_agent, test_library_factory, library_env)
-
-    @pytest.mark.parametrize(
-        "library_env",
-        [
-            {
-                "OTEL_SDK_DISABLED": "true",
-                "DD_TRACE_OTEL_ENABLED": "true",
-            }
-        ],
-    )
-    def test_true_overrides_dd_trace_otel_enabled(
-        self, test_agent: TestAgentAPI, test_library_factory: APMLibraryFactory, library_env: dict[str, str | None]
-    ) -> None:
-        # Control: DD_TRACE_OTEL_ENABLED=true alone captures spans created through the OpenTelemetry API.
-        with test_library_factory({**library_env, "OTEL_SDK_DISABLED": None}) as library:
-            _emit_otel_span(library)
-        assert test_agent.wait_for_num_traces(num=1)
-
-        with test_library_factory(library_env) as library:
-            _emit_otel_span(library)
-        with pytest.raises(ValueError):
-            test_agent.wait_for_num_traces(num=1)
-
     # OTEL_SDK_DISABLED=true maps to DD_TRACE_ENABLED=false.
     @pytest.mark.parametrize(
         "library_env",
@@ -216,3 +111,108 @@ class Test_OTEL_SDK_DISABLED:
         with test_library_factory(library_env) as library:
             _emit_span(library)
         assert test_agent.wait_for_num_traces(num=1)
+
+    @pytest.mark.parametrize("library_env", [{"OTEL_SDK_DISABLED": "false"}])
+    def test_stable_false(
+        self, test_agent: TestAgentAPI, test_library_factory: APMLibraryFactory, library_env: dict[str, str | None]
+    ) -> None:
+        _assert_tracing_kept(test_agent, test_library_factory, library_env)
+
+    @pytest.mark.parametrize("library_env", UNSET_AND_EMPTY_VALUES)
+    def test_default_matches_specification(
+        self, test_agent: TestAgentAPI, test_library_factory: APMLibraryFactory, library_env: dict[str, str | None]
+    ) -> None:
+        _assert_tracing_kept(test_agent, test_library_factory, library_env)
+
+    # Each OpenTelemetry signal is opted in through its own setting, as an operator auto-install
+    # would do. A control run without OTEL_SDK_DISABLED first proves that the signal is sent, so a
+    # missing feature cannot pass as disabled. OTEL_SDK_DISABLED=true must then keep it off.
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                "OTEL_SDK_DISABLED": "true",
+                "DD_METRICS_OTEL_ENABLED": "true",
+                "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": "http/protobuf",
+            }
+        ],
+    )
+    @pytest.mark.usefixtures("otlp_endpoints")
+    def test_true_disables_otel_metrics(
+        self, test_agent: TestAgentAPI, test_library_factory: APMLibraryFactory, library_env: dict[str, str | None]
+    ) -> None:
+        with test_library_factory({**library_env, "OTEL_SDK_DISABLED": None}) as library:
+            generate_default_counter_data_point(library, COUNTER)
+        test_agent.wait_for_num_otlp_metrics(num=1)
+
+        with test_library_factory(library_env) as library:
+            generate_default_counter_data_point(library, COUNTER)
+        with pytest.raises(ValueError):
+            test_agent.wait_for_num_otlp_metrics(num=1)
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                "OTEL_SDK_DISABLED": "true",
+                "DD_LOGS_OTEL_ENABLED": "true",
+                "OTEL_EXPORTER_OTLP_LOGS_PROTOCOL": "http/protobuf",
+            }
+        ],
+    )
+    @pytest.mark.usefixtures("otlp_endpoints")
+    def test_true_disables_otel_logs(
+        self, test_agent: TestAgentAPI, test_library_factory: APMLibraryFactory, library_env: dict[str, str | None]
+    ) -> None:
+        with test_library_factory({**library_env, "OTEL_SDK_DISABLED": None}) as library:
+            _emit_log(library)
+        test_agent.wait_for_num_log_payloads(1)
+
+        with test_library_factory(library_env) as library:
+            _emit_log(library)
+        with pytest.raises(ValueError):
+            test_agent.wait_for_num_log_payloads(1)
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                "OTEL_SDK_DISABLED": "true",
+                "DD_TRACE_OTEL_ENABLED": "true",
+            }
+        ],
+    )
+    def test_true_disables_otel_traces(
+        self, test_agent: TestAgentAPI, test_library_factory: APMLibraryFactory, library_env: dict[str, str | None]
+    ) -> None:
+        # Control: DD_TRACE_OTEL_ENABLED=true alone captures spans created through the OpenTelemetry API.
+        with test_library_factory({**library_env, "OTEL_SDK_DISABLED": None}) as library:
+            _emit_otel_span(library)
+        assert test_agent.wait_for_num_traces(num=1)
+
+        with test_library_factory(library_env) as library:
+            _emit_otel_span(library)
+        with pytest.raises(ValueError):
+            test_agent.wait_for_num_traces(num=1)
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                "OTEL_SDK_DISABLED": "true",
+                "OTEL_TRACES_EXPORTER": "otlp",
+                "OTEL_EXPORTER_OTLP_TRACES_PROTOCOL": "http/protobuf",
+            }
+        ],
+    )
+    @pytest.mark.usefixtures("otlp_endpoints")
+    def test_true_overrides_otel_traces_exporter(
+        self, test_agent: TestAgentAPI, test_library_factory: APMLibraryFactory, library_env: dict[str, str | None]
+    ) -> None:
+        with test_library_factory({**library_env, "OTEL_SDK_DISABLED": None}) as library:
+            _emit_span(library)
+        assert _otlp_trace_urls(test_agent), "The control run did not export OTLP traces"
+
+        with test_library_factory(library_env) as library:
+            _emit_span(library)
+        assert not _otlp_trace_urls(test_agent)
