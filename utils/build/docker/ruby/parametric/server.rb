@@ -1096,6 +1096,7 @@ class MyApp
     config["otel_exporter_otlp_traces_timeout_ms"] = otlp_exporter_timeout(OpenTelemetry.tracer_provider.instance_variable_get(:@span_processors))
     config["otel_exporter_otlp_metrics_timeout_ms"] = otlp_exporter_timeout(OpenTelemetry.meter_provider.instance_variable_get(:@metric_readers))
     config["otel_exporter_otlp_logs_timeout_ms"] = otlp_exporter_timeout(OpenTelemetry.logger_provider.instance_variable_get(:@log_record_processors))
+    config.merge!(blrp_config(OpenTelemetry.logger_provider.instance_variable_get(:@log_record_processors)))
     config["dd_env"] = Datadog.configuration.env || ""
     config["dd_version"] = Datadog.configuration.version || ""
     config["dd_tags"] = Datadog.configuration.tags.nil? ? "" : Datadog.configuration.tags.map { |k, v| "#{k}:#{v}" }.join(",")
@@ -1118,6 +1119,19 @@ class MyApp
       (timeout * 1000).to_i.to_s if timeout.is_a?(Numeric)
     end
     timeouts.first if timeouts.length == 1
+  end
+
+  def blrp_config(processors)
+    batch_processors = Array(processors).grep(OpenTelemetry::SDK::Logs::Export::BatchLogRecordProcessor)
+    return {} unless batch_processors.length == 1
+
+    processor = batch_processors.first
+    {
+      "otel_blrp_schedule_delay_ms" => (processor.instance_variable_get(:@delay_seconds) * 1000).to_i.to_s,
+      "otel_blrp_export_timeout_ms" => (processor.instance_variable_get(:@exporter_timeout_seconds) * 1000).to_i.to_s,
+      "otel_blrp_max_queue_size" => processor.instance_variable_get(:@max_queue_size).to_s,
+      "otel_blrp_max_export_batch_size" => processor.instance_variable_get(:@batch_size).to_s,
+    }
   end
 
   def handle_trace_span_set_metric(req, res)

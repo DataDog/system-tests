@@ -38,7 +38,6 @@ class my_test_class:
         # Use the interfaces instances to validate the json intercepted messages
         interfaces.library.<validation method>
         interfaces.agent.<validation method>
-        interfaces.backend.<validation method>
 ```
 
 * The class "SchemaValidator" from [schema validator](mdc:utils/interfaces/_schemas_validators.py) can help you to validate the messages under the folder "logs_<scenario_name>/interfaces."
