@@ -1,6 +1,6 @@
 from utils import pytest
 
-from tests.parametric.conftest import APMLibrary, nodejs_telemetry_value
+from tests.parametric.conftest import APMLibrary
 from tests.parametric.otel_env_vars.conftest import APMLibraryFactory
 from tests.parametric.otel_env_vars.utils import generate_default_counter_data_point
 from utils import features, scenarios
@@ -37,36 +37,34 @@ def _emit_span(library: APMLibrary) -> None:
     library.dd_flush()
 
 
+def _emit_otel_span(library: APMLibrary) -> None:
+    with library.otel_start_span(SPAN_NAME):
+        pass
+    library.otel_flush(1)
+
+
 def _otlp_trace_urls(test_agent: TestAgentAPI) -> list[str]:
     return [request["url"] for request in test_agent.otlp_requests() if request["url"].endswith("/v1/traces")]
 
 
-def _otel_sdk_disabled(test_agent: TestAgentAPI, library: APMLibrary) -> bool:
-    if library.lang == "nodejs":
-        value = nodejs_telemetry_value(test_agent, "otel_sdk_disabled")
-        assert isinstance(value, bool)
-        return value
+def _assert_tracing_kept(
+    test_agent: TestAgentAPI, test_library_factory: APMLibraryFactory, library_env: dict[str, str | None]
+) -> None:
+    # Control: OTEL_SDK_DISABLED=true disables tracing, so tracing below is kept by the tested
+    # value rather than by a library that ignores the variable.
+    with test_library_factory({**library_env, "OTEL_SDK_DISABLED": "true"}) as library:
+        _emit_span(library)
+    with pytest.raises(ValueError):
+        test_agent.wait_for_num_traces(num=1)
 
-    otel_enabled = library.config()["dd_trace_otel_enabled"]
-
-    assert otel_enabled in ("true", "false")
-    return otel_enabled == "false"
+    with test_library_factory(library_env) as library:
+        _emit_span(library)
+    assert test_agent.wait_for_num_traces(num=1)
 
 
 UNSET_AND_EMPTY_VALUES = [
-    pytest.param(
-        {
-            "DD_TRACE_OTEL_ENABLED": None,
-        },
-        id="unset",
-    ),
-    pytest.param(
-        {
-            "OTEL_SDK_DISABLED": "",
-            "DD_TRACE_OTEL_ENABLED": None,
-        },
-        id="empty",
-    ),
+    pytest.param({}, id="unset"),
+    pytest.param({"OTEL_SDK_DISABLED": ""}, id="empty"),
 ]
 
 
@@ -144,27 +142,17 @@ class Test_OTEL_SDK_DISABLED:
             _emit_span(library)
         assert not _otlp_trace_urls(test_agent)
 
-    @pytest.mark.parametrize(
-        "library_env",
-        [
-            {
-                "OTEL_SDK_DISABLED": "false",
-                "DD_TRACE_OTEL_ENABLED": None,
-            }
-        ],
-    )
+    @pytest.mark.parametrize("library_env", [{"OTEL_SDK_DISABLED": "false"}])
     def test_stable_false(
-        self,
-        test_agent: TestAgentAPI,
-        test_library: APMLibrary,
-    ):
-        with test_library as library:
-            assert _otel_sdk_disabled(test_agent, library) is False
+        self, test_agent: TestAgentAPI, test_library_factory: APMLibraryFactory, library_env: dict[str, str | None]
+    ) -> None:
+        _assert_tracing_kept(test_agent, test_library_factory, library_env)
 
     @pytest.mark.parametrize("library_env", UNSET_AND_EMPTY_VALUES)
-    def test_default_matches_specification(self, test_agent: TestAgentAPI, test_library: APMLibrary):
-        with test_library as library:
-            assert _otel_sdk_disabled(test_agent, library) is False
+    def test_default_matches_specification(
+        self, test_agent: TestAgentAPI, test_library_factory: APMLibraryFactory, library_env: dict[str, str | None]
+    ) -> None:
+        _assert_tracing_kept(test_agent, test_library_factory, library_env)
 
     @pytest.mark.parametrize(
         "library_env",
@@ -176,12 +164,17 @@ class Test_OTEL_SDK_DISABLED:
         ],
     )
     def test_true_overrides_dd_trace_otel_enabled(
-        self,
-        test_agent: TestAgentAPI,
-        test_library: APMLibrary,
-    ):
-        with test_library as library:
-            assert _otel_sdk_disabled(test_agent, library) is True
+        self, test_agent: TestAgentAPI, test_library_factory: APMLibraryFactory, library_env: dict[str, str | None]
+    ) -> None:
+        # Control: DD_TRACE_OTEL_ENABLED=true alone captures spans created through the OpenTelemetry API.
+        with test_library_factory({**library_env, "OTEL_SDK_DISABLED": None}) as library:
+            _emit_otel_span(library)
+        assert test_agent.wait_for_num_traces(num=1)
+
+        with test_library_factory(library_env) as library:
+            _emit_otel_span(library)
+        with pytest.raises(ValueError):
+            test_agent.wait_for_num_traces(num=1)
 
     # OTEL_SDK_DISABLED=true maps to DD_TRACE_ENABLED=false.
     @pytest.mark.parametrize(
