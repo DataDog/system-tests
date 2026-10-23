@@ -1,6 +1,9 @@
 # Docker Buildx bake file for the CI images built by the build_ci_image job
 # (see .gitlab-ci.yml). Tags are passed in as variables computed from the
 # content of each Dockerfile.
+#
+# build_ci_image.py overrides the tags and platform of each target: ci-runner is built
+# natively once per architecture, then merged into a multi-arch image.
 
 variable "IMAGE_BUILDER_TAG" {
   default = "latest"
