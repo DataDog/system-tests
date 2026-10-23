@@ -16,6 +16,7 @@ from utils._context.containers import (
     OpenTelemetryCollectorContainer,
     TestedContainer,
     WeblogContainer,
+    FAKE_DD_API_KEY,
 )
 
 
@@ -51,7 +52,10 @@ class OpenTelemetryScenario(DockerScenario):
             extra_containers=extra_containers,
         )
         if include_agent:
-            self.agent_container = AgentContainer(use_proxy=True)
+            # the E2E scenarios (require_api_key) send the agent data to the real backend
+            self.agent_container = AgentContainer(
+                dd_api_key=os.environ.get("DD_API_KEY", FAKE_DD_API_KEY), use_proxy=True
+            )
             self._containers.append(self.agent_container)
         if include_collector:
             self.collector_container = OpenTelemetryCollectorContainer()
@@ -85,7 +89,7 @@ class OpenTelemetryScenario(DockerScenario):
             self.weblog_container.environment["OTEL_SYSTEST_INCLUDE_AGENT"] = "True"
             interfaces.agent.configure(self.host_log_folder, replay=self.replay)
 
-        interfaces.backend.configure(self.host_log_folder, replay=self.replay)
+        interfaces.backend_legacy.configure(self.host_log_folder, replay=self.replay)
         interfaces.open_telemetry.configure(self.host_log_folder, replay=self.replay)
         interfaces.library_dotnet_managed.configure(self.host_log_folder, replay=self.replay)
 
@@ -153,10 +157,10 @@ class OpenTelemetryScenario(DockerScenario):
                 interfaces.agent.load_data_from_logs()
                 interfaces.agent.check_deserialization_errors()
 
-            interfaces.backend.load_data_from_logs()
+            interfaces.backend_legacy.load_data_from_logs()
         elif self.use_proxy:
             self._wait_interface(interfaces.open_telemetry, 5)
-            self._wait_interface(interfaces.backend, self.backend_interface_timeout)
+            self._wait_interface(interfaces.backend_legacy, self.backend_interface_timeout)
 
         self.close_targets()
 
