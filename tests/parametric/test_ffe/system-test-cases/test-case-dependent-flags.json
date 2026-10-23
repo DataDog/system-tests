@@ -88,12 +88,162 @@
     "expectations": {
       "exposures": [
         {
-          "flag": "dependent-short-circuit-root"
+          "allocation": "fallback",
+          "flag": "dependent-short-circuit-root",
+          "variant": "fallback"
         }
       ],
       "evaluationEvents": [
         {
           "flag": "dependent-short-circuit-root",
+          "errorCode": null
+        }
+      ],
+      "noUnmatchedEvents": true
+    }
+  },
+  {
+    "description": "A prerequisite evaluated before a later false condition retains its evaluation event but not its exposure because the containing targeting rule is not selected.",
+    "attributes": {
+      "gate": "closed"
+    },
+    "defaultValue": "caller-default",
+    "flag": "dependent-inapplicable-rule-root",
+    "result": {
+      "reason": "STATIC",
+      "value": "inapplicable-rule-fallback"
+    },
+    "targetingKey": "dependent-inapplicable-rule",
+    "variationType": "STRING",
+    "expectations": {
+      "exposures": [
+        {
+          "allocation": "fallback",
+          "flag": "dependent-inapplicable-rule-root",
+          "variant": "fallback"
+        }
+      ],
+      "evaluationEvents": [
+        {
+          "flag": "dependent-leaf-on",
+          "errorCode": null
+        },
+        {
+          "flag": "dependent-inapplicable-rule-root",
+          "errorCode": null
+        }
+      ],
+      "noUnmatchedEvents": true
+    }
+  },
+  {
+    "description": "When every condition matches, the selected rule retains both the prerequisite and root exposures.",
+    "attributes": {
+      "gate": "open"
+    },
+    "defaultValue": "caller-default",
+    "flag": "dependent-inapplicable-rule-root",
+    "result": {
+      "reason": "TARGETING_MATCH",
+      "value": "inapplicable-rule-match"
+    },
+    "targetingKey": "dependent-applicable-rule",
+    "variationType": "STRING",
+    "expectations": {
+      "exposures": [
+        {
+          "flag": "dependent-leaf-on"
+        },
+        {
+          "allocation": "prerequisite-before-false-condition",
+          "flag": "dependent-inapplicable-rule-root",
+          "variant": "matched"
+        }
+      ],
+      "evaluationEvents": [
+        {
+          "flag": "dependent-leaf-on",
+          "errorCode": null
+        },
+        {
+          "flag": "dependent-inapplicable-rule-root",
+          "errorCode": null
+        }
+      ],
+      "noUnmatchedEvents": true
+    }
+  },
+  {
+    "description": "A prerequisite first used by a rejected rule remains eligible for one exposure when a later selected rule reuses it.",
+    "attributes": {
+      "gate": "closed"
+    },
+    "defaultValue": "caller-default",
+    "flag": "dependent-reuse-after-rejection-root",
+    "result": {
+      "reason": "TARGETING_MATCH",
+      "value": "reuse-after-rejection-match"
+    },
+    "targetingKey": "dependent-reuse-after-rejection",
+    "variationType": "STRING",
+    "expectations": {
+      "exposures": [
+        {
+          "_count": 1,
+          "flag": "dependent-leaf-on"
+        },
+        {
+          "allocation": "selected-reuse",
+          "flag": "dependent-reuse-after-rejection-root",
+          "variant": "matched"
+        }
+      ],
+      "evaluationEvents": [
+        {
+          "_count": 1,
+          "flag": "dependent-leaf-on",
+          "errorCode": null
+        },
+        {
+          "flag": "dependent-reuse-after-rejection-root",
+          "errorCode": null
+        }
+      ],
+      "noUnmatchedEvents": true
+    }
+  },
+  {
+    "description": "When a later condition rejects a rule after a transitive dependency succeeds, neither the parent nor leaf exposure remains eligible.",
+    "attributes": {
+      "gate": "closed"
+    },
+    "defaultValue": "caller-default",
+    "flag": "dependent-transitive-inapplicable-rule-root",
+    "result": {
+      "reason": "STATIC",
+      "value": "transitive-inapplicable-fallback"
+    },
+    "targetingKey": "dependent-transitive-inapplicable-rule",
+    "variationType": "STRING",
+    "expectations": {
+      "exposures": [
+        {
+          "allocation": "fallback",
+          "flag": "dependent-transitive-inapplicable-rule-root",
+          "variant": "fallback"
+        }
+      ],
+      "evaluationEvents": [
+        {
+          "flag": "dependent-leaf-on",
+          "errorCode": null
+        },
+        {
+          "flag": "dependent-transitive-parent",
+          "errorCode": null
+        },
+        {
+          "flag": "dependent-transitive-inapplicable-rule-root",
           "errorCode": null
         }
       ],
