@@ -50,7 +50,7 @@ from utils.interfaces._library.core import LibraryInterfaceValidator
 from utils.interfaces import StdoutLogsInterface, LibraryStdoutInterface
 
 # fake key of length 32
-_FAKE_DD_API_KEY = "0123456789abcdef0123456789abcdef"
+FAKE_DD_API_KEY = "0123456789abcdef0123456789abcdef"
 
 _DEFAULT_NETWORK_NAME = "system-tests_default"
 _NETWORK_NAME = "bridge" if "GITLAB_CI" in os.environ else _DEFAULT_NETWORK_NAME
@@ -674,7 +674,7 @@ class ProxyContainer(TestedContainer):
             name="proxy",
             environment={
                 "DD_SITE": os.environ.get("DD_SITE"),
-                "DD_API_KEY": os.environ.get("DD_API_KEY", _FAKE_DD_API_KEY),
+                "DD_API_KEY": os.environ.get("DD_API_KEY"),
                 "DD_APP_KEY": os.environ.get("DD_APP_KEY"),
                 "SYSTEM_TESTS_IPV6": str(enable_ipv6),
                 "SYSTEM_TESTS_MOCKED_BACKEND": str(mocked_backend),
@@ -805,6 +805,17 @@ class LambdaProxyContainer(TestedContainer):
         logger.stdout(f"Proxied event type: {self.environment.get('LAMBDA_EVENT_TYPE')}")
 
 
+def _add_environment_extra_hosts(container: TestedContainer) -> None:
+    """Map host.docker.internal when the container's environment points to it. Done right before the
+    container starts, as scenarios may still update the environment after it is instantiated (e.g. to
+    point it to a mocked backend). On Linux docker hosts, host.docker.internal only resolves with it.
+    """
+    container.extra_hosts = {
+        **(container.extra_hosts or {}),
+        **(extra_hosts_for_environment(container.environment) or {}),
+    } or None
+
+
 class AgentContainer(TestedContainer):
     apm_receiver_port: int = 8127
     dogstatsd_port: int = 8125
@@ -813,6 +824,7 @@ class AgentContainer(TestedContainer):
     def __init__(
         self,
         *,
+        dd_api_key: str,
         use_proxy: bool = True,
         rc_backend_enabled: bool = False,
         environment: dict[str, str | None] | None = None,
@@ -825,7 +837,7 @@ class AgentContainer(TestedContainer):
                 "DD_SITE": self.dd_site,
                 "DD_APM_RECEIVER_PORT": str(self.apm_receiver_port),
                 "DD_DOGSTATSD_PORT": str(self.dogstatsd_port),
-                "DD_API_KEY": os.environ.get("DD_API_KEY", _FAKE_DD_API_KEY),
+                "DD_API_KEY": dd_api_key,
             }
         )
 
@@ -849,7 +861,6 @@ class AgentContainer(TestedContainer):
             image_name="datadog/agent:latest",
             binary_file_name="agent-image",
             environment=environment,
-            extra_hosts=extra_hosts_for_environment(environment),
             healthcheck={
                 "test": f"curl --fail --silent --show-error --max-time 2 http://localhost:{self.apm_receiver_port}/info",
                 "retries": 60,
@@ -874,6 +885,10 @@ class AgentContainer(TestedContainer):
         logger.stdout(f"Agent: {self.agent_version}")
         logger.stdout(f"Backend: {self.dd_site}")
 
+    def start(self, network: Network) -> Container:
+        _add_environment_extra_hosts(self)
+        return super().start(network)
+
     @property
     def dd_site(self):
         return os.environ.get("DD_SITE", "datad0g.com")
@@ -890,7 +905,7 @@ class ServerlessInitContainer(TestedContainer):
             name="ffe-serverless-init",
             image_name="datadog/serverless-init:1.10.4",
             environment={
-                "DD_API_KEY": _FAKE_DD_API_KEY,
+                "DD_API_KEY": FAKE_DD_API_KEY,
                 "DD_SITE": "mock-intake.invalid",
                 "DD_SERVICE": "ffe-system-tests-serverless-init",
                 "DD_ENV": "system-tests",
@@ -1068,7 +1083,6 @@ class WeblogContainer(TestedContainer):
             image_name="system_tests/weblog",
             name="weblog",
             environment=environment,
-            extra_hosts=extra_hosts_for_environment(environment),
             volumes=volumes,
             # ddprof's perf event open is blocked by default by docker's seccomp profile
             # This is worse than the line above though prevents mmap bugs locally
@@ -1091,6 +1105,10 @@ class WeblogContainer(TestedContainer):
 
         self.weblog_variant = ""
         self._library: ComponentVersion | None = None
+
+    def start(self, network: Network) -> Container:
+        _add_environment_extra_hosts(self)
+        return super().start(network)
 
     @property
     def trace_agent_port(self):
@@ -1292,8 +1310,8 @@ class LambdaWeblogContainer(WeblogContainer):
     ):
         environment = (environment or {}) | {
             "DD_HOSTNAME": "test",
-            "DD_SITE": os.environ.get("DD_SITE", "datad0g.com"),
-            "DD_API_KEY": os.environ.get("DD_API_KEY", _FAKE_DD_API_KEY),
+            "DD_SITE": "datad0g.com",
+            "DD_API_KEY": FAKE_DD_API_KEY,
             "DD_SERVERLESS_FLUSH_STRATEGY": "periodically,100",
             "DD_TRACE_MANAGED_SERVICES": str(trace_managed_services).lower(),
         }

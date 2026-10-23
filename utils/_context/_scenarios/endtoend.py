@@ -22,11 +22,11 @@ from utils._context.containers import (
     BuddyContainer,
     MsSqlServerContainer,
     TestedContainer,
+    FAKE_DD_API_KEY,
 )
 from utils._context.weblog_infrastructure import EndToEndWeblogInfra
 from utils._context.constants import WeblogCategory
 from utils._logger import logger
-from utils.mocked_backend.backend_v2 import get_mocked_backend_v2_container_url
 
 from .core import Scenario, ScenarioGroup, scenario_groups as all_scenario_groups
 
@@ -275,14 +275,14 @@ class EndToEndScenario(DockerScenario):
                 "traffic to both the proxy and the mocked backend. Set use_proxy_for_agent=False."
             )
 
-        if mocked_backend_v2:
-            agent_env = dict(agent_env) if agent_env else {}
-            mocked_backend_url = get_mocked_backend_v2_container_url()
-            agent_env.setdefault("DD_DD_URL", mocked_backend_url)
-            agent_env.setdefault("DD_APM_DD_URL", mocked_backend_url)
+        self.dd_api_key = FAKE_DD_API_KEY if mocked_backend_v2 else os.environ.get("DD_API_KEY", FAKE_DD_API_KEY)
+        """The API key used by the agent to send data to the backend"""
 
         self.agent_container = AgentContainer(
-            use_proxy=use_proxy_for_agent, rc_backend_enabled=rc_backend_enabled, environment=agent_env
+            dd_api_key=self.dd_api_key,
+            use_proxy=use_proxy_for_agent,
+            rc_backend_enabled=rc_backend_enabled,
+            environment=agent_env,
         )
         if include_agent:
             self._containers.append(self.agent_container)
@@ -358,6 +358,11 @@ class EndToEndScenario(DockerScenario):
             interfaces.backend_v2.configure(self.host_log_folder, replay=self.replay)
             if not self.replay:
                 interfaces.backend_v2.start_mocked_backend()
+                if self.include_agent:
+                    mocked_backend_url = interfaces.backend_v2.server.container_url
+                    self.agent_container.environment.setdefault("DD_DD_URL", mocked_backend_url)
+                    self.agent_container.environment.setdefault("DD_APM_DD_URL", mocked_backend_url)
+
         interfaces.library_dotnet_managed.configure(self.host_log_folder, replay=self.replay)
         interfaces.library_stdout.configure(self.host_log_folder, replay=self.replay)
         if self.include_agent:
@@ -406,7 +411,13 @@ class EndToEndScenario(DockerScenario):
             super().close_targets()
         finally:
             if self._mocked_backend_v2:
-                interfaces.backend_v2.stop_mocked_backend()
+                self._stop_mocked_backend_v2()
+
+    def _stop_mocked_backend_v2(self) -> None:
+        """Called once the targets are closed. Subclasses can extend it to read the mocked backend
+        state before it stops.
+        """
+        interfaces.backend_v2.stop_mocked_backend()
 
     def _set_containers_dependancies(self) -> None:
         if self._use_proxy_for_agent:

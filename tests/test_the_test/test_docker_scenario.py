@@ -4,8 +4,12 @@ from unittest.mock import MagicMock
 from utils import pytest
 
 from utils import interfaces, scenarios
+from utils._context._scenarios import endtoend as endtoend_scenarios
 from utils._context._scenarios.endtoend import DdTraceEndToEndScenario, DockerScenario
 from utils._context.containers import TestedContainer as _TestedContainer
+from utils.docker_fixtures._core import HOST_GATEWAY_EXTRA_HOSTS
+
+from .utils import extra_hosts_at_start
 
 
 class FakeContainer(_TestedContainer):
@@ -134,3 +138,31 @@ def test_end_to_end_scenario_only_flushes_agent_backed_non_empty_test_runs(
     )
 
     scenario.weblog_infra.stop.assert_called_once_with(flush=flush)
+
+
+@scenarios.test_the_test
+def test_mocked_backend_v2_agent_can_reach_the_mocked_backend(monkeypatch: pytest.MonkeyPatch) -> None:
+    scenario = DdTraceEndToEndScenario(
+        "FAKE_MOCKED_BACKEND_V2", doc="", mocked_backend_v2=True, use_proxy_for_agent=False
+    )
+    scenario.replay = False
+    scenario.weblog_infra = MagicMock()
+    monkeypatch.setattr(DockerScenario, "configure", MagicMock())
+
+    fake_interfaces = MagicMock()
+    fake_interfaces.backend_v2.server.container_url = "http://host.docker.internal:4900"
+    monkeypatch.setattr(endtoend_scenarios, "interfaces", fake_interfaces)
+
+    scenario.configure(MagicMock(spec=pytest.Config))
+
+    agent = scenario.agent_container
+    assert agent.environment["DD_DD_URL"] == "http://host.docker.internal:4900"
+    assert agent.environment["DD_APM_DD_URL"] == "http://host.docker.internal:4900"
+    # without it, host.docker.internal does not resolve on Linux docker hosts
+    assert extra_hosts_at_start(monkeypatch, agent) == HOST_GATEWAY_EXTRA_HOSTS
+
+
+@scenarios.test_the_test
+def test_agent_without_host_docker_internal_has_no_extra_hosts(monkeypatch: pytest.MonkeyPatch) -> None:
+    scenario = DdTraceEndToEndScenario("FAKE_NO_MOCKED_BACKEND", doc="", use_proxy_for_agent=False)
+    assert extra_hosts_at_start(monkeypatch, scenario.agent_container) is None
