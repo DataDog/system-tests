@@ -42,3 +42,14 @@ def _create_nested_object(max_level, level=1):
     if level == max_level:
         return NestedObject(level)
     return NestedObject(level, _create_nested_object(max_level, level + 1))
+
+
+def generate_nested_collection(collection_size, nesting_depth):
+    """Generate a collection of nested objects that is expensive to capture (tests capture timeout)"""
+    collection = []
+    for index in range(collection_size):
+        nested = NestedObject(index)
+        for level in range(nesting_depth, 0, -1):
+            nested = NestedObject(level, nested)
+        collection.append(nested)
+    return collection

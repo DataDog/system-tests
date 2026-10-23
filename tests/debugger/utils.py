@@ -212,7 +212,7 @@ class BaseDebuggerTest:
             "CollectionOperations": {"java": [116], "dotnet": [116], "python": [125], "ruby": [162], "nodejs": [120]},
             "Nulls": {"java": [132], "dotnet": [129], "python": [138], "ruby": [192], "nodejs": [126]},
             "SnapshotLimits": {"java": [155], "python": [174], "nodejs": [136], "ruby": [233], "dotnet": [152]},
-            "CaptureTimeout": {"java": [174], "nodejs": [159], "dotnet": [173]},
+            "CaptureTimeout": {"java": [174], "nodejs": [159], "dotnet": [173], "python": [183]},
             # Lines the probed methods of the correlation endpoint return on, for tracers without method probes
             "Correlation": {"nodejs": [178]},
             "CorrelationMiddle": {"nodejs": [184]},
