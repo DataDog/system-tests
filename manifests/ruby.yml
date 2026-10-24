@@ -2152,11 +2152,69 @@ manifest:
     - weblog_declaration:
         "*": irrelevant
         rails72: v2.23.0-dev
-  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Appears: missing_feature (EX-3417)
-  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Cycle: missing_feature (EX-3417)
-  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Disappears: missing_feature (EX-3417)
-  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Serial_Id: missing_feature (EX-3417)
-  tests/ffe/test_flag_eval_evp.py: missing_feature (FFL-2446)
+  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Appears:  # TODO: a lower version might be supported
+    - declaration: missing_feature (EX-3417)
+      component_version: <2.46.0
+      weblog: [rails72]
+    - declaration: missing_feature (EX-3417)
+      excluded_weblog: [rails72]
+  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Cycle:  # TODO: a lower version might be supported
+    - declaration: missing_feature (EX-3417)
+      component_version: <2.46.0
+      weblog: [rails72]
+    - declaration: missing_feature (EX-3417)
+      excluded_weblog: [rails72]
+  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Disappears:  # TODO: a lower version might be supported
+    - declaration: missing_feature (EX-3417)
+      component_version: <2.46.0
+      weblog: [rails72]
+    - declaration: missing_feature (EX-3417)
+      excluded_weblog: [rails72]
+  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Serial_Id:  # TODO: a lower version might be supported
+    - declaration: missing_feature (EX-3417)
+      component_version: <2.46.0
+      weblog: [rails72]
+    - declaration: missing_feature (EX-3417)
+      excluded_weblog: [rails72]
+  tests/ffe/test_flag_eval_evp.py:  # TODO: a lower version might be supported
+    - declaration: missing_feature (FFL-2446)
+      component_version: <2.46.0
+      weblog: [rails72]
+    - declaration: missing_feature (FFL-2446)
+      excluded_weblog: [rails72]
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Basic:
+    - weblog_declaration:
+        rails72: missing_feature (FFL-2446)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Burst_Aggregation:
+    - weblog_declaration:
+        rails72: missing_feature (FFL-2446)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Context_Bounds:
+    - weblog_declaration:
+        rails72: missing_feature (FFL-2446)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Count:
+    - weblog_declaration:
+        rails72: missing_feature (FFL-2446)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Degradation:
+    - weblog_declaration:
+        rails72: missing_feature (FFL-2446)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_High_Cardinality_Aggregation:
+    - weblog_declaration:
+        rails72: missing_feature (FFL-2446)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Load_Aggregation:
+    - weblog_declaration:
+        rails72: missing_feature (FFL-2446)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_ObserveFullData_Absent_Hashed:
+    - weblog_declaration:
+        rails72: missing_feature (FFL-2446)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_ObserveFullData_False_Hashed:
+    - weblog_declaration:
+        rails72: missing_feature (FFL-2446)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_ObserveFullData_True_Unhashed:
+    - weblog_declaration:
+        rails72: missing_feature (FFL-2446)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Runtime_Default:
+    - weblog_declaration:
+        rails72: missing_feature (FFL-2446)
   tests/ffe/test_flag_eval_metrics.py:
     - weblog_declaration:
         "*": irrelevant
@@ -2688,7 +2746,8 @@ manifest:
   tests/parametric/test_ffe/test_configuration_sources.py: v2.46.0-dev
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v2.23.0
   tests/parametric/test_ffe/test_serial_id_metadata.py: missing_feature
-  tests/parametric/test_ffe/test_span_enrichment.py: missing_feature
+  tests/parametric/test_ffe/test_span_enrichment.py: '>=2.46.0'  # TODO: a lower version might be supported
+  tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Default_Fallback: missing_feature
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_extract_invalid:  # Easy win for all weblogs and version 2.27.0
     - declaration: missing_feature (Missing for 2.x)
       component_version: '>1.99.0'
