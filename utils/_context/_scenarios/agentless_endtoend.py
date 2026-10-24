@@ -14,7 +14,7 @@ from utils._context.containers import ServerlessInitContainer, TestedContainer
 from utils._context.docker import get_docker_client
 from utils._logger import logger
 from utils._weblog import weblog
-from utils.mocked_backend.ffe import MockedBackendFFEStatus
+from utils.mocked_backend.ffe import MockedBackendFFEStatus, ffe_library_config_url
 from utils.proxy.ports import ProxyPorts
 
 from .core import ScenarioGroup, scenario_groups as all_scenario_groups
@@ -90,6 +90,14 @@ class AgentlessEndToEndScenario(DdTraceEndToEndScenario):
             mocked_backend_v2=True,
         )
 
+        # The tested library fetches its agentless configuration from the mocked backend container
+        self.weblog_infra.library_container.environment |= {
+            "DD_API_KEY": self.dd_api_key,
+            "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL": ffe_library_config_url(
+                self.mocked_backend_container.container_url
+            ),
+        }
+
     def configure(self, config: pytest.Config) -> None:
         if self.replay:
             self._load_mock_backend_status()
@@ -98,25 +106,15 @@ class AgentlessEndToEndScenario(DdTraceEndToEndScenario):
 
         super().configure(config)
 
-        if not self.replay:
-            self._point_weblog_to_mocked_backend()
-
-    def _point_weblog_to_mocked_backend(self) -> None:
-        """Make the tested library fetch its agentless configuration from the mocked backend, started
-        by the parent scenario (mocked_backend_v2).
-        """
-        environment = self.weblog_infra.library_container.environment
-        environment |= {
-            "DD_API_KEY": self.dd_api_key,
-            "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL": (
-                interfaces.backend_v2.server.ffe_library_config_url
-            ),
-        }
-
     def mock_backend_status(self) -> MockedBackendFFEStatus | None:
-        if interfaces.backend_v2.is_mocked_backend_running:
-            return interfaces.backend_v2.server.client.ffe_get_status()
-        return self._last_mock_backend_status
+        """The mocked backend counters: live while it runs, then as persisted when it stopped.
+
+        TODO : remove this, it's not the good pattern. Either we need to call the client in setup method,
+        or the interface in test methods.
+        """
+        if self._last_mock_backend_status is not None:
+            return self._last_mock_backend_status
+        return self.mocked_backend_container.client.ffe_get_status()
 
     @property
     def _mock_backend_status_path(self) -> Path:
@@ -130,14 +128,15 @@ class AgentlessEndToEndScenario(DdTraceEndToEndScenario):
 
     def _stop_mocked_backend_v2(self) -> None:
         # The mocked backend counters are not recorded as interface data: persist them for replay
+        # TODO : remove this, as it will strongly depends on test order.
+        # Either we need to call the client in setup method, or the interface in test methods.
         try:
-            if interfaces.backend_v2.is_mocked_backend_running:
-                self._last_mock_backend_status = interfaces.backend_v2.server.client.ffe_get_status()
-                self._mock_backend_status_path.parent.mkdir(parents=True, exist_ok=True)
-                self._mock_backend_status_path.write_text(
-                    json.dumps(self._last_mock_backend_status, indent=2) + "\n",
-                    encoding="utf-8",
-                )
+            self._last_mock_backend_status = self.mocked_backend_container.client.ffe_get_status()
+            self._mock_backend_status_path.parent.mkdir(parents=True, exist_ok=True)
+            self._mock_backend_status_path.write_text(
+                json.dumps(self._last_mock_backend_status, indent=2) + "\n",
+                encoding="utf-8",
+            )
         finally:
             super()._stop_mocked_backend_v2()
 
