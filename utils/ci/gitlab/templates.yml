@@ -10,7 +10,7 @@ spec:
 .system_tests_base:
   image: $CI_IMAGE
   tags:
-    - docker-in-docker:amd64
+    - docker-in-docker:arm64
   variables:
     GIT_STRATEGY: none
     # In DinD, DOCKER_HOST is set to tcp://docker:2376 which causes _Weblog to
