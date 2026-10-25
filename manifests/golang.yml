@@ -2273,7 +2273,7 @@ manifest:
   tests/parametric/test_otel_logs.py::Test_FR09_Log_Injection: '>=2.10.1'  # Created by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR10_Timeout_Configuration: missing_feature  # Created by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR11_Telemetry: '>=2.10.1'  # Created by easy win activation script
-  tests/parametric/test_otel_logs.py::Test_FR11_Telemetry::test_telemetry_exporter_configurations: missing_feature
+  tests/parametric/test_otel_logs.py::Test_FR11_Telemetry::test_telemetry_exporter_configurations: '>=2.11.2'  # TODO: a lower version might be supported
   tests/parametric/test_otel_logs.py::Test_FR11_Telemetry::test_telemetry_exporter_logs_configurations: missing_feature
   tests/parametric/test_otel_logs.py::Test_FR12_Log_Levels: '>=2.10.1'  # Created by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields: '>=2.10.1'  # Created by easy win activation script
