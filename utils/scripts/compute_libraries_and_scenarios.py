@@ -29,8 +29,8 @@ scenario_names = {scenario.name for scenario in get_all_scenarios()}
 LIBRARIES = COMPONENT_GROUPS.all - COMPONENT_GROUPS.otel
 OTEL_LIBRARIES = COMPONENT_GROUPS.otel - {"nodejs_otel"}  # nodejs_otel intentionally excluded
 ALL_LIBRARIES = LIBRARIES | OTEL_LIBRARIES
-GITHUB_EXCLUDED_LIBRARIES = {"c"}
-GITLAB_PR_LIBRARIES = {"c"}
+GITHUB_EXCLUDED_LIBRARIES = {"c", "php"}
+GITLAB_PR_LIBRARIES = {"c", "php"}
 GITLAB_MAIN = {"python"}
 
 
