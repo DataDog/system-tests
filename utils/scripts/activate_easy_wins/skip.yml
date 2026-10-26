@@ -1,8 +1,5 @@
 "*":
   - tests/parametric/test_crashtracking.py::Test_Crashtracking::test_disable_crashtracking
-  # A tracer without extra_tags support also ignores a malformed payload, so these pass vacuously
-  - tests/ai_guard/test_ai_guard_sdk.py::Test_ExtraTagsFailSafe::test_extra_tags_not_an_object
-  - tests/ai_guard/test_ai_guard_sdk.py::Test_ExtraTagsFailSafe::test_extra_tags_array
 
 "nodejs":
   - tests/test_telemetry.py::Test_DependencyEnable::test_app_dependency_loaded_not_sent_dependency_collection_disabled

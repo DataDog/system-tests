@@ -15,8 +15,8 @@
   },
   "headers": {
    "content-type": "application/vnd.api+json",
-   "content-length": "551"
+   "content-length": "654"
   },
-  "body": "{\"data\": {\"id\": \"extra-tags-fixture\", \"type\": \"evaluations\", \"attributes\": {\"action\": \"ALLOW\", \"is_blocking_enabled\": true, \"reason\": \"No rule match.\", \"sds_findings\": [], \"tag_probs\": {\"authority-override\": 0.0, \"data-exfiltration\": 0.0, \"denial-of-service-tool-call\": 0.0, \"destructive-tool-call\": 0.0, \"indirect-prompt-injection\": 0.0, \"instruction-override\": 0.0, \"jailbreak\": 0.0, \"obfuscation\": 0.0, \"role-play\": 0.0, \"security-exploit\": 0.0, \"system-prompt-extraction\": 0.0}, \"tags\": [], \"extra_tags\": \"ai_guard.policy_name=newsroom-default\"}}}"
+  "body": "{\"data\": {\"id\": \"a8524c91-cec1-5ee6-812f-bd3b4fefae2b\", \"type\": \"evaluations\", \"attributes\": {\"action\": \"ALLOW\", \"is_blocking_enabled\": true, \"reason\": \"No rule match.\", \"sds_findings\": [], \"tag_probs\": {\"authority-override\": 0.0, \"data-exfiltration\": 0.0, \"denial-of-service-tool-call\": 0.0, \"destructive-tool-call\": 0.0, \"indirect-prompt-injection\": 0.0, \"instruction-override\": 0.0, \"jailbreak\": 0.0, \"obfuscation\": 0.0, \"role-play\": 0.0, \"security-exploit\": 0.0, \"system-prompt-extraction\": 0.0}, \"tags\": [], \"extra_tags\": {\"ai_guard.policy_name\": \"newsroom-default\"}, \"extra_metastruct\": [{\"key\": \"policy\", \"value\": {\"name\": \"newsroom-default\"}}]}}}"
  }
 }

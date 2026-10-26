@@ -1,5 +1,6 @@
 {
-  "EXTRA_TAGS_SCALARS": {
+  "EXTRA_TAGS": {
+    "evaluation_id": "13c92662-52c8-5959-8fec-fb7d6bb5b5d0",
     "messages": [
       {
         "role": "user",
@@ -8,16 +9,26 @@
     ],
     "action": "ALLOW",
     "tags": [],
-    "extra_tags": {
+    "extra_tags": [
+      {
+        "key": "ai_guard.policy_name",
+        "value": "newsroom-default"
+      },
+      {
+        "key": "ai_guard.policy_revision",
+        "value": "7"
+      }
+    ],
+    "expected_tags": {
       "ai_guard.policy_name": "newsroom-default",
-      "ai_guard.policy_revision": 7,
-      "ai_guard.policy_score": 0.25,
-      "ai_guard.policy_matched": true,
-      "ai_guard.policy_cached": false
+      "ai_guard.policy_revision": "7"
     },
+    "expected_metastruct": {},
+    "skipped_tags": [],
     "cassette": "aiguard_evaluate_post_f0ef2bd8.json"
   },
-  "EXTRA_TAGS_STRUCTURED": {
+  "EXTRA_METASTRUCT": {
+    "evaluation_id": "73606e72-26b6-52f8-8652-7f321db98dda",
     "messages": [
       {
         "role": "user",
@@ -26,31 +37,56 @@
     ],
     "action": "ALLOW",
     "tags": [],
-    "extra_tags": {
-      "ai_guard.request_context": {
+    "extra_metastruct": [
+      {
+        "key": "request_context",
+        "value": {
+          "desk": "metro",
+          "region": "us-east",
+          "priority": 2
+        }
+      },
+      {
+        "key": "matched_rules",
+        "value": [
+          "style-guide",
+          "embargo-check"
+        ]
+      },
+      {
+        "key": "policy_rules",
+        "value": [
+          {
+            "id": "sourcing",
+            "enabled": true
+          },
+          {
+            "id": "attribution",
+            "enabled": false
+          }
+        ]
+      },
+      {
+        "key": "policy_score",
+        "value": 0.25
+      },
+      {
+        "key": "policy_name",
+        "value": "newsroom-default"
+      }
+    ],
+    "expected_tags": {},
+    "expected_metastruct": {
+      "request_context": {
         "desk": "metro",
         "region": "us-east",
         "priority": 2
       },
-      "ai_guard.matched_rules": [
+      "matched_rules": [
         "style-guide",
         "embargo-check"
-      ]
-    },
-    "cassette": "aiguard_evaluate_post_827d1449.json"
-  },
-  "EXTRA_TAGS_MIXED": {
-    "messages": [
-      {
-        "role": "user",
-        "content": "Which sources did the election explainer cite?"
-      }
-    ],
-    "action": "ALLOW",
-    "tags": [],
-    "extra_tags": {
-      "ai_guard.policy_name": "elections-2026",
-      "ai_guard.policy_rules": [
+      ],
+      "policy_rules": [
         {
           "id": "sourcing",
           "enabled": true
@@ -59,11 +95,60 @@
           "id": "attribution",
           "enabled": false
         }
-      ]
+      ],
+      "policy_score": 0.25,
+      "policy_name": "newsroom-default"
     },
+    "skipped_tags": [],
+    "cassette": "aiguard_evaluate_post_827d1449.json"
+  },
+  "EVALUATE_ID": {
+    "evaluation_id": "9c9036fc-d7a1-5d5e-bcb3-7d62cc9fa218",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Which sources did the election explainer cite?"
+      }
+    ],
+    "action": "ALLOW",
+    "tags": [],
+    "extra_tags": [
+      {
+        "key": "ai_guard.evaluate_id",
+        "value": "9c9036fc-d7a1-5d5e-bcb3-7d62cc9fa218"
+      },
+      {
+        "key": "ai_guard.policy_name",
+        "value": "elections-2026"
+      }
+    ],
+    "extra_metastruct": [
+      {
+        "key": "evaluate_id",
+        "value": "9c9036fc-d7a1-5d5e-bcb3-7d62cc9fa218"
+      },
+      {
+        "key": "policy",
+        "value": {
+          "name": "elections-2026"
+        }
+      }
+    ],
+    "expected_tags": {
+      "ai_guard.evaluate_id": "9c9036fc-d7a1-5d5e-bcb3-7d62cc9fa218",
+      "ai_guard.policy_name": "elections-2026"
+    },
+    "expected_metastruct": {
+      "evaluate_id": "9c9036fc-d7a1-5d5e-bcb3-7d62cc9fa218",
+      "policy": {
+        "name": "elections-2026"
+      }
+    },
+    "skipped_tags": [],
     "cassette": "aiguard_evaluate_post_2b336647.json"
   },
-  "EXTRA_TAGS_UNPREFIXED_KEY": {
+  "KEYS_VERBATIM": {
+    "evaluation_id": "92a51623-de7f-5850-8f99-2a91d343bc0a",
     "messages": [
       {
         "role": "user",
@@ -72,15 +157,33 @@
     ],
     "action": "ALLOW",
     "tags": [],
-    "extra_tags": {
-      "custom_context.tenant": "newsroom",
-      "custom_context.audit": {
+    "extra_tags": [
+      {
+        "key": "custom_context.tenant",
+        "value": "newsroom"
+      }
+    ],
+    "extra_metastruct": [
+      {
+        "key": "audit",
+        "value": {
+          "ticket": "CTX-42"
+        }
+      }
+    ],
+    "expected_tags": {
+      "custom_context.tenant": "newsroom"
+    },
+    "expected_metastruct": {
+      "audit": {
         "ticket": "CTX-42"
       }
     },
+    "skipped_tags": [],
     "cassette": "aiguard_evaluate_post_354106da.json"
   },
-  "EXTRA_TAGS_ON_DENY": {
+  "ON_DENY": {
+    "evaluation_id": "55e3505d-93eb-5171-8166-90c709865d83",
     "messages": [
       {
         "role": "user",
@@ -103,16 +206,45 @@
     "tags": [
       "destructive-tool-call"
     ],
-    "extra_tags": {
-      "ai_guard.policy_name": "destructive-actions",
-      "ai_guard.policy_details": {
+    "extra_tags": [
+      {
+        "key": "ai_guard.evaluate_id",
+        "value": "55e3505d-93eb-5171-8166-90c709865d83"
+      },
+      {
+        "key": "ai_guard.policy_name",
+        "value": "destructive-actions"
+      }
+    ],
+    "extra_metastruct": [
+      {
+        "key": "evaluate_id",
+        "value": "55e3505d-93eb-5171-8166-90c709865d83"
+      },
+      {
+        "key": "policy_details",
+        "value": {
+          "rule": "no-recursive-delete",
+          "severity": "high"
+        }
+      }
+    ],
+    "expected_tags": {
+      "ai_guard.evaluate_id": "55e3505d-93eb-5171-8166-90c709865d83",
+      "ai_guard.policy_name": "destructive-actions"
+    },
+    "expected_metastruct": {
+      "evaluate_id": "55e3505d-93eb-5171-8166-90c709865d83",
+      "policy_details": {
         "rule": "no-recursive-delete",
         "severity": "high"
       }
     },
+    "skipped_tags": [],
     "cassette": "aiguard_evaluate_post_28917f95.json"
   },
-  "EXTRA_TAGS_NOT_AN_OBJECT": {
+  "EXTRA_TAGS_NOT_A_LIST": {
+    "evaluation_id": "a8524c91-cec1-5ee6-812f-bd3b4fefae2b",
     "messages": [
       {
         "role": "user",
@@ -121,10 +253,30 @@
     ],
     "action": "ALLOW",
     "tags": [],
-    "extra_tags": "ai_guard.policy_name=newsroom-default",
+    "extra_tags": {
+      "ai_guard.policy_name": "newsroom-default"
+    },
+    "extra_metastruct": [
+      {
+        "key": "policy",
+        "value": {
+          "name": "newsroom-default"
+        }
+      }
+    ],
+    "expected_tags": {},
+    "expected_metastruct": {
+      "policy": {
+        "name": "newsroom-default"
+      }
+    },
+    "skipped_tags": [
+      "ai_guard.policy_name"
+    ],
     "cassette": "aiguard_evaluate_post_e2c13e67.json"
   },
-  "EXTRA_TAGS_ARRAY": {
+  "EXTRA_METASTRUCT_NOT_A_LIST": {
+    "evaluation_id": "e72731f7-4c56-56b4-95a9-ed8d009cebcb",
     "messages": [
       {
         "role": "user",
@@ -135,9 +287,102 @@
     "tags": [],
     "extra_tags": [
       {
-        "ai_guard.policy_name": "newsroom-default"
+        "key": "ai_guard.policy_name",
+        "value": "newsroom-default"
       }
     ],
+    "extra_metastruct": {
+      "policy": {
+        "name": "newsroom-default"
+      }
+    },
+    "expected_tags": {
+      "ai_guard.policy_name": "newsroom-default"
+    },
+    "expected_metastruct": {},
+    "skipped_tags": [],
     "cassette": "aiguard_evaluate_post_bf6868f9.json"
+  },
+  "MALFORMED_ENTRIES": {
+    "evaluation_id": "f55f1430-86f7-5441-96b5-9938f4a10261",
+    "messages": [
+      {
+        "role": "user",
+        "content": "When does the weekend magazine go to print?"
+      }
+    ],
+    "action": "ALLOW",
+    "tags": [],
+    "extra_tags": [
+      "ai_guard.policy_name=newsroom-default",
+      [
+        "ai_guard.policy_name",
+        "newsroom-default"
+      ],
+      {
+        "value": "missing key"
+      },
+      {
+        "key": 1,
+        "value": "integer key"
+      },
+      {
+        "key": "",
+        "value": "empty key"
+      },
+      {
+        "key": "ai_guard.policy_revision",
+        "value": 7
+      },
+      {
+        "key": "ai_guard.policy_details",
+        "value": {
+          "rule": "embargo-check"
+        }
+      },
+      {
+        "key": "ai_guard.policy_name",
+        "value": "newsroom-default"
+      }
+    ],
+    "extra_metastruct": [
+      "policy=newsroom-default",
+      {
+        "value": {
+          "name": "missing key"
+        }
+      },
+      {
+        "key": 1,
+        "value": {
+          "name": "integer key"
+        }
+      },
+      {
+        "key": "",
+        "value": {
+          "name": "empty key"
+        }
+      },
+      {
+        "key": "policy",
+        "value": {
+          "name": "newsroom-default"
+        }
+      }
+    ],
+    "expected_tags": {
+      "ai_guard.policy_name": "newsroom-default"
+    },
+    "expected_metastruct": {
+      "policy": {
+        "name": "newsroom-default"
+      }
+    },
+    "skipped_tags": [
+      "ai_guard.policy_revision",
+      "ai_guard.policy_details"
+    ],
+    "cassette": "aiguard_evaluate_post_19cfc9ce.json"
   }
 }
