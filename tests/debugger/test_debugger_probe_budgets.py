@@ -5,7 +5,7 @@
 import time
 import tests.debugger.utils as debugger
 
-from utils import slow, scenarios, features, bug, context
+from utils import slow, scenarios, features
 
 
 @features.debugger_probe_budgets
@@ -140,7 +140,6 @@ class Test_Debugger_Probe_Budgets(debugger.BaseDebuggerTest):
         # Allow time for the agent to receive data after the last request
         time.sleep(2)
 
-    @bug(context.library == "java", reason="DEBUG-3797")
     def test_span_probe_expression_budgets(self):
         self.collect()
         self.assert_setup_ok()
