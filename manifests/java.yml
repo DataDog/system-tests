@@ -2229,6 +2229,7 @@ manifest:
     - weblog_declaration:
         akka-http: bug (APPSEC-54985)
         spring-boot-payara: bug (APPSEC-54985)
+  tests/appsec/test_blocking_otel_semantics.py: missing_feature (OTLP export of OTel HTTP semantics not implemented)
   tests/appsec/test_client_ip.py::Test_StandardTagsClientIp: v0.114.0
   tests/appsec/test_conf.py::Test_ConfigurationVariables:
     - weblog_declaration:

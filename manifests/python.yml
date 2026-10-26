@@ -1410,6 +1410,16 @@ manifest:
         *django : v3.7.0.dev (is v2.4.0 but weblog use new SDK now)
     - weblog_declaration:
         aiohttp: v4.17.0-rc1
+  tests/appsec/test_blocking_otel_semantics.py::Test_Blocking_request_path_params_OtelSemantics:
+    - weblog_declaration:
+        '*': missing_feature (Path parameter blocking with OTel semantics has not been validated on this weblog)
+        *django : v4.17.0
+        fastapi: v4.17.0
+        flask-poc: v4.17.0
+  ? tests/appsec/test_blocking_otel_semantics.py::Test_Blocking_request_path_params_OtelSemantics::test_blocked_request_skips_middleware_and_view
+  : - weblog_declaration:
+        '*': irrelevant (Django middleware spans are specific to Django)
+        *django : v4.17.0
   tests/appsec/test_client_ip.py::Test_StandardTagsClientIp: v1.5.0
   tests/appsec/test_conf.py::Test_ConfigurationVariables:
     - weblog_declaration:

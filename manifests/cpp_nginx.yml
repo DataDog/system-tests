@@ -158,6 +158,7 @@ manifest:
   tests/appsec/test_blocking_addresses.py::Test_Blocking_response_status: v1.6.0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_user_id: missing_feature (users not supported)
   tests/appsec/test_blocking_addresses.py::Test_Suspicious_Request_Blocking: irrelevant (path params waf address unfilled)
+  tests/appsec/test_blocking_otel_semantics.py: missing_feature (nginx-datadog does not implement OTel HTTP semantic-convention mode)
   tests/appsec/test_client_ip.py::Test_StandardTagsClientIp:  # Modified by easy win activation script
     - declaration: missing_feature (Standard logs not implemented)
       component_version: <1.12.0

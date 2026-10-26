@@ -1011,6 +1011,7 @@ manifest:
         apim: missing_feature (can't test with set tag)
         envoy: missing_feature (can't test with set tag)
         haproxy: missing_feature (can't test with set tag)
+  tests/appsec/test_blocking_otel_semantics.py: missing_feature (AppSec path-parameter blocking over OTLP with OTel semantics has not been validated)
   tests/appsec/test_client_ip.py:
     - weblog_declaration:
         apim: v2.7.1
