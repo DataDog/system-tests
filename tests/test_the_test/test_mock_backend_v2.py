@@ -13,6 +13,7 @@ import requests
 import zstandard
 
 from utils import scenarios
+from utils.interfaces._backend_v2 import _BackendV2InterfaceValidator
 from utils.mocked_backend import MockedBackendClient, MockedBackendServer
 from utils.mocked_backend.ffe import UFC_FIXTURE_RELATIVE_PATH
 
@@ -231,3 +232,45 @@ def test_health_endpoint(server: MockedBackendServer, tmp_path: Path):
     assert response.json() == {"status": "ok"}
     # a control endpoint: not recorded
     assert list(tmp_path.glob("*.json")) == []
+
+
+def _backend_v2_with_requests(tmp_path: Path, requests_: list[tuple[str, str | None]]) -> _BackendV2InterfaceValidator:
+    """A backend_v2 interface that received a series request per (filename, api_key)"""
+    interface = _BackendV2InterfaceValidator()
+    interface.configure(str(tmp_path), replay=False)
+    for filename, api_key in requests_:
+        headers = [["Content-Type", "application/json"]] + ([["DD-API-KEY", api_key]] if api_key else [])
+        file = Path(interface.log_folder) / filename
+        data = {
+            "log_filename": str(file),
+            "path": "/api/v2/series",
+            "request": {"headers": headers, "content": {"series": [{"metric": filename}]}},
+            "response": {},
+        }
+        file.write_text(json.dumps(data))
+        interface.ingest_file(str(file))
+    return interface
+
+
+@scenarios.test_the_test
+def test_backend_v2_with_api_key_only_returns_requests_sent_with_this_key(tmp_path: Path):
+    interface = _backend_v2_with_requests(
+        tmp_path, [("000__agent.json", "agent-key"), ("001__sidecar.json", "sidecar-key"), ("002__nokey.json", None)]
+    )
+
+    assert [d["log_filename"].split("/")[-1] for d in interface.get_data(with_api_key="sidecar-key")] == [
+        "001__sidecar.json"
+    ]
+    assert [point["metric"] for _, point in interface.get_metrics(with_api_key="agent-key")] == ["000__agent.json"]
+    assert list(interface.get_data(with_api_key="unknown-key")) == []
+    # without it, every request
+    assert len(list(interface.get_data())) == 3
+
+
+@scenarios.test_the_test
+def test_backend_v2_with_api_key_ignores_the_header_name_case(tmp_path: Path):
+    interface = _backend_v2_with_requests(tmp_path, [("000__agent.json", "agent-key")])
+    data = next(interface.get_data())
+    data["request"]["headers"] = [["dd-api-key", "agent-key"]]
+
+    assert len(list(interface.get_data(with_api_key="agent-key"))) == 1

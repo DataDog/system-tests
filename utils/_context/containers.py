@@ -53,6 +53,8 @@ from utils.interfaces import StdoutLogsInterface, LibraryStdoutInterface
 
 # fake key of length 32
 FAKE_DD_API_KEY = "0123456789abcdef0123456789abcdef"
+# its own key tells, in the mocked backend, what serverless-init sent (see interfaces.backend_v2 with_api_key)
+SERVERLESS_INIT_FAKE_DD_API_KEY = "fedcba9876543210fedcba9876543210"
 
 _DEFAULT_NETWORK_NAME = "system-tests_default"
 _NETWORK_NAME = "bridge" if "GITLAB_CI" in os.environ else _DEFAULT_NETWORK_NAME
@@ -956,7 +958,7 @@ class ServerlessInitContainer(TestedContainer):
             name="ffe-serverless-init",
             image_name="datadog/serverless-init:1.10.4",
             environment={
-                "DD_API_KEY": FAKE_DD_API_KEY,
+                "DD_API_KEY": SERVERLESS_INIT_FAKE_DD_API_KEY,
                 "DD_SITE": "mock-intake.invalid",
                 "DD_SERVICE": "ffe-system-tests-serverless-init",
                 "DD_ENV": "system-tests",
