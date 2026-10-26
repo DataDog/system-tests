@@ -17,8 +17,7 @@ from utils._weblog import weblog
 from utils.mocked_backend.ffe import MockedBackendFFEStatus
 from utils.proxy.ports import ProxyPorts
 
-from .core import ScenarioGroup, scenario_groups as all_scenario_groups
-from .endtoend import DdTraceEndToEndScenario
+from ._core import DdTraceEndToEndScenario, ScenarioGroup, scenario_groups as all_scenario_groups
 
 if TYPE_CHECKING:
     from utils.interfaces._core import ProxyBasedInterfaceValidator
@@ -59,7 +58,7 @@ class DirectEVPShutdownEvaluation:
     subject_id: str
 
 
-class AgentlessEndToEndScenario(DdTraceEndToEndScenario):
+class _AgentlessEndToEndScenario(DdTraceEndToEndScenario):
     """End-to-end scenario without a Datadog Agent, using agentless delivery mechanisms."""
 
     _default_scenario_groups: tuple[ScenarioGroup, ...] = ()  # exclude those scenario from tracer_release
@@ -142,7 +141,7 @@ class AgentlessEndToEndScenario(DdTraceEndToEndScenario):
             super()._stop_mocked_backend_v2()
 
 
-class FeatureFlaggingAgentlessEndToEndScenario(AgentlessEndToEndScenario):
+class FeatureFlaggingAgentlessEndToEndScenario(_AgentlessEndToEndScenario):
     """FFE end-to-end scenario with UFC available before the weblog starts."""
 
     def __init__(
@@ -667,3 +666,26 @@ class FeatureFlaggingAgentlessEndToEndScenario(AgentlessEndToEndScenario):
         )
         for interface in telemetry_interfaces:
             interface.load_data_from_logs()
+
+
+class FeatureFlaggingAndExperimentationAgentless(FeatureFlaggingAgentlessEndToEndScenario):
+    def __init__(self) -> None:
+        super().__init__("FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS")
+
+
+class FeatureFlaggingAndExperimentationAgentlessDirect(FeatureFlaggingAgentlessEndToEndScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_DIRECT",
+            doc="Validate direct exposure delivery with agentless UFC and no local receiver.",
+            exposure_egress="direct",
+        )
+
+
+class FeatureFlaggingAndExperimentationAgentlessServerless(FeatureFlaggingAgentlessEndToEndScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_SERVERLESS",
+            doc="Validate exposure delivery with agentless UFC and serverless-init.",
+            exposure_egress="sidecar",
+        )

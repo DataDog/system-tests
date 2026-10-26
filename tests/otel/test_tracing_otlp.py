@@ -13,7 +13,7 @@ from tests.otel.utils import (
     FORWARD_TRACE_ID,
 )
 from utils import context, features, interfaces, scenarios, weblog
-from utils._context._scenarios.endtoend import EndToEndScenario
+from utils._context._scenarios import EndToEndScenario
 from utils.dd_constants import SpanKind, StatusCode
 from utils.docker_fixtures.spec.tracecontext import Tracestate
 from utils.interfaces._open_telemetry import is_otel_span_for_request

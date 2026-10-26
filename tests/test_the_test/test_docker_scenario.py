@@ -4,8 +4,8 @@ from unittest.mock import MagicMock
 from utils import pytest
 
 from utils import interfaces, scenarios
-from utils._context._scenarios import endtoend as endtoend_scenarios
-from utils._context._scenarios.endtoend import DdTraceEndToEndScenario, DockerScenario
+from utils._context._scenarios._core import endtoend as endtoend_scenarios
+from utils._context._scenarios._core.endtoend import DdTraceEndToEndScenario, DockerScenario
 from utils._context.containers import TestedContainer as _TestedContainer
 from utils.docker_fixtures._core import HOST_GATEWAY_EXTRA_HOSTS
 
