@@ -88,8 +88,9 @@ class Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation(debugger.BaseDe
         _send_config(enabled=False, service_name="*", env="*")
         self.di_multiconfig_initial_disabled = not self.wait_for_all_probes(statuses=["EMITTING"], timeout=TIMEOUT)
 
-        # Wildcard service/env, DI=true -> probes emitting
-        _send_config(enabled=True, service_name="*", env="*", reset=False)
+        # Wildcard service/env, DI=true -> probes emitting. Replaces the org-wide false:
+        # equal-priority configs with different values resolve by the random config-id tie-break.
+        _send_config(enabled=True, service_name="*", env="*")
         self.di_multiconfig_enabled = self.wait_for_all_probes(statuses=["EMITTING"], timeout=TIMEOUT)
 
         # Weblog service/env, DI=false -> probes stop (most-specific wins)
