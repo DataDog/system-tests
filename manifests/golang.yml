@@ -2321,7 +2321,7 @@ manifest:
   tests/parametric/test_otel_span_with_baggage.py::Test_Otel_Span_With_Baggage: missing_feature
   tests/parametric/test_otel_startup_logs.py::Test_OTEL_Startup_Logs: v2.12.0-dev
   tests/parametric/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_otel_enabled_without_semantics: bug (APMAPI-2651)
-  tests/parametric/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_otel_enabled_without_signal: bug (APMAPI-2651)
+  tests/parametric/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_otel_enabled_without_signal: irrelevant (DD_TRACE_OTEL_SEMANTICS_ENABLED forces OTLP trace export)
   tests/parametric/test_otel_tracestate_sampling.py::Test_OtelTracestateSampling: v2.11.0-dev  # Easy win for all weblogs and version 2.10.1
   tests/parametric/test_otlp_trace_metrics.py: v2.11.0-dev  # Easy win for all weblogs and version 2.10.1
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_AdditionalTags::test_fr08_10_dd_tags_tracer_tags_resource_attributes: missing_feature (DD_TAGS is not yet reported as datadog.tracer_tags on the OTLP trace metrics resource)
