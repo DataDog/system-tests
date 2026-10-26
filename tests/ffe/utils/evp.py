@@ -243,9 +243,11 @@ def assert_direct_evp_runtime_evidence(evidence: dict[str, Any], *, library_name
         assert isinstance(name, str), f"Live container evidence has no name: {container}"
         assert name not in containers_by_name, f"Duplicate live container evidence for {name!r}"
         containers_by_name[name] = container
-    expected_names = {"system-tests-proxy", "system-tests-weblog"}
+    # the mocked backend serves the agentless configuration
+    expected_names = {"system-tests-mocked-backend", "system-tests-proxy", "system-tests-weblog"}
     assert set(containers_by_name) == expected_names, (
-        f"Direct EVP runtime network must contain only TLS proxy and weblog, got {sorted(containers_by_name)}"
+        "Direct EVP runtime network must contain only mocked backend, TLS proxy and weblog, "
+        f"got {sorted(containers_by_name)}"
     )
 
     network = evidence.get("network")

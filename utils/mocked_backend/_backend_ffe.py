@@ -49,7 +49,9 @@ CONFIG_PATH = "/api/v2/feature-flagging/config/rules-based/server"
 EXPECTED_DD_ENV = "test"
 CONFIG_QUERY = urlencode({"dd_env": EXPECTED_DD_ENV})
 REPO_ROOT = Path(__file__).parents[2]
-UFC_FIXTURE_PATH = REPO_ROOT / "tests" / "parametric" / "test_ffe" / "flags-v1.json"
+# relative to the repository root: the mocked backend container mounts it at the same place
+UFC_FIXTURE_RELATIVE_PATH = "tests/parametric/test_ffe/flags-v1.json"
+UFC_FIXTURE_PATH = REPO_ROOT / UFC_FIXTURE_RELATIVE_PATH
 MALFORMED_UFC_BYTES = b'{"flags": ['
 UFC_RESPONSE_TYPE = "universal-flag-configuration"
 
@@ -181,6 +183,11 @@ def _response_for_response(response: str) -> tuple[int, bytes, dict[str, str]]:
     return HTTPStatus.OK, _valid_ufc_bytes(), {"Content-Type": "application/json", "ETag": UFC_ETAG}
 
 
+def ffe_library_config_url(base_url: str) -> str:
+    """The URL a library must use to fetch its agentless configuration from the mocked backend at base_url"""
+    return f"{base_url}{CONFIG_PATH}?{CONFIG_QUERY}"
+
+
 def _strip_config_path(url: str) -> str:
     parsed = urlparse(url)
     if not parsed.path.endswith(CONFIG_PATH):
@@ -222,7 +229,7 @@ class MockedBackendServerFfeMixin(_Base):
 
     @property
     def ffe_library_config_url(self) -> str:
-        return f"{self._ffe_library_base_url}{CONFIG_PATH}?{CONFIG_QUERY}"
+        return ffe_library_config_url(self._ffe_library_base_url)
 
     def _ffe_handle_status(self, request: MockBackendV2RequestHandler, _: bytes | dict | None) -> tuple[Mapping, bytes]:
         return request.write_json(HTTPStatus.OK, self._ffe_state.status())

@@ -4,7 +4,10 @@ FROM public.ecr.aws/docker/library/node:22
 WORKDIR /usr/src/app
 
 COPY . .
+# Depot npm mirror. Env overrides the sample-app .npmrc, which pins registry.npmjs.org.
+ENV npm_config_registry=https://depot-read-api-npm.us1.ddbuild.io/internal/magicmirror/magicmirror/
+ENV npm_config_replace_registry_host=npmjs
 # Install dependencies with exact versions using npm ci
-RUN npm ci --only=production --no-audit --no-fund
+RUN npm ci --only=production --no-audit --no-fund --loglevel http
 EXPOSE 18080
 CMD [ "node", "index.js" ]

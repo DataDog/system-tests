@@ -327,9 +327,9 @@ class Test_FFE_EVP_Flagevaluation_Egress_Datadog_Agent(FlagevaluationEgressContr
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_evp_flagevaluation
 class Test_FFE_EVP_Flagevaluation_SDK_Identity(FlagevaluationEgressContract):
-    # Agent 7.84+ forwards producer headers. The Agent manifest gates this case;
-    # library manifests retain their existing capability gates (Go additionally
-    # requires the 2.11.0 release). Older Agents keep payload coverage.
+    # Agent 7.84+ forwards producer headers; the Agent manifest gates this case.
+    # Library manifests separately gate SDK support. The Agent egress test retains
+    # payload coverage on older Agents wherever enabled by the library manifest.
     flag_key = "evp-sdk-identity-flag"
 
     def test_ffe_evp_flagevaluation_egress(self) -> None:
