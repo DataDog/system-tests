@@ -2,7 +2,7 @@
 
 OTEL_ENABLED is true only when DD_TRACE_OTEL_SEMANTICS_ENABLED is enabled and at least one
 OpenTelemetry signal is enabled: the tracing API bridge, OTLP metrics, OTLP logs or OTLP traces.
-Each signal has its own tests, so that manifests can declare them per library.
+Each signal has its own test, so that manifests can declare them per library.
 """
 
 from utils import pytest
@@ -28,9 +28,9 @@ _OTLP_LOGS = {"DD_LOGS_OTEL_ENABLED": "true"}
 _OTLP_TRACES = {"OTEL_TRACES_EXPORTER": "otlp"}
 
 
-# OTEL_ENABLED requires both semantics mode and a signal, so each signal is tested twice. With semantics
-# mode, it must report true: this shows that the signal counts, and catches a tracer that always reports
-# false. Without semantics mode, it must report false: this shows that the signal alone is not enough.
+# The OTel semantics RFC makes DD_TRACE_OTEL_SEMANTICS_ENABLED set OTEL_TRACES_EXPORTER=otlp, so semantics mode
+# always comes with a signal, and OTEL_ENABLED is true as soon as semantics mode is on. Each signal is therefore
+# only tested without semantics mode, where it must report false: the signal alone is not enough.
 def _library_env(signal: dict[str, str], *, semantics: bool) -> dict[str, str | None]:
     # Enables at most one OpenTelemetry signal on top of _OTEL_SIGNALS_DISABLED.
     return {**_OTEL_SIGNALS_DISABLED, **signal, "DD_TRACE_OTEL_SEMANTICS_ENABLED": str(semantics).lower()}
@@ -49,8 +49,8 @@ def _assert_otel_enabled(test_library: APMLibrary, *, expected: bool) -> None:
 @scenarios.parametric
 @features.log_tracer_status_at_startup
 class Test_OTEL_Startup_Logs:
-    @parametrize("library_env", [_library_env(_TRACING_API, semantics=True)])
-    def test_otel_enabled_tracing_api_with_semantics(self, test_library: APMLibrary) -> None:
+    @parametrize("library_env", [_library_env({}, semantics=True)])
+    def test_otel_enabled_semantics_alone(self, test_library: APMLibrary) -> None:
         with test_library:
             _assert_otel_enabled(test_library, expected=True)
 
@@ -59,30 +59,15 @@ class Test_OTEL_Startup_Logs:
         with test_library:
             _assert_otel_enabled(test_library, expected=False)
 
-    @parametrize("library_env", [_library_env(_OTLP_METRICS, semantics=True)])
-    def test_otel_enabled_otlp_metrics_with_semantics(self, test_library: APMLibrary) -> None:
-        with test_library:
-            _assert_otel_enabled(test_library, expected=True)
-
     @parametrize("library_env", [_library_env(_OTLP_METRICS, semantics=False)])
     def test_otel_enabled_otlp_metrics_without_semantics(self, test_library: APMLibrary) -> None:
         with test_library:
             _assert_otel_enabled(test_library, expected=False)
 
-    @parametrize("library_env", [_library_env(_OTLP_LOGS, semantics=True)])
-    def test_otel_enabled_otlp_logs_with_semantics(self, test_library: APMLibrary) -> None:
-        with test_library:
-            _assert_otel_enabled(test_library, expected=True)
-
     @parametrize("library_env", [_library_env(_OTLP_LOGS, semantics=False)])
     def test_otel_enabled_otlp_logs_without_semantics(self, test_library: APMLibrary) -> None:
         with test_library:
             _assert_otel_enabled(test_library, expected=False)
-
-    @parametrize("library_env", [_library_env(_OTLP_TRACES, semantics=True)])
-    def test_otel_enabled_otlp_traces_with_semantics(self, test_library: APMLibrary) -> None:
-        with test_library:
-            _assert_otel_enabled(test_library, expected=True)
 
     @parametrize("library_env", [_library_env(_OTLP_TRACES, semantics=False)])
     def test_otel_enabled_otlp_traces_without_semantics(self, test_library: APMLibrary) -> None:
@@ -92,10 +77,5 @@ class Test_OTEL_Startup_Logs:
     # OTLP trace export only counts as a signal when tracing is enabled.
     @parametrize("library_env", [{**_library_env(_OTLP_TRACES, semantics=True), "DD_TRACE_ENABLED": "false"}])
     def test_otel_enabled_otlp_traces_with_tracing_disabled(self, test_library: APMLibrary) -> None:
-        with test_library:
-            _assert_otel_enabled(test_library, expected=False)
-
-    @parametrize("library_env", [_library_env({}, semantics=True)])
-    def test_otel_enabled_semantics_without_signal(self, test_library: APMLibrary) -> None:
         with test_library:
             _assert_otel_enabled(test_library, expected=False)

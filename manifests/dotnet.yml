@@ -1389,7 +1389,6 @@ manifest:
   tests/parametric/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_otel_enabled_otlp_metrics_without_semantics: bug (APMAPI-2649)
   tests/parametric/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_otel_enabled_otlp_traces_with_tracing_disabled: bug (APMAPI-2649)
   tests/parametric/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_otel_enabled_otlp_traces_without_semantics: bug (APMAPI-2649)
-  tests/parametric/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_otel_enabled_semantics_without_signal: bug (APMAPI-2649)
   tests/parametric/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_otel_enabled_tracing_api_without_semantics: bug (APMAPI-2649)
   tests/parametric/test_otel_tracer.py::Test_Otel_Tracer: v2.8.0
   tests/parametric/test_otel_tracestate_sampling.py::Test_OtelTracestateSampling: v3.54.0
