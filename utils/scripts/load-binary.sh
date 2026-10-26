@@ -205,6 +205,8 @@ elif [ "$TARGET" = "java" ] || [ "$TARGET" = "java_lambda" ]; then
     LIBRARY_TARGET_BRANCH="${LIBRARY_TARGET_BRANCH:-master}"
 
     curl --fail --location --silent --show-error --output dd-java-agent.jar "https://s3.us-east-1.amazonaws.com/dd-trace-java-builds/${LIBRARY_TARGET_BRANCH}/dd-java-agent.jar"
+    # The development provider must use the same feature-flagging API as the agent.
+    curl --fail --location --silent --show-error --output dd-openfeature.jar "https://s3.us-east-1.amazonaws.com/dd-trace-java-builds/${LIBRARY_TARGET_BRANCH}/dd-openfeature.jar"
 
 elif [ "$TARGET" = "dotnet" ]; then
     assert_version_is_dev

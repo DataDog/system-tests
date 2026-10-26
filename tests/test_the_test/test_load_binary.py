@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 import subprocess
 
-from utils import scenarios
+from utils import pytest, scenarios
 
 
 SCRIPT = Path("utils/scripts/load-binary.sh")
@@ -23,6 +23,7 @@ def _run_loader(
     tmp_path: Path,
     version: str,
     *,
+    target: str = "c",
     extra_env: dict[str, str] | None = None,
 ) -> subprocess.CompletedProcess[str]:
     bin_dir = tmp_path / "bin"
@@ -39,6 +40,14 @@ printf '%s\\n' "$url" >> "$CURL_CALLS"
 if [[ "${{MISSING_BRANCH:-}}" != "" && "$url" == *"${{MISSING_BRANCH}}"* ]]; then
     exit 22
 fi
+previous=
+for argument in "$@"; do
+    if [[ "$previous" == "--output" ]]; then
+        printf '%s\\n' "$url" > "$argument"
+        exit 0
+    fi
+    previous="$argument"
+done
 if [[ "$url" == *"DataDog/dd-trace-c"* ]]; then
     printf '%s\\n' '{{"commit":{{"sha":"{C_LIBRARY_SHA}"}}}}'
 else
@@ -68,7 +77,7 @@ fi
     env.pop("AUTO_INJECT_TARGET_BRANCH", None)
     env.update(extra_env or {})
     return subprocess.run(
-        ["bash", str(SCRIPT), "c", version],
+        ["bash", str(SCRIPT), target, version],
         check=False,
         capture_output=True,
         text=True,
@@ -158,3 +167,27 @@ class Test_LoadBinaryC:
 
         assert result.returncode != 0
         assert "OCI package does not exist or is not accessible" in result.stderr
+
+
+@scenarios.test_the_test
+class Test_LoadBinaryJava:
+    @pytest.mark.parametrize("target", ["java", "java_lambda"])
+    @pytest.mark.parametrize("branch", [None, "feature/flagging"])
+    def test_development_agent_and_provider_use_same_branch(
+        self, tmp_path: Path, target: str, branch: str | None
+    ) -> None:
+        extra_env = {"LIBRARY_TARGET_BRANCH": branch} if branch else {}
+        result = _run_loader(tmp_path, "dev", target=target, extra_env=extra_env)
+
+        assert result.returncode == 0, result.stderr
+        base_url = f"https://s3.us-east-1.amazonaws.com/dd-trace-java-builds/{branch or 'master'}"
+        for artifact in ("dd-java-agent.jar", "dd-openfeature.jar"):
+            assert (tmp_path / "binaries" / artifact).read_text(encoding="utf-8").strip() == f"{base_url}/{artifact}"
+
+    @pytest.mark.parametrize("target", ["java", "java_lambda"])
+    def test_missing_development_provider_fails(self, tmp_path: Path, target: str) -> None:
+        result = _run_loader(tmp_path, "dev", target=target, extra_env={"MISSING_BRANCH": "dd-openfeature.jar"})
+
+        assert result.returncode != 0
+        assert (tmp_path / "binaries/dd-java-agent.jar").exists()
+        assert not (tmp_path / "binaries/dd-openfeature.jar").exists()
