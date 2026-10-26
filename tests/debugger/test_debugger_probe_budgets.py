@@ -5,7 +5,7 @@
 import time
 import tests.debugger.utils as debugger
 
-from utils import slow, scenarios, features
+from utils import slow, scenarios, features, context
 
 
 @features.debugger_probe_budgets
@@ -161,7 +161,9 @@ class Test_Debugger_Probe_Budgets(debugger.BaseDebuggerTest):
 
         # Error entries should be rate-limited to at most 1 per second.
         # Allow a buffer for timing imprecision.
-        max_expected = int(self.total_request_time) + 5
+        # Java's adaptive sampler starts with a budget of 17, allowing an initial burst on top of the 1/s rate.
+        buffer = 20 if context.library == "java" else 5
+        max_expected = int(self.total_request_time) + buffer
         assert total_error_entries <= max_expected, (
             f"Expected at most {max_expected} error entries (1/sec budget for "
             f"{self.total_request_time:.1f}s), got {total_error_entries}. "
