@@ -44,8 +44,15 @@ type spanContext struct {
 }
 
 func newServer() *apmClientServer {
-	tp := ddotel.NewTracerProvider()
-	otel.SetTracerProvider(tp)
+	// Go enables the OpenTelemetry tracing API bridge in code, by creating the
+	// TracerProvider, rather than by reading DD_TRACE_OTEL_ENABLED.
+	var tp *ddotel.TracerProvider
+	if otelTracingEnabled, _ := strconv.ParseBool(os.Getenv("DD_TRACE_OTEL_ENABLED")); otelTracingEnabled {
+		tp = ddotel.NewTracerProvider()
+		otel.SetTracerProvider(tp)
+	} else {
+		tracer.Start()
+	}
 
 	metricConfiguration := observeMetricReaderConfiguration()
 	mp, err := ddmetric.NewMeterProvider()
