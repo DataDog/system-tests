@@ -218,7 +218,7 @@ delete_amis:
   rules:
     - if: '$SCHEDULED_JOB == "delete_amis"'
   after_script: echo "Finish"
-  timeout: 3h
+  timeout: 6h
 
 delete_amis_by_name_or_lang:
   extends: .base_job_onboarding
