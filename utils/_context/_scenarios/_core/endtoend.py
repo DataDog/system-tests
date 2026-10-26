@@ -28,7 +28,7 @@ from utils._context.weblog_infrastructure import EndToEndWeblogInfra
 from utils._context.constants import WeblogCategory
 from utils._logger import logger
 
-from .core import Scenario, ScenarioGroup, scenario_groups as all_scenario_groups
+from .scenario import Scenario, ScenarioGroup, scenario_groups as all_scenario_groups
 
 
 class DockerScenario(Scenario):
@@ -662,30 +662,6 @@ class DdTraceEndToEndScenario(EndToEndScenario):
             use_proxy_for_agent=use_proxy_for_agent,
             use_proxy_for_weblog=use_proxy_for_weblog,
             weblog_categories=[WeblogCategory.dd_trace],
-            weblog_env=weblog_env,
-            weblog_volumes=weblog_volumes,
-        )
-
-
-class GraphQlEndToEndScenario(EndToEndScenario):
-    """Scenario targeting GraphQl feature of a dd-trace library"""
-
-    def __init__(
-        self,
-        name: str,
-        *,
-        doc: str,
-        agent_env: dict[str, str | None] | None = None,
-        scenario_groups: list[ScenarioGroup] | None = None,
-        weblog_env: dict[str, str | None] | None = None,
-        weblog_volumes: dict | None = None,
-    ) -> None:
-        super().__init__(
-            name,
-            agent_env=agent_env,
-            doc=doc,
-            scenario_groups=scenario_groups,
-            weblog_categories=[WeblogCategory.dd_trace_graphql],
             weblog_env=weblog_env,
             weblog_volumes=weblog_volumes,
         )
