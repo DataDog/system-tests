@@ -1243,6 +1243,7 @@ manifest:
         "*": v1.21.0-dev
         laravel11x: incomplete_test_app
         symfony7x: incomplete_test_app
+  tests/ffe/test_evaluation_telemetry_opt_out.py: incomplete_test_app (Deferred until the PHP OpenFeature test-app foundation is available)
   tests/ffe/test_exposure_egress.py:
     - weblog_declaration:
         "*": v1.21.0-dev

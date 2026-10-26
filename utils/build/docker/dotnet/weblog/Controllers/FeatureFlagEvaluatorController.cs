@@ -139,16 +139,22 @@ namespace weblog
             {
                 foreach (var attr in request.Attributes)
                 {
-                    // System.Text.Json deserializes to JsonElement, not string
-                    var value = attr.Value switch
+                    // Preserve primitive types so boolean context controls stay boolean.
+                    switch (attr.Value)
                     {
-                        JsonElement jsonElement => jsonElement.ValueKind == JsonValueKind.String
-                            ? jsonElement.GetString()
-                            : jsonElement.ToString(),
-                        string s => s,
-                        _ => attr.Value?.ToString()
-                    };
-                    builder.Set(attr.Key, value);
+                        case JsonElement jsonElement when jsonElement.ValueKind is JsonValueKind.True or JsonValueKind.False:
+                            builder.Set(attr.Key, jsonElement.GetBoolean());
+                            break;
+                        case JsonElement jsonElement when jsonElement.ValueKind == JsonValueKind.Number:
+                            builder.Set(attr.Key, jsonElement.GetDouble());
+                            break;
+                        case JsonElement jsonElement when jsonElement.ValueKind == JsonValueKind.String:
+                            builder.Set(attr.Key, jsonElement.GetString());
+                            break;
+                        default:
+                            builder.Set(attr.Key, attr.Value?.ToString());
+                            break;
+                    }
                 }
             }
             return builder.Build();
