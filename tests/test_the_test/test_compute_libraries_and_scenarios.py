@@ -598,7 +598,7 @@ class Test_ComputeLibrariesAndScenarios:
             [],
             3600,
             "false",
-            "DEFAULT,OTEL_INTEGRATIONS,OTEL_LOG_E2E,OTEL_METRIC_E2E,OTEL_TRACING_E2E",
+            "DEFAULT,OTEL_INTEGRATIONS",
             "",
         )
 

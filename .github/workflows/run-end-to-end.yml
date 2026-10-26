@@ -481,45 +481,6 @@ jobs:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
         DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
         DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
-    - name: Run OTEL_TRACING_E2E scenario
-      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_TRACING_E2E"')
-      run: |
-        [[ -z "$DD_API_KEY" ]] && echo "Skipping: DD_API_KEY is not set" && exit 0
-        ./run.sh OTEL_TRACING_E2E
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-        DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
-        DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
-        DD_API_KEY_2: ${{ secrets.DD_API_KEY_2 }}
-        DD_APP_KEY_2: ${{ secrets.DD_APP_KEY_2 }}
-        DD_API_KEY_3: ${{ secrets.DD_API_KEY_3 }}
-        DD_APP_KEY_3: ${{ secrets.DD_APP_KEY_3 }}
-    - name: Run OTEL_METRIC_E2E scenario
-      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_METRIC_E2E"')
-      run: |
-        [[ -z "$DD_API_KEY" ]] && echo "Skipping: DD_API_KEY is not set" && exit 0
-        ./run.sh OTEL_METRIC_E2E
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-        DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
-        DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
-        DD_API_KEY_2: ${{ secrets.DD_API_KEY_2 }}
-        DD_APP_KEY_2: ${{ secrets.DD_APP_KEY_2 }}
-        DD_API_KEY_3: ${{ secrets.DD_API_KEY_3 }}
-        DD_APP_KEY_3: ${{ secrets.DD_APP_KEY_3 }}
-    - name: Run OTEL_LOG_E2E scenario
-      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"OTEL_LOG_E2E"')
-      run: |
-        [[ -z "$DD_API_KEY" ]] && echo "Skipping: DD_API_KEY is not set" && exit 0
-        ./run.sh OTEL_LOG_E2E
-      env:
-        DD_API_KEY: ${{ secrets.DD_API_KEY }}
-        DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
-        DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
-        DD_API_KEY_2: ${{ secrets.DD_API_KEY_2 }}
-        DD_APP_KEY_2: ${{ secrets.DD_APP_KEY_2 }}
-        DD_API_KEY_3: ${{ secrets.DD_API_KEY_3 }}
-        DD_APP_KEY_3: ${{ secrets.DD_APP_KEY_3 }}
     - name: Run APPSEC_LAMBDA_DEFAULT scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_LAMBDA_DEFAULT"')
       run: ./run.sh APPSEC_LAMBDA_DEFAULT

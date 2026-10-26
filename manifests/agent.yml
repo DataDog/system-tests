@@ -73,7 +73,6 @@ manifest:
   tests/integrations/test_open_telemetry.py::Test_Postgres::test_error_type_and_stack:
     - component_version: ">=7.75.0-0"
       declaration: irrelevant (has been replaced by test_error_exception_event)
-  tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: v7.48.0
   tests/test_infra_disabled.py:
     - component_version: "<7.77.0-0"
       declaration: irrelevant (APM Standalone option was added in 7.77.0)

@@ -239,18 +239,3 @@ class OtelIntegrations(_OpenTelemetryScenario):
                 "the interaction with sql database."
             ),
         )
-
-
-class OtelTracingE2e(_OpenTelemetryScenario):
-    def __init__(self) -> None:
-        super().__init__("OTEL_TRACING_E2E", require_api_key=True, doc="")
-
-
-class OtelMetricE2e(_OpenTelemetryScenario):
-    def __init__(self) -> None:
-        super().__init__("OTEL_METRIC_E2E", require_api_key=True, mocked_backend=False, doc="")
-
-
-class OtelLogE2e(_OpenTelemetryScenario):
-    def __init__(self) -> None:
-        super().__init__("OTEL_LOG_E2E", require_api_key=True, doc="")
