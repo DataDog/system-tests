@@ -27,9 +27,7 @@ import time
 from pathlib import Path
 from typing import Any
 
-from utils import pytest
-
-from utils import context, features, scenarios
+from utils import features, pytest, scenarios
 from utils.dd_constants import RemoteConfigApplyState
 from utils.docker_fixtures import TestAgentAPI
 from tests.parametric.conftest import APMLibrary
@@ -38,9 +36,6 @@ RC_PRODUCT = "FFE_FLAGS"
 RC_PATH = f"datadog/2/{RC_PRODUCT}"
 FFE_READY_RETRY_ATTEMPTS = 10
 FFE_READY_RETRY_INTERVAL_SECONDS = 0.2
-
-# Assert on the SDK's native metadata key; adapters must forward metadata unchanged.
-SERIAL_ID_METADATA_KEY = "dd.serialId" if context.library.name == "golang" else "__dd_split_serial_id"
 
 parametrize = pytest.mark.parametrize
 
@@ -133,6 +128,15 @@ class Test_FFE_Serial_Id_Metadata:
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_serial_id_present_in_flag_metadata(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        self._assert_serial_id_present_in_flag_metadata(test_agent, test_library, "__dd_split_serial_id")
+
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_serial_id_present_in_flag_metadata_go(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        self._assert_serial_id_present_in_flag_metadata(test_agent, test_library, "dd.serialId")
+
+    def _assert_serial_id_present_in_flag_metadata(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary, metadata_key: str
+    ) -> None:
         """The serial ID of the selected split must appear in flagMetadata."""
         _set_and_wait_ffe_rc(test_agent, UFC_SERIAL_ID_METADATA_DATA)
         assert test_library.ffe_start(), "Failed to start FFE provider"
@@ -147,13 +151,23 @@ class Test_FFE_Serial_Id_Metadata:
         assert not _is_ffe_waiting_for_rc(result), f"FFE provider did not load RC data; result={result}"
 
         flag_metadata = _require_flag_metadata(result)
-        assert flag_metadata.get(SERIAL_ID_METADATA_KEY) == 42, (
-            f"Expected flagMetadata['{SERIAL_ID_METADATA_KEY}'] == 42 for the selected split, "
-            f"got flagMetadata={flag_metadata}"
+        assert flag_metadata.get(metadata_key) == 42, (
+            f"Expected flagMetadata['{metadata_key}'] == 42 for the selected split, got flagMetadata={flag_metadata}"
         )
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_serial_id_zero_is_not_treated_as_missing(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        self._assert_serial_id_zero_is_not_treated_as_missing(test_agent, test_library, "__dd_split_serial_id")
+
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_serial_id_zero_is_not_treated_as_missing_go(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
+        self._assert_serial_id_zero_is_not_treated_as_missing(test_agent, test_library, "dd.serialId")
+
+    def _assert_serial_id_zero_is_not_treated_as_missing(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary, metadata_key: str
+    ) -> None:
         """Serial ID 0 is a real, valid ID and must survive falsy-value checks."""
         _set_and_wait_ffe_rc(test_agent, UFC_SERIAL_ID_METADATA_DATA)
         assert test_library.ffe_start(), "Failed to start FFE provider"
@@ -168,17 +182,28 @@ class Test_FFE_Serial_Id_Metadata:
         assert not _is_ffe_waiting_for_rc(result), f"FFE provider did not load RC data; result={result}"
 
         flag_metadata = _require_flag_metadata(result)
-        assert SERIAL_ID_METADATA_KEY in flag_metadata, (
-            f"flagMetadata is missing '{SERIAL_ID_METADATA_KEY}' entirely; a 0 serial ID must not be "
+        assert metadata_key in flag_metadata, (
+            f"flagMetadata is missing '{metadata_key}' entirely; a 0 serial ID must not be "
             f"dropped by a truthiness check. flagMetadata={flag_metadata}"
         )
-        assert flag_metadata.get(SERIAL_ID_METADATA_KEY) == 0, (
-            f"Expected flagMetadata['{SERIAL_ID_METADATA_KEY}'] == 0, got flagMetadata={flag_metadata}"
+        assert flag_metadata.get(metadata_key) == 0, (
+            f"Expected flagMetadata['{metadata_key}'] == 0, got flagMetadata={flag_metadata}"
         )
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_serial_id_absent_when_split_has_no_serial_id(
         self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
+        self._assert_serial_id_absent_when_split_has_no_serial_id(test_agent, test_library, "__dd_split_serial_id")
+
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_serial_id_absent_when_split_has_no_serial_id_go(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
+        self._assert_serial_id_absent_when_split_has_no_serial_id(test_agent, test_library, "dd.serialId")
+
+    def _assert_serial_id_absent_when_split_has_no_serial_id(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary, metadata_key: str
     ) -> None:
         """A split without a serialId must not have one fabricated for it."""
         _set_and_wait_ffe_rc(test_agent, UFC_SERIAL_ID_METADATA_DATA)
@@ -197,14 +222,25 @@ class Test_FFE_Serial_Id_Metadata:
         assert result.get("value") == "control", f"Expected the configured control variation; result={result}"
 
         flag_metadata = _require_flag_metadata(result)
-        assert SERIAL_ID_METADATA_KEY not in flag_metadata, (
-            f"Expected flagMetadata to omit '{SERIAL_ID_METADATA_KEY}' for a split without a serial ID, "
+        assert metadata_key not in flag_metadata, (
+            f"Expected flagMetadata to omit '{metadata_key}' for a split without a serial ID, "
             f"got flagMetadata={flag_metadata}"
         )
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_serial_id_matches_selected_split_under_targeting(
         self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
+        self._assert_serial_id_matches_selected_split_under_targeting(test_agent, test_library, "__dd_split_serial_id")
+
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_serial_id_matches_selected_split_under_targeting_go(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
+        self._assert_serial_id_matches_selected_split_under_targeting(test_agent, test_library, "dd.serialId")
+
+    def _assert_serial_id_matches_selected_split_under_targeting(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary, metadata_key: str
     ) -> None:
         """FlagMetadata must reflect whichever split targeting actually selected."""
         _set_and_wait_ffe_rc(test_agent, UFC_SERIAL_ID_METADATA_DATA)
@@ -234,18 +270,29 @@ class Test_FFE_Serial_Id_Metadata:
         standard_metadata = _require_flag_metadata(standard_result)
 
         assert vip_result.get("value") == "vip"
-        assert vip_metadata.get(SERIAL_ID_METADATA_KEY) == 201, (
+        assert vip_metadata.get(metadata_key) == 201, (
             f"VIP targeting should select the split with serialId 201, got flagMetadata={vip_metadata}"
         )
 
         assert standard_result.get("value") == "standard"
-        assert standard_metadata.get(SERIAL_ID_METADATA_KEY) == 200, (
+        assert standard_metadata.get(metadata_key) == 200, (
             f"Non-VIP targeting should select the split with serialId 200, got flagMetadata={standard_metadata}"
         )
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_serial_id_stable_across_repeated_evaluations(
         self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
+        self._assert_serial_id_stable_across_repeated_evaluations(test_agent, test_library, "__dd_split_serial_id")
+
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_serial_id_stable_across_repeated_evaluations_go(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
+        self._assert_serial_id_stable_across_repeated_evaluations(test_agent, test_library, "dd.serialId")
+
+    def _assert_serial_id_stable_across_repeated_evaluations(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary, metadata_key: str
     ) -> None:
         """The same context evaluated twice must yield the same serial ID."""
         _set_and_wait_ffe_rc(test_agent, UFC_SERIAL_ID_METADATA_DATA)
@@ -266,8 +313,8 @@ class Test_FFE_Serial_Id_Metadata:
             targeting_key="user-repeat",
         )
 
-        first_id = _require_flag_metadata(first).get(SERIAL_ID_METADATA_KEY)
-        second_id = _require_flag_metadata(second).get(SERIAL_ID_METADATA_KEY)
+        first_id = _require_flag_metadata(first).get(metadata_key)
+        second_id = _require_flag_metadata(second).get(metadata_key)
         assert first_id == second_id == 42, (
             f"Expected stable serial ID 42 across repeated evaluations, got {first_id} then {second_id}"
         )

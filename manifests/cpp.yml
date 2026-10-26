@@ -193,6 +193,15 @@ manifest:
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: missing_feature
   tests/parametric/test_ffe/test_rules_configuration.py: missing_feature (Standalone rules configuration helpers are currently tested only in Node.js)
   tests/parametric/test_ffe/test_serial_id_metadata.py: missing_feature
+  ? tests/parametric/test_ffe/test_serial_id_metadata.py::Test_FFE_Serial_Id_Metadata::test_serial_id_absent_when_split_has_no_serial_id_go
+  : irrelevant (Go-specific metadata key)
+  ? tests/parametric/test_ffe/test_serial_id_metadata.py::Test_FFE_Serial_Id_Metadata::test_serial_id_matches_selected_split_under_targeting_go
+  : irrelevant (Go-specific metadata key)
+  tests/parametric/test_ffe/test_serial_id_metadata.py::Test_FFE_Serial_Id_Metadata::test_serial_id_present_in_flag_metadata_go: irrelevant (Go-specific metadata key)
+  ? tests/parametric/test_ffe/test_serial_id_metadata.py::Test_FFE_Serial_Id_Metadata::test_serial_id_stable_across_repeated_evaluations_go
+  : irrelevant (Go-specific metadata key)
+  ? tests/parametric/test_ffe/test_serial_id_metadata.py::Test_FFE_Serial_Id_Metadata::test_serial_id_zero_is_not_treated_as_missing_go
+  : irrelevant (Go-specific metadata key)
   tests/parametric/test_ffe/test_span_enrichment.py: '>=2.1.1'  # TODO: a lower version might be supported
   tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Child_Span_Propagation: missing_feature
   tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Default_Fallback: missing_feature
