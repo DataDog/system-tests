@@ -1603,6 +1603,12 @@ class _Scenarios:
         """,
         scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
     )
+    appsec_lambda_sca = LambdaScenario(
+        "APPSEC_LAMBDA_SCA",
+        weblog_env={"DD_APPSEC_SCA_ENABLED": "true"},
+        doc="SCA dependency metadata and runtime reachability in Lambda",
+        scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
+    )
     appsec_lambda_rasp = AppSecLambdaRaspScenario("APPSEC_LAMBDA_RASP")
     appsec_lambda_inferred_spans = LambdaScenario(
         "APPSEC_LAMBDA_INFERRED_SPANS",

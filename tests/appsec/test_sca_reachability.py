@@ -33,6 +33,12 @@ _LANG_CONFIG: dict[str, dict[str, Any]] = {
         "path": "com.datadoghq.system_tests.springboot.ScaReachability",
         "symbol": "junrarHit",
     },
+    "java_lambda": {
+        "cve_id": ["GHSA-hf5p-q87m-crj7"],
+        "vulnerable_dep": "junrar",
+        "path": "com.datadoghq.lambda.ScaReachability",
+        "symbol": "junrarHit",
+    },
 }
 
 
@@ -112,6 +118,7 @@ def _get_deps_with_reachability_metadata() -> set[str]:
 @rfc(SCA_REACHABILITY_RFC)
 @features.runtime_sca_reachability
 @scenarios.runtime_sca_reachability
+@scenarios.appsec_lambda_sca
 class Test_SCA_Reachability_Dependencies_Have_Metadata:
     """When DD_APPSEC_SCA_ENABLED=true, vulnerable dependencies have reachability metadata."""
 
@@ -129,6 +136,7 @@ class Test_SCA_Reachability_Dependencies_Have_Metadata:
 @rfc(SCA_REACHABILITY_RFC)
 @features.runtime_sca_reachability
 @scenarios.runtime_sca_reachability
+@scenarios.appsec_lambda_sca
 class Test_SCA_Reachability_CVE_Registered_At_Load_Time:
     """CVEs are registered at startup with reached=[] before any vulnerable call."""
 
@@ -148,12 +156,14 @@ class Test_SCA_Reachability_CVE_Registered_At_Load_Time:
 @rfc(SCA_REACHABILITY_RFC)
 @features.runtime_sca_reachability
 @scenarios.runtime_sca_reachability
+@scenarios.appsec_lambda_sca
 class Test_SCA_Reachability_CVE_After_Vulnerable_Call:
     """Calling a vulnerable function reports CVE with caller info in reached array."""
 
     def setup_cve_metadata_after_vulnerable_call(self) -> None:
         self.r0 = weblog.get("/")
         self.r1 = weblog.get("/sca/vulnerable-call")
+        assert self.r1.status_code == 200
 
     def test_cve_metadata_after_vulnerable_call(self) -> None:
         cve_entries = _get_dependency_cve_metadata(_vulnerable_dep(), _cve_id())
@@ -186,13 +196,16 @@ class Test_SCA_Reachability_CVE_After_Vulnerable_Call:
 @rfc(SCA_REACHABILITY_RFC)
 @features.runtime_sca_reachability
 @scenarios.runtime_sca_reachability
+@scenarios.appsec_lambda_sca
 class Test_SCA_Reachability_First_Hit_Wins:
     """Two call sites for same CVE: only first hit is reported (max 1 reached per entry)."""
 
     def setup_same_cve_first_hit_wins(self) -> None:
         self.r0 = weblog.get("/")
         self.r1 = weblog.get("/sca/vulnerable-call")
+        assert self.r1.status_code == 200
         self.r2 = weblog.get("/sca/vulnerable-call-alt")
+        assert self.r2.status_code == 200
 
     def test_same_cve_first_hit_wins(self) -> None:
         cve_entries = _get_dependency_cve_metadata(_vulnerable_dep(), _cve_id())
@@ -234,13 +247,14 @@ class Test_SCA_Reachability_First_Hit_Wins:
 @rfc(SCA_REACHABILITY_RFC)
 @features.runtime_sca_reachability
 @scenarios.runtime_sca_reachability
+@scenarios.appsec_lambda_sca
 class Test_SCA_Reachability_Deduplication:
     """Repeated calls from same site for same CVE: still max 1 reached entry."""
 
     def setup_deduplication_repeated_calls(self) -> None:
         self.r0 = weblog.get("/")
         for _ in range(5):
-            weblog.get("/sca/vulnerable-call")
+            assert weblog.get("/sca/vulnerable-call").status_code == 200
 
     def test_deduplication_repeated_calls(self) -> None:
         cve_entries = _get_dependency_cve_metadata(_vulnerable_dep(), _cve_id())

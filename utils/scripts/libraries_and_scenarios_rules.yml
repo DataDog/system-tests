@@ -608,7 +608,7 @@ patterns:
 
     tests/appsec/test_sca_reachability.py:
         scenario_groups: null
-        libraries: [java, python]
+        libraries: [java, java_lambda, python]
 
 ################################# Default rules ################################
 # The rules in this section are only applied if no other rule is applicable.
