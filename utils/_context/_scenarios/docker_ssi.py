@@ -23,7 +23,7 @@ from utils.docker_ssi.docker_ssi_matrix_utils import resolve_runtime_version
 from utils._logger import logger
 from utils.virtual_machine.vm_logger import vm_logger
 
-from .core import Scenario, ScenarioGroup
+from ._core import Scenario, scenario_groups, ScenarioGroup
 
 
 AUTO_INJECT_LOCK = Path(__file__).resolve().parents[3] / "utils" / "build" / "auto_inject.lock"
@@ -41,7 +41,7 @@ class ImagePushError(Exception):
     """Exception raised when a docker image push operation fails."""
 
 
-class DockerSSIScenario(Scenario):
+class _DockerSSIScenario(Scenario):
     """Scenario test the ssi installer on a docker environment and runs APM test agent"""
 
     _network: Network = None
@@ -621,3 +621,42 @@ def _get_free_port():
         except OSError:
             port += 1
     raise OSError("no free ports")
+
+
+class DockerSsi(_DockerSSIScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "DOCKER_SSI",
+            doc="Validates the installer and the ssi on a docker environment",
+            extra_env_vars={"DD_SERVICE": "payments-service"},
+            scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
+        )
+
+
+class DockerSsiServicenaming(_DockerSSIScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "DOCKER_SSI_SERVICENAMING",
+            doc="Validates the installer and the ssi service naming features on a docker environment",
+            scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
+        )
+
+
+class DockerSsiAppsec(_DockerSSIScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "DOCKER_SSI_APPSEC",
+            doc="Validates the installer and the ssi on a docker environment",
+            extra_env_vars={"DD_SERVICE": "payments-service"},
+            appsec_enabled=True,
+            scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
+        )
+
+
+class DockerSsiCrashtracking(_DockerSSIScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "DOCKER_SSI_CRASHTRACKING",
+            doc="Validates the crashtracking for ssi on a docker environment",
+            scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
+        )
