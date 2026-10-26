@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/binary"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -15,6 +16,8 @@ import (
 	"go.opentelemetry.io/otel/codes"
 	otel_trace "go.opentelemetry.io/otel/trace"
 )
+
+var errOTelTracingDisabled = errors.New("the OpenTelemetry tracing API bridge requires DD_TRACE_OTEL_ENABLED=true")
 
 func (s *apmClientServer) otelStartSpanHandler(w http.ResponseWriter, r *http.Request) {
 	var args OtelStartSpanArgs
@@ -36,6 +39,9 @@ func (s *apmClientServer) otelStartSpanHandler(w http.ResponseWriter, r *http.Re
 }
 
 func (s *apmClientServer) OtelStartSpan(args OtelStartSpanArgs) (*OtelStartSpanReturn, error) {
+	if s.tp == nil {
+		return nil, errOTelTracingDisabled
+	}
 	if s.tracer == nil {
 		s.tracer = s.tp.Tracer("")
 	}
@@ -180,7 +186,14 @@ func (s *apmClientServer) otelFlushSpansHandler(w http.ResponseWriter, r *http.R
 	}
 	s.otelSpans = make(map[uint64]spanContext)
 	success := false
-	s.tp.ForceFlush(time.Duration(args.Seconds)*time.Second, func(ok bool) { success = ok })
+	if s.tp != nil {
+		s.tp.ForceFlush(time.Duration(args.Seconds)*time.Second, func(ok bool) { success = ok })
+	} else {
+		// Every test client flushes on exit. Without the bridge, there are no
+		// OpenTelemetry spans to flush.
+		tracer.Flush()
+		success = true
+	}
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(&OtelFlushSpansReturn{Success: success}); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
