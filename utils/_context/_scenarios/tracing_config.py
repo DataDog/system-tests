@@ -1,9 +1,6 @@
 from ._core import DdTraceEndToEndScenario, scenario_groups
-from utils._context.containers import KafkaContainer
-from utils._context.containers import PostgresContainer
-from utils._context.header_tag_vars import CONFIG_WILDCARD
-from utils._context.header_tag_vars import INVALID_CONFIGS
-from utils._context.header_tag_vars import VALID_CONFIGS
+from utils._context.containers import KafkaContainer, PostgresContainer
+from utils._context.header_tag_vars import CONFIG_WILDCARD, INVALID_CONFIGS, VALID_CONFIGS
 
 
 class TracePropagationStyleW3c(DdTraceEndToEndScenario):

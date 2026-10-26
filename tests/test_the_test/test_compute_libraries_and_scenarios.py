@@ -581,10 +581,11 @@ class Test_ComputeLibrariesAndScenarios:
             "utils/_context/_scenarios/_core/scenario.py",
             "utils/_context/_scenarios/_core/__init__.py",
             "utils/_context/_scenarios/_core/new_module.py",  # any future module of _core
+            "utils/_context/_scenarios/new_package/module.py",  # any other subfolder
         ],
     )
     def test_scenario_core_file(self, file: str):
-        """Base classes shared by many scenarios: everything runs"""
+        """Base classes shared by many scenarios, or any other subfolder: everything runs"""
         inputs = build_inputs(modified_files=[file])
         assert_github_processor(inputs, default_libs_with_prod, default_libs_with_dev, 3600, "false", "DEFAULT", "all")
 

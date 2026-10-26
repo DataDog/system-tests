@@ -229,6 +229,7 @@ patterns:
     utils/_context/_scenarios/_core/endtoend.py:
         scenario_groups: end_to_end
     utils/_context/_scenarios/_core/*:  # base classes shared by many scenarios: runs everything
+    utils/_context/_scenarios/*/*:  # any other subfolder: not a definition file, runs everything
     utils/_context/_scenarios/open_telemetry.py:  # its scenarios only run with OTel libraries
         scenario_groups: null
         libraries: *otel_libraries

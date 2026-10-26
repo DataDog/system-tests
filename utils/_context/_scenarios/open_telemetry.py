@@ -17,17 +17,16 @@ from utils._context.containers import (
     TestedContainer,
     WeblogContainer,
     FAKE_DD_API_KEY,
+    CassandraContainer,
+    KafkaContainer,
+    MongoContainer,
+    MsSqlServerContainer,
+    MySqlContainer,
+    PostgresContainer,
+    RabbitMqContainer,
 )
 
-
 from ._core import DockerScenario, scenario_groups
-from utils._context.containers import CassandraContainer
-from utils._context.containers import KafkaContainer
-from utils._context.containers import MongoContainer
-from utils._context.containers import MsSqlServerContainer
-from utils._context.containers import MySqlContainer
-from utils._context.containers import PostgresContainer
-from utils._context.containers import RabbitMqContainer
 from utils.proxy.ports import ProxyPorts
 
 

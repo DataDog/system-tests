@@ -32,7 +32,7 @@ def _get_scenarios_by_definition_file() -> dict[str, set[str]]:
     for scenario in get_all_scenarios():
         module_file = sys.modules[type(scenario).__module__].__file__
         assert module_file is not None
-        file = Path(module_file).resolve().relative_to(root_dir)
+        file = Path(module_file).resolve().relative_to(Path(root_dir).resolve())
         if file.parent.as_posix() == "utils/_context/_scenarios":
             result[file.as_posix()].add(scenario.name)
     return result

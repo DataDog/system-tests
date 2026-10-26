@@ -3,9 +3,8 @@ from utils import interfaces
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 from ._core import DockerScenario, scenario_groups, scenario_groups as all_scenario_groups, ScenarioGroup
 from utils._context.constants import WeblogCategory
-from utils._context.containers import LambdaProxyContainer, LambdaWeblogContainer
+from utils._context.containers import LambdaProxyContainer, LambdaWeblogContainer, InternalServerContainer
 from utils._logger import logger
-from utils._context.containers import InternalServerContainer
 
 
 class _LambdaScenario(DockerScenario):
