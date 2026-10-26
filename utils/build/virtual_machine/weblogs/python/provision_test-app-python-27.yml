@@ -8,7 +8,7 @@ lang_variant:
         copy_files:
           - name: copy-auto-install-script
             local_path: utils/build/virtual_machine/weblogs/python/test-app-python-27/python_install.sh
-        remote-command: sudo apt-get -y update && sudo apt-get -y install patch && sudo sh python_install.sh deb 2.7.18
+        remote-command: "{ sudo apt-get -y update || sudo apt-get -y update; } && { sudo apt-get -y install patch || sudo apt-get -y install patch; } && sudo sh python_install.sh deb 2.7.18"
 
       - os_type: linux
         os_distro: rpm
@@ -18,9 +18,9 @@ lang_variant:
         remote-command: |
           if ! command -v make &> /dev/null
           then
-            sudo yum groupinstall "Development Tools" -y
+            sudo yum groupinstall "Development Tools" -y || sudo yum groupinstall "Development Tools" -y
           fi
-          sudo yum -y install patch
+          sudo yum -y install patch || sudo yum -y install patch
           sudo sh python_install.sh rpm 2.7.18
 
 weblog:
