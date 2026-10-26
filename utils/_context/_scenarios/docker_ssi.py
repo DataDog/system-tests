@@ -29,6 +29,8 @@ from .core import Scenario, ScenarioGroup
 AUTO_INJECT_LOCK = Path(__file__).resolve().parents[3] / "utils" / "build" / "auto_inject.lock"
 MAVEN_PROXY_WEBLOGS = frozenset({"jboss-app", "tomcat-app", "websphere-app"})
 DEFAULT_MAVEN_REPOSITORY_PROXY = "https://depot-read-api-java.us1.ddbuild.io/magicmirror/magicmirror/@current/"
+PIP_INDEX_WEBLOGS = frozenset({"py-app"})
+DEFAULT_PIP_INDEX_URL = "https://depot-read-api-python.us1.ddbuild.io/datadog/python/@current/simple"
 
 
 class ContainerRemovalError(Exception):
@@ -511,6 +513,13 @@ class DockerSSIImageBuilder:
             "MAVEN_REPOSITORY_PROXY": os.environ.get("MAVEN_REPOSITORY_PROXY", DEFAULT_MAVEN_REPOSITORY_PROXY),
         }
 
+    def _pip_index_buildargs(self) -> dict[str, str]:
+        if self._base_weblog not in PIP_INDEX_WEBLOGS:
+            return {}
+        return {
+            "PIP_INDEX_URL": os.environ.get("PIP_INDEX_URL", DEFAULT_PIP_INDEX_URL),
+        }
+
     def build_weblog_image(self, ssi_installer_docker_tag: str) -> None:
         """Build the final weblog image. Uses base ssi installer image, install
         the full ssi (to perform the auto inject) and build the weblog image
@@ -547,7 +556,11 @@ class DockerSSIImageBuilder:
             path=".",
             dockerfile=f"utils/build/ssi/{self._library}/{self._base_weblog}.Dockerfile",
             tag=weblog_docker_tag,
-            buildargs={"BASE_IMAGE": self.ssi_all_docker_tag, **self._maven_proxy_buildargs()},
+            buildargs={
+                "BASE_IMAGE": self.ssi_all_docker_tag,
+                **self._maven_proxy_buildargs(),
+                **self._pip_index_buildargs(),
+            },
             error_label="Error building weblog",
             error_message="Failed to build weblog docker image",
         )
