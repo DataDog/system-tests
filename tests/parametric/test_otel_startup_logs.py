@@ -28,6 +28,9 @@ _OTLP_LOGS = {"DD_LOGS_OTEL_ENABLED": "true"}
 _OTLP_TRACES = {"OTEL_TRACES_EXPORTER": "otlp"}
 
 
+# OTEL_ENABLED requires both semantics mode and a signal, so each signal is tested twice. With semantics
+# mode, it must report true: this shows that the signal counts, and catches a tracer that always reports
+# false. Without semantics mode, it must report false: this shows that the signal alone is not enough.
 def _library_env(signal: dict[str, str], *, semantics: bool) -> dict[str, str | None]:
     # Enables at most one OpenTelemetry signal on top of _OTEL_SIGNALS_DISABLED.
     return {**_OTEL_SIGNALS_DISABLED, **signal, "DD_TRACE_OTEL_SEMANTICS_ENABLED": str(semantics).lower()}
