@@ -13,12 +13,13 @@ import threading
 from typing import TYPE_CHECKING
 
 from ._request_handler import MockedBackendServerCore, MockBackendV2RequestHandler, HttpMethod, RouteHandler
+from ._tls import TlsListener, create_server_ssl_context
 from ._backend_ffe import MockedBackendServerFfeMixin
 from ._client import MockedBackendClient
 from ._utils import CONTROL_URL_PREFIX, HOST_DOCKER_INTERNAL, logger
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Mapping
+    from collections.abc import Callable, Mapping, Sequence
 
 
 class MockedBackendServer(MockedBackendServerFfeMixin, MockedBackendServerCore):
@@ -42,7 +43,13 @@ class MockedBackendServer(MockedBackendServerFfeMixin, MockedBackendServerCore):
         on_message: Callable[[dict], None] | None = None,
         *,
         port: int = _DEFAULT_PORT,
+        tls_port: int | None = None,
+        tls_ca_file: str | None = None,
+        tls_hostnames: Sequence[str] = (),
     ) -> None:
+        """With tls_port, it also serves HTTPS on this port, for tls_hostnames, with a certificate signed by the CA in
+        tls_ca_file: for clients that only speak HTTPS to hostnames derived from DD_SITE.
+        """
         super().__init__(("0.0.0.0", port), MockBackendV2RequestHandler)  # noqa: S104
         self.log_folder = log_folder
         self.on_message = on_message if on_message else lambda _: None
@@ -56,6 +63,14 @@ class MockedBackendServer(MockedBackendServerFfeMixin, MockedBackendServerCore):
 
         self._thread = threading.Thread(target=self.serve_forever, name=self.thread_name, daemon=True)
         self._thread.start()
+
+        self.tls_listener: TlsListener | None = None
+        if tls_port is not None:
+            assert tls_ca_file, "TLS requires a CA file"
+            assert tls_hostnames, "TLS requires hostnames"
+            ssl_context = create_server_ssl_context(tls_ca_file, tls_hostnames)
+            self.tls_listener = TlsListener(self, tls_port, ssl_context)
+            logger.debug(f"{self.thread_name} server serves {', '.join(tls_hostnames)} on {self.tls_listener.base_url}")
         logging_into = f"logging into {log_folder}" if log_folder else "not logging to disk"
         logger.debug(f"{self.thread_name} server started on {self.base_url}, {logging_into}")
 
@@ -108,6 +123,8 @@ class MockedBackendServer(MockedBackendServerFfeMixin, MockedBackendServerCore):
 
     def close(self) -> None:
         logger.debug(f"Stopping {self.thread_name} server on {self.base_url}")
+        if self.tls_listener:
+            self.tls_listener.close()
         self.shutdown()
         self.server_close()
         self._thread.join(timeout=5)

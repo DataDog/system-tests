@@ -2,6 +2,8 @@
 
 import gzip
 import signal
+import socket
+import ssl
 import json
 from collections.abc import Generator
 from pathlib import Path
@@ -274,3 +276,54 @@ def test_backend_v2_with_api_key_ignores_the_header_name_case(tmp_path: Path):
     data["request"]["headers"] = [["dd-api-key", "agent-key"]]
 
     assert len(list(interface.get_data(with_api_key="agent-key"))) == 1
+
+
+_MITMPROXY_CA = "utils/proxy/.mitmproxy/mitmproxy-ca.pem"
+_INTAKE_HOSTNAME = "event-platform-intake.mock-intake.invalid"
+
+
+def _https_post(port: int, hostname: str, path: str, body: bytes) -> str:
+    """POST over HTTPS to 127.0.0.1, verifying the certificate is valid for hostname: the status line"""
+    context = ssl.create_default_context(cafile=_MITMPROXY_CA)
+    with (
+        socket.create_connection(("127.0.0.1", port), timeout=5) as raw,
+        context.wrap_socket(raw, server_hostname=hostname) as tls,
+    ):
+        request = f"POST {path} HTTP/1.1\r\nHost: {hostname}\r\nContent-Type: application/json\r\nContent-Length: {len(body)}\r\nConnection: close\r\n\r\n"
+        tls.sendall(request.encode() + body)
+        return tls.recv(4096).decode().splitlines()[0]
+
+
+@scenarios.test_the_test
+def test_https_requests_are_served_and_recorded_with_the_http_ones(tmp_path: Path):
+    server = MockedBackendServer(
+        str(tmp_path), port=0, tls_port=0, tls_ca_file=_MITMPROXY_CA, tls_hostnames=[_INTAKE_HOSTNAME]
+    )
+    try:
+        assert server.tls_listener is not None
+        requests.post(f"{server.base_url}/api/v2/series", json={"over": "http"}, timeout=5)
+        status_line = _https_post(server.tls_listener.port, _INTAKE_HOSTNAME, "/api/v2/exposures", b'{"over": "https"}')
+    finally:
+        server.close()
+
+    assert status_line == "HTTP/1.0 200 OK"
+    # one message count for both: no file overwrites another
+    assert sorted(file.name for file in tmp_path.glob("*.json")) == [
+        "000__api_v2_series.json",
+        "001__api_v2_exposures.json",
+    ]
+    recorded = json.loads((tmp_path / "001__api_v2_exposures.json").read_text())
+    assert recorded["request"]["content"] == {"over": "https"}
+
+
+@scenarios.test_the_test
+def test_https_certificate_is_only_valid_for_the_served_hostnames(tmp_path: Path):
+    server = MockedBackendServer(
+        str(tmp_path), port=0, tls_port=0, tls_ca_file=_MITMPROXY_CA, tls_hostnames=[_INTAKE_HOSTNAME]
+    )
+    try:
+        assert server.tls_listener is not None
+        with pytest.raises(ssl.SSLCertVerificationError):
+            _https_post(server.tls_listener.port, "other.mock-intake.invalid", "/api/v2/exposures", b"{}")
+    finally:
+        server.close()

@@ -53,6 +53,8 @@ from utils.interfaces import StdoutLogsInterface, LibraryStdoutInterface
 
 # fake key of length 32
 FAKE_DD_API_KEY = "0123456789abcdef0123456789abcdef"
+# DD_SITE of agentless senders: the reserved .invalid domain fails closed if a request is not sent to the mocked backend
+MOCK_INTAKE_SITE = "mock-intake.invalid"
 # its own key tells, in the mocked backend, what serverless-init sent (see interfaces.backend_v2 with_api_key)
 SERVERLESS_INIT_FAKE_DD_API_KEY = "fedcba9876543210fedcba9876543210"
 
@@ -105,6 +107,7 @@ class TestedContainer:
         pid_mode: str | None = None,
         cgroupns: str | None = None,
         mounts: list[docker.types.Mount] | None = None,
+        network_aliases: list[str] | None = None,
     ) -> None:
         assert name
         assert image_name
@@ -143,6 +146,8 @@ class TestedContainer:
         # Unlike volumes, a bind mount listed here fails container creation when its source is
         # missing, instead of being created as an empty directory by the docker daemon.
         self.mounts = mounts
+        # other names other containers of the network can reach it with
+        self.network_aliases = network_aliases or []
 
     def _get_image_name(self, binary_file_name: str | None, default_name: str) -> str:
         # if the container provide binary_file_name, then a file named binaries/{binary_file_name}
@@ -256,6 +261,11 @@ class TestedContainer:
             # auto_remove=True,
             detach=True,
             network=network.name,
+            networking_config=(
+                {network.name: get_docker_client().api.create_endpoint_config(aliases=self.network_aliases)}
+                if self.network_aliases
+                else None
+            ),
             volumes=self.volumes,
             ports=self.ports,
             working_dir=self.working_dir,
@@ -782,6 +792,14 @@ class MockedBackendContainer(TestedContainer):
     """
 
     port = 4900
+    # HTTPS for senders that only reach the intake hostnames derived from DD_SITE (e.g. an SDK sending exposures
+    # directly), with a certificate signed by the mitmproxy CA: these senders are given the CA bundle trusting it
+    tls_port = 443
+    tls_hostnames = (
+        f"event-platform-intake.{MOCK_INTAKE_SITE}",
+        f"instrumentation-telemetry-intake.{MOCK_INTAKE_SITE}",
+    )
+    tls_ca_file = "utils/proxy/.mitmproxy/mitmproxy-ca.pem"
 
     def __init__(self) -> None:
         super().__init__(
@@ -789,6 +807,7 @@ class MockedBackendContainer(TestedContainer):
             image_name="datadog/system-tests:proxy-v1",
             # a valid hostname: some HTTP clients reject an underscore
             name="mocked-backend",
+            network_aliases=list(self.tls_hostnames),
             working_dir="/app",
             volumes={
                 # without utils/__init__.py: utils is a namespace package, and the rest of utils is not needed
@@ -811,7 +830,21 @@ class MockedBackendContainer(TestedContainer):
         # Same relative path in the container and on the host, so recorded log filenames are the same
         log_folder = f"{host_log_folder}/interfaces/backend_v2"
         self.volumes[f"./{log_folder}"] = {"bind": f"/app/{log_folder}", "mode": "rw"}
-        self.command = ["python", "-m", "utils.mocked_backend", "--port", str(self.port), "--log-folder", log_folder]
+        self.command = [
+            "python",
+            "-m",
+            "utils.mocked_backend",
+            "--port",
+            str(self.port),
+            "--log-folder",
+            log_folder,
+            "--tls-port",
+            str(self.tls_port),
+            "--tls-ca-file",
+            self.tls_ca_file,
+        ]
+        for hostname in self.tls_hostnames:
+            self.command += ["--tls-hostname", hostname]
 
     @property
     def container_url(self) -> str:
@@ -959,7 +992,7 @@ class ServerlessInitContainer(TestedContainer):
             image_name="datadog/serverless-init:1.10.4",
             environment={
                 "DD_API_KEY": SERVERLESS_INIT_FAKE_DD_API_KEY,
-                "DD_SITE": "mock-intake.invalid",
+                "DD_SITE": MOCK_INTAKE_SITE,
                 "DD_SERVICE": "ffe-system-tests-serverless-init",
                 "DD_ENV": "system-tests",
                 "DD_APM_ENABLED": "true",
