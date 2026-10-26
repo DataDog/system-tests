@@ -89,6 +89,29 @@ class Test_GitlabJobScripts:
             _trace("run python DEFAULT flask", [*tags, "system-tests.scenario:DEFAULT"], "./run.sh", "DEFAULT"),
         ]
 
+    def test_run_scenario_builds_local_weblog(
+        self, commands: list[list[str]], monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    ) -> None:
+        """build_mode: local, no build job: upstream binaries are copied, then build.sh builds the image."""
+        (tmp_path / "upstream").mkdir()
+        (tmp_path / "upstream" / "nodejs-load-from-npm").write_text("dd-trace")
+        monkeypatch.setenv("TEST_LIBRARY", "nodejs")
+        monkeypatch.setenv("SYSTEM_TESTS_WEBLOG", "express4")
+        monkeypatch.setenv("SYSTEM_TESTS_SCENARIO", "DEFAULT")
+        monkeypatch.setenv("SYSTEM_TESTS_WEBLOG_BUILD_REQUIRED", "true")
+        monkeypatch.setenv("SYSTEM_TESTS_BINARIES_ARTIFACT_PATH", "upstream")
+
+        run_scenario.main()
+
+        assert Path("binaries/nodejs-load-from-npm").read_text() == "dd-trace"
+        tags = ["system-tests.library:nodejs", "system-tests.weblog:express4"]
+        assert commands == [
+            ["ls", "-la", "binaries/"],
+            TAG_RUN,
+            _trace("build nodejs express4", tags, "./build.sh", "-i", "weblog", "-w", "express4"),
+            _trace("run nodejs DEFAULT express4", [*tags, "system-tests.scenario:DEFAULT"], "./run.sh", "DEFAULT"),
+        ]
+
     def test_build_weblog(self, commands: list[list[str]], monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         monkeypatch.setenv("TEST_LIBRARY", "python")
         monkeypatch.setenv("SYSTEM_TESTS_WEBLOG", "flask")

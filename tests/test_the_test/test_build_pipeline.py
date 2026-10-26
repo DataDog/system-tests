@@ -347,3 +347,33 @@ class Test_BuildPipeline:
         base = pipeline[".run_test_pipeline_base"]
         assert base["trigger"]["forward"] == {"yaml_variables": False}
         assert "variables" not in base
+
+    def test_local_build_weblog_is_built_in_run_job(self, tmp_path: Path) -> None:
+        """build_mode: local weblogs require a build (build.sh is called), but don't get a build job."""
+        params = {
+            "endtoend_defs": {
+                "parallel_weblogs": [{"name": "express5"}],
+                "parallel_jobs": [
+                    {"weblog": "express4", "scenarios": ["DEFAULT"], "weblog_build_required": True},
+                    {"weblog": "express5", "scenarios": ["DEFAULT"], "weblog_build_required": True},
+                ],
+            },
+            "miscs": {"binaries_artifact": "nodejs-binaries"},
+            "parametric": {"enable": False, "parallel_jobs": []},
+        }
+        (tmp_path / "params_nodejs.json").write_text(json.dumps(params))
+        out = tmp_path / "out"
+
+        build(["nodejs"], tmp_path, out, stage="e2e", ci_image="img", chunks=1, binaries_artifact_path="bin")
+
+        pipeline = yaml.safe_load((out / "generated-pipeline-chunk-0.yml").read_text())
+        assert "system_tests_build_nodejs_express4" not in pipeline
+        local = pipeline["system_tests_run_nodejs_DEFAULT_express4"]
+        assert local["needs"] == [{"job": "nodejs-binaries", "artifacts": True, "pipeline": "$UPSTREAM_PIPELINE_ID"}]
+        assert local["variables"]["SYSTEM_TESTS_WEBLOG_BUILD_REQUIRED"] == "true"
+        assert local["variables"]["SYSTEM_TESTS_BINARIES_ARTIFACT_PATH"] == "bin"
+
+        # every job a run job needs is defined, or comes from the upstream pipeline
+        for name, job in pipeline.items():
+            for need in job.get("needs", []) if isinstance(job, dict) else []:
+                assert "pipeline" in need or need["job"] in pipeline, f"{name} needs undefined job {need['job']}"

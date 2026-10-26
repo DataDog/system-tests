@@ -93,8 +93,13 @@ def library_jobs(
 
     jobs: dict[str, dict] = {}
 
-    for weblog_def in endtoend_defs.get("parallel_weblogs", []):
-        weblog = weblog_def["name"]
+    # Only weblogs with build_mode: prebuild get a build job. Weblogs with build_mode: local also require a build,
+    # but it is light enough to be done by build.sh in their run jobs, from the upstream binaries.
+    prebuilt_weblogs = list(
+        dict.fromkeys(weblog_def["name"] for weblog_def in endtoend_defs.get("parallel_weblogs", []))
+    )
+
+    for weblog in prebuilt_weblogs:
         jobs[_build_job_name(library, weblog)] = _job(
             ".system_tests_build",
             variables=_weblog_variables(library, weblog) | copy_binaries,
@@ -107,9 +112,10 @@ def library_jobs(
         for scenario in job_def.get("scenarios", []):
             variables = _weblog_variables(library, weblog) | {
                 "SYSTEM_TESTS_SCENARIO": scenario,
+                # run build.sh before run.sh: it loads the image of the build job, or builds it if there is none
                 "SYSTEM_TESTS_WEBLOG_BUILD_REQUIRED": _bool(build_required),
             }
-            if build_required:
+            if weblog in prebuilt_weblogs:
                 needs = [{"job": _build_job_name(library, weblog), "artifacts": True}]
             else:
                 variables |= copy_binaries
