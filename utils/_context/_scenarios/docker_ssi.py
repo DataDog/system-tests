@@ -39,6 +39,13 @@ class ImagePushError(Exception):
     """Exception raised when a docker image push operation fails."""
 
 
+def _component_version_missing(version: Version | None) -> bool:
+    """Return True when SSI did not report a real installed version."""
+    if version is None:
+        return True
+    return version == "0.0.0"
+
+
 class _DockerSSIScenario(Scenario):
     """Scenario test the ssi installer on a docker environment and runs APM test agent"""
 
@@ -142,6 +149,8 @@ class _DockerSSIScenario(Scenario):
         json_tested_component = self.ssi_image_builder.tested_components()
         self.fill_context(json_tested_component)
         self.print_installed_components()
+        # Fail before containers start. The installer can exit 0 without installing SSI.
+        self.check_installed_components()
 
         for container in self._required_containers:
             try:
@@ -246,39 +255,47 @@ class _DockerSSIScenario(Scenario):
         for conf in self.configuration:
             logger.stdout(f"{conf}: {self.configuration[conf]}")
 
-    def check_installed_components(self):
-        """Check the the injector and library versions are present"""
-        is_valid = True
-        if not self.components.get("datadog-apm-library"):
-            is_valid = False
-            logger.stdout(
-                "❌ Library version not found. Could not get the tracer image or the version of the library "
-                "could not be extracted"
-            )
+    def check_installed_components(self) -> None:
+        """Stop the scenario when the installer exits 0 without installing SSI.
+
+        A missing version and ``0.0.0`` both mean the component was not installed.
+        ``Version("0.0.0")`` is truthy, so a truthiness check does not catch it.
+        Exit code 3 matches the AWS SSI check, and GitLab retries that code.
+        """
+        library_missing = _component_version_missing(self.components.get("datadog-apm-library"))
+        injector_missing = _component_version_missing(self.components.get("datadog-apm-inject"))
+        if not library_missing and not injector_missing:
+            logger.stdout("✅ All components are installed correctly. ✅")
+            return
+
+        if library_missing:
+            logger.stdout("❌ SSI installer finished, but the tracer library was not installed ❌")
             if self._custom_library_version:
                 logger.stdout(
-                    f"🛠️ You have specified a custom version of the library (--ssi-library-version), please check "
-                    f"that the reference [{self._custom_library_version}] is correct."
+                    "🛠️ You have specified a custom version of the library (--ssi-library-version). "
+                    f"Check that the reference [{self._custom_library_version}] is correct."
                 )
-        if not self._datadog_apm_inject_version:
-            is_valid = False
-            logger.stdout(
-                "❌ Injector version not found. Could not get the injector image or the version of the injector "
-                "could not be extracted"
-            )
+        if injector_missing:
+            logger.stdout("❌ SSI installer finished, but the injector was not installed ❌")
             if self._custom_injector_version:
                 logger.stdout(
-                    f"🛠️ You have specified a custom version of the injector (--ssi-injector-version), please check "
-                    f"that the reference [{self._custom_injector_version}] is correct."
+                    "🛠️ You have specified a custom version of the injector (--ssi-injector-version). "
+                    f"Check that the reference [{self._custom_injector_version}] is correct."
                 )
-        if not is_valid:
-            logger.stdout(f"🌍 You have set the environment to [{self._env}]. Check the docker build logs.\n\n\n")
-            raise ValueError("❌ Error: Could not get the library or injector version. ❌")
-        logger.stdout("✅ All components are installed correctly. ✅")
+
+        build_log = f"{self.host_log_folder}/docker_build.log"
+        logger.stdout(f"🌍 You have set the environment to [{self._env}]. Review {build_log}.")
+        missing_parts: list[str] = []
+        if library_missing:
+            missing_parts.append("the tracer library")
+        if injector_missing:
+            missing_parts.append("the injector")
+        pytest.exit(
+            f"SSI installer finished without installing {' and '.join(missing_parts)}. Review {build_log}.",
+            returncode=3,
+        )
 
     def post_setup(self, session: pytest.Session) -> None:  # noqa: ARG002
-        self.check_installed_components()
-
         logger.stdout("--- Waiting for all traces and telemetry to be sent to test agent ---")
         time.sleep(15)
         interfaces.test_agent.collect_data(
