@@ -7,12 +7,14 @@ from collections.abc import Generator
 from pathlib import Path
 import subprocess
 import sys
+import threading
 
 from utils import pytest
 import requests
 import zstandard
 
 from utils import scenarios
+from utils.interfaces._backend_v2 import _BackendV2InterfaceValidator
 from utils.mocked_backend import MockedBackendClient, MockedBackendServer
 
 
@@ -133,6 +135,21 @@ def test_on_message_callback_is_invoked_with_the_logged_data(tmp_path: Path):
     written = json.loads(next(tmp_path.glob("*.json")).read_text())
     assert written["log_filename"] == received[0]["log_filename"]
     assert written["request"]["content"] == received[0]["request"]["content"]
+
+
+@scenarios.test_the_test
+def test_interface_wait_for_is_released_by_a_received_message(tmp_path: Path):
+    interface = _BackendV2InterfaceValidator()
+    interface.configure(str(tmp_path), replay=False)
+    message = {"log_filename": "000__api_v2_series.json", "path": "/api/v2/series", "request": {"content": {}}}
+
+    # delivered while wait_for is waiting, as the mocked backend does when it receives a request
+    timer = threading.Timer(0.5, interface._on_message, args=(message,))  # noqa: SLF001
+    timer.start()
+    try:
+        assert interface.wait_for(lambda data: data["path"] == "/api/v2/series", timeout=5)
+    finally:
+        timer.cancel()
 
 
 @scenarios.test_the_test
