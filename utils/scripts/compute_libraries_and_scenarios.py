@@ -25,6 +25,21 @@ if TYPE_CHECKING:
 root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # noqa: PTH120, PTH100
 scenario_names = {scenario.name for scenario in get_all_scenarios()}
 
+
+def _get_scenarios_by_definition_file() -> dict[str, set[str]]:
+    """Scenarios defined in each scenario definition file: the modules of utils/_context/_scenarios/"""
+    result: dict[str, set[str]] = defaultdict(set)
+    for scenario in get_all_scenarios():
+        module_file = sys.modules[type(scenario).__module__].__file__
+        assert module_file is not None
+        file = Path(module_file).resolve().relative_to(root_dir)
+        if file.parent.as_posix() == "utils/_context/_scenarios":
+            result[file.as_posix()].add(scenario.name)
+    return result
+
+
+scenarios_by_definition_file = _get_scenarios_by_definition_file()
+
 # do not include otel in system-tests CI by default, as the staging backend is not stable enough
 LIBRARIES = COMPONENT_GROUPS.all - COMPONENT_GROUPS.otel
 OTEL_LIBRARIES = COMPONENT_GROUPS.otel - {"nodejs_otel"}  # nodejs_otel intentionally excluded
@@ -284,6 +299,10 @@ class ScenarioProcessor:
     def add(self, file: str, param: Param | None) -> None:
         self.process_test_files(file)
         self.process_regular_file(file, param)
+
+        if file in scenarios_by_definition_file:
+            logger.debug(f"Scenario definition file {file} is modified, adding {scenarios_by_definition_file[file]}")
+            self._append_scenarios_from_test_files(scenarios_by_definition_file[file])
 
     def get_outputs(self) -> dict[str, str]:
         return {

@@ -20,11 +20,18 @@ from utils._context.containers import (
 )
 
 
-from .core import scenario_groups
-from .endtoend import DockerScenario
+from ._core import DockerScenario, scenario_groups
+from utils._context.containers import CassandraContainer
+from utils._context.containers import KafkaContainer
+from utils._context.containers import MongoContainer
+from utils._context.containers import MsSqlServerContainer
+from utils._context.containers import MySqlContainer
+from utils._context.containers import PostgresContainer
+from utils._context.containers import RabbitMqContainer
+from utils.proxy.ports import ProxyPorts
 
 
-class OpenTelemetryScenario(DockerScenario):
+class _OpenTelemetryScenario(DockerScenario):
     """Scenario for testing opentelemetry"""
 
     def __init__(
@@ -201,3 +208,48 @@ class OpenTelemetryScenario(DockerScenario):
         # return {"python_otel", "java_otel", "nodejs_otel"}
         # nodejs_otel is broken since a while
         return {"python_otel", "java_otel"}
+
+
+class OtelIntegrations(_OpenTelemetryScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "OTEL_INTEGRATIONS",
+            weblog_env={
+                "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
+                "OTEL_EXPORTER_OTLP_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}",
+                "OTEL_EXPORTER_OTLP_TRACES_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
+                "OTEL_INTEGRATIONS_TEST": True,
+            },
+            include_intake=False,
+            include_collector=False,
+            extra_containers=(
+                MsSqlServerContainer,
+                MySqlContainer,
+                RabbitMqContainer,
+                KafkaContainer,
+                MongoContainer,
+                CassandraContainer,
+                PostgresContainer,
+            ),
+            doc=(
+                "We use the open telemetry library to automatically instrument the weblogs instead of using the DD "
+                "library."
+                "This scenario represents this case in the integration with different external systems, for example "
+                "the interaction with sql database."
+            ),
+        )
+
+
+class OtelTracingE2e(_OpenTelemetryScenario):
+    def __init__(self) -> None:
+        super().__init__("OTEL_TRACING_E2E", require_api_key=True, doc="")
+
+
+class OtelMetricE2e(_OpenTelemetryScenario):
+    def __init__(self) -> None:
+        super().__init__("OTEL_METRIC_E2E", require_api_key=True, mocked_backend=False, doc="")
+
+
+class OtelLogE2e(_OpenTelemetryScenario):
+    def __init__(self) -> None:
+        super().__init__("OTEL_LOG_E2E", require_api_key=True, doc="")

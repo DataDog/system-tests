@@ -25,7 +25,7 @@
 #       debug-level log on pattern match.
 #
 # TIP: Valid scenario group names can be found in
-#                      utils/_context/_scenarios/core.py:26
+#                      utils/_context/_scenarios/_core/scenario.py:26
 #
 # Notes: - Do not use regex tokens like \w, \d, etc.
 #        - This mechanism is tested in
@@ -221,39 +221,19 @@ patterns:
 # This section contains rules to apply to scenario files.
 ################################################################################
 
-    utils/_context/_scenarios/appsec_low_waf_timeout.py:
-        scenario_groups: appsec_low_waf_timeout
-    utils/_context/_scenarios/aws_lambda.py:
-        scenario_groups: lambda_end_to_end
-    utils/_context/_scenarios/auto_injection.py:
-        scenario_groups: onboarding
-    utils/_context/_scenarios/debugger.py:
-        scenario_groups: debugger
-    utils/_context/_scenarios/default.py:
-        scenarios: DEFAULT
-    utils/_context/_scenarios/_docker_fixtures.py:
+    utils/_context/_scenarios/__init__.py:  # only instantiates scenarios, each one is defined in a module of this folder
+        scenario_groups: null
+        libraries: null
+    utils/_context/_scenarios/_core/docker_fixtures.py:
         scenario_groups: docker_fixtures
-    utils/_context/_scenarios/appsec_rasp.py:
-        scenario_groups: appsec_rasp_scenario
-    utils/_context/_scenarios/agentless_endtoend.py:
-        scenario_groups: agentless
-    utils/_context/_scenarios/endtoend.py:
+    utils/_context/_scenarios/_core/endtoend.py:
         scenario_groups: end_to_end
-    utils/_context/_scenarios/integration_frameworks.py:
-        scenarios: INTEGRATION_FRAMEWORKS
-    utils/_context/_scenarios/integrations.py:
-        scenario_groups: integrations
-    utils/_context/_scenarios/ipv6.py:
-        scenario_groups: ipv6
-    utils/_context/_scenarios/open_telemetry.py:
-        scenario_groups: open_telemetry
+    utils/_context/_scenarios/_core/*:  # base classes shared by many scenarios: runs everything
+    utils/_context/_scenarios/open_telemetry.py:  # its scenarios only run with OTel libraries
+        scenario_groups: null
         libraries: *otel_libraries
-    utils/_context/_scenarios/parametric.py:
-        scenarios: PARAMETRIC
-    utils/_context/_scenarios/profiling.py:
-        scenario_groups: profiling
-    utils/_context/_scenarios/thread_context_sharing.py:
-        scenario_groups: thread_context_sharing
+    utils/_context/_scenarios/*:  # a scenario definition file: runs the scenarios it defines, see compute_libraries_and_scenarios.py
+        scenario_groups: null
 
 
 ############################### Script file rules ##############################

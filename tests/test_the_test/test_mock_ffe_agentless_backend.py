@@ -12,7 +12,7 @@ from utils import pytest
 from utils import features, interfaces, scenarios
 from utils._context.containers import ServerlessInitContainer
 from utils._context._scenarios import agentless_endtoend as agentless_endtoend_scenarios
-from utils._context._scenarios import endtoend as endtoend_scenarios
+from utils._context._scenarios._core import endtoend as endtoend_scenarios
 from utils.docker_fixtures._core import HOST_GATEWAY_EXTRA_HOSTS, extra_hosts_for_environment
 from utils.mocked_backend import MockedBackendServer
 
