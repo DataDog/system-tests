@@ -121,7 +121,11 @@ from .test_the_test import (
     TestTheTest,
     Todo,
 )
-from .feature_flagging import FeatureFlaggingAndExperimentation
+from .feature_flagging import (
+    FeatureFlaggingAndExperimentation,
+    FeatureFlaggingEvaluationTelemetryOptOut,
+    FeatureFlaggingEvaluationTelemetryOptOutDisabled,
+)
 from .graphql import (
     GraphqlAppsec,
     GraphqlErrorTracking,
@@ -315,6 +319,8 @@ class _Scenarios:
     feature_flagging_and_experimentation_agentless = FeatureFlaggingAndExperimentationAgentless()
     feature_flagging_and_experimentation_agentless_direct = FeatureFlaggingAndExperimentationAgentlessDirect()
     feature_flagging_and_experimentation_agentless_serverless = FeatureFlaggingAndExperimentationAgentlessServerless()
+    feature_flagging_evaluation_telemetry_opt_out = FeatureFlaggingEvaluationTelemetryOptOut()
+    feature_flagging_evaluation_telemetry_opt_out_disabled = FeatureFlaggingEvaluationTelemetryOptOutDisabled()
     remote_config_mocked_backend_asm_features_nocache = RemoteConfigMockedBackendAsmFeaturesNocache()
     # APM tracing end-to-end scenarios
     apm_tracing_e2e_otel = ApmTracingE2eOtel()
