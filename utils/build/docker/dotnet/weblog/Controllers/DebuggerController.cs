@@ -182,5 +182,29 @@ namespace weblog
                 ["name"] = "NON_SENSITIVE_VALUE",
             };
         }
+
+        [HttpGet("correlation")]
+        [Consumes("application/json", "application/xml")]
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+        public IActionResult Correlation()
+        {
+            int result = CorrelationMiddle();
+            System.Threading.Thread.Sleep(400); // space the probed call sites in time
+            return Content($"Correlation {result}");
+        }
+
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+        private int CorrelationMiddle()
+        {
+            int result = CorrelationLeaf();
+            System.Threading.Thread.Sleep(400); // space the probed call sites in time
+            return result;
+        }
+
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+        private int CorrelationLeaf()
+        {
+            return 3;
+        }
     }
 }

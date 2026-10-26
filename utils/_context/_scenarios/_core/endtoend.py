@@ -20,6 +20,7 @@ from utils._context.containers import (
     AgentContainer,
     ProxyContainer,
     BuddyContainer,
+    MockedBackendContainer,
     MsSqlServerContainer,
     TestedContainer,
     FAKE_DD_API_KEY,
@@ -28,7 +29,7 @@ from utils._context.weblog_infrastructure import EndToEndWeblogInfra
 from utils._context.constants import WeblogCategory
 from utils._logger import logger
 
-from .core import Scenario, ScenarioGroup, scenario_groups as all_scenario_groups
+from .scenario import Scenario, ScenarioGroup, scenario_groups as all_scenario_groups
 
 
 class DockerScenario(Scenario):
@@ -278,6 +279,14 @@ class EndToEndScenario(DockerScenario):
         self.dd_api_key = FAKE_DD_API_KEY if mocked_backend_v2 else os.environ.get("DD_API_KEY", FAKE_DD_API_KEY)
         """The API key used by the agent to send data to the backend"""
 
+        self.mocked_backend_container = MockedBackendContainer()
+        if mocked_backend_v2:
+            self._containers.append(self.mocked_backend_container)
+            if include_agent:
+                agent_env = dict(agent_env) if agent_env else {}
+                agent_env.setdefault("DD_DD_URL", self.mocked_backend_container.container_url)
+                agent_env.setdefault("DD_APM_DD_URL", self.mocked_backend_container.container_url)
+
         self.agent_container = AgentContainer(
             dd_api_key=self.dd_api_key,
             use_proxy=use_proxy_for_agent,
@@ -353,16 +362,10 @@ class EndToEndScenario(DockerScenario):
         if self.include_agent:
             interfaces.agent.configure(self.host_log_folder, replay=self.replay)
         interfaces.library.configure(self.host_log_folder, replay=self.replay)
-        interfaces.backend_legacy.configure(self.host_log_folder, replay=self.replay)
+        if self._require_api_key:  # only used by scenarios querying the real Datadog backend
+            interfaces.backend_legacy.configure(self.host_log_folder, replay=self.replay)
         if self._mocked_backend_v2:
             interfaces.backend_v2.configure(self.host_log_folder, replay=self.replay)
-            if not self.replay:
-                interfaces.backend_v2.start_mocked_backend()
-                if self.include_agent:
-                    mocked_backend_url = interfaces.backend_v2.server.container_url
-                    self.agent_container.environment.setdefault("DD_DD_URL", mocked_backend_url)
-                    self.agent_container.environment.setdefault("DD_APM_DD_URL", mocked_backend_url)
-
         interfaces.library_dotnet_managed.configure(self.host_log_folder, replay=self.replay)
         interfaces.library_stdout.configure(self.host_log_folder, replay=self.replay)
         if self.include_agent:
@@ -406,18 +409,11 @@ class EndToEndScenario(DockerScenario):
             self.warmups.append(self._set_weblog_domain)
         self.warmups.append(self._set_components)
 
-    def close_targets(self):
-        try:
-            super().close_targets()
-        finally:
-            if self._mocked_backend_v2:
-                self._stop_mocked_backend_v2()
-
     def _stop_mocked_backend_v2(self) -> None:
-        """Called once the targets are closed. Subclasses can extend it to read the mocked backend
+        """Called once the agent and the weblog are stopped. Subclasses can extend it to read the mocked backend
         state before it stops.
         """
-        interfaces.backend_v2.stop_mocked_backend()
+        self.mocked_backend_container.stop()
 
     def _set_containers_dependancies(self) -> None:
         if self._use_proxy_for_agent:
@@ -430,16 +426,27 @@ class EndToEndScenario(DockerScenario):
         for buddy in self.buddies:
             buddy.depends_on.append(self.agent_container)
 
+        if self._mocked_backend_v2:
+            if self.include_agent:
+                self.agent_container.depends_on.append(self.mocked_backend_container)
+            # e.g. agentless libraries may reach it as soon as they start
+            for container in self.weblog_infra.get_containers():
+                container.depends_on.append(self.mocked_backend_container)
+
     def _start_interfaces_watchdog(self):
         open_telemetry_interfaces: list[ProxyBasedInterfaceValidator] = (
             [interfaces.open_telemetry] if self.include_opentelemetry else []
         )
         agent_interfaces: list[ProxyBasedInterfaceValidator] = [interfaces.agent] if self.include_agent else []
+        backend_interfaces: list[ProxyBasedInterfaceValidator] = (
+            [interfaces.backend_v2] if self._mocked_backend_v2 else []
+        )
         super().start_interfaces_watchdog(
             [interfaces.library]
             + agent_interfaces
             + [container.interface for container in self.buddies]
             + open_telemetry_interfaces
+            + backend_interfaces
         )
 
     def _set_weblog_domain(self):
@@ -499,7 +506,8 @@ class EndToEndScenario(DockerScenario):
                 interfaces.agent.load_data_from_logs()
                 interfaces.agent.check_deserialization_errors()
 
-            interfaces.backend_legacy.load_data_from_logs()
+            if self._require_api_key:
+                interfaces.backend_legacy.load_data_from_logs()
 
             if self._mocked_backend_v2:
                 interfaces.backend_v2.load_data_from_logs()
@@ -535,6 +543,11 @@ class EndToEndScenario(DockerScenario):
                     interfaces.open_telemetry, 0 if is_empty_test_run else self.backend_interface_timeout
                 )
             if self._mocked_backend_v2:
+                # stopped last: it receives what the agent and the weblog send until they stop
+                self._stop_mocked_backend_v2()
+                # the watchdog polls files about once per second: the last ones may not be ingested yet. Nothing else
+                # can arrive now, so ingest them all instead of waiting an arbitrary time
+                interfaces.backend_v2.ingest_all_files()
                 interfaces.backend_v2.check_deserialization_errors()
 
     def _stop_weblog(self, *, is_empty_test_run: bool) -> None:
@@ -660,30 +673,6 @@ class DdTraceEndToEndScenario(EndToEndScenario):
             use_proxy_for_agent=use_proxy_for_agent,
             use_proxy_for_weblog=use_proxy_for_weblog,
             weblog_categories=[WeblogCategory.dd_trace],
-            weblog_env=weblog_env,
-            weblog_volumes=weblog_volumes,
-        )
-
-
-class GraphQlEndToEndScenario(EndToEndScenario):
-    """Scenario targeting GraphQl feature of a dd-trace library"""
-
-    def __init__(
-        self,
-        name: str,
-        *,
-        doc: str,
-        agent_env: dict[str, str | None] | None = None,
-        scenario_groups: list[ScenarioGroup] | None = None,
-        weblog_env: dict[str, str | None] | None = None,
-        weblog_volumes: dict | None = None,
-    ) -> None:
-        super().__init__(
-            name,
-            agent_env=agent_env,
-            doc=doc,
-            scenario_groups=scenario_groups,
-            weblog_categories=[WeblogCategory.dd_trace_graphql],
             weblog_env=weblog_env,
             weblog_volumes=weblog_volumes,
         )

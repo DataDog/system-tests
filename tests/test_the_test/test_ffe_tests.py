@@ -92,8 +92,8 @@ def _direct_runtime_evidence(library_name: str = "nodejs") -> dict[str, Any]:
         "network": {
             "id": "network-id",
             "name": network_name,
-            "container_ids": ["proxy-id", "weblog-id"],
-            "container_names": ["system-tests-proxy", "system-tests-weblog"],
+            "container_ids": ["proxy-id", "weblog-id", "mocked-backend-id"],
+            "container_names": ["system-tests-proxy", "system-tests-weblog", "system-tests-mocked-backend"],
         },
         "containers": [
             {
@@ -136,6 +136,23 @@ def _direct_runtime_evidence(library_name: str = "nodejs") -> dict[str, Any]:
                         "type": "bind",
                     }
                 ],
+            },
+            {
+                "id": "mocked-backend-id",
+                "name": "system-tests-mocked-backend",
+                "image": "datadog/system-tests:proxy-v1",
+                "image_id": "sha256:mocked-backend",
+                "library": None,
+                "weblog_variant": None,
+                "status": "running",
+                "running": True,
+                "state_pid": 303,
+                "pid1_command": "python -m utils.mocked_backend --port 4900",
+                "pid1_error": None,
+                "processes": [{"pid": "303", "ppid": "0", "command": "python -m utils.mocked_backend --port 4900"}],
+                "top_error": None,
+                "networks": [network_name],
+                "mounts": [],
             },
         ],
         "weblog_environment": {
@@ -428,7 +445,7 @@ def test_feature_flagging_direct_runtime_evidence_rejects_python_prefix_wrappers
 @pytest.mark.parametrize(
     ("mutation", "message"),
     [
-        ("agent_container", "only TLS proxy and weblog"),
+        ("agent_container", "only mocked backend, TLS proxy and weblog"),
         ("agent_variable", "Agent connection variables"),
         ("init_wrapper", "Forbidden direct-scenario runtime components"),
         ("shell_pid1", "expected one of"),
