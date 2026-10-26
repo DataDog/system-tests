@@ -9,7 +9,7 @@ from utils._logger import logger
 from utils.onboarding.debug_vm import download_vm_logs
 from utils.virtual_machine.ami_candidate import candidate_result_state
 from utils.virtual_machine.virtual_machines import _VirtualMachine, load_virtual_machines
-from .core import Scenario, ScenarioGroup
+from ._core import Scenario, scenario_groups, ScenarioGroup
 
 
 class _VirtualMachineScenario(Scenario):
@@ -268,7 +268,7 @@ class _VirtualMachineScenario(Scenario):
                 json.dump(new_result, f, indent=2)
 
 
-class InstallerAutoInjectionScenario(_VirtualMachineScenario):
+class _InstallerAutoInjectionScenario(_VirtualMachineScenario):
     def __init__(
         self,
         name: str,
@@ -295,4 +295,188 @@ class InstallerAutoInjectionScenario(_VirtualMachineScenario):
             doc=doc,
             github_workflow=github_workflow,
             scenario_groups=scenario_groups,
+        )
+
+
+# Single Step Instrumentation scenarios (HOST and CONTAINER)
+class SimpleInstallerAutoInjection(_InstallerAutoInjectionScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "SIMPLE_INSTALLER_AUTO_INJECTION",
+            "Onboarding Container Single Step Instrumentation scenario (minimal test scenario)",
+            scenario_groups=[scenario_groups.simple_onboarding],
+            github_workflow="aws_ssi",
+        )
+
+
+class MultiInstallerAutoInjection(_InstallerAutoInjectionScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "MULTI_INSTALLER_AUTO_INJECTION",
+            "Onboarding Container Single Step Instrumentation scenario for multicontainer apps",
+            scenario_groups=[scenario_groups.all, scenario_groups.onboarding],
+            github_workflow="aws_ssi",
+        )
+
+
+class InstallerAutoInjection(_InstallerAutoInjectionScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "INSTALLER_AUTO_INJECTION",
+            doc="Installer auto injection scenario",
+            scenario_groups=[scenario_groups.all, scenario_groups.onboarding],
+            github_workflow="aws_ssi",
+        )
+
+
+class InstallerNotSupportedAutoInjection(_InstallerAutoInjectionScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "INSTALLER_NOT_SUPPORTED_AUTO_INJECTION",
+            "Onboarding host Single Step Instrumentation scenario for not supported languages",
+            scenario_groups=[scenario_groups.all, scenario_groups.onboarding],
+            github_workflow="aws_ssi",
+        )
+
+
+class ChaosInstallerAutoInjection(_InstallerAutoInjectionScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "CHAOS_INSTALLER_AUTO_INJECTION",
+            doc=(
+                "Onboarding Host Single Step Instrumentation scenario. "
+                "Machines with previous ld.so.preload entries. Perform chaos testing"
+            ),
+            vm_provision="auto-inject-ld-preload",
+            scenario_groups=[scenario_groups.all, scenario_groups.onboarding],
+            github_workflow="aws_ssi",
+        )
+
+
+class SimpleAutoInjectionProfiling(_InstallerAutoInjectionScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "SIMPLE_AUTO_INJECTION_PROFILING",
+            "Onboarding Single Step Instrumentation scenario with profiling activated by the "
+            "stable config (application_monitoring.yaml)",
+            agent_env={"DD_PROFILING_ENABLED": "auto"},
+            app_env={
+                "DD_PROFILING_UPLOAD_PERIOD": "5",
+                "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
+                "DD_PROFILING_START_FORCE_FIRST": "true",
+            },
+            scenario_groups=[scenario_groups.all, scenario_groups.simple_onboarding_profiling],
+            github_workflow="aws_ssi",
+        )
+
+
+class HostAutoInjectionInstallScriptProfiling(_InstallerAutoInjectionScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING",
+            doc=(
+                "Onboarding Host Single Step Instrumentation scenario using agent "
+                "auto install script with profiling activating by the installation process"
+            ),
+            vm_provision="host-auto-inject-install-script",
+            agent_env={"DD_PROFILING_ENABLED": "auto"},
+            app_env={
+                "DD_PROFILING_UPLOAD_PERIOD": "5",
+                "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
+                "DD_PROFILING_START_FORCE_FIRST": "true",
+            },
+            scenario_groups=[scenario_groups.all, scenario_groups.onboarding],
+            github_workflow="aws_ssi",
+        )
+
+
+class ContainerAutoInjectionInstallScriptProfiling(_InstallerAutoInjectionScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING",
+            "Onboarding Container Single Step Instrumentation profiling scenario using agent auto install script",
+            vm_provision="container-auto-inject-install-script",
+            agent_env={"DD_PROFILING_ENABLED": "auto"},
+            app_env={
+                "DD_PROFILING_UPLOAD_PERIOD": "5",
+                "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
+                "DD_PROFILING_START_FORCE_FIRST": "true",
+            },
+            scenario_groups=[scenario_groups.all, scenario_groups.onboarding],
+            github_workflow="aws_ssi",
+        )
+
+
+class SimpleAutoInjectionAppsec(_InstallerAutoInjectionScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "SIMPLE_AUTO_INJECTION_APPSEC",
+            "Onboarding Single Step Instrumentation scenario with Appsec activated by the "
+            "stable config (application_monitoring.yaml)",
+            agent_env={"DD_APPSEC_ENABLED": "true"},
+            scenario_groups=[scenario_groups.all, scenario_groups.simple_onboarding_appsec],
+            github_workflow="aws_ssi",
+        )
+
+
+class HostAutoInjectionInstallScriptAppsec(_InstallerAutoInjectionScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "HOST_AUTO_INJECTION_INSTALL_SCRIPT_APPSEC",
+            doc=(
+                "Onboarding Host Single Step Instrumentation scenario using agent "
+                "auto install script with Appsec activated by the installation process"
+            ),
+            vm_provision="host-auto-inject-install-script",
+            agent_env={"DD_APPSEC_ENABLED": "true"},
+            scenario_groups=[scenario_groups.all],
+            github_workflow="aws_ssi",
+        )
+
+
+class ContainerAutoInjectionInstallScriptAppsec(_InstallerAutoInjectionScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_APPSEC",
+            "Onboarding Container Single Step Instrumentation Appsec scenario using agent auto install script",
+            vm_provision="container-auto-inject-install-script",
+            agent_env={"DD_APPSEC_ENABLED": "true"},
+            scenario_groups=[scenario_groups.all],
+            github_workflow="aws_ssi",
+        )
+
+
+class HostAutoInjectionInstallScript(_InstallerAutoInjectionScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "HOST_AUTO_INJECTION_INSTALL_SCRIPT",
+            "Onboarding Host Single Step Instrumentation scenario using agent auto install script",
+            vm_provision="host-auto-inject-install-script",
+            scenario_groups=[scenario_groups.all],
+            github_workflow="aws_ssi",
+        )
+
+
+class ContainerAutoInjectionInstallScript(_InstallerAutoInjectionScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT",
+            "Onboarding Container Single Step Instrumentation scenario using agent auto install script",
+            vm_provision="container-auto-inject-install-script",
+            scenario_groups=[scenario_groups.all],
+            github_workflow="aws_ssi",
+        )
+
+
+class LocalAutoInjectionInstallScript(_InstallerAutoInjectionScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "LOCAL_AUTO_INJECTION_INSTALL_SCRIPT",
+            doc=(
+                "To be executed locally with krunvm. Installs all the software fron agent installation script, "
+                "and the replace the apm-library with the uploaded tar file from binaries"
+            ),
+            vm_provision="local-auto-inject-install-script",
+            scenario_groups=[],
+            github_workflow="aws_ssi",
         )

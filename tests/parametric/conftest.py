@@ -12,7 +12,9 @@ import yaml
 from utils import scenarios, logger
 from utils.docker_fixtures import TestAgentAPI, ParametricTestClientApi as APMLibrary, docker_run, new_test_id
 from utils.docker_fixtures._test_agent import DEFAULT_OTLP_HTTP_PORT, DEFAULT_OTLP_GRPC_PORT
+from utils.docker_fixtures._core import get_host_port
 from utils.docker_fixtures._test_agent_pool import WorkerAgentPool
+from utils.mocked_backend import MockedBackendServer
 
 
 # Max timeout in seconds to keep a container running
@@ -35,6 +37,15 @@ def pytest_configure(config: pytest.Config) -> None:
 @pytest.fixture
 def library_env() -> dict[str, str]:
     return {}
+
+
+@pytest.fixture
+def mocked_backend(worker_id: str) -> Generator[MockedBackendServer, None, None]:
+    server = MockedBackendServer(port=get_host_port(worker_id, 4900))
+    try:
+        yield server
+    finally:
+        server.close()
 
 
 @pytest.fixture

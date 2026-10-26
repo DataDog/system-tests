@@ -15,4 +15,7 @@ weblog:
           - name: copy-python-app-dockerfile
             local_path: utils/build/virtual_machine/weblogs/python/test-app-python-container/Dockerfile.template
 
+          - name: copy-pip-conf
+            local_path: utils/build/virtual_machine/weblogs/python/pip.conf
+
         remote-command: sh create_and_run_app_container.sh
