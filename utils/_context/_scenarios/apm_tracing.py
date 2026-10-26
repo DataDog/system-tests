@@ -58,6 +58,7 @@ class ApmTracingEfficientPayload(DdTraceEndToEndScenario):
             agent_env={
                 "DD_APM_ENABLE_V1_TRACE_ENDPOINT": "true",
             },
-            backend_interface_timeout=5,
+            mocked_backend_v2=True,
+            use_proxy_for_agent=False,
             doc="End-to-end testing scenario focused on efficient payload handling and v1 trace format validation",
         )
