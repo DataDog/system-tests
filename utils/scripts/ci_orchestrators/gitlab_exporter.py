@@ -3,7 +3,7 @@ import yaml
 import hashlib
 import json
 from utils._context._scenarios import get_all_scenarios
-from utils._context._scenarios.core import Scenario
+from utils._context._scenarios._core.scenario import Scenario
 from utils.k8s.k8s_components_parser import K8sComponentsParser
 
 

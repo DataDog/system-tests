@@ -11,6 +11,7 @@ from pathlib import Path
 import re
 
 from utils import context, features, interfaces, pytest, scenarios
+from utils._context._scenarios.otel_semantics import OTEL_STARTUP_LOGS_ENV
 
 _TRACES_KEYS = (
     "DD_TRACE_OTEL_ENABLED",
@@ -104,7 +105,7 @@ class Test_OTEL_Startup_Logs:
         ("config_name", "expected"),
         [
             pytest.param(name, value, id=name)
-            for name, value in scenarios.OTEL_STARTUP_LOGS_ENV.items()
+            for name, value in OTEL_STARTUP_LOGS_ENV.items()
             # The scenario also sets unrelated settings; only required startup keys are checked.
             if name in _REQUIRED_KEYS
         ],
