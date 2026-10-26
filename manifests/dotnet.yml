@@ -439,6 +439,7 @@ manifest:
   tests/appsec/test_blocking_addresses.py::Test_Blocking_response_status: v2.32.0
   tests/appsec/test_blocking_addresses.py::Test_Blocking_user_id: v2.27.0
   tests/appsec/test_blocking_addresses.py::Test_Suspicious_Request_Blocking: v3.2.0
+  tests/appsec/test_blocking_otel_semantics.py: missing_feature (AppSec path-parameter blocking under OTel semantics has not been validated)
   tests/appsec/test_client_ip.py::Test_StandardTagsClientIp: v2.20.0
   tests/appsec/test_conf.py::Test_ConfigurationVariables: v3.26.3
   tests/appsec/test_conf.py::Test_ConfigurationVariables_New_Obfuscation: v3.26.3

@@ -338,6 +338,9 @@ jobs:
     - name: Run APPSEC_BLOCKING scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_BLOCKING"')
       run: ./run.sh APPSEC_BLOCKING
+    - name: Run APPSEC_BLOCKING_OTEL_SEMANTICS scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_BLOCKING_OTEL_SEMANTICS"')
+      run: ./run.sh APPSEC_BLOCKING_OTEL_SEMANTICS
     - name: Run EVERYTHING_DISABLED scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"EVERYTHING_DISABLED"')
       run: ./run.sh EVERYTHING_DISABLED

@@ -1387,6 +1387,7 @@ manifest:
   tests/appsec/test_blocking_addresses.py::Test_Suspicious_Request_Blocking::test_blocking_before:
     - weblog_declaration:
         rack: irrelevant (Rack don't send anything to the server.request.path_params WAF address)
+  tests/appsec/test_blocking_otel_semantics.py: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
   tests/appsec/test_client_ip.py::Test_StandardTagsClientIp: v1.8.0
   tests/appsec/test_conf.py::Test_ConfigurationVariables:  # Modified by easy win activation script
     - declaration: missing_feature (unknown version)
