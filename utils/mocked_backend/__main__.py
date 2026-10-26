@@ -20,8 +20,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="python -m utils.mocked_backend", description=__doc__.splitlines()[0])
     parser.add_argument("--port", type=int, default=4900, help="port to listen on, 0 picks a free one (default: 4900)")
     parser.add_argument("--log-folder", help="folder where each received request is recorded (default: not recorded)")
-    parser.add_argument("--tls-port", type=int, help="also serve HTTPS on this port (default: no HTTPS)")
-    parser.add_argument("--tls-cert-file", help="PEM file with the HTTPS certificate and its key")
+    parser.add_argument("--tls-cert-file", help="serve HTTPS with this certificate and its key (default: HTTP)")
     args = parser.parse_args(argv)
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)-8s %(message)s")
@@ -40,7 +39,6 @@ def main(argv: list[str] | None = None) -> int:
     server = MockedBackendServer(
         args.log_folder,
         port=args.port,
-        tls_port=args.tls_port,
         tls_cert_file=args.tls_cert_file,
     )
     # read by whoever started the process when the port is picked by the OS

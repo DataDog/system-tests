@@ -299,32 +299,37 @@ def _https_post(port: int, hostname: str, path: str, body: bytes) -> str:
 
 
 @scenarios.test_the_test
-def test_https_requests_are_served_and_recorded_with_the_http_ones(tmp_path: Path):
-    server = MockedBackendServer(str(tmp_path), port=0, tls_port=0, tls_cert_file=_TLS_CERT_FILE)
+def test_https_mode_serves_and_records_https_requests(tmp_path: Path):
+    server = MockedBackendServer(str(tmp_path), port=0, tls_cert_file=_TLS_CERT_FILE)
     try:
-        assert server.tls_listener is not None
-        requests.post(f"{server.base_url}/api/v2/series", json={"over": "http"}, timeout=5)
-        status_line = _https_post(server.tls_listener.port, _INTAKE_HOSTNAME, "/api/v2/exposures", b'{"over": "https"}')
+        status_line = _https_post(server.port, _INTAKE_HOSTNAME, "/api/v2/exposures", b'{"over": "https"}')
+        # the control endpoints, as used from the host
+        health = requests.get(f"{server.base_url}/system-tests/health", timeout=5, verify=_MITMPROXY_CA)
     finally:
         server.close()
 
     assert status_line == "HTTP/1.0 200 OK"
-    # one message count for both: no file overwrites another
-    assert sorted(file.name for file in tmp_path.glob("*.json")) == [
-        "000__api_v2_series.json",
-        "001__api_v2_exposures.json",
-    ]
-    recorded = json.loads((tmp_path / "001__api_v2_exposures.json").read_text())
+    assert health.json() == {"status": "ok"}
+    recorded = json.loads((tmp_path / "000__api_v2_exposures.json").read_text())
     assert recorded["request"]["content"] == {"over": "https"}
 
 
 @scenarios.test_the_test
-def test_https_certificate_is_only_valid_for_the_served_hostnames(tmp_path: Path):
-    server = MockedBackendServer(str(tmp_path), port=0, tls_port=0, tls_cert_file=_TLS_CERT_FILE)
+def test_https_mode_does_not_serve_http(tmp_path: Path):
+    server = MockedBackendServer(str(tmp_path), port=0, tls_cert_file=_TLS_CERT_FILE)
     try:
-        assert server.tls_listener is not None
+        with pytest.raises(requests.exceptions.ConnectionError):
+            requests.post(f"http://127.0.0.1:{server.port}/api/v2/series", json={}, timeout=5)
+    finally:
+        server.close()
+
+
+@scenarios.test_the_test
+def test_https_certificate_is_only_valid_for_the_served_hostnames(tmp_path: Path):
+    server = MockedBackendServer(str(tmp_path), port=0, tls_cert_file=_TLS_CERT_FILE)
+    try:
         with pytest.raises(ssl.SSLCertVerificationError):
-            _https_post(server.tls_listener.port, "other.mock-intake.invalid", "/api/v2/exposures", b"{}")
+            _https_post(server.port, "other.mock-intake.invalid", "/api/v2/exposures", b"{}")
     finally:
         server.close()
 
@@ -333,10 +338,25 @@ def test_https_certificate_is_only_valid_for_the_served_hostnames(tmp_path: Path
 def test_https_certificate_covers_the_container_hostnames_for_a_while():
     """The committed certificate must be regenerated when a hostname is added, or before it expires"""
     cert = x509.load_pem_x509_certificate(Path(_TLS_CERT_FILE).read_bytes())
-    hostnames = cert.extensions.get_extension_for_class(x509.SubjectAlternativeName).value.get_values_for_type(
-        x509.DNSName
-    )
+    names = cert.extensions.get_extension_for_class(x509.SubjectAlternativeName).value
+    container = MockedBackendContainer(tls=True)
 
-    assert sorted(hostnames) == sorted(MockedBackendContainer.tls_hostnames)
+    # reached by its name, its intake hostnames, and by localhost from the healthcheck and the host
+    assert sorted(names.get_values_for_type(x509.DNSName)) == sorted(
+        [container.name, *container.network_aliases, "localhost"]
+    )
+    assert [str(ip) for ip in names.get_values_for_type(x509.IPAddress)] == ["127.0.0.1"]
     # naive, in UTC
     assert cert.not_valid_after.replace(tzinfo=UTC) - datetime.now(UTC) > timedelta(days=180)
+
+
+@scenarios.test_the_test
+def test_mocked_backend_container_serves_either_http_or_https():
+    http = MockedBackendContainer()
+    assert http.container_url == "http://mocked-backend:4900"
+    assert http.network_aliases == []
+
+    https = MockedBackendContainer(tls=True)
+    # senders build the intake URLs from DD_SITE: the default HTTPS port, and the intake hostnames
+    assert https.container_url == "https://mocked-backend:443"
+    assert https.network_aliases == list(MockedBackendContainer.tls_hostnames)

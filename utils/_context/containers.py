@@ -791,24 +791,29 @@ class MockedBackendContainer(TestedContainer):
     What it receives is recorded in the logs folder, and read by interfaces.backend_v2.
     """
 
-    port = 4900
-    # HTTPS for senders that only reach the intake hostnames derived from DD_SITE (e.g. an SDK sending exposures
-    # directly), with a certificate signed by the mitmproxy CA: these senders are given the CA bundle trusting it
-    tls_port = 443
+    # With tls, it serves HTTPS instead of HTTP: for senders that only speak HTTPS to the intake hostnames derived
+    # from DD_SITE (e.g. an SDK sending exposures directly). Its certificate is signed by the mitmproxy CA: these
+    # senders must trust it. See utils/mocked_backend/tls/README.md
     tls_hostnames = (
         f"event-platform-intake.{MOCK_INVALID_INTAKE_SITE}",
         f"instrumentation-telemetry-intake.{MOCK_INVALID_INTAKE_SITE}",
     )
-    # covers tls_hostnames, see utils/mocked_backend/_tls.py
-    tls_cert_file = "utils/mocked_backend/tls/mock-intake.pem"
+    tls_cert_file = "utils/mocked_backend/tls/mocked-backend.pem"
+    tls_ca_file = "utils/proxy/.mitmproxy/mitmproxy-ca-cert.pem"
 
-    def __init__(self) -> None:
+    def __init__(self, *, tls: bool = False) -> None:
+        self.tls = tls
+        self.scheme = "https" if tls else "http"
+        # the default HTTPS port: senders build the intake URLs from DD_SITE, without port
+        self.port = 443 if tls else 4900
+        # in the healthcheck, the certificate is checked against localhost
+        health_context = f"ssl.create_default_context(cafile='/app/{self.tls_ca_file}')" if tls else "None"
         super().__init__(
             # it has every dependency of utils/mocked_backend
             image_name="datadog/system-tests:proxy-v1",
             # a valid hostname: some HTTP clients reject an underscore
             name="mocked-backend",
-            network_aliases=list(self.tls_hostnames),
+            network_aliases=list(self.tls_hostnames) if tls else None,
             working_dir="/app",
             volumes={
                 # without utils/__init__.py: utils is a namespace package, and the rest of utils is not needed
@@ -820,7 +825,7 @@ class MockedBackendContainer(TestedContainer):
             # for the control endpoints, used from the host. Docker picks a free host port
             ports={f"{self.port}/tcp": ("127.0.0.1", None)},
             healthcheck={
-                "test": f"python -c \"import urllib.request; print(urllib.request.urlopen('http://localhost:{self.port}/system-tests/health', timeout=2).read().decode())\"",  # noqa: E501
+                "test": f"python -c \"import ssl, urllib.request; print(urllib.request.urlopen('{self.scheme}://localhost:{self.port}/system-tests/health', timeout=2, context={health_context}).read().decode())\"",  # noqa: E501
                 "retries": 30,
             },
         )
@@ -839,22 +844,22 @@ class MockedBackendContainer(TestedContainer):
             str(self.port),
             "--log-folder",
             log_folder,
-            "--tls-port",
-            str(self.tls_port),
-            "--tls-cert-file",
-            self.tls_cert_file,
         ]
+        if self.tls:
+            self.command += ["--tls-cert-file", self.tls_cert_file]
 
     @property
     def container_url(self) -> str:
         """The URL other containers use to reach the mocked backend"""
-        return f"http://{self.name}:{self.port}"
+        return f"{self.scheme}://{self.name}:{self.port}"
 
     @property
     def client(self) -> MockedBackendClient:
         """Client of the control endpoints, from the host"""
         host_port = self.runtime_container.attrs["NetworkSettings"]["Ports"][f"{self.port}/tcp"][0]["HostPort"]
-        return MockedBackendClient(f"http://127.0.0.1:{host_port}")
+        return MockedBackendClient(
+            f"{self.scheme}://127.0.0.1:{host_port}", verify=self.tls_ca_file if self.tls else True
+        )
 
 
 class LambdaProxyContainer(TestedContainer):
