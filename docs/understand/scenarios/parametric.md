@@ -226,7 +226,7 @@ Options use the Node helper's names (`distributionChannel`, `apiKey`, `clientTok
 
 The shared `mocked_backend` fixture serves these protobuf responses. Import shared FFE constants and fixture helpers from `utils.mocked_backend.ffe`. On the server distribution endpoint, explicitly accepting `application/protobuf` selects protobuf, including in comma-separated `Accept` lists with a positive quality value. Wildcard-only requests and existing agentless provider tests continue to receive JSON.
 
-Use `ffe_set_response` or `ffe_set_responses` with `response_format="protobuf"` to configure these responses; the default format is JSON. Each format has an independent response timeline, and controls reject response IDs unsupported by the selected format. `ffe_reset` resets both timelines and the shared request history. Use `ffe_get_requests` to inspect paths, queries, and headers without including fixture control traffic.
+Use `mocked_backend.client.ffe_set_response` or `mocked_backend.client.ffe_set_responses` with `response_format="protobuf"` to configure these responses; the default format is JSON. Each format has an independent response timeline, and controls reject response IDs unsupported by the selected format. `mocked_backend.client.ffe_reset` resets both timelines and the shared request history. Use `mocked_backend.ffe_get_requests` to inspect paths, queries, and headers without including fixture control traffic.
 
 #### Effective OpenTelemetry configuration
 

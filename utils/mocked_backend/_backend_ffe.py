@@ -1,9 +1,9 @@
 """FFE JSON and protobuf delivery for agentless providers and standalone configuration helpers.
 
-Tests configure the response timeline with ``mocked_backend.ffe_set_response(...)`` or
-``mocked_backend.ffe_set_responses([...])`` before starting the test library. Controls
+Tests configure the response timeline with ``mocked_backend.client.ffe_set_response(...)`` or
+``mocked_backend.client.ffe_set_responses([...])`` before starting the test library. Controls
 default to JSON; use ``response_format="protobuf"`` for an independent protobuf timeline.
-``mocked_backend.ffe_get_status()`` reports request counts, auth, ETag, response codes,
+``mocked_backend.client.ffe_get_status()`` reports request counts, auth, ETag, response codes,
 and paths observed across both formats.
 """
 

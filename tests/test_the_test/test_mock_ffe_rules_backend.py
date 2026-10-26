@@ -61,7 +61,7 @@ class Test_Mock_FFE_Rules_Backend:
                 json={"responses": ["unauthorized", "not_modified"]},
                 timeout=5,
             ).raise_for_status()
-            server.ffe_set_responses(["malformed", "valid"], response_format="protobuf")
+            server.client.ffe_set_responses(["malformed", "valid"], response_format="protobuf")
             malformed = requests.get(url, headers={"Accept": "application/protobuf"}, timeout=5)
             assert malformed.content == b"\xff"
 
@@ -71,13 +71,13 @@ class Test_Mock_FFE_Rules_Backend:
 
             assert requests.get(url, timeout=5).status_code == 304
             assert requests.get(url, timeout=5).status_code == 304
-            assert server.ffe_get_status()["requests_total"] == 5
+            assert server.client.ffe_get_status()["requests_total"] == 5
             assert len(server.ffe_get_requests()) == 5
 
-            server.ffe_set_response("forbidden", response_format="protobuf")
-            server.ffe_reset()
+            server.client.ffe_set_response("forbidden", response_format="protobuf")
+            server.client.ffe_reset()
             assert server.ffe_get_requests() == []
-            assert server.ffe_get_status()["requests_total"] == 0
+            assert server.client.ffe_get_status()["requests_total"] == 0
             reset_response = requests.get(url, headers={"Accept": "application/protobuf"}, timeout=5)
             assert reset_response.status_code == 200
             assert reset_response.content == protobuf.content
@@ -108,14 +108,14 @@ class Test_Mock_FFE_Rules_Backend:
     def test_rejects_response_ids_for_the_other_format(self, response_format: ResponseFormat, response_id: str) -> None:
         server = MockedBackendServer(port=0)
         try:
-            server.ffe_set_response("unauthorized")
-            server.ffe_set_response("forbidden", response_format="protobuf")
-            status = server.ffe_get_status()
+            server.client.ffe_set_response("unauthorized")
+            server.client.ffe_set_response("forbidden", response_format="protobuf")
+            status = server.client.ffe_get_status()
             error = f"unsupported {response_format} response: {response_id}"
             with pytest.raises(ValueError, match=error):
-                server.ffe_set_response(response_id, response_format=response_format)
+                server.client.ffe_set_response(response_id, response_format=response_format)
             with pytest.raises(ValueError, match=error):
-                server.ffe_set_responses(["valid", response_id], response_format=response_format)
+                server.client.ffe_set_responses(["valid", response_id], response_format=response_format)
 
             # Direct HTTP clients must receive the same validation as the Python helper.
             response = requests.post(
@@ -125,7 +125,7 @@ class Test_Mock_FFE_Rules_Backend:
             )
             assert response.status_code == 400
             assert response.json() == {"error": error}
-            assert server.ffe_get_status() == status
+            assert server.client.ffe_get_status() == status
 
             # Rejected controls preserve both previously configured responses.
             url = f"{server.base_url}{RULES_CONFIG_PATH}/server?dd_env=test"
@@ -185,7 +185,7 @@ class Test_Mock_FFE_Rules_Backend:
     def test_failure_responses(self, mode: str, status: int, content_type: str, body: bytes) -> None:
         server = MockedBackendServer(port=0)
         try:
-            server.ffe_set_response(mode, response_format="protobuf")
+            server.client.ffe_set_response(mode, response_format="protobuf")
             response = requests.get(f"{server.base_url}{RULES_CONFIG_PATH}/client", timeout=5)
             assert response.status_code == status
             assert response.headers["Content-Type"] == content_type
@@ -197,11 +197,11 @@ class Test_Mock_FFE_Rules_Backend:
         server = MockedBackendServer(port=0)
         try:
             redirect_path = f"{RULES_CONFIG_PATH}/redirected"
-            server.ffe_set_response("redirect", response_format="protobuf")
+            server.client.ffe_set_response("redirect", response_format="protobuf")
             response = requests.get(f"{server.base_url}{RULES_CONFIG_PATH}/client", allow_redirects=False, timeout=5)
             assert response.status_code == 302
             assert response.headers["Location"] == f"{server.ffe_library_base_url}{redirect_path}"
-            server.ffe_set_response("valid", response_format="protobuf")
+            server.client.ffe_set_response("valid", response_format="protobuf")
             requests.get(f"{server.base_url}{redirect_path}", timeout=5).raise_for_status()
             assert len(server.ffe_get_requests()) == 2
             assert server.ffe_get_requests()[1]["path"] == redirect_path
@@ -217,7 +217,7 @@ class Test_Mock_FFE_Rules_Backend:
     def test_interrupted_responses(self, mode: str, error: type[requests.RequestException]) -> None:
         server = MockedBackendServer(port=0)
         try:
-            server.ffe_set_response(mode, response_format="protobuf")
+            server.client.ffe_set_response(mode, response_format="protobuf")
             with pytest.raises(error):
                 requests.get(f"{server.base_url}{RULES_CONFIG_PATH}/client", timeout=5)
             assert len(server.ffe_get_requests()) == 1

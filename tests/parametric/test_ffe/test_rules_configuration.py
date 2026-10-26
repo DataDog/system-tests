@@ -76,7 +76,7 @@ class Test_FFE_Rules_Configuration:
         ]
         with test_library:
             for response, code, status in cases:
-                mocked_backend.ffe_set_response(response, response_format="protobuf")
+                mocked_backend.client.ffe_set_response(response, response_format="protobuf")
                 request_count = len(mocked_backend.ffe_get_requests())
                 result = test_library.ffe_fetch_rules_configuration(CLIENT_OPTIONS)
 
@@ -93,7 +93,7 @@ class Test_FFE_Rules_Configuration:
 
     @pytest.mark.parametrize("response", ["delayed", "delayed_body"], ids=["headers", "body"])
     def test_fetch_timeout(self, test_library: APMLibrary, mocked_backend: MockedBackendServer, response: str) -> None:
-        mocked_backend.ffe_set_response(response, response_format="protobuf")
+        mocked_backend.client.ffe_set_response(response, response_format="protobuf")
         # Allow connection setup, but expire before the full delayed response arrives.
         with test_library:
             result = test_library.ffe_fetch_rules_configuration({**CLIENT_OPTIONS, "timeoutMs": 2000})
@@ -111,7 +111,7 @@ class Test_FFE_Rules_Configuration:
     def test_cancel_in_flight(
         self, test_library: APMLibrary, mocked_backend: MockedBackendServer, response: str
     ) -> None:
-        mocked_backend.ffe_set_response(response, response_format="protobuf")
+        mocked_backend.client.ffe_set_response(response, response_format="protobuf")
         with test_library:
             result = test_library.ffe_fetch_rules_configuration({**CLIENT_OPTIONS, "abortAfterMs": 2000})
 
