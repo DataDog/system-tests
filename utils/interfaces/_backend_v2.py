@@ -2,50 +2,33 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-"""Mocked backend (v2) interface: owns the lifecycle of a local HTTP server that stands in for
-the real Datadog backend and records everything it receives. See
-utils/mocked_backend/_backend.py.
+"""Mocked backend (v2) interface: what the mocked backend container (utils/mocked_backend) receives, standing
+in for the real Datadog backend.
 """
 
 from collections.abc import Callable, Generator
+from pathlib import Path
 
 from utils._logger import logger
 from utils._weblog import HttpResponse
 from utils.dd_types import DataDogAgentSpan, DataDogAgentTrace
 from utils.interfaces._core import ProxyBasedInterfaceValidator
-from utils.mocked_backend import MockedBackendServer
 
 
 class _BackendV2InterfaceValidator(ProxyBasedInterfaceValidator):
     def __init__(self):
         super().__init__("backend_v2")
-        self._mock_server: MockedBackendServer | None = None
 
-    @property
-    def server(self) -> MockedBackendServer:
-        assert self._mock_server is not None
-        return self._mock_server
+    def ingest_all_files(self) -> None:
+        """Ingest every recorded file not seen yet by the watchdog. To call once the mocked backend is stopped.
 
-    @property
-    def is_mocked_backend_running(self) -> bool:
-        return self._mock_server is not None
-
-    def start_mocked_backend(self) -> None:
-        if self._mock_server is None:
-            self._mock_server = MockedBackendServer(self.log_folder, on_message=self._on_message)
-
-    def stop_mocked_backend(self) -> None:
-        if self._mock_server is not None:
-            self._mock_server.close()
-            self._mock_server = None
-
-    def _on_message(self, data: dict) -> None:
-        # The mock server runs in this same process, so data can be appended directly as it
-        # is received instead of going through the file-watchdog round-trip used for
-        # containerized interfaces.
-        with self._lock:
-            self._append_data(data)
-            self._data_list.sort(key=lambda data: data["log_filename"])
+        The watchdog polls the log folder about once per second, so the last requests (e.g. what the agent flushes
+        when it stops) may be on disk but not ingested yet. Instead of waiting an arbitrary time, as other
+        proxy-based interfaces do, read them now: once the mocked backend is stopped, nothing else can arrive.
+        """
+        for file in sorted(Path(self.log_folder).glob("*.json")):
+            # same path as given by the watchdog, so files are not ingested twice
+            self.ingest_file(str(file))
 
     def get_traces(self, request: HttpResponse | None = None) -> Generator[tuple[dict, DataDogAgentTrace]]:
         """Attempts to fetch the traces the agent submitted to the mocked backend.
