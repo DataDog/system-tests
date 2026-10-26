@@ -339,8 +339,8 @@ class Test_FFE_EVP_Flagevaluation_SDK_Identity(FlagevaluationEgressContract):
             if evp_flagevaluation_events_from_data(cast("JSON", data), self.flag_key, self.targeting_key):
                 assert_evp_sdk_identity(
                     cast("JSON", data),
-                    source_name=context.library.name,
-                    source_version=context.library.raw_version,
+                    library_name=context.library.name,
+                    library_version=context.library.raw_version,
                 )
 
 
