@@ -18,7 +18,7 @@ from utils.docker_fixtures import (
     ParametricTestClientApi,
 )
 
-from ._docker_fixtures import DockerFixturesScenario
+from ._core import DockerFixturesScenario
 
 
 # Max timeout in seconds to keep a container running
@@ -59,10 +59,10 @@ class ParametricScenario(DockerFixturesScenario):
                         result.update(d)
             return result
 
-    def __init__(self, name: str, doc: str) -> None:
+    def __init__(self) -> None:
         super().__init__(
-            name,
-            doc=doc,
+            "PARAMETRIC",
+            doc="WIP",
             github_workflow="parametric",
             agent_image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.67.0",
             weblog_categories=[WeblogCategory.parametric],

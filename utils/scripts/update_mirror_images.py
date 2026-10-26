@@ -34,7 +34,8 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT))
 
-from utils._context._scenarios import get_all_scenarios, DockerScenario, ParametricScenario  # noqa: E402
+from utils._context._scenarios import get_all_scenarios, DockerScenario  # noqa: E402
+from utils._context._scenarios.parametric import ParametricScenario  # noqa: E402
 from utils._context.containers import dockerfile_image_list  # noqa: E402
 
 # Pinned dd-repo-tools mirror_images.py (override with $MIRROR_IMAGES_URL).
@@ -99,7 +100,7 @@ def _is_mirrorable(image: str) -> bool:
 def _parametric_images() -> set[str]:
     """Images the parametric test clients build FROM.
 
-    ParametricScenario is not a DockerScenario and has no get_image_list: its
+    Parametric is not a DockerScenario and has no get_image_list: its
     test client is built from utils/build/docker/<library>/parametric/Dockerfile,
     outside the weblog layout enumerated by _library_weblog_pairs. Like weblogs,
     the test client is built with the mirror-configured buildx builder (see

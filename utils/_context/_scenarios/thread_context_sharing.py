@@ -9,8 +9,7 @@ from utils import interfaces
 from utils._context.constants import WeblogCategory
 from utils._logger import logger
 
-from .core import scenario_groups
-from .endtoend import EndToEndScenario
+from ._core import EndToEndScenario, scenario_groups
 
 
 CWS_READINESS_TIMEOUT = 90
@@ -53,10 +52,14 @@ class ThreadContextSharingScenario(EndToEndScenario):
     runner. See docs/understand/scenarios/thread_context_sharing.md.
     """
 
-    def __init__(self, name: str, doc: str) -> None:
+    def __init__(self) -> None:
         super().__init__(
-            name=name,
-            doc=doc,
+            name="THREAD_CONTEXT_SHARING",
+            doc=(
+                "Check that tracers share the trace_id/span_id of the currently active span with "
+                "system-probe, so that CWS (Cloud Workload Security) security events triggered on "
+                "the same thread carry them as dd.trace_id/dd.span_id."
+            ),
             weblog_categories=[WeblogCategory.dd_trace],
             appsec_enabled=True,
             iast_enabled=False,
