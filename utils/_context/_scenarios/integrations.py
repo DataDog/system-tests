@@ -16,8 +16,7 @@ from utils._context.containers import (
 )
 from utils._context.constants import WeblogCategory
 
-from .core import scenario_groups
-from .endtoend import EndToEndScenario
+from ._core import EndToEndScenario, scenario_groups
 
 
 def _get_unique_id(host_log_folder: str, *, replay: bool) -> str:
@@ -38,7 +37,7 @@ def _get_unique_id(host_log_folder: str, *, replay: bool) -> str:
     return unique_id
 
 
-class IntegrationsScenario(EndToEndScenario):
+class Integrations(EndToEndScenario):
     def __init__(self) -> None:
         super().__init__(
             "INTEGRATIONS",
@@ -97,14 +96,9 @@ class DbmDynamicServiceScenario(EndToEndScenario):
 class AWSIntegrationsScenario(EndToEndScenario):
     unique_id: str = ""
 
-    def __init__(
-        self,
-        name: str,
-        *,
-        doc: str = "Spawns tracer, and agent. Test AWS integrations.",
-    ) -> None:
+    def __init__(self) -> None:
         super().__init__(
-            name,
+            "INTEGRATIONS_AWS",
             weblog_env={
                 "DD_TRACE_API_VERSION": "v0.4",
                 "AWS_ACCESS_KEY_ID": "my-access-key",
@@ -112,7 +106,7 @@ class AWSIntegrationsScenario(EndToEndScenario):
                 "SYSTEM_TESTS_AWS_URL": "http://localstack-main:4566",
                 "DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED": "false",
             },
-            doc=doc,
+            doc="Spawns tracer, and agent. Test AWS integrations.",
             other_weblog_containers=(ElasticMQContainer, LocalstackContainer),
             scenario_groups=[scenario_groups.integrations, scenario_groups.essentials],
             weblog_categories=[WeblogCategory.dd_trace],
