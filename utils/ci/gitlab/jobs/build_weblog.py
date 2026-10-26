@@ -1,7 +1,8 @@
 """Build job: build the weblog image and save it as an artifact for the run jobs.
 
 Environment:
-    TEST_LIBRARY, WEBLOG_VARIANT: read by build.sh
+    SYSTEM_TESTS_WEBLOG: weblog to build
+    TEST_LIBRARY: read by build.sh
     SYSTEM_TESTS_BINARIES_ARTIFACT_PATH: optional, upstream binaries to copy into binaries/ before building
 """
 
@@ -17,13 +18,13 @@ def export_built_binaries() -> None:
 
 def main() -> None:
     library = ci.env("TEST_LIBRARY")
-    weblog = ci.env("WEBLOG_VARIANT")
+    weblog = ci.env("SYSTEM_TESTS_WEBLOG")
 
     ci.copy_upstream_binaries()
 
     with ci.section("build", "Building weblog", collapsed=False):
         ci.tag_job("build")
-        ci.traced(f"build {library} {weblog}", ["./build.sh", "-i", "weblog", "--save-to-binaries"])
+        ci.traced(f"build {library} {weblog}", ["./build.sh", "-i", "weblog", "-w", weblog, "--save-to-binaries"])
         export_built_binaries()
 
 

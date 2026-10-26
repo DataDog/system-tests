@@ -85,13 +85,12 @@ class Test_GitlabJobScripts:
         tags = ["system-tests.library:python", "system-tests.weblog:flask"]
         assert commands == [
             TAG_RUN,
-            _trace("build python flask", tags, "./build.sh", "-i", "weblog"),
+            _trace("build python flask", tags, "./build.sh", "-i", "weblog", "-w", "flask"),
             _trace("run python DEFAULT flask", [*tags, "system-tests.scenario:DEFAULT"], "./run.sh", "DEFAULT"),
         ]
 
     def test_build_weblog(self, commands: list[list[str]], monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         monkeypatch.setenv("TEST_LIBRARY", "python")
-        monkeypatch.setenv("WEBLOG_VARIANT", "flask")
         monkeypatch.setenv("SYSTEM_TESTS_WEBLOG", "flask")
         Path("binaries/python-flask-weblog.tar.zst").write_text("image")
 
@@ -105,6 +104,8 @@ class Test_GitlabJobScripts:
                 "./build.sh",
                 "-i",
                 "weblog",
+                "-w",
+                "flask",
                 "--save-to-binaries",
             ),
         ]

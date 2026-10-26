@@ -1,9 +1,9 @@
 """Helpers shared by the scripts run by the jobs of the generated GitLab child pipeline.
 
 Each script reads its inputs from the environment variables set on the GitLab job (see build_pipeline.py).
-Variables that system-tests commands already understand (TEST_LIBRARY, WEBLOG_VARIANT, SYSTEM_TESTS_WEBLOG,
-...) are left in the environment and reach build.sh/run.sh untouched. Everything else (static flags, values
-computed here, inputs without an env var counterpart) is passed as command line arguments.
+Variables that system-tests commands already understand (TEST_LIBRARY, SYSTEM_TESTS_WEBLOG, ...) are left in
+the environment and reach build.sh/run.sh untouched. Everything else (static flags, values computed here, inputs
+without an env var counterpart, like the weblog for build.sh) is passed as command line arguments.
 
 Scripts run from the system-tests clone (see .system_tests_base in templates.yml), started by run_job.py.
 They must only use the standard library: they are imported without the system-tests framework.

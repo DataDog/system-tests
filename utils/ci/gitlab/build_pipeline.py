@@ -152,8 +152,8 @@ def _build_job_name(library: str, weblog: str) -> str:
 
 
 def _weblog_variables(library: str, weblog: str) -> dict[str, str]:
-    # TEST_LIBRARY/WEBLOG_VARIANT are read by build.sh, TEST_LIBRARY/SYSTEM_TESTS_WEBLOG by run.sh
-    return {"TEST_LIBRARY": library, "WEBLOG_VARIANT": weblog, "SYSTEM_TESTS_WEBLOG": weblog}
+    # read by run.sh (TEST_LIBRARY by build.sh too, the weblog is passed to build.sh by the job scripts)
+    return {"TEST_LIBRARY": library, "SYSTEM_TESTS_WEBLOG": weblog}
 
 
 def _job(

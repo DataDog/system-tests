@@ -132,7 +132,6 @@ class Test_BuildPipeline:
         ]
         assert build_job["variables"] == {
             "TEST_LIBRARY": "c",
-            "WEBLOG_VARIANT": "perl-mojolicious",
             "SYSTEM_TESTS_WEBLOG": "perl-mojolicious",
             "SYSTEM_TESTS_BINARIES_ARTIFACT_PATH": "system-tests-binaries",
         }
@@ -175,7 +174,6 @@ class Test_BuildPipeline:
             "extends": [".system_tests_run", ".push_to_test_optimization"],
             "variables": {
                 "TEST_LIBRARY": "golang",
-                "WEBLOG_VARIANT": "envoy",
                 "SYSTEM_TESTS_WEBLOG": "envoy",
                 "SYSTEM_TESTS_SCENARIO": "GO_PROXIES_DEFAULT",
                 "SYSTEM_TESTS_WEBLOG_BUILD_REQUIRED": "false",

@@ -3,7 +3,7 @@
 Environment:
     SYSTEM_TESTS_SCENARIO: scenario to run
     SYSTEM_TESTS_WEBLOG_BUILD_REQUIRED: "true" if the weblog image comes from a build job of this pipeline
-    TEST_LIBRARY, WEBLOG_VARIANT, SYSTEM_TESTS_WEBLOG: read by build.sh and run.sh
+    TEST_LIBRARY, SYSTEM_TESTS_WEBLOG: read by run.sh (TEST_LIBRARY by build.sh too)
     SYSTEM_TESTS_BINARIES_ARTIFACT_PATH: optional, upstream binaries to copy into binaries/
 """
 
@@ -39,7 +39,7 @@ def main() -> None:
         ci.tag_job("run")
         if build_required:
             # loads the weblog image saved in binaries/ by the build job
-            ci.traced(f"build {library} {weblog}", ["./build.sh", "-i", "weblog"])
+            ci.traced(f"build {library} {weblog}", ["./build.sh", "-i", "weblog", "-w", weblog])
         ci.traced(f"run {library} {scenario} {weblog}", ["./run.sh", scenario], scenario=scenario)
 
     ci.emit_execution_time_metric()
