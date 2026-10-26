@@ -1,3 +1,5 @@
+import pytest
+
 from ._core import DdTraceEndToEndScenario, ScenarioGroup, scenario_groups
 
 # Shared by the ordinary FFE scenario, the isolated EVP stress scenario, and both
@@ -80,3 +82,9 @@ class FeatureFlaggingEvpStress(DdTraceEndToEndScenario):
             doc="Isolated high-cardinality EVP accounting: delivered evaluations plus reported capacity drops.",
             scenario_groups=[scenario_groups.ffe],
         )
+
+    def configure(self, config: pytest.Config) -> None:
+        super().configure(config)
+        # Allow an EVP flush (Go: 10 s) plus the telemetry heartbeat (2 s) before stopping.
+        # Preserve longer language-specific waits.
+        self.library_interface_timeout = max(self.library_interface_timeout, 15)

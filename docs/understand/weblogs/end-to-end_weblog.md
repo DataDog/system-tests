@@ -1156,7 +1156,7 @@ accept a JSON body with these fields:
 For the high-cardinality FFE workload, the endpoint also accepts a non-empty
 `targetingKeys` array. Evaluate the same flag once per key through the public SDK
 API, using the same attributes and default value. The response includes `count`
-(the number of evaluations performed) and the final evaluation's `value`.
+(the number of targeting keys in the request) and the final evaluation's `value`.
 Do not replace the loop with a direct telemetry submission or change SDK flush
 timing. When the array is absent or empty, evaluate the single `targetingKey`.
 

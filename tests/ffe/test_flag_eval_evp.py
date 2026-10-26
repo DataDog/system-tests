@@ -446,14 +446,16 @@ class Test_FFE_EVP_Flagevaluation_Context_Bounds:
                 assert value == self.attributes[key], f"context field {key} changed during pruning"
 
     @staticmethod
-    def _assert_context_evaluation(response: HttpResponse, flag_key: str) -> list[tuple[JSON, JSON]]:
+    def _assert_context_evaluation(
+        response: HttpResponse, flag_key: str, targeting_key: str = "evp-context-user"
+    ) -> list[tuple[JSON, JSON]]:
         assert response.status_code == 200, f"Flag evaluation failed: {response.text}"
         assert json.loads(response.text).get("value") == "on-value", "context limits must not change the flag result"
         events = find_evp_flagevaluation_events(flag_key)
         assert_total_evaluation_count(events, 1, flag_key)
         for _, event in events:
             assert_event_contract(event, flag_key)
-            assert event.get("targeting_key") == "evp-context-user", "context limits must preserve consented identity"
+            assert event.get("targeting_key") == targeting_key, "context limits must preserve consented identity"
             assert object_key(event.get("variant"), "variant") == "on"
             assert object_key(event.get("allocation"), "allocation") == "default-allocation"
             assert "error" not in event
@@ -476,12 +478,10 @@ class Test_FFE_EVP_Flagevaluation_Context_Bounds:
         )
 
     def test_ffe_evp_flagevaluation_context_value_bounds(self) -> None:
-        assert self.value_response.status_code == 200, f"Flag evaluation failed: {self.value_response.text}"
-        events = find_evp_flagevaluation_events(self.value_flag_key)
-        assert events, f"Expected EVP flagevaluation event for flag {self.value_flag_key}"
-
+        events = self._assert_context_evaluation(
+            self.value_response, self.value_flag_key, targeting_key="evp-context-value-user"
+        )
         for _, event in events:
-            assert_event_contract(event, self.value_flag_key)
             context = event.get("context")
             assert isinstance(context, dict), "consented evaluation must retain context"
             evaluation_context = context.get("evaluation")
@@ -661,7 +661,7 @@ class Test_FFE_EVP_Flagevaluation_High_Cardinality_Accounting:
             assert response.status_code == 200, f"Request {index + 1} failed: {response.text}"
             result = json.loads(response.text)
             assert result.get("value") == "on-value", "overload must not change the flag result"
-            assert result.get("count") == self.eval_count, "weblog must execute the whole workload"
+            assert result.get("count") == self.eval_count, "weblog must accept the whole targetingKeys batch"
 
         events = find_evp_flagevaluation_events(self.flag_key)
         assert events, f"Expected EVP flagevaluation events for flag {self.flag_key}"
@@ -669,6 +669,8 @@ class Test_FFE_EVP_Flagevaluation_High_Cardinality_Accounting:
         assert_no_duplicate_visible_events(events)
         # These counters are process-wide, not flag-scoped: this class must remain
         # the only evaluation workload in FEATURE_FLAGGING_EVP_STRESS.
+        # Tracers report rows.dropped; libdatadog's sidecar reports evaluations.dropped.
+        # Both count lost evaluations; current emitters do not report the same loss under both names.
         drop_series = [
             series
             for namespace in ("tracers", "general")

@@ -130,14 +130,17 @@ string-length test requires oversized values to be omitted while valid fields su
 Run the high-cardinality accounting test in its dedicated scenario:
 
 ```sh
-./run.sh FEATURE_FLAGGING_EVP_STRESS --library <language> -F tests/ffe/test_flag_eval_evp.py
+./run.sh FEATURE_FLAGGING_EVP_STRESS --library <language>
 ```
 
 Keep this scenario limited to one evaluation workload: its drop counters are
 process-wide. Delivered evaluation counts (including degraded delivery) plus
 accepted reported drops must equal attempted evaluations, and some delivery is
 required. See the [accounting helper](utils/evp.py) for accepted counters and validation.
-Periodic flushes may prevent degradation, so the test does not require it to occur.
+Periodic flushes may prevent degradation, so the test validates degraded rows when
+present but does not require them. Deterministic degradation-threshold checks belong
+in SDK-local tests. Drop counters must report lost evaluations, including those
+represented by aggregated rows.
 
 ---
 
