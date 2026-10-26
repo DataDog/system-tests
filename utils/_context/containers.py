@@ -799,7 +799,8 @@ class MockedBackendContainer(TestedContainer):
         f"event-platform-intake.{MOCK_INVALID_INTAKE_SITE}",
         f"instrumentation-telemetry-intake.{MOCK_INVALID_INTAKE_SITE}",
     )
-    tls_ca_file = "utils/proxy/.mitmproxy/mitmproxy-ca.pem"
+    # covers tls_hostnames, see utils/mocked_backend/_tls.py
+    tls_cert_file = "utils/mocked_backend/tls/mock-intake.pem"
 
     def __init__(self) -> None:
         super().__init__(
@@ -840,11 +841,9 @@ class MockedBackendContainer(TestedContainer):
             log_folder,
             "--tls-port",
             str(self.tls_port),
-            "--tls-ca-file",
-            self.tls_ca_file,
+            "--tls-cert-file",
+            self.tls_cert_file,
         ]
-        for hostname in self.tls_hostnames:
-            self.command += ["--tls-hostname", hostname]
 
     @property
     def container_url(self) -> str:

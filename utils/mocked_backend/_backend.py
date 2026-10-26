@@ -13,13 +13,13 @@ import threading
 from typing import TYPE_CHECKING
 
 from ._request_handler import MockedBackendServerCore, MockBackendV2RequestHandler, HttpMethod, RouteHandler
-from ._tls import TlsListener, create_server_ssl_context
+from ._tls import TlsListener
 from ._backend_ffe import MockedBackendServerFfeMixin
 from ._client import MockedBackendClient
 from ._utils import CONTROL_URL_PREFIX, HOST_DOCKER_INTERNAL, logger
 
 if TYPE_CHECKING:
-    from collections.abc import Callable, Mapping, Sequence
+    from collections.abc import Callable, Mapping
 
 
 class MockedBackendServer(MockedBackendServerFfeMixin, MockedBackendServerCore):
@@ -44,11 +44,10 @@ class MockedBackendServer(MockedBackendServerFfeMixin, MockedBackendServerCore):
         *,
         port: int = _DEFAULT_PORT,
         tls_port: int | None = None,
-        tls_ca_file: str | None = None,
-        tls_hostnames: Sequence[str] = (),
+        tls_cert_file: str | None = None,
     ) -> None:
-        """With tls_port, it also serves HTTPS on this port, for tls_hostnames, with a certificate signed by the CA in
-        tls_ca_file: for clients that only speak HTTPS to hostnames derived from DD_SITE.
+        """With tls_port, it also serves HTTPS on this port, with the certificate and key in tls_cert_file: for clients
+        that only speak HTTPS to hostnames derived from DD_SITE.
         """
         super().__init__(("0.0.0.0", port), MockBackendV2RequestHandler)  # noqa: S104
         self.log_folder = log_folder
@@ -66,11 +65,9 @@ class MockedBackendServer(MockedBackendServerFfeMixin, MockedBackendServerCore):
 
         self.tls_listener: TlsListener | None = None
         if tls_port is not None:
-            assert tls_ca_file, "TLS requires a CA file"
-            assert tls_hostnames, "TLS requires hostnames"
-            ssl_context = create_server_ssl_context(tls_ca_file, tls_hostnames)
-            self.tls_listener = TlsListener(self, tls_port, ssl_context)
-            logger.debug(f"{self.thread_name} server serves {', '.join(tls_hostnames)} on {self.tls_listener.base_url}")
+            assert tls_cert_file, "TLS requires a certificate file"
+            self.tls_listener = TlsListener(self, tls_port, tls_cert_file)
+            logger.debug(f"{self.thread_name} server also serves HTTPS on {self.tls_listener.base_url}")
         logging_into = f"logging into {log_folder}" if log_folder else "not logging to disk"
         logger.debug(f"{self.thread_name} server started on {self.base_url}, {logging_into}")
 

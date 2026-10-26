@@ -1,5 +1,6 @@
 """Unit coverage for MockedBackendServer (utils.mocked_backend)."""
 
+from datetime import UTC, datetime, timedelta
 import gzip
 import signal
 import socket
@@ -13,9 +14,11 @@ import sys
 from utils import pytest
 import requests
 import zstandard
+from cryptography import x509
 
 from utils import scenarios
 from utils.interfaces._backend_v2 import _BackendV2InterfaceValidator
+from utils._context.containers import MockedBackendContainer
 from utils.mocked_backend import MockedBackendClient, MockedBackendServer
 from utils.mocked_backend.ffe import UFC_FIXTURE_RELATIVE_PATH
 
@@ -278,7 +281,8 @@ def test_backend_v2_with_api_key_ignores_the_header_name_case(tmp_path: Path):
     assert len(list(interface.get_data(with_api_key="agent-key"))) == 1
 
 
-_MITMPROXY_CA = "utils/proxy/.mitmproxy/mitmproxy-ca.pem"
+_MITMPROXY_CA = "utils/proxy/.mitmproxy/mitmproxy-ca-cert.pem"
+_TLS_CERT_FILE = MockedBackendContainer.tls_cert_file
 _INTAKE_HOSTNAME = "event-platform-intake.mock-intake.invalid"
 
 
@@ -296,9 +300,7 @@ def _https_post(port: int, hostname: str, path: str, body: bytes) -> str:
 
 @scenarios.test_the_test
 def test_https_requests_are_served_and_recorded_with_the_http_ones(tmp_path: Path):
-    server = MockedBackendServer(
-        str(tmp_path), port=0, tls_port=0, tls_ca_file=_MITMPROXY_CA, tls_hostnames=[_INTAKE_HOSTNAME]
-    )
+    server = MockedBackendServer(str(tmp_path), port=0, tls_port=0, tls_cert_file=_TLS_CERT_FILE)
     try:
         assert server.tls_listener is not None
         requests.post(f"{server.base_url}/api/v2/series", json={"over": "http"}, timeout=5)
@@ -318,12 +320,23 @@ def test_https_requests_are_served_and_recorded_with_the_http_ones(tmp_path: Pat
 
 @scenarios.test_the_test
 def test_https_certificate_is_only_valid_for_the_served_hostnames(tmp_path: Path):
-    server = MockedBackendServer(
-        str(tmp_path), port=0, tls_port=0, tls_ca_file=_MITMPROXY_CA, tls_hostnames=[_INTAKE_HOSTNAME]
-    )
+    server = MockedBackendServer(str(tmp_path), port=0, tls_port=0, tls_cert_file=_TLS_CERT_FILE)
     try:
         assert server.tls_listener is not None
         with pytest.raises(ssl.SSLCertVerificationError):
             _https_post(server.tls_listener.port, "other.mock-intake.invalid", "/api/v2/exposures", b"{}")
     finally:
         server.close()
+
+
+@scenarios.test_the_test
+def test_https_certificate_covers_the_container_hostnames_for_a_while():
+    """The committed certificate must be regenerated when a hostname is added, or before it expires"""
+    cert = x509.load_pem_x509_certificate(Path(_TLS_CERT_FILE).read_bytes())
+    hostnames = cert.extensions.get_extension_for_class(x509.SubjectAlternativeName).value.get_values_for_type(
+        x509.DNSName
+    )
+
+    assert sorted(hostnames) == sorted(MockedBackendContainer.tls_hostnames)
+    # naive, in UTC
+    assert cert.not_valid_after.replace(tzinfo=UTC) - datetime.now(UTC) > timedelta(days=180)
