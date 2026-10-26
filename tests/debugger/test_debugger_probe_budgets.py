@@ -122,18 +122,22 @@ class Test_Debugger_Probe_Budgets(debugger.BaseDebuggerTest):
     def setup_span_probe_expression_budgets(self):
         self.initialize_weblog_remote_config()
 
-        probes = debugger.read_probes("probe_span_method_budgets_expression")
+        probes = debugger.read_probes("probe_span_line_budgets_expression")
         for probe in probes:
             probe["id"] = debugger.generate_probe_id("decor")
+
+        # A line probe in the loop body fires 150 times within a single trace. Sending 150 requests instead
+        # would lower the agent sampling rate and drop traces of the following span decoration tests.
+        self._rewrite_where_for_lines(
+            probes, self.method_and_language_to_line_number("Budgets", self.get_tracer()["language"])
+        )
 
         self.set_probes(probes)
         self.send_rc_probes()
         self.wait_for_all_probes(statuses=["INSTALLED"])
 
         start_time = time.time()
-        self.send_weblog_request("/debugger/budgets/1")
-        for _ in range(149):
-            self.send_weblog_request("/debugger/budgets/1", reset=False)
+        self.send_weblog_request("/debugger/budgets/150")
         end_time = time.time()
         self.total_request_time = end_time - start_time
 
