@@ -3271,7 +3271,7 @@ manifest:
       component_version: <4.3.1
   tests/parametric/test_otel_span_with_baggage.py::Test_Otel_Span_With_Baggage: v2.18.0
   tests/parametric/test_otel_startup_logs.py::Test_OTEL_Startup_Logs: missing_feature (OTEL_ENABLED is not reported in startup logs)
-  tests/parametric/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_otel_enabled_without_signal: irrelevant (DD_TRACE_OTEL_SEMANTICS_ENABLED forces OTLP trace export)
+  tests/parametric/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_otel_enabled_semantics_without_signal: irrelevant (DD_TRACE_OTEL_SEMANTICS_ENABLED forces OTLP trace export)
   tests/parametric/test_otel_tracer.py::Test_Otel_Tracer: v2.8.0
   tests/parametric/test_otel_tracestate_sampling.py::Test_OtelTracestateSampling: v4.15.0-dev
   tests/parametric/test_otlp_trace_metrics.py: v4.15.0.dev
