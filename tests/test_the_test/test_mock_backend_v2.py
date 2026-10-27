@@ -325,6 +325,20 @@ def test_https_mode_does_not_serve_http(tmp_path: Path):
 
 
 @scenarios.test_the_test
+def test_https_mode_releases_the_port_if_the_certificate_cannot_be_loaded(tmp_path: Path):
+    with socket.socket() as probe:
+        probe.bind(("127.0.0.1", 0))
+        port = probe.getsockname()[1]
+
+    with pytest.raises(FileNotFoundError) as error:
+        MockedBackendServer(str(tmp_path), port=port, tls_cert_file=str(tmp_path / "missing.pem"))
+
+    # the port is free again, even while the error (holding the half-built server) is still referenced
+    assert error.traceback
+    MockedBackendServer(str(tmp_path), port=port).close()
+
+
+@scenarios.test_the_test
 def test_https_certificate_is_only_valid_for_the_served_hostnames(tmp_path: Path):
     server = MockedBackendServer(str(tmp_path), port=0, tls_cert_file=_TLS_CERT_FILE)
     try:

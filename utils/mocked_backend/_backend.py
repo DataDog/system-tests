@@ -51,9 +51,14 @@ class MockedBackendServer(MockedBackendServerFfeMixin, MockedBackendServerCore):
         super().__init__(("0.0.0.0", port), MockBackendV2RequestHandler)  # noqa: S104
         self.scheme = "https" if tls_cert_file else "http"
         if tls_cert_file:
-            context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-            context.load_cert_chain(tls_cert_file)
-            self.socket = context.wrap_socket(self.socket, server_side=True)
+            try:
+                context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+                context.load_cert_chain(tls_cert_file)
+                self.socket = context.wrap_socket(self.socket, server_side=True)
+            except Exception:
+                # the caller never gets a server to close: release the port now
+                self.server_close()
+                raise
         self.log_folder = log_folder
         self.on_message = on_message if on_message else lambda _: None
         self.message_count = 0
