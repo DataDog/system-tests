@@ -252,6 +252,20 @@ ssi_tests:
       # Run the tests and capture stdout+stderr so the after_script can
       # re-print the run summary (pipefail keeps run.sh's real exit code).
       set -o pipefail
+      # Catalog entries are stored as ssi/... or ssi-dev/.... Put the registry back.
+      # Any other value is a custom image reference and must be used as given.
+      expand_k8s_ref() {
+        case "$1" in
+          ssi/*|ssi-dev/*) printf '%s/%s' "${PRIVATE_DOCKER_REGISTRY}" "$1" ;;
+          *) printf '%s' "$1" ;;
+        esac
+      }
+      if [ -z "${K8S_WEBLOG_IMG:-}" ]; then
+        K8S_WEBLOG_IMG="${PRIVATE_DOCKER_REGISTRY}/system-tests/${K8S_WEBLOG}"
+      fi
+      K8S_LIB_INIT_IMG=$(expand_k8s_ref "${K8S_LIB_INIT_IMG}")
+      K8S_INJECTOR_IMG=$(expand_k8s_ref "${K8S_INJECTOR_IMG:-}")
+      K8S_CLUSTER_IMG=$(expand_k8s_ref "${K8S_CLUSTER_IMG:-}")
       ./run.sh ${K8S_SCENARIO} --k8s-library ${TEST_LIBRARY} --k8s-weblog ${K8S_WEBLOG} --k8s-weblog-img ${K8S_WEBLOG_IMG}:${TAG_NAME} --k8s-lib-init-img ${K8S_LIB_INIT_IMG} --k8s-injector-img ${K8S_INJECTOR_IMG:-None} --k8s-cluster-img ${K8S_CLUSTER_IMG:-None} --report-run-url $CI_JOB_URL --report-environment ${REPORT_ENVIRONMENT} 2>&1 | tee "${CI_PROJECT_DIR}/run_output.log"
 
   after_script: |

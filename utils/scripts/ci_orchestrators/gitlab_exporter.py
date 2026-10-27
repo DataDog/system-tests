@@ -126,80 +126,50 @@ def print_ssi_gitlab_pipeline(language: str, matrix_data: dict[str, dict], ci_en
     print("Pipeline file generated: ", output_file)
 
 
+def _short_image_ref(value: str) -> str:
+    """Drop our registry host from catalog images so the job name keeps the path.
+
+    Only ``ssi/`` and ``ssi-dev/`` images on ``PRIVATE_DOCKER_REGISTRY`` are shortened.
+    The job adds that same host back. A custom image on any other host stays intact.
+    """
+    host, slash, path = value.partition("/")
+    registry = os.getenv("PRIVATE_DOCKER_REGISTRY", "235494822917.dkr.ecr.us-east-1.amazonaws.com")
+    if slash and host == registry and path.startswith(("ssi/", "ssi-dev/")):
+        return path
+    return value
+
+
+def _as_job_name(value: str | list[str]) -> str | list[str]:
+    if isinstance(value, list):
+        return [_short_image_ref(item) for item in value]
+    return _short_image_ref(value)
+
+
 def get_k8s_scenario_components(
     scenario: str, all_system_tests_scenarios: list[Scenario], language: str
 ) -> dict[str, str | list[str]]:
-    """Determine K8s component versions for a given scenario and CI context.
-
-    This method selects the appropriate component versions based on:
-    - The scenario requirements (operator, cluster agent)
-    - The CI pipeline context (system-tests (scheduled or pr/commit) or tracer repo or injector repo)
-    - Custom image overrides from environment variables
-
-    Version Selection Logic:
-    ========================
-
-    For each component, versions are selected based on pipeline context:
-
-    1. **Custom Image (Highest Priority)**
-       - If K8S_LIB_INIT_IMG or K8S_INJECTOR_IMG env vars are set
-       - Uses the custom image directly (injector/tracer repo testing)
-       - The rest of the components are the pinned/default versions
-
-    2. **System-Tests Scheduled Pipeline**
-       - Tests ALL available versions (prod, dev, pinned)
-
-    3. **System-Tests PR/Commit**
-       - Tests ALL available versions (for injector and lib init)
-       - Tests only the pinned versions for the rest of the components
-
-
-    Component Versions Returned:
-    ============================
-    - K8S_HELM_CHART_OPERATOR: Datadog operator helm chart version (if with_datadog_operator)
-    - K8S_CLUSTER_IMG: Cluster agent image (if with_cluster_agent)
-    - K8S_INJECTOR_IMG: APM injector image (if with_cluster_agent)
-    - K8S_HELM_CHART: Datadog helm chart version (if cluster agent without operator)
-    - K8S_LIB_INIT_IMG: Library init container image (always included)
-
-    Args:
-        scenario: Scenario name (must exist in utils/_context/_scenarios/__init__.py)
-        all_system_tests_scenarios: List of all available scenarios
-        language: Programming language (java, python, nodejs, etc.)
-
-    Returns:
-        Dictionary with component version assignments for GitLab CI matrix
-
-    """
-    # Load all valid scenarios from the scenarios module
-    all_valid_scenarios = {s.name for s in all_system_tests_scenarios}
-
+    """Component versions for one scenario. Image values are registry paths, not full URLs."""
+    all_valid_scenarios = {item.name for item in all_system_tests_scenarios}
     if scenario not in all_valid_scenarios:
         raise ValueError(
             f"Scenario '{scenario}' not found in utils/_context/_scenarios/__init__.py. "
-            f"Please ensure the scenario is properly defined."
+            "Please ensure the scenario is properly defined."
         )
 
-    # Extract environment variables for CI context
     ci_project_name = os.getenv("CI_PROJECT_NAME")
     ci_pipeline_source = os.getenv("CI_PIPELINE_SOURCE")
     k8s_injector_img = os.getenv("K8S_INJECTOR_IMG")
     k8s_lib_init_img = os.getenv("K8S_LIB_INIT_IMG")
-
-    # Determine CI context
     is_system_tests = ci_project_name == "system-tests"
     is_system_tests_scheduled = is_system_tests and ci_pipeline_source == "schedule"
 
-    # Get scenario configuration
-    scenario_obj = next((s for s in all_system_tests_scenarios if s.name == scenario), None)
-    with_datadog_operator = getattr(scenario_obj, "with_datadog_operator", False)
-    with_cluster_agent = getattr(scenario_obj, "with_cluster_agent", False)
+    scenario_obj = next(item for item in all_system_tests_scenarios if item.name == scenario)
+    with_datadog_operator = bool(getattr(scenario_obj, "with_datadog_operator", False))
+    with_cluster_agent = bool(getattr(scenario_obj, "with_cluster_agent", False))
 
-    # Initialize component parser and result
     parser = K8sComponentsParser()
-    components = {}
+    components: dict[str, str | list[str]] = {}
 
-    # Datadog Operator scenario: requires operator helm chart
     if with_datadog_operator:
         components["K8S_HELM_CHART_OPERATOR"] = (
             parser.get_all_component_versions("helm_chart_operator")
@@ -207,21 +177,18 @@ def get_k8s_scenario_components(
             else parser.get_default_component_version("helm_chart_operator")
         )
 
-    # Cluster Agent scenarios: require cluster agent and injector
     if with_cluster_agent:
         components["K8S_CLUSTER_IMG"] = (
             parser.get_all_component_versions("cluster_agent")
             if is_system_tests_scheduled
             else parser.get_default_component_version("cluster_agent")
         )
-
         components["K8S_INJECTOR_IMG"] = k8s_injector_img or (
             parser.get_all_component_versions("injector")
             if is_system_tests
             else parser.get_default_component_version("injector")
         )
 
-    # Non-operator cluster scenarios: require standard helm chart
     if with_cluster_agent and not with_datadog_operator:
         components["K8S_HELM_CHART"] = (
             parser.get_all_component_versions("helm_chart")
@@ -229,44 +196,37 @@ def get_k8s_scenario_components(
             else parser.get_default_component_version("helm_chart")
         )
 
-    # Library init: required for all scenarios
     components["K8S_LIB_INIT_IMG"] = k8s_lib_init_img or (
         parser.get_all_component_versions("lib_init", language)
         if is_system_tests
         else parser.get_default_component_version("lib_init", language)
     )
 
-    return components
+    return {key: _as_job_name(value) for key, value in components.items()}
 
 
 def print_k8s_gitlab_pipeline(
-    language: str, k8s_matrix: dict[str, dict], ci_environment: str, result_pipeline: dict
+    language: str, k8s_matrix: dict[str, list[str]], ci_environment: str, result_pipeline: dict
 ) -> None:
     result_pipeline["stages"].append("K8S_LIB_INJECTION")
-    all_system_tests_scenarios = get_all_scenarios()
-    # Create the jobs by scenario.
+    scenarios = get_all_scenarios()
+    # Same image for every weblog when the caller sets it. Kept off the matrix so the
+    # registry host is not part of the job name. Otherwise the job builds it from K8S_WEBLOG.
+    weblog_image = os.getenv("K8S_WEBLOG_IMG")
     for scenario, weblogs in k8s_matrix.items():
-        job = scenario
-        result_pipeline[job] = {}
-        result_pipeline[job]["extends"] = ".k8s_lib_injection_base"
-        # Job variables
-        result_pipeline[job]["variables"] = {}
-        result_pipeline[job]["variables"]["TEST_LIBRARY"] = language
-        result_pipeline[job]["variables"]["K8S_SCENARIO"] = scenario
-        result_pipeline[job]["variables"]["REPORT_ENVIRONMENT"] = ci_environment
-
-        result_pipeline[job]["parallel"] = {"matrix": []}
-        for weblog_name in weblogs:
-            k8s_weblog_img = os.getenv("K8S_WEBLOG_IMG", "${PRIVATE_DOCKER_REGISTRY}" + f"/system-tests/{weblog_name}")
-
-            # Build matrix entry - only include components that have values
-            matrix_entry = {
-                "K8S_WEBLOG": weblog_name,
-                "K8S_WEBLOG_IMG": k8s_weblog_img,
-            }
-            matrix_entry.update(get_k8s_scenario_components(scenario, all_system_tests_scenarios, language))
-
-            result_pipeline[job]["parallel"]["matrix"].append(matrix_entry)
+        variables = {
+            "TEST_LIBRARY": language,
+            "K8S_SCENARIO": scenario,
+            "REPORT_ENVIRONMENT": ci_environment,
+        }
+        if weblog_image:
+            variables["K8S_WEBLOG_IMG"] = weblog_image
+        components = get_k8s_scenario_components(scenario, scenarios, language)
+        result_pipeline[scenario] = {
+            "extends": ".k8s_lib_injection_base",
+            "variables": variables,
+            "parallel": {"matrix": [{"K8S_WEBLOG": weblog, **components} for weblog in weblogs]},
+        }
 
 
 def print_docker_ssi_gitlab_pipeline(
