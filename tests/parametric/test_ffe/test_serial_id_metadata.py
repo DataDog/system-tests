@@ -19,8 +19,11 @@ This module tests:
    contain the serial ID key.
 4. flagMetadata reflects whichever split targeting actually selected, not always the first one.
 5. Repeated evaluations of the same context return the same serial ID.
+6. Splits sharing a variant across allocations retain their own serial IDs.
+7. Remote Config updates replace or remove serial IDs without restarting the provider.
 """
 
+import copy
 import json
 import time
 from pathlib import Path
@@ -72,7 +75,13 @@ def _set_and_wait_ffe_rc(
         config_id = str(hash(json.dumps(ufc_data, sort_keys=True)))
 
     test_agent.set_remote_config(path=f"{RC_PATH}/{config_id}/config", payload=ufc_data)
-    return test_agent.wait_for_rc_apply_state(RC_PRODUCT, state=RemoteConfigApplyState.ACKNOWLEDGED, clear=True)
+    return test_agent.wait_for_rc_apply_state(
+        RC_PRODUCT,
+        state=RemoteConfigApplyState.ACKNOWLEDGED,
+        config_id=config_id,
+        wait_loops=500,
+        clear=True,
+    )
 
 
 def _is_ffe_waiting_for_rc(result: dict[str, Any]) -> bool:
@@ -90,6 +99,9 @@ def _require_flag_metadata(result: dict[str, Any]) -> dict[str, Any]:
     assert flag_metadata is None or isinstance(flag_metadata, dict), (
         f"Expected flagMetadata to be a map or null, got {flag_metadata!r}"
     )
+    if flag_metadata and SERIAL_ID_METADATA_KEY in flag_metadata:
+        serial_id = flag_metadata[SERIAL_ID_METADATA_KEY]
+        assert type(serial_id) is int, f"Expected an integer serial ID, got {serial_id!r}"
     return flag_metadata or {}
 
 
@@ -269,3 +281,74 @@ class Test_FFE_Serial_Id_Metadata:
         assert first_id == second_id == 42, (
             f"Expected stable serial ID 42 across repeated evaluations, got {first_id} then {second_id}"
         )
+
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_serial_id_matches_second_split(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        """A zero-traffic first split must not supply the selected second split's ID."""
+        _set_and_wait_ffe_rc(test_agent, UFC_SERIAL_ID_METADATA_DATA)
+        assert test_library.ffe_start(), "Failed to start FFE provider"
+
+        result = _ffe_evaluate_with_rc_retry(
+            test_library,
+            flag="serial-id-second-split-flag",
+            variation_type="STRING",
+            default_value="default",
+            targeting_key="user-second-split",
+        )
+        assert result.get("errorCode") in {None, ""}, f"FFE evaluation failed; result={result}"
+        assert result.get("value") == "treatment", f"Expected the second split; result={result}"
+        assert _require_flag_metadata(result).get(SERIAL_ID_METADATA_KEY) == 302, result
+
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_serial_id_distinguishes_allocations_with_same_variant(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
+        """The same variant in different allocations must retain each allocation's serial ID."""
+        _set_and_wait_ffe_rc(test_agent, UFC_SERIAL_ID_METADATA_DATA)
+        assert test_library.ffe_start(), "Failed to start FFE provider"
+
+        for segment, expected_id in (("vip", 401), ("standard", 402), ("vip", 401)):
+            result = _ffe_evaluate_with_rc_retry(
+                test_library,
+                flag="serial-id-shared-variant-flag",
+                variation_type="STRING",
+                default_value="default",
+                targeting_key="user-shared-variant",
+                attributes={"segment": segment},
+            )
+            assert result.get("errorCode") in {None, ""}, f"FFE evaluation failed; result={result}"
+            assert result.get("value") == "shared", result
+            assert _require_flag_metadata(result).get(SERIAL_ID_METADATA_KEY) == expected_id, result
+
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_serial_id_refreshes_after_remote_config_updates(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
+        """The same provider and context must see ID changes and removal after RC updates."""
+        ufc_data = copy.deepcopy(UFC_SERIAL_ID_METADATA_DATA)
+        _set_and_wait_ffe_rc(test_agent, ufc_data)
+        assert test_library.ffe_start(), "Failed to start FFE provider"
+
+        for expected_id in (42, 43, None):
+            if expected_id != 42:
+                split = ufc_data["flags"]["serial-id-basic-flag"]["allocations"][0]["splits"][0]
+                if expected_id is None:
+                    del split["serialId"]
+                else:
+                    split["serialId"] = expected_id
+                _set_and_wait_ffe_rc(test_agent, ufc_data)
+
+            result = _ffe_evaluate_with_rc_retry(
+                test_library,
+                flag="serial-id-basic-flag",
+                variation_type="BOOLEAN",
+                default_value=False,
+                targeting_key="user-config-update",
+            )
+            assert result.get("errorCode") in {None, ""}, f"FFE evaluation failed; result={result}"
+            assert result.get("value") is True, f"Expected the configured variation after RC update; result={result}"
+            metadata = _require_flag_metadata(result)
+            if expected_id is None:
+                assert SERIAL_ID_METADATA_KEY not in metadata, f"Stale serial ID survived removal; result={result}"
+            else:
+                assert metadata.get(SERIAL_ID_METADATA_KEY) == expected_id, result
