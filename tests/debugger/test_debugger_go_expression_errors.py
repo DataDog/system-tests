@@ -9,7 +9,7 @@ from utils import context, features, irrelevant, scenarios
 
 
 class _GoExpressionTestBase(debugger.BaseDebuggerTest):
-    def _setup_probes(self, probes_name: str, install_statuses: list[str]) -> None:
+    def _setup_probes(self, probes_name: str, install_statuses: list[debugger.ProbeStatus]) -> None:
         self.initialize_weblog_remote_config()
 
         probes = debugger.read_probes(probes_name)
