@@ -41,7 +41,7 @@ class Test_Debugger_Metric_Value_Error(debugger.BaseDebuggerTest):
             if diag["status"] == "ERROR":
                 continue
 
-            evaluation_errors = []
+            evaluation_errors: list[dict] = []
             for envelope in self.probe_snapshots.get(probe_id, []):
                 snap = envelope.get("debugger", {}).get("snapshot") or envelope.get("debugger.snapshot") or {}
                 evaluation_errors.extend(snap.get("evaluationErrors") or [])
