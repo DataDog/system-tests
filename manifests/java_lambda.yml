@@ -132,6 +132,11 @@ manifest:
   tests/appsec/test_reports.py::Test_TagsFromRule: v1.67.0
   tests/appsec/test_reports.py::Test_TagsFromRule::test_category: v1.68.0
   tests/appsec/test_reports.py::Test_TagsFromRule::test_type: v1.68.0
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_After_Vulnerable_Call: v1.68.0-SNAPSHOT
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_Registered_At_Load_Time: v1.68.0-SNAPSHOT
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_Deduplication: v1.68.0-SNAPSHOT
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_Dependencies_Have_Metadata: v1.68.0-SNAPSHOT
+  tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_First_Hit_Wins: v1.68.0-SNAPSHOT
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules: v1.67.0
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules::test_rule_with_attributes_keep_event: v1.68.0
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules::test_rule_with_attributes_keep_no_event: v1.68.0
