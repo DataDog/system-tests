@@ -3,11 +3,10 @@ import pytest
 from utils._logger import logger
 from utils._context.constants import WeblogCategory
 
-from .core import scenario_groups
-from .endtoend import EndToEndScenario
+from ._core import DdTraceEndToEndScenario, EndToEndScenario, scenario_groups
 
 
-class DebuggerScenario(EndToEndScenario):
+class _DebuggerScenario(EndToEndScenario):
     def __init__(self, name: str, doc: str, weblog_env: dict[str, str | None]) -> None:
         base_weblog_env: dict[str, str | None] = {
             "DD_REMOTE_CONFIG_ENABLED": "1",
@@ -94,3 +93,148 @@ class DebuggerScenario(EndToEndScenario):
         if exit_code != 0:
             logger.stdout(f"Agent debugger endpoint Healthcheck failed:\n{output}")
             pytest.exit("Agent failed to start")
+
+
+class DebuggerProbesSnapshot(_DebuggerScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "DEBUGGER_PROBES_SNAPSHOT",
+            weblog_env={
+                # Required by Node.js to ensure the snapshot isn't truncated due to a timeout
+                "DD_DYNAMIC_INSTRUMENTATION_CAPTURE_TIMEOUT_MS": "1000",
+                "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
+                "DD_CODE_ORIGIN_FOR_SPANS_ENABLED": "1",
+                "DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED": "true",
+            },
+            doc="Test scenario for checking if debugger successfully generates snapshots for probes",
+        )
+
+
+class DebuggerCaptureTimeout(_DebuggerScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "DEBUGGER_CAPTURE_TIMEOUT",
+            weblog_env={
+                "DD_DYNAMIC_INSTRUMENTATION_CAPTURE_TIMEOUT": "10",
+                "DD_DYNAMIC_INSTRUMENTATION_CAPTURE_TIMEOUT_MS": "10",
+                "DD_DYNAMIC_INSTRUMENTATION_MAX_TIME_TO_SERIALIZE": "10",
+                "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
+            },
+            doc="Test that debugger snapshot capture reports when its time budget is exceeded",
+        )
+
+
+class DebuggerEvaluationTimeout(_DebuggerScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "DEBUGGER_EVALUATION_TIMEOUT",
+            weblog_env={
+                "DD_DYNAMIC_INSTRUMENTATION_EVALUATION_TIMEOUT": "10",
+                "DD_DYNAMIC_INSTRUMENTATION_EVALUATION_TIMEOUT_MS": "10",
+                "DD_DYNAMIC_INSTRUMENTATION_MAX_TIME_TO_EVALUATE": "10",
+                "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
+            },
+            doc="Test that debugger expression evaluation reports when its time budget is exceeded",
+        )
+
+
+class DebuggerProbesSnapshotWithScm(_DebuggerScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "DEBUGGER_PROBES_SNAPSHOT_WITH_SCM",
+            weblog_env={
+                "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
+                "DD_CODE_ORIGIN_FOR_SPANS_ENABLED": "1",
+                "DD_GIT_REPOSITORY_URL": "https://github.com/datadog/hello",
+                "DD_GIT_COMMIT_SHA": "1234hash",
+            },
+            doc="Test scenario for checking if debugger successfully generates SCM metadata in snapshots for probes",
+        )
+
+
+class DebuggerPiiRedaction(_DebuggerScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "DEBUGGER_PII_REDACTION",
+            weblog_env={
+                # Required by Node.js to ensure the snapshot isn't truncated due to a timeout
+                "DD_DYNAMIC_INSTRUMENTATION_CAPTURE_TIMEOUT_MS": "1000",
+                "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
+                "DD_DYNAMIC_INSTRUMENTATION_REDACTED_TYPES": "weblog.Models.Debugger.CustomPii,com.datadoghq.system_tests.springboot.debugger.CustomPii,CustomPii",  # noqa: E501
+                "DD_DYNAMIC_INSTRUMENTATION_REDACTED_IDENTIFIERS": "customidentifier1,customidentifier2",
+            },
+            doc="Check pii redaction",
+        )
+
+
+class DebuggerExpressionLanguage(_DebuggerScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "DEBUGGER_EXPRESSION_LANGUAGE",
+            weblog_env={
+                "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
+            },
+            doc="Check expression language",
+        )
+
+
+class DebuggerExceptionReplay(_DebuggerScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "DEBUGGER_EXCEPTION_REPLAY",
+            weblog_env={
+                "DD_EXCEPTION_REPLAY_ENABLED": "1",
+                "DD_CODE_ORIGIN_FOR_SPANS_ENABLED": "0",
+                "DD_EXCEPTION_REPLAY_CAPTURE_MAX_FRAMES": "10",
+                # Avoid flaky captures being truncated by the default 150ms capture timeout under CI load
+                "DD_DYNAMIC_INSTRUMENTATION_CAPTURE_TIMEOUT_MS": "1000",
+            },
+            doc="Check exception replay",
+        )
+
+
+class DebuggerSymdb(_DebuggerScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "DEBUGGER_SYMDB",
+            weblog_env={
+                "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
+                "DD_SYMBOL_DATABASE_UPLOAD_ENABLED": "1",
+            },
+            doc="Test scenario for checking symdb.",
+        )
+
+
+class DebuggerInproductEnablement(DdTraceEndToEndScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "DEBUGGER_INPRODUCT_ENABLEMENT",
+            rc_api_enabled=True,
+            rc_backend_enabled=False,
+            weblog_env={
+                "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.1",
+                "DD_TRACE_FLUSH_INTERVAL": "100",
+            },
+            library_interface_timeout=5,
+            doc="Test scenario for checking dynamic enablement.",
+            scenario_groups=[scenario_groups.debugger],
+        )
+
+
+class DebuggerTelemetry(DdTraceEndToEndScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "DEBUGGER_TELEMETRY",
+            rc_api_enabled=True,
+            rc_backend_enabled=True,
+            weblog_env={
+                "DD_REMOTE_CONFIG_ENABLED": "true",
+                "DD_CODE_ORIGIN_FOR_SPANS_ENABLED": "1",
+                "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
+                "DD_EXCEPTION_REPLAY_ENABLED": "1",
+                "DD_SYMBOL_DATABASE_UPLOAD_ENABLED": "1",
+            },
+            library_interface_timeout=5,
+            doc="Test scenario for checking debugger telemetry.",
+            scenario_groups=[scenario_groups.debugger, scenario_groups.telemetry],
+        )

@@ -1,14 +1,13 @@
 from utils._logger import logger
 
 from utils._context.constants import WeblogCategory
-from .core import scenario_groups
-from .endtoend import EndToEndScenario
+from ._core import EndToEndScenario, scenario_groups
 
 
 class IPV6Scenario(EndToEndScenario):
-    def __init__(self, name: str) -> None:
+    def __init__(self) -> None:
         super().__init__(
-            name,
+            "IPV6",
             enable_ipv6=True,
             scenario_groups=[scenario_groups.ipv6],
             weblog_categories=[WeblogCategory.dd_trace],

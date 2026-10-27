@@ -85,7 +85,7 @@ def test_file_writer_scrubber(write_mode: str, read_mode: str, file_extension: s
 @scenarios.test_the_test
 def test_binary_file_writer_scrubber_preserves_size() -> None:
     secret_name = "BINARY_SECRET"
-    secret = "datadog"
+    secret = "datad0g"
     content = f"/var/log/{secret} {secret}_preload_hook".encode()
     log_file = f"{scenarios.test_the_test.host_log_folder}/binary_size.log"
 

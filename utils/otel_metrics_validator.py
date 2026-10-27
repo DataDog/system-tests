@@ -189,7 +189,7 @@ class OtelMetricsValidator:
                 query_str = f"avg:{metric_name}{{{tag_string}}}"
                 logger.info(f"Query: {query_str}, time range: {start_time_ms} to {end_time_ms} ({lookback_seconds}s)")
 
-                metric_data = interfaces.backend.query_ui_timeseries(
+                metric_data = interfaces.backend_legacy.query_ui_timeseries(
                     query=query_str,
                     start=start_time_ms,
                     end=end_time_ms,
