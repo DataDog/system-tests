@@ -8,22 +8,21 @@ from utils._context.containers import OpenTelemetryCollectorContainer, PostgresC
 from utils._logger import logger
 from utils.proxy.ports import ProxyPorts
 
-from .core import scenario_groups
-from .endtoend import DockerScenario
+from ._core import DockerScenario, scenario_groups
 
 
 class OtelCollectorScenario(DockerScenario):
     otel_collector_version: Version
     postgres_container: PostgresContainer
 
-    def __init__(self, name: str, *, use_proxy: bool = True, mocked_backend: bool = True):
+    def __init__(self) -> None:
         super().__init__(
-            name,
+            "OTEL_COLLECTOR",
             github_workflow="endtoend",
             doc="TODO",
             scenario_groups=[scenario_groups.end_to_end, scenario_groups.all, scenario_groups.open_telemetry],
-            use_proxy=use_proxy,
-            mocked_backend=mocked_backend,
+            use_proxy=True,
+            mocked_backend=True,
         )
 
         self.postgres_container = PostgresContainer()
