@@ -54,7 +54,7 @@ from utils.interfaces import StdoutLogsInterface, LibraryStdoutInterface
 # fake key of length 32
 FAKE_DD_API_KEY = "0123456789abcdef0123456789abcdef"
 # DD_SITE of agentless senders: the reserved .invalid domain fails closed if a request is not sent to the mocked backend
-MOCK_INVALID_INTAKE_SITE = "mock-intake.invalid"
+MOCK_INTAKE_SITE = "mock-intake.invalid"
 # its own key tells, in the mocked backend, what serverless-init sent (see interfaces.backend_v2 with_api_key)
 SERVERLESS_INIT_FAKE_DD_API_KEY = "fedcba9876543210fedcba9876543210"
 
@@ -795,8 +795,8 @@ class MockedBackendContainer(TestedContainer):
     # from DD_SITE (e.g. an SDK sending exposures directly). Its certificate is signed by the mitmproxy CA: these
     # senders must trust it. See utils/mocked_backend/tls/README.md
     tls_hostnames = (
-        f"event-platform-intake.{MOCK_INVALID_INTAKE_SITE}",
-        f"instrumentation-telemetry-intake.{MOCK_INVALID_INTAKE_SITE}",
+        f"event-platform-intake.{MOCK_INTAKE_SITE}",
+        f"instrumentation-telemetry-intake.{MOCK_INTAKE_SITE}",
     )
     tls_cert_file = "utils/mocked_backend/tls/mocked-backend.pem"
     tls_ca_file = "utils/proxy/.mitmproxy/mitmproxy-ca-cert.pem"
@@ -996,7 +996,7 @@ class ServerlessInitContainer(TestedContainer):
             image_name="datadog/serverless-init:1.10.4",
             environment={
                 "DD_API_KEY": SERVERLESS_INIT_FAKE_DD_API_KEY,
-                "DD_SITE": MOCK_INVALID_INTAKE_SITE,
+                "DD_SITE": MOCK_INTAKE_SITE,
                 "DD_SERVICE": "ffe-system-tests-serverless-init",
                 "DD_ENV": "system-tests",
                 "DD_APM_ENABLED": "true",
