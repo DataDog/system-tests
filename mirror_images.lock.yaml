@@ -26,10 +26,6 @@ images:
     digest: sha256:223c336b2fc1a000e22315a8762254b7171016d4400d556cc24ca41a499aa7af
     target: registry.ddbuild.io/system-tests/mirror/datadog/dd-appsec-php-ci:php-8.2-release
     tag: php-8.2-release
-  datadog/dd-trace-ci:php-8.2_bookworm-6:
-    digest: sha256:1263e78409cc0800948e86463689c21d2b84733dde3ced048d751b04fdff7b9a
-    target: registry.ddbuild.io/system-tests/mirror/datadog/dd-trace-ci:php-8.2_bookworm-6
-    tag: php-8.2_bookworm-6
   datadog/serverless-init:1.10.4:
     digest: sha256:f4943347f155505156ba5f594317ea64b59678b3a6522e8c0993581af20956ff
     target: registry.ddbuild.io/system-tests/mirror/datadog/serverless-init:1.10.4
@@ -202,6 +198,10 @@ images:
     digest: sha256:4a2d48fbc3e0a08b0d418bf6e1561b0a5c13617fa700eecad12970671b5ef67e
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:php-fpm-8.5.base-584c4309d774
     tag: php-fpm-8.5.base-584c4309d774
+  datadog/system-tests:php-parametric.base-2d553891b5ab:
+    digest: sha256:e4a873ce6f2a2dad96a800c992b332d77b01ab776a99365857f631082eb072c1
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:php-parametric.base-2d553891b5ab
+    tag: php-parametric.base-2d553891b5ab
   datadog/system-tests:proxy-v1:
     digest: sha256:02ce356eafacfe04d3022ff505e2dbb9e47cd3c55244b7918ff6fc824db85f02
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:proxy-v1
@@ -378,6 +378,10 @@ images:
     digest: sha256:886722fe0f37af9d1fe24d29529253ec59fbf263b3b1df4facaf221373e19d23
     target: registry.ddbuild.io/system-tests/mirror/otel/opentelemetry-collector-contrib:0.137.0
     tag: 0.137.0
+  php:8.2.30-cli-bookworm:
+    digest: sha256:997823957395d938546d16bb4e3d5c1a6da658ab908c3aadf9513b3b2a418919
+    target: registry.ddbuild.io/system-tests/mirror/php:8.2.30-cli-bookworm
+    tag: 8.2.30-cli-bookworm
   postgres:alpine:
     digest: sha256:77f585114c32fbca283dc835b0596f4e52b51b4c6662d7810b2f4084f60a1873
     target: registry.ddbuild.io/system-tests/mirror/postgres:alpine
