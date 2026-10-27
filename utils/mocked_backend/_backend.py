@@ -88,7 +88,7 @@ class MockedBackendServer(MockedBackendServerFfeMixin, MockedBackendServerCore):
     @property
     def container_url(self) -> str:
         """The URL a container can use to reach the mock server on the docker host."""
-        return f"http://{HOST_DOCKER_INTERNAL}:{self.port}"
+        return f"{self.scheme}://{HOST_DOCKER_INTERNAL}:{self.port}"
 
     def add_handler(self, method: HttpMethod, path: str, handler: RouteHandler) -> None:
         """Register a handler for an exact (method, path) pair. ``path`` is matched without its

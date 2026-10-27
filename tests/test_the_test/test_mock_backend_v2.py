@@ -362,6 +362,16 @@ def test_https_mode_is_not_blocked_by_an_idle_connection(tmp_path: Path):
 
 
 @scenarios.test_the_test
+def test_https_mode_advertises_https_urls(tmp_path: Path):
+    server = MockedBackendServer(str(tmp_path), port=0, tls_cert_file=_TLS_CERT_FILE)
+    try:
+        assert server.container_url.startswith("https://")
+        assert server.ffe_library_config_url.startswith("https://")
+    finally:
+        server.close()
+
+
+@scenarios.test_the_test
 def test_https_certificate_is_only_valid_for_the_served_hostnames(tmp_path: Path):
     server = MockedBackendServer(str(tmp_path), port=0, tls_cert_file=_TLS_CERT_FILE)
     try:

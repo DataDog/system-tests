@@ -225,7 +225,7 @@ class MockedBackendServerFfeMixin(_Base):
         host = os.environ.get("SYSTEM_TESTS_MOCK_FFE_AGENTLESS_BACKEND_HOST") or os.environ.get(
             "SYSTEM_TESTS_MOCK_AGENTLESS_BACKEND_HOST", "host.docker.internal"
         )
-        return f"http://{host}:{self.port}"
+        return f"{self.scheme}://{host}:{self.port}"
 
     @property
     def ffe_library_config_url(self) -> str:
