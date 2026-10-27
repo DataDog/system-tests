@@ -148,7 +148,51 @@ def _as_job_name(value: str | list[str]) -> str | list[str]:
 def get_k8s_scenario_components(
     scenario: str, all_system_tests_scenarios: list[Scenario], language: str
 ) -> dict[str, str | list[str]]:
-    """Component versions for one scenario. Image values are registry paths, not full URLs."""
+    """Determine K8s component versions for a given scenario and CI context.
+
+    This method selects the appropriate component versions based on:
+    - The scenario requirements (operator, cluster agent)
+    - The CI pipeline context (system-tests (scheduled or pr/commit) or tracer repo or injector repo)
+    - Custom image overrides from environment variables
+
+    Version Selection Logic:
+    ========================
+
+    For each component, versions are selected based on pipeline context:
+
+    1. **Custom Image (Highest Priority)**
+       - If K8S_LIB_INIT_IMG or K8S_INJECTOR_IMG env vars are set
+       - Uses the custom image directly (injector/tracer repo testing)
+       - The rest of the components are the pinned/default versions
+
+    2. **System-Tests Scheduled Pipeline**
+       - Tests ALL available versions (prod, dev, pinned)
+
+    3. **System-Tests PR/Commit**
+       - Tests ALL available versions (for injector and lib init)
+       - Tests only the pinned versions for the rest of the components
+
+    Component Versions Returned:
+    ============================
+    - K8S_HELM_CHART_OPERATOR: Datadog operator helm chart version (if with_datadog_operator)
+    - K8S_CLUSTER_IMG: Cluster agent image (if with_cluster_agent)
+    - K8S_INJECTOR_IMG: APM injector image (if with_cluster_agent)
+    - K8S_HELM_CHART: Datadog helm chart version (if cluster agent without operator)
+    - K8S_LIB_INIT_IMG: Library init container image (always included)
+
+    Catalog images on PRIVATE_DOCKER_REGISTRY under ssi/ or ssi-dev/ are returned
+    without the registry host (for example ``ssi/cluster-agent:7.84.3``). The GitLab
+    job adds the host back before ./run.sh. Custom images on another host are unchanged.
+
+    Args:
+        scenario: Scenario name (must exist in utils/_context/_scenarios/__init__.py)
+        all_system_tests_scenarios: List of all available scenarios
+        language: Programming language (java, python, nodejs, etc.)
+
+    Returns:
+        Dictionary with component version assignments for the GitLab CI matrix
+
+    """
     all_valid_scenarios = {item.name for item in all_system_tests_scenarios}
     if scenario not in all_valid_scenarios:
         raise ValueError(
