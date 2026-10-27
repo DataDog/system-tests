@@ -208,12 +208,8 @@ elif [ "$TARGET" = "java" ] || [ "$TARGET" = "java_lambda" ]; then
 
     if [ "$TARGET" = "java" ]; then
         # the dd-openfeature SDK of the same build: the released one, used by default, may not work with a dev agent.
-        # Not for java_lambda: its runtime image has no maven to install it, and its weblog does not use it.
-        # Builds older than dd-trace-java#12844 did not publish it: the released one is used then
-        if ! curl --fail --location --silent --show-error --output dd-openfeature.jar "https://s3.us-east-1.amazonaws.com/dd-trace-java-builds/${LIBRARY_TARGET_BRANCH}/dd-openfeature.jar"; then
-            rm -f dd-openfeature.jar
-            echo "No dd-openfeature.jar for ${LIBRARY_TARGET_BRANCH}, the released dd-openfeature will be used"
-        fi
+        # Not for java_lambda: its runtime image has no maven to install it, and its weblog does not use it
+        curl --fail --retry 3 --location --silent --show-error --output dd-openfeature.jar "https://s3.us-east-1.amazonaws.com/dd-trace-java-builds/${LIBRARY_TARGET_BRANCH}/dd-openfeature.jar"
     fi
 
 elif [ "$TARGET" = "dotnet" ]; then
