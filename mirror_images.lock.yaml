@@ -198,10 +198,10 @@ images:
     digest: sha256:4a2d48fbc3e0a08b0d418bf6e1561b0a5c13617fa700eecad12970671b5ef67e
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:php-fpm-8.5.base-584c4309d774
     tag: php-fpm-8.5.base-584c4309d774
-  datadog/system-tests:php-parametric.base-2d553891b5ab:
-    digest: sha256:e4a873ce6f2a2dad96a800c992b332d77b01ab776a99365857f631082eb072c1
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:php-parametric.base-2d553891b5ab
-    tag: php-parametric.base-2d553891b5ab
+  datadog/system-tests:php-parametric.base-c84d9fa316f4:
+    digest: sha256:8d2866169a9fe29e85560fa71579197dc89b8a0404bb4c85eca768071281cc2d
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:php-parametric.base-c84d9fa316f4
+    tag: php-parametric.base-c84d9fa316f4
   datadog/system-tests:proxy-v1:
     digest: sha256:02ce356eafacfe04d3022ff505e2dbb9e47cd3c55244b7918ff6fc824db85f02
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:proxy-v1

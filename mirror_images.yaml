@@ -57,7 +57,7 @@
 - "datadog/system-tests:php-fpm-8.1.base-952e5a1d024f"
 - "datadog/system-tests:php-fpm-8.2.base-fa4b3373d360"
 - "datadog/system-tests:php-fpm-8.5.base-584c4309d774"
-- "datadog/system-tests:php-parametric.base-2d553891b5ab"
+- "datadog/system-tests:php-parametric.base-c84d9fa316f4"
 - "datadog/system-tests:proxy-v1"
 - "datadog/system-tests:python-lambda-runtime.base-aec497f8192f"
 - "datadog/system-tests:python-parametric.base-be1a47c3d761"

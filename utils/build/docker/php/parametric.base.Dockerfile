@@ -3,11 +3,13 @@ FROM php:8.2.30-cli-bookworm
 # ext-grpc is required by open-telemetry/transport-grpc (OTLP over gRPC is tested).
 # It is not packaged for the official image, so it is compiled here once, in the
 # prebuilt base image, instead of on every parametric build.
+# ext-pcntl is needed by server.php to trap SIGINT/SIGTERM (revolt event loop).
 RUN set -eux; \
     apt-get update; \
     apt-get install -y --no-install-recommends $PHPIZE_DEPS zlib1g-dev; \
     MAKEFLAGS="-j$(nproc)" pecl install grpc-1.83.1; \
     docker-php-ext-enable grpc; \
+    docker-php-ext-install -j"$(nproc)" pcntl; \
     apt-get purge -y --auto-remove $PHPIZE_DEPS zlib1g-dev; \
     rm -rf /var/lib/apt/lists/* /tmp/pear
 
