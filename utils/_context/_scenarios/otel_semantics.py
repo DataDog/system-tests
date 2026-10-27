@@ -102,6 +102,7 @@ class OtelSemanticsOtlpTraceMetrics(DdTraceEndToEndScenario):
             weblog_env={
                 "DD_TRACE_OTEL_SEMANTICS_ENABLED": "true",
                 "DD_TRACE_OTEL_ENABLED": "true",
+                "DD_METRICS_OTEL_ENABLED": "true",
                 "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
                 "OTEL_TRACES_EXPORTER": "otlp",
                 "OTEL_TRACES_SPAN_METRICS_ENABLED": "true",
@@ -124,6 +125,9 @@ class OtelSemanticsOtlpSamplingRules(DdTraceEndToEndScenario):
     def __init__(self) -> None:
         super().__init__(
             "OTEL_SEMANTICS_OTLP_SAMPLING_RULES",
+            # Security findings can force-keep a trace before ordinary sampling rules run.
+            appsec_enabled=False,
+            iast_enabled=False,
             weblog_env={
                 "DD_TRACE_OTEL_SEMANTICS_ENABLED": "true",
                 "DD_TRACE_OTEL_ENABLED": "true",
