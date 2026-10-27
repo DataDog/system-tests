@@ -111,6 +111,8 @@ from .docker_ssi import (
 )
 from .agentless_endtoend import (
     FeatureFlaggingAndExperimentationAgentless,
+    FeatureFlaggingEVPFallback,
+    FeatureFlaggingAgentlessAgent,
     FeatureFlaggingAndExperimentationAgentlessDirect,
     FeatureFlaggingAndExperimentationAgentlessServerless,
 )
@@ -319,6 +321,16 @@ class _Scenarios:
     feature_flagging_and_experimentation_agentless = FeatureFlaggingAndExperimentationAgentless()
     feature_flagging_and_experimentation_agentless_direct = FeatureFlaggingAndExperimentationAgentlessDirect()
     feature_flagging_and_experimentation_agentless_serverless = FeatureFlaggingAndExperimentationAgentlessServerless()
+    feature_flagging_agentless_agent = FeatureFlaggingAgentlessAgent()
+    feature_flagging_evp_404_exposures = FeatureFlaggingEVPFallback("404", "exposures")
+    feature_flagging_evp_404_flagevaluation = FeatureFlaggingEVPFallback("404", "flagevaluation")
+    feature_flagging_evp_405_exposures = FeatureFlaggingEVPFallback("405", "exposures")
+    feature_flagging_evp_405_flagevaluation = FeatureFlaggingEVPFallback("405", "flagevaluation")
+    feature_flagging_evp_403_exposures = FeatureFlaggingEVPFallback("403", "exposures")
+    feature_flagging_evp_403_flagevaluation = FeatureFlaggingEVPFallback("403", "flagevaluation")
+    feature_flagging_evp_ambiguous_exposures = FeatureFlaggingEVPFallback("ambiguous", "exposures")
+    feature_flagging_evp_ambiguous_flagevaluation = FeatureFlaggingEVPFallback("ambiguous", "flagevaluation")
+
     feature_flagging_evaluation_telemetry_opt_out = FeatureFlaggingEvaluationTelemetryOptOut()
     feature_flagging_evaluation_telemetry_opt_out_disabled = FeatureFlaggingEvaluationTelemetryOptOutDisabled()
     remote_config_mocked_backend_asm_features_nocache = RemoteConfigMockedBackendAsmFeaturesNocache()

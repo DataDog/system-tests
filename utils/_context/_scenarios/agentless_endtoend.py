@@ -75,11 +75,12 @@ class _AgentlessEndToEndScenario(DdTraceEndToEndScenario):
         other_weblog_containers: tuple[type[TestedContainer], ...] = (),
         scenario_groups: tuple[ScenarioGroup, ...] = (),
         use_proxy_for_weblog: bool = False,
+        include_agent: bool = False,
     ) -> None:
         super().__init__(
             name,
             doc=doc,
-            include_agent=False,
+            include_agent=include_agent,
             library_interface_timeout=0,
             other_weblog_containers=other_weblog_containers,
             scenario_groups=[*scenario_groups, all_scenario_groups.agentless],
@@ -148,7 +149,7 @@ class FeatureFlaggingAgentlessEndToEndScenario(_AgentlessEndToEndScenario):
         name: str,
         *,
         doc: str = "Validate default agentless UFC delivery and evaluation without a Datadog Agent.",
-        exposure_egress: Literal["sidecar", "direct"] | None = None,
+        exposure_egress: Literal["sidecar", "direct", "agent"] | None = None,
         weblog_env: dict[str, str | None] | None = None,
     ) -> None:
         self.exposure_egress = exposure_egress
@@ -199,6 +200,7 @@ class FeatureFlaggingAgentlessEndToEndScenario(_AgentlessEndToEndScenario):
             other_weblog_containers=other_weblog_containers,
             scenario_groups=(all_scenario_groups.ffe,),
             use_proxy_for_weblog=exposure_egress is not None,
+            include_agent=exposure_egress == "agent",
             weblog_env=environment,
         )
 
@@ -612,7 +614,13 @@ class FeatureFlaggingAgentlessEndToEndScenario(_AgentlessEndToEndScenario):
             # but their setup methods never run and therefore register no capture expectations.
             return
 
-        interface = interfaces.datadog_sidecar if self.exposure_egress == "sidecar" else interfaces.datadog_direct
+        interface = (
+            interfaces.agent
+            if self.exposure_egress == "agent"
+            else interfaces.datadog_sidecar
+            if self.exposure_egress == "sidecar"
+            else interfaces.datadog_direct
+        )
         missing_paths: list[str] = []
         for path in sorted(self._expected_evp_capture_paths):
 
@@ -688,3 +696,35 @@ class FeatureFlaggingAndExperimentationAgentlessServerless(FeatureFlaggingAgentl
             doc="Validate exposure delivery with agentless UFC and serverless-init.",
             exposure_egress="sidecar",
         )
+
+
+class FeatureFlaggingEVPFallback(FeatureFlaggingAgentlessEndToEndScenario):
+    def __init__(self, mode: str, signal: str) -> None:
+        self.fault_mode = mode
+        self.fault_signal = signal
+        self.receiver_prefix = f"/evp-test/{mode}/{signal}"
+        super().__init__(
+            f"FEATURE_FLAGGING_EVP_{mode.upper()}_{signal.upper()}",
+            doc=f"Validate {signal} EVP fallback after local {mode}, with both writers active.",
+            exposure_egress="direct",
+        )
+        self.weblog_infra.library_container.environment["DD_TRACE_AGENT_URL"] = (
+            self.mocked_backend_container.container_url + self.receiver_prefix
+        )
+
+
+class FeatureFlaggingAgentlessAgent(FeatureFlaggingAgentlessEndToEndScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "FEATURE_FLAGGING_AGENTLESS_AGENT",
+            doc="Validate both agentless Feature Flags signals through a full Datadog Agent.",
+            exposure_egress="agent",
+        )
+
+        # Other Agent traffic uses the HTTP mocked backend; EVP always builds an HTTPS
+        # intake URL, so capture that traffic separately through the Agent proxy port.
+        self.agent_container.environment |= {
+            "DD_EVP_PROXY_CONFIG_DD_URL": "mock-intake.invalid",
+            "DD_PROXY_HTTPS": f"http://proxy:{ProxyPorts.agent}",
+        }
+        self.agent_container.depends_on.append(self.proxy_container)

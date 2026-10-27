@@ -2244,6 +2244,7 @@ manifest:
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_RC_Down_From_Start: v4.0.0
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_RC_Unavailable: flaky (FFL-1622)
   tests/ffe/test_evaluation_telemetry_opt_out.py: missing_feature (Provisional per-subject evaluation telemetry opt-out coverage; enable after the SDK release)
+  tests/ffe/test_evp_fallback.py: missing_feature (Fault receiver contracts enabled for Ruby only pending SDK validation)
   tests/ffe/test_exposure_egress.py: v4.2.0-dev
   tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Direct:
     - weblog_declaration:

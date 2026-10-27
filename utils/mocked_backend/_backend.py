@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING
 
 from ._request_handler import MockedBackendServerCore, MockBackendV2RequestHandler, HttpMethod, RouteHandler
 from ._backend_ffe import MockedBackendServerFfeMixin
+from ._evp import configure_evp_receiver
 from ._client import MockedBackendClient
 from ._utils import CONTROL_URL_PREFIX, HOST_DOCKER_INTERNAL, logger
 
@@ -53,6 +54,7 @@ class MockedBackendServer(MockedBackendServerFfeMixin, MockedBackendServerCore):
 
         self.add_handler("GET", f"{CONTROL_URL_PREFIX}/health", self._handle_health)
         self._ffe_configure()
+        configure_evp_receiver(self)
 
         self._thread = threading.Thread(target=self.serve_forever, name=self.thread_name, daemon=True)
         self._thread.start()
