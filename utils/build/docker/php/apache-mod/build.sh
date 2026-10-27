@@ -20,9 +20,16 @@ cp -rf /tmp/php/common/php.ini /etc/php/
 printf '#!/bin/sh\n\nexit 101\n' > /usr/sbin/policy-rc.d && \
 	chmod +x /usr/sbin/policy-rc.d && \
 	apt-get update && apt-get install -y \
-		apache2 jq \
+		apache2 jq librdkafka-dev \
 	&& rm -rf /var/lib/apt/lists/* && \
 	rm -rf /usr/sbin/policy-rc.d
+
+# php-rdkafka, the Kafka client of the DSM endpoints. This PHP is built from source, so no
+# distribution package of the extension matches it.
+RDKAFKA_VERSION=6.0.5
+curl -Lf "https://github.com/arnaud-lb/php-rdkafka/archive/refs/tags/${RDKAFKA_VERSION}.tar.gz" | tar -xz -C /tmp
+(cd "/tmp/php-rdkafka-${RDKAFKA_VERSION}" && phpize && ./configure && make -j"$(nproc)" && make install)
+rm -rf "/tmp/php-rdkafka-${RDKAFKA_VERSION}"
 
 a2enmod rewrite
 
