@@ -34,12 +34,23 @@ leaves any existing fixture update PR untouched. Review and resolve newly expose
 SDK failures before merging an update.
 
 Dynamic evaluation checks each case's value, reason, and explicit error code.
-It does not yet assert `result.features` expectations for hook, exposure, or
-evaluation metadata. The imported split-feature cases therefore validate only
-their baseline evaluation result. Follow-up coverage must expose those three
-metadata channels through the parametric harness and assert their canonical
-expectations, including false, zero, and empty-string values; tracked in
-[the review follow-up](https://github.com/DataDog/system-tests/pull/8139#discussion_r4382943374).
+`Test_Feature_Flag_Split_Features` additionally checks every canonical case with
+`result.features` against the public exposure-hook callback and actual exposure
+and evaluation payloads received by the parametric test agent. Exact maps detect
+missing values, extra keys, destination leaks, and boolean/number coercion while
+preserving JSON numeric equivalence. This covers false, zero, empty strings,
+first-valid-key selection, and selected-allocation isolation. For `doLog=false`,
+selected metadata is checked separately and exposure delivery must stay absent.
+
+The destination test currently runs with Java's `1.69.0-SNAPSHOT` SDK and later;
+other clients are marked `incomplete_test_app` until they capture their public
+hook output. Their baseline evaluation cases continue to run. The Java harness
+loads the optional hook API only when this test enables capture, so older SDKs
+can still compile and run baseline tests. Unsupported clients skip this slower
+delivery test before container setup. An opt-in test-agent app factory registers
+the FFE intake routes missing from the pinned agent image and records their
+original payloads. This proves local delivery, not Datadog intake or production.
+
 Cases with optional `capabilities` still run their baseline `result`; enabling
 capability-specific provider options requires separate harness support.
 Remote Configuration tests and the mocked agentless backend read the same UFC.

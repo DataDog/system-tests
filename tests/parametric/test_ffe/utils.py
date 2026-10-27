@@ -9,7 +9,9 @@ Feature flag event enrichment encodes serial IDs using delta varint encoding:
 Example: [100, 108, 128, 130] -> deltas [100, 8, 20, 2] -> varint bytes -> base64
 """
 
+from collections.abc import Mapping, Sequence
 import base64
+import gzip
 import hashlib
 import json
 from pathlib import Path
@@ -139,3 +141,37 @@ def hash_targeting_key(targeting_key: str) -> str:
 
     """
     return hashlib.sha256(targeting_key.encode("utf-8")).hexdigest()
+
+
+def assert_feature_map(actual: object, expected: dict[str, Any], destination: str) -> None:
+    """Compare exact scalar feature maps without equating false with zero."""
+    assert isinstance(actual, dict), f"{destination}: missing feature map: {actual!r}"
+    assert actual.keys() == expected.keys(), f"{destination}: expected {expected!r}, got {actual!r}"
+    for key, expected_value in expected.items():
+        actual_value = actual[key]
+        if type(expected_value) in (int, float):
+            valid_type = type(actual_value) in (int, float)
+        else:
+            valid_type = type(actual_value) is type(expected_value)
+        assert valid_type, f"{destination}.{key}: expected type {type(expected_value)}, got {type(actual_value)}"
+        assert actual_value == expected_value, f"{destination}.{key}: expected {expected_value!r}, got {actual_value!r}"
+
+
+def ffe_events_from_requests(requests: Sequence[Mapping[str, Any]], flag: str) -> dict[str, list[dict[str, Any]]]:
+    """Read real EVP payloads recorded by the parametric test agent."""
+    events: dict[str, list[dict[str, Any]]] = {"EXPOSURE": [], "EVALUATION": []}
+    for request in requests:
+        path = request["url"].split("?", 1)[0]
+        if path.endswith("/api/v2/exposures"):
+            destination, field = "EXPOSURE", "exposures"
+        elif path.endswith("/api/v2/flagevaluation"):
+            destination, field = "EVALUATION", "flagEvaluations"
+        else:
+            continue
+        body = base64.b64decode(request["body"])
+        # The agent may already have decompressed a request while retaining its headers.
+        if body.startswith(b"\x1f\x8b"):
+            body = gzip.decompress(body)
+        payload = json.loads(body)
+        events[destination].extend(event for event in payload[field] if event.get("flag", {}).get("key") == flag)
+    return events

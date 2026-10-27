@@ -10,10 +10,12 @@ from utils import (
     context,
     features,
     scenarios,
+    slow,
 )
 from utils.dd_constants import RemoteConfigApplyState
 from utils.docker_fixtures import TestAgentAPI
 from tests.parametric.conftest import APMLibrary
+from tests.parametric.test_ffe.utils import assert_feature_map, ffe_events_from_requests
 
 RC_PRODUCT = "FFE_FLAGS"
 RC_PATH = f"datadog/2/{RC_PRODUCT}"
@@ -61,6 +63,12 @@ def _filter_test_cases_for_platform(test_cases: list[dict[str, Any]], platform: 
 # Load fixture at module level for reuse across tests
 UFC_FIXTURE_DATA = _load_ufc_fixture()
 ALL_TEST_CASE_FILES = _get_test_case_files()
+SPLIT_FEATURE_CASES = [
+    case
+    for filename in ALL_TEST_CASE_FILES
+    for case in json.loads((FFE_EVALUATION_CASES_DIR / filename).read_text())
+    if "features" in case["result"]
+]
 
 DEFAULT_ENVVARS = {
     "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
@@ -231,3 +239,78 @@ class Test_Feature_Flag_Dynamic_Evaluation:
                 assert result.get("errorCode") in {None, ""}, (
                     f"Test case {i} in {test_case_file}: unexpected evaluation error; result={result}"
                 )
+
+
+@scenarios.parametric
+@features.feature_flags_dynamic_evaluation
+@slow
+class Test_Feature_Flag_Split_Features:
+    """Check canonical destination maps at the public hook and EVP boundaries."""
+
+    @parametrize(
+        "library_env",
+        [
+            {
+                **DEFAULT_ENVVARS,
+                "SYSTEM_TESTS_FFE_CAPTURE_HOOK_FEATURES": "true",
+                "DD_EXPERIMENTAL_FLAGGING_PROVIDER_SPAN_ENRICHMENT_ENABLED": "true",
+                "DD_FEATURE_FLAGS_EXPOSURES_DATADOG_LOGGING_ENABLED": "true",
+                "DD_FLAGGING_EVALUATION_COUNTS_ENABLED": "true",
+            }
+        ],
+    )
+    @parametrize("agent_env", [{"SYSTEM_TESTS_FFE_INTAKE": "true"}])
+    @parametrize("case", SPLIT_FEATURE_CASES)
+    def test_split_feature_destinations(
+        self, case: dict[str, Any], test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
+        if not _filter_test_cases_for_platform([case], context.library.name):
+            pytest.skip(f"Case does not apply to {context.library.name}")
+        expected = case["result"]
+        _set_and_wait_ffe_rc(test_agent, UFC_FIXTURE_DATA)
+        assert test_library.ffe_start(UFC_FIXTURE_DATA), "Failed to start FFE provider"
+        result = _ffe_evaluate_with_rc_retry(
+            test_library,
+            flag=case["flag"],
+            variation_type=case["variationType"],
+            default_value=case["defaultValue"],
+            targeting_key=case["targetingKey"],
+            attributes=case.get("attributes", {}),
+        )
+        assert result.get("value") == expected["value"], result
+        assert result.get("reason") == expected["reason"], result
+        assert result.get("errorCode") in (None, ""), result
+        assert_feature_map(result.get("hookFeatures"), expected["features"]["HOOK"], "HOOK callback")
+
+        # Selected metadata remains available even when doLog=false suppresses delivery.
+        # Also check the actual payloads below: metadata alone cannot prove isolation.
+        metadata = result.get("flagMetadata")
+        assert isinstance(metadata, dict), result
+        for destination, prefix in (
+            ("EXPOSURE", "__dd_exposure_feature."),
+            ("EVALUATION", "__dd_evaluation_feature."),
+        ):
+            selected = {key.removeprefix(prefix): value for key, value in metadata.items() if key.startswith(prefix)}
+            assert_feature_map(selected, expected["features"][destination], f"{destination} selected metadata")
+
+        # Evaluation batches flush every 10s; continue briefly after a matching batch
+        # to observe forbidden exposures for the doLog=false case as well.
+        deadline = time.monotonic() + 30
+        received_at = None
+        while True:
+            events = ffe_events_from_requests(test_agent.requests(), case["flag"])
+            if events["EVALUATION"] and (events["EXPOSURE"] or not expected["doLog"]):
+                if received_at is None:
+                    received_at = time.monotonic()
+                if time.monotonic() - received_at >= 2:
+                    break
+            assert time.monotonic() < deadline, f"Missing split-feature events for {case['flag']}: {events}"
+            time.sleep(0.2)
+
+        if not expected["doLog"]:
+            assert not events["EXPOSURE"], f"doLog=false emitted exposures: {events['EXPOSURE']}"
+        for destination, observed_events in events.items():
+            for event in observed_events:
+                # Empty features are omitted from the wire format, but the event itself
+                # must exist. An absent event never stands in for an empty feature map.
+                assert_feature_map(event.get("features", {}), expected["features"][destination], destination)
