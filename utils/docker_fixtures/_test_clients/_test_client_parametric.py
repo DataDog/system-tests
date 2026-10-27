@@ -3,7 +3,7 @@ from collections.abc import Generator, Iterable
 from dataclasses import asdict
 from http import HTTPStatus
 from types import TracebackType
-from typing import TypedDict, cast
+from typing import Any, TypedDict, cast
 
 import pytest
 from docker.models.containers import Container
@@ -812,6 +812,12 @@ class ParametricTestClientApi(TestClientApi):
 
         return _TestOtelSpan(self, span_response["span_id"], span_response["trace_id"])
 
+    def ffe_fetch_rules_configuration(self, options: dict[str, Any]) -> dict[str, Any]:
+        """Fetch and serialize portable rules in a process without tracer/provider initialization."""
+        response = self._session.post(self._url("/ffe/fetch-rules-configuration"), json=options, timeout=15)
+        response.raise_for_status()
+        return cast("dict[str, Any]", response.json())
+
     def ffe_start(self, configuration: dict | None = None) -> bool:
         """Initialize the FFE (Feature Flagging & Experimentation) provider.
 
@@ -1264,6 +1270,10 @@ class APMLibrary:
         span_id: int | None = None,
     ) -> bool:
         return self._client.write_log(logger_name, level, message, span_id=span_id)
+
+    def ffe_fetch_rules_configuration(self, options: dict[str, Any]) -> dict[str, Any]:
+        """Fetch and serialize portable rules without initializing a tracer or provider."""
+        return self._client.ffe_fetch_rules_configuration(options)
 
     def ffe_start(self, configuration: dict | None = None) -> bool:
         """Initialize the FFE (Feature Flagging & Experimentation) provider."""

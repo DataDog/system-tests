@@ -171,22 +171,35 @@ class Test_LoadBinaryC:
 
 @scenarios.test_the_test
 class Test_LoadBinaryJava:
-    @pytest.mark.parametrize("target", ["java", "java_lambda"])
     @pytest.mark.parametrize("branch", [None, "feature/flagging"])
-    def test_development_agent_and_provider_use_same_branch(
-        self, tmp_path: Path, target: str, branch: str | None
-    ) -> None:
+    def test_development_agent_and_provider_use_same_branch(self, tmp_path: Path, branch: str | None) -> None:
         extra_env = {"LIBRARY_TARGET_BRANCH": branch} if branch else {}
-        result = _run_loader(tmp_path, "dev", target=target, extra_env=extra_env)
+        result = _run_loader(tmp_path, "dev", target="java", extra_env=extra_env)
 
         assert result.returncode == 0, result.stderr
         base_url = f"https://s3.us-east-1.amazonaws.com/dd-trace-java-builds/{branch or 'master'}"
         for artifact in ("dd-java-agent.jar", "dd-openfeature.jar"):
             assert (tmp_path / "binaries" / artifact).read_text(encoding="utf-8").strip() == f"{base_url}/{artifact}"
+        assert (tmp_path / "curl-calls").read_text().splitlines() == [
+            f"{base_url}/dd-java-agent.jar",
+            f"{base_url}/dd-openfeature.jar",
+        ]
 
-    @pytest.mark.parametrize("target", ["java", "java_lambda"])
-    def test_missing_development_provider_fails(self, tmp_path: Path, target: str) -> None:
-        result = _run_loader(tmp_path, "dev", target=target, extra_env={"MISSING_BRANCH": "dd-openfeature.jar"})
+    @pytest.mark.parametrize("branch", [None, "feature/flagging"])
+    def test_lambda_development_build_loads_only_agent(self, tmp_path: Path, branch: str | None) -> None:
+        extra_env = {"MISSING_BRANCH": "dd-openfeature.jar"}
+        if branch:
+            extra_env["LIBRARY_TARGET_BRANCH"] = branch
+        result = _run_loader(tmp_path, "dev", target="java_lambda", extra_env=extra_env)
+
+        assert result.returncode == 0, result.stderr
+        agent_url = f"https://s3.us-east-1.amazonaws.com/dd-trace-java-builds/{branch or 'master'}/dd-java-agent.jar"
+        assert (tmp_path / "binaries/dd-java-agent.jar").read_text().strip() == agent_url
+        assert not (tmp_path / "binaries/dd-openfeature.jar").exists()
+        assert (tmp_path / "curl-calls").read_text().splitlines() == [agent_url]
+
+    def test_missing_development_provider_fails(self, tmp_path: Path) -> None:
+        result = _run_loader(tmp_path, "dev", target="java", extra_env={"MISSING_BRANCH": "dd-openfeature.jar"})
 
         assert result.returncode != 0
         assert (tmp_path / "binaries/dd-java-agent.jar").exists()
