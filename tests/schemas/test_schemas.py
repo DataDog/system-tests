@@ -263,6 +263,14 @@ class Test_DdtraceSchemas:
                 ticket="DEBUG-3709",
             ),
             SchemaBug(
+                endpoint="/api/v2/debugger",
+                data_path="$[]",
+                condition=context.library < "dotnet@3.57.0"
+                or context.library < "nodejs@5.133.0"
+                or (context.library >= "nodejs@6.0.0" and context.library < "nodejs@6.22.0"),
+                ticket="DEBUG-6442",
+            ),
+            SchemaBug(
                 endpoint="/api/v2/apmtelemetry",
                 data_path="$.payload",
                 condition=context.library >= "python@4.3.0-rc1" and context.scenario is scenarios.profiling,
