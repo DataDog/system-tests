@@ -1540,6 +1540,7 @@ async def ffe_evaluate(request: Request) -> JSONResponse:
         value = default_value
         reason = "DEFAULT"
         error_code = None
+        flag_metadata = None
 
         try:
             if variation_type == "BOOLEAN":
@@ -1559,11 +1560,14 @@ async def ffe_evaluate(request: Request) -> JSONResponse:
                 value = details.value
                 reason = getattr(details.reason, "value", details.reason) or "DEFAULT"
                 error_code = getattr(details.error_code, "value", details.error_code)
+                flag_metadata = details.flag_metadata
         except Exception:
             value = default_value
             reason = "ERROR"
 
-        return JSONResponse({"value": value, "reason": reason, "errorCode": error_code}, status_code=200)
+        return JSONResponse(
+            {"value": value, "reason": reason, "errorCode": error_code, "flagMetadata": flag_metadata}, status_code=200
+        )
     except Exception as e:
         log.error(f"[FFE] Error evaluating flag: {e}")
         return JSONResponse({"error": str(e)}, status_code=500)
