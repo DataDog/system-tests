@@ -92,8 +92,6 @@ class TestClientFactory:
                     "build",
                     "--builder",
                     _ensure_mirror_builder(docker_bin),
-                    "--output",
-                    "type=docker,compression=uncompressed",
                 ]
             else:
                 cmd = [docker_bin, "build"]
