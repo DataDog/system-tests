@@ -4,6 +4,7 @@
     "require": {
         "weblog/acme": "*",
         "monolog/monolog": "*",
+        "php-amqplib/php-amqplib": "*",
         "openai-php/client": "*",
         "guzzlehttp/guzzle": "*",
         "stripe/stripe-php": "^10.0"
