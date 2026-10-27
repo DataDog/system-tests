@@ -1,0 +1,26 @@
+[
+    {
+        "language": "",
+        "type": "",
+        "id": "",
+        "version": 0,
+        "where": {
+            "typeName": "ACTUAL_TYPE_NAME",
+            "methodName": "Expression",
+            "sourceFile": null
+        },
+        "captureSnapshot": false,
+        "segments": [
+            {"str": "dot on map: "},
+            {
+                "dsl": "testStruct.Dictionary.two",
+                "json": {
+                    "getmember": [
+                        {"getmember": [{"ref": "testStruct"}, "Dictionary"]},
+                        "two"
+                    ]
+                }
+            }
+        ]
+    }
+]
