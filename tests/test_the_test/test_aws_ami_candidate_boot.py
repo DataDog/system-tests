@@ -31,12 +31,15 @@ class _FakeEc2:
 @features.not_reported
 class Test_AwsAmiCandidateBoot:
     def test_candidate_state_follows_only_executed_tests(self) -> None:
-        assert candidate_result_state(0, provision_failed=False, test_outcomes=["pass"]) == "active"
-        assert candidate_result_state(1, provision_failed=False, test_outcomes=["pass", "fail"]) == "rejected"
-        assert candidate_result_state(1, provision_failed=True, test_outcomes=["fail"]) is None
-        assert candidate_result_state(0, provision_failed=False, test_outcomes=["skip"]) is None
+        assert candidate_result_state(0, provision_failed=False, test_outcomes=["passed"]) == "active"
+        assert candidate_result_state(0, provision_failed=False, test_outcomes=["xpassed"]) == "active"
+        assert candidate_result_state(0, provision_failed=False, test_outcomes=["xfailed"]) == "active"
+        assert candidate_result_state(1, provision_failed=False, test_outcomes=["passed", "failed"]) == "rejected"
+        assert candidate_result_state(1, provision_failed=False, test_outcomes=["error"]) == "rejected"
+        assert candidate_result_state(1, provision_failed=True, test_outcomes=["failed"]) is None
+        assert candidate_result_state(0, provision_failed=False, test_outcomes=["skipped"]) is None
         assert candidate_result_state(0, provision_failed=False, test_outcomes=[]) is None
-        assert candidate_result_state(3, provision_failed=False, test_outcomes=["pass"]) is None
+        assert candidate_result_state(3, provision_failed=False, test_outcomes=["passed"]) is None
 
     def test_cache_creation_boots_the_candidate(self) -> None:
         assert should_boot_created_candidate(update_cache=True, skip_cache=False) is True
