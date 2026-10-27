@@ -2004,6 +2004,7 @@ manifest:
         rails80: missing_feature (feature not implemented)
         uds-rails: missing_feature (feature not implemented)
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_log_line_budgets: missing_feature (Not yet implemented)
+  tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_per_trace_budget: missing_feature (per-trace snapshot budget of 1 not implemented)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots:
     - weblog_declaration:
         "*": irrelevant
@@ -2068,6 +2069,8 @@ manifest:
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Method_Probe_Statuses::test_metric_status: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Method_Probe_Statuses::test_span_decoration_method_status: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Method_Probe_Statuses::test_span_method_status: missing_feature (Not yet implemented)
+  tests/debugger/test_debugger_snapshot_correlation.py::Test_Debugger_Coordinated_Sampling: missing_feature (no per-trace coordinated sampling; probabilistic per-trace rate not implemented)
+  tests/debugger/test_debugger_snapshot_correlation.py::Test_Debugger_Coordinated_Sampling_Line_Probe: irrelevant (Line-probe variant is only used by Node.js)
   tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb:
     - weblog_declaration:
         "*": irrelevant
@@ -2135,11 +2138,15 @@ manifest:
     - declaration: missing_feature (Not implemented)
       component_version: <2.7.0
   tests/docker_ssi/test_docker_ssi_servicenaming.py::TestDockerServiceNaming::test_service_name: missing_feature (No implemented)
-  tests/ffe/test_agentless_configuration.py: missing_feature (FFL-2701 tracks Ruby agentless configuration-source implementation; FFL-2731 tracks the system-tests contract)
+  tests/ffe/test_agentless_configuration.py:
+    - weblog_declaration:
+        "*": irrelevant
+        rails72: v2.46.0-dev
   tests/ffe/test_dynamic_evaluation.py:
     - weblog_declaration:
         "*": irrelevant
         rails72: v2.23.0-dev
+  tests/ffe/test_evaluation_telemetry_opt_out.py: missing_feature (Provisional per-subject evaluation telemetry opt-out coverage; enable after the SDK release)
   tests/ffe/test_exposure_egress.py:
     - weblog_declaration:
         "*": irrelevant
@@ -2388,19 +2395,19 @@ manifest:
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
   tests/parametric/otel_env_vars/test_otel_blrp_export_timeout.py::Test_OTEL_BLRP_EXPORT_TIMEOUT: v2.34.0
-  tests/parametric/otel_env_vars/test_otel_blrp_export_timeout.py::Test_OTEL_BLRP_EXPORT_TIMEOUT::test_empty_is_treated_as_unset: bug (APMAPI-2413)
-  tests/parametric/otel_env_vars/test_otel_blrp_export_timeout.py::Test_OTEL_BLRP_EXPORT_TIMEOUT::test_invalid_value_is_ignored: bug (APMAPI-2445)
+  tests/parametric/otel_env_vars/test_otel_blrp_export_timeout.py::Test_OTEL_BLRP_EXPORT_TIMEOUT::test_empty_is_treated_as_unset: bug (APMAPI-2413)  # OTel Ruby SDK fails to parse an empty value and drops the logs exporter
+  tests/parametric/otel_env_vars/test_otel_blrp_export_timeout.py::Test_OTEL_BLRP_EXPORT_TIMEOUT::test_invalid_value_is_ignored: bug (APMAPI-2445)  # OTel Ruby SDK accepts a negative timeout
   tests/parametric/otel_env_vars/test_otel_blrp_max_export_batch_size.py::Test_OTEL_BLRP_MAX_EXPORT_BATCH_SIZE: v2.34.0
   ? tests/parametric/otel_env_vars/test_otel_blrp_max_export_batch_size.py::Test_OTEL_BLRP_MAX_EXPORT_BATCH_SIZE::test_empty_is_treated_as_unset
-  : bug (APMAPI-2413)
+  : bug (APMAPI-2413)  # OTel Ruby SDK fails to parse an empty value and drops the logs exporter
   ? tests/parametric/otel_env_vars/test_otel_blrp_max_export_batch_size.py::Test_OTEL_BLRP_MAX_EXPORT_BATCH_SIZE::test_invalid_value_is_ignored
-  : bug (APMAPI-2445)
+  : bug (APMAPI-2445)  # OTel Ruby SDK accepts 0 and raises on a batch size larger than the queue
   tests/parametric/otel_env_vars/test_otel_blrp_max_queue_size.py::Test_OTEL_BLRP_MAX_QUEUE_SIZE: v2.34.0
-  tests/parametric/otel_env_vars/test_otel_blrp_max_queue_size.py::Test_OTEL_BLRP_MAX_QUEUE_SIZE::test_empty_is_treated_as_unset: bug (APMAPI-2413)
-  tests/parametric/otel_env_vars/test_otel_blrp_max_queue_size.py::Test_OTEL_BLRP_MAX_QUEUE_SIZE::test_invalid_value_is_ignored: bug (APMAPI-2445)
+  tests/parametric/otel_env_vars/test_otel_blrp_max_queue_size.py::Test_OTEL_BLRP_MAX_QUEUE_SIZE::test_empty_is_treated_as_unset: bug (APMAPI-2413)  # OTel Ruby SDK fails to parse an empty value and drops the logs exporter
+  tests/parametric/otel_env_vars/test_otel_blrp_max_queue_size.py::Test_OTEL_BLRP_MAX_QUEUE_SIZE::test_invalid_value_is_ignored: bug (APMAPI-2445)  # OTel Ruby SDK raises on a queue smaller than the batch size
   tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY: v2.34.0
-  tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY::test_empty_is_treated_as_unset: bug (APMAPI-2413)
-  tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY::test_invalid_value_is_ignored: bug (APMAPI-2445)
+  tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY::test_empty_is_treated_as_unset: bug (APMAPI-2413)  # OTel Ruby SDK fails to parse an empty value and drops the logs exporter
+  tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY::test_invalid_value_is_ignored: bug (APMAPI-2445)  # OTel Ruby SDK accepts a negative delay
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_compression.py::Test_OTEL_EXPORTER_OTLP_COMPRESSION: '>=2.43.0'  # TODO: a lower version might be supported
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_compression.py::Test_OTEL_EXPORTER_OTLP_COMPRESSION::test_default: missing_feature
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_compression.py::Test_OTEL_EXPORTER_OTLP_COMPRESSION::test_empty: missing_feature
@@ -2437,6 +2444,8 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_endpoint.py::Test_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT: v2.34.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_endpoint.py::Test_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT::test_empty_falls_back_to_global_endpoint
   : bug (APMAPI-2413)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_endpoint.py::Test_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT::test_generic_endpoint_with_base_path
+  : bug (APMAPI-2641)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_headers.py::Test_OTEL_EXPORTER_OTLP_LOGS_HEADERS: v2.34.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_headers.py::Test_OTEL_EXPORTER_OTLP_LOGS_HEADERS::test_empty_falls_back
   : bug (APMAPI-2477)
@@ -2470,6 +2479,8 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_endpoint.py::Test_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: v2.23.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_endpoint.py::Test_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT::test_empty_falls_back_to_global_endpoint
   : bug (APMAPI-2413)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_endpoint.py::Test_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT::test_generic_endpoint_with_base_path
+  : bug (APMAPI-2641)
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_endpoint.py::Test_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT::test_otlp_metrics_custom_endpoint_grpc
   : missing_feature (Does not support grpc)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_headers.py::Test_OTEL_EXPORTER_OTLP_METRICS_HEADERS: v2.23.0
@@ -2529,6 +2540,12 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_headers.py::Test_OTEL_EXPORTER_OTLP_TRACES_HEADERS: missing_feature
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_protocol.py::Test_OTEL_EXPORTER_OTLP_TRACES_PROTOCOL: missing_feature
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_timeout.py::Test_OTEL_EXPORTER_OTLP_TRACES_TIMEOUT: missing_feature
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL: v2.22.0
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_case_insensitive_values: missing_feature (Only the debug-mode mapping is implemented)
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_invalid_value_emits_warning: bug (APMAPI-2539)
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_otel_log_level_env: missing_feature (Only the debug-mode mapping is implemented)
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_stable_values: missing_feature (Only the debug-mode mapping is implemented)
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_warning_threshold_diagnostic: irrelevant (Uses the PHP SDK diagnostic probe)
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER: v2.34.0
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER::test_console: missing_feature (Only otlp and none exporters are implemented)
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER::test_deprecated_values: missing_feature (Only otlp and none exporters are implemented)
@@ -2549,6 +2566,14 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_metrics_exporter.py::Test_OTEL_METRICS_EXPORTER::test_development_values: missing_feature (Only otlp and none metrics exporters are implemented)
   tests/parametric/otel_env_vars/test_otel_metrics_exporter.py::Test_OTEL_METRICS_EXPORTER::test_none_case_insensitive: bug (APMAPI-2539)
   tests/parametric/otel_env_vars/test_otel_metrics_exporter.py::Test_OTEL_METRICS_EXPORTER::test_prometheus: missing_feature (Only otlp and none metrics exporters are implemented)
+  tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS: v2.22.0
+  tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS::test_baggage: missing_feature (OTEL_PROPAGATORS does not configure W3C baggage)
+  tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS::test_composite_propagators: missing_feature (OTEL_PROPAGATORS does not configure W3C baggage)
+  tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS::test_default_matches_specification: irrelevant (Datadog intentionally includes the Datadog propagator by default)
+  tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS::test_deprecated_values: missing_feature (Jaeger and OT Trace propagators are not implemented)
+  tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS::test_duplicate_propagators: bug (APMAPI-2583)
+  tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS::test_invalid_is_ignored: bug (APMAPI-2539)
+  tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS::test_xray: missing_feature (X-Ray propagation is not implemented)
   tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES: v2.22.0
   tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES::test_invalid_value_is_discarded: bug (APMAPI-2435)
   tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES::test_percent_encoded_separators: bug (APMAPI-2430)
@@ -2556,7 +2581,13 @@ manifest:
   :  # TODO: a lower version might be supported
     - declaration: missing_feature (deployment.environment.name is not supported)
       component_version: <2.44.0
-  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED: missing_feature
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED: '>=2.47.0'  # TODO: a lower version might be supported
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_datadog_configuration_takes_precedence: missing_feature
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_default_matches_specification: missing_feature
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_stable_false: missing_feature
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_true_disables_otel_traces: missing_feature
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_true_disables_tracing: missing_feature
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_true_overrides_otel_traces_exporter: missing_feature
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME: v2.22.0
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_default_follows_otel_spec: irrelevant
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_empty_is_treated_as_unset: bug (APMAPI-2413)
@@ -2623,6 +2654,8 @@ manifest:
       component_version: <=2.22.0
   tests/parametric/test_config_consistency.py::Test_Stable_Config_Rules: missing_feature
   tests/parametric/test_crashtracking.py::Test_Crashtracking: v2.3.0
+  tests/parametric/test_crashtracking.py::Test_Crashtracking::test_disable_crashtracking_error_tracking: '>=2.45.0'  # TODO: a lower version might be supported
+  tests/parametric/test_crashtracking.py::Test_Crashtracking::test_report_crash_error_tracking: missing_feature
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules: v2.0.0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_remote_sampling_rules_retention: v2.31.0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_trace_sampling_rules_override_env: v2.31.0
@@ -2664,8 +2697,9 @@ manifest:
       component_version: <2.40.0
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart: incomplete_test_app (The parametric test app does not emit restart span links or preserve baggage)
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart_With_Extract_First: incomplete_test_app (The parametric test app does not emit restart span links or preserve baggage)
-  tests/parametric/test_ffe/test_configuration_sources.py: missing_feature (FFL-2701 tracks Ruby agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
+  tests/parametric/test_ffe/test_configuration_sources.py: v2.46.0-dev
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v2.23.0
+  tests/parametric/test_ffe/test_serial_id_metadata.py: missing_feature
   tests/parametric/test_ffe/test_span_enrichment.py: missing_feature
   tests/parametric/test_headers_b3.py::Test_Headers_B3::test_headers_b3_extract_invalid:  # Easy win for all weblogs and version 2.27.0
     - declaration: missing_feature (Missing for 2.x)
@@ -2782,7 +2816,6 @@ manifest:
   tests/parametric/test_llm_observability/: irrelevant (library does not implement LLM Observability)
   tests/parametric/test_otel_api_interoperability.py: missing_feature
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: v2.1.0
-  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_log_level_env: missing_feature (DD_LOG_LEVEL is not supported in ruby)
   tests/parametric/test_otel_logs.py: '>=2.34.0-dev'
   tests/parametric/test_otel_logs.py::Test_FR03_Resource_Attributes::test_dd_env_vars_override_otel:  # TODO: a lower version might be supported
     - declaration: missing_feature (deployment.environment.name output is not supported)
@@ -3628,18 +3661,18 @@ manifest:
         uds-sinatra: missing_feature
   tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_spans_enqueued_for_serialization:  # Created by easy win activation script
     - weblog_declaration:
-        rails42: missing_feature
-        uds-rails: missing_feature
-        sinatra22: missing_feature
-        rails61: missing_feature
-        rails72: missing_feature
-        rails52: missing_feature
-        sinatra32: missing_feature
-        rack: missing_feature
-        sinatra41: missing_feature
-        sinatra14: missing_feature
-        rails80: missing_feature
-        uds-sinatra: missing_feature
+        rails42: v2.46.0  # TODO: a lower version might be supported
+        uds-rails: v2.46.0  # TODO: a lower version might be supported
+        sinatra22: v2.46.0  # TODO: a lower version might be supported
+        rails61: v2.46.0  # TODO: a lower version might be supported
+        rails72: v2.46.0  # TODO: a lower version might be supported
+        rails52: v2.46.0  # TODO: a lower version might be supported
+        sinatra32: v2.46.0  # TODO: a lower version might be supported
+        rack: v2.46.0  # TODO: a lower version might be supported
+        sinatra41: v2.46.0  # TODO: a lower version might be supported
+        sinatra14: v2.46.0  # TODO: a lower version might be supported
+        rails80: v2.46.0  # TODO: a lower version might be supported
+        uds-sinatra: v2.46.0  # TODO: a lower version might be supported
   tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_spans_finished:  # Created by easy win activation script
     - weblog_declaration:
         rails42: missing_feature
@@ -3656,32 +3689,32 @@ manifest:
         uds-sinatra: missing_feature
   tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_api_requests:  # Created by easy win activation script
     - weblog_declaration:
-        rails42: missing_feature
-        uds-rails: missing_feature
-        sinatra22: missing_feature
-        rails61: missing_feature
-        rails72: missing_feature
-        rails52: missing_feature
-        sinatra32: missing_feature
-        rack: missing_feature
-        sinatra41: missing_feature
-        sinatra14: missing_feature
-        rails80: missing_feature
-        uds-sinatra: missing_feature
+        rails42: v2.46.0  # TODO: a lower version might be supported
+        uds-rails: v2.46.0  # TODO: a lower version might be supported
+        sinatra22: v2.46.0  # TODO: a lower version might be supported
+        rails61: v2.46.0  # TODO: a lower version might be supported
+        rails72: v2.46.0  # TODO: a lower version might be supported
+        rails52: v2.46.0  # TODO: a lower version might be supported
+        sinatra32: v2.46.0  # TODO: a lower version might be supported
+        rack: v2.46.0  # TODO: a lower version might be supported
+        sinatra41: v2.46.0  # TODO: a lower version might be supported
+        sinatra14: v2.46.0  # TODO: a lower version might be supported
+        rails80: v2.46.0  # TODO: a lower version might be supported
+        uds-sinatra: v2.46.0  # TODO: a lower version might be supported
   tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_api_responses:  # Created by easy win activation script
     - weblog_declaration:
-        rails42: missing_feature
-        uds-rails: missing_feature
-        sinatra22: missing_feature
-        rails61: missing_feature
-        rails72: missing_feature
-        rails52: missing_feature
-        sinatra32: missing_feature
-        rack: missing_feature
-        sinatra41: missing_feature
-        sinatra14: missing_feature
-        rails80: missing_feature
-        uds-sinatra: missing_feature
+        rails42: v2.46.0  # TODO: a lower version might be supported
+        uds-rails: v2.46.0  # TODO: a lower version might be supported
+        sinatra22: v2.46.0  # TODO: a lower version might be supported
+        rails61: v2.46.0  # TODO: a lower version might be supported
+        rails72: v2.46.0  # TODO: a lower version might be supported
+        rails52: v2.46.0  # TODO: a lower version might be supported
+        sinatra32: v2.46.0  # TODO: a lower version might be supported
+        rack: v2.46.0  # TODO: a lower version might be supported
+        sinatra41: v2.46.0  # TODO: a lower version might be supported
+        sinatra14: v2.46.0  # TODO: a lower version might be supported
+        rails80: v2.46.0  # TODO: a lower version might be supported
+        uds-sinatra: v2.46.0  # TODO: a lower version might be supported
   tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_chunks_enqueued_for_serialization:  # Created by easy win activation script
     - weblog_declaration:
         rails42: missing_feature
@@ -3698,18 +3731,18 @@ manifest:
         uds-sinatra: missing_feature
   tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_chunks_sent:  # Created by easy win activation script
     - weblog_declaration:
-        rails42: missing_feature
-        uds-rails: missing_feature
-        sinatra22: missing_feature
-        rails61: missing_feature
-        rails72: missing_feature
-        rails52: missing_feature
-        sinatra32: missing_feature
-        rack: missing_feature
-        sinatra41: missing_feature
-        sinatra14: missing_feature
-        rails80: missing_feature
-        uds-sinatra: missing_feature
+        rails42: v2.46.0  # TODO: a lower version might be supported
+        uds-rails: v2.46.0  # TODO: a lower version might be supported
+        sinatra22: v2.46.0  # TODO: a lower version might be supported
+        rails61: v2.46.0  # TODO: a lower version might be supported
+        rails72: v2.46.0  # TODO: a lower version might be supported
+        rails52: v2.46.0  # TODO: a lower version might be supported
+        sinatra32: v2.46.0  # TODO: a lower version might be supported
+        rack: v2.46.0  # TODO: a lower version might be supported
+        sinatra41: v2.46.0  # TODO: a lower version might be supported
+        sinatra14: v2.46.0  # TODO: a lower version might be supported
+        rails80: v2.46.0  # TODO: a lower version might be supported
+        uds-sinatra: v2.46.0  # TODO: a lower version might be supported
   tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_segments_closed:  # Created by easy win activation script
     - weblog_declaration:
         rails42: missing_feature

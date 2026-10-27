@@ -17,7 +17,6 @@ from utils._context._scenarios.agentless_endtoend import (
     FeatureFlaggingAgentlessEndToEndScenario,
 )
 from utils.interfaces._core import ProxyBasedInterfaceValidator
-from utils.mocked_backend.ffe import EXPECTED_API_KEY
 
 
 EVP_DIRECT_HOST = "event-platform-intake.mock-intake.invalid"
@@ -95,7 +94,7 @@ def feature_flagging_evp_egress() -> FeatureFlaggingEVPEgress:
         interfaces.datadog_direct,
         "direct",
         (interfaces.datadog_sidecar,),
-        EXPECTED_API_KEY,
+        scenario.dd_api_key,
     )
 
 
@@ -241,9 +240,11 @@ def assert_direct_evp_runtime_evidence(evidence: dict[str, Any], *, library_name
         assert isinstance(name, str), f"Live container evidence has no name: {container}"
         assert name not in containers_by_name, f"Duplicate live container evidence for {name!r}"
         containers_by_name[name] = container
-    expected_names = {"system-tests-proxy", "system-tests-weblog"}
+    # the mocked backend serves the agentless configuration
+    expected_names = {"system-tests-mocked-backend", "system-tests-proxy", "system-tests-weblog"}
     assert set(containers_by_name) == expected_names, (
-        f"Direct EVP runtime network must contain only TLS proxy and weblog, got {sorted(containers_by_name)}"
+        "Direct EVP runtime network must contain only mocked backend, TLS proxy and weblog, "
+        f"got {sorted(containers_by_name)}"
     )
 
     network = evidence.get("network")
@@ -413,7 +414,7 @@ def assert_agentless_evp_topology(egress: FeatureFlaggingEVPEgress) -> None:
     assert environment["DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED"] == "true"
     assert environment["DD_SITE"] == "mock-intake.invalid"
     if not scenario.replay:
-        assert environment["DD_API_KEY"] == EXPECTED_API_KEY
+        assert environment["DD_API_KEY"] == scenario.dd_api_key
     if egress.route == "direct":
         assert_direct_evp_runtime_evidence(
             scenario.direct_evp_runtime_evidence(),

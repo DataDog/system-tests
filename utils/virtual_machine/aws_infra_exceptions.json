@@ -1,6 +1,7 @@
 {
     "IdempotentParameterMismatch": "creating EC2 Instance: IdempotentParameterMismatch",
     "InternalError": "last error: Server.InternalError: Internal error on launch",
+    "insufficient_instance_capacity": "creating EC2 Instance: InsufficientInstanceCapacity",
     "error_ssh_connection": "error: after 30 failed attempts:",
     "error_pulumi_plugin": "error: could not read plugin",
     "docker_build_error_ecr": "net/http: TLS handshake timeout",
@@ -22,6 +23,7 @@
     "docker_build_error_reading_from_server": "Unavailable desc = error reading from server: EOF",
     "docker_build_error_reading_from_server_2": "listing workers for Build: failed to list workers: Unavailable: error reading from server: EOF",
     "docker_build_error_reading_from_server_3": "ERROR: failed to solve: Unavailable: error reading from server: EOF",
+    "docker_daemon_socket": "dial unix /var/run/docker.sock: connect: no such file or directory",
     "java_buildpack_build_error": "java.io.IOException: Downloading from https://services.gradle.org/distributions/gradle-8.14.5-bin.zip failed: timeout",
     "java_buildpack_build_error_2": "BuildPack: Received an UnknownHostException when attempting to interact with a service.",
     "java_buildpack_build_error_3": "BuildPack: Execution failed for task ':bootBuildImage'.",
@@ -42,5 +44,6 @@
     "Failed_get_info_Microsoft.AspNetCore'":"Failed to retrieve information about 'Microsoft.AspNetCore'",
     "error_download_failed_with_curl_install_script":"Error: Download failed with curl",
     "error_response_from_docker_daemon":"dial tcp: lookup auth.docker.io: no such host",
-    "pulumi_command_short_write":"error: short write: running"
+    "pulumi_command_short_write":"error: short write: running",
+    "yum_cache_directory_missing": "OSError: [Errno 2] No such file or directory: '/var/cache/yum/"
 }

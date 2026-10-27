@@ -110,6 +110,7 @@ refs:
   - &ref_6_17_0 '>=6.17.0 || ^5.128.0'
   - &ref_6_20_0 '>=6.20.0 || ^5.131.0'
   - &ref_6_20_1 '>=6.20.1 || ^5.131.1'
+  - &ref_6_21_0 '>=6.21.0 || ^5.132.0'
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag:
     - weblog_declaration:
@@ -1679,7 +1680,10 @@ manifest:
   tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptAppsec: *ref_5_43_0
   tests/auto_inject/test_auto_inject_install.py::TestHostAutoInjectInstallScriptAppsec: *ref_5_43_0
   tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualAppsec: *ref_5_43_0
-  tests/cws/test_thread_context_sharing.py::Test_ThreadContextSharing: missing_feature (missing /security/thread_context_sharing endpoint on weblog)
+  tests/cws/test_thread_context_sharing.py::Test_ThreadContextSharing:
+    - weblog_declaration:
+        "*": irrelevant (requires AsyncContextFrame, Node.js 22.9+; covered on fastify)
+        fastify: missing_feature (thread context sharing not enabled for appsec yet)
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Line_Capture_Expressions:
     - weblog_declaration:
         "*": irrelevant
@@ -1789,6 +1793,7 @@ manifest:
         fastify: *ref_5_46_0
         uds-express4: *ref_5_46_0
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_log_line_capture_expression_budgets: '>=6.16.0 || ^5.127.0'
+  tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_per_trace_budget: *ref_6_21_0
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_span_probe_expression_budgets: missing_feature (Method probes are not supported by Node.js)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots:
     - weblog_declaration:
@@ -1847,6 +1852,11 @@ manifest:
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses::test_metric_line_status: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses::test_span_decoration_line_status: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Method_Probe_Statuses: missing_feature
+  tests/debugger/test_debugger_snapshot_correlation.py::Test_Debugger_Coordinated_Sampling: irrelevant (Method-probe variant is not used by Node.js)
+  tests/debugger/test_debugger_snapshot_correlation.py::Test_Debugger_Coordinated_Sampling_Line_Probe:
+    - weblog_declaration:
+        "*": *ref_6_21_0
+        nextjs: irrelevant
   tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb: missing_feature (feature not implented)
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry:
     - weblog_declaration:
@@ -1872,6 +1882,7 @@ manifest:
       weblog: [express5]
     - declaration: bug (FFL-2182)
       excluded_weblog: [express5]
+  tests/ffe/test_evaluation_telemetry_opt_out.py: missing_feature (Provisional per-subject evaluation telemetry opt-out coverage; enable after the SDK release)
   tests/ffe/test_exposure_egress.py:
     - weblog_declaration:
         "*": incomplete_test_app
@@ -2527,6 +2538,11 @@ manifest:
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_timeout.py::Test_OTEL_EXPORTER_OTLP_TRACES_TIMEOUT::test_invalid_value_is_ignored
   : - declaration: bug (APMAPI-2463)
       component_version: '>=6.0.0'
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL: v5.88.0
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_case_insensitive_debug_mapping: bug (APMAPI-2536)
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_default_matches_specification: irrelevant (Datadog intentionally defaults to debug with debug output disabled)
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_invalid_value_emits_warning: bug (APMAPI-2536)
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_warning_threshold_diagnostic: irrelevant (Uses the PHP SDK diagnostic probe)
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER: missing_feature (OTEL_LOGS_EXPORTER does not configure the logs pipeline)
   tests/parametric/otel_env_vars/test_otel_metric_export_interval.py::Test_OTEL_METRIC_EXPORT_INTERVAL: v5.83.0
   tests/parametric/otel_env_vars/test_otel_metric_export_interval.py::Test_OTEL_METRIC_EXPORT_INTERVAL::test_fractional_is_ignored: bug (APMAPI-2463)
@@ -2540,14 +2556,26 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_metrics_exporter.py::Test_OTEL_METRICS_EXPORTER::test_deprecated_values: missing_feature (Only otlp and none metrics exporters are implemented)
   tests/parametric/otel_env_vars/test_otel_metrics_exporter.py::Test_OTEL_METRICS_EXPORTER::test_development_values: missing_feature (Only otlp and none metrics exporters are implemented)
   tests/parametric/otel_env_vars/test_otel_metrics_exporter.py::Test_OTEL_METRICS_EXPORTER::test_prometheus: missing_feature (Only otlp and none metrics exporters are implemented)
+  tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS: v5.83.0
+  tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS::test_default_matches_specification: irrelevant (Datadog intentionally includes the Datadog propagator by default)
+  tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS::test_deprecated_values: missing_feature (Jaeger and OT Trace propagators are not implemented)
+  tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS::test_duplicate_propagators: bug (APMAPI-2581)
+  tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS::test_empty_is_treated_as_unset: bug (APMAPI-2475)
+  tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS::test_xray: missing_feature (X-Ray propagation is not implemented)
   tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES: v5.83.0
   tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES::test_invalid_value_is_discarded: bug (APMAPI-2434)
   tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES::test_percent_encoded_separators: bug (APMAPI-2427)
   ? tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES::test_reserved_attributes_are_mapped
   : *ref_5_125_0
   tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED: v5.83.0
-  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_datadog_configuration_takes_precedence: incomplete_test_app (config is not exposed)
-  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_default_matches_specification: bug (APMAPI-2418)
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_datadog_configuration_takes_precedence: missing_feature (OTEL_SDK_DISABLED is not mapped to DD_TRACE_ENABLED)
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_default_matches_specification: missing_feature (OTEL_SDK_DISABLED is not mapped to DD_TRACE_ENABLED)
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_stable_false: missing_feature (OTEL_SDK_DISABLED is not mapped to DD_TRACE_ENABLED)
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_true_disables_otel_logs: missing_feature (OTEL_SDK_DISABLED does not disable OTLP logs export)
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_true_disables_otel_metrics: missing_feature (OTEL_SDK_DISABLED does not disable OTLP metrics export)
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_true_disables_otel_traces: missing_feature (DD_TRACE_OTEL_ENABLED takes precedence over OTEL_SDK_DISABLED)
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_true_disables_tracing: missing_feature (OTEL_SDK_DISABLED is not mapped to DD_TRACE_ENABLED)
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_true_overrides_otel_traces_exporter: missing_feature (OTEL_SDK_DISABLED does not disable OTLP trace export)
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME: v5.88.0
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_default_follows_otel_spec: irrelevant
   tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER: v5.88.0
@@ -2610,6 +2638,8 @@ manifest:
       component_version: <=5.75.0
   tests/parametric/test_config_consistency.py::Test_Stable_Config_Rules: missing_feature
   tests/parametric/test_crashtracking.py::Test_Crashtracking: *ref_5_27_0
+  tests/parametric/test_crashtracking.py::Test_Crashtracking::test_disable_crashtracking_error_tracking: '>=6.21.0'  # TODO: a lower version might be supported
+  tests/parametric/test_crashtracking.py::Test_Crashtracking::test_report_crash_error_tracking: missing_feature
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules: *ref_5_16_0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_trace_sampling_rules_with_tags:
     - declaration: missing_feature
@@ -2646,6 +2676,7 @@ manifest:
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart_With_Extract_First::test_baggage: *ref_5_56_0
   tests/parametric/test_ffe/test_configuration_sources.py: *ref_6_8_0
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: *ref_5_75_0
+  tests/parametric/test_ffe/test_serial_id_metadata.py: v6.18.0
   tests/parametric/test_ffe/test_span_enrichment.py:  # TODO: a lower version might be supported
     - declaration: missing_feature (dd-trace-js#8343)
       component_version: <6.19.0
@@ -2725,6 +2756,8 @@ manifest:
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_distinct_aggregationkeys_TS003:  # TODO: a lower version might be supported
     - declaration: 'missing_feature (CSS v1.2.0: dd-trace-js aggregation key uses span name as Resource instead of the explicit resource field, so distinct-resource buckets collapse)'
       component_version: <6.8.0
+    - declaration: flaky (APMLP-2085)
+      component_version: '>=6.21.0'
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_metrics_msgpack_serialization_TS001:  # TODO: a lower version might be supported
     - declaration: 'missing_feature (CSS v1.2.0: dd-trace-js sets ClientGroupedStats.Resource to the span name instead of the explicit resource passed to startSpan)'
       component_version: <6.8.0
@@ -2746,14 +2779,18 @@ manifest:
   tests/parametric/test_otel_api_interoperability.py: missing_feature
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: v5.11.0  #implemented in v5.11.0, v4.35.0, &v3.56.0
   tests/parametric/test_otel_logs.py::Test_FR01_Enable_OTLP_Log_Collection: *ref_5_72_0
-  tests/parametric/test_otel_logs.py::Test_FR03_Resource_Attributes: missing_feature
+  tests/parametric/test_otel_logs.py::Test_FR03_Resource_Attributes: '>=6.21.0'  # TODO: a lower version might be supported
   tests/parametric/test_otel_logs.py::Test_FR04_Trace_Span_IDs: *ref_5_72_0
   tests/parametric/test_otel_logs.py::Test_FR05_Custom_Endpoints: *ref_5_72_0
   tests/parametric/test_otel_logs.py::Test_FR07_Host_Name: *ref_5_72_0
   tests/parametric/test_otel_logs.py::Test_FR07_Host_Name::test_hostname_from_dd_hostname: irrelevant (DD_HOSTNAME is only supported in Python)
   tests/parametric/test_otel_logs.py::Test_FR09_Log_Injection: *ref_5_72_0
-  tests/parametric/test_otel_logs.py::Test_FR09_Log_Injection::test_log_injection_when_otel_enabled: missing_feature (deployment.environment.name output is not supported)
-  tests/parametric/test_otel_logs.py::Test_FR09_Log_Injection::test_log_without_active_span: missing_feature (deployment.environment.name output is not supported)
+  tests/parametric/test_otel_logs.py::Test_FR09_Log_Injection::test_log_injection_when_otel_enabled:  # TODO: a lower version might be supported
+    - declaration: missing_feature (deployment.environment.name output is not supported)
+      component_version: <6.21.0
+  tests/parametric/test_otel_logs.py::Test_FR09_Log_Injection::test_log_without_active_span:  # TODO: a lower version might be supported
+    - declaration: missing_feature (deployment.environment.name output is not supported)
+      component_version: <6.21.0
   tests/parametric/test_otel_logs.py::Test_FR10_Timeout_Configuration: *ref_5_72_0
   tests/parametric/test_otel_logs.py::Test_FR11_Telemetry: *ref_5_72_0
   tests/parametric/test_otel_logs.py::Test_FR12_Log_Levels: *ref_5_72_0
@@ -2767,7 +2804,7 @@ manifest:
   ? tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint::test_otlp_metrics_custom_endpoint_grpc
   : missing_feature (Does not support grpc)
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Host_Name::test_hostname_from_dd_hostname: missing_feature (DD_HOSTNAME to host.name resource attribute mapping not yet implemented)
-  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Resource_Attributes: missing_feature
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Resource_Attributes: '>=6.21.0'  # TODO: a lower version might be supported
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_metrics_grpc: missing_feature (Does not support grpc)
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_add_event_meta_serialization:
     - declaration: missing_feature (Implemented in v5.17.0 & v4.41.0)
