@@ -39,6 +39,10 @@ To confirm the custom binary is actually running once a scenario has executed:
 instead, either with `dda inv agent.hacky-dev-image-build` from a Linux devcontainer, or by using
 the CI-built `datadog/agent-dev:<branch>` image from your datadog-agent PR.
 
+## cws-instrumentation
+
+The `THREAD_CONTEXT_SHARING_EBPFLESS` scenario runs the weblog under cws-instrumentation. Add a static linux binary as `binaries/cws-instrumentation`, or a file `cws-instrumentation-image` in `binaries/` naming the image to take it from (by default `datadog/cws-instrumentation:latest`). See [thread_context_sharing.md](../understand/scenarios/thread_context_sharing.md#ebpfless-thread_context_sharing_ebpfless).
+
 ## C++ library
 
 * Tracer:

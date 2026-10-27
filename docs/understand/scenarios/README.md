@@ -64,7 +64,7 @@ The `AI_GUARD` scenario tests the [AI Guard SDK](https://docs.datadoghq.com/secu
 
 ### Thread context sharing scenario
 
-The `THREAD_CONTEXT_SHARING` scenario runs the agent with CWS (Cloud Workload Security), and checks that security events triggered by the weblog carry the trace context of the active span. It needs the docker daemon to run on the instrumented kernel, with an opt-in for Kata docker-in-docker environments. See [thread_context_sharing.md](thread_context_sharing.md) for details.
+The `THREAD_CONTEXT_SHARING` scenario runs the agent with CWS (Cloud Workload Security), and checks that security events triggered by the weblog carry the trace context of the active span. It needs the docker daemon to run on the instrumented kernel, with an opt-in for Kata docker-in-docker environments. `THREAD_CONTEXT_SHARING_EBPFLESS` runs the same tests with the ebpfless (ptrace-based) CWS probe, which needs no privilege. See [thread_context_sharing.md](thread_context_sharing.md) for details.
 
 ### IPv6 scenario
 

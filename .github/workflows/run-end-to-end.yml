@@ -572,6 +572,9 @@ jobs:
     # - name: Run THREAD_CONTEXT_SHARING scenario
     #   if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"THREAD_CONTEXT_SHARING"')
     #   run: ./run.sh THREAD_CONTEXT_SHARING
+    # - name: Run THREAD_CONTEXT_SHARING_EBPFLESS scenario
+    #   if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"THREAD_CONTEXT_SHARING_EBPFLESS"')
+    #   run: ./run.sh THREAD_CONTEXT_SHARING_EBPFLESS
 
     - name: Run all scenarios in replay mode
       if: success() && steps.build.outcome == 'success' && inputs._enable_replay_scenarios

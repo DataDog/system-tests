@@ -9,6 +9,28 @@ It is an [end-to-end scenario](README.md) whose agent runs the CWS runtime secur
 ./run.sh THREAD_CONTEXT_SHARING
 ```
 
+## ebpfless: `THREAD_CONTEXT_SHARING_EBPFLESS`
+
+`THREAD_CONTEXT_SHARING_EBPFLESS` runs the same tests, on the same weblogs, with the ebpfless (ptrace-based) CWS probe instead of the eBPF one. The weblog runs under `cws-instrumentation trace --probe-addr=agent:5678 -- ./app.sh`: cws-instrumentation ptraces it, reads the span context of the thread doing each syscall, and sends it to system-probe with the event. system-probe listens on `0.0.0.0:5678` (`DD_RUNTIME_SECURITY_CONFIG_EBPFLESS_SOCKET`), and the agent container gets no extra privilege, so this scenario runs on any docker host.
+
+Startup is ordered: the weblog only starts once system-probe listens on port 5678 (cws-instrumentation exits otherwise), and the scenario then waits for the CWS self test (90 seconds at most), which in ebpfless mode passes on the weblog's own startup exec.
+
+The weblog gets cws-instrumentation as a read-only bind on `/opt/datadog/cws-instrumentation`, from the first of:
+
+1. `binaries/cws-instrumentation`: a static linux binary for the docker host's architecture, e.g. built from a datadog-agent branch with `dda inv cws-instrumentation.build --static`.
+2. the `/cws-instrumentation` binary of the image named in `binaries/cws-instrumentation-image`, like `datadog/cws-instrumentation-dev:my-branch`.
+3. the `/cws-instrumentation` binary of `datadog/cws-instrumentation:latest`.
+
+The agent image must be one whose ebpfless probe forwards the span context (see [binaries](../../execute/binaries.md#agent) for `binaries/agent-image`).
+
+```bash
+echo datadog/cws-instrumentation-dev:my-branch > binaries/cws-instrumentation-image
+./build.sh <library>
+./run.sh THREAD_CONTEXT_SHARING_EBPFLESS
+```
+
+Both scenarios run the same test class, so a library's manifest entries apply to both.
+
 ## Kata docker-in-docker: `/vm-host`
 
 The default setup needs the docker daemon to run on the machine whose kernel CWS instruments. That is not the case when system-tests runs in a docker-in-docker (DIND) service of a Kubernetes pod using a Kata VM runtime, as in some tracer CI pipelines: the docker daemon's "host" is itself a container of the VM, so `--pid=host` only gives the DIND PID namespace, and the VM's kernel filesystems are not available.

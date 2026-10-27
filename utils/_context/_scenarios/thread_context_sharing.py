@@ -1,4 +1,7 @@
+import io
 from pathlib import Path
+import shlex
+import tarfile
 
 from docker.errors import APIError
 from docker.models.networks import Network
@@ -6,6 +9,8 @@ from docker.types import Mount
 import pytest
 
 from utils import interfaces
+from utils._context.containers import ImageInfo
+from utils._context.docker import get_docker_client
 from utils._context.constants import WeblogCategory
 from utils._logger import logger
 
@@ -31,7 +36,55 @@ _GUEST_KERNEL_MOUNTS_HELP = (
 )
 
 
-class ThreadContextSharingScenario(EndToEndScenario):
+class _ThreadContextSharingBase(EndToEndScenario):
+    """What every thread-context sharing scenario shares, whatever the CWS probe flavor: the
+    weblogs, the runtime security config of the agent, and the custom policy. Subclasses give
+    the agent and the weblog what their probe needs.
+    """
+
+    def __init__(self, name: str, doc: str) -> None:
+        super().__init__(
+            name=name,
+            doc=doc,
+            weblog_categories=[WeblogCategory.dd_trace],
+            appsec_enabled=True,
+            iast_enabled=False,
+            scenario_groups=[scenario_groups.thread_context_sharing],
+        )
+
+    def configure(self, config: pytest.Config):
+        super().configure(config)
+
+        agent = self.agent_container
+
+        agent.environment["DD_RUNTIME_SECURITY_CONFIG_ENABLED"] = "true"
+
+        # span_tracking makes system-probe read the tracer's thread context; the self test is
+        # the readiness signal the tests wait on (see tests/cws/utils.py).
+        agent.environment["DD_RUNTIME_SECURITY_CONFIG_SPAN_TRACKING_ENABLED"] = "true"
+        agent.environment["DD_RUNTIME_SECURITY_CONFIG_SELF_TEST_ENABLED"] = "true"
+
+        agent.volumes["./utils/build/docker/agent/runtime-security.d"] = {
+            "bind": "/etc/datadog-agent/runtime-security.d",
+            "mode": "ro",
+        }
+
+    @staticmethod
+    def _wait_for_cws_self_test(help_message: str = "") -> None:
+        # Imported lazily, so that utils (which loads every scenario) does not depend on the
+        # tests package at import time; this is the same readiness predicate the tests use.
+        from tests.cws.utils import cws_self_test_succeeded  # noqa: PLC0415
+
+        if not interfaces.agent.wait_for(cws_self_test_succeeded, timeout=CWS_READINESS_TIMEOUT):
+            message = (
+                f"CWS did not report a successful self test within {CWS_READINESS_TIMEOUT}s; check the agent logs."
+            )
+            if help_message:
+                message += f" {help_message}"
+            raise RuntimeError(message)
+
+
+class ThreadContextSharingScenario(_ThreadContextSharingBase):
     """Exercises CWS (Cloud Workload Security) thread-context sharing: a tracer that
     implements it publishes the trace_id/span_id of the span active on a thread, so
     that system-probe's runtime security module can stamp them (as dd.trace_id /
@@ -60,10 +113,6 @@ class ThreadContextSharingScenario(EndToEndScenario):
                 "system-probe, so that CWS (Cloud Workload Security) security events triggered on "
                 "the same thread carry them as dd.trace_id/dd.span_id."
             ),
-            weblog_categories=[WeblogCategory.dd_trace],
-            appsec_enabled=True,
-            iast_enabled=False,
-            scenario_groups=[scenario_groups.thread_context_sharing],
         )
 
     def configure(self, config: pytest.Config):
@@ -73,18 +122,6 @@ class ThreadContextSharingScenario(EndToEndScenario):
         super().configure(config)
 
         agent = self.agent_container
-
-        agent.environment["DD_RUNTIME_SECURITY_CONFIG_ENABLED"] = "true"
-
-        # span_tracking makes system-probe read the tracer's thread context; the self test is
-        # the readiness signal the tests wait on (see tests/cws/utils.py).
-        agent.environment["DD_RUNTIME_SECURITY_CONFIG_SPAN_TRACKING_ENABLED"] = "true"
-        agent.environment["DD_RUNTIME_SECURITY_CONFIG_SELF_TEST_ENABLED"] = "true"
-
-        agent.volumes["./utils/build/docker/agent/runtime-security.d"] = {
-            "bind": "/etc/datadog-agent/runtime-security.d",
-            "mode": "ro",
-        }
 
         # Required for CWS to see host processes and load eBPF programs. Mirrors
         # datadog-agent's documented Docker setup for Cloud Workload Security:
@@ -178,16 +215,137 @@ class ThreadContextSharingScenario(EndToEndScenario):
             raise RuntimeError(message) from e
 
     def _agent_warmup_then_wait_for_cws(self) -> None:
-        # Imported lazily, so that utils (which loads every scenario) does not depend on the
-        # tests package at import time; this is the same readiness predicate the tests use.
-        from tests.cws.utils import cws_self_test_succeeded  # noqa: PLC0415
+        self._agent_warmup()
+        self._wait_for_cws_self_test(_GUEST_KERNEL_MOUNTS_HELP if self._guest_kernel_mounts else "")
 
+
+# Where the weblog finds cws-instrumentation, and where system-probe listens for it
+CWS_INSTRUMENTATION_PATH = "/opt/datadog/cws-instrumentation"
+EBPFLESS_PORT = 5678
+
+# A cws-instrumentation binary to use, else the image to take it from (by default, the released one)
+CWS_INSTRUMENTATION_BINARY = "binaries/cws-instrumentation"
+CWS_INSTRUMENTATION_IMAGE_FILE = "binaries/cws-instrumentation-image"
+CWS_INSTRUMENTATION_DEFAULT_IMAGE = "datadog/cws-instrumentation:latest"
+# the binary's path in the datadog/cws-instrumentation image
+_CWS_INSTRUMENTATION_IMAGE_PATH = "/cws-instrumentation"
+
+
+class ThreadContextSharingEbpflessScenario(_ThreadContextSharingBase):
+    """The THREAD_CONTEXT_SHARING checks, with the ebpfless (ptrace-based) CWS probe instead of
+    the eBPF one: the weblog runs under `cws-instrumentation trace`, which reads the span context
+    of the thread doing a syscall, and forwards it to system-probe with the event.
+
+    The agent needs no privilege, so this scenario runs on any docker host. The weblog gets
+    cws-instrumentation as a read-only bind: binaries/cws-instrumentation when it exists, else
+    the binary of the image named in binaries/cws-instrumentation-image (by default
+    datadog/cws-instrumentation:latest). See docs/understand/scenarios/thread_context_sharing.md.
+    """
+
+    def __init__(self) -> None:
+        super().__init__(
+            name="THREAD_CONTEXT_SHARING_EBPFLESS",
+            doc=(
+                "Check that tracers share the trace_id/span_id of the currently active span with "
+                "the ebpfless (ptrace-based) CWS probe, so that CWS security events triggered on "
+                "the same thread carry them as dd.trace_id/dd.span_id."
+            ),
+        )
+        self._cws_instrumentation_image: str | None = None
+
+    def configure(self, config: pytest.Config):
+        super().configure(config)
+
+        agent = self.agent_container
+        agent.environment["DD_RUNTIME_SECURITY_CONFIG_EBPFLESS_ENABLED"] = "true"
+        # the default, localhost:5678, is not reachable from the weblog container
+        agent.environment["DD_RUNTIME_SECURITY_CONFIG_EBPFLESS_SOCKET"] = f"0.0.0.0:{EBPFLESS_PORT}"
+
+        weblog = self.weblog_container
+        weblog.volumes[self._cws_instrumentation_source()] = {"bind": CWS_INSTRUMENTATION_PATH, "mode": "ro"}
+        # cws-instrumentation ptraces its own child, which needs no capability, unless the host
+        # restricts ptrace to CAP_SYS_PTRACE holders (Yama ptrace_scope 2)
+        weblog.enable_ptrace()
+        original_command = weblog.command
+        assert original_command is not None
+        weblog.command = [
+            CWS_INSTRUMENTATION_PATH,
+            "trace",
+            # No --async: it would drop the events sent before the connection is up, among them
+            # the weblog's startup exec that the self test needs. Without it, cws-instrumentation
+            # exits if system-probe does not listen yet, hence the agent warmup below.
+            f"--probe-addr=agent:{EBPFLESS_PORT}",
+            "--",
+            *(shlex.split(original_command) if isinstance(original_command, str) else original_command),
+        ]
+
+        # The agent healthcheck only covers the trace-agent, while the weblog, which depends on
+        # the agent, must only start once system-probe accepts cws-instrumentation's connection.
+        self._agent_warmup = agent.warmup
+        agent.warmup = self._agent_warmup_then_wait_for_ebpfless_listener  # type: ignore[method-assign]
+
+        # In ebpfless mode, the self test passes on the exec of a traced process, i.e. the
+        # weblog's own startup: it can only be waited for once the weblog runs.
+        self._weblog_warmup = weblog.warmup
+        weblog.warmup = self._weblog_warmup_then_wait_for_cws  # type: ignore[method-assign]
+
+    def _cws_instrumentation_source(self) -> str:
+        """The host path of the cws-instrumentation binary the weblog gets"""
+        if Path(CWS_INSTRUMENTATION_BINARY).is_file():
+            logger.stdout(f"Using {CWS_INSTRUMENTATION_BINARY}")
+            return f"./{CWS_INSTRUMENTATION_BINARY}"
+
+        image_file = Path(CWS_INSTRUMENTATION_IMAGE_FILE)
+        image = image_file.read_text().strip() if image_file.is_file() else CWS_INSTRUMENTATION_DEFAULT_IMAGE
+        logger.stdout(f"Using cws-instrumentation from the {image} image")
+        self._cws_instrumentation_image = image
+
+        # extracted by the first warmup, before any container starts
+        if not self.replay:
+            self.warmups.insert(0, self._extract_cws_instrumentation)
+
+        return f"./{self.host_log_folder}/cws-instrumentation"
+
+    def _extract_cws_instrumentation(self) -> None:
+        assert self._cws_instrumentation_image is not None
+        image = ImageInfo(self._cws_instrumentation_image, local_image_only=False)
+        image.load()
+
+        # the image is FROM scratch: create a container to copy the binary out, never start it
+        container = get_docker_client().containers.create(image.name, command=[_CWS_INSTRUMENTATION_IMAGE_PATH])
+        try:
+            archive, _ = container.get_archive(_CWS_INSTRUMENTATION_IMAGE_PATH)
+            data = b"".join(archive)
+        finally:
+            container.remove(force=True)
+
+        with tarfile.open(fileobj=io.BytesIO(data)) as tar:
+            binary = tar.extractfile(Path(_CWS_INSTRUMENTATION_IMAGE_PATH).name)
+            assert binary is not None, f"{_CWS_INSTRUMENTATION_IMAGE_PATH} is not a file in {image.name}"
+            destination = Path(self.host_log_folder) / "cws-instrumentation"
+            destination.write_bytes(binary.read())
+            destination.chmod(0o755)
+
+    def _agent_warmup_then_wait_for_ebpfless_listener(self) -> None:
         self._agent_warmup()
 
-        if not interfaces.agent.wait_for(cws_self_test_succeeded, timeout=CWS_READINESS_TIMEOUT):
-            message = (
-                f"CWS did not report a successful self test within {CWS_READINESS_TIMEOUT}s; check the agent logs."
+        # A LISTEN (0A) socket on EBPFLESS_PORT, as /proc/net/tcp* show it: unlike connecting to
+        # it, this does not make system-probe log a client disconnection. Go listens on 0.0.0.0
+        # with a dual-stack socket, which only /proc/net/tcp6 lists.
+        listening = f":{EBPFLESS_PORT:04X} [0-9A-F]+:0000 0A "
+        exit_code, output = self.agent_container.execute_command(
+            test=f"grep -qE '{listening}' /proc/net/tcp /proc/net/tcp6",
+            retries=CWS_READINESS_TIMEOUT,
+        )
+        if exit_code != 0:
+            raise RuntimeError(
+                f"system-probe did not listen on 0.0.0.0:{EBPFLESS_PORT} for the ebpfless CWS probe within "
+                f"{CWS_READINESS_TIMEOUT}s; check the agent logs. {output}"
             )
-            if self._guest_kernel_mounts:
-                message += f" {_GUEST_KERNEL_MOUNTS_HELP}"
-            raise RuntimeError(message)
+
+    def _weblog_warmup_then_wait_for_cws(self) -> None:
+        self._weblog_warmup()
+        self._wait_for_cws_self_test(
+            "In ebpfless mode, it passes on the weblog's startup exec, as traced by cws-instrumentation: "
+            "check the weblog logs too."
+        )

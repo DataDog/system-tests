@@ -12,6 +12,7 @@ from .utils import CWS_EVENTS_PATH, cws_event_mentioning, cws_self_test_succeede
 
 @features.thread_context_sharing
 @scenarios.thread_context_sharing
+@scenarios.thread_context_sharing_ebpfless
 class Test_ThreadContextSharing:
     """A tracer that shares the trace_id/span_id of the span active on a thread with system-probe
     lets CWS (Cloud Workload Security) correlate a security event with the request that triggered it.

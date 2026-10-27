@@ -52,6 +52,7 @@ fastify:
     - IAST_DEDUPLICATION
     - IAST_STANDALONE
     - THREAD_CONTEXT_SHARING
+    - THREAD_CONTEXT_SHARING_EBPFLESS
 nextjs:
   build_mode: local
   supported_scenarios:

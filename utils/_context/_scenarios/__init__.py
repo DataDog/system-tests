@@ -208,6 +208,7 @@ from .telemetry import (
     TelemetryMetricGenerationDisabled,
 )
 from .thread_context_sharing import (
+    ThreadContextSharingEbpflessScenario,
     ThreadContextSharingScenario,
 )
 from .trace_stats import (
@@ -347,6 +348,7 @@ class _Scenarios:
     debugger_exception_replay = DebuggerExceptionReplay()
     debugger_symdb = DebuggerSymdb()
     thread_context_sharing = ThreadContextSharingScenario()
+    thread_context_sharing_ebpfless = ThreadContextSharingEbpflessScenario()
     debugger_inproduct_enablement = DebuggerInproductEnablement()
     debugger_telemetry = DebuggerTelemetry()
     fuzzer = Fuzzer()
