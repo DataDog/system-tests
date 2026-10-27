@@ -92,6 +92,70 @@
           "doLog": true
         }
       ]
+    },
+    "serial-id-second-split-flag": {
+      "key": "serial-id-second-split-flag",
+      "enabled": true,
+      "variationType": "STRING",
+      "variations": {
+        "control": { "key": "control", "value": "control" },
+        "treatment": { "key": "treatment", "value": "treatment" }
+      },
+      "allocations": [
+        {
+          "key": "two-splits-allocation",
+          "rules": [],
+          "splits": [
+            {
+              "variationKey": "control",
+              "shards": [
+                { "salt": "serial-id-splits", "totalShards": 10000, "ranges": [] }
+              ],
+              "serialId": 301
+            },
+            {
+              "variationKey": "treatment",
+              "shards": [
+                { "salt": "serial-id-splits", "totalShards": 10000, "ranges": [{ "start": 0, "end": 10000 }] }
+              ],
+              "serialId": 302
+            }
+          ],
+          "doLog": true
+        }
+      ]
+    },
+    "serial-id-shared-variant-flag": {
+      "key": "serial-id-shared-variant-flag",
+      "enabled": true,
+      "variationType": "STRING",
+      "variations": {
+        "shared": { "key": "shared", "value": "shared" }
+      },
+      "allocations": [
+        {
+          "key": "vip-allocation",
+          "rules": [
+            {
+              "conditions": [
+                { "attribute": "segment", "operator": "ONE_OF", "value": ["vip"] }
+              ]
+            }
+          ],
+          "splits": [
+            { "variationKey": "shared", "shards": [], "serialId": 401 }
+          ],
+          "doLog": true
+        },
+        {
+          "key": "default-allocation",
+          "rules": [],
+          "splits": [
+            { "variationKey": "shared", "shards": [], "serialId": 402 }
+          ],
+          "doLog": true
+        }
+      ]
     }
   }
 }
