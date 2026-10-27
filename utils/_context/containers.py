@@ -1851,7 +1851,6 @@ class InternalServerContainer(TestedContainer):
             command="uvicorn app:app --host 0.0.0.0 --port 8089",
             volumes={
                 "./utils/build/docker/internal_server/app.py": {"bind": "/app/app.py", "mode": "ro"},
-                "./utils/build/docker/internal_server/app.sh": {"bind": "/app/app.sh", "mode": "ro"},
             },
         )
 
