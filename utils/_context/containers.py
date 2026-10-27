@@ -813,6 +813,8 @@ class MockedBackendContainer(TestedContainer):
             image_name="datadog/system-tests:proxy-v1",
             # a valid hostname: some HTTP clients reject an underscore
             name="mocked-backend",
+            # Docker rejects aliases on the default bridge network, used on GitLab (see _NETWORK_NAME). If a tls
+            # scenario runs there, map tls_hostnames to this container with extra_hosts on the senders instead
             network_aliases=list(self.tls_hostnames) if tls else None,
             working_dir="/app",
             volumes={
