@@ -4,6 +4,7 @@ from datetime import UTC, datetime, timedelta
 import gzip
 import signal
 import socket
+import threading
 import ssl
 import json
 from collections.abc import Generator
@@ -336,6 +337,28 @@ def test_https_mode_releases_the_port_if_the_certificate_cannot_be_loaded(tmp_pa
     # the port is free again, even while the error (holding the half-built server) is still referenced
     assert error.traceback
     MockedBackendServer(str(tmp_path), port=port).close()
+
+
+@scenarios.test_the_test
+def test_https_mode_is_not_blocked_by_an_idle_connection(tmp_path: Path):
+    server = MockedBackendServer(str(tmp_path), port=0, tls_cert_file=_TLS_CERT_FILE)
+    closed = threading.Event()
+
+    def close() -> None:
+        server.close()
+        closed.set()
+
+    try:
+        # connects, and never starts the TLS handshake
+        with socket.create_connection(("127.0.0.1", server.port), timeout=5):
+            status_line = _https_post(server.port, _INTAKE_HOSTNAME, "/api/v2/exposures", b"{}")
+            threading.Thread(target=close, daemon=True).start()
+            assert closed.wait(timeout=10), "close() hangs while a connection is idle"
+    finally:
+        if not closed.is_set():
+            server.close()
+
+    assert status_line == "HTTP/1.0 200 OK"
 
 
 @scenarios.test_the_test

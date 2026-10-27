@@ -54,7 +54,8 @@ class MockedBackendServer(MockedBackendServerFfeMixin, MockedBackendServerCore):
             try:
                 context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
                 context.load_cert_chain(tls_cert_file)
-                self.socket = context.wrap_socket(self.socket, server_side=True)
+                # the handshake runs in each request thread, not in the accepting one: an idle client blocks nothing
+                self.socket = context.wrap_socket(self.socket, server_side=True, do_handshake_on_connect=False)
             except Exception:
                 # the caller never gets a server to close: release the port now
                 self.server_close()
