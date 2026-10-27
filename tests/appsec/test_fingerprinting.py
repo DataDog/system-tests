@@ -196,6 +196,7 @@ class Test_Fingerprinting_Session_Preprocessor:
 
     def test_session_non_blocking(self):
         assert self.r_create_session.status_code == 200
+        assert self.cookies, "The session endpoint did not return a cookie"
         assert self.r_user.status_code == 200
         r_user_span_meta = get_span_meta(self.r_user)
         assert all("_dd.appsec.fp.session" in m for m in r_user_span_meta)

@@ -53,7 +53,7 @@ public class Handler implements RequestHandler<Object, Object> {
     private static final String TRACK_CUSTOM_APPSEC_EVENT_NAME = "system_tests_appsec_event";
     private static final String TRACK_USER = "system_tests_user";
 
-    private enum ResponseType { API_GATEWAY_REST, API_GATEWAY_HTTP, ALB_MULTI }
+    private enum ResponseType { API_GATEWAY_REST, API_GATEWAY_HTTP, ALB, ALB_MULTI }
 
     /**
      * Request context containing response type and request data
@@ -154,7 +154,7 @@ public class Handler implements RequestHandler<Object, Object> {
             }
         }
         RequestContext ctx = new RequestContext(
-                multiValue ? ResponseType.ALB_MULTI : ResponseType.API_GATEWAY_REST,
+                multiValue ? ResponseType.ALB_MULTI : ResponseType.ALB,
                 event.getPath(),
                 event.getHttpMethod(),
                 queryParams,
@@ -679,6 +679,10 @@ public class Handler implements RequestHandler<Object, Object> {
                 List<String> setCookieValues = cookies.entrySet().stream()
                         .map(e -> e.getKey() + "=" + e.getValue() + "; Path=/; HttpOnly")
                         .collect(Collectors.toList());
+                if (ctx.responseType == ResponseType.ALB) {
+                    headers.put("Set-Cookie", setCookieValues.get(0));
+                    return createResponse(ctx, body, statusCode, headers);
+                }
                 multiValueHeaders.put("Set-Cookie", setCookieValues);
                 if (ctx.responseType == ResponseType.ALB_MULTI) {
                     headers.forEach((name, value) -> multiValueHeaders.put(name, Collections.singletonList(value)));
