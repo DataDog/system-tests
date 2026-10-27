@@ -2701,6 +2701,14 @@ class _Features:
         return _mark_test_object(test_object, feature_id=561, owner=_Owner.ffe)
 
     @staticmethod
+    def feature_flags_portable_configuration(test_object):
+        """Offline initialization and portable configuration helpers
+
+        https://feature-parity.us1.prod.dog/#/?feature=562
+        """
+        return _mark_test_object(test_object, feature_id=562, owner=_Owner.ffe)
+
+    @staticmethod
     def feature_flags_exposures(test_object):
         """Feature Flags & Experimentation (FFE)
 
