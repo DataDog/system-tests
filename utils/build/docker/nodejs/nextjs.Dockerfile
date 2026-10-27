@@ -5,6 +5,7 @@ EXPOSE 7777
 # Refresh the application route and dependencies baked into the base image.
 COPY utils/build/docker/nodejs/nextjs/package.json utils/build/docker/nodejs/nextjs/bun.lock ./
 COPY utils/build/docker/nodejs/nextjs/src/app/ffe ./src/app/ffe
+COPY utils/build/docker/nodejs/nextjs/src/app/security ./src/app/security
 RUN rm -rf node_modules \
  && bun install --frozen-lockfile --network-concurrency 8 --linker=hoisted
 

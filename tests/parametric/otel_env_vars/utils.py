@@ -1,3 +1,4 @@
+import re
 from typing import Any, Final
 
 from utils import pytest
@@ -5,7 +6,6 @@ from utils import pytest
 from utils import context
 
 from tests.parametric.conftest import APMLibrary
-from utils.docker_fixtures import TestAgentAPI
 from utils.docker_fixtures.parametric import LogLevel
 
 
@@ -21,35 +21,60 @@ BLRP_LIBRARY_ENV: Final = {
     "OTEL_BLRP_MAX_EXPORT_BATCH_SIZE": None,
 }
 
-JAVA_TELEMETRY_NAMES: Final = {
-    "OTEL_BLRP_SCHEDULE_DELAY": "DD_LOGS_OTEL_INTERVAL",
-    "OTEL_BLRP_EXPORT_TIMEOUT": "DD_LOGS_OTEL_TIMEOUT",
-    "OTEL_BLRP_MAX_QUEUE_SIZE": "DD_LOGS_OTEL_QUEUE_SIZE",
-    "OTEL_BLRP_MAX_EXPORT_BATCH_SIZE": "DD_LOGS_OTEL_BATCH_SIZE",
+# Telemetry reports configured values, including rejected ones. These keys
+# expose the values the logs batch processor actually uses.
+BLRP_EFFECTIVE_CONFIG_KEYS: Final = {
+    "OTEL_BLRP_SCHEDULE_DELAY": "otel_blrp_schedule_delay_ms",
+    "OTEL_BLRP_EXPORT_TIMEOUT": "otel_blrp_export_timeout_ms",
+    "OTEL_BLRP_MAX_QUEUE_SIZE": "otel_blrp_max_queue_size",
+    "OTEL_BLRP_MAX_EXPORT_BATCH_SIZE": "otel_blrp_max_export_batch_size",
 }
 
 TEST_LOGGER_NAME: Final = "blrp_configuration"
 TEST_LOG_MESSAGE: Final = "blrp_configuration"
 
 
-def assert_blrp_configuration(
-    test_agent: TestAgentAPI,
-    test_library: APMLibrary,
-    variable_name: str,
-    expected_value: int,
-) -> None:
+def has_warning_for_value(language: str, logs: str, value: str) -> bool:
+    for raw_line in logs.splitlines():
+        line = re.sub(r"\x1b\[[0-9;]*m", "", raw_line).strip()
+        if value not in line:
+            continue
+        json_start = re.search(r'[\[{]\s*"', line)
+        levels = r"WARN(?:ING)?|WRN|DEBUG|DBG|INFO|INF|ERROR|ERR|TRACE|TRC|FATAL|CRITICAL"
+        level = re.search(
+            rf"(?<![\w.])(?:{levels})(?=[\s:\]])|(?<=\[)(?i:{levels})(?=\])|^(?i:{levels})(?=[:\s])",
+            line,
+        )
+        if level is not None:
+            # Ignore levels inside JSON echoes. Real warning messages may contain JSON.
+            if json_start is not None and json_start.start() < level.start():
+                continue
+            # The first level wins, so an INFO/DEBUG echo of a warning cannot pass.
+            if level.group().lower() in {"warn", "warning", "wrn"} and value in line[level.end() :]:
+                return True
+        elif (
+            language in {"nodejs", "python"}
+            and json_start is None
+            and re.search(
+                r"\b(?:invalid|unknown|unsupported|not supported|not registered|warning)\b", line, re.IGNORECASE
+            )
+        ):
+            # These SDKs can print warnings without a level prefix. Require a
+            # diagnostic containing the test value without fixing its wording.
+            return True
+    return False
+
+
+def assert_blrp_configuration(test_library: APMLibrary, variable_name: str, expected_value: int) -> None:
     with test_library as library:
         library.create_logger(TEST_LOGGER_NAME, LogLevel.INFO)
         library.write_log(TEST_LOGGER_NAME, LogLevel.INFO, TEST_LOG_MESSAGE)
+        config = library.config()
 
-    configuration_name = variable_name
-    if test_library.lang == "java":
-        configuration_name = JAVA_TELEMETRY_NAMES.get(variable_name, variable_name)
-
-    configurations = test_agent.wait_for_telemetry_configurations()
-    entries = configurations.get(configuration_name)
-    assert entries, f"No telemetry configuration '{configuration_name}'"
-    assert int(entries[0]["value"]) == expected_value
+    key = BLRP_EFFECTIVE_CONFIG_KEYS[variable_name]
+    value = config[key]
+    assert value is not None, f"No effective BLRP configuration '{key}'"
+    assert int(value) == expected_value
 
 
 def non_default_protocol(signal: str) -> str:

@@ -9,6 +9,7 @@ from typing import cast
 from tests.ffe.utils.evp import (
     assert_agentless_evp_intake_request,
     assert_agentless_evp_topology,
+    assert_evp_sdk_identity,
     feature_flagging_evp_egress,
     register_expected_evp_capture,
 )
@@ -163,6 +164,7 @@ def assert_batch_context(batch: JSON) -> None:
 
 def assert_event_contract(event: JSON, flag_key: str) -> None:
     assert_no_reason_field(event)
+    assert "source" not in event, "SDK identity belongs in EVP headers, not event-level source"
     assert "targeting_rule" not in event, "targeting_rule must be omitted without real rule metadata"
 
     flag = event.get("flag")
@@ -320,6 +322,26 @@ class FlagevaluationEgressContract:
 @features.feature_flags_evp_flagevaluation
 class Test_FFE_EVP_Flagevaluation_Egress_Datadog_Agent(FlagevaluationEgressContract):
     pass
+
+
+@scenarios.feature_flagging_and_experimentation
+@features.feature_flags_evp_flagevaluation
+class Test_FFE_EVP_Flagevaluation_SDK_Identity(FlagevaluationEgressContract):
+    # Agent 7.84+ forwards producer headers; the Agent manifest gates this case.
+    # Library manifests separately gate SDK support. The Agent egress test retains
+    # payload coverage on older Agents wherever enabled by the library manifest.
+    flag_key = "evp-sdk-identity-flag"
+
+    def test_ffe_evp_flagevaluation_egress(self) -> None:
+        super().test_ffe_evp_flagevaluation_egress()
+        # interfaces.agent captures Agent-to-intake traffic, after forwarding.
+        for data in interfaces.agent.get_data(path_filters=EVP_FLAGEVALUATIONS_PATH):
+            if evp_flagevaluation_events_from_data(cast("JSON", data), self.flag_key, self.targeting_key):
+                assert_evp_sdk_identity(
+                    cast("JSON", data),
+                    library_name=context.library.name,
+                    library_version=context.library.raw_version,
+                )
 
 
 @scenario_crash
@@ -589,10 +611,13 @@ class Test_FFE_EVP_Flagevaluation_Degradation:
     def setup_ffe_evp_flagevaluation_degradation(self) -> None:
         config_id = "ffe-evp-degradation"
         self.flag_key = "evp-degradation-flag"
-        self.eval_count = EVP_FULL_TIER_PER_FLAG_CAP + EVP_DEGRADATION_OVERFLOW_EVALS
+        # The cap resets on each periodic flush. Cover two windows so a flush during
+        # the request still leaves at least one window over the cap.
+        self.eval_count = 2 * (EVP_FULL_TIER_PER_FLAG_CAP + EVP_DEGRADATION_OVERFLOW_EVALS)
         rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key)).apply()
 
-        targeting_keys = [f"evp-degradation-user-{index}" for index in range(self.eval_count)]
+        # Keep unique keys short so the batch fits weblog request body limits.
+        targeting_keys = [str(index) for index in range(self.eval_count)]
         self.responses = [
             evaluate_flag(
                 self.flag_key,

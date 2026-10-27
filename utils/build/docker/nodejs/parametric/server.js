@@ -585,6 +585,28 @@ app.post("/trace/otel/otel_set_baggage", (req, res) => {
 });
 
 // Feature Flag & Experimentation endpoints
+app.post('/ffe/fetch-rules-configuration', (req, res) => {
+  const { execFile } = require('node:child_process')
+  const path = require('node:path')
+  const env = { ...process.env }
+  // The helper must work without the parent server's tracer or preload hooks.
+  delete env.NODE_OPTIONS
+  execFile(process.execPath, [path.join(__dirname, 'ffe-rules-configuration.js'), JSON.stringify(req.body)], {
+    env,
+    timeout: 10000
+  }, (error, stdout, stderr) => {
+    if (error) {
+      console.error('Standalone FFE helper failed:', stderr || error)
+      return res.status(500).json({ error: 'Standalone FFE helper failed' })
+    }
+    try {
+      res.json(JSON.parse(stdout))
+    } catch (error) {
+      res.status(500).json({ error: 'Invalid standalone FFE helper output' })
+    }
+  })
+})
+
 app.post('/ffe/start', async (req, res) => {
   const hasFeatureFlaggingConfiguration = [
     'DD_FEATURE_FLAGS_ENABLED',
@@ -609,7 +631,7 @@ app.post('/ffe/start', async (req, res) => {
 
 app.post('/ffe/evaluate', async (req, res) => {
   const { flag, variationType, defaultValue, targetingKey, attributes, span_id } = req.body;
-  let value, reason;
+  let details;
   const context = { targetingKey, ...attributes }
 
   // Helper function to perform the actual flag evaluation
@@ -617,28 +639,25 @@ app.post('/ffe/evaluate', async (req, res) => {
     try {
       switch (variationType) {
         case 'BOOLEAN':
-          value = await openFeatureClient.getBooleanValue(flag, defaultValue, context)
+          details = await openFeatureClient.getBooleanDetails(flag, defaultValue, context)
           break;
         case 'STRING':
-          value = await openFeatureClient.getStringValue(flag, defaultValue, context)
+          details = await openFeatureClient.getStringDetails(flag, defaultValue, context)
           break;
         case 'INTEGER':
-          value = await openFeatureClient.getNumberValue(flag, defaultValue, context)
+          details = await openFeatureClient.getNumberDetails(flag, defaultValue, context)
           break;
         case 'NUMERIC':
-          value = await openFeatureClient.getNumberValue(flag, defaultValue, context)
+          details = await openFeatureClient.getNumberDetails(flag, defaultValue, context)
           break;
         case 'JSON':
-          value = await openFeatureClient.getObjectValue(flag, defaultValue, context)
+          details = await openFeatureClient.getObjectDetails(flag, defaultValue, context)
           break;
         default:
-          value = defaultValue;
+          details = { value: defaultValue, reason: 'DEFAULT' };
       }
-
-      reason = 'DEFAULT';
     } catch (error) {
-      value = defaultValue;
-      reason = 'ERROR';
+      details = { value: defaultValue, reason: 'ERROR' };
     }
   }
 
@@ -651,8 +670,9 @@ app.post('/ffe/evaluate', async (req, res) => {
   }
 
   res.json({
-    value: value,
-    reason: reason
+    value: details.value,
+    reason: details.reason,
+    flagMetadata: details.flagMetadata ?? null
   });
 });
 

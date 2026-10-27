@@ -1,7 +1,7 @@
 {% macro docker_auth() %}
     - section_start "docker_auth" "Docker hub auth"
-    - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
-    - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
+    - export DOCKER_LOGIN=$(vault kv get -field=username "kv/k8s/gitlab-runner/${CI_PROJECT_NAME}/system-tests/docker-login-write")
+    - export DOCKER_LOGIN_PASS=$(vault kv get -field=password "kv/k8s/gitlab-runner/${CI_PROJECT_NAME}/system-tests/docker-login-write")
     - |
       for i in 1 2 3; do
         echo "$DOCKER_LOGIN_PASS" | docker login --username "$DOCKER_LOGIN" --password-stdin && break
@@ -130,6 +130,12 @@ system_tests_run_{{library}}_{{scenario}}_{{variant}}:
     - .system_tests_base
 {% if push_to_test_optimization %}
     - .push_to_test_optimization
+{% endif %}
+{% if scenario == "THREAD_CONTEXT_SHARING" %}
+  # CWS needs the Kata VM's kernel filesystems, which this runner pool mounts under /vm-host
+  # (see docs/understand/scenarios/thread_context_sharing.md)
+  tags:
+    - docker-in-docker:amd64-cws
 {% endif %}
   id_tokens:
     DD_STS_OIDC_TOKEN:

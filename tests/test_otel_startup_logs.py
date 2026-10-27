@@ -1,7 +1,7 @@
 """Required OTel fields in the tracer's startup configuration JSON.
 
 Required keys are checked even when their settings are left at their defaults.
-Every environment variable explicitly set by the scenario also has a value test.
+Every required key explicitly set by the scenario also has a value test.
 Signal-specific OTLP settings belong to their signal's presence test; shared OTLP
 settings have their own test. Key order and existing startup fields are unconstrained.
 """
@@ -11,6 +11,54 @@ from pathlib import Path
 import re
 
 from utils import context, features, interfaces, pytest, scenarios
+from utils._context._scenarios.otel_semantics import OTEL_STARTUP_LOGS_ENV
+
+_TRACES_KEYS = (
+    "DD_TRACE_OTEL_ENABLED",
+    "OTEL_TRACES_SAMPLER",
+    "OTEL_TRACES_SAMPLER_ARG",
+    "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT",
+    "OTEL_EXPORTER_OTLP_TRACES_PROTOCOL",
+    "OTEL_EXPORTER_OTLP_TRACES_HEADERS",
+)
+_LOGS_KEYS = (
+    "DD_LOGS_OTEL_ENABLED",
+    "OTEL_LOGS_EXPORTER",
+    "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT",
+    "OTEL_EXPORTER_OTLP_LOGS_PROTOCOL",
+    "OTEL_EXPORTER_OTLP_LOGS_HEADERS",
+)
+_LOGS_BLRP_KEYS = (
+    "OTEL_BLRP_SCHEDULE_DELAY",
+    "OTEL_BLRP_EXPORT_TIMEOUT",
+    "OTEL_BLRP_MAX_QUEUE_SIZE",
+    "OTEL_BLRP_MAX_EXPORT_BATCH_SIZE",
+)
+_METRICS_KEYS = (
+    "DD_METRICS_OTEL_ENABLED",
+    "OTEL_METRIC_EXPORT_INTERVAL",
+    "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT",
+    "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL",
+    "OTEL_EXPORTER_OTLP_METRICS_HEADERS",
+    "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
+)
+_OTLP_EXPORTER_KEYS = (
+    "OTEL_EXPORTER_OTLP_ENDPOINT",
+    "OTEL_EXPORTER_OTLP_PROTOCOL",
+    "OTEL_EXPORTER_OTLP_HEADERS",
+)
+_STANDALONE_KEYS = (
+    "OTEL_ENABLED",
+    "OTEL_LOG_LEVEL",
+    "OTEL_SERVICE_NAME",
+    "OTEL_RESOURCE_ATTRIBUTES",
+    "OTEL_PROPAGATORS",
+)
+_REQUIRED_KEYS = frozenset(
+    (*_TRACES_KEYS, *_LOGS_KEYS, *_LOGS_BLRP_KEYS, *_METRICS_KEYS, *_OTLP_EXPORTER_KEYS, *_STANDALONE_KEYS)
+)
+# OTEL_TRACES_SAMPLER_ARG only applies to these samplers.
+_RATIO_SAMPLERS = frozenset(("traceidratio", "parentbased_traceidratio"))
 
 
 def _get_startup_configurations() -> list[dict[str, object]]:
@@ -39,11 +87,15 @@ def _get_startup_configurations() -> list[dict[str, object]]:
     return configurations
 
 
+def _assert_configuration_keys(index: int, configuration: dict[str, object], keys: set[str]) -> None:
+    missing = keys - configuration.keys()
+    assert not missing, f"Startup configuration #{index + 1} is missing keys: {', '.join(sorted(missing))}"
+
+
 def _assert_keys(*keys: str) -> None:
     # Do not combine keys across startup records from different workers/processes.
     for index, configuration in enumerate(_get_startup_configurations()):
-        missing = set(keys) - configuration.keys()
-        assert not missing, f"Startup configuration #{index + 1} is missing keys: {', '.join(sorted(missing))}"
+        _assert_configuration_keys(index, configuration, set(keys))
 
 
 @scenarios.otel_startup_logs
@@ -51,7 +103,12 @@ def _assert_keys(*keys: str) -> None:
 class Test_OTEL_Startup_Logs:
     @pytest.mark.parametrize(
         ("config_name", "expected"),
-        [pytest.param(name, value, id=name) for name, value in scenarios.OTEL_STARTUP_LOGS_ENV.items()],
+        [
+            pytest.param(name, value, id=name)
+            for name, value in OTEL_STARTUP_LOGS_ENV.items()
+            # The scenario also sets unrelated settings; only required startup keys are checked.
+            if name in _REQUIRED_KEYS
+        ],
     )
     def test_configured_value(self, config_name: str, expected: str) -> None:
         accepted_values = [expected]
@@ -70,48 +127,23 @@ class Test_OTEL_Startup_Logs:
             )
 
     def test_traces(self) -> None:
-        _assert_keys(
-            "DD_TRACE_OTEL_ENABLED",
-            "OTEL_TRACES_SAMPLER",
-            "OTEL_TRACES_SAMPLER_ARG",
-            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT",
-            "OTEL_EXPORTER_OTLP_TRACES_PROTOCOL",
-            "OTEL_EXPORTER_OTLP_TRACES_HEADERS",
-        )
+        for index, configuration in enumerate(_get_startup_configurations()):
+            keys = set(_TRACES_KEYS)
+            if configuration.get("OTEL_TRACES_SAMPLER") not in _RATIO_SAMPLERS:
+                keys.discard("OTEL_TRACES_SAMPLER_ARG")
+            _assert_configuration_keys(index, configuration, keys)
 
     def test_logs(self) -> None:
-        _assert_keys(
-            "DD_LOGS_OTEL_ENABLED",
-            "OTEL_LOGS_EXPORTER",
-            "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT",
-            "OTEL_EXPORTER_OTLP_LOGS_PROTOCOL",
-            "OTEL_EXPORTER_OTLP_LOGS_HEADERS",
-        )
+        _assert_keys(*_LOGS_KEYS)
 
     def test_logs_blrp(self) -> None:
-        _assert_keys(
-            "OTEL_BLRP_SCHEDULE_DELAY",
-            "OTEL_BLRP_EXPORT_TIMEOUT",
-            "OTEL_BLRP_MAX_QUEUE_SIZE",
-            "OTEL_BLRP_MAX_EXPORT_BATCH_SIZE",
-        )
+        _assert_keys(*_LOGS_BLRP_KEYS)
 
     def test_metrics(self) -> None:
-        _assert_keys(
-            "DD_METRICS_OTEL_ENABLED",
-            "OTEL_METRIC_EXPORT_INTERVAL",
-            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT",
-            "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL",
-            "OTEL_EXPORTER_OTLP_METRICS_HEADERS",
-            "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE",
-        )
+        _assert_keys(*_METRICS_KEYS)
 
     def test_otlp_exporter(self) -> None:
-        _assert_keys(
-            "OTEL_EXPORTER_OTLP_ENDPOINT",
-            "OTEL_EXPORTER_OTLP_PROTOCOL",
-            "OTEL_EXPORTER_OTLP_HEADERS",
-        )
+        _assert_keys(*_OTLP_EXPORTER_KEYS)
 
     def test_otel_enabled(self) -> None:
         _assert_keys("OTEL_ENABLED")

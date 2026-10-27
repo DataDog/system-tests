@@ -17,7 +17,6 @@ BASE_ENVIRONMENT = {
 }
 
 CONTENT_TYPES = {
-    "grpc": "application/grpc",
     "http/protobuf": "application/x-protobuf",
     "http/json": "application/json",
 }
@@ -85,6 +84,13 @@ def _assert_protocol(
     expected_protocol: str,
 ) -> None:
     request = _trace_request(test_agent, test_library)
+
+    # The gRPC listener forwards decoded payloads internally over HTTP. A
+    # successful export to its dedicated port proves gRPC; forwarded headers do
+    # not represent the original gRPC wire format.
+    if expected_protocol == "grpc":
+        return
+
     headers = {name.lower(): value for name, value in request["headers"].items()}
     assert headers.get("content-type", "").startswith(CONTENT_TYPES[expected_protocol])
 

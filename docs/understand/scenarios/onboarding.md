@@ -5,6 +5,7 @@
      - [Virtual Machine](#Virtual-Machine)
      - [Provision](#Provision)
      - [Provider](#Provider)
+     - [AMI cache](#ami-cache)
 2. [Run the tests](#Run-the-tests)
    * [Prerequisites](#Prerequisites)
 
@@ -67,23 +68,25 @@ The following picture ilustrates how the system-tests providers can handle the s
 
 You can create your own VirtualMachine scenario, extending or using the common implementation `_VirtualMachineScenario`. A "Virtual Machine Scenario" is always associated with a provision. By default, it's going to use the provision that install the agent + docker + SSI software (injector + tracer), but you can also refer to your own provision.
 
-In the following code (*utils/_context/_scenarios/__init__.py*) you can see the declaration of two new scenarios: a scenario that uses the default provision and a scenario that uses a custom provision:
+In the following code (*utils/_context/_scenarios/auto_injection.py*) you can see the declaration of a scenario that uses the default provision, with custom environment variables (profiling activation):
 
 ```Python
-   #Use the default provision, but with a custom environment variables (profiling activation)
-   simple_auto_injection_profiling = InstallerAutoInjectionScenario(
-        "SIMPLE_AUTO_INJECTION_PROFILING",
-        "Onboarding Single Step Instrumentation scenario with profiling activated by the app env var",
-        app_env={
-            "DD_PROFILING_ENABLED": "auto",
-            "DD_PROFILING_UPLOAD_PERIOD": "10",
-            "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
-        },
-        scenario_groups=[scenario_groups.onboarding],
-        github_workflow="aws_ssi",
-    )
-
+class SimpleAutoInjectionProfiling(_InstallerAutoInjectionScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "SIMPLE_AUTO_INJECTION_PROFILING",
+            "Onboarding Single Step Instrumentation scenario with profiling activated by the app env var",
+            app_env={
+                "DD_PROFILING_ENABLED": "auto",
+                "DD_PROFILING_UPLOAD_PERIOD": "10",
+                "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
+            },
+            scenario_groups=[scenario_groups.onboarding],
+            github_workflow="aws_ssi",
+        )
 ```
+
+It is then instantiated, without any argument, in the `_Scenarios` class of `utils/_context/_scenarios/__init__.py`: `simple_auto_injection_profiling = SimpleAutoInjectionProfiling()`.
 
 ### Virtual Machine
 
@@ -320,6 +323,34 @@ We currently support two providers:
 
 We can find the available providers in the folder: `utils/virtual_machine.`
 The common interface that implemets all the existing providers is: `utils/virtual_machine/virtual_machine_provider.py`.
+
+### AMI cache
+
+AWS SSI saves the cacheable provision steps in an AMI. The cache key is the VM name, the provision name, the weblog id, and a hash of those steps. A change to a cacheable step creates a new key. AMIs for the old key stay in the account.
+
+A new AMI has tags `CI=system-tests` and `ami-state=candidate`. The job boots that AMI and runs the tests there.
+
+* A passing test or an expected failure (`xfailed`) sets `ami-state` to `active`.
+* A failed test sets `ami-state` to `rejected`.
+* A provision failure, a run with no tests, or a run containing only skipped tests leaves `ami-state` as `candidate`.
+
+The next job chooses an AMI in this order:
+
+1. The `active` AMI for that key with the latest creation time.
+2. An AMI with no `ami-state` tag.
+3. The job does not boot a `candidate` or a `rejected` AMI.
+
+A `candidate` created less than six hours ago blocks a second build. The job does not boot it and does not create another AMI. After six hours, the next job creates a new AMI.
+
+`AMI_UPDATE=true` creates a new AMI even when a usable AMI already exists.
+
+`SKIP_AMI_CACHE=true` installs the machine from scratch. The job does not create or reuse a cache AMI. The local wizard sets this variable.
+
+The scheduled job `delete_amis` reads only AMIs tagged `CI=system-tests`. It also deletes the AMI snapshot.
+
+* A `rejected` AMI is removed on that run.
+* An `active` or `candidate` AMI follows `AMI_RETENTION_DAYS` and `AMI_LAST_LAUNCHED_DAYS`. It matches when its age passes the retention value. It also matches when its last launch passes the launch value. The first match sets the tag `ami-retire-at`. A later run removes the AMI after one more day. A launch before that run removes the tag. A failed launch lookup keeps the AMI.
+* An AMI with no `ami-state` tag follows the same two variables. The job removes it on the first match.
 
 # Run the AWS SSI tests
 
@@ -602,14 +633,16 @@ The relationship between weblogs and virtual machines (`weblogs_spec`) is set as
 
 ## Create a new provision
 
-If you want to create a new machine provision, first you need to define a new scenario and associate it with a new provision. For example (`utils/_context/_scenarios/__init__.py`):
+If you want to create a new machine provision, first you need to define a new scenario and associate it with a new provision. For example (`utils/_context/_scenarios/auto_injection.py`, then `my_custom_scenario = MyCustomScenario()` in the `_Scenarios` class of `utils/_context/_scenarios/__init__.py`):
 
 ```python
-    my_custom_scenario= InstallerAutoInjectionScenario(
-        "MY_CUSTOM_SCENARIO",
-        "A very simple example",
-        vm_provision="my_provision"
-    )
+class MyCustomScenario(_InstallerAutoInjectionScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "MY_CUSTOM_SCENARIO",
+            "A very simple example",
+            vm_provision="my_provision",
+        )
 ```
 
 We should define the provision. Let's create a folder named: `utils/build/virtual_machine/provisions/my_provision` and add the file `provision.yml`:
@@ -1086,15 +1119,15 @@ If this kind of problem occurs, it could affect multiple components:
 **Quick Solution:**
 
 1. **Temporarily exclude the VM.** Open `utils/virtual_machine/virtual_machines.json` and set `"disabled": true` for the problematic virtual machine.
-2. **Or delete the cached AMI** if the VM itself is fine but the snapshot is broken (see below). The next test run recreates it automatically.
+2. **Or delete the cached AMI** when the VM is fine and the snapshot is broken. See [Cached AMI is incorrect](#cached-ami-is-incorrect).
 
 ### Cached AMI is incorrect
 
-Cacheable provision steps (Docker, language runtime, …) are baked into an AMI. If that snapshot is wrong, every later run of the same VM + weblog reuses it.
+Cacheable provision steps are stored in an AMI. Later runs reuse the newest `active` AMI for that key. If no `active` AMI exists, they reuse an AMI with no `ami-state` tag. See [AMI cache](#ami-cache).
 
-**Typical symptom:** Docker daemon failed during AMI creation. Tests fail with errors such as *Cannot connect to the Docker daemon* or *docker daemon does not exist*.
+**Typical symptom:** Docker failed while the AMI was created. Tests fail with *Cannot connect to the Docker daemon* or *docker daemon does not exist*.
 
-**Find the AMI name** in the GitLab job stdout or in `tests.log` (near the start of the run):
+**Find the AMI name** in the GitLab job stdout or in `tests.log`, near the start of the run:
 
 ```
 14:14:56.472 STDOUT   We found an existing AMI  name:[CentOS_7_amd64_container-auto-inject-install-script_test-app-php-container-83_83cba9f5a8ae3b342e10f0a48ee1d6d5-3f871b1], ID:[ami-0b27aa90064f6603e], status:[available], expiration:[], created:[2026-08-18T09:56:10.000Z]
@@ -1102,21 +1135,24 @@ Cacheable provision steps (Docker, language runtime, …) are baked into an AMI.
 
 **Delete the AMI:**
 
-* **GitLab job `delete_amis_by_name_or_lang`** — targeted cleanup. Run a pipeline on [system-tests GitLab](https://gitlab.ddbuild.io/DataDog/system-tests/-/pipelines/new) with:
+* **GitLab job `delete_amis_by_name_or_lang`.** This job deletes one AMI by name. Run a pipeline on [system-tests GitLab](https://gitlab.ddbuild.io/DataDog/system-tests/-/pipelines/new) with:
   * `SCHEDULED_JOB=delete_amis_by_name_or_lang`
-  * `AMI_NAME` and/or `AMI_LANG` (at least one is required)
+  * `AMI_NAME` or `AMI_LANG`, or both
 
-  Matching rules (only AMIs tagged `CI=system-tests`):
-  * Both set → the AMI name must contain **both** substrings.
-  * One set → any AMI whose name contains that substring is deleted.
+  The job reads only AMIs tagged `CI=system-tests`.
 
-  Use a precise value (VM name + weblog, or the unique hash from the log) so you do not delete unrelated AMIs.
+  * Both values set: the AMI name must contain both strings.
+  * One value set: the AMI name must contain that string.
+
+  Use a precise value, such as the VM name plus the weblog, or the hash from the log. A broad value deletes other AMIs.
 
   Example: `AMI_NAME=CentOS_7_amd64` and `AMI_LANG=php`
 
-* **GitLab job `delete_amis`** — scheduled periodic cleanup of old AMIs (retention: 10 days / last launched: 10 days). It does **not** target a specific AMI.
+* **GitLab job `delete_amis`.** See [AMI cache](#ami-cache).
 
-* **AWS console** — EC2 → AMIs → search by name → **Deregister**.
+* **AWS console.** Open EC2, then AMIs. Search by name and choose Deregister.
+
+The next run creates a new AMI when that key has no `active` AMI and no AMI without `ami-state`. The tests run on the new AMI. A passing run sets `ami-state` to `active`.
 
 ---
 

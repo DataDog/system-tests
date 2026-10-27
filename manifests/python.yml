@@ -7,6 +7,9 @@ manifest:
   tests/:  # Easy win for tornado and version 4.3.1
     - weblog_declaration:
         tornado: v4.4.0-rc2
+  tests/ai_guard:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag:  # TODO: a lower version might be supported
     - declaration: missing_feature (APPSEC-62216)
       component_version: <4.9.0
@@ -125,6 +128,12 @@ manifest:
       weblog: [flask-poc, uds-flask, uwsgi-poc]
     - declaration: missing_feature (APPSEC-61898)
       excluded_weblog: [flask-poc, uds-flask, uwsgi-poc]
+  tests/apm_tracing_e2e:
+    - weblog_declaration:
+        aiohttp: v4.16.0  # TODO: a lower version might be supported
+  tests/apm_tracing_e2e/test_otel.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span: missing_feature (missing /e2e_otel_span endpoint on weblog)
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span::test_distributed_otel_trace: irrelevant (Golang specific test with OTel Go contrib package)
   tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags: v4.1.0
@@ -139,6 +148,7 @@ manifest:
         django-poc: '>=4.12.2'
         python3.12: '>=4.12.2'
         uwsgi-poc: '>=4.12.2'
+        aiohttp: v4.16.0  # TODO: a lower version might be supported
   tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_telemetry_process_tags_svc:  # TODO: a lower version might be supported
     - weblog_declaration:
         '*': missing_feature
@@ -150,6 +160,7 @@ manifest:
         django-poc: '>=4.12.2'
         python3.12: '>=4.12.2'
         uwsgi-poc: '>=4.12.2'
+        aiohttp: v4.16.0  # TODO: a lower version might be supported
   tests/apm_tracing_e2e/test_process_tags.py::Test_Process_Tags::test_tracing_process_tags_svc:  # TODO: a lower version might be supported
     - weblog_declaration:
         '*': missing_feature
@@ -161,20 +172,51 @@ manifest:
         django-poc: '>=4.12.2'
         python3.12: '>=4.12.2'
         uwsgi-poc: '>=4.12.2'
+        aiohttp: v4.16.0  # TODO: a lower version might be supported
+  tests/apm_tracing_e2e/test_single_span.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/apm_tracing_e2e/test_single_span.py::Test_SingleSpan: missing_feature (missing /e2e_otel_span endpoint on weblog)
+  tests/appsec:
+    - weblog_declaration:
+        aiohttp: v4.16.0  # TODO: a lower version might be supported
+  tests/appsec/api_security/test_api_security_rc.py:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
   tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_processors: v2.6.0
   tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_scanners: v2.6.0
+  tests/appsec/api_security/test_apisec_sampling.py:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Different_Endpoints: v2.6.0
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Different_Paths: v2.6.0
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Different_Status: v2.6.0
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_Rate: irrelevant (new api security sampling algorithm implemented)
   tests/appsec/api_security/test_apisec_sampling.py::Test_API_Security_Sampling_With_Delay: v2.6.0
-  tests/appsec/api_security/test_apisecurity_telemetry.py: v4.3.0-dev0
+  tests/appsec/api_security/test_apisecurity_telemetry.py:
+    - weblog_declaration:
+        '*': '>=4.3.0-dev0'
+        aiohttp: v4.17.0-rc1
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Capabilities: v3.17.0
-  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Multiple_Scanners: v3.17.0
-  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Negative: v3.17.0
-  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Processor_Override: v3.17.0
-  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Scanner: v3.17.0
+  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Multiple_Scanners:
+    - weblog_declaration:
+        '*': '>=3.17.0'
+        aiohttp: v4.17.0-rc1
+  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Negative:
+    - weblog_declaration:
+        '*': '>=3.17.0'
+        aiohttp: v4.17.0-rc1
+  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Processor_Override:
+    - weblog_declaration:
+        '*': '>=3.17.0'
+        aiohttp: v4.17.0-rc1
+  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Scanner:
+    - weblog_declaration:
+        '*': '>=3.17.0'
+        aiohttp: v4.17.0-rc1
+  tests/appsec/api_security/test_endpoint_discovery.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery:
     - weblog_declaration:
         "*": v3.13.0.dev
@@ -192,7 +234,13 @@ manifest:
         "*": irrelevant
         fastapi: v3.13.0.dev
   tests/appsec/api_security/test_endpoint_discovery.py::Test_Endpoint_Discovery::test_optional_type: irrelevant
-  tests/appsec/api_security/test_endpoint_fallback.py: irrelevant (python weblogs always have http.route)
+  tests/appsec/api_security/test_endpoint_fallback.py:
+    - declaration: irrelevant (python weblogs always have http.route)
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/appsec/api_security/test_endpoints.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/api_security/test_endpoints.py::Test_LLM_Endpoint::test_openai_async_chat_completions_create:
     - weblog_declaration:
         "*": irrelevant (openai instrumentation is framework-independent, only tested on flask-poc)
@@ -223,6 +271,9 @@ manifest:
     - weblog_declaration:
         "*": irrelevant (openai instrumentation is framework-independent, only tested on flask-poc)
         flask-poc: v4.12.0rc1
+  tests/appsec/api_security/test_schemas.py:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
   tests/appsec/api_security/test_schemas.py::Test_Scanners:
     - weblog_declaration:
         "*": v2.4.0
@@ -263,8 +314,14 @@ manifest:
         "*": v2.1.0
         fastapi: v2.5.0
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_on_Block: v3.10.0.dev
-  tests/appsec/api_security/test_schemas_auth.py: v4.14.0-rc1
+  tests/appsec/api_security/test_schemas_auth.py:
+    - weblog_declaration:
+        '*': '>=4.14.0-rc1'
+        aiohttp: v4.17.0-rc1
   tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders: v4.11.0-rc1
+  tests/appsec/api_security_testing/test_normalized_route.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute:
     - weblog_declaration:
         "*": missing_feature
@@ -295,12 +352,16 @@ manifest:
   tests/appsec/iast/sink/test_code_injection.py:
     - weblog_declaration:
         tornado: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection: v2.20.0
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_ExtendedLocation: v3.1.0.dev
   tests/appsec/iast/sink/test_code_injection.py::TestCodeInjection_StackTrace: v3.9.0.dev
   tests/appsec/iast/sink/test_command_injection.py:
     - weblog_declaration:
         tornado: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/iast/sink/test_command_injection.py::TestCommandInjection:
     - weblog_declaration:
         "*": v2.10.0
@@ -311,18 +372,24 @@ manifest:
   tests/appsec/iast/sink/test_email_html_injection.py:
     - weblog_declaration:
         tornado: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/iast/sink/test_email_html_injection.py::TestEmailHtmlInjection: missing_feature
   tests/appsec/iast/sink/test_email_html_injection.py::TestEmailHtmlInjection_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_email_html_injection.py::TestEmailHtmlInjection_StackTrace: missing_feature
   tests/appsec/iast/sink/test_hardcoded_passwords.py:
     - weblog_declaration:
         tornado: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/iast/sink/test_hardcoded_passwords.py::Test_HardcodedPasswords: missing_feature
   tests/appsec/iast/sink/test_hardcoded_passwords.py::Test_HardcodedPasswords_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_hardcoded_passwords.py::Test_HardcodedPasswords_StackTrace: missing_feature
   tests/appsec/iast/sink/test_hardcoded_secrets.py:
     - weblog_declaration:
         tornado: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/iast/sink/test_hardcoded_secrets.py::Test_HardcodedSecrets: missing_feature
   tests/appsec/iast/sink/test_hardcoded_secrets.py::Test_HardcodedSecretsExtended: missing_feature
   tests/appsec/iast/sink/test_hardcoded_secrets.py::Test_HardcodedSecrets_ExtendedLocation: missing_feature
@@ -330,6 +397,8 @@ manifest:
   tests/appsec/iast/sink/test_header_injection.py:
     - weblog_declaration:
         tornado: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/iast/sink/test_header_injection.py::TestHeaderInjection:
     - weblog_declaration:
         "*": irrelevant (was v2.10.0.dev but algorithm was updated will be updated)
@@ -349,12 +418,16 @@ manifest:
   tests/appsec/iast/sink/test_hsts_missing_header.py:
     - weblog_declaration:
         tornado: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/iast/sink/test_hsts_missing_header.py::Test_HstsMissingHeader: missing_feature
   tests/appsec/iast/sink/test_hsts_missing_header.py::Test_HstsMissingHeader_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_hsts_missing_header.py::Test_HstsMissingHeader_StackTrace: missing_feature
   tests/appsec/iast/sink/test_insecure_auth_protocol.py:
     - weblog_declaration:
         tornado: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/iast/sink/test_insecure_auth_protocol.py::Test_InsecureAuthProtocol: missing_feature
   tests/appsec/iast/sink/test_insecure_auth_protocol.py::Test_InsecureAuthProtocol_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_insecure_auth_protocol.py::Test_InsecureAuthProtocol_StackTrace: missing_feature
@@ -365,34 +438,50 @@ manifest:
   tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookie::test_insecure:
     - weblog_declaration:
         tornado: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookie::test_secure:
     - weblog_declaration:
         tornado: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookie::test_telemetry_metric_executed_sink:
     - weblog_declaration:
         tornado: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookie::test_telemetry_metric_instrumented_sink:
     - weblog_declaration:
         '*': '>=3.1.0'
     - weblog_declaration:
         tornado: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookieNameFilter:
     - declaration: missing_feature
     - weblog_declaration:
         tornado: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookie_ExtendedLocation:
     - weblog_declaration:
         '*': '>=3.1.0-dev'
     - weblog_declaration:
         tornado: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/iast/sink/test_insecure_cookie.py::TestInsecureCookie_StackTrace:
     - weblog_declaration:
         '*': '>=3.9.0-dev'
     - weblog_declaration:
         tornado: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/iast/sink/test_ldap_injection.py:
     - weblog_declaration:
         tornado: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/iast/sink/test_ldap_injection.py::TestLDAPInjection: missing_feature
   tests/appsec/iast/sink/test_ldap_injection.py::TestLDAPInjection_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_ldap_injection.py::TestLDAPInjection_StackTrace: missing_feature
@@ -403,31 +492,45 @@ manifest:
   tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookie::test_insecure:
     - weblog_declaration:
         tornado: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookie::test_secure:
     - weblog_declaration:
         tornado: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookie::test_telemetry_metric_executed_sink:
     - weblog_declaration:
         tornado: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookie::test_telemetry_metric_instrumented_sink:
     - weblog_declaration:
         '*': '>=3.1.0'
     - weblog_declaration:
         tornado: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookieNameFilter:
     - declaration: missing_feature
     - weblog_declaration:
         tornado: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookie_ExtendedLocation:
     - weblog_declaration:
         '*': '>=3.1.0-dev'
     - weblog_declaration:
         tornado: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/iast/sink/test_no_httponly_cookie.py::TestNoHttponlyCookie_StackTrace:
     - weblog_declaration:
         '*': '>=3.9.0-dev'
     - weblog_declaration:
         tornado: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie:
     - weblog_declaration:
         "*": v1.19.0
@@ -435,40 +538,58 @@ manifest:
   tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie::test_insecure:
     - weblog_declaration:
         tornado: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie::test_secure:
     - weblog_declaration:
         tornado: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie::test_telemetry_metric_executed_sink:
     - weblog_declaration:
         tornado: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie::test_telemetry_metric_instrumented_sink:
     - weblog_declaration:
         '*': '>=3.1.0'
     - weblog_declaration:
         tornado: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookieNameFilter:
     - declaration: missing_feature
     - weblog_declaration:
         tornado: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie_ExtendedLocation:
     - weblog_declaration:
         '*': '>=3.1.0-dev'
     - weblog_declaration:
         tornado: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/iast/sink/test_no_samesite_cookie.py::TestNoSamesiteCookie_StackTrace:
     - weblog_declaration:
         '*': '>=3.9.0-dev'
     - weblog_declaration:
         tornado: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/iast/sink/test_nosql_mongodb_injection.py:
     - weblog_declaration:
         tornado: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/iast/sink/test_nosql_mongodb_injection.py::TestNoSqlMongodbInjection: missing_feature
   tests/appsec/iast/sink/test_nosql_mongodb_injection.py::TestNoSqlMongodbInjection_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_nosql_mongodb_injection.py::TestNoSqlMongodbInjection_StackTrace: missing_feature
   tests/appsec/iast/sink/test_path_traversal.py:
     - weblog_declaration:
         tornado: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/iast/sink/test_path_traversal.py::TestPathTraversal:
     - weblog_declaration:
         "*": v2.10.0
@@ -478,12 +599,16 @@ manifest:
   tests/appsec/iast/sink/test_reflection_injection.py:
     - weblog_declaration:
         tornado: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/iast/sink/test_reflection_injection.py::TestReflectionInjection: missing_feature
   tests/appsec/iast/sink/test_reflection_injection.py::TestReflectionInjection_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_reflection_injection.py::TestReflectionInjection_StackTrace: missing_feature
   tests/appsec/iast/sink/test_sql_injection.py:
     - weblog_declaration:
         tornado: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/iast/sink/test_sql_injection.py::TestSqlInjection:
     - weblog_declaration:
         '*': v1.18.0
@@ -496,6 +621,8 @@ manifest:
   tests/appsec/iast/sink/test_ssrf.py:
     - weblog_declaration:
         tornado: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/iast/sink/test_ssrf.py::TestSSRF: v2.10.0
   tests/appsec/iast/sink/test_ssrf.py::TestSSRF::test_secure:
     - weblog_declaration:
@@ -505,28 +632,38 @@ manifest:
   tests/appsec/iast/sink/test_stacktrace_leak.py:
     - weblog_declaration:
         tornado: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/iast/sink/test_stacktrace_leak.py::TestStackTraceLeak: v3.1.0.dev
   tests/appsec/iast/sink/test_stacktrace_leak.py::TestStackTraceLeak::test_telemetry_metric_instrumented_sink: missing_feature
   tests/appsec/iast/sink/test_template_injection.py:
     - weblog_declaration:
         tornado: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/iast/sink/test_template_injection.py::TestTemplateInjection: missing_feature
   tests/appsec/iast/sink/test_template_injection.py::TestTemplateInjection_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_trust_boundary_violation.py:
     - weblog_declaration:
         tornado: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/iast/sink/test_trust_boundary_violation.py::Test_TrustBoundaryViolation: missing_feature
   tests/appsec/iast/sink/test_trust_boundary_violation.py::Test_TrustBoundaryViolation_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_trust_boundary_violation.py::Test_TrustBoundaryViolation_StackTrace: missing_feature
   tests/appsec/iast/sink/test_untrusted_deserialization.py:
     - weblog_declaration:
         tornado: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/iast/sink/test_untrusted_deserialization.py::TestUntrustedDeserialization: missing_feature
   tests/appsec/iast/sink/test_untrusted_deserialization.py::TestUntrustedDeserialization_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_untrusted_deserialization.py::TestUntrustedDeserialization_StackTrace: missing_feature
   tests/appsec/iast/sink/test_unvalidated_redirect.py:
     - weblog_declaration:
         tornado: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/iast/sink/test_unvalidated_redirect.py::TestUnvalidatedHeader:  # Easy win for django-poc, django-py3.13, fastapi, flask-poc, python3.12, uds-flask, uwsgi-poc and version 4.15.3
     - weblog_declaration:
         "*": v4.16.0-rc1 (implemented in v3.9.0.dev, previously flaky due to APPSEC-57817 and APPSEC-61861)
@@ -555,15 +692,23 @@ manifest:
   tests/appsec/iast/sink/test_unvalidated_redirect_forward.py:
     - weblog_declaration:
         tornado: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/iast/sink/test_unvalidated_redirect_forward.py::TestUnvalidatedForward: missing_feature
   tests/appsec/iast/sink/test_unvalidated_redirect_forward.py::TestUnvalidatedForward_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_unvalidated_redirect_forward.py::TestUnvalidatedForward_StackTrace: missing_feature
+  tests/appsec/iast/sink/test_weak_cipher.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/iast/sink/test_weak_cipher.py::TestWeakCipher:
     - weblog_declaration:
         "*": v1.18.0
         fastapi: v2.15.0
   tests/appsec/iast/sink/test_weak_cipher.py::TestWeakCipher_ExtendedLocation: v3.1.0.dev
   tests/appsec/iast/sink/test_weak_cipher.py::TestWeakCipher_StackTrace: v3.9.0.dev
+  tests/appsec/iast/sink/test_weak_hash.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/iast/sink/test_weak_hash.py::TestDeduplication:
     - weblog_declaration:
         "*": v1.18.0
@@ -575,6 +720,8 @@ manifest:
   tests/appsec/iast/sink/test_weak_randomness.py:
     - weblog_declaration:
         tornado: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/iast/sink/test_weak_randomness.py::TestWeakRandomness:
     - weblog_declaration:
         "*": v2.0.0
@@ -583,18 +730,24 @@ manifest:
   tests/appsec/iast/sink/test_xcontent_sniffing.py:
     - weblog_declaration:
         tornado: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/iast/sink/test_xcontent_sniffing.py::Test_XContentSniffing: missing_feature
   tests/appsec/iast/sink/test_xcontent_sniffing.py::Test_XContentSniffing_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_xcontent_sniffing.py::Test_XContentSniffing_StackTrace: missing_feature
   tests/appsec/iast/sink/test_xpath_injection.py:
     - weblog_declaration:
         tornado: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/iast/sink/test_xpath_injection.py::TestXPathInjection: missing_feature
   tests/appsec/iast/sink/test_xpath_injection.py::TestXPathInjection_ExtendedLocation: missing_feature
   tests/appsec/iast/sink/test_xpath_injection.py::TestXPathInjection_StackTrace: missing_feature
   tests/appsec/iast/sink/test_xss.py:
     - weblog_declaration:
         tornado: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/iast/sink/test_xss.py::TestXSS:
     - weblog_declaration:
         "*": v3.0.0.dev
@@ -603,6 +756,8 @@ manifest:
   tests/appsec/iast/source:  # Created by easy win activation script
     - weblog_declaration:
         tornado: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/iast/source/test_body.py::TestRequestBody:
     - weblog_declaration:
         '*': v1.20.0
@@ -655,10 +810,14 @@ manifest:
   tests/appsec/iast/test_sampling_by_route_method_count.py:  # Created by easy win activation script
     - weblog_declaration:
         tornado: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/iast/test_sampling_by_route_method_count.py::TestSamplingByRouteMethodCount: v3.9.0.dev
   tests/appsec/iast/test_security_controls.py:  # Created by easy win activation script
     - weblog_declaration:
         tornado: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/iast/test_security_controls.py::TestSecurityControls:
     - weblog_declaration:
         "*": missing_feature
@@ -666,155 +825,374 @@ manifest:
   ? tests/appsec/iast/test_security_controls.py::TestSecurityControls::test_no_vulnerability_suppression_with_a_sanitizer_configured_for_an_overloaded_method_with_specific_signature
   : irrelevant (no overloaded methods with different signatures in python)
   tests/appsec/iast/test_vulnerability_schema.py::TestIastVulnerabilitySchema: v3.8.0.dev
-  tests/appsec/rasp/test_api10.py::Test_API10_all: v4.5.0-rc1
+  tests/appsec/rasp/test_api10.py::Test_API10_all:
+    - weblog_declaration:
+        '*': '>=4.5.0-rc1'
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_request_tag:
     - weblog_declaration:
         "*": v3.18.0
         *django : v4.3.0-dev0 (with httpx support)
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_api10.py::Test_API10_downstream_ssrf_telemetry:
     - weblog_declaration:
         "*": v3.18.0
         *django : v4.3.0-dev0 (with httpx support)
-  tests/appsec/rasp/test_api10.py::Test_API10_redirect: v4.3.0-dev
+        aiohttp: v4.17.0-rc1
+  tests/appsec/rasp/test_api10.py::Test_API10_redirect:
+    - weblog_declaration:
+        '*': '>=4.3.0-dev'
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_api10.py::Test_API10_redirect_status:
     - weblog_declaration:
         "*": v4.1.0
         *django : v4.3.0-dev0 (with httpx support)
-  tests/appsec/rasp/test_api10.py::Test_API10_request_body: v4.5.0-rc1
-  tests/appsec/rasp/test_api10.py::Test_API10_request_headers: v4.3.0-dev
+        aiohttp: v4.17.0-rc1
+  tests/appsec/rasp/test_api10.py::Test_API10_request_body:
+    - weblog_declaration:
+        '*': '>=4.5.0-rc1'
+        aiohttp: v4.17.0-rc1
+  tests/appsec/rasp/test_api10.py::Test_API10_request_headers:
+    - weblog_declaration:
+        '*': '>=4.3.0-dev'
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_api10.py::Test_API10_request_method:
     - weblog_declaration:
         "*": v3.14.0.rc
         fastapi: v3.15.0.dev (with requests support)
         *django : v4.3.0-dev0 (with httpx support)
-  tests/appsec/rasp/test_api10.py::Test_API10_response_body: v4.5.0-rc1
-  tests/appsec/rasp/test_api10.py::Test_API10_response_body_ignored_content_length_missing: missing_feature
-  tests/appsec/rasp/test_api10.py::Test_API10_response_body_ignored_content_length_too_big: missing_feature
-  tests/appsec/rasp/test_api10.py::Test_API10_response_body_ignored_content_type: missing_feature
+        aiohttp: v4.17.0-rc1
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body:
+    - weblog_declaration:
+        '*': '>=4.5.0-rc1'
+        aiohttp: v4.17.0-rc1
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body_ignored_content_length_missing:
+    - declaration: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body_ignored_content_length_too_big:
+    - declaration: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body_ignored_content_type:
+    - declaration: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/rasp/test_api10.py::Test_API10_response_headers:
     - weblog_declaration:
         "*": v3.14.0.rc
         fastapi: v3.15.0.dev (with requests support)
         *django : v4.3.0-dev0 (with httpx support)
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_api10.py::Test_API10_response_status:
     - weblog_declaration:
         "*": v3.14.0.rc
         fastapi: v3.15.0.dev (with requests support)
         *django : v4.3.0-dev0 (with httpx support)
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_max: v3.15.0
   tests/appsec/rasp/test_api10.py::Test_API10_without_downstream_body_analysis_using_sample_rate: v4.5.0-rc1
-  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyJson: v2.20.0.dev
-  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyUrlEncoded: v2.20.0.dev
-  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyXml: v2.20.0.dev
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyJson:
+    - weblog_declaration:
+        '*': '>=2.20.0-dev'
+        aiohttp: v4.17.0-rc1
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyUrlEncoded:
+    - weblog_declaration:
+        '*': '>=2.20.0-dev'
+        aiohttp: v4.17.0-rc1
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyXml:
+    - weblog_declaration:
+        '*': '>=2.20.0-dev'
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Capability: v2.20.0.dev
-  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Mandatory_SpanTags: v2.20.0.dev
-  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Optional_SpanTags: v2.20.0.dev
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Mandatory_SpanTags:
+    - weblog_declaration:
+        '*': '>=2.20.0-dev'
+        aiohttp: v4.17.0-rc1
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Optional_SpanTags:
+    - weblog_declaration:
+        '*': '>=2.20.0-dev'
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Rules_Version: v2.18.0.dev
-  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_StackTrace: v2.20.0.dev
-  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry: v2.20.0.dev
-  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry_V2: v3.5.0.dev
-  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry_Variant_Tag: v2.20.0.dev
-  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_UrlQuery: v2.20.0.dev
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_StackTrace:
+    - weblog_declaration:
+        '*': '>=2.20.0-dev'
+        aiohttp: v4.17.0-rc1
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry:
+    - weblog_declaration:
+        '*': '>=2.20.0-dev'
+        aiohttp: v4.17.0-rc1
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry_V2:
+    - weblog_declaration:
+        '*': '>=3.5.0-dev'
+        aiohttp: v4.17.0-rc1
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry_Variant_Tag:
+    - weblog_declaration:
+        '*': '>=2.20.0-dev'
+        aiohttp: v4.17.0-rc1
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_UrlQuery:
+    - weblog_declaration:
+        '*': '>=2.20.0-dev'
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Waf_Version: v2.18.0.dev
-  tests/appsec/rasp/test_lfi.py::Test_Lfi_BodyJson: v2.10.0
-  tests/appsec/rasp/test_lfi.py::Test_Lfi_BodyUrlEncoded: v2.10.0
-  tests/appsec/rasp/test_lfi.py::Test_Lfi_BodyXml: v2.10.0
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_BodyJson:
+    - weblog_declaration:
+        '*': '>=2.10.0'
+        aiohttp: v4.17.0-rc1
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_BodyUrlEncoded:
+    - weblog_declaration:
+        '*': '>=2.10.0'
+        aiohttp: v4.17.0-rc1
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_BodyXml:
+    - weblog_declaration:
+        '*': '>=2.10.0'
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Capability: v2.11.0
-  tests/appsec/rasp/test_lfi.py::Test_Lfi_Mandatory_SpanTags: v2.10.0
-  tests/appsec/rasp/test_lfi.py::Test_Lfi_Optional_SpanTags: v2.10.0
-  tests/appsec/rasp/test_lfi.py::Test_Lfi_RC_CustomAction: v2.14.0
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_Mandatory_SpanTags:
+    - weblog_declaration:
+        '*': '>=2.10.0'
+        aiohttp: v4.17.0-rc1
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_Optional_SpanTags:
+    - weblog_declaration:
+        '*': '>=2.10.0'
+        aiohttp: v4.17.0-rc1
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_RC_CustomAction:
+    - weblog_declaration:
+        '*': '>=2.14.0'
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Rules_Version: v2.18.0.dev
-  tests/appsec/rasp/test_lfi.py::Test_Lfi_StackTrace: v2.10.0
-  tests/appsec/rasp/test_lfi.py::Test_Lfi_Telemetry: v2.10.0
-  tests/appsec/rasp/test_lfi.py::Test_Lfi_Telemetry_Multiple_Exploits: v2.10.0
-  tests/appsec/rasp/test_lfi.py::Test_Lfi_Telemetry_V2: v3.5.0.dev
-  tests/appsec/rasp/test_lfi.py::Test_Lfi_UrlQuery: v2.10.0
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_StackTrace:
+    - weblog_declaration:
+        '*': '>=2.10.0'
+        aiohttp: v4.17.0-rc1
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_Telemetry:
+    - weblog_declaration:
+        '*': '>=2.10.0'
+        aiohttp: v4.17.0-rc1
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_Telemetry_Multiple_Exploits:
+    - weblog_declaration:
+        '*': '>=2.10.0'
+        aiohttp: v4.17.0-rc1
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_Telemetry_V2:
+    - weblog_declaration:
+        '*': '>=3.5.0-dev'
+        aiohttp: v4.17.0-rc1
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_UrlQuery:
+    - weblog_declaration:
+        '*': '>=2.10.0'
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_lfi.py::Test_Lfi_Waf_Version: v2.15.0
-  tests/appsec/rasp/test_shi.py::Test_Shi_BodyJson: v2.11.0-rc2
-  tests/appsec/rasp/test_shi.py::Test_Shi_BodyUrlEncoded: v2.11.0-rc2
-  tests/appsec/rasp/test_shi.py::Test_Shi_BodyXml: v2.11.0-rc2
+  tests/appsec/rasp/test_shi.py::Test_Shi_BodyJson:
+    - weblog_declaration:
+        '*': '>=2.11.0-rc2'
+        aiohttp: v4.17.0-rc1
+  tests/appsec/rasp/test_shi.py::Test_Shi_BodyUrlEncoded:
+    - weblog_declaration:
+        '*': '>=2.11.0-rc2'
+        aiohttp: v4.17.0-rc1
+  tests/appsec/rasp/test_shi.py::Test_Shi_BodyXml:
+    - weblog_declaration:
+        '*': '>=2.11.0-rc2'
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_shi.py::Test_Shi_Capability: v2.11.0
-  tests/appsec/rasp/test_shi.py::Test_Shi_Mandatory_SpanTags: v2.11.0-rc2
-  tests/appsec/rasp/test_shi.py::Test_Shi_Optional_SpanTags: v2.11.0-rc2
+  tests/appsec/rasp/test_shi.py::Test_Shi_Mandatory_SpanTags:
+    - weblog_declaration:
+        '*': '>=2.11.0-rc2'
+        aiohttp: v4.17.0-rc1
+  tests/appsec/rasp/test_shi.py::Test_Shi_Optional_SpanTags:
+    - weblog_declaration:
+        '*': '>=2.11.0-rc2'
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_shi.py::Test_Shi_Rules_Version: v2.15.0
-  tests/appsec/rasp/test_shi.py::Test_Shi_StackTrace: v2.11.0-rc2
-  tests/appsec/rasp/test_shi.py::Test_Shi_Telemetry: v2.11.0-rc2
-  tests/appsec/rasp/test_shi.py::Test_Shi_Telemetry_V2: v3.5.0.dev
-  tests/appsec/rasp/test_shi.py::Test_Shi_Telemetry_Variant_Tag: v2.20.0.dev
-  tests/appsec/rasp/test_shi.py::Test_Shi_UrlQuery: v2.11.0-rc2
+  tests/appsec/rasp/test_shi.py::Test_Shi_StackTrace:
+    - weblog_declaration:
+        '*': '>=2.11.0-rc2'
+        aiohttp: v4.17.0-rc1
+  tests/appsec/rasp/test_shi.py::Test_Shi_Telemetry:
+    - weblog_declaration:
+        '*': '>=2.11.0-rc2'
+        aiohttp: v4.17.0-rc1
+  tests/appsec/rasp/test_shi.py::Test_Shi_Telemetry_V2:
+    - weblog_declaration:
+        '*': '>=3.5.0-dev'
+        aiohttp: v4.17.0-rc1
+  tests/appsec/rasp/test_shi.py::Test_Shi_Telemetry_Variant_Tag:
+    - weblog_declaration:
+        '*': '>=2.20.0-dev'
+        aiohttp: v4.17.0-rc1
+  tests/appsec/rasp/test_shi.py::Test_Shi_UrlQuery:
+    - weblog_declaration:
+        '*': '>=2.11.0-rc2'
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_shi.py::Test_Shi_Waf_Version: v2.15.0
-  tests/appsec/rasp/test_sqli.py::Test_Sqli_BodyJson: v2.10.0
-  tests/appsec/rasp/test_sqli.py::Test_Sqli_BodyUrlEncoded: v2.10.0
-  tests/appsec/rasp/test_sqli.py::Test_Sqli_BodyXml: v2.10.0
+  tests/appsec/rasp/test_sqli.py::Test_Sqli_BodyJson:
+    - weblog_declaration:
+        '*': '>=2.10.0'
+        aiohttp: v4.17.0-rc1
+  tests/appsec/rasp/test_sqli.py::Test_Sqli_BodyUrlEncoded:
+    - weblog_declaration:
+        '*': '>=2.10.0'
+        aiohttp: v4.17.0-rc1
+  tests/appsec/rasp/test_sqli.py::Test_Sqli_BodyXml:
+    - weblog_declaration:
+        '*': '>=2.10.0'
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Capability: v2.11.0
-  tests/appsec/rasp/test_sqli.py::Test_Sqli_Mandatory_SpanTags: v2.10.0
-  tests/appsec/rasp/test_sqli.py::Test_Sqli_Optional_SpanTags: v2.10.0
+  tests/appsec/rasp/test_sqli.py::Test_Sqli_Mandatory_SpanTags:
+    - weblog_declaration:
+        '*': '>=2.10.0'
+        aiohttp: v4.17.0-rc1
+  tests/appsec/rasp/test_sqli.py::Test_Sqli_Optional_SpanTags:
+    - weblog_declaration:
+        '*': '>=2.10.0'
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Rules_Version: v2.16.0
-  tests/appsec/rasp/test_sqli.py::Test_Sqli_StackTrace: v2.10.0
-  tests/appsec/rasp/test_sqli.py::Test_Sqli_Telemetry: v2.10.0
-  tests/appsec/rasp/test_sqli.py::Test_Sqli_Telemetry_V2: v3.5.0.dev
-  tests/appsec/rasp/test_sqli.py::Test_Sqli_UrlQuery: v2.10.0
+  tests/appsec/rasp/test_sqli.py::Test_Sqli_StackTrace:
+    - weblog_declaration:
+        '*': '>=2.10.0'
+        aiohttp: v4.17.0-rc1
+  tests/appsec/rasp/test_sqli.py::Test_Sqli_Telemetry:
+    - weblog_declaration:
+        '*': '>=2.10.0'
+        aiohttp: v4.17.0-rc1
+  tests/appsec/rasp/test_sqli.py::Test_Sqli_Telemetry_V2:
+    - weblog_declaration:
+        '*': '>=3.5.0-dev'
+        aiohttp: v4.17.0-rc1
+  tests/appsec/rasp/test_sqli.py::Test_Sqli_UrlQuery:
+    - weblog_declaration:
+        '*': '>=2.10.0'
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Waf_Version: v2.15.0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyJson:
     - weblog_declaration:
         "*": v2.10.0
         *django : v4.3.0-dev0 (with httpx support)
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyUrlEncoded:
     - weblog_declaration:
         "*": v2.10.0
         *django : v4.3.0-dev0 (with httpx support)
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyXml:
     - weblog_declaration:
         "*": v2.10.0
         *django : v4.3.0-dev0 (with httpx support)
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Capability: v2.11.0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Mandatory_SpanTags:
     - weblog_declaration:
         "*": v2.10.0
         *django : v4.3.0-dev0 (with httpx support)
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Optional_SpanTags:
     - weblog_declaration:
         "*": v2.10.0
         *django : v4.3.0-dev0 (with httpx support)
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Rules_Version: v2.16.0
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_StackTrace:
     - weblog_declaration:
         "*": v2.10.0
         *django : v4.3.0-dev0 (with httpx support)
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry:
     - weblog_declaration:
         "*": v2.10.0
         *django : v4.3.0-dev0 (with httpx support)
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry_V2:
     - weblog_declaration:
         "*": v3.5.0.dev
         *django : v4.3.0-dev0 (with httpx support)
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_UrlQuery:
     - weblog_declaration:
         "*": v2.10.0
         *django : v4.3.0-dev0 (with httpx support)
+        aiohttp: v4.17.0-rc1
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Waf_Version: v2.15.0
   tests/appsec/smoke_tests/test_apm_standalone.py: v4.6.0
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_ApiSecurity:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Rasp::test_ssrf_smoke:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_RemoteConfig:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecAPMStandalone_Threats:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_ApiSecurity:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Rasp:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Rasp::test_ssrf_smoke:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_RemoteConfig:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
+  tests/appsec/smoke_tests/test_apm_standalone.py::Test_AppSecStandaloneAPMStandalone_Threats:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_agentic_onboarding.py::Test_AppsecAgenticOnboarding: v4.13.0rc1
+  tests/appsec/test_alpha.py:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_alpha.py::Test_Basic:
     - weblog_declaration:
         "*": v1.1.0-rc2
         fastapi: v2.4.0
   tests/appsec/test_alpha.py::Test_Basic::test_headers: v1.1.1
-  tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone: v3.9.0.dev
+  tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone:
+    - weblog_declaration:
+        '*': '>=3.9.0-dev'
+        aiohttp: v4.17.0-rc1
   ? tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1
   : - component_version: "<3.11.0"
       declaration: missing_feature (APPSEC-57830 python tracer was using MANUAL_KEEP for 1 trace in 60 seconds to keep instead of AUTO_KEEP)
       weblog: *django
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_APMDisabledMarker: v4.13.0rc1
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_NotEnabled: v2.12.3
-  tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2: v3.2.0.dev
+  tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2:
+    - weblog_declaration:
+        '*': '>=3.2.0-dev'
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2:  # Easy win for flask-poc and version 4.6.4
     - weblog_declaration:
         "*": v3.2.0.dev
         flask-poc: v4.7.0-rc1 (is v3.2.0.dev but weblog was flaky before fix)
         uds-flask: v4.7.0-rc1 (is v3.2.0.dev but weblog was flaky before fix)
         tornado: v4.6.4  # TODO: a lower version might be supported
+  ? tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_0
+  : - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  ? tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_1
+  : - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  ? tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2
+  : - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  ? tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1
+  : - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  ? tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2::test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_0
+  : - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  ? tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2::test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_1
+  : - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  ? tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2::test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_2
+  : - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/test_asm_standalone.py::Test_SCAStandalone_Telemetry_V2: v3.2.0.dev
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_Automated: v3.2.0.dev
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_Automated::test_user_signup_event_generates_asm_event:
@@ -822,11 +1200,26 @@ manifest:
       weblog: [*flask, fastapi]
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_SDK_V1: v3.9.0
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_SDK_V2: v3.9.0
-  tests/appsec/test_automated_login_events.py::Test_Login_Events: irrelevant (was v2.10.0 but will be replaced by V2)
-  tests/appsec/test_automated_login_events.py::Test_Login_Events_Extended: irrelevant (was v2.10.0 but will be replaced by V2)
-  tests/appsec/test_automated_login_events.py::Test_V2_Login_Events: irrelevant (was v2.11.0 but will be replaced by V3)
-  tests/appsec/test_automated_login_events.py::Test_V2_Login_Events_Anon: irrelevant (was v2.11.0 but will be replaced by V3)
-  tests/appsec/test_automated_login_events.py::Test_V2_Login_Events_RC: irrelevant (was v2.11.0 but will be replaced by V3)
+  tests/appsec/test_automated_login_events.py::Test_Login_Events:
+    - declaration: irrelevant (was v2.10.0 but will be replaced by V2)
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/appsec/test_automated_login_events.py::Test_Login_Events_Extended:
+    - declaration: irrelevant (was v2.10.0 but will be replaced by V2)
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/appsec/test_automated_login_events.py::Test_V2_Login_Events:
+    - declaration: irrelevant (was v2.11.0 but will be replaced by V3)
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/appsec/test_automated_login_events.py::Test_V2_Login_Events_Anon:
+    - declaration: irrelevant (was v2.11.0 but will be replaced by V3)
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/appsec/test_automated_login_events.py::Test_V2_Login_Events_RC:
+    - declaration: irrelevant (was v2.11.0 but will be replaced by V3)
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/test_automated_login_events.py::Test_V3_Auto_User_Instrum_Mode_Capability:
     - weblog_declaration:
         "*": v2.11.0
@@ -834,10 +1227,18 @@ manifest:
     - weblog_declaration:
         "*": v2.20.0.dev
         *django : v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
+  tests/appsec/test_automated_login_events.py::Test_V3_Login_Events::test_login_failure_headers:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
+  tests/appsec/test_automated_login_events.py::Test_V3_Login_Events::test_login_success_headers:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events::test_signup_local:
     - weblog_declaration:
         "*": irrelevant (No signup in frameworks except django)
         *django : v3.7.0.dev (is v3.2.0 but weblog use new SDK now)
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Anon:
     - weblog_declaration:
         "*": v2.20.0.dev
@@ -846,10 +1247,14 @@ manifest:
     - weblog_declaration:
         "*": irrelevant (No signup in frameworks except django)
         *django : v3.7.0.dev (is v3.2.0 but weblog use new SDK now)
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Blocking:
     - weblog_declaration:
         "*": v2.20.0.dev
         *django : v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_RC: v2.11.0
   tests/appsec/test_automated_payment_events.py::Test_Automated_Payment_Events_Stripe_Custom_Rules: v4.2.0
   tests/appsec/test_automated_payment_events.py::Test_Automated_Payment_Events_Stripe_Default_Rules:
@@ -862,10 +1267,14 @@ manifest:
     - weblog_declaration:
         "*": v3.11.0.dev
         *django : v3.3.0.dev
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Blocking:
     - weblog_declaration:
         "*": v3.0.0.rc
         *django : v3.7.0.dev (is v3.0.0.rc but weblog use new SDK now)
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Blocking::test_user_blocking_auto:
     - weblog_declaration:
         "*": irrelevant (no possible auto-instrumentation for python except on Django)
@@ -883,89 +1292,154 @@ manifest:
         django-poc: v1.10
         fastapi: v2.4.0
         flask-poc: v1.10
-  tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_K8_private_ip: v2.4.0
-  tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_forwarded: v3.13.0.dev
+        aiohttp: v4.17.0-rc1
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_K8_private_ip:
+    - weblog_declaration:
+        '*': '>=2.4.0'
+        aiohttp: v4.17.0-rc1
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_forwarded:
+    - weblog_declaration:
+        '*': '>=3.13.0-dev'
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body:
     - weblog_declaration:
         "*": v1.16.1
         *django : v3.7.0.dev (is v1.10 but weblog use new SDK now)
         fastapi: v2.4.0
         flask-poc: v1.10
-  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_filenames: missing_feature
-  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_files_content: missing_feature
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_filenames:
+    - declaration: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_files_content:
+    - declaration: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_multipart:
     - weblog_declaration:
         "*": v1.16.1
         django-poc: v1.10
         fastapi: v2.4.0
         flask-poc: v1.10
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_cookies:
     - weblog_declaration:
         "*": v1.16.1
         *django : v3.7.0.dev (is v1.10 but weblog use new SDK now)
         fastapi: v2.4.0
         flask-poc: v1.10
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_headers:
     - weblog_declaration:
         "*": v1.16.1
         *django : v3.7.0.dev (is v1.10 but weblog use new SDK now)
         fastapi: v2.4.0
         flask-poc: v1.10
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_method:
     - weblog_declaration:
         "*": v1.16.1
         *django : v3.7.0.dev (is v1.10 but weblog use new SDK now)
         fastapi: v2.4.0
         flask-poc: v1.10
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_path_params:
     - weblog_declaration:
         "*": v1.16.1
         *django : v3.7.0.dev (is v1.10 but weblog use new SDK now)
         fastapi: v2.4.0
         flask-poc: v1.13
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query:
     - weblog_declaration:
         "*": v1.16.1
         *django : v3.7.0.dev (is v1.10 but weblog use new SDK now)
         fastapi: v2.4.0
         flask-poc: v1.10
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query::test_blocking:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query::test_blocking_before:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query::test_blocking_case_sensitive:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query::test_non_blocking:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_uri:
     - weblog_declaration:
         "*": v1.16.1
         *django : v3.7.0.dev (is v1.15 but weblog use new SDK now)
         fastapi: v2.4.0
         flask-poc: v1.15
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_blocking_addresses.py::Test_Blocking_response_headers:
     - weblog_declaration:
         "*": v1.16.1
         django-poc: v1.10
         fastapi: v2.4.0
         flask-poc: v1.10
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_blocking_addresses.py::Test_Blocking_response_status:
     - weblog_declaration:
         "*": v1.16.1
         django-poc: v1.10
         fastapi: v2.4.0
         flask-poc: v1.10
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_blocking_addresses.py::Test_Blocking_user_id:
     - weblog_declaration:
         "*": v1.16.1
         *django : v3.7.0.dev (is v1.10 but weblog use new SDK now)
         fastapi: v2.4.0
         flask-poc: v1.10
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_blocking_addresses.py::Test_Suspicious_Request_Blocking:
     - weblog_declaration:
         "*": v2.4.0
         *django : v3.7.0.dev (is v2.4.0 but weblog use new SDK now)
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_client_ip.py::Test_StandardTagsClientIp: v1.5.0
   tests/appsec/test_conf.py::Test_ConfigurationVariables:
     - weblog_declaration:
         "*": v1.5.0
         fastapi: v2.4.0
-  tests/appsec/test_conf.py::Test_ConfigurationVariables_New_Obfuscation: v3.9.0.dev
+  tests/appsec/test_conf.py::Test_ConfigurationVariables::test_appsec_rules:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
+  tests/appsec/test_conf.py::Test_ConfigurationVariables::test_enabled:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
+  tests/appsec/test_conf.py::Test_ConfigurationVariables::test_obfuscation_parameter_key:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
+  tests/appsec/test_conf.py::Test_ConfigurationVariables::test_obfuscation_parameter_value:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
+  tests/appsec/test_conf.py::Test_ConfigurationVariables_New_Obfuscation:
+    - weblog_declaration:
+        '*': '>=3.9.0-dev'
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_customconf.py::Test_ConfRuleSet: v1.1.0-rc2
+  tests/appsec/test_customconf.py::Test_ConfRuleSet::test_requests:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_customconf.py::Test_CorruptedRules_Telemetry: v3.15.0.dev
-  tests/appsec/test_customconf.py::Test_NoLimitOnWafRules: v1.1.0-rc2
+  tests/appsec/test_customconf.py::Test_NoLimitOnWafRules:
+    - weblog_declaration:
+        '*': '>=1.1.0-rc2'
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_event_tracking.py::Test_CustomEvent:
     - weblog_declaration:
         "*": v1.10.0
@@ -975,11 +1449,17 @@ manifest:
     - weblog_declaration:
         "*": v2.10.0
         *django : v3.7.0.dev (is v2.10.0 but weblog use new SDK now)
+  tests/appsec/test_event_tracking.py::Test_UserLoginFailureEvent::test_user_login_failure_header_collection:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_event_tracking.py::Test_UserLoginFailureEvent_Metrics: v3.10.0.dev
   tests/appsec/test_event_tracking.py::Test_UserLoginSuccessEvent:
     - weblog_declaration:
         "*": v2.10.0
         *django : v3.7.0.dev (is v2.10.0 but weblog use new SDK now)
+  tests/appsec/test_event_tracking.py::Test_UserLoginSuccessEvent::test_user_login_success_header_collection:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_event_tracking.py::Test_UserLoginSuccessEvent_Metrics: v3.10.0.dev
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled:
     - weblog_declaration:
@@ -987,9 +1467,11 @@ manifest:
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_HeaderCollection_AppsecEnabled:
     - weblog_declaration:
         "*": v3.7.0.dev
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_Libddwaf:
     - weblog_declaration:
         "*": v3.7.0.dev
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginFailureEventV2_Metrics_AppsecDisabled:
     - weblog_declaration:
         "*": v3.7.0.dev
@@ -1008,9 +1490,11 @@ manifest:
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_HeaderCollection_AppsecEnabled:
     - weblog_declaration:
         "*": v3.7.0.dev
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Libddwaf:
     - weblog_declaration:
         "*": v3.7.0.dev
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Metrics_AppsecDisabled:
     - weblog_declaration:
         "*": v3.7.0.dev
@@ -1023,28 +1507,64 @@ manifest:
   tests/appsec/test_event_tracking_v2.py::Test_UserLoginSuccessEventV2_Tags_AppsecEnabled:
     - weblog_declaration:
         "*": v3.7.0.dev
+  tests/appsec/test_extended_data_collection.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/test_extended_data_collection.py::Test_ExtendedDataCollectionCapability: irrelevant (wont do)
   tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestBodyCollection: irrelevant (wont do)
   tests/appsec/test_extended_data_collection.py::Test_ExtendedRequestHeadersDataCollection: irrelevant (wont do)
   tests/appsec/test_extended_data_collection.py::Test_ExtendedResponseHeadersDataCollection: irrelevant (wont do)
+  tests/appsec/test_extended_header_collection.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/test_extended_header_collection.py::Test_ExtendedHeaderCollection: missing_feature
+  tests/appsec/test_extended_request_body_collection.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/test_extended_request_body_collection.py::Test_ExtendedRequestBodyCollection: missing_feature
-  tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Endpoint: v2.11.0
+  tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Endpoint:
+    - weblog_declaration:
+        '*': '>=2.11.0'
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Endpoint_Capability: v2.11.0
-  tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Endpoint_Preprocessor: v2.11.0
-  tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Header_And_Network: v2.11.0
-  tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Header_And_Network_Preprocessor: v2.11.0
+  tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Endpoint_Preprocessor:
+    - weblog_declaration:
+        '*': '>=2.11.0'
+        aiohttp: v4.17.0-rc1
+  tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Header_And_Network:
+    - weblog_declaration:
+        '*': '>=2.11.0'
+        aiohttp: v4.17.0-rc1
+  tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Header_And_Network_Preprocessor:
+    - weblog_declaration:
+        '*': '>=2.11.0'
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Header_Capability: v2.11.0
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Network_Capability: v2.11.0
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session: v3.0.0
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session_Capability: v2.17.0.dev
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session_Preprocessor: v2.17.0.dev
+  tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session_Preprocessor::test_session_blocking:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session_Preprocessor::test_session_non_blocking: v3.0.0
   tests/appsec/test_identify.py::Test_Basic: v1.5.0-rc1
+  tests/appsec/test_inferred_spans.py:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_inferred_spans.py::Test_Proxy_Inferred_Span_Tags: v4.2.0
+  tests/appsec/test_ip_blocking_full_denylist.py:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_ip_blocking_full_denylist.py::Test_AppSecIPBlockingFullDenylist: v2.11.0
+  tests/appsec/test_logs.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/test_logs.py::Test_Standardization: missing_feature
   tests/appsec/test_logs.py::Test_StandardizationBlockMode: missing_feature
+  tests/appsec/test_metastruct.py:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_metastruct.py::Test_SecurityEvents_Appsec_Metastruct_Disabled: irrelevant (no fallback will be implemented)
   tests/appsec/test_metastruct.py::Test_SecurityEvents_Appsec_Metastruct_Enabled: v3.0.0.rc
   tests/appsec/test_metastruct.py::Test_SecurityEvents_Iast_Metastruct_Disabled: irrelevant (no fallback will be implemented)
@@ -1052,33 +1572,75 @@ manifest:
     - weblog_declaration:
         "*": v3.11.0.dev
         tornado: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/test_only_python.py::Test_ImportError: v3.3.0 (was v2.20.0 but a regression was introduced in v3.2/v3.1)
+  tests/appsec/test_rate_limiter.py:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_rate_limiter.py::Test_Main:
     - weblog_declaration:
         "*": v2.0.0
         tornado: v4.3.1
   tests/appsec/test_remote_config_rule_changes.py::Test_AsmDdMultiConfiguration: v3.10.0.dev (partial support in v3.9.0)
+  tests/appsec/test_remote_config_rule_changes.py::Test_AsmDdMultiConfiguration::test_update_rules:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
+  tests/appsec/test_remote_config_rule_changes.py::Test_AsmDdMultiConfiguration::test_update_rules_with_rules_compat:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_remote_config_rule_changes.py::Test_BlockingActionChangesWithRemoteConfig:
     - weblog_declaration:
         "*": v2.10.1
         django-py3.13: v3.15.0.dev (v2.10.1 but fixed incompatibility issue with gevent 25.8.2)
-  tests/appsec/test_remote_config_rule_changes.py::Test_Empty_Config: v3.10.0
-  tests/appsec/test_remote_config_rule_changes.py::Test_Invalid_Config: v3.15.0.dev
-  tests/appsec/test_remote_config_rule_changes.py::Test_Multiple_Actions: v2.10.1
-  tests/appsec/test_remote_config_rule_changes.py::Test_Unknown_Action: v2.10.1
-  tests/appsec/test_remote_config_rule_changes.py::Test_UpdateRuleFileWithRemoteConfig: v2.16.0-rc (v2.11.0 but added telemetry and span tag support in 2.16)
+        aiohttp: v4.17.0-rc1
+  tests/appsec/test_remote_config_rule_changes.py::Test_Empty_Config:
+    - weblog_declaration:
+        '*': '>=3.10.0'
+        aiohttp: v4.17.0-rc1
+  tests/appsec/test_remote_config_rule_changes.py::Test_Invalid_Config:
+    - weblog_declaration:
+        '*': '>=3.15.0-dev'
+        aiohttp: v4.17.0-rc1
+  tests/appsec/test_remote_config_rule_changes.py::Test_Multiple_Actions:
+    - weblog_declaration:
+        '*': '>=2.10.1'
+        aiohttp: v4.17.0-rc1
+  tests/appsec/test_remote_config_rule_changes.py::Test_Unknown_Action:
+    - weblog_declaration:
+        '*': '>=2.10.1'
+        aiohttp: v4.17.0-rc1
+  tests/appsec/test_remote_config_rule_changes.py::Test_UpdateRuleFileWithRemoteConfig:
+    - weblog_declaration:
+        '*': '>=2.16.0-rc'
+        aiohttp: v4.17.0-rc1
+  tests/appsec/test_reports.py:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_reports.py::Test_ExtraTagsFromRule: v1.14.0
   tests/appsec/test_reports.py::Test_Info: v1.1.1
   tests/appsec/test_reports.py::Test_RequestHeaders: v1.1.1
   tests/appsec/test_reports.py::Test_StatusCode: v1.1.1
+  tests/appsec/test_request_blocking.py:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_request_blocking.py::Test_AppSecRequestBlocking:
     - weblog_declaration:
         "*": v1.10.0
         fastapi: v2.4.0
-  tests/appsec/test_runtime_activation.py::Test_RuntimeActivation: v2.10.1
+  tests/appsec/test_runtime_activation.py::Test_RuntimeActivation:
+    - weblog_declaration:
+        '*': '>=2.10.1'
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_runtime_activation.py::Test_RuntimeActivationCapabilities: v4.10.8
   tests/appsec/test_runtime_activation.py::Test_RuntimeActivationCapabilitiesCleared: v4.10.8
-  tests/appsec/test_runtime_activation.py::Test_RuntimeDeactivation: v2.10.1
+  tests/appsec/test_runtime_activation.py::Test_RuntimeDeactivation:
+    - weblog_declaration:
+        '*': '>=2.10.1'
+        aiohttp: v4.17.0-rc1
+  tests/appsec/test_sca_reachability.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/test_sca_reachability.py::Test_SCA_Reachability_CVE_After_Vulnerable_Call:
     - weblog_declaration:
         "*": irrelevant (endpoint only implemented in flask weblog)
@@ -1100,46 +1662,82 @@ manifest:
         "*": irrelevant (endpoint only implemented in flask weblog)
         *flask : v4.8.0.dev
   tests/appsec/test_service_activation_metric.py::TestServiceActivationEnvVarConfigurationMetric: v3.12.0.dev
-  tests/appsec/test_service_activation_metric.py::TestServiceActivationEnvVarMetric: irrelevant (drop support in v3.12.0.dev)
-  tests/appsec/test_service_activation_metric.py::TestServiceActivationRemoteConfigMetric: irrelevant (drop support in v3.12.0.dev)
+  tests/appsec/test_service_activation_metric.py::TestServiceActivationEnvVarMetric:
+    - declaration: irrelevant (drop support in v3.12.0.dev)
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/appsec/test_service_activation_metric.py::TestServiceActivationRemoteConfigMetric:
+    - declaration: irrelevant (drop support in v3.12.0.dev)
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/test_service_activation_metric.py::TestServiceActivationRemoteConfigurationConfigMetric: v3.12.0.dev
+  tests/appsec/test_shell_execution.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/test_shell_execution.py::Test_ShellExecution: missing_feature
-  tests/appsec/test_span_tags_headers.py: v3.19.0
+  tests/appsec/test_span_tags_headers.py:
+    - weblog_declaration:
+        '*': '>=3.19.0'
+        aiohttp: v4.17.0-rc1
+  tests/appsec/test_suspicious_attacker_blocking.py:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_suspicious_attacker_blocking.py::Test_Suspicious_Attacker_Blocking: v2.11.0-rc
-  tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules: v3.10.0.dev
+  tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules:
+    - weblog_declaration:
+        '*': '>=3.10.0-dev'
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRulesRcCapability: v3.10.0.dev
   tests/appsec/test_traces.py::Test_AppSecEventSpanTags: v0.58.5
-  tests/appsec/test_traces.py::Test_AppSecEventSpanTags::test_header_collection: v1.5.0
+  tests/appsec/test_traces.py::Test_AppSecEventSpanTags::test_header_collection:
+    - weblog_declaration:
+        '*': '>=1.5.0'
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_traces.py::Test_AppSecObfuscator:
     - weblog_declaration:
         "*": v1.5.0-rc1
         fastapi: v2.6.0
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_traces.py::Test_CollectDefaultRequestHeader:
     - weblog_declaration:
         "*": v2.9.0
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_traces.py::Test_CollectRespondHeaders:
     - weblog_declaration:
         "*": v1.4.0-rc1
         fastapi: v2.4.0
-  tests/appsec/test_traces.py::Test_ExternalWafRequestsIdentification: v2.9.0
-  tests/appsec/test_traces.py::Test_RetainTraces: v1.1.1
+        aiohttp: v4.17.0-rc1
+  tests/appsec/test_traces.py::Test_ExternalWafRequestsIdentification:
+    - weblog_declaration:
+        '*': '>=2.9.0'
+        aiohttp: v4.17.0-rc1
+  tests/appsec/test_traces.py::Test_RetainTraces:
+    - weblog_declaration:
+        '*': '>=1.1.1'
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_user_blocking_full_denylist.py::Test_UserBlocking_FullDenylist:
     - weblog_declaration:
         "*": v2.11.0
         *django : v3.7.0.dev (is v2.11.0 but weblog use new SDK now)
+  tests/appsec/test_user_blocking_full_denylist.py::Test_UserBlocking_FullDenylist::test_blocking_test:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
   tests/appsec/test_versions.py::Test_Events: v0.58.5
   tests/appsec/waf/test_addresses.py::Test_BodyJson:
     - weblog_declaration:
         "*": v1.4.0-rc1
         fastapi: v2.4.0
+        aiohttp: v4.17.0-rc1
   tests/appsec/waf/test_addresses.py::Test_BodyUrlEncoded:
     - weblog_declaration:
         "*": v1.4.0-rc1
         fastapi: v2.4.0
+        aiohttp: v4.17.0-rc1
   tests/appsec/waf/test_addresses.py::Test_BodyXml:
     - weblog_declaration:
         "*": v1.5.0-rc1
         fastapi: v2.4.0
+        aiohttp: v4.17.0-rc1
   tests/appsec/waf/test_addresses.py::Test_Cookies:
     - weblog_declaration:
         *django : v1.1.0
@@ -1147,12 +1745,35 @@ manifest:
         flask-poc: v1.4.0-rc1
         uds-flask: v1.4.0-rc1
         uwsgi-poc: v1.16.1
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
   tests/appsec/waf/test_addresses.py::Test_Cookies::test_cookies_with_semicolon_custom_rules: irrelevant (Not handled by the Python standard cookie parser)
-  tests/appsec/waf/test_addresses.py::Test_FullGrpc: missing_feature
+  tests/appsec/waf/test_addresses.py::Test_FullGrpc:
+    - declaration: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/waf/test_addresses.py::Test_GraphQL: missing_feature
-  tests/appsec/waf/test_addresses.py::Test_GrpcServerMethod: missing_feature
+  tests/appsec/waf/test_addresses.py::Test_GrpcServerMethod:
+    - declaration: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/waf/test_addresses.py::Test_Headers: v1.6
-  tests/appsec/waf/test_addresses.py::Test_IoFsFileWrite: "irrelevant (Java-only address: server.io.fs.file_write)"
+  tests/appsec/waf/test_addresses.py::Test_Headers::test_specific_key:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
+  tests/appsec/waf/test_addresses.py::Test_Headers::test_specific_key2:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
+  tests/appsec/waf/test_addresses.py::Test_Headers::test_specific_key3:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
+  tests/appsec/waf/test_addresses.py::Test_Headers::test_value:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
+  tests/appsec/waf/test_addresses.py::Test_IoFsFileWrite:
+    - declaration: 'irrelevant (Java-only address: server.io.fs.file_write)'
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/waf/test_addresses.py::Test_PathParams:
     - weblog_declaration:
         *django : v1.1.0
@@ -1160,23 +1781,35 @@ manifest:
         flask-poc: v1.4.0-rc1
         uds-flask: v1.4.0-rc1
         uwsgi-poc: v1.5.2
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
   tests/appsec/waf/test_addresses.py::Test_ResponseStatus:
     - weblog_declaration:
         "*": v0.58.5
         fastapi: v2.4.0
+        aiohttp: v4.17.0-rc1
   tests/appsec/waf/test_addresses.py::Test_UrlQuery:
     - weblog_declaration:
         "*": v1.2.1
         fastapi: v2.4.0
+        aiohttp: v4.17.0-rc1
   tests/appsec/waf/test_addresses.py::Test_UrlQueryKey:
     - weblog_declaration:
         "*": v1.2.1
         fastapi: v2.4.0
+        aiohttp: v4.17.0-rc1
   tests/appsec/waf/test_addresses.py::Test_UrlRaw:
     - weblog_declaration:
         "*": v0.58.5
         fastapi: v2.4.0
-  tests/appsec/waf/test_addresses.py::Test_gRPC: missing_feature
+        aiohttp: v4.17.0-rc1
+  tests/appsec/waf/test_addresses.py::Test_gRPC:
+    - declaration: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/appsec/waf/test_blocking.py:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
   tests/appsec/waf/test_blocking.py::Test_Blocking:
     - weblog_declaration:
         "*": v1.16.1
@@ -1193,10 +1826,16 @@ manifest:
     - weblog_declaration:
         "*": v1.20.0
         fastapi: v2.4.0
+  tests/appsec/waf/test_blocking_security_response_id.py:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
   tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_Custom_Redirect: v3.19.0
   tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_HTML_Response: v3.19.0
   tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_In_Span_Triggers: v3.19.0
   tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_JSON_Response: v3.19.0
+  tests/appsec/waf/test_custom_rules.py:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
   tests/appsec/waf/test_custom_rules.py::Test_CustomRules:
     - weblog_declaration:
         "*": v1.16.1
@@ -1209,6 +1848,15 @@ manifest:
         django-poc: v1.12
         fastapi: v2.4.0
         flask-poc: v1.12
+  tests/appsec/waf/test_exclusions.py::Test_Exclusions::test_input_exclusion_negative_test:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
+  tests/appsec/waf/test_exclusions.py::Test_Exclusions::test_rule_exclusion_negative_test:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
+  tests/appsec/waf/test_miscs.py:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
   tests/appsec/waf/test_miscs.py::Test_404: v1.1.1
   tests/appsec/waf/test_miscs.py::Test_CorrectOptionProcessing:
     - weblog_declaration:
@@ -1222,12 +1870,21 @@ manifest:
     - weblog_declaration:
         "*": v1.2.1
         fastapi: v2.4.0
+  tests/appsec/waf/test_raw_response_body.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/appsec/waf/test_raw_response_body.py::Test_RawResponseBody: missing_feature
+  tests/appsec/waf/test_reports.py:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
   tests/appsec/waf/test_reports.py::Test_Monitoring:
     - weblog_declaration:
         "*": v1.5.0-rc1
         fastapi: v2.4.0
   tests/appsec/waf/test_reports.py::Test_Monitoring::test_waf_monitoring_optional: irrelevant (optional tags)
+  tests/appsec/waf/test_rules.py:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
   tests/appsec/waf/test_rules.py::Test_CommandInjection:
     - weblog_declaration:
         "*": v1.2.1
@@ -1286,7 +1943,19 @@ manifest:
     - weblog_declaration:
         "*": v1.14.0
         fastapi: v2.4.0
+  tests/appsec/waf/test_telemetry.py::Test_TelemetryMetrics::test_metric_waf_requests:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
+  tests/appsec/waf/test_telemetry.py::Test_TelemetryMetrics::test_waf_requests_match_traced_requests:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
+  tests/appsec/waf/test_truncation.py:
+    - weblog_declaration:
+        aiohttp: v4.17.0-rc1
   tests/appsec/waf/test_truncation.py::Test_Truncation: v3.3.0.dev
+  tests/auto_inject:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptAppsec: v1.14.0
   ? tests/auto_inject/test_auto_inject_install.py::TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess::test_crash_no_zombie
   : flaky (APMLP-313)
@@ -1298,19 +1967,47 @@ manifest:
   tests/auto_inject/test_auto_inject_install.py::TestSimpleInstallerAutoInjectManualProfiling::test_profiling:
     - declaration: irrelevant (PROF-11296)
       component_version: <3.0.0
+  tests/cws:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/cws/test_thread_context_sharing.py::Test_ThreadContextSharing: v4.16.0.dev0
-  tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Line_Capture_Expressions: missing_feature (Not yet implemented)
-  tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions: missing_feature (Not yet implemented)
+  tests/debugger:
+    - weblog_declaration:
+        aiohttp: v4.16.0  # TODO: a lower version might be supported
+  tests/debugger/test_debugger_capture_expressions.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Line_Capture_Expressions:
+    - weblog_declaration:
+        "*": missing_feature
+        *flask : v2.11.0
+    - declaration: bug (DEBUG-5601)
+      component_version: <4.9.0-rc2
+  tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions:
+    - weblog_declaration:
+        "*": missing_feature
+        *flask : v2.11.0
+    - declaration: bug (DEBUG-5601)
+      component_version: <4.9.0-rc2
+  tests/debugger/test_debugger_capture_expressions_errors.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/debugger/test_debugger_capture_expressions_errors.py::Test_Debugger_Filter_Rejected_Capture_Expression_Error:  # TODO: a lower version might be supported
     - declaration: missing_feature (Not yet implemented)
       component_version: <4.14.0
       weblog: [uds-flask, flask-poc, uwsgi-poc]
     - declaration: missing_feature (Not yet implemented)
       excluded_weblog: [uds-flask, flask-poc, uwsgi-poc]
+  tests/debugger/test_debugger_code_origins.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/debugger/test_debugger_code_origins.py::Test_Debugger_Code_Origins:
     - weblog_declaration:
         "*": missing_feature
         *flask : v2.11.0
+  tests/debugger/test_debugger_condition_errors.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/debugger/test_debugger_condition_errors.py::Test_Debugger_Invalid_Condition_DSL:
     - weblog_declaration:
         "*": missing_feature
@@ -1320,22 +2017,44 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         *flask : v2.11.0
+  tests/debugger/test_debugger_exception_replay.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay:
     - weblog_declaration:
         "*": missing_feature
         *flask : v3.4.0
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_firsthit: missing_feature (Implemented only for dotnet)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_outofmemory: missing_feature (Implemented only for dotnet)
+  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_20_entry_frame: irrelevant (Only .NET captures the entry method on top of the frame limit)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_inlined: irrelevant (Test for specific bug in dotnet)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_stackoverflow: missing_feature (Implemented only for dotnet)
+  tests/debugger/test_debugger_expression_language.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language:
     - weblog_declaration:
         "*": missing_feature
         *flask : v2.11.0
-  tests/debugger/test_debugger_guardrails.py::Test_Debugger_Capture_Timeout_Guardrail: missing_feature (Configurable capture timeout is not available)
+  tests/debugger/test_debugger_guardrails.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/debugger/test_debugger_guardrails.py::Test_Debugger_Capture_Timeout_Guardrail:
+    - weblog_declaration:
+        "*": missing_feature
+        *flask : v4.13.0
   tests/debugger/test_debugger_guardrails.py::Test_Debugger_Evaluation_Timeout_Line_Probe: irrelevant (Line-probe variant is only used by Node.js and Ruby)
-  tests/debugger/test_debugger_guardrails.py::Test_Debugger_Evaluation_Timeout_Method_Probe: missing_feature (Debugger evaluation timeout guardrail not implemented yet)
-  tests/debugger/test_debugger_guardrails.py::Test_Debugger_Snapshot_Size_Guardrail: missing_feature (Debugger snapshot size guardrail not implemented yet)
+  tests/debugger/test_debugger_guardrails.py::Test_Debugger_Evaluation_Timeout_Method_Probe:
+    - weblog_declaration:
+        "*": missing_feature
+        *flask : v4.13.0
+  tests/debugger/test_debugger_guardrails.py::Test_Debugger_Snapshot_Size_Guardrail:
+    - weblog_declaration:
+        "*": missing_feature
+        *flask : v2.11.0
+  tests/debugger/test_debugger_inproduct_enablement.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin:
     - weblog_declaration:
         "*": missing_feature
@@ -1360,6 +2079,9 @@ manifest:
       component_version: <4.9.0
   ? tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay::test_inproduct_enablement_exception_replay_apm_multiconfig
   : missing_feature
+  tests/debugger/test_debugger_pii.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction:
     - weblog_declaration:
         "*": missing_feature
@@ -1379,12 +2101,21 @@ manifest:
       weblog: [uds-flask, uwsgi-poc, flask-poc]
   ? tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers::test_pii_redaction_log_probe_sensitive_type
   : bug (DEBUG-5959)
+  tests/debugger/test_debugger_probe_budgets.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets:
     - weblog_declaration:
         "*": missing_feature
         *flask : v2.11.0
-  tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_log_line_capture_expression_budgets: bug (DEBUG-5743)
+  tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_log_line_capture_expression_budgets:
+    - declaration: bug (DEBUG-5743)
+      component_version: <4.12.0
+  tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_per_trace_budget: missing_feature (per-trace snapshot budget of 1 not implemented; tracer uses a time-based budget)
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_span_probe_expression_budgets: irrelevant (Python emits evaluation errors as span tags, not error snapshots to the debugger endpoint)
+  tests/debugger/test_debugger_probe_snapshot.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots:
     - weblog_declaration:
         "*": missing_feature
@@ -1413,6 +2144,9 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         *flask : v2.11.0
+  tests/debugger/test_debugger_probe_status.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses:
     - weblog_declaration:
         "*": missing_feature
@@ -1437,6 +2171,8 @@ manifest:
       component_version: 2.16.0
     - declaration: bug (DEBUG-3127)
       component_version: 2.16.1
+  tests/debugger/test_debugger_snapshot_correlation.py::Test_Debugger_Coordinated_Sampling: missing_feature (no per-trace coordinated sampling; probabilistic per-trace rate not implemented)
+  tests/debugger/test_debugger_snapshot_correlation.py::Test_Debugger_Coordinated_Sampling_Line_Probe: irrelevant (Line-probe variant is only used by Node.js)
   tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb:
     - weblog_declaration:
         "*": missing_feature
@@ -1461,10 +2197,23 @@ manifest:
         django-poc: missing_feature
         tornado: missing_feature
         python3.12: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry: v2.11.0
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry::test_telemetry_co:
     - declaration: missing_feature (DEBUG-3550)
       component_version: <4.3.1
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry::test_telemetry_er:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry::test_telemetry_symdb:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/docker_ssi:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_injection_metadata:
     - declaration: missing_feature (Not implemented yet)
       component_version: <3.11.0
@@ -1483,12 +2232,19 @@ manifest:
   tests/docker_ssi/test_docker_ssi_crash.py::TestDockerSSICrash::test_crash:
     - declaration: bug (INPLAT-603)
       component_version: '>=3.0.0-dev'
+  tests/external_processing:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/ffe:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/ffe/test_agentless_configuration.py:
     - weblog_declaration:
         "*": incomplete_test_app (Agentless configuration E2E enablement is scoped to flask-poc)
         flask-poc: v4.14.0
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_RC_Down_From_Start: v4.0.0
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_RC_Unavailable: flaky (FFL-1622)
+  tests/ffe/test_evaluation_telemetry_opt_out.py: missing_feature (Provisional per-subject evaluation telemetry opt-out coverage; enable after the SDK release)
   tests/ffe/test_exposure_egress.py: v4.2.0-dev
   tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Direct:
     - weblog_declaration:
@@ -1531,8 +2287,12 @@ manifest:
   tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_ObserveFullData_False_Hashed: missing_feature (FFL-2446)
   tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_ObserveFullData_True_Unhashed: missing_feature (FFL-2446)
   tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Runtime_Default: missing_feature (FFL-2446)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_SDK_Identity: v4.16.0
   tests/ffe/test_flag_eval_metrics.py: v4.7.0
   tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Nested_Attributes_Ignored: irrelevant (FFL-1980)
+  tests/integration_frameworks:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/integration_frameworks/llm/anthropic/test_anthropic_ai_guard.py::TestAnthropicAiGuard: v4.11.0
   tests/integration_frameworks/llm/anthropic/test_anthropic_apm.py::TestAnthropicApmMessages: v3.16.0
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages: v3.16.0
@@ -1562,6 +2322,12 @@ manifest:
   tests/integration_frameworks/llm/openai/test_openai_llmobs.py::TestOpenAiLlmInteractions: v3.13.0
   tests/integration_frameworks/llm/openai/test_openai_llmobs.py::TestOpenAiPromptTracking: v4.1.0
   tests/integration_frameworks/llm/openai/test_openai_llmobs.py::TestOpenAiResponses: v4.1.0
+  tests/integrations:
+    - weblog_declaration:
+        aiohttp: v4.16.0  # TODO: a lower version might be supported
+  tests/integrations/crossed_integrations:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka:
     - weblog_declaration:
         "*": irrelevant
@@ -1588,7 +2354,13 @@ manifest:
     - weblog_declaration:
         "*": irrelevant
         flask-poc: v2.6.0
+  tests/integrations/test_cassandra.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/integrations/test_cassandra.py::Test_Cassandra: missing_feature (Endpoint is not implemented on weblog)
+  tests/integrations/test_db_integrations_sql.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/integrations/test_db_integrations_sql.py::Test_MsSql:
     - weblog_declaration:
         "*": missing_feature
@@ -1756,6 +2528,9 @@ manifest:
   tests/integrations/test_db_integrations_sql.py::_BaseDatadogDbIntegrationTestClass::test_db_statement_query: missing_feature (not implemented yet)
   tests/integrations/test_db_integrations_sql.py::_BaseDatadogDbIntegrationTestClass::test_db_type: "irrelevant (\"Python is using the correct span: db.system\")"
   tests/integrations/test_db_integrations_sql.py::_BaseDatadogDbIntegrationTestClass::test_runtime_id: missing_feature (not implemented yet)
+  tests/integrations/test_dbm.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/integrations/test_dbm.py::Test_Dbm:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
@@ -1877,6 +2652,9 @@ manifest:
     - weblog_declaration:
         flask-poc: bug (APMAPI-1058)
         uds-flask: bug (APMAPI-1058)
+  tests/integrations/test_dsm.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/integrations/test_dsm.py::Test_DsmContext_Extraction_Base64:
     - weblog_declaration:
         "*": irrelevant
@@ -1929,6 +2707,9 @@ manifest:
     - weblog_declaration:
         "*": irrelevant
         flask-poc: v2.8.0
+  tests/integrations/test_inferred_proxy.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/integrations/test_inferred_proxy.py::Test_AWS_API_Gateway_Inferred_Span_Creation:
     - weblog_declaration:
         "*": irrelevant
@@ -1947,10 +2728,28 @@ manifest:
         flask-poc: v4.2.0
         uwsgi-poc: v4.2.0
         uds-flask: v4.2.0
+  tests/integrations/test_mongo.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/integrations/test_mongo.py::Test_Mongo: missing_feature (Endpoint is not implemented on weblog)
+  tests/integrations/test_otel_drop_in.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In: missing_feature
+  tests/integrations/test_service_overrides.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/integrations/test_service_overrides.py::Test_SqlServiceNameSource: irrelevant (Only implemented for Java)
+  tests/integrations/test_sql.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/integrations/test_sql.py::Test_Sql: missing_feature (Endpoint is not implemented on weblog)
+  tests/k8s_injector_dev:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/k8s_lib_injection:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/k8s_lib_injection/test_k8s_lib_injection_appsec.py::TestK8sLibInjectionAppsecClusterEnabled: v3.15.0
   tests/k8s_lib_injection/test_k8s_lib_injection_appsec.py::TestK8sLibInjectionAppsecDisabledByDefault: v3.15.0
   ? tests/k8s_lib_injection/test_k8s_lib_injection_profiling.py::TestK8sLibInjectioProfilingClusterEnabled::test_profiling_admission_controller
@@ -1959,6 +2758,12 @@ manifest:
   ? tests/k8s_lib_injection/test_k8s_lib_injection_profiling.py::TestK8sLibInjectioProfilingClusterOverride::test_profiling_override_cluster_env
   : - declaration: bug (APMON-1496)
       component_version: '>2.12.2'
+  tests/otel:
+    - weblog_declaration:
+        aiohttp: v4.16.0  # TODO: a lower version might be supported
+  tests/otel/test_context_propagation.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/otel/test_context_propagation.py::Test_Otel_Context_Propagation_Default_Propagator_Api:
     - weblog_declaration:
         "*": incomplete_test_app (endpoint not implemented)
@@ -1970,13 +2775,31 @@ manifest:
   tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP::test_single_server_trace: v4.15.0
   tests/otel/test_tracing_otlp.py::Test_Otlp_Carries_Ot: v4.15.0-dev
   tests/otel/test_tracing_otlp.py::Test_Otlp_Forwards_Inherited_Ot: v4.15.0-dev
+  tests/otel_postgres_metrics_e2e:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/otel_tracing_e2e:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
-  tests/parametric/otel_env_vars/test_otel_blrp_export_timeout.py::Test_OTEL_BLRP_EXPORT_TIMEOUT: missing_feature
-  tests/parametric/otel_env_vars/test_otel_blrp_max_export_batch_size.py::Test_OTEL_BLRP_MAX_EXPORT_BATCH_SIZE: missing_feature
-  tests/parametric/otel_env_vars/test_otel_blrp_max_queue_size.py::Test_OTEL_BLRP_MAX_QUEUE_SIZE: missing_feature
-  tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY: missing_feature
+  tests/parametric:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/parametric/otel_env_vars/test_otel_blrp_export_timeout.py::Test_OTEL_BLRP_EXPORT_TIMEOUT: '>=4.16.0'  # TODO: a lower version might be supported
+  tests/parametric/otel_env_vars/test_otel_blrp_export_timeout.py::Test_OTEL_BLRP_EXPORT_TIMEOUT::test_invalid_value_is_ignored: missing_feature
+  tests/parametric/otel_env_vars/test_otel_blrp_max_export_batch_size.py::Test_OTEL_BLRP_MAX_EXPORT_BATCH_SIZE: '>=4.16.0'  # TODO: a lower version might be supported
+  ? tests/parametric/otel_env_vars/test_otel_blrp_max_export_batch_size.py::Test_OTEL_BLRP_MAX_EXPORT_BATCH_SIZE::test_invalid_value_is_ignored
+  : missing_feature
+  tests/parametric/otel_env_vars/test_otel_blrp_max_queue_size.py::Test_OTEL_BLRP_MAX_QUEUE_SIZE: '>=4.16.0'  # TODO: a lower version might be supported
+  tests/parametric/otel_env_vars/test_otel_blrp_max_queue_size.py::Test_OTEL_BLRP_MAX_QUEUE_SIZE::test_invalid_value_is_ignored: missing_feature
+  tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY: '>=4.16.0'  # TODO: a lower version might be supported
+  ? tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY::test_default_matches_specification
+  : missing_feature
+  tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY::test_empty_is_treated_as_unset: missing_feature
+  tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY::test_invalid_value_is_ignored: missing_feature
+  tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY::test_zero_value: missing_feature
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_compression.py::Test_OTEL_EXPORTER_OTLP_COMPRESSION: v4.11.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_compression.py::Test_OTEL_EXPORTER_OTLP_COMPRESSION::test_empty: bug (APMAPI-2476)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_compression.py::Test_OTEL_EXPORTER_OTLP_COMPRESSION::test_invalid: bug (APMAPI-2481)
@@ -2126,6 +2949,12 @@ manifest:
       component_version: <4.15.6
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_timeout.py::Test_OTEL_EXPORTER_OTLP_TRACES_TIMEOUT::test_invalid_value_is_ignored
   : incomplete_test_app (/trace/config does not expose the effective OTLP traces timeout)
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL: v4.11.0
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_case_insensitive_values: missing_feature (Only the debug-mode mapping is implemented)
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_default_matches_specification: irrelevant (Datadog inherits the application root logger WARNING default)
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_otel_log_level_env: missing_feature (Only the debug-mode mapping is implemented)
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_stable_values: missing_feature (Only the debug-mode mapping is implemented)
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_warning_threshold_diagnostic: irrelevant (Uses the PHP SDK diagnostic probe)
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER:  # TODO: a lower version might be supported
     - declaration: missing_feature (OTEL_LOGS_EXPORTER does not configure the logs pipeline)
       component_version: <4.15.2
@@ -2148,12 +2977,23 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_metrics_exporter.py::Test_OTEL_METRICS_EXPORTER::test_deprecated_values: missing_feature (Only otlp and none metrics exporters are implemented)
   tests/parametric/otel_env_vars/test_otel_metrics_exporter.py::Test_OTEL_METRICS_EXPORTER::test_development_values: missing_feature (Only otlp and none metrics exporters are implemented)
   tests/parametric/otel_env_vars/test_otel_metrics_exporter.py::Test_OTEL_METRICS_EXPORTER::test_prometheus: missing_feature (Only otlp and none metrics exporters are implemented)
+  tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS: v4.11.0
+  tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS::test_baggage: missing_feature (OTEL_PROPAGATORS does not configure W3C baggage)
+  tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS::test_composite_propagators: missing_feature (OTEL_PROPAGATORS does not configure W3C baggage)
+  tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS::test_default_matches_specification: irrelevant (Datadog intentionally includes the Datadog propagator by default)
+  tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS::test_deprecated_values: missing_feature (Jaeger and OT Trace propagators are not implemented)
+  tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS::test_xray: missing_feature (X-Ray propagation is not implemented)
   tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES: v4.11.0
   tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES::test_percent_encoded_separators: bug (APMAPI-2429)
   ? tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES::test_reserved_attributes_are_mapped
   : v4.15.0
   tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED: v4.11.0
-  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_default_matches_specification: bug (APMAPI-2416)
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_datadog_configuration_takes_precedence: missing_feature (OTEL_SDK_DISABLED is not mapped to DD_TRACE_ENABLED)
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_default_matches_specification: missing_feature (OTEL_SDK_DISABLED is not mapped to DD_TRACE_ENABLED)
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_stable_false: missing_feature (OTEL_SDK_DISABLED is not mapped to DD_TRACE_ENABLED)
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_true_disables_otel_traces: missing_feature (DD_TRACE_OTEL_ENABLED takes precedence over OTEL_SDK_DISABLED)
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_true_disables_tracing: missing_feature (OTEL_SDK_DISABLED is not mapped to DD_TRACE_ENABLED)
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_true_overrides_otel_traces_exporter: missing_feature (OTEL_SDK_DISABLED does not disable OTLP trace export)
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME: v4.11.0
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_default_follows_otel_spec: irrelevant
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_empty_is_treated_as_unset:  # TODO: a lower version might be supported
@@ -2207,6 +3047,8 @@ manifest:
   tests/parametric/test_config_consistency.py::Test_Stable_Config_Default: v3.12.0.dev  # default value of log injection changed in v3.12.0
   tests/parametric/test_config_consistency.py::Test_Stable_Config_Rules: missing_feature
   tests/parametric/test_crashtracking.py::Test_Crashtracking: v2.11.2
+  tests/parametric/test_crashtracking.py::Test_Crashtracking::test_disable_crashtracking_error_tracking: '>=4.15.6'  # TODO: a lower version might be supported
+  tests/parametric/test_crashtracking.py::Test_Crashtracking::test_report_crash_error_tracking: missing_feature
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules: v2.9.0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_trace_sampling_rules_with_tags: '>=4.3.1'  # Modified by easy win activation script
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigTracingEnabled: flaky (APMAPI-734)
@@ -2233,6 +3075,8 @@ manifest:
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart_With_Extract_First: v2.20.0
   tests/parametric/test_ffe/test_configuration_sources.py: v4.14.0-dev
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v4.0.0
+  tests/parametric/test_ffe/test_rules_configuration.py: missing_feature (Standalone rules configuration helpers are currently tested only in Node.js)
+  tests/parametric/test_ffe/test_serial_id_metadata.py: missing_feature
   tests/parametric/test_ffe/test_span_enrichment.py: '>=4.9.0'  # TODO: a lower version might be supported
   tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Child_Span_Propagation: missing_feature
   tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Default_Fallback: missing_feature
@@ -2319,7 +3163,9 @@ manifest:
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats:  # Modified by easy win activation script
     - declaration: missing_feature (failure 2.8.0)
       component_version: <4.3.1
-  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_cardinality_overflow_sentinel_TS017: "missing_feature (CSS v1.2.0 Cardinality Limits: dd-trace-py/libdatadog does not honor DD_TRACE_STATS_*_CARDINALITY_LIMIT nor collapse excess cardinality to the tracer_blocked_value sentinel; all distinct resources are emitted)"
+  tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_cardinality_overflow_sentinel_TS017:  # TODO: a lower version might be supported
+    - declaration: 'missing_feature (CSS v1.2.0 Cardinality Limits: dd-trace-py/libdatadog does not honor DD_TRACE_STATS_*_CARDINALITY_LIMIT nor collapse excess cardinality to the tracer_blocked_value sentinel; all distinct resources are emitted)'
+      component_version: <4.16.0
   tests/parametric/test_library_tracestats.py::Test_Library_Tracestats::test_distinct_aggregationkeys_TS003:  # Created by easy win activation script
     - declaration: missing_feature (failure 2.8.0)
       component_version: <4.12.2
@@ -2362,7 +3208,6 @@ manifest:
   tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability::test_span_links_add: missing_feature  # Created by easy win activation script
   tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability::test_update_resource: missing_feature  # Created by easy win activation script
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: v2.9.0
-  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_log_level_env: missing_feature (DD_LOG_LEVEL is not supported in Python)
   tests/parametric/test_otel_logs.py::Test_FR01_Enable_OTLP_Log_Collection: v3.13.0.dev
   tests/parametric/test_otel_logs.py::Test_FR03_Resource_Attributes: v3.13.0.dev
   tests/parametric/test_otel_logs.py::Test_FR03_Resource_Attributes::test_dd_env_vars_override_otel: missing_feature
@@ -2541,15 +3386,30 @@ manifest:
     - declaration: 'missing_feature (FIXME: library test client sets empty string as the service name)'
       component_version: <4.10.5
   tests/parametric/test_tracer_flare.py::TestTracerFlareV1: v3.12.0.dev
+  tests/remote_config:
+    - weblog_declaration:
+        aiohttp: v4.16.0  # TODO: a lower version might be supported
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationExtraServices:
     - weblog_declaration:
         "*": v2.1.1
         django-py3.13: v3.15.0.dev (v2.1.1 but fixed incompatibility issue with gevent 25.8.2)
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDD: v2.9.0
-  tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDDNoCache: missing_feature
+  tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDDNoCache:
+    - declaration: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeatures: v1.7.4
-  tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
+  tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeaturesNoCache:
+    - declaration: irrelevant (cache is implemented)
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceLiveDebugging: v2.8.0
+  tests/schemas:
+    - weblog_declaration:
+        aiohttp: v4.16.0  # TODO: a lower version might be supported
+  tests/serverless:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_CopyObject:
     - weblog_declaration:
         "*": missing_feature
@@ -2577,6 +3437,9 @@ manifest:
         django-py3.13: v4.3.1  # Modified by easy win activation script
         uds-flask: v4.3.1  # Modified by easy win activation script
         uwsgi-poc: v4.3.1  # Modified by easy win activation script
+  tests/stats:
+    - weblog_declaration:
+        aiohttp: v4.16.0  # TODO: a lower version might be supported
   tests/stats/test_stats.py:
     - weblog_declaration:
         "*": v2.8.0
@@ -2584,7 +3447,10 @@ manifest:
   tests/stats/test_stats.py::Test_Client_Stats::test_client_stats:
     - weblog_declaration:
         "*": v2.8.0
-  tests/stats/test_stats.py::Test_Client_Stats::test_grpc_status_code: missing_feature
+  tests/stats/test_stats.py::Test_Client_Stats::test_grpc_status_code:
+    - declaration: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/stats/test_stats.py::Test_Client_Stats::test_is_trace_root:
     - weblog_declaration:
         "*": v2.8.0
@@ -2598,7 +3464,10 @@ manifest:
   tests/stats/test_stats.py::Test_Client_Stats_Missing_Obfuscation_Version: '>=4.11.0'
   tests/stats/test_stats.py::Test_Client_Stats_Obfuscation_Version_Zero: '>=4.11.0'
   tests/stats/test_stats.py::Test_Client_Stats_With_Client_Obfuscation: '>=4.11.0'
-  tests/stats/test_stats.py::Test_Stats_Service_Source: irrelevant (Only implemented for Java)
+  tests/stats/test_stats.py::Test_Stats_Service_Source:
+    - declaration: irrelevant (Only implemented for Java)
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/stats/test_stats.py::Test_Time_Bucketing::test_client_side_stats_bucket_alignment:  # Modified by easy win activation script
     - weblog_declaration:
         '*': missing_feature
@@ -2610,6 +3479,10 @@ manifest:
         python3.12: '>=4.3.1'
         uds-flask: '>=4.3.1'
         uwsgi-poc: '>=4.3.1'
+        aiohttp: v4.16.0  # TODO: a lower version might be supported
+  tests/test_baggage.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_baggage.py::Test_Baggage_Headers_Api_Datadog:
     - weblog_declaration:
         "*": incomplete_test_app (endpoint not implemented)
@@ -2646,13 +3519,19 @@ manifest:
     - weblog_declaration:
         "*": irrelevant
         fastapi: v2.16.0
-  tests/test_config_consistency.py: v2.0.0
+  tests/test_config_consistency.py:
+    - weblog_declaration:
+        "*": v2.0.0
+        aiohttp: v4.16.0  # TODO: a lower version might be supported
   tests/test_config_consistency.py::Test_Config_ClientIPHeaderEnabled_False: v2.17.3
   tests/test_config_consistency.py::Test_Config_ClientIPHeader_Configured: v2.12.0
   tests/test_config_consistency.py::Test_Config_ClientIPHeader_Precedence: v2.12.0
   tests/test_config_consistency.py::Test_Config_ClientTagQueryString_Configured: v2.15.0
   tests/test_config_consistency.py::Test_Config_ClientTagQueryString_Empty: v2.12.0
-  tests/test_config_consistency.py::Test_Config_HttpClientErrorStatuses_Default: missing_feature
+  tests/test_config_consistency.py::Test_Config_HttpClientErrorStatuses_Default:
+    - declaration: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_config_consistency.py::Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: v3.15.0+dev36.gb57f15308
   tests/test_config_consistency.py::Test_Config_HttpServerErrorStatuses_Default: v2.12.0
   tests/test_config_consistency.py::Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: v2.15.0
@@ -2660,27 +3539,42 @@ manifest:
     - weblog_declaration:
         "*": irrelevant (kafka endpoint is not implemented)
         flask-poc: v2.0.0
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_config_consistency.py::Test_Config_IntegrationEnabled_True:
     - weblog_declaration:
         "*": irrelevant (kafka endpoint is not implemented)
         flask-poc: v2.0.0
-  tests/test_config_consistency.py::Test_Config_LogInjection_128Bit_TraceId_Disabled: irrelevant (python tracer does not support disabling logging 128-bit trace IDs)
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/test_config_consistency.py::Test_Config_LogInjection_128Bit_TraceId_Disabled:
+    - declaration: irrelevant (python tracer does not support disabling logging 128-bit trace IDs)
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_config_consistency.py::Test_Config_LogInjection_128Bit_TraceId_Enabled:
     - weblog_declaration:
         "*": irrelevant (log endpoint is not implemented)
         flask-poc: v3.0.0
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_config_consistency.py::Test_Config_LogInjection_Default_Structured:
     - weblog_declaration:
         "*": irrelevant (log endpoint is not implemented)
         flask-poc: v3.10.0.dev
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_config_consistency.py::Test_Config_LogInjection_Default_Unstructured:
     - weblog_declaration:
         "*": irrelevant (log endpoint is not implemented)
         flask-poc: v3.0.0
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_config_consistency.py::Test_Config_LogInjection_Enabled:
     - weblog_declaration:
         "*": irrelevant (log endpoint is not implemented)
         flask-poc: v3.0.0
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Configured: v2.0.0
   tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Empty: v2.15.0
   tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Empty::test_query_string_obfuscation_empty_server:  # Modified by easy win activation script
@@ -2691,12 +3585,21 @@ manifest:
       excluded_weblog: [fastapi]
   tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Default: v0.30.0
   tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Enabled: v0.30.0
-  tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Enabled_WithRuntimeId: missing_feature
+  tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Enabled_WithRuntimeId:
+    - declaration: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_config_consistency.py::Test_Config_UnifiedServiceTagging_CustomService: v2.0.0
+  tests/test_data_integrity.py:
+    - weblog_declaration:
+        aiohttp: v4.16.0  # TODO: a lower version might be supported
   tests/test_data_integrity.py::Test_LibraryHeaders: v2.7.0
   tests/test_data_integrity.py::Test_TraceHeaders::test_trace_header_container_tags:
     - weblog_declaration:
         tornado: missing_feature
+  tests/test_distributed.py:
+    - weblog_declaration:
+        aiohttp: v4.16.0  # TODO: a lower version might be supported
   tests/test_distributed.py::Test_DistributedHttp:
     - weblog_declaration:
         "*": missing_feature (Missing on weblog)
@@ -2708,12 +3611,26 @@ manifest:
         python3.12: v4.3.1  # Modified by easy win activation script
         uds-flask: v4.3.1  # Modified by easy win activation script
         fastapi: v4.3.1  # Modified by easy win activation script
-  tests/test_distributed.py::Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
-  tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts: v2.17.0
-  tests/test_distributed.py::Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
+        aiohttp: v4.16.0  # TODO: a lower version might be supported
+  tests/test_distributed.py::Test_Span_Links_Flags_From_Conflicting_Contexts:
+    - declaration: missing_feature (implementation specs have not been determined)
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts:
+    - weblog_declaration:
+        '*': '>=2.17.0'
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/test_distributed.py::Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts:
+    - declaration: missing_feature (implementation specs have not been determined)
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_distributed.py::Test_Synthetics_APM_Datadog:
     - weblog_declaration:
         tornado: v4.6.4  # TODO: a lower version might be supported
+  tests/test_graphql.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_graphql.py::Test_GraphQLOperationErrorReporting:
     - weblog_declaration:
         "*": missing_feature
@@ -2725,15 +3642,30 @@ manifest:
   tests/test_identify.py::Test_Basic: v1.5.0-rc1
   tests/test_identify.py::Test_Propagate: v1.9.0
   tests/test_identify.py::Test_Propagate_Legacy: v1.5.0-rc1
+  tests/test_infra_disabled.py:
+    - weblog_declaration:
+        aiohttp: v4.16.0  # TODO: a lower version might be supported
+  tests/test_ipv6.py:
+    - weblog_declaration:
+        aiohttp: v4.16.0  # TODO: a lower version might be supported
+  tests/test_library_conf.py:
+    - weblog_declaration:
+        aiohttp: v4.16.0  # TODO: a lower version might be supported
   tests/test_library_conf.py::Test_ExtractBehavior_Default: v2.20.0
   tests/test_library_conf.py::Test_ExtractBehavior_Ignore: v2.20.0
   tests/test_library_conf.py::Test_ExtractBehavior_Restart: v2.20.0
-  tests/test_library_conf.py::Test_ExtractBehavior_Restart_Otel: missing_feature (OTel extraction endpoint not implemented)
+  tests/test_library_conf.py::Test_ExtractBehavior_Restart_Otel:
+    - declaration: missing_feature (OTel extraction endpoint not implemented)
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_library_conf.py::Test_ExtractBehavior_Restart_With_Extract_First: v2.20.0
   tests/test_library_conf.py::Test_HeaderTags: v0.53
   tests/test_library_conf.py::Test_HeaderTags_Colon_Leading: v1.2.1  # actual version unknown
   tests/test_library_conf.py::Test_HeaderTags_Colon_Trailing: v2.8.0
-  tests/test_library_conf.py::Test_HeaderTags_DynamicConfig: flaky (APMAPI-734)
+  tests/test_library_conf.py::Test_HeaderTags_DynamicConfig:
+    - declaration: flaky (APMAPI-734)
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_library_conf.py::Test_HeaderTags_DynamicConfig::test_tracing_client_http_header_tags_apm_multiconfig: missing_feature (APM_TRACING_MULTICONFIG is not supported in any language yet)
   tests/test_library_conf.py::Test_HeaderTags_Long: v1.2.1
   tests/test_library_conf.py::Test_HeaderTags_Short: v3.15.0+dev36.gb57f15308
@@ -2741,34 +3673,131 @@ manifest:
   tests/test_library_conf.py::Test_HeaderTags_Whitespace_Tag: v3.15.0+dev36.gb57f15308
   tests/test_library_conf.py::Test_HeaderTags_Whitespace_Val_Long: v1.2.1
   tests/test_library_conf.py::Test_HeaderTags_Whitespace_Val_Short: v3.15.0+dev36.gb57f15308
-  tests/test_library_conf.py::Test_HeaderTags_Wildcard_Request_Headers: missing_feature
-  tests/test_library_conf.py::Test_HeaderTags_Wildcard_Response_Headers: missing_feature
+  tests/test_library_conf.py::Test_HeaderTags_Wildcard_Request_Headers:
+    - declaration: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/test_library_conf.py::Test_HeaderTags_Wildcard_Response_Headers:
+    - declaration: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/test_library_logs.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_library_logs.py::Test_NoExceptions::test_dotnet: irrelevant (only for .NET)
   tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)
   tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_Spans_Http_ErrorStatusConfiguration: 4.15.0-dev
+  tests/test_miscs.py:
+    - weblog_declaration:
+        aiohttp: v4.16.0  # TODO: a lower version might be supported
+  tests/test_no_ip_is_reported.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/test_otel_http_semantics.py:
+    - weblog_declaration:
+        aiohttp: v4.16.0  # TODO: a lower version might be supported
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_Spans_Http_ErrorStatusConfiguration:
+    - weblog_declaration:
+        '*': 4.15.0-dev
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   ? tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_Spans_Http_ErrorStatusConfiguration::test_client_error_statuses_config_excludes_500
   : missing_feature (DD_TRACE_HTTP_CLIENT_ERROR_STATUSES support is outside the current Python OTel semantics implementation scope)
   ? tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_Spans_Http_ErrorStatusConfiguration::test_client_error_statuses_config_overrides
   : missing_feature (DD_TRACE_HTTP_CLIENT_ERROR_STATUSES support is outside the current Python OTel semantics implementation scope)
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics: 4.15.0-dev
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics:
+    - weblog_declaration:
+        '*': 4.15.0-dev
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics::test_trace_metric_agrees_with_client_success: missing_feature (libdatadog status.code fix is not merged)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics::test_trace_metric_agrees_with_server_success: missing_feature (libdatadog status.code fix is not merged)
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_SamplingRules: 4.15.0-dev
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client: 4.15.0-dev  # Easy win for django-poc, django-py3.13, fastapi, flask-poc, python3.12, uds-flask, uwsgi-poc and version 4.15.3
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_SamplingRules:
+    - weblog_declaration:
+        '*': 4.15.0-dev
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client:  # Easy win for django-poc, django-py3.13, fastapi, flask-poc, python3.12, uds-flask, uwsgi-poc and version 4.15.3
+    - weblog_declaration:
+        '*': 4.15.0-dev
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server: 4.15.0-dev  # Easy win for django-poc, django-py3.13, fastapi, flask-poc, python3.12, tornado, uds-flask, uwsgi-poc and version 4.15.3
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_http_endpoint_retained_from_appsec: irrelevant (The AppSec endpoint retention request is specific to .NET)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_client_address:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_datadog_attributes_absent:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_http_endpoint_retained_from_appsec:
+    - declaration: irrelevant (The AppSec endpoint retention request is specific to .NET)
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_network_peer_address:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_otel_attributes_present:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_server_address:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_server_port:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_span_name_route_invariance:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_span_name_unknown_method:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_span_name_with_route:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_span_name_without_route:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_status_3xx_is_not_error:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_status_400_is_not_error:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_status_500_no_exception_is_status_code_error:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_url_query_obfuscation:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_url_query_present_with_query_string:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_user_agent:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/test_otel_startup_logs.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs: missing_feature
+  tests/test_otel_tracestate_sampling.py:
+    - weblog_declaration:
+        aiohttp: v4.16.0  # TODO: a lower version might be supported
   tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5: v4.15.0-dev
   tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh: v4.15.0-dev
   tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchanged: v4.15.0-dev
   tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchangedWhenDropped: v4.15.0-dev
   tests/test_otel_tracestate_sampling.py::Test_MalformedOtHandling: v4.15.0-dev
   tests/test_otel_tracestate_sampling.py::Test_PreserveDdAndOtherVendors: v4.15.0-dev
-  tests/test_otel_tracestate_sampling.py::Test_PreserveTracestateMemberOrder: bug (APMAPI-2174)
+  tests/test_otel_tracestate_sampling.py::Test_PreserveTracestateMemberOrder:
+    - declaration: bug (APMAPI-2174)
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_otel_tracestate_sampling.py::Test_SampledWithoutOtNotFabricated: v4.15.0-dev
   tests/test_otel_tracestate_sampling.py::Test_ThOnlyDoesNotFabricateRv: v4.15.0-dev
   tests/test_otel_tracestate_sampling.py::Test_ThOnlyDoesNotFabricateRvWhenDropped: v4.15.0-dev
+  tests/test_otlp_runtime_metrics.py:
+    - weblog_declaration:
+        aiohttp: v4.16.0  # TODO: a lower version might be supported
   tests/test_otlp_runtime_metrics.py::Test_OtlpRuntimeMetrics:  # TODO: a lower version might be supported
     - weblog_declaration:
         '*': missing_feature
@@ -2780,6 +3809,10 @@ manifest:
         uwsgi-poc: '>=4.10.5'
         uds-flask: '>=4.10.5'
         django-py3.13: '>=4.10.5'
+        aiohttp: v4.16.0  # TODO: a lower version might be supported
+  tests/test_profiling.py:
+    - weblog_declaration:
+        aiohttp: v4.16.0  # TODO: a lower version might be supported
   tests/test_profiling.py::Test_Profile:
     - weblog_declaration:
         "*": v0.1  # actual version unknown
@@ -2797,11 +3830,24 @@ manifest:
         django-poc: '>=4.12.2'
         python3.12: '>=4.12.2'
         uwsgi-poc: '>=4.12.2'
+        aiohttp: v4.16.0  # TODO: a lower version might be supported
+  tests/test_resource_renaming.py:
+    - weblog_declaration:
+        aiohttp: v4.16.0  # TODO: a lower version might be supported
   tests/test_resource_renaming.py::Test_Resource_Renaming_HTTP_Endpoint_Tag: v3.17.0
   tests/test_resource_renaming.py::Test_Resource_Renaming_Stats_Aggregation_Keys: v3.17.0
   tests/test_resource_renaming.py::Test_Resource_Renaming_Stats_Aggregation_Keys::test_stats_aggregation_with_method_and_endpoint: v4.5.0
   tests/test_rum_injection.py: irrelevant (RUM injection only supported for Java)
+  tests/test_sampling_manual.py:
+    - weblog_declaration:
+        aiohttp: v4.16.0  # TODO: a lower version might be supported
+  tests/test_sampling_rate_capping.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_sampling_rate_capping.py::Test_SamplingRateCappedIncrease: missing_feature
+  tests/test_sampling_rates.py:
+    - weblog_declaration:
+        aiohttp: v4.16.0  # TODO: a lower version might be supported
   tests/test_sampling_rates.py::Test_SampleRateFunction:
     - weblog_declaration:
         "*": v3.6.0+dev
@@ -2813,17 +3859,28 @@ manifest:
     - weblog_declaration:
         "*": v2.8.0
         tornado: v4.6.4  # TODO: a lower version might be supported
+  tests/test_sampling_rules_agent_rate.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_sampling_rules_agent_rate.py::Test_SamplingRulesAgentRate::test_agent_rate_applies_to_rule_miss: bug (APMAPI-2508)
+  tests/test_scrubbing.py:
+    - weblog_declaration:
+        aiohttp: v4.16.0  # TODO: a lower version might be supported
   tests/test_scrubbing.py::Test_UrlField:
     - weblog_declaration:
         "*": v1.7.1
         fastapi: v2.4.0
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_scrubbing.py::Test_UrlQuery: v1.6.0-rc1
   tests/test_semantic_conventions.py::Test_Meta:
     - weblog_declaration:
         "*": v1.80.0
         django-py3.13: v3.0.0
   tests/test_semantic_conventions.py::Test_MetaDatadogTags: v3.2.0
+  tests/test_span_events.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_span_events.py::Test_SpanEvents_WithAgentSupport:
     - weblog_declaration:
         "*": missing_feature (endpoint not implemented)
@@ -2838,9 +3895,22 @@ manifest:
         flask-poc: v3.0.0
         uds-flask: v4.3.1  # Modified by easy win activation script
         uwsgi-poc: v4.3.1  # Modified by easy win activation script
+  tests/test_standard_tags.py:
+    - weblog_declaration:
+        aiohttp: v4.16.0  # TODO: a lower version might be supported
   tests/test_standard_tags.py::Test_StandardTagsClientIp: v2.7.0
+  tests/test_standard_tags.py::Test_StandardTagsClientIp::test_client_ip_with_appsec_event:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/test_standard_tags.py::Test_StandardTagsClientIp::test_client_ip_with_appsec_event_and_vendor_headers:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_standard_tags.py::Test_StandardTagsMethod: v1.2.1
-  tests/test_standard_tags.py::Test_StandardTagsNetworkClientIp: v4.12.0-rc1
+  tests/test_standard_tags.py::Test_StandardTagsNetworkClientIp:
+    - weblog_declaration:
+        '*': '>=4.12.0-rc1'
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_standard_tags.py::Test_StandardTagsReferrerHostname: v3.4.0
   tests/test_standard_tags.py::Test_StandardTagsRoute:
     - weblog_declaration:
@@ -2850,13 +3920,26 @@ manifest:
   tests/test_standard_tags.py::Test_StandardTagsUrl:
     - weblog_declaration:
         "*": v2.4.0
+  tests/test_standard_tags.py::Test_StandardTagsUrl::test_multiple_matching_substring:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_standard_tags.py::Test_StandardTagsUrl::test_multiple_matching_substring_legacy:
     - declaration: irrelevant (python released the new version at 1.19.0)
       component_version: '>=1.18.0-rc1'
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/test_standard_tags.py::Test_StandardTagsUrl::test_url_with_sensitive_query_string:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_standard_tags.py::Test_StandardTagsUrl::test_url_with_sensitive_query_string_legacy:
     - declaration: irrelevant (python released the new version at 1.19.0)
       component_version: '>=1.18.0-rc1'
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_standard_tags.py::Test_StandardTagsUserAgent: v1.5.0-rc1
+  tests/test_telemetry.py:
+    - weblog_declaration:
+        aiohttp: v4.16.0  # TODO: a lower version might be supported
   tests/test_telemetry.py::Test_DependencyEnable: v2.8.0
   tests/test_telemetry.py::Test_ExtendedHeartbeat: v4.6.5
   tests/test_telemetry.py::Test_Log_Generation:  # Modified by easy win activation script
@@ -2870,6 +3953,7 @@ manifest:
         python3.12: '>=4.3.1'
         uds-flask: '>=4.3.1'
         uwsgi-poc: '>=4.3.1'
+        aiohttp: v4.16.0  # TODO: a lower version might be supported
   tests/test_telemetry.py::Test_Log_Generation::test_log_generation_enabled:  # Created by easy win activation script
     - weblog_declaration:
         tornado: v4.15.2  # TODO: a lower version might be supported
@@ -2891,7 +3975,11 @@ manifest:
         python3.12: '>=4.3.1'
         uds-flask: '>=4.3.1'
         uwsgi-poc: '>=4.3.1'
-  tests/test_telemetry.py::Test_Metric_Generation_Disabled: missing_feature
+        aiohttp: v4.16.0  # TODO: a lower version might be supported
+  tests/test_telemetry.py::Test_Metric_Generation_Disabled:
+    - declaration: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_telemetry.py::Test_Metric_Generation_Enabled:  # Modified by easy win activation script
     - weblog_declaration:
         '*': missing_feature
@@ -2903,6 +3991,7 @@ manifest:
         python3.12: '>=4.3.1'
         uds-flask: '>=4.3.1'
         uwsgi-poc: '>=4.3.1'
+        aiohttp: v4.16.0  # TODO: a lower version might be supported
   tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_general_logs_created:  # Created by easy win activation script
     - weblog_declaration:
         tornado: missing_feature
@@ -2913,6 +4002,10 @@ manifest:
         flask-poc: missing_feature
         fastapi: missing_feature
         django-py3.13: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_telemetry_api_requests:  # Created by easy win activation script
     - weblog_declaration:
         tornado: missing_feature
@@ -2923,6 +4016,10 @@ manifest:
         flask-poc: missing_feature
         fastapi: missing_feature
         django-py3.13: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_telemetry_api_responses:  # Created by easy win activation script
     - weblog_declaration:
         tornado: missing_feature
@@ -2933,6 +4030,10 @@ manifest:
         flask-poc: missing_feature
         fastapi: missing_feature
         django-py3.13: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_spans_created:  # Created by easy win activation script
     - weblog_declaration:
         tornado: v4.6.4  # TODO: a lower version might be supported
@@ -2953,6 +4054,10 @@ manifest:
         flask-poc: missing_feature
         fastapi: missing_feature
         django-py3.13: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_spans_finished:  # Created by easy win activation script
     - weblog_declaration:
         tornado: v4.6.4  # TODO: a lower version might be supported
@@ -2973,6 +4078,10 @@ manifest:
         flask-poc: missing_feature
         fastapi: missing_feature
         django-py3.13: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_segments_closed:  # Created by easy win activation script
     - weblog_declaration:
         tornado: missing_feature
@@ -2983,6 +4092,10 @@ manifest:
         flask-poc: missing_feature
         fastapi: missing_feature
         django-py3.13: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_telemetry.py::Test_Metric_Generation_Enabled::test_metric_tracers_trace_segments_created:  # Created by easy win activation script
     - weblog_declaration:
         tornado: missing_feature
@@ -2993,35 +4106,70 @@ manifest:
         flask-poc: missing_feature
         fastapi: missing_feature
         django-py3.13: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_telemetry.py::Test_ProductsDisabled: v3.4.0
-  tests/test_telemetry.py::Test_ProductsDisabled::test_app_started_product_disabled: missing_feature (feature not implemented)
+  tests/test_telemetry.py::Test_ProductsDisabled::test_app_started_product_disabled:
+    - declaration: missing_feature (feature not implemented)
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_telemetry.py::Test_Telemetry: v1.16.0
-  tests/test_telemetry.py::Test_Telemetry::test_api_still_v1: irrelevant
-  tests/test_telemetry.py::Test_Telemetry::test_app_dependencies_loaded: irrelevant
-  tests/test_telemetry.py::Test_Telemetry::test_app_product_change: missing_feature (Weblog GET/enable_product and app-product-change event is not implemented yet.)
+  tests/test_telemetry.py::Test_Telemetry::test_api_still_v1:
+    - declaration: irrelevant
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/test_telemetry.py::Test_Telemetry::test_app_dependencies_loaded:
+    - declaration: irrelevant
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/test_telemetry.py::Test_Telemetry::test_app_product_change:
+    - declaration: missing_feature (Weblog GET/enable_product and app-product-change event is not implemented yet.)
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_telemetry.py::Test_Telemetry::test_app_started_is_first_message:
     - declaration: flaky (APMAPI-1858)
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_telemetry.py::Test_Telemetry::test_app_started_sent_exactly_once:  # Easy win for fastapi, tornado, uwsgi-poc and version 4.6.4
     - declaration: flaky (APMRP-360)
       component_version: <=1.20.2
     - declaration: bug (APMAPI-1858)
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/test_telemetry.py::Test_Telemetry::test_proxy_forwarding:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_forks:
     - weblog_declaration:
         "*": missing_feature (not implemented yet)
         flask-poc: '>=4.8.0'
         uds-flask: v4.10.6  # TODO: a lower version might be supported
         uwsgi-poc: v4.10.6  # TODO: a lower version might be supported
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_telemetry.py::Test_Telemetry::test_session_id_headers_across_spawned:
     - weblog_declaration:
         "*": missing_feature (spawn_child endpoint not implemented)
         flask-poc: v4.10.6  # TODO: a lower version might be supported
         uds-flask: v4.10.6  # TODO: a lower version might be supported
         uwsgi-poc: v4.10.6  # TODO: a lower version might be supported
-  tests/test_telemetry.py::Test_Telemetry::test_telemetry_message_has_datadog_container_id: "irrelevant (cgroup in weblog is 0::/, so this test can't work)"
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/test_telemetry.py::Test_Telemetry::test_telemetry_message_has_datadog_container_id:
+    - declaration: irrelevant (cgroup in weblog is 0::/, so this test can't work)
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/test_telemetry.py::Test_Telemetry::test_telemetry_proxy_enrichment:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting:
     - weblog_declaration:
         "*": irrelevant
         flask-poc: v3.13.0rc1
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_telemetry.py::Test_TelemetrySCAEnvVar: v3.15.0+dev36.gb57f15308
   tests/test_telemetry.py::Test_TelemetryV2: v1.17.3
   tests/test_telemetry.py::Test_TelemetryV2::test_app_started_product_info:  # Modified by easy win activation script
@@ -3030,4 +4178,10 @@ manifest:
       weblog: [tornado, django-py3.13, fastapi, flask-poc, django-poc, python3.12, uds-flask, uwsgi-poc]
     - declaration: missing_feature (Product started missing in app-started payload)
       excluded_weblog: [tornado, django-py3.13, fastapi, flask-poc, django-poc, python3.12, uds-flask, uwsgi-poc]
+  tests/test_telemetry_heartbeat_utils.py:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/test_the_test:
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/test_v1_payloads.py: missing_feature

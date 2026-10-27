@@ -691,18 +691,22 @@ manifest:
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_multiframe:
     - declaration: bug (DEBUG-2799)
       component_version: <3.10.0
-    - declaration: missing_feature (Static field guard is not released yet)
-  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_20:
+    - declaration: missing_feature (Static field guard)
+      component_version: <3.48.0
+  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_20: irrelevant (.NET captures the entry method on top of the frame limit, see test_exception_replay_recursion_20_entry_frame)
+  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_20_entry_frame:
     - declaration: bug (DEBUG-2799)
-      component_version: <3.10.0
+      component_version: '<3.10.0'
     - declaration: bug (DEBUG-3283)
+      component_version: '<3.36.0'
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_3:
     - declaration: bug (DEBUG-2799)
       component_version: <3.10.0
-  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_5:  # Easy win for poc, uds and version 3.36.0
+  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_5:
     - declaration: bug (DEBUG-2799)
       component_version: <3.10.0
     - declaration: bug (DEBUG-3283)
+      component_version: <3.36.0
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_inlined: bug (DEBUG-3447)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_rockpaperscissors:
     - declaration: bug (DEBUG-2799)
@@ -737,7 +741,9 @@ manifest:
   tests/debugger/test_debugger_guardrails.py::Test_Debugger_Evaluation_Timeout_Line_Probe: irrelevant (Line-probe variant is only used by Node.js and Ruby)
   tests/debugger/test_debugger_guardrails.py::Test_Debugger_Evaluation_Timeout_Method_Probe: v3.52.0
   tests/debugger/test_debugger_guardrails.py::Test_Debugger_Snapshot_Size_Guardrail: v3.52.0
-  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin: bug (DEBUG-4637)
+  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin:
+    - declaration: bug (DEBUG-4637)
+      component_version: '<3.56.0'
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin_Default_On: v3.45.0  # DEBUG-4174: code origin on by default (#8272)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation:  # DEBUG-4637: fix remote enablement (#9344)
     - declaration: bug (DEBUG-4637)
@@ -766,6 +772,7 @@ manifest:
       weblog: [uds, poc]
     - declaration: bug (DEBUG-4746)
       excluded_weblog: [uds, poc]
+  tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_per_trace_budget: missing_feature (per-trace snapshot budget of 1 not implemented)
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_span_probe_expression_budgets: irrelevant (Dotnet emits evaluation errors as span tags, not error snapshots to the debugger endpoint)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots: v2.53.0
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_default_max_length:
@@ -788,6 +795,8 @@ manifest:
     - declaration: bug (DEBUG-5101)
       component_version: '<3.45.0'
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Method_Probe_Statuses: v2.53.0
+  tests/debugger/test_debugger_snapshot_correlation.py::Test_Debugger_Coordinated_Sampling: v3.55.0  # DEBUG-5828: per-trace coordinated snapshot sampling (#9266)
+  tests/debugger/test_debugger_snapshot_correlation.py::Test_Debugger_Coordinated_Sampling_Line_Probe: irrelevant (Line-probe variant is only used by Node.js)
   tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb: v2.53.0
   tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb::test_event_metadata: v3.44.0
   tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb::test_symdb_upload:  # Modified by easy win activation script
@@ -803,7 +812,6 @@ manifest:
       weblog: [uds, poc]
     - declaration: missing_feature (feature not implemented)
       excluded_weblog: [uds, poc]
-  tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry::test_telemetry_er: flaky (DEBUG-3322)
   tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_injection_metadata:
     - declaration: missing_feature (Not implemented yet)
       component_version: <3.22.0
@@ -825,6 +833,8 @@ manifest:
       weblog: [poc, uds]
     - declaration: bug (FFL-2184)
       excluded_weblog: [poc, uds]
+  tests/ffe/test_evaluation_telemetry_opt_out.py: missing_feature (Provisional per-subject evaluation telemetry opt-out coverage; enable after the SDK release)
+  tests/ffe/test_evaluation_telemetry_opt_out.py::Test_FFE_Evaluation_Telemetry_Opt_Out_EVP: missing_feature (Requires a release containing dd-trace-dotnet#9351; FFL-2446)
   tests/ffe/test_exposure_egress.py: v3.36.0
   tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Direct: missing_feature (Not yet implemented)
   tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Direct_Shutdown: missing_feature (Not yet implemented)
@@ -968,6 +978,8 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_endpoint.py::Test_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT: v3.37.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_endpoint.py::Test_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT::test_empty_falls_back_to_global_endpoint
   : bug (APMAPI-2509)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_endpoint.py::Test_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT::test_generic_endpoint_with_base_path
+  : bug (APMAPI-2620)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_headers.py::Test_OTEL_EXPORTER_OTLP_LOGS_HEADERS: v3.37.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_headers.py::Test_OTEL_EXPORTER_OTLP_LOGS_HEADERS::test_empty_falls_back
   : bug (APMAPI-2479)
@@ -1051,6 +1063,12 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_timeout.py::Test_OTEL_EXPORTER_OTLP_TRACES_TIMEOUT: v3.41.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_timeout.py::Test_OTEL_EXPORTER_OTLP_TRACES_TIMEOUT::test_zero_is_unlimited
   : bug (APMAPI-2459)
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL: v3.37.0
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_case_insensitive_values: missing_feature (Only the debug-mode mapping is implemented)
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_invalid_value_emits_warning: bug (APMAPI-2489)
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_otel_log_level_env: missing_feature (Only the debug-mode mapping is implemented)
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_stable_values: missing_feature (Only the debug-mode mapping is implemented)
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_warning_threshold_diagnostic: irrelevant (Uses the PHP SDK diagnostic probe)
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER: v3.37.0
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER::test_console: missing_feature (Only otlp and none exporters are implemented)
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER::test_deprecated_values: missing_feature (Only otlp and none exporters are implemented)
@@ -1068,14 +1086,26 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_metrics_exporter.py::Test_OTEL_METRICS_EXPORTER::test_empty_is_unset: bug (APMAPI-2542)
   tests/parametric/otel_env_vars/test_otel_metrics_exporter.py::Test_OTEL_METRICS_EXPORTER::test_invalid_is_ignored: bug (APMAPI-2542)
   tests/parametric/otel_env_vars/test_otel_metrics_exporter.py::Test_OTEL_METRICS_EXPORTER::test_prometheus: missing_feature (Only otlp and none metrics exporters are implemented)
+  tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS: v3.37.0
+  tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS::test_default_matches_specification: irrelevant (Datadog intentionally includes the Datadog propagator by default)
+  tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS::test_deprecated_values: missing_feature (Jaeger and OT Trace propagators are not implemented)
+  tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS::test_invalid_is_ignored: bug (APMAPI-2489)
+  tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS::test_invalid_value_logs_warning: bug (APMAPI-2489)
+  tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS::test_xray: missing_feature (X-Ray propagation is not implemented)
   tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES: v3.37.0
   tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES::test_invalid_value_is_discarded: bug (APMAPI-2452)
   tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES::test_percent_encoded_separators: bug (APMAPI-2424)
   ? tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES::test_reserved_attributes_are_mapped
   : v3.54.0
   tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED: v3.37.0
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_datadog_configuration_takes_precedence: bug (APMAPI-2417)
   tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_default_matches_specification: bug (APMAPI-2417)
   tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_stable_false: bug (APMAPI-2417)
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_true_disables_otel_logs: bug (APMAPI-2417)
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_true_disables_otel_metrics: bug (APMAPI-2417)
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_true_disables_otel_traces: bug (APMAPI-2417)
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_true_disables_tracing: bug (APMAPI-2417)
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_true_overrides_otel_traces_exporter: bug (APMAPI-2417)
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME: v3.37.0
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_default_follows_otel_spec: irrelevant
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_logs_service_name: v3.53.0
@@ -1120,6 +1150,8 @@ manifest:
   tests/parametric/test_config_consistency.py::Test_Stable_Config_Default::test_unknown_key_skipped: v3.40.0
   tests/parametric/test_config_consistency.py::Test_Stable_Config_Rules: missing_feature
   tests/parametric/test_crashtracking.py::Test_Crashtracking: v3.2.0
+  tests/parametric/test_crashtracking.py::Test_Crashtracking::test_disable_crashtracking_error_tracking: '>=3.55.2'  # TODO: a lower version might be supported
+  tests/parametric/test_crashtracking.py::Test_Crashtracking::test_report_crash_error_tracking: missing_feature
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules: v2.53.2
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_trace_sampling_rules_with_tags:
     - declaration: bug (APMRP-360)
@@ -1172,6 +1204,8 @@ manifest:
       component_version: <3.55.0
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: '>=3.36.0'  # Modified by easy win activation script
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_flag_evaluation: missing_feature  # Created by easy win activation script
+  tests/parametric/test_ffe/test_rules_configuration.py: missing_feature (Standalone rules configuration helpers are currently tested only in Node.js)
+  tests/parametric/test_ffe/test_serial_id_metadata.py: missing_feature
   tests/parametric/test_ffe/test_span_enrichment.py: '>=3.54.0'  # TODO: a lower version might be supported
   tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Child_Span_Propagation: missing_feature
   tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Default_Fallback: missing_feature
@@ -1290,17 +1324,16 @@ manifest:
   tests/parametric/test_llm_observability/: irrelevant (library does not implement LLM Observability)
   tests/parametric/test_otel_api_interoperability.py: missing_feature
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: v2.53.0
-  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_log_level_env: missing_feature (DD_LOG_LEVEL is not supported in .NET)
   tests/parametric/test_otel_logs.py: '>=3.36.0'  # Modified by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR01_Enable_OTLP_Log_Collection::test_otlp_logs_enabled: v3.53.0
-  tests/parametric/test_otel_logs.py::Test_FR03_Resource_Attributes: missing_feature
+  tests/parametric/test_otel_logs.py::Test_FR03_Resource_Attributes: '>=3.56.0'  # TODO: a lower version might be supported
   tests/parametric/test_otel_logs.py::Test_FR04_Trace_Span_IDs: '>=3.54.0'  # Created by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR04_Trace_Span_IDs::test_dd_span_context_injection: missing_feature
   tests/parametric/test_otel_logs.py::Test_FR05_Custom_Endpoints: '>=3.54.0'  # Created by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR07_Host_Name::test_hostname_from_dd_hostname: irrelevant (DD_HOSTNAME is only supported in Python)
   tests/parametric/test_otel_logs.py::Test_FR07_Host_Name::test_hostname_from_otel_resources: '>=3.54.0'  # Created by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR09_Log_Injection: '>=3.54.0'  # Created by easy win activation script
-  tests/parametric/test_otel_logs.py::Test_FR09_Log_Injection::test_log_injection_when_otel_enabled: missing_feature
+  tests/parametric/test_otel_logs.py::Test_FR09_Log_Injection::test_log_injection_when_otel_enabled: '>=3.56.0'  # TODO: a lower version might be supported
   tests/parametric/test_otel_logs.py::Test_FR09_Log_Injection::test_log_without_active_span: missing_feature
   tests/parametric/test_otel_logs.py::Test_FR10_Timeout_Configuration: '>=3.54.0'  # Created by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR11_Telemetry: '>=3.54.0'  # Created by easy win activation script
@@ -1603,39 +1636,18 @@ manifest:
   tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)
   tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_Spans_Http_ErrorStatusConfiguration: v3.52.0
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics: v3.52.0
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics::test_trace_metric_agrees_with_client_success:  # TODO: a lower version might be supported
-    - declaration: missing_feature (successful client trace metrics report OTel OK status instead of leaving status unset)
-      component_version: <3.54.0
-      weblog: [poc, uds]
-    - declaration: missing_feature (successful client trace metrics report OTel OK status instead of leaving status unset)
-      excluded_weblog: [poc, uds]
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics::test_trace_metric_agrees_with_server_success:  # TODO: a lower version might be supported
-    - declaration: missing_feature (successful server trace metrics report OTel OK status instead of leaving status unset)
-      component_version: <3.54.0
-      weblog: [poc, uds]
-    - declaration: missing_feature (successful server trace metrics report OTel OK status instead of leaving status unset)
-      excluded_weblog: [poc, uds]
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_SamplingRules: missing_feature (HTTP server span names use Datadog semantics when sampling rules run)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics: v3.53.0
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_SamplingRules: v3.53.0
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_SamplingRules::test_otel_span_name_is_available_to_sampling_rules: missing_feature
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_SamplingRules::test_server_span_name_is_available_before_client_sampling: missing_feature
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client: v3.52.0
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server:  # TODO: a lower version might be supported
-    - declaration: missing_feature (OTel HTTP server semantics not implemented over OTLP export)
-      component_version: <3.54.0
-      weblog: [poc, uds]
-    - declaration: missing_feature (OTel HTTP server semantics not implemented over OTLP export)
-      excluded_weblog: [poc, uds]
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_http_endpoint_retained_from_appsec:  # TODO: a lower version might be supported
-    - declaration: missing_feature (OTel HTTP server semantics not implemented over OTLP export)
-      component_version: <3.54.0
-      weblog: [poc, uds]
-    - declaration: missing_feature (OTel HTTP server semantics not implemented over OTLP export)
-      excluded_weblog: [poc, uds]
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server: v3.53.0
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_http_endpoint_retained_from_appsec: v3.53.0
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_http_endpoint_retained_from_resource_renaming: irrelevant (The .NET tracer creates http.endpoint from routed AppSec requests)
   tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs: v3.56.0
   tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_configured_value: missing_feature (Some configured settings are unsupported or not reported as uppercase startup fields)
   tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_logs_blrp: irrelevant (The logs batching sink has no export timeout setting)
   tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_otlp_exporter: irrelevant (Only effective signal-specific OTLP settings are reported)
-  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_traces: irrelevant (OTEL_TRACES_SAMPLER_ARG is only reported for ratio sampling)
   tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5: v3.54.0
   tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh: v3.54.0
   tests/test_otel_tracestate_sampling.py::Test_ForwardInboundOtUnchanged: v3.54.0

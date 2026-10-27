@@ -1146,6 +1146,7 @@ manifest:
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_firsthit: missing_feature (Implemented only for dotnet)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_outofmemory: missing_feature (Implemented only for dotnet)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_20: irrelevant (The PHP weblog does not have non-user code, which could serve as boundary)
+  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_20_entry_frame: irrelevant (Only .NET captures the entry method on top of the frame limit)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_inlined: irrelevant (Test for specific bug in dotnet)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_stackoverflow: missing_feature (Implemented only for dotnet)
   tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language:
@@ -1190,6 +1191,7 @@ manifest:
         laravel11x: incomplete_test_app
         symfony7x: incomplete_test_app
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_log_line_capture_expression_budgets: missing_feature
+  tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_per_trace_budget: missing_feature (per-trace snapshot budget of 1 not implemented)
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_span_probe_expression_budgets: irrelevant
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots: missing_feature
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots::test_process_tags_snapshot: missing_feature (Not yet implemented)
@@ -1219,6 +1221,8 @@ manifest:
         apache-mod-8.0: v1.8.3
     - declaration: flaky (DEBUG-3814)
       component_version: '>1.8.3'
+  tests/debugger/test_debugger_snapshot_correlation.py::Test_Debugger_Coordinated_Sampling: missing_feature (no per-trace coordinated sampling; probabilistic per-trace rate not implemented)
+  tests/debugger/test_debugger_snapshot_correlation.py::Test_Debugger_Coordinated_Sampling_Line_Probe: irrelevant (Line-probe variant is only used by Node.js)
   tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb: missing_feature
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry:
     - weblog_declaration:
@@ -1240,6 +1244,7 @@ manifest:
         "*": v1.21.0-dev
         laravel11x: incomplete_test_app
         symfony7x: incomplete_test_app
+  tests/ffe/test_evaluation_telemetry_opt_out.py: incomplete_test_app (Deferred until the PHP OpenFeature test-app foundation is available)
   tests/ffe/test_exposure_egress.py:
     - weblog_declaration:
         "*": v1.21.0-dev
@@ -1253,11 +1258,31 @@ manifest:
         "*": v1.21.0-dev
         laravel11x: incomplete_test_app
         symfony7x: incomplete_test_app
-  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Appears: missing_feature (EX-3425)
-  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Cycle: missing_feature (EX-3425)
-  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Disappears: missing_feature (EX-3425)
+  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Appears:  # TODO: a lower version might be supported
+    - declaration: missing_feature (EX-3425)
+      component_version: <1.26.0
+      weblog: [apache-mod-8.0-zts, apache-mod-7.1-zts, apache-mod-8.0, apache-mod-7.4, php-fpm-7.2, php-fpm-8.1, apache-mod-7.0, apache-mod-7.0-zts, php-fpm-7.0, php-fpm-8.0, php-fpm-8.2, apache-mod-7.2-zts, apache-mod-8.1-zts, apache-mod-7.1, php-fpm-8.5, apache-mod-8.2-zts, php-fpm-7.3, php-fpm-7.4, apache-mod-7.2, apache-mod-7.4-zts, apache-mod-8.2, apache-mod-7.3, apache-mod-8.1, php-fpm-7.1, apache-mod-7.3-zts]
+    - declaration: missing_feature (EX-3425)
+      excluded_weblog: [apache-mod-8.0-zts, apache-mod-7.1-zts, apache-mod-8.0, apache-mod-7.4, php-fpm-7.2, php-fpm-8.1, apache-mod-7.0, apache-mod-7.0-zts, php-fpm-7.0, php-fpm-8.0, php-fpm-8.2, apache-mod-7.2-zts, apache-mod-8.1-zts, apache-mod-7.1, php-fpm-8.5, apache-mod-8.2-zts, php-fpm-7.3, php-fpm-7.4, apache-mod-7.2, apache-mod-7.4-zts, apache-mod-8.2, apache-mod-7.3, apache-mod-8.1, php-fpm-7.1, apache-mod-7.3-zts]
+  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Cycle:  # TODO: a lower version might be supported
+    - declaration: missing_feature (EX-3425)
+      component_version: <1.26.0
+      weblog: [apache-mod-8.0-zts, apache-mod-7.1-zts, apache-mod-8.0, apache-mod-7.4, php-fpm-7.2, php-fpm-8.1, apache-mod-7.0, apache-mod-7.0-zts, php-fpm-7.0, php-fpm-8.0, php-fpm-8.2, apache-mod-7.2-zts, apache-mod-8.1-zts, apache-mod-7.1, php-fpm-8.5, apache-mod-8.2-zts, php-fpm-7.3, php-fpm-7.4, apache-mod-7.2, apache-mod-7.4-zts, apache-mod-8.2, apache-mod-7.3, apache-mod-8.1, php-fpm-7.1, apache-mod-7.3-zts]
+    - declaration: missing_feature (EX-3425)
+      excluded_weblog: [apache-mod-8.0-zts, apache-mod-7.1-zts, apache-mod-8.0, apache-mod-7.4, php-fpm-7.2, php-fpm-8.1, apache-mod-7.0, apache-mod-7.0-zts, php-fpm-7.0, php-fpm-8.0, php-fpm-8.2, apache-mod-7.2-zts, apache-mod-8.1-zts, apache-mod-7.1, php-fpm-8.5, apache-mod-8.2-zts, php-fpm-7.3, php-fpm-7.4, apache-mod-7.2, apache-mod-7.4-zts, apache-mod-8.2, apache-mod-7.3, apache-mod-8.1, php-fpm-7.1, apache-mod-7.3-zts]
+  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Disappears:  # TODO: a lower version might be supported
+    - declaration: missing_feature (EX-3425)
+      component_version: <1.26.0
+      weblog: [apache-mod-8.0-zts, apache-mod-7.1-zts, apache-mod-8.0, apache-mod-7.4, php-fpm-7.2, php-fpm-8.1, apache-mod-7.0, apache-mod-7.0-zts, php-fpm-7.0, php-fpm-8.0, php-fpm-8.2, apache-mod-7.2-zts, apache-mod-8.1-zts, apache-mod-7.1, php-fpm-8.5, apache-mod-8.2-zts, php-fpm-7.3, php-fpm-7.4, apache-mod-7.2, apache-mod-7.4-zts, apache-mod-8.2, apache-mod-7.3, apache-mod-8.1, php-fpm-7.1, apache-mod-7.3-zts]
+    - declaration: missing_feature (EX-3425)
+      excluded_weblog: [apache-mod-8.0-zts, apache-mod-7.1-zts, apache-mod-8.0, apache-mod-7.4, php-fpm-7.2, php-fpm-8.1, apache-mod-7.0, apache-mod-7.0-zts, php-fpm-7.0, php-fpm-8.0, php-fpm-8.2, apache-mod-7.2-zts, apache-mod-8.1-zts, apache-mod-7.1, php-fpm-8.5, apache-mod-8.2-zts, php-fpm-7.3, php-fpm-7.4, apache-mod-7.2, apache-mod-7.4-zts, apache-mod-8.2, apache-mod-7.3, apache-mod-8.1, php-fpm-7.1, apache-mod-7.3-zts]
   tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Events::test_ffe_multiple_remote_config_files: flaky (FFL-2676)
-  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Serial_Id: missing_feature (EX-3425)
+  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Serial_Id:  # TODO: a lower version might be supported
+    - declaration: missing_feature (EX-3425)
+      component_version: <1.26.0
+      weblog: [apache-mod-8.0-zts, apache-mod-7.1-zts, apache-mod-8.0, apache-mod-7.4, php-fpm-7.2, php-fpm-8.1, apache-mod-7.0, apache-mod-7.0-zts, php-fpm-7.0, php-fpm-8.0, php-fpm-8.2, apache-mod-7.2-zts, apache-mod-8.1-zts, apache-mod-7.1, php-fpm-8.5, apache-mod-8.2-zts, php-fpm-7.3, php-fpm-7.4, apache-mod-7.2, apache-mod-7.4-zts, apache-mod-8.2, apache-mod-7.3, apache-mod-8.1, php-fpm-7.1, apache-mod-7.3-zts]
+    - declaration: missing_feature (EX-3425)
+      excluded_weblog: [apache-mod-8.0-zts, apache-mod-7.1-zts, apache-mod-8.0, apache-mod-7.4, php-fpm-7.2, php-fpm-8.1, apache-mod-7.0, apache-mod-7.0-zts, php-fpm-7.0, php-fpm-8.0, php-fpm-8.2, apache-mod-7.2-zts, apache-mod-8.1-zts, apache-mod-7.1, php-fpm-8.5, apache-mod-8.2-zts, php-fpm-7.3, php-fpm-7.4, apache-mod-7.2, apache-mod-7.4-zts, apache-mod-8.2, apache-mod-7.3, apache-mod-8.1, php-fpm-7.1, apache-mod-7.3-zts]
   tests/ffe/test_flag_eval_evp.py: missing_feature (FFL-2446)
   tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Burst_Aggregation: bug (FFL-2676)
   tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Degradation: bug (FFL-2676)
@@ -1385,14 +1410,16 @@ manifest:
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
   tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
   tests/parametric/otel_env_vars/test_otel_blrp_export_timeout.py::Test_OTEL_BLRP_EXPORT_TIMEOUT: v1.23.0
-  tests/parametric/otel_env_vars/test_otel_blrp_export_timeout.py::Test_OTEL_BLRP_EXPORT_TIMEOUT::test_invalid_value_is_ignored: bug (APMAPI-2444)
+  tests/parametric/otel_env_vars/test_otel_blrp_export_timeout.py::Test_OTEL_BLRP_EXPORT_TIMEOUT::test_invalid_value_is_ignored: bug (APMAPI-2444)  # OTel PHP SDK throws instead of using the default, and logs fail to initialize
+  tests/parametric/otel_env_vars/test_otel_blrp_export_timeout.py::Test_OTEL_BLRP_EXPORT_TIMEOUT::test_zero_value: bug (APMAPI-2444)  # OTel PHP SDK rejects 0, and logs fail to initialize
   tests/parametric/otel_env_vars/test_otel_blrp_max_export_batch_size.py::Test_OTEL_BLRP_MAX_EXPORT_BATCH_SIZE: v1.23.0
   ? tests/parametric/otel_env_vars/test_otel_blrp_max_export_batch_size.py::Test_OTEL_BLRP_MAX_EXPORT_BATCH_SIZE::test_invalid_value_is_ignored
-  : bug (APMAPI-2444)
+  : bug (APMAPI-2444)  # OTel PHP SDK throws instead of using the default, and logs fail to initialize
   tests/parametric/otel_env_vars/test_otel_blrp_max_queue_size.py::Test_OTEL_BLRP_MAX_QUEUE_SIZE: v1.23.0
-  tests/parametric/otel_env_vars/test_otel_blrp_max_queue_size.py::Test_OTEL_BLRP_MAX_QUEUE_SIZE::test_invalid_value_is_ignored: bug (APMAPI-2444)
+  tests/parametric/otel_env_vars/test_otel_blrp_max_queue_size.py::Test_OTEL_BLRP_MAX_QUEUE_SIZE::test_invalid_value_is_ignored: bug (APMAPI-2444)  # OTel PHP SDK throws instead of using the default, and logs fail to initialize
   tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY: v1.23.0
-  tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY::test_invalid_value_is_ignored: bug (APMAPI-2444)
+  tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY::test_invalid_value_is_ignored: bug (APMAPI-2444)  # OTel PHP SDK throws instead of using the default, and logs fail to initialize
+  tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY::test_zero_value: bug (APMAPI-2444)  # OTel PHP SDK rejects 0, and logs fail to initialize
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_compression.py::Test_OTEL_EXPORTER_OTLP_COMPRESSION: missing_feature
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_endpoint.py::Test_OTEL_EXPORTER_OTLP_ENDPOINT: v1.23.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_endpoint.py::Test_OTEL_EXPORTER_OTLP_ENDPOINT::test_otlp_custom_endpoint_grpc
@@ -1432,6 +1459,8 @@ manifest:
   : bug (APMAPI-2444)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_compression.py::Test_OTEL_EXPORTER_OTLP_METRICS_COMPRESSION: missing_feature
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_endpoint.py::Test_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: v1.23.0
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_endpoint.py::Test_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT::test_generic_endpoint_with_base_path
+  : v1.26.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_endpoint.py::Test_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT::test_otlp_metrics_custom_endpoint_grpc
   : missing_feature (Does not support grpc)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_headers.py::Test_OTEL_EXPORTER_OTLP_METRICS_HEADERS: v1.23.0
@@ -1481,6 +1510,13 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_headers.py::Test_OTEL_EXPORTER_OTLP_TRACES_HEADERS: missing_feature
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_protocol.py::Test_OTEL_EXPORTER_OTLP_TRACES_PROTOCOL: missing_feature
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_timeout.py::Test_OTEL_EXPORTER_OTLP_TRACES_TIMEOUT: missing_feature
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL: v1.23.0
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_case_insensitive_debug_mapping: irrelevant (Selecting a log level does not enable DD_TRACE_DEBUG)
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_default_matches_specification: irrelevant (Datadog intentionally defaults to error)
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_empty_is_treated_as_unset: bug (APMAPI-2482)
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_invalid_value_emits_warning: bug (APMAPI-2482)
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_invalid_value_is_ignored: bug (APMAPI-2482)
+  tests/parametric/otel_env_vars/test_otel_log_level.py::Test_OTEL_LOG_LEVEL::test_otel_log_level_to_debug_mapping: irrelevant (Selecting a log level does not enable DD_TRACE_DEBUG)
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER: v1.23.0
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER::test_deprecated_values: missing_feature (Deprecated logging exporter is not implemented)
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER::test_invalid: bug (APMAPI-2507)
@@ -1493,6 +1529,12 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_metrics_exporter.py::Test_OTEL_METRICS_EXPORTER::test_invalid_is_ignored: bug (APMAPI-2507)
   tests/parametric/otel_env_vars/test_otel_metrics_exporter.py::Test_OTEL_METRICS_EXPORTER::test_otlp_case_insensitive: bug (APMAPI-2507)
   tests/parametric/otel_env_vars/test_otel_metrics_exporter.py::Test_OTEL_METRICS_EXPORTER::test_prometheus: missing_feature (The prometheus exporter is not implemented)
+  tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS: v1.17.0
+  tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS::test_default_matches_specification: irrelevant (Datadog intentionally includes the Datadog propagator by default)
+  tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS::test_deprecated_values: missing_feature (Jaeger and OT Trace propagators are not implemented)
+  tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS::test_empty_is_treated_as_unset: bug (APMAPI-2541)
+  tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS::test_invalid_is_ignored: bug (APMAPI-2482)
+  tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS::test_xray: missing_feature (X-Ray propagation is not implemented)
   tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES: v1.17.0
   tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES::test_invalid_value_is_discarded: bug (APMAPI-2423)
   tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES::test_percent_encoded_separators: bug (APMAPI-2428)
@@ -1542,6 +1584,8 @@ manifest:
   tests/parametric/test_config_consistency.py::Test_Stable_Config_Default: v1.8.0
   tests/parametric/test_config_consistency.py::Test_Stable_Config_Rules: missing_feature
   tests/parametric/test_crashtracking.py::Test_Crashtracking: v1.3.0
+  tests/parametric/test_crashtracking.py::Test_Crashtracking::test_disable_crashtracking_error_tracking: '>=1.26.0'  # TODO: a lower version might be supported
+  tests/parametric/test_crashtracking.py::Test_Crashtracking::test_report_crash_error_tracking: missing_feature
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules: '>=1.16.0'
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_remote_sampling_rules_retention: missing_feature
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigSamplingRules::test_trace_sampling_rules_override_env: missing_feature
@@ -1583,6 +1627,8 @@ manifest:
   : missing_feature (FFL-2705 tracks PHP agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
   tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Warm_State_Preservation: missing_feature (FFL-2705 tracks PHP agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v1.21.0-dev
+  tests/parametric/test_ffe/test_rules_configuration.py: missing_feature (Standalone rules configuration helpers are currently tested only in Node.js)
+  tests/parametric/test_ffe/test_serial_id_metadata.py: missing_feature
   tests/parametric/test_ffe/test_span_enrichment.py: '>=1.23.3'  # TODO: a lower version might be supported
   tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Child_Span_Propagation: missing_feature
   tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Default_Fallback: missing_feature
@@ -1709,7 +1755,6 @@ manifest:
   tests/parametric/test_llm_observability/: irrelevant (library does not implement LLM Observability)
   tests/parametric/test_otel_api_interoperability.py::Test_Otel_API_Interoperability: v0.94.0
   tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars: v1.1.0
-  tests/parametric/test_otel_env_vars.py::Test_Otel_Env_Vars::test_otel_log_level_to_debug_mapping: irrelevant (PHP uses DD_TRACE_DEBUG to set DD_TRACE_LOG_LEVEL=debug, so it does not do this mapping in the reverse direction)
   tests/parametric/test_otel_logs.py: v1.20.0
   tests/parametric/test_otel_logs.py::Test_FR03_Resource_Attributes: v1.25.0
   tests/parametric/test_otel_logs.py::Test_FR07_Host_Name::test_hostname_from_dd_hostname: irrelevant (DD_HOSTNAME is only supported in Python)

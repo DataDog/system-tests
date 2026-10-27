@@ -1,10 +1,12 @@
+**Deprecated, do not use**
+
 # Backend Interface Validation Methods
 
 This document provides a comprehensive overview of all validation methods available in the `_BackendInterfaceValidator` class. The backend interface validates data by making API calls directly to the Datadog Backend to verify that traces, spans, metrics, and logs have been properly received and processed.
 
 ## Overview
 
-The `_BackendInterfaceValidator` is instantiated as a singleton in `utils/interfaces/__init__.py` and can be accessed as `interfaces.backend` in your test cases. Unlike the library and agent interfaces that validate intercepted messages, the backend interface makes direct API calls to the Datadog backend to verify data has been properly ingested and is available through the platform.
+The `_BackendInterfaceValidator` is instantiated as a singleton in `utils/interfaces/__init__.py` and can be accessed as `interfaces.backend_legacy` in your test cases. Unlike the library and agent interfaces that validate intercepted messages, the backend interface makes direct API calls to the Datadog backend to verify data has been properly ingested and is available through the platform.
 
 ## Key Characteristics
 
@@ -28,11 +30,11 @@ class MyTestClass:
 
     def test_my_validation(self):
         # Verify traces reach the backend
-        traces = interfaces.backend.assert_library_traces_exist(self.r)
+        traces = interfaces.backend_legacy.assert_library_traces_exist(self.r)
         assert len(traces) >= 1
 
         # Verify spans are searchable
-        spans = interfaces.backend.assert_request_spans_exist(
+        spans = interfaces.backend_legacy.assert_request_spans_exist(
             self.r, "service:weblog", min_spans_len=1
         )
         assert len(spans) >= 1
@@ -119,7 +121,7 @@ def test_end_to_end_trace_ingestion(self):
     r = weblog.get("/")
 
     # Verify traces reach backend
-    traces = interfaces.backend.assert_library_traces_exist(r)
+    traces = interfaces.backend_legacy.assert_library_traces_exist(r)
     assert len(traces) == 1
 
     # Verify trace structure
@@ -134,7 +136,7 @@ def test_span_search(self):
     r = weblog.get("/user/123")
 
     # Search for spans with specific resource
-    spans = interfaces.backend.assert_request_spans_exist(
+    spans = interfaces.backend_legacy.assert_request_spans_exist(
         r,
         query_filter="@http.url_details.path:/user/* @http.method:GET",
         min_spans_len=1
@@ -153,7 +155,7 @@ def test_otlp_trace_ingestion(self):
     assert len(otel_trace_ids) == 1
 
     # Verify it reaches the backend
-    trace = interfaces.backend.assert_otlp_trace_exist(r, otel_trace_ids[0])
+    trace = interfaces.backend_legacy.assert_otlp_trace_exist(r, otel_trace_ids[0])
     assert trace is not None
 ```
 
@@ -169,7 +171,7 @@ def test_custom_metric_ingestion(self):
     rid = r.get_rid()
 
     # Query for custom metric
-    series = interfaces.backend.query_timeseries(
+    series = interfaces.backend_legacy.query_timeseries(
         rid=rid,
         start=start_time,
         end=end_time,
@@ -185,7 +187,7 @@ def test_single_span_instrumentation(self):
     r = weblog.get("/single-span-endpoint")
 
     # Verify single spans are created
-    single_spans = interfaces.backend.assert_single_spans_exist(r, min_spans_len=1)
+    single_spans = interfaces.backend_legacy.assert_single_spans_exist(r, min_spans_len=1)
 
     # Validate single span properties
     assert len(single_spans) >= 1
@@ -200,7 +202,7 @@ def test_log_ingestion(self):
     rid = r.get_rid()
 
     # Search for application logs
-    log = interfaces.backend.get_logs(
+    log = interfaces.backend_legacy.get_logs(
         query=f"service:weblog status:info",
         rid=rid
     )
