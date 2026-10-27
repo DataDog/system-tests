@@ -23,6 +23,7 @@ import json
 
 from utils import interfaces, rfc, scenarios, weblog, features
 from utils._weblog import HttpResponse
+from tests.appsec.api_security.utils import get_sampled_response, send_until_schema
 
 
 RFC_LINK = "https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz"
@@ -36,9 +37,11 @@ def get_schema(request: HttpResponse, address: str):
 
 
 def get_meta_blob(request: HttpResponse) -> str:
-    """Return the whole root-span meta serialized, to check a value never leaks anywhere."""
-    span = interfaces.library.get_root_span(request)
-    return json.dumps(span.get("meta", {}))
+    """Return the meta of the request's root spans serialized, to check a value never leaks anywhere.
+
+    Does not require exactly one root span, so it also works on unsampled retry attempts.
+    """
+    return json.dumps([span.get("meta", {}) for _, span in interfaces.library.get_root_spans(request=request)])
 
 
 def _b64url(data: dict) -> str:
@@ -111,11 +114,15 @@ class Test_Schema_Request_Jwt_No_Cookie:
     """request has JWT, no cookie -> jwt schema generated"""
 
     def setup_request_method(self):
-        self.request = weblog.get("/tag_value/api_match_AS001/200", headers={"authorization": f"Bearer {SIMPLE_JWT}"})
+        self.requests = send_until_schema(
+            lambda: weblog.get("/tag_value/api_match_AS001/200", headers={"authorization": f"Bearer {SIMPLE_JWT}"}),
+            "req.jwt",
+        )
 
     def test_request_method(self):
-        assert self.request.status_code == 200
-        jwt = get_schema(self.request, "req.jwt")
+        assert all(r.status_code == 200 for r in self.requests)
+        request = get_sampled_response(self.requests, "req.jwt")
+        jwt = get_schema(request, "req.jwt")
         root = jwt[0]
         # claims are decoded under "payload", with their scalar types
         payload = jwt_payload(jwt)
@@ -135,23 +142,28 @@ class Test_Schema_Request_Jwt_And_Cookie:
     """request has both JWT and cookie -> both schemas generated"""
 
     def setup_request_method(self):
-        self.request = weblog.get(
-            "/tag_value/api_match_AS001/200",
-            headers={"authorization": f"Bearer {SIMPLE_JWT}"},
-            cookies={"session": "any_value"},
+        self.requests = send_until_schema(
+            lambda: weblog.get(
+                "/tag_value/api_match_AS001/200",
+                headers={"authorization": f"Bearer {SIMPLE_JWT}"},
+                cookies={"session": "any_value"},
+            ),
+            "req.jwt",
+            "req.cookies",
         )
 
     def test_request_method(self):
-        assert self.request.status_code == 200
-        jwt = get_schema(self.request, "req.jwt")
-        cookies = get_schema(self.request, "req.cookies")
+        assert all(r.status_code == 200 for r in self.requests)
+        request = get_sampled_response(self.requests, "req.jwt", "req.cookies")
+        jwt = get_schema(request, "req.jwt")
+        cookies = get_schema(request, "req.cookies")
         assert isinstance(cookies, list), f"_dd.appsec.s.req.cookies should be a list, got {cookies}"
         # tolerate frameworks that wrap cookie values as single-element lists
         assert set(cookies[0]) == {"session"}, cookies
         assert base_type(cookies[0]["session"]) == STR, cookies
         assert jwt_payload(jwt)["sub"] == [STR]
         # request cookies must land in req.cookies, not res.cookies (appsec-event-rules#289 typo guard)
-        assert get_schema(self.request, "res.cookies") is None, "request cookies leaked into res.cookies (rules typo)"
+        assert get_schema(request, "res.cookies") is None, "request cookies leaked into res.cookies (rules typo)"
 
 
 @rfc(RFC_LINK)
@@ -166,25 +178,32 @@ class Test_Schema_Request_Auth_Sensitive_Value:
 
     def setup_request_method(self):
         jwt = make_jwt({"sub": "1234567890", "ssn": self.SSN})
-        self.request = weblog.get(
-            "/tag_value/api_match_AS001/200",
-            headers={"authorization": f"Bearer {jwt}"},
-            cookies={"mastercard": self.CARD},
+        self.requests = send_until_schema(
+            lambda: weblog.get(
+                "/tag_value/api_match_AS001/200",
+                headers={"authorization": f"Bearer {jwt}"},
+                cookies={"mastercard": self.CARD},
+            ),
+            "req.jwt",
+            "req.cookies",
         )
 
     def test_request_method(self):
-        assert self.request.status_code == 200
-        cookies = get_schema(self.request, "req.cookies")
+        assert all(r.status_code == 200 for r in self.requests)
+        request = get_sampled_response(self.requests, "req.jwt", "req.cookies")
+        cookies = get_schema(request, "req.cookies")
         # the SSN claim inside the JWT is reported as its type + PII classification, never the value:
         # scanners run on the decoded JWT content.
-        assert jwt_payload(get_schema(self.request, "req.jwt"))["ssn"] == [STR, {"type": "us_ssn", "category": "pii"}]
+        assert jwt_payload(get_schema(request, "req.jwt"))["ssn"] == [STR, {"type": "us_ssn", "category": "pii"}]
         # the card number cookie keeps its key and string type (optionally annotated with payment
         # classification metadata by the scanners), but never the value itself
         assert base_type(cookies[0]["mastercard"]) == STR, cookies
         # and the raw sensitive values must not leak anywhere in the span meta
-        blob = get_meta_blob(self.request)
-        assert self.CARD not in blob, "credit card value leaked into span meta"
-        assert self.SSN not in blob, "SSN value leaked into span meta"
+        # (checked on every attempt, sampled or not)
+        for r in self.requests:
+            blob = get_meta_blob(r)
+            assert self.CARD not in blob, "credit card value leaked into span meta"
+            assert self.SSN not in blob, "SSN value leaked into span meta"
 
 
 @rfc(RFC_LINK)
@@ -194,11 +213,15 @@ class Test_Schema_Request_Jwt_Complex:
     """JWT with a complex nested structure (maps with children, arrays) -> schema generated"""
 
     def setup_request_method(self):
-        self.request = weblog.get("/tag_value/api_match_AS001/200", headers={"authorization": f"Bearer {COMPLEX_JWT}"})
+        self.requests = send_until_schema(
+            lambda: weblog.get("/tag_value/api_match_AS001/200", headers={"authorization": f"Bearer {COMPLEX_JWT}"}),
+            "req.jwt",
+        )
 
     def test_request_method(self):
-        assert self.request.status_code == 200
-        payload = jwt_payload(get_schema(self.request, "req.jwt"))
+        assert all(r.status_code == 200 for r in self.requests)
+        request = get_sampled_response(self.requests, "req.jwt")
+        payload = jwt_payload(get_schema(request, "req.jwt"))
         # array claim: element type + length metadata
         assert payload["scopes"] == [[[STR]], {"len": 2}], payload
         # nested object (map with children), including a child array and a deeper map

@@ -8,7 +8,7 @@ from typing import cast
 
 import requests
 
-from ._backend_ffe import MockedBackendFFEStatus, validate_responses
+from ._backend_ffe import MockedBackendFFEStatus, ResponseFormat, validate_responses
 from ._utils import CONTROL_URL_PREFIX
 
 _FFE_CONTROL_PATH = f"{CONTROL_URL_PREFIX}/ffe"
@@ -24,14 +24,14 @@ class MockedBackendClient:
         response = requests.post(f"{self.base_url}{_FFE_CONTROL_PATH}/reset", timeout=5, verify=self.verify)
         response.raise_for_status()
 
-    def ffe_set_response(self, response_id: str) -> None:
-        self.ffe_set_responses([response_id])
+    def ffe_set_response(self, response_id: str, *, response_format: ResponseFormat = "json") -> None:
+        self.ffe_set_responses([response_id], response_format=response_format)
 
-    def ffe_set_responses(self, responses: object) -> None:
-        validated_responses = validate_responses(responses)
+    def ffe_set_responses(self, responses: object, *, response_format: ResponseFormat = "json") -> None:
+        validated_responses = validate_responses(responses, response_format)
         response = requests.post(
             f"{self.base_url}{_FFE_CONTROL_PATH}/responses",
-            json={"responses": validated_responses},
+            json={"responses": validated_responses, "response_format": response_format},
             timeout=5,
             verify=self.verify,
         )
