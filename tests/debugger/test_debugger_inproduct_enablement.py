@@ -218,7 +218,7 @@ class Test_Debugger_InProduct_Enablement_Code_Origin(debugger.BaseDebuggerTest):
         self.assert_all_weblog_responses_ok()
 
         # Check initial state based on language-specific defaults
-        if context.library in ("nodejs", "dotnet"):
+        if context.library == "nodejs":
             assert self.co_initial_state, "Expected code origin enabled by default"
         else:
             assert not self.co_initial_state, "Expected code origin disabled by default"
