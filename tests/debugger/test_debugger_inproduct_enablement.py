@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import tests.debugger.utils as debugger
-from utils import context, features, logger, remote_config, scenarios, slow, weblog
+from utils import context, features, logger, remote_config, scenarios, slow
 import json
 import time
 
@@ -292,23 +292,23 @@ class Test_Debugger_InProduct_Enablement_Multiconfig_Partial_Update(debugger.Bas
         probe = json.loads(LOG_PROBE_TEMPLATE)
         probe["id"] = debugger.generate_probe_id("log")
         self.set_probes([probe])
+        self.step_probe_ids.append(probe["id"])
         remote_config.tracer_rc_state.set_config(
             f"datadog/2/LIVE_DEBUGGING/logProbe_{probe['id']}/config", self.probe_definitions[0]
         )
 
         self.rc_states.append(remote_config.tracer_rc_state.apply())
-
-        # PHP tracer requires requests to /debugger/* to process RC and resolve probe hooks.
-        if context.library == "php":
-            weblog.get(f"/debugger/init?probes={probe['id']}")
+        self.resolve_php_probes()
 
         self.send_weblog_request("/debugger/log", reset=False)
+        # An ERROR status also ends this wait, so the test checks that each probe reached EMITTING
         return self.wait_for_all_probes(statuses=["EMITTING"], timeout=TIMEOUT)
 
     def setup_inproduct_enablement_multiconfig_partial_update(self):
         self.initialize_weblog_remote_config()
         self.weblog_responses = []
         self.rc_states = []
+        self.step_probe_ids: list[str] = []
         remote_config.tracer_rc_state.reset().apply()
 
         # The wildcard config enables dynamic instrumentation, the service config only sets code origin.
@@ -330,7 +330,13 @@ class Test_Debugger_InProduct_Enablement_Multiconfig_Partial_Update(debugger.Bas
         self.assert_rc_state_not_error()
         self.assert_all_weblog_responses_ok()
 
+        self.collect()
+        statuses = {probe_id: diagnostics["status"] for probe_id, diagnostics in self.probe_diagnostics.items()}
+        first_status, second_status = (statuses.get(probe_id) for probe_id in self.step_probe_ids)
+
         assert self.di_enabled, (
             "Expected probes to be emitting after the wildcard config enabled dynamic instrumentation"
         )
+        assert first_status == "EMITTING", f"Expected the first probe to be EMITTING, got {first_status}"
         assert self.di_kept_enabled, "Expected probes to keep emitting after updating only the service config"
+        assert second_status == "EMITTING", f"Expected the second probe to be EMITTING, got {second_status}"
