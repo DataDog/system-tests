@@ -47,6 +47,9 @@ class MockedBackendServer(MockedBackendServerFfeMixin, MockedBackendServerCore):
     ) -> None:
         """With tls_cert_file (a certificate and its key), it serves HTTPS instead of HTTP: for senders that only speak
         HTTPS to the intake hostnames derived from DD_SITE.
+
+        HTTPS is meant for the mocked backend container (MockedBackendContainer(tls=True)): the certificate covers its
+        hostnames, not host.docker.internal, so the URLs this server advertises to containers can't be verified.
         """
         super().__init__(("0.0.0.0", port), MockBackendV2RequestHandler)  # noqa: S104
         self.scheme = "https" if tls_cert_file else "http"
