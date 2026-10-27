@@ -4992,13 +4992,16 @@ manifest:
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server: v1.68.0
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_http_endpoint_retained_from_appsec: irrelevant (The AppSec endpoint retention request is specific to .NET)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_span_name_route_invariance:
-    - declaration: missing_feature (The root HTTP server span does not capture the route template)
-      component_version: <1.68.0
-      weblog: [akka-http, play]
+    - weblog_declaration:
+        "*": v1.68.0
+        akka-http: missing_feature (The root HTTP server span does not capture the route template)
+        play: missing_feature (The root HTTP server span does not capture the route template)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_span_name_with_route:
-    - declaration: missing_feature (The root HTTP server span does not capture the route template)
-      component_version: <1.68.0
-      weblog: [akka-http, play]
+    - weblog_declaration:
+        "*": v1.68.0
+        akka-http: missing_feature (The root HTTP server span does not capture the route template)
+        play: missing_feature (The root HTTP server span does not capture the route template)
+  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs: missing_feature
   tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5:
     - weblog_declaration:
         "*": v1.67.0-SNAPSHOT
