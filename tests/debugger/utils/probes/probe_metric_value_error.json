@@ -1,0 +1,21 @@
+[
+  {
+    "language": "",
+    "type": "",
+    "id": "",
+    "version": 0,
+    "kind": "GAUGE",
+    "metricName": "system_tests.debugger.metric_value_error",
+    "value": {
+      "dsl": "definitelyDoesNotExist",
+      "json": {
+        "ref": "definitelyDoesNotExist"
+      }
+    },
+    "where": {
+      "typeName": "ACTUAL_TYPE_NAME",
+      "methodName": "MetricProbe",
+      "sourceFile": null
+    }
+  }
+]
