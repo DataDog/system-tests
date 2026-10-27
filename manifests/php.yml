@@ -1171,7 +1171,11 @@ manifest:
   ? tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_comparison_operators
   : '>=1.16.0'
   ? tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_contextual_variables
-  : '>=1.16.0'
+  : - component_version: '<1.16.0'
+      declaration: missing_feature
+    - declaration: bug (DEBUG-6443)
+      component_version: '>=1.27.0-dev'
+      weblog: [apache-mod-7.0-zts, apache-mod-7.1-zts, apache-mod-7.2-zts, apache-mod-7.3-zts, apache-mod-7.4-zts, apache-mod-8.0-zts, apache-mod-8.1-zts, apache-mod-8.2-zts]
   ? tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_logical_operators
   : '>=1.16.0'
   tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language::test_expression_language_nulls_false: '>=1.16.0'
