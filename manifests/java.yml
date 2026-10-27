@@ -287,9 +287,6 @@ manifest:
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         vertx3: v1.51.0-SNAPSHOT
         vertx4: v1.51.0-SNAPSHOT
-  tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Cookies::test_request_method:
-    - declaration: flaky (APPSEC-58008)
-      weblog: [spring-boot-jetty]
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_FormUrlEncoded_Body:
     - weblog_declaration:
         "*": v1.31.0
@@ -316,9 +313,6 @@ manifest:
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         vertx3: v1.51.0-SNAPSHOT
         vertx4: v1.51.0-SNAPSHOT
-  tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Json_Body::test_request_method:
-    - weblog_declaration:
-        vertx4: flaky (APPSEC-71153)
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Path_Parameters:
     - weblog_declaration:
         "*": v1.36.0
@@ -379,9 +373,6 @@ manifest:
         spring-boot: '>=1.66.0'
         resteasy-netty3: '>=1.66.0'
         spring-boot-payara: '>=1.66.0'
-  tests/appsec/api_security/test_schemas_auth.py::Test_Schema_Request_Auth_Sensitive_Value::test_request_method:
-    - weblog_declaration:
-        resteasy-netty3: flaky (APPSEC-70616)
   tests/appsec/api_security_testing/test_headers_collection.py::Test_SecurityTestingHeaders:
     - weblog_declaration:
         "*": v1.63.0
@@ -3180,6 +3171,7 @@ manifest:
         spring-boot-openliberty: missing_feature
         spring-boot-jetty: missing_feature
         spring-boot-payara: missing_feature
+  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_20_entry_frame: irrelevant (Only .NET captures the entry method on top of the frame limit)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_3:
     - declaration: bug (DEBUG-3285)
       component_version: <1.46.0
@@ -4985,10 +4977,38 @@ manifest:
         akka-http: irrelevant (integration injects Date header after bytecode injection occurs)
         play: irrelevant (integration injects Date header after bytecode injection occurs)
   tests/test_library_logs.py::Test_NoExceptions::test_dotnet: irrelevant (only for .NET)
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_Spans_Http_ErrorStatusConfiguration: missing_feature (OTLP export of OTel HTTP semantics not implemented)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_Spans_Http_ErrorStatusConfiguration:  # TODO: a lower version might be supported
+    - declaration: missing_feature (OTLP export of OTel HTTP semantics not implemented)
+      component_version: <1.68.0
+      weblog: [spring-boot-payara, vertx4, spring-boot-wildfly, ratpack, jersey-grizzly2, spring-boot-undertow, vertx3, spring-boot-openliberty, spring-boot-jetty, play, spring-boot, resteasy-netty3, akka-http]
+    - declaration: missing_feature (OTLP export of OTel HTTP semantics not implemented)
+      excluded_weblog: [spring-boot-payara, vertx4, spring-boot-wildfly, ratpack, jersey-grizzly2, spring-boot-undertow, vertx3, spring-boot-openliberty, spring-boot-jetty, play, spring-boot, resteasy-netty3, akka-http]
   tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics: missing_feature (OTLP export of OTel HTTP semantics not implemented)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_SamplingRules: missing_feature (OTLP export of OTel HTTP semantics not implemented)
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client:  # TODO: a lower version might be supported
+    - declaration: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+      component_version: <1.68.0
+      weblog: [spring-boot-payara, vertx4, spring-boot-wildfly, ratpack, jersey-grizzly2, spring-boot-undertow, vertx3, spring-boot-openliberty, spring-boot-jetty, play, spring-boot, resteasy-netty3, akka-http]
+    - declaration: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+      excluded_weblog: [spring-boot-payara, vertx4, spring-boot-wildfly, ratpack, jersey-grizzly2, spring-boot-undertow, vertx3, spring-boot-openliberty, spring-boot-jetty, play, spring-boot, resteasy-netty3, akka-http]
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client::test_span_name_unknown_method:
+    - weblog_declaration:
+        spring-boot-openliberty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        resteasy-netty3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-wildfly: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-undertow: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        vertx3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-jetty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        akka-http: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        jersey-grizzly2: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot-payara: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        vertx4: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        ratpack: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        play: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client::test_status_3xx_not_error:
+    - weblog_declaration:
+        play: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server:  # TODO: a lower version might be supported
     - declaration: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
       component_version: <1.65.1
@@ -4997,261 +5017,261 @@ manifest:
       excluded_weblog: [spring-boot-openliberty, spring-boot-wildfly, spring-boot-jetty, vertx4, akka-http, ratpack, resteasy-netty3, spring-boot, jersey-grizzly2, vertx3, spring-boot-payara, play, spring-boot-undertow, uds-spring-boot]
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_client_address:
     - weblog_declaration:
-        ratpack: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-payara: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-jetty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        jersey-grizzly2: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-openliberty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        vertx3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-wildfly: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        resteasy-netty3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-undertow: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        vertx4: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        akka-http: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        play: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        ratpack: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-payara: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-jetty: v1.68.0  # TODO: a lower version might be supported
+        jersey-grizzly2: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-openliberty: v1.68.0  # TODO: a lower version might be supported
+        vertx3: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-wildfly: v1.68.0  # TODO: a lower version might be supported
+        resteasy-netty3: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-undertow: v1.68.0  # TODO: a lower version might be supported
+        vertx4: v1.68.0  # TODO: a lower version might be supported
+        akka-http: v1.68.0  # TODO: a lower version might be supported
+        play: v1.68.0  # TODO: a lower version might be supported
         uds-spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot: v1.68.0  # TODO: a lower version might be supported
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_datadog_attributes_absent:
     - weblog_declaration:
-        ratpack: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-payara: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-jetty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        jersey-grizzly2: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-openliberty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        vertx3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-wildfly: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        resteasy-netty3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-undertow: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        vertx4: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        akka-http: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        play: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        ratpack: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-payara: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-jetty: v1.68.0  # TODO: a lower version might be supported
+        jersey-grizzly2: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-openliberty: v1.68.0  # TODO: a lower version might be supported
+        vertx3: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-wildfly: v1.68.0  # TODO: a lower version might be supported
+        resteasy-netty3: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-undertow: v1.68.0  # TODO: a lower version might be supported
+        vertx4: v1.68.0  # TODO: a lower version might be supported
+        akka-http: v1.68.0  # TODO: a lower version might be supported
+        play: v1.68.0  # TODO: a lower version might be supported
         uds-spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot: v1.68.0  # TODO: a lower version might be supported
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_http_endpoint_retained_from_appsec: irrelevant (The AppSec endpoint retention request is specific to .NET)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_network_peer_address:
     - weblog_declaration:
-        ratpack: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-payara: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-jetty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        jersey-grizzly2: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-openliberty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        vertx3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-wildfly: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        resteasy-netty3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-undertow: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        vertx4: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        akka-http: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        play: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        ratpack: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-payara: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-jetty: v1.68.0  # TODO: a lower version might be supported
+        jersey-grizzly2: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-openliberty: v1.68.0  # TODO: a lower version might be supported
+        vertx3: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-wildfly: v1.68.0  # TODO: a lower version might be supported
+        resteasy-netty3: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-undertow: v1.68.0  # TODO: a lower version might be supported
+        vertx4: v1.68.0  # TODO: a lower version might be supported
+        akka-http: v1.68.0  # TODO: a lower version might be supported
+        play: v1.68.0  # TODO: a lower version might be supported
         uds-spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot: v1.68.0  # TODO: a lower version might be supported
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_otel_attributes_present:
     - weblog_declaration:
-        ratpack: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-payara: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-jetty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        jersey-grizzly2: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-openliberty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        vertx3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-wildfly: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        resteasy-netty3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-undertow: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        vertx4: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        akka-http: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        play: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        ratpack: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-payara: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-jetty: v1.68.0  # TODO: a lower version might be supported
+        jersey-grizzly2: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-openliberty: v1.68.0  # TODO: a lower version might be supported
+        vertx3: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-wildfly: v1.68.0  # TODO: a lower version might be supported
+        resteasy-netty3: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-undertow: v1.68.0  # TODO: a lower version might be supported
+        vertx4: v1.68.0  # TODO: a lower version might be supported
+        akka-http: v1.68.0  # TODO: a lower version might be supported
+        play: v1.68.0  # TODO: a lower version might be supported
         uds-spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot: v1.68.0  # TODO: a lower version might be supported
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_server_address:
     - weblog_declaration:
-        ratpack: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-payara: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-jetty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        jersey-grizzly2: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-openliberty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        vertx3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-wildfly: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        resteasy-netty3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-undertow: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        vertx4: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        akka-http: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        play: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        ratpack: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-payara: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-jetty: v1.68.0  # TODO: a lower version might be supported
+        jersey-grizzly2: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-openliberty: v1.68.0  # TODO: a lower version might be supported
+        vertx3: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-wildfly: v1.68.0  # TODO: a lower version might be supported
+        resteasy-netty3: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-undertow: v1.68.0  # TODO: a lower version might be supported
+        vertx4: v1.68.0  # TODO: a lower version might be supported
+        akka-http: v1.68.0  # TODO: a lower version might be supported
+        play: v1.68.0  # TODO: a lower version might be supported
         uds-spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot: v1.68.0  # TODO: a lower version might be supported
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_server_port:
     - weblog_declaration:
-        ratpack: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-payara: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-jetty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        jersey-grizzly2: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-openliberty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        vertx3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-wildfly: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        resteasy-netty3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-undertow: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        vertx4: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        akka-http: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        play: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        ratpack: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-payara: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-jetty: v1.68.0  # TODO: a lower version might be supported
+        jersey-grizzly2: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-openliberty: v1.68.0  # TODO: a lower version might be supported
+        vertx3: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-wildfly: v1.68.0  # TODO: a lower version might be supported
+        resteasy-netty3: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-undertow: v1.68.0  # TODO: a lower version might be supported
+        vertx4: v1.68.0  # TODO: a lower version might be supported
+        akka-http: v1.68.0  # TODO: a lower version might be supported
+        play: v1.68.0  # TODO: a lower version might be supported
         uds-spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot: v1.68.0  # TODO: a lower version might be supported
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_span_name_route_invariance:
     - weblog_declaration:
-        ratpack: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-payara: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-jetty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        jersey-grizzly2: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-openliberty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        vertx3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-wildfly: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        resteasy-netty3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-undertow: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        vertx4: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        ratpack: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-payara: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-jetty: v1.68.0  # TODO: a lower version might be supported
+        jersey-grizzly2: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-openliberty: v1.68.0  # TODO: a lower version might be supported
+        vertx3: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-wildfly: v1.68.0  # TODO: a lower version might be supported
+        resteasy-netty3: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-undertow: v1.68.0  # TODO: a lower version might be supported
+        vertx4: v1.68.0  # TODO: a lower version might be supported
         akka-http: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
         play: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
         uds-spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot: v1.68.0  # TODO: a lower version might be supported
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_span_name_unknown_method:
     - weblog_declaration:
-        ratpack: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-payara: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-jetty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        jersey-grizzly2: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-openliberty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        vertx3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-wildfly: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        resteasy-netty3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-undertow: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        vertx4: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        ratpack: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-payara: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-jetty: v1.68.0  # TODO: a lower version might be supported
+        jersey-grizzly2: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-openliberty: v1.68.0  # TODO: a lower version might be supported
+        vertx3: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-wildfly: v1.68.0  # TODO: a lower version might be supported
+        resteasy-netty3: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-undertow: v1.68.0  # TODO: a lower version might be supported
+        vertx4: v1.68.0  # TODO: a lower version might be supported
         akka-http: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
         play: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
         uds-spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot: v1.68.0  # TODO: a lower version might be supported
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_span_name_with_route:
     - weblog_declaration:
-        ratpack: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-payara: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-jetty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        jersey-grizzly2: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-openliberty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        vertx3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-wildfly: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        resteasy-netty3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-undertow: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        vertx4: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        ratpack: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-payara: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-jetty: v1.68.0  # TODO: a lower version might be supported
+        jersey-grizzly2: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-openliberty: v1.68.0  # TODO: a lower version might be supported
+        vertx3: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-wildfly: v1.68.0  # TODO: a lower version might be supported
+        resteasy-netty3: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-undertow: v1.68.0  # TODO: a lower version might be supported
+        vertx4: v1.68.0  # TODO: a lower version might be supported
         akka-http: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
         play: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
         uds-spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot: v1.68.0  # TODO: a lower version might be supported
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_span_name_without_route:
     - weblog_declaration:
-        ratpack: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-payara: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-jetty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        jersey-grizzly2: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-openliberty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        vertx3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-wildfly: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        resteasy-netty3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-undertow: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        vertx4: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        akka-http: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        play: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        ratpack: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-payara: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-jetty: v1.68.0  # TODO: a lower version might be supported
+        jersey-grizzly2: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-openliberty: v1.68.0  # TODO: a lower version might be supported
+        vertx3: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-wildfly: v1.68.0  # TODO: a lower version might be supported
+        resteasy-netty3: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-undertow: v1.68.0  # TODO: a lower version might be supported
+        vertx4: v1.68.0  # TODO: a lower version might be supported
+        akka-http: v1.68.0  # TODO: a lower version might be supported
+        play: v1.68.0  # TODO: a lower version might be supported
         uds-spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot: v1.68.0  # TODO: a lower version might be supported
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_status_3xx_is_not_error:
     - weblog_declaration:
-        ratpack: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-payara: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-jetty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        jersey-grizzly2: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-openliberty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        vertx3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-wildfly: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        resteasy-netty3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-undertow: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        vertx4: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        akka-http: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        play: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        ratpack: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-payara: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-jetty: v1.68.0  # TODO: a lower version might be supported
+        jersey-grizzly2: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-openliberty: v1.68.0  # TODO: a lower version might be supported
+        vertx3: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-wildfly: v1.68.0  # TODO: a lower version might be supported
+        resteasy-netty3: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-undertow: v1.68.0  # TODO: a lower version might be supported
+        vertx4: v1.68.0  # TODO: a lower version might be supported
+        akka-http: v1.68.0  # TODO: a lower version might be supported
+        play: v1.68.0  # TODO: a lower version might be supported
         uds-spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot: v1.68.0  # TODO: a lower version might be supported
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_status_400_is_not_error:
     - weblog_declaration:
-        ratpack: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-payara: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-jetty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        jersey-grizzly2: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-openliberty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        vertx3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-wildfly: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        resteasy-netty3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-undertow: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        vertx4: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        akka-http: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        play: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        ratpack: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-payara: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-jetty: v1.68.0  # TODO: a lower version might be supported
+        jersey-grizzly2: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-openliberty: v1.68.0  # TODO: a lower version might be supported
+        vertx3: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-wildfly: v1.68.0  # TODO: a lower version might be supported
+        resteasy-netty3: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-undertow: v1.68.0  # TODO: a lower version might be supported
+        vertx4: v1.68.0  # TODO: a lower version might be supported
+        akka-http: v1.68.0  # TODO: a lower version might be supported
+        play: v1.68.0  # TODO: a lower version might be supported
         uds-spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot: v1.68.0  # TODO: a lower version might be supported
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_status_500_no_exception_is_status_code_error:
     - weblog_declaration:
-        ratpack: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-payara: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-jetty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        jersey-grizzly2: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-openliberty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        vertx3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-wildfly: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        resteasy-netty3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-undertow: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        vertx4: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        akka-http: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        play: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        ratpack: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-payara: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-jetty: v1.68.0  # TODO: a lower version might be supported
+        jersey-grizzly2: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-openliberty: v1.68.0  # TODO: a lower version might be supported
+        vertx3: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-wildfly: v1.68.0  # TODO: a lower version might be supported
+        resteasy-netty3: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-undertow: v1.68.0  # TODO: a lower version might be supported
+        vertx4: v1.68.0  # TODO: a lower version might be supported
+        akka-http: v1.68.0  # TODO: a lower version might be supported
+        play: v1.68.0  # TODO: a lower version might be supported
         uds-spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot: v1.68.0  # TODO: a lower version might be supported
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_url_query_obfuscation:
     - weblog_declaration:
-        ratpack: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-payara: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-jetty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        jersey-grizzly2: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-openliberty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        vertx3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-wildfly: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        resteasy-netty3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-undertow: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        vertx4: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        akka-http: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        play: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        ratpack: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-payara: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-jetty: v1.68.0  # TODO: a lower version might be supported
+        jersey-grizzly2: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-openliberty: v1.68.0  # TODO: a lower version might be supported
+        vertx3: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-wildfly: v1.68.0  # TODO: a lower version might be supported
+        resteasy-netty3: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-undertow: v1.68.0  # TODO: a lower version might be supported
+        vertx4: v1.68.0  # TODO: a lower version might be supported
+        akka-http: v1.68.0  # TODO: a lower version might be supported
+        play: v1.68.0  # TODO: a lower version might be supported
         uds-spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot: v1.68.0  # TODO: a lower version might be supported
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_url_query_present_with_query_string:
     - weblog_declaration:
-        ratpack: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-payara: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-jetty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        jersey-grizzly2: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-openliberty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        vertx3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-wildfly: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        resteasy-netty3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-undertow: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        vertx4: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        akka-http: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        play: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        ratpack: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-payara: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-jetty: v1.68.0  # TODO: a lower version might be supported
+        jersey-grizzly2: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-openliberty: v1.68.0  # TODO: a lower version might be supported
+        vertx3: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-wildfly: v1.68.0  # TODO: a lower version might be supported
+        resteasy-netty3: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-undertow: v1.68.0  # TODO: a lower version might be supported
+        vertx4: v1.68.0  # TODO: a lower version might be supported
+        akka-http: v1.68.0  # TODO: a lower version might be supported
+        play: v1.68.0  # TODO: a lower version might be supported
         uds-spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot: v1.68.0  # TODO: a lower version might be supported
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_user_agent:
     - weblog_declaration:
-        ratpack: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-payara: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-jetty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        jersey-grizzly2: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-openliberty: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        vertx3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-wildfly: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        resteasy-netty3: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot-undertow: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        vertx4: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        akka-http: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        play: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        ratpack: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-payara: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-jetty: v1.68.0  # TODO: a lower version might be supported
+        jersey-grizzly2: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-openliberty: v1.68.0  # TODO: a lower version might be supported
+        vertx3: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-wildfly: v1.68.0  # TODO: a lower version might be supported
+        resteasy-netty3: v1.68.0  # TODO: a lower version might be supported
+        spring-boot-undertow: v1.68.0  # TODO: a lower version might be supported
+        vertx4: v1.68.0  # TODO: a lower version might be supported
+        akka-http: v1.68.0  # TODO: a lower version might be supported
+        play: v1.68.0  # TODO: a lower version might be supported
         uds-spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        spring-boot: v1.68.0  # TODO: a lower version might be supported
   tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs: missing_feature
   tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5:
     - weblog_declaration:
