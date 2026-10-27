@@ -163,9 +163,9 @@ class Test_SCA_Reachability_CVE_After_Vulnerable_Call:
     def setup_cve_metadata_after_vulnerable_call(self) -> None:
         self.r0 = weblog.get("/")
         self.r1 = weblog.get("/sca/vulnerable-call")
-        assert self.r1.status_code == 200
 
     def test_cve_metadata_after_vulnerable_call(self) -> None:
+        assert self.r1.status_code == 200
         cve_entries = _get_dependency_cve_metadata(_vulnerable_dep(), _cve_id())
         assert len(cve_entries) >= 1, f"{_cve_id()} not found in {_vulnerable_dep()} metadata"
 
@@ -203,11 +203,11 @@ class Test_SCA_Reachability_First_Hit_Wins:
     def setup_same_cve_first_hit_wins(self) -> None:
         self.r0 = weblog.get("/")
         self.r1 = weblog.get("/sca/vulnerable-call")
-        assert self.r1.status_code == 200
         self.r2 = weblog.get("/sca/vulnerable-call-alt")
-        assert self.r2.status_code == 200
 
     def test_same_cve_first_hit_wins(self) -> None:
+        assert self.r1.status_code == 200
+        assert self.r2.status_code == 200
         cve_entries = _get_dependency_cve_metadata(_vulnerable_dep(), _cve_id())
         assert len(cve_entries) >= 1, f"{_cve_id()} not found in {_vulnerable_dep()} metadata"
 
@@ -253,10 +253,11 @@ class Test_SCA_Reachability_Deduplication:
 
     def setup_deduplication_repeated_calls(self) -> None:
         self.r0 = weblog.get("/")
-        for _ in range(5):
-            assert weblog.get("/sca/vulnerable-call").status_code == 200
+        self.responses = [weblog.get("/sca/vulnerable-call") for _ in range(5)]
 
     def test_deduplication_repeated_calls(self) -> None:
+        for response in self.responses:
+            assert response.status_code == 200
         cve_entries = _get_dependency_cve_metadata(_vulnerable_dep(), _cve_id())
         assert len(cve_entries) >= 1, f"{_cve_id()} not found in {_vulnerable_dep()} metadata"
 
