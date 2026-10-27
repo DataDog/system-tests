@@ -14,7 +14,12 @@ from typing import TYPE_CHECKING, Any
 import yaml
 
 from utils.const import COMPONENT_GROUPS
-from utils._context._scenarios import scenario_groups as all_scenario_groups, scenarios, get_all_scenarios, Scenario
+from utils._context._scenarios import (
+    scenario_groups as all_scenario_groups,
+    scenarios,
+    get_all_scenarios,
+    Scenario,
+)
 from utils._logger import logger
 from utils.manifest import Manifest
 
@@ -45,7 +50,7 @@ LIBRARIES = COMPONENT_GROUPS.all - COMPONENT_GROUPS.otel
 OTEL_LIBRARIES = COMPONENT_GROUPS.otel - {"nodejs_otel"}  # nodejs_otel intentionally excluded
 ALL_LIBRARIES = LIBRARIES | OTEL_LIBRARIES
 GITHUB_EXCLUDED_LIBRARIES = {"c"}
-GITLAB_PR_LIBRARIES = {"c"}
+GITLAB_PR_LIBRARIES = {"c", "python"}
 GITLAB_MAIN = {"python"}
 
 
@@ -361,7 +366,10 @@ class Inputs:
         # Gets the raw pattern matching data that maps file to impacted
         # libraries/scenario groups
 
-        default_param = Param(".*", {"libraries": LIBRARIES, "scenario_groups": all_scenario_groups.all.name})
+        default_param = Param(
+            ".*",
+            {"libraries": LIBRARIES, "scenario_groups": all_scenario_groups.all.name},
+        )
         self.impacts: dict[str, Param] = OrderedDict()
 
         with open(self.mapping_file, "r", encoding="utf-8") as file:
