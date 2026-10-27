@@ -1072,6 +1072,10 @@ manifest:
         "*": v1.19.0
         laravel11x: incomplete_test_app
         symfony7x: incomplete_test_app
+  ? tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions::test_method_local_capture_expressions
+  : - declaration: bug (DEBUG-6443)
+      component_version: '>=1.27.0-dev'
+      weblog: [apache-mod-7.0-zts, apache-mod-7.1-zts, apache-mod-7.2-zts, apache-mod-7.3-zts, apache-mod-7.4-zts, apache-mod-8.0-zts, apache-mod-8.1-zts, apache-mod-8.2-zts]
   ? tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions::test_method_parameter_capture_expressions
   : - declaration: bug (DEBUG-6443)
       component_version: '>=1.27.0-dev'
