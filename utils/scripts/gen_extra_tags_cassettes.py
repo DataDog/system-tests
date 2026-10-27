@@ -12,9 +12,9 @@ member names:
       struct under the key exactly as returned.
 
 The backend owns the ai_guard prefix and the namespace, so tracers never add the prefix or filter
-keys. The first entry the backend sends is the evaluation ID (the same value as data.id), as
-ai_guard.evaluate_id in extra_tags and as evaluate_id in extra_metastruct. A malformed field or
-entry is skipped and never changes the evaluation.
+keys. The backend sends the evaluation ID (the same value as data.id) only in extra_tags, as
+ai_guard.evaluate_id; extra_metastruct is empty, and so omitted, in today's responses. A malformed
+field or entry is skipped and never changes the evaluation.
 
 The backend does not return these attributes in the recorded cassettes, so this script writes them
 by hand, reusing the request hashing and rendering of gen_redaction_cassettes.py, and writes
@@ -60,12 +60,9 @@ def _kv(**entries: object) -> list[dict]:
     return [{"key": key, "value": value} for key, value in entries.items()]
 
 
-def _evaluate_id_entries(name: str) -> tuple[list[dict], list[dict]]:
-    evaluation_id = _evaluation_id(name)
-    return (
-        [{"key": "ai_guard.evaluate_id", "value": evaluation_id}],
-        [{"key": "evaluate_id", "value": evaluation_id}],
-    )
+def _evaluate_id_tag(name: str) -> list[dict]:
+    """The extra_tags entry carrying the evaluation ID, the only place the backend sends it."""
+    return [{"key": "ai_guard.evaluate_id", "value": _evaluation_id(name)}]
 
 
 # Every scenario produces one cassette and one sidecar entry:
@@ -84,24 +81,25 @@ SCENARIOS: dict[str, dict] = {
         "tags": [],
         "extra_tags": _kv(**{"ai_guard.policy_name": "newsroom-default", "ai_guard.policy_revision": "7"}),
     },
+    # The illustrative extra_metastruct from the backend contract: an object, an array of objects and
+    # a scalar. No null anywhere and no boolean directly inside an array, shapes the backend avoids
+    # and that some tracers' meta struct encoders drop.
     "EXTRA_METASTRUCT": {
         "messages": [{"role": "user", "content": "Draft a headline for the city council budget story."}],
         "action": "ALLOW",
         "tags": [],
         "extra_metastruct": _kv(
-            request_context={"desk": "metro", "region": "us-east", "priority": 2},
-            matched_rules=["style-guide", "embargo-check"],
-            policy_rules=[{"id": "sourcing", "enabled": True}, {"id": "attribution", "enabled": False}],
-            policy_score=0.25,
-            policy_name="newsroom-default",
+            policy_match={"rule": "credit_card", "categories": ["pii", "financial"]},
+            matched_rules=[{"id": "r1", "action": "DENY"}, {"id": "r2", "action": "ALLOW"}],
+            policy_version="v3",
         ),
     },
+    # Mirrors today's backend response: the evaluation ID in extra_tags only, no extra_metastruct.
     "EVALUATE_ID": {
         "messages": [{"role": "user", "content": "Which sources did the election explainer cite?"}],
         "action": "ALLOW",
         "tags": [],
-        "extra_tags": _evaluate_id_entries("EVALUATE_ID")[0] + _kv(**{"ai_guard.policy_name": "elections-2026"}),
-        "extra_metastruct": _evaluate_id_entries("EVALUATE_ID")[1] + _kv(policy={"name": "elections-2026"}),
+        "extra_tags": _evaluate_id_tag("EVALUATE_ID"),
     },
     # The backend guarantees every extra_tags key is in the ai_guard namespace; the tracer must not
     # double check it. A key outside the namespace still lands verbatim, which is what proves the
@@ -128,9 +126,8 @@ SCENARIOS: dict[str, dict] = {
         ],
         "action": "DENY",
         "tags": ["destructive-tool-call"],
-        "extra_tags": _evaluate_id_entries("ON_DENY")[0] + _kv(**{"ai_guard.policy_name": "destructive-actions"}),
-        "extra_metastruct": _evaluate_id_entries("ON_DENY")[1]
-        + _kv(policy_details={"rule": "no-recursive-delete", "severity": "high"}),
+        "extra_tags": _evaluate_id_tag("ON_DENY") + _kv(**{"ai_guard.policy_name": "destructive-actions"}),
+        "extra_metastruct": _kv(policy_details={"rule": "no-recursive-delete", "severity": "high"}),
     },
     # extra_tags in the map shape of the first draft of the contract: ignored as a whole, while the
     # well-formed extra_metastruct next to it is still applied.
@@ -155,8 +152,9 @@ SCENARIOS: dict[str, dict] = {
         "skipped_tags": [],
     },
     # Each malformed entry is skipped on its own: the well-formed entries around it still land.
-    # extra_tags only carries strings, so a number or an object there is skipped too, and never
-    # rerouted to the meta struct.
+    # extra_tags only carries strings, so a number, a boolean or an object there is skipped too, and
+    # never rerouted to the meta struct. A null extra_metastruct value is skipped, and a non-string or
+    # empty key is never stringified or kept.
     "MALFORMED_ENTRIES": {
         "messages": [{"role": "user", "content": "When does the weekend magazine go to print?"}],
         "action": "ALLOW",
@@ -169,6 +167,7 @@ SCENARIOS: dict[str, dict] = {
             {"key": "", "value": "empty key"},
             {"key": "ai_guard.policy_revision", "value": 7},
             {"key": "ai_guard.policy_details", "value": {"rule": "embargo-check"}},
+            {"key": "ai_guard.policy_enforced", "value": True},
             {"key": "ai_guard.policy_name", "value": "newsroom-default"},
         ],
         "extra_metastruct": [
@@ -176,11 +175,12 @@ SCENARIOS: dict[str, dict] = {
             {"value": {"name": "missing key"}},
             {"key": 1, "value": {"name": "integer key"}},
             {"key": "", "value": {"name": "empty key"}},
+            {"key": "policy_note", "value": None},
             {"key": "policy", "value": {"name": "newsroom-default"}},
         ],
         "expected_tags": {"ai_guard.policy_name": "newsroom-default"},
         "expected_metastruct": {"policy": {"name": "newsroom-default"}},
-        "skipped_tags": ["ai_guard.policy_revision", "ai_guard.policy_details"],
+        "skipped_tags": ["ai_guard.policy_revision", "ai_guard.policy_details", "ai_guard.policy_enforced", "1", ""],
     },
 }
 

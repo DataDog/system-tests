@@ -15,8 +15,8 @@
   },
   "headers": {
    "content-type": "application/vnd.api+json",
-   "content-length": "901"
+   "content-length": "828"
   },
-  "body": "{\"data\": {\"id\": \"55e3505d-93eb-5171-8166-90c709865d83\", \"type\": \"evaluations\", \"attributes\": {\"action\": \"DENY\", \"is_blocking_enabled\": true, \"reason\": \"Destructive tool call detected.\", \"sds_findings\": [], \"tag_probs\": {\"authority-override\": 0.0, \"data-exfiltration\": 0.0, \"denial-of-service-tool-call\": 0.0, \"destructive-tool-call\": 0.97, \"indirect-prompt-injection\": 0.0, \"instruction-override\": 0.0, \"jailbreak\": 0.0, \"obfuscation\": 0.0, \"role-play\": 0.0, \"security-exploit\": 0.0, \"system-prompt-extraction\": 0.0}, \"tags\": [\"destructive-tool-call\"], \"extra_tags\": [{\"key\": \"ai_guard.evaluate_id\", \"value\": \"55e3505d-93eb-5171-8166-90c709865d83\"}, {\"key\": \"ai_guard.policy_name\", \"value\": \"destructive-actions\"}], \"extra_metastruct\": [{\"key\": \"evaluate_id\", \"value\": \"55e3505d-93eb-5171-8166-90c709865d83\"}, {\"key\": \"policy_details\", \"value\": {\"rule\": \"no-recursive-delete\", \"severity\": \"high\"}}]}}}"
+  "body": "{\"data\": {\"id\": \"55e3505d-93eb-5171-8166-90c709865d83\", \"type\": \"evaluations\", \"attributes\": {\"action\": \"DENY\", \"is_blocking_enabled\": true, \"reason\": \"Destructive tool call detected.\", \"sds_findings\": [], \"tag_probs\": {\"authority-override\": 0.0, \"data-exfiltration\": 0.0, \"denial-of-service-tool-call\": 0.0, \"destructive-tool-call\": 0.97, \"indirect-prompt-injection\": 0.0, \"instruction-override\": 0.0, \"jailbreak\": 0.0, \"obfuscation\": 0.0, \"role-play\": 0.0, \"security-exploit\": 0.0, \"system-prompt-extraction\": 0.0}, \"tags\": [\"destructive-tool-call\"], \"extra_tags\": [{\"key\": \"ai_guard.evaluate_id\", \"value\": \"55e3505d-93eb-5171-8166-90c709865d83\"}, {\"key\": \"ai_guard.policy_name\", \"value\": \"destructive-actions\"}], \"extra_metastruct\": [{\"key\": \"policy_details\", \"value\": {\"rule\": \"no-recursive-delete\", \"severity\": \"high\"}}]}}}"
  }
 }

@@ -39,65 +39,53 @@
     "tags": [],
     "extra_metastruct": [
       {
-        "key": "request_context",
+        "key": "policy_match",
         "value": {
-          "desk": "metro",
-          "region": "us-east",
-          "priority": 2
+          "rule": "credit_card",
+          "categories": [
+            "pii",
+            "financial"
+          ]
         }
       },
       {
         "key": "matched_rules",
         "value": [
-          "style-guide",
-          "embargo-check"
-        ]
-      },
-      {
-        "key": "policy_rules",
-        "value": [
           {
-            "id": "sourcing",
-            "enabled": true
+            "id": "r1",
+            "action": "DENY"
           },
           {
-            "id": "attribution",
-            "enabled": false
+            "id": "r2",
+            "action": "ALLOW"
           }
         ]
       },
       {
-        "key": "policy_score",
-        "value": 0.25
-      },
-      {
-        "key": "policy_name",
-        "value": "newsroom-default"
+        "key": "policy_version",
+        "value": "v3"
       }
     ],
     "expected_tags": {},
     "expected_metastruct": {
-      "request_context": {
-        "desk": "metro",
-        "region": "us-east",
-        "priority": 2
+      "policy_match": {
+        "rule": "credit_card",
+        "categories": [
+          "pii",
+          "financial"
+        ]
       },
       "matched_rules": [
-        "style-guide",
-        "embargo-check"
-      ],
-      "policy_rules": [
         {
-          "id": "sourcing",
-          "enabled": true
+          "id": "r1",
+          "action": "DENY"
         },
         {
-          "id": "attribution",
-          "enabled": false
+          "id": "r2",
+          "action": "ALLOW"
         }
       ],
-      "policy_score": 0.25,
-      "policy_name": "newsroom-default"
+      "policy_version": "v3"
     },
     "skipped_tags": [],
     "cassette": "aiguard_evaluate_post_827d1449.json"
@@ -116,34 +104,12 @@
       {
         "key": "ai_guard.evaluate_id",
         "value": "9c9036fc-d7a1-5d5e-bcb3-7d62cc9fa218"
-      },
-      {
-        "key": "ai_guard.policy_name",
-        "value": "elections-2026"
-      }
-    ],
-    "extra_metastruct": [
-      {
-        "key": "evaluate_id",
-        "value": "9c9036fc-d7a1-5d5e-bcb3-7d62cc9fa218"
-      },
-      {
-        "key": "policy",
-        "value": {
-          "name": "elections-2026"
-        }
       }
     ],
     "expected_tags": {
-      "ai_guard.evaluate_id": "9c9036fc-d7a1-5d5e-bcb3-7d62cc9fa218",
-      "ai_guard.policy_name": "elections-2026"
+      "ai_guard.evaluate_id": "9c9036fc-d7a1-5d5e-bcb3-7d62cc9fa218"
     },
-    "expected_metastruct": {
-      "evaluate_id": "9c9036fc-d7a1-5d5e-bcb3-7d62cc9fa218",
-      "policy": {
-        "name": "elections-2026"
-      }
-    },
+    "expected_metastruct": {},
     "skipped_tags": [],
     "cassette": "aiguard_evaluate_post_2b336647.json"
   },
@@ -218,10 +184,6 @@
     ],
     "extra_metastruct": [
       {
-        "key": "evaluate_id",
-        "value": "55e3505d-93eb-5171-8166-90c709865d83"
-      },
-      {
         "key": "policy_details",
         "value": {
           "rule": "no-recursive-delete",
@@ -234,7 +196,6 @@
       "ai_guard.policy_name": "destructive-actions"
     },
     "expected_metastruct": {
-      "evaluate_id": "55e3505d-93eb-5171-8166-90c709865d83",
       "policy_details": {
         "rule": "no-recursive-delete",
         "severity": "high"
@@ -341,6 +302,10 @@
         }
       },
       {
+        "key": "ai_guard.policy_enforced",
+        "value": true
+      },
+      {
         "key": "ai_guard.policy_name",
         "value": "newsroom-default"
       }
@@ -365,6 +330,10 @@
         }
       },
       {
+        "key": "policy_note",
+        "value": null
+      },
+      {
         "key": "policy",
         "value": {
           "name": "newsroom-default"
@@ -381,7 +350,10 @@
     },
     "skipped_tags": [
       "ai_guard.policy_revision",
-      "ai_guard.policy_details"
+      "ai_guard.policy_details",
+      "ai_guard.policy_enforced",
+      "1",
+      ""
     ],
     "cassette": "aiguard_evaluate_post_19cfc9ce.json"
   }

@@ -1390,14 +1390,23 @@ class Test_ExtraTags:
         self.scenario, self.r = _post_extra_tags_scenario("EVALUATE_ID")
 
     def test_evaluate_id(self):
-        """The evaluation ID lands as ai_guard.evaluate_id and as evaluate_id, correlating the span with the backend."""
+        """The evaluation ID lands only as the ai_guard.evaluate_id tag, correlating the span with the backend."""
         assert self.r.status_code == 200
         evaluation_id = self.scenario["evaluation_id"]
-        assert self.scenario["expected_tags"]["ai_guard.evaluate_id"] == evaluation_id
-        assert self.scenario["expected_metastruct"]["evaluate_id"] == evaluation_id
-        interfaces.library.validate_one_span(
-            self.r, validator=_assert_extra_tags_applied(self.scenario), full_trace=True
-        )
+        assert self.scenario["expected_tags"] == {"ai_guard.evaluate_id": evaluation_id}
+        assert self.scenario["expected_metastruct"] == {}
+        extra_tags_validator = _assert_extra_tags_applied(self.scenario)
+
+        def validate(span: DataDogLibrarySpan):
+            if not extra_tags_validator(span):
+                return False
+            _assert_key(span["meta"], "ai_guard.evaluate_id", evaluation_id)
+            ai_guard = _assert_key(span["meta_struct"], "ai_guard")
+            for key in ("evaluate_id", "ai_guard.evaluate_id"):
+                assert key not in ai_guard, f"The evaluation ID must not be in the ai_guard meta struct: {ai_guard}"
+            return True
+
+        interfaces.library.validate_one_span(self.r, validator=validate, full_trace=True)
 
     def setup_keys_not_prefixed_or_filtered(self):
         self.scenario, self.r = _post_extra_tags_scenario("KEYS_VERBATIM")
