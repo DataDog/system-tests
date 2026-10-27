@@ -192,7 +192,7 @@ class _VirtualMachineScenario(Scenario):
                 value
                 for item in session.items
                 for key, value in item.user_properties
-                if key == "dd_tags[test.final_status]"
+                if key == "dd_tags[systest.case.outcome]"
             ]
             provision_failed = self.vm_provider.vm.provision_install_error is not None
             self.vm_provider.promote_booted_candidate(

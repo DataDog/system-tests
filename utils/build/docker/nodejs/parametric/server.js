@@ -585,6 +585,28 @@ app.post("/trace/otel/otel_set_baggage", (req, res) => {
 });
 
 // Feature Flag & Experimentation endpoints
+app.post('/ffe/fetch-rules-configuration', (req, res) => {
+  const { execFile } = require('node:child_process')
+  const path = require('node:path')
+  const env = { ...process.env }
+  // The helper must work without the parent server's tracer or preload hooks.
+  delete env.NODE_OPTIONS
+  execFile(process.execPath, [path.join(__dirname, 'ffe-rules-configuration.js'), JSON.stringify(req.body)], {
+    env,
+    timeout: 10000
+  }, (error, stdout, stderr) => {
+    if (error) {
+      console.error('Standalone FFE helper failed:', stderr || error)
+      return res.status(500).json({ error: 'Standalone FFE helper failed' })
+    }
+    try {
+      res.json(JSON.parse(stdout))
+    } catch (error) {
+      res.status(500).json({ error: 'Invalid standalone FFE helper output' })
+    }
+  })
+})
+
 app.post('/ffe/start', async (req, res) => {
   const hasFeatureFlaggingConfiguration = [
     'DD_FEATURE_FLAGS_ENABLED',

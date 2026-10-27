@@ -4,6 +4,7 @@
 
 from utils import interfaces, rfc, scenarios, weblog, features, logger
 from utils._weblog import HttpResponse
+from tests.appsec.api_security.utils import send_until_schema, get_sampled_response
 from types import EllipsisType
 
 
@@ -53,12 +54,13 @@ class Test_Schema_Request_Headers:
     """Test API Security - Request Headers Schema"""
 
     def setup_request_method(self):
-        self.request = weblog.get("/tag_value/api_match_AS001/200")
+        self.requests = send_until_schema(lambda: weblog.get("/tag_value/api_match_AS001/200"), "req.headers")
 
     def test_request_method(self):
         """Can provide request header schema"""
-        schema = get_schema(self.request, "req.headers")
-        assert self.request.status_code == 200
+        assert all(r.status_code == 200 for r in self.requests)
+        request = get_sampled_response(self.requests, "req.headers")
+        schema = get_schema(request, "req.headers")
         assert schema
         assert isinstance(schema, list)
         for parameter_name in ("accept-encoding", "host", "user-agent"):
@@ -74,14 +76,18 @@ class Test_Schema_Request_Cookies:
     """Test API Security - Request Cookies Schema"""
 
     def setup_request_method(self):
-        self.request = weblog.get(
-            "/tag_value/api_match_AS001/200", cookies={"secret": "any_value", "cache": "any_other_value"}
+        self.requests = send_until_schema(
+            lambda: weblog.get(
+                "/tag_value/api_match_AS001/200", cookies={"secret": "any_value", "cache": "any_other_value"}
+            ),
+            "req.cookies",
         )
 
     def test_request_method(self):
         """Can provide request header schema"""
-        schema = get_schema(self.request, "req.cookies")
-        assert self.request.status_code == 200
+        assert all(r.status_code == 200 for r in self.requests)
+        request = get_sampled_response(self.requests, "req.cookies")
+        schema = get_schema(request, "req.cookies")
         assert schema
         assert isinstance(schema, list)
         for parameter_name in ("secret", "cache"):
@@ -97,12 +103,16 @@ class Test_Schema_Request_Query_Parameters:
     """Test API Security - Request Query Parameters Schema"""
 
     def setup_request_method(self):
-        self.request = weblog.get("/tag_value/api_match_AS002/200?x=123&y=abc&z=%7B%22key%22%3A%22value%22%7D")
+        self.requests = send_until_schema(
+            lambda: weblog.get("/tag_value/api_match_AS002/200?x=123&y=abc&z=%7B%22key%22%3A%22value%22%7D"),
+            "req.query",
+        )
 
     def test_request_method(self):
         """Can provide request query parameters schema"""
-        schema = get_schema(self.request, "req.query")
-        assert self.request.status_code == 200
+        assert all(r.status_code == 200 for r in self.requests)
+        request = get_sampled_response(self.requests, "req.query")
+        schema = get_schema(request, "req.query")
         assert schema
         assert isinstance(schema, list)
         for parameter_name in ("x", "y", "z"):
@@ -118,12 +128,13 @@ class Test_Schema_Request_Path_Parameters:
     """Test API Security - Request Path Parameters Schema"""
 
     def setup_request_method(self):
-        self.request = weblog.get("/tag_value/api_match_AS003/200")
+        self.requests = send_until_schema(lambda: weblog.get("/tag_value/api_match_AS003/200"), "req.params")
 
     def test_request_method(self):
         """Can provide request path parameters schema"""
-        schema = get_schema(self.request, "req.params")
-        assert self.request.status_code == 200
+        assert all(r.status_code == 200 for r in self.requests)
+        request = get_sampled_response(self.requests, "req.params")
+        schema = get_schema(request, "req.params")
         assert schema
         assert isinstance(schema, list)
 
@@ -144,12 +155,15 @@ class Test_Schema_Request_Json_Body:
             "main": [{"key": "id001", "value": 1345.67}, {"value": 1567.89, "key": "id002"}],
             "nullable": None,
         }
-        self.request = weblog.post("/tag_value/api_match_AS004/200", json=payload)
+        self.requests = send_until_schema(
+            lambda: weblog.post("/tag_value/api_match_AS004/200", json=payload), "req.body"
+        )
 
     def test_request_method(self):
         """Can provide request request body schema"""
-        schema = get_schema(self.request, "req.body")
-        assert self.request.status_code == 200
+        assert all(r.status_code == 200 for r in self.requests)
+        request = get_sampled_response(self.requests, "req.body")
+        schema = get_schema(request, "req.body")
         assert contains(schema, [{"main": [[[{"key": [8], "value": [16]}]], {"len": 2}], "nullable": [1]}])
 
 
@@ -161,21 +175,25 @@ class Test_Schema_Request_FormUrlEncoded_Body:
     """Test API Security - Request Body and list length"""
 
     def setup_request_method(self):
-        self.request = weblog.post(
-            "/tag_value/api_match_AS004/200",
-            data={
-                "main[0][key]": "id001",
-                "main[0][value]": 1345,
-                "main[1][key]": "id002",
-                "main[1][value]": 1567,
-                "nullable": "",
-            },
+        self.requests = send_until_schema(
+            lambda: weblog.post(
+                "/tag_value/api_match_AS004/200",
+                data={
+                    "main[0][key]": "id001",
+                    "main[0][value]": 1345,
+                    "main[1][key]": "id002",
+                    "main[1][value]": 1567,
+                    "nullable": "",
+                },
+            ),
+            "req.body",
         )
 
     def test_request_method(self):
         """Can provide request request body schema"""
-        schema = get_schema(self.request, "req.body")
-        assert self.request.status_code == 200
+        assert all(r.status_code == 200 for r in self.requests)
+        request = get_sampled_response(self.requests, "req.body")
+        schema = get_schema(request, "req.body")
         assert (
             contains(schema, [{"main": [[[{"key": [8], "value": [8]}]], {"len": 2}], "nullable": [8]}])
             or contains(schema, [{"main": [[[{"key": [8], "value": [16]}]], {"len": 2}], "nullable": [1]}])
@@ -202,12 +220,15 @@ class Test_Schema_Response_Headers:
     """Test API Security - Response Header Schema"""
 
     def setup_request_method(self):
-        self.request = weblog.get("/tag_value/api_match_AS005/200?X-option=test_value")
+        self.requests = send_until_schema(
+            lambda: weblog.get("/tag_value/api_match_AS005/200?X-option=test_value"), "res.headers"
+        )
 
     def test_request_method(self):
         """Can provide response header schema"""
-        schema = get_schema(self.request, "res.headers")
-        assert self.request.status_code == 200
+        assert all(r.status_code == 200 for r in self.requests)
+        request = get_sampled_response(self.requests, "res.headers")
+        schema = get_schema(request, "res.headers")
         assert isinstance(schema, list)
         assert len(schema) == 1
         assert isinstance(schema[0], dict)
@@ -222,16 +243,20 @@ class Test_Schema_Response_Body:
     """Test API Security - Response Body Schema with urlencoded body"""
 
     def setup_request_method(self):
-        self.request = weblog.post(
-            "/tag_value/payload_in_response_body_001/200",
-            data={"test_int": 1, "test_str": "anything", "test_bool": True, "test_float": 1.5234},
+        self.requests = send_until_schema(
+            lambda: weblog.post(
+                "/tag_value/payload_in_response_body_001/200",
+                data={"test_int": 1, "test_str": "anything", "test_bool": True, "test_float": 1.5234},
+            ),
+            "res.body",
         )
 
     def test_request_method(self):
         """Can provide response body schema"""
-        assert self.request.status_code == 200
+        assert all(r.status_code == 200 for r in self.requests)
 
-        schema = get_schema(self.request, "res.body")
+        request = get_sampled_response(self.requests, "res.body")
+        schema = get_schema(request, "res.body")
         assert isinstance(schema, list), f"_dd.appsec.s.res.body meta tag should be a list, got {schema}"
         assert len(schema) == 1, f"{schema} is not a list of length 1"
         for key in ("payload",):
@@ -251,9 +276,12 @@ class Test_Schema_Response_on_Block:
     """
 
     def setup_request_method(self):
-        self.request_noblock = weblog.post(
-            "/tag_value/payload_in_response_body_001/200",
-            data={"test_int": 1, "test_str": "anything", "test_bool": True, "test_float": 1.5234},
+        self.requests_noblock = send_until_schema(
+            lambda: weblog.post(
+                "/tag_value/payload_in_response_body_001/200",
+                data={"test_int": 1, "test_str": "anything", "test_bool": True, "test_float": 1.5234},
+            ),
+            "res.body",
         )
         self.request = weblog.post(
             "/tag_value/payload_in_response_body_001/200",
@@ -263,10 +291,11 @@ class Test_Schema_Response_on_Block:
 
     def test_request_method(self):
         """Can provide response body schema"""
-        assert self.request_noblock.status_code == 200
+        assert all(r.status_code == 200 for r in self.requests_noblock)
         assert self.request.status_code == 403
 
-        schema = get_schema(self.request_noblock, "res.body")
+        request_noblock = get_sampled_response(self.requests_noblock, "res.body")
+        schema = get_schema(request_noblock, "res.body")
         assert schema is not None, "_dd.appsec.s.res.body meta tag should be present"
         schema = get_schema(self.request, "res.body")
         assert schema is None, f"_dd.appsec.s.res.body meta tag should not be present, got {schema}"
@@ -310,17 +339,22 @@ class Test_Scanners:
     """Test API Security - Scanners"""
 
     def setup_request_method(self):
-        self.request = weblog.get(
-            "/tag_value/api_match_AS001/200",
-            cookies={"mastercard": "5123456789123456", "authorization": "digest_a0b1c2", "SSN": "123-45-6789"},
-            headers={"authorization": "digest a0b1c2"},
+        self.requests = send_until_schema(
+            lambda: weblog.get(
+                "/tag_value/api_match_AS001/200",
+                cookies={"mastercard": "5123456789123456", "authorization": "digest_a0b1c2", "SSN": "123-45-6789"},
+                headers={"authorization": "digest a0b1c2"},
+            ),
+            "req.cookies",
+            "req.headers",
         )
 
     def test_request_method(self):
         """Can provide request header schema"""
-        schema_cookies = get_schema(self.request, "req.cookies")
-        schema_headers = get_schema(self.request, "req.headers")
-        assert self.request.status_code == 200
+        assert all(r.status_code == 200 for r in self.requests)
+        request = get_sampled_response(self.requests, "req.cookies", "req.headers")
+        schema_cookies = get_schema(request, "req.cookies")
+        schema_headers = get_schema(request, "req.headers")
         assert schema_cookies
         assert isinstance(schema_cookies, list)
         # some tracers report headers / cookies values as lists even if there's just one element (frameworks do)
