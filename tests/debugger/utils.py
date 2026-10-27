@@ -89,18 +89,6 @@ def _iter_snapshot_content_items(content_list: list) -> Iterator[Any]:
             yield part
 
 
-def _get_content_timestamp(content: dict) -> int | None:
-    """Return the timestamp of a snapshot payload.
-
-    Some tracers set it at the top level of the payload, .NET only sets it in the snapshot.
-    """
-    if "timestamp" in content:
-        return content["timestamp"]
-
-    snapshot = content.get("debugger", {}).get("snapshot") or content.get("debugger.snapshot") or {}
-    return snapshot.get("timestamp")
-
-
 def _get_path(test_name: str, suffix: str, version: str) -> str:
     # system-tests/tests/debugger/utils/approvals/{language}/{version}/{test_name}_{suffix}.json
 
@@ -573,9 +561,8 @@ class BaseDebuggerTest:
 
             for content in contents:
                 # Filter out snapshots from before the test start time for multiple tests using the same file.
-                if self.start_time is not None:
-                    timestamp = _get_content_timestamp(content)
-                    if timestamp is not None and timestamp < self.start_time:
+                if "timestamp" in content and self.start_time is not None:
+                    if content["timestamp"] < self.start_time:
                         continue
 
                 snapshot = content.get("debugger", {}).get("snapshot") or content.get("debugger.snapshot")
@@ -642,9 +629,8 @@ class BaseDebuggerTest:
 
         for content in _iter_snapshot_content_items(contents):
             # Filter out snapshots from before the test start time for multiple tests using the same file.
-            if self.start_time is not None:
-                timestamp = _get_content_timestamp(content)
-                if timestamp is not None and timestamp < self.start_time:
+            if "timestamp" in content and self.start_time is not None:
+                if content["timestamp"] < self.start_time:
                     continue
 
             snapshot = content.get("debugger", {}).get("snapshot") or content.get("debugger.snapshot")
