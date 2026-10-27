@@ -33,10 +33,11 @@ class Test_Debugger_Go_Static_Template_Error(_GoExpressionTestBase):
         self._setup_probes("probe_static_template_error", ["INSTALLED", "ERROR"])
 
     def test_static_template_error_probe_rejected(self) -> None:
-        """``testStruct.Dictionary.two`` is a member access on a ``map[string]int``.
+        """Each template references something the system-probe resolves at install time and can't find.
 
-        The same expression in a ``when`` condition is rejected with ConditionExpressionUnresolvable.
-        In a log template it must also reach status=ERROR, not stay installed and print the error inline.
+        A member access on a ``map[string]int``, an unknown variable, and a missing struct field are all
+        rejected with an ERROR diagnostic when used in a ``when`` condition. In a log template they must also
+        reach status=ERROR, not stay installed and print the error inline.
         """
         self.collect()
         self.assert_setup_ok()
@@ -45,8 +46,8 @@ class Test_Debugger_Go_Static_Template_Error(_GoExpressionTestBase):
             diag = self.probe_diagnostics.get(probe_id)
             assert diag is not None, "The probe did not receive any diagnostic."
             assert diag["status"] == "ERROR", (
-                f"Probe reached status {diag['status']!r}; a template with a member access on a map can never "
-                f"evaluate, so it must be rejected with status=ERROR like the equivalent condition."
+                f"Probe reached status {diag['status']!r}; its template can never evaluate, so it must be "
+                f"rejected with status=ERROR like the equivalent condition."
             )
 
 
