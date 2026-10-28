@@ -557,6 +557,51 @@ class Test_ComputeLibrariesAndScenarios:
             "",
         )
 
+    def test_scenario_definition_file_with_two_scenarios(self):
+        """appsec_blocking.py defines two scenarios: both run, and only them"""
+        inputs = build_inputs(modified_files=["utils/_context/_scenarios/appsec_blocking.py"])
+        assert_github_processor(
+            inputs,
+            default_libs_with_prod,
+            default_libs_with_dev,
+            3600,
+            "false",
+            "APPSEC_BLOCKING,APPSEC_BLOCKING_FULL_DENYLIST,DEFAULT",
+            "",
+        )
+
+    def test_scenarios_init_file(self):
+        """It only instantiates scenarios: nothing runs"""
+        inputs = build_inputs(modified_files=["utils/_context/_scenarios/__init__.py"])
+        assert_github_processor(inputs, [], [], 3600, "false", "DEFAULT", "")
+
+    @pytest.mark.parametrize(
+        "file",
+        [
+            "utils/_context/_scenarios/_core/scenario.py",
+            "utils/_context/_scenarios/_core/__init__.py",
+            "utils/_context/_scenarios/_core/new_module.py",  # any future module of _core
+            "utils/_context/_scenarios/new_package/module.py",  # any other subfolder
+        ],
+    )
+    def test_scenario_core_file(self, file: str):
+        """Base classes shared by many scenarios, or any other subfolder: everything runs"""
+        inputs = build_inputs(modified_files=[file])
+        assert_github_processor(inputs, default_libs_with_prod, default_libs_with_dev, 3600, "false", "DEFAULT", "all")
+
+    def test_open_telemetry_scenario_file(self):
+        """No scenario group, but the scenarios it defines run, only with OTel libraries"""
+        inputs = build_inputs(modified_files=["utils/_context/_scenarios/open_telemetry.py"])
+        assert_github_processor(
+            inputs,
+            default_otel_libs,
+            [],
+            3600,
+            "false",
+            "DEFAULT,OTEL_INTEGRATIONS,OTEL_LOG_E2E,OTEL_METRIC_E2E,OTEL_TRACING_E2E",
+            "",
+        )
+
     @pytest.mark.parametrize("file", ["utils/mocked_backend/ffe.py", "utils/mocked_backend/_backend_ffe.py"])
     def test_agentless_ffe_mocked_backend_file(self, file: str):
         inputs = build_inputs(modified_files=[file])
@@ -592,7 +637,7 @@ class Test_ComputeLibrariesAndScenarios:
         )
 
     def test_end_to_end_scenario_framework_file(self):
-        inputs = build_inputs(modified_files=["utils/_context/_scenarios/endtoend.py"])
+        inputs = build_inputs(modified_files=["utils/_context/_scenarios/_core/endtoend.py"])
         assert_github_processor(
             inputs,
             default_libs_with_prod,
@@ -611,8 +656,9 @@ class Test_ComputeLibrariesAndScenarios:
             default_libs_with_dev,
             3600,
             "false",
-            "DEFAULT",
-            "agentless",
+            "DEFAULT,FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS,"
+            "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_DIRECT,FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_SERVERLESS",
+            "",
         )
 
     def test_json_modification(self):
