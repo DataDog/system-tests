@@ -266,6 +266,7 @@ manifest:
   tests/appsec/test_reports.py::Test_Info: v7.112.0
   tests/appsec/test_reports.py::Test_RequestHeaders: v7.112.0
   tests/appsec/test_reports.py::Test_StatusCode: v7.112.0
+  tests/appsec/test_sca_reachability.py: incomplete_test_app (Lambda SCA dependency fixtures and vulnerable-call endpoints are not implemented)
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules: v8.113.0
   tests/appsec/test_traces.py::Test_AppSecEventSpanTags: v7.112.0
   tests/appsec/test_traces.py::Test_AppSecEventSpanTags::test_header_collection: bug (APPSEC-58202)
