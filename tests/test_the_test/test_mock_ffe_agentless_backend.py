@@ -179,11 +179,6 @@ def test_agentless_exposure_scenario_sends_events_to_the_mocked_backend(
     )
 
     environment = scenario.weblog_infra.library_container.environment
-    serverless_init_containers = tuple(
-        container
-        for container in scenario._containers  # noqa: SLF001 - focused topology test
-        if isinstance(container, ServerlessInitContainer)
-    )
     assert scenario.agent_container not in scenario._containers  # noqa: SLF001 - focused topology test
     # the intake hostnames derived from DD_SITE are network aliases of the mocked backend: no proxy in between
     assert not any(isinstance(container, ProxyContainer) for container in scenario._containers)  # noqa: SLF001
@@ -203,13 +198,12 @@ def test_agentless_exposure_scenario_sends_events_to_the_mocked_backend(
         }
         for name in DIRECT_EVP_AGENT_VARIABLES:
             assert name not in environment
-        assert not serverless_init_containers
         assert scenario.serverless_init_container is None
         return
 
     serverless_init = scenario.serverless_init_container
-    assert serverless_init_containers == (serverless_init,)
     assert isinstance(serverless_init, ServerlessInitContainer)
+    assert serverless_init in scenario._containers  # noqa: SLF001 - focused topology test
     assert serverless_init.image.original_name == "datadog/serverless-init:1.10.4"
     assert environment["DD_TRACE_AGENT_PORT"] == str(serverless_init.apm_receiver_port)
     assert environment["DD_TRACE_AGENT_URL"] == f"http://ffe-serverless-init:{serverless_init.apm_receiver_port}"
