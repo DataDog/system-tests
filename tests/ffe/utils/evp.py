@@ -411,8 +411,7 @@ def assert_agentless_evp_topology(egress: FeatureFlaggingEVPEgress) -> None:
     assert environment["DD_FEATURE_FLAGS_CONFIGURATION_SOURCE"] == "agentless"
     assert environment["DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED"] == "true"
     assert environment["DD_SITE"] == "mock-intake.invalid"
-    if not scenario.replay:
-        assert environment["DD_API_KEY"] == scenario.weblog_api_key
+    assert environment["DD_API_KEY"] == scenario.weblog_api_key
     if egress.route == "direct":
         assert_direct_evp_runtime_evidence(
             scenario.direct_evp_runtime_evidence(),
