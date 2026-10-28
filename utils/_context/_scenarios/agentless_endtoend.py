@@ -486,6 +486,9 @@ class FeatureFlaggingAgentlessEndToEndScenario(_AgentlessEndToEndScenario):
     def _stop_weblog(self, *, is_empty_test_run: bool) -> None:
         if self.exposure_egress != "direct" or self.replay or is_empty_test_run:
             super()._stop_weblog(is_empty_test_run=is_empty_test_run)
+            if self.serverless_init_container is not None:
+                # it relays what the weblog sent: stop it while the mocked backend still receives its last flush
+                self.serverless_init_container.stop()
             return
 
         self._capture_direct_evp_runtime_evidence()
@@ -636,8 +639,6 @@ class FeatureFlaggingAgentlessEndToEndScenario(_AgentlessEndToEndScenario):
                         self._direct_evp_shutdown_evidence_path.read_text(encoding="utf-8")
                     )
             super()._wait_and_stop_containers(is_empty_test_run=is_empty_test_run)
-            if self.serverless_init_container is not None and not self.replay:
-                self.serverless_init_container.stop()
 
 
 class FeatureFlaggingAndExperimentationAgentless(FeatureFlaggingAgentlessEndToEndScenario):

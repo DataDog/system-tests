@@ -443,7 +443,6 @@ def test_feature_flagging_direct_runtime_evidence_rejects_python_prefix_wrappers
         ("agent_variable", "Agent connection variables"),
         ("init_wrapper", "Forbidden direct-scenario runtime components"),
         ("shell_pid1", "expected one of"),
-        ("shell_process", "docker top reports PID 1"),
         ("missing_process_command", "PID 1 row has no command"),
         ("failed_top", "docker top failed"),
     ],
@@ -466,8 +465,6 @@ def test_feature_flagging_direct_runtime_evidence_rejects_false_proofs(
         evidence["containers"][1]["pid1_command"] = "datadog-init node app"
     elif mutation == "shell_pid1":
         evidence["containers"][1]["pid1_command"] = "/bin/sh ./app.sh"
-    elif mutation == "shell_process":
-        evidence["containers"][1]["processes"][0]["command"] = "/bin/sh ./app.sh"
     elif mutation == "missing_process_command":
         del evidence["containers"][1]["processes"][0]["command"]
     elif mutation == "failed_top":

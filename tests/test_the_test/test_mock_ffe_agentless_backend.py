@@ -308,6 +308,31 @@ def test_agentless_evp_capture_registry_waits_for_each_path_before_settling(
 
 @scenarios.test_the_test
 @features.not_reported
+def test_sidecar_stops_right_after_the_weblog(monkeypatch: pytest.MonkeyPatch) -> None:
+    """serverless-init must flush to the mocked backend before it is stopped by the base scenario"""
+    scenario = FeatureFlaggingAgentlessEndToEndScenario(
+        "MOCK_FFE_AGENTLESS_SIDECAR_STOP_ORDER",
+        doc="test",
+        exposure_egress="sidecar",
+    )
+    lifecycle: list[str] = []
+
+    def stop_weblog(self: object, *, is_empty_test_run: bool) -> None:
+        assert self is scenario
+        assert is_empty_test_run is False
+        lifecycle.append("weblog")
+
+    monkeypatch.setattr(endtoend_scenarios.DdTraceEndToEndScenario, "_stop_weblog", stop_weblog)
+    assert scenario.serverless_init_container is not None
+    monkeypatch.setattr(scenario.serverless_init_container, "stop", lambda: lifecycle.append("serverless-init"))
+
+    scenario._stop_weblog(is_empty_test_run=False)  # noqa: SLF001
+
+    assert lifecycle == ["weblog", "serverless-init"]
+
+
+@scenarios.test_the_test
+@features.not_reported
 def test_agentless_evp_capture_wait_happens_before_container_stop(monkeypatch: pytest.MonkeyPatch) -> None:
     scenario = FeatureFlaggingAgentlessEndToEndScenario(
         "MOCK_FFE_AGENTLESS_DIRECT_CAPTURE_ORDER",

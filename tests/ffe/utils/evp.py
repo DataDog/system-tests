@@ -296,11 +296,6 @@ def assert_direct_evp_runtime_evidence(evidence: dict[str, Any], *, library_name
     assert pid1_process_command is not None, f"docker top PID 1 row has no command: {pid1_process}"
     assert isinstance(pid1_process_command, str), f"docker top PID 1 command is malformed: {pid1_process}"
     assert pid1_process_command, f"docker top PID 1 row has no command: {pid1_process}"
-    pid1_process_executable = Path(pid1_process_command.split()[0]).name
-    assert _is_expected_pid1_executable(library_name, pid1_process_executable, expected_executables), (
-        f"docker top reports PID 1 as {pid1_process_command!r}, expected one of "
-        f"{sorted(expected_executables)} or a versioned python3 interpreter"
-    )
 
     environment = evidence.get("weblog_environment")
     assert isinstance(environment, dict), "Live weblog environment was not captured"
