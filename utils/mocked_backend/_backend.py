@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING
 
 from ._request_handler import MockedBackendServerCore, MockBackendV2RequestHandler, HttpMethod, RouteHandler
 from ._backend_ffe import MockedBackendServerFfeMixin
+from ._client import MockedBackendClient
 from ._utils import CONTROL_URL_PREFIX, HOST_DOCKER_INTERNAL, logger
 
 if TYPE_CHECKING:
@@ -50,6 +51,7 @@ class MockedBackendServer(MockedBackendServerFfeMixin, MockedBackendServerCore):
         self._routes: dict[tuple[HttpMethod, str], RouteHandler] = {}
         self.port = self.server_port
 
+        self.add_handler("GET", f"{CONTROL_URL_PREFIX}/health", self._handle_health)
         self._ffe_configure()
 
         self._thread = threading.Thread(target=self.serve_forever, name=self.thread_name, daemon=True)
@@ -60,6 +62,11 @@ class MockedBackendServer(MockedBackendServerFfeMixin, MockedBackendServerCore):
     @property
     def base_url(self) -> str:
         return f"http://127.0.0.1:{self.port}"
+
+    @property
+    def client(self) -> MockedBackendClient:
+        """Client of the control endpoints of this server"""
+        return MockedBackendClient(self.base_url)
 
     @property
     def container_url(self) -> str:
@@ -92,6 +99,9 @@ class MockedBackendServer(MockedBackendServerFfeMixin, MockedBackendServerCore):
             export_content_files_to = None
 
         return handler, log_filename, export_content_files_to
+
+    def _handle_health(self, request: MockBackendV2RequestHandler, _: bytes | dict | None) -> tuple[Mapping, bytes]:
+        return request.write_json(HTTPStatus.OK, {"status": "ok"})
 
     def _default_handler(self, request: MockBackendV2RequestHandler, _: bytes | dict | None) -> tuple[Mapping, bytes]:
         return request.write_json(HTTPStatus.OK, {})
