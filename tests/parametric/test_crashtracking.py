@@ -31,7 +31,11 @@ class Test_Crashtracking:
         # crash pings (`is_crash_ping:true`) and receiver debug logs (`is_crash_debug:true`, sent
         # when e.g. the stack trace is incomplete). They can be captured before or after the
         # crash report, so the report is selected by scanning all captured "logs" events.
-        for _ in range(400):
+        # The 15s total wait matches the crashtracker receiver's timeout: dd-trace-rb configures
+        # 15s (upload_timeout_seconds in its crashtracking component), and the receiver can spend
+        # up to that long collecting and uploading the report after the crash. The report usually
+        # arrives within a few seconds, so the loop exits well before the budget is spent.
+        for _ in range(30):
             for event in test_agent.get_telemetry_events("logs"):
                 tags = self.crash_event_tags(event)
                 if "is_crash_ping:true" not in tags and "is_crash_debug:true" not in tags:
