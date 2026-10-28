@@ -317,6 +317,34 @@ jobs:
     - name: Run FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_SERVERLESS scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_SERVERLESS"')
       run: ./run.sh FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_SERVERLESS
+    - name: Run FEATURE_FLAGGING_AGENTLESS_AGENT scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"FEATURE_FLAGGING_AGENTLESS_AGENT"')
+      run: ./run.sh FEATURE_FLAGGING_AGENTLESS_AGENT
+    - name: Run FEATURE_FLAGGING_EVP_404_EXPOSURES scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"FEATURE_FLAGGING_EVP_404_EXPOSURES"')
+      run: ./run.sh FEATURE_FLAGGING_EVP_404_EXPOSURES
+    - name: Run FEATURE_FLAGGING_EVP_404_FLAGEVALUATION scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"FEATURE_FLAGGING_EVP_404_FLAGEVALUATION"')
+      run: ./run.sh FEATURE_FLAGGING_EVP_404_FLAGEVALUATION
+    - name: Run FEATURE_FLAGGING_EVP_405_EXPOSURES scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"FEATURE_FLAGGING_EVP_405_EXPOSURES"')
+      run: ./run.sh FEATURE_FLAGGING_EVP_405_EXPOSURES
+    - name: Run FEATURE_FLAGGING_EVP_405_FLAGEVALUATION scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"FEATURE_FLAGGING_EVP_405_FLAGEVALUATION"')
+      run: ./run.sh FEATURE_FLAGGING_EVP_405_FLAGEVALUATION
+    - name: Run FEATURE_FLAGGING_EVP_403_EXPOSURES scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"FEATURE_FLAGGING_EVP_403_EXPOSURES"')
+      run: ./run.sh FEATURE_FLAGGING_EVP_403_EXPOSURES
+    - name: Run FEATURE_FLAGGING_EVP_403_FLAGEVALUATION scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"FEATURE_FLAGGING_EVP_403_FLAGEVALUATION"')
+      run: ./run.sh FEATURE_FLAGGING_EVP_403_FLAGEVALUATION
+    - name: Run FEATURE_FLAGGING_EVP_AMBIGUOUS_EXPOSURES scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"FEATURE_FLAGGING_EVP_AMBIGUOUS_EXPOSURES"')
+      run: ./run.sh FEATURE_FLAGGING_EVP_AMBIGUOUS_EXPOSURES
+    - name: Run FEATURE_FLAGGING_EVP_AMBIGUOUS_FLAGEVALUATION scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"FEATURE_FLAGGING_EVP_AMBIGUOUS_FLAGEVALUATION"')
+      run: ./run.sh FEATURE_FLAGGING_EVP_AMBIGUOUS_FLAGEVALUATION
+
     - name: Run AGENT_SUPPORTING_SPAN_EVENTS scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"AGENT_SUPPORTING_SPAN_EVENTS"')
       run: ./run.sh AGENT_SUPPORTING_SPAN_EVENTS
