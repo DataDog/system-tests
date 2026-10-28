@@ -39,10 +39,12 @@ def _get_metric_series(namespace: str) -> list[dict]:
 
 
 def _get_rate_limit_probe_skips() -> list[dict]:
+    # Datadog lowercases tags, and Python already sends them lowercased, so they're compared case-insensitively.
     return [
         series
         for series in _get_metric_series(DEBUGGER_METRICS_NAMESPACE)
-        if series["metric"] == "events.skipped" and "reason:rateLimitProbe" in series.get("tags", [])
+        if series["metric"] == "events.skipped"
+        and "reason:ratelimitprobe" in (tag.lower() for tag in series.get("tags", []))
     ]
 
 
