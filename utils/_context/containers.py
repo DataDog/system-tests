@@ -53,6 +53,10 @@ from utils.interfaces import StdoutLogsInterface, LibraryStdoutInterface
 
 # fake key of length 32
 FAKE_DD_API_KEY = "0123456789abcdef0123456789abcdef"
+# DD_SITE of agentless senders: the reserved .invalid domain fails closed if a request is not sent to the mocked backend
+MOCK_INTAKE_SITE = "mock-intake.invalid"
+# its own key tells, in the mocked backend, what serverless-init sent (see interfaces.backend_v2 with_api_key)
+SERVERLESS_INIT_FAKE_DD_API_KEY = "fedcba9876543210fedcba9876543210"
 
 _DEFAULT_NETWORK_NAME = "system-tests_default"
 _NETWORK_NAME = "bridge" if "GITLAB_CI" in os.environ else _DEFAULT_NETWORK_NAME
@@ -103,6 +107,7 @@ class TestedContainer:
         pid_mode: str | None = None,
         cgroupns: str | None = None,
         mounts: list[docker.types.Mount] | None = None,
+        network_aliases: list[str] | None = None,
     ) -> None:
         assert name
         assert image_name
@@ -141,6 +146,8 @@ class TestedContainer:
         # Unlike volumes, a bind mount listed here fails container creation when its source is
         # missing, instead of being created as an empty directory by the docker daemon.
         self.mounts = mounts
+        # other names other containers of the network can reach it with
+        self.network_aliases = network_aliases or []
 
     def _get_image_name(self, binary_file_name: str | None, default_name: str) -> str:
         # if the container provide binary_file_name, then a file named binaries/{binary_file_name}
@@ -254,6 +261,11 @@ class TestedContainer:
             # auto_remove=True,
             detach=True,
             network=network.name,
+            networking_config=(
+                {network.name: get_docker_client().api.create_endpoint_config(aliases=self.network_aliases)}
+                if self.network_aliases
+                else None
+            ),
             volumes=self.volumes,
             ports=self.ports,
             working_dir=self.working_dir,
@@ -779,14 +791,31 @@ class MockedBackendContainer(TestedContainer):
     What it receives is recorded in the logs folder, and read by interfaces.backend_v2.
     """
 
-    port = 4900
+    # With tls, it serves HTTPS instead of HTTP: for senders that only speak HTTPS to the intake hostnames derived
+    # from DD_SITE (e.g. an SDK sending exposures directly). Its certificate is signed by the mitmproxy CA: these
+    # senders must trust it. See utils/mocked_backend/tls/README.md
+    tls_hostnames = (
+        f"event-platform-intake.{MOCK_INTAKE_SITE}",
+        f"instrumentation-telemetry-intake.{MOCK_INTAKE_SITE}",
+    )
+    tls_cert_file = "utils/mocked_backend/tls/mocked-backend.pem"
+    tls_ca_file = "utils/proxy/.mitmproxy/mitmproxy-ca-cert.pem"
 
-    def __init__(self) -> None:
+    def __init__(self, *, tls: bool = False) -> None:
+        self.tls = tls
+        self.scheme = "https" if tls else "http"
+        # the default HTTPS port: senders build the intake URLs from DD_SITE, without port
+        self.port = 443 if tls else 4900
+        # in the healthcheck, the certificate is checked against localhost
+        health_context = f"ssl.create_default_context(cafile='/app/{self.tls_ca_file}')" if tls else "None"
         super().__init__(
             # it has every dependency of utils/mocked_backend
             image_name="datadog/system-tests:proxy-v1",
             # a valid hostname: some HTTP clients reject an underscore
             name="mocked-backend",
+            # Docker rejects aliases on the default bridge network, used on GitLab (see _NETWORK_NAME). If a tls
+            # scenario runs there, map tls_hostnames to this container with extra_hosts on the senders instead
+            network_aliases=list(self.tls_hostnames) if tls else None,
             working_dir="/app",
             volumes={
                 # without utils/__init__.py: utils is a namespace package, and the rest of utils is not needed
@@ -798,7 +827,7 @@ class MockedBackendContainer(TestedContainer):
             # for the control endpoints, used from the host. Docker picks a free host port
             ports={f"{self.port}/tcp": ("127.0.0.1", None)},
             healthcheck={
-                "test": f"python -c \"import urllib.request; print(urllib.request.urlopen('http://localhost:{self.port}/system-tests/health', timeout=2).read().decode())\"",  # noqa: E501
+                "test": f"python -c \"import ssl, urllib.request; print(urllib.request.urlopen('{self.scheme}://localhost:{self.port}/system-tests/health', timeout=2, context={health_context}).read().decode())\"",  # noqa: E501
                 "retries": 30,
             },
         )
@@ -809,18 +838,30 @@ class MockedBackendContainer(TestedContainer):
         # Same relative path in the container and on the host, so recorded log filenames are the same
         log_folder = f"{host_log_folder}/interfaces/backend_v2"
         self.volumes[f"./{log_folder}"] = {"bind": f"/app/{log_folder}", "mode": "rw"}
-        self.command = ["python", "-m", "utils.mocked_backend", "--port", str(self.port), "--log-folder", log_folder]
+        self.command = [
+            "python",
+            "-m",
+            "utils.mocked_backend",
+            "--port",
+            str(self.port),
+            "--log-folder",
+            log_folder,
+        ]
+        if self.tls:
+            self.command += ["--tls-cert-file", self.tls_cert_file]
 
     @property
     def container_url(self) -> str:
         """The URL other containers use to reach the mocked backend"""
-        return f"http://{self.name}:{self.port}"
+        return f"{self.scheme}://{self.name}:{self.port}"
 
     @property
     def client(self) -> MockedBackendClient:
         """Client of the control endpoints, from the host"""
         host_port = self.runtime_container.attrs["NetworkSettings"]["Ports"][f"{self.port}/tcp"][0]["HostPort"]
-        return MockedBackendClient(f"http://127.0.0.1:{host_port}")
+        return MockedBackendClient(
+            f"{self.scheme}://127.0.0.1:{host_port}", verify=self.tls_ca_file if self.tls else True
+        )
 
 
 class LambdaProxyContainer(TestedContainer):
@@ -956,8 +997,8 @@ class ServerlessInitContainer(TestedContainer):
             name="ffe-serverless-init",
             image_name="datadog/serverless-init:1.10.4",
             environment={
-                "DD_API_KEY": FAKE_DD_API_KEY,
-                "DD_SITE": "mock-intake.invalid",
+                "DD_API_KEY": SERVERLESS_INIT_FAKE_DD_API_KEY,
+                "DD_SITE": MOCK_INTAKE_SITE,
                 "DD_SERVICE": "ffe-system-tests-serverless-init",
                 "DD_ENV": "system-tests",
                 "DD_APM_ENABLED": "true",
@@ -1810,7 +1851,6 @@ class InternalServerContainer(TestedContainer):
             command="uvicorn app:app --host 0.0.0.0 --port 8089",
             volumes={
                 "./utils/build/docker/internal_server/app.py": {"bind": "/app/app.py", "mode": "ro"},
-                "./utils/build/docker/internal_server/app.sh": {"bind": "/app/app.sh", "mode": "ro"},
             },
         )
 

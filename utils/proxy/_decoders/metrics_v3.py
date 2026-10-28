@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-"""Decoder for the agent ``/api/intake/metrics/v3/series`` payload.
+"""Decoder for the agent ``/api/intake/metrics/v3/series`` and ``/api/intake/metrics/v3/sketches`` payloads.
 
 The v3 metrics intake uses a columnar, dictionary-encoded format that is very different from the
 v2 ``datadog.agentpayload.MetricPayload``. The official proto definition lives in the datadog-agent
@@ -26,9 +26,13 @@ three things are encoded *on top* of plain protobuf and have to be undone by han
 * the reference columns (``nameRefs``, ``tagsetRefs``) are delta-encoded;
 * ``dictTagsets`` is a self-framed list (a count followed by that many delta-encoded indexes).
 
-This decoder reconstructs a payload shaped like the v2 output, i.e.
-``{"series": [{"metric": <name>, "tags": [<tag>, ...], "type": <int>, ...}, ...]}`` so that
-``utils/interfaces/_agent.py::get_metrics`` keeps working unchanged.
+Both endpoints share this wire format; sketches only differ by their per-point columns (see
+``_decode_sketch_points``).
+
+This decoder reconstructs payloads shaped like the v2 output, i.e.
+``{"series": [{"metric": <name>, "tags": [<tag>, ...], "type": <int>, ...}, ...]}`` for series and
+``{"sketches": [{"metric": <name>, "tags": [...], "dogsketches": [...]}, ...]}`` for sketches, so that
+``utils/interfaces/_agent.py::get_metrics`` and ``get_sketches`` work the same way on v2 and v3.
 """
 
 from __future__ import annotations
@@ -37,7 +41,13 @@ from typing import Any
 
 from .protobuf_schemas import MetricsV3Payload
 
-# The low nibble pair of a series' ``type`` selects which per-point value column to read from.
+# The low nibble of a series' ``type`` is the metric type.
+_METRIC_TYPE_MASK = 0x0F
+_METRIC_TYPE_SKETCH = 0x04
+# Metric types whose per-point layout this decoder does not know (OTel histograms)
+_METRIC_TYPES_UNSUPPORTED_POINTS = (0x06, 0x07)
+
+# The high nibble of a series' ``type`` selects which per-point value column to read from.
 _VALUE_TYPE_MASK = 0x30
 _VALUE_TYPE_ZERO = 0x00  # value is implicitly 0, nothing stored in any vals* column
 _VALUE_TYPE_SINT64 = 0x10
@@ -132,19 +142,33 @@ def decode_metrics_v3(content: bytes) -> dict:
     ``MetricPayload`` deserialization produced and what ``interfaces.agent.get_metrics``
     consumes. ``points`` mirrors the v2 shape: a list of {"value": <float>, "timestamp": <str>}.
     """
+    series = _decode_payload(content)
+    return {"series": series} if series else {}
+
+
+def decode_sketches_v3(content: bytes) -> dict:
+    """Decode a fully-decompressed v3 sketches payload into a v2-like dict.
+
+    The returned dict has a ``sketches`` list whose entries expose ``metric``, ``tags`` and
+    ``dogsketches``, matching what the v2 ``SketchPayload`` deserialization produced and what
+    ``interfaces.agent.get_sketches`` consumes. Each dogsketch mirrors the v2 shape:
+    {"ts": <str>, "cnt": <str>, "min", "max", "avg", "sum": <float>, "k": [<int>], "n": [<int>]}.
+    """
+    sketches = _decode_payload(content)
+    return {"sketches": sketches} if sketches else {}
+
+
+def _decode_payload(content: bytes) -> list[dict]:
     # The message is built dynamically from the descriptor, so its fields are not statically
     # typed; treat it as Any to access the generated column attributes.
     payload: Any = MetricsV3Payload.FromString(content)
 
     # A request may carry several MetricData messages (one per internal payload split).
-    series: list[dict] = []
+    result: list[dict] = []
     for metric_data in payload.metricData:
-        series.extend(_decode_metric_data(metric_data))
+        result.extend(_decode_metric_data(metric_data))
 
-    if not series:
-        return {}
-
-    return {"series": series}
+    return result
 
 
 def _decode_metric_data(metric_data: Any) -> list[dict]:  # noqa: ANN401 (dynamic protobuf message)
@@ -161,14 +185,7 @@ def _decode_metric_data(metric_data: Any) -> list[dict]:  # noqa: ANN401 (dynami
     # Per-point columns. ``timestamps`` is a single delta-encoded stream shared by every series
     # and consumed in order; each point's value comes from the vals* column selected by the
     # series' value type. A cursor per column tracks how much each series has consumed.
-    timestamps = _accumulate_deltas(metric_data.timestamps)
-    value_columns = {
-        _VALUE_TYPE_SINT64: list(metric_data.valsSint64),
-        _VALUE_TYPE_FLOAT32: list(metric_data.valsFloat32),
-        _VALUE_TYPE_FLOAT64: list(metric_data.valsFloat64),
-    }
-    timestamp_cursor = 0
-    value_cursors = {_VALUE_TYPE_SINT64: 0, _VALUE_TYPE_FLOAT32: 0, _VALUE_TYPE_FLOAT64: 0}
+    columns = _PointColumns(metric_data)
 
     # The Type column has exactly one entry per series, so it defines the series count.
     series_count = len(types) or len(name_refs)
@@ -195,25 +212,103 @@ def _decode_metric_data(metric_data: Any) -> list[dict]:  # noqa: ANN401 (dynami
         if i < len(num_points):
             entry["numPoints"] = point_count
 
-        if point_count:
-            point_timestamps = timestamps[timestamp_cursor : timestamp_cursor + point_count]
-            timestamp_cursor += point_count
+        if point_count and columns.decodable:
+            type_value = types[i] if i < len(types) else 0
+            metric_type = type_value & _METRIC_TYPE_MASK
+            value_type = type_value & _VALUE_TYPE_MASK
 
-            value_type = (types[i] if i < len(types) else 0) & _VALUE_TYPE_MASK
-            if value_type == _VALUE_TYPE_ZERO:
-                values: list[float] = [0.0] * point_count
+            if metric_type == _METRIC_TYPE_SKETCH:
+                entry["dogsketches"] = _decode_sketch_points(columns, point_count, value_type)
+            elif metric_type in _METRIC_TYPES_UNSUPPORTED_POINTS:
+                # Their points use extra columns this decoder ignores, so the cursors of every
+                # following series of this MetricData can't be trusted anymore.
+                columns.decodable = False
             else:
-                cursor = value_cursors[value_type]
-                values = [float(v) for v in value_columns[value_type][cursor : cursor + point_count]]
-                value_cursors[value_type] = cursor + point_count
+                point_timestamps = columns.take_timestamps(point_count)
+                values = columns.take_values(value_type, point_count)
 
-            # Match the v2 ``MetricPayload`` shape: a list of {"value": <float>, "timestamp": <str>}.
-            points = [
-                {"value": value, "timestamp": str(ts)} for ts, value in zip(point_timestamps, values, strict=False)
-            ]
-            if points:
-                entry["points"] = points
+                # Match the v2 ``MetricPayload`` shape: a list of {"value": <float>, "timestamp": <str>}.
+                points = [
+                    {"value": value, "timestamp": str(ts)} for ts, value in zip(point_timestamps, values, strict=False)
+                ]
+                if points:
+                    entry["points"] = points
 
         series.append(entry)
 
     return series
+
+
+class _PointColumns:
+    """Per-point columns of a MetricData, with a read cursor on each of them."""
+
+    def __init__(self, metric_data: Any):  # noqa: ANN401 (dynamic protobuf message)
+        self.timestamps = _accumulate_deltas(metric_data.timestamps)
+        self.values: dict[int, list] = {
+            _VALUE_TYPE_SINT64: list(metric_data.valsSint64),
+            _VALUE_TYPE_FLOAT32: list(metric_data.valsFloat32),
+            _VALUE_TYPE_FLOAT64: list(metric_data.valsFloat64),
+        }
+        self.sketch_num_bins = list(metric_data.sketchNumBins)
+        self.sketch_bin_keys = list(metric_data.sketchBinKeys)
+        self.sketch_bin_counts = list(metric_data.sketchBinCnts)
+
+        self.timestamp_cursor = 0
+        self.value_cursors = dict.fromkeys(self.values, 0)
+        self.sketch_point_cursor = 0
+        self.sketch_bin_cursor = 0
+
+        self.decodable = True
+
+    def take_timestamps(self, count: int) -> list[int]:
+        result = self.timestamps[self.timestamp_cursor : self.timestamp_cursor + count]
+        self.timestamp_cursor += count
+        return result
+
+    def take_values(self, value_type: int, count: int) -> list[float]:
+        if value_type == _VALUE_TYPE_ZERO:
+            return [0.0] * count
+
+        cursor = self.value_cursors[value_type]
+        self.value_cursors[value_type] = cursor + count
+        return [float(v) for v in self.values[value_type][cursor : cursor + count]]
+
+    def take_sketch_bins(self) -> tuple[list[int], list[int]]:
+        num_bins = self.sketch_num_bins[self.sketch_point_cursor]
+        self.sketch_point_cursor += 1
+
+        start, end = self.sketch_bin_cursor, self.sketch_bin_cursor + num_bins
+        self.sketch_bin_cursor = end
+
+        # keys are delta-encoded within each point
+        return _accumulate_deltas(self.sketch_bin_keys[start:end]), self.sketch_bin_counts[start:end]
+
+
+def _decode_sketch_points(columns: _PointColumns, point_count: int, value_type: int) -> list[dict]:
+    """Decode the points of a DDSketch series (``WriteDDSketch`` in iterable_series_v3.go).
+
+    For each point, the agent writes its timestamp and its bins (``sketchNumBins`` entries in
+    ``sketchBinKeys``/``sketchBinCnts``), then, once all points are written, ``sum``, ``min`` and
+    ``max`` in the column selected by the value type, each followed by ``cnt`` in ``valsSint64``.
+    """
+    timestamps = columns.take_timestamps(point_count)
+    bins = [columns.take_sketch_bins() for _ in range(point_count)]
+
+    points: list[dict] = []
+    for ts, (keys, counts) in zip(timestamps, bins, strict=False):
+        sum_, min_, max_ = columns.take_values(value_type, 3)
+        (cnt,) = columns.take_values(_VALUE_TYPE_SINT64, 1)
+        points.append(
+            {
+                "ts": str(ts),
+                "cnt": str(int(cnt)),
+                "min": min_,
+                "max": max_,
+                "avg": sum_ / cnt if cnt else 0.0,
+                "sum": sum_,
+                "k": keys,
+                "n": counts,
+            }
+        )
+
+    return points

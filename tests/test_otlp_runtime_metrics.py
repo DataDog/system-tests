@@ -248,10 +248,10 @@ def get_runtime_metrics_by_name() -> dict[str, list[dict[str, str]]]:
     """Return observed runtime metrics grouped by name.
 
     Each entry maps metric name -> list of tag dicts, one per data point.
-    Tags are parsed from "key:value" strings in the agent series.
+    Tags are parsed from "key:value" strings in the series the agent sent to the mocked backend.
     """
     result: dict[str, list[dict[str, str]]] = {}
-    for _, metric in interfaces.agent.get_metrics():
+    for _, metric in interfaces.backend_v2.get_metrics():
         name: str = metric["metric"]
         tags: dict[str, str] = dict(tag.split(":", 1) for tag in metric.get("tags", []) if ":" in tag)
         result.setdefault(name, []).append(tags)
@@ -263,12 +263,12 @@ RUNTIME_METRICS_WAIT_TIMEOUT = 60
 
 def wait_for_runtime_metrics(library: str) -> None:
     # OTLP metrics are exported on an interval, so wait (while the weblog is still up) until every expected
-    # metric for this library reaches the agent instead of relying on the fixed collection window.
+    # metric for this library reaches the mocked backend instead of relying on the fixed collection window.
     expected = EXPECTED_METRICS.get(library)
     if not expected:
         return
 
-    interfaces.agent.wait_for(
+    interfaces.backend_v2.wait_for(
         lambda _: expected.keys() <= get_runtime_metrics_by_name().keys(),
         timeout=RUNTIME_METRICS_WAIT_TIMEOUT,
     )

@@ -251,10 +251,10 @@ class Test_Debugger_InProduct_Enablement_Code_Origin(debugger.BaseDebuggerTest):
         self.initialize_weblog_remote_config()
         self.weblog_responses = []
 
-        # Node.js starts code origin asynchronously. Let it instrument the view
-        # function before checking the default-on state with a fresh request.
-        if context.library == "nodejs":
-            self._warmup_code_origin()
+        # Some tracers start code origin asynchronously. Let the tracer instrument the view
+        # function before checking the default state with a fresh request. Where code origin
+        # is off by default, the warmup waits for its whole timeout.
+        self._warmup_code_origin()
 
         # Check initial state (default varies by language)
         self.co_initial_state = self._check_code_origin()
@@ -273,7 +273,7 @@ class Test_Debugger_InProduct_Enablement_Code_Origin(debugger.BaseDebuggerTest):
         self.assert_all_weblog_responses_ok()
 
         # Check initial state based on language-specific defaults
-        if context.library == "nodejs":
+        if context.library in ("nodejs", "dotnet"):
             assert self.co_initial_state, "Expected code origin enabled by default"
         else:
             assert not self.co_initial_state, "Expected code origin disabled by default"

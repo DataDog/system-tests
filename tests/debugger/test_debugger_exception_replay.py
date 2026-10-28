@@ -676,6 +676,14 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
         self._assert("exception_replay_recursion_20", ["recursion exception depth 20"])
         self._validate_recursion_snapshots(self.snapshots, 9)
 
+    def setup_exception_replay_recursion_20_entry_frame(self):
+        self._setup("/exceptionreplay/recursion?depth=20", "recursion exception depth 20")
+
+    def test_exception_replay_recursion_20_entry_frame(self):
+        self._assert("exception_replay_recursion_20", ["recursion exception depth 20"])
+        # The outermost user frame is captured on top of DD_EXCEPTION_REPLAY_CAPTURE_MAX_FRAMES frames
+        self._validate_recursion_snapshots(self.snapshots, 10)
+
     def setup_exception_replay_recursion_inlined(self):
         self._setup("/exceptionreplay/recursion_inline?depth=4", "recursion exception depth 4")
 

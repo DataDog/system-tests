@@ -31,6 +31,9 @@ def _headers():
     """The backend can raise a 429 error if the rate limit is reached.
     We can use several app keys trying to avoid the rate limit.
     """
+    # Omit credential-selection locals from pytest failure reports.
+    __tracebackhide__ = True
+
     # Retrieve the mandatory API and APP keys.
     api_key = os.getenv("DD_API_KEY_ONBOARDING")
     app_key = os.getenv("DD_APP_KEY_ONBOARDING")
@@ -114,6 +117,9 @@ def _make_request(
 
     With the defaults, this will retry for approximately 5 minutes.
     """
+    # Omit authentication headers from pytest failure reports.
+    __tracebackhide__ = True
+
     start_time = time.perf_counter()
     for _attempt in range(max_retries):
         try:
@@ -172,6 +178,9 @@ def _validate_profiler_response(json: dict):
 
 
 def _query_for_profile(runtime_id: str):
+    # This caller also retains authentication headers while the request runs.
+    __tracebackhide__ = True
+
     url = f"{API_HOST}/api/unstable/profiles/list"
     headers = _headers()
     headers["Content-Type"] = "application/json"

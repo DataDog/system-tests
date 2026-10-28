@@ -57,6 +57,7 @@ def _decode_content(raw_body: bytes, content_encoding: str) -> bytes:
 class MockedBackendServerCore(ABC, ThreadingHTTPServer):
     on_message: Callable[[dict], None]
     port: int
+    scheme: str
 
     @abstractmethod
     def get_handler(self, method: HttpMethod, path: str) -> tuple[RouteHandler, str | None, str | None]: ...
@@ -72,6 +73,8 @@ class MockedBackendServerCore(ABC, ThreadingHTTPServer):
 class MockBackendV2RequestHandler(BaseHTTPRequestHandler):
     server: MockedBackendServerCore
     _data: dict  # use to store request and response info
+    # Routes can delay or interrupt body delivery after headers and request logging.
+    before_response_body: Callable[[], None] | None = None
 
     # catch response events
     def send_response(self, code: int, message: str | None = None) -> None:
@@ -152,4 +155,6 @@ class MockBackendV2RequestHandler(BaseHTTPRequestHandler):
         with contextlib.suppress(BrokenPipeError, ConnectionResetError):
             self.send_header("Content-Length", str(len(response_as_bytes)))
             self.end_headers()
+            if self.before_response_body is not None:
+                self.before_response_body()
             self.wfile.write(response_as_bytes)
