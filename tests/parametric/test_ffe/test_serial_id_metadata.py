@@ -7,8 +7,8 @@ serial ID without re-deriving it from (flag_key, allocation_key, variant_key).
 
 The contract under test: when span enrichment is enabled, the SDK's OpenFeature
 EvaluationDetails-equivalent object must expose the selected split's serial ID
-via `flagMetadata` under the SDK's serial ID key (`dd.serialId` for Go,
-`__dd_split_serial_id` otherwise), matching the
+via `flagMetadata` under the SDK's serial ID key (`dd.serialId` for legacy Go
+before v2.11.0-rc.1, `__dd_split_serial_id` for newer Go and other SDKs), matching the
 value present in the UFC config pushed over Remote Config. This is the field
 `openfeature-js-client#269` introduced for the Node server SDK; this test
 generalizes the contract to every parametric-tested SDK.
@@ -276,6 +276,6 @@ class Test_FFE_Serial_Id_Metadata(BaseSerialIdMetadata):
 @scenarios.parametric
 @features.feature_flags_serial_id_metadata
 class Test_FFE_Serial_Id_Metadata_Go(BaseSerialIdMetadata):
-    """Go SDK contract using dd.serialId."""
+    """Legacy Go SDK contract before v2.11.0-rc.1, using dd.serialId."""
 
     metadata_key = "dd.serialId"
