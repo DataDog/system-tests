@@ -110,6 +110,7 @@ refs:
   - &ref_6_17_0 '>=6.17.0 || ^5.128.0'
   - &ref_6_20_0 '>=6.20.0 || ^5.131.0'
   - &ref_6_20_1 '>=6.20.1 || ^5.131.1'
+  - &ref_6_21_0 '>=6.21.0 || ^5.132.0'
   - &ref_6_22_0 '>=6.22.0 || ^5.133.0'
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag:
@@ -1727,6 +1728,7 @@ manifest:
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay: missing_feature
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_firsthit: missing_feature (Implemented only for dotnet)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_outofmemory: missing_feature (Implemented only for dotnet)
+  tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_20_entry_frame: irrelevant (Only .NET captures the entry method on top of the frame limit)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_inlined: irrelevant (Test for specific bug in dotnet)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_stackoverflow: missing_feature (Implemented only for dotnet)
   tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language:
@@ -1789,6 +1791,7 @@ manifest:
         fastify: *ref_5_46_0
         uds-express4: *ref_5_46_0
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_log_line_capture_expression_budgets: '>=6.16.0 || ^5.127.0'
+  tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_per_trace_budget: *ref_6_21_0
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets::test_span_probe_expression_budgets: missing_feature (Method probes are not supported by Node.js)
   tests/debugger/test_debugger_probe_snapshot.py::Test_Debugger_Line_Probe_Snaphots:
     - weblog_declaration:
@@ -1847,6 +1850,11 @@ manifest:
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses::test_metric_line_status: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Line_Probe_Statuses::test_span_decoration_line_status: missing_feature (Not yet implemented)
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Method_Probe_Statuses: missing_feature
+  tests/debugger/test_debugger_snapshot_correlation.py::Test_Debugger_Coordinated_Sampling: irrelevant (Method-probe variant is not used by Node.js)
+  tests/debugger/test_debugger_snapshot_correlation.py::Test_Debugger_Coordinated_Sampling_Line_Probe:
+    - weblog_declaration:
+        "*": *ref_6_21_0
+        nextjs: irrelevant
   tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb: missing_feature (feature not implented)
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry:
     - weblog_declaration:
@@ -1876,6 +1884,7 @@ manifest:
       weblog: [express5]
     - declaration: bug (FFL-2182)
       excluded_weblog: [express5]
+  tests/ffe/test_evaluation_telemetry_opt_out.py: missing_feature (Provisional per-subject evaluation telemetry opt-out coverage; enable after the SDK release)
   tests/ffe/test_exposure_egress.py:
     - weblog_declaration:
         "*": incomplete_test_app
@@ -2561,8 +2570,14 @@ manifest:
   ? tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES::test_reserved_attributes_are_mapped
   : *ref_5_125_0
   tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED: v5.83.0
-  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_datadog_configuration_takes_precedence: incomplete_test_app (config is not exposed)
-  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_default_matches_specification: bug (APMAPI-2418)
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_datadog_configuration_takes_precedence: missing_feature (OTEL_SDK_DISABLED is not mapped to DD_TRACE_ENABLED)
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_default_matches_specification: missing_feature (OTEL_SDK_DISABLED is not mapped to DD_TRACE_ENABLED)
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_stable_false: missing_feature (OTEL_SDK_DISABLED is not mapped to DD_TRACE_ENABLED)
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_true_disables_otel_logs: missing_feature (OTEL_SDK_DISABLED does not disable OTLP logs export)
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_true_disables_otel_metrics: missing_feature (OTEL_SDK_DISABLED does not disable OTLP metrics export)
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_true_disables_otel_traces: missing_feature (DD_TRACE_OTEL_ENABLED takes precedence over OTEL_SDK_DISABLED)
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_true_disables_tracing: missing_feature (OTEL_SDK_DISABLED is not mapped to DD_TRACE_ENABLED)
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_true_overrides_otel_traces_exporter: missing_feature (OTEL_SDK_DISABLED does not disable OTLP trace export)
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME: v5.88.0
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_default_follows_otel_spec: irrelevant
   tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER: v5.88.0
@@ -2663,6 +2678,7 @@ manifest:
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart_With_Extract_First::test_baggage: *ref_5_56_0
   tests/parametric/test_ffe/test_configuration_sources.py: *ref_6_8_0
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: *ref_5_75_0
+  tests/parametric/test_ffe/test_rules_configuration.py: 7.0.0-pre  # Exact development version until the first containing release is confirmed.
   tests/parametric/test_ffe/test_serial_id_metadata.py: v6.18.0
   tests/parametric/test_ffe/test_span_enrichment.py:  # TODO: a lower version might be supported
     - declaration: missing_feature (dd-trace-js#8343)

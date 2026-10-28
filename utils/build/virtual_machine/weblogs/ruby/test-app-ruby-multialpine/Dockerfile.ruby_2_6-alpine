@@ -2,6 +2,8 @@ FROM public.ecr.aws/docker/library/ruby:2.6-alpine
 
 ENV DEBIAN_FRONTEND=noninteractive
 
+RUN apk add --no-cache bash curl
+
 # Set timezone to UTC by default
 RUN ln -sf /usr/share/zoneinfo/Etc/UTC /etc/localtime
 

@@ -8,8 +8,8 @@ import json
 from typing import Any
 
 from utils._context.component_version import ComponentVersion, Version
-from utils._context._scenarios.core import Scenario
-from utils._context._scenarios.endtoend import DockerScenario
+from utils._context._scenarios._core.scenario import Scenario
+from utils._context._scenarios._core.endtoend import DockerScenario
 from utils.virtual_machine.virtual_machines import _VirtualMachine
 from utils._context.containers import SqlDbTestedContainer
 

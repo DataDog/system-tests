@@ -68,23 +68,25 @@ The following picture ilustrates how the system-tests providers can handle the s
 
 You can create your own VirtualMachine scenario, extending or using the common implementation `_VirtualMachineScenario`. A "Virtual Machine Scenario" is always associated with a provision. By default, it's going to use the provision that install the agent + docker + SSI software (injector + tracer), but you can also refer to your own provision.
 
-In the following code (*utils/_context/_scenarios/__init__.py*) you can see the declaration of two new scenarios: a scenario that uses the default provision and a scenario that uses a custom provision:
+In the following code (*utils/_context/_scenarios/auto_injection.py*) you can see the declaration of a scenario that uses the default provision, with custom environment variables (profiling activation):
 
 ```Python
-   #Use the default provision, but with a custom environment variables (profiling activation)
-   simple_auto_injection_profiling = InstallerAutoInjectionScenario(
-        "SIMPLE_AUTO_INJECTION_PROFILING",
-        "Onboarding Single Step Instrumentation scenario with profiling activated by the app env var",
-        app_env={
-            "DD_PROFILING_ENABLED": "auto",
-            "DD_PROFILING_UPLOAD_PERIOD": "10",
-            "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
-        },
-        scenario_groups=[scenario_groups.onboarding],
-        github_workflow="aws_ssi",
-    )
-
+class SimpleAutoInjectionProfiling(_InstallerAutoInjectionScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "SIMPLE_AUTO_INJECTION_PROFILING",
+            "Onboarding Single Step Instrumentation scenario with profiling activated by the app env var",
+            app_env={
+                "DD_PROFILING_ENABLED": "auto",
+                "DD_PROFILING_UPLOAD_PERIOD": "10",
+                "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
+            },
+            scenario_groups=[scenario_groups.onboarding],
+            github_workflow="aws_ssi",
+        )
 ```
+
+It is then instantiated, without any argument, in the `_Scenarios` class of `utils/_context/_scenarios/__init__.py`: `simple_auto_injection_profiling = SimpleAutoInjectionProfiling()`.
 
 ### Virtual Machine
 
@@ -328,9 +330,10 @@ AWS SSI saves the cacheable provision steps in an AMI. The cache key is the VM n
 
 A new AMI has tags `CI=system-tests` and `ami-state=candidate`. The job boots that AMI and runs the tests there.
 
-* Passing tests set `ami-state` to `active`.
+* A provision failure leaves `ami-state` as `candidate`.
 * A failed test sets `ami-state` to `rejected`.
-* A provision failure, or a run with no executed tests, leaves `ami-state` as `candidate`.
+* Exit code 0 sets `ami-state` to `active` when no test failed. Skipped tests count.
+* A run with no tests leaves `ami-state` as `candidate`.
 
 The next job chooses an AMI in this order:
 
@@ -631,14 +634,16 @@ The relationship between weblogs and virtual machines (`weblogs_spec`) is set as
 
 ## Create a new provision
 
-If you want to create a new machine provision, first you need to define a new scenario and associate it with a new provision. For example (`utils/_context/_scenarios/__init__.py`):
+If you want to create a new machine provision, first you need to define a new scenario and associate it with a new provision. For example (`utils/_context/_scenarios/auto_injection.py`, then `my_custom_scenario = MyCustomScenario()` in the `_Scenarios` class of `utils/_context/_scenarios/__init__.py`):
 
 ```python
-    my_custom_scenario= InstallerAutoInjectionScenario(
-        "MY_CUSTOM_SCENARIO",
-        "A very simple example",
-        vm_provision="my_provision"
-    )
+class MyCustomScenario(_InstallerAutoInjectionScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "MY_CUSTOM_SCENARIO",
+            "A very simple example",
+            vm_provision="my_provision",
+        )
 ```
 
 We should define the provision. Let's create a folder named: `utils/build/virtual_machine/provisions/my_provision` and add the file `provision.yml`:
@@ -1148,7 +1153,7 @@ Cacheable provision steps are stored in an AMI. Later runs reuse the newest `act
 
 * **AWS console.** Open EC2, then AMIs. Search by name and choose Deregister.
 
-The next run creates a new AMI when that key has no `active` AMI and no AMI without `ami-state`. The tests run on the new AMI. A passing run sets `ami-state` to `active`.
+The next run creates a new AMI when that key has no `active` AMI and no AMI without `ami-state`. The tests run on the new AMI. Exit code 0 sets `ami-state` to `active` when no test failed. Skipped tests count.
 
 ---
 

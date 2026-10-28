@@ -8,6 +8,8 @@
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
         <Nullable>enable</Nullable>
         <CheckEolTargetFramework>false</CheckEolTargetFramework>
+        <DatadogTracePackageVersion Condition="'$(DatadogTracePackageVersion)' == ''">*</DatadogTracePackageVersion>
+        <DatadogOpenFeaturePackageVersion Condition="'$(DatadogOpenFeaturePackageVersion)' == ''">*</DatadogOpenFeaturePackageVersion>
 
         <!--
           Ignore the following warnings:
@@ -47,9 +49,9 @@
         <PackageReference Include="MongoDB.Driver" Version="2.23.1"/>
         <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
         <PackageReference Include="OpenFeature" Version="2.3.0" />
-        <PackageReference Include="Datadog.FeatureFlags.OpenFeature" Version="*" />
+        <PackageReference Include="Datadog.FeatureFlags.OpenFeature" Version="$(DatadogOpenFeaturePackageVersion)" />
 
-        <PackageReference Include="Datadog.Trace" Version="*" />
+        <PackageReference Include="Datadog.Trace" Version="$(DatadogTracePackageVersion)" />
         <PackageReference Include="OpenTelemetry.Api" Version="1.10.0" />
     </ItemGroup>
 </Project>

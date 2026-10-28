@@ -17,7 +17,7 @@ from utils.docker_fixtures._test_agent_pool import WorkerAgentPool, agent_env_ke
 from utils._context.docker import get_docker_client
 from utils._context.constants import WeblogCategory
 from utils._logger import logger
-from .core import Scenario, ScenarioGroup, scenario_groups as groups
+from .scenario import Scenario, ScenarioGroup, scenario_groups as groups
 
 
 _NETWORK_PREFIX = "apm_shared_tests_network"

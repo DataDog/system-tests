@@ -1,5 +1,5 @@
 include:
-  - remote: https://gitlab-templates.ddbuild.io/libdatadog/include/versions/1.10.0/single-step-instrumentation-tests.yml
+  - remote: https://gitlab-templates.ddbuild.io/libdatadog/include/versions/1.11.1/single-step-instrumentation-tests.yml
 
 stages:
   - SSI_TESTS
@@ -80,7 +80,6 @@ ssi_tests:
             SCRIPTS_DIR="/system-tests/utils/scripts"
         fi
         export SCENARIO_SUFIX
-        export DEBUG_LOGS_DOC_URL="https://github.com/DataDog/system-tests/blob/main/docs/understand/scenarios/docker_ssi.md"
         bash "${SCRIPTS_DIR}/gitlab_print_logs.sh"
     retry:
       max: 2
@@ -164,7 +163,6 @@ ssi_tests:
             LOGS_FOLDER="system-tests/logs_${SCENARIO_SUFIX}"
             SCRIPTS_DIR="./system-tests/utils/scripts"
         fi
-        # Upload to S3 (the URL is printed once at the end of the after_script).
         AWS_CONSOLE_URL=""
         if [ -d "$LOGS_FOLDER" ]; then
             EXECUTION_UNIQUE_IDENTIFIER="${CI_PIPELINE_ID:-datadog-local}"
@@ -198,7 +196,6 @@ ssi_tests:
 
         # Render all report logs as collapsible sections + run summary + banner.
         export SCENARIO_SUFIX AWS_CONSOLE_URL
-        export DEBUG_LOGS_DOC_URL="https://github.com/DataDog/system-tests/blob/main/docs/understand/scenarios/onboarding.md#how-to-debug-your-environment-and-tests-results"
         bash "${SCRIPTS_DIR}/gitlab_print_logs.sh"
 
     retry:
@@ -297,7 +294,6 @@ ssi_tests:
         SCRIPTS_DIR="/system-tests/utils/scripts"
     fi
     export SCENARIO_SUFIX=$(echo "${K8S_SCENARIO:-logs}" | tr "[:upper:]" "[:lower:]")
-    export DEBUG_LOGS_DOC_URL="https://github.com/DataDog/system-tests/blob/main/docs/understand/scenarios/k8s_lib_injection.md#how-to-debug-your-kubernetes-environment-and-tests-results"
     bash "${SCRIPTS_DIR}/gitlab_print_logs.sh"
   retry:
     max: 2
