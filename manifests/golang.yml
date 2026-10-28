@@ -2330,7 +2330,7 @@ manifest:
   tests/parametric/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_otel_enabled_otlp_metrics_without_semantics: bug (APMAPI-2651)
   tests/parametric/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_otel_enabled_otlp_traces_with_tracing_disabled: irrelevant (No startup log is written when DD_TRACE_ENABLED=false)
   tests/parametric/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_otel_enabled_otlp_traces_without_semantics: bug (APMAPI-2651)
-  tests/parametric/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_otel_enabled_tracing_api_with_tracing_disabled: irrelevant (No startup log is written when DD_TRACE_ENABLED=false)
+  tests/parametric/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_otel_enabled_semantics_alone: irrelevant (DD_TRACE_OTEL_ENABLED is not read, the OpenTelemetry API bridge is enabled in code)
   tests/parametric/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_otel_enabled_tracing_api_without_semantics: irrelevant (DD_TRACE_OTEL_ENABLED is not read, the OpenTelemetry API bridge is enabled in code)
   tests/parametric/test_otel_tracestate_sampling.py::Test_OtelTracestateSampling: v2.11.0-dev  # Easy win for all weblogs and version 2.10.1
   tests/parametric/test_otlp_trace_metrics.py: v2.11.0-dev  # Easy win for all weblogs and version 2.10.1
