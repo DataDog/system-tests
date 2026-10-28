@@ -1003,8 +1003,10 @@ class ServerlessInitContainer(TestedContainer):
                 "DD_ENV": "system-tests",
                 "DD_APM_ENABLED": "true",
                 "DD_APM_NON_LOCAL_TRAFFIC": "true",
-                "DD_PROXY_HTTPS": f"http://proxy:{ProxyPorts.datadog_sidecar}",
-                "DD_PROXY_HTTP": f"http://proxy:{ProxyPorts.datadog_sidecar}",
+                # Feature Flags events go to the event platform intake derived from DD_SITE, served by the mocked
+                # backend (MockedBackendContainer(tls=True)). Send everything else to the mocked backend too
+                "DD_DD_URL": "https://mocked-backend",
+                "DD_APM_DD_URL": "https://mocked-backend",
                 "DD_SERVERLESS_FLUSH_STRATEGY": "periodically,100",
                 "DD_SKIP_SSL_VALIDATION": "true",
             },

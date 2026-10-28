@@ -311,11 +311,10 @@ class FlagevaluationEgressContract:
                 library_version=context.library.raw_version,
             )
 
-        for excluded_interface in egress.excluded_interfaces:
-            assert not any(
-                evp_flagevaluation_events_from_data(cast("JSON", data), self.flag_key, self.targeting_key)
-                for data in excluded_interface.get_data(path_filters=EVP_FLAGEVALUATIONS_PATH)
-            )
+        assert not any(
+            evp_flagevaluation_events_from_data(cast("JSON", data), self.flag_key, self.targeting_key)
+            for data in egress.excluded_data(path_filters=EVP_FLAGEVALUATIONS_PATH)
+        )
 
 
 @scenarios.feature_flagging_and_experimentation

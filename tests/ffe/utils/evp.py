@@ -20,7 +20,6 @@ from utils.interfaces._core import ProxyBasedInterfaceValidator
 
 
 EVP_DIRECT_HOST = "event-platform-intake.mock-intake.invalid"
-EVP_DIRECT_PORT = 443
 EVP_PROXY_PATH_PREFIXES = ("/evp_proxy/v2/", "/evp_proxy/v4/")
 EVP_FORBIDDEN_RUNTIME_COMPONENTS = (
     "datadog-agent",
@@ -67,8 +66,17 @@ class FeatureFlaggingEVPEgress:
 
     interface: ProxyBasedInterfaceValidator
     route: EVPRoute
-    excluded_interfaces: tuple[ProxyBasedInterfaceValidator, ...] = ()
+    excluded_api_keys: tuple[str, ...] = ()
+    """API keys of the senders that must not deliver the tested events"""
     expected_api_key: str | None = None
+
+    def excluded_data(self, path_filters: str | None = None) -> list[dict[str, Any]]:
+        """Requests the mocked backend received from the senders that must not deliver the tested events"""
+        return [
+            data
+            for api_key in self.excluded_api_keys
+            for data in interfaces.backend_v2.get_data(path_filters=path_filters, with_api_key=api_key)
+        ]
 
 
 def feature_flagging_evp_egress() -> FeatureFlaggingEVPEgress:
@@ -80,23 +88,17 @@ def feature_flagging_evp_egress() -> FeatureFlaggingEVPEgress:
 
     if scenario.exposure_egress == "sidecar":
         assert "serverless-init" in scenario.components
-        expected_api_key = scenario.serverless_init_container.environment["DD_API_KEY"]
-        assert expected_api_key is not None
+        # serverless-init relays the events: the SDK must not send them straight to the intake
         return FeatureFlaggingEVPEgress(
-            interfaces.datadog_sidecar,
+            interfaces.backend_v2,
             "sidecar",
-            (interfaces.datadog_direct,),
-            expected_api_key,
+            excluded_api_keys=(scenario.dd_api_key,),
+            expected_api_key=scenario.evp_api_key,
         )
 
     assert scenario.exposure_egress == "direct"
     assert "serverless-init" not in scenario.components
-    return FeatureFlaggingEVPEgress(
-        interfaces.datadog_direct,
-        "direct",
-        (interfaces.datadog_sidecar,),
-        scenario.dd_api_key,
-    )
+    return FeatureFlaggingEVPEgress(interfaces.backend_v2, "direct", expected_api_key=scenario.evp_api_key)
 
 
 def register_expected_evp_capture(path: str) -> None:
@@ -182,8 +184,8 @@ def assert_agentless_evp_intake_request(
     assert path in DIRECT_EVP_SIGNAL_PATHS, f"unsupported EVP signal path {path!r}"
     assert data.get("method") == "POST", f"EVP request must use POST: {data}"
     assert data.get("path") == path, f"EVP request must use canonical path {path!r}: {data}"
-    assert data.get("host") == EVP_DIRECT_HOST, f"unexpected EVP intake host: {data}"
-    assert data.get("port") == EVP_DIRECT_PORT, f"EVP direct request must use HTTPS port 443: {data}"
+    # the mocked backend only serves HTTPS on 443, under the intake hostnames derived from DD_SITE
+    _assert_single_header(data, "Host", {EVP_DIRECT_HOST, f"{EVP_DIRECT_HOST}:443"})
 
     response = data.get("response")
     assert isinstance(response, dict), f"EVP capture must include a response: {data}"
@@ -200,7 +202,7 @@ def assert_agentless_evp_intake_request(
 
     assert route in ("direct", "sidecar")
     if route == "sidecar":
-        # datadog_sidecar captures relay-to-intake traffic, not the SDK-to-relay request. Relayed
+        # With the sidecar, the intake receives the relay-to-intake request, not the SDK-to-relay one. Relayed
         # producer identity requires Agent 7.84+, while the default fixture may still be earlier;
         # SDK local-route identity and credential omission remain covered by SDK unit tests.
         return
@@ -243,11 +245,10 @@ def assert_direct_evp_runtime_evidence(evidence: dict[str, Any], *, library_name
         assert isinstance(name, str), f"Live container evidence has no name: {container}"
         assert name not in containers_by_name, f"Duplicate live container evidence for {name!r}"
         containers_by_name[name] = container
-    # the mocked backend serves the agentless configuration
-    expected_names = {"system-tests-mocked-backend", "system-tests-proxy", "system-tests-weblog"}
+    # the mocked backend serves the agentless configuration, and stands in for the intake
+    expected_names = {"system-tests-mocked-backend", "system-tests-weblog"}
     assert set(containers_by_name) == expected_names, (
-        "Direct EVP runtime network must contain only mocked backend, TLS proxy and weblog, "
-        f"got {sorted(containers_by_name)}"
+        f"Direct EVP runtime network must contain only mocked backend and weblog, got {sorted(containers_by_name)}"
     )
 
     network = evidence.get("network")
@@ -276,12 +277,6 @@ def assert_direct_evp_runtime_evidence(evidence: dict[str, Any], *, library_name
         )
         forbidden = [name for name in EVP_FORBIDDEN_RUNTIME_COMPONENTS if name in _runtime_text(container)]
         assert not forbidden, f"Forbidden direct-scenario runtime components found: {forbidden}"
-
-    proxy = containers_by_name["system-tests-proxy"]
-    proxy_runtime = _runtime_text(proxy)
-    assert "proxy.core" in proxy_runtime or "proxy/core.py" in proxy_runtime, (
-        f"The only allowed helper must be the system-tests TLS capture proxy: {proxy}"
-    )
 
     weblog = containers_by_name["system-tests-weblog"]
     assert weblog.get("library") == library_name, (
@@ -444,7 +439,7 @@ def assert_agentless_evp_topology(egress: FeatureFlaggingEVPEgress) -> None:
             assert name not in environment
         assert "serverless-init" not in scenario.components
         assert not any(container.name == "ffe-serverless-init" for container in scenario.weblog_infra.get_containers())
-        assert_no_evp_proxy_requests(interfaces.datadog_direct.get_data())
+        assert_no_evp_proxy_requests(interfaces.backend_v2.get_data(with_api_key=scenario.dd_api_key))
         return
 
     assert egress.route == "sidecar"

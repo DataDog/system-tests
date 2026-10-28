@@ -1,10 +1,11 @@
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
 import hashlib
 import json
 from pathlib import Path
 import time
-from typing import TYPE_CHECKING, Any, Literal, cast
+from typing import Any, Literal, cast
 
 from docker.models.containers import Container
 import pytest
@@ -15,12 +16,8 @@ from utils._context.docker import get_docker_client
 from utils._logger import logger
 from utils._weblog import weblog
 from utils.mocked_backend.ffe import MockedBackendFFEStatus, ffe_library_config_url
-from utils.proxy.ports import ProxyPorts
 
 from ._core import DdTraceEndToEndScenario, ScenarioGroup, scenario_groups as all_scenario_groups
-
-if TYPE_CHECKING:
-    from utils.interfaces._core import ProxyBasedInterfaceValidator
 
 
 DIRECT_EVP_CA_BUNDLE_SOURCE = "./utils/build/docker/agent/ca-certificates.crt"
@@ -74,7 +71,6 @@ class _AgentlessEndToEndScenario(DdTraceEndToEndScenario):
         weblog_env: dict[str, str | None] | None = None,
         other_weblog_containers: tuple[type[TestedContainer], ...] = (),
         scenario_groups: tuple[ScenarioGroup, ...] = (),
-        use_proxy_for_weblog: bool = False,
     ) -> None:
         super().__init__(
             name,
@@ -84,7 +80,7 @@ class _AgentlessEndToEndScenario(DdTraceEndToEndScenario):
             other_weblog_containers=other_weblog_containers,
             scenario_groups=[*scenario_groups, all_scenario_groups.agentless],
             use_proxy_for_agent=False,
-            use_proxy_for_weblog=use_proxy_for_weblog,
+            use_proxy_for_weblog=False,
             weblog_env=weblog_env,
             mocked_backend_v2=True,
         )
@@ -95,6 +91,12 @@ class _AgentlessEndToEndScenario(DdTraceEndToEndScenario):
             "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL": ffe_library_config_url(
                 self.mocked_backend_container.container_url
             ),
+            # The mocked backend serves HTTPS, with a certificate signed by the CA of this bundle
+            "NODE_EXTRA_CA_CERTS": DIRECT_EVP_CA_BUNDLE_CONTAINER_PATH,
+        }
+        self.weblog_infra.library_container.volumes[DIRECT_EVP_CA_BUNDLE_SOURCE] = {
+            "bind": DIRECT_EVP_CA_BUNDLE_CONTAINER_PATH,
+            "mode": "ro",
         }
 
     def configure(self, config: pytest.Config) -> None:
@@ -176,10 +178,9 @@ class FeatureFlaggingAgentlessEndToEndScenario(_AgentlessEndToEndScenario):
                 # unset, the legacy switch selects Remote Config instead of default agentless.
                 "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
                 "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE": "agentless",
-                # The reserved .invalid domain fails closed if a request bypasses the proxy.
+                # The intake hostnames derived from this reserved .invalid domain only resolve to the mocked
+                # backend: a request to any other intake fails closed.
                 "DD_SITE": "mock-intake.invalid",
-                "DD_PROXY_HTTPS": f"http://proxy:{ProxyPorts.datadog_direct}",
-                "HTTPS_PROXY": f"http://proxy:{ProxyPorts.datadog_direct}",
             }
 
         if exposure_egress == "sidecar":
@@ -190,34 +191,20 @@ class FeatureFlaggingAgentlessEndToEndScenario(_AgentlessEndToEndScenario):
                 "DD_TRACE_AGENT_URL": f"http://ffe-serverless-init:{serverless_init_port}",
             }
             other_weblog_containers = (ServerlessInitContainer,)
-        elif exposure_egress == "direct":
-            environment["NODE_EXTRA_CA_CERTS"] = DIRECT_EVP_CA_BUNDLE_CONTAINER_PATH
 
         super().__init__(
             name,
             doc=doc,
             other_weblog_containers=other_weblog_containers,
             scenario_groups=(all_scenario_groups.ffe,),
-            use_proxy_for_weblog=exposure_egress is not None,
             weblog_env=environment,
         )
 
         if exposure_egress == "direct":
             self.weblog_infra.library_container.environment[DIRECT_EVP_SHUTDOWN_FLUSH_ENV] = "true"
-            self.weblog_infra.library_container.volumes[DIRECT_EVP_CA_BUNDLE_SOURCE] = {
-                "bind": DIRECT_EVP_CA_BUNDLE_CONTAINER_PATH,
-                "mode": "ro",
-            }
-            # Direct mode uses the proxy only to capture HTTPS intake requests.
-            # Do not advertise the proxy as a local Agent endpoint.
+            # There is no local Agent endpoint: events must go straight to the intake
             for env_name in DIRECT_EVP_AGENT_VARIABLES:
                 self.weblog_infra.library_container.environment.pop(env_name, None)
-
-    def configure(self, config: pytest.Config) -> None:
-        super().configure(config)
-        if self.exposure_egress is not None:
-            interfaces.datadog_sidecar.configure(self.host_log_folder, replay=self.replay)
-            interfaces.datadog_direct.configure(self.host_log_folder, replay=self.replay)
 
     @property
     def serverless_init_container(self) -> ServerlessInitContainer:
@@ -226,25 +213,26 @@ class FeatureFlaggingAgentlessEndToEndScenario(_AgentlessEndToEndScenario):
                 return container
         raise ValueError("This scenario has no serverless-init container")
 
-    def _set_containers_dependancies(self) -> None:
-        super()._set_containers_dependancies()
-        if self.exposure_egress == "sidecar":
-            self.serverless_init_container.depends_on.append(self.proxy_container)
-
-    def _start_interfaces_watchdog(self) -> None:
-        super()._start_interfaces_watchdog()
-        if self.exposure_egress is not None:
-            self.start_interfaces_watchdog([interfaces.datadog_sidecar, interfaces.datadog_direct])
-
-    def _wait_for_app_readiness(self) -> None:
-        if self.exposure_egress is not None:
-            return
-        super()._wait_for_app_readiness()
-
     def _set_components(self) -> None:
         super()._set_components()
         if self.exposure_egress == "sidecar":
             self.components["serverless-init"] = self.serverless_init_container.serverless_init_version
+
+    @property
+    def evp_api_key(self) -> str:
+        """The API key the events reach the intake with: serverless-init's one with the sidecar, else the SDK's one"""
+        if self.exposure_egress == "sidecar":
+            api_key = self.serverless_init_container.environment["DD_API_KEY"]
+            assert api_key is not None
+            return api_key
+        return self.dd_api_key
+
+    def _evp_captures(self) -> list[dict[str, Any]]:
+        return list(interfaces.backend_v2.get_data(with_api_key=self.evp_api_key))
+
+    def _evp_capture_matcher(self, matcher: Callable[[dict[str, Any]], bool]) -> Callable[[dict[str, Any]], bool]:
+        """Restrict a matcher used with interfaces.backend_v2.wait_for to the requests sent with evp_api_key"""
+        return lambda data: interfaces.backend_v2.get_api_key(data) == self.evp_api_key and matcher(data)
 
     def register_expected_evp_capture(self, path: str) -> None:
         """Register a canonical signal path that must be captured before shutdown."""
@@ -503,8 +491,9 @@ class FeatureFlaggingAgentlessEndToEndScenario(_AgentlessEndToEndScenario):
             super()._stop_weblog(is_empty_test_run=is_empty_test_run)
             return
 
-        interface = interfaces.datadog_direct
+        interface = interfaces.backend_v2
 
+        @self._evp_capture_matcher
         def matcher(data: dict[str, Any]) -> bool:
             return self._capture_has_shutdown_evaluation(data, evaluation)
 
@@ -523,6 +512,7 @@ class FeatureFlaggingAgentlessEndToEndScenario(_AgentlessEndToEndScenario):
             subject_id=priming_subject_id,
         )
 
+        @self._evp_capture_matcher
         def priming_matcher(data: dict[str, Any]) -> bool:
             return self._capture_has_shutdown_evaluation(data, priming_evaluation)
 
@@ -530,17 +520,17 @@ class FeatureFlaggingAgentlessEndToEndScenario(_AgentlessEndToEndScenario):
         priming_response = weblog.post(priming_evaluation.request_path, json=priming_evaluation.body)
         priming_finished_at = datetime.now(UTC)
         priming_observed = interface.wait_for(priming_matcher, timeout=DIRECT_EVP_CAPTURE_WAIT_SECONDS)
-        priming_captures = list(filter(priming_matcher, interface.get_data()))
+        priming_captures = list(filter(priming_matcher, self._evp_captures()))
         if not priming_observed or len(priming_captures) != 1:
             raise RuntimeError(
                 "Could not establish one completed direct-EVP flush immediately before the shutdown target"
             )
 
-        matching_before = list(filter(matcher, interface.get_data()))
+        matching_before = list(filter(matcher, self._evp_captures()))
         evaluation_started_at = datetime.now(UTC)
         response = weblog.post(evaluation.request_path, json=evaluation.body)
         evaluation_finished_at = datetime.now(UTC)
-        matching_before_stop = list(filter(matcher, interface.get_data()))
+        matching_before_stop = list(filter(matcher, self._evp_captures()))
 
         runtime_container = self.weblog_infra.library_container.runtime_container
         stop_started_at = datetime.now(UTC)
@@ -560,7 +550,7 @@ class FeatureFlaggingAgentlessEndToEndScenario(_AgentlessEndToEndScenario):
 
         capture_observed = interface.wait_for(matcher, timeout=DIRECT_EVP_CAPTURE_WAIT_SECONDS)
         interface.wait(DIRECT_EVP_CAPTURE_SETTLE_SECONDS)
-        matching_after = list(filter(matcher, interface.get_data()))
+        matching_after = list(filter(matcher, self._evp_captures()))
         self._last_direct_evp_shutdown_evidence = {
             "capture_files": [capture.get("log_filename") for capture in matching_after],
             "capture_observed_after_stop": capture_observed,
@@ -612,10 +602,11 @@ class FeatureFlaggingAgentlessEndToEndScenario(_AgentlessEndToEndScenario):
             # but their setup methods never run and therefore register no capture expectations.
             return
 
-        interface = interfaces.datadog_sidecar if self.exposure_egress == "sidecar" else interfaces.datadog_direct
+        interface = interfaces.backend_v2
         missing_paths: list[str] = []
         for path in sorted(self._expected_evp_capture_paths):
 
+            @self._evp_capture_matcher
             def captured(data: dict[str, Any], expected_path: str = path) -> bool:
                 return data.get("path") == expected_path
 
@@ -648,23 +639,8 @@ class FeatureFlaggingAgentlessEndToEndScenario(_AgentlessEndToEndScenario):
                         self._direct_evp_shutdown_evidence_path.read_text(encoding="utf-8")
                     )
             super()._wait_and_stop_containers(is_empty_test_run=is_empty_test_run)
-            if self.exposure_egress is not None:
-                if self.replay:
-                    self._load_telemetry_interfaces()
-                elif self.exposure_egress == "sidecar":
-                    self.serverless_init_container.stop()
-
-                interfaces.datadog_sidecar.check_deserialization_errors()
-                interfaces.datadog_direct.check_deserialization_errors()
-
-    @staticmethod
-    def _load_telemetry_interfaces() -> None:
-        telemetry_interfaces: tuple[ProxyBasedInterfaceValidator, ...] = (
-            interfaces.datadog_sidecar,
-            interfaces.datadog_direct,
-        )
-        for interface in telemetry_interfaces:
-            interface.load_data_from_logs()
+            if self.exposure_egress == "sidecar" and not self.replay:
+                self.serverless_init_container.stop()
 
 
 class FeatureFlaggingAndExperimentationAgentless(FeatureFlaggingAgentlessEndToEndScenario):

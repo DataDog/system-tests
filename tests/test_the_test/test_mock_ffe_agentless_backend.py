@@ -10,7 +10,7 @@ import requests
 from utils import pytest
 
 from utils import features, interfaces, scenarios
-from utils._context.containers import MockedBackendContainer, ServerlessInitContainer
+from utils._context.containers import MockedBackendContainer, ProxyContainer, ServerlessInitContainer
 from utils._context._scenarios import agentless_endtoend as agentless_endtoend_scenarios
 from utils._context._scenarios._core import endtoend as endtoend_scenarios
 from utils.docker_fixtures._core import HOST_GATEWAY_EXTRA_HOSTS, extra_hosts_for_environment
@@ -30,7 +30,6 @@ from utils._context._scenarios.agentless_endtoend import (
     DIRECT_EVP_CAPTURE_WAIT_SECONDS,
     FeatureFlaggingAgentlessEndToEndScenario,
 )
-from utils.proxy.ports import ProxyPorts
 
 from .utils import extra_hosts_at_start
 
@@ -131,8 +130,14 @@ def test_agentless_end_to_end_scenario_points_weblog_to_mocked_backend(monkeypat
     assert "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT" not in environment
     assert environment["DD_API_KEY"] == scenario.dd_api_key
     assert environment["DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL"] == (
-        f"http://mocked-backend:4900{CONFIG_PATH}?{CONFIG_QUERY}"
+        f"https://mocked-backend:443{CONFIG_PATH}?{CONFIG_QUERY}"
     )
+    # it serves HTTPS, with a certificate signed by the CA of the mounted bundle
+    assert environment["NODE_EXTRA_CA_CERTS"] == DIRECT_EVP_CA_BUNDLE_CONTAINER_PATH
+    assert library_container.volumes[DIRECT_EVP_CA_BUNDLE_SOURCE] == {
+        "bind": DIRECT_EVP_CA_BUNDLE_CONTAINER_PATH,
+        "mode": "ro",
+    }
     # reached by its name on the scenario network: no mapping to the docker host
     assert extra_hosts_at_start(monkeypatch, library_container) is None
 
@@ -164,7 +169,7 @@ def test_default_agentless_scenario_leaves_source_selection_implicit() -> None:
 @pytest.mark.parametrize("exposure_egress", ["direct", "sidecar"])
 @scenarios.test_the_test
 @features.not_reported
-def test_agentless_exposure_scenario_has_no_agent_and_two_capture_routes(
+def test_agentless_exposure_scenario_sends_events_to_the_mocked_backend(
     exposure_egress: Literal["direct", "sidecar"],
 ) -> None:
     scenario = FeatureFlaggingAgentlessEndToEndScenario(
@@ -180,11 +185,13 @@ def test_agentless_exposure_scenario_has_no_agent_and_two_capture_routes(
         if isinstance(container, ServerlessInitContainer)
     )
     assert scenario.agent_container not in scenario._containers  # noqa: SLF001 - focused topology test
-    assert scenario.proxy_container in scenario._containers  # noqa: SLF001 - focused topology test
+    # the intake hostnames derived from DD_SITE are network aliases of the mocked backend: no proxy in between
+    assert not any(isinstance(container, ProxyContainer) for container in scenario._containers)  # noqa: SLF001
+    assert scenario.mocked_backend_container.tls
     assert scenario.get_libraries() is None
     assert environment["DD_SITE"] == "mock-intake.invalid"
-    assert environment["DD_PROXY_HTTPS"] == f"http://proxy:{ProxyPorts.datadog_direct}"
-    assert environment["HTTPS_PROXY"] == f"http://proxy:{ProxyPorts.datadog_direct}"
+    assert "DD_PROXY_HTTPS" not in environment
+    assert "HTTPS_PROXY" not in environment
     assert environment["DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED"] == "true"
     assert environment["DD_FEATURE_FLAGS_CONFIGURATION_SOURCE"] == "agentless"
 
@@ -199,7 +206,6 @@ def test_agentless_exposure_scenario_has_no_agent_and_two_capture_routes(
         assert not serverless_init_containers
         return
 
-    assert DIRECT_EVP_CA_BUNDLE_SOURCE not in scenario.weblog_infra.library_container.volumes
     serverless_init = scenario.serverless_init_container
     assert serverless_init_containers == (serverless_init,)
     assert isinstance(serverless_init, ServerlessInitContainer)
@@ -208,8 +214,9 @@ def test_agentless_exposure_scenario_has_no_agent_and_two_capture_routes(
     assert environment["DD_TRACE_AGENT_URL"] == f"http://ffe-serverless-init:{serverless_init.apm_receiver_port}"
     assert serverless_init.healthcheck is not None
     assert serverless_init.environment["DD_SITE"] == "mock-intake.invalid"
-    assert serverless_init.environment["DD_PROXY_HTTPS"] == f"http://proxy:{ProxyPorts.datadog_sidecar}"
-    assert serverless_init.environment["DD_PROXY_HTTP"] == f"http://proxy:{ProxyPorts.datadog_sidecar}"
+    assert "DD_PROXY_HTTPS" not in serverless_init.environment
+    assert serverless_init.environment["DD_DD_URL"] == "https://mocked-backend"
+    assert serverless_init.environment["DD_APM_DD_URL"] == "https://mocked-backend"
 
 
 @scenarios.test_the_test
@@ -284,7 +291,9 @@ def test_agentless_evp_capture_registry_waits_for_each_path_before_settling(
     for path in expected_paths:
         scenario.register_expected_evp_capture(path)
 
-    captures = iter({"path": path} for path in expected_paths)
+    captures = iter(
+        {"path": path, "request": {"headers": [("DD-API-KEY", scenario.dd_api_key)]}} for path in expected_paths
+    )
     wait_timeouts: list[int] = []
 
     def wait_for(matcher: Callable[[dict[str, Any]], bool], *, timeout: int) -> bool:
@@ -292,8 +301,8 @@ def test_agentless_evp_capture_registry_waits_for_each_path_before_settling(
         return matcher(next(captures))
 
     wait = MagicMock()
-    monkeypatch.setattr(interfaces.datadog_direct, "wait_for", wait_for)
-    monkeypatch.setattr(interfaces.datadog_direct, "wait", wait)
+    monkeypatch.setattr(interfaces.backend_v2, "wait_for", wait_for)
+    monkeypatch.setattr(interfaces.backend_v2, "wait", wait)
 
     scenario._wait_for_expected_evp_captures(is_empty_test_run=False)  # noqa: SLF001
 
@@ -347,21 +356,12 @@ def test_direct_evp_replay_skips_missing_runtime_evidence(
     is_empty_test_run = run_selection == "empty"
 
     stop_containers = MagicMock()
-    load_interfaces = MagicMock()
-    sidecar_errors = MagicMock()
-    direct_errors = MagicMock()
     monkeypatch.setattr(endtoend_scenarios.DdTraceEndToEndScenario, "_wait_and_stop_containers", stop_containers)
-    monkeypatch.setattr(scenario, "_load_telemetry_interfaces", load_interfaces)
-    monkeypatch.setattr(interfaces.datadog_sidecar, "check_deserialization_errors", sidecar_errors)
-    monkeypatch.setattr(interfaces.datadog_direct, "check_deserialization_errors", direct_errors)
 
     scenario._wait_and_stop_containers(is_empty_test_run=is_empty_test_run)  # noqa: SLF001
 
     assert scenario._last_direct_evp_runtime_evidence is None  # noqa: SLF001
     stop_containers.assert_called_once_with(is_empty_test_run=is_empty_test_run)
-    load_interfaces.assert_called_once_with()
-    sidecar_errors.assert_called_once_with()
-    direct_errors.assert_called_once_with()
 
 
 @scenarios.test_the_test
@@ -412,6 +412,7 @@ def test_direct_evp_shutdown_probe_uses_sigterm_without_explicit_flush(
         "log_filename": "direct-0000.json",
         "request": {
             "timestamp_start": "2099-09-09T11:59:59+00:00",
+            "headers": [("DD-API-KEY", scenario.dd_api_key)],
             "content": {
                 "exposures": [
                     {
@@ -427,6 +428,7 @@ def test_direct_evp_shutdown_probe_uses_sigterm_without_explicit_flush(
         "log_filename": "direct-0001.json",
         "request": {
             "timestamp_start": "2099-09-09T12:00:01+00:00",
+            "headers": [("DD-API-KEY", scenario.dd_api_key)],
             "content": {
                 "exposures": [
                     {
@@ -446,7 +448,8 @@ def test_direct_evp_shutdown_probe_uses_sigterm_without_explicit_flush(
         )
     )
 
-    def get_data() -> list[dict[str, Any]]:
+    def get_data(*, with_api_key: str) -> list[dict[str, Any]]:
+        assert with_api_key == scenario.dd_api_key
         lifecycle.append("capture-snapshot")
         return next(snapshots)
 
@@ -456,9 +459,9 @@ def test_direct_evp_shutdown_probe_uses_sigterm_without_explicit_flush(
         return any(matcher(candidate) for candidate in (priming_capture, capture))
 
     settle = MagicMock(side_effect=lambda _: lifecycle.append("settle"))
-    monkeypatch.setattr(interfaces.datadog_direct, "get_data", get_data)
-    monkeypatch.setattr(interfaces.datadog_direct, "wait_for", wait_for)
-    monkeypatch.setattr(interfaces.datadog_direct, "wait", settle)
+    monkeypatch.setattr(interfaces.backend_v2, "get_data", get_data)
+    monkeypatch.setattr(interfaces.backend_v2, "wait_for", wait_for)
+    monkeypatch.setattr(interfaces.backend_v2, "wait", settle)
 
     runtime_container = MagicMock()
     runtime_container.status = "exited"

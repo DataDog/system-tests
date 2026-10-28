@@ -40,7 +40,7 @@ messages_counts: dict[str, int] = defaultdict(int)
 # Used to create the stub TLS server cert (mitmproxy CA is always present at startup).
 _MITMPROXY_CA_PEM = "/app/utils/proxy/.mitmproxy/mitmproxy-ca.pem"
 
-_MOCKED_BACKEND_PORTS = (ProxyPorts.agent, ProxyPorts.datadog_sidecar, ProxyPorts.datadog_direct)
+_MOCKED_BACKEND_PORTS = (ProxyPorts.agent,)
 
 
 class _UDPForwarder(asyncio.DatagramProtocol):
@@ -331,10 +331,6 @@ class _RequestLogger:
             interface = "golang_buddy"
         elif proxy_port == ProxyPorts.agent:  # HTTPS port, as the agent use the proxy with HTTP_PROXY env var
             interface = "agent"
-        elif proxy_port == ProxyPorts.datadog_sidecar:
-            interface = "datadog_sidecar"
-        elif proxy_port == ProxyPorts.datadog_direct:
-            interface = "datadog_direct"
         else:
             raise ValueError(f"Unknown port provenance for {flow.request}: {proxy_port}")
 
@@ -423,8 +419,6 @@ def start_proxy() -> None:
         f"regular@{ProxyPorts.golang_buddy}",  # golang_buddy
         f"regular@{ProxyPorts.open_telemetry_weblog}",  # Open telemetry weblog
         f"regular@{ProxyPorts.agent}",  # from agent to backend
-        f"regular@{ProxyPorts.datadog_sidecar}",  # Datadog sidecar traffic
-        f"regular@{ProxyPorts.datadog_direct}",  # Datadog direct intake traffic
         f"regular@{ProxyPorts.otel_collector}",  # from otel collector to backend
     ]
 

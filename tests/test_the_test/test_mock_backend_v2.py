@@ -309,7 +309,8 @@ def test_https_mode_serves_and_records_https_requests(tmp_path: Path):
     finally:
         server.close()
 
-    assert status_line == "HTTP/1.0 200 OK"
+    # the event platform intake accepts the payload for asynchronous processing
+    assert status_line == "HTTP/1.0 202 Accepted"
     assert health.json() == {"status": "ok"}
     recorded = json.loads((tmp_path / "000__api_v2_exposures.json").read_text())
     assert recorded["request"]["content"] == {"over": "https"}
@@ -358,7 +359,8 @@ def test_https_mode_is_not_blocked_by_an_idle_connection(tmp_path: Path):
         if not closed.is_set():
             server.close()
 
-    assert status_line == "HTTP/1.0 200 OK"
+    # the event platform intake accepts the payload for asynchronous processing
+    assert status_line == "HTTP/1.0 202 Accepted"
 
 
 @scenarios.test_the_test

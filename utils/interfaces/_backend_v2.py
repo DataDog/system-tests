@@ -38,8 +38,17 @@ class _BackendV2InterfaceValidator(ProxyBasedInterfaceValidator):
         serverless-init...) uses its own key, it tells where a request comes from.
         """
         for data in super().get_data(path_filters=path_filters):
-            if with_api_key is None or _get_api_key(data) == with_api_key:
+            if with_api_key is None or self.get_api_key(data) == with_api_key:
                 yield data
+
+    @staticmethod
+    def get_api_key(data: dict) -> str | None:
+        """The API key a request was sent with"""
+        for name, value in data["request"]["headers"]:
+            if name.lower() == "dd-api-key":
+                return value
+
+        return None
 
     def get_traces(
         self, request: HttpResponse | None = None, *, with_api_key: str | None = None
@@ -225,12 +234,3 @@ class _BackendV2InterfaceValidator(ProxyBasedInterfaceValidator):
                     for client_grouped_stat in client_stats_buckets["Stats"]:
                         if not resources or "" in resources or client_grouped_stat["Resource"] in resources:
                             yield client_grouped_stat
-
-
-def _get_api_key(data: dict) -> str | None:
-    """The API key a request was sent with"""
-    for name, value in data["request"]["headers"]:
-        if name.lower() == "dd-api-key":
-            return value
-
-    return None
