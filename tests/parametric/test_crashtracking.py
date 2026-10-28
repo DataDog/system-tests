@@ -36,7 +36,7 @@ class Test_Crashtracking:
                 tags = self.crash_event_tags(event)
                 if "is_crash_ping:true" not in tags and "is_crash_debug:true" not in tags:
                     return event
-            time.sleep(0.01)
+            time.sleep(0.5)
         raise AssertionError("Crash report not found in telemetry logs events")
 
     def crash_event_tags(self, event: dict) -> str:
