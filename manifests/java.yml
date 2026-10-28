@@ -3446,13 +3446,13 @@ manifest:
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry_Metrics:
     - weblog_declaration:
         "*": missing_feature
-        spring-boot: v1.68.0-SNAPSHOT
-        spring-boot-jetty: v1.68.0-SNAPSHOT
-        spring-boot-openliberty: v1.68.0-SNAPSHOT
-        spring-boot-payara: v1.68.0-SNAPSHOT
-        spring-boot-undertow: v1.68.0-SNAPSHOT
-        spring-boot-wildfly: v1.68.0-SNAPSHOT
-        uds-spring-boot: v1.68.0-SNAPSHOT
+        spring-boot: v1.68.0
+        spring-boot-jetty: v1.68.0
+        spring-boot-openliberty: v1.68.0
+        spring-boot-payara: v1.68.0
+        spring-boot-undertow: v1.68.0
+        spring-boot-wildfly: v1.68.0
+        uds-spring-boot: v1.68.0
   tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_injection_metadata:
     - declaration: missing_feature (Not implemented yet)
       component_version: <1.52.0
