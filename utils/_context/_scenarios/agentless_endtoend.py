@@ -10,7 +10,7 @@ from docker.models.containers import Container
 import pytest
 
 from utils import interfaces
-from utils._context.containers import ServerlessInitContainer
+from utils._context.containers import MOCKED_BACKEND_DOMAIN, ServerlessInitContainer
 from utils._context.docker import get_docker_client
 from utils._logger import logger
 from utils._weblog import weblog
@@ -184,7 +184,7 @@ class FeatureFlaggingAgentlessEndToEndScenario(_AgentlessEndToEndScenario):
                 "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE": "agentless",
                 # The intake hostnames derived from this reserved .invalid domain only resolve to the mocked
                 # backend: a request to any other intake fails closed.
-                "DD_SITE": "mock-intake.invalid",
+                "DD_SITE": MOCKED_BACKEND_DOMAIN,
             }
 
         if exposure_egress == "sidecar":

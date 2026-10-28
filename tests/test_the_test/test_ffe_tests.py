@@ -146,7 +146,7 @@ def _direct_runtime_evidence(library_name: str = "nodejs") -> dict[str, Any]:
             "custom_configuration_url_present": True,
             "provider_enabled": "true",
             "shutdown_flush_enabled": "true",
-            "site": "mock-intake.invalid",
+            "site": "mocked-backend.invalid",
             "tls_ca_bundle": None,
         },
     }
@@ -210,7 +210,7 @@ def _direct_capture(*, path: str = "/api/v2/exposures", headers: list[list[str]]
         "method": "POST",
         "path": path,
         "request": {
-            "headers": [*headers, ["Host", "event-platform-intake.mock-intake.invalid"]],
+            "headers": [*headers, ["Host", "event-platform-intake.mocked-backend.invalid"]],
             "content": {"exposures": []},
         },
         "response": {"status_code": 202, "content": "Ok"},
@@ -314,7 +314,7 @@ def test_feature_flagging_agentless_evp_wire_contract_rejects_proxy_header() -> 
 @scenarios.test_the_test
 def test_feature_flagging_agentless_evp_wire_contract_rejects_other_intake_host() -> None:
     capture = _direct_capture()
-    capture["request"]["headers"][-1] = ["Host", "trace.agent.mock-intake.invalid"]
+    capture["request"]["headers"][-1] = ["Host", "trace.agent.mocked-backend.invalid"]
 
     with pytest.raises(AssertionError, match="expected Host"):
         assert_agentless_evp_intake_request(

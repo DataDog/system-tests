@@ -284,7 +284,7 @@ def test_backend_v2_with_api_key_ignores_the_header_name_case(tmp_path: Path):
 
 _MITMPROXY_CA = "utils/proxy/.mitmproxy/mitmproxy-ca-cert.pem"
 _TLS_CERT_FILE = MockedBackendContainer.tls_cert_file
-_INTAKE_HOSTNAME = "event-platform-intake.mock-intake.invalid"
+_INTAKE_HOSTNAME = "event-platform-intake.mocked-backend.invalid"
 
 
 def _https_post(port: int, hostname: str, path: str, body: bytes) -> str:
@@ -378,7 +378,7 @@ def test_https_certificate_is_only_valid_for_the_served_hostnames(tmp_path: Path
     server = MockedBackendServer(str(tmp_path), port=0, tls_cert_file=_TLS_CERT_FILE)
     try:
         with pytest.raises(ssl.SSLCertVerificationError):
-            _https_post(server.port, "other.mock-intake.invalid", "/api/v2/exposures", b"{}")
+            _https_post(server.port, "other.mocked-backend.invalid", "/api/v2/exposures", b"{}")
     finally:
         server.close()
 
@@ -390,10 +390,8 @@ def test_https_certificate_covers_the_container_hostnames_for_a_while():
     names = cert.extensions.get_extension_for_class(x509.SubjectAlternativeName).value
     container = MockedBackendContainer(tls=True)
 
-    # reached by its name, its intake hostnames, and by localhost from the healthcheck and the host
-    assert sorted(names.get_values_for_type(x509.DNSName)) == sorted(
-        [container.name, *container.network_aliases, "localhost"]
-    )
+    # reached by its domain, its intake hostnames, and by localhost from the healthcheck and the host
+    assert sorted(names.get_values_for_type(x509.DNSName)) == sorted([*container.network_aliases, "localhost"])
     assert [str(ip) for ip in names.get_values_for_type(x509.IPAddress)] == ["127.0.0.1"]
     # naive, in UTC
     assert cert.not_valid_after.replace(tzinfo=UTC) - datetime.now(UTC) > timedelta(days=180)
@@ -406,6 +404,6 @@ def test_mocked_backend_container_serves_either_http_or_https():
     assert http.network_aliases == []
 
     https = MockedBackendContainer(tls=True)
-    # senders build the intake URLs from DD_SITE: the default HTTPS port, and the intake hostnames
-    assert https.container_url == "https://mocked-backend:443"
+    # senders build the intake URLs from DD_SITE: the default HTTPS port, its domain and the intake hostnames
+    assert https.container_url == "https://mocked-backend.invalid"
     assert https.network_aliases == list(MockedBackendContainer.tls_hostnames)

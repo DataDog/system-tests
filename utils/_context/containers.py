@@ -53,8 +53,9 @@ from utils.interfaces import StdoutLogsInterface, LibraryStdoutInterface
 
 # fake key of length 32
 FAKE_DD_API_KEY = "0123456789abcdef0123456789abcdef"
-# DD_SITE of agentless senders: the reserved .invalid domain fails closed if a request is not sent to the mocked backend
-MOCK_INTAKE_SITE = "mock-intake.invalid"
+# Domain of the mocked backend, also the DD_SITE of its senders: the intake hostnames derived from it are its network
+# aliases. The reserved .invalid domain fails closed if a request is sent anywhere else
+MOCKED_BACKEND_DOMAIN = "mocked-backend.invalid"
 # its own key tells, in the mocked backend, what serverless-init sent (see interfaces.backend_v2 with_api_key)
 
 _DEFAULT_NETWORK_NAME = "system-tests_default"
@@ -794,8 +795,9 @@ class MockedBackendContainer(TestedContainer):
     # from DD_SITE (e.g. an SDK sending exposures directly). Its certificate is signed by the mitmproxy CA: these
     # senders must trust it. See utils/mocked_backend/tls/README.md
     tls_hostnames = (
-        f"event-platform-intake.{MOCK_INTAKE_SITE}",
-        f"instrumentation-telemetry-intake.{MOCK_INTAKE_SITE}",
+        MOCKED_BACKEND_DOMAIN,
+        f"event-platform-intake.{MOCKED_BACKEND_DOMAIN}",
+        f"instrumentation-telemetry-intake.{MOCKED_BACKEND_DOMAIN}",
     )
     tls_cert_file = "utils/mocked_backend/tls/mocked-backend.pem"
     tls_ca_file = "utils/proxy/.mitmproxy/mitmproxy-ca-cert.pem"
@@ -852,7 +854,10 @@ class MockedBackendContainer(TestedContainer):
     @property
     def container_url(self) -> str:
         """The URL other containers use to reach the mocked backend"""
-        return f"{self.scheme}://{self.name}:{self.port}"
+        if self.tls:
+            # its domain, on the default HTTPS port
+            return f"https://{MOCKED_BACKEND_DOMAIN}"
+        return f"http://{self.name}:{self.port}"
 
     @property
     def client(self) -> MockedBackendClient:
@@ -997,15 +1002,15 @@ class ServerlessInitContainer(TestedContainer):
             image_name="datadog/serverless-init:1.10.4",
             environment={
                 "DD_API_KEY": dd_api_key,
-                "DD_SITE": MOCK_INTAKE_SITE,
+                "DD_SITE": MOCKED_BACKEND_DOMAIN,
                 "DD_SERVICE": "ffe-system-tests-serverless-init",
                 "DD_ENV": "system-tests",
                 "DD_APM_ENABLED": "true",
                 "DD_APM_NON_LOCAL_TRAFFIC": "true",
                 # Feature Flags events go to the event platform intake derived from DD_SITE, served by the mocked
                 # backend (MockedBackendContainer(tls=True)). Send everything else to the mocked backend too
-                "DD_DD_URL": "https://mocked-backend",
-                "DD_APM_DD_URL": "https://mocked-backend",
+                "DD_DD_URL": f"https://{MOCKED_BACKEND_DOMAIN}",
+                "DD_APM_DD_URL": f"https://{MOCKED_BACKEND_DOMAIN}",
                 "DD_SERVERLESS_FLUSH_STRATEGY": "periodically,100",
                 "DD_SKIP_SSL_VALIDATION": "true",
             },

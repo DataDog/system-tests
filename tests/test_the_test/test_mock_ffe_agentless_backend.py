@@ -130,7 +130,7 @@ def test_agentless_end_to_end_scenario_points_weblog_to_mocked_backend(monkeypat
     assert "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT" not in environment
     assert environment["DD_API_KEY"] == scenario.weblog_api_key
     assert environment["DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL"] == (
-        f"https://mocked-backend:443{CONFIG_PATH}?{CONFIG_QUERY}"
+        f"https://mocked-backend.invalid{CONFIG_PATH}?{CONFIG_QUERY}"
     )
     # it serves HTTPS, with a certificate signed by the CA of the mounted bundle
     assert environment["NODE_EXTRA_CA_CERTS"] == DIRECT_EVP_CA_BUNDLE_CONTAINER_PATH
@@ -184,7 +184,7 @@ def test_agentless_exposure_scenario_sends_events_to_the_mocked_backend(
     assert not any(isinstance(container, ProxyContainer) for container in scenario._containers)  # noqa: SLF001
     assert scenario.mocked_backend_container.tls
     assert scenario.get_libraries() is None
-    assert environment["DD_SITE"] == "mock-intake.invalid"
+    assert environment["DD_SITE"] == "mocked-backend.invalid"
     assert "DD_PROXY_HTTPS" not in environment
     assert "HTTPS_PROXY" not in environment
     assert environment["DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED"] == "true"
@@ -208,11 +208,11 @@ def test_agentless_exposure_scenario_sends_events_to_the_mocked_backend(
     assert environment["DD_TRACE_AGENT_PORT"] == str(serverless_init.apm_receiver_port)
     assert environment["DD_TRACE_AGENT_URL"] == f"http://ffe-serverless-init:{serverless_init.apm_receiver_port}"
     assert serverless_init.healthcheck is not None
-    assert serverless_init.environment["DD_SITE"] == "mock-intake.invalid"
+    assert serverless_init.environment["DD_SITE"] == "mocked-backend.invalid"
     assert serverless_init.environment["DD_API_KEY"] == scenario.sidecar_api_key
     assert "DD_PROXY_HTTPS" not in serverless_init.environment
-    assert serverless_init.environment["DD_DD_URL"] == "https://mocked-backend"
-    assert serverless_init.environment["DD_APM_DD_URL"] == "https://mocked-backend"
+    assert serverless_init.environment["DD_DD_URL"] == "https://mocked-backend.invalid"
+    assert serverless_init.environment["DD_APM_DD_URL"] == "https://mocked-backend.invalid"
 
 
 @scenarios.test_the_test

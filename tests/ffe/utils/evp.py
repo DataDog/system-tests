@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any, Literal
 
 from utils import context, interfaces
+from utils._context.containers import MOCKED_BACKEND_DOMAIN
 from utils._context._scenarios.agentless_endtoend import (
     DIRECT_EVP_AGENT_VARIABLES,
     DIRECT_EVP_CA_BUNDLE_CONTAINER_PATH,
@@ -19,7 +20,7 @@ from utils._context._scenarios.agentless_endtoend import (
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 
 
-EVP_DIRECT_HOST = "event-platform-intake.mock-intake.invalid"
+EVP_DIRECT_HOST = f"event-platform-intake.{MOCKED_BACKEND_DOMAIN}"
 EVP_PROXY_PATH_PREFIXES = ("/evp_proxy/v2/", "/evp_proxy/v4/")
 EVP_FORBIDDEN_RUNTIME_COMPONENTS = (
     "datadog-agent",
@@ -311,7 +312,7 @@ def assert_direct_evp_runtime_evidence(evidence: dict[str, Any], *, library_name
     assert environment.get("configuration_source") == "agentless"
     assert environment.get("provider_enabled") == "true"
     assert environment.get("shutdown_flush_enabled") == "true"
-    assert environment.get("site") == "mock-intake.invalid"
+    assert environment.get("site") == MOCKED_BACKEND_DOMAIN
 
     expected_mounts = [
         mount for mount in weblog.get("mounts", []) if mount.get("destination") == DIRECT_EVP_CA_BUNDLE_CONTAINER_PATH
@@ -410,7 +411,7 @@ def assert_agentless_evp_topology(egress: FeatureFlaggingEVPEgress) -> None:
     environment = scenario.weblog_infra.library_container.environment
     assert environment["DD_FEATURE_FLAGS_CONFIGURATION_SOURCE"] == "agentless"
     assert environment["DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED"] == "true"
-    assert environment["DD_SITE"] == "mock-intake.invalid"
+    assert environment["DD_SITE"] == MOCKED_BACKEND_DOMAIN
     assert environment["DD_API_KEY"] == scenario.weblog_api_key
     if egress.route == "direct":
         assert_direct_evp_runtime_evidence(
