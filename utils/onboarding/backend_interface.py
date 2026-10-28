@@ -27,13 +27,22 @@ def wait_backend_trace_id(trace_id: str, *, profile: bool = False, validator: Ca
         _query_for_profile(runtime_id)
 
 
+class _Credential(str):
+    __slots__ = ()
+
+    # Pytest renders request headers and selected key pairs in failure locals.
+    # Keep the string value for HTTP requests while hiding it from those reprs.
+    def __repr__(self) -> str:
+        return "'<redacted>'"
+
+
 def _headers():
     """The backend can raise a 429 error if the rate limit is reached.
     We can use several app keys trying to avoid the rate limit.
     """
     # Retrieve the mandatory API and APP keys.
-    api_key = os.getenv("DD_API_KEY_ONBOARDING")
-    app_key = os.getenv("DD_APP_KEY_ONBOARDING")
+    api_key = _Credential(os.getenv("DD_API_KEY_ONBOARDING", ""))
+    app_key = _Credential(os.getenv("DD_APP_KEY_ONBOARDING", ""))
 
     if not api_key or not app_key:
         raise ValueError("Mandatory API or APP key is missing.")
@@ -44,8 +53,8 @@ def _headers():
     # Check for additional numbered pairs.
     index = 2
     while True:
-        candidate_api = os.getenv(f"DD_API_KEY_ONBOARDING_{index}")
-        candidate_app = os.getenv(f"DD_APP_KEY_ONBOARDING_{index}")
+        candidate_api = _Credential(os.getenv(f"DD_API_KEY_ONBOARDING_{index}", ""))
+        candidate_app = _Credential(os.getenv(f"DD_APP_KEY_ONBOARDING_{index}", ""))
         if candidate_api and candidate_app:
             pairs.append((candidate_api, candidate_app))
             index += 1
