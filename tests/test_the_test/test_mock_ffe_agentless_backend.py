@@ -291,12 +291,12 @@ def test_agentless_evp_capture_registry_waits_for_each_path_before_settling(
     for path in expected_paths:
         scenario.register_expected_evp_capture(path)
 
-    captures = iter({"path": path} for path in expected_paths)
+    captures = iter(
+        {"path": path, "request": {"headers": [("DD-API-KEY", scenario.dd_api_key)]}} for path in expected_paths
+    )
     wait_timeouts: list[int] = []
 
-    def wait_for(matcher: Callable[[dict[str, Any]], bool], *, timeout: int, with_api_key: str) -> bool:
-        # only the requests sent by the SDK count, in the direct scenario
-        assert with_api_key == scenario.dd_api_key
+    def wait_for(matcher: Callable[[dict[str, Any]], bool], *, timeout: int) -> bool:
         wait_timeouts.append(timeout)
         return matcher(next(captures))
 
@@ -412,6 +412,7 @@ def test_direct_evp_shutdown_probe_uses_sigterm_without_explicit_flush(
         "log_filename": "direct-0000.json",
         "request": {
             "timestamp_start": "2099-09-09T11:59:59+00:00",
+            "headers": [("DD-API-KEY", scenario.dd_api_key)],
             "content": {
                 "exposures": [
                     {
@@ -427,6 +428,7 @@ def test_direct_evp_shutdown_probe_uses_sigterm_without_explicit_flush(
         "log_filename": "direct-0001.json",
         "request": {
             "timestamp_start": "2099-09-09T12:00:01+00:00",
+            "headers": [("DD-API-KEY", scenario.dd_api_key)],
             "content": {
                 "exposures": [
                     {
@@ -451,9 +453,7 @@ def test_direct_evp_shutdown_probe_uses_sigterm_without_explicit_flush(
         lifecycle.append("capture-snapshot")
         return next(snapshots)
 
-    def wait_for(matcher: Callable[[dict[str, Any]], bool], *, timeout: int, with_api_key: str) -> bool:
-        # only the requests sent by the SDK count, in the direct scenario
-        assert with_api_key == scenario.dd_api_key
+    def wait_for(matcher: Callable[[dict[str, Any]], bool], *, timeout: int) -> bool:
         lifecycle.append("capture-wait")
         assert timeout == DIRECT_EVP_CAPTURE_WAIT_SECONDS
         return any(matcher(candidate) for candidate in (priming_capture, capture))

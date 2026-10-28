@@ -41,17 +41,6 @@ class _BackendV2InterfaceValidator(ProxyBasedInterfaceValidator):
             if with_api_key is None or self.get_api_key(data) == with_api_key:
                 yield data
 
-    def wait_for(
-        self, wait_for_function: Callable[[dict], bool], timeout: int, *, with_api_key: str | None = None
-    ) -> bool:
-        """Same as other interfaces. with_api_key: only consider requests sent with this API key"""
-        if with_api_key is None:
-            return super().wait_for(wait_for_function, timeout)
-
-        return super().wait_for(
-            lambda data: self.get_api_key(data) == with_api_key and wait_for_function(data), timeout
-        )
-
     @staticmethod
     def get_api_key(data: dict) -> str | None:
         """The API key a request was sent with"""

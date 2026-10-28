@@ -282,17 +282,6 @@ def test_backend_v2_with_api_key_ignores_the_header_name_case(tmp_path: Path):
     assert len(list(interface.get_data(with_api_key="agent-key"))) == 1
 
 
-@scenarios.test_the_test
-def test_backend_v2_wait_for_with_api_key_only_considers_requests_sent_with_this_key(tmp_path: Path):
-    interface = _backend_v2_with_requests(tmp_path, [("000__agent.json", "agent-key")])
-
-    def any_request(_: dict) -> bool:
-        return True
-
-    assert interface.wait_for(any_request, timeout=0, with_api_key="agent-key")
-    assert not interface.wait_for(any_request, timeout=0, with_api_key="sidecar-key")
-
-
 _MITMPROXY_CA = "utils/proxy/.mitmproxy/mitmproxy-ca-cert.pem"
 _TLS_CERT_FILE = MockedBackendContainer.tls_cert_file
 _INTAKE_HOSTNAME = "event-platform-intake.mock-intake.invalid"

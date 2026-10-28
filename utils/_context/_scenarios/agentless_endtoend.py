@@ -226,6 +226,10 @@ class FeatureFlaggingAgentlessEndToEndScenario(_AgentlessEndToEndScenario):
             return api_key
         return self.dd_api_key
 
+    def _is_evp_capture(self, data: dict[str, Any]) -> bool:
+        """True if the mocked backend received this request with evp_api_key"""
+        return interfaces.backend_v2.get_api_key(data) == self.evp_api_key
+
     def _evp_captures(self) -> list[dict[str, Any]]:
         return list(interfaces.backend_v2.get_data(with_api_key=self.evp_api_key))
 
@@ -489,7 +493,7 @@ class FeatureFlaggingAgentlessEndToEndScenario(_AgentlessEndToEndScenario):
         interface = interfaces.backend_v2
 
         def matcher(data: dict[str, Any]) -> bool:
-            return self._capture_has_shutdown_evaluation(data, evaluation)
+            return self._is_evp_capture(data) and self._capture_has_shutdown_evaluation(data, evaluation)
 
         # Timer-based writers may flush the first event after a long idle period immediately.
         # Complete one unique exposure first so the target below is produced inside a fresh flush
@@ -507,14 +511,12 @@ class FeatureFlaggingAgentlessEndToEndScenario(_AgentlessEndToEndScenario):
         )
 
         def priming_matcher(data: dict[str, Any]) -> bool:
-            return self._capture_has_shutdown_evaluation(data, priming_evaluation)
+            return self._is_evp_capture(data) and self._capture_has_shutdown_evaluation(data, priming_evaluation)
 
         priming_started_at = datetime.now(UTC)
         priming_response = weblog.post(priming_evaluation.request_path, json=priming_evaluation.body)
         priming_finished_at = datetime.now(UTC)
-        priming_observed = interface.wait_for(
-            priming_matcher, timeout=DIRECT_EVP_CAPTURE_WAIT_SECONDS, with_api_key=self.evp_api_key
-        )
+        priming_observed = interface.wait_for(priming_matcher, timeout=DIRECT_EVP_CAPTURE_WAIT_SECONDS)
         priming_captures = list(filter(priming_matcher, self._evp_captures()))
         if not priming_observed or len(priming_captures) != 1:
             raise RuntimeError(
@@ -543,9 +545,7 @@ class FeatureFlaggingAgentlessEndToEndScenario(_AgentlessEndToEndScenario):
         stopped_state = self._stopped_container_state(runtime_container)
         shutdown_markers, shutdown_marker_errors = self._shutdown_markers(runtime_container)
 
-        capture_observed = interface.wait_for(
-            matcher, timeout=DIRECT_EVP_CAPTURE_WAIT_SECONDS, with_api_key=self.evp_api_key
-        )
+        capture_observed = interface.wait_for(matcher, timeout=DIRECT_EVP_CAPTURE_WAIT_SECONDS)
         interface.wait(DIRECT_EVP_CAPTURE_SETTLE_SECONDS)
         matching_after = list(filter(matcher, self._evp_captures()))
         self._last_direct_evp_shutdown_evidence = {
@@ -604,11 +604,11 @@ class FeatureFlaggingAgentlessEndToEndScenario(_AgentlessEndToEndScenario):
         for path in sorted(self._expected_evp_capture_paths):
 
             def captured(data: dict[str, Any], expected_path: str = path) -> bool:
-                return data.get("path") == expected_path
+                return self._is_evp_capture(data) and data.get("path") == expected_path
 
             logger.terminal.write_sep("-", f"Wait for {path} on {interface} before stopping the weblog")
             logger.terminal.flush()
-            if not interface.wait_for(captured, timeout=DIRECT_EVP_CAPTURE_WAIT_SECONDS, with_api_key=self.evp_api_key):
+            if not interface.wait_for(captured, timeout=DIRECT_EVP_CAPTURE_WAIT_SECONDS):
                 missing_paths.append(path)
 
         if missing_paths:
