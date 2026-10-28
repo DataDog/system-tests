@@ -72,6 +72,15 @@ jobs:
         run: |
           source venv/bin/activate
           python utils/scripts/compute_libraries_and_scenarios.py -o $GITHUB_OUTPUT
+
+          # TODO: remove before merging. Hard-coded set to validate the TLS mocked backend in the CI
+          sed -i -E '/^(library_matrix|libraries_with_dev|scenarios|scenarios_groups)=/d' "$GITHUB_OUTPUT"
+          {
+            echo 'library_matrix=[{"library": "golang", "version": "dev"}, {"library": "nodejs", "version": "dev"}, {"library": "python", "version": "dev"}]'
+            echo 'libraries_with_dev=["golang", "nodejs", "python"]'
+            echo 'scenarios=FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS,FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_DIRECT,FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_SERVERLESS,APM_TRACING_E2E_OTEL,APM_TRACING_E2E_SINGLE_SPAN,APM_TRACING_EFFICIENT_PAYLOAD,OTLP_RUNTIME_METRICS'
+            echo 'scenarios_groups='
+          } >> "$GITHUB_OUTPUT"
         env:
           PYTHONPATH: "."
           GITHUB_REF: ${{ github.ref }}
