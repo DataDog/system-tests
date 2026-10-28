@@ -22,12 +22,18 @@ class Test_Crashtracking:
             # Handling both v1 and v2 of the crashtracking payload so that we can
             # update to v2 without breaking the test.
             if isinstance(event.get("payload"), list):
-                if "is_crash_ping:true" not in event["payload"][0]["tags"]:
+                if self.is_crash_report(event["payload"][0]["tags"]):
                     self.assert_crash_report_v1(test_library, event)
                     break
-            elif "is_crash_ping:true" not in event["payload"]["logs"][0]["tags"]:
+            elif self.is_crash_report(event["payload"]["logs"][0]["tags"]):
                 self.assert_crash_report_v2(test_library, event)
                 break
+
+    @staticmethod
+    def is_crash_report(tags: str) -> bool:
+        # the crashtracker also sends crash pings, and debug logs when something went wrong while
+        # collecting the crash (e.g. "CrashInfo stacktrace incomplete"): they are not the crash report
+        return "is_crash_ping:true" not in tags and "is_crash_debug:true" not in tags
 
     @pytest.mark.parametrize("library_env", [{"DD_CRASHTRACKING_ENABLED": "false"}])
     def test_disable_crashtracking(self, test_agent: TestAgentAPI, test_library: APMLibrary):
