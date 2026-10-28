@@ -8,7 +8,7 @@ include:
       split_pipeline: true
       # TODO: remove before merging. Checks that the mocked backend network aliases work on GitLab's network
       libraries: "python"
-      scenarios: "APM_TRACING_E2E_SINGLE_SPAN"
+      scenarios: "APM_TRACING_E2E_SINGLE_SPAN,FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS,FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_DIRECT,FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_SERVERLESS"
       weblogs: "flask-poc"
 stages:
   - configure
