@@ -192,6 +192,58 @@ def test_build_apm_tracing_command_legacy_by_default():
 
 
 @scenarios.test_the_test
+def test_build_multiconfig_command_use_sdk_config():
+    """Every accumulated and new APM_TRACING payload carries the sdk_config shape"""
+    prev_payloads: list[dict] = [
+        {
+            "schema_version": "v1.0.0",
+            "action": "enable",
+            "lib_config": {"tracing_enabled": True, "dynamic_instrumentation_enabled": False},
+            "service_target": {"service": "*", "env": "*"},
+        }
+    ]
+    command, apm_config = rc.build_combined_apm_tracing_and_debugger_command_multiconfig(
+        1, prev_payloads, dynamic_instrumentation_enabled=True, use_sdk_config=True
+    )
+
+    sent = [json.loads(base64.b64decode(target_file["raw"])) for target_file in command["target_files"]]
+
+    assert len(sent) == 2  # the accumulated wildcard config and the new one
+    for payload in sent:
+        assert "lib_config" not in payload
+        assert "sdk_config" in payload
+    assert sent[0]["sdk_config"]["service_name"] == "*"
+    assert sent[0]["sdk_config"]["config"]["DD_DYNAMIC_INSTRUMENTATION_ENABLED"] == "false"
+    assert sent[1]["sdk_config"]["config"]["DD_DYNAMIC_INSTRUMENTATION_ENABLED"] == "true"
+
+    # the returned config keeps the legacy shape, as later calls re-send it
+    assert apm_config["lib_config"]["dynamic_instrumentation_enabled"] is True
+
+
+@scenarios.test_the_test
+def test_build_multiconfig_command_legacy_by_default():
+    """Libraries that do not advertise SDK_CONFIGURATION keep receiving lib_config"""
+    prev_payloads: list[dict] = [
+        {
+            "schema_version": "v1.0.0",
+            "action": "enable",
+            "lib_config": {"tracing_enabled": True, "dynamic_instrumentation_enabled": False},
+            "service_target": {"service": "*", "env": "*"},
+        }
+    ]
+    command, _ = rc.build_combined_apm_tracing_and_debugger_command_multiconfig(
+        1, prev_payloads, dynamic_instrumentation_enabled=True
+    )
+
+    sent = [json.loads(base64.b64decode(target_file["raw"])) for target_file in command["target_files"]]
+
+    assert len(sent) == 2
+    for payload in sent:
+        assert "sdk_config" not in payload
+        assert "lib_config" in payload
+
+
+@scenarios.test_the_test
 def test_sdk_configuration_alone_selects_sdk_config():
     """SDK_CONFIGURATION without per-setting APM_TRACING capabilities selects sdk_config."""
     assert rc.resolve_sdk_configuration_contract(

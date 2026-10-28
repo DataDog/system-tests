@@ -955,6 +955,7 @@ def build_combined_apm_tracing_and_debugger_command_multiconfig(
     dynamic_sampling_enabled: bool | None = None,
     service_name: str | None = "weblog",
     env: str | None = "system-tests",
+    use_sdk_config: bool = False,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     """Build an RC command with several accumulated APM_TRACING configs plus LIVE_DEBUGGING probes.
 
@@ -962,6 +963,11 @@ def build_combined_apm_tracing_and_debugger_command_multiconfig(
     service_target scopes to be active at the same time. Remote Config's client_configs
     field is the complete list of active configs, so every previously-accumulated APM_TRACING
     config is re-sent (each under its own path) alongside the new one.
+
+    Every APM_TRACING payload is sent in the `sdk_config` shape when `use_sdk_config` is
+    set, and in the legacy `lib_config` shape otherwise. The returned `apm_config` always
+    keeps the legacy shape, whatever shape was sent, as that is what later calls re-send
+    through the same translation.
     """
     path_payloads: dict[str, Any] = {}
 
@@ -990,10 +996,14 @@ def build_combined_apm_tracing_and_debugger_command_multiconfig(
 
     # Re-send every previously-accumulated APM_TRACING config, each under a fresh path
     for prev_config in prev_payloads:
-        path_payloads[f"datadog/2/APM_TRACING/{uuid.uuid4()}/config"] = prev_config
+        path_payloads[f"datadog/2/APM_TRACING/{uuid.uuid4()}/config"] = (
+            to_sdk_config_payload(prev_config) if use_sdk_config else prev_config
+        )
 
     # Add the new APM_TRACING config
-    path_payloads[f"datadog/2/APM_TRACING/{uuid.uuid4()}/config"] = apm_config
+    path_payloads[f"datadog/2/APM_TRACING/{uuid.uuid4()}/config"] = (
+        to_sdk_config_payload(apm_config) if use_sdk_config else apm_config
+    )
 
     # Add LIVE_DEBUGGING configs (probes)
     if probes:
@@ -1035,6 +1045,7 @@ def send_combined_apm_tracing_and_debugger_command_multiconfig(
         dynamic_sampling_enabled=dynamic_sampling_enabled,
         service_name=service_name,
         env=env,
+        use_sdk_config=library_supports_sdk_configuration(),
     )
 
     prev_payloads.append(apm_config)
