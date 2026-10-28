@@ -62,6 +62,9 @@ const otelSpanKinds = {
 
 const spans = new Map()
 const ddContext = new Map()
+const ddBaggage = new Map()
+const hasBaggageAPI = typeof tracer.getAllBaggageItems === 'function' &&
+  typeof tracer.setBaggageItem === 'function' && typeof tracer.removeAllBaggageItems === 'function'
 const otelSpans = new Map()
 const otelMeters = new Map()
 const otelMeterInstruments = new Map()
@@ -92,13 +95,34 @@ function waitForMetricsCallback (operation, seconds) {
   }), seconds)
 }
 
+function replaceBaggage(items) {
+  tracer.removeAllBaggageItems()
+  for (const [key, value] of Object.entries(items)) tracer.setBaggageItem(key, value)
+}
+
+function withBaggage(items, callback) {
+  const previous = { ...tracer.getAllBaggageItems() }
+  try {
+    replaceBaggage(items)
+    return callback()
+  } finally {
+    replaceBaggage(previous)
+  }
+}
+
 app.post('/trace/span/inject_headers', (req, res) => {
   const request = req.body;
   const span = spans[request.span_id]
   const http_headersDict = {};
   const http_headers = [];
 
-  tracer.inject(span, 'http_headers', http_headersDict);
+  // Baggage is request-local in newer tracers. Carry it across the parametric
+  // API's separate extract/start/inject requests using the public baggage API.
+  if (hasBaggageAPI && ddBaggage.has(request.span_id)) {
+    withBaggage(ddBaggage.get(request.span_id), () => tracer.inject(span, 'http_headers', http_headersDict))
+  } else {
+    tracer.inject(span, 'http_headers', http_headersDict);
+  }
   for (const [key, value] of Object.entries(http_headersDict)) {
       http_headers.push([key, value]);
   }
@@ -111,23 +135,49 @@ app.post('/trace/span/extract_headers', (req, res) => {
   const http_headers = request.http_headers || [];
   // Node.js HTTP headers are automatically lower-cased, simulate that here.
   const linkHeaders = Object.fromEntries(http_headers.map(([k, v]) => [k.toLowerCase(), v]));
-  const extracted = tracer.extract('http_headers', linkHeaders);
+  let extractedBaggage;
+  const extracted = hasBaggageAPI
+    ? withBaggage({}, () => {
+      const context = tracer.extract('http_headers', linkHeaders)
+      extractedBaggage = { ...tracer.getAllBaggageItems() }
+      return context
+    })
+    : tracer.extract('http_headers', linkHeaders);
 
   let extractedSpanID = null;
-  const dummyTracer = require('dd-trace').init()
-  const extractPropagator = dummyTracer._tracer._config.tracePropagationStyle.extract
+  if (hasBaggageAPI) {
+    if (extracted) {
+      try {
+        extractedSpanID = extracted.toSpanId()
+      } catch (error) {
+        // A B3 sampling-only context has no remote span ID. Its public ID
+        // accessor throws TypeError; preserve the app's no-parent behavior.
+        if (!(error instanceof TypeError)) throw error
+      }
+      if (extractedSpanID !== null) ddContext[extractedSpanID] = extracted
+    }
+    if (extractedSpanID === null && Object.keys(extractedBaggage).length > 0) {
+      // Baggage-only extraction has no span context. This ID belongs to the
+      // parametric API; negative handles cannot collide with unsigned span IDs
+      // and never change the tracer's span or trace IDs.
+      extractedSpanID = String(-dummyIdIncrementer++)
+    }
+    if (extractedSpanID !== null) ddBaggage.set(extractedSpanID, extractedBaggage)
+  } else {
+    // Older tracers keep baggage on their extracted span context.
+    const dummyTracer = require('dd-trace').init()
+    const extractPropagator = dummyTracer._tracer._config.tracePropagationStyle.extract
 
-  if (extractPropagator.includes('baggage') && extracted && !extracted._spanId && !extracted._traceId) {
-    // baggage propagation does not require ids so http_headers could contain no ids
-    // several endpoints in this file rely on having ids so we need to have dummy ids for internal use
-    extracted._spanId = dummyIdIncrementer
-    extracted._traceId = dummyIdIncrementer
-    dummyIdIncrementer += 1
-  }
+    if (extractPropagator.includes('baggage') && extracted && !extracted._spanId && !extracted._traceId) {
+      extracted._spanId = dummyIdIncrementer
+      extracted._traceId = dummyIdIncrementer
+      dummyIdIncrementer += 1
+    }
 
-  if (extracted && extracted._spanId) {
-    extractedSpanID = extracted.toSpanId();
-    ddContext[extractedSpanID] = extracted;
+    if (extracted && extracted._spanId) {
+      extractedSpanID = extracted.toSpanId();
+      ddContext[extractedSpanID] = extracted;
+    }
   }
 
   res.json({ span_id: extractedSpanID });
@@ -165,6 +215,9 @@ app.post('/trace/span/start', (req, res) => {
   }
 
   spans[span.context().toSpanId()] = span;
+  if (ddBaggage.has(request.parent_id)) {
+    ddBaggage.set(span.context().toSpanId(), ddBaggage.get(request.parent_id))
+  }
   res.json({ span_id: span.context().toSpanId(), trace_id:span.context().toTraceId() });
 });
 
@@ -187,12 +240,16 @@ app.post('/trace/span/finish', (req, res) => {
 });
 
 app.post('/trace/span/flush', (req, res) => {
-  const { _tracer: { _exporter: { _writer } } } = tracer
-  _writer.flush(() => {
+  const exporter = tracer._tracer._exporter
+  if (typeof exporter.flush === 'function') {
+    exporter.flush(() => res.json({}))
+  } else {
+    // Older OTLP exporters send on span finish and have no flush method.
     res.json({});
-  })
+  }
   spans.clear();
   ddContext.clear();
+  ddBaggage.clear();
 });
 
 app.post('/trace/span/set_meta', (req, res) => {
@@ -425,10 +482,30 @@ app.post('/trace/otel/set_attributes', (req, res) => {
 app.get('/trace/config', (req, res) => {
   // The tracer's resolved config is an internal shape whose property paths rename across
   // refactors, so this endpoint reports nothing from it. Node config consistency is asserted
-  // via telemetry and observable behaviour in the parametric suite; the test client fills
-  // every documented key with null, so the cross-language parity contract still holds.
+  // via telemetry and observable behaviour in the parametric suite. Missing keys default
+  // to null in the test client; OTLP timeouts use the dedicated diagnostic endpoint below.
   res.json({ config: {} })
 });
+
+app.get('/otel/effective_config', (req, res) => {
+  // Isolate the SDK's private configuration shape behind stable diagnostic fields.
+  // Keep validation and default resolution inside the SDK.
+  // Older tracers may not expose these fields; preserve null in that case.
+  const config = tracer?._tracer?._config
+  res.json({ config: {
+    otel_exporter_otlp_traces_timeout_ms: otlpExporterTimeout(config?.OTEL_EXPORTER_OTLP_TRACES_TIMEOUT),
+    otel_exporter_otlp_metrics_timeout_ms: otlpExporterTimeout(
+      config?.OTEL_EXPORTER_OTLP_METRICS_TIMEOUT ?? config?.otelMetricsTimeout
+    ),
+    otel_exporter_otlp_logs_timeout_ms: otlpExporterTimeout(
+      config?.OTEL_EXPORTER_OTLP_LOGS_TIMEOUT ?? config?.otelLogsTimeout
+    )
+  } })
+});
+
+function otlpExporterTimeout (value) {
+  return typeof value === 'number' && Number.isFinite(value) ? String(value) : null
+}
 
 app.post("/otel/logger/create", (req, res) => {
   const { name, level, version, schema_url, attributes } = req.body
@@ -528,6 +605,28 @@ app.post("/trace/otel/otel_set_baggage", (req, res) => {
 });
 
 // Feature Flag & Experimentation endpoints
+app.post('/ffe/fetch-rules-configuration', (req, res) => {
+  const { execFile } = require('node:child_process')
+  const path = require('node:path')
+  const env = { ...process.env }
+  // The helper must work without the parent server's tracer or preload hooks.
+  delete env.NODE_OPTIONS
+  execFile(process.execPath, [path.join(__dirname, 'ffe-rules-configuration.js'), JSON.stringify(req.body)], {
+    env,
+    timeout: 10000
+  }, (error, stdout, stderr) => {
+    if (error) {
+      console.error('Standalone FFE helper failed:', stderr || error)
+      return res.status(500).json({ error: 'Standalone FFE helper failed' })
+    }
+    try {
+      res.json(JSON.parse(stdout))
+    } catch (error) {
+      res.status(500).json({ error: 'Invalid standalone FFE helper output' })
+    }
+  })
+})
+
 app.post('/ffe/start', async (req, res) => {
   const hasFeatureFlaggingConfiguration = [
     'DD_FEATURE_FLAGS_ENABLED',
@@ -552,7 +651,7 @@ app.post('/ffe/start', async (req, res) => {
 
 app.post('/ffe/evaluate', async (req, res) => {
   const { flag, variationType, defaultValue, targetingKey, attributes, span_id } = req.body;
-  let value, reason;
+  let details;
   const context = { targetingKey, ...attributes }
 
   // Helper function to perform the actual flag evaluation
@@ -560,28 +659,25 @@ app.post('/ffe/evaluate', async (req, res) => {
     try {
       switch (variationType) {
         case 'BOOLEAN':
-          value = await openFeatureClient.getBooleanValue(flag, defaultValue, context)
+          details = await openFeatureClient.getBooleanDetails(flag, defaultValue, context)
           break;
         case 'STRING':
-          value = await openFeatureClient.getStringValue(flag, defaultValue, context)
+          details = await openFeatureClient.getStringDetails(flag, defaultValue, context)
           break;
         case 'INTEGER':
-          value = await openFeatureClient.getNumberValue(flag, defaultValue, context)
+          details = await openFeatureClient.getNumberDetails(flag, defaultValue, context)
           break;
         case 'NUMERIC':
-          value = await openFeatureClient.getNumberValue(flag, defaultValue, context)
+          details = await openFeatureClient.getNumberDetails(flag, defaultValue, context)
           break;
         case 'JSON':
-          value = await openFeatureClient.getObjectValue(flag, defaultValue, context)
+          details = await openFeatureClient.getObjectDetails(flag, defaultValue, context)
           break;
         default:
-          value = defaultValue;
+          details = { value: defaultValue, reason: 'DEFAULT' };
       }
-
-      reason = 'DEFAULT';
     } catch (error) {
-      value = defaultValue;
-      reason = 'ERROR';
+      details = { value: defaultValue, reason: 'ERROR' };
     }
   }
 
@@ -594,8 +690,9 @@ app.post('/ffe/evaluate', async (req, res) => {
   }
 
   res.json({
-    value: value,
-    reason: reason
+    value: details.value,
+    reason: details.reason,
+    flagMetadata: details.flagMetadata ?? null
   });
 });
 

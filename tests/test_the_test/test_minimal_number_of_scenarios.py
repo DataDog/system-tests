@@ -2,10 +2,10 @@ import itertools
 import json
 from typing import Any
 
-import pytest
+from utils import pytest
 
 from utils._context._scenarios import get_all_scenarios, scenarios
-from utils._context._scenarios.endtoend import EndToEndScenario
+from utils._context._scenarios._core.endtoend import EndToEndScenario
 from utils import logger
 
 # Map of scenario pairs that cannot be merged and their specific reasons
@@ -98,7 +98,11 @@ def test_minimal_number_of_scenarios():
             ".agent_container.environment",
         }
 
-        diff = _get_difference(scenario_a, scenario_b, ignored=ignored)
+        if _runtime_class(scenario_a) is not _runtime_class(scenario_b):
+            logger.debug("-> different runtime behavior")
+            continue
+
+        diff = _get_difference(vars(scenario_a), vars(scenario_b), ignored=ignored)
         logger.debug(f"-> differences: {diff}")
 
         if diff is not None:
@@ -157,6 +161,20 @@ def test_minimal_number_of_scenarios():
             pytest.fail(
                 f"Scenarios {key} have equivalent configurations with compatible weblog_env (subset relationship)"
             )
+
+
+def _runtime_class(scenario: EndToEndScenario) -> type:
+    """Each scenario has its own class, that usually only declares its configuration in __init__: skip those
+    declaration-only classes, to get the first one defining a runtime behavior
+    """
+    for cls in type(scenario).__mro__:
+        if not all(
+            name.startswith("__") and name.endswith("__") and (name == "__init__" or not callable(value))
+            for name, value in vars(cls).items()
+        ):
+            return cls
+
+    raise ValueError(f"No runtime class found for {scenario.name}")
 
 
 def normalize_env(env_dict: dict) -> dict[str, str]:

@@ -49,6 +49,7 @@ func main() {
 	})
 
 	mux.HandleFunc("/trace/manual_keep_drop", common.ManualKeepDrop)
+	mux.HandleFunc("/security/thread_context_sharing", common.ThreadContextSharing)
 
 	mux.HandleFunc("/healthcheck", func(w http.ResponseWriter, r *http.Request) {
 

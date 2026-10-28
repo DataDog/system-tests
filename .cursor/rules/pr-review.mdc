@@ -31,7 +31,7 @@ Versions in manifest files must use the `v` prefix for "this version and above" 
 
 ## 5. Use Scenario-Level Timeouts, Not Test-Level Sleeps
 
-Do not add `time.sleep()` or explicit waits inside `setup_` method in end-to-end scenarios. If a longer wait is needed, use the scenario parameters `agent_interface_timeout` or `library_interface_timeout` defined in `utils/_context/_scenarios/endtoend.py`.
+Do not add `time.sleep()` or explicit waits inside `setup_` method in end-to-end scenarios. If a longer wait is needed, use the scenario parameters `agent_interface_timeout` or `library_interface_timeout` defined in `utils/_context/_scenarios/_core/endtoend.py`.
 
 ## 6. Environment Variables at Scenario Level, Not in Dockerfiles
 
@@ -58,7 +58,13 @@ When adding a new weblog, verify the name is unique across all languages. Search
 
 - Ref: [build.md](mdc:docs/execute/build.md)
 
-## 10. Manifest YAML Syntax
+## 10. No Cross-Test-File Imports
+
+A `test_*.py` file must never import from another `test_*.py` file. If logic is shared between test files, it must be moved to a non-test utility module instead. Flag any PR that adds a cross-test import or a new exception to `.importlinter`.
+
+- Ref: [repository-structure.mdc](mdc:.cursor/rules/repository-structure.mdc), enforced by the `Test files do not import other test files` Import Linter contract
+
+## 11. Manifest YAML Syntax
 
 - `bug` and `flaky` markers must include a JIRA ticket (e.g., `bug (JIRA-123)`)
 - Values with special YAML characters (`>`, `<`, `:`, `#`) must be quoted

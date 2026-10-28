@@ -17,6 +17,18 @@ def test_appsec():
 def test_tracer_release():
     # make an exclusion list
 
+    provisional_opt_out_scenarios = [
+        scenarios.feature_flagging_evaluation_telemetry_opt_out,
+        scenarios.feature_flagging_evaluation_telemetry_opt_out_disabled,
+    ]
+    for opt_out_scenario in provisional_opt_out_scenarios:
+        assert opt_out_scenario.github_workflow == "endtoend"
+        assert scenario_groups.ffe in opt_out_scenario.scenario_groups
+        assert opt_out_scenario in scenario_groups.ffe.scenarios
+        for group in (scenario_groups.all, scenario_groups.end_to_end, scenario_groups.tracer_release):
+            assert group not in opt_out_scenario.scenario_groups
+            assert opt_out_scenario not in group.scenarios
+
     dormant_agentless_scenario = scenarios.feature_flagging_and_experimentation_agentless
     assert dormant_agentless_scenario.include_agent is False
     assert dormant_agentless_scenario.use_proxy is False
@@ -45,6 +57,7 @@ def test_tracer_release():
         scenarios.mock_the_test,
         scenarios.mock_the_test_2,
         scenarios.test_the_test,
+        *provisional_opt_out_scenarios,
         scenarios.todo,
         # targetting OTEL
         scenarios.otel_integrations,
@@ -83,7 +96,6 @@ def test_tracer_release():
         scenarios.simple_auto_injection_profiling,
         scenarios.simple_installer_auto_injection,
         scenarios.multi_installer_auto_injection,
-        scenarios.otel_collector_e2e,
     ]
 
     for scenario in get_all_scenarios():

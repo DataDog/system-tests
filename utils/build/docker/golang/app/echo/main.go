@@ -168,6 +168,7 @@ func main() {
 	})
 
 	r.Any("/trace/manual_keep_drop", echoHandleFunc(common.ManualKeepDrop))
+	r.Any("/security/thread_context_sharing", echoHandleFunc(common.ThreadContextSharing))
 
 	r.Any("/make_distant_call", func(c echo.Context) error {
 		url := c.Request().URL.Query().Get("url")
@@ -396,6 +397,12 @@ func main() {
 	r.Any("/debugger/budgets/:count", func(c echo.Context) error {
 		loops, _ := strconv.Atoi(c.Param("count"))
 		d.budgets(c.Response().Writer, c.Request(), loops)
+		return nil
+	})
+	r.Any("/debugger/correlation", echoHandleFunc(d.correlation))
+	r.Any("/debugger/correlation/loop/:count", func(c echo.Context) error {
+		loops, _ := strconv.Atoi(c.Param("count"))
+		d.correlationLoop(c.Response().Writer, c.Request(), loops)
 		return nil
 	})
 

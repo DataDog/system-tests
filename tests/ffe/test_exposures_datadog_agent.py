@@ -31,6 +31,10 @@ def find_exposure_events(flag_key: str, subject_id: str | None = None) -> list[d
 
 def wait_for_exposure_event(flag_keys: set[str], subject_id: str | None = None) -> None:
     """Wait until the agent receives an exposure event for one of the given flags."""
+    # ask the weblog to flush its exposure writer instead of waiting on its periodic timer.
+    # weblogs that don't support this route (or don't buffer exposures) just no-op here, and the
+    # wait_for below still covers them.
+    weblog.get("/flush")
     assert interfaces.agent.wait_for(
         lambda data: bool(exposure_events_from_data(data, flag_keys, subject_id)),
         timeout=EXPOSURE_WAIT_TIMEOUT_SECONDS,
@@ -42,6 +46,7 @@ def wait_for_min_exposure_count(flag_key: str, expected: int, subject_id: str | 
     count = count_exposure_events(flag_key, subject_id)
 
     if count < expected:
+        weblog.get("/flush")
         assert interfaces.agent.wait_for(
             lambda _: count_exposure_events(flag_key, subject_id) >= expected,
             timeout=EXPOSURE_WAIT_TIMEOUT_SECONDS,
@@ -743,9 +748,10 @@ class Test_FFE_Exposure_Serial_Id:
         self.flag_with = "serial-id-present-flag"
         self.flag_without = "serial-id-absent-flag"
         self.targeting_key = "serial-id-user"
+        config_path = f"{RC_PATH}/ffe-serial-id-test/config"
 
         rc.tracer_rc_state.reset().set_config(
-            f"{RC_PATH}/ffe-serial-id-present/config",
+            config_path,
             make_ufc_fixture(self.flag_with, serial_id=340132),
         ).apply()
 
@@ -760,10 +766,9 @@ class Test_FFE_Exposure_Serial_Id:
             },
         )
 
-        rc.tracer_rc_state.set_config(
-            f"{RC_PATH}/ffe-serial-id-absent/config",
-            make_ufc_fixture(self.flag_without),
-        ).apply()
+        # Replace the same UFC file; multiple active files can overwrite each other
+        # in an SDK-dependent order and leave the second flag unavailable.
+        rc.tracer_rc_state.set_config(config_path, make_ufc_fixture(self.flag_without)).apply()
 
         self.response_without = weblog.post(
             "/ffe",
@@ -780,6 +785,12 @@ class Test_FFE_Exposure_Serial_Id:
         """Test that serial_id carries the split value, and is omitted when the split has none."""
         assert self.response_with.status_code == 200, f"Flag evaluation failed: {self.response_with.text}"
         assert self.response_without.status_code == 200, f"Flag evaluation failed: {self.response_without.text}"
+        for flag_key, response in (
+            (self.flag_with, self.response_with),
+            (self.flag_without, self.response_without),
+        ):
+            result = json.loads(response.text)
+            assert result["value"] == "value-a", f"Flag {flag_key!r} did not evaluate successfully: {result!r}"
 
         # Wait for each flag separately. A combined wait releases on whichever payload
         # arrives first, and the two evaluations straddle a configuration refresh.

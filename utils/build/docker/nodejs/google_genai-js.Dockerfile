@@ -1,7 +1,7 @@
 FROM node:22-alpine
 ARG FRAMEWORK_VERSION
 
-COPY --from=oven/bun:1.3.13-alpine /usr/local/bin/bun /usr/local/bin/bun
+COPY --from=oven/bun:1.4.0-alpine /usr/local/bin/bun /usr/local/bin/bun
 
 RUN apk add --no-cache bash curl git jq
 
