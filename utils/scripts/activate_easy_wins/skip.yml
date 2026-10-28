@@ -1,9 +1,5 @@
 "*":
   - tests/parametric/test_crashtracking.py::Test_Crashtracking::test_disable_crashtracking
 
-"dotnet":
-  # Passes only because OTEL_ENABLED ORs semantics mode (APMAPI-2649); fails once that ships without APMAPI-2654
-  - tests/parametric/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_otel_enabled_tracing_api_with_semantics
-
 "nodejs":
   - tests/test_telemetry.py::Test_DependencyEnable::test_app_dependency_loaded_not_sent_dependency_collection_disabled
