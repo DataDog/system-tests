@@ -33,7 +33,17 @@ class _BackendV2InterfaceValidator(ProxyBasedInterfaceValidator):
             # same path as given by the watchdog, so files are not ingested twice
             self.ingest_file(str(file))
 
-    def get_traces(self, request: HttpResponse | None = None) -> Generator[tuple[dict, DataDogAgentTrace]]:
+    def get_data(self, path_filters: Iterable[str] | str | None = None, *, with_api_key: str | None = None):
+        """Same as other interfaces. with_api_key: only requests sent with this API key. Each sender (agent, library,
+        serverless-init...) uses its own key, it tells where a request comes from.
+        """
+        for data in super().get_data(path_filters=path_filters):
+            if with_api_key is None or _get_api_key(data) == with_api_key:
+                yield data
+
+    def get_traces(
+        self, request: HttpResponse | None = None, *, with_api_key: str | None = None
+    ) -> Generator[tuple[dict, DataDogAgentTrace]]:
         """Attempts to fetch the traces the agent submitted to the mocked backend.
 
         When a valid request is given, then we filter the spans to the ones sampled
@@ -46,7 +56,7 @@ class _BackendV2InterfaceValidator(ProxyBasedInterfaceValidator):
         if rid:
             logger.debug(f"Will try to find backend_v2 spans related to request {rid}")
 
-        for data in self.get_data(path_filters="/api/v0.2/traces"):
+        for data in self.get_data(path_filters="/api/v0.2/traces", with_api_key=with_api_key):
             logger.debug(f"Looking at backend_v2 data {data['log_filename']}")
 
             if "content" not in data["request"]:
@@ -78,7 +88,9 @@ class _BackendV2InterfaceValidator(ProxyBasedInterfaceValidator):
                                 yield data, trace
                                 break
 
-    def get_spans(self, request: HttpResponse | None = None) -> Generator[tuple[dict, DataDogAgentSpan], None, None]:
+    def get_spans(
+        self, request: HttpResponse | None = None, *, with_api_key: str | None = None
+    ) -> Generator[tuple[dict, DataDogAgentSpan], None, None]:
         """Attempts to fetch the spans the agent submitted to the mocked backend.
 
         When a valid request is given, then we filter the spans to the ones sampled
@@ -91,18 +103,20 @@ class _BackendV2InterfaceValidator(ProxyBasedInterfaceValidator):
         if rid:
             logger.debug(f"Will try to find backend_v2 spans related to request {rid}")
 
-        for data, trace in self.get_traces(request=request):
+        for data, trace in self.get_traces(request=request, with_api_key=with_api_key):
             for span in trace.spans:
                 if rid is None or span.get_rid() == rid:
                     yield data, span
 
-    def get_spans_list(self, request: HttpResponse | None = None) -> list[DataDogAgentSpan]:
-        return [span for _, span in self.get_spans(request)]
+    def get_spans_list(
+        self, request: HttpResponse | None = None, *, with_api_key: str | None = None
+    ) -> list[DataDogAgentSpan]:
+        return [span for _, span in self.get_spans(request, with_api_key=with_api_key)]
 
     def get_appsec_data(
-        self, request: HttpResponse
+        self, request: HttpResponse, *, with_api_key: str | None = None
     ) -> Generator[tuple[dict[str, Any], DataDogAgentSpan, dict[str, Any]], Any, None]:
-        for data, span in self.get_spans(request):
+        for data, span in self.get_spans(request, with_api_key=with_api_key):
             json_data = span.meta.get("_dd.appsec.json")
             if json_data is not None:
                 yield data, span, json_data
@@ -111,11 +125,11 @@ class _BackendV2InterfaceValidator(ProxyBasedInterfaceValidator):
             elif (v1_metastruct_data := span.meta.get("appsec")) is not None:
                 yield data, span, v1_metastruct_data
 
-    def get_profiling_data(self):
-        yield from self.get_data(path_filters="/api/v2/profile")
+    def get_profiling_data(self, *, with_api_key: str | None = None):
+        yield from self.get_data(path_filters="/api/v2/profile", with_api_key=with_api_key)
 
-    def get_telemetry_data(self, *, flatten_message_batches: bool = True):
-        all_data = self.get_data(path_filters="/api/v2/apmtelemetry")
+    def get_telemetry_data(self, *, flatten_message_batches: bool = True, with_api_key: str | None = None):
+        all_data = self.get_data(path_filters="/api/v2/apmtelemetry", with_api_key=with_api_key)
         if flatten_message_batches:
             yield from all_data
         else:
@@ -131,8 +145,8 @@ class _BackendV2InterfaceValidator(ProxyBasedInterfaceValidator):
                 else:
                     yield data
 
-    def assert_trace_exists(self, request: HttpResponse):
-        for _, _ in self.get_traces(request=request):
+    def assert_trace_exists(self, request: HttpResponse, *, with_api_key: str | None = None):
+        for _, _ in self.get_traces(request=request, with_api_key=with_api_key):
             return
 
         raise ValueError(f"No trace has been found for request {request.get_rid()}")
@@ -160,10 +174,12 @@ class _BackendV2InterfaceValidator(ProxyBasedInterfaceValidator):
 
         raise ValueError(f"Unknown span format: {span.trace.format}")
 
-    def get_metrics(self):
+    def get_metrics(self, *, with_api_key: str | None = None):
         """Attempts to fetch the metrics the agent submitted to the mocked backend."""
 
-        for data in self.get_data(path_filters=("/api/v2/series", "/api/intake/metrics/v3/series")):
+        for data in self.get_data(
+            path_filters=("/api/v2/series", "/api/intake/metrics/v3/series"), with_api_key=with_api_key
+        ):
             content = data["request"]["content"]
             assert isinstance(content, dict), f"content is not a dict in {data['log_filename']}"
 
@@ -178,10 +194,10 @@ class _BackendV2InterfaceValidator(ProxyBasedInterfaceValidator):
             for point in series:
                 yield data, point
 
-    def get_sketches(self):
+    def get_sketches(self, *, with_api_key: str | None = None):
         """Attempts to fetch the sketches the agent submitted to the mocked backend."""
 
-        all_data = self.get_data(path_filters="/api/beta/sketches")
+        all_data = self.get_data(path_filters="/api/beta/sketches", with_api_key=with_api_key)
 
         for data in all_data:
             if "sketches" in data["request"]["content"]:
@@ -190,10 +206,10 @@ class _BackendV2InterfaceValidator(ProxyBasedInterfaceValidator):
                 for point in content:
                     yield data, point
 
-    def get_dsm_data(self):
-        return self.get_data(path_filters="/api/v0.1/pipeline_stats")
+    def get_dsm_data(self, *, with_api_key: str | None = None):
+        return self.get_data(path_filters="/api/v0.1/pipeline_stats", with_api_key=with_api_key)
 
-    def get_stats(self, resource: str | list[str] = ""):
+    def get_stats(self, resource: str | list[str] = "", *, with_api_key: str | None = None):
         """Attempts to fetch the stats the agent submitted to the mocked backend.
 
         When a valid request is given, then we filter the stats to the ones sampled
@@ -201,7 +217,7 @@ class _BackendV2InterfaceValidator(ProxyBasedInterfaceValidator):
         """
         resources = [resource] if isinstance(resource, str) else resource
 
-        for data in self.get_data(path_filters="/api/v0.2/stats"):
+        for data in self.get_data(path_filters="/api/v0.2/stats", with_api_key=with_api_key):
             client_stats_payloads = data["request"]["content"]["Stats"]
 
             for client_stats_payload in client_stats_payloads:
@@ -209,3 +225,12 @@ class _BackendV2InterfaceValidator(ProxyBasedInterfaceValidator):
                     for client_grouped_stat in client_stats_buckets["Stats"]:
                         if not resources or "" in resources or client_grouped_stat["Resource"] in resources:
                             yield client_grouped_stat
+
+
+def _get_api_key(data: dict) -> str | None:
+    """The API key a request was sent with"""
+    for name, value in data["request"]["headers"]:
+        if name.lower() == "dd-api-key":
+            return value
+
+    return None
