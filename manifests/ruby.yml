@@ -2370,6 +2370,7 @@ manifest:
         uds-rails: missing_feature
         rack: missing_feature
         rails42: missing_feature
+  tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP::test_git_span_attributes: missing_feature (OTLP trace export not supported, OTEL_TRACES_EXPORTER=otlp falls back to Datadog protocol)
   tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP::test_single_server_trace:
     - weblog_declaration:
         sinatra22: missing_feature
