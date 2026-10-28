@@ -12,9 +12,13 @@ DEBUGGER_METRICS_NAMESPACE = "debugger"
 # Namespaces that tracers used for debugger metrics before agreeing on `debugger`. The intake drops metrics sent in them.
 LEGACY_DEBUGGER_METRICS_NAMESPACES = ("live_debugger", "dynamic_instrumentation")
 METRICS_REQUEST_TYPES = ("generate-metrics", "distributions", "sketches")
-# Snapshot probes are rate limited to one snapshot per second by default, but Java and .NET use an adaptive sampler that
-# also lets a probe spend an unused budget of 16 more snapshots. A quick burst of this many hits exceeds that budget, so
-# every tracer skips events because of the probe rate limit.
+# The probe's own rate limit, set through the `snapshotsPerSecond` sampling field, which also applies to log probes that
+# don't capture a snapshot. Coordinated sampling exempts snapshot probes from their own rate limit inside a trace, but
+# every tracer still rate limits these log probes on their own.
+PROBE_EVENTS_PER_SECOND = 1
+# Java and .NET rate limit probes with an adaptive sampler that also lets a probe spend an unused budget of 16 more
+# events. A quick burst of this many hits exceeds that budget, so every tracer skips events because of the probe rate
+# limit.
 RATE_LIMIT_BURST_SIZE = 50
 
 
@@ -141,9 +145,10 @@ class Test_Debugger_Telemetry_Metrics(debugger.BaseDebuggerTest):
     def setup_events_skipped_rate_limit_probe(self):
         self.initialize_weblog_remote_config()
 
-        probes = debugger.read_probes("probe_snapshot_log_line")
+        probes = debugger.read_probes("probe_status_log_line")
         for probe in probes:
             probe["id"] = debugger.generate_probe_id("log")
+            probe["sampling"] = {"snapshotsPerSecond": PROBE_EVENTS_PER_SECOND}
         self.set_probes(probes)
 
         self.send_rc_probes()
