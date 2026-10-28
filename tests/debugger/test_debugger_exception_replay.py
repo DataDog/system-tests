@@ -548,19 +548,15 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
         helper_method = "exceptionReplayRecursionHelper"
 
         def get_frames(snapshot: dict) -> list[dict]:
-            language = self.get_tracer()["language"]
-            if language in ["java", "dotnet", "php"]:
+            if self.get_tracer()["language"] in ["java", "dotnet", "php"]:
                 method = snapshot.get("probe", {}).get("location", {}).get("method", None)
                 if method:
-                    frames = [{"function": method}]
-                    # Java captures the innermost frames: when the recursion is deeper than the max captured frames,
-                    # the entry method has no snapshot of its own and is only present in the stack.
-                    if language == "java":
-                        frames += [
-                            {"function": frame.get("function", "").split(".")[-1]}
-                            for frame in snapshot.get("stack", [])
-                        ]
-                    return frames
+                    # When the recursion is deeper than the max captured frames, a tracer capturing the innermost
+                    # frames (e.g. Java) has no snapshot for the entry method: it is only present in the stack.
+                    stack_frames = [
+                        {"function": frame.get("function", "").split(".")[-1]} for frame in snapshot.get("stack", [])
+                    ]
+                    return [{"function": method}, *stack_frames]
 
             return snapshot.get("stack", [])
 
