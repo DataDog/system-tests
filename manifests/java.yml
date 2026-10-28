@@ -5007,6 +5007,8 @@ manifest:
         ratpack: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
         spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
         play: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+    - weblog_declaration:
+        uds-spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client::test_status_3xx_not_error:
     - weblog_declaration:
         play: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
@@ -5030,7 +5032,7 @@ manifest:
         vertx4: v1.68.0  # TODO: a lower version might be supported
         akka-http: v1.68.0  # TODO: a lower version might be supported
         play: v1.68.0  # TODO: a lower version might be supported
-        uds-spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        uds-spring-boot: v1.68.0  # TODO: a lower version might be supported
         spring-boot: v1.68.0  # TODO: a lower version might be supported
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_datadog_attributes_absent:
     - weblog_declaration:
@@ -5046,7 +5048,7 @@ manifest:
         vertx4: v1.68.0  # TODO: a lower version might be supported
         akka-http: v1.68.0  # TODO: a lower version might be supported
         play: v1.68.0  # TODO: a lower version might be supported
-        uds-spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        uds-spring-boot: v1.68.0  # TODO: a lower version might be supported
         spring-boot: v1.68.0  # TODO: a lower version might be supported
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_http_endpoint_retained_from_appsec: irrelevant (The AppSec endpoint retention request is specific to .NET)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_network_peer_address:
@@ -5063,7 +5065,7 @@ manifest:
         vertx4: v1.68.0  # TODO: a lower version might be supported
         akka-http: v1.68.0  # TODO: a lower version might be supported
         play: v1.68.0  # TODO: a lower version might be supported
-        uds-spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        uds-spring-boot: v1.68.0  # TODO: a lower version might be supported
         spring-boot: v1.68.0  # TODO: a lower version might be supported
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_otel_attributes_present:
     - weblog_declaration:
@@ -5079,7 +5081,7 @@ manifest:
         vertx4: v1.68.0  # TODO: a lower version might be supported
         akka-http: v1.68.0  # TODO: a lower version might be supported
         play: v1.68.0  # TODO: a lower version might be supported
-        uds-spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        uds-spring-boot: v1.68.0  # TODO: a lower version might be supported
         spring-boot: v1.68.0  # TODO: a lower version might be supported
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_server_address:
     - weblog_declaration:
@@ -5095,7 +5097,7 @@ manifest:
         vertx4: v1.68.0  # TODO: a lower version might be supported
         akka-http: v1.68.0  # TODO: a lower version might be supported
         play: v1.68.0  # TODO: a lower version might be supported
-        uds-spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        uds-spring-boot: v1.68.0  # TODO: a lower version might be supported
         spring-boot: v1.68.0  # TODO: a lower version might be supported
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_server_port:
     - weblog_declaration:
@@ -5111,7 +5113,7 @@ manifest:
         vertx4: v1.68.0  # TODO: a lower version might be supported
         akka-http: v1.68.0  # TODO: a lower version might be supported
         play: v1.68.0  # TODO: a lower version might be supported
-        uds-spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        uds-spring-boot: v1.68.0  # TODO: a lower version might be supported
         spring-boot: v1.68.0  # TODO: a lower version might be supported
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_span_name_route_invariance:
     - weblog_declaration:
@@ -5127,7 +5129,7 @@ manifest:
         vertx4: v1.68.0  # TODO: a lower version might be supported
         akka-http: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
         play: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        uds-spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        uds-spring-boot: v1.68.0  # TODO: a lower version might be supported
         spring-boot: v1.68.0  # TODO: a lower version might be supported
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_span_name_unknown_method:
     - weblog_declaration:
@@ -5143,7 +5145,7 @@ manifest:
         vertx4: v1.68.0  # TODO: a lower version might be supported
         akka-http: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
         play: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        uds-spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        uds-spring-boot: v1.68.0  # TODO: a lower version might be supported
         spring-boot: v1.68.0  # TODO: a lower version might be supported
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_span_name_with_route:
     - weblog_declaration:
@@ -5159,7 +5161,7 @@ manifest:
         vertx4: v1.68.0  # TODO: a lower version might be supported
         akka-http: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
         play: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
-        uds-spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        uds-spring-boot: v1.68.0  # TODO: a lower version might be supported
         spring-boot: v1.68.0  # TODO: a lower version might be supported
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_span_name_without_route:
     - weblog_declaration:
@@ -5175,7 +5177,7 @@ manifest:
         vertx4: v1.68.0  # TODO: a lower version might be supported
         akka-http: v1.68.0  # TODO: a lower version might be supported
         play: v1.68.0  # TODO: a lower version might be supported
-        uds-spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        uds-spring-boot: v1.68.0  # TODO: a lower version might be supported
         spring-boot: v1.68.0  # TODO: a lower version might be supported
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_status_3xx_is_not_error:
     - weblog_declaration:
@@ -5191,7 +5193,7 @@ manifest:
         vertx4: v1.68.0  # TODO: a lower version might be supported
         akka-http: v1.68.0  # TODO: a lower version might be supported
         play: v1.68.0  # TODO: a lower version might be supported
-        uds-spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        uds-spring-boot: v1.68.0  # TODO: a lower version might be supported
         spring-boot: v1.68.0  # TODO: a lower version might be supported
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_status_400_is_not_error:
     - weblog_declaration:
@@ -5207,7 +5209,7 @@ manifest:
         vertx4: v1.68.0  # TODO: a lower version might be supported
         akka-http: v1.68.0  # TODO: a lower version might be supported
         play: v1.68.0  # TODO: a lower version might be supported
-        uds-spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        uds-spring-boot: v1.68.0  # TODO: a lower version might be supported
         spring-boot: v1.68.0  # TODO: a lower version might be supported
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_status_500_no_exception_is_status_code_error:
     - weblog_declaration:
@@ -5223,7 +5225,7 @@ manifest:
         vertx4: v1.68.0  # TODO: a lower version might be supported
         akka-http: v1.68.0  # TODO: a lower version might be supported
         play: v1.68.0  # TODO: a lower version might be supported
-        uds-spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        uds-spring-boot: v1.68.0  # TODO: a lower version might be supported
         spring-boot: v1.68.0  # TODO: a lower version might be supported
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_url_query_obfuscation:
     - weblog_declaration:
@@ -5239,7 +5241,7 @@ manifest:
         vertx4: v1.68.0  # TODO: a lower version might be supported
         akka-http: v1.68.0  # TODO: a lower version might be supported
         play: v1.68.0  # TODO: a lower version might be supported
-        uds-spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        uds-spring-boot: v1.68.0  # TODO: a lower version might be supported
         spring-boot: v1.68.0  # TODO: a lower version might be supported
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_url_query_present_with_query_string:
     - weblog_declaration:
@@ -5255,7 +5257,7 @@ manifest:
         vertx4: v1.68.0  # TODO: a lower version might be supported
         akka-http: v1.68.0  # TODO: a lower version might be supported
         play: v1.68.0  # TODO: a lower version might be supported
-        uds-spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        uds-spring-boot: v1.68.0  # TODO: a lower version might be supported
         spring-boot: v1.68.0  # TODO: a lower version might be supported
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_user_agent:
     - weblog_declaration:
@@ -5271,7 +5273,7 @@ manifest:
         vertx4: v1.68.0  # TODO: a lower version might be supported
         akka-http: v1.68.0  # TODO: a lower version might be supported
         play: v1.68.0  # TODO: a lower version might be supported
-        uds-spring-boot: missing_feature (OTel HTTP semantics not implemented over both Agent and OTLP export paths)
+        uds-spring-boot: v1.68.0  # TODO: a lower version might be supported
         spring-boot: v1.68.0  # TODO: a lower version might be supported
   tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs: missing_feature
   tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5:
