@@ -1401,8 +1401,6 @@ manifest:
       component_version: <=2.41.0
   tests/parametric/test_otel_span_with_baggage.py::Test_Otel_Span_With_Baggage: missing_feature
   tests/parametric/test_otel_startup_logs.py::Test_OTEL_Startup_Logs: v3.56.0
-  tests/parametric/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_otel_enabled_otlp_logs_without_semantics: bug (APMAPI-2649)
-  tests/parametric/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_otel_enabled_otlp_metrics_without_semantics: bug (APMAPI-2649)
   tests/parametric/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_otel_enabled_otlp_traces_with_tracing_disabled: bug (APMAPI-2649)
   tests/parametric/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_otel_enabled_otlp_traces_without_semantics: bug (APMAPI-2649)
   tests/parametric/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_otel_enabled_semantics_alone: bug (APMAPI-2649)

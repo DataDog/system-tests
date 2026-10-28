@@ -1,9 +1,10 @@
 """OTel fields in the tracer's startup configuration JSON that depend on the tracer configuration.
 
-OTEL_ENABLED reports whether the tracer works in OpenTelemetry mode: DD_TRACE_OTEL_SEMANTICS_ENABLED is
-enabled and at least one OpenTelemetry signal is on. The trace signal needs both the OpenTelemetry tracing
-API (DD_TRACE_OTEL_ENABLED) and OTLP trace export (OTEL_TRACES_EXPORTER=otlp). The metrics and logs signals
-each turn on their OpenTelemetry API and OTLP export (DD_METRICS_OTEL_ENABLED, DD_LOGS_OTEL_ENABLED).
+OTEL_ENABLED reports whether the tracer works in OpenTelemetry mode: at least one OpenTelemetry signal is on.
+The trace signal needs semantics mode (DD_TRACE_OTEL_SEMANTICS_ENABLED), the OpenTelemetry tracing API
+(DD_TRACE_OTEL_ENABLED) and OTLP trace export (OTEL_TRACES_EXPORTER=otlp). The metrics and logs signals each
+turn on their OpenTelemetry API and OTLP export (DD_METRICS_OTEL_ENABLED, DD_LOGS_OTEL_ENABLED); semantics
+mode only changes trace output, so they don't need it.
 Each case has its own test, so that manifests can declare them per library.
 """
 
@@ -31,8 +32,8 @@ _OTLP_TRACES = {"OTEL_TRACES_EXPORTER": "otlp"}
 
 
 # The OTel semantics RFC makes DD_TRACE_OTEL_SEMANTICS_ENABLED set OTEL_TRACES_EXPORTER=otlp, so with semantics mode
-# the tracing API alone turns on the trace signal, and semantics mode alone doesn't. Each signal is tested without
-# semantics mode, where it must report false. With tracing disabled, metrics and logs still count on their own.
+# the tracing API alone turns on the trace signal, and semantics mode alone doesn't. Without semantics mode, the
+# tracing API and OTLP trace export must report false, while metrics and logs still report true.
 def _library_env(signal: dict[str, str], *, semantics: bool, tracing: bool = True) -> dict[str, str | None]:
     # Enables at most one OpenTelemetry signal on top of _OTEL_SIGNALS_DISABLED.
     env = {**_OTEL_SIGNALS_DISABLED, **signal, "DD_TRACE_OTEL_SEMANTICS_ENABLED": str(semantics).lower()}
@@ -72,12 +73,12 @@ class Test_OTEL_Startup_Logs:
     @parametrize("library_env", [_library_env(_OTLP_METRICS, semantics=False)])
     def test_otel_enabled_otlp_metrics_without_semantics(self, test_library: APMLibrary) -> None:
         with test_library:
-            _assert_otel_enabled(test_library, expected=False)
+            _assert_otel_enabled(test_library, expected=True)
 
     @parametrize("library_env", [_library_env(_OTLP_LOGS, semantics=False)])
     def test_otel_enabled_otlp_logs_without_semantics(self, test_library: APMLibrary) -> None:
         with test_library:
-            _assert_otel_enabled(test_library, expected=False)
+            _assert_otel_enabled(test_library, expected=True)
 
     @parametrize("library_env", [_library_env(_OTLP_TRACES, semantics=False)])
     def test_otel_enabled_otlp_traces_without_semantics(self, test_library: APMLibrary) -> None:
