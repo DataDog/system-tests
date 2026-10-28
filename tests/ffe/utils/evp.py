@@ -44,6 +44,7 @@ EVP_ORIGINS = {
     "golang": "dd-trace-go",
     "java": "dd-trace-java",
     "nodejs": "dd-trace-js",
+    "php": "dd-trace-php",
     "python": "dd-trace-py",
     "ruby": "dd-trace-rb",
 }
@@ -134,7 +135,7 @@ def expected_evp_origin(library_name: str) -> str:
 
 
 def expected_evp_origin_version(library_name: str, library_version: str) -> str:
-    """Return the tracer's canonical wire version for direct EVP identity.
+    """Return the tracer's canonical wire version for EVP identity.
 
     System-tests deliberately removes Go's leading ``v`` when it parses the
     component version for manifest comparisons. dd-trace-go's public version
@@ -159,6 +160,13 @@ def _assert_single_header(data: dict[str, Any], name: str, expected: str | set[s
     assert len(values) == 1, f"expected exactly one {name} header, got {values!r}"
     allowed = {expected} if isinstance(expected, str) else expected
     assert values[0] in allowed, f"expected {name} in {sorted(allowed)!r}, got {values[0]!r}"
+
+
+def assert_evp_sdk_identity(data: dict[str, Any], *, library_name: str, library_version: str) -> None:
+    """Require the SDK source identity on an intake-side capture."""
+    _assert_single_header(data, "DD-EVP-ORIGIN", expected_evp_origin(library_name))
+    assert library_version.strip(), "expected library version must be non-empty"
+    _assert_single_header(data, "DD-EVP-ORIGIN-VERSION", expected_evp_origin_version(library_name, library_version))
 
 
 def assert_agentless_evp_intake_request(
@@ -197,12 +205,7 @@ def assert_agentless_evp_intake_request(
         # SDK local-route identity and credential omission remain covered by SDK unit tests.
         return
 
-    _assert_single_header(data, "DD-EVP-ORIGIN", expected_evp_origin(library_name))
-    _assert_single_header(
-        data,
-        "DD-EVP-ORIGIN-VERSION",
-        expected_evp_origin_version(library_name, library_version),
-    )
+    assert_evp_sdk_identity(data, library_name=library_name, library_version=library_version)
 
 
 def assert_no_evp_proxy_requests(captures: Iterable[dict[str, Any]]) -> None:
@@ -240,9 +243,11 @@ def assert_direct_evp_runtime_evidence(evidence: dict[str, Any], *, library_name
         assert isinstance(name, str), f"Live container evidence has no name: {container}"
         assert name not in containers_by_name, f"Duplicate live container evidence for {name!r}"
         containers_by_name[name] = container
-    expected_names = {"system-tests-proxy", "system-tests-weblog"}
+    # the mocked backend serves the agentless configuration
+    expected_names = {"system-tests-mocked-backend", "system-tests-proxy", "system-tests-weblog"}
     assert set(containers_by_name) == expected_names, (
-        f"Direct EVP runtime network must contain only TLS proxy and weblog, got {sorted(containers_by_name)}"
+        "Direct EVP runtime network must contain only mocked backend, TLS proxy and weblog, "
+        f"got {sorted(containers_by_name)}"
     )
 
     network = evidence.get("network")

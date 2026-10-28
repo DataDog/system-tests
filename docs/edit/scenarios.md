@@ -25,7 +25,27 @@ class CustomScenario(Scenario):
         """ Clean what need to be cleaned at the end of the test session """
 ```
 
-And include you scenario in `utils/_context/_scenarios/__init__.py`
+Then define your scenario in a module of `utils/_context/_scenarios/`, grouped with similar scenarios if any. Its configuration lives in its class:
+
+```python
+from ._core import DdTraceEndToEndScenario
+
+
+class CustomScenario(DdTraceEndToEndScenario):
+    def __init__(self) -> None:
+        super().__init__("CUSTOM_SCENARIO", weblog_env={"DD_SOME_SETTING": "true"}, doc="...")
+```
+
+And instantiate it in the `_Scenarios` class of `utils/_context/_scenarios/__init__.py`, without any argument:
+
+```python
+class _Scenarios:
+    custom_scenario = CustomScenario()
+```
+
+`__init__.py` never contains any configuration: in CI, modifying it runs no scenario, while modifying a scenario module runs the scenarios it defines.
+
+A scenario module only imports base classes from `._core`, which holds the ones shared by several modules (`EndToEndScenario`, `DdTraceEndToEndScenario`...). A base class used by a single module lives in this module, and is private (e.g. `_DebuggerScenario` in `debugger.py`).
 
 Then, just flag you tests classes/methods with you scenario :
 
