@@ -1,17 +1,16 @@
 import pytest
 from utils import interfaces
-from utils._context._scenarios.core import ScenarioGroup
+from utils.interfaces._core import ProxyBasedInterfaceValidator
+from ._core import DockerScenario, scenario_groups, scenario_groups as all_scenario_groups, ScenarioGroup
 from utils._context.constants import WeblogCategory
-from utils._context.containers import LambdaProxyContainer, LambdaWeblogContainer
+from utils._context.containers import LambdaProxyContainer, LambdaWeblogContainer, InternalServerContainer
 from utils._logger import logger
-from .endtoend import DockerScenario, ProxyBasedInterfaceValidator
-from .core import scenario_groups as all_scenario_groups
 
 
-class LambdaScenario(DockerScenario):
+class _LambdaScenario(DockerScenario):
     """Scenario for end-to-end testing of AWS Lambda HTTP Instrumentation.
 
-    The `LambdaScenario` sets up an environment with the following components:
+    The `_LambdaScenario` sets up an environment with the following components:
     - A LambdaWeblog container that runs the application using AWS Lambda RIE (Runtime Interface Emulator).
     - A LambdaProxy container that converts between http requests and lambda events to invoke the function.
 
@@ -170,3 +169,84 @@ class LambdaScenario(DockerScenario):
         result["weblog_variant"] = self.weblog_variant
 
         return result
+
+
+# Appsec Lambda Scenarios
+class AppsecLambdaDefault(_LambdaScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "APPSEC_LAMBDA_DEFAULT",
+            doc="Default Lambda scenario",
+            scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
+        )
+
+
+class AppsecLambdaBlocking(_LambdaScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "APPSEC_LAMBDA_BLOCKING",
+            weblog_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
+            weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
+            doc="Misc tests for appsec blocking in Lambda",
+            scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
+        )
+
+
+class AppsecLambdaApiSecurity(_LambdaScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "APPSEC_LAMBDA_API_SECURITY",
+            weblog_env={
+                "DD_API_SECURITY_ENABLED": "true",
+                "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
+                "DD_API_SECURITY_SAMPLE_DELAY": "0.0",
+                "DD_API_SECURITY_ENDPOINT_COLLECTION_ENABLED": "true",
+                "DD_API_SECURITY_ENDPOINT_COLLECTION_MESSAGE_LIMIT": "30",
+            },
+            doc="""
+        Scenario for API Security feature in lambda, testing schema types sent into span tags if
+        DD_API_SECURITY_ENABLED is set to true.
+        """,
+            scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
+        )
+
+
+class AppsecLambdaRasp(_LambdaScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "APPSEC_LAMBDA_RASP",
+            weblog_env={
+                "DD_APPSEC_RASP_ENABLED": "true",
+                "DD_APPSEC_RULES": "/appsec_rasp_ruleset.json",
+                # added to test Test_ExtendedRequestBodyCollection
+                "DD_APPSEC_RASP_COLLECT_REQUEST_BODY": "true",
+                "DD_API_SECURITY_DOWNSTREAM_BODY_ANALYSIS_SAMPLE_RATE": "1.0",
+            },
+            weblog_volumes={
+                "./tests/appsec/rasp/rasp_ruleset.json": {"bind": "/appsec_rasp_ruleset.json", "mode": "ro"}
+            },
+            doc="Enable APPSEC RASP",
+            github_workflow="endtoend",
+            scenario_groups=[
+                scenario_groups.appsec_rasp,
+                scenario_groups.appsec_rasp_scenario,
+                scenario_groups.appsec_lambda,
+            ],
+        )
+
+    def configure(self, config: pytest.Config):
+        self._internal_server = InternalServerContainer()
+        self.lambda_weblog.depends_on.append(self._internal_server)
+        self._containers.append(self._internal_server)
+
+        super().configure(config)
+
+
+class AppsecLambdaInferredSpans(_LambdaScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "APPSEC_LAMBDA_INFERRED_SPANS",
+            doc="Lambda scenario with managed services tracing enabled",
+            scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
+            trace_managed_services=True,
+        )
