@@ -3139,8 +3139,10 @@ manifest:
   tests/parametric/test_extract_behavior.py::Test_ExtractBehavior_Restart_With_Extract_First: v2.20.0
   tests/parametric/test_ffe/test_configuration_sources.py: v4.14.0-dev
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v4.0.0
+  tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_dependent_flags: missing_feature (FFL-1694)
   tests/parametric/test_ffe/test_rules_configuration.py: missing_feature (Standalone rules configuration helpers are currently tested only in Node.js)
   tests/parametric/test_ffe/test_serial_id_metadata.py: missing_feature
+  tests/parametric/test_ffe/test_serial_id_metadata.py::Test_FFE_Serial_Id_Metadata_Go: irrelevant (Legacy Go metadata key)
   tests/parametric/test_ffe/test_span_enrichment.py: '>=4.9.0'  # TODO: a lower version might be supported
   tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Child_Span_Propagation: missing_feature
   tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Default_Fallback: missing_feature
@@ -3289,6 +3291,7 @@ manifest:
   tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields::test_scope_version_field: missing_feature
   tests/parametric/test_otel_metrics.py: v3.18.0
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Api_MeterProvider::test_otel_get_meter_by_distinct_schema_url: '>=4.3.1'  # Modified by easy win activation script
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Lifecycle: v3.18.0
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Resource_Attributes::test_dd_env_vars_override_otel: missing_feature
   ? tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Resource_Attributes::test_otel_resource_attributes_populated_by_dd_otel_envs
   : missing_feature
