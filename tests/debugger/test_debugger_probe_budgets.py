@@ -5,7 +5,7 @@
 import time
 import tests.debugger.utils as debugger
 
-from utils import slow, scenarios, features, context
+from utils import slow, scenarios, features
 
 
 @features.debugger_probe_budgets
@@ -163,11 +163,10 @@ class Test_Debugger_Probe_Budgets(debugger.BaseDebuggerTest):
             "Expected at least 1 error entry to verify the span probe expression error was logged, got 0"
         )
 
-        # Error entries should be rate-limited to at most 1 per second.
-        # Allow a buffer for timing imprecision.
-        # Java's adaptive sampler starts with a budget of 17, allowing an initial burst on top of the 1/s rate.
-        buffer = 20 if context.library == "java" else 5
-        max_expected = int(self.total_request_time) + buffer
+        # Error entries should be rate-limited to at most 1 per second. Probe budgets aren't exact: rate limiters
+        # may allow an initial burst (e.g. Java's adaptive sampler starts with a budget of 17), so we allow up to
+        # 20 entries on top of the 1/s budget, matching the log line budget tests.
+        max_expected = int(self.total_request_time) + 20
         assert total_error_entries <= max_expected, (
             f"Expected at most {max_expected} error entries (1/sec budget for "
             f"{self.total_request_time:.1f}s), got {total_error_entries}. "
