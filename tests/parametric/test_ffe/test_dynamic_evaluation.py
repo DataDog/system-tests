@@ -94,7 +94,7 @@ def _set_and_wait_ffe_rc(
         RC_PRODUCT,
         state=RemoteConfigApplyState.ACKNOWLEDGED,
         config_id=config_id,
-        wait_loops=500,
+        wait_loops=10,
         clear=True,
     )
 

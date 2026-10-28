@@ -702,7 +702,7 @@ class TestAgentAPI:
             time.sleep(0.1)
         raise ValueError(f"Number ({num}) of OTLP requests not available from test agent, got {len(otlp_requests)}")
 
-    def wait_for_telemetry_event(self, event_name: str, *, clear: bool = False, wait_loops: int = 200):
+    def wait_for_telemetry_event(self, event_name: str, *, clear: bool = False, wait_loops: int = 4):
         """Wait for and return the given telemetry event from the test agent."""
         for _ in range(wait_loops):
             try:
@@ -716,7 +716,7 @@ class TestAgentAPI:
                         if clear:
                             self.clear()
                         return e
-            time.sleep(0.01)
+            time.sleep(0.5)
         raise AssertionError(f"Telemetry event {event_name} not found")
 
     def wait_for_telemetry_configurations(
@@ -809,7 +809,7 @@ class TestAgentAPI:
 
         return config.get("value") if return_value_only else config
 
-    def wait_for_telemetry_metrics(self, metric_name: str | None = None, *, clear: bool = False, wait_loops: int = 100):
+    def wait_for_telemetry_metrics(self, metric_name: str | None = None, *, clear: bool = False, wait_loops: int = 2):
         """Get the telemetry metrics from the test agent."""
         metrics = []
 
@@ -824,7 +824,7 @@ class TestAgentAPI:
                         metrics.append(series)
                         break
             metrics.sort(key=lambda x: (x["metric"], x["tags"]))
-            time.sleep(0.01)
+            time.sleep(0.5)
 
         if clear:
             self.clear()
@@ -879,7 +879,7 @@ class TestAgentAPI:
         state: RemoteConfigApplyState,
         *,
         clear: bool = False,
-        wait_loops: int = 100,
+        wait_loops: int = 2,
         post_only: bool = False,
         config_id: str | int | None = None,
     ) -> dict[str, Any]:
@@ -920,10 +920,10 @@ class TestAgentAPI:
                             if clear:
                                 self.clear()
                             return cfg_state
-            time.sleep(0.01)
+            time.sleep(0.5)
         raise AssertionError(f"No RemoteConfig apply status found, got requests {rc_reqs}")
 
-    def wait_for_rc_capabilities(self, wait_loops: int = 100) -> set[Capabilities]:
+    def wait_for_rc_capabilities(self, wait_loops: int = 2) -> set[Capabilities]:
         """Wait for RC capabilities to be reported by the tracer and return the most recent set seen.
 
         The tracer's RC capabilities bitmask is monotonically increasing: capabilities are added
@@ -962,10 +962,10 @@ class TestAgentAPI:
                     capabilities_seen = remoteconfig.human_readable_capabilities(int_capabilities)
                     if capabilities_seen:
                         return capabilities_seen
-            time.sleep(0.01)
+            time.sleep(0.5)
         raise AssertionError("RemoteConfig capabilities were empty")
 
-    def assert_rc_capabilities(self, expected_capabilities: set[Capabilities], wait_loops: int = 100) -> None:
+    def assert_rc_capabilities(self, expected_capabilities: set[Capabilities], wait_loops: int = 2) -> None:
         """Assert that the tracer reports all expected RC capabilities, polling up to wait_loops cycles."""
         seen_capabilities = self.wait_for_rc_capabilities(wait_loops)
         missing_capabilities = expected_capabilities.difference(seen_capabilities)
@@ -974,7 +974,7 @@ class TestAgentAPI:
                 f"RemoteConfig capabilities missing: {missing_capabilities}; seen: {seen_capabilities}"
             )
 
-    def wait_for_tracer_flare(self, case_id: str | None = None, *, clear: bool = False, wait_loops: int = 100):
+    def wait_for_tracer_flare(self, case_id: str | None = None, *, clear: bool = False, wait_loops: int = 2):
         """Wait for the tracer-flare to be received by the test agent."""
         for _ in range(wait_loops):
             try:
@@ -988,7 +988,7 @@ class TestAgentAPI:
                         if clear:
                             self.clear()
                         return tracer_flare
-            time.sleep(0.01)
+            time.sleep(0.5)
         raise AssertionError("No tracer-flare received")
 
     def logs(self) -> list[Any]:
