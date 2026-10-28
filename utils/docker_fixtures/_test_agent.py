@@ -873,6 +873,33 @@ class TestAgentAPI:
 
         return count
 
+    def get_telemetry_events(self, event_name: str) -> list[dict[str, Any]]:
+        """Return the telemetry events of the given type captured so far, oldest first.
+
+        Handles both top-level events and events inside message-batch payloads, excluding
+        sidecar-originated events.
+        """
+        try:
+            events: list[Any] = self.telemetry(clear=False)
+        except requests.exceptions.RequestException:
+            return []
+
+        matching_events: list[dict[str, Any]] = []
+        for event in events:
+            if not event:
+                continue
+            if event.get("request_type") == event_name:
+                if event.get("application", {}).get("language_version") != "SIDECAR":
+                    matching_events.append(event)
+            elif event.get("request_type") == "message-batch":
+                matching_events.extend(
+                    message
+                    for message in event.get("payload", [])
+                    if message.get("request_type") == event_name
+                    and message.get("application", {}).get("language_version") != "SIDECAR"
+                )
+        return matching_events
+
     def wait_for_rc_apply_state(
         self,
         product: str,

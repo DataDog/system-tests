@@ -17,17 +17,35 @@ class Test_Crashtracking:
     def test_report_crash(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         test_library.crash()
 
-        while True:
-            event = test_agent.wait_for_telemetry_event("logs", wait_loops=400)
-            # Handling both v1 and v2 of the crashtracking payload so that we can
-            # update to v2 without breaking the test.
-            if isinstance(event.get("payload"), list):
-                if "is_crash_ping:true" not in event["payload"][0]["tags"]:
-                    self.assert_crash_report_v1(test_library, event)
-                    break
-            elif "is_crash_ping:true" not in event["payload"]["logs"][0]["tags"]:
-                self.assert_crash_report_v2(test_library, event)
-                break
+        event = self.wait_for_crash_report(test_agent)
+
+        # Handling both v1 and v2 of the crashtracking payload so that we can
+        # update to v2 without breaking the test.
+        if isinstance(event.get("payload"), list):
+            self.assert_crash_report_v1(test_library, event)
+        else:
+            self.assert_crash_report_v2(test_library, event)
+
+    def wait_for_crash_report(self, test_agent: TestAgentAPI) -> dict:
+        # The crashtracker sends telemetry "logs" events that are not the crash report itself:
+        # crash pings (`is_crash_ping:true`) and receiver debug logs (`is_crash_debug:true`, sent
+        # when e.g. the stack trace is incomplete). They can be captured before or after the
+        # crash report, so the report is selected by scanning all captured "logs" events.
+        for _ in range(400):
+            for event in test_agent.get_telemetry_events("logs"):
+                tags = self.crash_event_tags(event)
+                if "is_crash_ping:true" not in tags and "is_crash_debug:true" not in tags:
+                    return event
+            time.sleep(0.01)
+        raise AssertionError("Crash report not found in telemetry logs events")
+
+    def crash_event_tags(self, event: dict) -> str:
+        payload = event.get("payload")
+        if isinstance(payload, list):
+            return payload[0].get("tags", "") if payload else ""
+        if isinstance(payload, dict) and payload.get("logs"):
+            return payload["logs"][0].get("tags", "")
+        return ""
 
     @pytest.mark.parametrize("library_env", [{"DD_CRASHTRACKING_ENABLED": "false"}])
     def test_disable_crashtracking(self, test_agent: TestAgentAPI, test_library: APMLibrary):
@@ -82,8 +100,12 @@ class Test_Crashtracking:
         ]
 
     def wait_for_error_tracking_crash_report(self, test_agent: TestAgentAPI) -> dict:
+        # The crashtracker also sends crash pings to the Error Tracking intake, so the report is
+        # selected by its content instead of taking the last request received.
         for _ in range(400):
-            reports = self.get_error_tracking_crash_reports(test_agent)
+            reports = [
+                report for report in self.get_error_tracking_crash_reports(test_agent) if report["error"]["is_crash"]
+            ]
             if reports:
                 return reports[-1]
             time.sleep(0.01)
