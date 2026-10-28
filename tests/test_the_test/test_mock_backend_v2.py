@@ -16,10 +16,12 @@ from utils import pytest
 import requests
 import zstandard
 from cryptography import x509
+from cryptography.hazmat.primitives.serialization import pkcs12
 
 from utils import scenarios
 from utils.interfaces._backend_v2 import _BackendV2InterfaceValidator
 from utils._context.containers import MockedBackendContainer
+from utils._context._scenarios.agentless_endtoend import JAVA_TRUSTSTORE_SOURCE
 from utils.mocked_backend import MockedBackendClient, MockedBackendServer
 from utils.mocked_backend.ffe import UFC_FIXTURE_RELATIVE_PATH
 
@@ -395,6 +397,17 @@ def test_https_certificate_covers_the_container_hostnames_for_a_while():
     assert [str(ip) for ip in names.get_values_for_type(x509.IPAddress)] == ["127.0.0.1"]
     # naive, in UTC
     assert cert.not_valid_after.replace(tzinfo=UTC) - datetime.now(UTC) > timedelta(days=180)
+
+
+@scenarios.test_the_test
+def test_java_truststore_holds_the_ca_of_the_certificate():
+    """The JVM trusts the mocked backend with this trust store: it must hold the CA that signs its certificate"""
+    truststore = pkcs12.load_pkcs12(Path(JAVA_TRUSTSTORE_SOURCE).read_bytes(), b"changeit")
+    ca = x509.load_pem_x509_certificate(Path(_MITMPROXY_CA).read_bytes())
+    cert = x509.load_pem_x509_certificate(Path(_TLS_CERT_FILE).read_bytes())
+
+    assert [entry.certificate for entry in truststore.additional_certs] == [ca]
+    assert cert.issuer == ca.subject
 
 
 @scenarios.test_the_test
