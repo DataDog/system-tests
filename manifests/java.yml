@@ -4243,6 +4243,7 @@ manifest:
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_dependent_flags: missing_feature (FFL-1694)
   tests/parametric/test_ffe/test_rules_configuration.py: missing_feature (Standalone rules configuration helpers are currently tested only in Node.js)
   tests/parametric/test_ffe/test_serial_id_metadata.py: v1.66.0
+  tests/parametric/test_ffe/test_serial_id_metadata.py::Test_FFE_Serial_Id_Metadata_Go: irrelevant (Legacy Go metadata key)
   tests/parametric/test_ffe/test_span_enrichment.py: '>=1.64.2'  # TODO: a lower version might be supported
   tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Child_Span_Propagation: missing_feature
   tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Default_Fallback: missing_feature

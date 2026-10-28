@@ -2676,6 +2676,7 @@ manifest:
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_dependent_flags: missing_feature (FFL-1694)
   tests/parametric/test_ffe/test_rules_configuration.py: 7.0.0-pre  # Exact development version until the first containing release is confirmed.
   tests/parametric/test_ffe/test_serial_id_metadata.py: v6.18.0
+  tests/parametric/test_ffe/test_serial_id_metadata.py::Test_FFE_Serial_Id_Metadata_Go: irrelevant (Legacy Go metadata key)
   tests/parametric/test_ffe/test_span_enrichment.py:  # TODO: a lower version might be supported
     - declaration: missing_feature (dd-trace-js#8343)
       component_version: <6.19.0
