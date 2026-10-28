@@ -128,7 +128,7 @@ def test_agentless_end_to_end_scenario_points_weblog_to_mocked_backend(monkeypat
     assert "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED" not in environment
     assert "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE" not in environment
     assert "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT" not in environment
-    assert environment["DD_API_KEY"] == scenario.dd_api_key
+    assert environment["DD_API_KEY"] == scenario.weblog_api_key
     assert environment["DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL"] == (
         f"https://mocked-backend:443{CONFIG_PATH}?{CONFIG_QUERY}"
     )
@@ -292,7 +292,7 @@ def test_agentless_evp_capture_registry_waits_for_each_path_before_settling(
         scenario.register_expected_evp_capture(path)
 
     captures = iter(
-        {"path": path, "request": {"headers": [("DD-API-KEY", scenario.dd_api_key)]}} for path in expected_paths
+        {"path": path, "request": {"headers": [("DD-API-KEY", scenario.weblog_api_key)]}} for path in expected_paths
     )
     wait_timeouts: list[int] = []
 
@@ -412,7 +412,7 @@ def test_direct_evp_shutdown_probe_uses_sigterm_without_explicit_flush(
         "log_filename": "direct-0000.json",
         "request": {
             "timestamp_start": "2099-09-09T11:59:59+00:00",
-            "headers": [("DD-API-KEY", scenario.dd_api_key)],
+            "headers": [("DD-API-KEY", scenario.weblog_api_key)],
             "content": {
                 "exposures": [
                     {
@@ -428,7 +428,7 @@ def test_direct_evp_shutdown_probe_uses_sigterm_without_explicit_flush(
         "log_filename": "direct-0001.json",
         "request": {
             "timestamp_start": "2099-09-09T12:00:01+00:00",
-            "headers": [("DD-API-KEY", scenario.dd_api_key)],
+            "headers": [("DD-API-KEY", scenario.weblog_api_key)],
             "content": {
                 "exposures": [
                     {
@@ -449,7 +449,7 @@ def test_direct_evp_shutdown_probe_uses_sigterm_without_explicit_flush(
     )
 
     def get_data(*, with_api_key: str) -> list[dict[str, Any]]:
-        assert with_api_key == scenario.dd_api_key
+        assert with_api_key == scenario.weblog_api_key
         lifecycle.append("capture-snapshot")
         return next(snapshots)
 

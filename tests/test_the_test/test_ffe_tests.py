@@ -379,7 +379,7 @@ def test_feature_flagging_agentless_evp_topology_supports_both_routes(
         doc="test",
         exposure_egress=route,
     )
-    scenario.weblog_infra.library_container.environment["DD_API_KEY"] = scenario.dd_api_key
+    scenario.weblog_infra.library_container.environment["DD_API_KEY"] = scenario.weblog_api_key
     if route == "sidecar":
         scenario.components["serverless-init"] = Version("0.0.0")
     else:

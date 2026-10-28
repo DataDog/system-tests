@@ -92,13 +92,13 @@ def feature_flagging_evp_egress() -> FeatureFlaggingEVPEgress:
         return FeatureFlaggingEVPEgress(
             interfaces.backend_v2,
             "sidecar",
-            excluded_api_keys=(scenario.dd_api_key,),
-            expected_api_key=scenario.evp_api_key,
+            excluded_api_keys=(scenario.weblog_api_key,),
+            expected_api_key=scenario.sidecar_api_key,
         )
 
     assert scenario.exposure_egress == "direct"
     assert "serverless-init" not in scenario.components
-    return FeatureFlaggingEVPEgress(interfaces.backend_v2, "direct", expected_api_key=scenario.evp_api_key)
+    return FeatureFlaggingEVPEgress(interfaces.backend_v2, "direct", expected_api_key=scenario.weblog_api_key)
 
 
 def register_expected_evp_capture(path: str) -> None:
@@ -412,7 +412,7 @@ def assert_agentless_evp_topology(egress: FeatureFlaggingEVPEgress) -> None:
     assert environment["DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED"] == "true"
     assert environment["DD_SITE"] == "mock-intake.invalid"
     if not scenario.replay:
-        assert environment["DD_API_KEY"] == scenario.dd_api_key
+        assert environment["DD_API_KEY"] == scenario.weblog_api_key
     if egress.route == "direct":
         assert_direct_evp_runtime_evidence(
             scenario.direct_evp_runtime_evidence(),
@@ -439,7 +439,7 @@ def assert_agentless_evp_topology(egress: FeatureFlaggingEVPEgress) -> None:
             assert name not in environment
         assert "serverless-init" not in scenario.components
         assert not any(container.name == "ffe-serverless-init" for container in scenario.weblog_infra.get_containers())
-        assert_no_evp_proxy_requests(interfaces.backend_v2.get_data(with_api_key=scenario.dd_api_key))
+        assert_no_evp_proxy_requests(interfaces.backend_v2.get_data(with_api_key=scenario.weblog_api_key))
         return
 
     assert egress.route == "sidecar"

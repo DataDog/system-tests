@@ -10,7 +10,7 @@ from docker.models.containers import Container
 import pytest
 
 from utils import interfaces
-from utils._context.containers import ServerlessInitContainer, TestedContainer
+from utils._context.containers import SERVERLESS_INIT_FAKE_DD_API_KEY, ServerlessInitContainer, TestedContainer
 from utils._context.docker import get_docker_client
 from utils._logger import logger
 from utils._weblog import weblog
@@ -86,7 +86,7 @@ class _AgentlessEndToEndScenario(DdTraceEndToEndScenario):
 
         # The tested library fetches its agentless configuration from the mocked backend container
         self.weblog_infra.library_container.environment |= {
-            "DD_API_KEY": self.dd_api_key,
+            "DD_API_KEY": self.weblog_api_key,
             "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL": ffe_library_config_url(
                 self.mocked_backend_container.container_url
             ),
@@ -97,6 +97,11 @@ class _AgentlessEndToEndScenario(DdTraceEndToEndScenario):
             "bind": DIRECT_EVP_CA_BUNDLE_CONTAINER_PATH,
             "mode": "ro",
         }
+
+    @property
+    def weblog_api_key(self) -> str:
+        """The API key the tested weblog sends to the mocked backend with"""
+        return self.dd_api_key
 
     def configure(self, config: pytest.Config) -> None:
         if self.replay:
@@ -218,13 +223,14 @@ class FeatureFlaggingAgentlessEndToEndScenario(_AgentlessEndToEndScenario):
             self.components["serverless-init"] = self.serverless_init_container.serverless_init_version
 
     @property
+    def sidecar_api_key(self) -> str:
+        """The API key serverless-init sends to the mocked backend with"""
+        return SERVERLESS_INIT_FAKE_DD_API_KEY
+
+    @property
     def evp_api_key(self) -> str:
-        """The API key the events reach the intake with: serverless-init's one with the sidecar, else the SDK's one"""
-        if self.exposure_egress == "sidecar":
-            api_key = self.serverless_init_container.environment["DD_API_KEY"]
-            assert api_key is not None
-            return api_key
-        return self.dd_api_key
+        """The API key the events reach the intake with: the sidecar relays them, else the weblog sends them"""
+        return self.sidecar_api_key if self.exposure_egress == "sidecar" else self.weblog_api_key
 
     def _is_evp_capture(self, data: dict[str, Any]) -> bool:
         """True if the mocked backend received this request with evp_api_key"""
@@ -363,7 +369,7 @@ class FeatureFlaggingAgentlessEndToEndScenario(_AgentlessEndToEndScenario):
                     "agent_variables_present": sorted(
                         name for name in DIRECT_EVP_AGENT_VARIABLES if name in environment
                     ),
-                    "api_key_matches_expected": environment.get("DD_API_KEY") == self.dd_api_key,
+                    "api_key_matches_expected": environment.get("DD_API_KEY") == self.weblog_api_key,
                     "api_key_present": bool(environment.get("DD_API_KEY")),
                     "configuration_source": environment.get("DD_FEATURE_FLAGS_CONFIGURATION_SOURCE"),
                     "custom_configuration_url_present": bool(
