@@ -2237,13 +2237,16 @@ manifest:
         aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/ffe:
     - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.16.0  # TODO: a lower version might be supported
   tests/ffe/test_agentless_configuration.py:
     - weblog_declaration:
         "*": incomplete_test_app (Agentless configuration E2E enablement is scoped to flask-poc)
         flask-poc: v4.14.0
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_RC_Down_From_Start: v4.0.0
-  tests/ffe/test_dynamic_evaluation.py::Test_FFE_RC_Unavailable: flaky (FFL-1622)
+  tests/ffe/test_dynamic_evaluation.py::Test_FFE_RC_Unavailable:
+    - declaration: flaky (FFL-1622)
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/ffe/test_evaluation_telemetry_opt_out.py: missing_feature (Provisional per-subject evaluation telemetry opt-out coverage; enable after the SDK release)
   tests/ffe/test_exposure_egress.py: v4.2.0-dev
   tests/ffe/test_exposure_egress.py::Test_FFE_Exposure_Egress_Agentless_Direct:
@@ -2259,19 +2262,54 @@ manifest:
         "*": missing_feature (Agentless EVP enablement is validated only on flask-poc)
         flask-poc: v4.16.0-dev
   tests/ffe/test_exposures_datadog_agent.py: v4.2.0-dev
-  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Appears: missing_feature (EX-3413)
-  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Cycle: missing_feature (EX-3413)
-  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Disappears: missing_feature (EX-3413)
+  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Appears:  # TODO: a lower version might be supported
+    - declaration: missing_feature (EX-3413)
+      component_version: <4.16.0
+      weblog: [django-poc, uwsgi-poc, uds-flask, python3.12, django-py3.13, aiohttp, flask-poc, fastapi, tornado]
+    - declaration: missing_feature (EX-3413)
+      excluded_weblog: [django-poc, uwsgi-poc, uds-flask, python3.12, django-py3.13, aiohttp, flask-poc, fastapi, tornado]
+  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Cycle:  # TODO: a lower version might be supported
+    - declaration: missing_feature (EX-3413)
+      component_version: <4.16.0
+      weblog: [django-poc, uwsgi-poc, uds-flask, python3.12, django-py3.13, aiohttp, flask-poc, fastapi, tornado]
+    - declaration: missing_feature (EX-3413)
+      excluded_weblog: [django-poc, uwsgi-poc, uds-flask, python3.12, django-py3.13, aiohttp, flask-poc, fastapi, tornado]
+  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Caching_Serial_Id_Disappears:  # TODO: a lower version might be supported
+    - declaration: missing_feature (EX-3413)
+      component_version: <4.16.0
+      weblog: [django-poc, uwsgi-poc, uds-flask, python3.12, django-py3.13, aiohttp, flask-poc, fastapi, tornado]
+    - declaration: missing_feature (EX-3413)
+      excluded_weblog: [django-poc, uwsgi-poc, uds-flask, python3.12, django-py3.13, aiohttp, flask-poc, fastapi, tornado]
   tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_DoLog_False::test_ffe_exposure_dolog_false:
     - declaration: flaky (FFL-3293)
       component_version: 4.14.1
-  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Serial_Id: missing_feature (EX-3413)
+  tests/ffe/test_exposures_datadog_agent.py::Test_FFE_Exposure_Serial_Id:  # TODO: a lower version might be supported
+    - declaration: missing_feature (EX-3413)
+      component_version: <4.16.0
+      weblog: [django-poc, uwsgi-poc, uds-flask, python3.12, django-py3.13, aiohttp, flask-poc, fastapi, tornado]
+    - declaration: missing_feature (EX-3413)
+      excluded_weblog: [django-poc, uwsgi-poc, uds-flask, python3.12, django-py3.13, aiohttp, flask-poc, fastapi, tornado]
   tests/ffe/test_flag_eval_evp.py: v4.16.0-dev
-  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Basic: missing_feature (FFL-2446)
-  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Burst_Aggregation: missing_feature (FFL-2446)
-  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Context_Bounds: missing_feature (FFL-2446)
-  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Count: missing_feature (FFL-2446)
-  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Degradation: missing_feature (FFL-2446)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Basic:
+    - declaration: missing_feature (FFL-2446)
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Burst_Aggregation:
+    - declaration: missing_feature (FFL-2446)
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Context_Bounds:
+    - declaration: missing_feature (FFL-2446)
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Count:
+    - declaration: missing_feature (FFL-2446)
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Degradation:
+    - declaration: missing_feature (FFL-2446)
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Egress_Agentless_Direct:
     - weblog_declaration:
         "*": missing_feature (Agentless EVP enablement is validated only on flask-poc)
@@ -2280,15 +2318,42 @@ manifest:
     - weblog_declaration:
         "*": missing_feature (Agentless EVP enablement is validated only on flask-poc)
         flask-poc: v4.16.0-dev
-  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Egress_Datadog_Agent: missing_feature (FFL-2446)
-  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_High_Cardinality_Aggregation: missing_feature (FFL-2446)
-  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Load_Aggregation: missing_feature (FFL-2446)
-  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_ObserveFullData_Absent_Hashed: missing_feature (FFL-2446)
-  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_ObserveFullData_False_Hashed: missing_feature (FFL-2446)
-  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_ObserveFullData_True_Unhashed: missing_feature (FFL-2446)
-  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Runtime_Default: missing_feature (FFL-2446)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Egress_Datadog_Agent:  # TODO: a lower version might be supported
+    - declaration: missing_feature (FFL-2446)
+      component_version: <4.16.0
+      weblog: [django-poc, uwsgi-poc, uds-flask, python3.12, django-py3.13, aiohttp, flask-poc, fastapi, tornado]
+    - declaration: missing_feature (FFL-2446)
+      excluded_weblog: [django-poc, uwsgi-poc, uds-flask, python3.12, django-py3.13, aiohttp, flask-poc, fastapi, tornado]
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_High_Cardinality_Aggregation:
+    - declaration: missing_feature (FFL-2446)
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Load_Aggregation:
+    - declaration: missing_feature (FFL-2446)
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_ObserveFullData_Absent_Hashed:
+    - declaration: missing_feature (FFL-2446)
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_ObserveFullData_False_Hashed:
+    - declaration: missing_feature (FFL-2446)
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_ObserveFullData_True_Unhashed:
+    - declaration: missing_feature (FFL-2446)
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_Runtime_Default:
+    - declaration: missing_feature (FFL-2446)
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_SDK_Identity: v4.16.0
   tests/ffe/test_flag_eval_metrics.py: v4.7.0
-  tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Nested_Attributes_Ignored: irrelevant (FFL-1980)
+  tests/ffe/test_flag_eval_metrics.py::Test_FFE_Eval_Nested_Attributes_Ignored:
+    - declaration: irrelevant (FFL-1980)
+    - weblog_declaration:
+        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
   tests/integration_frameworks:
     - weblog_declaration:
         aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
