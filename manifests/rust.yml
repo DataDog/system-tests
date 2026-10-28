@@ -84,17 +84,33 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_blrp_max_queue_size.py::Test_OTEL_BLRP_MAX_QUEUE_SIZE: missing_feature
   tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY: missing_feature
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_compression.py::Test_OTEL_EXPORTER_OTLP_COMPRESSION: '>=0.5.3-dev+2ea3692'  # TODO: a lower version might be supported
-  tests/parametric/otel_env_vars/test_otel_exporter_otlp_compression.py::Test_OTEL_EXPORTER_OTLP_COMPRESSION::test_empty: '>=0.5.3-dev+5da7ebc'  # TODO: a lower version might be supported
-  tests/parametric/otel_env_vars/test_otel_exporter_otlp_compression.py::Test_OTEL_EXPORTER_OTLP_COMPRESSION::test_invalid: '>=0.5.3-dev+5da7ebc'  # TODO: a lower version might be supported
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_compression.py::Test_OTEL_EXPORTER_OTLP_COMPRESSION::test_empty:  # TODO: a lower version might be supported
+    - declaration: missing_feature
+      component_version: <0.5.3-dev+5da7ebc
+    - declaration: missing_feature (0.5.4 is built on opentelemetry-otlp 0.32, needs open-telemetry/opentelemetry-rust#3730 from 0.33)
+      component_version: '>0.5.4-dev'
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_compression.py::Test_OTEL_EXPORTER_OTLP_COMPRESSION::test_invalid:  # TODO: a lower version might be supported
+    - declaration: missing_feature
+      component_version: <0.5.3-dev+5da7ebc
+    - declaration: missing_feature (0.5.4 is built on opentelemetry-otlp 0.32, needs open-telemetry/opentelemetry-rust#3730 from 0.33)
+      component_version: '>0.5.4-dev'
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_compression.py::Test_OTEL_EXPORTER_OTLP_COMPRESSION::test_stable_values: missing_feature
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_endpoint.py::Test_OTEL_EXPORTER_OTLP_ENDPOINT: v0.3.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS: v0.3.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_compression.py::Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION: '>=0.5.3-dev+2ea3692'  # TODO: a lower version might be supported
-  tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_compression.py::Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION::test_empty: '>=0.5.3-dev+5da7ebc'  # TODO: a lower version might be supported
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_compression.py::Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION::test_empty:  # TODO: a lower version might be supported
+    - declaration: missing_feature
+      component_version: <0.5.3-dev+5da7ebc
+    - declaration: missing_feature (0.5.4 is built on opentelemetry-otlp 0.32, needs open-telemetry/opentelemetry-rust#3730 from 0.33)
+      component_version: '>0.5.4-dev'
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_compression.py::Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION::test_empty_inherits_general
   : missing_feature
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_compression.py::Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION::test_invalid
-  : '>=0.5.3-dev+5da7ebc'  # TODO: a lower version might be supported
+  :  # TODO: a lower version might be supported
+    - declaration: missing_feature
+      component_version: <0.5.3-dev+5da7ebc
+    - declaration: missing_feature (0.5.4 is built on opentelemetry-otlp 0.32, needs open-telemetry/opentelemetry-rust#3730 from 0.33)
+      component_version: '>0.5.4-dev'
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_compression.py::Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION::test_signal_precedence
   : missing_feature
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_compression.py::Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION::test_stable_values
@@ -112,11 +128,19 @@ manifest:
   : irrelevant (Datadog uses a sufficiently long 10000 ms timeout for zero)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_compression.py::Test_OTEL_EXPORTER_OTLP_METRICS_COMPRESSION: '>=0.5.3-dev+2ea3692'  # TODO: a lower version might be supported
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_compression.py::Test_OTEL_EXPORTER_OTLP_METRICS_COMPRESSION::test_empty
-  : '>=0.5.3-dev+5da7ebc'  # TODO: a lower version might be supported
+  :  # TODO: a lower version might be supported
+    - declaration: missing_feature
+      component_version: <0.5.3-dev+5da7ebc
+    - declaration: missing_feature (0.5.4 is built on opentelemetry-otlp 0.32, needs open-telemetry/opentelemetry-rust#3730 from 0.33)
+      component_version: '>0.5.4-dev'
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_compression.py::Test_OTEL_EXPORTER_OTLP_METRICS_COMPRESSION::test_empty_inherits_general
   : missing_feature
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_compression.py::Test_OTEL_EXPORTER_OTLP_METRICS_COMPRESSION::test_invalid
-  : '>=0.5.3-dev+5da7ebc'  # TODO: a lower version might be supported
+  :  # TODO: a lower version might be supported
+    - declaration: missing_feature
+      component_version: <0.5.3-dev+5da7ebc
+    - declaration: missing_feature (0.5.4 is built on opentelemetry-otlp 0.32, needs open-telemetry/opentelemetry-rust#3730 from 0.33)
+      component_version: '>0.5.4-dev'
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_compression.py::Test_OTEL_EXPORTER_OTLP_METRICS_COMPRESSION::test_signal_precedence
   : missing_feature
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_compression.py::Test_OTEL_EXPORTER_OTLP_METRICS_COMPRESSION::test_stable_values
@@ -399,6 +423,8 @@ manifest:
   tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields::test_scope_schema_url_field:  # TODO: a lower version might be supported
     - declaration: missing_feature (OpenTelemetry Rust SDK limitation - schema_url not exported by opentelemetry-otlp)
       component_version: <0.5.3-dev+5da7ebc
+    - declaration: missing_feature (0.5.4 is built on opentelemetry-proto 0.32, needs open-telemetry/opentelemetry-rust#3740 from 0.33)
+      component_version: '>0.5.4-dev'
   tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields::test_scope_version_field:  # TODO: a lower version might be supported
     - declaration: missing_feature (OpenTelemetry Rust SDK limitation - scope version not exported by opentelemetry-otlp)
       component_version: <0.5.3-dev+671276b
