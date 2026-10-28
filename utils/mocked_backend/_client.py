@@ -15,11 +15,13 @@ _FFE_CONTROL_PATH = f"{CONTROL_URL_PREFIX}/ffe"
 
 
 class MockedBackendClient:
-    def __init__(self, base_url: str) -> None:
+    def __init__(self, base_url: str, *, verify: bool | str = True) -> None:
+        """verify: as in requests, e.g. the CA file trusting the certificate of an HTTPS server"""
         self.base_url = base_url.rstrip("/")
+        self.verify = verify
 
     def ffe_reset(self) -> None:
-        response = requests.post(f"{self.base_url}{_FFE_CONTROL_PATH}/reset", timeout=5)
+        response = requests.post(f"{self.base_url}{_FFE_CONTROL_PATH}/reset", timeout=5, verify=self.verify)
         response.raise_for_status()
 
     def ffe_set_response(self, response_id: str, *, response_format: ResponseFormat = "json") -> None:
@@ -31,10 +33,11 @@ class MockedBackendClient:
             f"{self.base_url}{_FFE_CONTROL_PATH}/responses",
             json={"responses": validated_responses, "response_format": response_format},
             timeout=5,
+            verify=self.verify,
         )
         response.raise_for_status()
 
     def ffe_get_status(self) -> MockedBackendFFEStatus:
-        response = requests.get(f"{self.base_url}{_FFE_CONTROL_PATH}/status", timeout=5)
+        response = requests.get(f"{self.base_url}{_FFE_CONTROL_PATH}/status", timeout=5, verify=self.verify)
         response.raise_for_status()
         return cast("MockedBackendFFEStatus", response.json())

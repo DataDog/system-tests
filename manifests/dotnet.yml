@@ -1201,9 +1201,11 @@ manifest:
     - declaration: bug (FFL-3325)
       component_version: <3.55.0
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: '>=3.36.0'  # Modified by easy win activation script
+  tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_dependent_flags: missing_feature (FFL-1694)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_flag_evaluation: missing_feature  # Created by easy win activation script
   tests/parametric/test_ffe/test_rules_configuration.py: missing_feature (Standalone rules configuration helpers are currently tested only in Node.js)
   tests/parametric/test_ffe/test_serial_id_metadata.py: missing_feature
+  tests/parametric/test_ffe/test_serial_id_metadata.py::Test_FFE_Serial_Id_Metadata_Go: irrelevant (Legacy Go metadata key)
   tests/parametric/test_ffe/test_span_enrichment.py: '>=3.54.0'  # TODO: a lower version might be supported
   tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Child_Span_Propagation: missing_feature
   tests/parametric/test_ffe/test_span_enrichment.py::Test_Span_Enrichment_Default_Fallback: missing_feature
@@ -1341,6 +1343,7 @@ manifest:
   tests/parametric/test_otel_metrics.py: v3.29.0
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Api_MeterProvider::test_otel_get_meter_by_distinct_schema_url: missing_feature (Not supported by .NET's System.Diagnostics.Metrics API)
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Host_Name::test_hostname_from_dd_hostname: missing_feature (DD_HOSTNAME to host.name resource attribute mapping not yet implemented)
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Lifecycle: missing_feature (No public Datadog meter-provider shutdown operation)
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Resource_Attributes: v3.54.0
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_exporter_configurations:  # Modified by easy win activation script
     - declaration: missing_feature (OTel metrics telemetry metrics (otel.metrics_export_attempts) not yet fully flushed in time)

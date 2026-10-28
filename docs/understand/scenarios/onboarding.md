@@ -330,9 +330,10 @@ AWS SSI saves the cacheable provision steps in an AMI. The cache key is the VM n
 
 A new AMI has tags `CI=system-tests` and `ami-state=candidate`. The job boots that AMI and runs the tests there.
 
-* A passing test or an expected failure (`xfailed`) sets `ami-state` to `active`.
+* A provision failure leaves `ami-state` as `candidate`.
 * A failed test sets `ami-state` to `rejected`.
-* A provision failure, a run with no tests, or a run containing only skipped tests leaves `ami-state` as `candidate`.
+* Exit code 0 sets `ami-state` to `active` when no test failed. Skipped tests count.
+* A run with no tests leaves `ami-state` as `candidate`.
 
 The next job chooses an AMI in this order:
 
@@ -1152,7 +1153,7 @@ Cacheable provision steps are stored in an AMI. Later runs reuse the newest `act
 
 * **AWS console.** Open EC2, then AMIs. Search by name and choose Deregister.
 
-The next run creates a new AMI when that key has no `active` AMI and no AMI without `ami-state`. The tests run on the new AMI. A passing run sets `ami-state` to `active`.
+The next run creates a new AMI when that key has no `active` AMI and no AMI without `ami-state`. The tests run on the new AMI. Exit code 0 sets `ami-state` to `active` when no test failed. Skipped tests count.
 
 ---
 
