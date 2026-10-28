@@ -6,6 +6,10 @@ include:
       ref: "$CI_COMMIT_SHA"
       push_to_test_optimization: true
       split_pipeline: true
+      # TODO: remove before merging. Checks that the mocked backend network aliases work on GitLab's network
+      libraries: "python"
+      scenarios: "APM_TRACING_E2E_SINGLE_SPAN"
+      weblogs: "flask-poc"
 stages:
   - configure
   - e2e
