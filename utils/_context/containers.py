@@ -56,7 +56,6 @@ FAKE_DD_API_KEY = "0123456789abcdef0123456789abcdef"
 # DD_SITE of agentless senders: the reserved .invalid domain fails closed if a request is not sent to the mocked backend
 MOCK_INTAKE_SITE = "mock-intake.invalid"
 # its own key tells, in the mocked backend, what serverless-init sent (see interfaces.backend_v2 with_api_key)
-SERVERLESS_INIT_FAKE_DD_API_KEY = "fedcba9876543210fedcba9876543210"
 
 _DEFAULT_NETWORK_NAME = "system-tests_default"
 _NETWORK_NAME = "bridge" if "GITLAB_CI" in os.environ else _DEFAULT_NETWORK_NAME
@@ -991,13 +990,13 @@ class ServerlessInitContainer(TestedContainer):
 
     apm_receiver_port = 8126
 
-    def __init__(self) -> None:
+    def __init__(self, *, dd_api_key: str) -> None:
         apm_receiver_port_hex = f"{self.apm_receiver_port:04X}"
         super().__init__(
             name="ffe-serverless-init",
             image_name="datadog/serverless-init:1.10.4",
             environment={
-                "DD_API_KEY": SERVERLESS_INIT_FAKE_DD_API_KEY,
+                "DD_API_KEY": dd_api_key,
                 "DD_SITE": MOCK_INTAKE_SITE,
                 "DD_SERVICE": "ffe-system-tests-serverless-init",
                 "DD_ENV": "system-tests",

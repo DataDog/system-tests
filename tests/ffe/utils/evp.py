@@ -437,7 +437,7 @@ def assert_agentless_evp_topology(egress: FeatureFlaggingEVPEgress) -> None:
         for name in DIRECT_EVP_AGENT_VARIABLES:
             assert name not in environment
         assert "serverless-init" not in scenario.components
-        assert not any(container.name == "ffe-serverless-init" for container in scenario.weblog_infra.get_containers())
+        assert scenario.serverless_init_container is None
         assert_no_evp_proxy_requests(interfaces.backend_v2.get_data(with_api_key=scenario.weblog_api_key))
         return
 

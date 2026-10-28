@@ -10,7 +10,7 @@ from docker.models.containers import Container
 import pytest
 
 from utils import interfaces
-from utils._context.containers import SERVERLESS_INIT_FAKE_DD_API_KEY, ServerlessInitContainer, TestedContainer
+from utils._context.containers import ServerlessInitContainer
 from utils._context.docker import get_docker_client
 from utils._logger import logger
 from utils._weblog import weblog
@@ -68,7 +68,6 @@ class _AgentlessEndToEndScenario(DdTraceEndToEndScenario):
         *,
         doc: str,
         weblog_env: dict[str, str | None] | None = None,
-        other_weblog_containers: tuple[type[TestedContainer], ...] = (),
         scenario_groups: tuple[ScenarioGroup, ...] = (),
     ) -> None:
         super().__init__(
@@ -76,7 +75,6 @@ class _AgentlessEndToEndScenario(DdTraceEndToEndScenario):
             doc=doc,
             include_agent=False,
             library_interface_timeout=0,
-            other_weblog_containers=other_weblog_containers,
             scenario_groups=[*scenario_groups, all_scenario_groups.agentless],
             use_proxy_for_agent=False,
             use_proxy_for_weblog=False,
@@ -149,6 +147,9 @@ class _AgentlessEndToEndScenario(DdTraceEndToEndScenario):
 class FeatureFlaggingAgentlessEndToEndScenario(_AgentlessEndToEndScenario):
     """FFE end-to-end scenario with UFC available before the weblog starts."""
 
+    sidecar_api_key = "fedcba9876543210fedcba9876543210"
+    """The API key serverless-init sends to the mocked backend with: it tells its requests from the weblog ones"""
+
     def __init__(
         self,
         name: str,
@@ -174,7 +175,6 @@ class FeatureFlaggingAgentlessEndToEndScenario(_AgentlessEndToEndScenario):
         }
         environment.update(weblog_env or {})
 
-        other_weblog_containers: tuple[type[TestedContainer], ...] = ()
         if exposure_egress is not None:
             environment |= {
                 # Some shared weblogs need the legacy switch to install their provider.
@@ -194,15 +194,19 @@ class FeatureFlaggingAgentlessEndToEndScenario(_AgentlessEndToEndScenario):
                 "DD_TRACE_AGENT_PORT": serverless_init_port,
                 "DD_TRACE_AGENT_URL": f"http://ffe-serverless-init:{serverless_init_port}",
             }
-            other_weblog_containers = (ServerlessInitContainer,)
 
         super().__init__(
             name,
             doc=doc,
-            other_weblog_containers=other_weblog_containers,
             scenario_groups=(all_scenario_groups.ffe,),
             weblog_env=environment,
         )
+
+        self.serverless_init_container: ServerlessInitContainer | None = None
+        """With the sidecar, serverless-init relays the weblog traces and events to the mocked backend"""
+        if exposure_egress == "sidecar":
+            self.serverless_init_container = ServerlessInitContainer(dd_api_key=self.sidecar_api_key)
+            self._containers.append(self.serverless_init_container)
 
         if exposure_egress == "direct":
             self.weblog_infra.library_container.environment[DIRECT_EVP_SHUTDOWN_FLUSH_ENV] = "true"
@@ -210,22 +214,16 @@ class FeatureFlaggingAgentlessEndToEndScenario(_AgentlessEndToEndScenario):
             for env_name in DIRECT_EVP_AGENT_VARIABLES:
                 self.weblog_infra.library_container.environment.pop(env_name, None)
 
-    @property
-    def serverless_init_container(self) -> ServerlessInitContainer:
-        for container in self.weblog_infra.get_containers():
-            if isinstance(container, ServerlessInitContainer):
-                return container
-        raise ValueError("This scenario has no serverless-init container")
+    def _set_containers_dependancies(self) -> None:
+        super()._set_containers_dependancies()
+        if self.serverless_init_container is not None:
+            self.serverless_init_container.depends_on.append(self.mocked_backend_container)
+            self.weblog_infra.library_container.depends_on.append(self.serverless_init_container)
 
     def _set_components(self) -> None:
         super()._set_components()
-        if self.exposure_egress == "sidecar":
+        if self.serverless_init_container is not None:
             self.components["serverless-init"] = self.serverless_init_container.serverless_init_version
-
-    @property
-    def sidecar_api_key(self) -> str:
-        """The API key serverless-init sends to the mocked backend with"""
-        return SERVERLESS_INIT_FAKE_DD_API_KEY
 
     @property
     def evp_api_key(self) -> str:
@@ -638,7 +636,7 @@ class FeatureFlaggingAgentlessEndToEndScenario(_AgentlessEndToEndScenario):
                         self._direct_evp_shutdown_evidence_path.read_text(encoding="utf-8")
                     )
             super()._wait_and_stop_containers(is_empty_test_run=is_empty_test_run)
-            if self.exposure_egress == "sidecar" and not self.replay:
+            if self.serverless_init_container is not None and not self.replay:
                 self.serverless_init_container.stop()
 
 
