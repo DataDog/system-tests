@@ -1334,6 +1334,7 @@ manifest:
       component_version: <3.36.0
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_metrics_grpc: missing_feature (OTel metrics telemetry metrics (otel.metrics_export_attempts) not yet fully flushed in time)
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_metrics_http_protobuf: missing_feature
+  tests/parametric/test_otel_mode.py::Test_OTel_Mode_Traces: bug (APMAPI-2654)
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_add_event_meta_serialization:  # TODO: a lower version might be supported
     - declaration: missing_feature (Newer agents/testagents enabled native span event serialization by default)
       component_version: <3.52.0
@@ -1392,7 +1393,6 @@ manifest:
   tests/parametric/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_otel_enabled_otlp_traces_with_tracing_disabled: bug (APMAPI-2649)
   tests/parametric/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_otel_enabled_otlp_traces_without_semantics: bug (APMAPI-2649)
   tests/parametric/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_otel_enabled_semantics_alone: bug (APMAPI-2654)
-  tests/parametric/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_otel_enabled_tracing_api_with_tracing_disabled: bug (APMAPI-2649)
   tests/parametric/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_otel_enabled_tracing_api_without_semantics: bug (APMAPI-2649)
   tests/parametric/test_otel_tracer.py::Test_Otel_Tracer: v2.8.0
   tests/parametric/test_otel_tracestate_sampling.py::Test_OtelTracestateSampling: v3.54.0

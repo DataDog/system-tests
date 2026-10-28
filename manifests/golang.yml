@@ -2283,6 +2283,7 @@ manifest:
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_exporter_metrics_configurations: '>=2.10.1'  # TODO: a lower version might be supported
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_metrics_grpc: '>=2.10.1'  # TODO: a lower version might be supported
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_metrics_http_protobuf: '>=2.10.1'  # TODO: a lower version might be supported
+  tests/parametric/test_otel_mode.py::Test_OTel_Mode_Traces: v2.12.0-dev
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_add_event_meta_serialization:  # TODO: a lower version might be supported
     - declaration: missing_feature (Newer agents/testagents enabled native span event serialization by default)
       component_version: <2.10.1

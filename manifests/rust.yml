@@ -406,6 +406,7 @@ manifest:
   : missing_feature (deployment.environment.name is not supported)
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_metrics_grpc: '>=0.2.1'  # Modified by easy win activation script
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_metrics_http_protobuf: '>=0.2.1'  # Modified by easy win activation script
+  tests/parametric/test_otel_mode.py::Test_OTel_Mode_Traces: missing_feature (OTLP trace export is not implemented)
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods: v0.0.1
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_get_span_context: missing_feature (APMSP-2059)
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_record_exception_sets_handling_stack_in_go: irrelevant
