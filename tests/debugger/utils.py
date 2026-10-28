@@ -494,12 +494,14 @@ class BaseDebuggerTest:
 
         With reset=False, every previously-sent APM_TRACING config is re-sent alongside the
         new one, so several service_target scopes are active at the same time and the tracer
-        merges them (most-specific wins per lib_config field).
+        merges them (most-specific wins per lib_config field). With reset=True, the
+        previously-sent configs are dropped from the re-send list; the recorded RC apply
+        results are kept in rc_states, so an apply error on an earlier send still fails
+        assert_rc_state_not_error().
         """
         BaseDebuggerTest._rc_version += 1
 
         if reset:
-            self.rc_states = []
             self.prev_payloads = []
 
         self.rc_states.append(
