@@ -1,6 +1,3 @@
-import json
-from pathlib import Path
-
 import pytest
 from utils import interfaces
 from utils.interfaces._core import ProxyBasedInterfaceValidator
@@ -218,22 +215,15 @@ class AppsecLambdaSca(_LambdaScenario):
     def __init__(self) -> None:
         super().__init__(
             "APPSEC_LAMBDA_SCA",
-            weblog_env={"DD_APPSEC_ENABLED": "false", "DD_APPSEC_SCA_ENABLED": "true"},
+            weblog_env={
+                "DD_APPSEC_ENABLED": "false",
+                "DD_APPSEC_SCA_ENABLED": "true",
+                "_DD_APPSEC_SCA_DATA_FILE": "/sca_advisories.json",
+            },
+            weblog_volumes={"./tests/appsec/sca_advisories.json": {"bind": "/sca_advisories.json", "mode": "ro"}},
             doc="SCA dependency metadata and runtime reachability in Lambda with AppSec disabled",
             scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
         )
-
-    def configure(self, config: pytest.Config) -> None:
-        super().configure(config)
-        if not self.replay and self.lambda_weblog.image.labels.get("system-tests-library") == "python_lambda":
-            # Each tracer receives its native payload from the shared catalog.
-            catalog = json.loads(Path("tests/appsec/sca_advisories.json").read_text(encoding="utf-8"))
-            payload_path = Path(self.host_log_folder) / "sca_advisories.json"
-            payload_path.write_text(json.dumps(catalog["python"]), encoding="utf-8")
-            self.lambda_weblog.volumes[str(payload_path)] = {
-                "bind": "/opt/python/lib/python3.13/site-packages/ddtrace/appsec/sca/_cve_data.json",
-                "mode": "ro",
-            }
 
 
 class AppsecLambdaRasp(_LambdaScenario):
