@@ -5,8 +5,7 @@ from pathlib import Path
 import yaml
 
 from utils import pytest, scenarios
-from utils.ci.gitlab.build_pipeline import build
-from utils.ci.gitlab.library_weblog_scenarios import get_compute_args, main, merge_params
+from utils.ci.gitlab.build_pipeline import main, merge_params, parse_library_weblog_scenarios, split_weblog_entries
 from utils.ci.gitlab.validate_param_env import validate_library_weblog_scenarios
 
 
@@ -31,22 +30,21 @@ def test_gitlab_component_library_weblog_scenarios_input_is_wired() -> None:
     assert spec["spec"]["inputs"]["library_weblog_scenarios"]["default"] == ""
     job = pipeline["system_tests_build_pipeline"]
     assert job["variables"]["SYSTEM_TESTS_LIBRARY_WEBLOG_SCENARIOS_INPUT"] == "$[[ inputs.library_weblog_scenarios ]]"
-    assert any("utils/ci/gitlab/library_weblog_scenarios.py" in line for line in job["script"])
+    assert any(
+        '--library-weblog-scenarios "$SYSTEM_TESTS_LIBRARY_WEBLOG_SCENARIOS_INPUT"' in line for line in job["script"]
+    )
 
 
 @scenarios.test_the_test
-def test_compute_args() -> None:
-    assert get_compute_args(
-        ["DEFAULT", "appsec", "OTEL_LOG_E2E", "tracer_release"], "OTEL_TRACING_E2E, OTEL_LOG_E2E"
-    ) == [
-        "--scenarios",
-        "DEFAULT,OTEL_LOG_E2E",
-        "--groups",
-        "appsec,tracer_release",
+def test_split_weblog_entries() -> None:
+    assert split_weblog_entries(
+        ["DEFAULT", "appsec", "OTEL_LOG_E2E", "tracer_release"], ["OTEL_TRACING_E2E", "OTEL_LOG_E2E"]
+    ) == (
+        ["DEFAULT", "OTEL_LOG_E2E"],
+        ["appsec", "tracer_release"],
         # explicitly listed scenarios are not excluded, exclusion only applies to groups
-        "--excluded-scenarios",
-        "OTEL_TRACING_E2E",
-    ]
+        ["OTEL_TRACING_E2E"],
+    )
 
 
 @scenarios.test_the_test
@@ -77,23 +75,27 @@ def test_parametric_is_only_enabled_by_the_parametric_key() -> None:
     assert merged["parametric"]["enable"] is False
 
 
-def _generated_jobs(tmp_path: Path, library_weblog_scenarios: str) -> set[str]:
-    # same argument layout as in main.yml, including an empty value after "--"
-    main(
+def _main(tmp_path: Path, *args: str, environ: dict[str, str] | None = None) -> int:
+    return main(
         [
-            library_weblog_scenarios,
+            "--stage",
+            "e2e",
+            "--ci-image",
+            "myimage",
+            "--output-dir",
+            str(tmp_path),
             "--excluded-scenarios",
             "OTEL_TRACING_E2E",
-            "--params-dir",
-            str(tmp_path),
-            "--",
-            "--explicit-binaries-artifact",
-            "",
             "--parametric-job-count",
             "2",
-        ]
+            *args,
+        ],
+        environ=environ or {},
     )
-    build(["python"], tmp_path, tmp_path, stage="e2e", ci_image="myimage", chunks=1)
+
+
+def _generated_jobs(tmp_path: Path, library_weblog_scenarios: str) -> set[str]:
+    assert _main(tmp_path, "--library-weblog-scenarios", library_weblog_scenarios) == 0
 
     pipeline = yaml.safe_load((tmp_path / "generated-pipeline-chunk-0.yml").read_text())
     return {name for name in pipeline if name.startswith(("system_tests_build_", "system_tests_run_"))}
@@ -127,6 +129,31 @@ def test_parametric_only(tmp_path: Path) -> None:
 
 
 @scenarios.test_the_test
+def test_pipeline_variable_overrides_input(tmp_path: Path) -> None:
+    environ = {"LIBRARY_WEBLOG_SCENARIOS": '{"python": {"parametric": []}}'}
+    assert _main(tmp_path, "--library-weblog-scenarios", '{"java": {"parametric": []}}', environ=environ) == 0
+
+    pipeline = yaml.safe_load((tmp_path / "generated-pipeline-chunk-0.yml").read_text())
+    assert "system_tests_run_python_PARAMETRIC_1" in pipeline
+    assert not any(name.startswith("system_tests_run_java") for name in pipeline)
+
+
+@scenarios.test_the_test
+@pytest.mark.parametrize(
+    ("args", "environ"),
+    [
+        (["--libraries", "python"], {}),
+        (["--scenarios", "DEFAULT"], {}),
+        ([], {"SCENARIO_GROUPS": "appsec"}),
+        ([], {"WEBLOGS": "flask-poc"}),
+    ],
+)
+def test_not_compatible_with_other_selection_inputs(tmp_path: Path, args: list[str], environ: dict) -> None:
+    mapping = '{"python": {"flask-poc": ["DEFAULT"]}}'
+    assert _main(tmp_path, "--library-weblog-scenarios", mapping, *args, environ=environ) == 1
+
+
+@scenarios.test_the_test
 @pytest.mark.parametrize(
     ("library_weblog_scenarios", "error"),
     [
@@ -135,9 +162,9 @@ def test_parametric_only(tmp_path: Path) -> None:
         ('{"python": {}}', "no weblog listed"),
     ],
 )
-def test_invalid_parametric_usage(tmp_path: Path, library_weblog_scenarios: str, error: str) -> None:
+def test_invalid_parametric_usage(library_weblog_scenarios: str, error: str) -> None:
     with pytest.raises(ValueError, match=error):
-        main([library_weblog_scenarios, f"--params-dir={tmp_path}"])
+        parse_library_weblog_scenarios(library_weblog_scenarios)
 
 
 @scenarios.test_the_test

@@ -20,10 +20,11 @@ from cryptography.hazmat.primitives.serialization import pkcs12
 
 from utils import scenarios
 from utils.interfaces._backend_v2 import _BackendV2InterfaceValidator
-from utils._context.containers import MockedBackendContainer
+from utils._context.containers import MockedBackendContainer, TestedContainer
 from utils._context._scenarios.agentless_endtoend import JAVA_TRUSTSTORE_SOURCE
 from utils.mocked_backend import MockedBackendClient, MockedBackendServer
 from utils.mocked_backend.ffe import UFC_FIXTURE_RELATIVE_PATH
+from utils.proxy.mocked_response import MockedBackendResponse
 
 
 @pytest.fixture
@@ -120,6 +121,132 @@ def test_undecodable_content_is_logged_without_crashing_the_server(server: Mocke
     data = json.loads(next(tmp_path.glob("*.json")).read_text())
     assert "content" not in data["request"]
     assert "traceback" in data["request"]
+
+
+@scenarios.test_the_test
+def test_serves_internal_mocked_responses_from_a_file(tmp_path: Path):
+    """Like the proxy's internal ones, they are set by the scenario for the whole session"""
+    mocks_file = tmp_path / "mocks.json"
+    mock = MockedBackendResponse("/api/v0.1/configurations", b"\x01\x02", status_code=202)
+    mocks_file.write_text(json.dumps([mock.to_json()]))
+    log_folder = tmp_path / "logs"
+    log_folder.mkdir()
+
+    server = MockedBackendServer(str(log_folder), port=0, internal_mocked_responses_file=str(mocks_file))
+    try:
+        response = requests.post(f"{server.base_url}/api/v0.1/configurations", data=b"", timeout=5)
+        unmatched = requests.post(f"{server.base_url}/api/v2/series", json={}, timeout=5)
+    finally:
+        server.close()
+
+    assert response.status_code == 202
+    assert response.headers["Content-Type"] == "application/x-protobuf"
+    assert response.content == b"\x01\x02"
+    # other paths get the usual response
+    assert unmatched.status_code == 200
+    # a mocked request is recorded like any other
+    assert sorted(f.name for f in log_folder.glob("*.json")) == [
+        "000__api_v0.1_configurations.json",
+        "001__api_v2_series.json",
+    ]
+
+
+@scenarios.test_the_test
+def test_runtime_mocked_responses_take_precedence_and_are_replaced(tmp_path: Path):
+    mocks_file = tmp_path / "mocks.json"
+    mocks_file.write_text(json.dumps([MockedBackendResponse("/api/v0.1/configurations", b"internal").to_json()]))
+    (tmp_path / "logs").mkdir()
+
+    server = MockedBackendServer(str(tmp_path / "logs"), port=0, internal_mocked_responses_file=str(mocks_file))
+    try:
+        poll = f"{server.base_url}/api/v0.1/configurations"
+
+        server.client.set_mocked_responses([MockedBackendResponse("/api/v0.1/configurations", b"runtime")])
+        assert requests.post(poll, data=b"", timeout=5).content == b"runtime"
+
+        # each call replaces the previous runtime responses, like with the proxy
+        server.client.set_mocked_responses([])
+        assert requests.post(poll, data=b"", timeout=5).content == b"internal"
+    finally:
+        server.close()
+
+    # control requests are not recorded
+    assert len(list((tmp_path / "logs").glob("*.json"))) == 2
+
+
+def _configure_without_docker(container: MockedBackendContainer, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Run MockedBackendContainer.configure without the base one, which stops containers and loads the image"""
+
+    def base_configure(self: TestedContainer, *, host_log_folder: str, replay: bool) -> None:  # noqa: ARG001
+        self.host_log_folder = host_log_folder
+        Path(self.log_folder_path).mkdir(parents=True)
+
+    monkeypatch.setattr(TestedContainer, "configure", base_configure)
+    container.configure(host_log_folder="logs_x", replay=False)
+
+
+@scenarios.test_the_test
+def test_container_gives_its_internal_mocked_responses_to_the_server(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.chdir(tmp_path)
+    container = MockedBackendContainer(tls=True)
+    mock = MockedBackendResponse("/api/v0.1/configurations", b"\x01")
+    container.internal_mocked_responses.append(mock)
+    _configure_without_docker(container, monkeypatch)
+
+    mocks_path = f"{container.log_folder_path}/{MockedBackendResponse.internal_filename}"
+    assert json.loads(Path(mocks_path).read_text()) == [mock.to_json()]
+    container_path = f"/app/{MockedBackendResponse.internal_filename}"
+    assert container.volumes[mocks_path] == {"bind": container_path, "mode": "ro"}
+    assert isinstance(container.command, list)
+    assert container.command[-2:] == ["--internal-mocked-responses-file", container_path]
+
+
+@scenarios.test_the_test
+def test_container_without_internal_mocked_responses_does_not_pass_the_option(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    monkeypatch.chdir(tmp_path)
+    container = MockedBackendContainer(tls=True)
+    _configure_without_docker(container, monkeypatch)
+
+    assert isinstance(container.command, list)
+    assert "--internal-mocked-responses-file" not in container.command
+
+
+@scenarios.test_the_test
+@pytest.mark.parametrize("body", [[], {"responses": "nope"}, {"responses": [1]}])
+def test_rejects_malformed_mocked_responses(server: MockedBackendServer, body: object):
+    response = requests.put(f"{server.base_url}/system-tests/mocked-responses", json=body, timeout=5)
+    assert response.status_code == 400
+
+
+@scenarios.test_the_test
+def test_mocked_responses_match_the_query_string_like_the_proxy(server: MockedBackendServer):
+    server.client.set_mocked_responses(
+        [
+            MockedBackendResponse("/endpoint?mode=test", b"with query"),
+            MockedBackendResponse("/other", b"without query"),
+        ]
+    )
+
+    assert requests.get(f"{server.base_url}/endpoint?mode=test", timeout=5).content == b"with query"
+    assert requests.get(f"{server.base_url}/endpoint", timeout=5).content != b"with query"
+    assert requests.get(f"{server.base_url}/other?mode=test", timeout=5).content != b"without query"
+
+
+@scenarios.test_the_test
+def test_a_bad_internal_mocked_responses_file_does_not_keep_the_port(tmp_path: Path):
+    probe = MockedBackendServer(None, port=0)
+    port = probe.port
+    probe.close()
+    bad_file = tmp_path / "mocks.json"
+    bad_file.write_text("not json")
+
+    with pytest.raises(json.JSONDecodeError):
+        MockedBackendServer(None, port=port, internal_mocked_responses_file=str(bad_file))
+
+    # the port is still free
+    MockedBackendServer(None, port=port).close()
 
 
 @scenarios.test_the_test
