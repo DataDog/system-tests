@@ -19,7 +19,7 @@ import struct
 from pathlib import Path
 
 from utils import scenarios
-from utils.proxy._decoders.metrics_v3 import decode_metrics_v3
+from utils.proxy._decoders.metrics_v3 import decode_metrics_v3, decode_sketches_v3
 
 _FIXTURES = Path(__file__).parent / "metrics_v3_fixtures"
 
@@ -116,6 +116,9 @@ _COL_VALS_FLOAT32 = 18
 _COL_VALS_FLOAT64 = 19
 _COL_INTERVAL = 14
 _COL_NUM_POINTS = 15
+_COL_SKETCH_NUM_BINS = 20
+_COL_SKETCH_BIN_KEYS = 21
+_COL_SKETCH_BIN_CNTS = 22
 _PAYLOAD_FIELD_METRIC_DATA = 3
 
 
@@ -267,6 +270,96 @@ def test_decode_metrics_v3_points_all_value_types():
 
 
 @scenarios.test_the_test
+def test_decode_sketches_v3():
+    """Sketch points are decoded into the v2-like ``dogsketches`` field.
+
+    Exercises: per-point bins (``sketchNumBins`` entries of ``sketchBinKeys``/``sketchBinCnts``,
+    keys delta-encoded within each point); sum/min/max read from the column selected by the
+    value type, each point followed by its ``cnt`` in ``valsSint64`` (shared with sum/min/max
+    when the value type is sint64); and the zero value type, where only ``cnt`` is stored.
+    """
+
+    # type = metricSketch (0x04) | valueType
+    blob = _metric_data(
+        {
+            _COL_DICT_NAME_STR: _string_dict(["s.float64", "s.sint64", "s.zero"]),
+            _COL_TYPE: _uvarint_column([0x34, 0x14, 0x04]),
+            _COL_NAME_REF: _delta_sint64_column([1, 2, 3]),
+            _COL_TAGS_REF: _delta_sint64_column([0, 0, 0]),
+            _COL_NUM_POINTS: _uvarint_column([2, 1, 1]),
+            _COL_TIMESTAMPS: _delta_sint64_column([1000, 1010, 2000, 3000]),
+            # bins per point: [1, 5] / [3] / [] / [7, 8, 9]
+            _COL_SKETCH_NUM_BINS: _uvarint_column([2, 1, 0, 3]),
+            _COL_SKETCH_BIN_KEYS: _sint64_column([1, 4, 3, 7, 1, 1]),
+            _COL_SKETCH_BIN_CNTS: _uvarint_column([1, 2, 4, 1, 1, 1]),
+            # sum/min/max of both points of series 0
+            _COL_VALS_FLOAT64: _float64_column([7.5, 1.5, 4.5, 2.5, 2.5, 2.5]),
+            # cnt of series 0 points, sum/min/max/cnt of series 1, cnt of series 2
+            _COL_VALS_SINT64: _sint64_column([3, 1, 40, 10, 10, 4, 3]),
+        }
+    )
+
+    result = decode_sketches_v3(_payload([blob]))
+
+    def sketch(name: str, type_value: int, dogsketches: list[dict]) -> dict:
+        return {
+            "metric": name,
+            "tags": [],
+            "type": type_value,
+            "numPoints": len(dogsketches),
+            "dogsketches": dogsketches,
+        }
+
+    assert result == {
+        "sketches": [
+            sketch(
+                "s.float64",
+                0x34,
+                [
+                    {
+                        "ts": "1000",
+                        "cnt": "3",
+                        "min": 1.5,
+                        "max": 4.5,
+                        "avg": 2.5,
+                        "sum": 7.5,
+                        "k": [1, 5],
+                        "n": [1, 2],
+                    },
+                    {"ts": "1010", "cnt": "1", "min": 2.5, "max": 2.5, "avg": 2.5, "sum": 2.5, "k": [3], "n": [4]},
+                ],
+            ),
+            sketch(
+                "s.sint64",
+                0x14,
+                [{"ts": "2000", "cnt": "4", "min": 10.0, "max": 10.0, "avg": 10.0, "sum": 40.0, "k": [], "n": []}],
+            ),
+            sketch(
+                "s.zero",
+                0x04,
+                [
+                    {
+                        "ts": "3000",
+                        "cnt": "3",
+                        "min": 0.0,
+                        "max": 0.0,
+                        "avg": 0.0,
+                        "sum": 0.0,
+                        "k": [7, 8, 9],
+                        "n": [1, 1, 1],
+                    }
+                ],
+            ),
+        ]
+    }
+
+
+@scenarios.test_the_test
+def test_decode_sketches_v3_empty_payload():
+    assert decode_sketches_v3(b"") == {}
+
+
+@scenarios.test_the_test
 def test_decode_metrics_v3_real_payload_snapshot():
     """Golden test against a real agent payload (286 series) captured from RUNTIME_METRICS_ENABLED.
 
@@ -278,3 +371,12 @@ def test_decode_metrics_v3_real_payload_snapshot():
     expected = json.loads((_FIXTURES / "sample_expected.json").read_text())
 
     assert decode_metrics_v3(raw) == expected
+
+
+@scenarios.test_the_test
+def test_decode_sketches_v3_real_payload_snapshot():
+    """Golden test against a real agent sketches payload captured from RUNTIME_METRICS_ENABLED (python)."""
+    raw = base64.b64decode((_FIXTURES / "sketches_sample.b64").read_text().strip())
+    expected = json.loads((_FIXTURES / "sketches_sample_expected.json").read_text())
+
+    assert decode_sketches_v3(raw) == expected

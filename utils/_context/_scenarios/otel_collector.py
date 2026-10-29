@@ -8,22 +8,21 @@ from utils._context.containers import OpenTelemetryCollectorContainer, PostgresC
 from utils._logger import logger
 from utils.proxy.ports import ProxyPorts
 
-from .core import scenario_groups
-from .endtoend import DockerScenario
+from ._core import DockerScenario, FakeDatadogKey, scenario_groups
 
 
 class OtelCollectorScenario(DockerScenario):
     otel_collector_version: Version
     postgres_container: PostgresContainer
 
-    def __init__(self, name: str, *, use_proxy: bool = True, mocked_backend: bool = True):
+    def __init__(self) -> None:
         super().__init__(
-            name,
+            "OTEL_COLLECTOR",
             github_workflow="endtoend",
             doc="TODO",
             scenario_groups=[scenario_groups.end_to_end, scenario_groups.all, scenario_groups.open_telemetry],
-            use_proxy=use_proxy,
-            mocked_backend=mocked_backend,
+            use_proxy=True,
+            mocked_backend=True,
         )
 
         self.postgres_container = PostgresContainer()
@@ -32,7 +31,7 @@ class OtelCollectorScenario(DockerScenario):
         self.collector_container = OpenTelemetryCollectorContainer(
             config_file="./utils/build/docker/e2eotel/otelcol-config.yml",
             environment={
-                "DD_API_KEY": "0123",
+                "DD_API_KEY": FakeDatadogKey.OTEL_COLLECTOR,
                 "DD_SITE": os.environ.get("DD_SITE", "datad0g.com"),
                 "HTTP_PROXY": f"http://proxy:{ProxyPorts.otel_collector}",
                 "HTTPS_PROXY": f"http://proxy:{ProxyPorts.otel_collector}",
@@ -56,7 +55,7 @@ class OtelCollectorScenario(DockerScenario):
         self.collector_container.depends_on.append(self.postgres_container)
 
         if not self.proxy_container.mocked_backend:
-            interfaces.backend.configure(self.host_log_folder, replay=self.replay)
+            interfaces.backend_legacy.configure(self.host_log_folder, replay=self.replay)
 
             if "DD_API_KEY" not in os.environ:
                 pytest.exit(f"{self.name} scenario requires a valid DD_API_KEY")

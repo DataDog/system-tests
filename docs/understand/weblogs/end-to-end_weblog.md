@@ -887,6 +887,8 @@ Alternate call site for the same vulnerable function targeted by `/sca/vulnerabl
 test first-hit-wins deduplication: when the same CVE is triggered from two different call sites, only the
 first occurrence is reported in the `reached` array.
 
+The Java Lambda weblogs also implement both SCA endpoints, using Junrar 7.5.5 kept as a separate JAR. The vulnerable class is preloaded during handler initialization.
+
 ### GET /log/library
 
 This endpoint facilitates logging a message using a logging library. It is primarily designed for testing log injection functionality. Weblog apps must log using JSON format.
@@ -971,6 +973,16 @@ These endpoints are used for the `Dynamic Instrumentation` tests.
 
 Executes the same probe line `loops` times during one request. It is used to verify per-probe and global
 Dynamic Instrumentation rate limits.
+
+#### GET /debugger/correlation
+
+Calls `Correlation`, `CorrelationMiddle`, and `CorrelationLeaf` in one request, pausing between the probed method exits. Used to check that snapshot sampling emits a whole probe chain together.
+
+#### GET /debugger/correlation/loop/<count>
+
+Runs a loop `count` times in one request, sleeping one second per iteration. The loop body and the line right
+after the loop are probed. Used to check that a probe emits at most one snapshot per trace, without starving a
+sibling probe in the same trace.
 
 #### GET /debugger/snapshot/capture-timeout
 
@@ -1142,6 +1154,13 @@ accept a JSON body with these fields:
 - `defaultValue`: the value to return when evaluation cannot resolve the flag.
 - `targetingKey`: the evaluation subject key.
 - `attributes`: flat scalar targeting attributes.
+
+For the high-cardinality FFE workload, the endpoint also accepts a non-empty
+`targetingKeys` array. Evaluate the same flag once per key through the public SDK
+API, using the same attributes and default value. The response includes `count`
+(the number of targeting keys in the request) and the final evaluation's `value`.
+Do not replace the loop with a direct telemetry submission or change SDK flush
+timing. When the array is absent or empty, evaluate the single `targetingKey`.
 
 The response must be JSON and include at least `value` and `reason`. Error
 responses should also include `errorCode` and `errorMessage`.

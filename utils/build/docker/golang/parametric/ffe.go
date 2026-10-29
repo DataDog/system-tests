@@ -110,6 +110,7 @@ func (s *apmClientServer) ffeEval(writer http.ResponseWriter, request *http.Requ
 	value := body.DefaultValue
 	reason := string(of.DefaultReason)
 	var errorCode string
+	var flagMetadata of.FlagMetadata
 
 	evalCtx := request.Context()
 	rows := make([]map[string]any, 0)
@@ -158,6 +159,7 @@ func (s *apmClientServer) ffeEval(writer http.ResponseWriter, request *http.Requ
 
 		reason = string(details.Reason)
 		errorCode = string(details.ErrorCode)
+		flagMetadata = details.FlagMetadata
 		if err != nil {
 			value = body.DefaultValue
 			if reason == "" {
@@ -171,8 +173,9 @@ func (s *apmClientServer) ffeEval(writer http.ResponseWriter, request *http.Requ
 		Value         any              `json:"value"`
 		Reason        string           `json:"reason"`
 		ErrorCode     string           `json:"errorCode"`
+		FlagMetadata  of.FlagMetadata  `json:"flagMetadata"`
 		ExposureHooks []map[string]any `json:"exposureHooks,omitempty"`
-	}{value, reason, errorCode, rows}
+	}{value, reason, errorCode, flagMetadata, rows}
 
 	if err := json.NewEncoder(writer).Encode(response); err != nil {
 		http.Error(writer, "failed to encode response: "+err.Error(), http.StatusInternalServerError)

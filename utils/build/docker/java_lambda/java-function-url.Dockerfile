@@ -15,6 +15,7 @@ RUN /binaries/install_ddtrace.sh
 # Copy built JAR and extract to Lambda task root
 COPY --from=builder /build/target/java-lambda-weblog-*.jar /tmp/app.jar
 RUN cd ${LAMBDA_TASK_ROOT} && jar xf /tmp/app.jar && rm /tmp/app.jar
+COPY --from=builder /build/target/sca-libs/*.jar ${LAMBDA_TASK_ROOT}/lib/
 
 # Copy Datadog agent and entrypoint
 RUN cp /dd-tracer/dd-java-agent.jar ${LAMBDA_TASK_ROOT}/dd-java-agent.jar

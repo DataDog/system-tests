@@ -139,6 +139,7 @@ manifest:
   tests/appsec/test_reports.py::Test_RequestHeaders: '>=12.142.0'  # TODO: a lower version might be supported
   tests/appsec/test_reports.py::Test_StatusCode: missing_feature
   tests/appsec/test_reports.py::Test_TagsFromRule: '>=12.142.0'  # TODO: a lower version might be supported
+  tests/appsec/test_sca_reachability.py: missing_feature (SCA runtime reachability is not implemented)
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules:  # TODO: a lower version might be supported
     - weblog_declaration:
         '*': missing_feature
@@ -171,6 +172,7 @@ manifest:
   tests/appsec/waf/test_blocking.py::Test_Blocking: missing_feature
   tests/appsec/waf/test_blocking.py::Test_Blocking_strip_response_headers: missing_feature
   tests/appsec/waf/test_blocking.py::Test_CustomBlockingResponse: missing_feature
+  tests/ffe/test_evaluation_telemetry_opt_out.py: irrelevant (This server weblog scenario does not apply to Lambda)
   tests/ffe/test_flag_eval_evp.py: irrelevant (server-side FFE EVP weblog scenario is not applicable to lambda)
   tests/parametric/test_ffe/test_exposure_hooks.py: incomplete_test_app (Exposure hook observations are not implemented)
   tests/test_resource_renaming.py: missing_feature

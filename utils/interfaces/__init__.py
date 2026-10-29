@@ -24,12 +24,10 @@ library = LibraryInterfaceValidator("library")
 library_stdout = _LibraryStdout()
 agent_stdout = _AgentStdout()
 library_dotnet_managed = _LibraryDotnetManaged()
-backend = _BackendInterfaceValidator(library_interface=library)
+backend_legacy = _BackendInterfaceValidator(library_interface=library)
 backend_v2 = _BackendV2InterfaceValidator()
 open_telemetry = OpenTelemetryInterfaceValidator()
 otel_collector = ProxyBasedInterfaceValidator("otel_collector")
-datadog_sidecar = ProxyBasedInterfaceValidator("datadog_sidecar")
-datadog_direct = ProxyBasedInterfaceValidator("datadog_direct")
 postgres = _PostgresStdout()
 test_agent = _TestAgentInterfaceValidator()
 
@@ -44,10 +42,8 @@ __all__ = [
     "StdoutLogsInterface",
     "agent",
     "agent_stdout",
-    "backend",
+    "backend_legacy",
     "backend_v2",
-    "datadog_direct",
-    "datadog_sidecar",
     "golang_buddy",
     "java_buddy",
     "library",
