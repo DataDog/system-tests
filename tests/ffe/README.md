@@ -38,8 +38,9 @@ The protobuf fixture `tests/parametric/test_ffe/rules-wire.json` comes from `ope
 `Test_FFE_EVP_Flagevaluation_SDK_Identity` checks SDK origin and version headers on
 Agent-to-intake captures while retaining the shared payload and evaluation-count checks.
 The case requires Agent 7.84+ and is enabled for Go 2.11.0+, Python 4.16.0+, and
-Node.js express5 under its existing version gate. Other languages retain their
-current exclusions. Event-level `source` is rejected: source identity belongs in
+Node.js express5 under its existing version gate, and Ruby rails72 2.43.0+.
+Python flask-poc also runs the remaining Agent-backed payload, context, privacy,
+and aggregation cases from 4.16.0. Other weblogs retain their current exclusions. Event-level `source` is rejected: source identity belongs in
 the request headers.
 
 ## Per-subject evaluation telemetry opt-out
