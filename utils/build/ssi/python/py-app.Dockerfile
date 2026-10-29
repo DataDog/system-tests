@@ -8,6 +8,8 @@ ENV DJANGO_SETTINGS_MODULE django_app
 ENV HOME  /root
 ENV PYENV_ROOT $HOME/.pyenv
 ENV PATH $PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH
+ARG PIP_INDEX_URL=https://depot-read-api-python.us1.ddbuild.io/datadog/python/@current/simple
+ENV PIP_INDEX_URL=${PIP_INDEX_URL}
 RUN pip install django
 EXPOSE 18080
 CMD python -m django runserver --noreload 0.0.0.0:18080

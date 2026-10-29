@@ -42,7 +42,7 @@ These rules apply in EVERY interaction.
 - **Project**: System tests for Datadog tracer libraries (Java, Node.js, Python, PHP, Ruby, C++, .NET, Go, Rust)
 - **Framework**: pytest
 - **Main Scenarios**: end-to-end, parametric, SSI, Kubernetes
-- **Scenario Source**: `utils/_context/_scenarios/__init__.py` (authoritative)
+- **Scenario Source**: `utils/_context/_scenarios/__init__.py` lists every scenario (authoritative); each one is defined in a module of `utils/_context/_scenarios/`
 - **Main Documentation**: `README.md` and `docs/` directory
 - **Support**: #apm-shared-testing Slack channel
 

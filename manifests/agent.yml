@@ -46,6 +46,9 @@ manifest:
     - declaration: bug (DEBUG-5421)
       component_version: ">=7.79.0-devel <7.84.4"
       weblog: [chi, echo, fiber-v2-orchestrion, gin, net-http, net-http-orchestrion, uds-echo]
+  tests/ffe/test_flag_eval_evp.py::Test_FFE_EVP_Flagevaluation_SDK_Identity:
+    - declaration: missing_feature (Agent forwarding of EVP producer identity requires 7.84)
+      component_version: '<7.84.0'
   tests/integrations/test_open_telemetry.py::Test_MsSql::test_error_exception_event:
     - component_version: "<7.75.0-0"
       declaration: irrelevant (new behavior implement in 7.75.0)

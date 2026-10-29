@@ -4,10 +4,9 @@ from unittest.mock import MagicMock
 from utils import pytest
 
 from utils import interfaces, scenarios
-from utils._context._scenarios import endtoend as endtoend_scenarios
-from utils._context._scenarios.endtoend import DdTraceEndToEndScenario, DockerScenario
+from utils._context._scenarios._core import endtoend as endtoend_scenarios
+from utils._context._scenarios._core.endtoend import DdTraceEndToEndScenario, DockerScenario
 from utils._context.containers import TestedContainer as _TestedContainer
-from utils.docker_fixtures._core import HOST_GATEWAY_EXTRA_HOSTS
 
 from .utils import extra_hosts_at_start
 
@@ -141,28 +140,53 @@ def test_end_to_end_scenario_only_flushes_agent_backed_non_empty_test_runs(
 
 
 @scenarios.test_the_test
-def test_mocked_backend_v2_agent_can_reach_the_mocked_backend(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_mocked_backend_v2_agent_sends_to_the_mocked_backend_container(monkeypatch: pytest.MonkeyPatch) -> None:
     scenario = DdTraceEndToEndScenario(
         "FAKE_MOCKED_BACKEND_V2", doc="", mocked_backend_v2=True, use_proxy_for_agent=False
     )
-    scenario.replay = False
-    scenario.weblog_infra = MagicMock()
-    monkeypatch.setattr(DockerScenario, "configure", MagicMock())
-
-    fake_interfaces = MagicMock()
-    fake_interfaces.backend_v2.server.container_url = "http://host.docker.internal:4900"
-    monkeypatch.setattr(endtoend_scenarios, "interfaces", fake_interfaces)
-
-    scenario.configure(MagicMock(spec=pytest.Config))
+    mocked_backend = scenario.mocked_backend_container
+    assert mocked_backend in scenario._containers  # noqa: SLF001
 
     agent = scenario.agent_container
-    assert agent.environment["DD_DD_URL"] == "http://host.docker.internal:4900"
-    assert agent.environment["DD_APM_DD_URL"] == "http://host.docker.internal:4900"
-    # without it, host.docker.internal does not resolve on Linux docker hosts
-    assert extra_hosts_at_start(monkeypatch, agent) == HOST_GATEWAY_EXTRA_HOSTS
+    assert agent.environment["DD_DD_URL"] == "https://mocked-backend.invalid"
+    assert agent.environment["DD_APM_DD_URL"] == "https://mocked-backend.invalid"
+    # reached by its name on the scenario network: no mapping to the docker host
+    assert extra_hosts_at_start(monkeypatch, agent) is None
+
+    weblog = MagicMock(depends_on=[])
+    scenario.weblog_infra = MagicMock(get_containers=MagicMock(return_value=[weblog]))
+    scenario._set_containers_dependancies()  # noqa: SLF001
+    assert mocked_backend in agent.depends_on
+    assert mocked_backend in weblog.depends_on
+
+
+@scenarios.test_the_test
+def test_no_mocked_backend_container_without_mocked_backend_v2() -> None:
+    scenario = DdTraceEndToEndScenario("FAKE_NO_MOCKED_BACKEND_V2", doc="", use_proxy_for_agent=False)
+    assert scenario.mocked_backend_container not in scenario._containers  # noqa: SLF001
+    assert "DD_DD_URL" not in scenario.agent_container.environment
 
 
 @scenarios.test_the_test
 def test_agent_without_host_docker_internal_has_no_extra_hosts(monkeypatch: pytest.MonkeyPatch) -> None:
     scenario = DdTraceEndToEndScenario("FAKE_NO_MOCKED_BACKEND", doc="", use_proxy_for_agent=False)
     assert extra_hosts_at_start(monkeypatch, scenario.agent_container) is None
+
+
+@scenarios.test_the_test
+@pytest.mark.parametrize("require_api_key", [True, False])
+def test_backend_legacy_is_only_configured_when_an_api_key_is_required(
+    monkeypatch: pytest.MonkeyPatch, *, require_api_key: bool
+) -> None:
+    """interfaces.backend_legacy queries the real Datadog backend: only scenarios requiring an API key use it."""
+    monkeypatch.setenv("DD_API_KEY", "fake")
+    scenario = DdTraceEndToEndScenario("FAKE_BACKEND_LEGACY", doc="", require_api_key=require_api_key)
+    scenario.replay = False
+    scenario.weblog_infra = MagicMock()
+    monkeypatch.setattr(DockerScenario, "configure", MagicMock())
+    fake_interfaces = MagicMock()
+    monkeypatch.setattr(endtoend_scenarios, "interfaces", fake_interfaces)
+
+    scenario.configure(MagicMock(spec=pytest.Config))
+
+    assert fake_interfaces.backend_legacy.configure.called is require_api_key
