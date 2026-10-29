@@ -842,7 +842,7 @@ class ParametricTestClientApi(TestClientApi):
         flag: str,
         variation_type: str,
         default_value: bool | str | float | dict,
-        targeting_key: str,
+        targeting_key: str | None,
         attributes: dict | None = None,
         span_id: int | str | None = None,
     ) -> dict:
@@ -1301,7 +1301,7 @@ class APMLibrary:
         flag: str,
         variation_type: str,
         default_value: bool | str | float | dict,
-        targeting_key: str,
+        targeting_key: str | None,
         attributes: dict | None = None,
         span_id: int | str | None = None,
     ) -> dict:
