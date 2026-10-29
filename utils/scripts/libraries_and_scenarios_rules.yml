@@ -228,6 +228,9 @@ patterns:
         scenario_groups: docker_fixtures
     utils/_context/_scenarios/_core/endtoend.py:
         scenario_groups: end_to_end
+    utils/_context/_scenarios/_core/fake_datadog_keys.py:  # fake key values: tests get them from the scenario, none depends on a value
+        scenario_groups: null
+        libraries: null
     utils/_context/_scenarios/_core/*:  # base classes shared by many scenarios: runs everything
     utils/_context/_scenarios/*/*:  # any other subfolder: not a definition file, runs everything
     utils/_context/_scenarios/open_telemetry.py:  # its scenarios only run with OTel libraries
