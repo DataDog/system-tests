@@ -61,7 +61,9 @@ class MockedBackendServerCore(ABC, ThreadingHTTPServer):
     scheme: str
 
     @abstractmethod
-    def get_handler(self, method: HttpMethod, path: str) -> tuple[RouteHandler, str | None, str | None]: ...
+    def get_handler(
+        self, method: HttpMethod, path: str, *, query: str = ""
+    ) -> tuple[RouteHandler, str | None, str | None]: ...
 
     @abstractmethod
     def add_handler(self, method: HttpMethod, path: str, handler: RouteHandler) -> None: ...
@@ -114,7 +116,7 @@ class MockBackendV2RequestHandler(BaseHTTPRequestHandler):
         url_parts = urlsplit(self.path)
         path = url_parts.path
 
-        handler, log_filename, export_content_files_to = self.server.get_handler(method, path)
+        handler, log_filename, export_content_files_to = self.server.get_handler(method, path, query=url_parts.query)
 
         self._data: dict[str, Any] = {
             "log_filename": log_filename,

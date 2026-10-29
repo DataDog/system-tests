@@ -19,7 +19,7 @@ from utils.proxy.mocked_response import MockedBackendResponse
 from utils.proxy.rc_response_builder import build_rc_configurations_protobuf
 from utils.proxy.tuf import get_tuf_root_json
 
-from ._core import DdTraceEndToEndScenario, ScenarioGroup, scenario_groups as all_scenario_groups
+from ._core import DdTraceEndToEndScenario, FakeDatadogKey, ScenarioGroup, scenario_groups as all_scenario_groups
 
 
 DIRECT_EVP_CA_BUNDLE_SOURCE = "./utils/build/docker/agent/ca-certificates.crt"
@@ -256,7 +256,7 @@ class DebuggerAgentless(TracerAgentlessEndToEndScenario):
 class FeatureFlaggingAgentlessEndToEndScenario(_AgentlessEndToEndScenario):
     """FFE end-to-end scenario with UFC available before the weblog starts."""
 
-    sidecar_api_key = "fedcba9876543210fedcba9876543210"
+    sidecar_api_key = FakeDatadogKey.SIDECAR
     """The API key serverless-init sends to the mocked backend with: it tells its requests from the weblog ones"""
 
     def __init__(

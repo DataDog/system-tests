@@ -214,9 +214,39 @@ def test_container_without_internal_mocked_responses_does_not_pass_the_option(
 
 
 @scenarios.test_the_test
-def test_rejects_malformed_mocked_responses(server: MockedBackendServer):
-    response = requests.put(f"{server.base_url}/system-tests/mocked-responses", json=[], timeout=5)
+@pytest.mark.parametrize("body", [[], {"responses": "nope"}, {"responses": [1]}])
+def test_rejects_malformed_mocked_responses(server: MockedBackendServer, body: object):
+    response = requests.put(f"{server.base_url}/system-tests/mocked-responses", json=body, timeout=5)
     assert response.status_code == 400
+
+
+@scenarios.test_the_test
+def test_mocked_responses_match_the_query_string_like_the_proxy(server: MockedBackendServer):
+    server.client.set_mocked_responses(
+        [
+            MockedBackendResponse("/endpoint?mode=test", b"with query"),
+            MockedBackendResponse("/other", b"without query"),
+        ]
+    )
+
+    assert requests.get(f"{server.base_url}/endpoint?mode=test", timeout=5).content == b"with query"
+    assert requests.get(f"{server.base_url}/endpoint", timeout=5).content != b"with query"
+    assert requests.get(f"{server.base_url}/other?mode=test", timeout=5).content != b"without query"
+
+
+@scenarios.test_the_test
+def test_a_bad_internal_mocked_responses_file_does_not_keep_the_port(tmp_path: Path):
+    probe = MockedBackendServer(None, port=0)
+    port = probe.port
+    probe.close()
+    bad_file = tmp_path / "mocks.json"
+    bad_file.write_text("not json")
+
+    with pytest.raises(json.JSONDecodeError):
+        MockedBackendServer(None, port=port, internal_mocked_responses_file=str(bad_file))
+
+    # the port is still free
+    MockedBackendServer(None, port=port).close()
 
 
 @scenarios.test_the_test

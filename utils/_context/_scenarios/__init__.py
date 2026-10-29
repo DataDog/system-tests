@@ -56,6 +56,7 @@ from .aws_lambda import (
     AppsecLambdaDefault,
     AppsecLambdaInferredSpans,
     AppsecLambdaRasp,
+    AppsecLambdaSca,
 )
 from .appsec_rasp import (
     AppsecRasp,
@@ -407,6 +408,7 @@ class _Scenarios:
     appsec_lambda_default = AppsecLambdaDefault()
     appsec_lambda_blocking = AppsecLambdaBlocking()
     appsec_lambda_api_security = AppsecLambdaApiSecurity()
+    appsec_lambda_sca = AppsecLambdaSca()
     appsec_lambda_rasp = AppsecLambdaRasp()
     appsec_lambda_inferred_spans = AppsecLambdaInferredSpans()
     otel_collector = OtelCollectorScenario()

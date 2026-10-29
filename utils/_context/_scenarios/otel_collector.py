@@ -8,7 +8,7 @@ from utils._context.containers import OpenTelemetryCollectorContainer, PostgresC
 from utils._logger import logger
 from utils.proxy.ports import ProxyPorts
 
-from ._core import DockerScenario, scenario_groups
+from ._core import DockerScenario, FakeDatadogKey, scenario_groups
 
 
 class OtelCollectorScenario(DockerScenario):
@@ -31,7 +31,7 @@ class OtelCollectorScenario(DockerScenario):
         self.collector_container = OpenTelemetryCollectorContainer(
             config_file="./utils/build/docker/e2eotel/otelcol-config.yml",
             environment={
-                "DD_API_KEY": "0123",
+                "DD_API_KEY": FakeDatadogKey.OTEL_COLLECTOR,
                 "DD_SITE": os.environ.get("DD_SITE", "datad0g.com"),
                 "HTTP_PROXY": f"http://proxy:{ProxyPorts.otel_collector}",
                 "HTTPS_PROXY": f"http://proxy:{ProxyPorts.otel_collector}",

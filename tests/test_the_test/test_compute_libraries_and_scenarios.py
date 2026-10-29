@@ -575,6 +575,11 @@ class Test_ComputeLibrariesAndScenarios:
         inputs = build_inputs(modified_files=["utils/_context/_scenarios/__init__.py"])
         assert_github_processor(inputs, [], [], 3600, "false", "DEFAULT", "")
 
+    def test_fake_datadog_keys_file(self):
+        """Tests get the fake keys from the scenario, none depends on a value: nothing runs"""
+        inputs = build_inputs(modified_files=["utils/_context/_scenarios/_core/fake_datadog_keys.py"])
+        assert_github_processor(inputs, [], [], 3600, "false", "DEFAULT", "")
+
     @pytest.mark.parametrize(
         "file",
         [
