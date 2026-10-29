@@ -87,6 +87,15 @@ DEFAULT_ENVVARS = {
 }
 
 
+MODE_ENV = "DD_FEATURE_FLAGS_EXPERIMENTATION_OPT_OUT_MODE"
+CAPABILITIES = {
+    "immediate": "experimentationOptOutImmediate",
+    "future_experiments_only": "experimentationOptOutFutureExperimentsOnly",
+}
+CASE_FILES = sorted(FFE_EVALUATION_CASES_DIR.glob("test-case-experimentation-opt-out*.json"))
+assert CASE_FILES, "Missing canonical experimentation opt-out fixtures"
+
+
 def _set_and_wait_ffe_rc(
     test_agent: TestAgentAPI, ufc_data: dict[str, Any], config_id: str | None = None
 ) -> dict[str, Any]:
@@ -370,3 +379,56 @@ class Test_Feature_Flag_Split_Features:
                 # Empty features are omitted from the wire format, but the event itself
                 # must exist. An absent event never stands in for an empty feature map.
                 assert_feature_map(event.get("features", {}), expected["features"][destination], destination)
+
+
+@scenarios.parametric
+@features.feature_flags_dynamic_evaluation
+class Test_Feature_Flag_Experimentation_Opt_Out:
+    """Keep disabled behavior and both enabled policies distinct at the SDK boundary."""
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {**DEFAULT_ENVVARS},
+            *({**DEFAULT_ENVVARS, MODE_ENV: mode} for mode in ("disabled", *CAPABILITIES)),
+        ],
+        ids=["default-disabled", "disabled", "immediate", "future_experiments_only"],
+    )
+    def test_canonical_modes(
+        self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
+        capability = CAPABILITIES.get(library_env.get(MODE_ENV, "disabled"))
+        cases = [
+            (case_file.name, index, case)
+            for case_file in CASE_FILES
+            for index, case in enumerate(json.loads(case_file.read_text()))
+            if capability is None or capability in case.get("capabilities", {})
+        ]
+        assert cases, f"No canonical cases for {capability}"
+        _set_and_wait_ffe_rc(test_agent, UFC_FIXTURE_DATA)
+        assert test_library.ffe_start(UFC_FIXTURE_DATA), "Failed to start FFE provider"
+
+        evaluated = 0
+        for filename, index, case in cases:
+            if not _filter_test_cases_for_platform([case], context.library.name):
+                continue
+            # Enabled modes must use their explicit oracle. Falling back to the
+            # baseline here would silently stop testing opt-out behavior.
+            expected = case["result"] if capability is None else case["capabilities"][capability]
+            result = _ffe_evaluate_with_rc_retry(
+                test_library,
+                flag=case["flag"],
+                variation_type=case["variationType"],
+                default_value=case["defaultValue"],
+                targeting_key=case["targetingKey"],
+                attributes=case.get("attributes", {}),
+            )
+            evidence: tuple[Any, ...] = (capability, filename, index, expected, result)
+            assert result.get("value") == expected["value"], evidence
+            assert result.get("reason") == expected["reason"], evidence
+            if "errorCode" in expected:
+                assert result.get("errorCode") == expected["errorCode"], evidence
+            else:
+                assert result.get("errorCode") in (None, ""), evidence
+            evaluated += 1
+        assert evaluated, f"No applicable cases for {context.library.name} / {capability}"
