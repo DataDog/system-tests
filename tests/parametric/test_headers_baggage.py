@@ -442,7 +442,7 @@ def _parse_w3c_baggage(header: str) -> dict[str, str]:
 # An old dd-trace-go (query-form encoding) writes a space as "+".
 # A W3C-compliant tracer must read "+" as a literal plus, never as a space.
 _DD_PARENT = [("x-datadog-trace-id", "123456789"), ("x-datadog-parent-id", "987654321")]
-_ENCODED_BAGGAGE = "plus=a+b,space=a%20b,pct=100%25,k+y=v"
+_ENCODED_BAGGAGE = "plus=a+b,space=a%20b,pct=100%25,k+y=v,k%25y=v"
 
 
 @features.datadog_headers_propagation
@@ -452,6 +452,11 @@ class Test_Headers_Baggage_Percent_Encoding:
 
     space -> %20, literal + stays literal (or %2B), literal % -> %25.
     See https://github.com/DataDog/dd-trace-go/issues/5181
+
+    The parametric scenario runs one tracer at a time, so a real two-tracer hop is not possible here.
+    Each test simulates the upstream hop: it sends the headers that an old dd-trace-go (query-form,
+    space as "+") or another tracer writes, and checks what the tracer under test re-injects.
+    W3C keys are opaque tokens: "k+y" and "k%25y" must come back unchanged.
     """
 
     def test_w3c_baggage_plus_space_percent_roundtrip(self, test_library: APMLibrary) -> None:
@@ -466,6 +471,7 @@ class Test_Headers_Baggage_Percent_Encoding:
         assert items["space"] == "a%20b"
         assert items["pct"] == "100%25"
         assert items["k+y"] == "v"
+        assert items["k%25y"] == "v"
 
     @parametrize("library_env", [{"DD_TRACE_PROPAGATION_STYLE": "datadog"}])
     def test_legacy_ot_baggage_plus_space_percent_roundtrip(self, test_library: APMLibrary) -> None:
