@@ -294,6 +294,14 @@ class Test_FFE_ExposureHooks:
             assert row["isExposure"] is False
             assert row["isCacheHit"] is False
             assert row["shouldSend"] is False
+        # Observe delivery before retrying: a premature exposure could otherwise
+        # be hidden by writer deduplication of the successful retry.
+        deadline = time.monotonic() + 5
+        while time.monotonic() < deadline:
+            assert events(test_agent, "/api/v2/exposures", "exposures") == []
+            time.sleep(0.2)
+        assert events(test_agent, "/api/v2/exposures", "exposures") == []
+
         # A rejected evaluation must not consume the next successful exposure.
         observations(evaluate(test_library, "athlete"), exposure=True, hit=False)
         observations(evaluate(test_library, "athlete"), exposure=True, hit=True)

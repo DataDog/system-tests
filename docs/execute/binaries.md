@@ -116,8 +116,12 @@ By default you will be on the `master` branch, but if you'd like to run system-t
 
 For ordinary Java tests, copy these two JARs. Do not copy sources or Javadoc JARs.
 
-For OpenFeature parametric tests, also build `:dd-openfeature:jar` and copy its
-`dd-openfeature-*.jar` from the same SDK revision. The development artifact loader
+For OpenFeature parametric tests at SDK revision
+`411eb0537e93cbdea7309cd49694aebdbfbcd389`, also build
+`:products:feature-flagging:feature-flagging-api:jar` and copy
+`products/feature-flagging/feature-flagging-api/build/libs/dd-openfeature-*.jar`
+from that same revision. Older SDK revisions may use `:dd-openfeature:jar` and
+`dd-openfeature/build/libs/` instead. The development artifact loader
 names its companion APIs `parametric-dd-trace-api.jar` and
 `parametric-dd-openfeature.jar`. Only the parametric application loads these names;
 ordinary weblogs retain their published Maven API dependencies. Do not combine an
