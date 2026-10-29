@@ -139,6 +139,7 @@ manifest:
   tests/appsec/test_reports.py::Test_RequestHeaders: '>=12.142.0'  # TODO: a lower version might be supported
   tests/appsec/test_reports.py::Test_StatusCode: missing_feature
   tests/appsec/test_reports.py::Test_TagsFromRule: '>=12.142.0'  # TODO: a lower version might be supported
+  tests/appsec/test_sca_reachability.py: missing_feature (SCA runtime reachability is not implemented)
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules:  # TODO: a lower version might be supported
     - weblog_declaration:
         '*': missing_feature

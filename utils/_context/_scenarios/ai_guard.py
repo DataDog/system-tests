@@ -5,7 +5,7 @@ import tempfile
 
 import pytest
 
-from ._core import EndToEndScenario, scenario_groups
+from ._core import EndToEndScenario, FakeDatadogKey, scenario_groups
 from utils._context.constants import ContainerPorts, WeblogCategory
 from utils._context.containers import VCRCassettesContainer
 from utils._logger import logger
@@ -19,8 +19,8 @@ _AI_GUARD_WEBLOG_ENV = {
     "DD_IAST_ENABLED": "false",
     "DD_AI_GUARD_ENABLED": "true",
     "DD_AI_GUARD_ENDPOINT": f"http://vcr_cassettes:{ContainerPorts.vcr_cassettes}/vcr/aiguard",
-    "DD_API_KEY": "mock_api_key",
-    "DD_APP_KEY": "mock_app_key",
+    "DD_API_KEY": FakeDatadogKey.AI_GUARD_API,
+    "DD_APP_KEY": FakeDatadogKey.AI_GUARD_APP,
 }
 
 

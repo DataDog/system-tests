@@ -68,6 +68,7 @@ TIMEOUT_RESPONSE_SECONDS = 1.5
 MAX_CONTROL_BODY_BYTES = 512
 CONFIG_PATH = "/api/v2/feature-flagging/config/rules-based/server"
 RULES_CONFIG_PATH = CONFIG_PATH.removesuffix("/server")
+EVP_INTAKE_PATHS = ("/api/v2/exposures", "/api/v2/flagevaluation")
 EXPECTED_DD_ENV = "test"
 CONFIG_QUERY = urlencode({"dd_env": EXPECTED_DD_ENV})
 REPO_ROOT = Path(__file__).parents[2]
@@ -290,6 +291,10 @@ class MockedBackendServerFfeMixin(_Base):
         self.add_handler("GET", f"{RULES_CONFIG_PATH}/client", self._ffe_handle_rules_config)
         self.add_handler("GET", f"{RULES_CONFIG_PATH}/redirected", self._ffe_handle_rules_config)
 
+        # exposures and flag evaluations sent straight to the event platform intake
+        for path in EVP_INTAKE_PATHS:
+            self.add_handler("POST", path, self._ffe_handle_evp_intake)
+
         self.add_handler("GET", f"{self._ffe_control_path}/status", self._ffe_handle_status)
         self.add_handler("POST", f"{self._ffe_control_path}/responses", self._ffe_handle_control_responses)
         self.add_handler("POST", f"{self._ffe_control_path}/reset", self._ffe_handle_control_reset)
@@ -317,6 +322,11 @@ class MockedBackendServerFfeMixin(_Base):
 
     def _ffe_handle_status(self, request: MockBackendV2RequestHandler, _: bytes | dict | None) -> tuple[Mapping, bytes]:
         return request.write_json(HTTPStatus.OK, self._ffe_state.status())
+
+    @staticmethod
+    def _ffe_handle_evp_intake(request: MockBackendV2RequestHandler, _: bytes | dict | None) -> tuple[Mapping, bytes]:
+        # the event platform intake accepts the payload for asynchronous processing
+        return request.write_json(HTTPStatus.ACCEPTED, {})
 
     def _ffe_handle_config(
         self, request: MockBackendV2RequestHandler, _: bytes | dict | None

@@ -228,6 +228,9 @@ patterns:
         scenario_groups: docker_fixtures
     utils/_context/_scenarios/_core/endtoend.py:
         scenario_groups: end_to_end
+    utils/_context/_scenarios/_core/fake_datadog_keys.py:  # fake key values: tests get them from the scenario, none depends on a value
+        scenario_groups: null
+        libraries: null
     utils/_context/_scenarios/_core/*:  # base classes shared by many scenarios: runs everything
     utils/_context/_scenarios/*/*:  # any other subfolder: not a definition file, runs everything
     utils/_context/_scenarios/open_telemetry.py:  # its scenarios only run with OTel libraries
@@ -368,6 +371,10 @@ patterns:
       libraries: null
     utils/ci/github/*:
       scenarios: DEFAULT
+    utils/ci/gitlab/*:  # end-to-end GitLab pipeline, which only runs the c library on PRs
+      libraries: c
+      scenario_groups: end_to_end
+      scenarios: PARAMETRIC
 
 ############################ Library-specific rules ############################
 # This section contains rules to apply to library-related files. It follows the
@@ -589,7 +596,7 @@ patterns:
 
     tests/appsec/test_sca_reachability.py:
         scenario_groups: null
-        libraries: [java, python]
+        libraries: [java, java_lambda, python]
 
 ################################# Default rules ################################
 # The rules in this section are only applied if no other rule is applicable.

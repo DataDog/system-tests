@@ -48,8 +48,6 @@ Interface = Literal[
     "golang_buddy",
     "otel_collector",
     "open_telemetry",
-    "datadog_sidecar",
-    "datadog_direct",
 ]
 
 

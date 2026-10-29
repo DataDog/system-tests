@@ -35,7 +35,6 @@ parametrize = pytest.mark.parametrize
 
 UFC_VALID_FIXTURE = Path(__file__).parent / "flags-v1.json"
 RC_PRODUCT = "FFE_FLAGS"
-TEST_API_KEY = "system-tests-mock-api-key"
 MOCK_STATUS_ATTEMPTS = 25
 MOCK_STATUS_INTERVAL_SECONDS = 0.2
 NO_MOCK_REQUEST_ATTEMPTS = 7
@@ -43,7 +42,7 @@ AGENTLESS_BASE_URL = "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL"
 SEMANTICALLY_UNSET_CONFIGURATION_SOURCES: tuple[str | None, ...] = (None, "", "   ")
 
 BASE_ENVVARS = {
-    "DD_API_KEY": TEST_API_KEY,
+    "DD_API_KEY": scenarios.parametric.dd_api_key,
     "DD_INSTRUMENTATION_TELEMETRY_ENABLED": "false",
     "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
 }

@@ -3274,6 +3274,16 @@ manifest:
         uds-spring-boot: v1.60.1  # TODO: a lower version might be supported
   ? tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay::test_inproduct_enablement_exception_replay_apm_multiconfig
   : bug (DEBUG-4736)
+  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Multiconfig_Partial_Update:
+    - weblog_declaration:
+        "*": missing_feature
+        spring-boot: v1.54.0
+        spring-boot-jetty: v1.54.0
+        spring-boot-openliberty: v1.54.0
+        spring-boot-payara: v1.54.0
+        spring-boot-undertow: v1.54.0
+        spring-boot-wildfly: v1.54.0
+        uds-spring-boot: v1.54.0
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction:
     - weblog_declaration:
         "*": missing_feature
@@ -3940,6 +3950,9 @@ manifest:
   tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP::test_128bit_trace_id_consistent_across_spans:
     - weblog_declaration:
         spring-boot-3-native: missing_feature
+  tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP::test_git_span_attributes:
+    - weblog_declaration:
+        spring-boot-3-native: missing_feature
   tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP::test_single_server_trace:
     - weblog_declaration:
         "*": v1.66.0
@@ -3951,9 +3964,6 @@ manifest:
       weblog: [ratpack, akka-http, uds-spring-boot, vertx3, vertx4, play, spring-boot-wildfly, spring-boot, spring-boot-jetty, resteasy-netty3, spring-boot-openliberty, jersey-grizzly2, spring-boot-undertow, spring-boot-payara]
     - declaration: missing_feature (APMAPI-2172)
       excluded_weblog: [ratpack, akka-http, uds-spring-boot, vertx3, vertx4, play, spring-boot-wildfly, spring-boot, spring-boot-jetty, resteasy-netty3, spring-boot-openliberty, jersey-grizzly2, spring-boot-undertow, spring-boot-payara]
-  tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
-  tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
-  tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
   tests/parametric/otel_env_vars/test_otel_blrp_export_timeout.py::Test_OTEL_BLRP_EXPORT_TIMEOUT: v1.62.0
   tests/parametric/otel_env_vars/test_otel_blrp_max_export_batch_size.py::Test_OTEL_BLRP_MAX_EXPORT_BATCH_SIZE: v1.62.0
   ? tests/parametric/otel_env_vars/test_otel_blrp_max_export_batch_size.py::Test_OTEL_BLRP_MAX_EXPORT_BATCH_SIZE::test_invalid_value_is_ignored

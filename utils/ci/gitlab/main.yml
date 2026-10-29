@@ -13,9 +13,20 @@ spec:
       default: ""
     excluded_scenarios:
       description: "Comma-separated list of scenarios not to run"
-      default: "OTEL_TRACING_E2E,OTEL_METRIC_E2E,OTEL_LOG_E2E,INTEGRATION_FRAMEWORKS"
+      default: "INTEGRATION_FRAMEWORKS"
     weblogs:
       description: "Comma-separated list of weblogs to run (all weblogs if empty)"
+      default: ""
+    library_weblog_scenarios:
+      description: >-
+        JSON object mapping each library to an object mapping each weblog to its list of scenarios
+        (uppercase) and/or scenario groups (lowercase),
+        e.g. '{"python": {"flask-poc": ["DEFAULT", "appsec"], "django-poc": ["DEFAULT"]}}'.
+        PARAMETRIC is not weblog-bound, it is enabled with the "parametric" key, e.g. '{"python": {"parametric": []}}'.
+        Alternative to libraries/scenarios/scenarios_groups/weblogs (not compatible with them);
+        excluded_scenarios only applies to scenarios coming from groups.
+        GitLab limits inputs interpolation to 1 KB: for larger mappings, set the LIBRARY_WEBLOG_SCENARIOS
+        variable in your system_tests_param job (extending .system_tests_param_base) instead; it takes precedence over this input.
       default: ""
     binaries_artifacts:
       description: "Semicolon-separated list of upstream jobs whose artifacts contain the pre-built binaries (downloaded by the generated build/run jobs via cross-pipeline needs). Use ';' not ',' because job names may contain commas (e.g. parallel matrix names)."
@@ -55,9 +66,6 @@ spec:
     condition:
       description: "GitLab CI rule expression controlling whether system-tests jobs run (e.g. '$NIGHTLY_BUILD == \"true\"'). Defaults to always-run."
       default: "null == null"
-    docker_auth:
-      description: "Whether to authenticate calls to docker hub"
-      default: "false"
     split_pipeline:
       description: "Split jobs across multiple child pipelines"
       type: boolean
@@ -80,10 +88,11 @@ workflow:
         on_new_commit: $[[ inputs.auto_cancel_on_new_commit ]]
 
 variables:
-  # Tag = first 12 chars of sha256(utils/ci/gitlab/docker/system-tests.Dockerfile + requirements.txt)
-  # Update this when either file changes:
-  #   cat utils/ci/gitlab/docker/system-tests.Dockerfile requirements.txt | sha256sum | cut -c1-12
-  CI_IMAGE: "registry.ddbuild.io/system-tests/ci-runner:970b845364b9"
+  # Tag = first 12 chars of sha256(utils/ci/gitlab/docker/system-tests.Dockerfile + requirements.txt
+  #   + utils/ci/gitlab/validate_param_env.py, which is copied into the image)
+  # Update this when any of these files changes:
+  #   cat utils/ci/gitlab/docker/system-tests.Dockerfile requirements.txt utils/ci/gitlab/validate_param_env.py | sha256sum | cut -c1-12
+  CI_IMAGE: "registry.ddbuild.io/system-tests/ci-runner:9b1520f98ee9"
   SYSTEM_TESTS_SPLIT_PIPELINE: "$[[ inputs.split_pipeline ]]"
 
 .system_tests_param_base:
@@ -107,9 +116,6 @@ system_tests_build_pipeline:
   allow_failure: $[[ inputs.allow_failure ]]
   tags:
     - arch:amd64
-  id_tokens:
-    DD_STS_OIDC_TOKEN:
-      aud: dd-sts
   rules:
     - if: $[[ inputs.condition ]]
     - when: never
@@ -120,48 +126,45 @@ system_tests_build_pipeline:
     - job: system_tests_param
       optional: true
       artifacts: true
+  variables:
+    # Passed through a variable rather than inlined in the script, as the JSON value contains quotes
+    SYSTEM_TESTS_LIBRARY_WEBLOG_SCENARIOS_INPUT: $[[ inputs.library_weblog_scenarios ]]
   script:
     - dd-sts exchange --policy system-tests-gitlab -- datadog-ci tag --level job --tags "system-tests.job_type:generate-pipeline"
-    - |
-      libraries=$(echo "$[[ inputs.libraries ]],$LIBRARIES" | tr ',' ' ' | xargs)
-      touch build_params.env
-      scenarios=$(echo "$[[ inputs.scenarios ]],$SCENARIOS" | tr ',' '\n' | sed '/^$/d' | tr '\n' ',' | sed 's/,$//')
-      scenario_groups=$(echo "$[[ inputs.scenarios_groups ]],$SCENARIO_GROUPS" | tr ',' '\n' | sed '/^$/d' | tr '\n' ',' | sed 's/,$//')
-      weblogs=$(echo "$[[ inputs.weblogs ]],$WEBLOGS" | tr ',' '\n' | sed '/^$/d' | tr '\n' ',' | sed 's/,$//')
-      excluded_scenarios=$(echo "$[[ inputs.excluded_scenarios ]],$EXCLUDED_SCENARIOS" | tr ',' '\n' | sed '/^$/d' | sort -u | tr '\n' ',' | sed 's/,$//')
-      force_execute=$(echo "$[[ inputs.force_execute ]],$FORCE_EXECUTE" | tr ',' '\n' | sed '/^$/d' | tr '\n' ',' | sed 's/,$//')
-      parametric_job_count="${SYSTEM_TESTS_PARAMETRIC_JOB_COUNT:-$[[ inputs.parametric_job_count ]]}"
-      parametric_workers="${SYSTEM_TESTS_PARAMETRIC_WORKERS:-$[[ inputs.parametric_workers ]]}"
-      push_to_test_optimization="${SYSTEM_TESTS_PUSH_TO_TEST_OPTIMIZATION:-$[[ inputs.push_to_test_optimization ]]}"
-      docker_auth="${SYSTEM_TESTS_DOCKER_AUTH:-$[[ inputs.docker_auth ]]}"
-      skip_empty_scenario="${SYSTEM_TESTS_SKIP_EMPTY_SCENARIO:-$[[ inputs.skip_empty_scenarios ]]}"
-      echo "libraries:              $libraries"
-      echo "scenarios:              $scenarios"
-      echo "scenario_groups:        $scenario_groups"
-      echo "weblogs:                $weblogs"
-      echo "excluded_scenarios:     $excluded_scenarios"
-      echo "force_execute:          $force_execute"
-      echo "parametric_job_count:   $parametric_job_count"
-      echo "parametric_workers:     $parametric_workers"
-      echo "push_to_test_opt:       $push_to_test_optimization"
-      echo "skip_empty_scenario:    $skip_empty_scenario"
-      printf 'SYSTEM_TESTS_FORCE_EXECUTE=%s\nSYSTEM_TESTS_SKIP_EMPTY_SCENARIO=%s\n' "$force_execute" "$skip_empty_scenario" > build_params.env
-      binaries_artifacts="${BINARIES_ARTIFACTS:-$[[ inputs.binaries_artifacts ]]}"
-      binaries_artifact_path="${BINARIES_ARTIFACT_PATH:-$[[ inputs.binaries_artifact_path ]]}"
-      for library in $libraries; do
-        python3 utils/scripts/compute-workflow-parameters.py $library --format json --groups "$scenario_groups" --excluded-scenarios "$excluded_scenarios" --scenarios "$scenarios" --weblogs "$weblogs" --explicit-binaries-artifact "$binaries_artifacts" --parametric-job-count $parametric_job_count --parametric-workers "$parametric_workers" --output params_${library}.json
-      done
-      chunks=1
-      if [ "$SYSTEM_TESTS_SPLIT_PIPELINE" = "true" ]; then chunks=3; fi
-      python3 utils/ci/gitlab/build_pipeline.py --stage $[[ inputs.stage ]] --ci-image "$CI_IMAGE" --ref "$[[ inputs.ref ]]" --push-to-test-optimization "$push_to_test_optimization" --libraries "$libraries" --params-dir . --output-dir . --chunks $chunks --docker-auth "$docker_auth" --binaries-artifact-path "$binaries_artifact_path" --binaries-artifacts "$binaries_artifacts" --pipeline-start-time "$SYSTEM_TESTS_PIPELINE_START_TIME"
+    # pipeline variables set by the caller (LIBRARIES, SCENARIOS, SYSTEM_TESTS_PARAMETRIC_JOB_COUNT, ...) are
+    # read from the environment and merged with the inputs by build_pipeline.py
+    - >
+      python3 utils/ci/gitlab/build_pipeline.py
+      --stage "$[[ inputs.stage ]]"
+      --ci-image "$CI_IMAGE"
+      --ref "$[[ inputs.ref ]]"
+      --output-dir .
+      --libraries "$[[ inputs.libraries ]]"
+      --scenarios "$[[ inputs.scenarios ]]"
+      --scenario-groups "$[[ inputs.scenarios_groups ]]"
+      --weblogs "$[[ inputs.weblogs ]]"
+      --excluded-scenarios "$[[ inputs.excluded_scenarios ]]"
+      --force-execute "$[[ inputs.force_execute ]]"
+      --parametric-job-count "$[[ inputs.parametric_job_count ]]"
+      --parametric-workers "$[[ inputs.parametric_workers ]]"
+      --push-to-test-optimization "$[[ inputs.push_to_test_optimization ]]"
+      --skip-empty-scenario "$[[ inputs.skip_empty_scenarios ]]"
+      --split-pipeline "$[[ inputs.split_pipeline ]]"
+      --binaries-artifacts "$[[ inputs.binaries_artifacts ]]"
+      --binaries-artifact-path "$[[ inputs.binaries_artifact_path ]]"
+      --library-weblog-scenarios "$SYSTEM_TESTS_LIBRARY_WEBLOG_SCENARIOS_INPUT"
   artifacts:
     paths:
       - system-tests/generated-pipeline-chunk-*.yml
-    reports:
-      dotenv: system-tests/build_params.env
 
 .run_test_pipeline_base:
   interruptible: true
+  trigger:
+    # Don't forward any variable to the child pipelines: top-level variables of the caller would be passed too,
+    # and would take precedence over the job variables of the generated jobs (TEST_LIBRARY, ...). The values the
+    # child pipelines need (CI_IMAGE, UPSTREAM_PIPELINE_ID, ...) are written in the generated files instead.
+    forward:
+      yaml_variables: false
   allow_failure: $[[ inputs.allow_failure ]]
   stage: $[[ inputs.stage ]]
   rules:
@@ -180,11 +183,6 @@ system_tests_build_pipeline:
     - job: build_base_images
       optional: true
       artifacts: false
-  variables:
-    SYSTEM_TESTS_FORCE_EXECUTE: "$SYSTEM_TESTS_FORCE_EXECUTE"
-    SYSTEM_TESTS_SKIP_EMPTY_SCENARIO: "$SYSTEM_TESTS_SKIP_EMPTY_SCENARIO"
-    LIBRARIES: $LIBRARIES
-    UPSTREAM_PIPELINE_ID: $CI_PIPELINE_ID
 
 system_tests_e2e_run_pipeline_0:
   extends: .run_test_pipeline_base

@@ -148,8 +148,8 @@ def test_mocked_backend_v2_agent_sends_to_the_mocked_backend_container(monkeypat
     assert mocked_backend in scenario._containers  # noqa: SLF001
 
     agent = scenario.agent_container
-    assert agent.environment["DD_DD_URL"] == "http://mocked-backend:4900"
-    assert agent.environment["DD_APM_DD_URL"] == "http://mocked-backend:4900"
+    assert agent.environment["DD_DD_URL"] == "https://mocked-backend.invalid"
+    assert agent.environment["DD_APM_DD_URL"] == "https://mocked-backend.invalid"
     # reached by its name on the scenario network: no mapping to the docker host
     assert extra_hosts_at_start(monkeypatch, agent) is None
 

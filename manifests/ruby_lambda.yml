@@ -68,6 +68,7 @@ manifest:
   tests/appsec/test_reports.py::Test_Info: v3.29.0
   tests/appsec/test_reports.py::Test_RequestHeaders: v3.29.0
   tests/appsec/test_reports.py::Test_StatusCode: v3.29.0
+  tests/appsec/test_sca_reachability.py: missing_feature (SCA runtime reachability is not implemented)
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules: v3.29.0
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules::test_rule_with_attributes_no_keep_event: v3.30.0
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules::test_rule_with_attributes_no_keep_no_event: v3.30.0

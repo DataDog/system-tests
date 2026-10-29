@@ -43,7 +43,8 @@ def test_tracer_release():
     ]
     for exposure_scenario in agentless_exposure_scenarios:
         assert exposure_scenario.include_agent is False
-        assert exposure_scenario.use_proxy is True
+        # the events go to the mocked backend, under the intake hostnames: no proxy in between
+        assert exposure_scenario.use_proxy is False
         assert scenario_groups.ffe in exposure_scenario.scenario_groups
         assert scenario_groups.all not in exposure_scenario.scenario_groups
         assert scenario_groups.end_to_end not in exposure_scenario.scenario_groups
@@ -61,9 +62,6 @@ def test_tracer_release():
         scenarios.todo,
         # targetting OTEL
         scenarios.otel_integrations,
-        scenarios.otel_log_e2e,
-        scenarios.otel_metric_e2e,
-        scenarios.otel_tracing_e2e,
         scenarios.otel_collector,
         # to be added once stability is proven
         scenarios.chaos_installer_auto_injection,
