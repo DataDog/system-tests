@@ -218,7 +218,6 @@ class AppsecLambdaSca(_LambdaScenario):
             weblog_env={
                 "DD_APPSEC_ENABLED": "false",
                 "DD_APPSEC_SCA_ENABLED": "true",
-                "_DD_APPSEC_SCA_DATA_FILE": "/sca_advisories.json",
             },
             weblog_volumes={"./tests/appsec/sca_advisories.json": {"bind": "/sca_advisories.json", "mode": "ro"}},
             doc="SCA dependency metadata and runtime reachability in Lambda with AppSec disabled",
