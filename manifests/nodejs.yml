@@ -1767,6 +1767,10 @@ manifest:
   ? tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation::test_inproduct_enablement_dynamic_instrumentation_apm_multiconfig
   : v6.0.0
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature
+  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Multiconfig_Partial_Update:
+    - weblog_declaration:
+        "*": *ref_5_83_0
+        nextjs: irrelevant
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction:
     - weblog_declaration:
         "*": *ref_5_39_0
@@ -2386,9 +2390,6 @@ manifest:
         nextjs: missing_feature (AppSec/IAST force-samples traces, overriding unsampled traceparent)
   tests/otel/test_tracing_otlp.py::Test_Otlp_Carries_Ot: v6.20.0-dev
   tests/otel/test_tracing_otlp.py::Test_Otlp_Forwards_Inherited_Ot: v6.20.0-dev
-  tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
-  tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
-  tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
   tests/parametric/otel_env_vars/test_otel_blrp_export_timeout.py::Test_OTEL_BLRP_EXPORT_TIMEOUT: missing_feature
   tests/parametric/otel_env_vars/test_otel_blrp_max_export_batch_size.py::Test_OTEL_BLRP_MAX_EXPORT_BATCH_SIZE: missing_feature
   tests/parametric/otel_env_vars/test_otel_blrp_max_queue_size.py::Test_OTEL_BLRP_MAX_QUEUE_SIZE: missing_feature

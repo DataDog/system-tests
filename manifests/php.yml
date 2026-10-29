@@ -1183,6 +1183,11 @@ manifest:
         laravel11x: incomplete_test_app
         symfony7x: incomplete_test_app
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature (blocked by exception replay throwable gap)
+  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Multiconfig_Partial_Update:
+    - weblog_declaration:
+        "*": v1.20.0
+        laravel11x: incomplete_test_app
+        symfony7x: incomplete_test_app
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction:
     - weblog_declaration:
         "*": v1.19.0
@@ -1410,9 +1415,6 @@ manifest:
   tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP: missing_feature
   tests/otel/test_tracing_otlp.py::Test_Otlp_Carries_Ot: missing_feature (APMAPI-2172)
   tests/otel/test_tracing_otlp.py::Test_Otlp_Forwards_Inherited_Ot: missing_feature (APMAPI-2172)
-  tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
-  tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
-  tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
   tests/parametric/otel_env_vars/test_otel_blrp_export_timeout.py::Test_OTEL_BLRP_EXPORT_TIMEOUT: v1.23.0
   tests/parametric/otel_env_vars/test_otel_blrp_export_timeout.py::Test_OTEL_BLRP_EXPORT_TIMEOUT::test_invalid_value_is_ignored: bug (APMAPI-2444)  # OTel PHP SDK throws instead of using the default, and logs fail to initialize
   tests/parametric/otel_env_vars/test_otel_blrp_export_timeout.py::Test_OTEL_BLRP_EXPORT_TIMEOUT::test_zero_value: bug (APMAPI-2444)  # OTel PHP SDK rejects 0, and logs fail to initialize

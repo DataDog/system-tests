@@ -23,17 +23,31 @@ spec:
     USE_IMAGE_MIRROR: "1"
   stage: $[[ inputs.stage ]]
   interruptible: true
+  id_tokens:
+    # required by the dd-sts exchanges below
+    DD_STS_OIDC_TOKEN:
+      aud: dd-sts
   before_script:
     # first command, before the clone, so the job is tagged even if it fails later
     - dd-sts exchange --policy system-tests-gitlab -- datadog-ci tag --level job --tags "ci.framework.name:system-tests" || true
     - echo -e "section_start:`date +%s`:setup[collapsed=true]\r\e[0KSystem-tests runner setup"
-    - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.ddbuild.io/DataDog/system-tests.git
+    - |
+      for attempt in 1 2 3 4 5; do
+        rm -rf system-tests
+        if git clone "https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.ddbuild.io/DataDog/system-tests.git"; then
+          break
+        fi
+        if [ "$attempt" -eq 5 ]; then
+          echo "git clone failed after $attempt attempts"
+          exit 1
+        fi
+        echo "git clone failed (attempt $attempt/5), retrying in $((attempt * 5))s..."
+        sleep $((attempt * 5))
+      done
     - cd system-tests
     - git checkout $[[ inputs.ref ]]
     - ln -sf /system-tests/venv venv
     - source venv/bin/activate
     - export PYTHONPATH="$CI_PROJECT_DIR/system-tests"
-    - source utils/ci/gitlab/section.sh
     - echo -e "section_end:`date +%s`:setup\r\e[0K"
     - export DD_API_KEY=$(dd-sts exchange --policy system-tests-gitlab -- env | sed -n 's/^DD_API_KEY=//p')
-    - echo "export DD_API_KEY=${DD_API_KEY}" > "$CI_PROJECT_DIR/dd_api_key.env"
