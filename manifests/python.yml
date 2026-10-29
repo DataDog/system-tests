@@ -2846,12 +2846,6 @@ manifest:
   tests/otel_postgres_metrics_e2e:
     - weblog_declaration:
         aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
-  tests/otel_tracing_e2e:
-    - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
-  tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
-  tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
-  tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
   tests/parametric:
     - weblog_declaration:
         aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
