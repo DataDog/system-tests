@@ -430,14 +430,14 @@ images:
     digest: sha256:b38264d66820f3696906ed5fa51b1317d83215515f4a45500c9bf403bf2c9b47
     target: registry.ddbuild.io/system-tests/mirror/ruby:3.2.1-bullseye
     tag: 3.2.1-bullseye
-  rust:1.87-slim-bookworm:
-    digest: sha256:437507c3e719e4f968033b88d851ffa9f5aceeb2dcc2482cc6cb7647811a55eb
-    target: registry.ddbuild.io/system-tests/mirror/rust:1.87-slim-bookworm
-    tag: 1.87-slim-bookworm
   rust:1.91.1-slim-bookworm:
     digest: sha256:8514999d4786ef12efe89239e86b3d0a021b94b9d35108c8efe6c79ca7dc1a65
     target: registry.ddbuild.io/system-tests/mirror/rust:1.91.1-slim-bookworm
     tag: 1.91.1-slim-bookworm
+  rust:1.94.1-slim-bookworm:
+    digest: sha256:cf9dd0ec73e75f827fe59123fff9dc65af1a1c8363c3c31ee8d7f8ad0b6a5fb2
+    target: registry.ddbuild.io/system-tests/mirror/rust:1.94.1-slim-bookworm
+    tag: 1.94.1-slim-bookworm
   softwaremill/elasticmq-native:1.6.11:
     digest: sha256:fe3af4a8dd59f310b20e07ec3499cfdeb16a14f518c95ad7e70f200845dce3f5
     target: registry.ddbuild.io/system-tests/mirror/softwaremill/elasticmq-native:1.6.11
