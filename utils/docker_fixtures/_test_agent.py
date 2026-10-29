@@ -1,5 +1,5 @@
 import base64
-from collections.abc import Generator
+from collections.abc import Callable, Generator
 import contextlib
 import datetime
 import gzip
@@ -702,8 +702,17 @@ class TestAgentAPI:
             time.sleep(0.1)
         raise ValueError(f"Number ({num}) of OTLP requests not available from test agent, got {len(otlp_requests)}")
 
-    def wait_for_telemetry_event(self, event_name: str, *, clear: bool = False, wait_loops: int = 200):
-        """Wait for and return the given telemetry event from the test agent."""
+    def wait_for_telemetry_event(
+        self,
+        event_name: str,
+        *,
+        clear: bool = False,
+        wait_loops: int = 200,
+        condition: Callable[[dict], bool] | None = None,
+    ):
+        """Wait for and return the given telemetry event from the test agent.
+        condition: only return an event satisfying it (other events of the same type are skipped)
+        """
         for _ in range(wait_loops):
             try:
                 events = self.telemetry(clear=False)
@@ -711,7 +720,7 @@ class TestAgentAPI:
                 pass
             else:
                 for event in events:
-                    e = self._get_telemetry_event(event, event_name)
+                    e = self._get_telemetry_event(event, event_name, condition)
                     if e:
                         if clear:
                             self.clear()
@@ -830,9 +839,9 @@ class TestAgentAPI:
             self.clear()
         return metrics
 
-    def _get_telemetry_event(self, event: dict, request_type: str):
+    def _get_telemetry_event(self, event: dict, request_type: str, condition: Callable[[dict], bool] | None = None):
         """Extracts telemetry events from a message batch or returns the telemetry event if it
-        matches the expected request_type and was not emitted from a sidecar.
+        matches the expected request_type, was not emitted from a sidecar, and satisfies the condition.
         """
         if not event:
             return None
@@ -840,10 +849,12 @@ class TestAgentAPI:
             for message in event["payload"]:
                 if message["request_type"] == request_type:
                     if message.get("application", {}).get("language_version") != "SIDECAR":
-                        return message
+                        if condition is None or condition(message):
+                            return message
         elif event["request_type"] == request_type:
             if event.get("application", {}).get("language_version") != "SIDECAR":
-                return event
+                if condition is None or condition(event):
+                    return event
         return None
 
     def count_telemetry_events(self, event_name: str) -> int:

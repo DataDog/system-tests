@@ -17,20 +17,18 @@ class Test_Crashtracking:
     def test_report_crash(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         test_library.crash()
 
-        while True:
-            event = test_agent.wait_for_telemetry_event("logs", wait_loops=400)
-            # Handling both v1 and v2 of the crashtracking payload so that we can
-            # update to v2 without breaking the test.
-            if isinstance(event.get("payload"), list):
-                if self.is_crash_report(event["payload"][0]["tags"]):
-                    self.assert_crash_report_v1(test_library, event)
-                    break
-            elif self.is_crash_report(event["payload"]["logs"][0]["tags"]):
-                self.assert_crash_report_v2(test_library, event)
-                break
+        event = test_agent.wait_for_telemetry_event("logs", wait_loops=400, condition=self.is_crash_report)
+        # Handling both v1 and v2 of the crashtracking payload so that we can
+        # update to v2 without breaking the test.
+        if isinstance(event.get("payload"), list):
+            self.assert_crash_report_v1(test_library, event)
+        else:
+            self.assert_crash_report_v2(test_library, event)
 
     @staticmethod
-    def is_crash_report(tags: str) -> bool:
+    def is_crash_report(event: dict) -> bool:
+        payload = event["payload"]
+        tags = payload[0]["tags"] if isinstance(payload, list) else payload["logs"][0]["tags"]
         # the crashtracker also sends crash pings, and debug logs when something went wrong while
         # collecting the crash (e.g. "CrashInfo stacktrace incomplete"): they are not the crash report
         return "is_crash_ping:true" not in tags and "is_crash_debug:true" not in tags
