@@ -24,7 +24,6 @@ from utils._context.containers import MockedBackendContainer
 from utils._context._scenarios.agentless_endtoend import JAVA_TRUSTSTORE_SOURCE
 from utils.mocked_backend import MockedBackendClient, MockedBackendServer
 from utils.mocked_backend.ffe import UFC_FIXTURE_RELATIVE_PATH
-from utils.proxy.rc_response_builder import build_rc_configurations_protobuf
 
 
 @pytest.fixture
@@ -128,11 +127,11 @@ def test_serves_the_pushed_remote_config_to_agentless_clients(server: MockedBack
     """Agentless libraries poll remote config from the backend: they get the last configuration pushed"""
     poll = f"{server.base_url}/api/v0.1/configurations"
 
-    # nothing pushed yet: an empty configuration
+    # nothing pushed yet: an empty LatestConfigsResponse
     response = requests.post(poll, data=b"", timeout=5)
     assert response.status_code == 200
     assert response.headers["Content-Type"] == "application/x-protobuf"
-    assert response.content == build_rc_configurations_protobuf(None)
+    assert response.content == b""
 
     server.client.rc_set_configurations(b"pushed-configurations")
     assert requests.post(poll, data=b"", timeout=5).content == b"pushed-configurations"

@@ -1,6 +1,10 @@
 """Remote configuration for agentless clients: without an agent to relay it, the library's native RC client polls
-the backend directly. Tests push the configuration with ``mocked_backend.client.rc_set_configurations(...)``
-(see ``send_state`` in ``utils/_remote_config.py``), and every poll gets the last one pushed.
+the backend directly. Tests push the configuration with ``mocked_backend.client.rc_set_configurations(...)``, and
+every poll gets the last one pushed.
+
+The mocked backend only serves the bytes it is given: it signs nothing (its image has no TUF signing dependency).
+A configuration is built and signed on the test runner side, e.g. with
+``utils.proxy.rc_response_builder.build_rc_configurations_protobuf``.
 """
 
 from __future__ import annotations
@@ -10,8 +14,6 @@ import binascii
 from http import HTTPStatus
 import threading
 from typing import TYPE_CHECKING
-
-from utils.proxy.rc_response_builder import build_rc_configurations_protobuf
 
 from ._utils import CONTROL_URL_PREFIX
 
@@ -32,8 +34,8 @@ RC_CONTROL_PATH = f"{CONTROL_URL_PREFIX}/remote-config"
 class MockedBackendServerRcMixin(_Base):
     def _rc_configure(self) -> None:
         self._rc_lock = threading.Lock()
-        # until a test pushes one, an empty configuration
-        self._rc_configurations = build_rc_configurations_protobuf(None)
+        # until a test pushes one, an empty LatestConfigsResponse (all its fields are optional)
+        self._rc_configurations = b""
 
         self.add_handler("POST", RC_CONFIGURATIONS_PATH, self._rc_handle_configurations)
         self.add_handler("POST", RC_CONTROL_PATH, self._rc_handle_control)
