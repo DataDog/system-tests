@@ -47,6 +47,28 @@ else:
 _TRACK_CUSTOM_APPSEC_EVENT_NAME = "system_tests_appsec_event"
 
 
+@app.get("/sca/vulnerable-call")
+def sca_requests_vulnerable_call() -> str:
+    """Call the vulnerable Session.send target without an external dependency."""
+    with requests.Session() as session:
+        try:
+            session.send(requests.Request("GET", "http://127.0.0.1:1").prepare(), timeout=1)
+        except requests.exceptions.ConnectionError:
+            pass
+    return "OK"
+
+
+@app.get("/sca/vulnerable-call-alt")
+def sca_requests_vulnerable_call_alt() -> str:
+    """Use a distinct caller for the same target to check first-hit deduplication."""
+    with requests.Session() as session:
+        try:
+            session.send(requests.Request("GET", "http://127.0.0.1:1").prepare(), timeout=1)
+        except requests.exceptions.ConnectionError:
+            pass
+    return "OK"
+
+
 def version_info():
     return {
         "status": "ok",
