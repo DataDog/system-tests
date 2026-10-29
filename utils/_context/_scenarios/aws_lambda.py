@@ -200,7 +200,6 @@ class AppsecLambdaApiSecurity(_LambdaScenario):
                 "DD_API_SECURITY_ENABLED": "true",
                 "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
                 "DD_API_SECURITY_SAMPLE_DELAY": "0.0",
-                "DD_API_SECURITY_MAX_CONCURRENT_REQUESTS": "50",
                 "DD_API_SECURITY_ENDPOINT_COLLECTION_ENABLED": "true",
                 "DD_API_SECURITY_ENDPOINT_COLLECTION_MESSAGE_LIMIT": "30",
             },
@@ -208,6 +207,16 @@ class AppsecLambdaApiSecurity(_LambdaScenario):
         Scenario for API Security feature in lambda, testing schema types sent into span tags if
         DD_API_SECURITY_ENABLED is set to true.
         """,
+            scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
+        )
+
+
+class AppsecLambdaSca(_LambdaScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "APPSEC_LAMBDA_SCA",
+            weblog_env={"DD_APPSEC_ENABLED": "false", "DD_APPSEC_SCA_ENABLED": "true"},
+            doc="SCA dependency metadata and runtime reachability in Lambda with AppSec disabled",
             scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
         )
 

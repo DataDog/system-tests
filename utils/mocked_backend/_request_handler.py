@@ -3,6 +3,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Mapping
 import contextlib
+from datetime import UTC, datetime
 import gzip
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import io
@@ -57,6 +58,7 @@ def _decode_content(raw_body: bytes, content_encoding: str) -> bytes:
 class MockedBackendServerCore(ABC, ThreadingHTTPServer):
     on_message: Callable[[dict], None]
     port: int
+    scheme: str
 
     @abstractmethod
     def get_handler(self, method: HttpMethod, path: str) -> tuple[RouteHandler, str | None, str | None]: ...
@@ -72,6 +74,8 @@ class MockedBackendServerCore(ABC, ThreadingHTTPServer):
 class MockBackendV2RequestHandler(BaseHTTPRequestHandler):
     server: MockedBackendServerCore
     _data: dict  # use to store request and response info
+    # Routes can delay or interrupt body delivery after headers and request logging.
+    before_response_body: Callable[[], None] | None = None
 
     # catch response events
     def send_response(self, code: int, message: str | None = None) -> None:
@@ -104,6 +108,7 @@ class MockBackendV2RequestHandler(BaseHTTPRequestHandler):
         self._handle("PUT")
 
     def _handle(self, method: HttpMethod) -> None:
+        timestamp_start = datetime.now(UTC).isoformat()
         content_length = int(self.headers.get("Content-Length", "0"))
         raw_body = self.rfile.read(content_length) if content_length else b""
         url_parts = urlsplit(self.path)
@@ -115,7 +120,7 @@ class MockBackendV2RequestHandler(BaseHTTPRequestHandler):
             "log_filename": log_filename,
             "method": self.command,
             "path": path,
-            "request": {"headers": list(self.headers.items())},
+            "request": {"timestamp_start": timestamp_start, "headers": list(self.headers.items())},
             "response": {"headers": []},
         }
 
@@ -152,4 +157,6 @@ class MockBackendV2RequestHandler(BaseHTTPRequestHandler):
         with contextlib.suppress(BrokenPipeError, ConnectionResetError):
             self.send_header("Content-Length", str(len(response_as_bytes)))
             self.end_headers()
+            if self.before_response_body is not None:
+                self.before_response_body()
             self.wfile.write(response_as_bytes)

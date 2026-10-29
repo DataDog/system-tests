@@ -311,6 +311,9 @@ jobs:
     - name: Run FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS"')
       run: ./run.sh FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS
+    - name: Run FEATURE_FLAGGING_EVP_STRESS scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"FEATURE_FLAGGING_EVP_STRESS"')
+      run: ./run.sh FEATURE_FLAGGING_EVP_STRESS
     - name: Run FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_DIRECT scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_DIRECT"')
       run: ./run.sh FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_DIRECT
@@ -529,6 +532,9 @@ jobs:
     - name: Run APPSEC_LAMBDA_API_SECURITY scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_LAMBDA_API_SECURITY"')
       run: ./run.sh APPSEC_LAMBDA_API_SECURITY
+    - name: Run APPSEC_LAMBDA_SCA scenario
+      if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_LAMBDA_SCA"')
+      run: ./run.sh APPSEC_LAMBDA_SCA
     - name: Run APPSEC_LAMBDA_RASP scenario
       if: steps.build.outcome == 'success' && !cancelled() && contains(inputs.scenarios, '"APPSEC_LAMBDA_RASP"')
       run: ./run.sh APPSEC_LAMBDA_RASP

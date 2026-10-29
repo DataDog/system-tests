@@ -279,7 +279,8 @@ class EndToEndScenario(DockerScenario):
         self.dd_api_key = FAKE_DD_API_KEY if mocked_backend_v2 else os.environ.get("DD_API_KEY", FAKE_DD_API_KEY)
         """The API key used by the agent to send data to the backend"""
 
-        self.mocked_backend_container = MockedBackendContainer()
+        # it serves HTTPS on its domain, and on the intake hostnames derived from it (see MOCKED_BACKEND_DOMAIN)
+        self.mocked_backend_container = MockedBackendContainer(tls=True)
         if mocked_backend_v2:
             self._containers.append(self.mocked_backend_container)
             if include_agent:
