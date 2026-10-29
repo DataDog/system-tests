@@ -373,6 +373,8 @@ patterns:
       scenarios: DEFAULT
     utils/ci/gitlab/*:  # end-to-end GitLab pipeline, which only runs the c library on PRs
       libraries: c
+      scenario_groups: end_to_end
+      scenarios: PARAMETRIC
 
 ############################ Library-specific rules ############################
 # This section contains rules to apply to library-related files. It follows the
