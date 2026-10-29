@@ -21,6 +21,9 @@ from ._core import DdTraceEndToEndScenario, ScenarioGroup, scenario_groups as al
 
 DIRECT_EVP_CA_BUNDLE_SOURCE = "./utils/build/docker/agent/ca-certificates.crt"
 DIRECT_EVP_CA_BUNDLE_CONTAINER_PATH = "/etc/ssl/certs/ca-certificates.crt"
+# the JVM does not use the system CA bundle: it gets the same CA in its own trust store (PKCS12, built with keytool)
+JAVA_TRUSTSTORE_SOURCE = "./utils/proxy/.mitmproxy/mitmproxy-ca-truststore.p12"
+JAVA_TRUSTSTORE_CONTAINER_PATH = "/etc/ssl/certs/mitmproxy-ca-truststore.p12"
 DIRECT_EVP_EXPOSURES_PATH = "/api/v2/exposures"
 DIRECT_EVP_FLAGEVALUATIONS_PATH = "/api/v2/flagevaluation"
 DIRECT_EVP_SIGNAL_PATHS = frozenset({DIRECT_EVP_EXPOSURES_PATH, DIRECT_EVP_FLAGEVALUATIONS_PATH})
@@ -90,10 +93,15 @@ class _AgentlessEndToEndScenario(DdTraceEndToEndScenario):
             ),
             # The mocked backend serves HTTPS, with a certificate signed by the CA of this bundle
             "NODE_EXTRA_CA_CERTS": DIRECT_EVP_CA_BUNDLE_CONTAINER_PATH,
+            # Read by the java launcher only, so it does not replace the JAVA_TOOL_OPTIONS set by the weblogs
+            "JDK_JAVA_OPTIONS": (
+                f"-Djavax.net.ssl.trustStore={JAVA_TRUSTSTORE_CONTAINER_PATH} "
+                "-Djavax.net.ssl.trustStoreType=PKCS12 -Djavax.net.ssl.trustStorePassword=changeit"
+            ),
         }
-        self.weblog_infra.library_container.volumes[DIRECT_EVP_CA_BUNDLE_SOURCE] = {
-            "bind": DIRECT_EVP_CA_BUNDLE_CONTAINER_PATH,
-            "mode": "ro",
+        self.weblog_infra.library_container.volumes |= {
+            DIRECT_EVP_CA_BUNDLE_SOURCE: {"bind": DIRECT_EVP_CA_BUNDLE_CONTAINER_PATH, "mode": "ro"},
+            JAVA_TRUSTSTORE_SOURCE: {"bind": JAVA_TRUSTSTORE_CONTAINER_PATH, "mode": "ro"},
         }
 
     @property

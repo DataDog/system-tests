@@ -27,7 +27,7 @@ from opentelemetry.proto.collector.logs.v1.logs_service_pb2 import (
     ExportLogsServiceResponse,
 )
 from ._decoders.protobuf_schemas import MetricPayload, TracePayload, SketchPayload, BackendResponsePayload
-from ._decoders.metrics_v3 import decode_metrics_v3
+from ._decoders.metrics_v3 import decode_metrics_v3, decode_sketches_v3
 from .trace_bytes_decoding import decode_trace_bytes_ascii, unpack_trace_bytes_msgpack
 from .traces.trace_v1 import deserialize_v1_trace, _uncompress_agent_v1_trace, decode_appsec_s_value
 from .traces.otlp_v1 import deserialize_otlp_v1_trace
@@ -252,6 +252,9 @@ def deserialize_http_message(
             return MessageToDict(BackendResponsePayload.FromString(content))
         if path == "/api/beta/sketches":
             return MessageToDict(SketchPayload.FromString(content))
+        if path == "/api/intake/metrics/v3/sketches" and key == "request":
+            # same columnar format as /api/intake/metrics/v3/series
+            return decode_sketches_v3(content)
 
     if content_type == "application/x-www-form-urlencoded" and content == b"[]" and path == "/v0.4/traces":
         return []

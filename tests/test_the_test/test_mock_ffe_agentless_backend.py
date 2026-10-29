@@ -28,6 +28,8 @@ from utils._context._scenarios.agentless_endtoend import (
     DIRECT_EVP_CA_BUNDLE_SOURCE,
     DIRECT_EVP_CAPTURE_SETTLE_SECONDS,
     DIRECT_EVP_CAPTURE_WAIT_SECONDS,
+    JAVA_TRUSTSTORE_CONTAINER_PATH,
+    JAVA_TRUSTSTORE_SOURCE,
     FeatureFlaggingAgentlessEndToEndScenario,
 )
 
@@ -138,6 +140,9 @@ def test_agentless_end_to_end_scenario_points_weblog_to_mocked_backend(monkeypat
         "bind": DIRECT_EVP_CA_BUNDLE_CONTAINER_PATH,
         "mode": "ro",
     }
+    # the JVM gets the CA in its own trust store
+    assert library_container.volumes[JAVA_TRUSTSTORE_SOURCE] == {"bind": JAVA_TRUSTSTORE_CONTAINER_PATH, "mode": "ro"}
+    assert f"-Djavax.net.ssl.trustStore={JAVA_TRUSTSTORE_CONTAINER_PATH}" in str(environment["JDK_JAVA_OPTIONS"])
     # reached by its name on the scenario network: no mapping to the docker host
     assert extra_hosts_at_start(monkeypatch, library_container) is None
 

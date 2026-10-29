@@ -206,7 +206,9 @@ class _BackendV2InterfaceValidator(ProxyBasedInterfaceValidator):
     def get_sketches(self, *, with_api_key: str | None = None):
         """Attempts to fetch the sketches the agent submitted to the mocked backend."""
 
-        all_data = self.get_data(path_filters="/api/beta/sketches", with_api_key=with_api_key)
+        all_data = self.get_data(
+            path_filters=("/api/beta/sketches", "/api/intake/metrics/v3/sketches"), with_api_key=with_api_key
+        )
 
         for data in all_data:
             if "sketches" in data["request"]["content"]:
