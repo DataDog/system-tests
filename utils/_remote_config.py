@@ -741,19 +741,24 @@ def library_supports_sdk_configuration() -> bool:
     return resolve_sdk_configuration_support(library.get_rc_capabilities, library_name=context.library.name)
 
 
-def build_apm_tracing_command(
-    version: int,
+def _accumulated_apm_tracing_path_payloads(
     prev_payloads: list[dict[str, Any]],
     *,
-    dynamic_instrumentation_enabled: bool | None = None,
-    exception_replay_enabled: bool | None = None,
-    live_debugging_enabled: bool | None = None,
-    code_origin_enabled: bool | None = None,
-    dynamic_sampling_enabled: bool | None = None,
-    service_name: str | None = "weblog",
-    env: str | None = "system-tests",
-    use_sdk_config: bool = False,
-):
+    dynamic_instrumentation_enabled: bool | None,
+    exception_replay_enabled: bool | None,
+    live_debugging_enabled: bool | None,
+    code_origin_enabled: bool | None,
+    dynamic_sampling_enabled: bool | None,
+    service_name: str | None,
+    env: str | None,
+    use_sdk_config: bool,
+) -> dict[str, Any]:
+    """Build the APM_TRACING target files of every config in prev_payloads plus a new one.
+
+    Each config goes under its own fresh path, in the `sdk_config` shape when `use_sdk_config`
+    is set and in the legacy `lib_config` shape otherwise. The new config is appended to
+    prev_payloads.
+    """
     lib_config: dict[str, str | bool] = {
         "library_language": "all",
         "library_version": "latest",
@@ -778,7 +783,7 @@ def build_apm_tracing_command(
         "service_target": {"service": service_name, "env": env},
     }
 
-    path_payloads = {}
+    path_payloads: dict[str, Any] = {}
     for _config in [*prev_payloads, config]:
         path_payloads[f"datadog/2/APM_TRACING/{uuid.uuid4()}/config"] = (
             to_sdk_config_payload(_config) if use_sdk_config else _config
@@ -787,6 +792,33 @@ def build_apm_tracing_command(
     # `prev_payloads` tracks the legacy shape: it is the input of the next command, and gets
     # translated on its way out just like this one.
     prev_payloads.append(config)
+    return path_payloads
+
+
+def build_apm_tracing_command(
+    version: int,
+    prev_payloads: list[dict[str, Any]],
+    *,
+    dynamic_instrumentation_enabled: bool | None = None,
+    exception_replay_enabled: bool | None = None,
+    live_debugging_enabled: bool | None = None,
+    code_origin_enabled: bool | None = None,
+    dynamic_sampling_enabled: bool | None = None,
+    service_name: str | None = "weblog",
+    env: str | None = "system-tests",
+    use_sdk_config: bool = False,
+):
+    path_payloads = _accumulated_apm_tracing_path_payloads(
+        prev_payloads,
+        dynamic_instrumentation_enabled=dynamic_instrumentation_enabled,
+        exception_replay_enabled=exception_replay_enabled,
+        live_debugging_enabled=live_debugging_enabled,
+        code_origin_enabled=code_origin_enabled,
+        dynamic_sampling_enabled=dynamic_sampling_enabled,
+        service_name=service_name,
+        env=env,
+        use_sdk_config=use_sdk_config,
+    )
     return _build_base_command(path_payloads, version)
 
 
@@ -944,74 +976,44 @@ def send_combined_apm_tracing_and_debugger_command(
 def build_combined_apm_tracing_and_debugger_command_multiconfig(
     version: int,
     prev_payloads: list[dict[str, Any]],
-    probes: list | None = None,
+    probes: list | None,
     *,
-    dynamic_instrumentation_enabled: bool | None = None,
-    exception_replay_enabled: bool | None = None,
-    live_debugging_enabled: bool | None = None,
-    code_origin_enabled: bool | None = None,
-    dynamic_sampling_enabled: bool | None = None,
-    service_name: str | None = "weblog",
-    env: str | None = "system-tests",
-    use_sdk_config: bool = False,
-) -> tuple[dict[str, Any], dict[str, Any]]:
+    dynamic_instrumentation_enabled: bool | None,
+    exception_replay_enabled: bool | None,
+    live_debugging_enabled: bool | None,
+    code_origin_enabled: bool | None,
+    dynamic_sampling_enabled: bool | None,
+    service_name: str | None,
+    env: str | None,
+    use_sdk_config: bool,
+) -> dict[str, Any]:
     """Build an RC command with several accumulated APM_TRACING configs plus LIVE_DEBUGGING probes.
 
     The APM_TRACING multiconfig merge requires several APM_TRACING configs with distinct
     service_target scopes to be active at the same time. Remote Config's client_configs
     field is the complete list of active configs, so every previously-accumulated APM_TRACING
-    config is re-sent (each under its own path) alongside the new one.
-
-    Every APM_TRACING payload is sent in the `sdk_config` shape when `use_sdk_config` is
-    set, and in the legacy `lib_config` shape otherwise. The returned `apm_config` always
-    keeps the legacy shape, whatever shape was sent, as that is what later calls re-send
-    through the same translation.
+    config is re-sent (each under its own path) alongside the new one, and the new config is
+    appended to prev_payloads.
     """
-    path_payloads: dict[str, Any] = {}
-
-    lib_config: dict[str, str | bool] = {
-        "library_language": "all",
-        "library_version": "latest",
-        "tracing_enabled": True,
-    }
-    if dynamic_instrumentation_enabled is not None:
-        lib_config["dynamic_instrumentation_enabled"] = dynamic_instrumentation_enabled
-    if exception_replay_enabled is not None:
-        lib_config["exception_replay_enabled"] = exception_replay_enabled
-    if live_debugging_enabled is not None:
-        lib_config["live_debugging_enabled"] = live_debugging_enabled
-    if code_origin_enabled is not None:
-        lib_config["code_origin_enabled"] = code_origin_enabled
-    if dynamic_sampling_enabled is not None:
-        lib_config["dynamic_sampling_enabled"] = dynamic_sampling_enabled
-
-    apm_config = {
-        "schema_version": "v1.0.0",
-        "action": "enable",
-        "lib_config": lib_config,
-        "service_target": {"service": service_name, "env": env},
-    }
-
-    # Re-send every previously-accumulated APM_TRACING config, each under a fresh path
-    for prev_config in prev_payloads:
-        path_payloads[f"datadog/2/APM_TRACING/{uuid.uuid4()}/config"] = (
-            to_sdk_config_payload(prev_config) if use_sdk_config else prev_config
-        )
-
-    # Add the new APM_TRACING config
-    path_payloads[f"datadog/2/APM_TRACING/{uuid.uuid4()}/config"] = (
-        to_sdk_config_payload(apm_config) if use_sdk_config else apm_config
+    path_payloads = _accumulated_apm_tracing_path_payloads(
+        prev_payloads,
+        dynamic_instrumentation_enabled=dynamic_instrumentation_enabled,
+        exception_replay_enabled=exception_replay_enabled,
+        live_debugging_enabled=live_debugging_enabled,
+        code_origin_enabled=code_origin_enabled,
+        dynamic_sampling_enabled=dynamic_sampling_enabled,
+        service_name=service_name,
+        env=env,
+        use_sdk_config=use_sdk_config,
     )
-
     path_payloads |= _live_debugging_path_payloads(probes)
-
-    return _build_base_command(path_payloads, version), apm_config
+    return _build_base_command(path_payloads, version)
 
 
 def send_combined_apm_tracing_and_debugger_command_multiconfig(
     prev_payloads: list[dict[str, Any]],
-    probes: list | None = None,
     *,
+    probes: list | None = None,
     dynamic_instrumentation_enabled: bool | None = None,
     exception_replay_enabled: bool | None = None,
     live_debugging_enabled: bool | None = None,
@@ -1023,11 +1025,11 @@ def send_combined_apm_tracing_and_debugger_command_multiconfig(
 ) -> RemoteConfigStateResults:
     """Send an RC command accumulating multiple APM_TRACING configs plus LIVE_DEBUGGING probes.
 
-    Each call appends its APM_TRACING config to prev_payloads, so a later call with
-    reset=False re-sends every prior config alongside the new one and the tracer merges
+    Each call appends its APM_TRACING config to prev_payloads, so a later call with the same
+    prev_payloads re-sends every prior config alongside the new one and the tracer merges
     them (most-specific service_target wins per lib_config field).
     """
-    raw_payload, apm_config = build_combined_apm_tracing_and_debugger_command_multiconfig(
+    raw_payload = build_combined_apm_tracing_and_debugger_command_multiconfig(
         version,
         prev_payloads,
         probes,
@@ -1040,8 +1042,6 @@ def send_combined_apm_tracing_and_debugger_command_multiconfig(
         env=env,
         use_sdk_config=library_supports_sdk_configuration(),
     )
-
-    prev_payloads.append(apm_config)
 
     target: RemoteConfigTarget = "backend" if context.scenario.rc_backend_enabled else "tracer"
     return send_state(raw_payload, target=target)
