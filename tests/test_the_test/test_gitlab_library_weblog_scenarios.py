@@ -2,7 +2,6 @@
 
 from pathlib import Path
 
-
 import yaml
 
 from utils import pytest, scenarios
