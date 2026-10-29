@@ -1968,6 +1968,12 @@ manifest:
         rails80: v2.39.0-dev
         uds-rails: v2.39.0-dev
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature
+  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Multiconfig_Partial_Update:
+    - weblog_declaration:
+        "*": missing_feature
+        rails72: v2.42.0
+        rails80: v2.42.0
+        uds-rails: v2.42.0
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction:
     - weblog_declaration:
         "*": irrelevant
@@ -2370,6 +2376,7 @@ manifest:
         uds-rails: missing_feature
         rack: missing_feature
         rails42: missing_feature
+  tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP::test_git_span_attributes: missing_feature (OTLP trace export not supported, OTEL_TRACES_EXPORTER=otlp falls back to Datadog protocol)
   tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP::test_single_server_trace:
     - weblog_declaration:
         sinatra22: missing_feature
