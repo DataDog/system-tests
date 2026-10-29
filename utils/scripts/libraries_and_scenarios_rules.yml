@@ -591,6 +591,11 @@ patterns:
         scenario_groups: null
         libraries: [java, java_lambda, python, python_lambda]
 
+    tests/appsec/sca_python_lambda.json:
+        scenario_groups: null
+        scenarios: [APPSEC_LAMBDA_SCA]
+        libraries: python_lambda
+
 ################################# Default rules ################################
 # The rules in this section are only applied if no other rule is applicable.
 # They are considered safe to override in previous rules. They should match a

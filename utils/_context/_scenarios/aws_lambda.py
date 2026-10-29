@@ -220,6 +220,15 @@ class AppsecLambdaSca(_LambdaScenario):
             scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
         )
 
+    def configure(self, config: pytest.Config) -> None:
+        super().configure(config)
+        if self.lambda_weblog.image.labels.get("system-tests-library") == "python_lambda":
+            # Inject a synthetic advisory without coupling requests upgrades to a real CVE.
+            self.lambda_weblog.volumes["./tests/appsec/sca_python_lambda.json"] = {
+                "bind": "/opt/python/lib/python3.13/site-packages/ddtrace/appsec/sca/_cve_data.json",
+                "mode": "ro",
+            }
+
 
 class AppsecLambdaRasp(_LambdaScenario):
     def __init__(self) -> None:

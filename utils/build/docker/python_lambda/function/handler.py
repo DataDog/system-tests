@@ -49,7 +49,7 @@ _TRACK_CUSTOM_APPSEC_EVENT_NAME = "system_tests_appsec_event"
 
 @app.get("/sca/vulnerable-call")
 def sca_requests_vulnerable_call() -> str:
-    """Call the vulnerable Session.send target without an external dependency."""
+    """Exercise the synthetic advisory's Session.send target."""
     with requests.Session() as session:
         try:
             session.send(requests.Request("GET", "http://127.0.0.1:1").prepare(), timeout=1)
