@@ -69,7 +69,7 @@ class Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation(debugger.BaseDe
             env: str = "system-tests",
             reset: bool = True,
         ):
-            probe = json.loads(self._probe_template)
+            probe = json.loads(LOG_PROBE_TEMPLATE)
             probe["id"] = debugger.generate_probe_id("log")
             self.set_probes([probe])
 
