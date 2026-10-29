@@ -381,17 +381,6 @@ class BaseDebuggerTest:
     ###### send #####
     _rc_version = 0
 
-    def _wait_for_php_probes_loaded(self) -> None:
-        """Make the PHP weblog load the current probe definitions from RC before the next request.
-
-        The PHP tracer processes RC and resolves probe hooks only while serving a /debugger/*
-        request. /debugger/init polls until every probe id it receives is in the loaded RC state.
-        Applies to the PHP library only.
-        """
-        if context.library == "php":
-            probe_ids = ",".join(p["id"] for p in self.probe_definitions if "id" in p)
-            weblog.get(f"/debugger/init?probes={probe_ids}")
-
     def send_rc_probes(self, *, reset: bool = True) -> None:
         BaseDebuggerTest._rc_version += 1
 
@@ -402,7 +391,11 @@ class BaseDebuggerTest:
             remote_config.send_debugger_command(probes=self.probe_definitions, version=BaseDebuggerTest._rc_version)
         )
 
-        self._wait_for_php_probes_loaded()
+        # PHP tracer requires requests to /debugger/* to process RC and resolve probe hooks.
+        # Pass probe IDs so the PHP endpoint polls until they appear in the loaded RC state.
+        if context.library == "php":
+            probe_ids = ",".join(p["id"] for p in self.probe_definitions if "id" in p)
+            weblog.get(f"/debugger/init?probes={probe_ids}")
 
     def send_rc_apm_tracing(
         self,
@@ -479,7 +472,11 @@ class BaseDebuggerTest:
             )
         )
 
-        self._wait_for_php_probes_loaded()
+        # PHP tracer requires requests to /debugger/* to process RC before the test request.
+        # Pass probe IDs so the PHP endpoint polls until they appear in the loaded RC state.
+        if context.library == "php":
+            probe_ids = ",".join(p["id"] for p in self.probe_definitions if "id" in p)
+            weblog.get(f"/debugger/init?probes={probe_ids}")
 
     def send_rc_apm_tracing_and_probes_multiconfig(
         self,
@@ -522,7 +519,9 @@ class BaseDebuggerTest:
             )
         )
 
-        self._wait_for_php_probes_loaded()
+        if context.library == "php":
+            probe_ids = ",".join(p["id"] for p in self.probe_definitions if "id" in p)
+            weblog.get(f"/debugger/init?probes={probe_ids}")
 
     def send_rc_symdb(self, *, reset: bool = True) -> None:
         BaseDebuggerTest._rc_version += 1
