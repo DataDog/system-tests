@@ -473,17 +473,20 @@ def _build_base_command(path_payloads: Mapping[str, Any], version: int):
     return rcm
 
 
-def build_debugger_command(probes: list | None, version: int):
-    if probes is None:
-        return _build_base_command({}, version)
+def _live_debugging_path_payloads(probes: list | None) -> dict[str, Any]:
+    """Map each probe to its LIVE_DEBUGGING target file path.
 
-    path_payloads = {}
-    for probe in probes:
+    The path names the probe by its type in camel case (LOG_PROBE becomes logProbe) and its id.
+    """
+    path_payloads: dict[str, Any] = {}
+    for probe in probes or []:
         probe_path = re.sub(r"_([a-z])", lambda match: match.group(1).upper(), probe["type"].lower())
-        path = f"datadog/2/LIVE_DEBUGGING/{probe_path}_{probe['id']}/config"
-        path_payloads[path] = probe
+        path_payloads[f"datadog/2/LIVE_DEBUGGING/{probe_path}_{probe['id']}/config"] = probe
+    return path_payloads
 
-    return _build_base_command(path_payloads, version)
+
+def build_debugger_command(probes: list | None, version: int):
+    return _build_base_command(_live_debugging_path_payloads(probes), version)
 
 
 def send_debugger_command(probes: list, version: int = 1) -> RemoteConfigStateResults:
@@ -892,12 +895,7 @@ def build_combined_apm_tracing_and_debugger_command(
         to_sdk_config_payload(apm_config) if use_sdk_config else apm_config
     )
 
-    # Add LIVE_DEBUGGING configs (probes)
-    if probes:
-        for probe in probes:
-            probe_path = re.sub(r"_([a-z])", lambda match: match.group(1).upper(), probe["type"].lower())
-            path = f"datadog/2/LIVE_DEBUGGING/{probe_path}_{probe['id']}/config"
-            path_payloads[path] = probe
+    path_payloads |= _live_debugging_path_payloads(probes)
 
     return _build_base_command(path_payloads, version), apm_config
 
@@ -1005,12 +1003,7 @@ def build_combined_apm_tracing_and_debugger_command_multiconfig(
         to_sdk_config_payload(apm_config) if use_sdk_config else apm_config
     )
 
-    # Add LIVE_DEBUGGING configs (probes)
-    if probes:
-        for probe in probes:
-            probe_path = re.sub(r"_([a-z])", lambda match: match.group(1).upper(), probe["type"].lower())
-            path = f"datadog/2/LIVE_DEBUGGING/{probe_path}_{probe['id']}/config"
-            path_payloads[path] = probe
+    path_payloads |= _live_debugging_path_payloads(probes)
 
     return _build_base_command(path_payloads, version), apm_config
 
