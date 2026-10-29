@@ -16,7 +16,7 @@ from utils._logger import logger
 from utils._weblog import weblog
 from utils.mocked_backend.ffe import MockedBackendFFEStatus, ffe_library_config_url
 
-from ._core import DdTraceEndToEndScenario, ScenarioGroup, scenario_groups as all_scenario_groups
+from ._core import DdTraceEndToEndScenario, FakeDatadogKey, ScenarioGroup, scenario_groups as all_scenario_groups
 
 
 DIRECT_EVP_CA_BUNDLE_SOURCE = "./utils/build/docker/agent/ca-certificates.crt"
@@ -155,7 +155,7 @@ class _AgentlessEndToEndScenario(DdTraceEndToEndScenario):
 class FeatureFlaggingAgentlessEndToEndScenario(_AgentlessEndToEndScenario):
     """FFE end-to-end scenario with UFC available before the weblog starts."""
 
-    sidecar_api_key = "fedcba9876543210fedcba9876543210"
+    sidecar_api_key = FakeDatadogKey.SIDECAR
     """The API key serverless-init sends to the mocked backend with: it tells its requests from the weblog ones"""
 
     def __init__(

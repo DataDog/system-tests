@@ -51,12 +51,9 @@ from utils.k8s_lib_injection.k8s_weblog import K8sWeblog
 from utils.interfaces._library.core import LibraryInterfaceValidator
 from utils.interfaces import StdoutLogsInterface, LibraryStdoutInterface
 
-# fake key of length 32
-FAKE_DD_API_KEY = "0123456789abcdef0123456789abcdef"
 # Domain of the mocked backend, also the DD_SITE of its senders: the intake hostnames derived from it are its network
 # aliases. The reserved .invalid domain fails closed if a request is sent anywhere else
 MOCKED_BACKEND_DOMAIN = "mocked-backend.invalid"
-# its own key tells, in the mocked backend, what serverless-init sent (see interfaces.backend_v2 with_api_key)
 
 _DEFAULT_NETWORK_NAME = "system-tests_default"
 _NETWORK_NAME = "bridge" if "GITLAB_CI" in os.environ else _DEFAULT_NETWORK_NAME
@@ -1402,6 +1399,7 @@ class LambdaWeblogContainer(WeblogContainer):
     def __init__(
         self,
         *,
+        dd_api_key: str,
         environment: dict[str, str | None] | None = None,
         volumes: dict | None = None,
         trace_managed_services: bool = False,
@@ -1409,7 +1407,7 @@ class LambdaWeblogContainer(WeblogContainer):
         environment = (environment or {}) | {
             "DD_HOSTNAME": "test",
             "DD_SITE": "datad0g.com",
-            "DD_API_KEY": FAKE_DD_API_KEY,
+            "DD_API_KEY": dd_api_key,
             "DD_SERVERLESS_FLUSH_STRATEGY": "periodically,100",
             "DD_TRACE_MANAGED_SERVICES": str(trace_managed_services).lower(),
         }
