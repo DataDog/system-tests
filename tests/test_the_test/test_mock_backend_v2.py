@@ -24,6 +24,7 @@ from utils._context.containers import MockedBackendContainer
 from utils._context._scenarios.agentless_endtoend import JAVA_TRUSTSTORE_SOURCE
 from utils.mocked_backend import MockedBackendClient, MockedBackendServer
 from utils.mocked_backend.ffe import UFC_FIXTURE_RELATIVE_PATH
+from utils.proxy.rc_response_builder import build_rc_configurations_protobuf
 
 
 @pytest.fixture
@@ -120,6 +121,27 @@ def test_undecodable_content_is_logged_without_crashing_the_server(server: Mocke
     data = json.loads(next(tmp_path.glob("*.json")).read_text())
     assert "content" not in data["request"]
     assert "traceback" in data["request"]
+
+
+@scenarios.test_the_test
+def test_serves_the_pushed_remote_config_to_agentless_clients(server: MockedBackendServer, tmp_path: Path):
+    """Agentless libraries poll remote config from the backend: they get the last configuration pushed"""
+    poll = f"{server.base_url}/api/v0.1/configurations"
+
+    # nothing pushed yet: an empty configuration
+    response = requests.post(poll, data=b"", timeout=5)
+    assert response.status_code == 200
+    assert response.headers["Content-Type"] == "application/x-protobuf"
+    assert response.content == build_rc_configurations_protobuf(None)
+
+    server.client.rc_set_configurations(b"pushed-configurations")
+    assert requests.post(poll, data=b"", timeout=5).content == b"pushed-configurations"
+
+    # polls are recorded like any other request, control requests are not
+    assert sorted(f.name for f in tmp_path.glob("*.json")) == [
+        "000__api_v0.1_configurations.json",
+        "001__api_v0.1_configurations.json",
+    ]
 
 
 @scenarios.test_the_test

@@ -4,6 +4,7 @@ of the server, so it works the same whether the server runs in the test process 
 
 from __future__ import annotations
 
+import base64
 from typing import cast
 
 import requests
@@ -12,6 +13,7 @@ from ._backend_ffe import MockedBackendFFEStatus, ResponseFormat, validate_respo
 from ._utils import CONTROL_URL_PREFIX
 
 _FFE_CONTROL_PATH = f"{CONTROL_URL_PREFIX}/ffe"
+_RC_CONTROL_PATH = f"{CONTROL_URL_PREFIX}/remote-config"
 
 
 class MockedBackendClient:
@@ -32,6 +34,16 @@ class MockedBackendClient:
         response = requests.post(
             f"{self.base_url}{_FFE_CONTROL_PATH}/responses",
             json={"responses": validated_responses, "response_format": response_format},
+            timeout=5,
+            verify=self.verify,
+        )
+        response.raise_for_status()
+
+    def rc_set_configurations(self, configurations: bytes) -> None:
+        """Set the remote configuration (a protobuf LatestConfigsResponse) every agentless client poll gets"""
+        response = requests.post(
+            f"{self.base_url}{_RC_CONTROL_PATH}",
+            json={"configurations": base64.b64encode(configurations).decode()},
             timeout=5,
             verify=self.verify,
         )
