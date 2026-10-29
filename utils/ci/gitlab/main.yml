@@ -25,6 +25,8 @@ spec:
         PARAMETRIC is not weblog-bound, it is enabled with the "parametric" key, e.g. '{"python": {"parametric": []}}'.
         Alternative to libraries/scenarios/scenarios_groups/weblogs (not compatible with them);
         excluded_scenarios only applies to scenarios coming from groups.
+        GitLab limits inputs interpolation to 1 KB: for larger mappings, set the LIBRARY_WEBLOG_SCENARIOS
+        variable in your system_tests_param job (extending .system_tests_param_base) instead; it takes precedence over this input.
       default: ""
     binaries_artifacts:
       description: "Semicolon-separated list of upstream jobs whose artifacts contain the pre-built binaries (downloaded by the generated build/run jobs via cross-pipeline needs). Use ';' not ',' because job names may contain commas (e.g. parallel matrix names)."
@@ -89,10 +91,11 @@ workflow:
         on_new_commit: $[[ inputs.auto_cancel_on_new_commit ]]
 
 variables:
-  # Tag = first 12 chars of sha256(utils/ci/gitlab/docker/system-tests.Dockerfile + requirements.txt)
-  # Update this when either file changes:
-  #   cat utils/ci/gitlab/docker/system-tests.Dockerfile requirements.txt | sha256sum | cut -c1-12
-  CI_IMAGE: "registry.ddbuild.io/system-tests/ci-runner:970b845364b9"
+  # Tag = first 12 chars of sha256(utils/ci/gitlab/docker/system-tests.Dockerfile + requirements.txt
+  #   + utils/ci/gitlab/validate_param_env.py, which is copied into the image)
+  # Update this when any of these files changes:
+  #   cat utils/ci/gitlab/docker/system-tests.Dockerfile requirements.txt utils/ci/gitlab/validate_param_env.py | sha256sum | cut -c1-12
+  CI_IMAGE: "registry.ddbuild.io/system-tests/ci-runner:1f6103fa1fbd"
   SYSTEM_TESTS_SPLIT_PIPELINE: "$[[ inputs.split_pipeline ]]"
 
 .system_tests_param_base:

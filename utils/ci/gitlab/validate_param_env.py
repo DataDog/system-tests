@@ -160,6 +160,9 @@ def main() -> None:
         for name, _ in CHECKS:
             value = os.environ.get(name, "")
             if value:
+                if name == "LIBRARY_WEBLOG_SCENARIOS":
+                    # dotenv reports do not support multiline values
+                    value = json.dumps(json.loads(value), separators=(",", ":"))
                 f.write(f"{name}={value}\n")
 
     with open(PARAM_ENV) as f:
