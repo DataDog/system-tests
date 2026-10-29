@@ -3,6 +3,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Mapping
 import contextlib
+from datetime import UTC, datetime
 import gzip
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import io
@@ -57,9 +58,12 @@ def _decode_content(raw_body: bytes, content_encoding: str) -> bytes:
 class MockedBackendServerCore(ABC, ThreadingHTTPServer):
     on_message: Callable[[dict], None]
     port: int
+    scheme: str
 
     @abstractmethod
-    def get_handler(self, method: HttpMethod, path: str) -> tuple[RouteHandler, str | None, str | None]: ...
+    def get_handler(
+        self, method: HttpMethod, path: str, *, query: str = ""
+    ) -> tuple[RouteHandler, str | None, str | None]: ...
 
     @abstractmethod
     def add_handler(self, method: HttpMethod, path: str, handler: RouteHandler) -> None: ...
@@ -106,18 +110,19 @@ class MockBackendV2RequestHandler(BaseHTTPRequestHandler):
         self._handle("PUT")
 
     def _handle(self, method: HttpMethod) -> None:
+        timestamp_start = datetime.now(UTC).isoformat()
         content_length = int(self.headers.get("Content-Length", "0"))
         raw_body = self.rfile.read(content_length) if content_length else b""
         url_parts = urlsplit(self.path)
         path = url_parts.path
 
-        handler, log_filename, export_content_files_to = self.server.get_handler(method, path)
+        handler, log_filename, export_content_files_to = self.server.get_handler(method, path, query=url_parts.query)
 
         self._data: dict[str, Any] = {
             "log_filename": log_filename,
             "method": self.command,
             "path": path,
-            "request": {"headers": list(self.headers.items())},
+            "request": {"timestamp_start": timestamp_start, "headers": list(self.headers.items())},
             "response": {"headers": []},
         }
 

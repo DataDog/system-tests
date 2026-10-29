@@ -40,6 +40,8 @@ class ApmTracingOtlp(DdTraceEndToEndScenario):
                 "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}/v1/traces",
                 "OTEL_EXPORTER_OTLP_TRACES_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
                 "DD_TRACE_OTEL_ENABLED": "true",
+                "DD_GIT_REPOSITORY_URL": "https://github.com/DataDog/system-tests",
+                "DD_GIT_COMMIT_SHA": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
             },
             backend_interface_timeout=5,
             include_opentelemetry=True,

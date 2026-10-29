@@ -41,7 +41,6 @@
 /tests/parametric/test_llm_observability @DataDog/ml-observability
 
 # Otel
-/tests/otel_tracing_e2e/ @DataDog/opentelemetry
 
 # Remote config
 /tests/remote_config/ @DataDog/remote-config

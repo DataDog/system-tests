@@ -79,6 +79,15 @@ The protobuf fixture `tests/parametric/test_ffe/rules-wire.json` comes from `ope
 ./run.sh FEATURE_FLAGGING_AND_EXPERIMENTATION --library <language>
 ```
 
+## SDK identity through the Agent
+
+`Test_FFE_EVP_Flagevaluation_SDK_Identity` checks SDK origin and version headers on
+Agent-to-intake captures while retaining the shared payload and evaluation-count checks.
+The case requires Agent 7.84+ and is enabled for Go 2.11.0+, Python 4.16.0+, and
+Node.js express5 under its existing version gate. Other languages retain their
+current exclusions. Event-level `source` is rejected: source identity belongs in
+the request headers.
+
 ## Per-subject evaluation telemetry opt-out
 
 All four test classes report under [#649: Per-subject evaluation telemetry opt-out](https://feature-parity.us1.prod.dog/#/?feature=649).
@@ -179,6 +188,28 @@ environment installed, run them explicitly:
 ./run.sh TEST_THE_TEST tests/test_the_test/test_ffe_tests.py tests/test_the_test/test_ffe_evaluation_telemetry_opt_out.py
 ```
 Framework mock-backend and lifecycle tests stay in `tests/test_the_test/`.
+
+## Bounds and overload coverage
+
+With full-data consent, the context tests require all 256 valid attributes to
+survive unchanged at the field-count limit. Over-limit contexts may retain an
+unchanged subset of at most 256 attributes or be omitted entirely. A separate
+string-length test requires oversized values to be omitted while valid fields survive.
+
+Run the high-cardinality accounting test in its dedicated scenario:
+
+```sh
+./run.sh FEATURE_FLAGGING_EVP_STRESS --library <language>
+```
+
+Keep this scenario limited to one evaluation workload: its drop counters are
+process-wide. Delivered evaluation counts (including degraded delivery) plus
+accepted reported drops must equal attempted evaluations, and some delivery is
+required. See the [accounting helper](utils/evp.py) for accepted counters and validation.
+Periodic flushes may prevent degradation, so the test validates degraded rows when
+present but does not require them. Deterministic degradation-threshold checks belong
+in SDK-local tests. Drop counters must report lost evaluations, including those
+represented by aggregated rows.
 
 ---
 

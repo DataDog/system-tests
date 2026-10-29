@@ -7,7 +7,8 @@ serial ID without re-deriving it from (flag_key, allocation_key, variant_key).
 
 The contract under test: when span enrichment is enabled, the SDK's OpenFeature
 EvaluationDetails-equivalent object must expose the selected split's serial ID
-via `flagMetadata` under the internal key `__dd_split_serial_id`, matching the
+via `flagMetadata` under the SDK's serial ID key (`dd.serialId` for legacy Go
+before v2.11.0-rc.1, `__dd_split_serial_id` for newer Go and other SDKs), matching the
 value present in the UFC config pushed over Remote Config. This is the field
 `openfeature-js-client#269` introduced for the Node server SDK; this test
 generalizes the contract to every parametric-tested SDK.
@@ -25,9 +26,7 @@ import json
 import time
 from typing import Any
 
-from utils import pytest
-
-from utils import features, scenarios
+from utils import features, pytest, scenarios
 from utils.dd_constants import RemoteConfigApplyState
 from utils.docker_fixtures import TestAgentAPI
 from tests.parametric.conftest import APMLibrary
@@ -37,8 +36,6 @@ RC_PRODUCT = "FFE_FLAGS"
 RC_PATH = f"datadog/2/{RC_PRODUCT}"
 FFE_READY_RETRY_ATTEMPTS = 10
 FFE_READY_RETRY_INTERVAL_SECONDS = 0.2
-
-SERIAL_ID_METADATA_KEY = "__dd_split_serial_id"
 
 parametrize = pytest.mark.parametrize
 
@@ -113,10 +110,10 @@ def _ffe_evaluate_with_rc_retry(
     return result
 
 
-@scenarios.parametric
-@features.feature_flags_serial_id_metadata
-class Test_FFE_Serial_Id_Metadata:
-    """Test that the selected split's serial ID is threaded through flagMetadata."""
+class BaseSerialIdMetadata:
+    """Shared checks for the selected split's serial ID in flagMetadata."""
+
+    metadata_key = "__dd_split_serial_id"
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_serial_id_present_in_flag_metadata(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
@@ -134,9 +131,8 @@ class Test_FFE_Serial_Id_Metadata:
         assert not _is_ffe_waiting_for_rc(result), f"FFE provider did not load RC data; result={result}"
 
         flag_metadata = _require_flag_metadata(result)
-        assert flag_metadata.get(SERIAL_ID_METADATA_KEY) == 42, (
-            f"Expected flagMetadata['{SERIAL_ID_METADATA_KEY}'] == 42 for the selected split, "
-            f"got flagMetadata={flag_metadata}"
+        assert flag_metadata.get(self.metadata_key) == 42, (
+            f"Expected flagMetadata['{self.metadata_key}'] == 42 for the selected split, got flagMetadata={flag_metadata}"
         )
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
@@ -155,12 +151,12 @@ class Test_FFE_Serial_Id_Metadata:
         assert not _is_ffe_waiting_for_rc(result), f"FFE provider did not load RC data; result={result}"
 
         flag_metadata = _require_flag_metadata(result)
-        assert SERIAL_ID_METADATA_KEY in flag_metadata, (
-            f"flagMetadata is missing '{SERIAL_ID_METADATA_KEY}' entirely; a 0 serial ID must not be "
+        assert self.metadata_key in flag_metadata, (
+            f"flagMetadata is missing '{self.metadata_key}' entirely; a 0 serial ID must not be "
             f"dropped by a truthiness check. flagMetadata={flag_metadata}"
         )
-        assert flag_metadata.get(SERIAL_ID_METADATA_KEY) == 0, (
-            f"Expected flagMetadata['{SERIAL_ID_METADATA_KEY}'] == 0, got flagMetadata={flag_metadata}"
+        assert flag_metadata.get(self.metadata_key) == 0, (
+            f"Expected flagMetadata['{self.metadata_key}'] == 0, got flagMetadata={flag_metadata}"
         )
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
@@ -184,8 +180,8 @@ class Test_FFE_Serial_Id_Metadata:
         assert result.get("value") == "control", f"Expected the configured control variation; result={result}"
 
         flag_metadata = _require_flag_metadata(result)
-        assert SERIAL_ID_METADATA_KEY not in flag_metadata, (
-            f"Expected flagMetadata to omit '{SERIAL_ID_METADATA_KEY}' for a split without a serial ID, "
+        assert self.metadata_key not in flag_metadata, (
+            f"Expected flagMetadata to omit '{self.metadata_key}' for a split without a serial ID, "
             f"got flagMetadata={flag_metadata}"
         )
 
@@ -221,12 +217,12 @@ class Test_FFE_Serial_Id_Metadata:
         standard_metadata = _require_flag_metadata(standard_result)
 
         assert vip_result.get("value") == "vip"
-        assert vip_metadata.get(SERIAL_ID_METADATA_KEY) == 201, (
+        assert vip_metadata.get(self.metadata_key) == 201, (
             f"VIP targeting should select the split with serialId 201, got flagMetadata={vip_metadata}"
         )
 
         assert standard_result.get("value") == "standard"
-        assert standard_metadata.get(SERIAL_ID_METADATA_KEY) == 200, (
+        assert standard_metadata.get(self.metadata_key) == 200, (
             f"Non-VIP targeting should select the split with serialId 200, got flagMetadata={standard_metadata}"
         )
 
@@ -253,8 +249,22 @@ class Test_FFE_Serial_Id_Metadata:
             targeting_key="user-repeat",
         )
 
-        first_id = _require_flag_metadata(first).get(SERIAL_ID_METADATA_KEY)
-        second_id = _require_flag_metadata(second).get(SERIAL_ID_METADATA_KEY)
+        first_id = _require_flag_metadata(first).get(self.metadata_key)
+        second_id = _require_flag_metadata(second).get(self.metadata_key)
         assert first_id == second_id == 42, (
             f"Expected stable serial ID 42 across repeated evaluations, got {first_id} then {second_id}"
         )
+
+
+@scenarios.parametric
+@features.feature_flags_serial_id_metadata
+class Test_FFE_Serial_Id_Metadata(BaseSerialIdMetadata):
+    """Shared SDK contract using __dd_split_serial_id."""
+
+
+@scenarios.parametric
+@features.feature_flags_serial_id_metadata
+class Test_FFE_Serial_Id_Metadata_Go(BaseSerialIdMetadata):
+    """Legacy Go SDK contract before v2.11.0-rc.1, using dd.serialId."""
+
+    metadata_key = "dd.serialId"

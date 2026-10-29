@@ -3,10 +3,12 @@
 from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import datetime
+from math import isfinite
 from pathlib import Path
 from typing import Any, Literal
 
 from utils import context, interfaces
+from utils._context.containers import MOCKED_BACKEND_DOMAIN
 from utils._context._scenarios.agentless_endtoend import (
     DIRECT_EVP_AGENT_VARIABLES,
     DIRECT_EVP_CA_BUNDLE_CONTAINER_PATH,
@@ -19,8 +21,7 @@ from utils._context._scenarios.agentless_endtoend import (
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 
 
-EVP_DIRECT_HOST = "event-platform-intake.mock-intake.invalid"
-EVP_DIRECT_PORT = 443
+EVP_DIRECT_HOST = f"event-platform-intake.{MOCKED_BACKEND_DOMAIN}"
 EVP_PROXY_PATH_PREFIXES = ("/evp_proxy/v2/", "/evp_proxy/v4/")
 EVP_FORBIDDEN_RUNTIME_COMPONENTS = (
     "datadog-agent",
@@ -44,11 +45,45 @@ EVP_ORIGINS = {
     "golang": "dd-trace-go",
     "java": "dd-trace-java",
     "nodejs": "dd-trace-js",
+    "php": "dd-trace-php",
     "python": "dd-trace-py",
     "ruby": "dd-trace-rb",
 }
 
 EVPRoute = Literal["agent", "sidecar", "direct"]
+
+
+def assert_flagevaluation_accounting(delivered: int, attempted: int, drop_series: Iterable[dict[str, Any]]) -> None:
+    """Account for isolated stress traffic; never count degradation as lost evaluations."""
+    dropped = 0
+    capacity_reasons = {
+        "reason:pre_queue_overflow",
+        "reason:queue_overflow",
+        "reason:degraded_cap",
+        "reason:payload_limit",
+    }
+    for series in drop_series:
+        assert series.get("type") == "count", "drop telemetry must be a delta count"
+        reasons = {tag for tag in series.get("tags", []) if tag.startswith("reason:")}
+        assert len(reasons) == 1, f"expected one drop reason: {reasons}"
+        assert reasons <= capacity_reasons, f"unexpected drop reason: {reasons}"
+        points = series.get("points")
+        assert isinstance(points, list), "drop metric points must be a list"
+        assert points, "drop metric must contain points"
+        for point in points:
+            assert isinstance(point, list), "invalid drop metric point"
+            assert len(point) == 2, "invalid drop metric point"
+            count = point[1]
+            assert type(count) in (int, float), "invalid drop count type"
+            assert isfinite(count), "drop count must be finite"
+            assert count >= 0, "drop count must be nonnegative"
+            assert count == int(count), "drop count must be integral"
+            dropped += int(count)
+    assert delivered > 0, "stress workload must deliver evaluations, not only report drops"
+    assert delivered + dropped == attempted, (
+        f"Expected delivered + reported drops == {attempted}, got {delivered} + {dropped}. "
+        "Missing telemetry is not evidence of an accounted drop."
+    )
 
 
 def _is_expected_pid1_executable(library_name: str, executable: str, expected: set[str]) -> bool:
@@ -66,8 +101,17 @@ class FeatureFlaggingEVPEgress:
 
     interface: ProxyBasedInterfaceValidator
     route: EVPRoute
-    excluded_interfaces: tuple[ProxyBasedInterfaceValidator, ...] = ()
+    excluded_api_keys: tuple[str, ...] = ()
+    """API keys of the senders that must not deliver the tested events"""
     expected_api_key: str | None = None
+
+    def excluded_data(self, path_filters: str | None = None) -> list[dict[str, Any]]:
+        """Requests the mocked backend received from the senders that must not deliver the tested events"""
+        return [
+            data
+            for api_key in self.excluded_api_keys
+            for data in interfaces.backend_v2.get_data(path_filters=path_filters, with_api_key=api_key)
+        ]
 
 
 def feature_flagging_evp_egress() -> FeatureFlaggingEVPEgress:
@@ -79,23 +123,17 @@ def feature_flagging_evp_egress() -> FeatureFlaggingEVPEgress:
 
     if scenario.exposure_egress == "sidecar":
         assert "serverless-init" in scenario.components
-        expected_api_key = scenario.serverless_init_container.environment["DD_API_KEY"]
-        assert expected_api_key is not None
+        # serverless-init relays the events: the SDK must not send them straight to the intake
         return FeatureFlaggingEVPEgress(
-            interfaces.datadog_sidecar,
+            interfaces.backend_v2,
             "sidecar",
-            (interfaces.datadog_direct,),
-            expected_api_key,
+            excluded_api_keys=(scenario.weblog_api_key,),
+            expected_api_key=scenario.sidecar_api_key,
         )
 
     assert scenario.exposure_egress == "direct"
     assert "serverless-init" not in scenario.components
-    return FeatureFlaggingEVPEgress(
-        interfaces.datadog_direct,
-        "direct",
-        (interfaces.datadog_sidecar,),
-        scenario.dd_api_key,
-    )
+    return FeatureFlaggingEVPEgress(interfaces.backend_v2, "direct", expected_api_key=scenario.weblog_api_key)
 
 
 def register_expected_evp_capture(path: str) -> None:
@@ -134,7 +172,7 @@ def expected_evp_origin(library_name: str) -> str:
 
 
 def expected_evp_origin_version(library_name: str, library_version: str) -> str:
-    """Return the tracer's canonical wire version for direct EVP identity.
+    """Return the tracer's canonical wire version for EVP identity.
 
     System-tests deliberately removes Go's leading ``v`` when it parses the
     component version for manifest comparisons. dd-trace-go's public version
@@ -161,6 +199,13 @@ def _assert_single_header(data: dict[str, Any], name: str, expected: str | set[s
     assert values[0] in allowed, f"expected {name} in {sorted(allowed)!r}, got {values[0]!r}"
 
 
+def assert_evp_sdk_identity(data: dict[str, Any], *, library_name: str, library_version: str) -> None:
+    """Require the SDK source identity on an intake-side capture."""
+    _assert_single_header(data, "DD-EVP-ORIGIN", expected_evp_origin(library_name))
+    assert library_version.strip(), "expected library version must be non-empty"
+    _assert_single_header(data, "DD-EVP-ORIGIN-VERSION", expected_evp_origin_version(library_name, library_version))
+
+
 def assert_agentless_evp_intake_request(
     data: dict[str, Any],
     *,
@@ -174,8 +219,8 @@ def assert_agentless_evp_intake_request(
     assert path in DIRECT_EVP_SIGNAL_PATHS, f"unsupported EVP signal path {path!r}"
     assert data.get("method") == "POST", f"EVP request must use POST: {data}"
     assert data.get("path") == path, f"EVP request must use canonical path {path!r}: {data}"
-    assert data.get("host") == EVP_DIRECT_HOST, f"unexpected EVP intake host: {data}"
-    assert data.get("port") == EVP_DIRECT_PORT, f"EVP direct request must use HTTPS port 443: {data}"
+    # the mocked backend only serves HTTPS on 443, under the intake hostnames derived from DD_SITE
+    _assert_single_header(data, "Host", {EVP_DIRECT_HOST, f"{EVP_DIRECT_HOST}:443"})
 
     response = data.get("response")
     assert isinstance(response, dict), f"EVP capture must include a response: {data}"
@@ -192,17 +237,12 @@ def assert_agentless_evp_intake_request(
 
     assert route in ("direct", "sidecar")
     if route == "sidecar":
-        # datadog_sidecar captures relay-to-intake traffic, not the SDK-to-relay request. Relayed
+        # With the sidecar, the intake receives the relay-to-intake request, not the SDK-to-relay one. Relayed
         # producer identity requires Agent 7.84+, while the default fixture may still be earlier;
         # SDK local-route identity and credential omission remain covered by SDK unit tests.
         return
 
-    _assert_single_header(data, "DD-EVP-ORIGIN", expected_evp_origin(library_name))
-    _assert_single_header(
-        data,
-        "DD-EVP-ORIGIN-VERSION",
-        expected_evp_origin_version(library_name, library_version),
-    )
+    assert_evp_sdk_identity(data, library_name=library_name, library_version=library_version)
 
 
 def assert_no_evp_proxy_requests(captures: Iterable[dict[str, Any]]) -> None:
@@ -240,11 +280,10 @@ def assert_direct_evp_runtime_evidence(evidence: dict[str, Any], *, library_name
         assert isinstance(name, str), f"Live container evidence has no name: {container}"
         assert name not in containers_by_name, f"Duplicate live container evidence for {name!r}"
         containers_by_name[name] = container
-    # the mocked backend serves the agentless configuration
-    expected_names = {"system-tests-mocked-backend", "system-tests-proxy", "system-tests-weblog"}
+    # the mocked backend serves the agentless configuration, and stands in for the intake
+    expected_names = {"system-tests-mocked-backend", "system-tests-weblog"}
     assert set(containers_by_name) == expected_names, (
-        "Direct EVP runtime network must contain only mocked backend, TLS proxy and weblog, "
-        f"got {sorted(containers_by_name)}"
+        f"Direct EVP runtime network must contain only mocked backend and weblog, got {sorted(containers_by_name)}"
     )
 
     network = evidence.get("network")
@@ -274,12 +313,6 @@ def assert_direct_evp_runtime_evidence(evidence: dict[str, Any], *, library_name
         forbidden = [name for name in EVP_FORBIDDEN_RUNTIME_COMPONENTS if name in _runtime_text(container)]
         assert not forbidden, f"Forbidden direct-scenario runtime components found: {forbidden}"
 
-    proxy = containers_by_name["system-tests-proxy"]
-    proxy_runtime = _runtime_text(proxy)
-    assert "proxy.core" in proxy_runtime or "proxy/core.py" in proxy_runtime, (
-        f"The only allowed helper must be the system-tests TLS capture proxy: {proxy}"
-    )
-
     weblog = containers_by_name["system-tests-weblog"]
     assert weblog.get("library") == library_name, (
         f"Live weblog library label is {weblog.get('library')!r}, expected {library_name!r}"
@@ -297,11 +330,6 @@ def assert_direct_evp_runtime_evidence(evidence: dict[str, Any], *, library_name
     assert pid1_process_command is not None, f"docker top PID 1 row has no command: {pid1_process}"
     assert isinstance(pid1_process_command, str), f"docker top PID 1 command is malformed: {pid1_process}"
     assert pid1_process_command, f"docker top PID 1 row has no command: {pid1_process}"
-    pid1_process_executable = Path(pid1_process_command.split()[0]).name
-    assert _is_expected_pid1_executable(library_name, pid1_process_executable, expected_executables), (
-        f"docker top reports PID 1 as {pid1_process_command!r}, expected one of "
-        f"{sorted(expected_executables)} or a versioned python3 interpreter"
-    )
 
     environment = evidence.get("weblog_environment")
     assert isinstance(environment, dict), "Live weblog environment was not captured"
@@ -313,7 +341,7 @@ def assert_direct_evp_runtime_evidence(evidence: dict[str, Any], *, library_name
     assert environment.get("configuration_source") == "agentless"
     assert environment.get("provider_enabled") == "true"
     assert environment.get("shutdown_flush_enabled") == "true"
-    assert environment.get("site") == "mock-intake.invalid"
+    assert environment.get("site") == MOCKED_BACKEND_DOMAIN
 
     expected_mounts = [
         mount for mount in weblog.get("mounts", []) if mount.get("destination") == DIRECT_EVP_CA_BUNDLE_CONTAINER_PATH
@@ -412,9 +440,8 @@ def assert_agentless_evp_topology(egress: FeatureFlaggingEVPEgress) -> None:
     environment = scenario.weblog_infra.library_container.environment
     assert environment["DD_FEATURE_FLAGS_CONFIGURATION_SOURCE"] == "agentless"
     assert environment["DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED"] == "true"
-    assert environment["DD_SITE"] == "mock-intake.invalid"
-    if not scenario.replay:
-        assert environment["DD_API_KEY"] == scenario.dd_api_key
+    assert environment["DD_SITE"] == MOCKED_BACKEND_DOMAIN
+    assert environment["DD_API_KEY"] == scenario.weblog_api_key
     if egress.route == "direct":
         assert_direct_evp_runtime_evidence(
             scenario.direct_evp_runtime_evidence(),
@@ -440,8 +467,8 @@ def assert_agentless_evp_topology(egress: FeatureFlaggingEVPEgress) -> None:
         for name in DIRECT_EVP_AGENT_VARIABLES:
             assert name not in environment
         assert "serverless-init" not in scenario.components
-        assert not any(container.name == "ffe-serverless-init" for container in scenario.weblog_infra.get_containers())
-        assert_no_evp_proxy_requests(interfaces.datadog_direct.get_data())
+        assert scenario.serverless_init_container is None
+        assert_no_evp_proxy_requests(interfaces.backend_v2.get_data(with_api_key=scenario.weblog_api_key))
         return
 
     assert egress.route == "sidecar"

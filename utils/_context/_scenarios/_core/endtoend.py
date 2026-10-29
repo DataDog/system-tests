@@ -23,12 +23,12 @@ from utils._context.containers import (
     MockedBackendContainer,
     MsSqlServerContainer,
     TestedContainer,
-    FAKE_DD_API_KEY,
 )
 from utils._context.weblog_infrastructure import EndToEndWeblogInfra
 from utils._context.constants import WeblogCategory
 from utils._logger import logger
 
+from .fake_datadog_keys import FakeDatadogKey
 from .scenario import Scenario, ScenarioGroup, scenario_groups as all_scenario_groups
 
 
@@ -276,10 +276,13 @@ class EndToEndScenario(DockerScenario):
                 "traffic to both the proxy and the mocked backend. Set use_proxy_for_agent=False."
             )
 
-        self.dd_api_key = FAKE_DD_API_KEY if mocked_backend_v2 else os.environ.get("DD_API_KEY", FAKE_DD_API_KEY)
+        self.dd_api_key = (
+            FakeDatadogKey.DEFAULT if mocked_backend_v2 else os.environ.get("DD_API_KEY", FakeDatadogKey.DEFAULT)
+        )
         """The API key used by the agent to send data to the backend"""
 
-        self.mocked_backend_container = MockedBackendContainer()
+        # it serves HTTPS on its domain, and on the intake hostnames derived from it (see MOCKED_BACKEND_DOMAIN)
+        self.mocked_backend_container = MockedBackendContainer(tls=True)
         if mocked_backend_v2:
             self._containers.append(self.mocked_backend_container)
             if include_agent:

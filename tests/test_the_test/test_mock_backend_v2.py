@@ -1,7 +1,11 @@
 """Unit coverage for MockedBackendServer (utils.mocked_backend)."""
 
+from datetime import UTC, datetime, timedelta
 import gzip
 import signal
+import socket
+import threading
+import ssl
 import json
 from collections.abc import Generator
 from pathlib import Path
@@ -11,10 +15,16 @@ import sys
 from utils import pytest
 import requests
 import zstandard
+from cryptography import x509
+from cryptography.hazmat.primitives.serialization import pkcs12
 
 from utils import scenarios
+from utils.interfaces._backend_v2 import _BackendV2InterfaceValidator
+from utils._context.containers import MockedBackendContainer, TestedContainer
+from utils._context._scenarios.agentless_endtoend import JAVA_TRUSTSTORE_SOURCE
 from utils.mocked_backend import MockedBackendClient, MockedBackendServer
 from utils.mocked_backend.ffe import UFC_FIXTURE_RELATIVE_PATH
+from utils.proxy.mocked_response import MockedBackendResponse
 
 
 @pytest.fixture
@@ -111,6 +121,132 @@ def test_undecodable_content_is_logged_without_crashing_the_server(server: Mocke
     data = json.loads(next(tmp_path.glob("*.json")).read_text())
     assert "content" not in data["request"]
     assert "traceback" in data["request"]
+
+
+@scenarios.test_the_test
+def test_serves_internal_mocked_responses_from_a_file(tmp_path: Path):
+    """Like the proxy's internal ones, they are set by the scenario for the whole session"""
+    mocks_file = tmp_path / "mocks.json"
+    mock = MockedBackendResponse("/api/v0.1/configurations", b"\x01\x02", status_code=202)
+    mocks_file.write_text(json.dumps([mock.to_json()]))
+    log_folder = tmp_path / "logs"
+    log_folder.mkdir()
+
+    server = MockedBackendServer(str(log_folder), port=0, internal_mocked_responses_file=str(mocks_file))
+    try:
+        response = requests.post(f"{server.base_url}/api/v0.1/configurations", data=b"", timeout=5)
+        unmatched = requests.post(f"{server.base_url}/api/v2/series", json={}, timeout=5)
+    finally:
+        server.close()
+
+    assert response.status_code == 202
+    assert response.headers["Content-Type"] == "application/x-protobuf"
+    assert response.content == b"\x01\x02"
+    # other paths get the usual response
+    assert unmatched.status_code == 200
+    # a mocked request is recorded like any other
+    assert sorted(f.name for f in log_folder.glob("*.json")) == [
+        "000__api_v0.1_configurations.json",
+        "001__api_v2_series.json",
+    ]
+
+
+@scenarios.test_the_test
+def test_runtime_mocked_responses_take_precedence_and_are_replaced(tmp_path: Path):
+    mocks_file = tmp_path / "mocks.json"
+    mocks_file.write_text(json.dumps([MockedBackendResponse("/api/v0.1/configurations", b"internal").to_json()]))
+    (tmp_path / "logs").mkdir()
+
+    server = MockedBackendServer(str(tmp_path / "logs"), port=0, internal_mocked_responses_file=str(mocks_file))
+    try:
+        poll = f"{server.base_url}/api/v0.1/configurations"
+
+        server.client.set_mocked_responses([MockedBackendResponse("/api/v0.1/configurations", b"runtime")])
+        assert requests.post(poll, data=b"", timeout=5).content == b"runtime"
+
+        # each call replaces the previous runtime responses, like with the proxy
+        server.client.set_mocked_responses([])
+        assert requests.post(poll, data=b"", timeout=5).content == b"internal"
+    finally:
+        server.close()
+
+    # control requests are not recorded
+    assert len(list((tmp_path / "logs").glob("*.json"))) == 2
+
+
+def _configure_without_docker(container: MockedBackendContainer, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Run MockedBackendContainer.configure without the base one, which stops containers and loads the image"""
+
+    def base_configure(self: TestedContainer, *, host_log_folder: str, replay: bool) -> None:  # noqa: ARG001
+        self.host_log_folder = host_log_folder
+        Path(self.log_folder_path).mkdir(parents=True)
+
+    monkeypatch.setattr(TestedContainer, "configure", base_configure)
+    container.configure(host_log_folder="logs_x", replay=False)
+
+
+@scenarios.test_the_test
+def test_container_gives_its_internal_mocked_responses_to_the_server(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.chdir(tmp_path)
+    container = MockedBackendContainer(tls=True)
+    mock = MockedBackendResponse("/api/v0.1/configurations", b"\x01")
+    container.internal_mocked_responses.append(mock)
+    _configure_without_docker(container, monkeypatch)
+
+    mocks_path = f"{container.log_folder_path}/{MockedBackendResponse.internal_filename}"
+    assert json.loads(Path(mocks_path).read_text()) == [mock.to_json()]
+    container_path = f"/app/{MockedBackendResponse.internal_filename}"
+    assert container.volumes[mocks_path] == {"bind": container_path, "mode": "ro"}
+    assert isinstance(container.command, list)
+    assert container.command[-2:] == ["--internal-mocked-responses-file", container_path]
+
+
+@scenarios.test_the_test
+def test_container_without_internal_mocked_responses_does_not_pass_the_option(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    monkeypatch.chdir(tmp_path)
+    container = MockedBackendContainer(tls=True)
+    _configure_without_docker(container, monkeypatch)
+
+    assert isinstance(container.command, list)
+    assert "--internal-mocked-responses-file" not in container.command
+
+
+@scenarios.test_the_test
+@pytest.mark.parametrize("body", [[], {"responses": "nope"}, {"responses": [1]}])
+def test_rejects_malformed_mocked_responses(server: MockedBackendServer, body: object):
+    response = requests.put(f"{server.base_url}/system-tests/mocked-responses", json=body, timeout=5)
+    assert response.status_code == 400
+
+
+@scenarios.test_the_test
+def test_mocked_responses_match_the_query_string_like_the_proxy(server: MockedBackendServer):
+    server.client.set_mocked_responses(
+        [
+            MockedBackendResponse("/endpoint?mode=test", b"with query"),
+            MockedBackendResponse("/other", b"without query"),
+        ]
+    )
+
+    assert requests.get(f"{server.base_url}/endpoint?mode=test", timeout=5).content == b"with query"
+    assert requests.get(f"{server.base_url}/endpoint", timeout=5).content != b"with query"
+    assert requests.get(f"{server.base_url}/other?mode=test", timeout=5).content != b"without query"
+
+
+@scenarios.test_the_test
+def test_a_bad_internal_mocked_responses_file_does_not_keep_the_port(tmp_path: Path):
+    probe = MockedBackendServer(None, port=0)
+    port = probe.port
+    probe.close()
+    bad_file = tmp_path / "mocks.json"
+    bad_file.write_text("not json")
+
+    with pytest.raises(json.JSONDecodeError):
+        MockedBackendServer(None, port=port, internal_mocked_responses_file=str(bad_file))
+
+    # the port is still free
+    MockedBackendServer(None, port=port).close()
 
 
 @scenarios.test_the_test
@@ -231,3 +367,183 @@ def test_health_endpoint(server: MockedBackendServer, tmp_path: Path):
     assert response.json() == {"status": "ok"}
     # a control endpoint: not recorded
     assert list(tmp_path.glob("*.json")) == []
+
+
+def _backend_v2_with_requests(tmp_path: Path, requests_: list[tuple[str, str | None]]) -> _BackendV2InterfaceValidator:
+    """A backend_v2 interface that received a series request per (filename, api_key)"""
+    interface = _BackendV2InterfaceValidator()
+    interface.configure(str(tmp_path), replay=False)
+    for filename, api_key in requests_:
+        headers = [["Content-Type", "application/json"]] + ([["DD-API-KEY", api_key]] if api_key else [])
+        file = Path(interface.log_folder) / filename
+        data = {
+            "log_filename": str(file),
+            "path": "/api/v2/series",
+            "request": {"headers": headers, "content": {"series": [{"metric": filename}]}},
+            "response": {},
+        }
+        file.write_text(json.dumps(data))
+        interface.ingest_file(str(file))
+    return interface
+
+
+@scenarios.test_the_test
+def test_backend_v2_with_api_key_only_returns_requests_sent_with_this_key(tmp_path: Path):
+    interface = _backend_v2_with_requests(
+        tmp_path, [("000__agent.json", "agent-key"), ("001__sidecar.json", "sidecar-key"), ("002__nokey.json", None)]
+    )
+
+    assert [d["log_filename"].split("/")[-1] for d in interface.get_data(with_api_key="sidecar-key")] == [
+        "001__sidecar.json"
+    ]
+    assert [point["metric"] for _, point in interface.get_metrics(with_api_key="agent-key")] == ["000__agent.json"]
+    assert list(interface.get_data(with_api_key="unknown-key")) == []
+    # without it, every request
+    assert len(list(interface.get_data())) == 3
+
+
+@scenarios.test_the_test
+def test_backend_v2_with_api_key_ignores_the_header_name_case(tmp_path: Path):
+    interface = _backend_v2_with_requests(tmp_path, [("000__agent.json", "agent-key")])
+    data = next(interface.get_data())
+    data["request"]["headers"] = [["dd-api-key", "agent-key"]]
+
+    assert len(list(interface.get_data(with_api_key="agent-key"))) == 1
+
+
+_MITMPROXY_CA = "utils/proxy/.mitmproxy/mitmproxy-ca-cert.pem"
+_TLS_CERT_FILE = MockedBackendContainer.tls_cert_file
+_INTAKE_HOSTNAME = "event-platform-intake.mocked-backend.invalid"
+
+
+def _https_post(port: int, hostname: str, path: str, body: bytes) -> str:
+    """POST over HTTPS to 127.0.0.1, verifying the certificate is valid for hostname: the status line"""
+    context = ssl.create_default_context(cafile=_MITMPROXY_CA)
+    with (
+        socket.create_connection(("127.0.0.1", port), timeout=5) as raw,
+        context.wrap_socket(raw, server_hostname=hostname) as tls,
+    ):
+        request = f"POST {path} HTTP/1.1\r\nHost: {hostname}\r\nContent-Type: application/json\r\nContent-Length: {len(body)}\r\nConnection: close\r\n\r\n"
+        tls.sendall(request.encode() + body)
+        return tls.recv(4096).decode().splitlines()[0]
+
+
+@scenarios.test_the_test
+def test_https_mode_serves_and_records_https_requests(tmp_path: Path):
+    server = MockedBackendServer(str(tmp_path), port=0, tls_cert_file=_TLS_CERT_FILE)
+    try:
+        status_line = _https_post(server.port, _INTAKE_HOSTNAME, "/api/v2/exposures", b'{"over": "https"}')
+        # the control endpoints, as used from the host
+        health = requests.get(f"{server.base_url}/system-tests/health", timeout=5, verify=_MITMPROXY_CA)
+    finally:
+        server.close()
+
+    # the event platform intake accepts the payload for asynchronous processing
+    assert status_line == "HTTP/1.0 202 Accepted"
+    assert health.json() == {"status": "ok"}
+    recorded = json.loads((tmp_path / "000__api_v2_exposures.json").read_text())
+    assert recorded["request"]["content"] == {"over": "https"}
+
+
+@scenarios.test_the_test
+def test_https_mode_does_not_serve_http(tmp_path: Path):
+    server = MockedBackendServer(str(tmp_path), port=0, tls_cert_file=_TLS_CERT_FILE)
+    try:
+        with pytest.raises(requests.exceptions.ConnectionError):
+            requests.post(f"http://127.0.0.1:{server.port}/api/v2/series", json={}, timeout=5)
+    finally:
+        server.close()
+
+
+@scenarios.test_the_test
+def test_https_mode_releases_the_port_if_the_certificate_cannot_be_loaded(tmp_path: Path):
+    with socket.socket() as probe:
+        probe.bind(("127.0.0.1", 0))
+        port = probe.getsockname()[1]
+
+    with pytest.raises(FileNotFoundError) as error:
+        MockedBackendServer(str(tmp_path), port=port, tls_cert_file=str(tmp_path / "missing.pem"))
+
+    # the port is free again, even while the error (holding the half-built server) is still referenced
+    assert error.traceback
+    MockedBackendServer(str(tmp_path), port=port).close()
+
+
+@scenarios.test_the_test
+def test_https_mode_is_not_blocked_by_an_idle_connection(tmp_path: Path):
+    server = MockedBackendServer(str(tmp_path), port=0, tls_cert_file=_TLS_CERT_FILE)
+    closed = threading.Event()
+
+    def close() -> None:
+        server.close()
+        closed.set()
+
+    try:
+        # connects, and never starts the TLS handshake
+        with socket.create_connection(("127.0.0.1", server.port), timeout=5):
+            status_line = _https_post(server.port, _INTAKE_HOSTNAME, "/api/v2/exposures", b"{}")
+            threading.Thread(target=close, daemon=True).start()
+            assert closed.wait(timeout=10), "close() hangs while a connection is idle"
+    finally:
+        if not closed.is_set():
+            server.close()
+
+    # the event platform intake accepts the payload for asynchronous processing
+    assert status_line == "HTTP/1.0 202 Accepted"
+
+
+@scenarios.test_the_test
+def test_https_mode_advertises_https_urls(tmp_path: Path):
+    server = MockedBackendServer(str(tmp_path), port=0, tls_cert_file=_TLS_CERT_FILE)
+    try:
+        assert server.container_url.startswith("https://")
+        assert server.ffe_library_config_url.startswith("https://")
+    finally:
+        server.close()
+
+
+@scenarios.test_the_test
+def test_https_certificate_is_only_valid_for_the_served_hostnames(tmp_path: Path):
+    server = MockedBackendServer(str(tmp_path), port=0, tls_cert_file=_TLS_CERT_FILE)
+    try:
+        with pytest.raises(ssl.SSLCertVerificationError):
+            _https_post(server.port, "other.mocked-backend.invalid", "/api/v2/exposures", b"{}")
+    finally:
+        server.close()
+
+
+@scenarios.test_the_test
+def test_https_certificate_covers_the_container_hostnames_for_a_while():
+    """The committed certificate must be regenerated when a hostname is added, or before it expires"""
+    cert = x509.load_pem_x509_certificate(Path(_TLS_CERT_FILE).read_bytes())
+    names = cert.extensions.get_extension_for_class(x509.SubjectAlternativeName).value
+    container = MockedBackendContainer(tls=True)
+
+    # reached by its domain, its intake hostnames, and by localhost from the healthcheck and the host
+    assert sorted(names.get_values_for_type(x509.DNSName)) == sorted([*container.network_aliases, "localhost"])
+    assert [str(ip) for ip in names.get_values_for_type(x509.IPAddress)] == ["127.0.0.1"]
+    # naive, in UTC
+    assert cert.not_valid_after.replace(tzinfo=UTC) - datetime.now(UTC) > timedelta(days=180)
+
+
+@scenarios.test_the_test
+def test_java_truststore_holds_the_ca_of_the_certificate():
+    """The JVM trusts the mocked backend with this trust store: it must hold the CA that signs its certificate"""
+    truststore = pkcs12.load_pkcs12(Path(JAVA_TRUSTSTORE_SOURCE).read_bytes(), b"changeit")
+    ca = x509.load_pem_x509_certificate(Path(_MITMPROXY_CA).read_bytes())
+    cert = x509.load_pem_x509_certificate(Path(_TLS_CERT_FILE).read_bytes())
+
+    assert [entry.certificate for entry in truststore.additional_certs] == [ca]
+    assert cert.issuer == ca.subject
+
+
+@scenarios.test_the_test
+def test_mocked_backend_container_serves_either_http_or_https():
+    http = MockedBackendContainer()
+    assert http.container_url == "http://mocked-backend:4900"
+    assert http.network_aliases == []
+
+    https = MockedBackendContainer(tls=True)
+    # senders build the intake URLs from DD_SITE: the default HTTPS port, its domain and the intake hostnames
+    assert https.container_url == "https://mocked-backend.invalid"
+    assert https.network_aliases == list(MockedBackendContainer.tls_hostnames)
