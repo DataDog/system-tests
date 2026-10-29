@@ -333,7 +333,7 @@ def _stats_computed_resource_attr_values(otlp_trace_reqs: list[dict]) -> list[An
 @scenarios.parametric
 @features.client_side_stats_supported
 class Test_FR01_Enablement_Configuration:
-    """FR01: OTLP trace metrics export is gated by OTEL_TRACES_SPAN_METRICS_ENABLED."""
+    """FR01: OTLP trace metrics require explicit enablement or client-side stats opt-in."""
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS_OTLP}])
     def test_fr01_1_enabled_explicit(
@@ -369,6 +369,32 @@ class Test_FR01_Enablement_Configuration:
 
     @pytest.mark.parametrize(
         "library_env",
+        [
+            {
+                **_BASE_ENVVARS,
+                "OTEL_TRACES_EXPORTER": "otlp",
+                "DD_METRICS_OTEL_ENABLED": "true",
+                "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",
+            }
+        ],
+    )
+    def test_fr01_3_enabled_by_default(
+        self,
+        otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+    ) -> None:
+        """With the OTLP span-metrics flag unset, OTLP export and explicit stats opt-in enable trace metrics."""
+        with test_library as t:
+            with t.dd_start_span(name="web.request", service=SERVICE, typestr="web"):
+                pass
+            t.dd_flush()
+
+        metrics = _wait_for_otlp_metrics(test_agent)
+        assert _duration_data_points(metrics), f"No span duration data points exported: {_all_metric_names(metrics)}"
+
+    @pytest.mark.parametrize(
+        "library_env",
         [{**_BASE_ENVVARS, "OTEL_TRACES_EXPORTER": "otlp", "DD_METRICS_OTEL_ENABLED": "true"}],
     )
     def test_fr01_3_disabled_by_default(
@@ -388,7 +414,7 @@ class Test_FR01_Enablement_Configuration:
         while time.monotonic() < deadline:
             metrics = _normalize_keys(test_agent.metrics())
             assert SPAN_DURATION_METRIC not in _all_metric_names(metrics), (
-                "OTLP trace metrics require OTEL_TRACES_SPAN_METRICS_ENABLED=true"
+                "OTLP trace metrics must stay disabled without explicit client-side stats opt-in"
             )
             time.sleep(0.2)
 
