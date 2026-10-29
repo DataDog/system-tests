@@ -2750,8 +2750,8 @@ manifest:
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggageheader_maxbytes_inject_D017: missing_feature  # Created by easy win activation script
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_baggageheader_maxitems_inject_D016: missing_feature  # Created by easy win activation script
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage::test_headers_baggage_only_D002: missing_feature  # Created by easy win activation script
-  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Percent_Encoding::test_legacy_ot_baggage_plus_space_percent_roundtrip: missing_feature (ot-baggage-* re-injection not verified)
-  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Percent_Encoding::test_w3c_baggage_plus_space_percent_roundtrip: missing_feature (query-decodes W3C baggage - URI.decode_www_form_component turns + into a space)
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Percent_Encoding::test_ot_baggage_encoding: missing_feature (ot-baggage-* re-injection not verified)
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Percent_Encoding::test_w3c_encoding: missing_feature (query-decodes W3C baggage - URI.decode_www_form_component turns + into a space)
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Span_Tags: v2.22.1-dev
   tests/parametric/test_headers_opm.py:  # TODO: a lower version might be supported
     - declaration: missing_feature (Org Propagation Guard RFC not yet implemented)

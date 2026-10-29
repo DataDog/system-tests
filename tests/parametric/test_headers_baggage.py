@@ -459,7 +459,7 @@ class Test_Headers_Baggage_Percent_Encoding:
     W3C keys are opaque tokens: "k+y" and "k%25y" must come back unchanged.
     """
 
-    def test_w3c_baggage_plus_space_percent_roundtrip(self, test_library: APMLibrary) -> None:
+    def test_w3c_encoding(self, test_library: APMLibrary) -> None:
         # Re-injection proves the decode step: an undecoded "%25" would come back as "%2525",
         # and a query-form decoder would turn "+" into a space ("%20").
         with test_library:
@@ -474,7 +474,7 @@ class Test_Headers_Baggage_Percent_Encoding:
         assert items["k%25y"] == "v"
 
     @parametrize("library_env", [{"DD_TRACE_PROPAGATION_STYLE": "datadog"}])
-    def test_legacy_ot_baggage_plus_space_percent_roundtrip(self, test_library: APMLibrary) -> None:
+    def test_ot_baggage_encoding(self, test_library: APMLibrary) -> None:
         with test_library:
             headers = test_library.dd_make_child_span_and_get_headers(
                 [
