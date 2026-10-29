@@ -172,6 +172,10 @@ library. Deleting the image will force a rebuild which will resolve the issue.
 docker image rm <library>-test-library
 ```
 
+### Library image build timeout
+
+The parametric library image build is aborted after 600s, or 1200s when `USE_IMAGE_MIRROR` is set (the image is then loaded back from a buildx builder, which is slower for big images). Set `SYSTEM_TESTS_TEST_CLIENT_BUILD_TIMEOUT=<seconds>` to override it.
+
 ### Disable build kit
 
 If logs like
