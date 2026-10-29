@@ -1898,6 +1898,8 @@ manifest:
         rails80: v2.38.0
         uds-rails: v2.38.0
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions::test_complex_capture_expressions: missing_feature (Local variable capture not implemented for method probes)
+  ? tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions::test_complex_capture_expressions_dictionary_value
+  : missing_feature (Local variable capture not implemented for method probes)
   ? tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions::test_method_local_capture_expressions
   : missing_feature (Local variable capture not implemented for method probes)
   ? tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions::test_method_parameter_capture_expressions

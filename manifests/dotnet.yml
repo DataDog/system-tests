@@ -657,6 +657,11 @@ manifest:
         '*': missing_feature (Not yet implemented)
         poc: v3.44.0
         uds: v3.44.0
+  ? tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions::test_complex_capture_expressions_dictionary_value
+  : - weblog_declaration:
+        '*': missing_feature (Not yet implemented)
+        poc: v3.44.0
+        uds: v3.44.0
   tests/debugger/test_debugger_capture_expressions_errors.py::Test_Debugger_Filter_Rejected_Capture_Expression_Error:  # ProbeProcessor skips captureExpressions when `when` is false; #8725 rate-limits eval-error snapshots to 1/5min
     - weblog_declaration:
         '*': missing_feature (Not yet implemented)
