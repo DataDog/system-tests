@@ -552,7 +552,7 @@ def test_agentless_end_to_end_scenario_stops_backend_when_status_fails(
     monkeypatch.setattr(scenario, "mocked_backend_container", container)
 
     with pytest.raises(RuntimeError, match="status failed"):
-        scenario._stop_mocked_backend_v2()  # noqa: SLF001 - focused lifecycle test
+        scenario._stop_mocked_backend()  # noqa: SLF001 - focused lifecycle test
 
     container.stop.assert_called_once_with()
 
@@ -580,7 +580,7 @@ def test_agentless_end_to_end_scenario_persists_backend_status_for_replay(
     container.client.ffe_get_status.return_value = expected_status
     monkeypatch.setattr(recording_scenario, "mocked_backend_container", container)
 
-    recording_scenario._stop_mocked_backend_v2()  # noqa: SLF001 - focused lifecycle test
+    recording_scenario._stop_mocked_backend()  # noqa: SLF001 - focused lifecycle test
 
     container.stop.assert_called_once_with()
     assert recording_scenario.mock_backend_status() == expected_status

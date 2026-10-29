@@ -82,7 +82,7 @@ class _AgentlessEndToEndScenario(DdTraceEndToEndScenario):
             use_proxy_for_agent=False,
             use_proxy_for_weblog=False,
             weblog_env=weblog_env,
-            mocked_backend_v2=True,
+            mocked_backend=True,
         )
 
         # The tested library fetches its agentless configuration from the mocked backend container
@@ -137,7 +137,7 @@ class _AgentlessEndToEndScenario(DdTraceEndToEndScenario):
             json.loads(self._mock_backend_status_path.read_text(encoding="utf-8")),
         )
 
-    def _stop_mocked_backend_v2(self) -> None:
+    def _stop_mocked_backend(self) -> None:
         # The mocked backend counters are not recorded as interface data: persist them for replay
         # TODO : remove this, as it will strongly depends on test order.
         # Either we need to call the client in setup method, or the interface in test methods.
@@ -149,7 +149,7 @@ class _AgentlessEndToEndScenario(DdTraceEndToEndScenario):
                 encoding="utf-8",
             )
         finally:
-            super()._stop_mocked_backend_v2()
+            super()._stop_mocked_backend()
 
 
 class FeatureFlaggingAgentlessEndToEndScenario(_AgentlessEndToEndScenario):

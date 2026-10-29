@@ -3,8 +3,8 @@
 # Copyright 2021 Datadog, Inc.
 
 from ._agent import AgentInterfaceValidator
-from ._backend import _BackendLegacyInterfaceValidator
-from ._backend_v2 import _MockedBackendInterfaceValidator
+from ._backend_legacy import _BackendLegacyInterfaceValidator
+from ._mocked_backend import _MockedBackendInterfaceValidator
 from ._library.core import LibraryInterfaceValidator
 from ._core import ProxyBasedInterfaceValidator
 from ._logs import (

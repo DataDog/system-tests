@@ -63,14 +63,14 @@ class _MockedBackendInterfaceValidator(ProxyBasedInterfaceValidator):
 
         rid = request.get_rid() if request else None
         if rid:
-            logger.debug(f"Will try to find backend_v2 spans related to request {rid}")
+            logger.debug(f"Will try to find mocked_backend spans related to request {rid}")
 
         for data in self.get_data(path_filters="/api/v0.2/traces", with_api_key=with_api_key):
-            logger.debug(f"Looking at backend_v2 data {data['log_filename']}")
+            logger.debug(f"Looking at mocked_backend data {data['log_filename']}")
 
             if "content" not in data["request"]:
                 raise ValueError(
-                    f"backend_v2 request in {data['log_filename']} could not be deserialized: "
+                    f"mocked_backend request in {data['log_filename']} could not be deserialized: "
                     f"{data['request'].get('traceback', data['request'].get('raw_content'))}"
                 )
 
@@ -110,7 +110,7 @@ class _MockedBackendInterfaceValidator(ProxyBasedInterfaceValidator):
 
         rid = request.get_rid() if request else None
         if rid:
-            logger.debug(f"Will try to find backend_v2 spans related to request {rid}")
+            logger.debug(f"Will try to find mocked_backend spans related to request {rid}")
 
         for data, trace in self.get_traces(request=request, with_api_key=with_api_key):
             for span in trace.spans:

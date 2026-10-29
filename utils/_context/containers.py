@@ -778,7 +778,7 @@ class ProxyContainer(TestedContainer):
 
 class MockedBackendContainer(TestedContainer):
     """The mocked backend (utils/mocked_backend), standing in for the Datadog backend in its own container.
-    What it receives is recorded in the logs folder, and read by interfaces.backend_v2.
+    What it receives is recorded in the logs folder, and read by interfaces.mocked_backend.
     """
 
     # With tls, it serves HTTPS instead of HTTP: for senders that only speak HTTPS to the intake hostnames derived
@@ -829,7 +829,7 @@ class MockedBackendContainer(TestedContainer):
         super().configure(host_log_folder=host_log_folder, replay=replay)
 
         # Same relative path in the container and on the host, so recorded log filenames are the same
-        log_folder = f"{host_log_folder}/interfaces/backend_v2"
+        log_folder = f"{host_log_folder}/interfaces/mocked_backend"
         self.volumes[f"./{log_folder}"] = {"bind": f"/app/{log_folder}", "mode": "rw"}
         self.command = [
             "python",
@@ -844,7 +844,7 @@ class MockedBackendContainer(TestedContainer):
             self.command += ["--tls-cert-file", self.tls_cert_file]
 
         if self.internal_mocked_responses:
-            # not in the recordings folder: interfaces.backend_v2 reads every JSON file there
+            # not in the recordings folder: interfaces.mocked_backend reads every JSON file there
             mocks_path = f"{self.log_folder_path}/{MockedBackendResponse.internal_filename}"
             with Path(mocks_path).open(encoding="utf-8", mode="w") as f:
                 json.dump([mock.to_json() for mock in self.internal_mocked_responses], f, indent=2)
