@@ -550,7 +550,10 @@ class EndToEndScenario(DockerScenario):
                 if self.use_proxy_for_agent:
                     interfaces.agent.check_deserialization_errors()
 
-            self._wait_interface(interfaces.backend_legacy, 0 if is_empty_test_run else self.backend_interface_timeout)
+            if self._require_api_key:
+                self._wait_interface(
+                    interfaces.backend_legacy, 0 if is_empty_test_run else self.backend_interface_timeout
+                )
 
             if self.include_opentelemetry:
                 self._wait_interface(
