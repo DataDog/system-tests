@@ -57,6 +57,12 @@ class MockedBackendServer(MockedBackendServerFfeMixin, MockedBackendServerCore):
         HTTPS is meant for the mocked backend container (MockedBackendContainer(tls=True)): the certificate covers its
         hostnames, not host.docker.internal, so the URLs this server advertises to containers can't be verified.
         """
+        # read before binding the port: a bad file must not leave it bound
+        internal_mocked_responses: list[MockedBackendResponse] = []
+        if internal_mocked_responses_file:
+            data = json.loads(Path(internal_mocked_responses_file).read_text(encoding="utf-8"))
+            internal_mocked_responses = MockedBackendResponse.from_dicts(data)
+
         super().__init__(("0.0.0.0", port), MockBackendV2RequestHandler)  # noqa: S104
         self.scheme = "https" if tls_cert_file else "http"
         if tls_cert_file:
@@ -80,10 +86,7 @@ class MockedBackendServer(MockedBackendServerFfeMixin, MockedBackendServerCore):
         # ones (set by tests) first, then internal ones (set by the scenario, for the whole session)
         self._mocked_responses_lock = threading.Lock()
         self._mocked_responses: list[MockedBackendResponse] = []
-        self._internal_mocked_responses: list[MockedBackendResponse] = []
-        if internal_mocked_responses_file:
-            data = json.loads(Path(internal_mocked_responses_file).read_text(encoding="utf-8"))
-            self._internal_mocked_responses = MockedBackendResponse.from_dicts(data)
+        self._internal_mocked_responses = internal_mocked_responses
 
         self.add_handler("GET", f"{CONTROL_URL_PREFIX}/health", self._handle_health)
         self.add_handler("PUT", f"{CONTROL_URL_PREFIX}/mocked-responses", self._handle_mocked_responses)
@@ -116,8 +119,14 @@ class MockedBackendServer(MockedBackendServerFfeMixin, MockedBackendServerCore):
         """
         self._routes[(method, path)] = handler
 
-    def get_handler(self, method: HttpMethod, path: str) -> tuple[RouteHandler, str | None, str | None]:
-        handler = self._get_mocked_response_handler(path) or self._routes.get((method, path), self._default_handler)
+    def get_handler(
+        self, method: HttpMethod, path: str, *, query: str = ""
+    ) -> tuple[RouteHandler, str | None, str | None]:
+        # like the proxy, mocked responses match the path with its query string, routes match the path only
+        full_path = f"{path}?{query}" if query else path
+        handler = self._get_mocked_response_handler(full_path) or self._routes.get(
+            (method, path), self._default_handler
+        )
 
         if path.startswith(CONTROL_URL_PREFIX):
             # requests controlling the mock are not traffic it stands in for: never record them
@@ -158,11 +167,12 @@ class MockedBackendServer(MockedBackendServerFfeMixin, MockedBackendServerCore):
         self, request: MockBackendV2RequestHandler, payload: bytes | dict | None
     ) -> tuple[Mapping, bytes]:
         """Replace the runtime mocked responses, like the proxy's /mocked_backend_responses endpoint"""
-        if not isinstance(payload, dict) or not isinstance(payload.get("responses"), list):
+        responses = payload.get("responses") if isinstance(payload, dict) else None
+        if not isinstance(responses, list) or not all(isinstance(item, dict) for item in responses):
             return request.write_json(HTTPStatus.BAD_REQUEST, {"error": "body must contain a list of responses"})
 
         try:
-            mocks = MockedBackendResponse.from_dicts(payload["responses"])
+            mocks = MockedBackendResponse.from_dicts(responses)
         except (KeyError, TypeError, ValueError) as error:
             return request.write_json(HTTPStatus.BAD_REQUEST, {"error": str(error)})
 
