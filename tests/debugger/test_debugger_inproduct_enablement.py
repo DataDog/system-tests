@@ -2,8 +2,10 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+from collections.abc import Callable
 import tests.debugger.utils as debugger
-from utils import context, features, logger, scenarios, slow
+from utils import context, features, interfaces, logger, scenarios, slow, HttpResponse
+from utils.dd_types import DataDogAgentSpan
 import json
 import time
 
@@ -265,3 +267,99 @@ class Test_Debugger_InProduct_Enablement_Code_Origin_Default_On(debugger.BaseDeb
         self.assert_all_weblog_responses_ok()
 
         assert self.code_origin_enabled_by_default, "Expected code origin enabled by default"
+
+
+@features.debugger_inproduct_enablement
+@scenarios.debugger_inproduct_enablement
+@slow
+class Test_Debugger_InProduct_Enablement_Probe_Removal(debugger.BaseDebuggerTest):
+    """Probes are removed when dynamic instrumentation is disabled through remote configuration.
+
+    Span and span decoration probes change the trace of the request whether or not dynamic instrumentation
+    is enabled, so the trace of a request sent while it is disabled shows whether the probe is still installed.
+    A log probe can't show it, because libraries drop its snapshots once dynamic instrumentation is disabled.
+    """
+
+    _PROBE_TIMEOUT = 30
+
+    def _enable_dynamic_instrumentation(self, *, reset: bool) -> bool:
+        # The statuses sent when the probes were first installed must not end the wait when they are installed again
+        previous_diagnostics = self.get_probe_diagnostics_files()
+        self.send_rc_apm_tracing_and_probes(dynamic_instrumentation_enabled=True, reset=reset)
+        return self.wait_for_all_probes_installed(ignored_files=previous_diagnostics, timeout=self._PROBE_TIMEOUT)
+
+    def _setup_probe_removal(self, probes_name: str, probe_type: str, request_path: str):
+        self.initialize_weblog_remote_config()
+        self.weblog_responses = []
+
+        probes = debugger.read_probes(probes_name)
+        for probe in probes:
+            probe["id"] = debugger.generate_probe_id(probe_type)
+        self.set_probes(probes)
+
+        # The probed method must not run before its probe is installed: .NET doesn't instrument a method that
+        # the JIT already inlined into its caller.
+        self.installed_when_enabled = self._enable_dynamic_instrumentation(reset=True)
+        self.request_when_enabled = self.send_weblog_request(request_path, reset=False)
+
+        # The backend keeps the probes when dynamic instrumentation is disabled, so they stay in the payload.
+        # The request is sent once the library acknowledged the config.
+        self.send_rc_apm_tracing_and_probes(dynamic_instrumentation_enabled=False, reset=False)
+        self.request_when_disabled = self.send_weblog_request(request_path, reset=False)
+
+        self.installed_when_reenabled = self._enable_dynamic_instrumentation(reset=False)
+        self.request_when_reenabled = self.send_weblog_request(request_path, reset=False)
+
+    @staticmethod
+    def _get_trace_spans(request: HttpResponse) -> list[DataDogAgentSpan]:
+        # Spans created by probes don't carry the request ID, so all the spans of the request's trace are returned
+        return [span for _, trace in interfaces.agent.get_traces(request=request) for span in trace.spans]
+
+    def _is_probe_span(self, span: DataDogAgentSpan) -> bool:
+        return span.get_span_name() == "dd.dynamic.span" and span.meta.get("debugger.probeid") in self.probe_ids
+
+    def _is_decorated_span(self, span: DataDogAgentSpan) -> bool:
+        # Libraries don't use the same case for the tag names
+        return any(
+            key.lower() == "spandecorationargsandlocals"
+            or (key.lower() == "_dd.di.spandecorationargsandlocals.probe_id" and value in self.probe_ids)
+            for key, value in span.meta.items()
+        )
+
+    def _assert_probe_removal(self, is_probe_effect: Callable[[DataDogAgentSpan], bool]):
+        self.assert_setup_ok()
+        self.assert_rc_state_not_error()
+        self.assert_all_weblog_responses_ok()
+
+        assert self.installed_when_enabled, "Expected the probes to be installed after enabling DI"
+        spans = self._get_trace_spans(self.request_when_enabled)
+        assert spans, "Trace of the request sent while DI was enabled not received"
+        assert any(is_probe_effect(span) for span in spans), (
+            "Expected the probes to change the trace of the request sent while DI was enabled"
+        )
+
+        spans = self._get_trace_spans(self.request_when_disabled)
+        assert spans, "Trace of the request sent while DI was disabled not received"
+        assert not any(is_probe_effect(span) for span in spans), (
+            "Expected the probes to be removed after disabling DI remotely, "
+            "but they still changed the trace of the request sent while DI was disabled"
+        )
+
+        spans = self._get_trace_spans(self.request_when_reenabled)
+        assert spans, "Trace of the request sent after re-enabling DI not received"
+        assert any(is_probe_effect(span) for span in spans), (
+            "Expected the probes to change the trace of the request sent after re-enabling DI "
+            f"(probes reported installed again: {self.installed_when_reenabled})"
+        )
+
+    def setup_span_probe_removed_on_remote_disable(self):
+        self._setup_probe_removal("probe_snapshot_span_method", "span", "/debugger/span")
+
+    def test_span_probe_removed_on_remote_disable(self):
+        self._assert_probe_removal(self._is_probe_span)
+
+    def setup_span_decoration_probe_removed_on_remote_disable(self):
+        self._setup_probe_removal("probe_snapshot_span_decoration_method", "decor", "/debugger/span-decoration/asd/1")
+
+    def test_span_decoration_probe_removed_on_remote_disable(self):
+        self._assert_probe_removal(self._is_decorated_span)
