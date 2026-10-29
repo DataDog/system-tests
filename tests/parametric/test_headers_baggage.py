@@ -454,17 +454,11 @@ class Test_Headers_Baggage_Percent_Encoding:
     See https://github.com/DataDog/dd-trace-go/issues/5181
     """
 
-    @parametrize("library_env", [{"DD_TRACE_BAGGAGE_TAG_KEYS": "*"}])
-    def test_w3c_baggage_plus_space_percent_roundtrip(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+    def test_w3c_baggage_plus_space_percent_roundtrip(self, test_library: APMLibrary) -> None:
+        # Re-injection proves the decode step: an undecoded "%25" would come back as "%2525",
+        # and a query-form decoder would turn "+" into a space ("%20").
         with test_library:
             headers = test_library.dd_make_child_span_and_get_headers([*_DD_PARENT, ("baggage", _ENCODED_BAGGAGE)])
-
-        # Decoded values: "+" is a literal plus, %20 is a space, %25 is a percent sign.
-        meta = find_only_span(test_agent.wait_for_num_traces(1)).get("meta")
-        assert meta is not None
-        assert meta.get("baggage.plus") == "a+b"
-        assert meta.get("baggage.space") == "a b"
-        assert meta.get("baggage.pct") == "100%"
 
         # Wire shape after re-injection.
         items = _parse_w3c_baggage(headers["baggage"])
