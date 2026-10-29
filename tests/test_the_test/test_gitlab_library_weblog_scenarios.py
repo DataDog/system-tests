@@ -2,10 +2,10 @@
 
 from pathlib import Path
 
-import pytest
+
 import yaml
 
-from utils import scenarios
+from utils import pytest, scenarios
 from utils.ci.gitlab.build_pipeline import build
 from utils.ci.gitlab.library_weblog_scenarios import get_compute_args, main, merge_params
 from utils.ci.gitlab.validate_param_env import validate_library_weblog_scenarios
