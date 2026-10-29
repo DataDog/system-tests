@@ -5,7 +5,8 @@
 import random
 import argparse
 
-from utils._context.containers import WeblogContainer, AgentContainer, create_network, FAKE_DD_API_KEY
+from utils._context.containers import WeblogContainer, AgentContainer, create_network
+from utils._context._scenarios._core import FakeDatadogKey
 from utils._logger import get_logger
 from utils import context, scenarios
 from tests.fuzzer.core import Fuzzer
@@ -61,7 +62,7 @@ def main() -> None:
 
     network = create_network()
 
-    agent = AgentContainer(use_proxy=False, dd_api_key=FAKE_DD_API_KEY)
+    agent = AgentContainer(use_proxy=False, dd_api_key=FakeDatadogKey.DEFAULT)
     agent.configure(host_log_folder="logs_fuzzer", replay=False)
     agent.start(network)
 

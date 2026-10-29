@@ -1,7 +1,13 @@
 import pytest
 from utils import interfaces
 from utils.interfaces._core import ProxyBasedInterfaceValidator
-from ._core import DockerScenario, scenario_groups, scenario_groups as all_scenario_groups, ScenarioGroup
+from ._core import (
+    DockerScenario,
+    FakeDatadogKey,
+    scenario_groups,
+    scenario_groups as all_scenario_groups,
+    ScenarioGroup,
+)
 from utils._context.constants import WeblogCategory
 from utils._context.containers import LambdaProxyContainer, LambdaWeblogContainer, InternalServerContainer
 from utils._logger import logger
@@ -44,8 +50,13 @@ class _LambdaScenario(DockerScenario):
             weblog_categories=[WeblogCategory.dd_trace_lambda],
         )
 
+        self.dd_api_key = FakeDatadogKey.DEFAULT
+        """The API key the lambda weblog sends with"""
         self.lambda_weblog = LambdaWeblogContainer(
-            environment=weblog_env or {}, volumes=weblog_volumes or {}, trace_managed_services=trace_managed_services
+            dd_api_key=self.dd_api_key,
+            environment=weblog_env or {},
+            volumes=weblog_volumes or {},
+            trace_managed_services=trace_managed_services,
         )
 
         self.lambda_proxy_container = LambdaProxyContainer(

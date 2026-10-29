@@ -49,14 +49,15 @@ def normalize_approval_data(data: object) -> object:
     relevant to exception replay, so drop the marker and canonicalize booleans on both sides of the
     comparison. This keeps a single set of approval files valid whether or not conversion is enabled.
 
-    The ``_dd.sdk.otlp_export`` tag describes trace export routing, not exception replay. Its presence
-    varies across tracer versions, so exclude it from both sides of the approval comparison too.
+    The ``_dd.sdk.otlp_export`` tag describes trace export routing, and the ``_dd.appsec.normalized_route``
+    tag describes the API Security route, not exception replay. Their presence varies across tracer
+    versions, so exclude them from both sides of the approval comparison too.
     """
     if isinstance(data, dict):
         return {
             key: normalize_approval_data(value)
             for key, value in data.items()
-            if key not in {"_dd.convertedv1", "_dd.sdk.otlp_export"}
+            if key not in {"_dd.convertedv1", "_dd.sdk.otlp_export", "_dd.appsec.normalized_route"}
         }
 
     if isinstance(data, list):
