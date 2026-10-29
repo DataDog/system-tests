@@ -71,6 +71,7 @@ manifest:
   tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP::test_128bit_trace_id_consistent_across_spans:
     - weblog_declaration:
         axum: missing_feature
+  tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP::test_git_span_attributes: missing_feature (DD_GIT_REPOSITORY_URL and DD_GIT_COMMIT_SHA are not supported)
   tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP::test_single_server_trace:
     - weblog_declaration:
         axum: missing_feature

@@ -133,22 +133,24 @@ class Test_Debugger_InProduct_Enablement_Exception_Replay(debugger.BaseDebuggerT
         self.initialize_weblog_remote_config()
         self.weblog_responses = []
 
+        # Tracers don't capture the same exception again for a while, even after exception replay is disabled and
+        # enabled again, so use exceptions that setup_inproduct_enablement_exception_replay doesn't capture.
         # Set a config with the wildcard service and env and ER=false.
         self._send_config(enabled=False, service_name="*", env="*")
         self.er_initial_enabled = not self._wait_for_exception_snapshot_received(
-            "/exceptionreplay/simple", "simple exception"
+            "/exceptionreplay/inner", "outer exception"
         )
 
         # Set a config with the wildcard service and env and ER=true.
         self._send_config(enabled=True, service_name="*", env="*")
         self.er_apm_multiconfig_enabled = self._wait_for_exception_snapshot_received(
-            "/exceptionreplay/simple", "simple exception"
+            "/exceptionreplay/inner", "outer exception"
         )
 
         # Set a config with the weblog service and env and ER=false.
         self._send_config(enabled=False, service_name="weblog", env="system-tests", reset=False)
         self.er_disabled_by_service_name = not self._wait_for_exception_snapshot_received(
-            "/exceptionreplay/recursion?depth=1", "recursion exception depth 1"
+            "/exceptionreplay/multiframe", "multiple stack frames exception"
         )
 
         # Set a config with the wildcard service and env and ER=true.

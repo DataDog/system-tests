@@ -3948,6 +3948,9 @@ manifest:
   tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP::test_128bit_trace_id_consistent_across_spans:
     - weblog_declaration:
         spring-boot-3-native: missing_feature
+  tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP::test_git_span_attributes:
+    - weblog_declaration:
+        spring-boot-3-native: missing_feature
   tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP::test_single_server_trace:
     - weblog_declaration:
         "*": v1.66.0
