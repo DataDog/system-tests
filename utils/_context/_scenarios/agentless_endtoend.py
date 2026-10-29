@@ -15,6 +15,8 @@ from utils._context.docker import get_docker_client
 from utils._logger import logger
 from utils._weblog import weblog
 from utils.mocked_backend.ffe import MockedBackendFFEStatus, ffe_library_config_url
+from utils.proxy.mocked_response import MockedBackendResponse
+from utils.proxy.rc_response_builder import build_rc_configurations_protobuf
 from utils.proxy.tuf import get_tuf_root_json
 
 from ._core import DdTraceEndToEndScenario, ScenarioGroup, scenario_groups as all_scenario_groups
@@ -119,6 +121,10 @@ class _AgentlessEndToEndScenario(DdTraceEndToEndScenario):
                 "DD_REMOTE_CONFIGURATION_CONFIG_ROOT": tuf_root_json,
                 "DD_REMOTE_CONFIGURATION_DIRECTOR_ROOT": tuf_root_json,
             }
+            # Served from the first poll, until a test pushes its own (like the proxy's internal responses)
+            self.mocked_backend_container.internal_mocked_responses.append(
+                MockedBackendResponse(path="/api/v0.1/configurations", content=build_rc_configurations_protobuf(None))
+            )
 
     @property
     def weblog_api_key(self) -> str:

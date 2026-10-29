@@ -329,7 +329,9 @@ def send_state(
         rc_protobuf = build_rc_configurations_protobuf(raw_payload)
         if agentless:
             scenario = cast("DdTraceEndToEndScenario", context.scenario)
-            scenario.mocked_backend_container.client.rc_set_configurations(rc_protobuf)
+            scenario.mocked_backend_container.client.set_mocked_responses(
+                [MockedBackendResponse(path="/api/v0.1/configurations", content=rc_protobuf)]
+            )
         else:
             MockedBackendResponse(path="/api/v0.1/configurations", content=rc_protobuf).send()
     elif target == "tracer":
