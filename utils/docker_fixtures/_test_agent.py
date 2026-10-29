@@ -1,5 +1,5 @@
 import base64
-from collections.abc import Generator
+from collections.abc import Generator, Iterator
 import contextlib
 import datetime
 import gzip
@@ -830,48 +830,32 @@ class TestAgentAPI:
             self.clear()
         return metrics
 
+    @staticmethod
+    def _iter_telemetry_events(event: dict | None, request_type: str) -> Iterator[dict[str, Any]]:
+        """Yield the captured telemetry events of the given request type inside one event.
+
+        A message-batch event yields its matching nested messages; any other event yields
+        itself when its request type matches. Events emitted by the sidecar are skipped:
+        a message batch carries its application on the outer event, so the batch is skipped
+        as a whole when the outer application is the sidecar's.
+        """
+        if not event:
+            return
+        if event.get("request_type") == request_type:
+            if event.get("application", {}).get("language_version") != "SIDECAR":
+                yield event
+        elif event.get("request_type") == "message-batch":
+            if event.get("application", {}).get("language_version") != "SIDECAR":
+                for message in event.get("payload", []):
+                    if message.get("request_type") == request_type:
+                        if message.get("application", {}).get("language_version") != "SIDECAR":
+                            yield message
+
     def _get_telemetry_event(self, event: dict, request_type: str):
         """Extracts telemetry events from a message batch or returns the telemetry event if it
         matches the expected request_type and was not emitted from a sidecar.
         """
-        if not event:
-            return None
-        if event["request_type"] == "message-batch":
-            for message in event["payload"]:
-                if message["request_type"] == request_type:
-                    if message.get("application", {}).get("language_version") != "SIDECAR":
-                        return message
-        elif event["request_type"] == request_type:
-            if event.get("application", {}).get("language_version") != "SIDECAR":
-                return event
-        return None
-
-    def count_telemetry_events(self, event_name: str) -> int:
-        """Count telemetry events of the given type, using the same logic as _get_telemetry_event.
-
-        Handles both top-level events and events inside message-batch payloads, excluding
-        sidecar-originated events.
-        """
-        try:
-            events: list[Any] = self.telemetry(clear=False)
-        except requests.exceptions.RequestException:
-            return 0
-
-        count: int = 0
-        for event in events:
-            if not event:
-                continue
-            if event.get("request_type") == event_name:
-                count += int(event.get("application", {}).get("language_version") != "SIDECAR")
-            elif event.get("request_type") == "message-batch":
-                count += sum(
-                    1
-                    for message in event.get("payload", [])
-                    if message.get("request_type") == event_name
-                    and message.get("application", {}).get("language_version") != "SIDECAR"
-                )
-
-        return count
+        return next(TestAgentAPI._iter_telemetry_events(event, request_type), None)
 
     def get_telemetry_events(self, event_name: str) -> list[dict[str, Any]]:
         """Return the telemetry events of the given type captured so far, oldest first.
@@ -884,21 +868,11 @@ class TestAgentAPI:
         except requests.exceptions.RequestException:
             return []
 
-        matching_events: list[dict[str, Any]] = []
-        for event in events:
-            if not event:
-                continue
-            if event.get("request_type") == event_name:
-                if event.get("application", {}).get("language_version") != "SIDECAR":
-                    matching_events.append(event)
-            elif event.get("request_type") == "message-batch":
-                matching_events.extend(
-                    message
-                    for message in event.get("payload", [])
-                    if message.get("request_type") == event_name
-                    and message.get("application", {}).get("language_version") != "SIDECAR"
-                )
-        return matching_events
+        return [
+            matching_event
+            for event in events
+            for matching_event in TestAgentAPI._iter_telemetry_events(event, event_name)
+        ]
 
     def wait_for_rc_apply_state(
         self,
