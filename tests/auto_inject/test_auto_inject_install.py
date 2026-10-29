@@ -243,6 +243,7 @@ class TestInstallerAutoInjectManual(base.AutoInjectBaseTest):
 @scenarios.multi_installer_auto_injection
 class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
     @irrelevant(context.library >= "python@4.0.0.dev" and context.installed_language_runtime < "3.9.0")
+    @irrelevant(context.library >= "python@4.18.0.dev" and context.installed_language_runtime < "3.10.0")
     @irrelevant(context.library < "python@4.0.0.dev" and context.installed_language_runtime < "3.8.0")
     @bug(
         context.vm_name in ["CentOS_7_amd64", "RedHat_7_9_amd64"] and context.weblog_variant == "test-app-java-alpine",
@@ -275,6 +276,7 @@ class TestSimpleInstallerAutoInjectManualOriginDetection(base.AutoInjectBaseTest
         reason="Origin detection is not supported on host environments",
     )
     @irrelevant(context.library >= "python@4.0.0.dev" and context.installed_language_runtime < "3.9.0")
+    @irrelevant(context.library >= "python@4.18.0.dev" and context.installed_language_runtime < "3.10.0")
     @irrelevant(context.library < "python@4.0.0.dev" and context.installed_language_runtime < "3.8.0")
     @bug(
         context.vm_name in ["CentOS_7_amd64", "RedHat_7_9_amd64"] and context.weblog_variant == "test-app-java-alpine",

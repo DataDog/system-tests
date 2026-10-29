@@ -26,6 +26,7 @@ class TestDockerSSIAppsecFeatures:
     @irrelevant(context.library == "php" and context.installed_language_runtime < "7.1")
     @irrelevant(_NODEJS_UNSUPPORTED_RUNTIME)
     @irrelevant(context.library >= "python@4.0.0.dev" and context.installed_language_runtime < "3.9.0")
+    @irrelevant(context.library >= "python@4.18.0.dev" and context.installed_language_runtime < "3.10.0")
     @irrelevant(context.library < "python@4.0.0.dev" and context.installed_language_runtime < "3.8.0")
     @irrelevant(context.library == "ruby" and context.installed_language_runtime < "2.6.0", reason="Ruby 2.6+ required")
     def test_telemetry_source_ssi(self):
