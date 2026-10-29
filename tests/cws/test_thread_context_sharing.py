@@ -10,7 +10,7 @@ from utils import features, interfaces, scenarios, weblog
 from .utils import CWS_EVENTS_PATH, cws_event_mentioning, cws_self_test_succeeded
 
 
-@features.not_reported
+@features.thread_context_sharing
 @scenarios.thread_context_sharing
 class Test_ThreadContextSharing:
     """A tracer that shares the trace_id/span_id of the span active on a thread with system-probe

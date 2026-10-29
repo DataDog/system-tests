@@ -3,7 +3,7 @@ from collections.abc import Generator, Iterable
 from dataclasses import asdict
 from http import HTTPStatus
 from types import TracebackType
-from typing import TypedDict, cast
+from typing import Any, TypedDict, cast
 
 import pytest
 from docker.models.containers import Container
@@ -289,6 +289,10 @@ class ParametricTestClientApi(TestClientApi):
         except RequestException as e:
             logger.info(f"Expected exception when calling /trace/crash: {e}")
 
+    def terminate(self) -> None:
+        self.container.kill(signal="SIGKILL")
+        self.container.wait(timeout=10)
+
     def get_logs(self) -> str:
         return self.container.logs().decode("utf-8")
 
@@ -492,6 +496,11 @@ class ParametricTestClientApi(TestClientApi):
         )
         return resp.json()["span_id"]
 
+    def dd_log_level_diagnostics(self) -> bool:
+        """Ask the app to trigger identifiable SDK warning and error diagnostics."""
+        response = self._session.post(self._url("/trace/diagnostics/log_level"), json={})
+        return HTTPStatus(response.status_code).is_success and response.json().get("success") is True
+
     def dd_flush(self) -> bool:
         r = self._session.post(self._url("/trace/span/flush"), json={})
 
@@ -573,7 +582,7 @@ class ParametricTestClientApi(TestClientApi):
             )
             if HTTPStatus(resp.status_code).is_success:
                 data = resp.json()
-                return data["success"], data["message"]
+                return data["success"], data.get("message", "")
             return False, f"HTTP error: {resp.status_code}"
         except Exception as e:
             return False, f"Error: {e!s}"
@@ -744,12 +753,24 @@ class ParametricTestClientApi(TestClientApi):
     def config(self) -> dict[str, str | None]:
         resp = self._session.get(self._url("/trace/config")).json()
         config_dict = resp["config"]
+        if self.lang == "nodejs":
+            config_dict.update(self.otel_effective_config())
         return {
             "dd_service": config_dict.get("dd_service", None),
             "dd_log_level": config_dict.get("dd_log_level", None),
+            "dd_trace_effective_log_level": config_dict.get("dd_trace_effective_log_level", None),
             "dd_trace_sample_rate": config_dict.get("dd_trace_sample_rate", None),
             "dd_trace_enabled": config_dict.get("dd_trace_enabled", None),
             "dd_runtime_metrics_enabled": config_dict.get("dd_runtime_metrics_enabled", None),
+            "dd_metrics_otel_interval": config_dict.get("dd_metrics_otel_interval", None),
+            "otel_metrics_initialized": config_dict.get("otel_metrics_initialized", None),
+            "otel_exporter_otlp_traces_timeout_ms": config_dict.get("otel_exporter_otlp_traces_timeout_ms", None),
+            "otel_exporter_otlp_metrics_timeout_ms": config_dict.get("otel_exporter_otlp_metrics_timeout_ms", None),
+            "otel_exporter_otlp_logs_timeout_ms": config_dict.get("otel_exporter_otlp_logs_timeout_ms", None),
+            "otel_blrp_schedule_delay_ms": config_dict.get("otel_blrp_schedule_delay_ms", None),
+            "otel_blrp_export_timeout_ms": config_dict.get("otel_blrp_export_timeout_ms", None),
+            "otel_blrp_max_queue_size": config_dict.get("otel_blrp_max_queue_size", None),
+            "otel_blrp_max_export_batch_size": config_dict.get("otel_blrp_max_export_batch_size", None),
             "dd_tags": config_dict.get("dd_tags", None),
             "dd_trace_propagation_style": config_dict.get("dd_trace_propagation_style", None),
             "dd_trace_debug": config_dict.get("dd_trace_debug", None),
@@ -766,6 +787,22 @@ class ParametricTestClientApi(TestClientApi):
             "dd_data_streams_enabled": config_dict.get("dd_data_streams_enabled", None),
         }
 
+    def otel_effective_config(self) -> dict[str, str | None]:
+        """Read resolved OTLP exporter timeouts and BLRP settings from each SDK's configuration endpoint."""
+        endpoint = "/otel/effective_config" if self.lang == "nodejs" else "/trace/config"
+        response = self._session.get(self._url(endpoint))
+        response.raise_for_status()
+        config = response.json()["config"]
+        return {
+            "otel_exporter_otlp_traces_timeout_ms": config.get("otel_exporter_otlp_traces_timeout_ms"),
+            "otel_exporter_otlp_metrics_timeout_ms": config.get("otel_exporter_otlp_metrics_timeout_ms"),
+            "otel_exporter_otlp_logs_timeout_ms": config.get("otel_exporter_otlp_logs_timeout_ms"),
+            "otel_blrp_schedule_delay_ms": config.get("otel_blrp_schedule_delay_ms"),
+            "otel_blrp_export_timeout_ms": config.get("otel_blrp_export_timeout_ms"),
+            "otel_blrp_max_queue_size": config.get("otel_blrp_max_queue_size"),
+            "otel_blrp_max_export_batch_size": config.get("otel_blrp_max_export_batch_size"),
+        }
+
     def otel_current_span(self) -> _TestOtelSpan | None:
         resp = self._session.get(self._url("/trace/otel/current_span"), json={})
         if not resp:
@@ -778,6 +815,12 @@ class ParametricTestClientApi(TestClientApi):
             return None
 
         return _TestOtelSpan(self, span_response["span_id"], span_response["trace_id"])
+
+    def ffe_fetch_rules_configuration(self, options: dict[str, Any]) -> dict[str, Any]:
+        """Fetch and serialize portable rules in a process without tracer/provider initialization."""
+        response = self._session.post(self._url("/ffe/fetch-rules-configuration"), json=options, timeout=15)
+        response.raise_for_status()
+        return cast("dict[str, Any]", response.json())
 
     def ffe_start(self, configuration: dict | None = None) -> bool:
         """Initialize the FFE (Feature Flagging & Experimentation) provider.
@@ -971,6 +1014,12 @@ class ParametricTestClientApi(TestClientApi):
         resp = self._session.post(self._url("/metrics/otel/force_flush"), json={}).json()
         return resp["success"]
 
+    def otel_metrics_shutdown(self, seconds: int = 10) -> bool:
+        resp = self._session.post(
+            self._url("/metrics/otel/shutdown"), json={"seconds": seconds}, timeout=seconds + 1
+        ).json()
+        return resp["success"]
+
     def llmobs_trace(
         self, trace_structure_request: SpanRequest | LlmObsAnnotationContextRequest, *, raise_on_error: bool = True
     ) -> dict | str | None:
@@ -1104,6 +1153,9 @@ class APMLibrary:
     def ensure_agent_info(self) -> bool:
         return self._client.ensure_agent_info()
 
+    def dd_log_level_diagnostics(self) -> bool:
+        return self._client.dd_log_level_diagnostics()
+
     def dd_flush(self) -> bool:
         return self._client.dd_flush()
 
@@ -1216,6 +1268,12 @@ class APMLibrary:
     def otel_metrics_force_flush(self) -> bool:
         return self._client.otel_metrics_force_flush()
 
+    def otel_metrics_shutdown(self, seconds: int = 10) -> bool:
+        return self._client.otel_metrics_shutdown(seconds)
+
+    def terminate(self) -> None:
+        self._client.terminate()
+
     def is_alive(self) -> bool:
         return self._client.is_alive()
 
@@ -1228,6 +1286,10 @@ class APMLibrary:
         span_id: int | None = None,
     ) -> bool:
         return self._client.write_log(logger_name, level, message, span_id=span_id)
+
+    def ffe_fetch_rules_configuration(self, options: dict[str, Any]) -> dict[str, Any]:
+        """Fetch and serialize portable rules without initializing a tracer or provider."""
+        return self._client.ffe_fetch_rules_configuration(options)
 
     def ffe_start(self, configuration: dict | None = None) -> bool:
         """Initialize the FFE (Feature Flagging & Experimentation) provider."""

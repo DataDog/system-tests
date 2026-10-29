@@ -10,6 +10,10 @@ import logging
 import os
 import enum
 import threading
+
+# Starlette's synchronous endpoints access this public submodule through anyio.
+# Recent AnyIO releases no longer populate it on importing the parent package.
+import anyio.to_thread
 from fastapi import FastAPI
 from fastapi import Request
 from fastapi.responses import JSONResponse
@@ -24,6 +28,7 @@ from opentelemetry.metrics import Meter
 from opentelemetry.metrics import Observation
 from opentelemetry.metrics import Instrument
 from opentelemetry.metrics import get_meter_provider
+from opentelemetry.sdk.metrics import MeterProvider as SdkMeterProvider
 from opentelemetry.trace import set_tracer_provider
 from opentelemetry.trace.span import NonRecordingSpan as OtelNonRecordingSpan
 from opentelemetry.trace import SpanKind
@@ -198,9 +203,27 @@ def trace_config() -> TraceConfigReturn:
         config={
             "dd_service": config.service,
             "dd_log_level": None,
+            "dd_trace_effective_log_level": logging.getLevelName(
+                logging.getLogger("ddtrace").getEffectiveLevel()
+            ).lower(),
             "dd_trace_sample_rate": str(_global_sampling_rate()),
             "dd_trace_enabled": str(config._tracing_enabled).lower(),
             "dd_runtime_metrics_enabled": str(config._runtime_metrics_enabled).lower(),
+            "otel_metrics_initialized": str(isinstance(get_meter_provider(), SdkMeterProvider)).lower(),
+            "otel_exporter_otlp_traces_timeout_ms": otlp_trace_exporter_timeout(),
+            "otel_exporter_otlp_metrics_timeout_ms": otlp_exporter_timeout(
+                getattr(getattr(get_meter_provider(), "_sdk_config", None), "metric_readers", ())
+            ),
+            "otel_exporter_otlp_logs_timeout_ms": otlp_exporter_timeout(
+                getattr(
+                    getattr(get_logger_provider(), "_multi_log_record_processor", None), "_log_record_processors", ()
+                )
+            ),
+            **blrp_config(
+                getattr(
+                    getattr(get_logger_provider(), "_multi_log_record_processor", None), "_log_record_processors", ()
+                )
+            ),
             "dd_tags": ",".join(f"{k}:{v}" for k, v in config.tags.items()),
             "dd_trace_propagation_style": ",".join(config._propagation_style_extract),
             "dd_trace_debug": str(config._debug_mode).lower(),
@@ -217,6 +240,50 @@ def trace_config() -> TraceConfigReturn:
             "dd_data_streams_enabled": str(config._data_streams_enabled).lower(),
         }
     )
+
+
+def otlp_trace_exporter_timeout() -> Optional[str]:
+    try:
+        from ddtrace.internal.settings._opentelemetry import otel_config
+    except ImportError:
+        return None
+
+    # NativeWriter passes this resolved value to the native exporter in milliseconds.
+    # Older SDKs may have the settings module without trace exporter configuration.
+    exporter = getattr(otel_config, "exporter", None)
+    timeout = getattr(exporter, "TRACES_TIMEOUT", None)
+    return str(timeout) if isinstance(timeout, (int, float)) else None
+
+
+def otlp_exporter_timeout(processors: Any) -> Optional[str]:
+    timeouts = []
+    for processor in processors:
+        batch_processor = getattr(processor, "_batch_processor", processor)
+        exporter = getattr(batch_processor, "_exporter", None)
+        if exporter is None:
+            exporter = getattr(processor, "_exporter", None)
+        if exporter is None or not any(
+            cls.__module__.startswith("opentelemetry.exporter.otlp.") for cls in type(exporter).__mro__
+        ):
+            continue
+        timeout = getattr(exporter, "_timeout", None)
+        if isinstance(timeout, (int, float)):
+            timeouts.append(str(int(timeout * 1000)))
+    return timeouts[0] if len(timeouts) == 1 else None
+
+
+def blrp_config(processors: Any) -> Dict[str, str]:
+    batch_processors = [processor for processor in processors if type(processor).__name__ == "BatchLogRecordProcessor"]
+    if len(batch_processors) != 1:
+        return {}
+    # Newer SDKs keep the batch settings in a shared BatchProcessor.
+    batch_processor = getattr(batch_processors[0], "_batch_processor", batch_processors[0])
+    return {
+        "otel_blrp_schedule_delay_ms": str(int(batch_processor._schedule_delay_millis)),
+        "otel_blrp_export_timeout_ms": str(int(batch_processor._export_timeout_millis)),
+        "otel_blrp_max_queue_size": str(batch_processor._max_queue_size),
+        "otel_blrp_max_export_batch_size": str(batch_processor._max_export_batch_size),
+    }
 
 
 @app.post("/trace/span/finish")
@@ -1312,6 +1379,27 @@ def otel_metrics_force_flush(args: OtelMetricsForceFlushArgs):
         meter_provider.force_flush()
 
     return OtelMetricsForceFlushReturn(success=True)
+
+
+class OtelMetricsShutdownArgs(BaseModel):
+    seconds: int = 10
+
+
+class OtelMetricsShutdownReturn(BaseModel):
+    success: bool
+
+
+@app.post("/metrics/otel/shutdown")
+def otel_metrics_shutdown(args: OtelMetricsShutdownArgs):
+    meter_provider = get_meter_provider()
+    if not hasattr(meter_provider, "shutdown"):
+        return OtelMetricsShutdownReturn(success=False)
+
+    try:
+        meter_provider.shutdown(timeout_millis=args.seconds * 1000)
+        return OtelMetricsShutdownReturn(success=True)
+    except Exception:
+        return OtelMetricsShutdownReturn(success=False)
 
 
 class LogCreateLoggerArgs(BaseModel):

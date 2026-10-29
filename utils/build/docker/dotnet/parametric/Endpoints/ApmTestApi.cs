@@ -293,6 +293,8 @@ public abstract class ApmTestApi
         var tracerSettings = Tracer.Instance.Settings;
         var internalTracer = GetTracerInstance.GetValue(null);
         var internalTracerSettings = GetTracerSettings.GetValue(internalTracer);
+        var settingsManager = GetOptionalProperty(internalTracerSettings, "Manager");
+        var exporterSettings = GetOptionalProperty(internalTracerSettings, "Exporter") ?? GetOptionalProperty(settingsManager, "InitialExporterSettings");
 
         var globalSettings = GetGlobalSettingsInstance.GetValue(null)!;
         var debugEnabled = (bool)GetDebugEnabled.GetValue(globalSettings)!;
@@ -311,6 +313,9 @@ public abstract class ApmTestApi
             { "dd_trace_sample_rate", tracerSettings.GlobalSamplingRate },
             { "dd_trace_enabled", tracerSettings.TraceEnabled.ToString().ToLowerInvariant() },
             { "dd_runtime_metrics_enabled", runtimeMetricsEnabled.ToString().ToLowerInvariant() },
+            { "otel_exporter_otlp_traces_timeout_ms", GetOptionalProperty(exporterSettings, "OtlpTracesTimeoutMs")?.ToString() },
+            { "otel_exporter_otlp_metrics_timeout_ms", GetOptionalProperty(internalTracerSettings, "OtlpMetricsTimeoutMs")?.ToString() },
+            { "otel_exporter_otlp_logs_timeout_ms", GetOptionalProperty(internalTracerSettings, "OtlpLogsTimeoutMs")?.ToString() },
             { "dd_tags", tracerSettings.GlobalTags.Select(kvp => $"{kvp.Key}:{kvp.Value}").ToArray() },
             { "dd_trace_propagation_style", string.Join(",", propagationStyleInject) },
             { "dd_trace_debug", debugEnabled ? "true" : "false" },
@@ -328,6 +333,11 @@ public abstract class ApmTestApi
         {
             config
         });
+    }
+
+    private static object? GetOptionalProperty(object? instance, string name)
+    {
+        return instance?.GetType().GetProperty(name, CommonBindingFlags)?.GetValue(instance);
     }
 
     protected static async Task FlushSpans()

@@ -14,8 +14,7 @@ from utils._logger import logger
 from utils._context.component_version import ComponentVersion
 from utils._context.constants import WeblogCategory
 from utils._context.docker import get_docker_client
-from ._docker_fixtures import DockerFixturesScenario
-from .core import scenario_groups as groups
+from ._core import DockerFixturesScenario, scenario_groups as groups
 
 
 class IntegrationFrameworksScenario(DockerFixturesScenario):
@@ -31,12 +30,12 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
         "google_genai": ["GEMINI_API_KEY"],
     }
 
-    def __init__(self, name: str, doc: str) -> None:
+    def __init__(self) -> None:
         super().__init__(
-            name,
-            doc=doc,
+            "INTEGRATION_FRAMEWORKS",
+            doc="Tests for third-party integration frameworks",
             github_workflow="endtoend",
-            agent_image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.64.1",
+            agent_image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.67.0",
             scenario_groups=(groups.integration_frameworks,),
             weblog_categories=[WeblogCategory.dd_trace_frameworks],
         )

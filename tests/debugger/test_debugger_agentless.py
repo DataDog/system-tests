@@ -13,8 +13,15 @@ utils/_context/_scenarios/debugger_agentless.py for the scenario/interface wirin
 """
 
 import tests.debugger.utils as debugger
-from utils import features, scenarios
-from utils._context._scenarios.agentless_endtoend import AGENTLESS_MOCK_API_KEY
+from utils import context, features, scenarios
+from utils._context.containers import MOCKED_BACKEND_DOMAIN
+from utils._context._scenarios.agentless_endtoend import TracerAgentlessEndToEndScenario
+
+
+def _weblog_api_key() -> str:
+    scenario = context.scenario
+    assert isinstance(scenario, TracerAgentlessEndToEndScenario)
+    return scenario.weblog_api_key
 
 
 @features.debugger
@@ -58,9 +65,9 @@ class Test_Agentless_Debugger_Probe_Snapshot(debugger.AgentlessBaseDebuggerTest)
         assert len(requests) > 0, f"No request captured on {path}"
 
         request = requests[-1]
-        assert request["host"] == "debugger-intake.mock-intake.invalid"
         headers = {name.lower(): value for name, value in request["request"]["headers"]}
-        assert headers["dd-api-key"] in {AGENTLESS_MOCK_API_KEY, "--redacted--"}
+        assert headers["host"].removesuffix(":443") == f"debugger-intake.{MOCKED_BACKEND_DOMAIN}"
+        assert headers["dd-api-key"] in {_weblog_api_key(), "--redacted--"}
         assert headers["dd-evp-origin"] == "agent-debugger"
         assert headers["content-type"].startswith("multipart/form-data")
         assert headers["user-agent"].startswith("Tracer/")
@@ -95,7 +102,7 @@ class Test_Agentless_SymbolDB(debugger.AgentlessBaseDebuggerTest):
         requests = list(self._symbols_interface.get_data(self._symbols_path))
         assert len(requests) > 0, f"No request captured on {self._symbols_path}"
         headers = {name.lower(): value for name, value in requests[-1]["request"]["headers"]}
-        assert headers["dd-api-key"] in {AGENTLESS_MOCK_API_KEY, "--redacted--"}
+        assert headers["dd-api-key"] in {_weblog_api_key(), "--redacted--"}
         # Symbol DB shares the same debugger intake path/evp-origin as logs/snapshots/diagnostics -
         # the native client doesn't distinguish sub-features via dd-evp-origin.
         assert headers["dd-evp-origin"] == "agent-debugger"

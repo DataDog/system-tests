@@ -24,6 +24,7 @@ These rules apply in EVERY interaction.
 - @.cursor/rules/test-activation.mdc — Test activation/deactivation rules
 - @.cursor/rules/doc.mdc — Rules for editing the documentation
 - @.cursor/rules/devtools.mdc — Developer tools: MCP, GitHub (gh), GitLab (glab) usage
+- @.cursor/rules/tag-official-workflows.mdc — Official system-tests CI workflows (jobs executed in caller repositories must be tagged with `ci.framework.name:system-tests`)
 
 ## Manual Rules (Apply Only When Explicitly Requested)
 
@@ -41,7 +42,7 @@ These rules apply in EVERY interaction.
 - **Project**: System tests for Datadog tracer libraries (Java, Node.js, Python, PHP, Ruby, C++, .NET, Go, Rust)
 - **Framework**: pytest
 - **Main Scenarios**: end-to-end, parametric, SSI, Kubernetes
-- **Scenario Source**: `utils/_context/_scenarios/__init__.py` (authoritative)
+- **Scenario Source**: `utils/_context/_scenarios/__init__.py` lists every scenario (authoritative); each one is defined in a module of `utils/_context/_scenarios/`
 - **Main Documentation**: `README.md` and `docs/` directory
 - **Support**: #apm-shared-testing Slack channel
 

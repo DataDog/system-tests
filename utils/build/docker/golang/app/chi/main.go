@@ -156,6 +156,7 @@ func main() {
 	})
 
 	mux.HandleFunc("/trace/manual_keep_drop", common.ManualKeepDrop)
+	mux.HandleFunc("/security/thread_context_sharing", common.ThreadContextSharing)
 
 	mux.HandleFunc("/make_distant_call", func(w http.ResponseWriter, r *http.Request) {
 		url := r.URL.Query().Get("url")
@@ -426,6 +427,11 @@ func main() {
 	mux.HandleFunc("/debugger/budgets/{count}", func(w http.ResponseWriter, r *http.Request) {
 		loops, _ := strconv.Atoi(chi.RouteContext(r.Context()).URLParam("count"))
 		d.budgets(w, r, loops)
+	})
+	mux.HandleFunc("/debugger/correlation", d.correlation)
+	mux.HandleFunc("/debugger/correlation/loop/{count}", func(w http.ResponseWriter, r *http.Request) {
+		loops, _ := strconv.Atoi(chi.RouteContext(r.Context()).URLParam("count"))
+		d.correlationLoop(w, r, loops)
 	})
 
 	srv := &http.Server{

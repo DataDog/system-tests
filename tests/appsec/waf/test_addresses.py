@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 import json
 
-import pytest
+from utils import pytest
 from utils import weblog, interfaces, rfc, scenarios, features, logger
 from utils.dd_types import DataDogLibrarySpan
 

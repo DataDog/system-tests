@@ -1,34 +1,43 @@
 """Test server-side feature flag evaluation counts via EVP flagevaluation."""
 
+import hashlib
 import json
 from concurrent.futures import ThreadPoolExecutor
 from typing import cast
 
 
+from tests.ffe.utils.evp import (
+    assert_flagevaluation_accounting,
+    assert_agentless_evp_intake_request,
+    assert_agentless_evp_topology,
+    assert_evp_sdk_identity,
+    feature_flagging_evp_egress,
+    register_expected_evp_capture,
+)
 from tests.ffe.utils.fixtures import JSON, make_ufc_fixture
 from utils import HttpResponse
+from utils import context
 from utils import features
 from utils import interfaces
 from utils import remote_config as rc
 from utils import scenario_crash
 from utils import scenarios
+from utils import slow
 from utils import weblog
+from utils._context._scenarios.agentless_endtoend import FeatureFlaggingAgentlessEndToEndScenario
 
 
 RC_PRODUCT = "FFE_FLAGS"
 RC_PATH = f"datadog/2/{RC_PRODUCT}"
 EVP_FLAGEVALUATIONS_PATH = "/api/v2/flagevaluation"
-EVP_WAIT_TIMEOUT_SECONDS = 30
-EVP_LOAD_WAIT_TIMEOUT_SECONDS = 60
-EVP_FULL_TIER_PER_FLAG_CAP = 10_000
-EVP_DEGRADATION_OVERFLOW_EVALS = 2_000
+EVP_HIGH_CARDINALITY_EVALS = 12_000
 
 # Fixed input/output vector for the PII-protection tests. Every SDK's unit tests
 # should assert against the same input to prove byte-identical hashing across SDKs.
 PII_TARGETING_KEY = "jane.doe@datadoghq.com"
 PII_TARGETING_KEY_HASHED = "sha256_b4698f9b6d186781fa8dc59e533578fa2d8379a46b1cf6db85cda6aa9c99e51b"
 PII_ATTRIBUTES: dict[str, object] = {
-    "org_id": 1234,
+    "org_id": 1234567890123456,
     "user_email": "jane.doe@datadoghq.com",
     "plan": "enterprise",
     "region": "us-east-1",
@@ -65,7 +74,9 @@ def evaluate_flag(
     return weblog.post("/ffe", json=payload)
 
 
-def evp_flagevaluation_events_from_data(data: JSON, flag_key: str) -> list[tuple[JSON, JSON]]:
+def evp_flagevaluation_events_from_data(
+    data: JSON, flag_key: str, targeting_key: str | None = None
+) -> list[tuple[JSON, JSON]]:
     if data.get("path") != EVP_FLAGEVALUATIONS_PATH:
         return []
 
@@ -87,17 +98,17 @@ def evp_flagevaluation_events_from_data(data: JSON, flag_key: str) -> list[tuple
             continue
 
         flag = event.get("flag")
-        if isinstance(flag, dict) and flag.get("key") == flag_key:
-            results.append((cast("JSON", content), cast("JSON", event)))
+        if not isinstance(flag, dict) or flag.get("key") != flag_key:
+            continue
+
+        if targeting_key is not None:
+            hashed_targeting_key = f"sha256_{hashlib.sha256(targeting_key.encode()).hexdigest()}"
+            if event.get("targeting_key") not in (targeting_key, hashed_targeting_key):
+                continue
+
+        results.append((cast("JSON", content), cast("JSON", event)))
 
     return results
-
-
-def wait_for_evp_flagevaluation_event(flag_key: str) -> None:
-    assert interfaces.agent.wait_for(
-        lambda data: bool(evp_flagevaluation_events_from_data(cast("JSON", data), flag_key)),
-        timeout=EVP_WAIT_TIMEOUT_SECONDS,
-    ), f"Timed out waiting for EVP flagevaluation event for flag {flag_key}"
 
 
 def find_evp_flagevaluation_events(flag_key: str) -> list[tuple[JSON, JSON]]:
@@ -116,13 +127,6 @@ def sum_evaluation_count(events: list[tuple[JSON, JSON]]) -> int:
         if isinstance(count, int):
             total += count
     return total
-
-
-def wait_for_evp_flagevaluation_count(flag_key: str, expected: int) -> None:
-    assert interfaces.agent.wait_for(
-        lambda _: sum_evaluation_count(find_evp_flagevaluation_events(flag_key)) >= expected,
-        timeout=EVP_LOAD_WAIT_TIMEOUT_SECONDS,
-    ), f"Timed out waiting for EVP flagevaluation count >= {expected} for flag {flag_key}"
 
 
 def assert_total_evaluation_count(events: list[tuple[JSON, JSON]], expected: int, flag_key: str) -> None:
@@ -160,6 +164,7 @@ def assert_batch_context(batch: JSON) -> None:
 
 def assert_event_contract(event: JSON, flag_key: str) -> None:
     assert_no_reason_field(event)
+    assert "source" not in event, "SDK identity belongs in EVP headers, not event-level source"
     assert "targeting_rule" not in event, "targeting_rule must be omitted without real rule metadata"
 
     flag = event.get("flag")
@@ -236,8 +241,125 @@ def assert_no_duplicate_visible_events(events: list[tuple[JSON, JSON]]) -> None:
     assert not duplicates, f"found duplicate serialized-visible EVP buckets in one payload: {sorted(duplicates)}"
 
 
+class FlagevaluationEgressContract:
+    """One flag-evaluation contract inherited by each supported topology adapter."""
+
+    # Agentless scenarios preload flags-v1.json before the weblog starts. Use the
+    # same known fixture key in every topology; the Agent scenario installs an
+    # equivalent fixture through Remote Config below.
+    flag_key = "empty-targeting-key-flag"
+    targeting_key = "evp-egress-user"
+    evaluation_count = 5
+
+    def setup_ffe_evp_flagevaluation_egress(self) -> None:
+        register_expected_evp_capture(EVP_FLAGEVALUATIONS_PATH)
+        if not isinstance(context.scenario, FeatureFlaggingAgentlessEndToEndScenario):
+            config_id = "ffe-evp-egress"
+            rc.tracer_rc_state.reset().set_config(
+                f"{RC_PATH}/{config_id}/config",
+                make_ufc_fixture(self.flag_key),
+            ).apply()
+
+        self.responses = [
+            evaluate_flag(self.flag_key, targeting_key=self.targeting_key, attributes={})
+            for _ in range(self.evaluation_count)
+        ]
+
+    def test_ffe_evp_flagevaluation_egress(self) -> None:
+        for index, response in enumerate(self.responses):
+            assert response.status_code == 200, f"Request {index + 1} failed: {response.text}"
+
+        egress = feature_flagging_evp_egress()
+
+        def matcher(data: JSON) -> bool:
+            return bool(evp_flagevaluation_events_from_data(data, self.flag_key, self.targeting_key))
+
+        # Scenario teardown already waits for delivery while containers are running.
+        # Validation only inspects the completed capture, including in replay mode.
+        matching_requests = [
+            cast("JSON", data)
+            for data in egress.interface.get_data(path_filters=EVP_FLAGEVALUATIONS_PATH)
+            if matcher(cast("JSON", data))
+        ]
+        assert matching_requests, f"Expected flagevaluation requests for {self.flag_key}"
+
+        events = [
+            event
+            for request in matching_requests
+            for event in evp_flagevaluation_events_from_data(request, self.flag_key, self.targeting_key)
+        ]
+        assert events, f"Expected EVP flagevaluation events for flag {self.flag_key}"
+        for _, event in events:
+            assert_event_contract(event, self.flag_key)
+            assert object_key(event.get("variant"), "variant") == "on"
+            assert object_key(event.get("allocation"), "allocation") == "default-allocation"
+
+        assert_no_duplicate_visible_events(events)
+        assert_total_evaluation_count(events, self.evaluation_count, self.flag_key)
+        assert_agentless_evp_topology(egress)
+
+        if egress.expected_api_key is None:
+            return
+
+        for request in matching_requests:
+            assert_agentless_evp_intake_request(
+                request,
+                route=egress.route,
+                path=EVP_FLAGEVALUATIONS_PATH,
+                expected_api_key=egress.expected_api_key,
+                library_name=context.library.name,
+                library_version=context.library.raw_version,
+            )
+
+        assert not any(
+            evp_flagevaluation_events_from_data(cast("JSON", data), self.flag_key, self.targeting_key)
+            for data in egress.excluded_data(path_filters=EVP_FLAGEVALUATIONS_PATH)
+        )
+
+
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_evp_flagevaluation
+class Test_FFE_EVP_Flagevaluation_Egress_Datadog_Agent(FlagevaluationEgressContract):
+    pass
+
+
+@scenarios.feature_flagging_and_experimentation
+@features.feature_flags_evp_flagevaluation
+class Test_FFE_EVP_Flagevaluation_SDK_Identity(FlagevaluationEgressContract):
+    # Agent 7.84+ forwards producer headers; the Agent manifest gates this case.
+    # Library manifests separately gate SDK support. The Agent egress test retains
+    # payload coverage on older Agents wherever enabled by the library manifest.
+    flag_key = "evp-sdk-identity-flag"
+
+    def test_ffe_evp_flagevaluation_egress(self) -> None:
+        super().test_ffe_evp_flagevaluation_egress()
+        # interfaces.agent captures Agent-to-intake traffic, after forwarding.
+        for data in interfaces.agent.get_data(path_filters=EVP_FLAGEVALUATIONS_PATH):
+            if evp_flagevaluation_events_from_data(cast("JSON", data), self.flag_key, self.targeting_key):
+                assert_evp_sdk_identity(
+                    cast("JSON", data),
+                    library_name=context.library.name,
+                    library_version=context.library.raw_version,
+                )
+
+
+@scenario_crash
+@scenarios.feature_flagging_and_experimentation_agentless_direct
+@features.feature_flags_evp_flagevaluation
+class Test_FFE_EVP_Flagevaluation_Egress_Agentless_Direct(FlagevaluationEgressContract):
+    pass
+
+
+@scenario_crash
+@scenarios.feature_flagging_and_experimentation_agentless_serverless
+@features.feature_flags_evp_flagevaluation
+class Test_FFE_EVP_Flagevaluation_Egress_Agentless_Sidecar(FlagevaluationEgressContract):
+    pass
+
+
+@scenarios.feature_flagging_and_experimentation
+@features.feature_flags_evp_flagevaluation
+@slow
 class Test_FFE_EVP_Flagevaluation_Basic:
     """Test that flag evaluation produces an EVP flagevaluation payload."""
 
@@ -251,7 +373,6 @@ class Test_FFE_EVP_Flagevaluation_Basic:
     def test_ffe_evp_flagevaluation_basic(self) -> None:
         assert self.r.status_code == 200, f"Flag evaluation failed: {self.r.text}"
 
-        wait_for_evp_flagevaluation_event(self.flag_key)
         events = find_evp_flagevaluation_events(self.flag_key)
         assert events, f"Expected EVP flagevaluation event for flag {self.flag_key}"
 
@@ -264,6 +385,7 @@ class Test_FFE_EVP_Flagevaluation_Basic:
 
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_evp_flagevaluation
+@slow
 class Test_FFE_EVP_Flagevaluation_Count:
     """Test that repeated evaluations are counted in EVP flagevaluation payloads."""
 
@@ -281,7 +403,6 @@ class Test_FFE_EVP_Flagevaluation_Count:
         for index, response in enumerate(self.responses):
             assert response.status_code == 200, f"Request {index + 1} failed: {response.text}"
 
-        wait_for_evp_flagevaluation_event(self.flag_key)
         events = find_evp_flagevaluation_events(self.flag_key)
         assert events, f"Expected EVP flagevaluation event for flag {self.flag_key}"
 
@@ -294,51 +415,105 @@ class Test_FFE_EVP_Flagevaluation_Count:
 
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_evp_flagevaluation
+@slow
 class Test_FFE_EVP_Flagevaluation_Context_Bounds:
     """Test that EVP evaluation context is bounded before it reaches payloads."""
+
+    def setup_ffe_evp_flagevaluation_context_within_bounds(self) -> None:
+        self.within_flag_key = "evp-context-within-bounds-flag"
+        rc.tracer_rc_state.reset().set_config(
+            f"{RC_PATH}/ffe-evp-context-within-bounds/config",
+            make_ufc_fixture(self.within_flag_key, observe_full_evaluation_data=True),
+        ).apply()
+        self.within_attributes: JSON = {f"field_{index:03d}": f"value-{index}" for index in range(256)}
+        self.within_response = evaluate_flag(
+            self.within_flag_key, targeting_key="evp-context-user", attributes=self.within_attributes
+        )
+
+    def test_ffe_evp_flagevaluation_context_within_bounds(self) -> None:
+        events = self._assert_context_evaluation(self.within_response, self.within_flag_key)
+        for _, event in events:
+            context = event.get("context")
+            assert isinstance(context, dict), "in-limit consented evaluation must retain context"
+            assert context.get("evaluation") == self.within_attributes, "in-limit context fields must survive unchanged"
 
     def setup_ffe_evp_flagevaluation_context_bounds(self) -> None:
         config_id = "ffe-evp-context-bounds"
         self.flag_key = "evp-context-bounds-flag"
-        self.oversized_field = "field_010_oversized"
-        rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key)).apply()
+        rc.tracer_rc_state.reset().set_config(
+            f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key, observe_full_evaluation_data=True)
+        ).apply()
 
-        attributes: JSON = {f"field_{index:03d}": f"value-{index}" for index in range(300)}
-        attributes[self.oversized_field] = "x" * 300
-
-        self.r = evaluate_flag(self.flag_key, targeting_key="evp-context-user", attributes=attributes)
+        self.attributes: JSON = {f"field_{index:03d}": f"value-{index}" for index in range(300)}
+        self.r = evaluate_flag(self.flag_key, targeting_key="evp-context-user", attributes=self.attributes)
 
     def test_ffe_evp_flagevaluation_context_bounds(self) -> None:
-        assert self.r.status_code == 200, f"Flag evaluation failed: {self.r.text}"
-
-        wait_for_evp_flagevaluation_event(self.flag_key)
-        events = find_evp_flagevaluation_events(self.flag_key)
-        assert events, f"Expected EVP flagevaluation event for flag {self.flag_key}"
-
-        full_context_events = 0
+        events = self._assert_context_evaluation(self.r, self.flag_key)
         for _, event in events:
-            assert_event_contract(event, self.flag_key)
-            context = event.get("context")
-            if context is None:
+            # SDKs may omit an over-limit map entirely to bound capture work.
+            # The separate in-limit case prevents unconditional context loss from passing.
+            if "context" not in event:
                 continue
-
+            context = event["context"]
             assert isinstance(context, dict), "context must be an object when present"
-            evaluation_context = context.get("evaluation")
-            if evaluation_context is None:
+            if "evaluation" not in context:
                 continue
-
-            full_context_events += 1
+            evaluation_context = context["evaluation"]
             assert isinstance(evaluation_context, dict), "context.evaluation must be an object"
             assert len(evaluation_context) <= 256, f"context.evaluation has too many fields: {len(evaluation_context)}"
-            assert self.oversized_field not in evaluation_context, "oversized string context field must be omitted"
+            # SDK maps need not preserve input order or choose the same retained subset.
+            for key, value in evaluation_context.items():
+                assert key in self.attributes, f"unexpected context field: {key}"
+                assert value == self.attributes[key], f"context field {key} changed during pruning"
 
-        if full_context_events == 0:
-            for _, event in events:
-                assert "context" not in event, f"degraded event should omit context: {event}"
+    @staticmethod
+    def _assert_context_evaluation(
+        response: HttpResponse, flag_key: str, targeting_key: str = "evp-context-user"
+    ) -> list[tuple[JSON, JSON]]:
+        assert response.status_code == 200, f"Flag evaluation failed: {response.text}"
+        assert json.loads(response.text).get("value") == "on-value", "context limits must not change the flag result"
+        events = find_evp_flagevaluation_events(flag_key)
+        assert_total_evaluation_count(events, 1, flag_key)
+        for _, event in events:
+            assert_event_contract(event, flag_key)
+            assert event.get("targeting_key") == targeting_key, "context limits must preserve consented identity"
+            assert object_key(event.get("variant"), "variant") == "on"
+            assert object_key(event.get("allocation"), "allocation") == "default-allocation"
+            assert "error" not in event
+            assert "runtime_default_used" not in event
+        return events
+
+    def setup_ffe_evp_flagevaluation_context_value_bounds(self) -> None:
+        self.value_flag_key = "evp-context-value-bounds-flag"
+        self.oversized_field = "oversized"
+        rc.tracer_rc_state.reset().set_config(
+            f"{RC_PATH}/ffe-evp-context-value-bounds/config",
+            make_ufc_fixture(self.value_flag_key, observe_full_evaluation_data=True),
+        ).apply()
+
+        # Stay below the field-count limit so it cannot hide a missing value-length check.
+        self.value_response = evaluate_flag(
+            self.value_flag_key,
+            targeting_key="evp-context-value-user",
+            attributes={"valid": "retained", self.oversized_field: "x" * 300},
+        )
+
+    def test_ffe_evp_flagevaluation_context_value_bounds(self) -> None:
+        events = self._assert_context_evaluation(
+            self.value_response, self.value_flag_key, targeting_key="evp-context-value-user"
+        )
+        for _, event in events:
+            context = event.get("context")
+            assert isinstance(context, dict), "consented evaluation must retain context"
+            evaluation_context = context.get("evaluation")
+            assert isinstance(evaluation_context, dict), "context.evaluation must be an object"
+            assert evaluation_context.get("valid") == "retained", "valid context fields must survive pruning"
+            assert self.oversized_field not in evaluation_context, "oversized string context field must be omitted"
 
 
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_evp_flagevaluation
+@slow
 class Test_FFE_EVP_Flagevaluation_Runtime_Default:
     """Test that runtime defaults are surfaced without OpenFeature reason."""
 
@@ -351,7 +526,6 @@ class Test_FFE_EVP_Flagevaluation_Runtime_Default:
     def test_ffe_evp_flagevaluation_runtime_default(self) -> None:
         assert self.r.status_code == 200, f"Flag evaluation request failed: {self.r.text}"
 
-        wait_for_evp_flagevaluation_event(self.flag_key)
         events = find_evp_flagevaluation_events(self.flag_key)
         assert events, f"Expected EVP flagevaluation event for flag {self.flag_key}"
 
@@ -365,6 +539,7 @@ class Test_FFE_EVP_Flagevaluation_Runtime_Default:
 
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_evp_flagevaluation
+@slow
 class Test_FFE_EVP_Flagevaluation_Load_Aggregation:
     """Test CI-safe load aggregation without treating system-tests as a perf test."""
 
@@ -392,7 +567,6 @@ class Test_FFE_EVP_Flagevaluation_Load_Aggregation:
             assert response.status_code == 200, f"Request {index + 1} failed: {response.text}"
 
         for flag_key in self.flag_keys:
-            wait_for_evp_flagevaluation_event(flag_key)
             events = find_evp_flagevaluation_events(flag_key)
             assert events, f"Expected EVP flagevaluation events for flag {flag_key}"
             assert_no_duplicate_visible_events(events)
@@ -431,7 +605,6 @@ class Test_FFE_EVP_Flagevaluation_Burst_Aggregation:
         for index, response in enumerate(self.responses):
             assert response.status_code == 200, f"Request {index + 1} failed: {response.text}"
 
-        wait_for_evp_flagevaluation_event(self.flag_key)
         events = find_evp_flagevaluation_events(self.flag_key)
         assert events, f"Expected EVP flagevaluation events for flag {self.flag_key}"
 
@@ -471,7 +644,6 @@ class Test_FFE_EVP_Flagevaluation_High_Cardinality_Aggregation:
         for index, response in enumerate(self.responses):
             assert response.status_code == 200, f"Request {index + 1} failed: {response.text}"
 
-        wait_for_evp_flagevaluation_event(self.flag_key)
         events = find_evp_flagevaluation_events(self.flag_key)
         assert events, f"Expected EVP flagevaluation events for flag {self.flag_key}"
 
@@ -482,19 +654,20 @@ class Test_FFE_EVP_Flagevaluation_High_Cardinality_Aggregation:
         assert_total_evaluation_count(events, self.eval_count, self.flag_key)
 
 
-@scenarios.feature_flagging_and_experimentation
+@scenarios.feature_flagging_evp_stress
 @features.feature_flags_evp_flagevaluation
 @scenario_crash
-class Test_FFE_EVP_Flagevaluation_Degradation:
-    """Test degraded EVP shape after the production per-flag full-tier cap is exceeded."""
+class Test_FFE_EVP_Flagevaluation_High_Cardinality_Accounting:
+    """Account for an isolated workload without assuming a single aggregation window."""
 
-    def setup_ffe_evp_flagevaluation_degradation(self) -> None:
-        config_id = "ffe-evp-degradation"
-        self.flag_key = "evp-degradation-flag"
-        self.eval_count = EVP_FULL_TIER_PER_FLAG_CAP + EVP_DEGRADATION_OVERFLOW_EVALS
+    def setup_ffe_evp_flagevaluation_high_cardinality_accounting(self) -> None:
+        config_id = "ffe-evp-high-cardinality-accounting"
+        self.flag_key = "evp-high-cardinality-accounting-flag"
+        self.eval_count = EVP_HIGH_CARDINALITY_EVALS
         rc.tracer_rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", make_ufc_fixture(self.flag_key)).apply()
 
-        targeting_keys = [f"evp-degradation-user-{index}" for index in range(self.eval_count)]
+        # Keep unique keys short so the batch fits weblog request body limits.
+        targeting_keys = [str(index) for index in range(self.eval_count)]
         self.responses = [
             evaluate_flag(
                 self.flag_key,
@@ -504,29 +677,47 @@ class Test_FFE_EVP_Flagevaluation_Degradation:
             )
         ]
 
-    def test_ffe_evp_flagevaluation_degradation(self) -> None:
+    def test_ffe_evp_flagevaluation_high_cardinality_accounting(self) -> None:
         for index, response in enumerate(self.responses):
             assert response.status_code == 200, f"Request {index + 1} failed: {response.text}"
+            result = json.loads(response.text)
+            assert result.get("value") == "on-value", "overload must not change the flag result"
+            assert result.get("count") == self.eval_count, "weblog must accept the whole targetingKeys batch"
 
-        wait_for_evp_flagevaluation_count(self.flag_key, self.eval_count)
         events = find_evp_flagevaluation_events(self.flag_key)
         assert events, f"Expected EVP flagevaluation events for flag {self.flag_key}"
 
-        degraded_events = [event for _, event in events if "context" not in event and "targeting_key" not in event]
-        assert degraded_events, f"Expected degraded EVP flagevaluation buckets for flag {self.flag_key}"
         assert_no_duplicate_visible_events(events)
-        assert_total_evaluation_count(events, self.eval_count, self.flag_key)
+        # These counters are process-wide, not flag-scoped: this class must remain
+        # the only evaluation workload in FEATURE_FLAGGING_EVP_STRESS.
+        # Tracers report rows.dropped; libdatadog's sidecar reports evaluations.dropped.
+        # Both count lost evaluations; current emitters do not report the same loss under both names.
+        drop_series = [
+            series
+            for namespace in ("tracers", "general")
+            for metric in ("flagevaluation.rows.dropped", "flagevaluation.evaluations.dropped")
+            for series in interfaces.library.get_telemetry_metric_series(namespace, metric)
+        ]
+        assert_flagevaluation_accounting(sum_evaluation_count(events), self.eval_count, drop_series)
 
-        for event in degraded_events:
+        # A run may span multiple flushes and never degrade.
+        # Every delivered row must still have a valid tier shape.
+        for _, event in events:
             assert_event_contract(event, self.flag_key)
-            assert "context" not in event, f"degraded event must omit context: {event}"
-            assert "targeting_key" not in event, f"degraded event must omit targeting_key: {event}"
+            if "targeting_key" not in event:
+                assert "context" not in event, "degraded events must omit all event context"
+            else:
+                assert isinstance(event["targeting_key"], str), "full-tier targeting_key must be a string"
+                assert event["targeting_key"], "full-tier targeting_key must be non-empty"
             assert object_key(event.get("variant"), "variant") == "on"
             assert object_key(event.get("allocation"), "allocation") == "default-allocation"
+            assert "error" not in event
+            assert "runtime_default_used" not in event
 
 
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_evp_flagevaluation
+@slow
 class Test_FFE_EVP_Flagevaluation_ObserveFullData_Absent_Hashed:
     """Test that when observeFullEvaluationData is absent from UFC, targeting_key is hashed and context.evaluation is omitted (default PII-protection)."""
 
@@ -547,7 +738,6 @@ class Test_FFE_EVP_Flagevaluation_ObserveFullData_Absent_Hashed:
     def test_ffe_evp_flagevaluation_observe_full_data_absent(self) -> None:
         assert self.r.status_code == 200, f"Flag evaluation failed: {self.r.text}"
 
-        wait_for_evp_flagevaluation_event(self.flag_key)
         events = find_evp_flagevaluation_events(self.flag_key)
         assert events, f"Expected EVP flagevaluation event for flag {self.flag_key}"
 
@@ -569,6 +759,7 @@ class Test_FFE_EVP_Flagevaluation_ObserveFullData_Absent_Hashed:
 
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_evp_flagevaluation
+@slow
 class Test_FFE_EVP_Flagevaluation_ObserveFullData_False_Hashed:
     """Test that when observeFullEvaluationData=false in UFC, targeting_key is hashed and context.evaluation is omitted."""
 
@@ -589,7 +780,6 @@ class Test_FFE_EVP_Flagevaluation_ObserveFullData_False_Hashed:
     def test_ffe_evp_flagevaluation_observe_full_data_false(self) -> None:
         assert self.r.status_code == 200, f"Flag evaluation failed: {self.r.text}"
 
-        wait_for_evp_flagevaluation_event(self.flag_key)
         events = find_evp_flagevaluation_events(self.flag_key)
         assert events, f"Expected EVP flagevaluation event for flag {self.flag_key}"
 
@@ -611,6 +801,7 @@ class Test_FFE_EVP_Flagevaluation_ObserveFullData_False_Hashed:
 
 @scenarios.feature_flagging_and_experimentation
 @features.feature_flags_evp_flagevaluation
+@slow
 class Test_FFE_EVP_Flagevaluation_ObserveFullData_True_Unhashed:
     """Test that when observeFullEvaluationData=true in UFC, targeting_key is raw and context.evaluation is populated."""
 
@@ -631,7 +822,6 @@ class Test_FFE_EVP_Flagevaluation_ObserveFullData_True_Unhashed:
     def test_ffe_evp_flagevaluation_observe_full_data_true(self) -> None:
         assert self.r.status_code == 200, f"Flag evaluation failed: {self.r.text}"
 
-        wait_for_evp_flagevaluation_event(self.flag_key)
         events = find_evp_flagevaluation_events(self.flag_key)
         assert events, f"Expected EVP flagevaluation event for flag {self.flag_key}"
 

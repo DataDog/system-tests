@@ -100,6 +100,11 @@ def procedure():
 
 
 def _executeQuery(query):
-    cursor = connect_db().cursor()
-    cursor.execute(query)
-    cursor.close()
+    conn = connect_db()
+    try:
+        cursor = conn.cursor()
+        cursor.execute(query)
+        conn.commit()
+        cursor.close()
+    finally:
+        conn.close()

@@ -1,4 +1,4 @@
-from utils import scenario_groups, features, context, interfaces, scenarios, auxiliary_test
+from utils import scenario_groups, features, context, interfaces, scenarios, auxiliary_test, irrelevant
 
 
 from .utils.schemas_validators import SchemaBug, assert_no_schema_error
@@ -7,6 +7,7 @@ from .utils.schemas_validators import SchemaBug, assert_no_schema_error
 @features.not_reported
 @scenario_groups.end_to_end
 @auxiliary_test
+@irrelevant(context.scenario.name == "OTEL_COLLECTOR", reason="This scenario does not use library/agent interfaces")
 class Test_DdtraceSchemas:
     def test_library(self):
         known_bugs = [
@@ -86,12 +87,6 @@ class Test_DdtraceSchemas:
                 ticket="DEBUG-2864",
             ),
             SchemaBug(
-                endpoint="/debugger/v1/diagnostics",
-                data_path="$[].content[].debugger.diagnostics",
-                condition=context.library == "nodejs",
-                ticket="DEBUG-3245",
-            ),
-            SchemaBug(
                 endpoint="/debugger/v1/input",
                 data_path="$[].debugger.snapshot.stack[].lineNumber",
                 condition=context.library in ("python@2.16.2", "python@2.16.3")
@@ -101,7 +96,8 @@ class Test_DdtraceSchemas:
             SchemaBug(
                 endpoint="/debugger/v2/input",
                 data_path="$[].debugger.snapshot.stack",
-                condition=context.library == "python" and context.scenario is scenarios.debugger_probes_snapshot,
+                condition=context.library == "python"
+                and context.scenario in (scenarios.debugger_probes_snapshot, scenarios.debugger_evaluation_timeout),
                 ticket="DEBUG-5715",
             ),
             SchemaBug(
@@ -256,7 +252,8 @@ class Test_DdtraceSchemas:
             SchemaBug(
                 endpoint="/api/v2/debugger",
                 data_path="$[]",
-                condition=context.library == "python" and context.scenario is scenarios.debugger_probes_snapshot,
+                condition=context.library == "python"
+                and context.scenario in (scenarios.debugger_probes_snapshot, scenarios.debugger_evaluation_timeout),
                 ticket="DEBUG-5715",
             ),
             SchemaBug(
@@ -278,7 +275,6 @@ class Test_DdtraceSchemas:
 
 @features.not_reported
 @scenarios.otel_collector
-@scenarios.otel_collector_e2e
 @auxiliary_test
 class Test_OtelSchemas:
     def test_main(self):

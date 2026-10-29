@@ -59,7 +59,7 @@ import json
 import time
 from typing import Any
 
-import pytest
+from utils import pytest
 from google.protobuf.json_format import MessageToDict
 from opentelemetry.proto.collector.trace.v1.trace_service_pb2 import ExportTraceServiceRequest
 
@@ -866,11 +866,9 @@ class Test_FR06_Otel_Resource_Attributes:
         assert resource_attrs.get("service.version") == "1.2.3", (
             f"Expected service.version=1.2.3, got: {resource_attrs}"
         )
-        # The deployment environment semantic convention was renamed in 1.27.0.
-        assert (
-            resource_attrs.get("deployment.environment") == "prod"
-            or resource_attrs.get("deployment.environment.name") == "prod"
-        ), f"Expected deployment environment=prod, got: {resource_attrs}"
+        assert resource_attrs.get("deployment.environment.name") == "prod", (
+            f"Expected deployment.environment.name=prod, got: {resource_attrs}"
+        )
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS_OTLP}])
     def test_fr06_14_custom_service_on_data_point(
@@ -1542,7 +1540,16 @@ class Test_FR15_Client_Computed_Stats_Header:
             f"Expected Datadog-Client-Computed-Stats truthy on every trace request, got: {stats_headers}"
         )
 
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS, "OTEL_TRACES_SPAN_METRICS_ENABLED": "false"}])
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                **DEFAULT_ENVVARS,
+                "OTEL_TRACES_SPAN_METRICS_ENABLED": "false",
+                "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
+            }
+        ],
+    )
     def test_fr15_2_header_absent_when_disabled(
         self,
         otlp_trace_metrics_library_env: dict[str, str],  # noqa: ARG002

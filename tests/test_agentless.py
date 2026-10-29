@@ -5,42 +5,45 @@ Endpoints and payload shapes below were confirmed against a live weblog build of
 (not the msgpack v0.4 format `interfaces.agent.get_spans_list()` parses), keyed by
 `traces[].spans[]`, each span using the same field names as the agent-relayed format;
 stats submission reuses the msgpack `ClientStatsPayload` shape byte-for-byte. Re-confirm
-against real proxy captures if the branch's wire format changes before it merges; see
-utils/_context/_scenarios/agentless_endtoend.py and debugger_agentless.py for the scenario setup.
+against real captures if the branch's wire format changes before it merges. Everything is received
+by the mocked backend (interfaces.backend_v2), the intake hostnames derived from DD_SITE being its
+network aliases; see
+utils/_context/_scenarios/agentless_endtoend.py for the scenario setup.
 """
 
 import itertools
 import json
 import time
 
-from utils import features, interfaces, scenarios, weblog
-from utils._context._scenarios.agentless_endtoend import AGENTLESS_MOCK_API_KEY
+from utils import context, features, interfaces, scenarios, weblog
+from utils._context.containers import MOCKED_BACKEND_DOMAIN
+from utils._context._scenarios.agentless_endtoend import TracerAgentlessEndToEndScenario
 from utils._remote_config import send_apm_tracing_command
 from utils.dd_constants import RemoteConfigApplyState as ApplyState
 
 TRACE_SUBMISSION_PATH = "/v1/input"
-TRACE_SUBMISSION_HOST = "browser-intake-mock-intake.invalid"
+TRACE_SUBMISSION_HOST = f"browser-intake-{MOCKED_BACKEND_DOMAIN}"
 
 STATS_PATH = "/api/v0.2/stats"
-STATS_HOST = "trace.agent.mock-intake.invalid"
+STATS_HOST = f"trace.agent.{MOCKED_BACKEND_DOMAIN}"
 
 RC_CONFIGURATIONS_PATH = "/api/v0.1/configurations"
-RC_HOST = "config.mock-intake.invalid"
+RC_HOST = f"config.{MOCKED_BACKEND_DOMAIN}"
 
 TELEMETRY_PATH = "/api/v2/apmtelemetry"
-TELEMETRY_HOST = "instrumentation-telemetry-intake.mock-intake.invalid"
+TELEMETRY_HOST = f"instrumentation-telemetry-intake.{MOCKED_BACKEND_DOMAIN}"
 
 # Only the full crash report itself rides the telemetry intake (as a "logs" event, see
 # Test_Agentless_Crashtracking below); the separate errors-intake upload goes to its own
 # dedicated host, independently derived (not from whatever endpoint the telemetry path uses) -
 # see PROD_ERRORS_INTAKE_SUBDOMAIN in libdd-crashtracker/src/crash_info/errors_intake.rs.
-CRASH_ERRORS_INTAKE_HOST = "error-tracking-intake.mock-intake.invalid"
+CRASH_ERRORS_INTAKE_HOST = f"error-tracking-intake.{MOCKED_BACKEND_DOMAIN}"
 CRASH_ERRORS_INTAKE_PATH = "/api/v2/errorsintake"
 
 # OpenTelemetry log/metric export are wholly separate agentless mechanisms (their own
 # DD_SITE-derived host/flags), unrelated to the DD_AGENTLESS_ENABLED trace/stats/RC/telemetry
 # paths above.
-OTLP_HOST = "otlp.mock-intake.invalid"
+OTLP_HOST = f"otlp.{MOCKED_BACKEND_DOMAIN}"
 OTLP_LOGS_PATH = "/v1/logs"
 OTLP_METRICS_PATH = "/v1/metrics"
 
@@ -60,11 +63,19 @@ def _assert_headers(headers: dict[str, str], *, exact: dict[str, str], present: 
 
 
 def _assert_api_key(headers: dict[str, str]) -> None:
-    assert headers["dd-api-key"] in {AGENTLESS_MOCK_API_KEY, "--redacted--"}
+    scenario = context.scenario
+    assert isinstance(scenario, TracerAgentlessEndToEndScenario)
+    assert headers["dd-api-key"] in {scenario.weblog_api_key, "--redacted--"}
+
+
+def _host(data: dict) -> str | None:
+    """The intake hostname a request was sent to (the mocked backend serves all of them on 443)"""
+    host = _headers(data).get("host")
+    return host.removesuffix(":443") if host else None
 
 
 def _requests_at(host: str, path: str) -> list[dict]:
-    return [data for data in interfaces.datadog_direct.get_data(path) if data["host"] == host]
+    return [data for data in interfaces.backend_v2.get_data(path) if _host(data) == host]
 
 
 def _find_root_span(resource: str) -> dict | None:
@@ -210,7 +221,7 @@ class Test_Agentless_Trace_Submission:
         )
         assert headers["user-agent"].startswith("Tracer/")
 
-        # The proxy transparently decompresses the body for capture (request["request"]["length"]
+        # The mocked backend decompresses the body for capture (request["request"]["length"]
         # is the decompressed size); compare it against the real over-the-wire content-length
         # header to confirm the payload was actually compressed, not just labeled as such.
         wire_length = int(headers["content-length"])
@@ -340,8 +351,8 @@ class Test_Agentless_Telemetry:
 
     def _trigger_and_wait_for_metrics(self):
         self.r = weblog.get("/")
-        interfaces.datadog_direct.wait_for(
-            lambda d: d["host"] == TELEMETRY_HOST
+        interfaces.backend_v2.wait_for(
+            lambda d: _host(d) == TELEMETRY_HOST
             and d["path"] == TELEMETRY_PATH
             and _find_metric_series("spans_created", "tracers") is not None,
             timeout=30,
@@ -395,8 +406,8 @@ class Test_Agentless_Telemetry_Generate_Metrics:
 
     def setup_telemetry_generate_metrics(self):
         self.r = weblog.get("/")
-        interfaces.datadog_direct.wait_for(
-            lambda d: d["host"] == TELEMETRY_HOST
+        interfaces.backend_v2.wait_for(
+            lambda d: _host(d) == TELEMETRY_HOST
             and d["path"] == TELEMETRY_PATH
             and _find_metric_series("spans_created", "tracers") is not None,
             timeout=30,
@@ -424,7 +435,7 @@ class Test_Agentless_Crashtracking:
     Confirmed against a fix for a real bug on the dd-trace-py branch: crash reports were
     silently dropped agentlessly (too-short collection timeout, and the crash receiver
     subprocess's environment not forwarding HTTP(S)_PROXY, so it could never reach the mock
-    intake through the proxy this test harness requires). If this test hangs/times out again,
+    intake through the proxy this test harness used to require). If this test hangs/times out again,
     that regression is the first thing to check.
     """
 
@@ -438,7 +449,7 @@ class Test_Agentless_Crashtracking:
         # Don't gate on a single incoming event's host/path: the errors-intake request and the
         # telemetry crash-report log are two independent async events that can arrive in either
         # order, so check both conditions globally rather than on whatever `d` triggered this.
-        interfaces.datadog_direct.wait_for(
+        interfaces.backend_v2.wait_for(
             lambda _: bool(_requests_at(CRASH_ERRORS_INTAKE_HOST, CRASH_ERRORS_INTAKE_PATH))
             and _find_crash_report_log() is not None,
             timeout=90,
@@ -500,8 +511,8 @@ class Test_Agentless_OTLP_Logs:
 
     def setup_otlp_log_export(self):
         self.r = weblog.get("/otel_create_log")
-        interfaces.datadog_direct.wait_for(
-            lambda d: d["host"] == OTLP_HOST
+        interfaces.backend_v2.wait_for(
+            lambda d: _host(d) == OTLP_HOST
             and d["path"] == OTLP_LOGS_PATH
             and _find_otlp_log_record(self.LOG_MESSAGE_MARKER) is not None,
             timeout=30,
@@ -543,8 +554,8 @@ class Test_Agentless_OTLP_Metrics:
 
     def setup_otlp_metric_export(self):
         self.r = weblog.get("/otel_create_metric")
-        interfaces.datadog_direct.wait_for(
-            lambda d: d["host"] == OTLP_HOST
+        interfaces.backend_v2.wait_for(
+            lambda d: _host(d) == OTLP_HOST
             and d["path"] == OTLP_METRICS_PATH
             and _find_otlp_metric_datapoint(self.METRIC_NAME) is not None,
             timeout=30,
