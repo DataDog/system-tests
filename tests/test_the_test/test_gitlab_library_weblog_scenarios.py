@@ -79,7 +79,21 @@ def test_parametric_is_only_enabled_by_the_parametric_key() -> None:
 
 
 def _generated_jobs(tmp_path: Path, library_weblog_scenarios: str) -> set[str]:
-    main([library_weblog_scenarios, f"--params-dir={tmp_path}", "--", "--parametric-job-count=2"])
+    # same argument layout as in main.yml, including an empty value after "--"
+    main(
+        [
+            library_weblog_scenarios,
+            "--excluded-scenarios",
+            "OTEL_TRACING_E2E",
+            "--params-dir",
+            str(tmp_path),
+            "--",
+            "--explicit-binaries-artifact",
+            "",
+            "--parametric-job-count",
+            "2",
+        ]
+    )
     build(["python"], tmp_path, tmp_path, stage="e2e", ci_image="myimage", chunks=1)
 
     pipeline = yaml.safe_load((tmp_path / "generated-pipeline-chunk-0.yml").read_text())

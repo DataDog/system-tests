@@ -142,15 +142,23 @@ def compute_params(
 
 
 def main(argv: list[str] | None = None) -> int:
+    argv = sys.argv[1:] if argv is None else argv
+
+    # Arguments after "--" are passed as is to compute-workflow-parameters.py. They are split here rather
+    # than with an argparse positional, as argparse's handling of "--" differs between Python versions.
+    extra_args: list[str] = []
+    if "--" in argv:
+        separator = argv.index("--")
+        argv, extra_args = argv[:separator], argv[separator + 1 :]
+
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("library_weblog_scenarios", help="JSON object {library: {weblog: [scenario or group, ...]}}")
     parser.add_argument("--excluded-scenarios", default="", help="Comma-separated scenarios excluded from groups")
     parser.add_argument("--params-dir", required=True, help="Directory where params_<library>.json are written")
-    parser.add_argument("extra_args", nargs="*", help="Extra arguments for compute-workflow-parameters.py")
     args = parser.parse_args(argv)
 
     compute_params(
-        json.loads(args.library_weblog_scenarios), args.excluded_scenarios, Path(args.params_dir), args.extra_args
+        json.loads(args.library_weblog_scenarios), args.excluded_scenarios, Path(args.params_dir), extra_args
     )
     return 0
 
