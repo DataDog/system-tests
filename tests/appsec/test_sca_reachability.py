@@ -34,7 +34,7 @@ _LANG_CONFIG: dict[str, dict[str, Any]] = {
         "symbol": "junrarHit",
     },
     "python_lambda": {
-        "cve_id": ["system-tests-python-lambda-sca"],
+        "cve_id": ["system-tests-sca"],
         "vulnerable_dep": "requests",
         "path": "handler.py",
         "symbol": "sca_requests_vulnerable_call",
