@@ -340,9 +340,12 @@ def test_entry_point_serves_until_sigterm(tmp_path: Path):
     )
     try:
         assert process.stdout is not None
-        first_line = process.stdout.readline()
-        assert first_line.startswith("Mocked backend listening on port "), process.stderr.read()  # type: ignore[union-attr]
-        client = MockedBackendClient(f"http://127.0.0.1:{first_line.split()[-1]}")
+        # its logs are on stdout too: skip them. An empty line means it exited
+        line = process.stdout.readline()
+        while line and not line.startswith("Mocked backend listening on port "):
+            line = process.stdout.readline()
+        assert line, process.stderr.read()  # type: ignore[union-attr]
+        client = MockedBackendClient(f"http://127.0.0.1:{line.split()[-1]}")
 
         requests.post(f"{client.base_url}/api/v2/series", json={"hello": "entry point"}, timeout=5)
         client.ffe_set_response("unauthorized")
@@ -547,3 +550,19 @@ def test_mocked_backend_container_serves_either_http_or_https():
     # senders build the intake URLs from DD_SITE: the default HTTPS port, its domain and the intake hostnames
     assert https.container_url == "https://mocked-backend.invalid"
     assert https.network_aliases == list(MockedBackendContainer.tls_hostnames)
+
+
+@scenarios.test_the_test
+def test_serves_remote_config_by_default(server: MockedBackendServer):
+    for method, path in (
+        ("GET", "/api/v0.1/org"),
+        ("GET", "/api/v0.1/status"),
+        ("GET", "/api/v0.2/echo-test"),
+        ("POST", "/api/v0.1/configurations"),
+    ):
+        response = requests.request(method, f"{server.base_url}{path}", timeout=5)
+        assert response.status_code == 200
+        assert response.content, path
+
+    server.client.set_mocked_responses([MockedBackendResponse("/api/v0.1/configurations", b"from a test")])
+    assert requests.post(f"{server.base_url}/api/v0.1/configurations", timeout=5).content == b"from a test"

@@ -956,7 +956,8 @@ class AgentContainer(TestedContainer):
             tuf_root_json = get_tuf_root_json()
             environment["DD_REMOTE_CONFIGURATION_ENABLED"] = "true"
             environment["DD_REMOTE_CONFIGURATION_REFRESH_INTERVAL"] = "5s"
-            environment["DD_REMOTE_CONFIGURATION_NO_TLS"] = "true"
+            if use_proxy:
+                environment["DD_REMOTE_CONFIGURATION_NO_TLS"] = "true"
             environment["DD_REMOTE_CONFIGURATION_CONFIG_ROOT"] = tuf_root_json
             environment["DD_REMOTE_CONFIGURATION_DIRECTOR_ROOT"] = tuf_root_json
 

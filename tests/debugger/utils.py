@@ -779,7 +779,8 @@ class BaseDebuggerTest:
 
     def wait_for_telemetry(self, telemetry_type: str, timeout: int = 5) -> dict | None:
         self._telemetry: dict | None = None
-        interfaces.agent.wait_for(
+        # only used in DEBUGGER_TELEMETRY, where the agent sends to the mocked backend
+        interfaces.backend_v2.wait_for(
             lambda data: self._wait_for_telemetry(data, telemetry_type=telemetry_type), timeout=timeout
         )
         return self._telemetry
