@@ -1220,6 +1220,7 @@ manifest:
         apache-mod-8.0: v1.8.3
     - declaration: flaky (DEBUG-3814)
       component_version: '>1.8.3'
+  tests/debugger/test_debugger_rc_unsubscribe.py::Test_Debugger_RC_Unsubscribe: missing_feature (LIVE_DEBUGGING subscription is set at startup from DD_DYNAMIC_INSTRUMENTATION_ENABLED; RC cannot add it)
   tests/debugger/test_debugger_snapshot_correlation.py::Test_Debugger_Coordinated_Sampling: missing_feature (no per-trace coordinated sampling; probabilistic per-trace rate not implemented)
   tests/debugger/test_debugger_snapshot_correlation.py::Test_Debugger_Coordinated_Sampling_Line_Probe: irrelevant (Line-probe variant is only used by Node.js)
   tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb: missing_feature
