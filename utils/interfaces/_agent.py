@@ -169,7 +169,7 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
     def get_sketches(self):
         """Attempts to fetch the sketches the agent will submit to the backend."""
 
-        all_data = self.get_data(path_filters="/api/beta/sketches")
+        all_data = self.get_data(path_filters=("/api/beta/sketches", "/api/intake/metrics/v3/sketches"))
 
         for data in all_data:
             if "sketches" in data["request"]["content"]:
