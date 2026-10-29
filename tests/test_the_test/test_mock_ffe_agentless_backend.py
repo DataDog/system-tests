@@ -302,8 +302,8 @@ def test_agentless_evp_capture_registry_waits_for_each_path_before_settling(
         return matcher(next(captures))
 
     wait = MagicMock()
-    monkeypatch.setattr(interfaces.backend_v2, "wait_for", wait_for)
-    monkeypatch.setattr(interfaces.backend_v2, "wait", wait)
+    monkeypatch.setattr(interfaces.mocked_backend, "wait_for", wait_for)
+    monkeypatch.setattr(interfaces.mocked_backend, "wait", wait)
 
     scenario._wait_for_expected_evp_captures(is_empty_test_run=False)  # noqa: SLF001
 
@@ -485,9 +485,9 @@ def test_direct_evp_shutdown_probe_uses_sigterm_without_explicit_flush(
         return any(matcher(candidate) for candidate in (priming_capture, capture))
 
     settle = MagicMock(side_effect=lambda _: lifecycle.append("settle"))
-    monkeypatch.setattr(interfaces.backend_v2, "get_data", get_data)
-    monkeypatch.setattr(interfaces.backend_v2, "wait_for", wait_for)
-    monkeypatch.setattr(interfaces.backend_v2, "wait", settle)
+    monkeypatch.setattr(interfaces.mocked_backend, "get_data", get_data)
+    monkeypatch.setattr(interfaces.mocked_backend, "wait_for", wait_for)
+    monkeypatch.setattr(interfaces.mocked_backend, "wait", settle)
 
     runtime_container = MagicMock()
     runtime_container.status = "exited"

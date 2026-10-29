@@ -366,7 +366,7 @@ class EndToEndScenario(DockerScenario):
         if self._require_api_key:  # only used by scenarios querying the real Datadog backend
             interfaces.backend_legacy.configure(self.host_log_folder, replay=self.replay)
         if self._mocked_backend_v2:
-            interfaces.backend_v2.configure(self.host_log_folder, replay=self.replay)
+            interfaces.mocked_backend.configure(self.host_log_folder, replay=self.replay)
         interfaces.library_dotnet_managed.configure(self.host_log_folder, replay=self.replay)
         interfaces.library_stdout.configure(self.host_log_folder, replay=self.replay)
         if self.include_agent:
@@ -440,7 +440,7 @@ class EndToEndScenario(DockerScenario):
         )
         agent_interfaces: list[ProxyBasedInterfaceValidator] = [interfaces.agent] if self.include_agent else []
         backend_interfaces: list[ProxyBasedInterfaceValidator] = (
-            [interfaces.backend_v2] if self._mocked_backend_v2 else []
+            [interfaces.mocked_backend] if self._mocked_backend_v2 else []
         )
         super().start_interfaces_watchdog(
             [interfaces.library]
@@ -511,8 +511,8 @@ class EndToEndScenario(DockerScenario):
                 interfaces.backend_legacy.load_data_from_logs()
 
             if self._mocked_backend_v2:
-                interfaces.backend_v2.load_data_from_logs()
-                interfaces.backend_v2.check_deserialization_errors()
+                interfaces.mocked_backend.load_data_from_logs()
+                interfaces.mocked_backend.check_deserialization_errors()
 
             if self.include_opentelemetry:
                 interfaces.open_telemetry.load_data_from_logs()
@@ -548,8 +548,8 @@ class EndToEndScenario(DockerScenario):
                 self._stop_mocked_backend_v2()
                 # the watchdog polls files about once per second: the last ones may not be ingested yet. Nothing else
                 # can arrive now, so ingest them all instead of waiting an arbitrary time
-                interfaces.backend_v2.ingest_all_files()
-                interfaces.backend_v2.check_deserialization_errors()
+                interfaces.mocked_backend.ingest_all_files()
+                interfaces.mocked_backend.check_deserialization_errors()
 
     def _stop_weblog(self, *, is_empty_test_run: bool) -> None:
         """Stop the weblog after setup traffic has been generated."""

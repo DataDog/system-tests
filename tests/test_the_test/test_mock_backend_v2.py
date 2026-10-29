@@ -19,7 +19,7 @@ from cryptography import x509
 from cryptography.hazmat.primitives.serialization import pkcs12
 
 from utils import scenarios
-from utils.interfaces._backend_v2 import _BackendV2InterfaceValidator
+from utils.interfaces._backend_v2 import _MockedBackendInterfaceValidator
 from utils._context.containers import MockedBackendContainer, TestedContainer
 from utils._context._scenarios.agentless_endtoend import JAVA_TRUSTSTORE_SOURCE
 from utils.mocked_backend import MockedBackendClient, MockedBackendServer
@@ -369,9 +369,9 @@ def test_health_endpoint(server: MockedBackendServer, tmp_path: Path):
     assert list(tmp_path.glob("*.json")) == []
 
 
-def _backend_v2_with_requests(tmp_path: Path, requests_: list[tuple[str, str | None]]) -> _BackendV2InterfaceValidator:
+def _backend_v2_with_requests(tmp_path: Path, requests_: list[tuple[str, str | None]]) -> _MockedBackendInterfaceValidator:
     """A backend_v2 interface that received a series request per (filename, api_key)"""
-    interface = _BackendV2InterfaceValidator()
+    interface = _MockedBackendInterfaceValidator()
     interface.configure(str(tmp_path), replay=False)
     for filename, api_key in requests_:
         headers = [["Content-Type", "application/json"]] + ([["DD-API-KEY", api_key]] if api_key else [])

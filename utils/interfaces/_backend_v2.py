@@ -18,9 +18,9 @@ from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils.interfaces._misc_validators import HeadersPresenceValidator
 
 
-class _BackendV2InterfaceValidator(ProxyBasedInterfaceValidator):
+class _MockedBackendInterfaceValidator(ProxyBasedInterfaceValidator):
     def __init__(self):
-        super().__init__("backend_v2")
+        super().__init__("mocked_backend")
 
     def ingest_all_files(self) -> None:
         """Ingest every recorded file not seen yet by the watchdog. To call once the mocked backend is stopped.
