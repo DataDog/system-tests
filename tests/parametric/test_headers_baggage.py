@@ -429,3 +429,62 @@ class Test_Headers_Baggage_Span_Tags:
         assert meta.get("baggage.account.id") == "12345"
         assert meta.get("baggage.foo") is None
         assert meta.get("baggage.test") is None
+
+
+def _parse_w3c_baggage(header: str) -> dict[str, str]:
+    items = {}
+    for member in header.split(","):
+        key, _, value = member.strip().partition("=")
+        items[key.strip()] = value.strip()
+    return items
+
+
+# An old dd-trace-go (query-form encoding) writes a space as "+".
+# A W3C-compliant tracer must read "+" as a literal plus, never as a space.
+_DD_PARENT = [("x-datadog-trace-id", "123456789"), ("x-datadog-parent-id", "987654321")]
+_ENCODED_BAGGAGE = "plus=a+b,space=a%20b,pct=100%25,k+y=v"
+
+
+@features.datadog_headers_propagation
+@scenarios.parametric
+class Test_Headers_Baggage_Percent_Encoding:
+    """Baggage values use percent-encoding only (W3C), not query-form encoding.
+
+    space -> %20, literal + stays literal (or %2B), literal % -> %25.
+    See https://github.com/DataDog/dd-trace-go/issues/5181
+    """
+
+    @parametrize("library_env", [{"DD_TRACE_BAGGAGE_TAG_KEYS": "*"}])
+    def test_w3c_baggage_plus_space_percent_roundtrip(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        with test_library:
+            headers = test_library.dd_make_child_span_and_get_headers([*_DD_PARENT, ("baggage", _ENCODED_BAGGAGE)])
+
+        # Decoded values: "+" is a literal plus, %20 is a space, %25 is a percent sign.
+        meta = find_only_span(test_agent.wait_for_num_traces(1)).get("meta")
+        assert meta is not None
+        assert meta.get("baggage.plus") == "a+b"
+        assert meta.get("baggage.space") == "a b"
+        assert meta.get("baggage.pct") == "100%"
+
+        # Wire shape after re-injection.
+        items = _parse_w3c_baggage(headers["baggage"])
+        assert items["plus"] in ("a+b", "a%2Bb")
+        assert items["space"] == "a%20b"
+        assert items["pct"] == "100%25"
+        assert items["k+y"] == "v"
+
+    @parametrize("library_env", [{"DD_TRACE_PROPAGATION_STYLE": "datadog"}])
+    def test_legacy_ot_baggage_plus_space_percent_roundtrip(self, test_library: APMLibrary) -> None:
+        with test_library:
+            headers = test_library.dd_make_child_span_and_get_headers(
+                [
+                    *_DD_PARENT,
+                    ("ot-baggage-plus", "a+b"),
+                    ("ot-baggage-space", "a%20b"),
+                    ("ot-baggage-pct", "100%25"),
+                ]
+            )
+
+        assert headers["ot-baggage-plus"] in ("a+b", "a%2Bb")
+        assert headers["ot-baggage-space"] == "a%20b"
+        assert headers["ot-baggage-pct"] == "100%25"
