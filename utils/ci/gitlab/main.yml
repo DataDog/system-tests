@@ -17,6 +17,14 @@ spec:
     weblogs:
       description: "Comma-separated list of weblogs to run (all weblogs if empty)"
       default: ""
+    library_weblog_scenarios:
+      description: >-
+        JSON object mapping each library to an object mapping each weblog to its list of scenarios
+        (uppercase) and/or scenario groups (lowercase),
+        e.g. '{"python": {"flask-poc": ["DEFAULT", "appsec"], "django-poc": ["DEFAULT"]}}'.
+        Alternative to libraries/scenarios/scenarios_groups/weblogs (not compatible with them);
+        excluded_scenarios only applies to scenarios coming from groups.
+      default: ""
     binaries_artifacts:
       description: "Semicolon-separated list of upstream jobs whose artifacts contain the pre-built binaries (downloaded by the generated build/run jobs via cross-pipeline needs). Use ';' not ',' because job names may contain commas (e.g. parallel matrix names)."
       default: ""
@@ -120,6 +128,9 @@ system_tests_build_pipeline:
     - job: system_tests_param
       optional: true
       artifacts: true
+  variables:
+    # Passed through a variable rather than inlined in the script, as the JSON value contains quotes
+    SYSTEM_TESTS_LIBRARY_WEBLOG_SCENARIOS_INPUT: $[[ inputs.library_weblog_scenarios ]]
   script:
     - dd-sts exchange --policy system-tests-gitlab -- datadog-ci tag --level job --tags "system-tests.job_type:generate-pipeline"
     - |
@@ -148,9 +159,22 @@ system_tests_build_pipeline:
       printf 'SYSTEM_TESTS_FORCE_EXECUTE=%s\nSYSTEM_TESTS_SKIP_EMPTY_SCENARIO=%s\n' "$force_execute" "$skip_empty_scenario" > build_params.env
       binaries_artifacts="${BINARIES_ARTIFACTS:-$[[ inputs.binaries_artifacts ]]}"
       binaries_artifact_path="${BINARIES_ARTIFACT_PATH:-$[[ inputs.binaries_artifact_path ]]}"
-      for library in $libraries; do
-        python3 utils/scripts/compute-workflow-parameters.py $library --format json --groups "$scenario_groups" --excluded-scenarios "$excluded_scenarios" --scenarios "$scenarios" --weblogs "$weblogs" --explicit-binaries-artifact "$binaries_artifacts" --parametric-job-count $parametric_job_count --parametric-workers "$parametric_workers" --output params_${library}.json
-      done
+      library_weblog_scenarios="${LIBRARY_WEBLOG_SCENARIOS:-$SYSTEM_TESTS_LIBRARY_WEBLOG_SCENARIOS_INPUT}"
+      if [ -n "$library_weblog_scenarios" ]; then
+        if [ -n "$libraries$scenarios$scenario_groups$weblogs" ]; then
+          echo "❌ library_weblog_scenarios is not compatible with libraries, scenarios, scenarios_groups and weblogs"
+          exit 1
+        fi
+        echo "library_weblog_scenarios: $library_weblog_scenarios"
+        libraries=$(python3 -c 'import json, sys; print(" ".join(json.loads(sys.argv[1])))' "$library_weblog_scenarios")
+        echo "libraries:              $libraries"
+        # compute-workflow-parameters.py is called for each library/weblog, results are merged in params_<library>.json
+        python3 utils/ci/gitlab/library_weblog_scenarios.py "$library_weblog_scenarios" --excluded-scenarios "$excluded_scenarios" --params-dir . -- --explicit-binaries-artifact "$binaries_artifacts" --parametric-job-count $parametric_job_count --parametric-workers "$parametric_workers"
+      else
+        for library in $libraries; do
+          python3 utils/scripts/compute-workflow-parameters.py $library --format json --groups "$scenario_groups" --excluded-scenarios "$excluded_scenarios" --scenarios "$scenarios" --weblogs "$weblogs" --explicit-binaries-artifact "$binaries_artifacts" --parametric-job-count $parametric_job_count --parametric-workers "$parametric_workers" --output params_${library}.json
+        done
+      fi
       chunks=1
       if [ "$SYSTEM_TESTS_SPLIT_PIPELINE" = "true" ]; then chunks=3; fi
       python3 utils/ci/gitlab/build_pipeline.py --stage $[[ inputs.stage ]] --ci-image "$CI_IMAGE" --ref "$[[ inputs.ref ]]" --push-to-test-optimization "$push_to_test_optimization" --libraries "$libraries" --params-dir . --output-dir . --chunks $chunks --docker-auth "$docker_auth" --binaries-artifact-path "$binaries_artifact_path" --binaries-artifacts "$binaries_artifacts" --pipeline-start-time "$SYSTEM_TESTS_PIPELINE_START_TIME"
