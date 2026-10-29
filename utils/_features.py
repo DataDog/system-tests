@@ -2336,6 +2336,19 @@ class _Features:
         return _mark_test_object(test_object, feature_id=368, owner=_Owner.debugger)
 
     @staticmethod
+    def debugger_snapshot_correlation(test_object):
+        """Coordinated per-trace snapshot sampling (Live Debugger)
+
+        The sampling decision is made once per trace and applies to every probe in that trace,
+        with snapshots correlated by the dd.trace_id already carried in the snapshot envelope (no
+        snapshot payload change). Runtime-id-in-envelope and the execution-context generation
+        token are separate follow-on work and are not part of this feature.
+
+        https://feature-parity.us1.prod.dog/#/?feature=564
+        """
+        return _mark_test_object(test_object, feature_id=564, owner=_Owner.debugger)
+
+    @staticmethod
     def debugger_method_probe(test_object):
         """Method-level Probes
 
@@ -2688,6 +2701,14 @@ class _Features:
         return _mark_test_object(test_object, feature_id=561, owner=_Owner.ffe)
 
     @staticmethod
+    def feature_flags_portable_configuration(test_object):
+        """Offline initialization and portable configuration helpers
+
+        https://feature-parity.us1.prod.dog/#/?feature=562
+        """
+        return _mark_test_object(test_object, feature_id=562, owner=_Owner.ffe)
+
+    @staticmethod
     def feature_flags_exposures(test_object):
         """Feature Flags & Experimentation (FFE)
 
@@ -2726,6 +2747,14 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=648
         """
         return _mark_test_object(test_object, feature_id=648, owner=_Owner.ffe)
+
+    @staticmethod
+    def feature_flags_evaluation_telemetry_opt_out(test_object):
+        """Per-subject evaluation telemetry opt-out
+
+        https://feature-parity.us1.prod.dog/#/?feature=649
+        """
+        return _mark_test_object(test_object, feature_id=649, owner=_Owner.ffe)
 
     @staticmethod
     def appsec_extended_data_collection(test_object):

@@ -1,1654 +1,417 @@
+"""Every scenario, instantiated once. Each one is defined in a module of this package: nothing is set here, so that
+modifying a scenario only runs this scenario in CI.
+"""
+
 import json
 
-from utils._context.header_tag_vars import VALID_CONFIGS, INVALID_CONFIGS, CONFIG_WILDCARD
-from utils.proxy.ports import ProxyPorts
 from utils.tools import update_environ_with_local_env
 
-from .aws_lambda import LambdaScenario
-from .core import Scenario, scenario_groups
-from .default import DefaultScenario
-from .agentless_endtoend import FeatureFlaggingAgentlessEndToEndScenario
-from .endtoend import (
-    DockerScenario,
-    DdTraceEndToEndScenario,
-    GraphQlEndToEndScenario,
+from ._core import DockerScenario, Scenario, scenario_groups, EndToEndScenario
+from .ai_guard import (
+    AiGuard,
+    AiGuardRedactionDisabled,
+    AiGuardRedactionTelemetry,
+    AiGuardStandalone,
+    AiGuardTelemetry,
+)
+from .apm_tracing import (
+    ApmTracingE2eOtel,
+    ApmTracingE2eSingleSpan,
+    ApmTracingEfficientPayload,
+    ApmTracingOtlp,
+)
+from .appsec import (
+    AppsecCorruptedRules,
+    AppsecCustomObfuscation,
+    AppsecCustomRules,
+    AppsecLowWafTimeout,
+    AppsecMetaStructDisabled,
+    AppsecMissingRules,
+    AppsecRateLimiter,
+    AppsecRulesMonitoringWithErrors,
+    AppsecRuntimeActivation,
+    AppsecWafTelemetry,
+    EverythingDisabled,
+    IastDeduplication,
+    RuntimeScaReachability,
+)
+from .appsec_api_security import (
+    AppsecApiSecurity,
+    AppsecApiSecurityNoResponseBody,
+    AppsecApiSecurityRc,
+    AppsecApiSecurityWithSampling,
+)
+from .appsec_auto_events import (
+    AppsecAtoSdk,
+    AppsecAutoEventsExtended,
+    AppsecAutoEventsRc,
+)
+from .appsec_blocking import (
+    AppsecBlocking,
+    AppsecBlockingFullDenylist,
+)
+from .aws_lambda import (
+    AppsecLambdaApiSecurity,
+    AppsecLambdaBlocking,
+    AppsecLambdaDefault,
+    AppsecLambdaInferredSpans,
+    AppsecLambdaRasp,
+    AppsecLambdaSca,
+)
+from .appsec_rasp import (
+    AppsecRasp,
+    AppsecRaspNonBlocking,
+    AppsecRaspWithoutDownstreamBodyAnalysisUsingMax,
+    AppsecRaspWithoutDownstreamBodyAnalysisUsingSampleRate,
+    AppsecStandaloneRasp,
+)
+from .appsec_standalone import (
+    AppsecApmStandalone,
+    AppsecStandalone,
+    AppsecStandaloneApiSecurity,
+    AppsecStandaloneApmStandalone,
+    IastStandalone,
+    ScaStandalone,
+)
+from .auto_injection import (
+    ChaosInstallerAutoInjection,
+    ContainerAutoInjectionInstallScript,
+    ContainerAutoInjectionInstallScriptAppsec,
+    ContainerAutoInjectionInstallScriptProfiling,
+    HostAutoInjectionInstallScript,
+    HostAutoInjectionInstallScriptAppsec,
+    HostAutoInjectionInstallScriptProfiling,
+    InstallerAutoInjection,
+    InstallerNotSupportedAutoInjection,
+    LocalAutoInjectionInstallScript,
+    MultiInstallerAutoInjection,
+    SimpleAutoInjectionAppsec,
+    SimpleAutoInjectionProfiling,
+    SimpleInstallerAutoInjection,
+)
+from .debugger import (
+    DebuggerCaptureTimeout,
+    DebuggerEvaluationTimeout,
+    DebuggerExceptionReplay,
+    DebuggerExpressionLanguage,
+    DebuggerInproductEnablement,
+    DebuggerPiiRedaction,
+    DebuggerProbesSnapshot,
+    DebuggerProbesSnapshotWithScm,
+    DebuggerSymdb,
+    DebuggerTelemetry,
+)
+from .default import (
+    DefaultScenario,
+)
+from .docker_ssi import (
+    DockerSsi,
+    DockerSsiAppsec,
+    DockerSsiCrashtracking,
+    DockerSsiServicenaming,
+)
+from .agentless_endtoend import (
+    FeatureFlaggingAndExperimentationAgentless,
+    FeatureFlaggingAndExperimentationAgentlessDirect,
+    FeatureFlaggingAndExperimentationAgentlessServerless,
+)
+from .test_the_test import (
+    Fuzzer,
+    MockTheTest,
+    MockTheTest2,
+    TestTheTest,
+    Todo,
+)
+from .feature_flagging import (
+    FeatureFlaggingAndExperimentation,
+    FeatureFlaggingEvpStress,
+    FeatureFlaggingEvaluationTelemetryOptOut,
+    FeatureFlaggingEvaluationTelemetryOptOutDisabled,
+)
+from .graphql import (
+    GraphqlAppsec,
+    GraphqlErrorTracking,
+)
+from .integration_frameworks import (
+    IntegrationFrameworksScenario,
 )
 from .integrations import (
     CrossedTracingLibraryScenario,
     DbmDynamicServiceScenario,
-    IntegrationsScenario,
+    Integrations,
     AWSIntegrationsScenario,
 )
-from .open_telemetry import OpenTelemetryScenario
-from .otel_collector import OtelCollectorScenario
-from .parametric import ParametricScenario
-from .profiling import ProfilingScenario
-from .debugger import DebuggerScenario
-from .thread_context_sharing import ThreadContextSharingScenario
-from .test_the_test import TestTheTestScenario
-from .auto_injection import InstallerAutoInjectionScenario
-from .k8s_lib_injection import K8sScenario, K8sSparkScenario
-from .k8s_injector_dev import K8sInjectorDevScenario
-from .docker_ssi import DockerSSIScenario
-from .ipv6 import IPV6Scenario
-from .appsec_low_waf_timeout import AppsecLowWafTimeout
-from .ai_guard import AIGuardScenario
-from .integration_frameworks import IntegrationFrameworksScenario
-from utils._context.constants import ContainerPorts
-from utils._context._scenarios.appsec_rasp import AppSecLambdaRaspScenario, AppsecRaspScenario
-from utils._context.containers import (
-    CassandraContainer,
-    KafkaContainer,
-    MongoContainer,
-    MsSqlServerContainer,
-    MySqlContainer,
-    PostgresContainer,
-    RabbitMqContainer,
-    VCRCassettesContainer,
-    InternalServerContainer,
+from .ipv6 import (
+    IPV6Scenario,
 )
+from .k8s_injector_dev import (
+    K8sInjectorDevSingleService,
+)
+from .k8s_lib_injection import (
+    K8sLibInjection,
+    K8sLibInjectionAppsecDisabled,
+    K8sLibInjectionAppsecEnabled,
+    K8sLibInjectionNoAc,
+    K8sLibInjectionNoAcUds,
+    K8sLibInjectionOperator,
+    K8sLibInjectionProfilingDisabled,
+    K8sLibInjectionProfilingEnabled,
+    K8sLibInjectionProfilingOverride,
+    K8sLibInjectionSparkDjm,
+    K8sLibInjectionUds,
+)
+from .otel_collector import (
+    OtelCollectorScenario,
+)
+from .open_telemetry import (
+    OtelIntegrations,
+    OtelLogE2e,
+    OtelMetricE2e,
+    OtelTracingE2e,
+)
+from .otel_semantics import (
+    OtelSemanticsOtlp,
+    OtelSemanticsOtlpCustomErrorStatuses,
+    OtelSemanticsOtlpSamplingRules,
+    OtelSemanticsOtlpTraceMetrics,
+    OtelStartupLogs,
+)
+from .parametric import (
+    ParametricScenario,
+)
+from .profiling import (
+    ProfilingScenario,
+)
+from .remote_config import (
+    RemoteConfigMockedBackendAsmDd,
+    RemoteConfigMockedBackendAsmFeatures,
+    RemoteConfigMockedBackendAsmFeaturesNocache,
+    RemoteConfigMockedBackendLiveDebugging,
+)
+from .runtime_metrics import (
+    OtlpRuntimeMetrics,
+    RuntimeMetricsEnabled,
+)
+from .sampling import (
+    Sampling,
+    SamplingRateCapping,
+    SamplingRulesAgentRate,
+)
+from .span_events import (
+    AgentNotSupportingSpanEvents,
+    AgentSupportingSpanEvents,
+)
+from .telemetry import (
+    TelemetryAppStartedProductsDisabled,
+    TelemetryDependencyLoadedTestForDependencyCollectionDisabled,
+    TelemetryEnhancedConfigReporting,
+    TelemetryExtendedHeartbeat,
+    TelemetryLogGenerationDisabled,
+    TelemetryMetricGenerationDisabled,
+)
+from .thread_context_sharing import (
+    ThreadContextSharingScenario,
+)
+from .trace_stats import (
+    TraceStatsComputation,
+    TraceStatsComputationClientDropP0sFalse,
+    TraceStatsComputationErrorSampler,
+    TraceStatsComputationFutureObfuscationVersion,
+    TraceStatsComputationMissingObfuscationVersion,
+    TraceStatsComputationObfuscationDisabled,
+    TraceStatsComputationObfuscationVersionZero,
+)
+from .tracing_config import (
+    LibraryConfCustomHeaderTags,
+    LibraryConfCustomHeaderTagsInvalid,
+    TracePropagationStyleW3c,
+    TracingConfigEmpty,
+    TracingConfigNondefault,
+    TracingConfigNondefault2,
+    TracingConfigNondefault3,
+    TracingConfigNondefault4,
+)
+
+__all__ = [
+    "DockerScenario",
+    "EndToEndScenario",
+    "Scenario",
+    "get_all_scenarios",
+    "scenario_groups",
+    "scenarios",
+]
 
 update_environ_with_local_env()
 
-# Shared by every AI Guard scenario: the SDK on, AppSec and IAST off so nothing else drives the
-# spans under test, and the endpoint pointed at the VCR container with keys the mock backend
-# ignores. Each scenario adds only what it is there to exercise.
-_AI_GUARD_WEBLOG_ENV = {
-    "DD_APPSEC_ENABLED": "false",
-    "DD_IAST_ENABLED": "false",
-    "DD_AI_GUARD_ENABLED": "true",
-    "DD_AI_GUARD_ENDPOINT": f"http://vcr_cassettes:{ContainerPorts.vcr_cassettes}/vcr/aiguard",
-    "DD_API_KEY": "mock_api_key",
-    "DD_APP_KEY": "mock_app_key",
-}
-
 
 class _Scenarios:
-    todo = Scenario("TODO", doc="scenario that skips tests not yet executed", github_workflow=None)
-    test_the_test = TestTheTestScenario("TEST_THE_TEST", doc="Small scenario that check system-tests internals")
-    mock_the_test = TestTheTestScenario("MOCK_THE_TEST", doc="Mock scenario that check system-tests internals")
-    mock_the_test_2 = TestTheTestScenario("MOCK_THE_TEST_2", doc="Mock scenario that check system-tests internals")
-
-    default = DefaultScenario("DEFAULT")
-
-    integrations = IntegrationsScenario()
-    integrations_aws = AWSIntegrationsScenario("INTEGRATIONS_AWS")
+    todo = Todo()
+    test_the_test = TestTheTest()
+    mock_the_test = MockTheTest()
+    mock_the_test_2 = MockTheTest2()
+    default = DefaultScenario()
+    integrations = Integrations()
+    integrations_aws = AWSIntegrationsScenario()
     dbm_dynamic_service = DbmDynamicServiceScenario()
     crossed_tracing_libraries = CrossedTracingLibraryScenario()
-
-    otel_integrations = OpenTelemetryScenario(
-        "OTEL_INTEGRATIONS",
-        weblog_env={
-            "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
-            "OTEL_EXPORTER_OTLP_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}",
-            "OTEL_EXPORTER_OTLP_TRACES_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
-            "OTEL_INTEGRATIONS_TEST": True,
-        },
-        include_intake=False,
-        include_collector=False,
-        extra_containers=(
-            MsSqlServerContainer,
-            MySqlContainer,
-            RabbitMqContainer,
-            KafkaContainer,
-            MongoContainer,
-            CassandraContainer,
-            PostgresContainer,
-        ),
-        doc=(
-            "We use the open telemetry library to automatically instrument the weblogs instead of using the DD library."
-            "This scenario represents this case in the integration with different external systems, for example the "
-            "interaction with sql database."
-        ),
-    )
-
-    profiling = ProfilingScenario("PROFILING")
-
-    trace_stats_computation = DdTraceEndToEndScenario(
-        name="TRACE_STATS_COMPUTATION",
-        # feature consistency is poorly respected here ...
-        weblog_env={
-            "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",  # default env var for CSS
-            "DD_TRACE_COMPUTE_STATS": "true",
-            "DD_TRACE_FEATURES": "discovery",
-            "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
-            "_DD_TRACE_STATS_COMPUTATION_EXPERIMENTAL_CLIENT_OBFUSCATION_ENABLED": "true",
-        },
-        doc=(
-            "End to end testing with DD_TRACE_COMPUTE_STATS=1. This feature compute stats at tracer level, and"
-            "may drop some of them"
-        ),
-        scenario_groups=[scenario_groups.appsec],
-    )
-
-    trace_stats_computation_client_drop_p0s_false = DdTraceEndToEndScenario(
-        name="TRACE_STATS_COMPUTATION_CLIENT_DROP_P0S_FALSE",
-        # Same as trace_stats_computation but with client_drop_p0s set to false
-        # to test tracer behavior when agent doesn't support client-side P0 dropping
-        weblog_env={
-            "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",  # default env var for CSS
-            "DD_TRACE_COMPUTE_STATS": "true",
-            "DD_TRACE_FEATURES": "discovery",
-            "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
-            "_DD_TRACE_STATS_COMPUTATION_EXPERIMENTAL_CLIENT_OBFUSCATION_ENABLED": "true",
-        },
-        client_drop_p0s=False,
-        doc=(
-            "End to end testing with DD_TRACE_COMPUTE_STATS=1 and agent reporting client_drop_p0s: false. "
-            "Tests that tracers correctly disable stats computation when agent doesn't support client-side P0 dropping."
-        ),
-        scenario_groups=[scenario_groups.appsec],
-    )
-
-    trace_stats_computation_future_obfuscation_version = DdTraceEndToEndScenario(
-        name="TRACE_STATS_COMPUTATION_FUTURE_OBFUSCATION_VERSION",
-        # Same as trace_stats_computation but with the agent advertising an obfuscation_version
-        # higher than what any current SDK supports (99), to test that the SDK correctly falls
-        # back to no client-side obfuscation when it encounters an unknown/future version.
-        weblog_env={
-            "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",  # default env var for CSS
-            "DD_TRACE_COMPUTE_STATS": "true",
-            "DD_TRACE_FEATURES": "discovery",
-            "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
-            "_DD_TRACE_STATS_COMPUTATION_EXPERIMENTAL_CLIENT_OBFUSCATION_ENABLED": "true",
-        },
-        obfuscation_version=99,
-        doc=(
-            "End to end testing with DD_TRACE_COMPUTE_STATS=1 and agent reporting obfuscation_version: 99. "
-            "Tests that tracers correctly skip client-side obfuscation and omit the Datadog-Obfuscation-Version "
-            "header when the agent advertises an obfuscation version higher than what the SDK supports."
-        ),
-        scenario_groups=[scenario_groups.appsec],
-    )
-
-    trace_stats_computation_missing_obfuscation_version = DdTraceEndToEndScenario(
-        name="TRACE_STATS_COMPUTATION_MISSING_OBFUSCATION_VERSION",
-        # Same as trace_stats_computation but with the agent not advertising obfuscation_version
-        # in /info, to test that the SDK correctly falls back to no client-side obfuscation.
-        weblog_env={
-            "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",  # default env var for CSS
-            "DD_TRACE_COMPUTE_STATS": "true",
-            "DD_TRACE_FEATURES": "discovery",
-            "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
-            "_DD_TRACE_STATS_COMPUTATION_EXPERIMENTAL_CLIENT_OBFUSCATION_ENABLED": "true",
-        },
-        obfuscation_version="MISSING",
-        doc=(
-            "End to end testing with DD_TRACE_COMPUTE_STATS=1 and agent not advertising obfuscation_version. "
-            "Tests that tracers correctly skip client-side obfuscation and omit the Datadog-Obfuscation-Version "
-            "header when the agent does not advertise any obfuscation version."
-        ),
-        scenario_groups=[scenario_groups.appsec],
-    )
-
-    trace_stats_computation_obfuscation_version_zero = DdTraceEndToEndScenario(
-        name="TRACE_STATS_COMPUTATION_OBFUSCATION_VERSION_ZERO",
-        # Same as trace_stats_computation but with the agent advertising obfuscation_version=0,
-        # to test that the SDK treats version 0 as "not supported" and skips client-side obfuscation.
-        weblog_env={
-            "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",  # default env var for CSS
-            "DD_TRACE_COMPUTE_STATS": "true",
-            "DD_TRACE_FEATURES": "discovery",
-            "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
-            "_DD_TRACE_STATS_COMPUTATION_EXPERIMENTAL_CLIENT_OBFUSCATION_ENABLED": "true",
-        },
-        obfuscation_version=0,
-        doc=(
-            "End to end testing with DD_TRACE_COMPUTE_STATS=1 and agent reporting obfuscation_version: 0. "
-            "Tests that tracers correctly skip client-side obfuscation and omit the Datadog-Obfuscation-Version "
-            "header when the agent advertises obfuscation_version=0."
-        ),
-        scenario_groups=[scenario_groups.appsec],
-    )
-
-    trace_stats_computation_obfuscation_disabled = DdTraceEndToEndScenario(
-        name="TRACE_STATS_COMPUTATION_OBFUSCATION_DISABLED",
-        # Same as trace_stats_computation but with the agent being configured with obfuscation disabled, to test that
-        # the SDK correctly reads the obfuscation config from agent's /info and respects it.
-        weblog_env={
-            "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",  # default env var for CSS
-            "DD_TRACE_COMPUTE_STATS": "true",
-            "DD_TRACE_FEATURES": "discovery",
-            "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
-            "_DD_TRACE_STATS_COMPUTATION_EXPERIMENTAL_CLIENT_OBFUSCATION_ENABLED": "true",
-        },
-        agent_env={
-            "DD_APM_SQL_OBFUSCATION_MODE": "normalize_only",
-        },
-        doc=("End to end testing with DD_TRACE_COMPUTE_STATS=1 and obfuscation disabled."),
-        scenario_groups=[scenario_groups.appsec],
-    )
-
-    trace_stats_computation_error_sampler = DdTraceEndToEndScenario(
-        name="TRACE_STATS_COMPUTATION_ERROR_SAMPLER",
-        # Same as trace_stats_computation but with the trace sample rate set to 0, so that all traces
-        # are P0 and would normally be dropped by the tracer. Error traces must still be sent to the
-        # agent, because the agent error sampler keeps a portion of them.
-        weblog_env={
-            "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",  # default env var for CSS
-            "DD_TRACE_COMPUTE_STATS": "true",
-            "DD_TRACE_FEATURES": "discovery",
-            "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
-            "DD_TRACE_SAMPLE_RATE": "0",
-        },
-        doc=(
-            "End to end testing with DD_TRACE_COMPUTE_STATS=1 and DD_TRACE_SAMPLE_RATE=0. "
-            "Tests that traces containing errors are still sent to the agent even when sampling would drop them."
-        ),
-        scenario_groups=[scenario_groups.appsec],
-    )
-
-    sampling = DdTraceEndToEndScenario(
-        "SAMPLING",
-        appsec_enabled=False,
-        iast_enabled=False,
-        tracer_sampling_rate=0.5,
-        weblog_env={"DD_TRACE_RATE_LIMIT": "10000000", "DD_TRACE_STATS_COMPUTATION_ENABLED": "false"},
-        doc="Test sampling mechanism. Not included in default scenario because it's a little bit too flaky",
-        scenario_groups=[scenario_groups.sampling],
-    )
-
-    sampling_rate_capping = DdTraceEndToEndScenario(
-        "SAMPLING_RATE_CAPPING",
-        weblog_env={"DD_TRACE_RATE_LIMIT": "10000000", "DD_TRACE_STATS_COMPUTATION_ENABLED": "false"},
-        doc="Test that tracers cap sampling rate increases to 2x per interval when agent restarts",
-        scenario_groups=[scenario_groups.sampling],
-    )
-
-    sampling_rules_agent_rate = DdTraceEndToEndScenario(
-        "SAMPLING_RULES_AGENT_RATE",
-        weblog_env={
-            "DD_TRACE_RATE_LIMIT": "10000000",
-            "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
-            # This rule never matches real weblog traffic (wrong service name), so every span
-            # falls through to the fallback sampler. That fallback must still receive agent-published
-            # rates instead of being stuck at 1.0: https://github.com/DataDog/dd-trace-java/pull/12490
-            "DD_TRACE_SAMPLING_RULES": '[{"service": "not-the-real-service-xyz", "sample_rate": 1.0}]',
-        },
-        doc=(
-            "Test that agent-published sampling rates are still applied to spans that don't match any "
-            "configured sampling rule, instead of the rule-miss fallback being stuck at rate 1.0."
-        ),
-        scenario_groups=[scenario_groups.sampling],
-    )
-
-    trace_propagation_style_w3c = DdTraceEndToEndScenario(
-        "TRACE_PROPAGATION_STYLE_W3C",
-        weblog_env={
-            "DD_TRACE_PROPAGATION_STYLE_INJECT": "tracecontext",
-            "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "tracecontext",
-        },
-        doc="Test W3C trace style",
-    )
-
-    # Adapted from the instrumentation section of the OTel operator example:
-    # https://github.com/DataDog/opentelemetry-examples/blob/cyrille-leclerc/use-dd-operator/guides/kubernetes/configuration/opentelemetry-kube-stack/values.yaml
-    # Match instrumentation.env and the exporter/sampler/propagators fields.
-    # Only Kubernetes service DNS is replaced with the local Agent hostname.
-    # Settings absent from the example stay unset; the tests still require
-    # their effective defaults to appear in the startup configuration.
-    OTEL_STARTUP_LOGS_ENV: dict[str, str] = {
-        "OTEL_SEMCONV_STABILITY_OPT_IN": "http,database,rpc,messaging",
-        "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE": "delta",
-        "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
-        "OTEL_TRACES_EXPORTER": "otlp",
-        "DD_TRACE_OTEL_ENABLED": "true",
-        "DD_LOGS_OTEL_ENABLED": "true",
-        "DD_METRICS_OTEL_ENABLED": "true",
-        "DD_TRACE_OTEL_SEMANTICS_ENABLED": "true",
-        "DD_AGENT_HOST": "agent",
-        "DD_DBM_PROPAGATION_MODE": "full",
-        "DD_DBM_TRACE_PREPARED_STATEMENTS": "true",
-        "DD_DATA_STREAMS_ENABLED": "true",
-        "DD_TRACE_REMOVE_INTEGRATION_SERVICE_NAMES_ENABLED": "true",
-        "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": "http://agent:4318/v1/traces",
-        "OTEL_EXPORTER_OTLP_ENDPOINT": "http://agent:4318",
-        "OTEL_TRACES_SAMPLER": "parentbased_always_on",
-        "OTEL_PROPAGATORS": "tracecontext,baggage",
-    }
-
-    otel_startup_logs = DdTraceEndToEndScenario(
-        "OTEL_STARTUP_LOGS",
-        weblog_env={**OTEL_STARTUP_LOGS_ENV},
-        library_interface_timeout=0,
-        agent_interface_timeout=0,
-        appsec_enabled=False,
-        iast_enabled=False,
-        tracer_sampling_rate=None,
-        use_proxy_for_weblog=False,
-        doc="Require OTel configuration fields in tracer startup logs with an operator-style configuration",
-        scenario_groups=[scenario_groups.open_telemetry],
-    )
-
-    otel_semantics_otlp = DdTraceEndToEndScenario(
-        "OTEL_SEMANTICS_OTLP",
-        weblog_env={
-            "DD_TRACE_CLIENT_IP_ENABLED": "true",
-            "DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": "otel-sensitive-value",
-            "DD_TRACE_OTEL_SEMANTICS_ENABLED": "true",
-            # OTel semantics must override both conflicting configurations.
-            "DD_TRACE_PEER_SERVICE_DEFAULTS_ENABLED": "true",
-            "DD_TRACE_RESOURCE_RENAMING_ALWAYS_SIMPLIFIED_ENDPOINT": "true",
-            "DD_TRACE_RESOURCE_RENAMING_ENABLED": "true",
-            "DD_TRACE_SPAN_ATTRIBUTE_SCHEMA": "v1",
-            "DD_TRACE_OTEL_ENABLED": "true",
-            "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
-            "OTEL_TRACES_EXPORTER": "otlp",
-            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}/v1/traces",
-            "OTEL_EXPORTER_OTLP_TRACES_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
-        },
-        backend_interface_timeout=5,
-        include_opentelemetry=True,
-        doc="Validate HTTP spans exported directly over OTLP, including typed OpenTelemetry "
-        "attributes such as http.response.status_code and server.port",
-        scenario_groups=[scenario_groups.open_telemetry],
-    )
-
-    otel_semantics_otlp_custom_error_statuses = DdTraceEndToEndScenario(
-        "OTEL_SEMANTICS_OTLP_CUSTOM_ERROR_STATUSES",
-        weblog_env={
-            "DD_TRACE_HTTP_CLIENT_ERROR_STATUSES": "200",
-            "DD_TRACE_HTTP_SERVER_ERROR_STATUSES": "200",
-            "DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": "otel-sensitive-value",
-            "DD_TRACE_OTEL_SEMANTICS_ENABLED": "true",
-            "DD_TRACE_OTEL_ENABLED": "true",
-            "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
-            "OTEL_TRACES_EXPORTER": "otlp",
-            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}/v1/traces",
-            "OTEL_EXPORTER_OTLP_TRACES_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
-        },
-        backend_interface_timeout=5,
-        include_opentelemetry=True,
-        doc="Like OTEL_SEMANTICS_OTLP but marks HTTP status 200 as an error to verify that a custom "
-        "client and server error status configuration takes precedence over the OTel defaults",
-        scenario_groups=[scenario_groups.open_telemetry],
-    )
-
-    otel_semantics_otlp_trace_metrics = DdTraceEndToEndScenario(
-        "OTEL_SEMANTICS_OTLP_TRACE_METRICS",
-        weblog_env={
-            "DD_TRACE_OTEL_SEMANTICS_ENABLED": "true",
-            "DD_TRACE_OTEL_ENABLED": "true",
-            "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
-            "OTEL_TRACES_EXPORTER": "otlp",
-            "OTEL_TRACES_SPAN_METRICS_ENABLED": "true",
-            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}/v1/traces",
-            "OTEL_EXPORTER_OTLP_TRACES_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
-            "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": "http/json",
-            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}/v1/metrics",
-            "OTEL_EXPORTER_OTLP_METRICS_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
-            "_DD_TRACE_METRICS_OTEL_FLUSH_INTERVAL": "1000",
-        },
-        backend_interface_timeout=5,
-        include_opentelemetry=True,
-        doc="Validate that OTLP trace metrics retain the OTel HTTP method, status, name, kind, "
-        "and error decision used by the corresponding span",
-        scenario_groups=[scenario_groups.open_telemetry],
-    )
-
-    otel_semantics_otlp_sampling_rules = DdTraceEndToEndScenario(
-        "OTEL_SEMANTICS_OTLP_SAMPLING_RULES",
-        weblog_env={
-            "DD_TRACE_OTEL_SEMANTICS_ENABLED": "true",
-            "DD_TRACE_OTEL_ENABLED": "true",
-            "DD_TRACE_SAMPLING_RULES": (
-                '[{"resource":"HTTP*","sample_rate":1.0},{"resource":"GET*","sample_rate":1.0},{"sample_rate":0.0}]'
-            ),
-            "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
-            "OTEL_TRACES_EXPORTER": "otlp",
-            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}/v1/traces",
-            "OTEL_EXPORTER_OTLP_TRACES_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
-        },
-        backend_interface_timeout=5,
-        include_opentelemetry=True,
-        doc="Validate that OTel HTTP span names are available before DD_TRACE_SAMPLING_RULES are evaluated",
-        scenario_groups=[scenario_groups.open_telemetry],
-    )
-
+    otel_integrations = OtelIntegrations()
+    profiling = ProfilingScenario()
+    trace_stats_computation = TraceStatsComputation()
+    trace_stats_computation_client_drop_p0s_false = TraceStatsComputationClientDropP0sFalse()
+    trace_stats_computation_future_obfuscation_version = TraceStatsComputationFutureObfuscationVersion()
+    trace_stats_computation_missing_obfuscation_version = TraceStatsComputationMissingObfuscationVersion()
+    trace_stats_computation_obfuscation_version_zero = TraceStatsComputationObfuscationVersionZero()
+    trace_stats_computation_obfuscation_disabled = TraceStatsComputationObfuscationDisabled()
+    trace_stats_computation_error_sampler = TraceStatsComputationErrorSampler()
+    sampling = Sampling()
+    sampling_rate_capping = SamplingRateCapping()
+    sampling_rules_agent_rate = SamplingRulesAgentRate()
+    trace_propagation_style_w3c = TracePropagationStyleW3c()
+    otel_startup_logs = OtelStartupLogs()
+    otel_semantics_otlp = OtelSemanticsOtlp()
+    otel_semantics_otlp_custom_error_statuses = OtelSemanticsOtlpCustomErrorStatuses()
+    otel_semantics_otlp_trace_metrics = OtelSemanticsOtlpTraceMetrics()
+    otel_semantics_otlp_sampling_rules = OtelSemanticsOtlpSamplingRules()
     # Telemetry scenarios
-    telemetry_dependency_loaded_test_for_dependency_collection_disabled = DdTraceEndToEndScenario(
-        "TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED",
-        weblog_env={"DD_TELEMETRY_DEPENDENCY_COLLECTION_ENABLED": "false"},
-        doc="Test DD_TELEMETRY_DEPENDENCY_COLLECTION_ENABLED=false effect on tracers",
-        scenario_groups=[scenario_groups.telemetry],
+    telemetry_dependency_loaded_test_for_dependency_collection_disabled = (
+        TelemetryDependencyLoadedTestForDependencyCollectionDisabled()
     )
-
-    telemetry_app_started_products_disabled = DdTraceEndToEndScenario(
-        "TELEMETRY_APP_STARTED_PRODUCTS_DISABLED",
-        weblog_env={
-            "DD_APPSEC_ENABLED": "false",
-            "DD_PROFILING_ENABLED": "false",
-            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "false",
-            # RFC-1113: agentic-onboarding flag set while AppSec is disabled. The value is
-            # reported verbatim ("true"), decoupled from AppSec state (no derived boolean).
-            "DD_APPSEC_AGENTIC_ONBOARDING": "true",
-        },
-        appsec_enabled=False,
-        doc="Disable all tracers products",
-        scenario_groups=[scenario_groups.telemetry],
-    )
-
-    telemetry_enhanced_config_reporting = DdTraceEndToEndScenario(
-        "TELEMETRY_ENHANCED_CONFIG_REPORTING",
-        weblog_env={
-            "DD_LOGS_INJECTION": "false",
-            "CONFIG_CHAINING_TEST": "true",
-            "DD_TRACE_CONFIG": "/app/ConfigChaining.properties",
-            # RFC-1113: agentic-onboarding flag set while AppSec is enabled. The value is
-            # reported verbatim; a mixed-case arbitrary value is intentional to prove it is a
-            # pass-through of the configured value (not a boolean derived from AppSec being
-            # active, and not lowercased/normalized by the tracer).
-            "DD_APPSEC_AGENTIC_ONBOARDING": "MiXeD-Value_42",
-        },
-        doc="Test telemetry for environment variable configurations",
-        scenario_groups=[scenario_groups.telemetry],
-    )
-
-    telemetry_log_generation_disabled = DdTraceEndToEndScenario(
-        "TELEMETRY_LOG_GENERATION_DISABLED",
-        weblog_env={"DD_TELEMETRY_LOG_COLLECTION_ENABLED": "false"},
-        doc="Test env var `DD_TELEMETRY_LOG_COLLECTION_ENABLED=false`",
-        scenario_groups=[scenario_groups.telemetry],
-    )
-    telemetry_metric_generation_disabled = DdTraceEndToEndScenario(
-        "TELEMETRY_METRIC_GENERATION_DISABLED",
-        weblog_env={"DD_TELEMETRY_METRICS_ENABLED": "false"},
-        doc="Test env var `DD_TELEMETRY_METRICS_ENABLED=false`",
-        scenario_groups=[scenario_groups.telemetry],
-    )
-    telemetry_extended_heartbeat = DdTraceEndToEndScenario(
-        "TELEMETRY_EXTENDED_HEARTBEAT",
-        weblog_env={
-            "DD_TELEMETRY_HEARTBEAT_INTERVAL": "1",
-            "DD_TELEMETRY_EXTENDED_HEARTBEAT_INTERVAL": "2",
-            "_DD_TELEMETRY_EXTENDED_HEARTBEAT_INTERVAL": "2",
-        },
-        doc="Test app-extended-heartbeat telemetry event with a shortened interval",
-        scenario_groups=[scenario_groups.telemetry],
-    )
-
+    telemetry_app_started_products_disabled = TelemetryAppStartedProductsDisabled()
+    telemetry_enhanced_config_reporting = TelemetryEnhancedConfigReporting()
+    telemetry_log_generation_disabled = TelemetryLogGenerationDisabled()
+    telemetry_metric_generation_disabled = TelemetryMetricGenerationDisabled()
+    telemetry_extended_heartbeat = TelemetryExtendedHeartbeat()
     # ASM scenarios
-    appsec_missing_rules = DdTraceEndToEndScenario(
-        "APPSEC_MISSING_RULES",
-        weblog_env={"DD_APPSEC_RULES": "/donotexists"},
-        doc="Test missing appsec rules file",
-        scenario_groups=[scenario_groups.appsec],
-    )
-    appsec_corrupted_rules = DdTraceEndToEndScenario(
-        "APPSEC_CORRUPTED_RULES",
-        weblog_env={"DD_APPSEC_RULES": "/appsec_corrupted_rules.json"},
-        weblog_volumes={
-            "./tests/appsec/appsec_corrupted_rules.json": {"bind": "/appsec_corrupted_rules.json", "mode": "ro"}
-        },
-        doc="Test corrupted appsec rules file",
-        scenario_groups=[scenario_groups.appsec],
-    )
-    appsec_custom_rules = DdTraceEndToEndScenario(
-        "APPSEC_CUSTOM_RULES",
-        weblog_env={
-            "DD_APPSEC_RULES": "/appsec_custom_rules.json",
-            "DD_APPSEC_RAW_RESPONSE_BODY_ENABLED": "1",
-        },
-        weblog_volumes={"./tests/appsec/custom_rules.json": {"bind": "/appsec_custom_rules.json", "mode": "ro"}},
-        doc="Test custom appsec rules file",
-        scenario_groups=[scenario_groups.appsec],
-    )
-    appsec_blocking = DdTraceEndToEndScenario(
-        "APPSEC_BLOCKING",
-        weblog_env={
-            "DD_APPSEC_RULES": "/appsec_blocking_rule.json",
-            "DD_TRACE_RESOURCE_RENAMING_ALWAYS_SIMPLIFIED_ENDPOINT": "true",
-            "DD_TRACE_COMPUTE_STATS": "true",
-            "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",
-            "DD_IAST_WEAK_HASH_ALGORITHMS": "NOTexist",
-        },
-        weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
-        doc="Misc tests for appsec blocking",
-        scenario_groups=[scenario_groups.appsec, scenario_groups.essentials],
-    )
-
+    appsec_missing_rules = AppsecMissingRules()
+    appsec_corrupted_rules = AppsecCorruptedRules()
+    appsec_custom_rules = AppsecCustomRules()
+    appsec_blocking = AppsecBlocking()
     # This GraphQL scenario can be used for any GraphQL testing, not just AppSec
-    graphql_appsec = GraphQlEndToEndScenario(
-        "GRAPHQL_APPSEC",
-        weblog_env={
-            "DD_APPSEC_RULES": "/appsec_blocking_rule.json",
-            "DD_TRACE_GRAPHQL_ERROR_EXTENSIONS": "int,float,str,bool,other",
-        },
-        weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
-        doc="AppSec tests for GraphQL integrations",
-        scenario_groups=[scenario_groups.appsec, scenario_groups.graphql],
-    )
+    graphql_appsec = GraphqlAppsec()
     # This GraphQL scenario can be used for any GraphQL testing, not just AppSec
-    graphql_error_tracking = GraphQlEndToEndScenario(
-        "GRAPHQL_ERROR_TRACKING",
-        weblog_env={
-            "DD_TRACE_GRAPHQL_ERROR_EXTENSIONS": "int,float,str,bool,other",
-            "DD_TRACE_GRAPHQL_ERROR_TRACKING": "true",
-        },
-        weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
-        doc="GraphQL error tracking tests with OpenTelemetry semantics",
-        scenario_groups=[scenario_groups.appsec, scenario_groups.graphql],
-    )
-    appsec_rules_monitoring_with_errors = DdTraceEndToEndScenario(
-        "APPSEC_RULES_MONITORING_WITH_ERRORS",
-        weblog_env={"DD_APPSEC_RULES": "/appsec_custom_rules_with_errors.json"},
-        weblog_volumes={
-            "./tests/appsec/custom_rules_with_errors.json": {
-                "bind": "/appsec_custom_rules_with_errors.json",
-                "mode": "ro",
-            }
-        },
-        doc="Appsec rule file with some errors",
-        scenario_groups=[scenario_groups.appsec],
-    )
-    everything_disabled = DdTraceEndToEndScenario(
-        "EVERYTHING_DISABLED",
-        weblog_env={"DD_APPSEC_ENABLED": "false", "DD_DBM_PROPAGATION_MODE": "disabled"},
-        appsec_enabled=False,
-        other_weblog_containers=(PostgresContainer,),
-        doc="Disable appsec and test DBM setting integration outcome when disabled",
-        scenario_groups=[scenario_groups.appsec, scenario_groups.end_to_end, scenario_groups.tracer_release],
-    )
-
-    appsec_low_waf_timeout = AppsecLowWafTimeout("APPSEC_LOW_WAF_TIMEOUT")
-
-    appsec_custom_obfuscation = DdTraceEndToEndScenario(
-        "APPSEC_CUSTOM_OBFUSCATION",
-        weblog_env={
-            "DD_APPSEC_OBFUSCATION_PARAMETER_KEY_REGEXP": "hide-key",
-            "DD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP": ".*hide_value",
-        },
-        doc="Test custom appsec obfuscation parameters",
-        scenario_groups=[scenario_groups.appsec],
-    )
-    appsec_rate_limiter = DdTraceEndToEndScenario(
-        "APPSEC_RATE_LIMITER",
-        weblog_env={"DD_APPSEC_TRACE_RATE_LIMIT": "1", "RAILS_MAX_THREADS": "1"},
-        doc="Tests with a low rate trace limit for Appsec",
-        scenario_groups=[scenario_groups.appsec],
-    )
-    appsec_waf_telemetry = DdTraceEndToEndScenario(
-        "APPSEC_WAF_TELEMETRY",
-        weblog_env={
-            "DD_INSTRUMENTATION_TELEMETRY_ENABLED": "true",
-            "DD_TELEMETRY_METRICS_ENABLED": "true",
-            "DD_TELEMETRY_METRICS_INTERVAL_SECONDS": "2.0",
-        },
-        doc="Enable Telemetry feature for WAF",
-        scenario_groups=[scenario_groups.appsec],
-    )
-
-    appsec_blocking_full_denylist = DdTraceEndToEndScenario(
-        "APPSEC_BLOCKING_FULL_DENYLIST",
-        rc_api_enabled=True,
-        weblog_env={"DD_APPSEC_RULES": None},
-        doc="""
-            The spec says that if  DD_APPSEC_RULES is defined, then rules won't be loaded from remote config.
-            In this scenario, we use remote config. By the spec, when remote config is available, rules file
-            embedded in the tracer will never be used (it will be the file defined in DD_APPSEC_RULES, or the
-            data coming from remote config). So, we set  DD_APPSEC_RULES to None to enable loading rules from
-            remote config. And it's okay not testing custom rule set for dev mode, as in this scenario, rules
-            are always coming from remote config.
-        """,
-        scenario_groups=[scenario_groups.appsec],
-    )
-
-    appsec_runtime_activation = DdTraceEndToEndScenario(
-        "APPSEC_RUNTIME_ACTIVATION",
-        rc_api_enabled=True,
-        appsec_enabled=False,
-        iast_enabled=False,
-        weblog_env={"DD_APPSEC_WAF_TIMEOUT": "10000000", "DD_APPSEC_TRACE_RATE_LIMIT": "10000"},  # 10 seconds
-        doc="",
-        scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_rasp],
-    )
-
-    appsec_api_security = DdTraceEndToEndScenario(
-        "APPSEC_API_SECURITY",
-        appsec_enabled=True,
-        weblog_env={
-            "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
-            "DD_API_SECURITY_ENABLED": "true",
-            "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
-            "DD_API_SECURITY_SAMPLE_DELAY": "0.0",
-            "DD_API_SECURITY_MAX_CONCURRENT_REQUESTS": "50",
-            "DD_API_SECURITY_ENDPOINT_COLLECTION_ENABLED": "true",
-            "DD_API_SECURITY_ENDPOINT_COLLECTION_MESSAGE_LIMIT": "30",
-        },
-        doc="""
-        Scenario for API Security feature, testing schema types sent into span tags if
-        DD_API_SECURITY_ENABLED is set to true.
-        """,
-        scenario_groups=[scenario_groups.appsec],
-    )
-
-    appsec_api_security_rc = DdTraceEndToEndScenario(
-        "APPSEC_API_SECURITY_RC",
-        weblog_env={
-            "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
-            "DD_API_SECURITY_ENABLED": "true",
-            "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
-            "DD_API_SECURITY_SAMPLE_DELAY": "0.0",
-            "DD_APPSEC_WAF_TIMEOUT": "10000000",
-            "DD_APPSEC_TRACE_RATE_LIMIT": "10000",
-        },
-        rc_api_enabled=True,
-        doc="""
-            Scenario to test API Security Remote config
-        """,
-        scenario_groups=[scenario_groups.appsec, scenario_groups.remote_config, scenario_groups.essentials],
-    )
-
-    appsec_api_security_no_response_body = DdTraceEndToEndScenario(
-        "APPSEC_API_SECURITY_NO_RESPONSE_BODY",
-        appsec_enabled=True,
-        weblog_env={
-            "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
-            "DD_API_SECURITY_ENABLED": "true",
-            "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
-            "DD_API_SECURITY_MAX_CONCURRENT_REQUESTS": "50",
-            "DD_API_SECURITY_PARSE_RESPONSE_BODY": "false",
-        },
-        doc="""
-        Scenario for API Security feature, testing schema types sent into span tags if
-        DD_API_SECURITY_ENABLED is set to true.
-        """,
-        scenario_groups=[scenario_groups.appsec],
-    )
-
-    appsec_api_security_with_sampling = DdTraceEndToEndScenario(
-        "APPSEC_API_SECURITY_WITH_SAMPLING",
-        appsec_enabled=True,
-        weblog_env={
-            "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
-            "DD_API_SECURITY_ENABLED": "true",
-            "DD_API_SECURITY_SAMPLE_DELAY": "3",
-            "DD_TRACE_RESOURCE_RENAMING_ENABLED": "false",
-        },
-        doc="""
-        Scenario for API Security feature, testing api security sampling rate.
-        """,
-        scenario_groups=[scenario_groups.appsec, scenario_groups.essentials],
-    )
-
-    appsec_auto_events_extended = DdTraceEndToEndScenario(
-        "APPSEC_AUTO_EVENTS_EXTENDED",
-        weblog_env={
-            "DD_APPSEC_ENABLED": "true",
-            "DD_APPSEC_AUTOMATED_USER_EVENTS_TRACKING": "extended",
-            "DD_APPSEC_AUTO_USER_INSTRUMENTATION_MODE": "anonymization",
-        },
-        appsec_enabled=True,
-        doc="Scenario for checking extended mode in automatic user events",
-        scenario_groups=[scenario_groups.appsec],
-    )
-
-    appsec_auto_events_rc = DdTraceEndToEndScenario(
-        "APPSEC_AUTO_EVENTS_RC",
-        weblog_env={"DD_APPSEC_ENABLED": "true", "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.5"},
-        rc_api_enabled=True,
-        doc="""
-            Scenario to test User ID collection config change via Remote config
-        """,
-        scenario_groups=[scenario_groups.appsec],
-        other_weblog_containers=(InternalServerContainer,),
-    )
-
-    runtime_sca_reachability = DdTraceEndToEndScenario(
-        "RUNTIME_SCA_REACHABILITY",
-        weblog_env={
-            "DD_APPSEC_SCA_ENABLED": "true",
-        },
-        doc="""
-            Scenario to test SCA telemetry events
-        """,
-        scenario_groups=[scenario_groups.appsec],
-    )
-
-    appsec_standalone = DdTraceEndToEndScenario(
-        "APPSEC_STANDALONE",
-        weblog_env={
-            "DD_APPSEC_ENABLED": "true",
-            "DD_APM_TRACING_ENABLED": "false",
-            "DD_IAST_ENABLED": "false",
-            "DD_API_SECURITY_ENABLED": "false",
-            # added to test Test_ExtendedHeaderCollection
-            "DD_APPSEC_COLLECT_ALL_HEADERS": "true",
-            "DD_APPSEC_HEADER_COLLECTION_REDACTION_ENABLED": "false",
-            "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
-        },
-        agent_env={
-            "DD_INFRASTRUCTURE_MODE": "none",
-        },
-        doc="Appsec standalone mode (APM opt out), with the infra product disabled on the agent",
-        scenario_groups=[scenario_groups.appsec],
-    )
-
-    appsec_apm_standalone = DdTraceEndToEndScenario(
-        "APPSEC_APM_STANDALONE",
-        rc_api_enabled=True,
-        weblog_env={
-            "DD_APM_TRACING_ENABLED": "true",
-            "DD_TELEMETRY_METRICS_ENABLED": "true",
-            "DD_TELEMETRY_METRICS_INTERVAL_SECONDS": "2.0",
-            "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
-            "DD_API_SECURITY_SAMPLE_DELAY": "0.0",
-        },
-        agent_env={
-            "DD_INFRASTRUCTURE_MODE": "none",
-        },
-        doc="Appsec with APM Standalone (infra opt out)",
-        scenario_groups=[scenario_groups.appsec],
-    )
-
-    appsec_standalone_apm_standalone = DdTraceEndToEndScenario(
-        "APPSEC_STANDALONE_APM_STANDALONE",
-        rc_api_enabled=True,
-        weblog_env={
-            "DD_APM_TRACING_ENABLED": "false",
-            "DD_TELEMETRY_METRICS_ENABLED": "true",
-            "DD_TELEMETRY_METRICS_INTERVAL_SECONDS": "2.0",
-            "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
-            "DD_API_SECURITY_SAMPLE_DELAY": "0.0",
-        },
-        agent_env={
-            "DD_INFRASTRUCTURE_MODE": "none",
-        },
-        doc="Appsec standalone mode (APM opt out) with APM Standalone (infra opt out)",
-        scenario_groups=[scenario_groups.appsec],
-    )
-
+    graphql_error_tracking = GraphqlErrorTracking()
+    appsec_rules_monitoring_with_errors = AppsecRulesMonitoringWithErrors()
+    everything_disabled = EverythingDisabled()
+    appsec_low_waf_timeout = AppsecLowWafTimeout()
+    appsec_custom_obfuscation = AppsecCustomObfuscation()
+    appsec_rate_limiter = AppsecRateLimiter()
+    appsec_waf_telemetry = AppsecWafTelemetry()
+    appsec_blocking_full_denylist = AppsecBlockingFullDenylist()
+    appsec_runtime_activation = AppsecRuntimeActivation()
+    appsec_api_security = AppsecApiSecurity()
+    appsec_api_security_rc = AppsecApiSecurityRc()
+    appsec_api_security_no_response_body = AppsecApiSecurityNoResponseBody()
+    appsec_api_security_with_sampling = AppsecApiSecurityWithSampling()
+    appsec_auto_events_extended = AppsecAutoEventsExtended()
+    appsec_auto_events_rc = AppsecAutoEventsRc()
+    runtime_sca_reachability = RuntimeScaReachability()
+    appsec_standalone = AppsecStandalone()
+    appsec_apm_standalone = AppsecApmStandalone()
+    appsec_standalone_apm_standalone = AppsecStandaloneApmStandalone()
     # Combined scenario for API Security in standalone mode
-    appsec_standalone_api_security = DdTraceEndToEndScenario(
-        "APPSEC_STANDALONE_API_SECURITY",
-        appsec_enabled=True,
-        weblog_env={
-            "DD_APPSEC_ENABLED": "true",
-            "DD_APM_TRACING_ENABLED": "false",
-            "DD_IAST_ENABLED": "false",
-            "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
-            "DD_API_SECURITY_ENABLED": "true",
-            "DD_API_SECURITY_SAMPLE_DELAY": "3",
-        },
-        doc="Scenario to test API Security in AppSec standalone mode",
-        scenario_groups=[scenario_groups.appsec, scenario_groups.essentials],
-    )
-
-    iast_standalone = DdTraceEndToEndScenario(
-        "IAST_STANDALONE",
-        weblog_env={
-            "DD_APPSEC_ENABLED": "false",
-            "DD_APM_TRACING_ENABLED": "false",
-            "DD_IAST_ENABLED": "true",
-            "DD_IAST_DETECTION_MODE": "FULL",
-            "DD_IAST_DEDUPLICATION_ENABLED": "false",
-            "DD_IAST_REQUEST_SAMPLING": "100",
-            "DD_IAST_VULNERABILITIES_PER_REQUEST": "10",
-            "DD_IAST_MAX_CONTEXT_OPERATIONS": "10",
-        },
-        agent_env={
-            "DD_INFRASTRUCTURE_MODE": "none",
-        },
-        doc="Source code vulnerability standalone mode (APM opt out), with the infra product disabled on the agent",
-        scenario_groups=[scenario_groups.appsec],
-    )
-
-    sca_standalone = DdTraceEndToEndScenario(
-        "SCA_STANDALONE",
-        weblog_env={
-            "DD_APPSEC_ENABLED": "false",
-            "DD_APPSEC_SCA_ENABLED": "true",
-            "DD_APM_TRACING_ENABLED": "false",
-            "DD_IAST_ENABLED": "false",
-            "DD_TELEMETRY_DEPENDENCY_RESOLUTION_PERIOD_MILLIS": "1",
-            "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
-        },
-        agent_env={
-            "DD_INFRASTRUCTURE_MODE": "none",
-        },
-        doc="SCA standalone mode (APM opt out), with the infra product disabled on the agent",
-        scenario_groups=[scenario_groups.appsec],
-    )
-
-    iast_deduplication = DdTraceEndToEndScenario(
-        "IAST_DEDUPLICATION",
-        weblog_env={
-            "DD_IAST_ENABLED": "true",
-            "DD_IAST_DEDUPLICATION_ENABLED": "true",
-            "DD_IAST_REQUEST_SAMPLING": "100",
-            "DD_IAST_VULNERABILITIES_PER_REQUEST": "10",
-            "DD_IAST_MAX_CONTEXT_OPERATIONS": "10",
-        },
-        doc="Iast scenario with deduplication enabled",
-        scenario_groups=[scenario_groups.appsec],
-    )
-
-    appsec_meta_struct_disabled = DdTraceEndToEndScenario(
-        "APPSEC_META_STRUCT_DISABLED",
-        weblog_env={"DD_APPSEC_ENABLED": "true", "DD_IAST_ENABLED": "true"},
-        meta_structs_disabled=True,
-        doc="Appsec tests with support for meta struct disabled in the agent configuration",
-        scenario_groups=[scenario_groups.appsec],
-    )
-
-    remote_config_mocked_backend_asm_features = DdTraceEndToEndScenario(
-        "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES",
-        rc_api_enabled=True,
-        appsec_enabled=False,
-        weblog_env={"DD_REMOTE_CONFIGURATION_ENABLED": "true"},
-        doc="",
-        scenario_groups=[scenario_groups.appsec, scenario_groups.remote_config, scenario_groups.essentials],
-    )
-
-    remote_config_mocked_backend_live_debugging = DdTraceEndToEndScenario(
-        "REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING",
-        rc_api_enabled=True,
-        weblog_env={
-            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
-            "DD_DEBUGGER_ENABLED": "1",
-            "DD_REMOTE_CONFIG_ENABLED": "true",
-            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "1",
-        },
-        doc="",
-        scenario_groups=[scenario_groups.remote_config, scenario_groups.essentials],
-    )
-
-    remote_config_mocked_backend_asm_dd = DdTraceEndToEndScenario(
-        "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD",
-        rc_api_enabled=True,
-        weblog_env={"DD_APPSEC_RULES": None},
-        doc="""
-            The spec says that if DD_APPSEC_RULES is defined, then rules won't be loaded from remote config.
-            In this scenario, we use remote config. By the spec, when remote config is available, rules file
-            embedded in the tracer will never be used (it will be the file defined in DD_APPSEC_RULES, or the
-            data coming from remote config). So, we set  DD_APPSEC_RULES to None to enable loading rules from
-            remote config. And it's okay not testing custom rule set for dev mode, as in this scenario, rules
-            are always coming from remote config.
-        """,
-        scenario_groups=[
-            scenario_groups.appsec,
-            scenario_groups.appsec_rasp,
-            scenario_groups.remote_config,
-            scenario_groups.essentials,
-        ],
-    )
-
-    feature_flagging_and_experimentation = DdTraceEndToEndScenario(
-        "FEATURE_FLAGGING_AND_EXPERIMENTATION",
-        rc_api_enabled=True,
-        # Allow final EVP batches to reach the backend after the weblog flushes and stops.
-        agent_interface_timeout=15,
-        weblog_env={
-            "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
-            "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE": "remote_config",
-            # set_provider() in Python blocks until we receive RC
-            # configuration for feature flags. But it is only sent
-            # after weblog sucessfully boots and tests start
-            # executing. Unfortunately, Python's OpenFeature SDK does
-            # not have "set provider and don't wait," so we reduce the
-            # timeout here, so that the provider initialization fails
-            # fast, weblog boots, and provider recovers when we set RC
-            # configuration later.
-            "DD_EXPERIMENTAL_FLAGGING_PROVIDER_INITIALIZATION_TIMEOUT_MS": "100",
-            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
-            "DD_METRICS_OTEL_ENABLED": "true",
-            "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": "http/protobuf",
-            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT": "http://agent:4318/v1/metrics",
-            "OTEL_METRIC_EXPORT_INTERVAL": "1000",
-        },
-        doc="",
-        scenario_groups=[scenario_groups.ffe],
-    )
-
-    feature_flagging_and_experimentation_agentless = FeatureFlaggingAgentlessEndToEndScenario(
-        "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS"
-    )
-
-    feature_flagging_and_experimentation_agentless_direct = FeatureFlaggingAgentlessEndToEndScenario(
-        "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_DIRECT",
-        doc="Validate direct exposure delivery with agentless UFC and no local receiver.",
-        exposure_egress="direct",
-    )
-
-    feature_flagging_and_experimentation_agentless_serverless = FeatureFlaggingAgentlessEndToEndScenario(
-        "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_SERVERLESS",
-        doc="Validate exposure delivery with agentless UFC and serverless-init.",
-        exposure_egress="sidecar",
-    )
-
-    remote_config_mocked_backend_asm_features_nocache = DdTraceEndToEndScenario(
-        "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE",
-        rc_api_enabled=True,
-        weblog_env={"DD_APPSEC_ENABLED": "false", "DD_REMOTE_CONFIGURATION_ENABLED": "true"},
-        doc="",
-        scenario_groups=[scenario_groups.appsec, scenario_groups.remote_config],
-    )
-
+    appsec_standalone_api_security = AppsecStandaloneApiSecurity()
+    iast_standalone = IastStandalone()
+    sca_standalone = ScaStandalone()
+    iast_deduplication = IastDeduplication()
+    appsec_meta_struct_disabled = AppsecMetaStructDisabled()
+    remote_config_mocked_backend_asm_features = RemoteConfigMockedBackendAsmFeatures()
+    remote_config_mocked_backend_live_debugging = RemoteConfigMockedBackendLiveDebugging()
+    remote_config_mocked_backend_asm_dd = RemoteConfigMockedBackendAsmDd()
+    feature_flagging_and_experimentation = FeatureFlaggingAndExperimentation()
+    feature_flagging_and_experimentation_agentless = FeatureFlaggingAndExperimentationAgentless()
+    feature_flagging_and_experimentation_agentless_direct = FeatureFlaggingAndExperimentationAgentlessDirect()
+    feature_flagging_and_experimentation_agentless_serverless = FeatureFlaggingAndExperimentationAgentlessServerless()
+    feature_flagging_evaluation_telemetry_opt_out = FeatureFlaggingEvaluationTelemetryOptOut()
+    feature_flagging_evaluation_telemetry_opt_out_disabled = FeatureFlaggingEvaluationTelemetryOptOutDisabled()
+    feature_flagging_evp_stress = FeatureFlaggingEvpStress()
+    remote_config_mocked_backend_asm_features_nocache = RemoteConfigMockedBackendAsmFeaturesNocache()
     # APM tracing end-to-end scenarios
-    apm_tracing_e2e_otel = DdTraceEndToEndScenario(
-        "APM_TRACING_E2E_OTEL",
-        weblog_env={"DD_TRACE_OTEL_ENABLED": "true"},
-        mocked_backend_v2=True,
-        use_proxy_for_agent=False,
-        doc="",
-    )
-    apm_tracing_e2e_single_span = DdTraceEndToEndScenario(
-        "APM_TRACING_E2E_SINGLE_SPAN",
-        weblog_env={
-            "DD_SPAN_SAMPLING_RULES": json.dumps(
-                [{"service": "weblog", "name": "*single_span_submitted", "sample_rate": 1.0, "max_per_second": 50}]
-            ),
-            "DD_TRACE_SAMPLE_RATE": "0",
-        },
-        mocked_backend_v2=True,
-        use_proxy_for_agent=False,
-        doc="",
-    )
-    apm_tracing_otlp = DdTraceEndToEndScenario(
-        "APM_TRACING_OTLP",
-        weblog_env={
-            "OTEL_TRACES_EXPORTER": "otlp",
-            "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}/v1/traces",
-            "OTEL_EXPORTER_OTLP_TRACES_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
-            "DD_TRACE_OTEL_ENABLED": "true",
-        },
-        backend_interface_timeout=5,
-        include_opentelemetry=True,
-        doc="",
-    )
-
-    apm_tracing_efficient_payload = DdTraceEndToEndScenario(
-        "APM_TRACING_EFFICIENT_PAYLOAD",
-        weblog_env={
-            "DD_TRACE_SAMPLE_RATE": "1.0",
-            "DD_TRACE_AGENT_PROTOCOL_VERSION": "1.0",
-        },
-        agent_env={
-            "DD_APM_ENABLE_V1_TRACE_ENDPOINT": "true",
-        },
-        backend_interface_timeout=5,
-        doc="End-to-end testing scenario focused on efficient payload handling and v1 trace format validation",
-    )
-
-    otel_tracing_e2e = OpenTelemetryScenario("OTEL_TRACING_E2E", require_api_key=True, doc="")
-    otel_metric_e2e = OpenTelemetryScenario("OTEL_METRIC_E2E", require_api_key=True, mocked_backend=False, doc="")
-    otel_log_e2e = OpenTelemetryScenario("OTEL_LOG_E2E", require_api_key=True, doc="")
-
-    library_conf_custom_header_tags = DdTraceEndToEndScenario(
-        "LIBRARY_CONF_CUSTOM_HEADER_TAGS",
-        additional_trace_header_tags=(VALID_CONFIGS),
-        rc_api_enabled=True,
-        doc="Scenario with custom headers to be used with DD_TRACE_HEADER_TAGS",
-    )
-    library_conf_custom_header_tags_invalid = DdTraceEndToEndScenario(
-        "LIBRARY_CONF_CUSTOM_HEADER_TAGS_INVALID",
-        additional_trace_header_tags=(INVALID_CONFIGS),
-        doc="Scenario with custom headers for DD_TRACE_HEADER_TAGS that libraries should reject",
-    )
-
-    tracing_config_empty = DdTraceEndToEndScenario(
-        "TRACING_CONFIG_EMPTY",
-        weblog_env={
-            # This scenario should be empty but enabling logs injection allows us to reuse this scenario for the
-            # few test cases that need it
-            "DD_LOGS_INJECTION": "true",
-        },
-        doc="",
-    )
-
-    tracing_config_nondefault = DdTraceEndToEndScenario(
-        "TRACING_CONFIG_NONDEFAULT",
-        additional_trace_header_tags=tuple(CONFIG_WILDCARD),
-        weblog_env={
-            "DD_TRACE_HTTP_SERVER_ERROR_STATUSES": "200-201,202",
-            "DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": r"ssn=\d{3}-\d{2}-\d{4}",
-            "DD_TRACE_CLIENT_IP_ENABLED": "true",
-            "DD_TRACE_HTTP_CLIENT_ERROR_STATUSES": "200-201,202",
-            "DD_SERVICE": "service_test",
-            "DD_TRACE_KAFKA_ENABLED": "false",  # most common endpoint and integration (missing for PHP).
-            "DD_TRACE_KAFKAJS_ENABLED": "false",  # In Node the integration is kafkajs.
-            "DD_TRACE_PDO_ENABLED": "false",  # Use PDO for PHP,
-            "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "datadog,tracecontext,b3multi,baggage",
-            "DD_TRACE_PROPAGATION_BEHAVIOR_EXTRACT": "restart",
-            "DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED": "true",
-        },
-        appsec_enabled=False,  # disable ASM to test non asm client ip tagging
-        iast_enabled=False,
-        other_weblog_containers=(PostgresContainer, KafkaContainer),
-        rc_api_enabled=True,
-        doc="",
-        scenario_groups=[scenario_groups.tracing_config, scenario_groups.essentials],
-    )
-
-    tracing_config_nondefault_2 = DdTraceEndToEndScenario(
-        "TRACING_CONFIG_NONDEFAULT_2",
-        weblog_env={
-            "DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": "",
-            "DD_TRACE_KAFKA_ENABLED": "true",
-            "DD_TRACE_KAFKAJS_ENABLED": "true",
-            "DD_TRACE_PDO_ENABLED": "true",  # Use PDO for PHP
-            "DD_TRACE_CLIENT_IP_HEADER": "custom-ip-header",
-            "DD_TRACE_CLIENT_IP_ENABLED": "true",
-            "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "datadog,tracecontext,b3multi,baggage",
-            "DD_TRACE_PROPAGATION_BEHAVIOR_EXTRACT": "ignore",
-        },
-        other_weblog_containers=(PostgresContainer, KafkaContainer),
-        doc="Test tracer configuration when a collection of non-default settings are applied",
-        scenario_groups=[scenario_groups.tracing_config],
-    )
-    tracing_config_nondefault_3 = DdTraceEndToEndScenario(
-        "TRACING_CONFIG_NONDEFAULT_3",
-        weblog_env={
-            "DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING": "false",
-            "DD_TRACE_CLIENT_IP_HEADER": "custom-ip-header",
-            "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "datadog,tracecontext,b3multi,baggage",
-            "DD_TRACE_PROPAGATION_BEHAVIOR_EXTRACT": "restart",
-            "DD_TRACE_PROPAGATION_EXTRACT_FIRST": "true",
-            "DD_LOGS_INJECTION": "true",
-            "DD_TRACE_RESOURCE_RENAMING_ENABLED": "true",
-            "DD_TRACE_RESOURCE_RENAMING_ALWAYS_SIMPLIFIED_ENDPOINT": "true",
-            "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",
-            "DD_TRACE_COMPUTE_STATS": "true",
-        },
-        appsec_enabled=False,
-        doc="",
-        scenario_groups=[scenario_groups.tracing_config],
-    )
-
-    tracing_config_nondefault_4 = DdTraceEndToEndScenario(
-        "TRACING_CONFIG_NONDEFAULT_4",
-        weblog_env={
-            # Required by Node.js to ensure the snapshot isn't truncated due to a timeout
-            "DD_DYNAMIC_INSTRUMENTATION_CAPTURE_TIMEOUT_MS": "1000",
-            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "true",
-            "DD_DYNAMIC_INSTRUMENTATION_REDACTED_IDENTIFIERS": "customidentifier1,customidentifier2",
-            "DD_DYNAMIC_INSTRUMENTATION_REDACTED_TYPES": "weblog.Models.Debugger.CustomPii,com.datadoghq.system_tests.springboot.debugger.CustomPii,CustomPii",  # noqa: E501
-            "DD_DYNAMIC_INSTRUMENTATION_REDACTION_EXCLUDED_IDENTIFIERS": "_2fa,cookie,sessionid",
-            "DD_LOGS_INJECTION": "true",
-            "DD_TRACE_128_BIT_TRACEID_LOGGING_ENABLED": "false",
-            "DD_TRACE_OTEL_ENABLED": "true",
-        },
-        doc="",
-        rc_api_enabled=True,
-        rc_backend_enabled=True,
-    )
-
-    parametric = ParametricScenario("PARAMETRIC", doc="WIP")
-
-    debugger_probes_snapshot = DebuggerScenario(
-        "DEBUGGER_PROBES_SNAPSHOT",
-        weblog_env={
-            # Required by Node.js to ensure the snapshot isn't truncated due to a timeout
-            "DD_DYNAMIC_INSTRUMENTATION_CAPTURE_TIMEOUT_MS": "1000",
-            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
-            "DD_CODE_ORIGIN_FOR_SPANS_ENABLED": "1",
-            "DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED": "true",
-        },
-        doc="Test scenario for checking if debugger successfully generates snapshots for probes",
-    )
-
-    debugger_capture_timeout = DebuggerScenario(
-        "DEBUGGER_CAPTURE_TIMEOUT",
-        weblog_env={
-            "DD_DYNAMIC_INSTRUMENTATION_CAPTURE_TIMEOUT": "10",
-            "DD_DYNAMIC_INSTRUMENTATION_CAPTURE_TIMEOUT_MS": "10",
-            "DD_DYNAMIC_INSTRUMENTATION_MAX_TIME_TO_SERIALIZE": "10",
-            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
-        },
-        doc="Test that debugger snapshot capture reports when its time budget is exceeded",
-    )
-
-    debugger_evaluation_timeout = DebuggerScenario(
-        "DEBUGGER_EVALUATION_TIMEOUT",
-        weblog_env={
-            "DD_DYNAMIC_INSTRUMENTATION_EVALUATION_TIMEOUT": "10",
-            "DD_DYNAMIC_INSTRUMENTATION_EVALUATION_TIMEOUT_MS": "10",
-            "DD_DYNAMIC_INSTRUMENTATION_MAX_TIME_TO_EVALUATE": "10",
-            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
-        },
-        doc="Test that debugger expression evaluation reports when its time budget is exceeded",
-    )
-
-    debugger_probes_snapshot_with_scm = DebuggerScenario(
-        "DEBUGGER_PROBES_SNAPSHOT_WITH_SCM",
-        weblog_env={
-            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
-            "DD_CODE_ORIGIN_FOR_SPANS_ENABLED": "1",
-            "DD_GIT_REPOSITORY_URL": "https://github.com/datadog/hello",
-            "DD_GIT_COMMIT_SHA": "1234hash",
-        },
-        doc="Test scenario for checking if debugger successfully generates SCM metadata in snapshots for probes",
-    )
-
-    debugger_pii_redaction = DebuggerScenario(
-        "DEBUGGER_PII_REDACTION",
-        weblog_env={
-            # Required by Node.js to ensure the snapshot isn't truncated due to a timeout
-            "DD_DYNAMIC_INSTRUMENTATION_CAPTURE_TIMEOUT_MS": "1000",
-            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
-            "DD_DYNAMIC_INSTRUMENTATION_REDACTED_TYPES": "weblog.Models.Debugger.CustomPii,com.datadoghq.system_tests.springboot.debugger.CustomPii,CustomPii",  # noqa: E501
-            "DD_DYNAMIC_INSTRUMENTATION_REDACTED_IDENTIFIERS": "customidentifier1,customidentifier2",
-        },
-        doc="Check pii redaction",
-    )
-
-    debugger_expression_language = DebuggerScenario(
-        "DEBUGGER_EXPRESSION_LANGUAGE",
-        weblog_env={
-            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
-        },
-        doc="Check expression language",
-    )
-
-    debugger_exception_replay = DebuggerScenario(
-        "DEBUGGER_EXCEPTION_REPLAY",
-        weblog_env={
-            "DD_EXCEPTION_REPLAY_ENABLED": "1",
-            "DD_CODE_ORIGIN_FOR_SPANS_ENABLED": "0",
-            "DD_EXCEPTION_REPLAY_CAPTURE_MAX_FRAMES": "10",
-            # Avoid flaky captures being truncated by the default 150ms capture timeout under CI load
-            "DD_DYNAMIC_INSTRUMENTATION_CAPTURE_TIMEOUT_MS": "1000",
-        },
-        doc="Check exception replay",
-    )
-
-    debugger_symdb = DebuggerScenario(
-        "DEBUGGER_SYMDB",
-        weblog_env={
-            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
-            "DD_SYMBOL_DATABASE_UPLOAD_ENABLED": "1",
-        },
-        doc="Test scenario for checking symdb.",
-    )
-
-    thread_context_sharing = ThreadContextSharingScenario(
-        "THREAD_CONTEXT_SHARING",
-        doc=(
-            "Check that tracers share the trace_id/span_id of the currently active span with "
-            "system-probe, so that CWS (Cloud Workload Security) security events triggered on "
-            "the same thread carry them as dd.trace_id/dd.span_id."
-        ),
-    )
-
-    debugger_inproduct_enablement = DdTraceEndToEndScenario(
-        "DEBUGGER_INPRODUCT_ENABLEMENT",
-        rc_api_enabled=True,
-        rc_backend_enabled=False,
-        weblog_env={
-            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.1",
-            "DD_TRACE_FLUSH_INTERVAL": "100",
-        },
-        library_interface_timeout=5,
-        doc="Test scenario for checking dynamic enablement.",
-        scenario_groups=[scenario_groups.debugger],
-    )
-
-    debugger_telemetry = DdTraceEndToEndScenario(
-        "DEBUGGER_TELEMETRY",
-        rc_api_enabled=True,
-        rc_backend_enabled=True,
-        weblog_env={
-            "DD_REMOTE_CONFIG_ENABLED": "true",
-            "DD_CODE_ORIGIN_FOR_SPANS_ENABLED": "1",
-            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
-            "DD_EXCEPTION_REPLAY_ENABLED": "1",
-            "DD_SYMBOL_DATABASE_UPLOAD_ENABLED": "1",
-        },
-        library_interface_timeout=5,
-        doc="Test scenario for checking debugger telemetry.",
-        scenario_groups=[scenario_groups.debugger, scenario_groups.telemetry],
-    )
-
-    fuzzer = DockerScenario(
-        "FUZZER",
-        doc="Fake scenario for fuzzing (launch without pytest)",
-        github_workflow=None,
-        scenario_groups=[scenario_groups.exotics],
-    )
-
+    apm_tracing_e2e_otel = ApmTracingE2eOtel()
+    apm_tracing_e2e_single_span = ApmTracingE2eSingleSpan()
+    apm_tracing_otlp = ApmTracingOtlp()
+    apm_tracing_efficient_payload = ApmTracingEfficientPayload()
+    otel_tracing_e2e = OtelTracingE2e()
+    otel_metric_e2e = OtelMetricE2e()
+    otel_log_e2e = OtelLogE2e()
+    library_conf_custom_header_tags = LibraryConfCustomHeaderTags()
+    library_conf_custom_header_tags_invalid = LibraryConfCustomHeaderTagsInvalid()
+    tracing_config_empty = TracingConfigEmpty()
+    tracing_config_nondefault = TracingConfigNondefault()
+    tracing_config_nondefault_2 = TracingConfigNondefault2()
+    tracing_config_nondefault_3 = TracingConfigNondefault3()
+    tracing_config_nondefault_4 = TracingConfigNondefault4()
+    parametric = ParametricScenario()
+    debugger_probes_snapshot = DebuggerProbesSnapshot()
+    debugger_capture_timeout = DebuggerCaptureTimeout()
+    debugger_evaluation_timeout = DebuggerEvaluationTimeout()
+    debugger_probes_snapshot_with_scm = DebuggerProbesSnapshotWithScm()
+    debugger_pii_redaction = DebuggerPiiRedaction()
+    debugger_expression_language = DebuggerExpressionLanguage()
+    debugger_exception_replay = DebuggerExceptionReplay()
+    debugger_symdb = DebuggerSymdb()
+    thread_context_sharing = ThreadContextSharingScenario()
+    debugger_inproduct_enablement = DebuggerInproductEnablement()
+    debugger_telemetry = DebuggerTelemetry()
+    fuzzer = Fuzzer()
     # Single Step Instrumentation scenarios (HOST and CONTAINER)
-
-    simple_installer_auto_injection = InstallerAutoInjectionScenario(
-        "SIMPLE_INSTALLER_AUTO_INJECTION",
-        "Onboarding Container Single Step Instrumentation scenario (minimal test scenario)",
-        scenario_groups=[scenario_groups.simple_onboarding],
-        github_workflow="aws_ssi",
-    )
-    multi_installer_auto_injection = InstallerAutoInjectionScenario(
-        "MULTI_INSTALLER_AUTO_INJECTION",
-        "Onboarding Container Single Step Instrumentation scenario for multicontainer apps",
-        scenario_groups=[scenario_groups.all, scenario_groups.onboarding],
-        github_workflow="aws_ssi",
-    )
-    installer_auto_injection = InstallerAutoInjectionScenario(
-        "INSTALLER_AUTO_INJECTION",
-        doc="Installer auto injection scenario",
-        scenario_groups=[scenario_groups.all, scenario_groups.onboarding],
-        github_workflow="aws_ssi",
-    )
-
-    installer_not_supported_auto_injection = InstallerAutoInjectionScenario(
-        "INSTALLER_NOT_SUPPORTED_AUTO_INJECTION",
-        "Onboarding host Single Step Instrumentation scenario for not supported languages",
-        scenario_groups=[scenario_groups.all, scenario_groups.onboarding],
-        github_workflow="aws_ssi",
-    )
-
-    chaos_installer_auto_injection = InstallerAutoInjectionScenario(
-        "CHAOS_INSTALLER_AUTO_INJECTION",
-        doc=(
-            "Onboarding Host Single Step Instrumentation scenario. "
-            "Machines with previous ld.so.preload entries. Perform chaos testing"
-        ),
-        vm_provision="auto-inject-ld-preload",
-        scenario_groups=[scenario_groups.all, scenario_groups.onboarding],
-        github_workflow="aws_ssi",
-    )
-
-    simple_auto_injection_profiling = InstallerAutoInjectionScenario(
-        "SIMPLE_AUTO_INJECTION_PROFILING",
-        "Onboarding Single Step Instrumentation scenario with profiling activated by the "
-        "stable config (application_monitoring.yaml)",
-        agent_env={"DD_PROFILING_ENABLED": "auto"},
-        app_env={
-            "DD_PROFILING_UPLOAD_PERIOD": "5",
-            "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
-            "DD_PROFILING_START_FORCE_FIRST": "true",
-        },
-        scenario_groups=[scenario_groups.all, scenario_groups.simple_onboarding_profiling],
-        github_workflow="aws_ssi",
-    )
-    host_auto_injection_install_script_profiling = InstallerAutoInjectionScenario(
-        "HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING",
-        doc=(
-            "Onboarding Host Single Step Instrumentation scenario using agent "
-            "auto install script with profiling activating by the installation process"
-        ),
-        vm_provision="host-auto-inject-install-script",
-        agent_env={"DD_PROFILING_ENABLED": "auto"},
-        app_env={
-            "DD_PROFILING_UPLOAD_PERIOD": "5",
-            "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
-            "DD_PROFILING_START_FORCE_FIRST": "true",
-        },
-        scenario_groups=[scenario_groups.all, scenario_groups.onboarding],
-        github_workflow="aws_ssi",
-    )
-
-    container_auto_injection_install_script_profiling = InstallerAutoInjectionScenario(
-        "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING",
-        "Onboarding Container Single Step Instrumentation profiling scenario using agent auto install script",
-        vm_provision="container-auto-inject-install-script",
-        agent_env={"DD_PROFILING_ENABLED": "auto"},
-        app_env={
-            "DD_PROFILING_UPLOAD_PERIOD": "5",
-            "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
-            "DD_PROFILING_START_FORCE_FIRST": "true",
-        },
-        scenario_groups=[scenario_groups.all, scenario_groups.onboarding],
-        github_workflow="aws_ssi",
-    )
-
-    simple_auto_injection_appsec = InstallerAutoInjectionScenario(
-        "SIMPLE_AUTO_INJECTION_APPSEC",
-        "Onboarding Single Step Instrumentation scenario with Appsec activated by the "
-        "stable config (application_monitoring.yaml)",
-        agent_env={"DD_APPSEC_ENABLED": "true"},
-        scenario_groups=[scenario_groups.all, scenario_groups.simple_onboarding_appsec],
-        github_workflow="aws_ssi",
-    )
-
-    host_auto_injection_install_script_appsec = InstallerAutoInjectionScenario(
-        "HOST_AUTO_INJECTION_INSTALL_SCRIPT_APPSEC",
-        doc=(
-            "Onboarding Host Single Step Instrumentation scenario using agent "
-            "auto install script with Appsec activated by the installation process"
-        ),
-        vm_provision="host-auto-inject-install-script",
-        agent_env={"DD_APPSEC_ENABLED": "true"},
-        scenario_groups=[scenario_groups.all],
-        github_workflow="aws_ssi",
-    )
-
-    container_auto_injection_install_script_appsec = InstallerAutoInjectionScenario(
-        "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_APPSEC",
-        "Onboarding Container Single Step Instrumentation Appsec scenario using agent auto install script",
-        vm_provision="container-auto-inject-install-script",
-        agent_env={"DD_APPSEC_ENABLED": "true"},
-        scenario_groups=[scenario_groups.all],
-        github_workflow="aws_ssi",
-    )
-
-    host_auto_injection_install_script = InstallerAutoInjectionScenario(
-        "HOST_AUTO_INJECTION_INSTALL_SCRIPT",
-        "Onboarding Host Single Step Instrumentation scenario using agent auto install script",
-        vm_provision="host-auto-inject-install-script",
-        scenario_groups=[scenario_groups.all],
-        github_workflow="aws_ssi",
-    )
-
-    container_auto_injection_install_script = InstallerAutoInjectionScenario(
-        "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT",
-        "Onboarding Container Single Step Instrumentation scenario using agent auto install script",
-        vm_provision="container-auto-inject-install-script",
-        scenario_groups=[scenario_groups.all],
-        github_workflow="aws_ssi",
-    )
-
-    local_auto_injection_install_script = InstallerAutoInjectionScenario(
-        "LOCAL_AUTO_INJECTION_INSTALL_SCRIPT",
-        doc=(
-            "To be executed locally with krunvm. Installs all the software fron agent installation script, "
-            "and the replace the apm-library with the uploaded tar file from binaries"
-        ),
-        vm_provision="local-auto-inject-install-script",
-        scenario_groups=[],
-        github_workflow="aws_ssi",
-    )
-
-    k8s_lib_injection = K8sScenario("K8S_LIB_INJECTION", doc="Kubernetes lib injection with admission controller")
-    k8s_lib_injection_operator = K8sScenario(
-        "K8S_LIB_INJECTION_OPERATOR",
-        doc="Use CRD Datadog Operator (uses real agent). Not configure the admission controller, the operator does it",
-        with_datadog_operator=True,
-    )
-    k8s_lib_injection_uds = K8sScenario(
-        "K8S_LIB_INJECTION_UDS",
-        doc="Kubernetes lib injection with admission controller and uds",
-        use_uds=True,
-    )
-    k8s_lib_injection_no_ac = K8sScenario(
-        "K8S_LIB_INJECTION_NO_AC",
-        doc="Kubernetes lib injection without admission controller",
-        with_cluster_agent=False,
-        with_datadog_operator=False,
-    )
-    k8s_lib_injection_no_ac_uds = K8sScenario(
-        "K8S_LIB_INJECTION_NO_AC_UDS",
-        doc="Kubernetes lib injection without admission controller and UDS",
-        use_uds=True,
-        with_cluster_agent=False,
-        with_datadog_operator=False,
-    )
-    k8s_lib_injection_profiling_disabled = K8sScenario(
-        "K8S_LIB_INJECTION_PROFILING_DISABLED",
-        doc="Kubernetes lib injection with admission controller and profiling disabled by default",
-        weblog_env={
-            "DD_PROFILING_UPLOAD_PERIOD": "10",
-            "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
-            "DD_PROFILING_START_FORCE_FIRST": "true",
-        },
-        scenario_groups=[scenario_groups.all, scenario_groups.lib_injection_profiling],
-    )
-    k8s_lib_injection_profiling_enabled = K8sScenario(
-        "K8S_LIB_INJECTION_PROFILING_ENABLED",
-        doc="Kubernetes lib injection with admission controller and profiling enaabled by cluster config",
-        weblog_env={
-            "DD_PROFILING_UPLOAD_PERIOD": "10",
-            "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
-            "DD_PROFILING_START_FORCE_FIRST": "true",
-        },
-        dd_cluster_feature={"datadog.profiling.enabled": "auto"},
-        scenario_groups=[scenario_groups.all, scenario_groups.lib_injection_profiling],
-    )
-    k8s_lib_injection_profiling_override = K8sScenario(
-        "K8S_LIB_INJECTION_PROFILING_OVERRIDE",
-        doc="Kubernetes lib injection with admission controller and profiling enaabled overriting cluster config",
-        weblog_env={
-            "DD_PROFILING_UPLOAD_PERIOD": "10",
-            "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
-            "DD_PROFILING_START_FORCE_FIRST": "true",
-        },
-        dd_cluster_feature={
-            "clusterAgent.env[0].name": "DD_ADMISSION_CONTROLLER_AUTO_INSTRUMENTATION_PROFILING_ENABLED",
-            "clusterAgent.env[0].value": "auto",
-        },
-        scenario_groups=[scenario_groups.all, scenario_groups.lib_injection_profiling],
-    )
-    k8s_lib_injection_appsec_disabled = K8sScenario(
-        "K8S_LIB_INJECTION_APPSEC_DISABLED",
-        doc="Kubernetes lib injection with admission controller and appsec disabled by default",
-        scenario_groups=[scenario_groups.all, scenario_groups.lib_injection_appsec],
-    )
-    k8s_lib_injection_appsec_enabled = K8sScenario(
-        "K8S_LIB_INJECTION_APPSEC_ENABLED",
-        doc="Kubernetes lib injection with admission controller and appsec enabled by cluster config",
-        dd_cluster_feature={"datadog.asm.threats.enabled": "true"},
-        scenario_groups=[scenario_groups.all, scenario_groups.lib_injection_appsec],
-    )
-    k8s_lib_injection_spark_djm = K8sSparkScenario("K8S_LIB_INJECTION_SPARK_DJM", doc="Kubernetes lib injection DJM")
-
+    simple_installer_auto_injection = SimpleInstallerAutoInjection()
+    multi_installer_auto_injection = MultiInstallerAutoInjection()
+    installer_auto_injection = InstallerAutoInjection()
+    installer_not_supported_auto_injection = InstallerNotSupportedAutoInjection()
+    chaos_installer_auto_injection = ChaosInstallerAutoInjection()
+    simple_auto_injection_profiling = SimpleAutoInjectionProfiling()
+    host_auto_injection_install_script_profiling = HostAutoInjectionInstallScriptProfiling()
+    container_auto_injection_install_script_profiling = ContainerAutoInjectionInstallScriptProfiling()
+    simple_auto_injection_appsec = SimpleAutoInjectionAppsec()
+    host_auto_injection_install_script_appsec = HostAutoInjectionInstallScriptAppsec()
+    container_auto_injection_install_script_appsec = ContainerAutoInjectionInstallScriptAppsec()
+    host_auto_injection_install_script = HostAutoInjectionInstallScript()
+    container_auto_injection_install_script = ContainerAutoInjectionInstallScript()
+    local_auto_injection_install_script = LocalAutoInjectionInstallScript()
+    k8s_lib_injection = K8sLibInjection()
+    k8s_lib_injection_operator = K8sLibInjectionOperator()
+    k8s_lib_injection_uds = K8sLibInjectionUds()
+    k8s_lib_injection_no_ac = K8sLibInjectionNoAc()
+    k8s_lib_injection_no_ac_uds = K8sLibInjectionNoAcUds()
+    k8s_lib_injection_profiling_disabled = K8sLibInjectionProfilingDisabled()
+    k8s_lib_injection_profiling_enabled = K8sLibInjectionProfilingEnabled()
+    k8s_lib_injection_profiling_override = K8sLibInjectionProfilingOverride()
+    k8s_lib_injection_appsec_disabled = K8sLibInjectionAppsecDisabled()
+    k8s_lib_injection_appsec_enabled = K8sLibInjectionAppsecEnabled()
+    k8s_lib_injection_spark_djm = K8sLibInjectionSparkDjm()
     # K8s Injector dev scenarios
-    k8s_injector_dev_single_service = K8sInjectorDevScenario(
-        "K8S_INJECTOR_DEV_SINGLE_SERVICE",
-        doc="Kubernetes Injector Dev Scenario",
-        scenario_provision="single-service.yaml",
-        scenario_groups=[scenario_groups.k8s_injector_dev],
+    k8s_injector_dev_single_service = K8sInjectorDevSingleService()
+    docker_ssi = DockerSsi()
+    docker_ssi_servicenaming = DockerSsiServicenaming()
+    docker_ssi_appsec = DockerSsiAppsec()
+    docker_ssi_crashtracking = DockerSsiCrashtracking()
+    appsec_rasp = AppsecRasp()
+    appsec_rasp_without_downstream_body_analysis_using_sample_rate = (
+        AppsecRaspWithoutDownstreamBodyAnalysisUsingSampleRate()
     )
-
-    docker_ssi = DockerSSIScenario(
-        "DOCKER_SSI",
-        doc="Validates the installer and the ssi on a docker environment",
-        extra_env_vars={"DD_SERVICE": "payments-service"},
-        scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
-    )
-    docker_ssi_servicenaming = DockerSSIScenario(
-        "DOCKER_SSI_SERVICENAMING",
-        doc="Validates the installer and the ssi service naming features on a docker environment",
-        scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
-    )
-    docker_ssi_appsec = DockerSSIScenario(
-        "DOCKER_SSI_APPSEC",
-        doc="Validates the installer and the ssi on a docker environment",
-        extra_env_vars={"DD_SERVICE": "payments-service"},
-        appsec_enabled=True,
-        scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
-    )
-    docker_ssi_crashtracking = DockerSSIScenario(
-        "DOCKER_SSI_CRASHTRACKING",
-        doc="Validates the crashtracking for ssi on a docker environment",
-        scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
-    )
-
-    appsec_rasp = AppsecRaspScenario("APPSEC_RASP")
-
-    appsec_rasp_without_downstream_body_analysis_using_sample_rate = AppsecRaspScenario(
-        "APPSEC_RASP_WITHOUT_DOWNSTREAM_BODY_ANALYSIS_USING_SAMPLE_RATE",
-        weblog_env={
-            "DD_API_SECURITY_DOWNSTREAM_BODY_ANALYSIS_SAMPLE_RATE": "0",
-        },
-    )
-
-    appsec_rasp_without_downstream_body_analysis_using_max = AppsecRaspScenario(
-        "APPSEC_RASP_WITHOUT_DOWNSTREAM_BODY_ANALYSIS_USING_MAX",
-        weblog_env={
-            "DD_API_SECURITY_MAX_DOWNSTREAM_REQUEST_BODY_ANALYSIS": "0",
-        },
-    )
-
-    appsec_standalone_rasp = AppsecRaspScenario(
-        "APPSEC_STANDALONE_RASP",
-        weblog_env={
-            "DD_APM_TRACING_ENABLED": "false",
-        },
-    )
-
-    appsec_rasp_non_blocking = AppsecRaspScenario(
-        "APPSEC_RASP_NON_BLOCKING",
-        weblog_env={"DD_APPSEC_RULES": "/appsec_rasp_non_blocking_ruleset.json"},
-        weblog_volumes={
-            "./tests/appsec/rasp/rasp_non_blocking_ruleset.json": {
-                "bind": "/appsec_rasp_non_blocking_ruleset.json",
-                "mode": "ro",
-            }
-        },
-    )
-
-    appsec_ato_sdk = DdTraceEndToEndScenario(
-        "APPSEC_ATO_SDK",
-        weblog_env={"DD_APPSEC_ENABLED": "true", "DD_APPSEC_RULES": "/appsec_ato_sdk.json"},
-        weblog_volumes={
-            "./tests/appsec/appsec_ato_sdk.json": {
-                "bind": "/appsec_ato_sdk.json",
-                "mode": "ro",
-            }
-        },
-        doc="Rules file with unsafe login and user id",
-        scenario_groups=[scenario_groups.appsec],
-    )
-
-    agent_supporting_span_events = DdTraceEndToEndScenario(
-        "AGENT_SUPPORTING_SPAN_EVENTS",
-        weblog_env={"DD_TRACE_NATIVE_SPAN_EVENTS": "1", "DD_TELEMETRY_METRICS_ENABLED": "true"},
-        span_events=True,
-        doc="The trace agent support Span Events and it is enabled through an environment variable",
-        scenario_groups=[scenario_groups.integrations, scenario_groups.telemetry],
-    )
-
-    agent_not_supporting_span_events = DdTraceEndToEndScenario(
-        "AGENT_NOT_SUPPORTING_SPAN_EVENTS",
-        weblog_env={"DD_TRACE_NATIVE_SPAN_EVENTS": "0"},
-        span_events=False,
-        doc="The trace agent does not support Span Events as a top-level span field",
-        scenario_groups=[scenario_groups.integrations],
-    )
-
-    ipv6 = IPV6Scenario("IPV6")
-
-    runtime_metrics_enabled = DdTraceEndToEndScenario(
-        "RUNTIME_METRICS_ENABLED",
-        # Add environment variable DD_DOGSTATSD_START_DELAY=0 to avoid the default 30s startup delay in the Java tracer.
-        # That delay is used in production to reduce the impact on startup and other side-effects on various application
-        # servers. These considerations do not apply to the system-tests environment so we can reduce it to 0s.
-        weblog_env={"DD_DOGSTATSD_START_DELAY": "0"},
-        runtime_metrics_enabled=True,
-        library_interface_timeout=20,
-        doc="Test runtime metrics",
-    )
-
-    otlp_runtime_metrics = DdTraceEndToEndScenario(
-        "OTLP_RUNTIME_METRICS",
-        weblog_env={
-            "DD_METRICS_OTEL_ENABLED": "true",
-            "DD_DOGSTATSD_START_DELAY": "0",
-            "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
-            "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}/v1/metrics",
-            "OTEL_EXPORTER_OTLP_METRICS_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
-            "GOMEMLIMIT": "500MiB",
-        },
-        runtime_metrics_enabled=True,
-        include_opentelemetry=True,
-        library_interface_timeout=20,
-        doc="Test ddtrace runtime metrics exported via OTLP with OTel semantic convention names",
-    )
-
+    appsec_rasp_without_downstream_body_analysis_using_max = AppsecRaspWithoutDownstreamBodyAnalysisUsingMax()
+    appsec_standalone_rasp = AppsecStandaloneRasp()
+    appsec_rasp_non_blocking = AppsecRaspNonBlocking()
+    appsec_ato_sdk = AppsecAtoSdk()
+    agent_supporting_span_events = AgentSupportingSpanEvents()
+    agent_not_supporting_span_events = AgentNotSupportingSpanEvents()
+    ipv6 = IPV6Scenario()
+    runtime_metrics_enabled = RuntimeMetricsEnabled()
+    otlp_runtime_metrics = OtlpRuntimeMetrics()
     # Appsec Lambda Scenarios
-    appsec_lambda_default = LambdaScenario(
-        "APPSEC_LAMBDA_DEFAULT",
-        doc="Default Lambda scenario",
-        scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
-    )
-    appsec_lambda_blocking = LambdaScenario(
-        "APPSEC_LAMBDA_BLOCKING",
-        weblog_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
-        weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
-        doc="Misc tests for appsec blocking in Lambda",
-        scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
-    )
-    appsec_lambda_api_security = LambdaScenario(
-        "APPSEC_LAMBDA_API_SECURITY",
-        weblog_env={
-            "DD_API_SECURITY_ENABLED": "true",
-            "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
-            "DD_API_SECURITY_SAMPLE_DELAY": "0.0",
-            "DD_API_SECURITY_MAX_CONCURRENT_REQUESTS": "50",
-            "DD_API_SECURITY_ENDPOINT_COLLECTION_ENABLED": "true",
-            "DD_API_SECURITY_ENDPOINT_COLLECTION_MESSAGE_LIMIT": "30",
-        },
-        doc="""
-        Scenario for API Security feature in lambda, testing schema types sent into span tags if
-        DD_API_SECURITY_ENABLED is set to true.
-        """,
-        scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
-    )
-    appsec_lambda_rasp = AppSecLambdaRaspScenario("APPSEC_LAMBDA_RASP")
-    appsec_lambda_inferred_spans = LambdaScenario(
-        "APPSEC_LAMBDA_INFERRED_SPANS",
-        doc="Lambda scenario with managed services tracing enabled",
-        scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
-        trace_managed_services=True,
-    )
-
-    otel_collector = OtelCollectorScenario("OTEL_COLLECTOR")
-
-    integration_frameworks = IntegrationFrameworksScenario(
-        "INTEGRATION_FRAMEWORKS", doc="Tests for third-party integration frameworks"
-    )
-
-    ai_guard = AIGuardScenario(
-        "AI_GUARD",
-        other_weblog_containers=(VCRCassettesContainer,),
-        appsec_enabled=False,
-        weblog_env=_AI_GUARD_WEBLOG_ENV,
-        doc="AI Guard SDK tests",
-        scenario_groups=[scenario_groups.ai_guard],
-    )
-
-    ai_guard_standalone = AIGuardScenario(
-        "AI_GUARD_STANDALONE",
-        other_weblog_containers=(VCRCassettesContainer,),
-        appsec_enabled=False,
-        weblog_env={
-            **_AI_GUARD_WEBLOG_ENV,
-            "DD_APM_TRACING_ENABLED": "false",
-            "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
-        },
-        agent_env={
-            "DD_INFRASTRUCTURE_MODE": "none",
-        },
-        doc="AI Guard standalone mode, with the infra product disabled on the agent",
-        scenario_groups=[scenario_groups.ai_guard],
-    )
-
-    ai_guard_telemetry = AIGuardScenario(
-        "AI_GUARD_TELEMETRY",
-        other_weblog_containers=(VCRCassettesContainer,),
-        appsec_enabled=False,
-        weblog_env={
-            **_AI_GUARD_WEBLOG_ENV,
-            "DD_AI_GUARD_MAX_MESSAGES_LENGTH": "1",
-            "DD_AI_GUARD_MAX_CONTENT_SIZE": "5",
-        },
-        doc="AI Guard telemetry tests with low truncation thresholds",
-        scenario_groups=[scenario_groups.ai_guard],
-    )
-
-    ai_guard_redaction_telemetry = AIGuardScenario(
-        "AI_GUARD_REDACTION_TELEMETRY",
-        other_weblog_containers=(VCRCassettesContainer,),
-        appsec_enabled=False,
-        # Deliberately without the truncation thresholds AI_GUARD_TELEMETRY sets: the redaction
-        # corpus is replayed from cassettes addressed by a hash of the request body, so a truncated
-        # payload matches no cassette and never comes back with any replacement. The telemetry
-        # flush intervals need no override, WeblogContainer already puts both at 2s.
-        weblog_env=_AI_GUARD_WEBLOG_ENV,
-        doc="AI Guard redaction telemetry tests, with untruncated payloads and exact metric counts",
-        scenario_groups=[scenario_groups.ai_guard],
-    )
-
-    ai_guard_redaction_disabled = AIGuardScenario(
-        "AI_GUARD_REDACTION_DISABLED",
-        other_weblog_containers=(VCRCassettesContainer,),
-        appsec_enabled=False,
-        weblog_env={
-            **_AI_GUARD_WEBLOG_ENV,
-            # Global kill-switch: evaluations still run and findings are still reported, but the
-            # redaction_replacements returned by the backend are never applied.
-            "DD_AI_GUARD_REDACTION_ENABLED": "false",
-        },
-        doc="AI Guard with the sensitive data redaction kill-switch turned off",
-        scenario_groups=[scenario_groups.ai_guard],
-    )
+    appsec_lambda_default = AppsecLambdaDefault()
+    appsec_lambda_blocking = AppsecLambdaBlocking()
+    appsec_lambda_api_security = AppsecLambdaApiSecurity()
+    appsec_lambda_sca = AppsecLambdaSca()
+    appsec_lambda_rasp = AppsecLambdaRasp()
+    appsec_lambda_inferred_spans = AppsecLambdaInferredSpans()
+    otel_collector = OtelCollectorScenario()
+    integration_frameworks = IntegrationFrameworksScenario()
+    ai_guard = AiGuard()
+    ai_guard_standalone = AiGuardStandalone()
+    ai_guard_telemetry = AiGuardTelemetry()
+    ai_guard_redaction_telemetry = AiGuardRedactionTelemetry()
+    ai_guard_redaction_disabled = AiGuardRedactionDisabled()
 
 
 scenarios = _Scenarios()

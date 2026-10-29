@@ -68,6 +68,7 @@ manifest:
   tests/appsec/test_reports.py::Test_Info: v3.29.0
   tests/appsec/test_reports.py::Test_RequestHeaders: v3.29.0
   tests/appsec/test_reports.py::Test_StatusCode: v3.29.0
+  tests/appsec/test_sca_reachability.py: missing_feature (SCA runtime reachability is not implemented)
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules: v3.29.0
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules::test_rule_with_attributes_no_keep_event: v3.30.0
   tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules::test_rule_with_attributes_no_keep_no_event: v3.30.0
@@ -85,4 +86,5 @@ manifest:
   tests/appsec/waf/test_blocking.py::Test_Blocking::test_html_template_v2: missing_feature
   tests/appsec/waf/test_blocking.py::Test_Blocking_strip_response_headers: v3.30.0
   tests/appsec/waf/test_blocking.py::Test_CustomBlockingResponse: v3.29.0
+  tests/ffe/test_evaluation_telemetry_opt_out.py: irrelevant (This server weblog scenario does not apply to Lambda)
   tests/ffe/test_flag_eval_evp.py: irrelevant (server-side FFE EVP weblog scenario is not applicable to lambda)

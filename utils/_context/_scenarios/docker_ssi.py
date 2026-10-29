@@ -23,12 +23,14 @@ from utils.docker_ssi.docker_ssi_matrix_utils import resolve_runtime_version
 from utils._logger import logger
 from utils.virtual_machine.vm_logger import vm_logger
 
-from .core import Scenario, ScenarioGroup
+from ._core import Scenario, scenario_groups, ScenarioGroup
 
 
 AUTO_INJECT_LOCK = Path(__file__).resolve().parents[3] / "utils" / "build" / "auto_inject.lock"
 MAVEN_PROXY_WEBLOGS = frozenset({"jboss-app", "tomcat-app", "websphere-app"})
 DEFAULT_MAVEN_REPOSITORY_PROXY = "https://depot-read-api-java.us1.ddbuild.io/magicmirror/magicmirror/@current/"
+PIP_INDEX_WEBLOGS = frozenset({"py-app"})
+DEFAULT_PIP_INDEX_URL = "https://depot-read-api-python.us1.ddbuild.io/datadog/python/@current/simple"
 
 
 class ContainerRemovalError(Exception):
@@ -39,7 +41,14 @@ class ImagePushError(Exception):
     """Exception raised when a docker image push operation fails."""
 
 
-class DockerSSIScenario(Scenario):
+def _component_version_missing(version: Version | None) -> bool:
+    """Return True when SSI did not report a real installed version."""
+    if version is None:
+        return True
+    return version == "0.0.0"
+
+
+class _DockerSSIScenario(Scenario):
     """Scenario test the ssi installer on a docker environment and runs APM test agent"""
 
     _network: Network = None
@@ -142,6 +151,8 @@ class DockerSSIScenario(Scenario):
         json_tested_component = self.ssi_image_builder.tested_components()
         self.fill_context(json_tested_component)
         self.print_installed_components()
+        # Fail before containers start. The installer can exit 0 without installing SSI.
+        self.check_installed_components()
 
         for container in self._required_containers:
             try:
@@ -246,39 +257,47 @@ class DockerSSIScenario(Scenario):
         for conf in self.configuration:
             logger.stdout(f"{conf}: {self.configuration[conf]}")
 
-    def check_installed_components(self):
-        """Check the the injector and library versions are present"""
-        is_valid = True
-        if not self.components.get("datadog-apm-library"):
-            is_valid = False
-            logger.stdout(
-                "❌ Library version not found. Could not get the tracer image or the version of the library "
-                "could not be extracted"
-            )
+    def check_installed_components(self) -> None:
+        """Stop the scenario when the installer exits 0 without installing SSI.
+
+        A missing version and ``0.0.0`` both mean the component was not installed.
+        ``Version("0.0.0")`` is truthy, so a truthiness check does not catch it.
+        Exit code 3 matches the AWS SSI check, and GitLab retries that code.
+        """
+        library_missing = _component_version_missing(self.components.get("datadog-apm-library"))
+        injector_missing = _component_version_missing(self.components.get("datadog-apm-inject"))
+        if not library_missing and not injector_missing:
+            logger.stdout("✅ All components are installed correctly. ✅")
+            return
+
+        if library_missing:
+            logger.stdout("❌ SSI installer finished, but the tracer library was not installed ❌")
             if self._custom_library_version:
                 logger.stdout(
-                    f"🛠️ You have specified a custom version of the library (--ssi-library-version), please check "
-                    f"that the reference [{self._custom_library_version}] is correct."
+                    "🛠️ You have specified a custom version of the library (--ssi-library-version). "
+                    f"Check that the reference [{self._custom_library_version}] is correct."
                 )
-        if not self._datadog_apm_inject_version:
-            is_valid = False
-            logger.stdout(
-                "❌ Injector version not found. Could not get the injector image or the version of the injector "
-                "could not be extracted"
-            )
+        if injector_missing:
+            logger.stdout("❌ SSI installer finished, but the injector was not installed ❌")
             if self._custom_injector_version:
                 logger.stdout(
-                    f"🛠️ You have specified a custom version of the injector (--ssi-injector-version), please check "
-                    f"that the reference [{self._custom_injector_version}] is correct."
+                    "🛠️ You have specified a custom version of the injector (--ssi-injector-version). "
+                    f"Check that the reference [{self._custom_injector_version}] is correct."
                 )
-        if not is_valid:
-            logger.stdout(f"🌍 You have set the environment to [{self._env}]. Check the docker build logs.\n\n\n")
-            raise ValueError("❌ Error: Could not get the library or injector version. ❌")
-        logger.stdout("✅ All components are installed correctly. ✅")
+
+        build_log = f"{self.host_log_folder}/docker_build.log"
+        logger.stdout(f"🌍 You have set the environment to [{self._env}]. Review {build_log}.")
+        missing_parts: list[str] = []
+        if library_missing:
+            missing_parts.append("the tracer library")
+        if injector_missing:
+            missing_parts.append("the injector")
+        pytest.exit(
+            f"SSI installer finished without installing {' and '.join(missing_parts)}. Review {build_log}.",
+            returncode=3,
+        )
 
     def post_setup(self, session: pytest.Session) -> None:  # noqa: ARG002
-        self.check_installed_components()
-
         logger.stdout("--- Waiting for all traces and telemetry to be sent to test agent ---")
         time.sleep(15)
         interfaces.test_agent.collect_data(
@@ -511,6 +530,13 @@ class DockerSSIImageBuilder:
             "MAVEN_REPOSITORY_PROXY": os.environ.get("MAVEN_REPOSITORY_PROXY", DEFAULT_MAVEN_REPOSITORY_PROXY),
         }
 
+    def _pip_index_buildargs(self) -> dict[str, str]:
+        if self._base_weblog not in PIP_INDEX_WEBLOGS:
+            return {}
+        return {
+            "PIP_INDEX_URL": os.environ.get("PIP_INDEX_URL", DEFAULT_PIP_INDEX_URL),
+        }
+
     def build_weblog_image(self, ssi_installer_docker_tag: str) -> None:
         """Build the final weblog image. Uses base ssi installer image, install
         the full ssi (to perform the auto inject) and build the weblog image
@@ -547,7 +573,11 @@ class DockerSSIImageBuilder:
             path=".",
             dockerfile=f"utils/build/ssi/{self._library}/{self._base_weblog}.Dockerfile",
             tag=weblog_docker_tag,
-            buildargs={"BASE_IMAGE": self.ssi_all_docker_tag, **self._maven_proxy_buildargs()},
+            buildargs={
+                "BASE_IMAGE": self.ssi_all_docker_tag,
+                **self._maven_proxy_buildargs(),
+                **self._pip_index_buildargs(),
+            },
             error_label="Error building weblog",
             error_message="Failed to build weblog docker image",
         )
@@ -608,3 +638,42 @@ def _get_free_port():
         except OSError:
             port += 1
     raise OSError("no free ports")
+
+
+class DockerSsi(_DockerSSIScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "DOCKER_SSI",
+            doc="Validates the installer and the ssi on a docker environment",
+            extra_env_vars={"DD_SERVICE": "payments-service"},
+            scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
+        )
+
+
+class DockerSsiServicenaming(_DockerSSIScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "DOCKER_SSI_SERVICENAMING",
+            doc="Validates the installer and the ssi service naming features on a docker environment",
+            scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
+        )
+
+
+class DockerSsiAppsec(_DockerSSIScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "DOCKER_SSI_APPSEC",
+            doc="Validates the installer and the ssi on a docker environment",
+            extra_env_vars={"DD_SERVICE": "payments-service"},
+            appsec_enabled=True,
+            scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
+        )
+
+
+class DockerSsiCrashtracking(_DockerSSIScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "DOCKER_SSI_CRASHTRACKING",
+            doc="Validates the crashtracking for ssi on a docker environment",
+            scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
+        )
