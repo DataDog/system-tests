@@ -158,11 +158,9 @@ class Test_Debugger_Telemetry_Metrics(debugger.BaseDebuggerTest):
             self.setup_failures.append("Probes did not reach INSTALLED status")
             return
 
+        # Telemetry metrics are flushed periodically, so the scenario's library interface timeout leaves time for the
+        # skipped events to be reported.
         self.weblog_responses = [weblog.get("/debugger/log") for _ in range(RATE_LIMIT_BURST_SIZE)]
-
-        # Telemetry metrics are flushed periodically, so wait for the skipped events to be reported. A missing metric is
-        # reported by the test itself, together with whatever debugger metrics were sent in a legacy namespace.
-        interfaces.library.wait_for(lambda _: len(_get_rate_limit_probe_skips()) > 0, timeout=60)
 
     def test_events_skipped_rate_limit_probe(self):
         self.assert_setup_ok()
