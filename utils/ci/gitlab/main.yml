@@ -22,6 +22,7 @@ spec:
         JSON object mapping each library to an object mapping each weblog to its list of scenarios
         (uppercase) and/or scenario groups (lowercase),
         e.g. '{"python": {"flask-poc": ["DEFAULT", "appsec"], "django-poc": ["DEFAULT"]}}'.
+        PARAMETRIC is not weblog-bound, it is enabled with the "parametric" key, e.g. '{"python": {"parametric": []}}'.
         Alternative to libraries/scenarios/scenarios_groups/weblogs (not compatible with them);
         excluded_scenarios only applies to scenarios coming from groups.
       default: ""

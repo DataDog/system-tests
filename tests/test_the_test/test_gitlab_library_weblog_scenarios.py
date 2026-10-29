@@ -55,9 +55,10 @@ def test_merge_params() -> None:
     merged = merge_params(
         [
             _params("django-poc", ["DEFAULT"]),
-            _params("flask-poc", ["APPSEC_BLOCKING", "DEFAULT"], parametric=True),
+            _params("flask-poc", ["APPSEC_BLOCKING", "DEFAULT"]),
             _params("fastapi", []),
-        ]
+        ],
+        _params("", [], parametric=True),
     )
 
     assert merged["endtoend_defs"]["parallel_enable"] is True
@@ -70,19 +71,31 @@ def test_merge_params() -> None:
 
 
 @scenarios.test_the_test
-def test_each_weblog_runs_only_its_scenarios(tmp_path: Path) -> None:
-    main(
-        [
-            '{"python": {"flask-poc": ["DEFAULT", "APPSEC_BLOCKING", "PARAMETRIC"], "django-poc": ["DEFAULT"]}}',
-            f"--params-dir={tmp_path}",
-            "--",
-            "--parametric-job-count=2",
-        ]
-    )
+def test_parametric_is_only_enabled_by_the_parametric_key() -> None:
+    # e.g. if a group listed under a weblog contains PARAMETRIC
+    merged = merge_params([_params("flask-poc", ["DEFAULT"], parametric=True)], None)
+
+    assert merged["parametric"]["enable"] is False
+
+
+def _generated_jobs(tmp_path: Path, library_weblog_scenarios: str) -> set[str]:
+    main([library_weblog_scenarios, f"--params-dir={tmp_path}", "--", "--parametric-job-count=2"])
     build(["python"], tmp_path, tmp_path, stage="e2e", ci_image="myimage", chunks=1)
 
     pipeline = yaml.safe_load((tmp_path / "generated-pipeline-chunk-0.yml").read_text())
-    assert {name for name in pipeline if name.startswith(("system_tests_build_", "system_tests_run_"))} == {
+    return {name for name in pipeline if name.startswith(("system_tests_build_", "system_tests_run_"))}
+
+
+@scenarios.test_the_test
+@pytest.mark.parametrize("parametric", ["[]", '["PARAMETRIC"]'])
+def test_each_weblog_runs_only_its_scenarios(tmp_path: Path, parametric: str) -> None:
+    jobs = _generated_jobs(
+        tmp_path,
+        f'{{"python": {{"parametric": {parametric}, "flask-poc": ["DEFAULT", "APPSEC_BLOCKING"], '
+        '"django-poc": ["DEFAULT"]}}',
+    )
+
+    assert jobs == {
         "system_tests_build_python_django-poc",
         "system_tests_build_python_flask-poc",
         "system_tests_run_python_DEFAULT_django-poc",
@@ -91,6 +104,27 @@ def test_each_weblog_runs_only_its_scenarios(tmp_path: Path) -> None:
         "system_tests_run_python_PARAMETRIC_1",
         "system_tests_run_python_PARAMETRIC_2",
     }
+
+
+@scenarios.test_the_test
+def test_parametric_only(tmp_path: Path) -> None:
+    jobs = _generated_jobs(tmp_path, '{"python": {"parametric": []}}')
+
+    assert jobs == {"system_tests_run_python_PARAMETRIC_1", "system_tests_run_python_PARAMETRIC_2"}
+
+
+@scenarios.test_the_test
+@pytest.mark.parametrize(
+    ("library_weblog_scenarios", "error"),
+    [
+        ('{"python": {"flask-poc": ["DEFAULT", "PARAMETRIC"]}}', 'must be listed as "parametric"'),
+        ('{"python": {"parametric": ["DEFAULT"]}}', "expects"),
+        ('{"python": {}}', "no weblog listed"),
+    ],
+)
+def test_invalid_parametric_usage(tmp_path: Path, library_weblog_scenarios: str, error: str) -> None:
+    with pytest.raises(ValueError, match=error):
+        main([library_weblog_scenarios, f"--params-dir={tmp_path}"])
 
 
 @scenarios.test_the_test
