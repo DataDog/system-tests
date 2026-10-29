@@ -33,12 +33,7 @@ class Test_Debugger_Go_Static_Template_Error(_GoExpressionTestBase):
         self._setup_probes("probe_static_template_error", ["INSTALLED", "ERROR"])
 
     def test_static_template_error_probe_rejected(self) -> None:
-        """Each template references something the system-probe resolves at install time and can't find.
-
-        A member access on a ``map[string]int``, an unknown variable, and a missing struct field are all
-        rejected with an ERROR diagnostic when used in a ``when`` condition. In a log template they must also
-        reach status=ERROR, not stay installed and print the error inline.
-        """
+        """Reject log templates with an invalid map member, unknown variable, or missing struct field."""
         self.collect()
         self.assert_setup_ok()
 
@@ -61,14 +56,14 @@ class Test_Debugger_Go_Missing_Map_Key_Condition(_GoExpressionTestBase):
         self._setup_probes("probe_missing_map_key_condition", ["INSTALLED"])
 
     def test_missing_map_key_condition_does_not_fire(self) -> None:
-        """``testStruct.Dictionary['nope'] == 1``: in Go a missing key reads as 0, so the condition is false.
-
-        A conforming tracer emits nothing, or an error-only snapshot without captured data.
-        """
+        """A missing Go map key reads as 0, so this condition must not capture data."""
         self.collect()
         self.assert_setup_ok()
 
         for probe_id in self.probe_ids:
+            diag = self.probe_diagnostics.get(probe_id)
+            assert diag is not None, f"Probe {probe_id} received no install diagnostic"
+            assert diag["status"] in ("INSTALLED", "EMITTING"), f"Probe {probe_id} did not install: {diag['status']!r}"
             for envelope in self.probe_snapshots.get(probe_id, []):
                 snap = envelope.get("debugger", {}).get("snapshot") or envelope.get("debugger.snapshot") or {}
                 assert not debugger.captures_contain_data(snap.get("captures")), (

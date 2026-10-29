@@ -1642,6 +1642,8 @@ manifest:
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Line_Capture_Expressions: v2.2.3
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions: v2.2.3
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions::test_complex_capture_expressions: missing_feature (index expression not yet supported in Go system-probe)
+  ? tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Method_Capture_Expressions::test_complex_capture_expressions_dictionary_value
+  : missing_feature (index expression not yet supported in Go system-probe)
   tests/debugger/test_debugger_capture_expressions_errors.py::Test_Debugger_Filter_Rejected_Capture_Expression_Error: missing_feature (Go DI rejects the probe, a condition leaf LHS may not be a literal)
   tests/debugger/test_debugger_code_origins.py::Test_Debugger_Code_Origins: missing_feature (feature not implemented)
   tests/debugger/test_debugger_condition_errors.py::Test_Debugger_Invalid_Condition_DSL: v2.2.3
@@ -1657,6 +1659,7 @@ manifest:
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_recursion_inlined: irrelevant (Test for specific bug in dotnet)
   tests/debugger/test_debugger_exception_replay.py::Test_Debugger_Exception_Replay::test_exception_replay_stackoverflow: missing_feature (Implemented only for dotnet)
   tests/debugger/test_debugger_expression_language.py::Test_Debugger_Expression_Language: missing_feature (feature not implemented)
+  tests/debugger/test_debugger_go_expression_errors.py::Test_Debugger_Go_Static_Template_Error: missing_feature (Go system-probe does not reject invalid log templates at install time)
   tests/debugger/test_debugger_guardrails.py::Test_Debugger_Capture_Timeout_Guardrail: incomplete_test_app (No /debugger/snapshot/capture-timeout endpoint)
   tests/debugger/test_debugger_guardrails.py::Test_Debugger_Evaluation_Timeout_Line_Probe: irrelevant (Line-probe variant is only used by Node.js and Ruby)
   tests/debugger/test_debugger_guardrails.py::Test_Debugger_Evaluation_Timeout_Method_Probe: missing_feature (Debugger evaluation timeout guardrail not implemented yet)
