@@ -1,3 +1,6 @@
+import json
+from pathlib import Path
+
 import pytest
 from utils import interfaces
 from utils.interfaces._core import ProxyBasedInterfaceValidator
@@ -222,9 +225,12 @@ class AppsecLambdaSca(_LambdaScenario):
 
     def configure(self, config: pytest.Config) -> None:
         super().configure(config)
-        if self.lambda_weblog.image.labels.get("system-tests-library") == "python_lambda":
-            # Inject a synthetic advisory without coupling requests upgrades to a real CVE.
-            self.lambda_weblog.volumes["./tests/appsec/sca_python_lambda.json"] = {
+        if not self.replay and self.lambda_weblog.image.labels.get("system-tests-library") == "python_lambda":
+            # Each tracer receives its native payload from the shared catalog.
+            catalog = json.loads(Path("tests/appsec/sca_advisories.json").read_text(encoding="utf-8"))
+            payload_path = Path(self.host_log_folder) / "sca_advisories.json"
+            payload_path.write_text(json.dumps(catalog["python"]), encoding="utf-8")
+            self.lambda_weblog.volumes[str(payload_path)] = {
                 "bind": "/opt/python/lib/python3.13/site-packages/ddtrace/appsec/sca/_cve_data.json",
                 "mode": "ro",
             }
