@@ -211,6 +211,16 @@ class AppsecLambdaApiSecurity(_LambdaScenario):
         )
 
 
+class AppsecLambdaSca(_LambdaScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "APPSEC_LAMBDA_SCA",
+            weblog_env={"DD_APPSEC_ENABLED": "false", "DD_APPSEC_SCA_ENABLED": "true"},
+            doc="SCA dependency metadata and runtime reachability in Lambda with AppSec disabled",
+            scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
+        )
+
+
 class AppsecLambdaRasp(_LambdaScenario):
     def __init__(self) -> None:
         super().__init__(
