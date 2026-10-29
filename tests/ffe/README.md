@@ -176,6 +176,46 @@ Use unique candidate versions that are not published on nuget.org, so only `bina
 Verify the resolved packages before reporting local validation. These arguments do not select the installed tracer binary.
 The `uds` weblog does not support these build arguments or the local package source.
 
+## Timestamp experimentation opt-out
+
+The parametric class
+[`Test_Feature_Flag_Experimentation_Opt_Out`](../parametric/test_ffe/test_dynamic_evaluation.py)
+loads the canonical experimentation cases through Remote Config and evaluates them
+through the SDK's public OpenFeature API. It runs separate application processes
+with `DD_FEATURE_FLAGS_EXPERIMENTATION_OPT_OUT_MODE` absent, `disabled`, `immediate`,
+and `future_experiments_only`.
+
+Disabled runs use baseline expectations. Enabled runs require the matching
+`experimentationOptOutImmediate` or `experimentationOptOutFutureExperimentsOnly`
+expectation; a missing capability expectation is never replaced with the baseline.
+Assertions check values, reasons, exact expected errors, and the absence of
+unexpected errors. Cases cover invalid context values, ordinary `doLog=false`
+allocations, older/equal/newer activation, missing/null activation, offsets,
+fractional timestamps, and fallback to eligible allocations.
+
+The snapshot's [source record](../parametric/test_ffe/ffe-system-test-data/SOURCE.md)
+pins the shared expectations. These assignment tests do not count exposure or
+evaluation events. Per-subject evaluation telemetry coverage remains in the
+separate scenarios above.
+
+The suite is enabled from Go `2.13.0-dev` and Java `1.69.0-SNAPSHOT`.
+Go contains both modes on `main`; Java activation requires
+[dd-trace-java#12950](https://github.com/DataDog/dd-trace-java/pull/12950).
+These thresholds include development builds, not a claim that the feature has
+shipped in a stable release. Other SDK manifests record their outstanding
+implementation or dependency requirements.
+
+With the Python 3.12 runner and matching candidate binaries installed, run the
+activated tests normally (use `TEST_LIBRARY=golang` for Go):
+
+```sh
+PYTEST_XDIST_AUTO_NUM_WORKERS=1 TEST_LIBRARY=java ./run.sh PARAMETRIC \
+  tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Experimentation_Opt_Out
+```
+
+Rebuild after changing candidate binaries or application code. Use
+`--skip-parametric-build` only when reusing the same application image and binaries.
+
 ## Test-contract self-tests
 
 The self-tests in `tests/test_the_test/test_ffe_tests.py` and
