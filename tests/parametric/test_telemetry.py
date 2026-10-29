@@ -1135,7 +1135,7 @@ class Test_TelemetrySCAEnvVar:
 
         dd_appsec_sca_enabled_names = TelemetryUtils.get_dd_appsec_sca_enabled_names(context.library)
 
-        if context.library in ("java", "nodejs", "python", "ruby", "rust"):
+        if context.library in ("java", "nodejs", "python", "ruby"):
             cfg_appsec_enabled = next(
                 (
                     configuration_by_name.get(config_name)

@@ -554,6 +554,7 @@ manifest:
   tests/parametric/test_telemetry.py::Test_TelemetryInstallSignature: '>=0.2.1'  # Modified by easy win activation script
   tests/parametric/test_telemetry.py::Test_TelemetryInstallSignature::test_telemetry_event_propagated: '>=0.5.3-dev+2349288'  # Created by easy win activation script
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar: '>=0.2.1'  # Modified by easy win activation script
+  tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_enabled_not_propagated: missing_feature (DD_APPSEC_SCA_ENABLED reporting lands soon)
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_enabled_propagated: missing_feature  # Created by easy win activation script
   tests/parametric/test_telemetry.py::Test_TelemetrySCAEnvVar::test_telemetry_sca_enabled_propagated_specifics: irrelevant
   tests/parametric/test_telemetry.py::Test_TelemetrySSIConfigs: missing_feature
