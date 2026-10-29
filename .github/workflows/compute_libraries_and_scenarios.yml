@@ -72,10 +72,6 @@ jobs:
         run: |
           source venv/bin/activate
           python utils/scripts/compute_libraries_and_scenarios.py -o $GITHUB_OUTPUT
-          # TODO: remove before merging. Hard-coded scenarios to iterate on DEBUGGER_TELEMETRY in the CI
-          sed -i -E '/^(scenarios|scenarios_groups)=/d' "$GITHUB_OUTPUT"
-          echo 'scenarios=DEBUGGER_TELEMETRY,DEFAULT' >> "$GITHUB_OUTPUT"
-          echo 'scenarios_groups=' >> "$GITHUB_OUTPUT"
         env:
           PYTHONPATH: "."
           GITHUB_REF: ${{ github.ref }}
