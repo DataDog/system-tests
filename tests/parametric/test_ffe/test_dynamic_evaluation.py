@@ -18,6 +18,8 @@ RC_PRODUCT = "FFE_FLAGS"
 RC_PATH = f"datadog/2/{RC_PRODUCT}"
 FFE_READY_RETRY_ATTEMPTS = 10
 FFE_READY_RETRY_INTERVAL_SECONDS = 0.2
+DEPENDENT_FLAGS_DIR = Path(__file__).parent / "dependent-flags"
+DEPENDENT_FLAGS_CASES_DIR = DEPENDENT_FLAGS_DIR / "cases"
 
 parametrize = pytest.mark.parametrize
 
@@ -41,13 +43,20 @@ def _get_test_case_files() -> list[str]:
         return []
 
     # Exclude base fixtures that aren't test cases
-    excluded = {"flags-v1.json", "serial-id-metadata-flags.json", "span-enrichment-flags.json"}
+    excluded = {"flags-v1.json", "rules-wire.json", "serial-id-metadata-flags.json", "span-enrichment-flags.json"}
     return [f.name for f in test_data_dir.iterdir() if f.suffix == ".json" and f.name not in excluded]
+
+
+def _get_dependent_flags_test_case_files() -> list[Path]:
+    """Get the test case files owned by the dependent-flags suite."""
+    return sorted(DEPENDENT_FLAGS_CASES_DIR.glob("*.json"))
 
 
 # Load fixture at module level for reuse across tests
 UFC_FIXTURE_DATA = _load_ufc_fixture()
 ALL_TEST_CASE_FILES = _get_test_case_files()
+DEPENDENT_FLAGS_UFC_DATA = json.loads((DEPENDENT_FLAGS_DIR / "ufc-config.json").read_text())
+DEPENDENT_FLAGS_TEST_CASE_FILES = _get_dependent_flags_test_case_files()
 
 DEFAULT_ENVVARS = {
     "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
@@ -203,3 +212,50 @@ class Test_Feature_Flag_Dynamic_Evaluation:
                 f"flag='{flag}', targetingKey='{targeting_key}', "
                 f"expected={expected_result}, actual={actual_value}"
             )
+
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @parametrize("test_case_file", DEPENDENT_FLAGS_TEST_CASE_FILES)
+    def test_ffe_dependent_flags(
+        self,
+        test_case_file: Path,
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+    ) -> None:
+        """Test dependent flags using only the fixtures in the dependent-flags suite."""
+        with test_case_file.open() as f:
+            test_cases = json.load(f)
+
+        _set_and_wait_ffe_rc(test_agent, DEPENDENT_FLAGS_UFC_DATA)
+
+        success = test_library.ffe_start(DEPENDENT_FLAGS_UFC_DATA)
+        assert success, "Failed to start FFE provider"
+
+        for i, test_case in enumerate(test_cases):
+            flag = test_case["flag"]
+            targeting_key = test_case["targetingKey"]
+            expected_result = test_case["result"]
+            result = _ffe_evaluate_with_rc_retry(
+                test_library,
+                flag=flag,
+                variation_type=test_case["variationType"],
+                default_value=test_case["defaultValue"],
+                targeting_key=targeting_key,
+                attributes=test_case.get("attributes", {}),
+            )
+            assert not _is_ffe_waiting_for_rc(result), (
+                f"Test case {i} in {test_case_file.name} failed: FFE provider did not load RC data after "
+                f"{FFE_READY_RETRY_ATTEMPTS} attempts; result={result}"
+            )
+            for field in ("value", "reason", "errorCode"):
+                if field not in expected_result:
+                    continue
+                assert result.get(field) == expected_result[field], (
+                    f"Test case {i} in {test_case_file.name} failed: "
+                    f"flag='{flag}', targetingKey='{targeting_key}', field='{field}', "
+                    f"expected={expected_result[field]!r}, actual={result.get(field)!r}"
+                )
+            if "errorCode" not in expected_result and expected_result.get("reason") != "ERROR":
+                assert result.get("errorCode") in {None, ""}, (
+                    f"Test case {i} in {test_case_file.name} failed: "
+                    f"flag='{flag}' unexpectedly returned errorCode={result.get('errorCode')!r}"
+                )
