@@ -805,6 +805,8 @@ class MockedBackendContainer(TestedContainer):
     def __init__(self, *, tls: bool = False) -> None:
         self.tls = tls
         self.scheme = "https" if tls else "http"
+        self.internal_mocked_responses: list[MockedBackendResponse] = []
+        """Responses served for the whole session (like the proxy's internal ones), unless a test sets its own"""
         # the default HTTPS port: senders build the intake URLs from DD_SITE, without port
         self.port = 443 if tls else 4900
         # in the healthcheck, the certificate is checked against localhost
@@ -850,6 +852,15 @@ class MockedBackendContainer(TestedContainer):
         ]
         if self.tls:
             self.command += ["--tls-cert-file", self.tls_cert_file]
+
+        if self.internal_mocked_responses:
+            # not in the recordings folder: interfaces.backend_v2 reads every JSON file there
+            mocks_path = f"{self.log_folder_path}/{MockedBackendResponse.internal_filename}"
+            with Path(mocks_path).open(encoding="utf-8", mode="w") as f:
+                json.dump([mock.to_json() for mock in self.internal_mocked_responses], f, indent=2)
+            container_mocks_path = f"/app/{MockedBackendResponse.internal_filename}"
+            self.volumes[mocks_path] = {"bind": container_mocks_path, "mode": "ro"}
+            self.command += ["--internal-mocked-responses-file", container_mocks_path]
 
     @property
     def container_url(self) -> str:
