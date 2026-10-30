@@ -49,8 +49,8 @@ DEFAULT_ENVVARS = {
     "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
 }
 
-# Max polling loops (~4s at 0.01s/loop) when waiting for RC-related responses.
-_RC_WAIT_LOOPS = 400
+# Max polling loops (~4s at 0.5s/loop) when waiting for RC-related responses.
+_RC_WAIT_LOOPS = 8
 
 
 def send_and_wait_trace(
@@ -192,7 +192,7 @@ def uses_sdk_configuration(test_agent: TestAgentAPI) -> bool:
     )
 
 
-def assert_rc_capability(test_agent: TestAgentAPI, capability: Capabilities, wait_loops: int = 100) -> None:
+def assert_rc_capability(test_agent: TestAgentAPI, capability: Capabilities, wait_loops: int = 2) -> None:
     """Assert that the tracer advertises the capability to remotely configure one setting.
 
     A tracer that has moved to the unified SDK_CONFIGURATION contract may advertise that bit in
@@ -852,7 +852,7 @@ class TestDynamicConfigV1_EmptyServiceTargets:
         _set_rc(test_agent, _default_config(TEST_SERVICE, TEST_ENV))
 
         # C++ make RC requests every second -> update is a bit slower to propagate.
-        wait_loops = 1000 if context.library == "cpp" else 100
+        wait_loops = 20 if context.library == "cpp" else 2
 
         cfg_state = test_agent.wait_for_rc_apply_state(
             "APM_TRACING", state=RemoteConfigApplyState.ACKNOWLEDGED, wait_loops=wait_loops
@@ -913,7 +913,7 @@ class TestDynamicConfigV1_ServiceTargets:
         _set_rc(test_agent, _default_config(TEST_SERVICE, TEST_ENV))
 
         # C++ make RC requests every second -> update is a bit slower to propagate.
-        wait_loops = 1000 if context.library == "cpp" else 100
+        wait_loops = 20 if context.library == "cpp" else 2
 
         cfg_state = test_agent.wait_for_rc_apply_state(
             "APM_TRACING", state=RemoteConfigApplyState.ERROR, wait_loops=wait_loops
