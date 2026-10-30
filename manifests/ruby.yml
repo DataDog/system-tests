@@ -2089,6 +2089,12 @@ manifest:
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry::test_telemetry_co: missing_feature (feature not implemented)
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry::test_telemetry_er: missing_feature (feature not implemented)
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry::test_telemetry_symdb: missing_feature (feature not implemented)
+  tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry_Metrics:
+    - weblog_declaration:
+        "*": irrelevant
+        rails72: v2.46.0
+        rails80: v2.46.0
+        uds-rails: v2.46.0
   tests/docker_ssi/test_docker_ssi.py:
     - weblog_declaration:
         "*": v2.19.0
