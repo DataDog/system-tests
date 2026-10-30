@@ -111,6 +111,7 @@ refs:
   - &ref_6_20_0 '>=6.20.0 || ^5.131.0'
   - &ref_6_20_1 '>=6.20.1 || ^5.131.1'
   - &ref_6_21_0 '>=6.21.0 || ^5.132.0'
+  - &ref_6_23_0 '>=6.23.0 || ^5.134.0'
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag:
     - weblog_declaration:
@@ -152,8 +153,14 @@ manifest:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
         express5: *ref_5_69_0
-  tests/ai_guard/test_ai_guard_sdk.py::Test_ExtraTags: missing_feature (APPSEC-70724)
-  tests/ai_guard/test_ai_guard_sdk.py::Test_ExtraTagsFailSafe: missing_feature (APPSEC-70724)
+  tests/ai_guard/test_ai_guard_sdk.py::Test_ExtraTags:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        express5: *ref_6_23_0
+  tests/ai_guard/test_ai_guard_sdk.py::Test_ExtraTagsFailSafe:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        express5: *ref_6_23_0
   tests/ai_guard/test_ai_guard_sdk.py::Test_Full_Response_And_Tags:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
