@@ -215,12 +215,19 @@ class DebuggerInproductEnablement(DdTraceEndToEndScenario):
             use_proxy_for_agent=False,
             weblog_env={
                 "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.1",
-                "DD_TRACE_FLUSH_INTERVAL": "100",
             },
             library_interface_timeout=5,
             doc="Test scenario for checking dynamic enablement.",
             scenario_groups=[scenario_groups.debugger],
         )
+
+    def configure(self, config: pytest.Config):
+        super().configure(config)
+
+        if self.weblog_infra.library_name == "nodejs":
+            # Node.js reads it in milliseconds. Java reads it in seconds, so it keeps its default of one second:
+            # with 100 seconds, the traces of the last requests were not sent before the end of the scenario.
+            self.weblog_infra.library_container.environment["DD_TRACE_FLUSH_INTERVAL"] = "100"
 
 
 class DebuggerTelemetry(DdTraceEndToEndScenario):
