@@ -456,7 +456,8 @@ class Test_Headers_Baggage_Percent_Encoding:
     The parametric scenario runs one tracer at a time, so a real two-tracer hop is not possible here.
     Each test simulates the upstream hop: it sends the headers that an old dd-trace-go (query-form,
     space as "+") or another tracer writes, and checks what the tracer under test re-injects.
-    W3C keys are opaque tokens: "k+y" and "k%25y" must come back unchanged.
+    W3C keys are opaque: "k+y" is a token and must come back unchanged. "k%25y" must never be
+    percent-decoded to "k%y"; a tracer may keep it verbatim (dd-trace-go does) or drop it on inject.
     """
 
     def test_w3c_encoding(self, test_library: APMLibrary) -> None:
@@ -471,7 +472,16 @@ class Test_Headers_Baggage_Percent_Encoding:
         assert items["space"] == "a%20b"
         assert items["pct"] == "100%25"
         assert items["k+y"] == "v"
-        assert items["k%25y"] == "v"
+        assert "k%y" not in items
+        assert items.get("k%25y", "v") == "v"
+
+    def test_w3c_non_token_key_dropped(self, test_library: APMLibrary) -> None:
+        """A key outside the key character set ("(") is dropped on inject; keys with "+" or "%" are kept verbatim."""
+        with test_library:
+            headers = test_library.dd_make_child_span_and_get_headers([*_DD_PARENT, ("baggage", "k+y=v,k%25y=w,k(y=x")])
+
+        items = _parse_w3c_baggage(headers["baggage"])
+        assert items == {"k+y": "v", "k%25y": "w"}
 
     @parametrize("library_env", [{"DD_TRACE_PROPAGATION_STYLE": "datadog"}])
     def test_ot_baggage_encoding(self, test_library: APMLibrary) -> None:
