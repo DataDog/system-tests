@@ -16,7 +16,6 @@ from utils._context.containers import (
     OpenTelemetryCollectorContainer,
     TestedContainer,
     WeblogContainer,
-    FAKE_DD_API_KEY,
     CassandraContainer,
     KafkaContainer,
     MongoContainer,
@@ -26,7 +25,7 @@ from utils._context.containers import (
     RabbitMqContainer,
 )
 
-from ._core import DockerScenario, scenario_groups
+from ._core import DockerScenario, FakeDatadogKey, scenario_groups
 from utils.proxy.ports import ProxyPorts
 
 
@@ -44,7 +43,6 @@ class _OpenTelemetryScenario(DockerScenario):
         include_intake: bool = True,
         backend_interface_timeout: int = 20,
         require_api_key: bool = False,
-        mocked_backend: bool = True,
         extra_containers: tuple[type[TestedContainer], ...] = (),
     ) -> None:
         super().__init__(
@@ -54,13 +52,12 @@ class _OpenTelemetryScenario(DockerScenario):
             scenario_groups=[scenario_groups.all, scenario_groups.open_telemetry],
             weblog_categories=[WeblogCategory.open_telemetry],
             use_proxy=True,
-            mocked_backend=mocked_backend,
             extra_containers=extra_containers,
         )
         if include_agent:
             # the E2E scenarios (require_api_key) send the agent data to the real backend
             self.agent_container = AgentContainer(
-                dd_api_key=os.environ.get("DD_API_KEY", FAKE_DD_API_KEY), use_proxy=True
+                dd_api_key=os.environ.get("DD_API_KEY", FakeDatadogKey.DEFAULT), use_proxy=True
             )
             self._containers.append(self.agent_container)
         if include_collector:
@@ -239,18 +236,3 @@ class OtelIntegrations(_OpenTelemetryScenario):
                 "the interaction with sql database."
             ),
         )
-
-
-class OtelTracingE2e(_OpenTelemetryScenario):
-    def __init__(self) -> None:
-        super().__init__("OTEL_TRACING_E2E", require_api_key=True, doc="")
-
-
-class OtelMetricE2e(_OpenTelemetryScenario):
-    def __init__(self) -> None:
-        super().__init__("OTEL_METRIC_E2E", require_api_key=True, mocked_backend=False, doc="")
-
-
-class OtelLogE2e(_OpenTelemetryScenario):
-    def __init__(self) -> None:
-        super().__init__("OTEL_LOG_E2E", require_api_key=True, doc="")

@@ -3,7 +3,7 @@ from collections.abc import Generator, Iterable
 from dataclasses import asdict
 from http import HTTPStatus
 from types import TracebackType
-from typing import TypedDict, cast
+from typing import Any, TypedDict, cast
 
 import pytest
 from docker.models.containers import Container
@@ -288,6 +288,10 @@ class ParametricTestClientApi(TestClientApi):
             self._session.get(self._url("/trace/crash"))
         except RequestException as e:
             logger.info(f"Expected exception when calling /trace/crash: {e}")
+
+    def terminate(self) -> None:
+        self.container.kill(signal="SIGKILL")
+        self.container.wait(timeout=10)
 
     def get_logs(self) -> str:
         return self.container.logs().decode("utf-8")
@@ -812,6 +816,12 @@ class ParametricTestClientApi(TestClientApi):
 
         return _TestOtelSpan(self, span_response["span_id"], span_response["trace_id"])
 
+    def ffe_fetch_rules_configuration(self, options: dict[str, Any]) -> dict[str, Any]:
+        """Fetch and serialize portable rules in a process without tracer/provider initialization."""
+        response = self._session.post(self._url("/ffe/fetch-rules-configuration"), json=options, timeout=15)
+        response.raise_for_status()
+        return cast("dict[str, Any]", response.json())
+
     def ffe_start(self, configuration: dict | None = None) -> bool:
         """Initialize the FFE (Feature Flagging & Experimentation) provider.
 
@@ -832,7 +842,7 @@ class ParametricTestClientApi(TestClientApi):
         flag: str,
         variation_type: str,
         default_value: bool | str | float | dict,
-        targeting_key: str,
+        targeting_key: str | None,
         attributes: dict | None = None,
         span_id: int | str | None = None,
     ) -> dict:
@@ -1002,6 +1012,12 @@ class ParametricTestClientApi(TestClientApi):
 
     def otel_metrics_force_flush(self) -> bool:
         resp = self._session.post(self._url("/metrics/otel/force_flush"), json={}).json()
+        return resp["success"]
+
+    def otel_metrics_shutdown(self, seconds: int = 10) -> bool:
+        resp = self._session.post(
+            self._url("/metrics/otel/shutdown"), json={"seconds": seconds}, timeout=seconds + 1
+        ).json()
         return resp["success"]
 
     def llmobs_trace(
@@ -1252,6 +1268,12 @@ class APMLibrary:
     def otel_metrics_force_flush(self) -> bool:
         return self._client.otel_metrics_force_flush()
 
+    def otel_metrics_shutdown(self, seconds: int = 10) -> bool:
+        return self._client.otel_metrics_shutdown(seconds)
+
+    def terminate(self) -> None:
+        self._client.terminate()
+
     def is_alive(self) -> bool:
         return self._client.is_alive()
 
@@ -1265,6 +1287,10 @@ class APMLibrary:
     ) -> bool:
         return self._client.write_log(logger_name, level, message, span_id=span_id)
 
+    def ffe_fetch_rules_configuration(self, options: dict[str, Any]) -> dict[str, Any]:
+        """Fetch and serialize portable rules without initializing a tracer or provider."""
+        return self._client.ffe_fetch_rules_configuration(options)
+
     def ffe_start(self, configuration: dict | None = None) -> bool:
         """Initialize the FFE (Feature Flagging & Experimentation) provider."""
         return self._client.ffe_start(configuration)
@@ -1275,7 +1301,7 @@ class APMLibrary:
         flag: str,
         variation_type: str,
         default_value: bool | str | float | dict,
-        targeting_key: str,
+        targeting_key: str | None,
         attributes: dict | None = None,
         span_id: int | str | None = None,
     ) -> dict:

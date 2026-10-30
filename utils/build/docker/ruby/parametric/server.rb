@@ -711,6 +711,14 @@ class OtelMetricsForceFlushArgs
   end
 end
 
+class OtelMetricsShutdownArgs
+  attr_reader :seconds
+
+  def initialize(params)
+    @seconds = params.fetch('seconds', 10)
+  end
+end
+
 class OtelMetricsForceFlushReturn
   attr_accessor :success
 
@@ -869,20 +877,26 @@ def handle_ffe_evaluation(req, res)
     options = {
       flag_key: args.flag, default_value: args.default_value, evaluation_context: context
     }
+    options[:default_value] = args.default_value.to_f if args.variation_type == 'NUMERIC'
 
-    value =
+    details =
       case args.variation_type
-      when 'BOOLEAN'then client.fetch_boolean_value(**options)
-      when 'STRING' then client.fetch_string_value(**options)
-      when 'INTEGER' then client.fetch_integer_value(**options)
-      when 'NUMERIC' then client.fetch_float_value(**options)
-      when 'JSON' then client.fetch_object_value(**options)
-      else 'FATAL_UNEXPECTED_VARIATION_TYPE'
+      when 'BOOLEAN'then client.fetch_boolean_details(**options)
+      when 'STRING' then client.fetch_string_details(**options)
+      when 'INTEGER' then client.fetch_integer_details(**options)
+      when 'NUMERIC' then client.fetch_float_details(**options)
+      when 'JSON' then client.fetch_object_details(**options)
+      else raise ArgumentError, "Unexpected variation type: #{args.variation_type}"
       end
 
-    res.write({value: value, reason: 'DEFAULT'}.to_json)
+    res.write({
+      value: details.value,
+      reason: details.reason,
+      errorCode: details.error_code,
+      flagMetadata: details.flag_metadata
+    }.to_json)
   rescue => e
-    res.write({value: args.default_value, reason: 'ERROR'}.to_json)
+    res.write({value: args.default_value, reason: 'ERROR', errorCode: 'GENERAL', errorMessage: e.message}.to_json)
   end
 end
 
@@ -1028,6 +1042,8 @@ class MyApp
       handle_metrics_otel_create_asynchronous_gauge(req, res)
     when '/metrics/otel/force_flush'
       handle_metrics_otel_force_flush(req, res)
+    when '/metrics/otel/shutdown'
+      handle_metrics_otel_shutdown(req, res)
     when '/trace/crash'
       handle_trace_crash(req, res)
     when '/otel/logger/create'
@@ -1621,6 +1637,17 @@ class MyApp
     end
 
     res.write(OtelMetricsForceFlushReturn.new(true).to_json)
+  end
+
+  def handle_metrics_otel_shutdown(req, res)
+    args = OtelMetricsShutdownArgs.new(JSON.parse(req.body.read))
+    meter_provider = OpenTelemetry.meter_provider
+    success = meter_provider.respond_to?(:shutdown)
+    result = meter_provider.shutdown(timeout: args.seconds) if success
+    success &&= result == OpenTelemetry::SDK::Metrics::Export::SUCCESS
+    res.write(OtelMetricsForceFlushReturn.new(success).to_json)
+  rescue
+    res.write(OtelMetricsForceFlushReturn.new(false).to_json)
   end
 
   def handle_otel_logger_create(req, res)

@@ -10,7 +10,7 @@ import requests
 from utils import pytest
 
 from utils import features, interfaces, scenarios
-from utils._context.containers import MockedBackendContainer, ServerlessInitContainer
+from utils._context.containers import MockedBackendContainer, ProxyContainer, ServerlessInitContainer
 from utils._context._scenarios import agentless_endtoend as agentless_endtoend_scenarios
 from utils._context._scenarios._core import endtoend as endtoend_scenarios
 from utils.docker_fixtures._core import HOST_GATEWAY_EXTRA_HOSTS, extra_hosts_for_environment
@@ -28,9 +28,10 @@ from utils._context._scenarios.agentless_endtoend import (
     DIRECT_EVP_CA_BUNDLE_SOURCE,
     DIRECT_EVP_CAPTURE_SETTLE_SECONDS,
     DIRECT_EVP_CAPTURE_WAIT_SECONDS,
+    JAVA_TRUSTSTORE_CONTAINER_PATH,
+    JAVA_TRUSTSTORE_SOURCE,
     FeatureFlaggingAgentlessEndToEndScenario,
 )
-from utils.proxy.ports import ProxyPorts
 
 from .utils import extra_hosts_at_start
 
@@ -129,10 +130,19 @@ def test_agentless_end_to_end_scenario_points_weblog_to_mocked_backend(monkeypat
     assert "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED" not in environment
     assert "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE" not in environment
     assert "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT" not in environment
-    assert environment["DD_API_KEY"] == scenario.dd_api_key
+    assert environment["DD_API_KEY"] == scenario.weblog_api_key
     assert environment["DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL"] == (
-        f"http://mocked-backend:4900{CONFIG_PATH}?{CONFIG_QUERY}"
+        f"https://mocked-backend.invalid{CONFIG_PATH}?{CONFIG_QUERY}"
     )
+    # it serves HTTPS, with a certificate signed by the CA of the mounted bundle
+    assert environment["NODE_EXTRA_CA_CERTS"] == DIRECT_EVP_CA_BUNDLE_CONTAINER_PATH
+    assert library_container.volumes[DIRECT_EVP_CA_BUNDLE_SOURCE] == {
+        "bind": DIRECT_EVP_CA_BUNDLE_CONTAINER_PATH,
+        "mode": "ro",
+    }
+    # the JVM gets the CA in its own trust store
+    assert library_container.volumes[JAVA_TRUSTSTORE_SOURCE] == {"bind": JAVA_TRUSTSTORE_CONTAINER_PATH, "mode": "ro"}
+    assert f"-Djavax.net.ssl.trustStore={JAVA_TRUSTSTORE_CONTAINER_PATH}" in str(environment["JDK_JAVA_OPTIONS"])
     # reached by its name on the scenario network: no mapping to the docker host
     assert extra_hosts_at_start(monkeypatch, library_container) is None
 
@@ -164,7 +174,7 @@ def test_default_agentless_scenario_leaves_source_selection_implicit() -> None:
 @pytest.mark.parametrize("exposure_egress", ["direct", "sidecar"])
 @scenarios.test_the_test
 @features.not_reported
-def test_agentless_exposure_scenario_has_no_agent_and_two_capture_routes(
+def test_agentless_exposure_scenario_sends_events_to_the_mocked_backend(
     exposure_egress: Literal["direct", "sidecar"],
 ) -> None:
     scenario = FeatureFlaggingAgentlessEndToEndScenario(
@@ -174,17 +184,14 @@ def test_agentless_exposure_scenario_has_no_agent_and_two_capture_routes(
     )
 
     environment = scenario.weblog_infra.library_container.environment
-    serverless_init_containers = tuple(
-        container
-        for container in scenario.weblog_infra.get_containers()
-        if isinstance(container, ServerlessInitContainer)
-    )
     assert scenario.agent_container not in scenario._containers  # noqa: SLF001 - focused topology test
-    assert scenario.proxy_container in scenario._containers  # noqa: SLF001 - focused topology test
+    # the intake hostnames derived from DD_SITE are network aliases of the mocked backend: no proxy in between
+    assert not any(isinstance(container, ProxyContainer) for container in scenario._containers)  # noqa: SLF001
+    assert scenario.mocked_backend_container.tls
     assert scenario.get_libraries() is None
-    assert environment["DD_SITE"] == "mock-intake.invalid"
-    assert environment["DD_PROXY_HTTPS"] == f"http://proxy:{ProxyPorts.datadog_direct}"
-    assert environment["HTTPS_PROXY"] == f"http://proxy:{ProxyPorts.datadog_direct}"
+    assert environment["DD_SITE"] == "mocked-backend.invalid"
+    assert "DD_PROXY_HTTPS" not in environment
+    assert "HTTPS_PROXY" not in environment
     assert environment["DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED"] == "true"
     assert environment["DD_FEATURE_FLAGS_CONFIGURATION_SOURCE"] == "agentless"
 
@@ -196,20 +203,21 @@ def test_agentless_exposure_scenario_has_no_agent_and_two_capture_routes(
         }
         for name in DIRECT_EVP_AGENT_VARIABLES:
             assert name not in environment
-        assert not serverless_init_containers
+        assert scenario.serverless_init_container is None
         return
 
-    assert DIRECT_EVP_CA_BUNDLE_SOURCE not in scenario.weblog_infra.library_container.volumes
     serverless_init = scenario.serverless_init_container
-    assert serverless_init_containers == (serverless_init,)
     assert isinstance(serverless_init, ServerlessInitContainer)
+    assert serverless_init in scenario._containers  # noqa: SLF001 - focused topology test
     assert serverless_init.image.original_name == "datadog/serverless-init:1.10.4"
     assert environment["DD_TRACE_AGENT_PORT"] == str(serverless_init.apm_receiver_port)
     assert environment["DD_TRACE_AGENT_URL"] == f"http://ffe-serverless-init:{serverless_init.apm_receiver_port}"
     assert serverless_init.healthcheck is not None
-    assert serverless_init.environment["DD_SITE"] == "mock-intake.invalid"
-    assert serverless_init.environment["DD_PROXY_HTTPS"] == f"http://proxy:{ProxyPorts.datadog_sidecar}"
-    assert serverless_init.environment["DD_PROXY_HTTP"] == f"http://proxy:{ProxyPorts.datadog_sidecar}"
+    assert serverless_init.environment["DD_SITE"] == "mocked-backend.invalid"
+    assert serverless_init.environment["DD_API_KEY"] == scenario.sidecar_api_key
+    assert "DD_PROXY_HTTPS" not in serverless_init.environment
+    assert serverless_init.environment["DD_DD_URL"] == "https://mocked-backend.invalid"
+    assert serverless_init.environment["DD_APM_DD_URL"] == "https://mocked-backend.invalid"
 
 
 @scenarios.test_the_test
@@ -284,7 +292,9 @@ def test_agentless_evp_capture_registry_waits_for_each_path_before_settling(
     for path in expected_paths:
         scenario.register_expected_evp_capture(path)
 
-    captures = iter({"path": path} for path in expected_paths)
+    captures = iter(
+        {"path": path, "request": {"headers": [("DD-API-KEY", scenario.weblog_api_key)]}} for path in expected_paths
+    )
     wait_timeouts: list[int] = []
 
     def wait_for(matcher: Callable[[dict[str, Any]], bool], *, timeout: int) -> bool:
@@ -292,13 +302,38 @@ def test_agentless_evp_capture_registry_waits_for_each_path_before_settling(
         return matcher(next(captures))
 
     wait = MagicMock()
-    monkeypatch.setattr(interfaces.datadog_direct, "wait_for", wait_for)
-    monkeypatch.setattr(interfaces.datadog_direct, "wait", wait)
+    monkeypatch.setattr(interfaces.mocked_backend, "wait_for", wait_for)
+    monkeypatch.setattr(interfaces.mocked_backend, "wait", wait)
 
     scenario._wait_for_expected_evp_captures(is_empty_test_run=False)  # noqa: SLF001
 
     assert wait_timeouts == [DIRECT_EVP_CAPTURE_WAIT_SECONDS, DIRECT_EVP_CAPTURE_WAIT_SECONDS]
     wait.assert_called_once_with(DIRECT_EVP_CAPTURE_SETTLE_SECONDS)
+
+
+@scenarios.test_the_test
+@features.not_reported
+def test_sidecar_stops_right_after_the_weblog(monkeypatch: pytest.MonkeyPatch) -> None:
+    """serverless-init must flush to the mocked backend before it is stopped by the base scenario"""
+    scenario = FeatureFlaggingAgentlessEndToEndScenario(
+        "MOCK_FFE_AGENTLESS_SIDECAR_STOP_ORDER",
+        doc="test",
+        exposure_egress="sidecar",
+    )
+    lifecycle: list[str] = []
+
+    def stop_weblog(self: object, *, is_empty_test_run: bool) -> None:
+        assert self is scenario
+        assert is_empty_test_run is False
+        lifecycle.append("weblog")
+
+    monkeypatch.setattr(endtoend_scenarios.DdTraceEndToEndScenario, "_stop_weblog", stop_weblog)
+    assert scenario.serverless_init_container is not None
+    monkeypatch.setattr(scenario.serverless_init_container, "stop", lambda: lifecycle.append("serverless-init"))
+
+    scenario._stop_weblog(is_empty_test_run=False)  # noqa: SLF001
+
+    assert lifecycle == ["weblog", "serverless-init"]
 
 
 @scenarios.test_the_test
@@ -347,21 +382,12 @@ def test_direct_evp_replay_skips_missing_runtime_evidence(
     is_empty_test_run = run_selection == "empty"
 
     stop_containers = MagicMock()
-    load_interfaces = MagicMock()
-    sidecar_errors = MagicMock()
-    direct_errors = MagicMock()
     monkeypatch.setattr(endtoend_scenarios.DdTraceEndToEndScenario, "_wait_and_stop_containers", stop_containers)
-    monkeypatch.setattr(scenario, "_load_telemetry_interfaces", load_interfaces)
-    monkeypatch.setattr(interfaces.datadog_sidecar, "check_deserialization_errors", sidecar_errors)
-    monkeypatch.setattr(interfaces.datadog_direct, "check_deserialization_errors", direct_errors)
 
     scenario._wait_and_stop_containers(is_empty_test_run=is_empty_test_run)  # noqa: SLF001
 
     assert scenario._last_direct_evp_runtime_evidence is None  # noqa: SLF001
     stop_containers.assert_called_once_with(is_empty_test_run=is_empty_test_run)
-    load_interfaces.assert_called_once_with()
-    sidecar_errors.assert_called_once_with()
-    direct_errors.assert_called_once_with()
 
 
 @scenarios.test_the_test
@@ -412,6 +438,7 @@ def test_direct_evp_shutdown_probe_uses_sigterm_without_explicit_flush(
         "log_filename": "direct-0000.json",
         "request": {
             "timestamp_start": "2099-09-09T11:59:59+00:00",
+            "headers": [("DD-API-KEY", scenario.weblog_api_key)],
             "content": {
                 "exposures": [
                     {
@@ -427,6 +454,7 @@ def test_direct_evp_shutdown_probe_uses_sigterm_without_explicit_flush(
         "log_filename": "direct-0001.json",
         "request": {
             "timestamp_start": "2099-09-09T12:00:01+00:00",
+            "headers": [("DD-API-KEY", scenario.weblog_api_key)],
             "content": {
                 "exposures": [
                     {
@@ -442,11 +470,13 @@ def test_direct_evp_shutdown_probe_uses_sigterm_without_explicit_flush(
             [priming_capture],
             [priming_capture],
             [priming_capture],
+            [priming_capture],
             [priming_capture, capture],
         )
     )
 
-    def get_data() -> list[dict[str, Any]]:
+    def get_data(*, with_api_key: str) -> list[dict[str, Any]]:
+        assert with_api_key == scenario.weblog_api_key
         lifecycle.append("capture-snapshot")
         return next(snapshots)
 
@@ -456,9 +486,11 @@ def test_direct_evp_shutdown_probe_uses_sigterm_without_explicit_flush(
         return any(matcher(candidate) for candidate in (priming_capture, capture))
 
     settle = MagicMock(side_effect=lambda _: lifecycle.append("settle"))
-    monkeypatch.setattr(interfaces.datadog_direct, "get_data", get_data)
-    monkeypatch.setattr(interfaces.datadog_direct, "wait_for", wait_for)
-    monkeypatch.setattr(interfaces.datadog_direct, "wait", settle)
+    monkeypatch.setattr(interfaces.mocked_backend, "get_data", get_data)
+    monkeypatch.setattr(interfaces.mocked_backend, "wait_for", wait_for)
+    monkeypatch.setattr(interfaces.mocked_backend, "wait", settle)
+    # the priming capture is polled from the recorded files, without the watchdog latency
+    monkeypatch.setattr(interfaces.mocked_backend, "ingest_all_files", lambda: lifecycle.append("capture-ingest"))
 
     runtime_container = MagicMock()
     runtime_container.status = "exited"
@@ -487,7 +519,8 @@ def test_direct_evp_shutdown_probe_uses_sigterm_without_explicit_flush(
     assert lifecycle == [
         "runtime-evidence",
         "evaluate",
-        "capture-wait",
+        "capture-ingest",
+        "capture-snapshot",
         "capture-snapshot",
         "capture-snapshot",
         "evaluate",
@@ -523,7 +556,7 @@ def test_agentless_end_to_end_scenario_stops_backend_when_status_fails(
     monkeypatch.setattr(scenario, "mocked_backend_container", container)
 
     with pytest.raises(RuntimeError, match="status failed"):
-        scenario._stop_mocked_backend_v2()  # noqa: SLF001 - focused lifecycle test
+        scenario._stop_mocked_backend()  # noqa: SLF001 - focused lifecycle test
 
     container.stop.assert_called_once_with()
 
@@ -551,7 +584,7 @@ def test_agentless_end_to_end_scenario_persists_backend_status_for_replay(
     container.client.ffe_get_status.return_value = expected_status
     monkeypatch.setattr(recording_scenario, "mocked_backend_container", container)
 
-    recording_scenario._stop_mocked_backend_v2()  # noqa: SLF001 - focused lifecycle test
+    recording_scenario._stop_mocked_backend()  # noqa: SLF001 - focused lifecycle test
 
     container.stop.assert_called_once_with()
     assert recording_scenario.mock_backend_status() == expected_status

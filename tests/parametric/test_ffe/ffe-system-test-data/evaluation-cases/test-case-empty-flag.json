@@ -1,0 +1,61 @@
+[
+  {
+    "_skip": [
+      {
+        "platform": "php",
+        "reason": "PHP reports PARSE_ERROR for empty flags."
+      }
+    ],
+    "attributes": {
+      "country": "US",
+      "email": "alice@mycompany.com"
+    },
+    "defaultValue": "default_value",
+    "flag": "empty_flag",
+    "result": {
+      "reason": "DEFAULT",
+      "value": "default_value"
+    },
+    "targetingKey": "alice",
+    "variationType": "STRING"
+  },
+  {
+    "_skip": [
+      {
+        "platform": "php",
+        "reason": "PHP reports PARSE_ERROR for empty flags."
+      }
+    ],
+    "attributes": {
+      "country": "Canada",
+      "email": "bob@example.com"
+    },
+    "defaultValue": "default_value",
+    "flag": "empty_flag",
+    "result": {
+      "reason": "DEFAULT",
+      "value": "default_value"
+    },
+    "targetingKey": "bob",
+    "variationType": "STRING"
+  },
+  {
+    "_skip": [
+      {
+        "platform": "php",
+        "reason": "PHP reports PARSE_ERROR for empty flags."
+      }
+    ],
+    "attributes": {
+      "age": 50
+    },
+    "defaultValue": "default_value",
+    "flag": "empty_flag",
+    "result": {
+      "reason": "DEFAULT",
+      "value": "default_value"
+    },
+    "targetingKey": "charlie",
+    "variationType": "STRING"
+  }
+]

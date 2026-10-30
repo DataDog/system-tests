@@ -13,11 +13,80 @@ This directory contains system tests for the Feature Flags & Experimentation (FF
 | `test_flag_eval_evp.py` | Server-side EVP flagevaluation payloads, aggregation, and bounds |
 | `test_evaluation_telemetry_opt_out.py` | Per-subject evaluation telemetry opt-out, default-off behavior, and unchanged exposures |
 
+## Canonical parametric fixtures
+
+The parametric evaluation suite reads the checked-in snapshot under
+`tests/parametric/test_ffe/ffe-system-test-data`. Its upstream source and exact
+commit are recorded in `SOURCE.md` inside that directory.
+
+Change shared evaluator cases in
+[`DataDog/ffe-system-test-data`](https://github.com/DataDog/ffe-system-test-data)
+first, then refresh the snapshot:
+
+```bash
+python3 utils/scripts/update_ffe_fixtures.py --ref <branch-tag-or-commit>
+```
+
+The updater imports `ufc-config.json` and `evaluation-cases/*.json` only. Ordinary
+test runs use those checked-in files without submodules or network access. A
+weekly/manual workflow opens a signed draft PR when their contents change and
+leaves any existing fixture update PR untouched. Review and resolve newly exposed
+SDK failures before merging an update.
+
+Dynamic evaluation checks each case's value, reason, and explicit error code.
+`Test_Feature_Flag_Split_Features` additionally checks every canonical case with
+`result.features` against the public exposure-hook callback and actual exposure
+and evaluation payloads received by the parametric test agent. Exact maps detect
+missing values, extra keys, destination leaks, and boolean/number coercion while
+preserving JSON numeric equivalence. This covers false, zero, empty strings,
+first-valid-key selection, and selected-allocation isolation. For `doLog=false`,
+selected metadata is checked separately and exposure delivery must stay absent.
+
+The destination test currently runs with Java's `1.69.0-SNAPSHOT` SDK and later;
+other clients are marked `incomplete_test_app` until they capture their public
+hook output. Their baseline evaluation cases continue to run. The Java harness
+loads the optional hook API only when this test enables capture, so older SDKs
+can still compile and run baseline tests. Unsupported clients skip this slower
+delivery test before container setup. An opt-in test-agent app factory registers
+the FFE intake routes missing from the pinned agent image and records their
+original payloads. This proves local delivery, not Datadog intake or production.
+
+Cases with optional `capabilities` still run their baseline `result`; enabling
+capability-specific provider options requires separate harness support.
+Remote Configuration tests and the mocked agentless backend read the same UFC.
+Serial-ID metadata and span-enrichment tests select their flag definitions from
+the shared corpus using their dedicated evaluation-case files. Their integration
+harnesses retain trace construction and metadata assertions; no separate local
+configuration copies are needed.
+
 ## Running FFE Tests
+
+Standalone rules-configuration helpers are covered in `tests/parametric/test_ffe/test_rules_configuration.py` (Node.js only for now). These tests use `dd-trace/openfeature/rules-based` in a fresh process without initializing a tracer or provider, fetch protobuf over HTTP, and validate the portable wire output, channel credentials, typed errors, deadlines and cancellation during headers/body delivery, transport failures, invalid options, and redirect protection. They do not initialize a browser SDK or contact Datadog.
+
+These tests report to [Offline initialization and portable configuration helpers (#562)](https://feature-parity.us1.prod.dog/?feature=562). Current coverage is limited to Node's rules-based fetching and serialization; precomputed helpers and provider offline initialization are not covered here.
+
+With Docker and the Python 3.12 runner installed:
+
+```bash
+PYTEST_XDIST_AUTO_NUM_WORKERS=1 TEST_LIBRARY=nodejs ./run.sh PARAMETRIC tests/parametric/test_ffe/test_rules_configuration.py
+```
+
+Until the helpers are released, use a master build as described in the [custom Node.js binary instructions](../../docs/execute/binaries.md#nodejs-library). The Node manifest currently targets master's `7.0.0-pre` development version; update that gate to the actual release version once published.
+
+The protobuf fixture `tests/parametric/test_ffe/rules-wire.json` comes from `openfeature-js-client/packages/browser/test/data/rules-v1-wire.json`. The test checks serialization without evaluating flags or depending on a browser package.
 
 ```bash
 ./run.sh FEATURE_FLAGGING_AND_EXPERIMENTATION --library <language>
 ```
+
+## SDK identity through the Agent
+
+`Test_FFE_EVP_Flagevaluation_SDK_Identity` checks SDK origin and version headers on
+Agent-to-intake captures while retaining the shared payload and evaluation-count checks.
+The case requires Agent 7.84+ and is enabled for Go 2.11.0+, Python 4.16.0+, and
+Node.js express5 under its existing version gate. Other languages retain their
+current exclusions. Event-level `source` is rejected: source identity belongs in
+the request headers.
 
 ## Per-subject evaluation telemetry opt-out
 
@@ -119,6 +188,28 @@ environment installed, run them explicitly:
 ./run.sh TEST_THE_TEST tests/test_the_test/test_ffe_tests.py tests/test_the_test/test_ffe_evaluation_telemetry_opt_out.py
 ```
 Framework mock-backend and lifecycle tests stay in `tests/test_the_test/`.
+
+## Bounds and overload coverage
+
+With full-data consent, the context tests require all 256 valid attributes to
+survive unchanged at the field-count limit. Over-limit contexts may retain an
+unchanged subset of at most 256 attributes or be omitted entirely. A separate
+string-length test requires oversized values to be omitted while valid fields survive.
+
+Run the high-cardinality accounting test in its dedicated scenario:
+
+```sh
+./run.sh FEATURE_FLAGGING_EVP_STRESS --library <language>
+```
+
+Keep this scenario limited to one evaluation workload: its drop counters are
+process-wide. Delivered evaluation counts (including degraded delivery) plus
+accepted reported drops must equal attempted evaluations, and some delivery is
+required. See the [accounting helper](utils/evp.py) for accepted counters and validation.
+Periodic flushes may prevent degradation, so the test validates degraded rows when
+present but does not require them. Deterministic degradation-threshold checks belong
+in SDK-local tests. Drop counters must report lost evaluations, including those
+represented by aggregated rows.
 
 ---
 
@@ -285,7 +376,7 @@ The tests use `interfaces.agent.get_metrics()` to retrieve metrics from the agen
 
 ### 1. Test returns `parse_error` instead of expected reason
 - Check UFC fixture format (especially `totalShards` placement)
-- Verify the fixture matches `flags-v1.json` format in dd-trace-py
+- Verify the fixture matches the canonical `ffe-system-test-data/ufc-config.json` format
 
 ### 2. Test returns `static` instead of `split`
 - Need multiple variations with different shard ranges

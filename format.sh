@@ -210,6 +210,14 @@ if ! gen_redaction_output="$(python utils/scripts/gen_redaction_cassettes.py $ge
   exit 1
 fi
 
+echo "Checking AI Guard extra_tags fixtures..."
+if ! gen_extra_tags_output="$(python utils/scripts/gen_extra_tags_cassettes.py $gen_redaction_args 2>&1)"; then
+  echo "$gen_extra_tags_output"
+  echo "AI Guard extra_tags fixtures are out of date or invalid. Regenerate them with"
+  echo "python utils/scripts/gen_extra_tags_cassettes.py 💥 💔 💥"
+  exit 1
+fi
+
 echo "Running shellcheck checks..."
 if ! ./utils/scripts/shellcheck.sh; then
   echo "shellcheck checks failed. Please fix the errors above. 💥 💔 💥"

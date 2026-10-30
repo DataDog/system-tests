@@ -75,6 +75,26 @@ function createInstrumentKey(meterName, name, kind, unit, description) {
   return `${meterName}:${name}:${kind}:${unit}:${description}`;
 }
 
+async function waitForMetricsLifecycle (operation, seconds) {
+  let timeout
+  try {
+    await Promise.race([
+      operation,
+      new Promise((resolve, reject) => {
+        timeout = setTimeout(() => reject(new Error('Metrics lifecycle operation timed out')), seconds * 1000)
+      })
+    ])
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+
+function waitForMetricsCallback (operation, seconds) {
+  return waitForMetricsLifecycle(new Promise((resolve, reject) => {
+    operation(error => error ? reject(error) : resolve())
+  }), seconds)
+}
+
 function replaceBaggage(items) {
   tracer.removeAllBaggageItems()
   for (const [key, value] of Object.entries(items)) tracer.setBaggageItem(key, value)
@@ -585,6 +605,28 @@ app.post("/trace/otel/otel_set_baggage", (req, res) => {
 });
 
 // Feature Flag & Experimentation endpoints
+app.post('/ffe/fetch-rules-configuration', (req, res) => {
+  const { execFile } = require('node:child_process')
+  const path = require('node:path')
+  const env = { ...process.env }
+  // The helper must work without the parent server's tracer or preload hooks.
+  delete env.NODE_OPTIONS
+  execFile(process.execPath, [path.join(__dirname, 'ffe-rules-configuration.js'), JSON.stringify(req.body)], {
+    env,
+    timeout: 10000
+  }, (error, stdout, stderr) => {
+    if (error) {
+      console.error('Standalone FFE helper failed:', stderr || error)
+      return res.status(500).json({ error: 'Standalone FFE helper failed' })
+    }
+    try {
+      res.json(JSON.parse(stdout))
+    } catch (error) {
+      res.status(500).json({ error: 'Invalid standalone FFE helper output' })
+    }
+  })
+})
+
 app.post('/ffe/start', async (req, res) => {
   const hasFeatureFlaggingConfiguration = [
     'DD_FEATURE_FLAGS_ENABLED',
@@ -650,6 +692,7 @@ app.post('/ffe/evaluate', async (req, res) => {
   res.json({
     value: details.value,
     reason: details.reason,
+    errorCode: details.errorCode,
     flagMetadata: details.flagMetadata ?? null
   });
 });
@@ -889,6 +932,19 @@ app.post('/metrics/otel/force_flush', (req, res) => {
     res.json({ success: true });
   } else {
     res.json({ success: false, message: 'Force flush not supported' });
+  }
+});
+
+app.post('/metrics/otel/shutdown', async (req, res) => {
+  const meterProvider = metrics.getMeterProvider();
+  if (typeof meterProvider.shutdown !== 'function') {
+    return res.json({ success: false, message: 'Shutdown not supported' });
+  }
+  try {
+    await waitForMetricsCallback(done => meterProvider.shutdown(done), req.body.seconds || 10)
+    res.json({ success: true });
+  } catch (error) {
+    res.json({ success: false, message: error.message });
   }
 });
 

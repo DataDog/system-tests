@@ -84,7 +84,17 @@ class TestClientFactory:
                 # Same builder as weblog builds (utils/build/build.sh): its buildkitd
                 # daemon redirects all FROM pulls through the system-tests mirror.
                 # It does not use the docker driver, so the image must be loaded back.
-                cmd = [docker_bin, "buildx", "build", "--builder", _ensure_mirror_builder(docker_bin), "--load"]
+                # Equivalent to --load, but skips layer compression: the tarball is only
+                # streamed to the local docker daemon, so gzip just burns CPU time.
+                cmd = [
+                    docker_bin,
+                    "buildx",
+                    "build",
+                    "--builder",
+                    _ensure_mirror_builder(docker_bin),
+                    "--output",
+                    "type=docker,compression=uncompressed",
+                ]
             else:
                 cmd = [docker_bin, "build"]
             cmd += ["--progress=plain"]

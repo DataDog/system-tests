@@ -3,6 +3,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Mapping
 import contextlib
+from datetime import UTC, datetime
 import gzip
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import io
@@ -57,9 +58,12 @@ def _decode_content(raw_body: bytes, content_encoding: str) -> bytes:
 class MockedBackendServerCore(ABC, ThreadingHTTPServer):
     on_message: Callable[[dict], None]
     port: int
+    scheme: str
 
     @abstractmethod
-    def get_handler(self, method: HttpMethod, path: str) -> tuple[RouteHandler, str | None, str | None]: ...
+    def get_handler(
+        self, method: HttpMethod, path: str, *, query: str = ""
+    ) -> tuple[RouteHandler, str | None, str | None]: ...
 
     @abstractmethod
     def add_handler(self, method: HttpMethod, path: str, handler: RouteHandler) -> None: ...
@@ -72,6 +76,8 @@ class MockedBackendServerCore(ABC, ThreadingHTTPServer):
 class MockBackendV2RequestHandler(BaseHTTPRequestHandler):
     server: MockedBackendServerCore
     _data: dict  # use to store request and response info
+    # Routes can delay or interrupt body delivery after headers and request logging.
+    before_response_body: Callable[[], None] | None = None
 
     # catch response events
     def send_response(self, code: int, message: str | None = None) -> None:
@@ -104,18 +110,19 @@ class MockBackendV2RequestHandler(BaseHTTPRequestHandler):
         self._handle("PUT")
 
     def _handle(self, method: HttpMethod) -> None:
+        timestamp_start = datetime.now(UTC).isoformat()
         content_length = int(self.headers.get("Content-Length", "0"))
         raw_body = self.rfile.read(content_length) if content_length else b""
         url_parts = urlsplit(self.path)
         path = url_parts.path
 
-        handler, log_filename, export_content_files_to = self.server.get_handler(method, path)
+        handler, log_filename, export_content_files_to = self.server.get_handler(method, path, query=url_parts.query)
 
         self._data: dict[str, Any] = {
             "log_filename": log_filename,
             "method": self.command,
             "path": path,
-            "request": {"headers": list(self.headers.items())},
+            "request": {"timestamp_start": timestamp_start, "headers": list(self.headers.items())},
             "response": {"headers": []},
         }
 
@@ -139,7 +146,7 @@ class MockBackendV2RequestHandler(BaseHTTPRequestHandler):
 
         self._data["response"]["content"] = str(response) if isinstance(response, bytes) else response
 
-        logger.debug(f"Mocked backend v2 received {self.command} {self.path}, logging into {log_filename}")
+        logger.info(f"{self.command} {self.path} -> handled by {handler}: {self._data['response'].get('status_code')}")
 
         if log_filename:
             with open(log_filename, mode="w", encoding="utf-8") as f:
@@ -152,4 +159,6 @@ class MockBackendV2RequestHandler(BaseHTTPRequestHandler):
         with contextlib.suppress(BrokenPipeError, ConnectionResetError):
             self.send_header("Content-Length", str(len(response_as_bytes)))
             self.end_headers()
+            if self.before_response_body is not None:
+                self.before_response_body()
             self.wfile.write(response_as_bytes)

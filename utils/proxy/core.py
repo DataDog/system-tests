@@ -40,7 +40,7 @@ messages_counts: dict[str, int] = defaultdict(int)
 # Used to create the stub TLS server cert (mitmproxy CA is always present at startup).
 _MITMPROXY_CA_PEM = "/app/utils/proxy/.mitmproxy/mitmproxy-ca.pem"
 
-_MOCKED_BACKEND_PORTS = (ProxyPorts.agent, ProxyPorts.datadog_sidecar, ProxyPorts.datadog_direct)
+_MOCKED_BACKEND_PORTS = (ProxyPorts.agent,)
 
 
 class _UDPForwarder(asyncio.DatagramProtocol):
@@ -133,8 +133,6 @@ class _RequestLogger:
 
         self.log_folder = os.environ["SYSTEM_TESTS_LOG_FOLDER"]
 
-        self.mocked_backend = os.environ.get("SYSTEM_TESTS_MOCKED_BACKEND") == "True"
-
         self.tracing_agent_target_host = os.environ.get("PROXY_TRACING_AGENT_TARGET_HOST", "agent")
         self.tracing_agent_target_port = int(os.environ.get("PROXY_TRACING_AGENT_TARGET_PORT", "8127"))
 
@@ -178,8 +176,6 @@ class _RequestLogger:
             flow.response = http.Response.make(200, b"Ok")
 
     async def running(self) -> None:
-        if not self.mocked_backend:
-            return
         ssl_ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
         ssl_ctx.load_cert_chain(_MITMPROXY_CA_PEM)
         self._mock_upstream_server = await asyncio.start_server(
@@ -190,7 +186,7 @@ class _RequestLogger:
     def http_connect(self, flow: HTTPFlow) -> None:
         proxy_port = flow.client_conn.sockname[1]
         logger.info(f"Flow {flow.id}: CONNECT {flow.request.host}:{flow.request.port} using proxy port {proxy_port}")
-        if proxy_port in _MOCKED_BACKEND_PORTS and self.mocked_backend:
+        if proxy_port in _MOCKED_BACKEND_PORTS:
             # Redirect to local stub TLS server so mitmproxy can always complete tunnel setup.
             # Without this, CONNECT handshake is performed to the backend, and if ever it fails,
             # request() never fires.
@@ -254,7 +250,7 @@ class _RequestLogger:
 
             logger.info(f"Flow {flow.id}: reverse proxy to {flow.request.pretty_url}")
 
-        elif proxy_port == ProxyPorts.otel_collector and self.mocked_backend:
+        elif proxy_port == ProxyPorts.otel_collector:
             flow.response = http.Response.make(200, b"Ok")  # TODO : response accepted by collector
 
         elif proxy_port in (
@@ -271,7 +267,7 @@ class _RequestLogger:
             )
             flow.request.scheme = "http"
             logger.info(f"Flow {flow.id}: reverse proxy to {flow.request.pretty_url}")
-        elif proxy_port in _MOCKED_BACKEND_PORTS and self.mocked_backend:
+        elif proxy_port in _MOCKED_BACKEND_PORTS:
             # Since we are faking the backend (generating responses from
             # scratch), the logic is that the first mock satisfying the
             # condition wins. Consequently, we check runtime mocks (controlled
@@ -331,10 +327,6 @@ class _RequestLogger:
             interface = "golang_buddy"
         elif proxy_port == ProxyPorts.agent:  # HTTPS port, as the agent use the proxy with HTTP_PROXY env var
             interface = "agent"
-        elif proxy_port == ProxyPorts.datadog_sidecar:
-            interface = "datadog_sidecar"
-        elif proxy_port == ProxyPorts.datadog_direct:
-            interface = "datadog_direct"
         else:
             raise ValueError(f"Unknown port provenance for {flow.request}: {proxy_port}")
 
@@ -423,23 +415,20 @@ def start_proxy() -> None:
         f"regular@{ProxyPorts.golang_buddy}",  # golang_buddy
         f"regular@{ProxyPorts.open_telemetry_weblog}",  # Open telemetry weblog
         f"regular@{ProxyPorts.agent}",  # from agent to backend
-        f"regular@{ProxyPorts.datadog_sidecar}",  # Datadog sidecar traffic
-        f"regular@{ProxyPorts.datadog_direct}",  # Datadog direct intake traffic
         f"regular@{ProxyPorts.otel_collector}",  # from otel collector to backend
     ]
 
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     listen_host = "::" if os.environ.get("SYSTEM_TESTS_IPV6") == "True" else "0.0.0.0"  # noqa: S104
-    mocked_backend = os.environ.get("SYSTEM_TESTS_MOCKED_BACKEND") == "True"
     opts = options.Options(
         mode=modes,
         listen_host=listen_host,
         confdir="/app/utils/proxy/.mitmproxy",
         # When mocking, generate TLS certs from SNI (no upstream fetch needed) and don't
         # verify the stub server's self-signed cert.
-        upstream_cert=not mocked_backend,
-        ssl_insecure=mocked_backend,
+        upstream_cert=False,
+        ssl_insecure=True,
     )
     proxy = master.Master(opts, event_loop=loop)
     proxy.addons.add(*default_addons())

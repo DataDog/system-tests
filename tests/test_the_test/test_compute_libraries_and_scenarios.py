@@ -222,6 +222,19 @@ class Test_ComputeLibrariesAndScenarios:
             "",
         )
 
+    def test_php_parametric_base_docker_file(self):
+        inputs = build_inputs(["utils/build/docker/php/parametric.base.Dockerfile"])
+
+        assert_github_processor(
+            inputs,
+            ["php"],
+            ["php"],
+            600,
+            "false",
+            "DEFAULT,PARAMETRIC",
+            "",
+        )
+
     def test_nodejs_docker_file(self):
         inputs = build_inputs(["utils/build/docker/nodejs/express5.Dockerfile"])
 
@@ -575,6 +588,11 @@ class Test_ComputeLibrariesAndScenarios:
         inputs = build_inputs(modified_files=["utils/_context/_scenarios/__init__.py"])
         assert_github_processor(inputs, [], [], 3600, "false", "DEFAULT", "")
 
+    def test_fake_datadog_keys_file(self):
+        """Tests get the fake keys from the scenario, none depends on a value: nothing runs"""
+        inputs = build_inputs(modified_files=["utils/_context/_scenarios/_core/fake_datadog_keys.py"])
+        assert_github_processor(inputs, [], [], 3600, "false", "DEFAULT", "")
+
     @pytest.mark.parametrize(
         "file",
         [
@@ -598,7 +616,7 @@ class Test_ComputeLibrariesAndScenarios:
             [],
             3600,
             "false",
-            "DEFAULT,OTEL_INTEGRATIONS,OTEL_LOG_E2E,OTEL_METRIC_E2E,OTEL_TRACING_E2E",
+            "DEFAULT,OTEL_INTEGRATIONS",
             "",
         )
 
@@ -619,9 +637,12 @@ class Test_ComputeLibrariesAndScenarios:
         "file",
         [
             "utils/mocked_backend/__init__.py",
+            "utils/mocked_backend/__main__.py",
             "utils/mocked_backend/_backend.py",
+            "utils/mocked_backend/_client.py",
             "utils/mocked_backend/_request_handler.py",
             "utils/mocked_backend/_utils.py",
+            "utils/mocked_backend/tls/mocked-backend.pem",
         ],
     )
     def test_generic_mocked_backend_file(self, file: str):
@@ -735,13 +756,15 @@ class Test_GitLabMode:
 
         assert 'libraries="c"' in process(inputs)
 
-    def test_pr_pipeline_excludes_python(self, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_main_push_ignores_weblog_map(self, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setenv("GITLAB_CI", "true")
-        monkeypatch.setenv("CI_PIPELINE_SOURCE", "merge_request_event")
-        monkeypatch.setenv("CI_COMMIT_REF_NAME", "feature/python")
+        monkeypatch.setenv("CI_PIPELINE_SOURCE", "push")
+        monkeypatch.setenv("CI_COMMIT_REF_NAME", "main")
         inputs = build_inputs(modified_files=["utils/build/docker/python/flask-poc.Dockerfile"])
 
-        assert not any(line.startswith("libraries=") for line in process(inputs))
+        output = process(inputs)
+        assert 'libraries="python"' in output
+        assert not any(line.startswith("library_weblog_scenarios=") for line in output)
 
     @pytest.mark.parametrize(
         ("source", "ref"),

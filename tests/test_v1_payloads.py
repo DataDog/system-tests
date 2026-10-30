@@ -24,7 +24,7 @@ class Test_V1Payloads:
 
     def test_field_changes(self):
         library_traces = list(interfaces.library.get_traces(self.r))
-        agent_traces = list(interfaces.backend_v2.get_traces(self.r))
+        agent_traces = list(interfaces.mocked_backend.get_traces(self.r))
         assert len(library_traces) == 1
         _, trace = library_traces[0]
         assert isinstance(trace.raw_trace, dict)

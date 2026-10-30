@@ -377,7 +377,6 @@ The `agent.yml` manifest uses the same syntax for agent version conditions:
 
 ```yaml
 manifest:
-  tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: "v7.48.0"
   tests/test_sampling_rates.py::Test_SamplingRates: "v7.33.0"
   tests/test_telemetry.py::Test_APMOnboardingInstallID: "v7.50.0"
 ```
