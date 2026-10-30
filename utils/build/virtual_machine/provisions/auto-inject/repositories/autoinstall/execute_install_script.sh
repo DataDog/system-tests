@@ -79,8 +79,10 @@ else
     curl -L "$INSTALLER_URL" -o install_script.sh
 fi
 
+# STRICT is the mode the install script actually applies (host or docker).
+# It must match ENABLED, and an SSI failure then stops the script.
+echo "SSI instrumentation mode: ${DD_APM_INSTRUMENTATION_ENABLED}"
 # shellcheck disable=SC2154
-# STRICT must match ENABLED so an SSI component install failure stops the script.
 DD_REPO_URL="$DD_injection_repo_url" \
 DD_APM_INSTRUMENTATION_LANGUAGES="$DD_LANG" \
 DD_APM_INSTRUMENTATION_STRICT="${DD_APM_INSTRUMENTATION_ENABLED}" \
