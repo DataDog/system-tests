@@ -914,11 +914,13 @@ def send_combined_apm_tracing_and_debugger_command(
     service_name: str | None = "weblog",
     env: str | None = "system-tests",
     version: int = 1,
+    wait_for_acknowledged_status: bool = True,
 ) -> RemoteConfigStateResults:
     """Send a single RC command containing both APM_TRACING and LIVE_DEBUGGING configs.
 
     Note: This function updates prev_payloads in place with the new config, replacing
     all previous entries. This allows callers to track state across sequential calls.
+    wait_for_acknowledged_status is passed to send_state.
     """
     raw_payload, apm_config = build_combined_apm_tracing_and_debugger_command(
         version,
@@ -940,7 +942,7 @@ def send_combined_apm_tracing_and_debugger_command(
 
     # Use backend target for scenarios with rc_backend_enabled, tracer target otherwise
     target: RemoteConfigTarget = "backend" if context.scenario.rc_backend_enabled else "tracer"
-    return send_state(raw_payload, target=target)
+    return send_state(raw_payload, target=target, wait_for_acknowledged_status=wait_for_acknowledged_status)
 
 
 def _json_to_base64(json_object: dict) -> str:

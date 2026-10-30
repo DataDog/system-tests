@@ -443,6 +443,7 @@ class BaseDebuggerTest:
         service_name: str | None = "weblog",
         env: str | None = "system-tests",
         reset: bool = True,
+        wait_for_acknowledged_status: bool = True,
     ) -> None:
         """Send a combined RC command with both APM_TRACING and LIVE_DEBUGGING (probes) configs.
 
@@ -472,6 +473,7 @@ class BaseDebuggerTest:
                 version=BaseDebuggerTest._rc_version,
                 service_name=service_name,
                 env=env,
+                wait_for_acknowledged_status=wait_for_acknowledged_status,
             )
         )
 
@@ -556,11 +558,13 @@ class BaseDebuggerTest:
         }
 
     def wait_for_all_probes_installed(self, *, ignored_files: set[str] | None = None, timeout: int = 30) -> bool:
-        """Wait until every expected probe reports INSTALLED or EMITTING.
+        """Wait until every expected probe reports INSTALLED, for probes whose method has not been called yet.
 
         Unlike wait_for_all_probes, a .NET span probe must report INSTALLED too, so that the probed
-        method is not called before it is instrumented. Diagnostics in ignored_files are not taken
-        into account, so that statuses sent before the probes were installed again cannot end the wait.
+        method is not called before it is instrumented. EMITTING doesn't end the wait: it can only come
+        from an earlier call of the method, which the agent may receive after ignored_files was read.
+        Diagnostics in ignored_files are not taken into account, so that statuses sent before the probes
+        were installed again cannot end the wait.
         """
         ignored = ignored_files or set()
         installed_ids: set[str] = set()
@@ -570,7 +574,7 @@ class BaseDebuggerTest:
                 return False
 
             for probe_id, diagnostics in self._process_diagnostics_data([data]).items():
-                if probe_id in self.probe_ids and diagnostics["status"] in ("INSTALLED", "EMITTING"):
+                if probe_id in self.probe_ids and diagnostics["status"] == "INSTALLED":
                     installed_ids.add(probe_id)
 
             logger.debug(f"Installed probes: {installed_ids}, expected: {self.probe_ids}")

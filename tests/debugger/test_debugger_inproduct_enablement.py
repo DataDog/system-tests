@@ -376,12 +376,18 @@ class Test_Debugger_InProduct_Enablement_Probe_Removal(debugger.BaseDebuggerTest
 
         # The probed method must not run before its probe is installed: .NET doesn't instrument a method that
         # the JIT already inlined into its caller.
-        self.installed_when_enabled = self._enable_dynamic_instrumentation(reset=True)
+        if not self._enable_dynamic_instrumentation(reset=True):
+            self.setup_failures.append("Probes did not reach INSTALLED status after enabling DI")
+            return
         self.request_when_enabled = self.send_weblog_request(request_path, reset=False)
 
         # The backend keeps the probes when dynamic instrumentation is disabled, so they stay in the payload.
-        # The request is sent once the library acknowledged the config.
-        self.send_rc_apm_tracing_and_probes(dynamic_instrumentation_enabled=False, reset=False)
+        # Some libraries stop reporting the state of the probes' config once dynamic instrumentation is disabled,
+        # so the request is sent once the library reported the new targets version, not once it acknowledged
+        # every config.
+        self.send_rc_apm_tracing_and_probes(
+            dynamic_instrumentation_enabled=False, reset=False, wait_for_acknowledged_status=False
+        )
         self.request_when_disabled = self.send_weblog_request(request_path, reset=False)
 
         self.installed_when_reenabled = self._enable_dynamic_instrumentation(reset=False)
@@ -408,7 +414,6 @@ class Test_Debugger_InProduct_Enablement_Probe_Removal(debugger.BaseDebuggerTest
         self.assert_rc_state_not_error()
         self.assert_all_weblog_responses_ok()
 
-        assert self.installed_when_enabled, "Expected the probes to be installed after enabling DI"
         spans = self._get_trace_spans(self.request_when_enabled)
         assert spans, "Trace of the request sent while DI was enabled not received"
         assert any(is_probe_effect(span) for span in spans), (
