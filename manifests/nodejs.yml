@@ -111,7 +111,6 @@ refs:
   - &ref_6_20_0 '>=6.20.0 || ^5.131.0'
   - &ref_6_20_1 '>=6.20.1 || ^5.131.1'
   - &ref_6_21_0 '>=6.21.0 || ^5.132.0'
-  - &ref_6_22_0 '>=6.22.0 || ^5.133.0'
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag:
     - weblog_declaration:
@@ -1868,10 +1867,6 @@ manifest:
         nextjs: irrelevant
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry::test_telemetry_er: missing_feature (feature not implemented)
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry::test_telemetry_symdb: missing_feature (feature not implemented)
-  tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry_Metrics:
-    - weblog_declaration:
-        "*": *ref_6_22_0
-        nextjs: irrelevant
   tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_injection_metadata:
     - declaration: missing_feature (Not implemented yet)
       component_version: <5.66.0
