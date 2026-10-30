@@ -1370,7 +1370,7 @@ manifest:
         "*": v1.27.0
         laravel11x: missing_feature (Endpoint not implemented)
         symfony7x: missing_feature (Endpoint not implemented)
-  tests/integrations/test_dsm.py::Test_DsmKafka::test_dsm_kafka: missing_feature (php-rdkafka does not expose the Kafka cluster id)
+  tests/integrations/test_dsm.py::Test_DsmKafka::test_dsm_kafka_without_cluster_id: irrelevant
   tests/integrations/test_dsm.py::Test_DsmKinesis: missing_feature
   tests/integrations/test_dsm.py::Test_DsmRabbitmq:
     - weblog_declaration:
