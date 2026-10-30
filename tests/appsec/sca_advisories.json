@@ -1,0 +1,26 @@
+{
+  "targets": [
+    {
+      "id": "system-tests-sca",
+      "lang": "python",
+      "dependency_name": "requests",
+      "package_versions": [
+        ">=0"
+      ],
+      "targets": [
+        "requests.sessions:Session.send"
+      ]
+    },
+    {
+      "id": "system-tests-sca",
+      "lang": "maven",
+      "dependency_name": "com.github.junrar:junrar",
+      "package_versions": [
+        ">=0"
+      ],
+      "targets": [
+        "com.github.junrar:LocalFolderExtractor.createDirectory"
+      ]
+    }
+  ]
+}

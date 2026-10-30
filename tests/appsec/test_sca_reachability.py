@@ -33,6 +33,12 @@ _LANG_CONFIG: dict[str, dict[str, Any]] = {
         "path": "com.datadoghq.system_tests.springboot.ScaReachability",
         "symbol": "junrarHit",
     },
+    "python_lambda": {
+        "cve_id": ["system-tests-sca"],
+        "vulnerable_dep": "requests",
+        "path": "handler.py",
+        "symbol": "sca_requests_vulnerable_call",
+    },
     "java_lambda": {
         "cve_id": ["GHSA-hf5p-q87m-crj7"],
         "vulnerable_dep": "junrar",

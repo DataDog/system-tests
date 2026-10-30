@@ -226,7 +226,11 @@ class AppsecLambdaSca(_LambdaScenario):
     def __init__(self) -> None:
         super().__init__(
             "APPSEC_LAMBDA_SCA",
-            weblog_env={"DD_APPSEC_ENABLED": "false", "DD_APPSEC_SCA_ENABLED": "true"},
+            weblog_env={
+                "DD_APPSEC_ENABLED": "false",
+                "DD_APPSEC_SCA_ENABLED": "true",
+            },
+            weblog_volumes={"./tests/appsec/sca_advisories.json": {"bind": "/sca_advisories.json", "mode": "ro"}},
             doc="SCA dependency metadata and runtime reachability in Lambda with AppSec disabled",
             scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
         )
