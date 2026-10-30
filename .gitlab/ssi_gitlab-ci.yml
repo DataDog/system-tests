@@ -68,13 +68,14 @@ ssi_tests:
             fi
         - |
             BUILD_SECTION_TS=$(date +%s)
-            printf '\e[0Ksection_start:%s:build_runner[collapsed=true]\r\e[0KBuild runner image (./build.sh -i runner)\n' "${BUILD_SECTION_TS}"
-            SYSTEM_TEST_BUILD_ATTEMPTS=3 SYSTEM_TEST_BUILD_TIMEOUT=240 ./build.sh -i runner
+            printf '\e[0Ksection_start:%s:build_runner[collapsed=true]\r\e[0KPrepare runner virtualenv\n' "${BUILD_SECTION_TS}"
+            bash utils/scripts/use_prebuilt_runner_venv.sh
             printf '\e[0Ksection_end:%s:build_runner\r\e[0K\n' "${BUILD_SECTION_TS}"
         - |
-            # Run the tests and capture stdout+stderr to a file
+            # Run the tests and capture stdout+stderr to a file.
+            # PYTHONPATH selects this checkout over the copy baked into the image.
             set -o pipefail
-            timeout 3000 ./run.sh "$SCENARIO" --vm-weblog "${WEBLOG}" --vm-env "${ONBOARDING_FILTER_ENV}" --vm-library "${TEST_LIBRARY}" --vm-provider aws --vm-default-vms All --vm-only "${VM}" --report-run-url "${CI_JOB_URL}" --report-environment "${ONBOARDING_FILTER_ENV}" 2>&1 | tee "${CI_PROJECT_DIR}/run_output.log"
+            PYTHONPATH="${PWD}" timeout 3000 ./run.sh "$SCENARIO" --vm-weblog "${WEBLOG}" --vm-env "${ONBOARDING_FILTER_ENV}" --vm-library "${TEST_LIBRARY}" --vm-provider aws --vm-default-vms All --vm-only "${VM}" --report-run-url "${CI_JOB_URL}" --report-environment "${ONBOARDING_FILTER_ENV}" 2>&1 | tee "${CI_PROJECT_DIR}/run_output.log"
     after_script:
       - bash "${SYSTEM_TESTS_DIR}/utils/scripts/gitlab_finalize_job.sh" --profile aws
     retry:
