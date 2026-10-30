@@ -302,9 +302,11 @@ class EndToEndScenario(DockerScenario):
                 agent_env.setdefault(
                     "DD_APM_SYMDB_DD_URL", f"{self.mocked_backend_container.container_url}/api/v2/debugger"
                 )
-                # the mocked backend always serves remote config: tests can send configs through it
-                self.rc_api_enabled = True
-                self.rc_backend_enabled = True
+                if not rc_api_enabled:
+                    # the mocked backend always serves remote config: tests can send configs through it. Unless the
+                    # scenario has the proxy answer the library itself (rc_api_enabled without rc_backend_enabled)
+                    self.rc_api_enabled = True
+                    self.rc_backend_enabled = True
 
         self.agent_container = AgentContainer(
             dd_api_key=self.dd_api_key,

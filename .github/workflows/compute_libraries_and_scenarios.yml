@@ -72,9 +72,9 @@ jobs:
         run: |
           source venv/bin/activate
           python utils/scripts/compute_libraries_and_scenarios.py -o $GITHUB_OUTPUT
-          # TODO: remove before merging. Hard-coded scenarios to iterate on TRACING_CONFIG_NONDEFAULT_4 in the CI
+          # TODO: remove before merging. Hard-coded scenarios to iterate on the debugger scenarios in the CI
           sed -i -E '/^(scenarios|scenarios_groups)=/d' "$GITHUB_OUTPUT"
-          echo 'scenarios=TRACING_CONFIG_NONDEFAULT_4,DEBUGGER_TELEMETRY,DEBUGGER_PII_REDACTION,DEFAULT' >> "$GITHUB_OUTPUT"
+          echo 'scenarios=TRACING_CONFIG_NONDEFAULT_4,DEBUGGER_TELEMETRY,DEBUGGER_PROBES_SNAPSHOT,DEBUGGER_PROBES_SNAPSHOT_WITH_SCM,DEBUGGER_CAPTURE_TIMEOUT,DEBUGGER_EVALUATION_TIMEOUT,DEBUGGER_PII_REDACTION,DEBUGGER_EXPRESSION_LANGUAGE,DEBUGGER_EXCEPTION_REPLAY,DEBUGGER_SYMDB,DEBUGGER_INPRODUCT_ENABLEMENT,DEFAULT' >> "$GITHUB_OUTPUT"
           echo 'scenarios_groups=' >> "$GITHUB_OUTPUT"
         env:
           PYTHONPATH: "."
