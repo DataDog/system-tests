@@ -30,7 +30,7 @@ class _VirtualMachineScenario(Scenario):
         agent_env: dict | None = None,
         app_env: dict | None = None,
         scenario_groups: list[ScenarioGroup] | None = None,
-        mocked_backend: bool = False,
+        mocked_backend: bool = True,
     ) -> None:
         super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
         self.vm_provision_name = vm_provision
@@ -327,7 +327,7 @@ class _InstallerAutoInjectionScenario(_VirtualMachineScenario):
         scenario_groups: list[ScenarioGroup] | None = None,
         github_workflow: str | None = None,
         *,
-        mocked_backend: bool = False,
+        mocked_backend: bool = True,
     ) -> None:
         # Force full tracing without limits
         app_env_defaults = {
@@ -356,7 +356,6 @@ class SimpleInstallerAutoInjection(_InstallerAutoInjectionScenario):
             "SIMPLE_INSTALLER_AUTO_INJECTION",
             "Onboarding Container Single Step Instrumentation scenario (minimal test scenario)",
             scenario_groups=[scenario_groups.simple_onboarding],
-            mocked_backend=True,
             github_workflow="aws_ssi",
         )
 
@@ -367,7 +366,6 @@ class MultiInstallerAutoInjection(_InstallerAutoInjectionScenario):
             "MULTI_INSTALLER_AUTO_INJECTION",
             "Onboarding Container Single Step Instrumentation scenario for multicontainer apps",
             scenario_groups=[scenario_groups.all, scenario_groups.onboarding],
-            mocked_backend=True,
             github_workflow="aws_ssi",
         )
 
@@ -378,7 +376,6 @@ class InstallerAutoInjection(_InstallerAutoInjectionScenario):
             "INSTALLER_AUTO_INJECTION",
             doc="Installer auto injection scenario",
             scenario_groups=[scenario_groups.all, scenario_groups.onboarding],
-            mocked_backend=True,
             github_workflow="aws_ssi",
         )
 
@@ -389,7 +386,6 @@ class InstallerNotSupportedAutoInjection(_InstallerAutoInjectionScenario):
             "INSTALLER_NOT_SUPPORTED_AUTO_INJECTION",
             "Onboarding host Single Step Instrumentation scenario for not supported languages",
             scenario_groups=[scenario_groups.all, scenario_groups.onboarding],
-            mocked_backend=True,
             github_workflow="aws_ssi",
         )
 
@@ -404,7 +400,6 @@ class ChaosInstallerAutoInjection(_InstallerAutoInjectionScenario):
             ),
             vm_provision="auto-inject-ld-preload",
             scenario_groups=[scenario_groups.all, scenario_groups.onboarding],
-            mocked_backend=True,
             github_workflow="aws_ssi",
         )
 
@@ -422,7 +417,6 @@ class SimpleAutoInjectionProfiling(_InstallerAutoInjectionScenario):
                 "DD_PROFILING_START_FORCE_FIRST": "true",
             },
             scenario_groups=[scenario_groups.all, scenario_groups.simple_onboarding_profiling],
-            mocked_backend=True,
             github_workflow="aws_ssi",
         )
 
@@ -443,7 +437,6 @@ class HostAutoInjectionInstallScriptProfiling(_InstallerAutoInjectionScenario):
                 "DD_PROFILING_START_FORCE_FIRST": "true",
             },
             scenario_groups=[scenario_groups.all, scenario_groups.onboarding],
-            mocked_backend=True,
             github_workflow="aws_ssi",
         )
 
@@ -461,7 +454,6 @@ class ContainerAutoInjectionInstallScriptProfiling(_InstallerAutoInjectionScenar
                 "DD_PROFILING_START_FORCE_FIRST": "true",
             },
             scenario_groups=[scenario_groups.all, scenario_groups.onboarding],
-            mocked_backend=True,
             github_workflow="aws_ssi",
         )
 
@@ -474,7 +466,6 @@ class SimpleAutoInjectionAppsec(_InstallerAutoInjectionScenario):
             "stable config (application_monitoring.yaml)",
             agent_env={"DD_APPSEC_ENABLED": "true"},
             scenario_groups=[scenario_groups.all, scenario_groups.simple_onboarding_appsec],
-            mocked_backend=True,
             github_workflow="aws_ssi",
         )
 
@@ -490,7 +481,6 @@ class HostAutoInjectionInstallScriptAppsec(_InstallerAutoInjectionScenario):
             vm_provision="host-auto-inject-install-script",
             agent_env={"DD_APPSEC_ENABLED": "true"},
             scenario_groups=[scenario_groups.all],
-            mocked_backend=True,
             github_workflow="aws_ssi",
         )
 
@@ -503,7 +493,6 @@ class ContainerAutoInjectionInstallScriptAppsec(_InstallerAutoInjectionScenario)
             vm_provision="container-auto-inject-install-script",
             agent_env={"DD_APPSEC_ENABLED": "true"},
             scenario_groups=[scenario_groups.all],
-            mocked_backend=True,
             github_workflow="aws_ssi",
         )
 
@@ -515,7 +504,6 @@ class HostAutoInjectionInstallScript(_InstallerAutoInjectionScenario):
             "Onboarding Host Single Step Instrumentation scenario using agent auto install script",
             vm_provision="host-auto-inject-install-script",
             scenario_groups=[scenario_groups.all],
-            mocked_backend=True,
             github_workflow="aws_ssi",
         )
 
@@ -527,7 +515,6 @@ class ContainerAutoInjectionInstallScript(_InstallerAutoInjectionScenario):
             "Onboarding Container Single Step Instrumentation scenario using agent auto install script",
             vm_provision="container-auto-inject-install-script",
             scenario_groups=[scenario_groups.all],
-            mocked_backend=True,
             github_workflow="aws_ssi",
         )
 
@@ -542,5 +529,7 @@ class LocalAutoInjectionInstallScript(_InstallerAutoInjectionScenario):
             ),
             vm_provision="local-auto-inject-install-script",
             scenario_groups=[],
+            # krunvm VMs are not reachable through SSH, so the reverse tunnel to the mocked backend can't be opened
+            mocked_backend=False,
             github_workflow="aws_ssi",
         )
