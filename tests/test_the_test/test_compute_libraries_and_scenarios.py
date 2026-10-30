@@ -642,7 +642,7 @@ class Test_ComputeLibrariesAndScenarios:
             "utils/mocked_backend/_client.py",
             "utils/mocked_backend/_request_handler.py",
             "utils/mocked_backend/_utils.py",
-            "utils/mocked_backend/tls/mocked-backend.pem",
+            "utils/mocked_backend/_tls.py",
         ],
     )
     def test_generic_mocked_backend_file(self, file: str):

@@ -782,8 +782,8 @@ class MockedBackendContainer(TestedContainer):
     """
 
     # With tls, it serves HTTPS instead of HTTP: for senders that only speak HTTPS to the intake hostnames derived
-    # from DD_SITE (e.g. an SDK sending exposures directly). Its certificate is signed by the mitmproxy CA: these
-    # senders must trust it. See utils/mocked_backend/tls/README.md
+    # from DD_SITE (e.g. an SDK sending exposures directly). It generates its certificate for tls_hostnames when it
+    # starts, signed by the mitmproxy CA: these senders must trust it. See utils/mocked_backend/_tls.py
     tls_hostnames = (
         MOCKED_BACKEND_DOMAIN,
         f"agent-http-intake.logs.{MOCKED_BACKEND_DOMAIN}",
@@ -796,7 +796,6 @@ class MockedBackendContainer(TestedContainer):
         f"instrumentation-telemetry-intake.{MOCKED_BACKEND_DOMAIN}",
         f"trace.agent.{MOCKED_BACKEND_DOMAIN}",
     )
-    tls_cert_file = "utils/mocked_backend/tls/mocked-backend.pem"
     tls_ca_file = "utils/proxy/.mitmproxy/mitmproxy-ca-cert.pem"
 
     def __init__(self, *, tls: bool = False) -> None:
@@ -848,7 +847,9 @@ class MockedBackendContainer(TestedContainer):
             log_folder,
         ]
         if self.tls:
-            self.command += ["--tls-cert-file", self.tls_cert_file]
+            # it generates its certificate for them, signed by the mitmproxy CA
+            for hostname in self.tls_hostnames:
+                self.command += ["--tls-hostname", hostname]
 
         if self.internal_mocked_responses:
             # not in the recordings folder: interfaces.mocked_backend reads every JSON file there
