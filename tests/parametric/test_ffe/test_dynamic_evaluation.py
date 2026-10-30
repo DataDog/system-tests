@@ -23,7 +23,7 @@ FFE_READY_RETRY_ATTEMPTS = 10
 FFE_READY_RETRY_INTERVAL_SECONDS = 0.2
 FFE_SYSTEM_TEST_DATA_DIR = Path(__file__).parent / "ffe-system-test-data"
 FFE_EVALUATION_CASES_DIR = FFE_SYSTEM_TEST_DATA_DIR / "evaluation-cases"
-DEPENDENT_FLAGS_DIR = Path(__file__).parent / "dependent-flags"
+DEPENDENT_FLAGS_DIR = FFE_SYSTEM_TEST_DATA_DIR / "evaluation-suites" / "dependent-flags"
 DEPENDENT_FLAGS_CASES_DIR = DEPENDENT_FLAGS_DIR / "cases"
 
 parametrize = pytest.mark.parametrize
@@ -158,6 +158,54 @@ def _ffe_evaluate_with_rc_retry(
     return result
 
 
+def _assert_evaluation_cases(
+    test_case_file: Path,
+    ufc_data: dict[str, Any],
+    test_agent: TestAgentAPI,
+    test_library: APMLibrary,
+) -> None:
+    with test_case_file.open() as fixture_file:
+        test_cases = json.load(fixture_file)
+    assert isinstance(test_cases, list), f"Expected an evaluation-case array in {test_case_file.name}"
+    assert test_cases, f"No evaluation cases in {test_case_file.name}"
+
+    platform = context.library.name
+    test_cases = _filter_test_cases_for_platform(test_cases, platform)
+    if not test_cases:
+        pytest.skip(f"No cases in {test_case_file.name} apply to platform {platform}")
+
+    _set_and_wait_ffe_rc(test_agent, ufc_data)
+    assert test_library.ffe_start(ufc_data), "Failed to start FFE provider"
+
+    for index, test_case in enumerate(test_cases):
+        expected_result = test_case["result"]
+        result = _ffe_evaluate_with_rc_retry(
+            test_library,
+            flag=test_case["flag"],
+            variation_type=test_case["variationType"],
+            default_value=test_case["defaultValue"],
+            targeting_key=test_case["targetingKey"],
+            attributes=test_case.get("attributes", {}),
+        )
+        assert not _is_ffe_waiting_for_rc(result), (
+            f"Test case {index} in {test_case_file.name} failed: FFE provider did not load RC data after "
+            f"{FFE_READY_RETRY_ATTEMPTS} attempts; result={result}"
+        )
+        for field in ("value", "reason", "errorCode"):
+            if field not in expected_result:
+                continue
+            assert result.get(field) == expected_result[field], (
+                f"Test case {index} in {test_case_file.name} failed: "
+                f"flag='{test_case['flag']}', targetingKey='{test_case['targetingKey']}', field='{field}', "
+                f"expected={expected_result[field]!r}, actual={result.get(field)!r}"
+            )
+        if "errorCode" not in expected_result and expected_result.get("reason") != "ERROR":
+            assert result.get("errorCode") in {None, ""}, (
+                f"Test case {index} in {test_case_file.name} failed: "
+                f"flag='{test_case['flag']}' unexpectedly returned errorCode={result.get('errorCode')!r}"
+            )
+
+
 @scenarios.parametric
 @features.feature_flags_dynamic_evaluation
 class Test_Feature_Flag_Dynamic_Evaluation:
@@ -188,66 +236,8 @@ class Test_Feature_Flag_Dynamic_Evaluation:
         4. Handles user targeting, attribute matching, and rollout percentages
 
         """
-        # Load the test case file
         test_case_path = FFE_EVALUATION_CASES_DIR / test_case_file
-
-        with test_case_path.open() as f:
-            test_cases = json.load(f)
-        assert isinstance(test_cases, list), f"Expected an evaluation-case array in {test_case_file}"
-        assert test_cases, f"No evaluation cases in {test_case_file}"
-
-        platform = context.library.name
-        test_cases = _filter_test_cases_for_platform(test_cases, platform)
-        if not test_cases:
-            pytest.skip(f"No cases in {test_case_file} apply to platform {platform}")
-
-        # Set up UFC Remote Config and wait for it to be applied
-        _set_and_wait_ffe_rc(test_agent, UFC_FIXTURE_DATA)
-
-        # Initialize FFE provider
-        success = test_library.ffe_start(UFC_FIXTURE_DATA)
-        assert success, "Failed to start FFE provider"
-
-        # Run each test case
-        for i, test_case in enumerate(test_cases):
-            flag = test_case["flag"]
-            variation_type = test_case["variationType"]
-            default_value = test_case["defaultValue"]
-            targeting_key = test_case["targetingKey"]
-            attributes = test_case.get("attributes", {})
-            expected_result = test_case["result"]
-
-            result = _ffe_evaluate_with_rc_retry(
-                test_library,
-                flag=flag,
-                variation_type=variation_type,
-                default_value=default_value,
-                targeting_key=targeting_key,
-                attributes=attributes,
-            )
-            assert not _is_ffe_waiting_for_rc(result), (
-                f"Test case {i} in {test_case_file} failed: FFE provider did not load RC data after "
-                f"{FFE_READY_RETRY_ATTEMPTS} attempts; result={result}"
-            )
-            actual_value = result.get("value")
-
-            # Assert the evaluation result matches expected value
-            assert actual_value == expected_result["value"], (
-                f"Test case {i} in {test_case_file} failed: "
-                f"flag='{flag}', targetingKey='{targeting_key}', "
-                f"expected={expected_result}, actual={result}"
-            )
-            assert result.get("reason") == expected_result["reason"], (
-                f"Test case {i} in {test_case_file}: expected reason={expected_result['reason']}, result={result}"
-            )
-            if "errorCode" in expected_result:
-                assert result.get("errorCode") == expected_result["errorCode"], (
-                    f"Test case {i} in {test_case_file}: expected errorCode={expected_result['errorCode']}, result={result}"
-                )
-            elif expected_result["reason"] != "ERROR":
-                assert result.get("errorCode") in {None, ""}, (
-                    f"Test case {i} in {test_case_file}: unexpected evaluation error; result={result}"
-                )
+        _assert_evaluation_cases(test_case_path, UFC_FIXTURE_DATA, test_agent, test_library)
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     @parametrize("test_case_file", DEPENDENT_FLAGS_TEST_CASE_FILES)
@@ -257,44 +247,8 @@ class Test_Feature_Flag_Dynamic_Evaluation:
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ) -> None:
-        """Test dependent flags using only the fixtures in the dependent-flags suite."""
-        with test_case_file.open() as f:
-            test_cases = json.load(f)
-
-        _set_and_wait_ffe_rc(test_agent, DEPENDENT_FLAGS_UFC_DATA)
-
-        success = test_library.ffe_start(DEPENDENT_FLAGS_UFC_DATA)
-        assert success, "Failed to start FFE provider"
-
-        for i, test_case in enumerate(test_cases):
-            flag = test_case["flag"]
-            targeting_key = test_case["targetingKey"]
-            expected_result = test_case["result"]
-            result = _ffe_evaluate_with_rc_retry(
-                test_library,
-                flag=flag,
-                variation_type=test_case["variationType"],
-                default_value=test_case["defaultValue"],
-                targeting_key=targeting_key,
-                attributes=test_case.get("attributes", {}),
-            )
-            assert not _is_ffe_waiting_for_rc(result), (
-                f"Test case {i} in {test_case_file.name} failed: FFE provider did not load RC data after "
-                f"{FFE_READY_RETRY_ATTEMPTS} attempts; result={result}"
-            )
-            for field in ("value", "reason", "errorCode"):
-                if field not in expected_result:
-                    continue
-                assert result.get(field) == expected_result[field], (
-                    f"Test case {i} in {test_case_file.name} failed: "
-                    f"flag='{flag}', targetingKey='{targeting_key}', field='{field}', "
-                    f"expected={expected_result[field]!r}, actual={result.get(field)!r}"
-                )
-            if "errorCode" not in expected_result and expected_result.get("reason") != "ERROR":
-                assert result.get("errorCode") in {None, ""}, (
-                    f"Test case {i} in {test_case_file.name} failed: "
-                    f"flag='{flag}' unexpectedly returned errorCode={result.get('errorCode')!r}"
-                )
+        """Run the imported dependent-flags feature suite through the shared evaluator harness."""
+        _assert_evaluation_cases(test_case_file, DEPENDENT_FLAGS_UFC_DATA, test_agent, test_library)
 
 
 @scenarios.parametric
