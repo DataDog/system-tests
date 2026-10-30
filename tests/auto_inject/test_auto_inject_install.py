@@ -3,6 +3,9 @@ from utils import scenarios, features, irrelevant, bug, context, missing_feature
 from utils.onboarding.weblog_interface import warmup_weblog, get_child_pids, get_zombies, fork_and_crash
 import tests.auto_inject.utils as base
 
+# VMs whose system Python is 3.9, used by test-app-python
+_VMS_WITH_PYTHON_39 = ["Amazon_Linux_2023_amd64", "Amazon_Linux_2023_arm64", "Debian_11_amd64", "Debian_11_arm64"]
+
 
 class _AutoInjectProfilingTest(base.AutoInjectBaseTest):
     def _test_profiling_retry(self) -> None:
@@ -46,6 +49,12 @@ class TestSimpleInstallerAutoInjectManualProfiling(_AutoInjectProfilingTest):
     @irrelevant(
         context.vm_name in ["Ubuntu_20_amd64", "Ubuntu_20_arm64"] and context.weblog_variant == "test-app-python",
         reason="Python version too old",
+    )
+    @irrelevant(
+        context.library >= "python@4.17.0-dev"
+        and context.vm_name in _VMS_WITH_PYTHON_39
+        and context.weblog_variant == "test-app-python",
+        reason="System Python 3.9 is not supported by dd-trace-py 4.17+",
     )
     def test_profiling(self):
         logger.info(f"Launching test_install for : [{context.vm_name}]...")
@@ -243,7 +252,7 @@ class TestInstallerAutoInjectManual(base.AutoInjectBaseTest):
 @scenarios.multi_installer_auto_injection
 class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
     @irrelevant(context.library >= "python@4.0.0.dev" and context.installed_language_runtime < "3.9.0")
-    @irrelevant(context.library >= "python@4.17.0.dev" and context.installed_language_runtime < "3.10.0")
+    @irrelevant(context.library >= "python@4.17.0-dev" and context.installed_language_runtime < "3.10.0")
     @irrelevant(context.library < "python@4.0.0.dev" and context.installed_language_runtime < "3.8.0")
     @bug(
         context.vm_name in ["CentOS_7_amd64", "RedHat_7_9_amd64"] and context.weblog_variant == "test-app-java-alpine",
@@ -276,7 +285,7 @@ class TestSimpleInstallerAutoInjectManualOriginDetection(base.AutoInjectBaseTest
         reason="Origin detection is not supported on host environments",
     )
     @irrelevant(context.library >= "python@4.0.0.dev" and context.installed_language_runtime < "3.9.0")
-    @irrelevant(context.library >= "python@4.17.0.dev" and context.installed_language_runtime < "3.10.0")
+    @irrelevant(context.library >= "python@4.17.0-dev" and context.installed_language_runtime < "3.10.0")
     @irrelevant(context.library < "python@4.0.0.dev" and context.installed_language_runtime < "3.8.0")
     @bug(
         context.vm_name in ["CentOS_7_amd64", "RedHat_7_9_amd64"] and context.weblog_variant == "test-app-java-alpine",
@@ -299,6 +308,12 @@ class TestSimpleInstallerAutoInjectManualAppsec(base.AutoInjectBaseTest):
     @bug(
         context.vm_name in ["CentOS_7_amd64", "RedHat_7_9_amd64"] and context.weblog_variant == "test-app-java-alpine",
         reason="APMSP-3489",
+    )
+    @irrelevant(
+        context.library >= "python@4.17.0-dev"
+        and context.vm_name in _VMS_WITH_PYTHON_39
+        and context.weblog_variant == "test-app-python",
+        reason="System Python 3.9 is not supported by dd-trace-py 4.17+",
     )
     def test_appsec(self):
         logger.info(f"Launching test_appsec for : [{context.vm_name}]...")
