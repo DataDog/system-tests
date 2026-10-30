@@ -3403,6 +3403,7 @@ manifest:
         uds-spring-boot: v1.38.0
   tests/debugger/test_debugger_snapshot_correlation.py::Test_Debugger_Coordinated_Sampling: incomplete_test_app (no /debugger/correlation endpoint)
   tests/debugger/test_debugger_snapshot_correlation.py::Test_Debugger_Coordinated_Sampling_Line_Probe: irrelevant (Line-probe variant is only used by Node.js)
+  tests/debugger/test_debugger_snapshot_sampling.py::Test_Debugger_Sub_Second_Sampling: missing_feature (snapshot sampling below 1 per second, DEBUG-6451)
   tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb:
     - weblog_declaration:
         "*": missing_feature
