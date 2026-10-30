@@ -291,6 +291,20 @@ class EndToEndScenario(DockerScenario):
                 agent_env.setdefault("DD_APM_TELEMETRY_DD_URL", self.mocked_backend_container.container_url)
                 # the agent RC client polls the mocked backend, over TLS
                 agent_env.setdefault("DD_REMOTE_CONFIGURATION_RC_DD_URL", self.mocked_backend_container.container_url)
+                # the debugger intakes are full URLs, with the default paths
+                agent_env.setdefault(
+                    "DD_APM_DEBUGGER_DD_URL", f"{self.mocked_backend_container.container_url}/api/v2/logs"
+                )
+                agent_env.setdefault(
+                    "DD_APM_DEBUGGER_DIAGNOSTICS_DD_URL",
+                    f"{self.mocked_backend_container.container_url}/api/v2/debugger",
+                )
+                agent_env.setdefault(
+                    "DD_APM_SYMDB_DD_URL", f"{self.mocked_backend_container.container_url}/api/v2/debugger"
+                )
+                # the mocked backend always serves remote config: tests can send configs through it
+                self.rc_api_enabled = True
+                self.rc_backend_enabled = True
 
         self.agent_container = AgentContainer(
             dd_api_key=self.dd_api_key,

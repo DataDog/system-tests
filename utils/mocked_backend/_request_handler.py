@@ -122,6 +122,8 @@ class MockBackendV2RequestHandler(BaseHTTPRequestHandler):
             "log_filename": log_filename,
             "method": self.command,
             "path": path,
+            # like the proxy
+            "query": url_parts.query,
             "request": {"timestamp_start": timestamp_start, "headers": list(self.headers.items())},
             "response": {"headers": []},
         }
