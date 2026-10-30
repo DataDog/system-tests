@@ -152,6 +152,8 @@ class MockedBackendRequestHandler(BaseHTTPRequestHandler):
             self._data["request"]["raw_content"] = repr(raw_body)
             self._data["request"]["traceback"] = traceback.format_exc()
         else:
+            # like the proxy: the uncompressed body length
+            self._data["request"]["length"] = len(content) if content else 0
             deserialize(
                 self._data,
                 key="request",

@@ -53,6 +53,7 @@ def test_writes_one_file_per_request(server: MockedBackendServer, tmp_path: Path
     assert data["method"] == "POST"
     assert data["path"] == "/api/v2/series"
     assert data["request"]["content"] == {"hello": "world"}
+    assert data["request"]["length"] == len(json.dumps({"hello": "world"}))
 
 
 @scenarios.test_the_test
