@@ -418,7 +418,7 @@ def test_mocked_backend_with_api_key_ignores_the_header_name_case(tmp_path: Path
 
 
 _MITMPROXY_CA = "utils/proxy/.mitmproxy/mitmproxy-ca-cert.pem"
-_TLS_HOSTNAMES = MockedBackendContainer.tls_hostnames
+_TLS_HOSTNAMES = MockedBackendServer.tls_hostnames
 _INTAKE_HOSTNAME = "event-platform-intake.mocked-backend.invalid"
 
 
@@ -436,7 +436,7 @@ def _https_post(port: int, hostname: str, path: str, body: bytes) -> str:
 
 @scenarios.test_the_test
 def test_https_mode_serves_and_records_https_requests(tmp_path: Path):
-    server = MockedBackendServer(str(tmp_path), port=0, tls_hostnames=_TLS_HOSTNAMES)
+    server = MockedBackendServer(str(tmp_path), port=0, tls=True)
     try:
         status_line = _https_post(server.port, _INTAKE_HOSTNAME, "/api/v2/exposures", b'{"over": "https"}')
         # the control endpoints, as used from the host
@@ -453,7 +453,7 @@ def test_https_mode_serves_and_records_https_requests(tmp_path: Path):
 
 @scenarios.test_the_test
 def test_https_mode_does_not_serve_http(tmp_path: Path):
-    server = MockedBackendServer(str(tmp_path), port=0, tls_hostnames=_TLS_HOSTNAMES)
+    server = MockedBackendServer(str(tmp_path), port=0, tls=True)
     try:
         with pytest.raises(requests.exceptions.ConnectionError):
             requests.post(f"http://127.0.0.1:{server.port}/api/v2/series", json={}, timeout=5)
@@ -468,9 +468,7 @@ def test_https_mode_releases_the_port_if_the_certificate_cannot_be_generated(tmp
         port = probe.getsockname()[1]
 
     with pytest.raises(FileNotFoundError) as error:
-        MockedBackendServer(
-            str(tmp_path), port=port, tls_hostnames=_TLS_HOSTNAMES, tls_ca_file=str(tmp_path / "missing.pem")
-        )
+        MockedBackendServer(str(tmp_path), port=port, tls=True, tls_ca_file=str(tmp_path / "missing.pem"))
 
     # the port is free again, even while the error (holding the half-built server) is still referenced
     assert error.traceback
@@ -479,7 +477,7 @@ def test_https_mode_releases_the_port_if_the_certificate_cannot_be_generated(tmp
 
 @scenarios.test_the_test
 def test_https_mode_is_not_blocked_by_an_idle_connection(tmp_path: Path):
-    server = MockedBackendServer(str(tmp_path), port=0, tls_hostnames=_TLS_HOSTNAMES)
+    server = MockedBackendServer(str(tmp_path), port=0, tls=True)
     closed = threading.Event()
 
     def close() -> None:
@@ -502,7 +500,7 @@ def test_https_mode_is_not_blocked_by_an_idle_connection(tmp_path: Path):
 
 @scenarios.test_the_test
 def test_https_mode_advertises_https_urls(tmp_path: Path):
-    server = MockedBackendServer(str(tmp_path), port=0, tls_hostnames=_TLS_HOSTNAMES)
+    server = MockedBackendServer(str(tmp_path), port=0, tls=True)
     try:
         assert server.container_url.startswith("https://")
         assert server.ffe_library_config_url.startswith("https://")
@@ -512,7 +510,7 @@ def test_https_mode_advertises_https_urls(tmp_path: Path):
 
 @scenarios.test_the_test
 def test_https_certificate_is_only_valid_for_the_served_hostnames(tmp_path: Path):
-    server = MockedBackendServer(str(tmp_path), port=0, tls_hostnames=_TLS_HOSTNAMES)
+    server = MockedBackendServer(str(tmp_path), port=0, tls=True)
     try:
         with pytest.raises(ssl.SSLCertVerificationError):
             _https_post(server.port, "other.mocked-backend.invalid", "/api/v2/exposures", b"{}")
@@ -556,7 +554,7 @@ def test_mocked_backend_container_serves_either_http_or_https():
     https = MockedBackendContainer(tls=True)
     # senders build the intake URLs from DD_SITE: the default HTTPS port, its domain and the intake hostnames
     assert https.container_url == "https://mocked-backend.invalid"
-    assert https.network_aliases == list(MockedBackendContainer.tls_hostnames)
+    assert https.network_aliases == list(MockedBackendServer.tls_hostnames)
 
 
 @scenarios.test_the_test
