@@ -147,7 +147,7 @@ class _VirtualMachineScenario(Scenario):
         self.virtual_machine.add_app_env(self.app_env)
 
         if self.mocked_backend_enabled:
-            interfaces.backend_v2.configure(self.host_log_folder, replay=False)
+            interfaces.mocked_backend.configure(self.host_log_folder, replay=False)
             # The tunnel binds a fixed port on the VM loopback, so the URL is known before provisioning: the
             # provision configures the agent with it before starting the weblog, no agent restart needed later
             self.virtual_machine.set_agent_backend_url(f"http://127.0.0.1:{_MOCKED_BACKEND_VM_PORT}")
@@ -193,11 +193,11 @@ class _VirtualMachineScenario(Scenario):
             return
 
         logger.terminal.write_sep("=", "Starting mocked backend", bold=True)
-        interfaces.backend_v2.start_mocked_backend()
+        interfaces.mocked_backend.start_mocked_backend()
         self._mocked_backend_tunnel = SSHReverseTunnel(
             self.virtual_machine,
             remote_port=_MOCKED_BACKEND_VM_PORT,
-            local_port=interfaces.backend_v2.mocked_backend_port,
+            local_port=interfaces.mocked_backend.mocked_backend_port,
         )
         self._mocked_backend_tunnel.start()
 
@@ -205,7 +205,7 @@ class _VirtualMachineScenario(Scenario):
         if self._mocked_backend_tunnel is not None:
             self._mocked_backend_tunnel.stop()
             self._mocked_backend_tunnel = None
-        interfaces.backend_v2.stop_mocked_backend()
+        interfaces.mocked_backend.stop_mocked_backend()
 
     def fill_context(self):
         for key in self.virtual_machine.tested_components:

@@ -11,6 +11,8 @@ manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_ClientIPTagsCollected: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Evaluation: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_ExtraTags: missing_feature (APPSEC-70724)
+  tests/ai_guard/test_ai_guard_sdk.py::Test_ExtraTagsFailSafe: missing_feature (APPSEC-70724)
   tests/ai_guard/test_ai_guard_sdk.py::Test_Full_Response_And_Tags: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_NoRedaction: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactedMessagesInSDKResponse: missing_feature
@@ -1665,6 +1667,7 @@ manifest:
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Code_Origin_Default_On: irrelevant (Scoped to dotnet rollout in this PR)
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: missing_feature
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature
+  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Multiconfig_Partial_Update: missing_feature
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction: missing_feature (feature not implemented)
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers: missing_feature (feature not implemented)
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets: v2.2.3
@@ -1996,9 +1999,6 @@ manifest:
         chi: '>=2.11.1'
   tests/otel/test_tracing_otlp.py::Test_Otlp_Carries_Ot: v2.11.0-dev
   tests/otel/test_tracing_otlp.py::Test_Otlp_Forwards_Inherited_Ot: v2.11.0-dev  # Easy win for chi, echo, fiber-v2-orchestrion, gin, net-http, net-http-orchestrion, uds-echo and version 2.10.1
-  tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
-  tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
-  tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
   tests/parametric/otel_env_vars/test_otel_blrp_export_timeout.py::Test_OTEL_BLRP_EXPORT_TIMEOUT: v2.13.0-dev
   tests/parametric/otel_env_vars/test_otel_blrp_export_timeout.py::Test_OTEL_BLRP_EXPORT_TIMEOUT::test_zero_value: bug (APMAPI-2502)  # OTel Go SDK replaces values below 1 with the default
   tests/parametric/otel_env_vars/test_otel_blrp_max_export_batch_size.py::Test_OTEL_BLRP_MAX_EXPORT_BATCH_SIZE: v2.13.0-dev
@@ -2178,6 +2178,7 @@ manifest:
   tests/parametric/test_ffe/test_configuration_sources.py: v2.11.0-dev  # Easy win for all weblogs and version 2.10.1
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v2.5.0-dev
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_dependent_flags: missing_feature (FFL-1694)
+  tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Split_Features: incomplete_test_app (Split-feature hook capture is currently implemented only in the Java parametric client)
   tests/parametric/test_ffe/test_rules_configuration.py: missing_feature (Standalone rules configuration helpers are currently tested only in Node.js)
   tests/parametric/test_ffe/test_serial_id_metadata.py: v2.10.1
   tests/parametric/test_ffe/test_serial_id_metadata.py::Test_FFE_Serial_Id_Metadata:
@@ -2334,6 +2335,7 @@ manifest:
   tests/parametric/test_otel_span_with_baggage.py::Test_Otel_Span_With_Baggage: missing_feature
   tests/parametric/test_otel_tracestate_sampling.py::Test_OtelTracestateSampling: v2.11.0-dev  # Easy win for all weblogs and version 2.10.1
   tests/parametric/test_otlp_trace_metrics.py: v2.11.0-dev  # Easy win for all weblogs and version 2.10.1
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR01_Enablement_Configuration::test_fr01_3_disabled_by_default: missing_feature (OTLP trace metrics are still auto-enabled without OTEL_TRACES_SPAN_METRICS_ENABLED=true)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_AdditionalTags::test_fr08_10_dd_tags_tracer_tags_resource_attributes: missing_feature (DD_TAGS is not yet reported as datadog.tracer_tags on the OTLP trace metrics resource)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_AdditionalTags::test_fr08_11_otel_resource_attributes_env_tracer_tags: missing_feature (OTEL_RESOURCE_ATTRIBUTES is not yet reported as datadog.tracer_tags on the OTLP trace metrics resource)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes::test_fr08_14_peer_tags:  # TODO: a lower version might be supported

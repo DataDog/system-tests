@@ -6,6 +6,7 @@ responsible for exporting the variables into the environment before this script 
 
 from __future__ import annotations
 
+import json
 import os
 import re
 import sys
@@ -87,16 +88,52 @@ def validate_semicolon_nonempty(name: str, value: str) -> list[str]:
     return errors
 
 
+def validate_library_weblog_scenarios(name: str, value: str) -> list[str]:
+    """JSON object {library: {weblog: [scenario or group, ...]}}.
+
+    E.g. '{"python": {"flask-poc": ["DEFAULT", "appsec"]}}'.
+    """
+    expected = 'expected a JSON object like {"python": {"flask-poc": ["DEFAULT"]}}'
+    try:
+        data = json.loads(value)
+    except json.JSONDecodeError as e:
+        return [_error(name, value, f"invalid JSON ({e}), {expected}")]
+
+    if not isinstance(data, dict):
+        return [_error(name, value, expected)]
+
+    errors = []
+    for library, weblogs in data.items():
+        if not re.match(r"^[a-z][a-z0-9_]*$", library):
+            errors.append(_error(name, library, "invalid library name"))
+        if not isinstance(weblogs, dict):
+            errors.append(_error(name, library, f"weblogs must be a JSON object, {expected}"))
+            continue
+        for weblog, scenarios in weblogs.items():
+            if not re.match(r"^[a-z][a-z0-9_-]*$", weblog):
+                errors.append(_error(name, weblog, "invalid weblog name"))
+            if not isinstance(scenarios, list):
+                errors.append(_error(name, weblog, f"scenarios must be a list, {expected}"))
+                continue
+            for entry in scenarios:
+                if not isinstance(entry, str) or not re.match(r"^([A-Z][A-Z0-9_]*|[a-z][a-z0-9_]*)$", entry):
+                    errors.append(
+                        _error(name, str(entry), "expected a scenario (e.g. DEFAULT) or a scenario group (e.g. appsec)")
+                    )
+    return errors
+
+
 CHECKS: list[tuple[str, object]] = [
     ("LIBRARIES", validate_space_lower),
     ("SCENARIOS", validate_comma_upper),
     ("SCENARIO_GROUPS", validate_comma_lower),
     ("WEBLOGS", validate_comma_lower_hyphen),
+    ("LIBRARY_WEBLOG_SCENARIOS", validate_library_weblog_scenarios),
     ("EXCLUDED_SCENARIOS", validate_comma_upper),
     ("FORCE_EXECUTE", None),  # pytest node IDs are too complex to validate by format
     ("SYSTEM_TESTS_PARAMETRIC_JOB_COUNT", validate_positive_int),
+    ("SYSTEM_TESTS_PARAMETRIC_WORKERS", validate_positive_int),
     ("SYSTEM_TESTS_PUSH_TO_TEST_OPTIMIZATION", validate_bool),
-    ("SYSTEM_TESTS_DOCKER_AUTH", validate_bool),
     ("SYSTEM_TESTS_SKIP_EMPTY_SCENARIO", validate_bool),
     ("BINARIES_ARTIFACTS", validate_semicolon_nonempty),
     ("BINARIES_ARTIFACT_PATH", validate_path),
@@ -123,6 +160,9 @@ def main() -> None:
         for name, _ in CHECKS:
             value = os.environ.get(name, "")
             if value:
+                if name == "LIBRARY_WEBLOG_SCENARIOS":
+                    # dotenv reports do not support multiline values
+                    value = json.dumps(json.loads(value), separators=(",", ":"))
                 f.write(f"{name}={value}\n")
 
     with open(PARAM_ENV) as f:

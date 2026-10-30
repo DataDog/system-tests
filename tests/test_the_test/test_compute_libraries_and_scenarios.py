@@ -222,6 +222,19 @@ class Test_ComputeLibrariesAndScenarios:
             "",
         )
 
+    def test_php_parametric_base_docker_file(self):
+        inputs = build_inputs(["utils/build/docker/php/parametric.base.Dockerfile"])
+
+        assert_github_processor(
+            inputs,
+            ["php"],
+            ["php"],
+            600,
+            "false",
+            "DEFAULT,PARAMETRIC",
+            "",
+        )
+
     def test_nodejs_docker_file(self):
         inputs = build_inputs(["utils/build/docker/nodejs/express5.Dockerfile"])
 
@@ -575,6 +588,11 @@ class Test_ComputeLibrariesAndScenarios:
         inputs = build_inputs(modified_files=["utils/_context/_scenarios/__init__.py"])
         assert_github_processor(inputs, [], [], 3600, "false", "DEFAULT", "")
 
+    def test_fake_datadog_keys_file(self):
+        """Tests get the fake keys from the scenario, none depends on a value: nothing runs"""
+        inputs = build_inputs(modified_files=["utils/_context/_scenarios/_core/fake_datadog_keys.py"])
+        assert_github_processor(inputs, [], [], 3600, "false", "DEFAULT", "")
+
     @pytest.mark.parametrize(
         "file",
         [
@@ -598,7 +616,7 @@ class Test_ComputeLibrariesAndScenarios:
             [],
             3600,
             "false",
-            "DEFAULT,OTEL_INTEGRATIONS,OTEL_LOG_E2E,OTEL_METRIC_E2E,OTEL_TRACING_E2E",
+            "DEFAULT,OTEL_INTEGRATIONS",
             "",
         )
 

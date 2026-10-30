@@ -21,6 +21,8 @@ manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_ClientIPTagsCollected: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Evaluation: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_ExtraTags: missing_feature (APPSEC-70724)
+  tests/ai_guard/test_ai_guard_sdk.py::Test_ExtraTagsFailSafe: missing_feature (APPSEC-70724)
   tests/ai_guard/test_ai_guard_sdk.py::Test_Full_Response_And_Tags: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_NoRedaction: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactedMessagesInSDKResponse: missing_feature
@@ -93,9 +95,6 @@ manifest:
   tests/integrations/test_service_overrides.py::Test_SqlServiceNameSource: irrelevant (Only implemented for Java)
   tests/integrations/test_sql.py::Test_Sql: missing_feature (Endpoint is not implemented on weblog)
   tests/otel/: irrelevant (library does not implement OpenTelemetry)
-  tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
-  tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
-  tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
   tests/parametric/: irrelevant (Parametric scenario is not applied on C++ httpd)
   tests/parametric/test_config_consistency.py::Test_Config_Dogstatsd::test_dogstatsd_default: incomplete_test_app (PHP parameteric app can not access the dogstatsd default values, this logic is internal to the tracer)
   tests/parametric/test_otel_logs.py::Test_FR07_Host_Name::test_hostname_from_dd_hostname: irrelevant (DD_HOSTNAME is only supported in Python)

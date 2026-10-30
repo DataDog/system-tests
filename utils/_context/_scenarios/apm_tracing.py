@@ -9,7 +9,7 @@ class ApmTracingE2eOtel(DdTraceEndToEndScenario):
         super().__init__(
             "APM_TRACING_E2E_OTEL",
             weblog_env={"DD_TRACE_OTEL_ENABLED": "true"},
-            mocked_backend_v2=True,
+            mocked_backend=True,
             use_proxy_for_agent=False,
             doc="",
         )
@@ -25,7 +25,7 @@ class ApmTracingE2eSingleSpan(DdTraceEndToEndScenario):
                 ),
                 "DD_TRACE_SAMPLE_RATE": "0",
             },
-            mocked_backend_v2=True,
+            mocked_backend=True,
             use_proxy_for_agent=False,
             doc="",
         )
@@ -40,6 +40,8 @@ class ApmTracingOtlp(DdTraceEndToEndScenario):
                 "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}/v1/traces",
                 "OTEL_EXPORTER_OTLP_TRACES_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
                 "DD_TRACE_OTEL_ENABLED": "true",
+                "DD_GIT_REPOSITORY_URL": "https://github.com/DataDog/system-tests",
+                "DD_GIT_COMMIT_SHA": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
             },
             backend_interface_timeout=5,
             include_opentelemetry=True,
@@ -58,7 +60,7 @@ class ApmTracingEfficientPayload(DdTraceEndToEndScenario):
             agent_env={
                 "DD_APM_ENABLE_V1_TRACE_ENDPOINT": "true",
             },
-            mocked_backend_v2=True,
+            mocked_backend=True,
             use_proxy_for_agent=False,
             doc="End-to-end testing scenario focused on efficient payload handling and v1 trace format validation",
         )

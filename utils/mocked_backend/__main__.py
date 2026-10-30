@@ -1,6 +1,6 @@
 """Run the mocked backend in its own process, e.g. in a container:
 
-    python -m utils.mocked_backend --port 4900 --log-folder logs/interfaces/backend_v2
+    python -m utils.mocked_backend --port 4900 --log-folder logs/interfaces/mocked_backend
 
 It serves until it receives SIGTERM (sent by `docker stop`) or SIGINT.
 """
@@ -21,9 +21,13 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--port", type=int, default=4900, help="port to listen on, 0 picks a free one (default: 4900)")
     parser.add_argument("--log-folder", help="folder where each received request is recorded (default: not recorded)")
     parser.add_argument("--tls-cert-file", help="serve HTTPS with this certificate and its key (default: HTTP)")
+    parser.add_argument(
+        "--internal-mocked-responses-file",
+        help="JSON list of MockedBackendResponse applied for the whole session (default: none)",
+    )
     args = parser.parse_args(argv)
 
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)-8s %(message)s")
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)-8s %(message)s", stream=sys.stdout)
 
     if args.log_folder:
         Path(args.log_folder).mkdir(parents=True, exist_ok=True)
@@ -40,6 +44,7 @@ def main(argv: list[str] | None = None) -> int:
         args.log_folder,
         port=args.port,
         tls_cert_file=args.tls_cert_file,
+        internal_mocked_responses_file=args.internal_mocked_responses_file,
     )
     # read by whoever started the process when the port is picked by the OS
     print(f"Mocked backend listening on port {server.port}", flush=True)  # noqa: T201

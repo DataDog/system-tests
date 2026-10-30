@@ -22,7 +22,7 @@ _MOCKED_BACKEND_POLL_INTERVAL = 2
 
 
 def wait_backend_trace_id(trace_id: str, *, profile: bool = False, validator: Callable | None = None) -> None:
-    mocked = interfaces.backend_v2.mocked_backend_running
+    mocked = interfaces.mocked_backend.mocked_backend_running
     logger.info(f"Waiting for {'mocked ' if mocked else ''}backend trace with trace_id: {trace_id}")
     if mocked:
         results = _query_mocked_backend_for_trace_id(trace_id, validator=validator)
@@ -222,7 +222,7 @@ def _query_for_profile(runtime_id: str):
 # Mocked backend
 #
 # When the scenario runs with the mocked backend (see `mocked_backend` in the VM scenarios), the agent
-# sends its payloads to `interfaces.backend_v2` instead of the Datadog intake. The functions below look
+# sends its payloads to `interfaces.mocked_backend` instead of the Datadog intake. The functions below look
 # for the trace/profile in what the mock received, and rebuild the subset of the `/api/ui/trace` response
 # structure that the validators use: {"trace": {"root_id": ..., "spans": {span_id: {"meta", "metrics", "start"}}}}
 
@@ -271,7 +271,7 @@ def _get_mocked_backend_trace(trace_id: int) -> dict | None:
     """
     spans: dict[str, dict] = {}
 
-    for data in interfaces.backend_v2.get_data(path_filters="/api/v0.2/traces"):
+    for data in interfaces.mocked_backend.get_data(path_filters="/api/v0.2/traces"):
         content = data["request"].get("content")
         if not isinstance(content, dict):
             continue
@@ -317,7 +317,7 @@ def _log_mocked_backend_content() -> None:
     """Help to understand why a trace is missing: did the agent reach the mock at all, and with which traces?"""
     paths: dict[str, int] = {}
     trace_ids: list[str] = []
-    for data in interfaces.backend_v2.get_data():
+    for data in interfaces.mocked_backend.get_data():
         paths[data["path"]] = paths.get(data["path"], 0) + 1
         if data["path"] != "/api/v0.2/traces":
             continue
@@ -415,7 +415,7 @@ def _query_mocked_backend_for_profile(runtime_id: str) -> None:
     deadline = time.perf_counter() + MOCKED_BACKEND_PROFILE_TIMEOUT
 
     while True:
-        for data in interfaces.backend_v2.get_data(path_filters="/api/v2/profile"):
+        for data in interfaces.mocked_backend.get_data(path_filters="/api/v2/profile"):
             if runtime_id in json.dumps(data["request"].get("content"), default=repr):
                 logger.debug(f"Found profile in the mocked backend: {data['log_filename']}")
                 _validate_mocked_backend_profile(data)

@@ -73,8 +73,26 @@
       fi
     fi
 
-    # Environment variables for the installer
-    export DD_APM_INSTRUMENTATION_ENABLED=host
+    # Environment variables for the installer.
+    # The install script uses STRICT as the instrumentation mode, and fails the
+    # install when that SSI setup fails. `docker` alone skips the agent install,
+    # so container apps on this provision use `all`: the agent stays on the host
+    # and docker injection is requested too.
+    case "${DD_APP_TYPE}" in
+      host)
+        instrumentation_mode=host
+        ;;
+      container|alpine|multicontainer)
+        instrumentation_mode=all
+        ;;
+      *)
+        echo "Unknown DD_APP_TYPE '${DD_APP_TYPE:-}', refusing to install SSI" >&2
+        exit 1
+        ;;
+    esac
+    echo "SSI instrumentation mode: ${instrumentation_mode} (app type: ${DD_APP_TYPE})"
+    export DD_APM_INSTRUMENTATION_ENABLED="${instrumentation_mode}"
+    export DD_APM_INSTRUMENTATION_STRICT="${instrumentation_mode}"
     export DD_APM_INSTRUMENTATION_LIBRARIES="${DD_LANG}"
 
     if [ -n "${DD_INSTALLER_LIBRARY_VERSION}" ]; then
@@ -240,7 +258,9 @@
     Set-ExecutionPolicy Bypass -Scope Process -Force;
     [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072;
     $env:DD_SITE = "datadoghq.com";
+    # STRICT must match ENABLED so an SSI component install failure stops the script.
     $env:DD_APM_INSTRUMENTATION_ENABLED = "iis"
+    $env:DD_APM_INSTRUMENTATION_STRICT = "iis"
 
     # Check if Install-Datadog.ps1 exists locally in binaries folder
     if (Test-Path "Install-Datadog.ps1") {

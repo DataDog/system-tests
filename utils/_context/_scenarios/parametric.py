@@ -18,7 +18,7 @@ from utils.docker_fixtures import (
     ParametricTestClientApi,
 )
 
-from ._core import DockerFixturesScenario
+from ._core import DockerFixturesScenario, FakeDatadogKey
 
 
 # Max timeout in seconds to keep a container running
@@ -27,6 +27,9 @@ default_subprocess_run_timeout = 300
 
 class ParametricScenario(DockerFixturesScenario):
     _test_client_factory: ParametricTestClientFactory
+
+    dd_api_key = FakeDatadogKey.PARAMETRIC
+    """The API key tests give to the parametric libraries"""
 
     class PersistentParametricTestConf(dict):
         """Parametric tests are executed in multiple thread, we need a mechanism to persist

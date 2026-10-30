@@ -61,7 +61,9 @@ class MockedBackendServerCore(ABC, ThreadingHTTPServer):
     scheme: str
 
     @abstractmethod
-    def get_handler(self, method: HttpMethod, path: str) -> tuple[RouteHandler, str | None, str | None]: ...
+    def get_handler(
+        self, method: HttpMethod, path: str, *, query: str = ""
+    ) -> tuple[RouteHandler, str | None, str | None]: ...
 
     @abstractmethod
     def add_handler(self, method: HttpMethod, path: str, handler: RouteHandler) -> None: ...
@@ -134,7 +136,7 @@ class MockBackendV2RequestHandler(BaseHTTPRequestHandler):
         url_parts = urlsplit(self.path)
         path = url_parts.path
 
-        handler, log_filename, export_content_files_to = self.server.get_handler(method, path)
+        handler, log_filename, export_content_files_to = self.server.get_handler(method, path, query=url_parts.query)
 
         self._data: dict[str, Any] = {
             "log_filename": log_filename,
@@ -164,7 +166,7 @@ class MockBackendV2RequestHandler(BaseHTTPRequestHandler):
 
         self._data["response"]["content"] = str(response) if isinstance(response, bytes) else response
 
-        logger.debug(f"Mocked backend v2 received {self.command} {self.path}, logging into {log_filename}")
+        logger.info(f"{self.command} {self.path} -> handled by {handler}: {self._data['response'].get('status_code')}")
 
         if log_filename:
             with open(log_filename, mode="w", encoding="utf-8") as f:

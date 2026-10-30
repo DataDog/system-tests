@@ -8,7 +8,7 @@ from utils._context.containers import OpenTelemetryCollectorContainer, PostgresC
 from utils._logger import logger
 from utils.proxy.ports import ProxyPorts
 
-from ._core import DockerScenario, scenario_groups
+from ._core import DockerScenario, FakeDatadogKey, scenario_groups
 
 
 class OtelCollectorScenario(DockerScenario):
@@ -22,7 +22,6 @@ class OtelCollectorScenario(DockerScenario):
             doc="TODO",
             scenario_groups=[scenario_groups.end_to_end, scenario_groups.all, scenario_groups.open_telemetry],
             use_proxy=True,
-            mocked_backend=True,
         )
 
         self.postgres_container = PostgresContainer()
@@ -31,7 +30,7 @@ class OtelCollectorScenario(DockerScenario):
         self.collector_container = OpenTelemetryCollectorContainer(
             config_file="./utils/build/docker/e2eotel/otelcol-config.yml",
             environment={
-                "DD_API_KEY": "0123",
+                "DD_API_KEY": FakeDatadogKey.OTEL_COLLECTOR,
                 "DD_SITE": os.environ.get("DD_SITE", "datad0g.com"),
                 "HTTP_PROXY": f"http://proxy:{ProxyPorts.otel_collector}",
                 "HTTPS_PROXY": f"http://proxy:{ProxyPorts.otel_collector}",
@@ -53,14 +52,6 @@ class OtelCollectorScenario(DockerScenario):
         super().configure(config)
 
         self.collector_container.depends_on.append(self.postgres_container)
-
-        if not self.proxy_container.mocked_backend:
-            interfaces.backend_legacy.configure(self.host_log_folder, replay=self.replay)
-
-            if "DD_API_KEY" not in os.environ:
-                pytest.exit(f"{self.name} scenario requires a valid DD_API_KEY")
-
-            self.collector_container.environment["DD_API_KEY"] = os.environ["DD_API_KEY"]
 
         postgres_image = self.postgres_container.image.name
         image_parts = postgres_image.split(":")

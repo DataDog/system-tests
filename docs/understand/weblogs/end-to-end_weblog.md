@@ -887,6 +887,8 @@ Alternate call site for the same vulnerable function targeted by `/sca/vulnerabl
 test first-hit-wins deduplication: when the same CVE is triggered from two different call sites, only the
 first occurrence is reported in the `reached` array.
 
+The Java Lambda weblogs also implement both SCA endpoints, using Junrar 7.5.5 kept as a separate JAR. The vulnerable class is preloaded during handler initialization.
+
 ### GET /log/library
 
 This endpoint facilitates logging a message using a logging library. It is primarily designed for testing log injection functionality. Weblog apps must log using JSON format.
