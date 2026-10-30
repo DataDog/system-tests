@@ -3,31 +3,33 @@
 # Copyright 2021 Datadog, Inc.
 
 import tests.debugger.utils as debugger
-from utils import context, features, logger, scenarios, slow
+from utils import context, features, logger, remote_config, scenarios, slow
 import json
 import time
 
 TIMEOUT = 5
+DEFAULT_ENVVARS = {
+    "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
+}
+LOG_PROBE_TEMPLATE = """
+{
+    "version": 0,
+    "where": {
+        "typeName": null,
+        "sourceFile": "ACTUAL_SOURCE_FILE",
+        "lines": ["20"]
+    }
+}
+"""
 
 
 @features.debugger_inproduct_enablement
 @scenarios.debugger_inproduct_enablement
 class Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation(debugger.BaseDebuggerTest):
     ############ dynamic instrumentation ############
-    _probe_template = """
-    {
-        "version": 0,
-        "where": {
-            "typeName": null,
-            "sourceFile": "ACTUAL_SOURCE_FILE",
-            "lines": ["20"]
-        }
-    }
-    """
-
     def setup_inproduct_enablement_di(self):
         def _send_config(*, enabled: bool | None = None, reset: bool = True):
-            probe = json.loads(self._probe_template)
+            probe = json.loads(LOG_PROBE_TEMPLATE)
             probe["id"] = debugger.generate_probe_id("log")
             self.set_probes([probe])
 
@@ -116,6 +118,7 @@ class Test_Debugger_InProduct_Enablement_Exception_Replay(debugger.BaseDebuggerT
             "/exceptionreplay/multiframe", "multiple stack frames exception"
         )
 
+    @slow
     def test_inproduct_enablement_exception_replay(self):
         self.assert_rc_state_not_error()
         self.assert_all_weblog_responses_ok(expected_code=500)
@@ -130,22 +133,24 @@ class Test_Debugger_InProduct_Enablement_Exception_Replay(debugger.BaseDebuggerT
         self.initialize_weblog_remote_config()
         self.weblog_responses = []
 
+        # Tracers don't capture the same exception again for a while, even after exception replay is disabled and
+        # enabled again, so use exceptions that setup_inproduct_enablement_exception_replay doesn't capture.
         # Set a config with the wildcard service and env and ER=false.
         self._send_config(enabled=False, service_name="*", env="*")
         self.er_initial_enabled = not self._wait_for_exception_snapshot_received(
-            "/exceptionreplay/simple", "simple exception"
+            "/exceptionreplay/inner", "outer exception"
         )
 
         # Set a config with the wildcard service and env and ER=true.
         self._send_config(enabled=True, service_name="*", env="*")
         self.er_apm_multiconfig_enabled = self._wait_for_exception_snapshot_received(
-            "/exceptionreplay/simple", "simple exception"
+            "/exceptionreplay/inner", "outer exception"
         )
 
         # Set a config with the weblog service and env and ER=false.
         self._send_config(enabled=False, service_name="weblog", env="system-tests", reset=False)
         self.er_disabled_by_service_name = not self._wait_for_exception_snapshot_received(
-            "/exceptionreplay/recursion?depth=1", "recursion exception depth 1"
+            "/exceptionreplay/multiframe", "multiple stack frames exception"
         )
 
         # Set a config with the wildcard service and env and ER=true.
@@ -170,10 +175,18 @@ class Test_Debugger_InProduct_Enablement_Exception_Replay(debugger.BaseDebuggerT
 @slow
 class Test_Debugger_InProduct_Enablement_Code_Origin(debugger.BaseDebuggerTest):
     ########### code origin ############
+    _WARMUP_TIMEOUT = 10
+    _CODE_ORIGIN_TIMEOUT = 30
+
     def _check_code_origin(self):
         """Send a request and check if code origin spans are present."""
-        self.send_weblog_request("/")
-        return self.wait_for_code_origin_span(TIMEOUT)
+        request = self.send_weblog_request("/")
+        return self.wait_for_code_origin_span(request, self._CODE_ORIGIN_TIMEOUT)
+
+    def _warmup_code_origin(self):
+        """Send a request and wait until the tracer has instrumented the view function."""
+        request = self.send_weblog_request("/")
+        self.wait_for_code_origin_span(request, self._WARMUP_TIMEOUT, stop_when_absent=False)
 
     def _set_code_origin_and_check(self, *, enabled: bool | None):
         """Set code origin via remote config and check if spans are present."""
@@ -183,6 +196,11 @@ class Test_Debugger_InProduct_Enablement_Code_Origin(debugger.BaseDebuggerTest):
     def setup_inproduct_enablement_code_origin(self):
         self.initialize_weblog_remote_config()
         self.weblog_responses = []
+
+        # Some tracers start code origin asynchronously. Let the tracer instrument the view
+        # function before checking the default state with a fresh request. Where code origin
+        # is off by default, the warmup waits for its whole timeout.
+        self._warmup_code_origin()
 
         # Check initial state (default varies by language)
         self.co_initial_state = self._check_code_origin()
@@ -201,7 +219,7 @@ class Test_Debugger_InProduct_Enablement_Code_Origin(debugger.BaseDebuggerTest):
         self.assert_all_weblog_responses_ok()
 
         # Check initial state based on language-specific defaults
-        if context.library == "nodejs":
+        if context.library in ("nodejs", "dotnet"):
             assert self.co_initial_state, "Expected code origin enabled by default"
         else:
             assert not self.co_initial_state, "Expected code origin disabled by default"
@@ -209,3 +227,118 @@ class Test_Debugger_InProduct_Enablement_Code_Origin(debugger.BaseDebuggerTest):
         assert self.co_explicit_enabled, "Expected spans with code origin after explicit enable"
         assert self.co_empty_config, "Expected spans to continue emitting with empty config"
         assert self.co_explicit_disabled, "Expected spans to stop emitting after explicit disable"
+
+
+@features.debugger_code_origins
+@scenarios.debugger_inproduct_enablement
+@slow
+class Test_Debugger_InProduct_Enablement_Code_Origin_Default_On(debugger.BaseDebuggerTest):
+    # Timeout for the warmup request that lets the tracer finish instrumenting
+    # the view functions, and the longer timeout for the actual check that
+    # absorbs slow trace flush/delivery under CI load.
+    _WARMUP_TIMEOUT = 10
+    _CODE_ORIGIN_TIMEOUT = 30
+
+    def setup_code_origin_enabled_by_default(self):
+        self.initialize_weblog_remote_config()
+
+        # The preceding code-origin in-product enablement test explicitly
+        # disables code origin via remote config. Clear that RC state so this
+        # test observes the true default rather than the previous override.
+        self.send_rc_apm_tracing(reset=True)
+
+        # The code origin product is started asynchronously and only instruments
+        # the view functions once enabled, so a request sent right after startup
+        # may be served before the code origin metadata is attached. Send a
+        # warmup request to let instrumentation complete before the real check.
+        warmup_request = self.send_weblog_request("/")
+        self.wait_for_code_origin_span(warmup_request, timeout=self._WARMUP_TIMEOUT, stop_when_absent=False)
+
+        # Correlate the trace lookup to this request so that stale traces cannot
+        # satisfy the check and a fast trace cannot be discarded.
+        request = self.send_weblog_request("/")
+        self.code_origin_enabled_by_default = self.wait_for_code_origin_span(request, timeout=self._CODE_ORIGIN_TIMEOUT)
+
+    def test_code_origin_enabled_by_default(self):
+        self.assert_setup_ok()
+        self.assert_all_weblog_responses_ok()
+
+        assert self.code_origin_enabled_by_default, "Expected code origin enabled by default"
+
+
+@features.debugger_inproduct_enablement
+@scenarios.debugger_inproduct_enablement
+class Test_Debugger_InProduct_Enablement_Multiconfig_Partial_Update(debugger.BaseDebuggerTest):
+    """Updating one APM_TRACING config must not drop the other active configs.
+
+    An unchanged file keeps its hash, so libraries skip it, but it is still listed
+    in client_configs and must stay applied.
+    """
+
+    _WILDCARD_CONFIG_PATH = "datadog/2/APM_TRACING/inproduct-multiconfig-wildcard/config"
+    _SERVICE_CONFIG_PATH = "datadog/2/APM_TRACING/inproduct-multiconfig-service/config"
+
+    def _set_apm_tracing_config(self, path: str, settings: dict, *, service_name: str, env: str) -> None:
+        lib_config = {"library_language": "all", "library_version": "latest", "tracing_enabled": True} | settings
+        config = {
+            "schema_version": "v1.0.0",
+            "action": "enable",
+            "lib_config": lib_config,
+            "service_target": {"service": service_name, "env": env},
+        }
+        if remote_config.library_supports_sdk_configuration():
+            config = remote_config.to_sdk_config_payload(config)
+        remote_config.tracer_rc_state.set_config(path, config)
+
+    def _apply_with_new_probe_and_check_emitting(self) -> bool:
+        probe = json.loads(LOG_PROBE_TEMPLATE)
+        probe["id"] = debugger.generate_probe_id("log")
+        self.set_probes([probe])
+        self.step_probe_ids.append(probe["id"])
+        remote_config.tracer_rc_state.set_config(
+            f"datadog/2/LIVE_DEBUGGING/logProbe_{probe['id']}/config", self.probe_definitions[0]
+        )
+
+        self.rc_states.append(remote_config.tracer_rc_state.apply())
+        self.resolve_php_probes()
+
+        self.send_weblog_request("/debugger/log", reset=False)
+        # An ERROR status also ends this wait, so the test checks that each probe reached EMITTING
+        return self.wait_for_all_probes(statuses=["EMITTING"], timeout=TIMEOUT)
+
+    def setup_inproduct_enablement_multiconfig_partial_update(self):
+        self.initialize_weblog_remote_config()
+        self.weblog_responses = []
+        self.rc_states = []
+        self.step_probe_ids: list[str] = []
+        remote_config.tracer_rc_state.reset().apply()
+
+        # The wildcard config enables dynamic instrumentation, the service config only sets code origin.
+        self._set_apm_tracing_config(
+            self._WILDCARD_CONFIG_PATH, {"dynamic_instrumentation_enabled": True}, service_name="*", env="*"
+        )
+        self._set_apm_tracing_config(
+            self._SERVICE_CONFIG_PATH, {"code_origin_enabled": True}, service_name="weblog", env="system-tests"
+        )
+        self.di_enabled = self._apply_with_new_probe_and_check_emitting()
+
+        # Change a single setting of the service config. The wildcard config is resent unchanged.
+        self._set_apm_tracing_config(
+            self._SERVICE_CONFIG_PATH, {"code_origin_enabled": False}, service_name="weblog", env="system-tests"
+        )
+        self.di_kept_enabled = self._apply_with_new_probe_and_check_emitting()
+
+    def test_inproduct_enablement_multiconfig_partial_update(self):
+        self.assert_rc_state_not_error()
+        self.assert_all_weblog_responses_ok()
+
+        self.collect()
+        statuses = {probe_id: diagnostics["status"] for probe_id, diagnostics in self.probe_diagnostics.items()}
+        first_status, second_status = (statuses.get(probe_id) for probe_id in self.step_probe_ids)
+
+        assert self.di_enabled, (
+            "Expected probes to be emitting after the wildcard config enabled dynamic instrumentation"
+        )
+        assert first_status == "EMITTING", f"Expected the first probe to be EMITTING, got {first_status}"
+        assert self.di_kept_enabled, "Expected probes to keep emitting after updating only the service config"
+        assert second_status == "EMITTING", f"Expected the second probe to be EMITTING, got {second_status}"

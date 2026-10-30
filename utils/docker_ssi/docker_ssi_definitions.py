@@ -19,7 +19,7 @@ class JavaRuntimeInstallableVersions:
     JAVA_11 = RuntimeInstallableVersion("JAVA_11", "11.0.27-zulu")
 
     @staticmethod
-    def get_all_versions():
+    def get_all_versions() -> list["RuntimeInstallableVersion"]:
         return [
             JavaRuntimeInstallableVersions.JAVA_24,
             JavaRuntimeInstallableVersions.JAVA_21,
@@ -28,7 +28,7 @@ class JavaRuntimeInstallableVersions:
         ]
 
     @staticmethod
-    def get_version_id(version):
+    def get_version_id(version: str) -> str:
         for version_check in JavaRuntimeInstallableVersions.get_all_versions():
             if version_check.version == version:
                 return version_check.version_id
@@ -50,7 +50,7 @@ class PHPRuntimeInstallableVersions:
     PHP83 = RuntimeInstallableVersion("PHP83", "8.3")
 
     @staticmethod
-    def get_all_versions():
+    def get_all_versions() -> list["RuntimeInstallableVersion"]:
         return [
             PHPRuntimeInstallableVersions.PHP56,
             PHPRuntimeInstallableVersions.PHP70,
@@ -65,7 +65,7 @@ class PHPRuntimeInstallableVersions:
         ]
 
     @staticmethod
-    def get_version_id(version):
+    def get_version_id(version: str) -> str:
         for version_check in PHPRuntimeInstallableVersions.get_all_versions():
             if version_check.version == version:
                 return version_check.version_id
@@ -84,7 +84,7 @@ class PythonRuntimeInstallableVersions:
     PY312 = RuntimeInstallableVersion("PY312", "3.12.7")
 
     @staticmethod
-    def get_all_versions():
+    def get_all_versions() -> list["RuntimeInstallableVersion"]:
         return [
             PythonRuntimeInstallableVersions.PY36,
             PythonRuntimeInstallableVersions.PY37,
@@ -96,7 +96,7 @@ class PythonRuntimeInstallableVersions:
         ]
 
     @staticmethod
-    def get_version_id(version):
+    def get_version_id(version: str) -> str:
         for version_check in PythonRuntimeInstallableVersions.get_all_versions():
             if version_check.version == version:
                 return version_check.version_id
@@ -122,7 +122,7 @@ class JSRuntimeInstallableVersions:
     JS2303 = RuntimeInstallableVersion("JS2303", "23.3")
 
     @staticmethod
-    def get_all_versions():
+    def get_all_versions() -> list["RuntimeInstallableVersion"]:
         return [
             JSRuntimeInstallableVersions.JS1200,
             JSRuntimeInstallableVersions.JS1222,
@@ -141,7 +141,7 @@ class JSRuntimeInstallableVersions:
         ]
 
     @staticmethod
-    def get_version_id(version):
+    def get_version_id(version: str) -> str:
         for version_check in JSRuntimeInstallableVersions.get_all_versions():
             if version_check.version == version:
                 return version_check.version_id
@@ -156,7 +156,7 @@ class DotnetRuntimeInstallableVersions:
     DOTNET60 = RuntimeInstallableVersion("DOTNET60", "6.0.428")
 
     @staticmethod
-    def get_all_versions():
+    def get_all_versions() -> list["RuntimeInstallableVersion"]:
         return [
             DotnetRuntimeInstallableVersions.DOTNET80,
             DotnetRuntimeInstallableVersions.DOTNET70,
@@ -164,7 +164,7 @@ class DotnetRuntimeInstallableVersions:
         ]
 
     @staticmethod
-    def get_version_id(version):
+    def get_version_id(version: str) -> str:
         for version_check in DotnetRuntimeInstallableVersions.get_all_versions():
             if version_check.version == version:
                 return version_check.version_id
@@ -181,9 +181,10 @@ class RubyRuntimeInstallableVersions:
     RB32 = RuntimeInstallableVersion("RB32", "3.2.9")
     RB33 = RuntimeInstallableVersion("RB33", "3.3.9")
     RB34 = RuntimeInstallableVersion("RB34", "3.4.7")
+    RB40 = RuntimeInstallableVersion("RB40", "4.0.5")
 
     @staticmethod
-    def get_all_versions():
+    def get_all_versions() -> list["RuntimeInstallableVersion"]:
         return [
             RubyRuntimeInstallableVersions.RB26,
             RubyRuntimeInstallableVersions.RB27,
@@ -192,10 +193,11 @@ class RubyRuntimeInstallableVersions:
             RubyRuntimeInstallableVersions.RB32,
             RubyRuntimeInstallableVersions.RB33,
             RubyRuntimeInstallableVersions.RB34,
+            RubyRuntimeInstallableVersions.RB40,
         ]
 
     @staticmethod
-    def get_version_id(version):
+    def get_version_id(version: str) -> str:
         for version_check in RubyRuntimeInstallableVersions.get_all_versions():
             if version_check.version == version:
                 return version_check.version_id

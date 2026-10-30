@@ -5,9 +5,7 @@
 import json
 
 from utils import (
-    context,
     interfaces,
-    missing_feature,
     rfc,
     scenarios,
     weblog,
@@ -38,7 +36,6 @@ def _assert_custom_event_tag_absence():
 
 
 @features.appsec_request_blocking
-@scenarios.go_proxies_appsec_blocking
 @scenarios.appsec_blocking
 @scenarios.appsec_lambda_blocking
 class Test_Blocking_client_ip:
@@ -67,7 +64,6 @@ class Test_Blocking_client_ip:
 @features.appsec_request_blocking
 @scenarios.appsec_blocking
 @scenarios.appsec_lambda_blocking
-@scenarios.go_proxies_appsec_blocking
 class Test_Blocking_client_ip_with_forwarded:
     """Test if blocking is supported on http.client_ip address"""
 
@@ -110,7 +106,6 @@ class Test_Blocking_client_ip_with_forwarded:
 @features.appsec_request_blocking
 @scenarios.appsec_blocking
 @scenarios.appsec_lambda_blocking
-@scenarios.go_proxies_appsec_blocking
 class Test_Blocking_client_ip_with_K8_private_ip:
     """Test if blocking is supported on http.client_ip address"""
 
@@ -145,7 +140,6 @@ class Test_Blocking_user_id:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @features.appsec_request_blocking
-@scenarios.go_proxies_appsec_blocking
 @scenarios.appsec_blocking
 @scenarios.appsec_lambda_blocking
 class Test_Blocking_request_method:
@@ -179,10 +173,6 @@ class Test_Blocking_request_method:
         self.set_req1 = weblog.request("GET", path="/tag_value/clean_value_3876/200")
         self.block_req2 = weblog.request("OPTIONS", path="/tag_value/tainted_value_6512/200")
 
-    @missing_feature(
-        context.scenario is scenarios.go_proxies_appsec_blocking,
-        reason="The endpoint /tag_value is not implemented in the weblog",
-    )
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -199,7 +189,6 @@ class Test_Blocking_request_method:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @features.appsec_request_blocking
-@scenarios.go_proxies_appsec_blocking
 @scenarios.appsec_blocking
 @scenarios.appsec_lambda_blocking
 class Test_Blocking_request_uri:
@@ -244,10 +233,6 @@ class Test_Blocking_request_uri:
         self.set_req1 = weblog.get("/tag_value/clean_value_3877/200")
         self.block_req2 = weblog.get("/tag_value/tainted_value_6512.git/200")
 
-    @missing_feature(
-        context.scenario is scenarios.go_proxies_appsec_blocking,
-        reason="The endpoint /tag_value is not implemented in the weblog",
-    )
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -264,7 +249,6 @@ class Test_Blocking_request_uri:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @features.appsec_request_blocking
-@scenarios.go_proxies_appsec_blocking
 @scenarios.appsec_blocking
 @scenarios.appsec_lambda_blocking
 class Test_Blocking_request_path_params:
@@ -302,10 +286,6 @@ class Test_Blocking_request_path_params:
         self.set_req1 = weblog.get("/tag_value/clean_value_3878/200")
         self.block_req2 = weblog.get("/tag_value/tainted_value_AiKfOeRcvG45/200")
 
-    @missing_feature(
-        context.scenario is scenarios.go_proxies_appsec_blocking,
-        reason="The endpoint /param is not implemented in the weblog",
-    )
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -322,7 +302,6 @@ class Test_Blocking_request_path_params:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @features.appsec_request_blocking
-@scenarios.go_proxies_appsec_blocking
 @scenarios.appsec_blocking
 @scenarios.appsec_lambda_blocking
 class Test_Blocking_request_query:
@@ -376,10 +355,6 @@ class Test_Blocking_request_query:
         self.set_req1 = weblog.get("/tag_value/clean_value_3879/200")
         self.block_req2 = weblog.get("/tag_value/tainted_value_a1b2c3/200?foo=xtrace")
 
-    @missing_feature(
-        context.scenario is scenarios.go_proxies_appsec_blocking,
-        reason="The endpoint /tag_value is not implemented in the weblog",
-    )
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -396,7 +371,6 @@ class Test_Blocking_request_query:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @features.appsec_request_blocking
-@scenarios.go_proxies_appsec_blocking
 @scenarios.appsec_blocking
 @scenarios.appsec_lambda_blocking
 class Test_Blocking_request_headers:
@@ -434,10 +408,6 @@ class Test_Blocking_request_headers:
         self.set_req1 = weblog.get("/tag_value/clean_value_3880/200")
         self.block_req2 = weblog.get("/tag_value/tainted_value_xyz/200", headers={"foo": "asldhkuqwgervf"})
 
-    @missing_feature(
-        context.scenario is scenarios.go_proxies_appsec_blocking,
-        reason="The endpoint /tag_value is not implemented in the weblog",
-    )
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -454,7 +424,6 @@ class Test_Blocking_request_headers:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @features.appsec_request_blocking
-@scenarios.go_proxies_appsec_blocking
 @scenarios.appsec_blocking
 @scenarios.appsec_lambda_blocking
 class Test_Blocking_request_cookies:
@@ -492,10 +461,6 @@ class Test_Blocking_request_cookies:
         self.set_req1 = weblog.get("/tag_value/clean_value_3881/200")
         self.block_req2 = weblog.get("/tag_value/tainted_value_cookies/200", cookies={"foo": "jdfoSDGFkivRG_234"})
 
-    @missing_feature(
-        context.scenario is scenarios.go_proxies_appsec_blocking,
-        reason="The endpoint /tag_value is not implemented in the weblog",
-    )
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -592,9 +557,56 @@ class Test_Blocking_request_body_multipart:
         assert self.rbmp_req.status_code == 403
 
 
+@scenarios.appsec_blocking
+@scenarios.appsec_lambda_blocking
+@features.appsec_request_blocking
+class Test_Blocking_request_body_filenames:
+    """Test if blocking is supported on server.request.body.filenames address"""
+
+    def setup_blocking(self):
+        self.rbf_req = weblog.post("/waf", files={"upload": ("malicious_file.jsp", b"harmless content")})
+
+    def test_blocking(self):
+        """Can block on server.request.body.filenames"""
+        interfaces.library.assert_waf_attack(self.rbf_req, rule="tst-037-014")
+        assert self.rbf_req.status_code == 403
+
+    def setup_non_blocking(self):
+        self.setup_blocking()
+        self.rbf_safe = weblog.post("/waf", files={"upload": ("safe_file.txt", b"harmless content")})
+
+    def test_non_blocking(self):
+        """Does not block on server.request.body.filenames when filename is safe"""
+        self.test_blocking()
+        assert self.rbf_safe.status_code == 200
+
+
+@scenarios.appsec_blocking
+@scenarios.appsec_lambda_blocking
+@features.appsec_request_blocking
+class Test_Blocking_request_body_files_content:
+    """Test if blocking is supported on server.request.body.files_content address"""
+
+    def setup_blocking(self):
+        self.rbfc_req = weblog.post("/waf", files={"upload": ("safe.txt", b"malicious-content-for-test")})
+
+    def test_blocking(self):
+        """Can block on server.request.body.files_content"""
+        interfaces.library.assert_waf_attack(self.rbfc_req, rule="tst-037-015")
+        assert self.rbfc_req.status_code == 403
+
+    def setup_non_blocking(self):
+        self.setup_blocking()
+        self.rbfc_safe = weblog.post("/waf", files={"upload": ("safe.txt", b"harmless content")})
+
+    def test_non_blocking(self):
+        """Does not block on server.request.body.files_content when content is safe"""
+        self.test_blocking()
+        assert self.rbfc_safe.status_code == 200
+
+
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @features.appsec_response_blocking
-@scenarios.go_proxies_appsec_blocking
 @scenarios.appsec_blocking
 @scenarios.appsec_lambda_blocking
 class Test_Blocking_response_status:
@@ -631,10 +643,6 @@ class Test_Blocking_response_status:
     def setup_not_found(self):
         self.rnf_req = weblog.get(path="/finger_print")
 
-    @missing_feature(
-        context.scenario is scenarios.go_proxies_appsec_blocking,
-        reason="The endpoint /finger_print is not implemented in the weblog",
-    )
     def test_not_found(self):
         """Can block on server.response.status"""
 
@@ -644,7 +652,6 @@ class Test_Blocking_response_status:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @features.appsec_response_blocking
-@scenarios.go_proxies_appsec_blocking
 @scenarios.appsec_blocking
 @scenarios.appsec_lambda_blocking
 class Test_Blocking_response_headers:

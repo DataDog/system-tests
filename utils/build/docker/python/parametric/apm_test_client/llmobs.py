@@ -49,6 +49,7 @@ class LlmObsAnnotationRequest:
     metadata: dict | None = None
     metrics: dict | None = None
     tags: dict | None = None
+    cost_tags: list | None = None
     prompt: dict | None = None
 
     explicit_span: bool | None = False
@@ -59,6 +60,7 @@ class LlmObsAnnotationContextRequest:
     prompt: dict | None = None
     name: str | None = None
     tags: dict | None = None
+    cost_tags: list | None = None
 
     children: list[LlmObsAnnotationContextRequest | LlmObsSpanRequest] | None = None
     type: Literal["annotation_context"] = "annotation_context"
@@ -84,6 +86,8 @@ def create_trace(trace_structure_request: SpanRequest | LlmObsAnnotationContextR
             options["name"] = trace_structure_request.name
         if trace_structure_request.tags:
             options["tags"] = trace_structure_request.tags
+        if trace_structure_request.cost_tags is not None:
+            options["cost_tags"] = trace_structure_request.cost_tags
 
         with LLMObs.annotation_context(**options):
             children = trace_structure_request.children
@@ -158,6 +162,11 @@ def apply_annotations(span, annotations: list[LlmObsAnnotationRequest], annotate
             for field_name in annotation.__dataclass_fields__
             if field_name != "explicit_span"
         }
+        # cost_tags was added in dd-trace-py#17628; older releases (e.g. the prod tracer
+        # image) reject the kwarg. Drop it when unset so unrelated annotate-using tests
+        # (Test_Enablement, Test_Prompts, ...) keep working on those versions.
+        if options.get("cost_tags") is None:
+            options.pop("cost_tags", None)
         if annotation.explicit_span or annotate_after:
             options["span"] = span
         LLMObs.annotate(**options)

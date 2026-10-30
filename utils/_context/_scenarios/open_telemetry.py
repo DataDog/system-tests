@@ -9,20 +9,27 @@ from utils._logger import logger
 from utils import interfaces
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils._context.component_version import Version
+from utils._context.constants import WeblogCategory
 
 from utils._context.containers import (
     AgentContainer,
     OpenTelemetryCollectorContainer,
     TestedContainer,
     WeblogContainer,
+    CassandraContainer,
+    KafkaContainer,
+    MongoContainer,
+    MsSqlServerContainer,
+    MySqlContainer,
+    PostgresContainer,
+    RabbitMqContainer,
 )
 
+from ._core import DockerScenario, FakeDatadogKey, scenario_groups
+from utils.proxy.ports import ProxyPorts
 
-from .core import scenario_groups
-from .endtoend import DockerScenario
 
-
-class OpenTelemetryScenario(DockerScenario):
+class _OpenTelemetryScenario(DockerScenario):
     """Scenario for testing opentelemetry"""
 
     def __init__(
@@ -36,7 +43,6 @@ class OpenTelemetryScenario(DockerScenario):
         include_intake: bool = True,
         backend_interface_timeout: int = 20,
         require_api_key: bool = False,
-        mocked_backend: bool = True,
         extra_containers: tuple[type[TestedContainer], ...] = (),
     ) -> None:
         super().__init__(
@@ -44,12 +50,15 @@ class OpenTelemetryScenario(DockerScenario):
             doc=doc,
             github_workflow="endtoend",
             scenario_groups=[scenario_groups.all, scenario_groups.open_telemetry],
+            weblog_categories=[WeblogCategory.open_telemetry],
             use_proxy=True,
-            mocked_backend=mocked_backend,
             extra_containers=extra_containers,
         )
         if include_agent:
-            self.agent_container = AgentContainer(use_proxy=True)
+            # the E2E scenarios (require_api_key) send the agent data to the real backend
+            self.agent_container = AgentContainer(
+                dd_api_key=os.environ.get("DD_API_KEY", FakeDatadogKey.DEFAULT), use_proxy=True
+            )
             self._containers.append(self.agent_container)
         if include_collector:
             self.collector_container = OpenTelemetryCollectorContainer()
@@ -83,7 +92,8 @@ class OpenTelemetryScenario(DockerScenario):
             self.weblog_container.environment["OTEL_SYSTEST_INCLUDE_AGENT"] = "True"
             interfaces.agent.configure(self.host_log_folder, replay=self.replay)
 
-        interfaces.backend.configure(self.host_log_folder, replay=self.replay)
+        if self._require_api_key:  # only used by scenarios querying the real Datadog backend
+            interfaces.backend_legacy.configure(self.host_log_folder, replay=self.replay)
         interfaces.open_telemetry.configure(self.host_log_folder, replay=self.replay)
         interfaces.library_dotnet_managed.configure(self.host_log_folder, replay=self.replay)
 
@@ -151,10 +161,11 @@ class OpenTelemetryScenario(DockerScenario):
                 interfaces.agent.load_data_from_logs()
                 interfaces.agent.check_deserialization_errors()
 
-            interfaces.backend.load_data_from_logs()
+            if self._require_api_key:
+                interfaces.backend_legacy.load_data_from_logs()
         elif self.use_proxy:
             self._wait_interface(interfaces.open_telemetry, 5)
-            self._wait_interface(interfaces.backend, self.backend_interface_timeout)
+            self._wait_interface(interfaces.backend_legacy, self.backend_interface_timeout)
 
         self.close_targets()
 
@@ -195,3 +206,33 @@ class OpenTelemetryScenario(DockerScenario):
         # return {"python_otel", "java_otel", "nodejs_otel"}
         # nodejs_otel is broken since a while
         return {"python_otel", "java_otel"}
+
+
+class OtelIntegrations(_OpenTelemetryScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "OTEL_INTEGRATIONS",
+            weblog_env={
+                "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
+                "OTEL_EXPORTER_OTLP_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}",
+                "OTEL_EXPORTER_OTLP_TRACES_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
+                "OTEL_INTEGRATIONS_TEST": True,
+            },
+            include_intake=False,
+            include_collector=False,
+            extra_containers=(
+                MsSqlServerContainer,
+                MySqlContainer,
+                RabbitMqContainer,
+                KafkaContainer,
+                MongoContainer,
+                CassandraContainer,
+                PostgresContainer,
+            ),
+            doc=(
+                "We use the open telemetry library to automatically instrument the weblogs instead of using the DD "
+                "library."
+                "This scenario represents this case in the integration with different external systems, for example "
+                "the interaction with sql database."
+            ),
+        )

@@ -2,9 +2,10 @@ import itertools
 import json
 from typing import Any
 
-import pytest
+from utils import pytest
 
-from utils._context._scenarios import get_all_scenarios, EndToEndScenario, scenarios
+from utils._context._scenarios import get_all_scenarios, scenarios
+from utils._context._scenarios._core.endtoend import EndToEndScenario
 from utils import logger
 
 # Map of scenario pairs that cannot be merged and their specific reasons
@@ -29,12 +30,22 @@ FAILED tests/appsec/test_suspicious_attacker_blocking.py::Test_Suspicious_Attack
     # If merge into REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD that is identical to this scenario,
     # test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDD::test_tracer_update_sequence will fail
     ("APPSEC_BLOCKING_FULL_DENYLIST", "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD"): "Incompatible test sequence",
+    # AI_GUARD_REDACTION_TELEMETRY is deliberately configured exactly like AI_GUARD: what it needs
+    # is not a different weblog, it is an empty one. Test_AIGuardTelemetryRedacted asserts exact
+    # counts on the ai_guard.requests metric, which is not request-scoped, so those counts only
+    # hold while it is the sole class posting evaluations into the scenario. Merging it into
+    # AI_GUARD, where 40+ tests each post their own evaluation, makes the metric uncountable.
+    ("AI_GUARD", "AI_GUARD_REDACTION_TELEMETRY"): "Exact telemetry counts need a scenario with no other evaluations",
     ("APPSEC_REQUEST_BLOCKING", "APPSEC_BLOCKING_FULL_DENYLIST"): "TODO",
     ("APPSEC_REQUEST_BLOCKING", "APPSEC_RUNTIME_ACTIVATION"): "TODO",
     ("APPSEC_RUNTIME_ACTIVATION", "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD"): "TODO",
     ("APPSEC_RUNTIME_ACTIVATION", "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE"): "TODO",
     ("APPSEC_RUNTIME_ACTIVATION", "REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING"): "TODO",
     ("APPSEC_RUNTIME_ACTIVATION", "TRACING_CONFIG_NONDEFAULT_4"): "TODO",
+    (
+        "FEATURE_FLAGGING_AND_EXPERIMENTATION",
+        "FEATURE_FLAGGING_EVP_STRESS",
+    ): "Process-wide FFE drop counters cannot be attributed to the stress workload if other evaluations run",
     ("REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD", "APPSEC_REQUEST_BLOCKING"): "TODO",
     ("REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES", "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE"): "TODO",
     ("TRACING_CONFIG_EMPTY", "TRACE_PROPAGATION_STYLE_DEFAULT"): "TODO",
@@ -58,9 +69,9 @@ def test_minimal_number_of_scenarios():
     - LEVEL 1 + LEVEL 3: scenarios_are_equivalent == True AND one_env_can_be_included_in_other == True
     """
 
-    # Filter only scenarios that are exactly EndToEndScenario class (not subclasses)
+    # Filter scenarios that are EndToEndScenario or one of its subclasses
     endtoend_scenarios: list[EndToEndScenario] = [
-        scenario for scenario in get_all_scenarios() if type(scenario) is EndToEndScenario
+        scenario for scenario in get_all_scenarios() if isinstance(scenario, EndToEndScenario)
     ]
 
     # sort keys in SKIP_MERGE_SCENARIOS
@@ -91,7 +102,11 @@ def test_minimal_number_of_scenarios():
             ".agent_container.environment",
         }
 
-        diff = _get_difference(scenario_a, scenario_b, ignored=ignored)
+        if _runtime_class(scenario_a) is not _runtime_class(scenario_b):
+            logger.debug("-> different runtime behavior")
+            continue
+
+        diff = _get_difference(vars(scenario_a), vars(scenario_b), ignored=ignored)
         logger.debug(f"-> differences: {diff}")
 
         if diff is not None:
@@ -135,8 +150,13 @@ def test_minimal_number_of_scenarios():
         )
 
         # 2. LEVEL 1 + LEVEL 3: equivalent configs AND one can be included in the other (REPORT ONLY)
+        # Only check subset when agent envs are identical — different agent_env means scenarios can't be merged
         # python trickery to get if a dict is a sub set of another
-        if small_scenario.weblog_container.environment.items() <= large_scenario.weblog_container.environment.items():
+        if (
+            agent_envs_match
+            and small_scenario.weblog_container.environment.items()
+            <= large_scenario.weblog_container.environment.items()
+        ):
             logger.error(f"Small scenario: {small_scenario.name}")
             logger.error(f"Large scenario: {large_scenario.name}")
 
@@ -145,6 +165,20 @@ def test_minimal_number_of_scenarios():
             pytest.fail(
                 f"Scenarios {key} have equivalent configurations with compatible weblog_env (subset relationship)"
             )
+
+
+def _runtime_class(scenario: EndToEndScenario) -> type:
+    """Each scenario has its own class, that usually only declares its configuration in __init__: skip those
+    declaration-only classes, to get the first one defining a runtime behavior
+    """
+    for cls in type(scenario).__mro__:
+        if not all(
+            name.startswith("__") and name.endswith("__") and (name == "__init__" or not callable(value))
+            for name, value in vars(cls).items()
+        ):
+            return cls
+
+    raise ValueError(f"No runtime class found for {scenario.name}")
 
 
 def normalize_env(env_dict: dict) -> dict[str, str]:

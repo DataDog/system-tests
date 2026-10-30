@@ -1,0 +1,38 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://app.datadoghq.com/api/v2/ai-guard/evaluate",
+    "headers": {
+      "Accept-Encoding": "identity",
+      "Content-Length": "394",
+      "Content-Type": "application/json",
+      "DD-AI-GUARD-VERSION": "4.10.6",
+      "DD-AI-GUARD-SOURCE": "SDK",
+      "DD-AI-GUARD-LANGUAGE": "python",
+      "Datadog-Entity-ID": "in-115200"
+    },
+    "body": "{\"data\": {\"attributes\": {\"messages\": [{\"role\": \"user\", \"content\": \"What is the weather like today?\"}, {\"role\": \"assistant\", \"content\": \"I'm unable to provide real-time information, including current weather updates. I recommend checking a reliable weather website or app for the most accurate and up-to-date information about today's weather in\"}], \"meta\": {\"service\": \"openai\", \"env\": null}}}}"
+  },
+  "response": {
+    "status": {
+      "code": 200,
+      "message": "OK"
+    },
+    "headers": {
+      "content-security-policy": "frame-ancestors 'self'; report-uri https://logs.browser-intake-datadoghq.com/api/v2/logs?dd-api-key=pube4f163c23bbf91c16b8f57f56af9fc58&dd-evp-origin=content-security-policy&ddsource=csp-report&ddtags=site%3Adatadoghq.com",
+      "content-type": "application/vnd.api+json",
+      "vary": "Accept-Encoding",
+      "x-frame-options": "SAMEORIGIN",
+      "content-length": "221",
+      "date": "Fri, 03 Jul 2026 14:49:58 GMT",
+      "x-content-type-options": "nosniff",
+      "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+      "x-ratelimit-limit": "5000",
+      "x-ratelimit-period": "60",
+      "x-ratelimit-remaining": "4998",
+      "x-ratelimit-reset": "2",
+      "x-ratelimit-name": "ai_guard_evaluate_per_org"
+    },
+    "body": "{\"data\":{\"id\":\"6f8dceb7-054d-4d1f-8e35-7c4487977669\",\"type\":\"evaluations\",\"attributes\":{\"action\":\"ALLOW\",\"global_prob\":0.0013275146484375,\"is_blocking_enabled\":false,\"reason\":\"No rule match.\",\"tag_probs\":null,\"tags\":[]}}}"
+  }
+}

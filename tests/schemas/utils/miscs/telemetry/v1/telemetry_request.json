@@ -5,21 +5,31 @@
   "type": "object",
   "allOf": [
     {
+      "$ref": "/miscs/telemetry/v1/objects/header.json"
+    },
+    {
       "properties": {
-        "header": {
-          "$ref": "/miscs/telemetry/v1/objects/header.json"
-        },
         "request_type": {
           "enum": [
             "app-started",
             "app-integrations-change",
             "app-dependencies-loaded",
+            "app-client-configuration-change",
             "generate-metrics",
             "app-heartbeat",
             "app-closing",
             "apm-onboarding-event",
+            "apm-remote-config-event",
             "distributions",
-            "logs"
+            "sketches",
+            "logs",
+            "debug-logs",
+            "traces",
+            "agent-metrics",
+            "agent-bsod",
+            "start-service",
+            "end-service",
+            "heartbeat-service"
           ]
         }
       }
@@ -34,7 +44,9 @@
       },
       "then": {
         "properties": {
-          "payload": { "$ref": "/miscs/telemetry/v1/events/app-started.json" }
+          "payload": {
+            "$ref": "/miscs/telemetry/v1/events/app-started.json"
+          }
         }
       }
     },

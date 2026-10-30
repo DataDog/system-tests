@@ -178,7 +178,8 @@ def assert_api_gateway_span(
     # http.url expected value in this test lacks the https:// scheme that Java correctly sets;
     # the v2 tests (mandatory_tags_validator_factory) validate the full URL for all languages.
     is_java = span["meta"].get("language") == "jvm" or span["meta"].get("language") == "java"
-    if not is_java:
+    is_ruby = span["meta"].get("language") == "ruby"
+    if not is_java and not is_ruby:
         assert "http.url" in span["meta"], "Inferred AWS API Gateway span meta should contain 'http.url'"
         assert span["meta"]["http.url"] == "system-tests-api-gateway.com" + path, (
             f"Inferred AWS API Gateway span meta expected HTTP URL to be 'system-tests-api-gateway.com{path}'"

@@ -17,18 +17,51 @@ def test_appsec():
 def test_tracer_release():
     # make an exclusion list
 
+    provisional_opt_out_scenarios = [
+        scenarios.feature_flagging_evaluation_telemetry_opt_out,
+        scenarios.feature_flagging_evaluation_telemetry_opt_out_disabled,
+    ]
+    for opt_out_scenario in provisional_opt_out_scenarios:
+        assert opt_out_scenario.github_workflow == "endtoend"
+        assert scenario_groups.ffe in opt_out_scenario.scenario_groups
+        assert opt_out_scenario in scenario_groups.ffe.scenarios
+        for group in (scenario_groups.all, scenario_groups.end_to_end, scenario_groups.tracer_release):
+            assert group not in opt_out_scenario.scenario_groups
+            assert opt_out_scenario not in group.scenarios
+
+    dormant_agentless_scenario = scenarios.feature_flagging_and_experimentation_agentless
+    assert dormant_agentless_scenario.include_agent is False
+    assert dormant_agentless_scenario.use_proxy is False
+    assert scenario_groups.ffe in dormant_agentless_scenario.scenario_groups
+    assert scenario_groups.all not in dormant_agentless_scenario.scenario_groups
+    assert scenario_groups.end_to_end not in dormant_agentless_scenario.scenario_groups
+    assert scenario_groups.tracer_release not in dormant_agentless_scenario.scenario_groups
+
+    agentless_exposure_scenarios = [
+        scenarios.feature_flagging_and_experimentation_agentless_direct,
+        scenarios.feature_flagging_and_experimentation_agentless_serverless,
+    ]
+    for exposure_scenario in agentless_exposure_scenarios:
+        assert exposure_scenario.include_agent is False
+        # the events go to the mocked backend, under the intake hostnames: no proxy in between
+        assert exposure_scenario.use_proxy is False
+        assert scenario_groups.ffe in exposure_scenario.scenario_groups
+        assert scenario_groups.all not in exposure_scenario.scenario_groups
+        assert scenario_groups.end_to_end not in exposure_scenario.scenario_groups
+        assert scenario_groups.tracer_release not in exposure_scenario.scenario_groups
+
     not_in_tracer_release_group = [
         # list of scenario that will never be part of tracer release
         scenarios.fuzzer,
+        dormant_agentless_scenario,
+        *agentless_exposure_scenarios,
         scenarios.mock_the_test,
         scenarios.mock_the_test_2,
         scenarios.test_the_test,
+        *provisional_opt_out_scenarios,
         scenarios.todo,
         # targetting OTEL
         scenarios.otel_integrations,
-        scenarios.otel_log_e2e,
-        scenarios.otel_metric_e2e,
-        scenarios.otel_tracing_e2e,
         scenarios.otel_collector,
         # to be added once stability is proven
         scenarios.chaos_installer_auto_injection,
@@ -39,8 +72,6 @@ def test_tracer_release():
         scenarios.docker_ssi_appsec,
         scenarios.docker_ssi_crashtracking,
         scenarios.docker_ssi_servicenaming,
-        scenarios.go_proxies_default,
-        scenarios.go_proxies_appsec_blocking,
         scenarios.host_auto_injection_install_script_appsec,
         scenarios.host_auto_injection_install_script_profiling,
         scenarios.host_auto_injection_install_script,
@@ -63,7 +94,6 @@ def test_tracer_release():
         scenarios.simple_auto_injection_profiling,
         scenarios.simple_installer_auto_injection,
         scenarios.multi_installer_auto_injection,
-        scenarios.otel_collector_e2e,
     ]
 
     for scenario in get_all_scenarios():

@@ -24,6 +24,8 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -144,8 +146,25 @@ public class RaspResource {
         }
     }
 
+    @GET
+    @Path("/lfi_write")
+    public String lfiWriteGet(@QueryParam("file") final String file) throws IOException {
+        return executeLfiWrite(file);
+    }
+
+    @POST
+    @Path("/lfi_write")
+    public String lfiWritePost(@FormParam("file") final String file) throws IOException {
+        return executeLfiWrite(file);
+    }
+
     private String executeLfi(final String file) throws Exception {
         new File(file);
+        return "OK";
+    }
+
+    private String executeLfiWrite(final String file) throws IOException {
+        new FileOutputStream(file).close();
         return "OK";
     }
 

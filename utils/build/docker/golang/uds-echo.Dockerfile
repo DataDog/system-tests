@@ -1,4 +1,4 @@
-FROM golang:1.25-alpine AS build
+FROM golang:1.26-alpine AS build
 
 RUN apk add --no-cache jq curl bash gcc musl-dev socat git
 
@@ -9,6 +9,8 @@ RUN go version && curl --version
 RUN mkdir -p /app
 COPY utils/build/docker/golang/app/go.mod utils/build/docker/golang/app/go.sum /app/
 WORKDIR /app
+ENV GONOSUMDB=github.com/DataDog/* \
+    GOPRIVATE=github.com/DataDog/*
 RUN go mod download && go mod verify
 
 # copy the app code

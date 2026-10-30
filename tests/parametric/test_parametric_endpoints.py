@@ -6,7 +6,9 @@ When in doubt refer to the python implementation as the source of truth via
 the OpenAPI schema: https://github.com/DataDog/system-tests/blob/44281005e9d2ddec680f31b2813eb90af831c0fc/docs/understand/scenarios/parametric.md#shared-interface
 """
 
-import pytest
+from typing import Any
+
+from utils import pytest
 import time
 
 from opentelemetry.trace import SpanKind
@@ -21,6 +23,8 @@ from utils.docker_fixtures.spec.trace import retrieve_span_events
 from utils.docker_fixtures.spec.trace import find_only_span
 from utils.docker_fixtures.parametric import Link, LogLevel
 from utils.docker_fixtures import TestAgentAPI, ParametricTestClientApi as APMLibrary
+
+from tests.parametric.test_dynamic_configuration import _create_rc_config, _set_rc
 
 # this global mark applies to all tests in this file.
 #   DD_TRACE_OTEL_ENABLED=true is required in the tracers to enable OTel
@@ -273,9 +277,19 @@ class Test_Parametric_DDTrace_Config:
             assert list(configs.keys()) == [
                 "dd_service",
                 "dd_log_level",
+                "dd_trace_effective_log_level",
                 "dd_trace_sample_rate",
                 "dd_trace_enabled",
                 "dd_runtime_metrics_enabled",
+                "dd_metrics_otel_interval",
+                "otel_metrics_initialized",
+                "otel_exporter_otlp_traces_timeout_ms",
+                "otel_exporter_otlp_metrics_timeout_ms",
+                "otel_exporter_otlp_logs_timeout_ms",
+                "otel_blrp_schedule_delay_ms",
+                "otel_blrp_export_timeout_ms",
+                "otel_blrp_max_queue_size",
+                "otel_blrp_max_export_batch_size",
                 "dd_tags",
                 "dd_trace_propagation_style",
                 "dd_trace_debug",
@@ -291,6 +305,9 @@ class Test_Parametric_DDTrace_Config:
                 "dd_profiling_enabled",
                 "dd_data_streams_enabled",
             ]
+            if t.lang == "php":
+                # PHP exposes its effective threshold through emitted SDK diagnostics.
+                assert t.dd_log_level_diagnostics()
 
 
 @scenarios.parametric
@@ -804,3 +821,47 @@ class Test_Parametric_FFE_Start:
         """
         result = test_library.ffe_start()
         assert result is True
+
+
+@scenarios.parametric
+@features.parametric_endpoint_parity
+class TestRemoteConfigApplyEndpoint:
+    """Black-box tests of the synchronous POST /trace/remote-config/apply endpoint contract.
+
+    The endpoint drains pending RC synchronously regardless of the tracer's RC poll interval.
+    """
+
+    def test_apply_returns_empty_when_no_rc_received(
+        self,
+        test_agent: TestAgentAPI,  # noqa: ARG002
+        test_library: APMLibrary,
+    ) -> None:
+        """When no RC has been sent, the endpoint returns 200 with applied_configs=[]."""
+        result = test_library.flush_remote_config()
+        assert isinstance(result, list)
+        # No RC has been published, so nothing should be applied yet.
+        assert result == [], f"expected empty applied_configs, got {result!r}"
+
+    def test_apply_returns_applied_config_after_set(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        """After publishing a config, the endpoint returns it in applied_configs."""
+        rc_config: dict[str, Any] = _create_rc_config({"tracing_sampling_rate": 0.5})
+        used_config_id = _set_rc(test_agent, rc_config, config_id="test-apply-set")
+
+        result = test_library.flush_remote_config()
+        assert result is not None, "endpoint should be implemented for Python"
+        config_ids = [c["config_id"] for c in result]
+        products = {c["product"] for c in result}
+
+        assert used_config_id in config_ids, f"expected config_id {used_config_id!r} in applied set, got {config_ids!r}"
+        assert products == {"APM_TRACING"}, f"expected only APM_TRACING, got {products!r}"
+
+    def test_apply_is_idempotent(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        """Calling apply twice in a row with no new RC is a no-op."""
+        _set_rc(test_agent, _create_rc_config({"tracing_sampling_rate": 0.3}), config_id="idem-1")
+        first = test_library.flush_remote_config()
+        second = test_library.flush_remote_config()
+        assert first is not None, "endpoint should be implemented for Python"
+        assert second is not None, "endpoint should be implemented for Python"
+        first_ids = sorted(c["config_id"] for c in first)
+        second_ids = sorted(c["config_id"] for c in second)
+        assert first_ids == second_ids, f"applied set changed between idempotent calls: {first_ids!r} -> {second_ids!r}"

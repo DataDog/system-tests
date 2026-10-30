@@ -1,4 +1,4 @@
-FROM datadog/system-tests:tornado.base-v2
+FROM system_tests_base_python_tornado
 
 WORKDIR /app
 
@@ -7,6 +7,9 @@ ENV DD_REMOTECONFIG_POLL_SECONDS=1
 
 COPY utils/build/docker/python/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
+
+# Install OTel OTLP exporter for FFE metrics
+RUN pip install opentelemetry-exporter-otlp-proto-http==1.40.0
 
 COPY utils/build/docker/python/tornado/app.sh /app/app.sh
 COPY utils/build/docker/python/tornado/main.py /app/main.py

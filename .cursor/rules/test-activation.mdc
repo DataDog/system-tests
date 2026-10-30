@@ -81,6 +81,14 @@ tests/path/test.py::TestClass:
     component_version: '<5.0.0'
 ```
 
+### Inferring the Next Release Version (specific to dd-trace-js, do not apply to other tracers)
+
+Don't try to predict the next `dd-trace-js` minimum version yourself.
+`vX.Y.Z-proposal` branches are mutable — PRs continue to be merged into them
+until the release is cut, so a PR landing on `master` after a proposal branch
+exists may still ship in that same version. When activating a test, ask the user
+which version contains the change.
+
 ### After Modifying Manifests
 
 **ALWAYS run `./format.sh` after any manifest modification.**
@@ -88,6 +96,20 @@ tests/path/test.py::TestClass:
 ---
 
 ## Decorator Rules
+
+### Pytest Facade
+
+Test modules must import pytest with `from utils import pytest`. Direct imports of
+the external `pytest` package are forbidden by Import Linter.
+
+`pytest.mark.skip_if_xfail` is an internal implementation detail and is
+intentionally absent from the facade. Never recreate an alias for it. If an
+expected failure must not execute:
+
+1. Keep its declaration in the appropriate manifest.
+2. Add `@slow` when running the test would consume excessive CI time.
+3. Add `@scenario_crash` only when running the test could crash the scenario or
+   disrupt other tests.
 
 ### Version Format
 

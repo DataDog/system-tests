@@ -151,6 +151,13 @@ class Test_Debugger_Method_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
         self._assert()
         self._validate_spans()
 
+    ### metric probe ###
+    def setup_metric_method_expression(self):
+        self._setup("probe_expression_metric_method", "/debugger/metric/1", "metric", lines=None)
+
+    def test_metric_method_expression(self):
+        self._assert()
+
     ### mix log probe ###
     def setup_mix_snapshot(self):
         self._setup("probe_snapshot_log_mixed", "/debugger/mix/asd/1", "log", lines=None)
@@ -374,6 +381,7 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
         assert len(string_value) <= self.DEFAULT_MAX_LENGTH, (
             f"longString should have length {self.DEFAULT_MAX_LENGTH}, got: {len(string_value)}"
         )
+        assert long_string.get("truncated") is True, "longString should be marked as truncated"
 
     def setup_log_line_snapshot_debug_track(self):
         self.use_debugger_endpoint = True

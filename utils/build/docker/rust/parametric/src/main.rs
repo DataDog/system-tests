@@ -1,6 +1,6 @@
 use ::opentelemetry::global::{self, BoxedTracer};
-use ::opentelemetry::InstrumentationScope;
 use ::opentelemetry::metrics::Meter;
+use ::opentelemetry::InstrumentationScope;
 use anyhow::{Context, Result};
 use axum::{
     body::Body, error_handling::HandleErrorLayer, extract::Request, http::StatusCode, BoxError,
@@ -8,7 +8,9 @@ use axum::{
 };
 use hyper::body::Incoming;
 use hyper_util::rt::TokioIo;
-use opentelemetry_sdk::{logs::SdkLoggerProvider, metrics::SdkMeterProvider, trace::SdkTracerProvider};
+use opentelemetry_sdk::{
+    logs::SdkLoggerProvider, metrics::SdkMeterProvider, trace::SdkTracerProvider,
+};
 use serde::Deserialize;
 use serde_json::json;
 use std::{
@@ -48,8 +50,9 @@ struct AppState {
     meter_provider: Arc<Mutex<Option<SdkMeterProvider>>>,
     otel_meters: Arc<Mutex<HashMap<String, Meter>>>,
     otel_meter_instruments: Arc<Mutex<HashMap<String, opentelemetry::MeterInstrument>>>,
-        logger_provider: Arc<Mutex<Option<SdkLoggerProvider>>>,
+    logger_provider: Arc<Mutex<Option<SdkLoggerProvider>>>,
     otel_loggers: Arc<Mutex<HashMap<String, InstrumentationScope>>>,
+    dd_config: datadog_opentelemetry::configuration::Config,
 }
 
 #[derive(Default, Clone)]
@@ -64,10 +67,59 @@ impl ContextWithParent {
     }
 }
 
+impl AppState {
+    /// Replaces the stored context of `span_id` with `f(context)` (e.g. to change its
+    /// baggage), keeping `current_context` in sync. Returns the new context.
+    pub(crate) fn update_context(
+        &self,
+        span_id: u64,
+        f: impl FnOnce(&::opentelemetry::Context) -> ::opentelemetry::Context,
+    ) -> Option<::opentelemetry::Context> {
+        use ::opentelemetry::trace::TraceContextExt;
+
+        let mut contexts = self.contexts.lock().unwrap();
+        let entry = contexts.get(&span_id)?;
+        let updated = Arc::new(ContextWithParent::new(
+            f(&entry.context),
+            entry.parent.clone(),
+        ));
+        contexts.insert(span_id, updated.clone());
+
+        let mut current = self.current_context.lock().unwrap();
+        if current.context.span().span_context().span_id()
+            == updated.context.span().span_context().span_id()
+        {
+            *current = updated.clone();
+        }
+        Some(updated.context.clone())
+    }
+}
+
+/// `Baggage` isn't `Clone`; copy it entry by entry, metadata included.
+pub(crate) fn copy_baggage(
+    baggage: &::opentelemetry::baggage::Baggage,
+) -> ::opentelemetry::baggage::Baggage {
+    let mut copy = ::opentelemetry::baggage::Baggage::new();
+    for (key, (value, metadata)) in baggage.iter() {
+        let _ = copy.insert_with_metadata(key.clone(), value.clone(), metadata.clone());
+    }
+    copy
+}
+
 #[tokio::main]
 async fn main() {
+    // dd-trace-rs reads DD_LOG_LEVEL but not DD_TRACE_DEBUG, which the test harness sets by
+    // default. Emulate DD_TRACE_DEBUG=true, but never override an explicit DD_LOG_LEVEL.
+    let mut config_builder = datadog_opentelemetry::configuration::Config::builder();
+    let trace_debug =
+        std::env::var("DD_TRACE_DEBUG").is_ok_and(|v| v.eq_ignore_ascii_case("true") || v == "1");
+    if trace_debug && std::env::var_os("DD_LOG_LEVEL").is_none() {
+        config_builder.set_log_level_filter(datadog_opentelemetry::log::LevelFilter::Debug);
+    }
+    let config = config_builder.build();
+
     // If tracing initialization fails, nevertheless emit a structured log event.
-    let result = init_tracing();
+    let result = init_tracing(&config);
     let tracer = match result {
         Ok(tracer) => tracer,
         Err(ref error) => {
@@ -76,23 +128,33 @@ async fn main() {
         }
     };
 
-    let meter_provider = init_metrics();
-    let logger_provider = init_logs();
+    let meter_provider = init_metrics(&config);
+    let logger_provider = init_logs(&config);
 
     // Replace the default panic hook with one that uses structured logging at ERROR level.
     panic::set_hook(Box::new(|panic| error!(%panic, "process panicked")));
 
     // Run and log any error.
-    if let Err(ref error) = run(tracer, meter_provider, logger_provider).await {
+    if let Err(ref error) = run(
+        tracer.clone(),
+        meter_provider.clone(),
+        logger_provider.clone(),
+        config
+    ).await {
         error!(
             error = format!("{error:#}"),
             backtrace = %error.backtrace(),
             "process exited with ERROR"
         );
     }
+    tracer.shutdown();
+    meter_provider.shutdown();
+    logger_provider.shutdown();
 }
 
-fn init_tracing() -> Result<SdkTracerProvider> {
+fn init_tracing(
+    config: &datadog_opentelemetry::configuration::Config,
+) -> Result<SdkTracerProvider> {
     let _ = tracing_subscriber::registry()
         .with(EnvFilter::try_from_default_env().unwrap_or_else(|_| {
             format!(
@@ -105,20 +167,20 @@ fn init_tracing() -> Result<SdkTracerProvider> {
         .try_init()
         .context("initialize tracing subscriber");
 
-    let mut builder = datadog_opentelemetry::configuration::Config::builder();
-    builder.set_log_level_filter(datadog_opentelemetry::log::LevelFilter::Debug);
     Ok(datadog_opentelemetry::tracing()
-        .with_config(builder.build())
+        .with_config(config.clone())
         .init())
 }
 
-fn init_metrics() -> SdkMeterProvider {
+fn init_metrics(config: &datadog_opentelemetry::configuration::Config) -> SdkMeterProvider {
     datadog_opentelemetry::metrics()
+        .with_config(config.clone())
         .init()
 }
 
-fn init_logs() -> SdkLoggerProvider {
+fn init_logs(config: &datadog_opentelemetry::configuration::Config) -> SdkLoggerProvider {
     datadog_opentelemetry::logs()
+        .with_config(config.clone())
         .init()
 }
 
@@ -149,6 +211,7 @@ pub async fn serve(
     tracer_provider: SdkTracerProvider,
     meter_provider: SdkMeterProvider,
     logger_provider: SdkLoggerProvider,
+    dd_config: datadog_opentelemetry::configuration::Config,
 ) -> Result<()> {
     let Config {
         addr,
@@ -168,6 +231,7 @@ pub async fn serve(
         otel_meter_instruments: Arc::new(Mutex::new(HashMap::new())),
         logger_provider: Arc::new(Mutex::new(Some(logger_provider))),
         otel_loggers: Arc::new(Mutex::new(HashMap::new())),
+        dd_config,
     };
 
     let app = Router::new()
@@ -216,8 +280,14 @@ async fn serve_plain(
     app: Router,
     _shutdown_timeout: Option<Duration>,
 ) -> Result<()> {
+    let shutdown = shutdown_signal();
+    tokio::pin!(shutdown);
+
     loop {
-        let (socket, _remote_addr) = listener.accept().await.unwrap();
+        let socket = tokio::select! {
+            res = listener.accept() => res.unwrap().0,
+            _ = &mut shutdown => { return Ok(()) },
+        };
 
         let tower_service = app.clone();
 
@@ -243,22 +313,17 @@ async fn serve_axum(
     shutdown_timeout: Option<Duration>,
 ) -> Result<()> {
     axum::serve(listener, app.into_make_service())
-        .with_graceful_shutdown(shutdown_signal(shutdown_timeout))
+        .with_graceful_shutdown(shutdown_signal())
         .await
         .context("run server")
 }
 
-async fn shutdown_signal(shutdown_timeout: Option<Duration>) {
+async fn shutdown_signal() {
     let res = signal(SignalKind::terminate())
         .expect("install SIGTERM handler")
         .recv()
         .await;
     debug!("Shutdown signal received, preparing to close server. {res:?}");
-
-    if let Some(shutdown_timeout) = shutdown_timeout {
-        sleep(shutdown_timeout).await;
-        debug!("Shutdown signal received, closing!!");
-    }
 }
 
 fn make_span(request: &Request<Body>) -> Span {
@@ -270,7 +335,12 @@ fn make_span(request: &Request<Body>) -> Span {
     info_span!("incoming request", path, ?headers, trace_id = field::Empty)
 }
 
-async fn run(tracer: SdkTracerProvider, meter_provider: SdkMeterProvider, logger_provider: SdkLoggerProvider) -> Result<()> {
+async fn run(
+    tracer: SdkTracerProvider,
+    meter_provider: SdkMeterProvider,
+    logger_provider: SdkLoggerProvider,
+    dd_config: datadog_opentelemetry::configuration::Config,
+) -> Result<()> {
     let port = u16::from_str_radix(
         &env::var("APM_TEST_CLIENT_SERVER_PORT").unwrap_or("8080".to_string()),
         10,
@@ -284,5 +354,5 @@ async fn run(tracer: SdkTracerProvider, meter_provider: SdkMeterProvider, logger
 
     info!(?config, "starting");
 
-    serve(config, tracer, meter_provider, logger_provider).await
+    serve(config, tracer, meter_provider, logger_provider, dd_config).await
 }

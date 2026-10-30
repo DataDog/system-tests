@@ -159,6 +159,10 @@ public class LlmObsController {
       if (tags != null) {
         span.setTags(tags);
       }
+
+      // TODO: forward `cost_tags` once the Java LLMObs SDK exposes a setCostTags() method
+      // (tracked under the cost_tags feature; see system-tests Test_CostTags). The annotation
+      // payload already carries `cost_tags` from the shared spec for cross-language symmetry.
     }
   }
 

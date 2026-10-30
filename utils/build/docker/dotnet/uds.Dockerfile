@@ -38,6 +38,8 @@ ENV ASPNETCORE_hostBuilder__reloadConfigOnChange=false
 ENV COMPlus_DbgEnableMiniDump=1
 # - MiniDumpWithPrivateReadWriteMemory is 2
 ENV COMPlus_DbgMiniDumpType=2
+ENV DOTNET_ThreadPool_ForceMinWorkerThreads=32
+ENV DOTNET_ThreadPool_ForceMinIOCompletionThreads=32
 
 # copy the dotnet app (built above)
 COPY --from=build-app /app/out .

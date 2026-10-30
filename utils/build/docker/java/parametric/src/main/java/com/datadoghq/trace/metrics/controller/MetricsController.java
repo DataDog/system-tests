@@ -11,8 +11,21 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping(value = "/trace/stats")
 public class MetricsController {
+
+  private static boolean skipNextFlush;
+
+  /** Skip the next request to flush metrics. */
+  public static void skipNextFlush() {
+    skipNextFlush = true;
+  }
+
   @PostMapping("flush")
   public void flush() {
+    if (skipNextFlush) {
+      LOGGER.info("Skipping request to flush metrics");
+      skipNextFlush = false;
+      return;
+    }
     LOGGER.info("Flushing metrics");
     try {
       // Only flush trace stats when tracing was enabled

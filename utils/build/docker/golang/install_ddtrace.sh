@@ -1,22 +1,37 @@
 #!/bin/bash
 
-set -euv
+set -euvo pipefail
+
+export GONOSUMDB="github.com/DataDog/*"
+export GOPRIVATE="github.com/DataDog/*"
+
+go_mod_tidy_with_retry() {
+    if ! go mod tidy; then
+        echo "go mod tidy failed, retrying in 10 seconds..."
+        sleep 10
+        go mod tidy
+    fi
+}
 
 # Run go mod tidy once to make sure go list does not fail.
-go mod tidy
+go_mod_tidy_with_retry
 
 MAIN_MODULE="github.com/DataDog/dd-trace-go/v2"
-CONTRIBS="$(go list -m all | grep github.com/DataDog/dd-trace-go/contrib | cut -f1 -d' ')"
+CONTRIBS="$(go list -m all | grep github.com/DataDog/dd-trace-go/contrib | cut -f1 -d' ' || true)"
 
 if [ -e "/binaries/dd-trace-go" ]; then
     echo "Install from folder /binaries/dd-trace-go"
     go mod edit -replace "$MAIN_MODULE=/binaries/dd-trace-go"
-    for contrib in $CONTRIBS; do
-        path="${contrib#github.com/DataDog/dd-trace-go/}"
-        path="${path%/v2}"
-        echo "Install contrib $contrib from folder /binaries/dd-trace-go/$path"
-        go mod edit -replace "github.com/DataDog/dd-trace-go/$path/v2=/binaries/dd-trace-go/$path"
-    done
+    # Add replace directives for all dd-trace-go submodules (contribs and others
+    # like instrumentation/testutils/grpc).
+    while IFS= read -r gomod; do
+        moddir="$(dirname "$gomod")"
+        modname="$(grep '^module ' "$gomod" | awk '{print $2}')"
+        if [[ "$modname" == github.com/DataDog/dd-trace-go/* ]] && [[ "$modname" != "$MAIN_MODULE" ]]; then
+            echo "Install contrib $modname from folder $moddir"
+            go mod edit -replace "$modname=$moddir"
+        fi
+    done < <(find /binaries/dd-trace-go -name "go.mod" -not -path "*/_*")
 elif [ -e "/binaries/golang-load-from-go-get" ]; then
     echo "Install from go get"
     # Read the file into an array to ensure we capture all lines
@@ -47,7 +62,7 @@ else
 fi
 
 # Downloading a newer version of the tracer may require to resolve again all dependencies
-go mod tidy
+go_mod_tidy_with_retry
 
 # Read the library version out of the version.go file
 lib_mod_dir=$(go list -f '{{.Dir}}' -m github.com/DataDog/dd-trace-go/v2)

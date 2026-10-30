@@ -1,6 +1,6 @@
 """Test the instrumented process discovery mechanism feature."""
 
-import pytest
+from utils import pytest
 import json
 import msgpack
 import re
@@ -55,8 +55,12 @@ def assert_v1(tracer_metadata: dict, test_library: APMLibrary, library_env: dict
 
     raw_version = context.library.raw_version
     if context.library.name == "ruby":
-        # weblog may adds tailing -dev
-        raw_version = raw_version.removesuffix("-dev")
+        # Ruby has two valid notations for a prerelease version: RubyGems-style
+        # ("X.Y.Z.dev", what the gemspec carries) and SemVer-2 ("X.Y.Z-dev", what
+        # the tracer emits via Identity.gem_datadog_version_semver2). Both denote
+        # the same version. Normalize raw_version to SemVer-2 so it compares equal
+        # to the tracer's report without conflating a prerelease with its release.
+        raw_version = re.sub(r"^(\d+\.\d+\.\d+)\.(\D[^.]*)$", r"\1-\2", raw_version)
     elif context.library.name == "golang":
         # for which reason ?
         raw_version = raw_version.removeprefix("v")
@@ -84,6 +88,17 @@ def assert_metadata_content(test_library: APMLibrary, library_env: dict[str, str
 
     if context.library.name == "java":
         rc, out = test_library.container_exec_run("pidof java")
+        assert rc
+        pid = int(out)
+    elif context.library.name == "nodejs":
+        rc, out = test_library.container_exec_run("pidof node")
+        assert rc
+        pid = int(out)
+    elif context.library.name == "golang":
+        # The Go parametric container wraps the server in a shell so the
+        # crashtracker monitor keeps the container alive while it uploads the
+        # crash report. The server is the only direct child of PID 1.
+        rc, out = test_library.container_exec_run("pgrep -P 1")
         assert rc
         pid = int(out)
     memfds = find_dd_memfds(test_library, pid)

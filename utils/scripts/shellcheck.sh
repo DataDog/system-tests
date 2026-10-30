@@ -41,9 +41,9 @@ function lint() {
         fi
 
         files+=("$f")
-    done < <( find utils -name '*.sh'; ls -1 -- *.sh )
+    done < <( find utils -type d -name 'node_modules' -prune -o -name '*.sh' -print; ls -1 -- *.sh )
 
-    ./venv/bin/shellcheck "${files[@]}"
+    shellcheck "${files[@]}"
 }
 
 function root() {

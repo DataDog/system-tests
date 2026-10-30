@@ -11,7 +11,7 @@ import time
 import types
 import xml.etree.ElementTree as ET
 from collections.abc import Generator, Sequence
-from typing import Any, Literal
+from typing import Any, Literal, TypedDict
 
 import pytest
 from _pytest.junitxml import xml_key
@@ -20,7 +20,7 @@ from pytest_jsonreport.plugin import JSONReport
 
 from utils import context
 from utils._context._scenarios import Scenario, scenarios
-from utils._context.component_version import ComponentVersion, Version
+from utils._context.component_version import ComponentVersion
 from utils.const import COMPONENT_GROUPS
 from utils._decorators import add_pytest_marker
 from utils._decorators import configure as configure_decorators
@@ -130,6 +130,15 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         default="",
         help="An file containing a valid Github token to perform API calls",
     )
+    parser.addoption(
+        "--skip-parametric-build",
+        action="store_true",
+        default=False,
+        help=(
+            "Skip building the parametric library image when it already exists "
+            "(faster re-runs when only test code changes)"
+        ),
+    )
 
     # Integration frameworks scenario options
     parser.addoption(
@@ -176,8 +185,18 @@ def pytest_configure(config: pytest.Config) -> None:
     ):
         config.option.skip_empty_scenario = True
 
+    if not config.option.skip_parametric_build and os.environ.get("SKIP_PARAMETRIC_BUILD", "").strip().lower() in (
+        "1",
+        "true",
+        "yes",
+    ):
+        config.option.skip_parametric_build = True
+
     if not config.option.force_execute and "SYSTEM_TESTS_FORCE_EXECUTE" in os.environ:
         config.option.force_execute = os.environ["SYSTEM_TESTS_FORCE_EXECUTE"].strip().split(",")
+
+    if not config.option.weblog and os.environ.get("SYSTEM_TESTS_WEBLOG"):
+        config.option.weblog = os.environ.get("SYSTEM_TESTS_WEBLOG")
 
     if not config.option.library and "TEST_LIBRARY" in os.environ:
         config.option.library = os.environ["TEST_LIBRARY"].strip()
@@ -217,19 +236,41 @@ def pytest_sessionstart(session: pytest.Session) -> None:
     if not session.config.option.collectonly:
         context.scenario.pytest_sessionstart(session)
 
-    # The canonical way o adding Junit properties to testsuite is not working with xdist
+    def flatten(source: dict[str, str | dict], dest: dict[str, str], root: str = "") -> dict:
+        for key, value in source.items():
+            if isinstance(value, str):
+                dest[f"{root}{key}"] = value
+            elif isinstance(value, dict):
+                flatten(value, dest, f"{root}{key}.")
+
+        return dest
+
+    # The canonical way of adding Junit properties to testsuite is not working with xdist
     # Workaround to tackle this issue
     # https://github.com/pytest-dev/pytest/issues/7767#issuecomment-698560400
     xml = session.config._store.get(xml_key, None)  # noqa: SLF001
     if xml:
         properties = context.scenario.get_junit_properties()
-        for key, value in properties.items():
-            xml.add_global_property(key, value or "")
+
+        # legacy
+        for key, value in flatten(properties, {}).items():
+            xml.add_global_property(f"dd_tags[systest.suite.context.{key}]", value)
+
+        xml.add_global_property("dd_tags[test.parameters]", json.dumps(properties))
 
     if session.config.option.sleep:
         logger.terminal.write("\n ********************************************************** \n")
         logger.terminal.write(" *** .:: Sleep mode activated. Press Ctrl+C to exit ::. *** ")
         logger.terminal.write("\n ********************************************************** \n\n")
+
+    if os.environ.get("SYSTEM_TESTS_DEV_MODE", "").lower() == "true":
+        logger.info("Checking that no version is ahead of main branch")
+        manifest = Manifest(context.scenario.components, context.weblog_variant)
+        errors = manifest.assert_versions_not_ahead_of_current()
+        if errors:
+            message = "Dev mode check: manifest declares versions ahead of the current tested version:\n"
+            message += "\n".join(f"  - {e}" for e in errors)
+            pytest.exit(message, 1)
 
 
 # called when each test item is collected
@@ -248,7 +289,13 @@ def _collect_item_metadata(item: pytest.Item):
     if declaration is not None:
         logger.debug(f"{item.nodeid} => {declaration} => skipped")
 
-    metadata = {
+    class Metadata(TypedDict):
+        details: str | None
+        testDeclaration: str | None
+        features: list[int]
+        owners: list[str]
+
+    metadata: Metadata = {
         "details": declaration if details is None else f"{declaration} ({details})",
         "testDeclaration": declaration,
         "features": [marker.kwargs["feature_id"] for marker in item.iter_markers("features")],
@@ -258,8 +305,13 @@ def _collect_item_metadata(item: pytest.Item):
     # decorate test for junit
     item.user_properties.append(("test.codeowners", json.dumps(metadata["owners"])))
 
-    # for feature_id in metadata["features"]:
-    #     item.user_properties.append(("dd_tags[test.feature_id]", str(feature_id)))
+    if metadata["features"] != [NOT_REPORTED_FEATURE_ID]:
+        item.user_properties.append(
+            (
+                "dd_tags[systest.case.feature_ids]",
+                str(list(filter(lambda x: x != NOT_REPORTED_FEATURE_ID, metadata["features"]))),
+            )
+        )
 
     if declaration:
         item.user_properties.append(("dd_tags[systest.case.declaration]", declaration))
@@ -274,10 +326,8 @@ def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config
     """Unselect items that were deactivated in the manifests or that are not included in the current scenario"""
 
     logger.debug("pytest_collection_modifyitems")
-    manifest_components: dict[str, Version] = {
-        name: version for name, version in context.scenario.components.items() if isinstance(version, Version)
-    }
-    manifest = Manifest(manifest_components, context.weblog_variant)
+    manifest = Manifest(context.scenario.components, context.weblog_variant)
+
     for item in items:
         assert isinstance(item, pytest.Function)
         declarations = manifest.get_declarations(item.nodeid)
@@ -383,6 +433,8 @@ def _item_is_skipped(item: pytest.Item):
 
 
 def pytest_collection_finish(session: pytest.Session) -> None:
+    logger.debug("pytest_collection_finish")
+
     if session.config.option.collectonly:
         return
 
@@ -505,12 +557,12 @@ def _set_outcome_properties(outcome: PytestOutcome, user_properties: list[tuple]
     else:
         raise ValueError(f"Can't translate `{outcome}` into test optim final status")
 
-    user_properties.append(("dd_tags[systest.case.outcome]", outcome))
+    user_properties.append(("dd_tags[systest.case.outcome]", outcome))  # legacy
     user_properties.append(("dd_tags[test.final_status]", final_status))
 
 
 @pytest.hookimpl(optionalhook=True)
-def pytest_json_runtest_metadata(item: pytest.Item, call: pytest.CallInfo) -> None | dict:
+def pytest_json_runtest_metadata(item: pytest.Item, call: pytest.CallInfo) -> dict | None:
     if call.when != "setup":
         return {}
 
@@ -553,10 +605,40 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
             # Test optimization needs to have the full name in name attribute
             junit_report = ET.parse(session.config.option.xmlpath)  # noqa: S314
 
+            # irrelevant tests are noise for test optimization, remove them from the report
+            for testsuite in junit_report.iter("testsuite"):
+                irrelevant_testcases = [
+                    testcase
+                    for testcase in testsuite.findall("testcase")
+                    if testcase.find(
+                        "properties/property[@name='dd_tags[systest.case.declaration]'][@value='irrelevant']"
+                    )
+                    is not None
+                ]
+
+                for testcase in irrelevant_testcases:
+                    testsuite.remove(testcase)
+
+                if irrelevant_testcases:
+                    for attr in ("tests", "skipped"):
+                        if attr in testsuite.attrib:
+                            count = int(testsuite.attrib[attr]) - len(irrelevant_testcases)
+                            testsuite.attrib[attr] = str(count)
+
             for testcase in junit_report.iter("testcase"):
                 if "classname" in testcase.attrib:
                     testcase.attrib["name"] = testcase.attrib["classname"] + "." + testcase.attrib["name"]
                     del testcase.attrib["classname"]
+
+                if testcase.attrib["name"] == "pytest.internal":
+                    properties = ET.Element("properties")
+                    testcase.append(properties)
+                    properties.append(
+                        ET.Element(
+                            "property",
+                            {"name": "test.codeowners", "value": '["@DataDog/apm-reliability-and-performance"]'},
+                        )
+                    )
 
                 if context.weblog_variant:
                     name = testcase.attrib["name"]

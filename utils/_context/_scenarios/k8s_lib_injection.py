@@ -15,7 +15,9 @@ from utils.k8s.k8s_component_image import (
     extract_cluster_agent_version,
 )
 from utils._logger import logger
-from .core import Scenario, scenario_groups, ScenarioGroup
+from ._core import Scenario, scenario_groups, ScenarioGroup
+
+DEFAULT_K8S_SCENARIO_GROUPS = [scenario_groups.all, scenario_groups.lib_injection]
 
 
 class K8sScenarioWithClusterProvider:
@@ -31,17 +33,19 @@ class K8sScenario(Scenario, K8sScenarioWithClusterProvider):
         doc: str,
         *,
         use_uds: bool = False,
-        weblog_env: dict[str, str] = {},
-        dd_cluster_feature: dict[str, str] = {},
+        weblog_env: dict[str, str] | None = None,
+        dd_cluster_feature: dict[str, str] | None = None,
         with_datadog_operator: bool = False,
         with_cluster_agent: bool = True,
-        scenario_groups: list[ScenarioGroup] = [scenario_groups.all, scenario_groups.lib_injection],
+        scenario_groups: list[ScenarioGroup] | None = None,
     ) -> None:
+        if scenario_groups is None:
+            scenario_groups = DEFAULT_K8S_SCENARIO_GROUPS
         super().__init__(name, doc=doc, github_workflow="libinjection", scenario_groups=scenario_groups)
         self.use_uds = use_uds
         self.with_datadog_operator = with_datadog_operator
-        self.weblog_env = weblog_env
-        self.dd_cluster_feature = dd_cluster_feature
+        self.weblog_env = weblog_env or {}
+        self.dd_cluster_feature = dd_cluster_feature or {}
         self._configuration: dict[str, str] = {}
         self.with_cluster_agent = with_cluster_agent
         self.k8s_helm_chart_version: str | None = None
@@ -215,25 +219,11 @@ class K8sScenario(Scenario, K8sScenarioWithClusterProvider):
         return self._configuration
 
 
-class K8sSparkScenario(K8sScenario):
+class K8sLibInjectionSparkDjm(K8sScenario):
     """Scenario that tests kubernetes lib injection for Spark applications"""
 
-    def __init__(
-        self,
-        name: str,
-        doc: str,
-        *,
-        use_uds: bool = False,
-        weblog_env: dict[str, str] = {},
-        dd_cluster_feature: dict[str, str] = {},
-    ) -> None:
-        super().__init__(
-            name,
-            doc=doc,
-            use_uds=use_uds,
-            weblog_env=weblog_env,
-            dd_cluster_feature=dd_cluster_feature,
-        )
+    def __init__(self) -> None:
+        super().__init__("K8S_LIB_INJECTION_SPARK_DJM", doc="Kubernetes lib injection DJM")
 
     def configure(self, config: pytest.Config):
         super().configure(config)
@@ -270,3 +260,116 @@ class K8sSparkScenario(K8sScenario):
         self.warmups.append(self.k8s_datadog.deploy_test_agent)
         self.warmups.append(lambda: self.k8s_datadog.deploy_datadog_cluster_agent(self.host_log_folder))
         self.warmups.append(self.test_weblog.install_weblog_pod)
+
+
+class K8sLibInjection(K8sScenario):
+    def __init__(self) -> None:
+        super().__init__("K8S_LIB_INJECTION", doc="Kubernetes lib injection with admission controller")
+
+
+class K8sLibInjectionOperator(K8sScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "K8S_LIB_INJECTION_OPERATOR",
+            doc=(
+                "Use CRD Datadog Operator (uses real agent). "
+                "Not configure the admission controller, the operator does it"
+            ),
+            with_datadog_operator=True,
+        )
+
+
+class K8sLibInjectionUds(K8sScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "K8S_LIB_INJECTION_UDS",
+            doc="Kubernetes lib injection with admission controller and uds",
+            use_uds=True,
+        )
+
+
+class K8sLibInjectionNoAc(K8sScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "K8S_LIB_INJECTION_NO_AC",
+            doc="Kubernetes lib injection without admission controller",
+            with_cluster_agent=False,
+            with_datadog_operator=False,
+        )
+
+
+class K8sLibInjectionNoAcUds(K8sScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "K8S_LIB_INJECTION_NO_AC_UDS",
+            doc="Kubernetes lib injection without admission controller and UDS",
+            use_uds=True,
+            with_cluster_agent=False,
+            with_datadog_operator=False,
+        )
+
+
+class K8sLibInjectionProfilingDisabled(K8sScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "K8S_LIB_INJECTION_PROFILING_DISABLED",
+            doc="Kubernetes lib injection with admission controller and profiling disabled by default",
+            weblog_env={
+                "DD_PROFILING_UPLOAD_PERIOD": "10",
+                "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
+                "DD_PROFILING_START_FORCE_FIRST": "true",
+            },
+            scenario_groups=[scenario_groups.all, scenario_groups.lib_injection_profiling],
+        )
+
+
+class K8sLibInjectionProfilingEnabled(K8sScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "K8S_LIB_INJECTION_PROFILING_ENABLED",
+            doc="Kubernetes lib injection with admission controller and profiling enaabled by cluster config",
+            weblog_env={
+                "DD_PROFILING_UPLOAD_PERIOD": "10",
+                "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
+                "DD_PROFILING_START_FORCE_FIRST": "true",
+            },
+            dd_cluster_feature={"datadog.profiling.enabled": "auto"},
+            scenario_groups=[scenario_groups.all, scenario_groups.lib_injection_profiling],
+        )
+
+
+class K8sLibInjectionProfilingOverride(K8sScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "K8S_LIB_INJECTION_PROFILING_OVERRIDE",
+            doc="Kubernetes lib injection with admission controller and profiling enaabled overriting cluster config",
+            weblog_env={
+                "DD_PROFILING_UPLOAD_PERIOD": "10",
+                "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
+                "DD_PROFILING_START_FORCE_FIRST": "true",
+            },
+            dd_cluster_feature={
+                "clusterAgent.env[0].name": "DD_ADMISSION_CONTROLLER_AUTO_INSTRUMENTATION_PROFILING_ENABLED",
+                "clusterAgent.env[0].value": "auto",
+            },
+            scenario_groups=[scenario_groups.all, scenario_groups.lib_injection_profiling],
+        )
+
+
+class K8sLibInjectionAppsecDisabled(K8sScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "K8S_LIB_INJECTION_APPSEC_DISABLED",
+            doc="Kubernetes lib injection with admission controller and appsec disabled by default",
+            scenario_groups=[scenario_groups.all, scenario_groups.lib_injection_appsec],
+        )
+
+
+class K8sLibInjectionAppsecEnabled(K8sScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "K8S_LIB_INJECTION_APPSEC_ENABLED",
+            doc="Kubernetes lib injection with admission controller and appsec enabled by cluster config",
+            dd_cluster_feature={"datadog.asm.threats.enabled": "true"},
+            scenario_groups=[scenario_groups.all, scenario_groups.lib_injection_appsec],
+        )

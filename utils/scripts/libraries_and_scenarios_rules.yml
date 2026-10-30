@@ -25,7 +25,7 @@
 #       debug-level log on pattern match.
 #
 # TIP: Valid scenario group names can be found in
-#                      utils/_context/_scenarios/core.py:26
+#                      utils/_context/_scenarios/_core/scenario.py:26
 #
 # Notes: - Do not use regex tokens like \w, \d, etc.
 #        - This mechanism is tested in
@@ -34,7 +34,7 @@
 
 
 refs:
-  - &lambda_libraries [java_lambda, python_lambda]
+  - &lambda_libraries [java_lambda, nodejs_lambda, python_lambda, ruby_lambda]
   - &otel_libraries [java_otel, python_otel]
 
 patterns:
@@ -152,12 +152,22 @@ patterns:
     run.sh: # run all by default
     .gitlab/ssi_gitlab-ci.yml:
         scenario_groups: [onboarding, lib_injection, docker_ssi]
+    utils/build/docker/base-images.lock.json:
+        scenario_groups: null
+        libraries: null
+    mirror_images.yaml:
+        scenario_groups: null
+        libraries: null
+    mirror_images.lock.yaml:
+        scenario_groups: null
+        libraries: null
+
 
 ################################ GitHub Actions ################################
 # This section contains rules to apply to files related to GitHub Actions.
 ################################################################################
 
-    .github/actions/pull_images/action.yml:
+    .github/actions/pull_images/*:
         scenario_groups: end_to_end
     .github/chainguard/*:
         scenario_groups: null
@@ -180,6 +190,9 @@ patterns:
     .github/workflows/nightly.yml:
         scenario_groups: null
         libraries: null
+    .github/workflows/nix.yml:
+        scenario_groups: null
+        libraries: null
     .github/workflows/run-docker-ssi.yml:
         scenario_groups: docker_ssi
     .github/workflows/run-end-to-end.yml:
@@ -192,6 +205,15 @@ patterns:
         scenarios: PARAMETRIC
     .github/workflows/run-exotics.yml:
         scenario_groups: exotics
+    .github/workflows/stale-prs.yml:
+        scenario_groups: null
+        libraries: null
+    .github/workflows/team-freeze-guard.yml:
+        scenario_groups: null
+        libraries: null
+    .github/workflows/update-agent-protobuf.yml:
+        scenario_groups: null
+        libraries: null
     .github/*:
         scenario_groups: null
 
@@ -199,37 +221,23 @@ patterns:
 # This section contains rules to apply to scenario files.
 ################################################################################
 
-    utils/_context/_scenarios/appsec_low_waf_timeout.py:
-        scenario_groups: appsec_low_waf_timeout
-    utils/_context/_scenarios/aws_lambda.py:
-        scenario_groups: lambda_end_to_end
-    utils/_context/_scenarios/auto_injection.py:
-        scenario_groups: onboarding
-    utils/_context/_scenarios/debugger.py:
-        scenario_groups: debugger
-    utils/_context/_scenarios/default.py:
-        scenarios: DEFAULT
-    utils/_context/_scenarios/_docker_fixtures.py:
+    utils/_context/_scenarios/__init__.py:  # only instantiates scenarios, each one is defined in a module of this folder
+        scenario_groups: null
+        libraries: null
+    utils/_context/_scenarios/_core/docker_fixtures.py:
         scenario_groups: docker_fixtures
-    utils/_context/_scenarios/appsec_rasp.py:
-        scenario_groups: appsec_rasp_scenario
-    utils/_context/_scenarios/endtoend.py:
+    utils/_context/_scenarios/_core/endtoend.py:
         scenario_groups: end_to_end
-    utils/_context/_scenarios/integration_frameworks.py:
-        scenarios: INTEGRATION_FRAMEWORKS
-    utils/_context/_scenarios/integrations.py:
-        scenario_groups: integrations
-    utils/_context/_scenarios/ipv6.py:
-        scenario_groups: ipv6
-    utils/_context/_scenarios/open_telemetry.py:
-        scenario_groups: open_telemetry
+    utils/_context/_scenarios/_core/fake_datadog_keys.py:  # fake key values: tests get them from the scenario, none depends on a value
+        scenario_groups: null
+        libraries: null
+    utils/_context/_scenarios/_core/*:  # base classes shared by many scenarios: runs everything
+    utils/_context/_scenarios/*/*:  # any other subfolder: not a definition file, runs everything
+    utils/_context/_scenarios/open_telemetry.py:  # its scenarios only run with OTel libraries
+        scenario_groups: null
         libraries: *otel_libraries
-    utils/_context/_scenarios/parametric.py:
-        scenarios: PARAMETRIC
-    utils/_context/_scenarios/profiling.py:
-        scenario_groups: profiling
-    utils/_context/_scenarios/go_proxies.py:
-        scenario_groups: go_proxies
+    utils/_context/_scenarios/*:  # a scenario definition file: runs the scenarios it defines, see compute_libraries_and_scenarios.py
+        scenario_groups: null
 
 
 ############################### Script file rules ##############################
@@ -243,8 +251,17 @@ patterns:
         scenario_groups: null
     utils/scripts/ai/*:
         scenario_groups: null
+    utils/scripts/build-local-agent-image.sh:
+        scenario_groups: null
+        libraries: null
     utils/scripts/check_version.sh:
         scenario_groups: null
+    utils/scripts/ci_orchestrators/compute-time-stats.py:
+        scenario_groups: null
+        libraries: null
+    utils/scripts/ci_orchestrators/time-stats.json:
+        scenario_groups: null
+        libraries: null
     utils/scripts/compute_libraries_and_scenarios.py:
         scenario_groups: null
         libraries: null
@@ -269,7 +286,13 @@ patterns:
         libraries: null
     utils/scripts/ssi_wizards/*:
         scenario_groups: null
+    utils/scripts/update_agent_version.py:
+        scenario_groups: null
+        libraries: null
     utils/scripts/update_change_log.sh:
+        scenario_groups: null
+        libraries: null
+    utils/scripts/update_injector_version.py:
         scenario_groups: null
         libraries: null
     utils/scripts/update_protobuf.sh:
@@ -280,7 +303,17 @@ patterns:
 ################################################################################
 
     utils/interfaces/_library/*:
-        scenario_groups: [end_to_end, open_telemetry, go_proxies]
+        scenario_groups: [end_to_end, open_telemetry]
+
+    utils/mocked_backend/_backend_ffe.py:
+        scenario_groups: agentless
+        scenarios: PARAMETRIC
+    utils/mocked_backend/ffe.py:
+        scenario_groups: agentless
+        scenarios: PARAMETRIC
+    utils/mocked_backend/*:  # generic mocked backend, also used by interfaces.mocked_backend
+        scenario_groups: agentless
+        scenarios: [PARAMETRIC, APM_TRACING_E2E_OTEL, APM_TRACING_E2E_SINGLE_SPAN]
 
     utils/_context/virtual_machine.py:
         scenario_groups: onboarding
@@ -333,6 +366,16 @@ patterns:
     utils/build/docker/vcr/cassettes/aiguard/*:
       scenario_groups: ai_guard
 
+    utils/ci/github/nightly.py:
+      scenario_groups: null
+      libraries: null
+    utils/ci/github/*:
+      scenarios: DEFAULT
+    utils/ci/gitlab/*:  # end-to-end GitLab pipeline, which only runs the c library on PRs
+      libraries: c
+      scenario_groups: end_to_end
+      scenarios: PARAMETRIC
+
 ############################ Library-specific rules ############################
 # This section contains rules to apply to library-related files. It follows the
 # template below for each language:
@@ -347,6 +390,13 @@ patterns:
 # utils/build/build_{library}_base_images.sh:
 #     libraries: {library}
 ################################################################################
+
+    manifests/c.yml:
+        scenario_groups: null  # already handled by the manifest comparison
+        libraries: c
+    utils/build/docker/c/*:
+        libraries: c
+        scenario_groups: [ end_to_end, ]
 
     manifests/cpp.yml:
         scenario_groups: null  # already handled by the manifest comparison
@@ -410,18 +460,11 @@ patterns:
     utils/build/build_golang_base_images.sh:
         libraries: golang
 
-    manifests/envoy.yml:
-        scenario_groups: null  # already handled by the manifest comparison
-        libraries: envoy
-    manifests/haproxy.yml:
-        scenario_groups: null  # already handled by the manifest comparison
-        libraries: haproxy
-
     manifests/java.yml:
         scenario_groups: null  # already handled by the manifest comparison
         libraries: java
     utils/build/docker/java/*:
-        scenario_groups: [ end_to_end, open_telemetry]
+        scenario_groups: [ end_to_end, open_telemetry, integration_frameworks]
         libraries: java
     lib-injection/build/docker/java/*:
         libraries: java
@@ -439,35 +482,39 @@ patterns:
         scenario_groups: null  # already handled by the manifest comparison
         libraries: nodejs
     utils/build/docker/nodejs/*:
-        scenario_groups: [ end_to_end, open_telemetry]
+        scenario_groups: [ end_to_end, open_telemetry, integration_frameworks]
         libraries: nodejs
     lib-injection/build/docker/nodejs/*:
         libraries: nodejs
-    utils/build/build_nodejs_base_images.sh:
-        libraries: nodejs
+    manifests/nodejs_lambda.yml:
+        scenario_groups: null  # already handled by the manifest comparison
+        libraries: nodejs_lambda
+    utils/build/docker/nodejs_lambda/*:
+        scenario_groups: appsec_lambda
+        libraries: nodejs_lambda
 
     manifests/php.yml:
         scenario_groups: null  # already handled by the manifest comparison
         libraries: php
+    utils/build/docker/php/parametric.base.Dockerfile:
+        libraries: php
+        scenarios: PARAMETRIC
     utils/build/docker/php/*:
         scenario_groups: [ end_to_end, open_telemetry]
         libraries: php
     lib-injection/build/docker/php/*:
         libraries: php
-    utils/build/build_php_base_images.sh:
-        libraries: php
-
     manifests/python.yml:
         scenario_groups: null  # already handled by the manifest comparison
         libraries: python
+    utils/build/docker/python/parametric.base.Dockerfile:
+        libraries: python
+        scenarios: PARAMETRIC
     utils/build/docker/python/*:
         libraries: python
-        scenario_groups: [ end_to_end, open_telemetry]
+        scenario_groups: [ end_to_end, open_telemetry, integration_frameworks]
     lib-injection/build/docker/python/*:
         libraries: python
-    utils/build/build_python_base_images.sh:
-        libraries: python
-
     manifests/ruby.yml:
         scenario_groups: null  # already handled by the manifest comparison
         libraries: ruby
@@ -489,6 +536,13 @@ patterns:
         libraries: python_lambda
     utils/build/build_python_lambda_base_images.sh:
         libraries: python_lambda
+
+    manifests/ruby_lambda.yml:
+        scenario_groups: null  # already handled by the manifest comparison
+        libraries: ruby_lambda
+    utils/build/docker/ruby_lambda/*:
+        scenario_groups: appsec_lambda
+        libraries: ruby_lambda
 
     manifests/rust.yml:
         scenario_groups: null  # already handled by the manifest comparison
@@ -533,9 +587,19 @@ patterns:
         scenario_groups: null
         libraries: null
 
+    # This helper has no test items of its own, so it's invisible to the scenario map that
+    # drives dynamic selection below. List its consumers' scenarios explicitly.
+    tests/test_telemetry_heartbeat_utils.py:
+        scenario_groups: null
+        scenarios: [DEFAULT, TEST_THE_TEST]
+
     tests/fuzzer/*:
         scenario_groups: exotics
         libraries: null
+
+    tests/appsec/test_sca_reachability.py:
+        scenario_groups: null
+        libraries: [java, java_lambda, python]
 
 ################################# Default rules ################################
 # The rules in this section are only applied if no other rule is applicable.

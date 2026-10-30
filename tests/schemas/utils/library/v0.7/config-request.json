@@ -40,7 +40,7 @@
               "$ref": "#/definitions/non-empty-string"
             },
             "app_version": {
-              "$ref": "#/definitions/non-empty-string"
+              "type": "string"
             },
             "tracer_version": {
               "$ref": "#/definitions/non-empty-string"
@@ -54,7 +54,8 @@
                 "java",
                 "php",
                 "python",
-                "ruby"
+                "ruby",
+                "rust"
               ]
             },
             "process_tags": {

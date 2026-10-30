@@ -1,9 +1,12 @@
-FROM datadog/system-tests:django-py3.13.base-v10
+FROM system_tests_base_python_django_py3_13
 
 WORKDIR /app
 
 COPY utils/build/docker/python/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
+
+# Install OTel OTLP exporter for FFE metrics
+RUN pip install opentelemetry-exporter-otlp-proto-http==1.40.0
 
 COPY utils/build/docker/python/django /app
 COPY utils/build/docker/python/iast.py /app/iast.py

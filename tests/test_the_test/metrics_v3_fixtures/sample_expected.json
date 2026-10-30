@@ -1,0 +1,4763 @@
+{
+  "series": [
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.telemetry_proxy.no_container_id_found",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.6
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe"
+      ],
+      "type": 50
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.trace_writer.retries",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.dogstatsd.client.aggregated_context",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 11.5
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "client:go",
+        "client_transport:udp",
+        "client_version:5.8.3"
+      ],
+      "type": 34
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.dogstatsd.client.aggregated_context_by_type",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "client:go",
+        "client_transport:udp",
+        "client_version:5.8.3",
+        "metrics_type:distribution"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.dogstatsd.client.aggregated_context_by_type",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.5
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "client:go",
+        "client_transport:udp",
+        "client_version:5.8.3",
+        "metrics_type:timing"
+      ],
+      "type": 34
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.sampler.kept",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "sampler:priority",
+        "sampling_priority:auto_keep",
+        "target_env:system-tests",
+        "target_service:weblog"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.internal.process_payload_ms.max",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.receiver.payload_refused",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "connection_type:tcp",
+        "endpoint_version:v0.4",
+        "interpreter:OpenJDK 64-Bit Server VM",
+        "lang:java",
+        "lang_vendor:Eclipse Adoptium",
+        "lang_version:11.0.31",
+        "service:hsqldb",
+        "tracer_version:1.63.0~864ef847c7"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.receiver.payload_accepted",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "connection_type:tcp",
+        "interpreter:OpenJDK 64-Bit Server VM",
+        "lang:java",
+        "lang_vendor:Eclipse Adoptium",
+        "lang_version:11.0.31",
+        "tracer_version:1.63.0~864ef847c7",
+        "endpoint_version:v0.6",
+        "service:weblog"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.receiver.traces_priority",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "connection_type:tcp",
+        "interpreter:OpenJDK 64-Bit Server VM",
+        "lang:java",
+        "lang_vendor:Eclipse Adoptium",
+        "lang_version:11.0.31",
+        "tracer_version:1.63.0~864ef847c7",
+        "endpoint_version:v0.6",
+        "service:weblog",
+        "priority:none"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.dogstatsd.client.bytes_sent",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 2801.1
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "client:go",
+        "client_transport:udp",
+        "client_version:5.8.3"
+      ],
+      "type": 50
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.dogstatsd.client.aggregated_context_by_type",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "client:go",
+        "client_transport:udp",
+        "client_version:5.8.3",
+        "metrics_type:set"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.trace_writer.flush_duration.max",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.receiver.payload_accepted",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "connection_type:tcp",
+        "endpoint_version:v0.4",
+        "interpreter:OpenJDK 64-Bit Server VM",
+        "lang:java",
+        "lang_vendor:Eclipse Adoptium",
+        "lang_version:11.0.31",
+        "tracer_version:1.63.0~864ef847c7",
+        "service:weblog"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.receiver.spans_dropped",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "connection_type:tcp",
+        "interpreter:OpenJDK 64-Bit Server VM",
+        "lang:java",
+        "lang_vendor:Eclipse Adoptium",
+        "lang_version:11.0.31",
+        "tracer_version:1.63.0~864ef847c7",
+        "endpoint_version:v0.6",
+        "service:weblog"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.dogstatsd.client.metrics_by_type",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 2.4
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "client:go",
+        "client_transport:udp",
+        "client_version:5.8.3",
+        "metrics_type:gauge"
+      ],
+      "type": 50
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.dogstatsd.client.bytes_dropped_writer",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "client:go",
+        "client_transport:udp",
+        "client_version:5.8.3"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.trace_writer.payloads",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.events.max_eps.reached_max",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.receiver.payload_accepted",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "connection_type:tcp",
+        "endpoint_version:v0.4",
+        "interpreter:OpenJDK 64-Bit Server VM",
+        "lang:java",
+        "lang_vendor:Eclipse Adoptium",
+        "lang_version:11.0.31",
+        "service:hsqldb",
+        "tracer_version:1.63.0~864ef847c7"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.stats_writer.stats_buckets",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.dogstatsd.client.metrics_by_type",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.6
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "client:go",
+        "client_transport:udp",
+        "client_version:5.8.3",
+        "metrics_type:timing"
+      ],
+      "type": 50
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.receiver.traces_priority",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "connection_type:tcp",
+        "endpoint_version:v0.4",
+        "interpreter:OpenJDK 64-Bit Server VM",
+        "lang:java",
+        "lang_vendor:Eclipse Adoptium",
+        "lang_version:11.0.31",
+        "tracer_version:1.63.0~864ef847c7",
+        "service:weblog",
+        "priority:2"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.cpu_percent",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 5.421010862427522e-09
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe"
+      ],
+      "type": 51
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.telemetry_proxy.roundtrip_ms.avg",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 8.413934333333334
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "endpoint:instrumentation-telemetry-intake.datad0g.com."
+      ],
+      "type": 563
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.telemetry_proxy.roundtrip_ms.count",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.6
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "endpoint:instrumentation-telemetry-intake.datad0g.com."
+      ],
+      "type": 50
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.telemetry_proxy.roundtrip_ms.95percentile",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 12.262992
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "endpoint:instrumentation-telemetry-intake.datad0g.com."
+      ],
+      "type": 563
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.telemetry_proxy.roundtrip_ms.max",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 12.262992
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "endpoint:instrumentation-telemetry-intake.datad0g.com."
+      ],
+      "type": 563
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.telemetry_proxy.roundtrip_ms.median",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 7.846491
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "endpoint:instrumentation-telemetry-intake.datad0g.com."
+      ],
+      "type": 563
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.receiver.out_chan_fill",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "is_trace_buffer_set:true"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.receiver.payload_refused",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "connection_type:tcp",
+        "endpoint_version:v0.4",
+        "interpreter:OpenJDK 64-Bit Server VM",
+        "lang:java",
+        "lang_vendor:Eclipse Adoptium",
+        "lang_version:11.0.31",
+        "tracer_version:1.63.0~864ef847c7",
+        "service:weblog"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.receiver.traces_bytes",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "connection_type:tcp",
+        "interpreter:OpenJDK 64-Bit Server VM",
+        "lang:java",
+        "lang_vendor:Eclipse Adoptium",
+        "lang_version:11.0.31",
+        "tracer_version:1.63.0~864ef847c7",
+        "endpoint_version:v0.6",
+        "service:weblog"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.dogstatsd.client.packets_dropped",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "client:go",
+        "client_transport:udp",
+        "client_version:5.8.3"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.sampler.kept",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "sampler:priority",
+        "target_env:system-tests",
+        "target_service:weblog",
+        "sampling_priority:manual_keep"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.receiver.traces_priority",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "connection_type:tcp",
+        "endpoint_version:v0.4",
+        "interpreter:OpenJDK 64-Bit Server VM",
+        "lang:java",
+        "lang_vendor:Eclipse Adoptium",
+        "lang_version:11.0.31",
+        "service:hsqldb",
+        "tracer_version:1.63.0~864ef847c7",
+        "priority:none"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.receiver.stats_bytes",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 403.3
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "connection_type:tcp",
+        "interpreter:OpenJDK 64-Bit Server VM",
+        "lang:java",
+        "lang_vendor:Eclipse Adoptium",
+        "lang_version:11.0.31",
+        "tracer_version:1.63.0~864ef847c7",
+        "endpoint_version:v0.6",
+        "service:weblog"
+      ],
+      "type": 50
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.obfuscation.sql_cache.hits",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 3.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe"
+      ],
+      "type": 19
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.dogstatsd.client.metrics_by_type",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "client:go",
+        "client_transport:udp",
+        "client_version:5.8.3",
+        "metrics_type:set"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.receiver.traces_received",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "connection_type:tcp",
+        "endpoint_version:v0.4",
+        "interpreter:OpenJDK 64-Bit Server VM",
+        "lang:java",
+        "lang_vendor:Eclipse Adoptium",
+        "lang_version:11.0.31",
+        "tracer_version:1.63.0~864ef847c7",
+        "service:weblog"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.stats_writer.encode_ms.max",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.trace_writer.errors",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.trace_writer.bytes_uncompressed",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.stats_writer.errors",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.obfuscation.sql_cache.misses",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 6.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe"
+      ],
+      "type": 19
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.dogstatsd.client.metrics_by_type",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 10.3
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "client:go",
+        "client_transport:udp",
+        "client_version:5.8.3",
+        "metrics_type:count"
+      ],
+      "type": 50
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.receiver.tcp_connections",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "status:accepted"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.receiver.traces_bytes",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "connection_type:tcp",
+        "endpoint_version:v0.4",
+        "interpreter:OpenJDK 64-Bit Server VM",
+        "lang:java",
+        "lang_vendor:Eclipse Adoptium",
+        "lang_version:11.0.31",
+        "tracer_version:1.63.0~864ef847c7",
+        "service:weblog"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.trace_writer.traces",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.stats_writer.stats_entries",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.receiver.stats_payload",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.1
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "connection_type:tcp",
+        "interpreter:OpenJDK 64-Bit Server VM",
+        "lang:java",
+        "lang_vendor:Eclipse Adoptium",
+        "lang_version:11.0.31",
+        "tracer_version:1.63.0~864ef847c7",
+        "endpoint_version:v0.6",
+        "service:weblog"
+      ],
+      "type": 50
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.trace_writer.spans",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.dogstatsd.client.metrics",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 13.3
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "client:go",
+        "client_transport:udp",
+        "client_version:5.8.3"
+      ],
+      "type": 50
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.dogstatsd.client.metrics_by_type",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "client:go",
+        "client_transport:udp",
+        "client_version:5.8.3",
+        "metrics_type:histogram"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.dogstatsd.client.metrics_by_type",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "client:go",
+        "client_transport:udp",
+        "client_version:5.8.3",
+        "metrics_type:distribution"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.stats_writer.retries",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.stats_writer.encode_ms.avg",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.receiver.spans_received",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "connection_type:tcp",
+        "interpreter:OpenJDK 64-Bit Server VM",
+        "lang:java",
+        "lang_vendor:Eclipse Adoptium",
+        "lang_version:11.0.31",
+        "tracer_version:1.63.0~864ef847c7",
+        "endpoint_version:v0.6",
+        "service:weblog"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.receiver.payload_refused",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "connection_type:tcp",
+        "interpreter:OpenJDK 64-Bit Server VM",
+        "lang:java",
+        "lang_vendor:Eclipse Adoptium",
+        "lang_version:11.0.31",
+        "tracer_version:1.63.0~864ef847c7",
+        "endpoint_version:v0.6",
+        "service:weblog"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.dogstatsd.client.aggregated_context_by_type",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 8.6
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "client:go",
+        "client_transport:udp",
+        "client_version:5.8.3",
+        "metrics_type:count"
+      ],
+      "type": 50
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.sampler.seen",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "sampler:priority",
+        "sampling_priority:auto_keep",
+        "target_env:system-tests",
+        "target_service:hsqldb"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.receiver.trace",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "connection_type:tcp",
+        "endpoint_version:v0.4",
+        "interpreter:OpenJDK 64-Bit Server VM",
+        "lang:java",
+        "lang_vendor:Eclipse Adoptium",
+        "lang_version:11.0.31",
+        "service:hsqldb",
+        "tracer_version:1.63.0~864ef847c7"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.receiver.traces_bytes",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "connection_type:tcp",
+        "endpoint_version:v0.4",
+        "interpreter:OpenJDK 64-Bit Server VM",
+        "lang:java",
+        "lang_vendor:Eclipse Adoptium",
+        "lang_version:11.0.31",
+        "service:hsqldb",
+        "tracer_version:1.63.0~864ef847c7"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.trace_writer.encode_ms.max",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.receiver.spans_received",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "connection_type:tcp",
+        "endpoint_version:v0.4",
+        "interpreter:OpenJDK 64-Bit Server VM",
+        "lang:java",
+        "lang_vendor:Eclipse Adoptium",
+        "lang_version:11.0.31",
+        "service:hsqldb",
+        "tracer_version:1.63.0~864ef847c7"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.stats_writer.encode_ms.count",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.1
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe"
+      ],
+      "type": 50
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.dogstatsd.client.packets_dropped_writer",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "client:go",
+        "client_transport:udp",
+        "client_version:5.8.3"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.pipelines_stats",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.receiver.stats_process_ms.count",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.heap_alloc",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 12549232.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe"
+      ],
+      "type": 19
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.heartbeat",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 1.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe"
+      ],
+      "type": 19
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.receiver.stats_buckets",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.1
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "connection_type:tcp",
+        "interpreter:OpenJDK 64-Bit Server VM",
+        "lang:java",
+        "lang_vendor:Eclipse Adoptium",
+        "lang_version:11.0.31",
+        "tracer_version:1.63.0~864ef847c7",
+        "endpoint_version:v0.6",
+        "service:weblog"
+      ],
+      "type": 50
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.receiver.trace",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "connection_type:tcp",
+        "endpoint_version:v0.4",
+        "interpreter:OpenJDK 64-Bit Server VM",
+        "lang:java",
+        "lang_vendor:Eclipse Adoptium",
+        "lang_version:11.0.31",
+        "tracer_version:1.63.0~864ef847c7",
+        "service:weblog"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.stats_writer.client_payloads",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.stats_writer.payloads",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.dogstatsd.client.packets_sent",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 5.6
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "client:go",
+        "client_transport:udp",
+        "client_version:5.8.3"
+      ],
+      "type": 50
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.dogstatsd.client.packets_dropped_queue",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "client:go",
+        "client_transport:udp",
+        "client_version:5.8.3"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.trace_writer.events",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.trace_writer.bytes",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.internal.process_payload_ms.count",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.receiver.traces_received",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "connection_type:tcp",
+        "interpreter:OpenJDK 64-Bit Server VM",
+        "lang:java",
+        "lang_vendor:Eclipse Adoptium",
+        "lang_version:11.0.31",
+        "tracer_version:1.63.0~864ef847c7",
+        "endpoint_version:v0.6",
+        "service:weblog"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.dogstatsd.client.aggregated_context_by_type",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 2.4
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "client:go",
+        "client_transport:udp",
+        "client_version:5.8.3",
+        "metrics_type:gauge"
+      ],
+      "type": 50
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.receiver.traces_priority",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "connection_type:tcp",
+        "endpoint_version:v0.4",
+        "interpreter:OpenJDK 64-Bit Server VM",
+        "lang:java",
+        "lang_vendor:Eclipse Adoptium",
+        "lang_version:11.0.31",
+        "service:hsqldb",
+        "tracer_version:1.63.0~864ef847c7",
+        "priority:1"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.sampler.kept",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "sampler:priority",
+        "sampling_priority:auto_keep",
+        "target_env:system-tests",
+        "target_service:hsqldb"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.receiver.traces_priority",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "connection_type:tcp",
+        "endpoint_version:v0.4",
+        "interpreter:OpenJDK 64-Bit Server VM",
+        "lang:java",
+        "lang_vendor:Eclipse Adoptium",
+        "lang_version:11.0.31",
+        "tracer_version:1.63.0~864ef847c7",
+        "service:weblog",
+        "priority:none"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.stats_writer.bytes",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.trace_writer.encode_ms.count",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.dogstatsd.client.service_checks",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "client:go",
+        "client_transport:udp",
+        "client_version:5.8.3"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.dogstatsd.client.metric_dropped_on_receive",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "client:go",
+        "client_transport:udp",
+        "client_version:5.8.3"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.sampler.seen",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "sampler:priority",
+        "target_env:system-tests",
+        "target_service:weblog",
+        "sampling_priority:manual_keep"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.events.max_eps.sample_rate",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 1.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe"
+      ],
+      "type": 19
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.receiver.spans_received",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "connection_type:tcp",
+        "endpoint_version:v0.4",
+        "interpreter:OpenJDK 64-Bit Server VM",
+        "lang:java",
+        "lang_vendor:Eclipse Adoptium",
+        "lang_version:11.0.31",
+        "tracer_version:1.63.0~864ef847c7",
+        "service:weblog"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.sampler.rare.shrinks",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.trace_writer.flush_duration.count",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.receiver.trace",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "connection_type:tcp",
+        "interpreter:OpenJDK 64-Bit Server VM",
+        "lang:java",
+        "lang_vendor:Eclipse Adoptium",
+        "lang_version:11.0.31",
+        "tracer_version:1.63.0~864ef847c7",
+        "endpoint_version:v0.6",
+        "service:weblog"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.dogstatsd.client.events",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "client:go",
+        "client_transport:udp",
+        "client_version:5.8.3"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.sampler.size",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 2.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "sampler:priority"
+      ],
+      "type": 19
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.receiver.spans_dropped",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "connection_type:tcp",
+        "endpoint_version:v0.4",
+        "interpreter:OpenJDK 64-Bit Server VM",
+        "lang:java",
+        "lang_vendor:Eclipse Adoptium",
+        "lang_version:11.0.31",
+        "service:hsqldb",
+        "tracer_version:1.63.0~864ef847c7"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.receiver.spans_dropped",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "connection_type:tcp",
+        "endpoint_version:v0.4",
+        "interpreter:OpenJDK 64-Bit Server VM",
+        "lang:java",
+        "lang_vendor:Eclipse Adoptium",
+        "lang_version:11.0.31",
+        "tracer_version:1.63.0~864ef847c7",
+        "service:weblog"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.sampler.rare.misses",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.dogstatsd.client.bytes_dropped",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "client:go",
+        "client_transport:udp",
+        "client_version:5.8.3"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.dogstatsd.client.bytes_dropped_queue",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "client:go",
+        "client_transport:udp",
+        "client_version:5.8.3"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.sampler.seen",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "sampler:priority",
+        "sampling_priority:auto_keep",
+        "target_env:system-tests",
+        "target_service:weblog"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.sampler.size",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "sampler:error"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.sampler.size",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "sampler:no_priority"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.stats_writer.splits",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.receiver.traces_received",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "connection_type:tcp",
+        "endpoint_version:v0.4",
+        "interpreter:OpenJDK 64-Bit Server VM",
+        "lang:java",
+        "lang_vendor:Eclipse Adoptium",
+        "lang_version:11.0.31",
+        "service:hsqldb",
+        "tracer_version:1.63.0~864ef847c7"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.events.max_eps.max_rate",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 200.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe"
+      ],
+      "type": 19
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.dogstatsd.client.aggregated_context_by_type",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe",
+        "client:go",
+        "client_transport:udp",
+        "client_version:5.8.3",
+        "metrics_type:histogram"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.started",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.sampler.rare.hits",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe"
+      ],
+      "type": 2
+    },
+    {
+      "interval": 10,
+      "metric": "datadog.trace_agent.events.max_eps.current_rate",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553030",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "env:system-tests",
+        "version:7.82.0-devel+git.36.90df0fe"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.disk.total",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 4056772.0
+        }
+      ],
+      "tags": [
+        "device_name:tmpfs"
+      ],
+      "type": 19
+    },
+    {
+      "interval": 0,
+      "metric": "system.fs.inodes.used",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 1.0
+        }
+      ],
+      "tags": [
+        "device_name:shm"
+      ],
+      "type": 19
+    },
+    {
+      "interval": 0,
+      "metric": "system.fs.inodes.utilized",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 6.074920654296875
+        }
+      ],
+      "tags": [
+        "device_name:vdb1"
+      ],
+      "type": 35
+    },
+    {
+      "interval": 0,
+      "metric": "system.disk.write_time",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vdc"
+      ],
+      "type": 1
+    },
+    {
+      "interval": 0,
+      "metric": "system.disk.read_time_pct",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vda1"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.disk.read_time",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vdb1"
+      ],
+      "type": 1
+    },
+    {
+      "interval": 0,
+      "metric": "system.disk.used",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 16803636.0
+        }
+      ],
+      "tags": [
+        "device_name:overlay"
+      ],
+      "type": 19
+    },
+    {
+      "interval": 0,
+      "metric": "system.fs.inodes.total",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 6553600.0
+        }
+      ],
+      "tags": [
+        "device_name:overlay"
+      ],
+      "type": 19
+    },
+    {
+      "interval": 0,
+      "metric": "system.disk.total",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 248665646080.0
+        }
+      ],
+      "tags": [
+        "device_name:datadog.yaml"
+      ],
+      "type": 19
+    },
+    {
+      "interval": 0,
+      "metric": "system.fs.inodes.utilized",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 0.6109841851701086
+        }
+      ],
+      "tags": [
+        "device_name:datadog.yaml"
+      ],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "system.disk.total",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 102624184.0
+        }
+      ],
+      "tags": [
+        "device_name:overlay"
+      ],
+      "type": 19
+    },
+    {
+      "interval": 0,
+      "metric": "system.disk.utilized",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 17.258390446244846
+        }
+      ],
+      "tags": [
+        "device_name:overlay"
+      ],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "system.fs.inodes.utilized",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 9.86005622204058e-05
+        }
+      ],
+      "tags": [
+        "device_name:tmpfs"
+      ],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "system.disk.total",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 65536.0
+        }
+      ],
+      "tags": [
+        "device_name:shm"
+      ],
+      "type": 19
+    },
+    {
+      "interval": 0,
+      "metric": "system.disk.in_use",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:shm"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.disk.used",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 16803664.0
+        }
+      ],
+      "tags": [
+        "device_name:vdb1"
+      ],
+      "type": 19
+    },
+    {
+      "interval": 0,
+      "metric": "system.fs.inodes.in_use",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 0.006109841851701086
+        }
+      ],
+      "tags": [
+        "device_name:datadog.yaml"
+      ],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "system.disk.write_time",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 88.0
+        }
+      ],
+      "tags": [
+        "device_name:vda"
+      ],
+      "type": 17
+    },
+    {
+      "interval": 0,
+      "metric": "system.disk.free",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 80561388.0
+        }
+      ],
+      "tags": [
+        "device_name:overlay"
+      ],
+      "type": 19
+    },
+    {
+      "interval": 0,
+      "metric": "system.fs.inodes.free",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 1014192.0
+        }
+      ],
+      "tags": [
+        "device_name:shm"
+      ],
+      "type": 19
+    },
+    {
+      "interval": 0,
+      "metric": "system.fs.inodes.in_use",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 9.860056222040579e-07
+        }
+      ],
+      "tags": [
+        "device_name:shm"
+      ],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "system.fs.inodes.free",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 1245836960.0
+        }
+      ],
+      "tags": [
+        "device_name:datadog.yaml"
+      ],
+      "type": 19
+    },
+    {
+      "interval": 0,
+      "metric": "system.disk.read_time",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vda"
+      ],
+      "type": 1
+    },
+    {
+      "interval": 0,
+      "metric": "system.disk.read_time_pct",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vda15"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.disk.free",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 80561360.0
+        }
+      ],
+      "tags": [
+        "device_name:vdb1"
+      ],
+      "type": 19
+    },
+    {
+      "interval": 0,
+      "metric": "system.disk.utilized",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 87.17417275817049
+        }
+      ],
+      "tags": [
+        "device_name:datadog.yaml"
+      ],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "system.disk.read_time",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vdc"
+      ],
+      "type": 1
+    },
+    {
+      "interval": 0,
+      "metric": "system.disk.read_time_pct",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vdc"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.disk.read_time",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vda15"
+      ],
+      "type": 1
+    },
+    {
+      "interval": 0,
+      "metric": "system.disk.used",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 216772219904.0
+        }
+      ],
+      "tags": [
+        "device_name:datadog.yaml"
+      ],
+      "type": 19
+    },
+    {
+      "interval": 0,
+      "metric": "system.fs.inodes.used",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 7658660.0
+        }
+      ],
+      "tags": [
+        "device_name:datadog.yaml"
+      ],
+      "type": 19
+    },
+    {
+      "interval": 0,
+      "metric": "system.disk.read_time",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vda16"
+      ],
+      "type": 1
+    },
+    {
+      "interval": 0,
+      "metric": "system.fs.inodes.used",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 398126.0
+        }
+      ],
+      "tags": [
+        "device_name:overlay"
+      ],
+      "type": 19
+    },
+    {
+      "interval": 0,
+      "metric": "system.fs.inodes.free",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 6155474.0
+        }
+      ],
+      "tags": [
+        "device_name:overlay"
+      ],
+      "type": 19
+    },
+    {
+      "interval": 0,
+      "metric": "system.disk.used",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:tmpfs"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.fs.inodes.total",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 1014193.0
+        }
+      ],
+      "tags": [
+        "device_name:tmpfs"
+      ],
+      "type": 19
+    },
+    {
+      "interval": 0,
+      "metric": "system.disk.used",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:shm"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.fs.inodes.total",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 1014193.0
+        }
+      ],
+      "tags": [
+        "device_name:shm"
+      ],
+      "type": 19
+    },
+    {
+      "interval": 0,
+      "metric": "system.fs.inodes.used",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 398126.0
+        }
+      ],
+      "tags": [
+        "device_name:vdb1"
+      ],
+      "type": 19
+    },
+    {
+      "interval": 0,
+      "metric": "system.fs.inodes.free",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 6155474.0
+        }
+      ],
+      "tags": [
+        "device_name:vdb1"
+      ],
+      "type": 19
+    },
+    {
+      "interval": 0,
+      "metric": "system.disk.in_use",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 0.17258390446244845
+        }
+      ],
+      "tags": [
+        "device_name:overlay"
+      ],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "system.fs.inodes.used",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 1.0
+        }
+      ],
+      "tags": [
+        "device_name:tmpfs"
+      ],
+      "type": 19
+    },
+    {
+      "interval": 0,
+      "metric": "system.disk.write_time",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 88.0
+        }
+      ],
+      "tags": [
+        "device_name:vda1"
+      ],
+      "type": 17
+    },
+    {
+      "interval": 0,
+      "metric": "system.disk.write_time_pct",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vda15"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.disk.write_time_pct",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vda16"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.disk.write_time_pct",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 0.9335177086360854
+        }
+      ],
+      "tags": [
+        "device_name:vdb"
+      ],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "system.disk.read_time_pct",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vdb1"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.disk.write_time_pct",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 0.9335185990846661
+        }
+      ],
+      "tags": [
+        "device_name:vdb1"
+      ],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "system.fs.inodes.free",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 1014192.0
+        }
+      ],
+      "tags": [
+        "device_name:tmpfs"
+      ],
+      "type": 19
+    },
+    {
+      "interval": 0,
+      "metric": "system.disk.utilized",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 17.25841920400492
+        }
+      ],
+      "tags": [
+        "device_name:vdb1"
+      ],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "system.fs.inodes.total",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 1253495620.0
+        }
+      ],
+      "tags": [
+        "device_name:datadog.yaml"
+      ],
+      "type": 19
+    },
+    {
+      "interval": 0,
+      "metric": "system.disk.read_time_pct",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vda16"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.disk.write_time",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 140.0
+        }
+      ],
+      "tags": [
+        "device_name:vdb1"
+      ],
+      "type": 17
+    },
+    {
+      "interval": 0,
+      "metric": "system.fs.inodes.in_use",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 9.860056222040579e-07
+        }
+      ],
+      "tags": [
+        "device_name:tmpfs"
+      ],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "system.disk.total",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 102624184.0
+        }
+      ],
+      "tags": [
+        "device_name:vdb1"
+      ],
+      "type": 19
+    },
+    {
+      "interval": 0,
+      "metric": "system.fs.inodes.utilized",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 9.86005622204058e-05
+        }
+      ],
+      "tags": [
+        "device_name:shm"
+      ],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "system.disk.in_use",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 0.17258419204004918
+        }
+      ],
+      "tags": [
+        "device_name:vdb1"
+      ],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "system.disk.free",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 31893426176.0
+        }
+      ],
+      "tags": [
+        "device_name:datadog.yaml"
+      ],
+      "type": 19
+    },
+    {
+      "interval": 0,
+      "metric": "system.disk.write_time_pct",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vdc"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.disk.read_time",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vda1"
+      ],
+      "type": 1
+    },
+    {
+      "interval": 0,
+      "metric": "system.disk.write_time",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vda15"
+      ],
+      "type": 1
+    },
+    {
+      "interval": 0,
+      "metric": "system.fs.inodes.in_use",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 0.06074920654296875
+        }
+      ],
+      "tags": [
+        "device_name:overlay"
+      ],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "system.fs.inodes.total",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 6553600.0
+        }
+      ],
+      "tags": [
+        "device_name:vdb1"
+      ],
+      "type": 19
+    },
+    {
+      "interval": 0,
+      "metric": "system.fs.inodes.in_use",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 0.06074920654296875
+        }
+      ],
+      "tags": [
+        "device_name:vdb1"
+      ],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "system.disk.in_use",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 0.8717417275817049
+        }
+      ],
+      "tags": [
+        "device_name:datadog.yaml"
+      ],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "system.disk.read_time_pct",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vda"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.fs.inodes.utilized",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 6.074920654296875
+        }
+      ],
+      "tags": [
+        "device_name:overlay"
+      ],
+      "type": 35
+    },
+    {
+      "interval": 0,
+      "metric": "system.disk.free",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 4056772.0
+        }
+      ],
+      "tags": [
+        "device_name:tmpfs"
+      ],
+      "type": 19
+    },
+    {
+      "interval": 0,
+      "metric": "system.disk.utilized",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:shm"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.disk.utilized",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:tmpfs"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.disk.in_use",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:tmpfs"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.disk.write_time_pct",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 0.5867284407487127
+        }
+      ],
+      "tags": [
+        "device_name:vda"
+      ],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "system.disk.write_time_pct",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 0.5867798264763419
+        }
+      ],
+      "tags": [
+        "device_name:vda1"
+      ],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "system.disk.write_time",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vda16"
+      ],
+      "type": 1
+    },
+    {
+      "interval": 0,
+      "metric": "system.disk.read_time",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vdb"
+      ],
+      "type": 1
+    },
+    {
+      "interval": 0,
+      "metric": "system.disk.write_time",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 140.0
+        }
+      ],
+      "tags": [
+        "device_name:vdb"
+      ],
+      "type": 17
+    },
+    {
+      "interval": 0,
+      "metric": "system.disk.read_time_pct",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vdb"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.disk.free",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553040",
+          "value": 65536.0
+        }
+      ],
+      "tags": [
+        "device_name:shm"
+      ],
+      "type": 19
+    },
+    {
+      "interval": 0,
+      "metric": "datadog.agent.retry_queue_duration.capacity_secs",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 39365.0
+        }
+      ],
+      "tags": [
+        "agent:core",
+        "domain:https://7-82-0-app.agent.datad0g.com."
+      ],
+      "type": 19
+    },
+    {
+      "interval": 0,
+      "metric": "datadog.agent.retry_queue_duration.bytes_per_sec",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 399.55172413793105
+        }
+      ],
+      "tags": [
+        "agent:core",
+        "domain:https://7-82-0-app.agent.datad0g.com."
+      ],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "datadog.agent.retry_queue_duration.capacity_bytes",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 15728640.0
+        }
+      ],
+      "tags": [
+        "agent:core",
+        "domain:https://7-82-0-app.agent.datad0g.com."
+      ],
+      "type": 19
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.svctm",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vda15"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.rkb_s",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vdb"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.await",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vda15"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.w_s",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vda16"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.wrqm_s",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.8667309607409442
+        }
+      ],
+      "tags": [
+        "device_name:vda1"
+      ],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.r_s",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vdb"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.r_s",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vdb1"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.svctm",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.23
+        }
+      ],
+      "tags": [
+        "device_name:vdb1"
+      ],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.svctm",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.06
+        }
+      ],
+      "tags": [
+        "device_name:vda1"
+      ],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.w_await",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vda15"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.util",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vda15"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.w_s",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vdc"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.rkb_s",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vdb1"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.avg_q_sz",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.01
+        }
+      ],
+      "tags": [
+        "device_name:vda"
+      ],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.rrqm_s",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vda15"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.r_s",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vda"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.w_s",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 19.20120826695011
+        }
+      ],
+      "tags": [
+        "device_name:vda"
+      ],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.wrqm_s",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vdc"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.w_await",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.88
+        }
+      ],
+      "tags": [
+        "device_name:vdb"
+      ],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.svctm",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.21
+        }
+      ],
+      "tags": [
+        "device_name:vdb"
+      ],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.r_await",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vdb1"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.w_await",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.88
+        }
+      ],
+      "tags": [
+        "device_name:vdb1"
+      ],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.wkb_s",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 115.47
+        }
+      ],
+      "tags": [
+        "device_name:vdb"
+      ],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.avg_rq_sz",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vdc"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.svctm",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vdc"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.r_await",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vda1"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.rrqm_s",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vda"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.await",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.88
+        }
+      ],
+      "tags": [
+        "device_name:vdb"
+      ],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.wkb_s",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 115.47
+        }
+      ],
+      "tags": [
+        "device_name:vdb1"
+      ],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.await",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.88
+        }
+      ],
+      "tags": [
+        "device_name:vdb1"
+      ],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.wkb_s",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 125.34
+        }
+      ],
+      "tags": [
+        "device_name:vda1"
+      ],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.avg_q_sz",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.01
+        }
+      ],
+      "tags": [
+        "device_name:vda1"
+      ],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.rrqm_s",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vda1"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.r_s",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vda16"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.r_s",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vdc"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.avg_q_sz",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vda16"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.wkb_s",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vdc"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.w_s",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 19.201424055809092
+        }
+      ],
+      "tags": [
+        "device_name:vda1"
+      ],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.wrqm_s",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vda16"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.wrqm_s",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 10.267441360857328
+        }
+      ],
+      "tags": [
+        "device_name:vdb"
+      ],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.util",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vda16"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.avg_q_sz",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.01
+        }
+      ],
+      "tags": [
+        "device_name:vdb"
+      ],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.rkb_s",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vda"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.util",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.11
+        }
+      ],
+      "tags": [
+        "device_name:vda1"
+      ],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.rkb_s",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vda15"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.avg_rq_sz",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 21.65
+        }
+      ],
+      "tags": [
+        "device_name:vdb1"
+      ],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.avg_q_sz",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.01
+        }
+      ],
+      "tags": [
+        "device_name:vdb1"
+      ],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.r_await",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vda"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.avg_rq_sz",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vda15"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.avg_q_sz",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vda15"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.rrqm_s",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vda16"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.avg_rq_sz",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 21.65
+        }
+      ],
+      "tags": [
+        "device_name:vdb"
+      ],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.util",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.24
+        }
+      ],
+      "tags": [
+        "device_name:vdb1"
+      ],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.rkb_s",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vdc"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.w_await",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vdc"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.r_s",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vda15"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.w_s",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 10.667471543747872
+        }
+      ],
+      "tags": [
+        "device_name:vdb"
+      ],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.rrqm_s",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vdb"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.rkb_s",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vda16"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.r_await",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vda16"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.avg_q_sz",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vdc"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.await",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.3
+        }
+      ],
+      "tags": [
+        "device_name:vda"
+      ],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.w_await",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.3
+        }
+      ],
+      "tags": [
+        "device_name:vda"
+      ],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.w_s",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 10.667468830665555
+        }
+      ],
+      "tags": [
+        "device_name:vdb1"
+      ],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.rrqm_s",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vdb1"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.rrqm_s",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vdc"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.w_await",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vda16"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.util",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.11
+        }
+      ],
+      "tags": [
+        "device_name:vda"
+      ],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.await",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.31
+        }
+      ],
+      "tags": [
+        "device_name:vda1"
+      ],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.w_await",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.31
+        }
+      ],
+      "tags": [
+        "device_name:vda1"
+      ],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.block_out",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 986391.9459852395
+        }
+      ],
+      "tags": [],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.await",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vdc"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.avg_rq_sz",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 13.06
+        }
+      ],
+      "tags": [
+        "device_name:vda1"
+      ],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.r_await",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vda15"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.wrqm_s",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.8667311122917064
+        }
+      ],
+      "tags": [
+        "device_name:vda"
+      ],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.r_s",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vda1"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.block_in",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.wkb_s",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 125.34
+        }
+      ],
+      "tags": [
+        "device_name:vda"
+      ],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.avg_rq_sz",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 13.06
+        }
+      ],
+      "tags": [
+        "device_name:vda"
+      ],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.wkb_s",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vda16"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.avg_rq_sz",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vda16"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.await",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vda16"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.svctm",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vda16"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.r_await",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vdc"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.svctm",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.06
+        }
+      ],
+      "tags": [
+        "device_name:vda"
+      ],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.rkb_s",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vda1"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.wkb_s",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vda15"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.wrqm_s",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vda15"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.w_s",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vda15"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.wrqm_s",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 10.267438586306783
+        }
+      ],
+      "tags": [
+        "device_name:vdb1"
+      ],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.r_await",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vdb"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.util",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.23
+        }
+      ],
+      "tags": [
+        "device_name:vdb"
+      ],
+      "type": 51
+    },
+    {
+      "interval": 0,
+      "metric": "system.io.util",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553039",
+          "value": 0.0
+        }
+      ],
+      "tags": [
+        "device_name:vdc"
+      ],
+      "type": 3
+    },
+    {
+      "interval": 0,
+      "metric": "datadog.agent.running",
+      "numPoints": 1,
+      "points": [
+        {
+          "timestamp": "1781553043",
+          "value": 1.0
+        }
+      ],
+      "tags": [
+        "version:7.82.0-devel+git.36.90df0fe",
+        "package_version:7.82.0-devel.git.36.90df0fe.pipeline.118783877"
+      ],
+      "type": 19
+    }
+  ]
+}

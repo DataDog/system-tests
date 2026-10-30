@@ -6,7 +6,7 @@ using Newtonsoft.Json.Linq;
 
 namespace ApmTestApi.Endpoints;
 
-public abstract class ApmTestApiOtel : ApmTestApi
+public abstract partial class ApmTestApiOtel : ApmTestApi
 {
     private static readonly ActivitySource ApmTestApiActivitySource = new("ApmTestApi");
     private static readonly Dictionary<ulong, Activity> Activities = new();
@@ -29,6 +29,11 @@ public abstract class ApmTestApiOtel : ApmTestApi
         app.MapPost("/trace/otel/add_event", OtelAddEvent);
         app.MapPost("/trace/otel/record_exception", OtelRecordException);
         app.MapPost("/trace/stats/flush", OtelFlushTraceStats);
+
+        // Logs endpoints
+        app.MapPost("/otel/logger/create", OtelCreateLogger);
+        app.MapPost("/otel/logger/write", OtelWriteLog);
+        app.MapPost("/log/otel/flush", OtelFlushLogs);
 
         // Metrics endpoints
         app.MapPost("/metrics/otel/get_meter", OtelGetMeter);
@@ -218,7 +223,7 @@ public abstract class ApmTestApiOtel : ApmTestApi
         var result = JsonConvert.SerializeObject(new
         {
              trace_id = activity.TraceId.ToString(),
-             span_id = activity.SpanId.ToString(),
+             span_id = ulong.Parse(activity.SpanId.ToString(), NumberStyles.HexNumber),
              trace_flags = ((int)activity.ActivityTraceFlags).ToString("x2"),
              trace_state = activity.TraceStateString ?? "",
              remote = activity.HasRemoteParent

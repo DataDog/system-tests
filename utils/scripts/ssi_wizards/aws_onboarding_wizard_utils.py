@@ -2,7 +2,7 @@ import sys
 from pathlib import Path
 
 
-def extract_private_key(file_path) -> None:
+def extract_private_key(file_path: str | Path) -> None:
     try:
         file_path = Path(file_path).resolve()  # Convert to absolute path
 

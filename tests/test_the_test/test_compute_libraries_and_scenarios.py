@@ -4,7 +4,7 @@ from pathlib import Path
 
 from functools import wraps
 
-import pytest
+from utils import pytest
 from utils.scripts.compute_libraries_and_scenarios import Inputs, process
 from utils import scenarios
 
@@ -15,17 +15,18 @@ default_libs_with_prod = [
     "cpp_kong",
     "cpp_nginx",
     "dotnet",
-    "envoy",
     "golang",
-    "haproxy",
     "java",
     "java_lambda",
     "nodejs",
+    "nodejs_lambda",
     "otel_collector",
     "php",
     "python",
     "python_lambda",
     "ruby",
+    "ruby_lambda",
+    "rust",
 ]
 default_libs_with_dev = [
     "cpp",
@@ -33,17 +34,17 @@ default_libs_with_dev = [
     "cpp_kong",
     "cpp_nginx",
     "dotnet",
-    "envoy",
     "golang",
-    "haproxy",
     "java",
     "java_lambda",
     "nodejs",
+    "nodejs_lambda",
     "php",
     "python",
     "python_lambda",
     "ruby",
-    # "rust",
+    "ruby_lambda",
+    "rust",
 ]
 default_otel_libs = ["java_otel", "python_otel"]
 
@@ -89,6 +90,8 @@ def build_inputs(
     modified_files: list | None = None,
     new_manifests: Path = Path("./tests/test_the_test/manifests/manifests_ref/"),
     old_manifests: Path = Path("./tests/test_the_test/manifests/manifests_ref/"),
+    *,
+    select_main_push_from_diff: bool = False,
 ):
     if modified_files is None:
         modified_files = []
@@ -98,6 +101,7 @@ def build_inputs(
         scenario_map_file="tests/test_the_test/scenarios.json",
         new_manifests=new_manifests,
         old_manifests=old_manifests,
+        select_main_push_from_diff=select_main_push_from_diff,
     )
     Path.unlink(Path("modified_files.txt"))
     return inputs
@@ -183,7 +187,78 @@ class Test_ComputeLibrariesAndScenarios:
             600,
             "false",
             "DEFAULT",
-            "end_to_end,open_telemetry",
+            "end_to_end,integration_frameworks,open_telemetry",
+        )
+
+    def test_integration_frameworks_docker_file(self):
+        for library, file, desired_execution_time in (
+            ("python", "utils/build/docker/python/openai-py.Dockerfile", 600),
+            ("python", "utils/build/docker/python/anthropic_app/main.py", 600),
+            ("nodejs", "utils/build/docker/nodejs/google_genai-js.Dockerfile", 300),
+            ("java", "utils/build/docker/java/openai_app/pom.xml", 600),
+        ):
+            inputs = build_inputs([file])
+
+            assert_github_processor(
+                inputs,
+                [library],
+                [library],
+                desired_execution_time,
+                "false",
+                "DEFAULT",
+                "end_to_end,integration_frameworks,open_telemetry",
+            )
+
+    def test_python_parametric_base_docker_file(self):
+        inputs = build_inputs(["utils/build/docker/python/parametric.base.Dockerfile"])
+
+        assert_github_processor(
+            inputs,
+            ["python"],
+            ["python"],
+            600,
+            "false",
+            "DEFAULT,PARAMETRIC",
+            "",
+        )
+
+    def test_php_parametric_base_docker_file(self):
+        inputs = build_inputs(["utils/build/docker/php/parametric.base.Dockerfile"])
+
+        assert_github_processor(
+            inputs,
+            ["php"],
+            ["php"],
+            600,
+            "false",
+            "DEFAULT,PARAMETRIC",
+            "",
+        )
+
+    def test_nodejs_docker_file(self):
+        inputs = build_inputs(["utils/build/docker/nodejs/express5.Dockerfile"])
+
+        assert_github_processor(
+            inputs,
+            ["nodejs"],
+            ["nodejs"],
+            300,
+            "false",
+            "DEFAULT",
+            "end_to_end,integration_frameworks,open_telemetry",
+        )
+
+    def test_c_docker_file(self):
+        inputs = build_inputs(["utils/build/docker/c/perl-mojolicious.Dockerfile"])
+
+        assert_github_processor(
+            inputs,
+            [],
+            [],
+            600,
+            "false",
+            "DEFAULT",
+            "end_to_end",
         )
 
     @set_env("GITHUB_REF", "refs/heads/main")
@@ -288,7 +363,7 @@ class Test_ComputeLibrariesAndScenarios:
             600,
             "false",
             "DEFAULT",
-            "end_to_end,open_telemetry",
+            "end_to_end,integration_frameworks,open_telemetry",
         )
 
     @set_env("GITHUB_PR_TITLE", "[java] Some title")
@@ -302,7 +377,7 @@ class Test_ComputeLibrariesAndScenarios:
             3600,
             "false",
             "DEFAULT",
-            "end_to_end,open_telemetry",
+            "end_to_end,integration_frameworks,open_telemetry",
         )
 
     @set_env("GITHUB_PR_TITLE", "[java@main] Some title")
@@ -316,7 +391,21 @@ class Test_ComputeLibrariesAndScenarios:
             600,
             "false",
             "DEFAULT",
-            "end_to_end,open_telemetry",
+            "end_to_end,integration_frameworks,open_telemetry",
+        )
+
+    @set_env("GITHUB_PR_TITLE", "[c@feature/native-http] Some title")
+    def test_c_library_tag_with_branch(self):
+        inputs = build_inputs(["utils/build/docker/c/perl-mojolicious.Dockerfile"])
+
+        assert_github_processor(
+            inputs,
+            [],
+            [],
+            600,
+            "false",
+            "DEFAULT",
+            "end_to_end",
         )
 
     @set_env("GITHUB_PR_TITLE", "[java] Some title")
@@ -338,16 +427,42 @@ class Test_ComputeLibrariesAndScenarios:
 
         assert_github_processor(
             inputs,
-            ["java_lambda", "python_lambda"],
-            ["java_lambda", "python_lambda"],
+            ["java_lambda", "nodejs_lambda", "python_lambda", "ruby_lambda"],
+            ["java_lambda", "nodejs_lambda", "python_lambda", "ruby_lambda"],
             3600,
             "true",
             "DEFAULT",
             "lambda_end_to_end",
         )
 
+    def test_ruby_lambda_docker_file(self):
+        inputs = build_inputs(["utils/build/docker/ruby_lambda/ruby-apigw-rest.Dockerfile"])
+
+        assert_github_processor(
+            inputs,
+            ["ruby_lambda"],
+            ["ruby_lambda"],
+            600,
+            "false",
+            "DEFAULT",
+            "appsec_lambda",
+        )
+
     def test_doc(self):
         inputs = build_inputs(["binaries/dd-trace-go/_tools/README.md"])
+
+        assert_github_processor(
+            inputs,
+            [],
+            [],
+            3600,
+            "false",
+            "DEFAULT",
+            "",
+        )
+
+    def test_nix_workflow(self):
+        inputs = build_inputs([".github/workflows/nix.yml"])
 
         assert_github_processor(
             inputs,
@@ -401,7 +516,7 @@ class Test_ComputeLibrariesAndScenarios:
             600,
             "false",
             "DEFAULT",
-            "end_to_end,open_telemetry",
+            "end_to_end,integration_frameworks,open_telemetry",
         )
 
     def test_otel_library(self):
@@ -429,6 +544,144 @@ class Test_ComputeLibrariesAndScenarios:
             "",
         )
 
+    def test_agentless_ffe_test_file(self):
+        inputs = build_inputs(modified_files=["tests/ffe/test_agentless_configuration.py"])
+        assert_github_processor(
+            inputs,
+            default_libs_with_prod,
+            default_libs_with_dev,
+            3600,
+            "false",
+            "DEFAULT,FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS",
+            "",
+        )
+
+    def test_exposure_egress_test_file(self):
+        inputs = build_inputs(modified_files=["tests/ffe/test_exposure_egress.py"])
+        assert_github_processor(
+            inputs,
+            default_libs_with_prod,
+            default_libs_with_dev,
+            3600,
+            "false",
+            "DEFAULT,FEATURE_FLAGGING_AND_EXPERIMENTATION,"
+            "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_DIRECT,"
+            "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_SERVERLESS",
+            "",
+        )
+
+    def test_scenario_definition_file_with_two_scenarios(self):
+        """appsec_blocking.py defines two scenarios: both run, and only them"""
+        inputs = build_inputs(modified_files=["utils/_context/_scenarios/appsec_blocking.py"])
+        assert_github_processor(
+            inputs,
+            default_libs_with_prod,
+            default_libs_with_dev,
+            3600,
+            "false",
+            "APPSEC_BLOCKING,APPSEC_BLOCKING_FULL_DENYLIST,DEFAULT",
+            "",
+        )
+
+    def test_scenarios_init_file(self):
+        """It only instantiates scenarios: nothing runs"""
+        inputs = build_inputs(modified_files=["utils/_context/_scenarios/__init__.py"])
+        assert_github_processor(inputs, [], [], 3600, "false", "DEFAULT", "")
+
+    def test_fake_datadog_keys_file(self):
+        """Tests get the fake keys from the scenario, none depends on a value: nothing runs"""
+        inputs = build_inputs(modified_files=["utils/_context/_scenarios/_core/fake_datadog_keys.py"])
+        assert_github_processor(inputs, [], [], 3600, "false", "DEFAULT", "")
+
+    @pytest.mark.parametrize(
+        "file",
+        [
+            "utils/_context/_scenarios/_core/scenario.py",
+            "utils/_context/_scenarios/_core/__init__.py",
+            "utils/_context/_scenarios/_core/new_module.py",  # any future module of _core
+            "utils/_context/_scenarios/new_package/module.py",  # any other subfolder
+        ],
+    )
+    def test_scenario_core_file(self, file: str):
+        """Base classes shared by many scenarios, or any other subfolder: everything runs"""
+        inputs = build_inputs(modified_files=[file])
+        assert_github_processor(inputs, default_libs_with_prod, default_libs_with_dev, 3600, "false", "DEFAULT", "all")
+
+    def test_open_telemetry_scenario_file(self):
+        """No scenario group, but the scenarios it defines run, only with OTel libraries"""
+        inputs = build_inputs(modified_files=["utils/_context/_scenarios/open_telemetry.py"])
+        assert_github_processor(
+            inputs,
+            default_otel_libs,
+            [],
+            3600,
+            "false",
+            "DEFAULT,OTEL_INTEGRATIONS",
+            "",
+        )
+
+    @pytest.mark.parametrize("file", ["utils/mocked_backend/ffe.py", "utils/mocked_backend/_backend_ffe.py"])
+    def test_agentless_ffe_mocked_backend_file(self, file: str):
+        inputs = build_inputs(modified_files=[file])
+        assert_github_processor(
+            inputs,
+            default_libs_with_prod,
+            default_libs_with_dev,
+            3600,
+            "false",
+            "DEFAULT,PARAMETRIC",
+            "agentless",
+        )
+
+    @pytest.mark.parametrize(
+        "file",
+        [
+            "utils/mocked_backend/__init__.py",
+            "utils/mocked_backend/__main__.py",
+            "utils/mocked_backend/_backend.py",
+            "utils/mocked_backend/_client.py",
+            "utils/mocked_backend/_request_handler.py",
+            "utils/mocked_backend/_utils.py",
+            "utils/mocked_backend/tls/mocked-backend.pem",
+        ],
+    )
+    def test_generic_mocked_backend_file(self, file: str):
+        inputs = build_inputs(modified_files=[file])
+        assert_github_processor(
+            inputs,
+            default_libs_with_prod,
+            default_libs_with_dev,
+            3600,
+            "false",
+            "APM_TRACING_E2E_OTEL,APM_TRACING_E2E_SINGLE_SPAN,DEFAULT,PARAMETRIC",
+            "agentless",
+        )
+
+    def test_end_to_end_scenario_framework_file(self):
+        inputs = build_inputs(modified_files=["utils/_context/_scenarios/_core/endtoend.py"])
+        assert_github_processor(
+            inputs,
+            default_libs_with_prod,
+            default_libs_with_dev,
+            3600,
+            "false",
+            "DEFAULT",
+            "end_to_end",
+        )
+
+    def test_end_to_end_agentless_scenario_framework_file(self):
+        inputs = build_inputs(modified_files=["utils/_context/_scenarios/agentless_endtoend.py"])
+        assert_github_processor(
+            inputs,
+            default_libs_with_prod,
+            default_libs_with_dev,
+            3600,
+            "false",
+            "DEFAULT,FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS,"
+            "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_DIRECT,FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_SERVERLESS",
+            "",
+        )
+
     def test_json_modification(self):
         inputs = build_inputs(modified_files=["tests/debugger/utils/probe_snapshot_log_line.json"])
 
@@ -438,7 +691,7 @@ class Test_ComputeLibrariesAndScenarios:
             default_libs_with_dev,
             3600,
             "false",
-            "DEBUGGER_EXCEPTION_REPLAY,DEBUGGER_EXPRESSION_LANGUAGE,DEBUGGER_INPRODUCT_ENABLEMENT,DEBUGGER_PII_REDACTION,DEBUGGER_PROBES_SNAPSHOT,DEBUGGER_PROBES_SNAPSHOT_WITH_SCM,DEBUGGER_PROBES_STATUS,DEBUGGER_SYMDB,DEBUGGER_TELEMETRY,DEFAULT,TRACING_CONFIG_NONDEFAULT_4",
+            "DEBUGGER_CAPTURE_TIMEOUT,DEBUGGER_EVALUATION_TIMEOUT,DEBUGGER_EXCEPTION_REPLAY,DEBUGGER_EXPRESSION_LANGUAGE,DEBUGGER_INPRODUCT_ENABLEMENT,DEBUGGER_PII_REDACTION,DEBUGGER_PROBES_SNAPSHOT,DEBUGGER_PROBES_SNAPSHOT_WITH_SCM,DEBUGGER_SYMDB,DEBUGGER_TELEMETRY,DEFAULT,TRACING_CONFIG_NONDEFAULT_4",
             "",
         )
 
@@ -457,3 +710,128 @@ class Test_ComputeLibrariesAndScenarios:
                 new_manifests=Path("./tests/test_the_test/manifests/manifests_ref/"),
                 old_manifests=Path("./wrong/path"),
             )
+
+
+@scenarios.test_the_test
+class Test_GitLabMode:
+    @pytest.mark.parametrize(
+        ("source", "expected_event"),
+        [("merge_request_event", "pull_request"), ("push", "push"), ("schedule", "schedule")],
+    )
+    def test_event_and_ref_normalization(self, monkeypatch: pytest.MonkeyPatch, source: str, expected_event: str):
+        monkeypatch.setenv("GITLAB_CI", "true")
+        monkeypatch.setenv("CI_PIPELINE_SOURCE", source)
+        monkeypatch.setenv("CI_COMMIT_REF_NAME", "feat-x")
+        inputs = build_inputs()
+        assert inputs.event_name == expected_event
+        assert inputs.ref == "refs/heads/feat-x"
+        assert inputs.is_gitlab
+
+    def test_empty_ref(self, monkeypatch: pytest.MonkeyPatch):
+        monkeypatch.setenv("GITLAB_CI", "true")
+        monkeypatch.setenv("CI_PIPELINE_SOURCE", "push")
+        monkeypatch.setenv("CI_COMMIT_REF_NAME", "")
+        inputs = build_inputs()
+        assert inputs.ref == ""
+
+    def test_libraries_output_sorted(self, monkeypatch: pytest.MonkeyPatch):
+        monkeypatch.setenv("GITLAB_CI", "true")
+        monkeypatch.setenv("CI_PIPELINE_SOURCE", "push")
+        monkeypatch.setenv("CI_COMMIT_REF_NAME", "feat-x")
+        # all-libs trigger file
+        inputs = build_inputs(modified_files=[".github/workflows/run-docker-ssi.yml"])
+        output = process(inputs)
+        libs_line = next((line for line in output if line.startswith("libraries=")), None)
+        assert libs_line is not None, "GitLab mode must emit 'libraries=' output"
+        libs = json.loads(libs_line.split("=", 1)[1])
+        parts = libs.split()
+        assert parts == sorted(parts)
+
+    @pytest.mark.parametrize("source", ["merge_request_event", "push"])
+    def test_pr_pipeline_selects_c(self, monkeypatch: pytest.MonkeyPatch, source: str) -> None:
+        monkeypatch.setenv("GITLAB_CI", "true")
+        monkeypatch.setenv("CI_PIPELINE_SOURCE", source)
+        monkeypatch.setenv("CI_COMMIT_REF_NAME", "feature/native-c")
+        inputs = build_inputs(modified_files=["utils/build/docker/c/perl-mojolicious.Dockerfile"])
+
+        assert 'libraries="c"' in process(inputs)
+
+    def test_main_push_ignores_weblog_map(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setenv("GITLAB_CI", "true")
+        monkeypatch.setenv("CI_PIPELINE_SOURCE", "push")
+        monkeypatch.setenv("CI_COMMIT_REF_NAME", "main")
+        inputs = build_inputs(modified_files=["utils/build/docker/python/flask-poc.Dockerfile"])
+
+        output = process(inputs)
+        assert 'libraries="python"' in output
+        assert not any(line.startswith("library_weblog_scenarios=") for line in output)
+
+    @pytest.mark.parametrize(
+        ("source", "ref"),
+        [("push", "some_branch"), ("schedule", "main"), ("schedule", "some_branch")],
+    )
+    def test_non_main_and_scheduled_pipelines_do_not_select_python(
+        self,
+        monkeypatch: pytest.MonkeyPatch,
+        source: str,
+        ref: str,
+    ) -> None:
+        monkeypatch.setenv("GITLAB_CI", "true")
+        monkeypatch.setenv("CI_PIPELINE_SOURCE", source)
+        monkeypatch.setenv("CI_COMMIT_REF_NAME", ref)
+        inputs = build_inputs()
+
+        assert 'libraries="python"' not in process(inputs)
+
+    def test_main_push_without_opt_in_keeps_full_matrix(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setenv("GITLAB_CI", "true")
+        monkeypatch.setenv("CI_PIPELINE_SOURCE", "push")
+        monkeypatch.setenv("CI_COMMIT_REF_NAME", "main")
+        inputs = build_inputs(modified_files=["utils/virtual_machine/virtual_machines.json"])
+
+        output = process(inputs)
+        assert 'libraries="python"' in output
+        assert 'scenarios_groups="all"' in output
+
+    def test_main_push_with_opt_in_selects_only_impacted_scenarios(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setenv("GITLAB_CI", "true")
+        monkeypatch.setenv("CI_PIPELINE_SOURCE", "push")
+        monkeypatch.setenv("CI_COMMIT_REF_NAME", "main")
+        inputs = build_inputs(
+            modified_files=["utils/virtual_machine/virtual_machines.json"],
+            select_main_push_from_diff=True,
+        )
+
+        output = process(inputs)
+        assert 'libraries="python"' in output
+        assert 'scenarios_groups="onboarding"' in output
+        assert 'scenarios_groups="all"' not in output
+
+    def test_main_push_with_opt_in_compares_manifests(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setenv("GITLAB_CI", "true")
+        monkeypatch.setenv("CI_PIPELINE_SOURCE", "push")
+        monkeypatch.setenv("CI_COMMIT_REF_NAME", "main")
+        inputs = build_inputs(
+            modified_files=["manifests/python.yml"],
+            new_manifests=Path("./tests/test_the_test/manifests/manifests_python_edit/"),
+            old_manifests=Path("./tests/test_the_test/manifests/manifests_ref/"),
+            select_main_push_from_diff=True,
+        )
+
+        output = process(inputs)
+        assert 'libraries="python"' in output
+        assert 'scenarios="APPSEC_API_SECURITY,DEFAULT"' in output
+        assert 'scenarios_groups=""' in output
+
+    def test_scheduled_main_still_selects_all_scenarios(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setenv("GITLAB_CI", "true")
+        monkeypatch.setenv("CI_PIPELINE_SOURCE", "schedule")
+        monkeypatch.setenv("CI_COMMIT_REF_NAME", "main")
+        inputs = build_inputs(
+            modified_files=["utils/virtual_machine/virtual_machines.json"],
+            select_main_push_from_diff=True,
+        )
+
+        output = process(inputs)
+        assert 'scenarios_groups="all"' in output
+        assert not any(line.startswith("libraries=") for line in output)

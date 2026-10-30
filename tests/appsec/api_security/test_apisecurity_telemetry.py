@@ -5,6 +5,7 @@
 from utils import context, interfaces, rfc, scenarios, weblog, features
 
 from tests.appsec.api_security.test_schemas import get_schema
+from tests.appsec.api_security.utils import get_sampled_response, send_until_schema
 
 
 def _extract_telemetry_metrics(datas: list[dict]) -> list[dict]:
@@ -20,7 +21,7 @@ def _extract_telemetry_metrics(datas: list[dict]) -> list[dict]:
     return [m for m in metrics if m["metric"].startswith("api_security")]
 
 
-FRAMEWORKS = {
+FRAMEWORKS: dict[str, dict[str, str | list[str]]] = {
     "python": {
         "flask-poc": "flask",
         "uwsgi-poc": "flask",
@@ -29,6 +30,7 @@ FRAMEWORKS = {
         "django-py3.13": "django",
         "python3.12": "django",
         "fastapi": "fastapi",
+        "aiohttp": "aiohttp",
     },
     "golang": {
         "chi": "github.com/go-chi/chi/v5",
@@ -36,7 +38,15 @@ FRAMEWORKS = {
         "gin": "github.com/gin-gonic/gin",
         "net-http": "net/http",
         "net-http-orchestrion": "net/http",
+        "net-http-span-pool": "net/http",
         "uds-echo": "github.com/labstack/echo/v4",
+    },
+    "nodejs": {
+        # blocked requests emit 'http' because framework middleware never runs for them
+        "express4": ["express", "http"],
+        "express5": ["express", "http"],
+        "fastify": ["fastify", "http"],
+        "nextjs": "http",
     },
 }
 
@@ -54,7 +64,7 @@ class Test_API_Security_Telemetry_Metric:
 
     def setup_shema_metric(self):
         # normal request that must generate schema telemetry
-        self.request_1 = weblog.get("/tag_value/api_match_AS001/200")
+        self.requests_1 = send_until_schema(lambda: weblog.get("/tag_value/api_match_AS001/200"), "req.headers")
         # blocked request, that may generate schema telemetry
         self.request_2 = weblog.get("/waf", headers={"User-Agent": "dd-test-scanner-log-block"})
         # request with 404 response, that must not generate schema telemetry
@@ -66,8 +76,8 @@ class Test_API_Security_Telemetry_Metric:
 
     def test_shema_metric(self):
         """Can provide request header schema"""
-        schema = get_schema(self.request_1, "req.headers")
-        assert self.request_1.status_code == 200
+        assert all(r.status_code == 200 for r in self.requests_1)
+        schema = get_schema(get_sampled_response(self.requests_1, "req.headers"), "req.headers")
         assert self.request_2.status_code == 403
         assert self.request_3.status_code == 404
         assert self.request_4.status_code == 403
@@ -86,11 +96,16 @@ class Test_API_Security_Telemetry_Metric:
             metric_data["metric"] in ["api_security.request.schema", "api_security.request.no_schema"]
             for metric_data in datas
         ), "Only api_security.request.schema metrics should be present, no missing routes should be generated"
+        expected_frameworks = FRAMEWORKS.get(context.library.name, {}).get(
+            context.weblog_variant, context.weblog_variant
+        )
+        if isinstance(expected_frameworks, str):
+            expected_frameworks = [expected_frameworks]
         # check all metrics have correct tags
         for m in datas:
             metric_data = m
             assert metric_data["namespace"] == "appsec"
             assert metric_data["type"] == "count"
-            assert metric_data["tags"] == [
-                f"framework:{FRAMEWORKS.get(context.library.name, {}).get(context.weblog_variant, context.weblog_variant)}"
-            ], f"framework tag unknown for {context.library.name} {context.weblog_variant}"
+            assert any(metric_data["tags"] == [f"framework:{fw}"] for fw in expected_frameworks), (
+                f"unexpected framework tag for {context.library.name} {context.weblog_variant}: got {metric_data['tags']}, expected one of {[f'framework:{fw}' for fw in expected_frameworks]}"
+            )

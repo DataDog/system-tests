@@ -62,6 +62,10 @@ This feature enables applications written in Java, Node.js, Python, .NET or Ruby
 
 The `AI_GUARD` scenario tests the [AI Guard SDK](https://docs.datadoghq.com/security/ai_guard/) integration across tracer libraries. It uses a VCR cassettes container to replay pre-recorded AI Guard API responses, validating evaluation actions (ALLOW, DENY, ABORT), span metadata, sensitive data scanning, and multi-modal content handling. See [ai_guard.md](ai_guard.md) for details.
 
+### Thread context sharing scenario
+
+The `THREAD_CONTEXT_SHARING` scenario runs the agent with CWS (Cloud Workload Security), and checks that security events triggered by the weblog carry the trace context of the active span. It needs the docker daemon to run on the instrumented kernel, with an opt-in for Kata docker-in-docker environments. See [thread_context_sharing.md](thread_context_sharing.md) for details.
+
 ### IPv6 scenario
 
 The `IPV6` scenario sets up an IPv6 docker network and uses an IPv6 address as DD_AGENT_HOST to verify that the library is able to communicate to the agent using an IPv6 address. It does not use a proxy between the lib and the agent to not interfere at any point here, so all assertions must be done on the outgoing traffic from the agent.
@@ -70,7 +74,7 @@ Please note that it requires the docker daemon to support IPv6. It should be ok 
 
 A user has seen his network function altered after running it on a linux laptop (to be investigated). If it happen, `docker network prune` may solve the issue.
 
-### Go proxies (Envoy and HAProxy) scenario
+### Go proxies (Envoy, HAProxy, and APIM) scenario
 
 ```mermaid
 flowchart LR
@@ -78,17 +82,25 @@ flowchart LR
     A("Test runner")
     B("Proxy (Envoy or HAProxy)")
     C("Go security processor")
-    D("HTTP app")
-    E("Proxy")
-    F("Agent")
-    G("Backend")
+    D("http-app<br/>:8080")
+    E("apim-gateway<br/>(shim, :80 -> host 127.0.0.1:7777)")
+    F("apim-callout<br/>(POST :8080, health :8081)<br/>library under test")
+    G("Proxy")
+    H("Agent")
+    I("Backend")
 
 %% Edge connections between nodes
     A --> B --> D
     B --> C --> B
-    C --> E --> F --> G
+    A --> E
+    E --> D
+    E --> F
+    C --> G
+    F --> G --> H --> I
     %% D -- Mermaid js --> I --> J
 ```
+
+For a proxy variant with `build_mode: none`, there is nothing to build: run `./utils/scripts/load-binary.sh golang` to write the image pointers, then `./run.sh <SCENARIO> --weblog <variant>`.
 
 ## Scenario lifecycle
 

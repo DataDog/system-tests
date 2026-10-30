@@ -50,7 +50,6 @@ How to add, modify, enable, and disable tests.
 - [IAST validations](edit/iast-validations.md) -- marking tests with vulnerabilities
 - [Remote config](edit/remote-config.md) -- writing remote config tests
 - [Update Docker images](edit/update-docker-images.md) -- modifying test app Docker images
-- [Runbook](edit/runbook.md) -- operational runbook
 - [Flushing](edit/flushing.md) -- how data flushing works and implementing `/flush`
 - [Library interface validation](edit/library-interface-validation-methods.md) -- API reference for validating tracer-to-agent traces
 - [Agent interface validation](edit/agent-interface-validation-methods.md) -- API reference for validating agent-to-backend data
@@ -65,7 +64,7 @@ Deep dives into each scenario type.
 - **AWS SSI / Onboarding**: [full guide](understand/scenarios/onboarding.md) and [provision structure](understand/scenarios/onboarding_provision_section.md)
 - **Docker SSI**: [guide](understand/scenarios/docker_ssi.md)
 - **Kubernetes lib injection**: [overview](understand/scenarios/k8s_library_injection_overview.md), [details](understand/scenarios/k8s_lib_injection.md), and [injector dev](understand/scenarios/k8s_injector_dev.md)
-- **Other scenarios**: [AWS Lambda](understand/scenarios/aws_lambda.md), [integration frameworks](understand/scenarios/integration_frameworks.md) (IPv6 and Go proxies are covered in the [scenarios overview](understand/scenarios/README.md))
+- **Other scenarios**: [AWS Lambda](understand/scenarios/aws_lambda.md), [integration frameworks](understand/scenarios/integration_frameworks.md), [thread context sharing (CWS)](understand/scenarios/thread_context_sharing.md) (IPv6 and Go proxies are covered in the [scenarios overview](understand/scenarios/README.md))
 
 ## CI integration
 

@@ -6,7 +6,7 @@ tracer.use('express', false)
 tracer.use('http', false)
 tracer.use('dns', false)
 
-const { MANUAL_KEEP, MANUAL_DROP } = require('dd-trace/ext')
+const { tags: { MANUAL_KEEP, MANUAL_DROP } } = require('dd-trace/ext')
 const SpanContext = require('dd-trace/packages/dd-trace/src/opentracing/span_context')
 const OtelSpanContext = require('dd-trace/packages/dd-trace/src/opentelemetry/span_context')
 
@@ -62,6 +62,9 @@ const otelSpanKinds = {
 
 const spans = new Map()
 const ddContext = new Map()
+const ddBaggage = new Map()
+const hasBaggageAPI = typeof tracer.getAllBaggageItems === 'function' &&
+  typeof tracer.setBaggageItem === 'function' && typeof tracer.removeAllBaggageItems === 'function'
 const otelSpans = new Map()
 const otelMeters = new Map()
 const otelMeterInstruments = new Map()
@@ -72,13 +75,54 @@ function createInstrumentKey(meterName, name, kind, unit, description) {
   return `${meterName}:${name}:${kind}:${unit}:${description}`;
 }
 
+async function waitForMetricsLifecycle (operation, seconds) {
+  let timeout
+  try {
+    await Promise.race([
+      operation,
+      new Promise((resolve, reject) => {
+        timeout = setTimeout(() => reject(new Error('Metrics lifecycle operation timed out')), seconds * 1000)
+      })
+    ])
+  } finally {
+    clearTimeout(timeout)
+  }
+}
+
+function waitForMetricsCallback (operation, seconds) {
+  return waitForMetricsLifecycle(new Promise((resolve, reject) => {
+    operation(error => error ? reject(error) : resolve())
+  }), seconds)
+}
+
+function replaceBaggage(items) {
+  tracer.removeAllBaggageItems()
+  for (const [key, value] of Object.entries(items)) tracer.setBaggageItem(key, value)
+}
+
+function withBaggage(items, callback) {
+  const previous = { ...tracer.getAllBaggageItems() }
+  try {
+    replaceBaggage(items)
+    return callback()
+  } finally {
+    replaceBaggage(previous)
+  }
+}
+
 app.post('/trace/span/inject_headers', (req, res) => {
   const request = req.body;
   const span = spans[request.span_id]
   const http_headersDict = {};
   const http_headers = [];
 
-  tracer.inject(span, 'http_headers', http_headersDict);
+  // Baggage is request-local in newer tracers. Carry it across the parametric
+  // API's separate extract/start/inject requests using the public baggage API.
+  if (hasBaggageAPI && ddBaggage.has(request.span_id)) {
+    withBaggage(ddBaggage.get(request.span_id), () => tracer.inject(span, 'http_headers', http_headersDict))
+  } else {
+    tracer.inject(span, 'http_headers', http_headersDict);
+  }
   for (const [key, value] of Object.entries(http_headersDict)) {
       http_headers.push([key, value]);
   }
@@ -91,27 +135,57 @@ app.post('/trace/span/extract_headers', (req, res) => {
   const http_headers = request.http_headers || [];
   // Node.js HTTP headers are automatically lower-cased, simulate that here.
   const linkHeaders = Object.fromEntries(http_headers.map(([k, v]) => [k.toLowerCase(), v]));
-  const extracted = tracer.extract('http_headers', linkHeaders);
+  let extractedBaggage;
+  const extracted = hasBaggageAPI
+    ? withBaggage({}, () => {
+      const context = tracer.extract('http_headers', linkHeaders)
+      extractedBaggage = { ...tracer.getAllBaggageItems() }
+      return context
+    })
+    : tracer.extract('http_headers', linkHeaders);
 
   let extractedSpanID = null;
-  const dummyTracer = require('dd-trace').init()
-  const extractPropagator = dummyTracer._tracer._config.tracePropagationStyle.extract
+  if (hasBaggageAPI) {
+    if (extracted) {
+      try {
+        extractedSpanID = extracted.toSpanId()
+      } catch (error) {
+        // A B3 sampling-only context has no remote span ID. Its public ID
+        // accessor throws TypeError; preserve the app's no-parent behavior.
+        if (!(error instanceof TypeError)) throw error
+      }
+      if (extractedSpanID !== null) ddContext[extractedSpanID] = extracted
+    }
+    if (extractedSpanID === null && Object.keys(extractedBaggage).length > 0) {
+      // Baggage-only extraction has no span context. This ID belongs to the
+      // parametric API; negative handles cannot collide with unsigned span IDs
+      // and never change the tracer's span or trace IDs.
+      extractedSpanID = String(-dummyIdIncrementer++)
+    }
+    if (extractedSpanID !== null) ddBaggage.set(extractedSpanID, extractedBaggage)
+  } else {
+    // Older tracers keep baggage on their extracted span context.
+    const dummyTracer = require('dd-trace').init()
+    const extractPropagator = dummyTracer._tracer._config.tracePropagationStyle.extract
 
-  if (extractPropagator.includes('baggage') && extracted && !extracted._spanId && !extracted._traceId) {
-    // baggage propagation does not require ids so http_headers could contain no ids
-    // several endpoints in this file rely on having ids so we need to have dummy ids for internal use
-    extracted._spanId = dummyIdIncrementer
-    extracted._traceId = dummyIdIncrementer
-    dummyIdIncrementer += 1
-  }
+    if (extractPropagator.includes('baggage') && extracted && !extracted._spanId && !extracted._traceId) {
+      extracted._spanId = dummyIdIncrementer
+      extracted._traceId = dummyIdIncrementer
+      dummyIdIncrementer += 1
+    }
 
-  if (extracted && extracted._spanId) {
-    extractedSpanID = extracted.toSpanId();
-    ddContext[extractedSpanID] = extracted;
+    if (extracted && extracted._spanId) {
+      extractedSpanID = extracted.toSpanId();
+      ddContext[extractedSpanID] = extracted;
+    }
   }
 
   res.json({ span_id: extractedSpanID });
 });
+
+app.get('/trace/agent/ensure_agent_info', (req, res) => {
+  res.json({ ready: true })
+})
 
 app.get('/trace/crash', (req, res) => {
   process.kill(process.pid, 'SIGSEGV');
@@ -122,20 +196,28 @@ app.post('/trace/span/start', (req, res) => {
   const request = req.body;
   let parent = spans[request.parent_id] || ddContext[request.parent_id];
 
-  const tags = {service: request.service, resource: request.resource};
+  // dd-trace's startSpan only special-cases `service` from the tags; `resource` and `type` are not
+  // mapped (that mapping only happens in tracer.trace()). Set the canonical tag keys directly so the
+  // span carries the requested resource and type. Only set them when provided so the resource keeps
+  // defaulting to the operation name.
+  const tags = {service: request.service};
+  if (request.resource) tags['resource.name'] = request.resource;
+  if (request.type) tags['span.type'] = request.type;
   for (const [key, value] of request.span_tags) tags[key] = value
 
   const span = tracer.startSpan(request.name, {
-    type: request.type,
     childOf: parent,
     tags
   });
 
   if (ddContext[request.parent_id]) {
-    for (const link of ddContext[request.parent_id]._links || []) span.addLink(link.context, link.attributes)
+    for (const link of ddContext[request.parent_id]._links || []) span.addLink(link)
   }
 
   spans[span.context().toSpanId()] = span;
+  if (ddBaggage.has(request.parent_id)) {
+    ddBaggage.set(span.context().toSpanId(), ddBaggage.get(request.parent_id))
+  }
   res.json({ span_id: span.context().toSpanId(), trace_id:span.context().toTraceId() });
 });
 
@@ -143,9 +225,9 @@ app.post('/trace/span/add_link', (req, res) => {
   const request = req.body;
   const span = spans[request.span_id]
   if (spans[request.parent_id]) {
-    span.addLink(spans[request.parent_id].context(), request.attributes)
+    span.addLink({ context: spans[request.parent_id].context(), attributes: request.attributes })
   } else {
-    span.addLink(ddContext[request.parent_id], request.attributes)
+    span.addLink({ context: ddContext[request.parent_id], attributes: request.attributes })
   }
   res.json({});
 });
@@ -158,12 +240,16 @@ app.post('/trace/span/finish', (req, res) => {
 });
 
 app.post('/trace/span/flush', (req, res) => {
-  const { _tracer: { _exporter: { _writer } } } = tracer
-  _writer.flush(() => {
+  const exporter = tracer._tracer._exporter
+  if (typeof exporter.flush === 'function') {
+    exporter.flush(() => res.json({}))
+  } else {
+    // Older OTLP exporters send on span finish and have no flush method.
     res.json({});
-  })
+  }
   spans.clear();
   ddContext.clear();
+  ddBaggage.clear();
 });
 
 app.post('/trace/span/set_meta', (req, res) => {
@@ -203,8 +289,45 @@ app.post('/trace/span/manual_drop', (req, res) => {
 });
 
 app.post('/trace/stats/flush', (req, res) => {
-  // TODO: implement once available in Node.js Tracer
-  res.json({});
+  // dd-trace-js implements CSS via SpanStatsProcessor on the SpanProcessor.
+  // There is no public flush API, so reach into internals and wait for the
+  // span-stats writer's HTTP send to complete before responding.
+  const processor = tracer?._tracer?._processor?._stats
+  if (!processor) {
+    res.json({})
+    return
+  }
+  const writer = processor.exporter?._writer
+  if (!writer || typeof writer._sendPayload !== 'function') {
+    processor.onInterval()
+    res.json({})
+    return
+  }
+  const originalSend = writer._sendPayload.bind(writer)
+  let sendInvoked = false
+  let responded = false
+  const respond = () => {
+    if (responded) return
+    responded = true
+    writer._sendPayload = originalSend
+    res.json({})
+  }
+  writer._sendPayload = (data, count, done) => {
+    sendInvoked = true
+    originalSend(data, count, () => {
+      done()
+      respond()
+    })
+  }
+  try {
+    processor.onInterval()
+  } catch (e) {
+    respond()
+    return
+  }
+  if (!sendInvoked) {
+    respond()
+  }
 });
 
 app.post('/trace/span/error', (req, res) => {
@@ -276,7 +399,7 @@ app.post('/trace/otel/start_span', (req, res) => {
         startTime: microLongToHrTime(request.timestamp)
     }, parentContext)
     const ctx = span._ddSpan.context()
-    const span_id = ctx._spanId.toString(10)
+    const span_id = "0x" + ctx._spanId.toString(16)
     const trace_id = ctx._traceId.toString(10)
 
     otelSpans[span_id] = span
@@ -321,7 +444,7 @@ app.post('/trace/otel/span_context', (req, res) => {
   const span = otelSpans[span_id]
   const ctx = span.spanContext()
   res.json({
-    span_id: ctx.spanId,
+    span_id: `0x${ctx.spanId}`,
     trace_id: ctx.traceId,
     // Node.js official OTel API uses a number, not a string
     trace_flags: `0${ctx.traceFlags}`,
@@ -357,33 +480,32 @@ app.post('/trace/otel/set_attributes', (req, res) => {
 });
 
 app.get('/trace/config', (req, res) => {
-  const dummyTracer = require('dd-trace').init()
-  const config = dummyTracer._tracer._config
-  const agentUrl = dummyTracer._tracer?._url ||  config?.url
-  res.json( {
-    config: {
-      'dd_service': config?.service !== undefined ? `${config.service}`.toLowerCase() : 'null',
-      'dd_log_level': config?.logLevel !== undefined ? `${config.logLevel}`.toLowerCase() : 'null',
-      'dd_trace_debug': config?.debug !== undefined ? `${config.debug}`.toLowerCase() : 'null',
-      'dd_trace_sample_rate': config?.sampleRate !== undefined ? `${config.sampleRate}` : 'null',
-      'dd_trace_enabled': config ? 'true' : 'false', // in node if dd_trace_enabled is true the tracer won't have a config object
-      'dd_runtime_metrics_enabled': config?.runtimeMetrics !== undefined ? `${config.runtimeMetrics.enabled ?? config.runtimeMetrics}`.toLowerCase() : 'null',
-      'dd_tags': config?.tags !== undefined ? Object.entries(config.tags).map(([key, val]) => `${key}:${val}`).join(',') : 'null',
-      'dd_trace_propagation_style': config?.tracePropagationStyle?.inject.join(',') ?? 'null',
-      'dd_trace_sample_ignore_parent': 'null', // not implemented in node
-      'dd_trace_otel_enabled': 'null', // not exposed in config object in node
-      'dd_env': config?.tags?.env !== undefined ? `${config.tags.env}` : 'null',
-      'dd_version': config?.tags?.version !== undefined ? `${config.tags.version}` : 'null',
-      'dd_trace_agent_url': agentUrl !== undefined ? agentUrl.toString() : 'null',
-      'dd_trace_rate_limit': config?.sampler?.rateLimit !== undefined ? `${config?.sampler?.rateLimit}` : 'null',
-      'dd_dogstatsd_host': config?.dogstatsd?.hostname !== undefined ? `${config.dogstatsd.hostname}` : 'null',
-      'dd_dogstatsd_port': config?.dogstatsd?.port !== undefined ? `${config.dogstatsd.port}` : 'null',
-      'dd_profiling_enabled': config?.profiling?.enabled !== undefined ? `${config.profiling.enabled}` : 'false',
-      'dd_data_streams_enabled': config?.dsmEnabled !== undefined ? `${config.dsmEnabled}` : 'null',
-      'dd_logs_injection': config?.logInjection !== undefined ? `${config.logInjection}` : 'null',
-    }
-  });
+  // The tracer's resolved config is an internal shape whose property paths rename across
+  // refactors, so this endpoint reports nothing from it. Node config consistency is asserted
+  // via telemetry and observable behaviour in the parametric suite. Missing keys default
+  // to null in the test client; OTLP timeouts use the dedicated diagnostic endpoint below.
+  res.json({ config: {} })
 });
+
+app.get('/otel/effective_config', (req, res) => {
+  // Isolate the SDK's private configuration shape behind stable diagnostic fields.
+  // Keep validation and default resolution inside the SDK.
+  // Older tracers may not expose these fields; preserve null in that case.
+  const config = tracer?._tracer?._config
+  res.json({ config: {
+    otel_exporter_otlp_traces_timeout_ms: otlpExporterTimeout(config?.OTEL_EXPORTER_OTLP_TRACES_TIMEOUT),
+    otel_exporter_otlp_metrics_timeout_ms: otlpExporterTimeout(
+      config?.OTEL_EXPORTER_OTLP_METRICS_TIMEOUT ?? config?.otelMetricsTimeout
+    ),
+    otel_exporter_otlp_logs_timeout_ms: otlpExporterTimeout(
+      config?.OTEL_EXPORTER_OTLP_LOGS_TIMEOUT ?? config?.otelLogsTimeout
+    )
+  } })
+});
+
+function otlpExporterTimeout (value) {
+  return typeof value === 'number' && Number.isFinite(value) ? String(value) : null
+}
 
 app.post("/otel/logger/create", (req, res) => {
   const { name, level, version, schema_url, attributes } = req.body
@@ -483,48 +605,95 @@ app.post("/trace/otel/otel_set_baggage", (req, res) => {
 });
 
 // Feature Flag & Experimentation endpoints
+app.post('/ffe/fetch-rules-configuration', (req, res) => {
+  const { execFile } = require('node:child_process')
+  const path = require('node:path')
+  const env = { ...process.env }
+  // The helper must work without the parent server's tracer or preload hooks.
+  delete env.NODE_OPTIONS
+  execFile(process.execPath, [path.join(__dirname, 'ffe-rules-configuration.js'), JSON.stringify(req.body)], {
+    env,
+    timeout: 10000
+  }, (error, stdout, stderr) => {
+    if (error) {
+      console.error('Standalone FFE helper failed:', stderr || error)
+      return res.status(500).json({ error: 'Standalone FFE helper failed' })
+    }
+    try {
+      res.json(JSON.parse(stdout))
+    } catch (error) {
+      res.status(500).json({ error: 'Invalid standalone FFE helper output' })
+    }
+  })
+})
+
 app.post('/ffe/start', async (req, res) => {
-  const { openfeature } = tracer
-  await OpenFeature.setProviderAndWait(openfeature)
+  const hasFeatureFlaggingConfiguration = [
+    'DD_FEATURE_FLAGS_ENABLED',
+    'DD_FEATURE_FLAGS_CONFIGURATION_SOURCE',
+    'DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL',
+    'DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED'
+  ].some(name => process.env[name] !== undefined)
+
+  if (hasFeatureFlaggingConfiguration) {
+    try {
+      const { openfeature } = tracer
+      await OpenFeature.setProviderAndWait(openfeature)
+    } catch {
+      openFeatureClient = OpenFeature.getClient()
+      res.status(500).json({})
+      return
+    }
+  }
   openFeatureClient = OpenFeature.getClient()
   res.json({})
 })
 
 app.post('/ffe/evaluate', async (req, res) => {
-  const { flag, variationType, defaultValue, targetingKey, attributes } = req.body;
-  let value, reason;
+  const { flag, variationType, defaultValue, targetingKey, attributes, span_id } = req.body;
+  let details;
   const context = { targetingKey, ...attributes }
 
-  try {
-    switch (variationType) {
-      case 'BOOLEAN':
-        value = await openFeatureClient.getBooleanValue(flag, defaultValue, context)
-        break;
-      case 'STRING':
-        value = await openFeatureClient.getStringValue(flag, defaultValue, context)
-        break;
-      case 'INTEGER':
-        value = await openFeatureClient.getNumberValue(flag, defaultValue, context)
-        break;
-      case 'NUMERIC':
-        value = await openFeatureClient.getNumberValue(flag, defaultValue, context)
-        break;
-      case 'JSON':
-        value = await openFeatureClient.getObjectValue(flag, defaultValue, context)
-        break;
-      default:
-        value = defaultValue;
+  // Helper function to perform the actual flag evaluation
+  const doEvaluate = async () => {
+    try {
+      switch (variationType) {
+        case 'BOOLEAN':
+          details = await openFeatureClient.getBooleanDetails(flag, defaultValue, context)
+          break;
+        case 'STRING':
+          details = await openFeatureClient.getStringDetails(flag, defaultValue, context)
+          break;
+        case 'INTEGER':
+          details = await openFeatureClient.getNumberDetails(flag, defaultValue, context)
+          break;
+        case 'NUMERIC':
+          details = await openFeatureClient.getNumberDetails(flag, defaultValue, context)
+          break;
+        case 'JSON':
+          details = await openFeatureClient.getObjectDetails(flag, defaultValue, context)
+          break;
+        default:
+          details = { value: defaultValue, reason: 'DEFAULT' };
+      }
+    } catch (error) {
+      details = { value: defaultValue, reason: 'ERROR' };
     }
+  }
 
-    reason = 'DEFAULT';
-  } catch (error) {
-    value = defaultValue;
-    reason = 'ERROR';
+  // If a span_id is provided, activate that span during the evaluation
+  // so that the SpanEnrichmentHook can find the root span
+  if (span_id && spans[span_id]) {
+    await tracer.scope().activate(spans[span_id], doEvaluate)
+  } else {
+    await doEvaluate()
   }
 
   res.json({
-    value: value,
-    reason: reason
+    value: details.value,
+    reason: details.reason,
+    errorCode: details.errorCode,
+    flagMetadata: details.flagMetadata ?? null
   });
 });
 
@@ -763,6 +932,19 @@ app.post('/metrics/otel/force_flush', (req, res) => {
     res.json({ success: true });
   } else {
     res.json({ success: false, message: 'Force flush not supported' });
+  }
+});
+
+app.post('/metrics/otel/shutdown', async (req, res) => {
+  const meterProvider = metrics.getMeterProvider();
+  if (typeof meterProvider.shutdown !== 'function') {
+    return res.json({ success: false, message: 'Shutdown not supported' });
+  }
+  try {
+    await waitForMetricsCallback(done => meterProvider.shutdown(done), req.body.seconds || 10)
+    res.json({ success: true });
+  } catch (error) {
+    res.json({ success: false, message: error.message });
   }
 });
 

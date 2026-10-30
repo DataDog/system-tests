@@ -1,0 +1,22 @@
+{
+ "request": {
+  "method": "POST",
+  "url": "https://app.datadoghq.com/api/v2/ai-guard/evaluate",
+  "headers": {
+   "Content-Type": "application/json",
+   "DD-AI-GUARD-SOURCE": "SDK"
+  },
+  "body": "{\"data\": {\"attributes\": {\"messages\": [{\"role\": \"system\", \"content\": \"You are a bank assistant. Escalate to ops@acme.io if needed.\"}, {\"role\": \"user\", \"content\": \"My SSN is 123-45-6789, check my account.\"}, {\"role\": \"assistant\", \"content\": \"Looking it up. I also have the SSN 987-65-4321 on file for you.\", \"tool_calls\": [{\"id\": \"call_1\", \"function\": {\"name\": \"get_account\", \"arguments\": \"{\\\"phone\\\":\\\"415-555-0132\\\"}\"}}]}, {\"role\": \"tool\", \"tool_call_id\": \"call_1\", \"content\": \"Account 000123456789 balance 100\"}, {\"role\": \"user\", \"content\": \"Charge it to 4111-1111-1111-1111\"}], \"meta\": {\"service\": \"weblog\", \"env\": \"system-tests\"}}}}"
+ },
+ "response": {
+  "status": {
+   "code": 200,
+   "message": "OK"
+  },
+  "headers": {
+   "content-type": "application/vnd.api+json",
+   "content-length": "2347"
+  },
+  "body": "{\"data\": {\"id\": \"redaction-fixture\", \"type\": \"evaluations\", \"attributes\": {\"action\": \"ALLOW\", \"is_blocking_enabled\": true, \"reason\": \"Sensitive data detected; configured categories will be redacted.\", \"redaction_replacements\": [{\"path\": \"messages[0].content\", \"replacement\": \"You are a bank assistant. Escalate to <REDACTED> if needed.\"}, {\"path\": \"messages[1].content\", \"replacement\": \"My SSN is <REDACTED>, check my account.\"}, {\"path\": \"messages[2].content\", \"replacement\": \"Looking it up. I also have the SSN <REDACTED> on file for you.\"}, {\"path\": \"messages[2].tool_calls[0].function.arguments\", \"replacement\": \"{\\\"phone\\\":\\\"<REDACTED>\\\"}\"}, {\"path\": \"messages[3].content\", \"replacement\": \"Account <REDACTED> balance 100\"}, {\"path\": \"messages[4].content\", \"replacement\": \"Charge it to <REDACTED>\"}], \"sds_findings\": [{\"rule_display_name\": \"Standard Email Address Scanner\", \"rule_tag\": \"email_address\", \"category\": \"email_address\", \"location\": {\"path\": \"messages[0].content\", \"start_index\": 38, \"end_index_exclusive\": 49}}, {\"rule_display_name\": \"US Social Security Number Scanner\", \"rule_tag\": \"us_ssn\", \"category\": \"ssn\", \"location\": {\"path\": \"messages[1].content\", \"start_index\": 10, \"end_index_exclusive\": 21}}, {\"rule_display_name\": \"US Social Security Number Scanner\", \"rule_tag\": \"us_ssn\", \"category\": \"ssn\", \"location\": {\"path\": \"messages[2].content\", \"start_index\": 35, \"end_index_exclusive\": 46}}, {\"rule_display_name\": \"Phone Number Scanner\", \"rule_tag\": \"phone_number\", \"category\": \"phone_number\", \"location\": {\"path\": \"messages[2].tool_calls[0].function.arguments\", \"start_index\": 10, \"end_index_exclusive\": 22}}, {\"rule_display_name\": \"Bank Account Number Scanner\", \"rule_tag\": \"bank_account\", \"category\": \"bank_account\", \"location\": {\"path\": \"messages[3].content\", \"start_index\": 8, \"end_index_exclusive\": 20}}, {\"rule_display_name\": \"Credit Card Scanner\", \"rule_tag\": \"credit_card\", \"category\": \"credit_card\", \"location\": {\"path\": \"messages[4].content\", \"start_index\": 13, \"end_index_exclusive\": 32}}], \"tag_probs\": {\"authority-override\": 0.0, \"data-exfiltration\": 0.0, \"denial-of-service-tool-call\": 0.0, \"destructive-tool-call\": 0.0, \"indirect-prompt-injection\": 0.0, \"instruction-override\": 0.0, \"jailbreak\": 0.0, \"obfuscation\": 0.0, \"role-play\": 0.0, \"security-exploit\": 0.0, \"system-prompt-extraction\": 0.0}, \"tags\": []}}}"
+ }
+}

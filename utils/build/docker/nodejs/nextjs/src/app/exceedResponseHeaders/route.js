@@ -8,7 +8,7 @@ export async function GET (request) {
       ...Object.fromEntries(
         Array.from({ length: 50 }, (_, i) => [`x-test-header-${i}`, `value${i}`])
       ),
-      'content-language': 'en-US',
+      'content-language': 'en-US'
     }
   })
 }

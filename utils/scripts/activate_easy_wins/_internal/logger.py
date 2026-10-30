@@ -55,8 +55,7 @@ class ActivationLogger:
         self.tests_per_language[library] += 1
         self.unique_tests_per_language[library].add(node)
         for owner in owners:
-            key = owner or "No code owner"
-            self.activations_per_owner[key] = self.activations_per_owner.get(key, 0) + 1
+            self.activations_per_owner[owner] = self.activations_per_owner.get(owner, 0) + 1
         for rule_str in rules:
             if rule_str not in self.rule_to_tests:
                 self.rule_to_tests[rule_str] = set()

@@ -1,0 +1,10 @@
+eval_gemfile File.expand_path("common.gemfile", __dir__)
+
+gem "bigdecimal", "~> 3.1.0"
+gem "nio4r", ">= 2.5.9"
+gem "date", "~> 3.4.0"
+gem "erb", "~> 4.0.0"
+gem "debug", "~> 1.11.0", platforms: %i[mri mingw x64_mingw]
+gem "irb", "~> 1.14.0"
+gem "rdoc", "~> 6.14.0"
+gem "psych", "~> 5.2.0"

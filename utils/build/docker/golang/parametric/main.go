@@ -9,7 +9,9 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/DataDog/dd-trace-go/v2/crashtracker"
 	ddotel "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry"
+	otlog "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry/log"
 	ddmetric "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry/metric"
 	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 	ddof "github.com/DataDog/dd-trace-go/v2/openfeature"
@@ -27,10 +29,13 @@ type apmClientServer struct {
 	tracer       otel_trace.Tracer
 	ofClient     *of.Client
 	ddProvider   of.FeatureProvider
+	// OTel Logs
+	otelLoggers map[string]otelLogger
 	// OTel Metrics
-	mp          metric.MeterProvider
-	meters      map[string]metric.Meter
-	instruments map[string]interface{} // Can be Counter, UpDownCounter, Gauge, Histogram, or Observable variants
+	mp                  metric.MeterProvider
+	meters              map[string]metric.Meter
+	instruments         map[string]interface{} // Can be Counter, UpDownCounter, Gauge, Histogram, or Observable variants
+	metricConfiguration *metricReaderConfiguration
 }
 
 type spanContext struct {
@@ -42,36 +47,83 @@ func newServer() *apmClientServer {
 	tp := ddotel.NewTracerProvider()
 	otel.SetTracerProvider(tp)
 
+	metricConfiguration := observeMetricReaderConfiguration()
 	mp, err := ddmetric.NewMeterProvider()
 	if err != nil {
 		log.Fatalf("failed to create Datadog OTel MeterProvider: %v", err)
 	}
 	otel.SetMeterProvider(mp)
 
+	if err := otlog.Start(context.Background()); err != nil {
+		log.Fatalf("failed to start Datadog OTel LoggerProvider: %v", err)
+	}
+
 	s := &apmClientServer{
-		spans:        make(map[uint64]*tracer.Span),
-		spanContexts: make(map[uint64]*tracer.SpanContext),
-		otelSpans:    make(map[uint64]spanContext),
-		tp:           tp,
-		mp:           mp,
-		meters:       make(map[string]metric.Meter),
-		instruments:  make(map[string]interface{}),
+		spans:               make(map[uint64]*tracer.Span),
+		otelLoggers:         make(map[string]otelLogger),
+		spanContexts:        make(map[uint64]*tracer.SpanContext),
+		otelSpans:           make(map[uint64]spanContext),
+		tp:                  tp,
+		mp:                  mp,
+		meters:              make(map[string]metric.Meter),
+		instruments:         make(map[string]interface{}),
+		metricConfiguration: metricConfiguration,
 	}
 
-	s.ddProvider, err = ddof.NewDatadogProvider(ddof.ProviderConfig{})
-	if err != nil {
-		log.Fatalf("failed to create Datadog OpenFeature provider: %v", err)
+	// The configuration-source contract requires lazy activation: no configuration
+	// delivery may happen before the provider is accessed through /ffe/start. When any
+	// Feature Flagging configuration variable is set, skip this eager initialization and
+	// leave provider setup to /ffe/start. Tests that predate that contract keep the
+	// original eager behavior.
+	if !ffeConfigurationEnvVarsSet() {
+		s.ddProvider, err = ddof.NewDatadogProvider(ddof.ProviderConfig{})
+		if err != nil {
+			log.Fatalf("failed to create Datadog OpenFeature provider: %v", err)
+		}
+
+		// Async on purpose, unlike /ffe/start: this runs for every parametric
+		// test that sets no Feature Flagging variable, and waiting would add the
+		// 10s DD_EXPERIMENTAL_FLAGGING_PROVIDER_INITIALIZATION_TIMEOUT_MS to each
+		// container start.
+		if err := of.SetProvider(s.ddProvider); err != nil {
+			log.Fatalf("failed to set Datadog OpenFeature provider: %v", err)
+		}
+
+		s.ofClient = of.NewClient("system-tests-weblog-client")
 	}
 
-	if err := of.SetProvider(s.ddProvider); err != nil {
-		log.Fatalf("failed to set Datadog OpenFeature provider and wait for initialization: %v", err)
-	}
-
-	s.ofClient = of.NewClient("system-tests-weblog-client")
 	return s
 }
 
+var ffeConfigurationEnvVars = []string{
+	"DD_FEATURE_FLAGS_ENABLED",
+	"DD_FEATURE_FLAGS_CONFIGURATION_SOURCE",
+	"DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL",
+	"DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_POLL_INTERVAL_SECONDS",
+	"DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_REQUEST_TIMEOUT_SECONDS",
+}
+
+func ffeConfigurationEnvVarsSet() bool {
+	for _, name := range ffeConfigurationEnvVars {
+		if _, ok := os.LookupEnv(name); ok {
+			return true
+		}
+	}
+	return false
+}
+
+func (s *apmClientServer) crashHandler(http.ResponseWriter, *http.Request) {
+	go func() {
+		panic("system-tests crash")
+	}()
+	select {}
+}
+
 func main() {
+	if err := crashtracker.Start(); err != nil {
+		log.Printf("crashtracker.Start: %v", err)
+	}
+
 	flag.String("Darg1", "", "Argument 1")
 	flag.Parse()
 	defer func() {
@@ -96,6 +148,8 @@ func main() {
 	http.HandleFunc("/trace/span/extract_headers", s.extractHeadersHandler)
 	http.HandleFunc("/trace/span/error", s.spanSetErrorHandler)
 	http.HandleFunc("/trace/config", s.getTraceConfigHandler)
+	http.HandleFunc("/trace/crash", s.crashHandler)
+	http.HandleFunc("/trace/agent/ensure_agent_info", s.ensureAgentInfoHandler)
 	http.HandleFunc("/trace/span/manual_keep", s.spanManualKeepHandler)
 	http.HandleFunc("/trace/span/manual_drop", s.spanManualDropHandler)
 
@@ -114,6 +168,11 @@ func main() {
 	http.HandleFunc("/trace/otel/add_event", s.otelAddEventHandler)
 	http.HandleFunc("/trace/otel/set_status", s.otelSetStatusHandler)
 
+	// otel-logs endpoints:
+	http.HandleFunc("/otel/logger/create", s.otelCreateLoggerHandler)
+	http.HandleFunc("/otel/logger/write", s.otelWriteLogHandler)
+	http.HandleFunc("/log/otel/flush", s.otelFlushLogsHandler)
+
 	// otel-metrics endpoints:
 	http.HandleFunc("/metrics/otel/get_meter", s.otelGetMeterHandler)
 	http.HandleFunc("/metrics/otel/create_counter", s.otelCreateCounterHandler)
@@ -128,6 +187,7 @@ func main() {
 	http.HandleFunc("/metrics/otel/create_asynchronous_updowncounter", s.otelCreateAsynchronousUpDownCounterHandler)
 	http.HandleFunc("/metrics/otel/create_asynchronous_gauge", s.otelCreateAsynchronousGaugeHandler)
 	http.HandleFunc("/metrics/otel/force_flush", s.otelMetricsForceFlushHandler)
+	http.HandleFunc("/metrics/otel/shutdown", s.otelMetricsShutdownHandler)
 
 	err = http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
 	if err != nil {

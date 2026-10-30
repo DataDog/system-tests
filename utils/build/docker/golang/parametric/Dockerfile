@@ -1,8 +1,10 @@
 
-FROM golang:1.25
+FROM golang:1.26
 
 # install jq
 RUN apt-get update && apt-get -y install jq
+ENV GONOSUMDB=github.com/DataDog/* \
+    GOPRIVATE=github.com/DataDog/*
 WORKDIR /app
 COPY utils/build/docker/golang/parametric/go.mod /app
 COPY utils/build/docker/golang/parametric/go.sum /app
@@ -15,4 +17,4 @@ RUN mkdir /parametric-tracer-logs
 
 RUN go install
 
-CMD ["main"]
+CMD ["sh", "-c", "main; status=$?; sleep 2; exit $status"]

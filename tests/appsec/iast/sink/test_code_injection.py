@@ -21,6 +21,7 @@ class TestCodeInjection(BaseSinkTest):
     secure_endpoint = "/iast/code_injection/test_secure"
     data = {"code": "1+2"}
     location_map = {
+        "java": "com.datadoghq.system_tests.iast.utils.CodeInjectionExamples",
         "nodejs": get_nodejs_iast_file_paths(),
     }
 

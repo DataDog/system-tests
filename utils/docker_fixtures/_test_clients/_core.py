@@ -1,15 +1,43 @@
 import os
-from pathlib import Path
 import shutil
 import subprocess
+import time
+import urllib.parse
+from http import HTTPStatus
+from pathlib import Path
 from typing import TextIO
 
 from docker.models.images import Image
+from docker.models.containers import Container
 import pytest
+import requests
+from _pytest.outcomes import Failed
 
+from utils._context._image_mirror import mirror_enabled
 from utils._logger import logger
-
+from utils.base_images.base_image import base_image_contexts
 from utils.docker_fixtures._core import get_docker_client
+
+
+def _fail(message: str):
+    """Used to mak a test as failed"""
+    logger.error(message)
+    raise Failed(message, pytrace=False) from None
+
+
+_MIRROR_BUILDER = "system-tests-mirror"
+_BUILDKITD_CONFIG = "utils/build/docker/buildkitd.toml"
+
+
+def _ensure_mirror_builder(docker_bin: str) -> str:
+    """Create (or reuse) the buildx builder configured to pull through the image mirror."""
+    inspect = subprocess.run([docker_bin, "buildx", "inspect", _MIRROR_BUILDER], capture_output=True, check=False)
+    if inspect.returncode != 0:
+        subprocess.run(
+            [docker_bin, "buildx", "create", "--name", _MIRROR_BUILDER, "--config", _BUILDKITD_CONFIG],
+            check=True,
+        )
+    return _MIRROR_BUILDER
 
 
 class TestClientFactory:
@@ -52,17 +80,33 @@ class TestClientFactory:
             if docker_bin is None:
                 raise FileNotFoundError("Docker not found in PATH")
 
-            cmd = [
-                docker_bin,
-                "build",
-                "--progress=plain",
-            ]
+            if mirror_enabled():
+                # Same builder as weblog builds (utils/build/build.sh): its buildkitd
+                # daemon redirects all FROM pulls through the system-tests mirror.
+                # It does not use the docker driver, so the image must be loaded back.
+                # Equivalent to --load, but skips layer compression: the tarball is only
+                # streamed to the local docker daemon, so gzip just burns CPU time.
+                cmd = [
+                    docker_bin,
+                    "buildx",
+                    "build",
+                    "--builder",
+                    _ensure_mirror_builder(docker_bin),
+                    "--output",
+                    "type=docker,compression=uncompressed",
+                ]
+            else:
+                cmd = [docker_bin, "build"]
+            cmd += ["--progress=plain"]
 
             if github_token_file and github_token_file.strip():
                 cmd += ["--secret", f"id=github_token,src={github_token_file}"]
 
             for name, value in self.build_args.items():
                 cmd += ["--build-arg", f"{name}={value}"]
+
+            for alias, image in base_image_contexts(Path(self.dockerfile).read_text()).items():
+                cmd += ["--build-context", f"{alias}=docker-image://{image}"]
 
             cmd += [
                 "-t",
@@ -129,3 +173,77 @@ class TestClientFactory:
         log_path.parent.mkdir(parents=True, exist_ok=True)
 
         return log_path.open("w+", encoding="utf-8")
+
+
+class TestClientApi:
+    """Base Test Client class for parametric and integration_framework scenario"""
+
+    container: Container
+    timeout: int
+    _session: requests.Session
+    _base_url: str
+
+    def __init__(self, url: str, timeout: int, container: Container):
+        self._base_url = url
+        self._session = requests.Session()
+        self.container = container
+        self.timeout = timeout
+
+        # wait for server to start
+        self._wait(timeout)
+
+    def container_restart(self):
+        self.container.restart()
+        self._wait(self.timeout)
+
+    def _wait(self, timeout: float):
+        delay = 0.01
+        logger.debug(f"Waiting for {self.container.name} being ready")
+        for _ in range(int(timeout / delay)):
+            try:
+                if self._is_alive():
+                    logger.debug(f"{self.container.name} is ready")
+                    break
+            except Exception:
+                # don't log anything here, it makes the ouput very noisy
+                ...
+
+            # _is_alive() swallows a non-running container status and returns False instead of
+            # raising, so the check must be repeated here on every iteration (not only in the
+            # except branch above) or a container that exits early (e.g. crash, port collision)
+            # silently gets retried for the full timeout instead of failing fast with its logs.
+            self.container.reload()
+            if self.container.status not in ("running", "created"):
+                self._print_logs()
+                message = f"Container {self.container.name} status is {self.container.status}. Please check logs."
+                _fail(message)
+
+            time.sleep(delay)
+        else:
+            self._print_logs()
+            message = f"Timeout of {timeout} seconds exceeded waiting for HTTP server to start. Please check logs."
+            _fail(message)
+
+    def _url(self, path: str) -> str:
+        return urllib.parse.urljoin(self._base_url, path)
+
+    def _is_alive(self) -> bool:
+        self.container.reload()
+
+        if self.container.status != "running":
+            logger.info(f"Container status is {self.container.status}, waiting...")
+            return False
+
+        status = self._session.get(self._url("/non-existent-endpoint-to-ping-until-the-server-starts")).status_code
+        if status != HTTPStatus.NOT_FOUND:
+            logger.info(f"HTTP app is not yet ready, status code is {status}, waiting...")
+            return False
+
+        return True
+
+    def _print_logs(self):
+        try:
+            logs = self.container.logs().decode("utf-8")
+            logger.debug(f"Logs from container {self.container.name}:\n\n{logs}")
+        except Exception:
+            logger.error(f"Failed to get logs from container {self.container.name}")

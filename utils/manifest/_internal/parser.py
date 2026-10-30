@@ -302,6 +302,7 @@ def load(base_dir: Path = Path("manifests/")) -> ManifestData:
 
     for component in (
         "agent",
+        "c",
         "cpp",
         "cpp_httpd",
         "cpp_kong",
@@ -312,6 +313,7 @@ def load(base_dir: Path = Path("manifests/")) -> ManifestData:
         "java_lambda",
         "java_otel",
         "nodejs",
+        "nodejs_lambda",
         "nodejs_otel",
         "php",
         "python",
@@ -321,6 +323,7 @@ def load(base_dir: Path = Path("manifests/")) -> ManifestData:
         "dd_apm_inject",
         "k8s_cluster_agent",
         "python_lambda",
+        "ruby_lambda",
         "envoy",
         "haproxy",
     ):

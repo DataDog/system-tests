@@ -13,6 +13,7 @@ import com.datadoghq.vertx3.rasp.Api10RouteProvider;
 import com.datadoghq.vertx3.rasp.RaspRouteProvider;
 import datadog.appsec.api.blocking.Blocking;
 import datadog.appsec.api.login.EventTrackerV2;
+import datadog.trace.api.DDTags;
 import datadog.trace.api.EventTracker;
 import datadog.trace.api.interceptor.MutableSpan;
 import io.opentracing.Span;
@@ -39,7 +40,12 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import io.vertx.ext.web.FileUpload;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
@@ -172,6 +178,17 @@ public class Main {
                 ctx.response().setStatusCode(200).end(body.toString());
             });
         }
+        router.post("/waf").consumes("multipart/form-data").handler(ctx -> {
+            var sb = new StringBuilder();
+            for (FileUpload upload : ctx.fileUploads()) {
+                try {
+                    sb.append(new String(Files.readAllBytes(Paths.get(upload.uploadedFileName()))));
+                } catch (IOException e) {
+                    // ignore read errors for individual uploads
+                }
+            }
+            ctx.response().setStatusCode(200).end(sb.toString());
+        });
         router.get("/status")
                 .handler(ctx -> {
                     String codeString = ctx.request().getParam("code");
@@ -388,6 +405,64 @@ public class Main {
                     setRootSpanTag("service", serviceName);
                     ctx.response().end("ok");
                 });
+        router.get("/trace/manual_keep_drop").handler(ctx -> {
+            String decision = ctx.request().getParam("decision");
+            if (!"keep".equals(decision) && !"drop".equals(decision)) {
+                ctx.response().setStatusCode(400).end("decision must be keep or drop");
+                return;
+            }
+
+            final Span span = GlobalTracer.get().activeSpan();
+            if (span != null) {
+                span.setTag("keep".equals(decision) ? DDTags.MANUAL_KEEP : DDTags.MANUAL_DROP, true);
+            }
+
+            // Call downstream so that tests can assert on the sampling decision that gets propagated
+            String url = "http://localhost:7777/";
+            JsonObject requestHeaders = new JsonObject();
+
+            OkHttpClient client = new OkHttpClient.Builder()
+            .addNetworkInterceptor(chain -> { // Save request headers
+                Request request = chain.request();
+                Response response = chain.proceed(request);
+                Headers finalHeaders = request.headers();
+                for (String name : finalHeaders.names()) {
+                    requestHeaders.put(name, finalHeaders.get(name));
+                }
+
+                return response;
+            })
+            .build();
+
+            Request request = new Request.Builder()
+                    .url(url)
+                    .get()
+                    .build();
+
+            client.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    ctx.response().setStatusCode(500).end(e.getMessage());
+                }
+
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    JsonObject responseHeaders = new JsonObject();
+                    Headers headers = response.headers();
+                    for (String name : headers.names()) {
+                        responseHeaders.put(name, headers.get(name));
+                    }
+
+                    JsonObject result = new JsonObject();
+                    result.put("url", url);
+                    result.put("status_code", response.code());
+                    result.put("request_headers", requestHeaders);
+                    result.put("response_headers", responseHeaders);
+
+                    ctx.response().end(result.encodePrettily());
+                }
+            });
+        });
         router.get("/make_distant_call").handler(ctx -> {
             String url = ctx.request().getParam("url");
             JsonObject requestHeaders = new JsonObject();

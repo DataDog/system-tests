@@ -28,6 +28,10 @@ class SchemaBug:
     condition: bool
     ticket: str
 
+    def __post_init__(self):
+        if not re.fullmatch(r"[A-Z]+-\d+", self.ticket):
+            raise ValueError(f"SchemaBug ticket must match Jira format 'PROJECT-123', got: {self.ticket!r}")
+
 
 def _is_bytes_or_string(_checker: Any, instance: Any):  # noqa: ANN401
     return Draft7Validator.TYPE_CHECKER.is_type(instance, "string") or isinstance(instance, bytes)

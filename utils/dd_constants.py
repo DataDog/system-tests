@@ -82,6 +82,9 @@ class Capabilities(IntEnum):
     ASM_EXTENDED_DATA_COLLECTION = 44
     APM_TRACING_MULTICONFIG = 45
     FFE_FLAG_CONFIGURATION_RULES = 46
+    DATA_STREAMS_TRANSACTION_EXTRACTORS = 47
+    APM_TRACING_LLMOBS = 48
+    SDK_CONFIGURATION = 49
 
 
 class SamplingPriority(IntEnum):
@@ -108,6 +111,33 @@ class SamplingMechanism(IntEnum):
     AI_GUARD = 13
 
 
+# Key of the Trace Source Propagated Tag (an 8-bit mask consolidating the products
+# responsible for originating a trace). Propagated via `x-datadog-tags`.
+TRACE_SOURCE_PROPAGATION_KEY = "_dd.p.ts"
+
+
+class TraceSource(IntEnum):
+    """Trace Source Propagated Tag (`_dd.p.ts`) bitmask.
+
+    Each bit maps to the product responsible for originating a trace. The tag is a
+    two-character, case-insensitive hexadecimal string (e.g. ``02`` for ASM, ``20`` for
+    AI Guard). APM is reserved by specification but omitted by default since all traces
+    are APM-produced. Use ``format(TraceSource.ASM, "02x")`` to get the propagated value.
+    """
+
+    APM = 0x01
+    ASM = 0x02
+    DSM = 0x04
+    DJM = 0x08
+    DBM = 0x10
+    AI_GUARD = 0x20
+
+    def as_tag_value(self) -> str:
+        """Return the two-character hexadecimal string used in `_dd.p.ts`."""
+        return format(self.value, "02x")
+
+
+# See https://github.com/open-telemetry/opentelemetry-proto/blob/v1.9.0/opentelemetry/proto/trace/v1/trace.proto#L153
 class SpanKind(IntEnum):
     UNSPECIFIED = 0
     INTERNAL = 1
@@ -115,3 +145,10 @@ class SpanKind(IntEnum):
     CLIENT = 3
     PRODUCER = 4
     CONSUMER = 5
+
+
+# See https://github.com/open-telemetry/opentelemetry-proto/blob/v1.9.0/opentelemetry/proto/trace/v1/trace.proto#L316
+class StatusCode(IntEnum):
+    STATUS_CODE_UNSET = 0
+    STATUS_CODE_OK = 1
+    STATUS_CODE_ERROR = 2

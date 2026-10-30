@@ -2,7 +2,7 @@ from flask import Blueprint, request, abort
 from debugger.pii import Pii, CustomPii
 from debugger.expression_test_struct import ExpressionTestStruct
 from debugger.collection_factory import CollectionFactory
-from debugger.data_generator import generate_test_data
+from debugger.data_generator import generate_nested_collection, generate_test_data
 
 # The `debugger` feature allows attachment to specific lines of code.
 # Due to differences in line numbering between libraries,
@@ -39,7 +39,7 @@ def span_probe():
 # dummy line
 @debugger_blueprint.route("/span-decoration/<string:arg>/<int:intArg>", methods=["GET"])
 def span_decoration_probe(arg, intArg):
-    # global intLocal # fails on evaluation
+    global intLocal
     intLocal = intArg * len(arg)
     return f"Span Decoration Probe {intLocal}"
 
@@ -61,7 +61,9 @@ def pii():
     customPii = CustomPii()
     value = pii.test_value
     custom_value = customPii.test_value
-    return f"PII {value}. CustomPII {custom_value}"  # must be line 64
+    password = "DIRECT_SECRET_VALUE"
+    user = {"password": "MAP_SECRET_VALUE", "_2fa": "EXCLUDED_IDENTIFIER_VALUE", "name": "NON_SENSITIVE_VALUE"}
+    return f"PII {value}. CustomPII {custom_value}. Data size {len(password) + len(user)}"  # must be line 66
 
 
 @debugger_blueprint.route("/expression", methods=["GET"])
@@ -170,3 +172,12 @@ def snapshot_limits():
     largeCollection = data["largeCollection"]  # noqa: N806
     longString = data["longString"]  # noqa: N806
     return "Capture limits probe", 200
+
+
+@debugger_blueprint.route("/snapshot/capture-timeout", methods=["GET"])
+def snapshot_capture_timeout():
+    largeCollection = generate_nested_collection(  # noqa: N806
+        collection_size=request.args.get("collectionSize", type=int, default=0),
+        nesting_depth=request.args.get("nestingDepth", type=int, default=0),
+    )
+    return "Capture timeout probe", 200  # must be line 183

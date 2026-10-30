@@ -7,6 +7,8 @@ import datadog.trace.api.openfeature.Provider;
 import dev.openfeature.sdk.Client;
 import dev.openfeature.sdk.EvaluationContext;
 import dev.openfeature.sdk.FeatureProvider;
+import dev.openfeature.sdk.FlagEvaluationDetails;
+import dev.openfeature.sdk.Hook;
 import dev.openfeature.sdk.MutableContext;
 import dev.openfeature.sdk.NoOpProvider;
 import dev.openfeature.sdk.OpenFeatureAPI;
@@ -28,12 +30,36 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 @RestController
 @RequestMapping("/ffe")
 public class FeatureFlagEvaluatorController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FeatureFlagEvaluatorController.class);
+
+    private static final boolean CAPTURE_HOOK_FEATURES =
+            Boolean.parseBoolean(System.getenv("SYSTEM_TESTS_FFE_CAPTURE_HOOK_FEATURES"));
+    private static final ThreadLocal<Object> HOOK_FEATURES = new ThreadLocal<>();
+
+    private static void captureHookFeatures(Client client) {
+        // Load the optional public API only for tests whose manifest requires it.
+        // Older dd-openfeature versions must still build and run the baseline suite.
+        try {
+            Class<?> hookClass = Class.forName("com.datadog.openfeature.ExposureHook");
+            Consumer<Object> callback = evaluation -> {
+                try {
+                    HOOK_FEATURES.set(evaluation.getClass().getMethod("getFeatures").invoke(evaluation));
+                } catch (ReflectiveOperationException e) {
+                    throw new IllegalStateException("Cannot capture ExposureHook features", e);
+                }
+            };
+            client.addHooks((Hook<?>) hookClass.getConstructor(Consumer.class).newInstance(callback));
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException("Split-feature tests require the public ExposureHook API", e);
+        }
+    }
 
     @Configuration
     public static class FeatureFlagEvaluatorConfig {
@@ -42,10 +68,14 @@ public class FeatureFlagEvaluatorController {
         @Bean
         public Client client() {
             final OpenFeatureAPI api = OpenFeatureAPI.getInstance();
-            final String envProperty = System.getenv("DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED");
+            final boolean featureFlaggingConfigured =
+                    System.getenv("DD_FEATURE_FLAGS_ENABLED") != null
+                            || System.getenv("DD_FEATURE_FLAGS_CONFIGURATION_SOURCE") != null
+                            || System.getenv("DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL") != null
+                            || Boolean.parseBoolean(System.getenv("DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED"));
             final FeatureProvider provider;
-            if (Boolean.parseBoolean(envProperty)) {
-                provider = new Provider();
+            if (featureFlaggingConfigured) {
+                provider = new Provider(new Provider.Options().initTimeout(100, TimeUnit.MILLISECONDS));
             } else {
                 provider = new NoOpProvider() {
                     @Override
@@ -55,7 +85,11 @@ public class FeatureFlagEvaluatorController {
                 };
             }
             api.setProviderAndWait(provider);
-            return api.getClient();
+            Client client = api.getClient();
+            if (CAPTURE_HOOK_FEATURES) {
+                captureHookFeatures(client);
+            }
+            return client;
         }
     }
 
@@ -75,30 +109,39 @@ public class FeatureFlagEvaluatorController {
 
     @PostMapping(value = "/evaluate", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, Object>> evaluate(@RequestBody final EvaluateRequest request) {
+        HOOK_FEATURES.remove();
         Object value;
         String reason;
+        String errorCode = null;
+        Map<String, Object> flagMetadata = null;
         final EvaluationContext context = context(request);
         try {
-            value = switch (request.getVariationType()) {
+            final FlagEvaluationDetails<?> details = switch (request.getVariationType()) {
                 case "BOOLEAN" ->
-                        client.getBooleanValue(request.getFlag(), (Boolean) request.getDefaultValue(), context);
-                case "STRING" -> client.getStringValue(request.getFlag(), (String) request.getDefaultValue(), context);
+                        client.getBooleanDetails(request.getFlag(), (Boolean) request.getDefaultValue(), context);
+                case "STRING" -> client.getStringDetails(request.getFlag(), (String) request.getDefaultValue(), context);
                 case "INTEGER" -> {
                     final Number integerEval = (Number) request.getDefaultValue();
-                    yield client.getIntegerValue(request.getFlag(), integerEval.intValue(), context);
+                    yield client.getIntegerDetails(request.getFlag(), integerEval.intValue(), context);
                 }
                 case "NUMERIC" -> {
                     final Number doubleEval = (Number) request.getDefaultValue();
-                    yield client.getDoubleValue(request.getFlag(), doubleEval.doubleValue(), context);
+                    yield client.getDoubleDetails(request.getFlag(), doubleEval.doubleValue(), context);
                 }
-                case "JSON" -> {
-                    final Value objectValue = client.getObjectValue(request.getFlag(), Value.objectToValue(request.getDefaultValue()), context);
-                    yield context.convertValue(objectValue);
-                }
-                default -> request.getDefaultValue();
+                case "JSON" -> client.getObjectDetails(request.getFlag(), Value.objectToValue(request.getDefaultValue()), context);
+                default -> null;
             };
-
-            reason = "DEFAULT";
+            value = details == null ? request.getDefaultValue() : details.getValue();
+            if (value instanceof Value) {
+                value = context.convertValue((Value) value);
+            }
+            reason = details == null ? "DEFAULT" : details.getReason();
+            if (details != null && details.getErrorCode() != null) {
+                errorCode = details.getErrorCode().name();
+            }
+            if (details != null && details.getFlagMetadata() != null) {
+                flagMetadata = details.getFlagMetadata().asUnmodifiableMap();
+            }
         } catch (Throwable e) {
             LOGGER.error("Error on resolution", e);
             value = request.getDefaultValue();
@@ -106,7 +149,13 @@ public class FeatureFlagEvaluatorController {
         }
         final Map<String, Object> result = new HashMap<>();
         result.put("reason", reason);
+        result.put("errorCode", errorCode);
         result.put("value", value);
+        result.put("flagMetadata", flagMetadata);
+        if (CAPTURE_HOOK_FEATURES) {
+            result.put("hookFeatures", HOOK_FEATURES.get());
+        }
+        HOOK_FEATURES.remove();
         return ResponseEntity.ok(result);
     }
 

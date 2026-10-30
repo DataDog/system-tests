@@ -4,10 +4,39 @@ set -eux
 
 IS_APACHE=${1:-0}
 
+if [ -z "$PHP_VERSION" ]; then
+  PHP_VERSION=$(php -r "echo PHP_MAJOR_VERSION.'.'.PHP_MINOR_VERSION;")
+fi
+
+cd /var/www/html
+export COMPOSER=composer.json
+if [ "$(printf '%s\n' "$PHP_VERSION" "8.2" | sort -V | head -n1)" = "8.2" ]; then
+	export COMPOSER=composer.gte8.2.json
+fi
+if [ -f "$COMPOSER" ] && grep -Fq 'stripe/stripe-php' "$COMPOSER"; then
+  apt-get update -qq && apt-get install -y --no-install-recommends unzip
+  if [[ "$(printf '%s\n' "$PHP_VERSION" "8.1" | sort -V | head -n1)" = "8.1" ]]; then
+    # Also require open-telemetry/sdk so composer does not remove it from vendor/:
+    # the Dockerfile ADD overwrites composer.json with the repo version (which has
+    # stripe but not OTel), causing a bare `composer require stripe` to drop OTel
+    # from the resolved tree and wipe it from vendor/.
+    COMPOSER_DISCARD_CHANGES=true composer require stripe/stripe-php "^10.0" "open-telemetry/sdk:^1.0.0" --no-interaction --ignore-platform-req=ext-mbstring
+  else
+    COMPOSER_DISCARD_CHANGES=true composer require stripe/stripe-php "^10.0" --no-interaction --ignore-platform-req=ext-mbstring
+  fi
+fi
+
 cd /binaries
 
 ARCH=$(uname -m)
-PKG=$(find /binaries -maxdepth 1 -name "dd-library-php-*-${ARCH}-linux-gnu.tar.gz")
+PKGS=$(find /binaries -maxdepth 1 -name "dd-library-php-*-${ARCH}-linux-gnu.tar.gz")
+PKG_COUNT=$(echo "$PKGS" | grep -c . || true)
+if [ "$PKG_COUNT" -gt 1 ]; then
+  echo "ERROR: multiple dd-library-php tarballs found for ${ARCH} in /binaries — keep only one:"
+  echo "$PKGS"
+  exit 1
+fi
+PKG=$PKGS
 SETUP=/binaries/datadog-setup.php
 
 DDTRACE_SO=/binaries/ddtrace.so
@@ -35,7 +64,8 @@ fi
 
 if [ "$PKG" == "" ]; then
   #Download latest release
-  curl -LO https://github.com/DataDog/dd-trace-php/releases/latest/download/datadog-setup.php
+  curl --fail --location --show-error --remote-name \
+    https://github.com/DataDog/dd-trace-php/releases/latest/download/datadog-setup.php
   SETUP=datadog-setup.php
 
   unset PKG
@@ -47,9 +77,14 @@ if [ "$(printf '%s\n' "7.1" "$PHP_VERSION" | sort -V | head -n1)" = "7.1" ]; the
   # Only enable profiling if the bundle actually contains a profiling extension.
   # When installing from a local package that was built without profiling support,
   # passing --enable-profiling causes datadog-setup.php to exit with an error.
+  # Older packages ship a separate "datadog-profiling[.-]*" binary; newer combined
+  # (tracer+profiling in one ddtrace.so) packages instead ship a per-API-version
+  # marker file named ".ddtrace[-zts|-debug].profiling" (see datadog-setup.php's
+  # $shouldInstallProfiling). Check for either so this works regardless of which
+  # package format is being installed.
   PKG_HAS_PROFILING=0
   if [ -n "${PKG:-}" ]; then
-    if tar -tzf "$PKG" 2>/dev/null | grep -q "datadog-profiling"; then
+    if tar -tzf "$PKG" 2>/dev/null | grep -q -e "datadog-profiling" -e '\.ddtrace\(-zts\|-debug\)\?\.profiling$'; then
       PKG_HAS_PROFILING=1
     fi
   else
@@ -71,30 +106,36 @@ else
       PHP_INI_SCAN_DIR="/etc/php" php $SETUP --php-bin all ${PKG+"--file=$PKG"} ${EXTRA_ARGS}
 fi
 
+# Print the path of the installed extension $1 that PHP actually loads.
+# datadog-setup.php copies the extensions into PHP's extension_dir and references
+# them by name in the INI (e.g. /usr/local/lib/php/extensions/... on the official
+# php images). Copies elsewhere, like the extracted package under
+# /opt/datadog/dd-library, are never loaded, so overriding them would silently
+# keep the packaged binary. Fail instead.
+find_installed_extension() {
+  local name=$1 ext_dir
+  ext_dir=$(php -d display_errors=stderr -r 'echo ini_get("extension_dir");')
+  if [ -z "$ext_dir" ] || [ ! -f "$ext_dir/$name" ]; then
+    echo "ERROR: $name not found in PHP extension_dir ($ext_dir), cannot install the custom binary" >&2
+    exit 1
+  fi
+  echo "$ext_dir/$name"
+}
+
 # After package installation, override with custom ddtrace.so if present
 if [ -f $DDTRACE_SO ]; then
   echo "Overriding package ddtrace.so with custom binary from $DDTRACE_SO"
-  # Find and replace the installed ddtrace.so with custom one
-  INSTALLED_DDTRACE=$(find /root /opt -name ddtrace.so 2>/dev/null | grep -v /binaries | head -1)
-  if [ -n "$INSTALLED_DDTRACE" ]; then
-    echo "Found installed ddtrace.so at $INSTALLED_DDTRACE, replacing with custom binary"
-    cp -f $DDTRACE_SO $INSTALLED_DDTRACE
-  else
-    echo "Warning: Could not find installed ddtrace.so to replace"
-  fi
+  INSTALLED_DDTRACE=$(find_installed_extension ddtrace.so)
+  echo "Found installed ddtrace.so at $INSTALLED_DDTRACE, replacing with custom binary"
+  cp -f $DDTRACE_SO "$INSTALLED_DDTRACE"
 fi
 
 # After package installation, override with custom ddappsec.so and helper if present
 if [ -f $DDAPPSEC_SO ] && [ -f $APPSEC_HELPER_SO ]; then
   echo "Overriding package ddappsec.so and helper with custom binaries"
-  # Find and replace the installed ddappsec.so
-  INSTALLED_DDAPPSEC=$(find /root /opt -name ddappsec.so 2>/dev/null | grep -v /binaries | head -1)
-  if [ -n "$INSTALLED_DDAPPSEC" ]; then
-    echo "Found installed ddappsec.so at $INSTALLED_DDAPPSEC, replacing with custom binary"
-    cp -f $DDAPPSEC_SO $INSTALLED_DDAPPSEC
-  else
-    echo "Warning: Could not find installed ddappsec.so to replace"
-  fi
+  INSTALLED_DDAPPSEC=$(find_installed_extension ddappsec.so)
+  echo "Found installed ddappsec.so at $INSTALLED_DDAPPSEC, replacing with custom binary"
+  cp -f $DDAPPSEC_SO "$INSTALLED_DDAPPSEC"
 
   # Find and replace the installed helper
   INSTALLED_HELPER=$(find /root /opt -name libddappsec-helper.so 2>/dev/null | grep -v /binaries | head -1)
@@ -149,3 +190,15 @@ mkdir -p /etc/dd-appsec
 find /opt -name recommended.json -exec ln -s '{}' /etc/dd-appsec/ \;
 
 rm -rf /tmp/{dd-library-php-setup.php,dd-library,dd-appsec}
+
+if [[ $IS_APACHE -eq 1 ]]; then
+  if [[ -f "/etc/php/98-ddtrace.ini" ]]; then
+      grep -E 'datadog.trace.request_init_hook|datadog.trace.sources_path' /etc/php/98-ddtrace.ini >> /etc/php/php.ini
+  fi
+
+  # Add /stub_dbm route to the loaded Apache PHP config (the file actually read by Apache)
+  APACHE_PHP_CONF="/etc/apache2/mods-available/php.conf"
+  if [ -f "$APACHE_PHP_CONF" ] && grep -q '"/dbm/"' "$APACHE_PHP_CONF" && ! grep -q 'stub_dbm' "$APACHE_PHP_CONF"; then
+      sed -i '/\"\/dbm\/\"/a\        RewriteRule "^\/stub_dbm" "\/stub_dbm.php" [QSA,L]' "$APACHE_PHP_CONF"
+  fi
+fi

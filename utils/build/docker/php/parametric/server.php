@@ -20,10 +20,18 @@ use DDTrace\Configuration;
 use DDTrace\Tag;
 use Monolog\Logger;
 use Monolog\Processor\PsrLogMessageProcessor;
+use OpenTelemetry\API\Globals;
+use OpenTelemetry\API\Metrics\Noop\NoopMeterProvider;
+use OpenTelemetry\API\Logs\LogRecord;
+use OpenTelemetry\API\Logs\NoopLoggerProvider;
+use OpenTelemetry\API\Logs\LoggerInterface as OtelLoggerInterface;
+use OpenTelemetry\API\Logs\LoggerProviderInterface as OtelLoggerProviderInterface;
 use OpenTelemetry\API\Trace\Propagation\TraceContextPropagator;
+use OpenTelemetry\Contrib\Logs\Monolog\Handler as OtelMonologHandler;
 use OpenTelemetry\API\Trace\Span;
 use OpenTelemetry\API\Trace\SpanKind;
 use OpenTelemetry\API\Trace\StatusCode;
+use OpenTelemetry\Context\Context;
 use OpenTelemetry\Context\ScopeInterface;
 use OpenTelemetry\SDK\Trace as SDK;
 use OpenTelemetry\SDK\Trace\TracerProvider;
@@ -51,9 +59,97 @@ function arg($req, $arg) {
     return ($buffer[$req] ??= json_decode($req->getBody()->buffer(), true))[$arg] ?? null;
 }
 
+function ffeNormalizeDefaultValue($defaultValue, $variationType) {
+    switch (strtoupper((string)$variationType)) {
+        case 'BOOLEAN':
+            return is_bool($defaultValue) ? $defaultValue : (bool)$defaultValue;
+        case 'STRING':
+            return is_string($defaultValue) ? $defaultValue : (string)$defaultValue;
+        case 'INTEGER':
+            return is_int($defaultValue) ? $defaultValue : (int)$defaultValue;
+        case 'NUMERIC':
+        case 'FLOAT':
+        case 'DOUBLE':
+            return is_int($defaultValue) || is_float($defaultValue) ? $defaultValue : (float)$defaultValue;
+        case 'JSON':
+        case 'OBJECT':
+            return is_array($defaultValue) ? $defaultValue : [];
+        default:
+            return $defaultValue;
+    }
+}
+
+function ffeEvaluate($client, $flagKey, $variationType, $defaultValue, $targetingKey, array $attributes) {
+    $context = [
+        'targetingKey' => $targetingKey,
+        'attributes' => $attributes,
+    ];
+
+    switch (strtoupper((string)$variationType)) {
+        case 'BOOLEAN':
+            return $client->getBooleanDetails($flagKey, $defaultValue, $context);
+        case 'STRING':
+            return $client->getStringDetails($flagKey, $defaultValue, $context);
+        case 'INTEGER':
+            return $client->getIntegerDetails($flagKey, $defaultValue, $context);
+        case 'NUMERIC':
+        case 'FLOAT':
+        case 'DOUBLE':
+            return $client->getFloatDetails($flagKey, $defaultValue, $context);
+        case 'JSON':
+        case 'OBJECT':
+            return $client->getObjectDetails($flagKey, $defaultValue, $context);
+        default:
+            throw new InvalidArgumentException('Unsupported variationType: ' . (string)$variationType);
+    }
+}
+
+function ffeDetailsPayload($details) {
+    $value = $details->getValue();
+    if (method_exists($details, 'getValueType') && $details->getValueType() === 'object') {
+        $value = ffeJsonResponseValue($value);
+    }
+
+    $payload = [
+        'value' => $value,
+        'reason' => $details->getReason(),
+        'variant' => $details->getVariant(),
+        'errorCode' => $details->getErrorCode(),
+        'errorMessage' => $details->getErrorMessage(),
+        'flagMetadata' => $details->getFlagMetadata(),
+        'exposureData' => $details->getExposureData(),
+        'providerState' => $details->getProviderState(),
+    ];
+
+    if (method_exists($details, 'getValueType')) {
+        $payload['valueType'] = $details->getValueType();
+    }
+
+    return $payload;
+}
+
+function ffeJsonResponseValue($value) {
+    if (!is_array($value)) {
+        return $value;
+    }
+
+    if ($value === []) {
+        return new stdClass();
+    }
+
+    foreach ($value as $key => $nestedValue) {
+        $value[$key] = ffeJsonResponseValue($nestedValue);
+    }
+
+    return $value;
+}
+
 // Source: https://magp.ie/2015/09/30/convert-large-integer-to-hexadecimal-without-php-math-extension/
-function largeBaseConvert($numString, $fromBase, $toBase)
+function convertBase16ToBase10($numString)
 {
+    // convert a base 16 string to a base 10 string
+    $fromBase = 16;
+    $toBase = 10;
     $chars = "0123456789abcdefghijklmnopqrstuvwxyz";
     $toString = substr($chars, 0, $toBase);
 
@@ -108,8 +204,203 @@ $scopes = [];
 $activeSpan = null;
 /** @var array[] $spansDistributedTracingHeaders */
 $spansDistributedTracingHeaders = [];
+/** @var Logger[] $loggerDict */
+$loggerDict = [];
+/** @var \OpenTelemetry\API\Metrics\MeterInterface[] $otelMeters */
+$otelMeters = [];
+/** @var \OpenTelemetry\API\Metrics\CounterInterface[] $otelCounters */
+$otelCounters = [];
+/** @var array<string, object> $otelMetricInstruments */
+$otelMetricInstruments = [];
+// Composer bootstraps the SDK with OTEL_PHP_AUTOLOAD_ENABLED. The SDK owns
+// provider selection and shutdown; the app always uses the configured provider.
+$sdkMeterProvider = Globals::meterProvider();
+/** @var ?\DDTrace\FeatureFlags\Client $ffeClient */
+$ffeClient = null;
+
+// Use the provider selected by SDK autoconfiguration, including OTEL_LOGS_EXPORTER.
+$sdkLoggerProvider = NoopLoggerProvider::getInstance();
+if (\dd_trace_env_config('DD_LOGS_OTEL_ENABLED')) {
+    $sdkLoggerProvider = Globals::loggerProvider();
+}
 
 $router = new Router($server, $logger, $errorHandler);
+$router->addRoute('POST', '/metrics/otel/get_meter', new ClosureRequestHandler(function (Request $req) use (&$otelMeters, $sdkMeterProvider) {
+    $name = arg($req, 'name');
+    if (!isset($otelMeters[$name])) {
+        $otelMeters[$name] = $sdkMeterProvider->getMeter(
+            $name,
+            arg($req, 'version'),
+            arg($req, 'schema_url'),
+            arg($req, 'attributes') ?? []
+        );
+    }
+    return jsonResponse(new stdClass());
+}));
+$router->addRoute('POST', '/metrics/otel/create_counter', new ClosureRequestHandler(function (Request $req) use (&$otelMeters, &$otelCounters) {
+    $meterName = arg($req, 'meter_name');
+    if (!isset($otelMeters[$meterName])) {
+        return new Response(status: 400, headers: ['content-type' => 'application/json'], body: json_encode([
+            'success' => false, 'message' => 'Unknown meter: ' . $meterName,
+        ]));
+    }
+    $name = arg($req, 'name');
+    $unit = arg($req, 'unit');
+    $description = arg($req, 'description');
+    $key = json_encode([$meterName, $name, $unit, $description]);
+    $otelCounters[$key] = $otelMeters[$meterName]->createCounter($name, $unit, $description);
+    return jsonResponse(new stdClass());
+}));
+$router->addRoute('POST', '/metrics/otel/counter_add', new ClosureRequestHandler(function (Request $req) use (&$otelCounters) {
+    $key = json_encode([arg($req, 'meter_name'), arg($req, 'name'), arg($req, 'unit'), arg($req, 'description')]);
+    if (!isset($otelCounters[$key])) {
+        return new Response(status: 400, headers: ['content-type' => 'application/json'], body: json_encode([
+            'success' => false, 'message' => 'Unknown counter: ' . $key,
+        ]));
+    }
+    $otelCounters[$key]->add(arg($req, 'value'), arg($req, 'attributes') ?? []);
+    return jsonResponse(new stdClass());
+}));
+// Keep instrument handles alive for recording and asynchronous collection.
+foreach ([
+    'updowncounter' => ['createUpDownCounter', 'add'],
+    'gauge' => ['createGauge', 'record'],
+    'histogram' => ['createHistogram', 'record'],
+] as $kind => [$createMethod, $recordMethod]) {
+    $router->addRoute('POST', '/metrics/otel/create_' . $kind, new ClosureRequestHandler(function (Request $req) use (&$otelMeters, &$otelMetricInstruments, $kind, $createMethod) {
+        $meterName = arg($req, 'meter_name');
+        if (!isset($otelMeters[$meterName])) {
+            return new Response(status: 400, headers: ['content-type' => 'application/json'], body: json_encode([
+                'success' => false, 'message' => 'Unknown meter: ' . $meterName,
+            ]));
+        }
+        $name = arg($req, 'name');
+        $unit = arg($req, 'unit');
+        $description = arg($req, 'description');
+        $key = json_encode([$meterName, $kind, $name, $unit, $description]);
+        $otelMetricInstruments[$key] = $otelMeters[$meterName]->$createMethod($name, $unit, $description);
+        return jsonResponse(new stdClass());
+    }));
+    $router->addRoute('POST', '/metrics/otel/' . $kind . '_' . $recordMethod, new ClosureRequestHandler(function (Request $req) use (&$otelMetricInstruments, $kind, $recordMethod) {
+        $key = json_encode([arg($req, 'meter_name'), $kind, arg($req, 'name'), arg($req, 'unit'), arg($req, 'description')]);
+        if (!isset($otelMetricInstruments[$key])) {
+            return new Response(status: 400, headers: ['content-type' => 'application/json'], body: json_encode([
+                'success' => false, 'message' => 'Unknown instrument: ' . $key,
+            ]));
+        }
+        $otelMetricInstruments[$key]->$recordMethod(arg($req, 'value'), arg($req, 'attributes') ?? []);
+        return jsonResponse(new stdClass());
+    }));
+}
+foreach ([
+    'counter' => 'createObservableCounter',
+    'updowncounter' => 'createObservableUpDownCounter',
+    'gauge' => 'createObservableGauge',
+] as $kind => $createMethod) {
+    $router->addRoute('POST', '/metrics/otel/create_asynchronous_' . $kind, new ClosureRequestHandler(function (Request $req) use (&$otelMeters, &$otelMetricInstruments, $kind, $createMethod) {
+        $meterName = arg($req, 'meter_name');
+        if (!isset($otelMeters[$meterName])) {
+            return new Response(status: 400, headers: ['content-type' => 'application/json'], body: json_encode([
+                'success' => false, 'message' => 'Unknown meter: ' . $meterName,
+            ]));
+        }
+        $name = arg($req, 'name');
+        $unit = arg($req, 'unit');
+        $description = arg($req, 'description');
+        $value = arg($req, 'value');
+        $attributes = arg($req, 'attributes') ?? [];
+        $callback = function (\OpenTelemetry\API\Metrics\ObserverInterface $observer) use ($value, $attributes): void {
+            $observer->observe($value, $attributes);
+        };
+        $key = json_encode([$meterName, 'asynchronous_' . $kind, $name, $unit, $description]);
+        $otelMetricInstruments[$key] = $otelMeters[$meterName]->$createMethod($name, $unit, $description, [], $callback);
+        return jsonResponse(new stdClass());
+    }));
+}
+$router->addRoute('POST', '/metrics/otel/force_flush', new ClosureRequestHandler(function () use ($sdkMeterProvider) {
+    // The API no-op provider has no buffered metrics or flush method.
+    if ($sdkMeterProvider instanceof NoopMeterProvider) {
+        return jsonResponse(['success' => true]);
+    }
+    return jsonResponse(['success' => $sdkMeterProvider->forceFlush()]);
+}));
+$router->addRoute('POST', '/metrics/otel/shutdown', new ClosureRequestHandler(function () use ($sdkMeterProvider) {
+    if (!method_exists($sdkMeterProvider, 'shutdown')) {
+        return jsonResponse(['success' => false]);
+    }
+    try {
+        return jsonResponse(['success' => $sdkMeterProvider->shutdown()]);
+    } catch (\Throwable $e) {
+        return jsonResponse(['success' => false]);
+    }
+}));
+$router->addRoute('POST', '/ffe/start', new ClosureRequestHandler(function (Request $req) use (&$ffeClient) {
+    if (!class_exists('\\DDTrace\\FeatureFlags\\Client')) {
+        return new Response(status: 500, headers: ['content-type' => 'application/json'], body: json_encode([
+            'success' => false,
+            'message' => 'DDTrace\\FeatureFlags\\Client is not available',
+        ]));
+    }
+
+    $configuration = arg($req, 'configuration');
+    if ($configuration !== null) {
+        if (!function_exists('\\DDTrace\\Testing\\ffe_load_config')) {
+            return new Response(status: 500, headers: ['content-type' => 'application/json'], body: json_encode([
+                'success' => false,
+                'message' => 'DDTrace\\Testing\\ffe_load_config is not available',
+            ]));
+        }
+
+        $configurationJson = json_encode($configuration);
+        if (!is_string($configurationJson) || !\DDTrace\Testing\ffe_load_config($configurationJson)) {
+            return new Response(status: 500, headers: ['content-type' => 'application/json'], body: json_encode([
+                'success' => false,
+                'message' => 'Failed to load FFE test configuration',
+            ]));
+        }
+    }
+
+    $ffeClient = new \DDTrace\FeatureFlags\Client();
+
+    return jsonResponse(['success' => true]);
+}));
+$router->addRoute('POST', '/ffe/evaluate', new ClosureRequestHandler(function (Request $req) use (&$ffeClient) {
+    if ($ffeClient === null) {
+        $ffeClient = new \DDTrace\FeatureFlags\Client();
+    }
+
+    $variationType = arg($req, 'variationType');
+    $defaultValue = ffeNormalizeDefaultValue(arg($req, 'defaultValue'), $variationType);
+    $targetingKey = arg($req, 'targetingKey');
+    if ($targetingKey !== null) {
+        $targetingKey = (string)$targetingKey;
+    }
+    $attributes = arg($req, 'attributes') ?? [];
+    if (!is_array($attributes)) {
+        $attributes = [];
+    }
+
+    try {
+        $details = ffeEvaluate(
+            $ffeClient,
+            arg($req, 'flag'),
+            $variationType,
+            $defaultValue,
+            $targetingKey,
+            $attributes
+        );
+
+        return jsonResponse(ffeDetailsPayload($details));
+    } catch (Throwable $e) {
+        return jsonResponse([
+            'value' => $defaultValue,
+            'reason' => 'ERROR',
+            'variant' => null,
+            'errorCode' => 'GENERAL',
+            'errorMessage' => $e->getMessage(),
+        ]);
+    }
+}));
 $router->addRoute('POST', '/trace/span/start', new ClosureRequestHandler(function (Request $req) use (&$spans, &$activeSpan, &$spansDistributedTracingHeaders) {
     if ($parent = arg($req, 'parent_id')) {
         if (isset($spans[$parent])) {
@@ -117,7 +408,7 @@ $router->addRoute('POST', '/trace/span/start', new ClosureRequestHandler(functio
             \DDTrace\create_stack();
             $span = \DDTrace\start_span();
         } elseif (isset($spansDistributedTracingHeaders[$parent])) {
-            $span = \DDTrace\start_span();
+            $span = \DDTrace\start_trace_span();
             $distributedTracingHeaders = $spansDistributedTracingHeaders[$parent];
             \DDTrace\consume_distributed_tracing_headers($distributedTracingHeaders);
         } else {
@@ -171,6 +462,11 @@ $router->addRoute('POST', '/trace/span/extract_headers', new ClosureRequestHandl
     };
     \DDTrace\consume_distributed_tracing_headers($callback);
     $spanID = $span->parentId ?? null;
+    if (!$spanID && !empty($span->baggage)) {
+        // Baggage-only extraction has no remote parent ID. Keep an app context
+        // handle so start can replay the extracted headers through the SDK.
+        $spanID = $span->id;
+    }
     $spansDistributedTracingHeaders[$spanID] = $headers;
     return jsonResponse(["span_id" => $spanID]);
 }));
@@ -259,6 +555,10 @@ $router->addRoute('POST', '/trace/stats/flush', new ClosureRequestHandler(functi
     # NOP: php doesn't expose an API to flush trace stats
     return jsonResponse([]);
 }));
+$router->addRoute('GET', '/trace/agent/ensure_agent_info', new ClosureRequestHandler(function () {
+    $ready = dd_trace_internal_fn('await_agent_info');
+    return jsonResponse(['ready' => $ready]);
+}));
 $router->addRoute('GET', '/trace/span/current', new ClosureRequestHandler(function () use (&$spans, &$activeSpan) {
     $span = $activeSpan;
 
@@ -336,8 +636,8 @@ $router->addRoute('POST', '/trace/otel/start_span', new ClosureRequestHandler(fu
 
     /** @var SDK\Span $span */
     $span = $spanBuilder->startSpan();
-    $spanId = largeBaseConvert($span->getContext()->getSpanId(), 16, 10);
-    $traceId = largeBaseConvert($span->getContext()->getTraceId(), 16, 10);
+    $spanId = convertBase16ToBase10($span->getContext()->getSpanId());
+    $traceId = convertBase16ToBase10($span->getContext()->getTraceId());
     $scopes[$spanId] = $span->activate();
     $otelSpans[$spanId] = $span;
     $spans[$spanId] = $span->getDDSpan();
@@ -443,7 +743,7 @@ $router->addRoute('POST', '/trace/otel/span_context', new ClosureRequestHandler(
 
         return jsonResponse([
             'trace_id' => $spanContext->getTraceId(),
-            'span_id' => $spanContext->getSpanId(),
+            'span_id' => convertBase16ToBase10($spanContext->getSpanId()),
             'trace_flags' => $spanContext->getTraceFlags() ? '01' : '00',
             'trace_state' => (string) $spanContext->getTraceState(), // Implements __toString()
             'remote' => $spanContext->isRemote()
@@ -457,8 +757,8 @@ $router->addRoute('GET', '/trace/otel/current_span', new ClosureRequestHandler(f
     $span = Span::getCurrent();
     $otelSpanId = $span->getContext()->getSpanId();
     $otelTraceId = $span->getContext()->getTraceId();
-    $spanId = largeBaseConvert($otelSpanId, 16, 10);
-    $traceId = largeBaseConvert($otelTraceId, 16, 10);
+    $spanId = convertBase16ToBase10($otelSpanId);
+    $traceId = convertBase16ToBase10($otelTraceId);
 
     if ($otelSpanId !== \OpenTelemetry\API\Trace\SpanContextValidator::INVALID_SPAN && $otelTraceId !== \OpenTelemetry\API\Trace\SpanContextValidator::INVALID_TRACE) {
         $otelSpans[$spanId] = $span;
@@ -498,7 +798,221 @@ $router->addRoute('POST', '/trace/otel/record_exception', new ClosureRequestHand
 
     return jsonResponse([]);
 }));
-$router->addRoute('GET', '/trace/config', new ClosureRequestHandler(function (Request $req) {
+$router->addRoute('POST', '/otel/logger/create', new ClosureRequestHandler(function (Request $req) use (&$loggerDict, &$sdkLoggerProvider) {
+    $name = arg($req, 'name');
+
+    if (isset($loggerDict[$name])) {
+        return jsonResponse(['success' => false]);
+    }
+
+    $version = arg($req, 'version');
+    $schemaUrl = arg($req, 'schema_url');
+    $attributes = arg($req, 'attributes') ?? [];
+
+    // Route through Monolog + OTel handler so the LogsIntegration (PSR-3 hook)
+    // runs and we exercise the actual log-injection mutex behavior. The handler
+    // calls $provider->getLogger($monologChannel) without the scope params from
+    // create_logger, so we wrap the SDK provider to inject them when asked.
+    $scopedProvider = new class($sdkLoggerProvider, $version, $schemaUrl, $attributes) implements OtelLoggerProviderInterface {
+        public function __construct(
+            private OtelLoggerProviderInterface $inner,
+            private ?string $version,
+            private ?string $schemaUrl,
+            private iterable $attributes,
+        ) {}
+        public function getLogger(string $name, ?string $version = null, ?string $schemaUrl = null, iterable $attributes = []): OtelLoggerInterface {
+            return $this->inner->getLogger($name, $this->version, $this->schemaUrl, $this->attributes);
+        }
+    };
+
+    // Use a subclass of the OTel Monolog handler so the LogsIntegration
+    // instanceof check still matches, but override write() to emit with OTel-
+    // canonical severity_text values ("WARN"/"FATAL") instead of Monolog's
+    // "WARNING"/"CRITICAL"/etc — LogRecord::with() doesn't let us mutate
+    // level_name (it's derived from the Level enum), so re-implementing the
+    // small write() body is the cleanest path.
+    $handler = new class($scopedProvider, Logger::DEBUG) extends OtelMonologHandler {
+        public function __construct(private OtelLoggerProviderInterface $provider, $level) {
+            parent::__construct($provider, $level);
+        }
+        protected function write($record): void {
+            static $severity = [
+                'DEBUG'     => [5,  'DEBUG'],
+                'INFO'      => [9,  'INFO'],
+                'NOTICE'    => [10, 'INFO'],
+                'WARNING'   => [13, 'WARN'],
+                'ERROR'     => [17, 'ERROR'],
+                'CRITICAL'  => [21, 'FATAL'],
+                'ALERT'     => [22, 'FATAL'],
+                'EMERGENCY' => [23, 'FATAL'],
+            ];
+            [$number, $text] = $severity[$record['level_name']] ?? [9, 'INFO'];
+            $logRecord = (new LogRecord())
+                ->setTimestamp((int) $record['datetime']->format('Uu') * 1000)
+                ->setSeverityNumber($number)
+                ->setSeverityText($text)
+                ->setBody($record['message']);
+            $this->provider->getLogger($record['channel'])->emit($logRecord);
+        }
+    };
+
+    $monologLogger = new Logger($name);
+    $monologLogger->pushHandler($handler);
+    $loggerDict[$name] = $monologLogger;
+
+    return jsonResponse(['success' => true]);
+}));
+$router->addRoute('POST', '/otel/logger/write', new ClosureRequestHandler(function (Request $req) use (&$loggerDict, &$otelSpans, &$spans) {
+    $loggerName = arg($req, 'logger_name');
+    $level = arg($req, 'level');
+    $message = arg($req, 'message');
+    $spanId = arg($req, 'span_id');
+
+    if (!isset($loggerDict[$loggerName])) {
+        return jsonResponse(['success' => false]);
+    }
+
+    // Map the test client's level string to a PSR-3 level. The OTel Monolog
+    // handler then maps PSR-3 -> OTel SeverityNumber.
+    $psr3Map = [
+        'TRACE' => 'debug',
+        'DEBUG' => 'debug',
+        'INFO'  => 'info',
+        'WARN'  => 'warning',
+        'ERROR' => 'error',
+        'FATAL' => 'critical',
+    ];
+    $psr3Level = $psr3Map[strtoupper((string)$level)] ?? 'info';
+
+    $scope = null;
+    if ($spanId !== null) {
+        if (isset($otelSpans[$spanId])) {
+            $scope = $otelSpans[$spanId]->activate();
+        } elseif (isset($spans[$spanId])) {
+            \DDTrace\switch_stack($spans[$spanId]);
+        }
+    }
+    try {
+        $loggerDict[$loggerName]->log($psr3Level, $message);
+    } finally {
+        if ($scope !== null) {
+            $scope->detach();
+        }
+    }
+
+    return jsonResponse(['success' => true]);
+}));
+$router->addRoute('POST', '/log/otel/flush', new ClosureRequestHandler(function (Request $req) use (&$sdkLoggerProvider) {
+    try {
+        // The API no-op provider has no buffered logs or flush method.
+        if ($sdkLoggerProvider instanceof NoopLoggerProvider) {
+            return jsonResponse(['success' => true, 'message' => get_class($sdkLoggerProvider)]);
+        }
+        return jsonResponse(['success' => $sdkLoggerProvider->forceFlush(), 'message' => get_class($sdkLoggerProvider)]);
+    } catch (\Throwable $e) {
+        return jsonResponse(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
+    }
+}));
+$router->addRoute('POST', '/trace/diagnostics/log_level', new ClosureRequestHandler(function (Request $req) {
+    // Exercise real SDK diagnostics without changing its logger configuration.
+    // The invalid start time emits WARN; updating an unfinished span emits ERROR.
+    try {
+        \DDTrace\start_span([]);
+    } catch (\TypeError $error) {
+        // The SDK logs the invalid argument before PHP reports its type error.
+    }
+
+    $previousStack = \DDTrace\active_stack();
+    $span = \DDTrace\start_trace_span();
+    try {
+        \DDTrace\update_span_duration($span);
+    } finally {
+        \DDTrace\close_span();
+        \DDTrace\switch_stack($previousStack);
+    }
+
+    return jsonResponse(['success' => true]);
+}));
+
+function readOtelProperty(?object $instance, string $name): mixed
+{
+    if ($instance === null) {
+        return null;
+    }
+    $reflection = new ReflectionObject($instance);
+    if (!$reflection->hasProperty($name)) {
+        return null;
+    }
+    $property = $reflection->getProperty($name);
+    return $property->isInitialized($instance) ? $property->getValue($instance) : null;
+}
+
+function otlpExporterTimeout(iterable $processors): ?string
+{
+    $timeouts = [];
+    foreach ($processors as $processor) {
+        $children = readOtelProperty($processor, 'processors');
+        if ($children !== null) {
+            $timeout = otlpExporterTimeout($children);
+            if ($timeout !== null) {
+                $timeouts[] = $timeout;
+            }
+            continue;
+        }
+        $exporter = readOtelProperty($processor, 'exporter');
+        if (!$exporter instanceof \OpenTelemetry\Contrib\Otlp\LogsExporter &&
+            !$exporter instanceof \OpenTelemetry\Contrib\Otlp\MetricExporter) {
+            continue;
+        }
+        $client = readOtelProperty(readOtelProperty($exporter, 'transport'), 'client');
+        $timeout = null;
+        if ($client instanceof \GuzzleHttp\Client) {
+            $timeout = $client->getConfig('timeout');
+        } elseif ($client instanceof \Symfony\Component\HttpClient\Psr18Client) {
+            $options = readOtelProperty(readOtelProperty($client, 'client'), 'defaultOptions');
+            $timeout = $options['max_duration'] ?? null;
+        }
+        if (is_int($timeout) || is_float($timeout)) {
+            $timeouts[] = (string) (int) ($timeout * 1000);
+        }
+    }
+    return count($timeouts) === 1 ? $timeouts[0] : null;
+}
+
+function batchLogRecordProcessors(iterable $processors): array
+{
+    $batchProcessors = [];
+    foreach ($processors as $processor) {
+        $children = readOtelProperty($processor, 'processors');
+        if ($children !== null) {
+            $batchProcessors = array_merge($batchProcessors, batchLogRecordProcessors($children));
+        } elseif ($processor instanceof \OpenTelemetry\SDK\Logs\Processor\BatchLogRecordProcessor) {
+            $batchProcessors[] = $processor;
+        }
+    }
+    return $batchProcessors;
+}
+
+function blrpEffectiveConfig(?object $processor): array
+{
+    $batchProcessors = batchLogRecordProcessors([$processor]);
+    if (count($batchProcessors) !== 1) {
+        return [];
+    }
+    $batchProcessor = $batchProcessors[0];
+    return [
+        'otel_blrp_schedule_delay_ms' => (string) intdiv(readOtelProperty($batchProcessor, 'scheduledDelayNanos'), 1_000_000),
+        // The processor validates the export timeout but does not store it, so
+        // report the value its factory resolved and passed to the constructor.
+        'otel_blrp_export_timeout_ms' => (string) \OpenTelemetry\SDK\Common\Configuration\Configuration::getInt(
+            \OpenTelemetry\SDK\Common\Configuration\Variables::OTEL_BLRP_EXPORT_TIMEOUT
+        ),
+        'otel_blrp_max_queue_size' => (string) readOtelProperty($batchProcessor, 'maxQueueSize'),
+        'otel_blrp_max_export_batch_size' => (string) readOtelProperty($batchProcessor, 'maxExportBatchSize'),
+    ];
+}
+
+$router->addRoute('GET', '/trace/config', new ClosureRequestHandler(function (Request $req) use ($sdkMeterProvider, $sdkLoggerProvider) {
 
     $tags_array = \dd_trace_env_config("DD_TAGS");
     $propagation_array = \dd_trace_env_config("DD_TRACE_PROPAGATION_STYLE");
@@ -516,6 +1030,10 @@ $router->addRoute('GET', '/trace/config', new ClosureRequestHandler(function (Re
     }
 
     $config = array(
+        'otel_exporter_otlp_metrics_timeout_ms' => otlpExporterTimeout(readOtelProperty($sdkMeterProvider, 'metricReaders') ?? []),
+        'otel_exporter_otlp_logs_timeout_ms' => otlpExporterTimeout(
+            [readOtelProperty(readOtelProperty($sdkLoggerProvider, 'loggerSharedState'), 'processor')]
+        ),
         'dd_service' => trim(var_export(\dd_trace_env_config("DD_SERVICE"), true), "'"),
         'dd_env' => trim(var_export(\dd_trace_env_config("DD_ENV"), true), "'"),
         'dd_version' => trim(var_export(\dd_trace_env_config("DD_VERSION"), true), "'"),
@@ -534,7 +1052,7 @@ $router->addRoute('GET', '/trace/config', new ClosureRequestHandler(function (Re
         'dd_profiling_enabled' => strtolower(trim(ini_get("datadog.profiling.enabled"), "'")),
         'dd_data_streams_enabled' => 'false', // PHP doesn't implement DD_DATA_STREAMS_ENABLED
         'dd_logs_injection' => strtolower(trim(ini_get("datadog.logs_injection"), "'")),
-    );
+    ) + blrpEffectiveConfig(readOtelProperty(readOtelProperty($sdkLoggerProvider, 'loggerSharedState'), 'processor'));
     return jsonResponse(array(
         'config' => $config
     ));

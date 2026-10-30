@@ -65,6 +65,33 @@ class SystemTestController < ApplicationController
     render plain: File.read(params[:file])
   end
 
+  def trace_manual_keep_drop
+    decision = params[:decision]
+    return render plain: 'decision must be keep or drop', status: 400 unless %w[keep drop].include?(decision)
+
+    trace = Datadog::Tracing.active_trace
+    decision == 'keep' ? trace.keep! : trace.reject!
+
+    # Call downstream so that tests can assert on the sampling decision that gets propagated
+    url = 'http://localhost:7777/'
+    uri = URI(url)
+    request = nil
+    response = nil
+
+    Net::HTTP.start(uri.host, uri.port) do |http|
+      request = Net::HTTP::Get.new(uri)
+
+      response = http.request(request)
+    end
+
+    render json: {
+      "url": url,
+      "status_code": response.code.to_i,
+      "request_headers": request.each_header.to_h,
+      "response_headers": response.each_header.to_h,
+    }
+  end
+
   def make_distant_call
     url = params[:url]
     uri = URI(url)
@@ -199,6 +226,11 @@ class SystemTestController < ApplicationController
       k.sub(/^HTTP_/, '').split('_').map(&:capitalize).join('-')
     end
     render json: JSON.generate(request_headers), content_type: 'application/json'
+  end
+
+  def inferred_proxy_span_creation
+    status_code = (params[:status_code] || 200).to_i
+    render plain: 'ok', status: status_code
   end
 
   def handle_path_params

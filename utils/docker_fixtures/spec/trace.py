@@ -59,7 +59,9 @@ SAMPLING_AGENT_PRIORITY_RATE = "_dd.agent_psr"
 SAMPLING_RULE_PRIORITY_RATE = "_dd.rule_psr"
 SAMPLING_LIMIT_PRIORITY_RATE = "_dd.limit_psr"
 
-NUM_VALUES_IN_NATIVE_SPAN_ATTRIBUTE = 2
+# The test agent converts protocol v1 span-event attributes to the v0.4 typed representation,
+# whose enum assigns ARRAY the value 4 (STRING=0, BOOLEAN=1, INTEGER=2, DOUBLE=3, ARRAY=4).
+NATIVE_SPAN_ATTRIBUTE_ARRAY_TYPE = 4
 
 
 # Note that class attributes are golang style to match the payload.
@@ -165,7 +167,7 @@ def find_trace(traces: list[Trace], trace_id: int) -> Trace:
     raise AssertionError(f"Trace with 64bit trace_id={trace_id} not found. Traces={traces}")
 
 
-def find_span(trace: Trace, span_id: int) -> Span:
+def find_span(trace: Trace, span_id: str | int) -> Span:
     """Return a span from the trace matches a `span_id`."""
     assert len(trace) > 0
     # TODO: Ensure all parametric applications return uint64 span ids (not strings)
@@ -176,7 +178,7 @@ def find_span(trace: Trace, span_id: int) -> Span:
     raise AssertionError(f"Span with id={span_id} not found. Trace={trace}")
 
 
-def find_span_in_traces(traces: list[Trace], trace_id: int, span_id: int) -> Span:
+def find_span_in_traces(traces: list[Trace], trace_id: int, span_id: int | str) -> Span:
     """Return a span from a list of traces by `trace_id` and `span_id`."""
     trace = find_trace(traces, trace_id)
     return find_span(trace, span_id)
@@ -291,18 +293,28 @@ def span_link_trace_ids_equal(a: int | str | None, b: int | str | None) -> bool:
     return _span_link_trace_id_to_low64(a) == _span_link_trace_id_to_low64(b)
 
 
+def _decode_span_event_attribute(value: dict) -> object:
+    """Decode a typed span event attribute into a plain Python value.
+
+    The "type" field may be omitted when it holds the default (zero) enum value,
+    so it is not counted as a value entry.
+    """
+    is_array = value.get("type") == NATIVE_SPAN_ATTRIBUTE_ARRAY_TYPE
+    remaining = {key: inner for key, inner in value.items() if key != "type"}
+    # Excluding the optional "type" discriminator, an attribute has exactly one value field.
+    assert len(remaining) == 1, f"native span event attribute has unexpected number of values: {value}"
+    inner = next(iter(remaining.values()))
+    if is_array:
+        return [_decode_span_event_attribute(item) for item in inner.get("values", [])]
+    return inner
+
+
 def retrieve_span_events(span: Span) -> list | None:
     if span.get("span_events") is not None:
         for event in span["span_events"]:
             for key, value in event.get("attributes", {}).items():
                 if isinstance(value, dict):
-                    # Flatten attributes dict into a single key-value pair
-                    # This is for native span events
-                    assert len(value) == NUM_VALUES_IN_NATIVE_SPAN_ATTRIBUTE, (
-                        f"native span event has unexpected number of values: {event}"
-                    )
-                    value.pop("type")
-                    event["attributes"][key] = next(iter(value.values()))
+                    event["attributes"][key] = _decode_span_event_attribute(value)
                 else:
                     continue
         return span["span_events"]
@@ -330,13 +342,10 @@ def id_to_int(value: str | int) -> int:
     if isinstance(value, int):
         return value
 
-    try:
-        # This is a best effort to convert hex span/trace id to an integer.
-        # This is temporary solution until all parametric applications return trace/span ids
-        # as stringified integers (ids will be stringified to workaround percision issues in some languages)
-        return int(value)
-    except ValueError:
+    if value.startswith("0x"):
         return int(value, 16)
+
+    return int(value)
 
 
 def extract_trace_id_from_otel_span(span: dict) -> str:

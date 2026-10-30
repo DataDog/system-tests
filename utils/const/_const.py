@@ -21,22 +21,22 @@ class ComponentGroups(ConstGroups):
     otel = ConstGroup()
     """OpenTelemetry libraries, supporting the OTEL_INTEGRATIONS scenario"""
     lambda_lib = ConstGroup()
-    """Lambda libraries, supporting all scenarios created from `LambdaScenario` class"""
+    """Lambda libraries, supporting all scenarios created from `_LambdaScenario` class (aws_lambda.py)"""
 
     def _items(self) -> dict[str, list[ConstGroup]]:
         return {
+            "c": [self.buildable, self.easy_win],
             "cpp": [self.easy_win, self.lib_injection, self.parametric],
             "cpp_httpd": [self.buildable, self.easy_win, self.ssi],
             "cpp_nginx": [self.buildable, self.easy_win, self.ssi],
             "cpp_kong": [self.buildable, self.easy_win],
             "dotnet": [self.buildable, self.easy_win, self.ssi, self.lib_injection, self.parametric],
-            "envoy": [],
             "golang": [self.buildable, self.easy_win, self.lib_injection, self.parametric],
-            "haproxy": [],
             "java": [self.buildable, self.easy_win, self.ssi, self.lib_injection, self.parametric],
             "java_lambda": [self.buildable, self.easy_win, self.lambda_lib, self.parametric],
             "java_otel": [self.buildable, self.lib_injection, self.otel],
             "nodejs": [self.buildable, self.easy_win, self.ssi, self.lib_injection, self.parametric],
+            "nodejs_lambda": [self.buildable, self.easy_win, self.lambda_lib],
             "nodejs_otel": [self.buildable, self.lib_injection, self.otel],
             "otel_collector": [],
             "php": [self.buildable, self.easy_win, self.ssi, self.lib_injection, self.parametric],
@@ -44,6 +44,7 @@ class ComponentGroups(ConstGroups):
             "python_lambda": [self.buildable, self.easy_win, self.lambda_lib],
             "python_otel": [self.buildable, self.lib_injection, self.otel],
             "ruby": [self.buildable, self.easy_win, self.ssi, self.lib_injection, self.parametric],
+            "ruby_lambda": [self.buildable, self.easy_win, self.lambda_lib],
             "rust": [self.buildable, self.easy_win, self.lib_injection, self.parametric],
         }
 

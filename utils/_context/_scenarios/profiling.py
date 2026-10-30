@@ -1,13 +1,13 @@
 import pytest
 
-from .core import scenario_groups
-from .endtoend import EndToEndScenario
+from utils._context.constants import WeblogCategory
+from ._core import EndToEndScenario, scenario_groups
 
 
 class ProfilingScenario(EndToEndScenario):
-    def __init__(self, name: str) -> None:
+    def __init__(self) -> None:
         super().__init__(
-            name,
+            "PROFILING",
             library_interface_timeout=160,
             weblog_env={
                 "DD_PROFILING_ENABLED": "true",
@@ -21,12 +21,18 @@ class ProfilingScenario(EndToEndScenario):
             },
             doc="Test profiling feature. Not included in default scenario because is quite slow",
             scenario_groups=[scenario_groups.profiling],
+            weblog_categories=[WeblogCategory.dd_trace],
         )
 
     def configure(self, config: pytest.Config):
         super().configure(config)
 
         library = self.weblog_infra.library_name
+
+        if library == "nodejs":
+            self.library_interface_timeout = 10
+            self.weblog_container.environment["DD_PROFILING_UPLOAD_PERIOD"] = "5"
+
         if library == "dotnet":
             # https://docs.datadoghq.com/profiler/enabling/dotnet/?tab=linux#enabling-the-profiler
             self.weblog_container.environment["LD_PRELOAD"] = (
@@ -37,7 +43,3 @@ class ProfilingScenario(EndToEndScenario):
             # profiling is known to be unstable on python3.11, and this value is here to fix that
             # it's not yet the default behaviour, but it will be in the future
             self.weblog_container.environment["DD_PROFILING_STACK_V2_ENABLED"] = "true"
-
-        elif library == "nodejs":
-            # for an unknown reason, /flush on nodejs takes days with a fake key on this scenario
-            self._require_api_key = True

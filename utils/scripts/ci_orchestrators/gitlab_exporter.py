@@ -3,7 +3,7 @@ import yaml
 import hashlib
 import json
 from utils._context._scenarios import get_all_scenarios
-from utils._context._scenarios.core import Scenario
+from utils._context._scenarios._core.scenario import Scenario
 from utils.k8s.k8s_components_parser import K8sComponentsParser
 
 
@@ -40,6 +40,9 @@ def _generate_unique_prefix(scenario_specs_matrix: dict, prefix_length: int = 3)
 
 def should_run_only_defaults_vm() -> bool:
     """Default rules to run only default VMs or all VMs"""
+    # Consuming repos can opt in, e.g. for merge queues
+    if os.getenv("SYSTEM_TESTS_RUN_ALL_VMS") == "true":
+        return False
     # Get gitlab variables from the environment
     ci_commit_tag = os.getenv("CI_COMMIT_TAG")
     ci_commit_branch = os.getenv("CI_COMMIT_BRANCH")
@@ -51,7 +54,7 @@ def should_run_only_defaults_vm() -> bool:
     if ci_pipeline_source == "schedule" or ci_commit_tag:
         return False
 
-    # if we run on system-tests repository and it's the main branch, we should run all the VMs
+    # If we run on system-tests repository and it's the main branch, we should run all the VMs
     return not (ci_project_name == "system-tests" and ci_commit_branch == "main")
 
 
@@ -65,7 +68,17 @@ def print_gitlab_pipeline(language: str, matrix_data: dict[str, dict], ci_enviro
 
 
 def print_ssi_gitlab_pipeline(language: str, matrix_data: dict[str, dict], ci_environment: str) -> None:
+    result_pipeline = build_ssi_gitlab_pipeline(language, matrix_data, ci_environment)
+    pipeline_yml = yaml.dump(result_pipeline, sort_keys=False, default_flow_style=False)
+    output_file = f"{language}_ssi_gitlab_pipeline.yml"
+    with open(output_file, "w") as file:
+        file.write(pipeline_yml)
+    print("Pipeline file generated: ", output_file)
+
+
+def build_ssi_gitlab_pipeline(language: str, matrix_data: dict[str, dict], ci_environment: str) -> dict:
     result_pipeline = {}  # type: dict
+    result_pipeline["workflow"] = {"name": f"{language} SSI"}
     result_pipeline["include"] = []
     result_pipeline["stages"] = []
     pipeline_file = ".gitlab/ssi_gitlab-ci.yml"
@@ -93,12 +106,17 @@ def print_ssi_gitlab_pipeline(language: str, matrix_data: dict[str, dict], ci_en
                 )
             result_pipeline[".base_job_onboarding_system_tests"]["script"].insert(0, "cd system-tests")
             result_pipeline[".base_job_onboarding_system_tests"]["script"].insert(
-                0, "git clone https://git@github.com/DataDog/system-tests.git system-tests"
+                0, "git clone https://github.com/DataDog/system-tests.git system-tests"
+            )
+            result_pipeline[".base_job_onboarding_system_tests"]["variables"]["SYSTEM_TESTS_DIR"] = (
+                "$CI_PROJECT_DIR/system-tests"
             )
         print_aws_gitlab_pipeline(language, matrix_data["aws_ssi_scenario_defs"], ci_environment, result_pipeline)
     if matrix_data["dockerssi_scenario_defs"]:
         # Copy the base job for the docker ssi system tests
         result_pipeline[".base_docker_ssi_job"] = pipeline_data[".base_docker_ssi_job"]
+        if os.getenv("CI_PROJECT_NAME") != "system-tests":
+            result_pipeline[".base_docker_ssi_job"]["variables"]["SYSTEM_TESTS_DIR"] = "/system-tests"
         print_docker_ssi_gitlab_pipeline(
             language, matrix_data["dockerssi_scenario_defs"], ci_environment, result_pipeline
         )
@@ -112,14 +130,30 @@ def print_ssi_gitlab_pipeline(language: str, matrix_data: dict[str, dict], ci_en
                 )
                 result_pipeline[".k8s_lib_injection_base"]["script"].insert(0, "git pull")
             result_pipeline[".k8s_lib_injection_base"]["script"].insert(0, "cd /system-tests")
+            result_pipeline[".k8s_lib_injection_base"]["variables"]["SYSTEM_TESTS_DIR"] = "/system-tests"
 
         print_k8s_gitlab_pipeline(language, matrix_data["libinjection_scenario_defs"], ci_environment, result_pipeline)
 
-    pipeline_yml = yaml.dump(result_pipeline, sort_keys=False, default_flow_style=False)
-    output_file = f"{language}_ssi_gitlab_pipeline.yml"
-    with open(output_file, "w") as file:
-        file.write(pipeline_yml)
-    print("Pipeline file generated: ", output_file)
+    return result_pipeline
+
+
+def _short_image_ref(value: str) -> str:
+    """Drop our registry host from catalog images so the job name keeps the path.
+
+    Only ``ssi/`` and ``ssi-dev/`` images on ``PRIVATE_DOCKER_REGISTRY`` are shortened.
+    The job adds that same host back. A custom image on any other host stays intact.
+    """
+    host, slash, path = value.partition("/")
+    registry = os.getenv("PRIVATE_DOCKER_REGISTRY", "235494822917.dkr.ecr.us-east-1.amazonaws.com")
+    if slash and host == registry and path.startswith(("ssi/", "ssi-dev/")):
+        return path
+    return value
+
+
+def _as_job_name(value: str | list[str]) -> str | list[str]:
+    if isinstance(value, list):
+        return [_short_image_ref(item) for item in value]
+    return _short_image_ref(value)
 
 
 def get_k8s_scenario_components(
@@ -149,7 +183,6 @@ def get_k8s_scenario_components(
        - Tests ALL available versions (for injector and lib init)
        - Tests only the pinned versions for the rest of the components
 
-
     Component Versions Returned:
     ============================
     - K8S_HELM_CHART_OPERATOR: Datadog operator helm chart version (if with_datadog_operator)
@@ -158,44 +191,40 @@ def get_k8s_scenario_components(
     - K8S_HELM_CHART: Datadog helm chart version (if cluster agent without operator)
     - K8S_LIB_INIT_IMG: Library init container image (always included)
 
+    Catalog images on PRIVATE_DOCKER_REGISTRY under ssi/ or ssi-dev/ are returned
+    without the registry host (for example ``ssi/cluster-agent:7.84.3``). The GitLab
+    job adds the host back before ./run.sh. Custom images on another host are unchanged.
+
     Args:
         scenario: Scenario name (must exist in utils/_context/_scenarios/__init__.py)
         all_system_tests_scenarios: List of all available scenarios
         language: Programming language (java, python, nodejs, etc.)
 
     Returns:
-        Dictionary with component version assignments for GitLab CI matrix
+        Dictionary with component version assignments for the GitLab CI matrix
 
     """
-    # Load all valid scenarios from the scenarios module
-    all_valid_scenarios = {s.name for s in all_system_tests_scenarios}
-
+    all_valid_scenarios = {item.name for item in all_system_tests_scenarios}
     if scenario not in all_valid_scenarios:
         raise ValueError(
             f"Scenario '{scenario}' not found in utils/_context/_scenarios/__init__.py. "
-            f"Please ensure the scenario is properly defined."
+            "Please ensure the scenario is properly defined."
         )
 
-    # Extract environment variables for CI context
     ci_project_name = os.getenv("CI_PROJECT_NAME")
     ci_pipeline_source = os.getenv("CI_PIPELINE_SOURCE")
     k8s_injector_img = os.getenv("K8S_INJECTOR_IMG")
     k8s_lib_init_img = os.getenv("K8S_LIB_INIT_IMG")
-
-    # Determine CI context
     is_system_tests = ci_project_name == "system-tests"
     is_system_tests_scheduled = is_system_tests and ci_pipeline_source == "schedule"
 
-    # Get scenario configuration
-    scenario_obj = next((s for s in all_system_tests_scenarios if s.name == scenario), None)
-    with_datadog_operator = getattr(scenario_obj, "with_datadog_operator", False)
-    with_cluster_agent = getattr(scenario_obj, "with_cluster_agent", False)
+    scenario_obj = next(item for item in all_system_tests_scenarios if item.name == scenario)
+    with_datadog_operator = bool(getattr(scenario_obj, "with_datadog_operator", False))
+    with_cluster_agent = bool(getattr(scenario_obj, "with_cluster_agent", False))
 
-    # Initialize component parser and result
     parser = K8sComponentsParser()
-    components = {}
+    components: dict[str, str | list[str]] = {}
 
-    # Datadog Operator scenario: requires operator helm chart
     if with_datadog_operator:
         components["K8S_HELM_CHART_OPERATOR"] = (
             parser.get_all_component_versions("helm_chart_operator")
@@ -203,21 +232,18 @@ def get_k8s_scenario_components(
             else parser.get_default_component_version("helm_chart_operator")
         )
 
-    # Cluster Agent scenarios: require cluster agent and injector
     if with_cluster_agent:
         components["K8S_CLUSTER_IMG"] = (
             parser.get_all_component_versions("cluster_agent")
             if is_system_tests_scheduled
             else parser.get_default_component_version("cluster_agent")
         )
-
         components["K8S_INJECTOR_IMG"] = k8s_injector_img or (
             parser.get_all_component_versions("injector")
             if is_system_tests
             else parser.get_default_component_version("injector")
         )
 
-    # Non-operator cluster scenarios: require standard helm chart
     if with_cluster_agent and not with_datadog_operator:
         components["K8S_HELM_CHART"] = (
             parser.get_all_component_versions("helm_chart")
@@ -225,44 +251,37 @@ def get_k8s_scenario_components(
             else parser.get_default_component_version("helm_chart")
         )
 
-    # Library init: required for all scenarios
     components["K8S_LIB_INIT_IMG"] = k8s_lib_init_img or (
         parser.get_all_component_versions("lib_init", language)
         if is_system_tests
         else parser.get_default_component_version("lib_init", language)
     )
 
-    return components
+    return {key: _as_job_name(value) for key, value in components.items()}
 
 
 def print_k8s_gitlab_pipeline(
-    language: str, k8s_matrix: dict[str, dict], ci_environment: str, result_pipeline: dict
+    language: str, k8s_matrix: dict[str, list[str]], ci_environment: str, result_pipeline: dict
 ) -> None:
     result_pipeline["stages"].append("K8S_LIB_INJECTION")
-    all_system_tests_scenarios = get_all_scenarios()
-    # Create the jobs by scenario.
+    scenarios = get_all_scenarios()
+    # Same image for every weblog when the caller sets it. Kept off the matrix so the
+    # registry host is not part of the job name. Otherwise the job builds it from K8S_WEBLOG.
+    weblog_image = os.getenv("K8S_WEBLOG_IMG")
     for scenario, weblogs in k8s_matrix.items():
-        job = scenario
-        result_pipeline[job] = {}
-        result_pipeline[job]["extends"] = ".k8s_lib_injection_base"
-        # Job variables
-        result_pipeline[job]["variables"] = {}
-        result_pipeline[job]["variables"]["TEST_LIBRARY"] = language
-        result_pipeline[job]["variables"]["K8S_SCENARIO"] = scenario
-        result_pipeline[job]["variables"]["REPORT_ENVIRONMENT"] = ci_environment
-
-        result_pipeline[job]["parallel"] = {"matrix": []}
-        for weblog_name in weblogs:
-            k8s_weblog_img = os.getenv("K8S_WEBLOG_IMG", "${PRIVATE_DOCKER_REGISTRY}" + f"/system-tests/{weblog_name}")
-
-            # Build matrix entry - only include components that have values
-            matrix_entry = {
-                "K8S_WEBLOG": weblog_name,
-                "K8S_WEBLOG_IMG": k8s_weblog_img,
-            }
-            matrix_entry.update(get_k8s_scenario_components(scenario, all_system_tests_scenarios, language))
-
-            result_pipeline[job]["parallel"]["matrix"].append(matrix_entry)
+        variables = {
+            "TEST_LIBRARY": language,
+            "K8S_SCENARIO": scenario,
+            "REPORT_ENVIRONMENT": ci_environment,
+        }
+        if weblog_image:
+            variables["K8S_WEBLOG_IMG"] = weblog_image
+        components = get_k8s_scenario_components(scenario, scenarios, language)
+        result_pipeline[scenario] = {
+            "extends": ".k8s_lib_injection_base",
+            "variables": variables,
+            "parallel": {"matrix": [{"K8S_WEBLOG": weblog, **components} for weblog in weblogs]},
+        }
 
 
 def print_docker_ssi_gitlab_pipeline(
@@ -325,6 +344,9 @@ def print_docker_ssi_gitlab_pipeline(
                     "source venv/bin/activate",
                     "echo 'Running SSI tests'",
                     (
+                        # Capture stdout+stderr so the after_script can re-print the
+                        # run summary (pipefail keeps run.sh's real exit code).
+                        "set -o pipefail\n"
                         'timeout 1200s ./run.sh $SCENARIO --ssi-weblog "$WEBLOG" '
                         '--ssi-library "$TEST_LIBRARY" --ssi-base-image "$IMAGE" '
                         '--ssi-arch "$ARCH" --ssi-installable-runtime "$RUNTIME" '
@@ -332,6 +354,7 @@ def print_docker_ssi_gitlab_pipeline(
                         + custom_extra_params
                         + " --report-run-url ${CI_JOB_URL} --report-environment "
                         + ci_environment
+                        + ' 2>&1 | tee "${CI_PROJECT_DIR}/run_output.log"'
                     ),
                 ]
                 if os.getenv("CI_PROJECT_NAME") != "system-tests":

@@ -4,7 +4,7 @@ import com.datadoghq.system_tests.iast.utils._
 import play.api.mvc._
 import resources.Resources
 
-import java.io.File
+import java.io.{File, FileOutputStream}
 import java.net.{MalformedURLException, URL, URLConnection}
 
 import javax.inject.{Inject, Singleton}
@@ -97,8 +97,25 @@ class RaspController @Inject()(cc: MessagesControllerComponents, res: Resources)
     }.get
   }
 
+  def lfiWrite = Action { request =>
+    val file = request.body match {
+      case AnyContentAsFormUrlEncoded(data) =>
+        data("file").head
+      case AnyContentAsMultipartFormData(data) =>
+        data.asFormUrlEncoded("file").head
+      case _ =>
+        request.queryString("file").head
+    }
+    Results.Ok(executeLfiWrite(file))
+  }
+
   private def executeLfi(file: String): String = {
     new File(file)
+    "OK"
+  }
+
+  private def executeLfiWrite(file: String): String = {
+    new FileOutputStream(file).close()
     "OK"
   }
 

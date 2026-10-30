@@ -1,7 +1,7 @@
 'use strict'
 /* eslint-disable no-unused-vars, camelcase */
 
-const Pii = require('./pii')
+const { Pii, createPiiLocals } = require('./pii')
 const dataGenerator = require('./data_generator')
 
 module.exports = {
@@ -60,7 +60,7 @@ module.exports = {
     // Padding
 
     app.get('/debugger/pii', (req, res) => {
-      const pii = new Pii()
+      const { pii, password, user, customPii } = createPiiLocals()
       res.send('Hello World') // This needs to be line 64
     })
 
@@ -135,5 +135,68 @@ module.exports = {
       })
       res.send('Capture limits probe') // This needs to be line 136
     })
+
+    app.get('/debugger/snapshot/capture-timeout', (req, res) => {
+      const collectionSize = parseInt(req.query.collectionSize, 10) || 0
+      const nestingDepth = parseInt(req.query.nestingDepth, 10) || 0
+      res.send(captureTimeoutFixture(collectionSize, nestingDepth))
+    })
+
+    app.get('/debugger/budgets/:loops', budgets)
+    app.get('/debugger/correlation', correlationHandler)
+    app.get('/debugger/correlation/loop/:count', correlationLoopHandler)
   }
+}
+
+function captureTimeoutFixture (collectionSize, nestingDepth) {
+  const largeCollection = Array.from({ length: collectionSize }, (_, index) => {
+    let nested = { value: index }
+    for (let level = nestingDepth; level > 0; level--) {
+      nested = { level, nested }
+    }
+    return nested
+  })
+  return 'Capture timeout probe' // This needs to be line 159
+}
+
+function budgets (request, reply) {
+  const loops = Number(request.params.loops)
+  for (let iteration = 0; iteration < loops; iteration++) {
+    const currentIteration = iteration // This needs to be line 165
+  }
+  return reply.send('Budgets')
+}
+
+async function correlationHandler (req, res) {
+  await correlation()
+  res.send('Correlation')
+}
+
+async function correlation () {
+  const value = await correlationMiddle()
+  await sleep(400)
+  return value // This needs to be line 178
+}
+
+async function correlationMiddle () {
+  const value = correlationLeaf()
+  await sleep(400)
+  return value // This needs to be line 184
+}
+
+function correlationLeaf () {
+  return 3 // This needs to be line 188
+}
+
+async function correlationLoopHandler (req, res) {
+  const count = Number(req.params.count)
+  for (let i = 0; i < count; i++) {
+    const iteration = i // This needs to be line 194
+    await sleep(1000)
+  }
+  res.send('Loop') // This needs to be line 197
+}
+
+function sleep (ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }

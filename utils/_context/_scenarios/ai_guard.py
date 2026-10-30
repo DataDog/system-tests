@@ -1,17 +1,30 @@
 import os
+from pathlib import Path
 import tarfile
 import tempfile
-from pathlib import Path
 
 import pytest
 
+from ._core import EndToEndScenario, FakeDatadogKey, scenario_groups
+from utils._context.constants import ContainerPorts, WeblogCategory
 from utils._context.containers import VCRCassettesContainer
 from utils._logger import logger
 
-from .endtoend import EndToEndScenario
+
+# Shared by every AI Guard scenario: the SDK on, AppSec and IAST off so nothing else drives the
+# spans under test, and the endpoint pointed at the VCR container with keys the mock backend
+# ignores. Each scenario adds only what it is there to exercise.
+_AI_GUARD_WEBLOG_ENV = {
+    "DD_APPSEC_ENABLED": "false",
+    "DD_IAST_ENABLED": "false",
+    "DD_AI_GUARD_ENABLED": "true",
+    "DD_AI_GUARD_ENDPOINT": f"http://vcr_cassettes:{ContainerPorts.vcr_cassettes}/vcr/aiguard",
+    "DD_API_KEY": FakeDatadogKey.AI_GUARD_API,
+    "DD_APP_KEY": FakeDatadogKey.AI_GUARD_APP,
+}
 
 
-class AIGuardScenario(EndToEndScenario):
+class _AIGuardScenario(EndToEndScenario):
     """AI Guard SDK testing scenario.
 
     Extends EndToEndScenario with support for generating VCR cassettes.
@@ -20,7 +33,7 @@ class AIGuardScenario(EndToEndScenario):
     """
 
     def __init__(self, name: str, **kwargs):  # noqa: ANN003
-        super().__init__(name, **kwargs)
+        super().__init__(name, weblog_categories=[WeblogCategory.dd_trace], **kwargs)
         self._generate_cassettes = False
 
     def configure(self, config: pytest.Config):
@@ -72,3 +85,83 @@ class AIGuardScenario(EndToEndScenario):
             logger.stdout(f"Extracted {len(cassettes)} cassettes to ./{extracted}")
         else:
             logger.warning("No cassettes found in container at /cassettes/aiguard")
+
+
+class AiGuard(_AIGuardScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "AI_GUARD",
+            other_weblog_containers=(VCRCassettesContainer,),
+            appsec_enabled=False,
+            weblog_env=_AI_GUARD_WEBLOG_ENV,
+            doc="AI Guard SDK tests",
+            scenario_groups=[scenario_groups.ai_guard],
+        )
+
+
+class AiGuardStandalone(_AIGuardScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "AI_GUARD_STANDALONE",
+            other_weblog_containers=(VCRCassettesContainer,),
+            appsec_enabled=False,
+            weblog_env={
+                **_AI_GUARD_WEBLOG_ENV,
+                "DD_APM_TRACING_ENABLED": "false",
+                "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
+            },
+            agent_env={
+                "DD_INFRASTRUCTURE_MODE": "none",
+            },
+            doc="AI Guard standalone mode, with the infra product disabled on the agent",
+            scenario_groups=[scenario_groups.ai_guard],
+        )
+
+
+class AiGuardTelemetry(_AIGuardScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "AI_GUARD_TELEMETRY",
+            other_weblog_containers=(VCRCassettesContainer,),
+            appsec_enabled=False,
+            weblog_env={
+                **_AI_GUARD_WEBLOG_ENV,
+                "DD_AI_GUARD_MAX_MESSAGES_LENGTH": "1",
+                "DD_AI_GUARD_MAX_CONTENT_SIZE": "5",
+            },
+            doc="AI Guard telemetry tests with low truncation thresholds",
+            scenario_groups=[scenario_groups.ai_guard],
+        )
+
+
+class AiGuardRedactionTelemetry(_AIGuardScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "AI_GUARD_REDACTION_TELEMETRY",
+            other_weblog_containers=(VCRCassettesContainer,),
+            appsec_enabled=False,
+            # Deliberately without the truncation thresholds AI_GUARD_TELEMETRY sets: the redaction
+            # corpus is replayed from cassettes addressed by a hash of the request body, so a truncated
+            # payload matches no cassette and never comes back with any replacement. The telemetry
+            # flush intervals need no override, WeblogContainer already puts both at 2s.
+            weblog_env=_AI_GUARD_WEBLOG_ENV,
+            doc="AI Guard redaction telemetry tests, with untruncated payloads and exact metric counts",
+            scenario_groups=[scenario_groups.ai_guard],
+        )
+
+
+class AiGuardRedactionDisabled(_AIGuardScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "AI_GUARD_REDACTION_DISABLED",
+            other_weblog_containers=(VCRCassettesContainer,),
+            appsec_enabled=False,
+            weblog_env={
+                **_AI_GUARD_WEBLOG_ENV,
+                # Global kill-switch: evaluations still run and findings are still reported, but the
+                # redaction_replacements returned by the backend are never applied.
+                "DD_AI_GUARD_REDACTION_ENABLED": "false",
+            },
+            doc="AI Guard with the sensitive data redaction kill-switch turned off",
+            scenario_groups=[scenario_groups.ai_guard],
+        )

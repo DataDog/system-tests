@@ -25,10 +25,43 @@ if TYPE_CHECKING:
 root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # noqa: PTH120, PTH100
 scenario_names = {scenario.name for scenario in get_all_scenarios()}
 
+
+def _get_scenarios_by_definition_file() -> dict[str, set[str]]:
+    """Scenarios defined in each scenario definition file: the modules of utils/_context/_scenarios/"""
+    result: dict[str, set[str]] = defaultdict(set)
+    for scenario in get_all_scenarios():
+        module_file = sys.modules[type(scenario).__module__].__file__
+        assert module_file is not None
+        file = Path(module_file).resolve().relative_to(Path(root_dir).resolve())
+        if file.parent.as_posix() == "utils/_context/_scenarios":
+            result[file.as_posix()].add(scenario.name)
+    return result
+
+
+scenarios_by_definition_file = _get_scenarios_by_definition_file()
+
 # do not include otel in system-tests CI by default, as the staging backend is not stable enough
 LIBRARIES = COMPONENT_GROUPS.all - COMPONENT_GROUPS.otel
 OTEL_LIBRARIES = COMPONENT_GROUPS.otel - {"nodejs_otel"}  # nodejs_otel intentionally excluded
 ALL_LIBRARIES = LIBRARIES | OTEL_LIBRARIES
+GITHUB_EXCLUDED_LIBRARIES = {"c"}
+
+# Libraries run by GitLab end-to-end on PRs. The value is either None, to run the scenarios selected from the diff
+# on every weblog of the library, or a {weblog: [scenario or scenario group, ...]} map, to run only these
+# weblogs/scenarios when the library is activated.
+GITLAB_PR_LIBRARIES: dict[str, dict[str, list[str]] | None] = {
+    "c": None,
+    # GitLab runs containers on the default bridge network: checks that the mocked backend network aliases work there
+    "python": {
+        "flask-poc": [
+            "APM_TRACING_E2E_SINGLE_SPAN",
+            "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS",
+            "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_DIRECT",
+            "FEATURE_FLAGGING_AND_EXPERIMENTATION_AGENTLESS_SERVERLESS",
+        ]
+    },
+}
+GITLAB_MAIN = {"python"}
 
 
 def check_scenarios(scenarios: set[str]) -> bool:
@@ -145,28 +178,85 @@ class LibraryProcessor:
             self.selected |= self.impacted
 
     def get_outputs(self) -> dict[str, Any]:
+        selected = self.selected - GITHUB_EXCLUDED_LIBRARIES
         populated_result = [
             {
                 "library": library,
                 "version": "prod",
             }
-            for library in sorted(self.selected)
-            if library not in ("rust",)
+            for library in sorted(selected)
         ] + [
             {
                 "library": library,
                 "version": "dev",
             }
-            for library in sorted(self.selected)
-            if "otel" not in library and library not in ("otel_collector", "rust")
+            for library in sorted(selected)
+            if "otel" not in library and library != "otel_collector"
         ]
 
         libraries_with_dev = [item["library"] for item in populated_result if item["version"] == "dev"]
+        single_library_execution_time = 300 if self.selected == {"nodejs"} else 600
+        desired_execution_time = single_library_execution_time if len(self.selected) == 1 else 3600
+
         return {
             "library_matrix": populated_result,
             "libraries_with_dev": libraries_with_dev,
-            "desired_execution_time": 600 if len(self.selected) == 1 else 3600,
+            "desired_execution_time": desired_execution_time,
         }
+
+
+def is_gitlab_pr_pipeline(inputs: Inputs) -> bool:
+    return inputs.ref != "refs/heads/main" and inputs.event_name in ("pull_request", "push")
+
+
+def filter_gitlab_libraries(inputs: Inputs, libraries: set[str]) -> set[str]:
+    """Limit the GitLab end-to-end rollout by pipeline context."""
+    if inputs.ref == "refs/heads/main" and inputs.event_name != "schedule":
+        return libraries & GITLAB_MAIN
+
+    if is_gitlab_pr_pipeline(inputs):
+        return libraries & set(GITLAB_PR_LIBRARIES)
+
+    return set()
+
+
+def _expand_scenario_entries(entries: Iterable[str]) -> set[str]:
+    """Scenario names of a list of scenarios (uppercase) and scenario groups (lowercase)"""
+    result: set[str] = set()
+    for entry in entries:
+        if entry.islower():
+            result |= {scenario.name for scenario in all_scenario_groups[entry].scenarios}
+        else:
+            result.add(entry)
+    return result
+
+
+def get_gitlab_library_weblog_scenarios(
+    libraries: set[str], scenario_names: set[str], scenario_group_names: set[str]
+) -> dict[str, dict[str, list[str]]]:
+    """Return the library_weblog_scenarios map of the GitLab PR pipeline, for the libraries with a weblog map.
+
+    The weblog maps of GITLAB_PR_LIBRARIES are filtered by the scenarios selected from the diff: only selected
+    scenarios are kept, and weblogs (and libraries) with no scenario left are removed.
+    """
+    selected = _expand_scenario_entries(scenario_names | scenario_group_names)
+
+    result: dict[str, dict[str, list[str]]] = {}
+    for library in sorted(libraries):
+        weblog_map = GITLAB_PR_LIBRARIES[library]
+        if not weblog_map:
+            continue
+        filtered_map: dict[str, list[str]] = {}
+        for weblog, weblog_entries in sorted(weblog_map.items()):
+            if weblog == "parametric":
+                if scenarios.parametric.name in selected:
+                    filtered_map[weblog] = []
+            elif weblog_scenarios := sorted(_expand_scenario_entries(weblog_entries) & selected):
+                filtered_map[weblog] = weblog_scenarios
+        if filtered_map:
+            result[library] = filtered_map
+
+    return result
 
 
 class ScenarioProcessor:
@@ -268,6 +358,10 @@ class ScenarioProcessor:
         self.process_test_files(file)
         self.process_regular_file(file, param)
 
+        if file in scenarios_by_definition_file:
+            logger.debug(f"Scenario definition file {file} is modified, adding {scenarios_by_definition_file[file]}")
+            self._append_scenarios_from_test_files(scenarios_by_definition_file[file])
+
     def get_outputs(self) -> dict[str, str]:
         return {
             "scenarios": ",".join(sorted(self.scenarios)),
@@ -285,8 +379,11 @@ class Inputs:
         scenario_map_file: str = "logs_mock_the_test/scenarios.json",
         new_manifests: Path = Path("manifests/"),
         old_manifests: Path = Path("original/manifests/"),
+        *,
+        select_main_push_from_diff: bool = False,
     ) -> None:
         self.is_gitlab = False
+        self.select_main_push_from_diff = select_main_push_from_diff
         self.load_git_info()
         self.output = output
         self.mapping_file = os.path.join(root_dir, mapping_file)
@@ -307,8 +404,10 @@ class Inputs:
     def load_git_info(self) -> None:
         # Get all relevant environment variables.
         if "GITLAB_CI" in os.environ:
-            self.event_name = os.environ.get("CI_PIPELINE_SOURCE", "push")
-            self.ref = os.environ.get("CI_COMMIT_REF_NAME", "")
+            source = os.environ.get("CI_PIPELINE_SOURCE", "push")
+            self.event_name = "pull_request" if source == "merge_request_event" else source
+            branch = os.environ.get("CI_COMMIT_REF_NAME", "")
+            self.ref = f"refs/heads/{branch}" if branch else ""
             self.pr_title = ""
             self.is_gitlab = True
         else:
@@ -330,11 +429,24 @@ class Inputs:
             for pattern, parameters in raw_impacts.items():
                 self.impacts[pattern] = Param(pattern, parameters) if parameters else default_param
 
+    def selects_scenarios_from_diff(self) -> bool:
+        """Select scenarios from the changed files, instead of the full matrix.
+
+        Scheduled pipelines and main pushes keep the full matrix by default.
+        Callers must explicitly opt main pushes into diff selection.
+        """
+        if self.event_name not in ("pull_request", "push"):
+            return False
+        if self.ref == "refs/heads/main":
+            return self.event_name == "push" and self.select_main_push_from_diff
+        return True
+
     def load_modified_files(self) -> None:
-        if self.ref != "refs/heads/main":
-            # Gets the modified files. Computed with gh in a previous ci step.
-            with open("modified_files.txt", "r", encoding="utf-8") as f:
-                self.modified_files = [line.strip() for line in f]
+        if not self.selects_scenarios_from_diff():
+            return
+        # Gets the modified files. Computed with gh in a previous ci step.
+        with open("modified_files.txt", "r", encoding="utf-8") as f:
+            self.modified_files = [line.strip() for line in f]
 
     def load_scenario_mappings(self) -> None:
         if self.event_name in ("pull_request", "push"):
@@ -377,7 +489,7 @@ def process(inputs: Inputs) -> list[str]:
 
     rebuild_lambda_proxy = False
 
-    if inputs.event_name not in ("pull_request", "push") or inputs.ref == "refs/heads/main":
+    if not inputs.selects_scenarios_from_diff():
         scenario_processor = ScenarioProcessor({all_scenario_groups.all.name})
         library_processor = LibraryProcessor(LIBRARIES)
 
@@ -406,6 +518,19 @@ def process(inputs: Inputs) -> list[str]:
         library_processor.selected |= scenario_processor.impacted_libraries
 
     if inputs.is_gitlab:
+        gitlab_libraries = filter_gitlab_libraries(inputs, library_processor.selected)
+        if is_gitlab_pr_pipeline(inputs):
+            library_weblog_scenarios = get_gitlab_library_weblog_scenarios(
+                gitlab_libraries, scenario_processor.scenarios, scenario_processor.scenario_groups
+            )
+            if library_weblog_scenarios:
+                # JSON in a JSON string, so the output can still be sourced by a shell
+                outputs["library_weblog_scenarios"] = json.dumps(library_weblog_scenarios)
+            # libraries with a weblog map are only run through library_weblog_scenarios
+            gitlab_libraries = {library for library in gitlab_libraries if not GITLAB_PR_LIBRARIES[library]}
+        if gitlab_libraries:
+            outputs["libraries"] = " ".join(sorted(gitlab_libraries))
+        # also used by the SSI pipeline (compute_pipeline job)
         outputs |= scenario_processor.get_outputs()
     else:
         outputs |= (
@@ -429,9 +554,14 @@ def main() -> None:
         default="",
         help="Output file. If not provided, output to stdout",
     )
+    parser.add_argument(
+        "--select-main-push-from-diff",
+        action="store_true",
+        help="Select impacted scenarios for a main push instead of using the full matrix",
+    )
     args = parser.parse_args()
 
-    inputs = Inputs(output=args.output)
+    inputs = Inputs(output=args.output, select_main_push_from_diff=args.select_main_push_from_diff)
     strings_out = process(inputs)
     print_outputs(strings_out, inputs)
 

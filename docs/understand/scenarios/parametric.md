@@ -133,6 +133,16 @@ TEST_LIBRARY=dotnet ./run.sh PARAMETRIC -vv -k test_metrics_
 TEST_LIBRARY=dotnet ./run.sh PARAMETRIC -s
 ```
 
+### Making parametric runs faster
+
+- **Skip the build when the image already exists:** Use `--skip-parametric-build` (or set `SKIP_PARAMETRIC_BUILD=1`) when you are only changing test code. This avoids rebuilding the parametric library image on every run, saving ~3–4s per invocation. When you change the Dockerfile or app code under `utils/build/docker/<lang>/parametric/`, run without this option so the image is rebuilt.
+
+  ```sh
+  TEST_LIBRARY=java ./run.sh PARAMETRIC --skip-parametric-build tests/parametric/test_startup_logs.py
+  ```
+
+- **Per-test time is dominated by library process startup:** For Java and other heavy runtimes, most of the time for each test is starting the JVM and the parametric app. Running multiple tests in one invocation amortizes session setup (build, agent, network).
+
 ### Understanding the test outcomes
 Please refer to this [chart](../../execute/test-outcomes.md)
 
@@ -207,6 +217,33 @@ Note: These are based off of the Python tracer's http server which should be hel
 3. You can download the OpenAPI schema from http://localhost:8000/openapi.json. This schema can be imported into tools like [Postman](https://learning.postman.com/docs/integrations/available-integrations/working-with-openAPI/) or other API clients to facilitate development and testing.
 
 Not all endpoint implementations per language are up to spec with regards to their parameters and return values. To view endpoints that are not up to spec, see the [feature parity board](https://feature-parity.us1.prod.dog/#/?runDateFilter=7d&feature=339)
+
+#### Standalone Rules Configuration
+
+`test_library.ffe_fetch_rules_configuration(options)` calls `POST /ffe/fetch-rules-configuration` (currently implemented in Node.js only). It fetches and serializes configuration using the public standalone FFE helpers in a fresh process, without initializing a tracer or OpenFeature provider. The response is either `{ "wire": "..." }` or `{ "error": { "name": "ConfigurationFetchError", "code": "...", "message": "...", "status": 403 } }`. `status` is present only for HTTP failures. Unexpected failures return HTTP 500.
+
+Options use the Node helper's names (`distributionChannel`, `apiKey`, `clientToken`, `env`, `site`, `timeoutMs`). The test-only `abort` option supplies an already-aborted signal; `abortAfterMs` cancels an in-flight operation after the specified delay. `SYSTEM_TESTS_FFE_RULES_BASE_URL` routes the helper's custom Fetch transport to the mock backend, preserving paths, queries, headers, and redirect/cancellation options. No browser handoff is performed.
+
+The shared `mocked_backend` fixture serves these protobuf responses. Import shared FFE constants and fixture helpers from `utils.mocked_backend.ffe`. On the server distribution endpoint, explicitly accepting `application/protobuf` selects protobuf, including in comma-separated `Accept` lists with a positive quality value. Wildcard-only requests and existing agentless provider tests continue to receive JSON.
+
+Use `mocked_backend.client.ffe_set_response` or `mocked_backend.client.ffe_set_responses` with `response_format="protobuf"` to configure these responses; the default format is JSON. Each format has an independent response timeline, and controls reject response IDs unsupported by the selected format. `mocked_backend.client.ffe_reset` resets both timelines and the shared request history. Use `mocked_backend.ffe_get_requests` to inspect paths, queries, and headers without including fixture control traffic.
+
+#### Effective OpenTelemetry configuration
+
+Use `test_library.otel_effective_config()` to inspect resolved OTLP exporter timeouts.
+For Node.js it calls the diagnostic endpoint `GET /otel/effective_config`; for other
+SDKs it reads the existing `/trace/config` endpoint. The returned dictionary contains:
+
+- `otel_exporter_otlp_traces_timeout_ms`
+- `otel_exporter_otlp_metrics_timeout_ms`
+- `otel_exporter_otlp_logs_timeout_ms`
+
+Values are strings in milliseconds, or `None` when the SDK does not expose the setting.
+Zero values are preserved. The Node.js endpoint adapts private SDK configuration fields
+to this contract and reports the SDK's resolved values, including its validation and
+defaults. Its `/trace/config` endpoint continues to return an empty configuration.
+The existing `test_library.config()` method also reads Node.js timeout fields from
+the diagnostic endpoint, so tests using that method can inspect these values.
 
 ### Architecture: How System-tests work
 
