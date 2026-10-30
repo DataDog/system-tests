@@ -507,7 +507,7 @@ def parse_args(argv: list[str] | None) -> argparse.Namespace:
         "--library-weblog-scenarios",
         default="",
         help='JSON object {library: {weblog: [scenario or group, ...]}}, e.g. {"python": {"flask-poc": ["DEFAULT"]}}. '
-        "Alternative to --libraries/--scenarios/--scenario-groups/--weblogs",
+        "Can be combined with --libraries/--scenarios/--scenario-groups/--weblogs, for other libraries",
     )
     return parser.parse_args(argv)
 
@@ -531,16 +531,24 @@ def main(argv: list[str] | None = None, environ: Mapping[str, str] | None = None
     output_dir = Path(inputs.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    mapping = None
+    mapping: dict[str, dict[str, list[str]]] = {}
     if inputs.library_weblog_scenarios:
-        if inputs.libraries or inputs.scenarios or inputs.scenario_groups or inputs.weblogs:
+        # libraries/scenarios/scenarios_groups/weblogs may be used alongside library_weblog_scenarios, for other
+        # libraries than the ones of library_weblog_scenarios
+        if (inputs.scenarios or inputs.scenario_groups or inputs.weblogs) and not inputs.libraries:
             print(  # noqa: T201
-                "❌ library_weblog_scenarios is not compatible with libraries, scenarios, scenarios_groups and weblogs",
+                "❌ scenarios, scenarios_groups and weblogs need libraries when used with library_weblog_scenarios",
                 file=sys.stderr,
             )
             return 1
         mapping = parse_library_weblog_scenarios(inputs.library_weblog_scenarios)
-        inputs.libraries = list(mapping)
+        if both := sorted(set(inputs.libraries) & set(mapping)):
+            print(  # noqa: T201
+                f"❌ {', '.join(both)}: listed in both libraries and library_weblog_scenarios",
+                file=sys.stderr,
+            )
+            return 1
+        inputs.libraries = [*inputs.libraries, *mapping]
 
     for name in (*MERGED_LIST_VARIABLES, *OVERRIDE_VARIABLES):
         value = getattr(inputs, name)
@@ -553,10 +561,10 @@ def main(argv: list[str] | None = None, environ: Mapping[str, str] | None = None
     if inputs.params_dir is None:
         params_dir = output_dir
         for library in inputs.libraries:
-            if mapping is None:
-                compute_params(library, inputs, params_dir)
-            else:
+            if library in mapping:
                 compute_mapped_params(library, mapping[library], inputs, params_dir)
+            else:
+                compute_params(library, inputs, params_dir)
     else:
         params_dir = Path(inputs.params_dir)
 
