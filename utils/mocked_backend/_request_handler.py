@@ -25,7 +25,7 @@ if TYPE_CHECKING:
     from http import HTTPStatus
 
 
-RouteHandler = Callable[["MockBackendV2RequestHandler", bytes | dict | None], tuple[list | Mapping | bytes, bytes]]
+RouteHandler = Callable[["MockedBackendRequestHandler", bytes | dict | None], tuple[list | Mapping | bytes, bytes]]
 HttpMethod = Literal["GET", "POST", "PUT"]
 
 
@@ -50,10 +50,10 @@ def _decode_content(raw_body: bytes, content_encoding: str) -> bytes:
 
 # We need to do some shenanigans to avoid circular import:
 #
-# * MockBackendV2RequestHandler needs to know MockedBackendV2Server
-# * MockedBackendV2Server needs to know MockBackendV2RequestHandler
+# * MockedBackendRequestHandler needs to know MockedBackendV2Server
+# * MockedBackendV2Server needs to know MockedBackendRequestHandler
 #
-# So we extract the part of MockedBackendV2Server that needs to be known by MockBackendV2RequestHandler
+# So we extract the part of MockedBackendV2Server that needs to be known by MockedBackendRequestHandler
 # in this "core" class
 class MockedBackendServerCore(ABC, ThreadingHTTPServer):
     on_message: Callable[[dict], None]
@@ -73,7 +73,7 @@ class MockedBackendServerCore(ABC, ThreadingHTTPServer):
     def base_url(self) -> str: ...
 
 
-class MockBackendV2RequestHandler(BaseHTTPRequestHandler):
+class MockedBackendRequestHandler(BaseHTTPRequestHandler):
     server: MockedBackendServerCore
     _data: dict  # use to store request and response info
     # Routes can delay or interrupt body delivery after headers and request logging.
