@@ -27,7 +27,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)-8s %(message)s")
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)-8s %(message)s", stream=sys.stdout)
 
     if args.log_folder:
         Path(args.log_folder).mkdir(parents=True, exist_ok=True)

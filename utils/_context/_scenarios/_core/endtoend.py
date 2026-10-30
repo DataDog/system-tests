@@ -263,12 +263,13 @@ class EndToEndScenario(DockerScenario):
             raise ValueError("include_buddies requires include_agent")
 
         self.include_agent = include_agent
-        self._use_proxy_for_agent = include_agent and use_proxy_for_agent
+        self.use_proxy_for_agent = include_agent and use_proxy_for_agent
+        """When False, the agent sends to the mocked backend (or nothing): interfaces.agent is not used"""
         self._use_proxy_for_weblog = use_proxy_for_weblog
         self._require_api_key = require_api_key
         self._mocked_backend = mocked_backend
 
-        if mocked_backend and self._use_proxy_for_agent:
+        if mocked_backend and self.use_proxy_for_agent:
             raise ValueError(
                 "mocked_backend is not compatible with use_proxy_for_agent: the agent can't send its "
                 "traffic to both the proxy and the mocked backend. Set use_proxy_for_agent=False."
@@ -287,11 +288,15 @@ class EndToEndScenario(DockerScenario):
                 agent_env = dict(agent_env) if agent_env else {}
                 agent_env.setdefault("DD_DD_URL", self.mocked_backend_container.container_url)
                 agent_env.setdefault("DD_APM_DD_URL", self.mocked_backend_container.container_url)
+                agent_env.setdefault("DD_APM_TELEMETRY_DD_URL", self.mocked_backend_container.container_url)
+                # the agent RC client polls the mocked backend, over TLS
+                agent_env.setdefault("DD_REMOTE_CONFIGURATION_RC_DD_URL", self.mocked_backend_container.container_url)
 
         self.agent_container = AgentContainer(
             dd_api_key=self.dd_api_key,
             use_proxy=use_proxy_for_agent,
-            rc_backend_enabled=rc_backend_enabled,
+            # the mocked backend always serves remote config
+            rc_backend_enabled=rc_backend_enabled or mocked_backend,
             environment=agent_env,
         )
         if include_agent:
@@ -360,7 +365,7 @@ class EndToEndScenario(DockerScenario):
         self._set_containers_dependancies()
 
         super().configure(config)
-        if self.include_agent:
+        if self.use_proxy_for_agent:
             interfaces.agent.configure(self.host_log_folder, replay=self.replay)
         interfaces.library.configure(self.host_log_folder, replay=self.replay)
         if self._require_api_key:  # only used by scenarios querying the real Datadog backend
@@ -417,7 +422,7 @@ class EndToEndScenario(DockerScenario):
         self.mocked_backend_container.stop()
 
     def _set_containers_dependancies(self) -> None:
-        if self._use_proxy_for_agent:
+        if self.use_proxy_for_agent:
             self.agent_container.depends_on.append(self.proxy_container)
 
         proxy_container = self.proxy_container if self._use_proxy_for_weblog else None
@@ -438,7 +443,7 @@ class EndToEndScenario(DockerScenario):
         open_telemetry_interfaces: list[ProxyBasedInterfaceValidator] = (
             [interfaces.open_telemetry] if self.include_opentelemetry else []
         )
-        agent_interfaces: list[ProxyBasedInterfaceValidator] = [interfaces.agent] if self.include_agent else []
+        agent_interfaces: list[ProxyBasedInterfaceValidator] = [interfaces.agent] if self.use_proxy_for_agent else []
         backend_interfaces: list[ProxyBasedInterfaceValidator] = (
             [interfaces.mocked_backend] if self._mocked_backend else []
         )
@@ -475,7 +480,7 @@ class EndToEndScenario(DockerScenario):
 
                 logger.debug(f"{container.name} ready")
 
-        if self._use_proxy_for_agent:
+        if self.use_proxy_for_agent:
             if not interfaces.agent.ready.wait(40):
                 raise ValueError("Datadog agent not ready")
             logger.debug("Agent ready")
@@ -503,7 +508,7 @@ class EndToEndScenario(DockerScenario):
                 container.interface.load_data_from_logs()
                 container.interface.check_deserialization_errors()
 
-            if self.include_agent:
+            if self.use_proxy_for_agent:
                 interfaces.agent.load_data_from_logs()
                 interfaces.agent.check_deserialization_errors()
 
@@ -533,11 +538,20 @@ class EndToEndScenario(DockerScenario):
                 container.interface.check_deserialization_errors()
 
             if self.include_agent:
-                self._wait_interface(interfaces.agent, 0 if is_empty_test_run else self.agent_interface_timeout)
+                # gives the agent time to send what it received before stopping it, to the proxy or the mocked backend
+                agent_timeout = 0 if is_empty_test_run else self.agent_interface_timeout
+                if self.use_proxy_for_agent:
+                    self._wait_interface(interfaces.agent, agent_timeout)
+                elif self._mocked_backend:
+                    self._wait_interface(interfaces.mocked_backend, agent_timeout)
                 self.agent_container.stop()
-                interfaces.agent.check_deserialization_errors()
+                if self.use_proxy_for_agent:
+                    interfaces.agent.check_deserialization_errors()
 
-            self._wait_interface(interfaces.backend_legacy, 0 if is_empty_test_run else self.backend_interface_timeout)
+            if self._require_api_key:
+                self._wait_interface(
+                    interfaces.backend_legacy, 0 if is_empty_test_run else self.backend_interface_timeout
+                )
 
             if self.include_opentelemetry:
                 self._wait_interface(

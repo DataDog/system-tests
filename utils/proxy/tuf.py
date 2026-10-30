@@ -12,7 +12,8 @@ ensure consistent test behavior.
 import hashlib
 import json
 
-from nacl.signing import SigningKey
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
 
 # =============================================================================
 # Test TUF Signing Key
@@ -23,8 +24,8 @@ from nacl.signing import SigningKey
 #
 # Key derivation:
 #   seed = 32 zero bytes (0x00 * 32)
-#   signing_key = ed25519.SigningKey(seed)
-#   public_key = signing_key.verify_key
+#   signing_key = Ed25519PrivateKey.from_private_bytes(seed)
+#   public_key = signing_key.public_key()
 #   keyid = sha256(public_key_bytes).hex()
 #
 # Resulting values:
@@ -32,10 +33,11 @@ from nacl.signing import SigningKey
 #   keyid = "139e3940e64b5491722088d9a0d741628fc826e09475d341a780acde3c4b8070"
 #
 TEST_TUF_SIGNING_KEY_SEED = bytes.fromhex("0" * 64)  # 32 zero bytes as seed
-TEST_TUF_SIGNING_KEY = SigningKey(TEST_TUF_SIGNING_KEY_SEED)
-TEST_TUF_PUBLIC_KEY = TEST_TUF_SIGNING_KEY.verify_key
-TEST_TUF_PUBLIC_KEY_HEX = TEST_TUF_PUBLIC_KEY.encode().hex()
-TEST_TUF_KEYID = hashlib.sha256(TEST_TUF_PUBLIC_KEY.encode()).hexdigest()
+# with cryptography, not pynacl: the proxy image (mitmproxy) already has it
+TEST_TUF_SIGNING_KEY = Ed25519PrivateKey.from_private_bytes(TEST_TUF_SIGNING_KEY_SEED)
+_TEST_TUF_PUBLIC_KEY_BYTES = TEST_TUF_SIGNING_KEY.public_key().public_bytes(Encoding.Raw, PublicFormat.Raw)
+TEST_TUF_PUBLIC_KEY_HEX = _TEST_TUF_PUBLIC_KEY_BYTES.hex()
+TEST_TUF_KEYID = hashlib.sha256(_TEST_TUF_PUBLIC_KEY_BYTES).hexdigest()
 
 
 def sign_tuf_document(signed_content: dict) -> dict:
@@ -51,7 +53,7 @@ def sign_tuf_document(signed_content: dict) -> dict:
 
     """
     canonical_json = json.dumps(signed_content, separators=(",", ":"), sort_keys=True).encode()
-    signature = TEST_TUF_SIGNING_KEY.sign(canonical_json).signature.hex()
+    signature = TEST_TUF_SIGNING_KEY.sign(canonical_json).hex()
 
     return {
         "signatures": [{"keyid": TEST_TUF_KEYID, "sig": signature}],
