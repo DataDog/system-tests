@@ -67,6 +67,24 @@ def test_query_string_is_stripped_from_the_log_filename(server: MockedBackendSer
 
     data = json.loads(written[0].read_text())
     assert data["path"] == "/info"
+    assert data["query"] == "trace_count=42"
+
+
+@scenarios.test_the_test
+def test_reads_chunked_request_bodies(server: MockedBackendServer, tmp_path: Path):
+    # requests sends a generator with Transfer-Encoding: chunked, like the agent forwarding to the debugger intake
+    with requests.Session() as session:
+        chunks = (part.encode() for part in ('{"hello": ', '"chunked"}'))
+        response = session.post(
+            f"{server.base_url}/api/v2/series", data=chunks, headers={"Content-Type": "application/json"}, timeout=5
+        )
+        assert response.status_code == 200
+        # the body is entirely read: the connection can be reused
+        assert session.get(f"{server.base_url}/info", timeout=5).status_code == 200
+
+    first = json.loads(sorted(tmp_path.glob("*.json"))[0].read_text())
+    assert ["Transfer-Encoding", "chunked"] in first["request"]["headers"]
+    assert first["request"]["content"] == {"hello": "chunked"}
 
 
 @scenarios.test_the_test
