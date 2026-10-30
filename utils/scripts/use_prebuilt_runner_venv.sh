@@ -6,22 +6,19 @@ set -euo pipefail
 
 baked="/system-tests/venv"
 
-use_prebuilt=0
-if [[ -x "${baked}/bin/pytest" && -f "${baked}/requirements.txt" ]]; then
-  baked_sum="$(sha256sum < "${baked}/requirements.txt")"
-  checkout_sum="$(sha256sum < requirements.txt)"
-  if [[ "${baked_sum}" == "${checkout_sum}" ]]; then
-    use_prebuilt=1
-  fi
-fi
-
-if [[ "${use_prebuilt}" -eq 1 ]]; then
+if [[ ! -x "${baked}/bin/pytest" || ! -f "${baked}/requirements.txt" ]]; then
+  echo "No prebuilt runner virtualenv at ${baked}. Installing locally."
+  rm -rf venv
+  # Three attempts: a bad wheel download must not fail the job. The timeout stays at the
+  # build.sh default (600s). A short timeout is what left pytest half-installed.
+  SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i runner
+elif [[ "$(sha256sum < "${baked}/requirements.txt")" != "$(sha256sum < requirements.txt)" ]]; then
+  echo "Prebuilt runner virtualenv does not match requirements.txt. Installing locally."
+  rm -rf venv
+  SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i runner
+else
   if [[ ! -e venv ]]; then
     ln -s "${baked}" venv
   fi
   echo "Using prebuilt runner virtualenv at ${baked}."
-else
-  echo "Prebuilt runner virtualenv is missing or does not match requirements.txt. Installing locally."
-  rm -rf venv
-  ./build.sh -i runner
 fi
