@@ -222,6 +222,19 @@ class Test_ComputeLibrariesAndScenarios:
             "",
         )
 
+    def test_php_parametric_base_docker_file(self):
+        inputs = build_inputs(["utils/build/docker/php/parametric.base.Dockerfile"])
+
+        assert_github_processor(
+            inputs,
+            ["php"],
+            ["php"],
+            600,
+            "false",
+            "DEFAULT,PARAMETRIC",
+            "",
+        )
+
     def test_nodejs_docker_file(self):
         inputs = build_inputs(["utils/build/docker/nodejs/express5.Dockerfile"])
 
