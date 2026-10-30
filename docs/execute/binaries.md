@@ -121,10 +121,9 @@ For OpenFeature parametric tests at SDK revision
 `:products:feature-flagging:feature-flagging-api:jar` and copy
 `products/feature-flagging/feature-flagging-api/build/libs/dd-openfeature-*.jar`
 from that same revision. Older SDK revisions may use `:dd-openfeature:jar` and
-`dd-openfeature/build/libs/` instead. The development artifact loader
-names its companion APIs `parametric-dd-trace-api.jar` and
-`parametric-dd-openfeature.jar`. Only the parametric application loads these names;
-ordinary weblogs retain their published Maven API dependencies. Do not combine an
+`dd-openfeature/build/libs/` instead. The development artifact loader downloads
+`dd-java-agent.jar` and `dd-openfeature.jar` from the same SDK branch for both
+ordinary Java weblogs and the parametric application. Do not combine an
 automatically downloaded API with a second custom copy of that API.
 
 4. Build your selected weblog:
