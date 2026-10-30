@@ -42,6 +42,7 @@ class Integrations(EndToEndScenario):
         super().__init__(
             "INTEGRATIONS",
             weblog_env={
+                "DD_DATA_STREAMS_ENABLED": "true",
                 "DD_DBM_PROPAGATION_MODE": "full",
                 "DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED": "false",
                 "AWS_ACCESS_KEY_ID": "my-access-key",

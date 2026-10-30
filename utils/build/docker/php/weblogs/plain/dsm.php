@@ -85,7 +85,8 @@ function dsm_kafka($queue, $group, $timeout)
 
 /**
  * Declare the exchange and its queues, publish a message for each routing key, then consume until
- * every queue has delivered one.
+ * every queue has delivered one of them. Messages an earlier request left in a queue are consumed
+ * and skipped.
  *
  * @param array $bindings queue => binding key
  */
@@ -102,14 +103,17 @@ function dsm_rabbitmq($exchange, $type, array $bindings, array $routingKeys, $ti
             $channel->queue_bind($queue, $exchange, $bindingKey);
         }
 
+        $body = 'Hello from PHP DSM test ' . uniqid();
         foreach ($routingKeys as $routingKey) {
-            $channel->basic_publish(new AMQPMessage('Hello from PHP DSM test'), $exchange, $routingKey);
+            $channel->basic_publish(new AMQPMessage($body), $exchange, $routingKey);
         }
 
         $pending = array_fill_keys(array_keys($bindings), true);
         foreach (array_keys($bindings) as $queue) {
-            $channel->basic_consume($queue, '', false, true, false, false, function () use ($queue, &$pending) {
-                unset($pending[$queue]);
+            $channel->basic_consume($queue, '', false, true, false, false, function ($message) use ($queue, $body, &$pending) {
+                if ($message->getBody() === $body) {
+                    unset($pending[$queue]);
+                }
             });
         }
         $deadline = microtime(true) + $timeout;
