@@ -3167,7 +3167,7 @@ manifest:
     - declaration: bug (DEBUG-3285)
       component_version: <1.46.0
     - declaration: bug (DEBUG-3390)
-      # Added by easy win activation script
+      component_version: '<1.50.0'
     - weblog_declaration:
         spring-boot-undertow: missing_feature
         spring-boot-openliberty: missing_feature
