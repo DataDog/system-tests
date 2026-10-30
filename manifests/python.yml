@@ -3306,6 +3306,7 @@ manifest:
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Resource_Attributes::test_dd_env_vars_override_otel: missing_feature
   ? tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Resource_Attributes::test_otel_resource_attributes_populated_by_dd_otel_envs
   : missing_feature
+  tests/parametric/test_otel_mode.py::Test_OTel_Mode_Traces: v4.17.0-dev
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods: v2.8.0
   tests/parametric/test_otel_span_methods.py::Test_Otel_Span_Methods::test_otel_add_event_meta_serialization:
     - declaration: missing_feature (Not implemented)
@@ -3357,6 +3358,7 @@ manifest:
     - declaration: missing_feature (New operation name mapping not yet implemented)
       component_version: <4.3.1
   tests/parametric/test_otel_span_with_baggage.py::Test_Otel_Span_With_Baggage: v2.18.0
+  tests/parametric/test_otel_startup_logs.py::Test_OTEL_Startup_Logs: missing_feature (OTEL_ENABLED is not reported in startup logs)
   tests/parametric/test_otel_tracer.py::Test_Otel_Tracer: v2.8.0
   tests/parametric/test_otel_tracestate_sampling.py::Test_OtelTracestateSampling: v4.15.0-dev
   tests/parametric/test_otlp_trace_metrics.py: v4.15.0.dev
