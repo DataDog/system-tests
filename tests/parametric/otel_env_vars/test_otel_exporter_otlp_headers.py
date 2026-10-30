@@ -18,21 +18,40 @@ VARIABLE = "OTEL_EXPORTER_OTLP_HEADERS"
 # Some SDKs default to gRPC; the collector forwards decoded gRPC payloads over
 # HTTP, whose headers do not represent the original request.
 def _environment(signal: str, value: str | None) -> dict[str, str | None]:
+    dd_signal = "TRACE" if signal == "traces" else signal.upper()
     environment: dict[str, str | None] = {
-        f"DD_{signal.upper()}_OTEL_ENABLED": "true",
+        f"DD_{dd_signal}_OTEL_ENABLED": "true",
         "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
         VARIABLE: value,
     }
+    if signal == "traces":
+        environment["DD_TRACE_AGENT_PROTOCOL_VERSION"] = None
+        environment["DD_TRACE_ENABLED"] = None
+        environment["OTEL_TRACES_EXPORTER"] = "otlp"
     if signal == "logs":
         # Avoid startup debug logs satisfying the payload wait before the test record.
         environment["DD_TRACE_DEBUG"] = None
     return environment
 
 
+@pytest.fixture(autouse=True)
+def _trace_export_endpoint(
+    library_env: dict[str, str], test_agent: TestAgentAPI, test_agent_otlp_http_port: int
+) -> None:
+    if library_env.get("OTEL_TRACES_EXPORTER") == "otlp":
+        library_env["OTEL_EXPORTER_OTLP_TRACES_ENDPOINT"] = (
+            f"http://{test_agent.container_name}:{test_agent_otlp_http_port}/v1/traces"
+        )
+
+
 def _assert_headers(signal: str, expected: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
     name = "otel_header_configuration"
     with test_library as library:
-        if signal == "metrics":
+        if signal == "traces":
+            with library.dd_start_span(name=name):
+                pass
+            library.dd_flush()
+        elif signal == "metrics":
             generate_default_counter_data_point(library, name)
         else:
             library.create_logger(name, LogLevel.INFO)
@@ -41,7 +60,7 @@ def _assert_headers(signal: str, expected: dict[str, str], test_agent: TestAgent
     if signal == "metrics":
         metrics = test_agent.wait_for_num_otlp_metrics(1)
         assert metrics[0]["resource_metrics"][0]["scope_metrics"] is not None
-    else:
+    elif signal == "logs":
         assert find_log_record(test_agent.wait_for_num_log_payloads(1), name, name) is not None
 
     requests = [request for request in test_agent.requests() if request["url"].endswith(f"/v1/{signal}")]
@@ -145,3 +164,16 @@ class Test_OTEL_EXPORTER_OTLP_HEADERS:
     )
     def test_logs_override(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         _assert_headers("logs", {"api-key": "signal"}, test_agent, test_library)
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                **_environment("traces", "dd-protocol=otlp,dd-otlp-path=agent,api-key=hello%20world%2Cvalue%3D1"),
+                "OTEL_EXPORTER_OTLP_TRACES_HEADERS": None,
+            }
+        ],
+        ids=["percent-encoded-value"],
+    )
+    def test_traces_percent_encoded_value(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        _assert_headers("traces", {"api-key": "hello world,value=1"}, test_agent, test_library)

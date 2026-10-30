@@ -2414,6 +2414,11 @@ manifest:
       declaration: missing_feature
     - component_version: '>=5.88.0'
       declaration: bug (APMAPI-2450)
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_traces_percent_encoded_value
+  : - declaration: missing_feature
+      component_version: '<6.20.0'
+    - declaration: flaky (APMAPI-2554)
+      component_version: '>=6.20.0'
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_compression.py::Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION: '>=6.20.0'  # TODO: a lower version might be supported
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_compression.py::Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION::test_empty_inherits_general
   : missing_feature
@@ -2523,6 +2528,9 @@ manifest:
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_headers.py::Test_OTEL_EXPORTER_OTLP_TRACES_HEADERS::test_empty_is_treated_as_unset
   : missing_feature
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_headers.py::Test_OTEL_EXPORTER_OTLP_TRACES_HEADERS::test_header_pairs_are_sent_on_trace_export
+  : - declaration: flaky (APMAPI-2554)
+      component_version: '>=6.20.0'
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_headers.py::Test_OTEL_EXPORTER_OTLP_TRACES_HEADERS::test_traces_percent_encoded_value
   : - declaration: flaky (APMAPI-2554)
       component_version: '>=6.20.0'
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_headers.py::Test_OTEL_EXPORTER_OTLP_TRACES_HEADERS::test_unset_uses_global_headers

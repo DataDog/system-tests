@@ -94,3 +94,18 @@ class Test_OTEL_EXPORTER_OTLP_TRACES_HEADERS:
         headers = _request_headers(_trace_request(test_agent, test_library))
         _assert_routing_headers(headers)
         assert all(name not in headers for name in ("header-one", "header-two"))
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                **BASE_ENVIRONMENT,
+                VARIABLE: "dd-protocol=otlp,dd-otlp-path=agent,api-key=hello%20world%2Cvalue%3D1",
+            }
+        ],
+        ids=["percent-encoded-value"],
+    )
+    def test_traces_percent_encoded_value(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        headers = _request_headers(_trace_request(test_agent, test_library))
+        _assert_routing_headers(headers)
+        assert headers.get("api-key") == "hello world,value=1"
