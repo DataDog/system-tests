@@ -14,7 +14,7 @@ from pathlib import Path
 import threading
 from typing import TYPE_CHECKING
 
-from ._request_handler import MockedBackendServerCore, MockBackendV2RequestHandler, HttpMethod, RouteHandler
+from ._request_handler import MockedBackendServerCore, MockedBackendRequestHandler, HttpMethod, RouteHandler
 from ._backend_ffe import MockedBackendServerFfeMixin
 from ._backend_rc import MockedBackendServerRcMixin
 from ._client import MockedBackendClient
@@ -53,6 +53,8 @@ class MockedBackendServer(MockedBackendServerFfeMixin, MockedBackendServerRcMixi
         f"event-platform-intake.{MOCKED_BACKEND_DOMAIN}",
         f"http-intake.logs.{MOCKED_BACKEND_DOMAIN}",
         f"instrumentation-telemetry-intake.{MOCKED_BACKEND_DOMAIN}",
+        f"llmobs-intake.{MOCKED_BACKEND_DOMAIN}",
+        f"process.{MOCKED_BACKEND_DOMAIN}",
         f"trace.agent.{MOCKED_BACKEND_DOMAIN}",
     )
     """With tls: its domain, and the intake hostnames derived from it, covered by its certificate"""
@@ -79,7 +81,7 @@ class MockedBackendServer(MockedBackendServerFfeMixin, MockedBackendServerRcMixi
             data = json.loads(Path(internal_mocked_responses_file).read_text(encoding="utf-8"))
             internal_mocked_responses = MockedBackendResponse.from_dicts(data)
 
-        super().__init__(("0.0.0.0", port), MockBackendV2RequestHandler)  # noqa: S104
+        super().__init__(("0.0.0.0", port), MockedBackendRequestHandler)  # noqa: S104
         self.scheme = "https" if tls else "http"
         if tls:
             try:
@@ -172,7 +174,7 @@ class MockedBackendServer(MockedBackendServerFfeMixin, MockedBackendServerRcMixi
         if mock is None:
             return None
 
-        def handler(request: MockBackendV2RequestHandler, _: bytes | dict | None) -> tuple[bytes, bytes]:
+        def handler(request: MockedBackendRequestHandler, _: bytes | dict | None) -> tuple[bytes, bytes]:
             request.send_response(mock.status_code)
             request.send_header("Content-Type", mock.content_type)
             return mock.content, mock.content
@@ -180,7 +182,7 @@ class MockedBackendServer(MockedBackendServerFfeMixin, MockedBackendServerRcMixi
         return handler
 
     def _handle_mocked_responses(
-        self, request: MockBackendV2RequestHandler, payload: bytes | dict | None
+        self, request: MockedBackendRequestHandler, payload: bytes | dict | None
     ) -> tuple[Mapping, bytes]:
         """Replace the runtime mocked responses, like the proxy's /mocked_backend_responses endpoint"""
         responses = payload.get("responses") if isinstance(payload, dict) else None
@@ -197,10 +199,10 @@ class MockedBackendServer(MockedBackendServerFfeMixin, MockedBackendServerRcMixi
 
         return request.write_json(HTTPStatus.OK, {})
 
-    def _handle_health(self, request: MockBackendV2RequestHandler, _: bytes | dict | None) -> tuple[Mapping, bytes]:
+    def _handle_health(self, request: MockedBackendRequestHandler, _: bytes | dict | None) -> tuple[Mapping, bytes]:
         return request.write_json(HTTPStatus.OK, {"status": "ok"})
 
-    def _default_handler(self, request: MockBackendV2RequestHandler, _: bytes | dict | None) -> tuple[Mapping, bytes]:
+    def _default_handler(self, request: MockedBackendRequestHandler, _: bytes | dict | None) -> tuple[Mapping, bytes]:
         return request.write_json(HTTPStatus.OK, {})
 
     def close(self) -> None:
