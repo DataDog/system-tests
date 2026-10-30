@@ -1,5 +1,8 @@
 """Test FFE (Feature Flags & Experimentation) functionality via parametric tests."""
 
+import base64
+import gzip
+import hashlib
 import json
 from utils import pytest
 import time
@@ -14,6 +17,7 @@ from utils import (
 )
 from utils.dd_constants import RemoteConfigApplyState
 from utils.docker_fixtures import TestAgentAPI
+from utils.docker_fixtures._test_agent import AgentRequest
 from tests.parametric.conftest import APMLibrary
 from tests.parametric.test_ffe.utils import assert_feature_map, ffe_events_from_requests
 
@@ -21,6 +25,11 @@ RC_PRODUCT = "FFE_FLAGS"
 RC_PATH = f"datadog/2/{RC_PRODUCT}"
 FFE_READY_RETRY_ATTEMPTS = 10
 FFE_READY_RETRY_INTERVAL_SECONDS = 0.2
+FFE_EVENT_WAIT_ATTEMPTS = 300
+FFE_EVENT_WAIT_INTERVAL_SECONDS = 0.1
+EXPOSURES_PATH = "/api/v2/exposures"
+EVALUATIONS_PATH = "/api/v2/flagevaluation"
+FFE_EVENT_PATHS = (EXPOSURES_PATH, EVALUATIONS_PATH)
 FFE_SYSTEM_TEST_DATA_DIR = Path(__file__).parent / "ffe-system-test-data"
 FFE_EVALUATION_CASES_DIR = FFE_SYSTEM_TEST_DATA_DIR / "evaluation-cases"
 DEPENDENT_FLAGS_DIR = FFE_SYSTEM_TEST_DATA_DIR / "evaluation-suites" / "dependent-flags"
@@ -163,7 +172,7 @@ def _assert_evaluation_cases(
     ufc_data: dict[str, Any],
     test_agent: TestAgentAPI,
     test_library: APMLibrary,
-) -> None:
+) -> list[dict[str, Any]]:
     with test_case_file.open() as fixture_file:
         test_cases = json.load(fixture_file)
     assert isinstance(test_cases, list), f"Expected an evaluation-case array in {test_case_file.name}"
@@ -205,6 +214,165 @@ def _assert_evaluation_cases(
                 f"flag='{test_case['flag']}' unexpectedly returned errorCode={result.get('errorCode')!r}"
             )
 
+    return test_cases
+
+
+def _request_json(request: AgentRequest) -> dict[str, Any] | None:
+    raw = base64.b64decode(request["body"])
+    # The test agent may decompress a request while retaining its original headers.
+    if raw.startswith(b"\x1f\x8b"):
+        raw = gzip.decompress(raw)
+    try:
+        content = json.loads(raw)
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        return None
+    return content if isinstance(content, dict) else None
+
+
+def _targeting_key_matches(actual: object, expected: str) -> bool:
+    hashed = f"sha256_{hashlib.sha256(expected.encode()).hexdigest()}"
+    return actual in (expected, hashed)
+
+
+def _events_from_requests(requests: list[AgentRequest], path: str, targeting_key: str) -> list[dict[str, Any]]:
+    events: list[dict[str, Any]] = []
+    for request in requests:
+        if not request["url"].endswith(path):
+            continue
+        content = _request_json(request)
+        if content is None:
+            continue
+        event_key = "exposures" if path == EXPOSURES_PATH else "flagEvaluations"
+        request_events = content.get(event_key)
+        if not isinstance(request_events, list):
+            continue
+        for event in request_events:
+            if not isinstance(event, dict):
+                continue
+            if path == EXPOSURES_PATH:
+                subject = event.get("subject")
+                actual_targeting_key = subject.get("id") if isinstance(subject, dict) else None
+                if actual_targeting_key != targeting_key:
+                    continue
+            elif not _targeting_key_matches(event.get("targeting_key"), targeting_key):
+                continue
+            events.append(event)
+    return events
+
+
+def _event_matches(event: dict[str, Any], matcher: dict[str, Any]) -> bool:
+    nested_key_fields = {
+        "allocation": "allocation",
+        "errorCode": "error",
+        "flag": "flag",
+        "variant": "variant",
+    }
+
+    def event_field(field: str) -> object:
+        if field in nested_key_fields:
+            value = event.get(nested_key_fields[field])
+            if not isinstance(value, dict):
+                return None
+            return value.get("message" if field == "errorCode" else "key")
+        if field == "runtimeDefaultUsed":
+            return event.get("runtime_default_used", False)
+        return event.get(field)
+
+    fields_match = all(
+        event_field(field) == expected for field, expected in matcher.items() if not field.startswith("_")
+    )
+    expected_error_code = matcher.get("errorCode")
+    return fields_match and (expected_error_code is None or event.get("runtime_default_used") is True)
+
+
+def _expected_event_matchers(expectations: dict[str, Any], event_type: str) -> list[dict[str, Any]]:
+    matchers = expectations.get(event_type, [])
+    assert isinstance(matchers, list), f"expectations.{event_type} must be an array"
+    expanded: list[dict[str, Any]] = []
+    for matcher in matchers:
+        assert isinstance(matcher, dict), f"{event_type} matcher must be an object"
+        count = matcher.get("_count", 1)
+        assert isinstance(count, int), f"{event_type} matcher count must be an integer"
+        assert count >= 1, f"{event_type} matcher count must be positive"
+        expanded.extend([matcher] * count)
+    return expanded
+
+
+def _events_match(actual: list[dict[str, Any]], expected: list[dict[str, Any]], *, exact: bool) -> bool:
+    unmatched = actual.copy()
+    for matcher in expected:
+        matching_index = next((index for index, event in enumerate(unmatched) if _event_matches(event, matcher)), None)
+        if matching_index is None:
+            return False
+        unmatched.pop(matching_index)
+    return not exact or not unmatched
+
+
+def _assert_evaluation_telemetry(
+    test_agent: TestAgentAPI, test_library: APMLibrary, test_cases: list[dict[str, Any]]
+) -> None:
+    marker_case = next(
+        test_case for test_case in test_cases if _expected_event_matchers(test_case["expectations"], "exposures")
+    )
+    marker_targeting_key = f"{marker_case['targetingKey']}-telemetry-drain-marker"
+    marker_result = _ffe_evaluate_with_rc_retry(
+        test_library,
+        flag=marker_case["flag"],
+        variation_type=marker_case["variationType"],
+        default_value=marker_case["defaultValue"],
+        targeting_key=marker_targeting_key,
+        attributes=marker_case.get("attributes", {}),
+    )
+    assert marker_result.get("reason") != "ERROR", f"telemetry drain marker evaluation failed: {marker_result}"
+
+    captured: dict[str, tuple[list[dict[str, Any]], list[dict[str, Any]]]] = {}
+
+    for _ in range(FFE_EVENT_WAIT_ATTEMPTS):
+        requests = test_agent.requests()
+        relevant_requests = [request for request in requests if request["url"].endswith(FFE_EVENT_PATHS)]
+        captured = {
+            test_case["targetingKey"]: (
+                _events_from_requests(relevant_requests, EXPOSURES_PATH, test_case["targetingKey"]),
+                _events_from_requests(relevant_requests, EVALUATIONS_PATH, test_case["targetingKey"]),
+            )
+            for test_case in test_cases
+        }
+
+        # Each writer preserves event order. Seeing the post-batch marker from both writers
+        # proves that all telemetry from the evaluation cases has drained before exact checks.
+        drained_paths = {
+            path for path in FFE_EVENT_PATHS if _events_from_requests(relevant_requests, path, marker_targeting_key)
+        }
+        complete = drained_paths == set(FFE_EVENT_PATHS)
+        for test_case in test_cases:
+            expectations = test_case["expectations"]
+            assert isinstance(expectations, dict)
+            exposures, evaluations = captured[test_case["targetingKey"]]
+            exact = expectations.get("noUnmatchedEvents") is True
+            complete = complete and _events_match(
+                exposures, _expected_event_matchers(expectations, "exposures"), exact=exact
+            )
+            complete = complete and _events_match(
+                evaluations, _expected_event_matchers(expectations, "evaluationEvents"), exact=exact
+            )
+
+        if complete:
+            break
+        time.sleep(FFE_EVENT_WAIT_INTERVAL_SECONDS)
+    else:
+        raise AssertionError(f"evaluation telemetry did not stabilize: {captured}")
+
+    for test_case in test_cases:
+        expectations = test_case["expectations"]
+        exposures, evaluations = captured[test_case["targetingKey"]]
+        exact = expectations.get("noUnmatchedEvents") is True
+        assert _events_match(exposures, _expected_event_matchers(expectations, "exposures"), exact=exact), (
+            f"unexpected exposures for {test_case['flag']}: {exposures}"
+        )
+        assert _events_match(evaluations, _expected_event_matchers(expectations, "evaluationEvents"), exact=exact), (
+            f"unexpected evaluation events for {test_case['flag']}: {evaluations}"
+        )
+
 
 @scenarios.parametric
 @features.feature_flags_dynamic_evaluation
@@ -240,6 +408,7 @@ class Test_Feature_Flag_Dynamic_Evaluation:
         _assert_evaluation_cases(test_case_path, UFC_FIXTURE_DATA, test_agent, test_library)
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @parametrize("agent_env", [{"SYSTEM_TESTS_FFE_INTAKE": "true"}])
     @parametrize("test_case_file", DEPENDENT_FLAGS_TEST_CASE_FILES)
     def test_ffe_dependent_flags(
         self,
@@ -247,8 +416,11 @@ class Test_Feature_Flag_Dynamic_Evaluation:
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ) -> None:
-        """Run the imported dependent-flags feature suite through the shared evaluator harness."""
-        _assert_evaluation_cases(test_case_file, DEPENDENT_FLAGS_UFC_DATA, test_agent, test_library)
+        """Run dependent-flag results and telemetry from the imported canonical feature suite."""
+        test_cases = _assert_evaluation_cases(test_case_file, DEPENDENT_FLAGS_UFC_DATA, test_agent, test_library)
+        telemetry_cases = [test_case for test_case in test_cases if "expectations" in test_case]
+        if telemetry_cases:
+            _assert_evaluation_telemetry(test_agent, test_library, telemetry_cases)
 
 
 @scenarios.parametric
