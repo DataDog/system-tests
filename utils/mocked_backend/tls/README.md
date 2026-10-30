@@ -3,11 +3,14 @@
 scenarios. It covers the mocked backend domain, the intake hostnames derived from it (it is also the `DD_SITE` of its senders),
 and `localhost`.
 
-To add a hostname, or before it expires (in 2036), regenerate it:
+To add a hostname (to `MockedBackendContainer.tls_hostnames`), or before it expires (in 2036), regenerate it:
 
 ```bash
 openssl req -new -newkey rsa:2048 -nodes -keyout key.pem -subj "/CN=mocked-backend.invalid" -out req.csr
-echo "subjectAltName=DNS:mocked-backend.invalid,DNS:event-platform-intake.mocked-backend.invalid,DNS:instrumentation-telemetry-intake.mocked-backend.invalid,DNS:localhost,IP:127.0.0.1" > ext
+python -c "
+from utils._context.containers import MockedBackendContainer
+print('subjectAltName=' + ','.join(f'DNS:{h}' for h in MockedBackendContainer.tls_hostnames) + ',DNS:localhost,IP:127.0.0.1')
+" > ext
 openssl x509 -req -in req.csr -CA utils/proxy/.mitmproxy/mitmproxy-ca.pem -CAkey utils/proxy/.mitmproxy/mitmproxy-ca.pem \
     -set_serial 0x$(openssl rand -hex 8) -days 3650 -sha256 -extfile ext -out cert.pem
 cat cert.pem key.pem > utils/mocked_backend/tls/mocked-backend.pem
