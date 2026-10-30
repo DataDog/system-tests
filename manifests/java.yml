@@ -3272,6 +3272,16 @@ manifest:
         uds-spring-boot: v1.60.1  # TODO: a lower version might be supported
   ? tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay::test_inproduct_enablement_exception_replay_apm_multiconfig
   : bug (DEBUG-4736)
+  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Multiconfig_Partial_Update:
+    - weblog_declaration:
+        "*": missing_feature
+        spring-boot: v1.54.0
+        spring-boot-jetty: v1.54.0
+        spring-boot-openliberty: v1.54.0
+        spring-boot-payara: v1.54.0
+        spring-boot-undertow: v1.54.0
+        spring-boot-wildfly: v1.54.0
+        uds-spring-boot: v1.54.0
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Probe_Removal:
     - weblog_declaration:
         "*": missing_feature
@@ -3962,9 +3972,6 @@ manifest:
       weblog: [ratpack, akka-http, uds-spring-boot, vertx3, vertx4, play, spring-boot-wildfly, spring-boot, spring-boot-jetty, resteasy-netty3, spring-boot-openliberty, jersey-grizzly2, spring-boot-undertow, spring-boot-payara]
     - declaration: missing_feature (APMAPI-2172)
       excluded_weblog: [ratpack, akka-http, uds-spring-boot, vertx3, vertx4, play, spring-boot-wildfly, spring-boot, spring-boot-jetty, resteasy-netty3, spring-boot-openliberty, jersey-grizzly2, spring-boot-undertow, spring-boot-payara]
-  tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
-  tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
-  tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
   tests/parametric/otel_env_vars/test_otel_blrp_export_timeout.py::Test_OTEL_BLRP_EXPORT_TIMEOUT: v1.62.0
   tests/parametric/otel_env_vars/test_otel_blrp_max_export_batch_size.py::Test_OTEL_BLRP_MAX_EXPORT_BATCH_SIZE: v1.62.0
   ? tests/parametric/otel_env_vars/test_otel_blrp_max_export_batch_size.py::Test_OTEL_BLRP_MAX_EXPORT_BATCH_SIZE::test_invalid_value_is_ignored
@@ -4254,6 +4261,7 @@ manifest:
   tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Warm_State_Preservation: v1.65.0
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v1.56.0
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_dependent_flags: missing_feature (FFL-1694)
+  tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Split_Features: v1.69.0-SNAPSHOT
   tests/parametric/test_ffe/test_rules_configuration.py: missing_feature (Standalone rules configuration helpers are currently tested only in Node.js)
   tests/parametric/test_ffe/test_serial_id_metadata.py: v1.66.0
   tests/parametric/test_ffe/test_serial_id_metadata.py::Test_FFE_Serial_Id_Metadata_Go: irrelevant (Legacy Go metadata key)
@@ -4448,6 +4456,7 @@ manifest:
       component_version: <=1.23.0
   tests/parametric/test_otel_tracestate_sampling.py::Test_OtelTracestateSampling: v1.67.0-SNAPSHOT  # Easy win for all weblogs and version 1.66.0
   tests/parametric/test_otlp_trace_metrics.py: v1.66.0-SNAPSHOT
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR01_Enablement_Configuration::test_fr01_3_disabled_by_default: missing_feature (OTLP trace metrics are still auto-enabled without OTEL_TRACES_SPAN_METRICS_ENABLED=true)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR01_Enablement_Configuration::test_fr01_6_disabled_when_apm_tracing_disabled: missing_feature (OTLP trace metrics are still emitted when DD_APM_TRACING_ENABLED=false)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_AdditionalTags::test_fr08_10_dd_tags_tracer_tags_resource_attributes: missing_feature (DD_TAGS is not yet reported as datadog.tracer_tags on the OTLP trace metrics resource)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_AdditionalTags::test_fr08_11_otel_resource_attributes_env_tracer_tags: missing_feature (OTEL_RESOURCE_ATTRIBUTES is not yet reported as datadog.tracer_tags on the OTLP trace metrics resource)

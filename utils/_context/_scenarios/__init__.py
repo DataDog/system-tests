@@ -56,6 +56,7 @@ from .aws_lambda import (
     AppsecLambdaDefault,
     AppsecLambdaInferredSpans,
     AppsecLambdaRasp,
+    AppsecLambdaSca,
 )
 from .appsec_rasp import (
     AppsecRasp,
@@ -164,9 +165,6 @@ from .otel_collector import (
 )
 from .open_telemetry import (
     OtelIntegrations,
-    OtelLogE2e,
-    OtelMetricE2e,
-    OtelTracingE2e,
 )
 from .otel_semantics import (
     OtelSemanticsOtlp,
@@ -329,9 +327,6 @@ class _Scenarios:
     apm_tracing_e2e_single_span = ApmTracingE2eSingleSpan()
     apm_tracing_otlp = ApmTracingOtlp()
     apm_tracing_efficient_payload = ApmTracingEfficientPayload()
-    otel_tracing_e2e = OtelTracingE2e()
-    otel_metric_e2e = OtelMetricE2e()
-    otel_log_e2e = OtelLogE2e()
     library_conf_custom_header_tags = LibraryConfCustomHeaderTags()
     library_conf_custom_header_tags_invalid = LibraryConfCustomHeaderTagsInvalid()
     tracing_config_empty = TracingConfigEmpty()
@@ -401,6 +396,7 @@ class _Scenarios:
     appsec_lambda_default = AppsecLambdaDefault()
     appsec_lambda_blocking = AppsecLambdaBlocking()
     appsec_lambda_api_security = AppsecLambdaApiSecurity()
+    appsec_lambda_sca = AppsecLambdaSca()
     appsec_lambda_rasp = AppsecLambdaRasp()
     appsec_lambda_inferred_spans = AppsecLambdaInferredSpans()
     otel_collector = OtelCollectorScenario()

@@ -2079,6 +2079,10 @@ manifest:
       component_version: <4.9.0
   ? tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay::test_inproduct_enablement_exception_replay_apm_multiconfig
   : missing_feature
+  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Multiconfig_Partial_Update:
+    - weblog_declaration:
+        "*": missing_feature
+        *flask : v3.15.0
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Probe_Removal:
     - weblog_declaration:
         "*": missing_feature
@@ -2846,12 +2850,6 @@ manifest:
   tests/otel_postgres_metrics_e2e:
     - weblog_declaration:
         aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
-  tests/otel_tracing_e2e:
-    - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
-  tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
-  tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
-  tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
   tests/parametric:
     - weblog_declaration:
         aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
@@ -3046,8 +3044,12 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_metrics_exporter.py::Test_OTEL_METRICS_EXPORTER::test_development_values: missing_feature (Only otlp and none metrics exporters are implemented)
   tests/parametric/otel_env_vars/test_otel_metrics_exporter.py::Test_OTEL_METRICS_EXPORTER::test_prometheus: missing_feature (Only otlp and none metrics exporters are implemented)
   tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS: v4.11.0
-  tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS::test_baggage: missing_feature (OTEL_PROPAGATORS does not configure W3C baggage)
-  tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS::test_composite_propagators: missing_feature (OTEL_PROPAGATORS does not configure W3C baggage)
+  tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS::test_baggage:  # TODO: a lower version might be supported
+    - declaration: missing_feature (OTEL_PROPAGATORS does not configure W3C baggage)
+      component_version: <4.16.1
+  tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS::test_composite_propagators:  # TODO: a lower version might be supported
+    - declaration: missing_feature (OTEL_PROPAGATORS does not configure W3C baggage)
+      component_version: <4.16.1
   tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS::test_default_matches_specification: irrelevant (Datadog intentionally includes the Datadog propagator by default)
   tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS::test_deprecated_values: missing_feature (Jaeger and OT Trace propagators are not implemented)
   tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS::test_xray: missing_feature (X-Ray propagation is not implemented)
@@ -3144,6 +3146,7 @@ manifest:
   tests/parametric/test_ffe/test_configuration_sources.py: v4.14.0-dev
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v4.0.0
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_dependent_flags: missing_feature (FFL-1694)
+  tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Split_Features: incomplete_test_app (Split-feature hook capture is currently implemented only in the Java parametric client)
   tests/parametric/test_ffe/test_rules_configuration.py: missing_feature (Standalone rules configuration helpers are currently tested only in Node.js)
   tests/parametric/test_ffe/test_serial_id_metadata.py: missing_feature
   tests/parametric/test_ffe/test_serial_id_metadata.py::Test_FFE_Serial_Id_Metadata_Go: irrelevant (Legacy Go metadata key)
@@ -3353,6 +3356,7 @@ manifest:
   tests/parametric/test_otel_tracer.py::Test_Otel_Tracer: v2.8.0
   tests/parametric/test_otel_tracestate_sampling.py::Test_OtelTracestateSampling: v4.15.0-dev
   tests/parametric/test_otlp_trace_metrics.py: v4.15.0.dev
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR01_Enablement_Configuration::test_fr01_3_disabled_by_default: missing_feature (OTLP trace metrics are still auto-enabled without OTEL_TRACES_SPAN_METRICS_ENABLED=true)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR01_Enablement_Configuration::test_fr01_6_disabled_when_apm_tracing_disabled: missing_feature (OTLP trace metrics are still emitted when DD_APM_TRACING_ENABLED=false)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_Datadog_Attributes::test_fr08_14_peer_tags: missing_feature (Blocked on test-agent support for advertising a peer_tags allowlist in /info)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Baggage: v2.16.0
