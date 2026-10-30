@@ -211,3 +211,35 @@ def test_generated_jobs_point_to_the_checkout_they_run_in(
     pipeline = build_ssi_gitlab_pipeline("php", matrix_data, "dev")
 
     assert {job: pipeline[job]["variables"]["SYSTEM_TESTS_DIR"] for job in expected_dirs} == expected_dirs
+
+
+@scenarios.test_the_test
+def test_aws_and_docker_ssi_jobs_reuse_the_prebuilt_runner_venv(monkeypatch: pytest.MonkeyPatch) -> None:
+    pipeline = yaml.safe_load(Path(".gitlab/ssi_gitlab-ci.yml").read_text())
+    aws_script = "\n".join(pipeline[".base_job_onboarding_system_tests"]["script"])
+    assert "bash utils/scripts/use_prebuilt_runner_venv.sh" in aws_script
+    assert 'PYTHONPATH="${PWD}"' in aws_script
+    assert "SYSTEM_TEST_BUILD_TIMEOUT" not in aws_script
+
+    monkeypatch.setenv("CI_PROJECT_NAME", "system-tests")
+    for name in ("SYSTEM_TESTS_REF", "K8S_INJECTOR_IMG", "K8S_LIB_INIT_IMG", "K8S_WEBLOG_IMG"):
+        monkeypatch.delenv(name, raising=False)
+    generated = build_ssi_gitlab_pipeline(
+        "php",
+        {
+            "aws_ssi_scenario_defs": {},
+            "dockerssi_scenario_defs": {"DOCKER_SSI": {"php-app": [{"ubuntu:22.04": ["8.3"], "arch": "linux/amd64"}]}},
+            "libinjection_scenario_defs": {},
+        },
+        "dev",
+    )
+    docker_scripts = [
+        "\n".join(job["script"])
+        for job in generated.values()
+        if isinstance(job, dict) and job.get("extends") == ".base_docker_ssi_job" and "script" in job
+    ]
+    assert docker_scripts
+    for script in docker_scripts:
+        assert "bash utils/scripts/use_prebuilt_runner_venv.sh" in script
+        assert 'PYTHONPATH="${PWD}"' in script
+        assert "SYSTEM_TEST_BUILD_TIMEOUT" not in script
