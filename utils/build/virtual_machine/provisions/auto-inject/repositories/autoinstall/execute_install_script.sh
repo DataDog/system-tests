@@ -80,8 +80,10 @@ else
 fi
 
 # shellcheck disable=SC2154
+# STRICT must match ENABLED so an SSI component install failure stops the script.
 DD_REPO_URL="$DD_injection_repo_url" \
 DD_APM_INSTRUMENTATION_LANGUAGES="$DD_LANG" \
+DD_APM_INSTRUMENTATION_STRICT="${DD_APM_INSTRUMENTATION_ENABLED}" \
 bash -c "$(cat install_script.sh)"
 
 sudo cp /tmp/datadog-installer-*.log /var/log/datadog

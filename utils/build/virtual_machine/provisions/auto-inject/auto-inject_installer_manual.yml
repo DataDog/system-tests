@@ -73,8 +73,10 @@
       fi
     fi
 
-    # Environment variables for the installer
+    # Environment variables for the installer.
+    # STRICT must match ENABLED so an SSI component install failure stops the script.
     export DD_APM_INSTRUMENTATION_ENABLED=host
+    export DD_APM_INSTRUMENTATION_STRICT=host
     export DD_APM_INSTRUMENTATION_LIBRARIES="${DD_LANG}"
 
     if [ -n "${DD_INSTALLER_LIBRARY_VERSION}" ]; then
@@ -231,7 +233,9 @@
     Set-ExecutionPolicy Bypass -Scope Process -Force;
     [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072;
     $env:DD_SITE = "datadoghq.com";
+    # STRICT must match ENABLED so an SSI component install failure stops the script.
     $env:DD_APM_INSTRUMENTATION_ENABLED = "iis"
+    $env:DD_APM_INSTRUMENTATION_STRICT = "iis"
 
     # Check if Install-Datadog.ps1 exists locally in binaries folder
     if (Test-Path "Install-Datadog.ps1") {
