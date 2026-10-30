@@ -496,6 +496,9 @@ patterns:
     manifests/php.yml:
         scenario_groups: null  # already handled by the manifest comparison
         libraries: php
+    utils/build/docker/php/parametric.base.Dockerfile:
+        libraries: php
+        scenarios: PARAMETRIC
     utils/build/docker/php/*:
         scenario_groups: [ end_to_end, open_telemetry]
         libraries: php
