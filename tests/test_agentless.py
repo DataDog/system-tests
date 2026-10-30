@@ -291,6 +291,59 @@ class Test_Agentless_Stats:
         assert entry["Errors"] == 0
 
 
+OBFUSCATION_SPAN_NAME = "sql.query"
+OBFUSCATION_CARD_NUMBER = "4111111111111111"
+
+
+def _find_span_by_name(name: str) -> dict | None:
+    """Search every captured trace-submission request for a span with this name."""
+    for request in _requests_at(TRACE_SUBMISSION_HOST, TRACE_SUBMISSION_PATHS):
+        for trace in request["request"]["content"].get("traces", []):
+            for span in trace.get("spans", []):
+                if span.get("name") == name:
+                    return span
+    return None
+
+
+def _find_stats_entry_by_name(name: str) -> dict | None:
+    """Search every captured stats request for a bucket entry with this name."""
+    for request in _requests_at(STATS_HOST, STATS_PATH):
+        content = request["request"]["content"]
+        for payload in content.get("Stats", []):
+            for bucket in payload.get("Stats", []):
+                for entry in bucket.get("Stats", []):
+                    if entry.get("Name") == name:
+                        return entry
+    return None
+
+
+@scenarios.apm_tracing_agentless
+@features.client_side_stats_supported
+class Test_Agentless_Obfuscation:
+    """SQL literals (a credit-card number here) are obfuscated out of both trace and stats
+    resources before agentless export - libdd-trace-obfuscation runs natively, on the send path,
+    so this holds regardless of what the tracer itself puts in the resource.
+    """
+
+    def setup_obfuscation(self):
+        self.r = weblog.get("/agentless-obfuscation")
+
+    def test_obfuscation(self):
+        assert self.r.status_code == 200
+
+        span = _find_span_by_name(OBFUSCATION_SPAN_NAME)
+        assert span is not None, f"No span named {OBFUSCATION_SPAN_NAME!r} was captured"
+        assert OBFUSCATION_CARD_NUMBER not in span["resource"], (
+            f"Trace submission resource was not obfuscated: {span['resource']!r}"
+        )
+
+        entry = _find_stats_entry_by_name(OBFUSCATION_SPAN_NAME)
+        assert entry is not None, f"No stats entry named {OBFUSCATION_SPAN_NAME!r} was captured"
+        assert OBFUSCATION_CARD_NUMBER not in entry["Resource"], (
+            f"Stats resource was not obfuscated: {entry['Resource']!r}"
+        )
+
+
 @scenarios.apm_tracing_agentless
 @features.client_side_stats_supported
 class Test_Agentless_Stats_Multi_Flush:

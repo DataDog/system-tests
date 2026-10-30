@@ -328,6 +328,13 @@ def healthcheck():
     }
 
 
+@app.route("/agentless-obfuscation")
+def agentless_obfuscation():
+    with tracer.trace("sql.query", span_type="sql") as span:
+        span.resource = "SELECT * FROM users WHERE card_number = '4111111111111111'"
+    return "OK"
+
+
 @app.route("/spawn_child")
 def spawn_child():
     """Spawn child via fork or exec. Params: sleep, crash, fork. Used for telemetry session ID header tests."""

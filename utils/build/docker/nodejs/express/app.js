@@ -696,6 +696,15 @@ app.get('/createextraservice', (req, res) => {
   res.send('OK')
 })
 
+// Manually creates a sql-typed span whose resource embeds a credit-card-like literal, so tests
+// can confirm libdd-trace-obfuscation's generic SQL literal-scrubbing (not the credit-card-tag
+// detector, which only scans span.meta values) redacts it before agentless trace/stats export.
+app.get('/agentless-obfuscation', (req, res) => {
+  tracer.trace('sql.query', { type: 'sql', resource: "SELECT * FROM users WHERE card_number = '4111111111111111'" }, () => {
+    res.send('OK')
+  })
+})
+
 iast.initRoutes(app, tracer)
 
 di.initRoutes(app)
