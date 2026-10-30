@@ -794,6 +794,8 @@ class MockedBackendContainer(TestedContainer):
         f"event-platform-intake.{MOCKED_BACKEND_DOMAIN}",
         f"http-intake.logs.{MOCKED_BACKEND_DOMAIN}",
         f"instrumentation-telemetry-intake.{MOCKED_BACKEND_DOMAIN}",
+        f"llmobs-intake.{MOCKED_BACKEND_DOMAIN}",
+        f"process.{MOCKED_BACKEND_DOMAIN}",
         f"trace.agent.{MOCKED_BACKEND_DOMAIN}",
     )
     tls_cert_file = "utils/mocked_backend/tls/mocked-backend.pem"
