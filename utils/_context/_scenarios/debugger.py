@@ -234,9 +234,7 @@ class DebuggerTelemetry(DdTraceEndToEndScenario):
                 "DD_EXCEPTION_REPLAY_ENABLED": "1",
                 "DD_SYMBOL_DATABASE_UPLOAD_ENABLED": "1",
             },
-            # Java and Ruby aggregate telemetry metrics for 10s before sending them with the next heartbeat (every 2s),
-            # so the debugger telemetry metrics test needs this long for skipped events to be reported.
-            library_interface_timeout=15,
+            library_interface_timeout=5,
             doc="Test scenario for checking debugger telemetry.",
             scenario_groups=[scenario_groups.debugger, scenario_groups.telemetry],
         )
