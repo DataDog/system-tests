@@ -24,12 +24,15 @@ printf '#!/bin/sh\n\nexit 101\n' > /usr/sbin/policy-rc.d && \
 	&& rm -rf /var/lib/apt/lists/* && \
 	rm -rf /usr/sbin/policy-rc.d
 
-# php-rdkafka, the Kafka client of the DSM endpoints. This PHP is built from source, so no
-# distribution package of the extension matches it.
+# php-rdkafka, the Kafka client of the DSM endpoints, from PECL as in dd-trace-php's CI images.
+# This PHP is built from source, so no distribution package of the extension matches it.
 RDKAFKA_VERSION=6.0.5
-curl -Lf "https://github.com/arnaud-lb/php-rdkafka/archive/refs/tags/${RDKAFKA_VERSION}.tar.gz" | tar -xz -C /tmp
-(cd "/tmp/php-rdkafka-${RDKAFKA_VERSION}" && phpize && ./configure && make -j"$(nproc)" && make install)
-rm -rf "/tmp/php-rdkafka-${RDKAFKA_VERSION}"
+RDKAFKA_SHA256=0af6b665c963c8c7d1109cec738034378d9c8863cbf612c0bd3235e519a708f1
+curl -Lf --retry 3 --retry-connrefused --retry-delay 2 -o /tmp/rdkafka.tgz "https://pecl.php.net/get/rdkafka-${RDKAFKA_VERSION}.tgz"
+echo "${RDKAFKA_SHA256}  /tmp/rdkafka.tgz" | sha256sum -c -
+tar -xzf /tmp/rdkafka.tgz -C /tmp
+(cd "/tmp/rdkafka-${RDKAFKA_VERSION}" && phpize && ./configure && make -j"$(nproc)" && make install)
+rm -rf /tmp/rdkafka.tgz /tmp/package.xml "/tmp/rdkafka-${RDKAFKA_VERSION}"
 
 a2enmod rewrite
 
