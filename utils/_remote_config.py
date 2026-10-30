@@ -478,17 +478,20 @@ def _build_base_command(path_payloads: Mapping[str, Any], version: int):
     return rcm
 
 
-def build_debugger_command(probes: list | None, version: int):
-    if probes is None:
-        return _build_base_command({}, version)
+def _live_debugging_path_payloads(probes: list | None) -> dict[str, Any]:
+    """Map each probe to its LIVE_DEBUGGING target file path.
 
-    path_payloads = {}
-    for probe in probes:
+    The path names the probe by its type in camel case (LOG_PROBE becomes logProbe) and its id.
+    """
+    path_payloads: dict[str, Any] = {}
+    for probe in probes or []:
         probe_path = re.sub(r"_([a-z])", lambda match: match.group(1).upper(), probe["type"].lower())
-        path = f"datadog/2/LIVE_DEBUGGING/{probe_path}_{probe['id']}/config"
-        path_payloads[path] = probe
+        path_payloads[f"datadog/2/LIVE_DEBUGGING/{probe_path}_{probe['id']}/config"] = probe
+    return path_payloads
 
-    return _build_base_command(path_payloads, version)
+
+def build_debugger_command(probes: list | None, version: int):
+    return _build_base_command(_live_debugging_path_payloads(probes), version)
 
 
 def send_debugger_command(probes: list, version: int = 1) -> RemoteConfigStateResults:
@@ -743,19 +746,24 @@ def library_supports_sdk_configuration() -> bool:
     return resolve_sdk_configuration_support(library.get_rc_capabilities, library_name=context.library.name)
 
 
-def build_apm_tracing_command(
-    version: int,
+def _accumulated_apm_tracing_path_payloads(
     prev_payloads: list[dict[str, Any]],
     *,
-    dynamic_instrumentation_enabled: bool | None = None,
-    exception_replay_enabled: bool | None = None,
-    live_debugging_enabled: bool | None = None,
-    code_origin_enabled: bool | None = None,
-    dynamic_sampling_enabled: bool | None = None,
-    service_name: str | None = "weblog",
-    env: str | None = "system-tests",
-    use_sdk_config: bool = False,
-):
+    dynamic_instrumentation_enabled: bool | None,
+    exception_replay_enabled: bool | None,
+    live_debugging_enabled: bool | None,
+    code_origin_enabled: bool | None,
+    dynamic_sampling_enabled: bool | None,
+    service_name: str | None,
+    env: str | None,
+    use_sdk_config: bool,
+) -> dict[str, Any]:
+    """Build the APM_TRACING target files of every config in prev_payloads plus a new one.
+
+    Each config goes under its own fresh path, in the `sdk_config` shape when `use_sdk_config`
+    is set and in the legacy `lib_config` shape otherwise. The new config is appended to
+    prev_payloads.
+    """
     lib_config: dict[str, str | bool] = {
         "library_language": "all",
         "library_version": "latest",
@@ -780,7 +788,7 @@ def build_apm_tracing_command(
         "service_target": {"service": service_name, "env": env},
     }
 
-    path_payloads = {}
+    path_payloads: dict[str, Any] = {}
     for _config in [*prev_payloads, config]:
         path_payloads[f"datadog/2/APM_TRACING/{uuid.uuid4()}/config"] = (
             to_sdk_config_payload(_config) if use_sdk_config else _config
@@ -789,6 +797,33 @@ def build_apm_tracing_command(
     # `prev_payloads` tracks the legacy shape: it is the input of the next command, and gets
     # translated on its way out just like this one.
     prev_payloads.append(config)
+    return path_payloads
+
+
+def build_apm_tracing_command(
+    version: int,
+    prev_payloads: list[dict[str, Any]],
+    *,
+    dynamic_instrumentation_enabled: bool | None = None,
+    exception_replay_enabled: bool | None = None,
+    live_debugging_enabled: bool | None = None,
+    code_origin_enabled: bool | None = None,
+    dynamic_sampling_enabled: bool | None = None,
+    service_name: str | None = "weblog",
+    env: str | None = "system-tests",
+    use_sdk_config: bool = False,
+):
+    path_payloads = _accumulated_apm_tracing_path_payloads(
+        prev_payloads,
+        dynamic_instrumentation_enabled=dynamic_instrumentation_enabled,
+        exception_replay_enabled=exception_replay_enabled,
+        live_debugging_enabled=live_debugging_enabled,
+        code_origin_enabled=code_origin_enabled,
+        dynamic_sampling_enabled=dynamic_sampling_enabled,
+        service_name=service_name,
+        env=env,
+        use_sdk_config=use_sdk_config,
+    )
     return _build_base_command(path_payloads, version)
 
 
@@ -897,12 +932,7 @@ def build_combined_apm_tracing_and_debugger_command(
         to_sdk_config_payload(apm_config) if use_sdk_config else apm_config
     )
 
-    # Add LIVE_DEBUGGING configs (probes)
-    if probes:
-        for probe in probes:
-            probe_path = re.sub(r"_([a-z])", lambda match: match.group(1).upper(), probe["type"].lower())
-            path = f"datadog/2/LIVE_DEBUGGING/{probe_path}_{probe['id']}/config"
-            path_payloads[path] = probe
+    path_payloads |= _live_debugging_path_payloads(probes)
 
     return _build_base_command(path_payloads, version), apm_config
 
@@ -944,6 +974,80 @@ def send_combined_apm_tracing_and_debugger_command(
     prev_payloads.append(apm_config)
 
     # Use backend target for scenarios with rc_backend_enabled, tracer target otherwise
+    target: RemoteConfigTarget = "backend" if context.scenario.rc_backend_enabled else "tracer"
+    return send_state(raw_payload, target=target)
+
+
+def build_combined_apm_tracing_and_debugger_command_multiconfig(
+    version: int,
+    prev_payloads: list[dict[str, Any]],
+    probes: list | None,
+    *,
+    dynamic_instrumentation_enabled: bool | None,
+    exception_replay_enabled: bool | None,
+    live_debugging_enabled: bool | None,
+    code_origin_enabled: bool | None,
+    dynamic_sampling_enabled: bool | None,
+    service_name: str | None,
+    env: str | None,
+    use_sdk_config: bool,
+) -> dict[str, Any]:
+    """Build an RC command with several accumulated APM_TRACING configs plus LIVE_DEBUGGING probes.
+
+    The APM_TRACING multiconfig merge requires several APM_TRACING configs with distinct
+    service_target scopes to be active at the same time. Remote Config's client_configs
+    field is the complete list of active configs, so every previously-accumulated APM_TRACING
+    config is re-sent (each under its own path) alongside the new one, and the new config is
+    appended to prev_payloads.
+    """
+    path_payloads = _accumulated_apm_tracing_path_payloads(
+        prev_payloads,
+        dynamic_instrumentation_enabled=dynamic_instrumentation_enabled,
+        exception_replay_enabled=exception_replay_enabled,
+        live_debugging_enabled=live_debugging_enabled,
+        code_origin_enabled=code_origin_enabled,
+        dynamic_sampling_enabled=dynamic_sampling_enabled,
+        service_name=service_name,
+        env=env,
+        use_sdk_config=use_sdk_config,
+    )
+    path_payloads |= _live_debugging_path_payloads(probes)
+    return _build_base_command(path_payloads, version)
+
+
+def send_combined_apm_tracing_and_debugger_command_multiconfig(
+    prev_payloads: list[dict[str, Any]],
+    *,
+    probes: list | None = None,
+    dynamic_instrumentation_enabled: bool | None = None,
+    exception_replay_enabled: bool | None = None,
+    live_debugging_enabled: bool | None = None,
+    code_origin_enabled: bool | None = None,
+    dynamic_sampling_enabled: bool | None = None,
+    service_name: str | None = "weblog",
+    env: str | None = "system-tests",
+    version: int = 1,
+) -> RemoteConfigStateResults:
+    """Send an RC command accumulating multiple APM_TRACING configs plus LIVE_DEBUGGING probes.
+
+    Each call appends its APM_TRACING config to prev_payloads, so a later call with the same
+    prev_payloads re-sends every prior config alongside the new one and the tracer merges
+    them (most-specific service_target wins per lib_config field).
+    """
+    raw_payload = build_combined_apm_tracing_and_debugger_command_multiconfig(
+        version,
+        prev_payloads,
+        probes,
+        dynamic_instrumentation_enabled=dynamic_instrumentation_enabled,
+        exception_replay_enabled=exception_replay_enabled,
+        live_debugging_enabled=live_debugging_enabled,
+        code_origin_enabled=code_origin_enabled,
+        dynamic_sampling_enabled=dynamic_sampling_enabled,
+        service_name=service_name,
+        env=env,
+        use_sdk_config=library_supports_sdk_configuration(),
+    )
+
     target: RemoteConfigTarget = "backend" if context.scenario.rc_backend_enabled else "tracer"
     return send_state(raw_payload, target=target)
 
