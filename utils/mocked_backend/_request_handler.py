@@ -109,10 +109,30 @@ class MockBackendV2RequestHandler(BaseHTTPRequestHandler):
     def do_PUT(self) -> None:
         self._handle("PUT")
 
+    def _read_body(self) -> bytes:
+        if "chunked" in self.headers.get("Transfer-Encoding", "").lower():
+            # the trace agent forwards some payloads (e.g. profiles) with chunked encoding
+            chunks = []
+            while True:
+                size_line = self.rfile.readline()
+                if not size_line:
+                    break
+                size = int(size_line.split(b";", 1)[0].strip(), 16)
+                if size == 0:
+                    # consume optional trailers up to the terminating empty line
+                    while self.rfile.readline() not in (b"\r\n", b"\n", b""):
+                        pass
+                    break
+                chunks.append(self.rfile.read(size))
+                self.rfile.readline()  # CRLF after each chunk
+            return b"".join(chunks)
+
+        content_length = int(self.headers.get("Content-Length", "0"))
+        return self.rfile.read(content_length) if content_length else b""
+
     def _handle(self, method: HttpMethod) -> None:
         timestamp_start = datetime.now(UTC).isoformat()
-        content_length = int(self.headers.get("Content-Length", "0"))
-        raw_body = self.rfile.read(content_length) if content_length else b""
+        raw_body = self._read_body()
         url_parts = urlsplit(self.path)
         path = url_parts.path
 
