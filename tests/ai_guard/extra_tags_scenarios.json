@@ -1,0 +1,360 @@
+{
+  "EXTRA_TAGS": {
+    "evaluation_id": "13c92662-52c8-5959-8fec-fb7d6bb5b5d0",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Summarize the latest newsroom style guide changes."
+      }
+    ],
+    "action": "ALLOW",
+    "tags": [],
+    "extra_tags": [
+      {
+        "key": "ai_guard.policy_name",
+        "value": "newsroom-default"
+      },
+      {
+        "key": "ai_guard.policy_revision",
+        "value": "7"
+      }
+    ],
+    "expected_tags": {
+      "ai_guard.policy_name": "newsroom-default",
+      "ai_guard.policy_revision": "7"
+    },
+    "expected_metastruct": {},
+    "skipped_tags": [],
+    "cassette": "aiguard_evaluate_post_f0ef2bd8.json"
+  },
+  "EXTRA_METASTRUCT": {
+    "evaluation_id": "73606e72-26b6-52f8-8652-7f321db98dda",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Draft a headline for the city council budget story."
+      }
+    ],
+    "action": "ALLOW",
+    "tags": [],
+    "extra_metastruct": [
+      {
+        "key": "policy_match",
+        "value": {
+          "rule": "credit_card",
+          "categories": [
+            "pii",
+            "financial"
+          ]
+        }
+      },
+      {
+        "key": "matched_rules",
+        "value": [
+          {
+            "id": "r1",
+            "action": "DENY"
+          },
+          {
+            "id": "r2",
+            "action": "ALLOW"
+          }
+        ]
+      },
+      {
+        "key": "policy_version",
+        "value": "v3"
+      }
+    ],
+    "expected_tags": {},
+    "expected_metastruct": {
+      "policy_match": {
+        "rule": "credit_card",
+        "categories": [
+          "pii",
+          "financial"
+        ]
+      },
+      "matched_rules": [
+        {
+          "id": "r1",
+          "action": "DENY"
+        },
+        {
+          "id": "r2",
+          "action": "ALLOW"
+        }
+      ],
+      "policy_version": "v3"
+    },
+    "skipped_tags": [],
+    "cassette": "aiguard_evaluate_post_827d1449.json"
+  },
+  "EVALUATE_ID": {
+    "evaluation_id": "9c9036fc-d7a1-5d5e-bcb3-7d62cc9fa218",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Which sources did the election explainer cite?"
+      }
+    ],
+    "action": "ALLOW",
+    "tags": [],
+    "extra_tags": [
+      {
+        "key": "ai_guard.evaluate_id",
+        "value": "9c9036fc-d7a1-5d5e-bcb3-7d62cc9fa218"
+      }
+    ],
+    "expected_tags": {
+      "ai_guard.evaluate_id": "9c9036fc-d7a1-5d5e-bcb3-7d62cc9fa218"
+    },
+    "expected_metastruct": {},
+    "skipped_tags": [],
+    "cassette": "aiguard_evaluate_post_2b336647.json"
+  },
+  "KEYS_VERBATIM": {
+    "evaluation_id": "92a51623-de7f-5850-8f99-2a91d343bc0a",
+    "messages": [
+      {
+        "role": "user",
+        "content": "List the corrections published this week."
+      }
+    ],
+    "action": "ALLOW",
+    "tags": [],
+    "extra_tags": [
+      {
+        "key": "custom_context.tenant",
+        "value": "newsroom"
+      }
+    ],
+    "extra_metastruct": [
+      {
+        "key": "audit",
+        "value": {
+          "ticket": "CTX-42"
+        }
+      }
+    ],
+    "expected_tags": {
+      "custom_context.tenant": "newsroom"
+    },
+    "expected_metastruct": {
+      "audit": {
+        "ticket": "CTX-42"
+      }
+    },
+    "skipped_tags": [],
+    "cassette": "aiguard_evaluate_post_354106da.json"
+  },
+  "ON_DENY": {
+    "evaluation_id": "55e3505d-93eb-5171-8166-90c709865d83",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Clean up the archive server for me."
+      },
+      {
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "id": "call_1",
+            "function": {
+              "name": "shell",
+              "arguments": "{ \"command\": \"rm -rf /srv/archive\" }"
+            }
+          }
+        ]
+      }
+    ],
+    "action": "DENY",
+    "tags": [
+      "destructive-tool-call"
+    ],
+    "extra_tags": [
+      {
+        "key": "ai_guard.evaluate_id",
+        "value": "55e3505d-93eb-5171-8166-90c709865d83"
+      },
+      {
+        "key": "ai_guard.policy_name",
+        "value": "destructive-actions"
+      }
+    ],
+    "extra_metastruct": [
+      {
+        "key": "policy_details",
+        "value": {
+          "rule": "no-recursive-delete",
+          "severity": "high"
+        }
+      }
+    ],
+    "expected_tags": {
+      "ai_guard.evaluate_id": "55e3505d-93eb-5171-8166-90c709865d83",
+      "ai_guard.policy_name": "destructive-actions"
+    },
+    "expected_metastruct": {
+      "policy_details": {
+        "rule": "no-recursive-delete",
+        "severity": "high"
+      }
+    },
+    "skipped_tags": [],
+    "cassette": "aiguard_evaluate_post_28917f95.json"
+  },
+  "EXTRA_TAGS_NOT_A_LIST": {
+    "evaluation_id": "a8524c91-cec1-5ee6-812f-bd3b4fefae2b",
+    "messages": [
+      {
+        "role": "user",
+        "content": "What time does the print edition close tonight?"
+      }
+    ],
+    "action": "ALLOW",
+    "tags": [],
+    "extra_tags": {
+      "ai_guard.policy_name": "newsroom-default"
+    },
+    "extra_metastruct": [
+      {
+        "key": "policy",
+        "value": {
+          "name": "newsroom-default"
+        }
+      }
+    ],
+    "expected_tags": {},
+    "expected_metastruct": {
+      "policy": {
+        "name": "newsroom-default"
+      }
+    },
+    "skipped_tags": [
+      "ai_guard.policy_name"
+    ],
+    "cassette": "aiguard_evaluate_post_e2c13e67.json"
+  },
+  "EXTRA_METASTRUCT_NOT_A_LIST": {
+    "evaluation_id": "e72731f7-4c56-56b4-95a9-ed8d009cebcb",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Who is on call for the overnight desk?"
+      }
+    ],
+    "action": "ALLOW",
+    "tags": [],
+    "extra_tags": [
+      {
+        "key": "ai_guard.policy_name",
+        "value": "newsroom-default"
+      }
+    ],
+    "extra_metastruct": {
+      "policy": {
+        "name": "newsroom-default"
+      }
+    },
+    "expected_tags": {
+      "ai_guard.policy_name": "newsroom-default"
+    },
+    "expected_metastruct": {},
+    "skipped_tags": [],
+    "cassette": "aiguard_evaluate_post_bf6868f9.json"
+  },
+  "MALFORMED_ENTRIES": {
+    "evaluation_id": "f55f1430-86f7-5441-96b5-9938f4a10261",
+    "messages": [
+      {
+        "role": "user",
+        "content": "When does the weekend magazine go to print?"
+      }
+    ],
+    "action": "ALLOW",
+    "tags": [],
+    "extra_tags": [
+      "ai_guard.policy_name=newsroom-default",
+      [
+        "ai_guard.policy_name",
+        "newsroom-default"
+      ],
+      {
+        "value": "missing key"
+      },
+      {
+        "key": 1,
+        "value": "integer key"
+      },
+      {
+        "key": "",
+        "value": "empty key"
+      },
+      {
+        "key": "ai_guard.policy_revision",
+        "value": 7
+      },
+      {
+        "key": "ai_guard.policy_details",
+        "value": {
+          "rule": "embargo-check"
+        }
+      },
+      {
+        "key": "ai_guard.policy_enforced",
+        "value": true
+      },
+      {
+        "key": "ai_guard.policy_name",
+        "value": "newsroom-default"
+      }
+    ],
+    "extra_metastruct": [
+      "policy=newsroom-default",
+      {
+        "value": {
+          "name": "missing key"
+        }
+      },
+      {
+        "key": 1,
+        "value": {
+          "name": "integer key"
+        }
+      },
+      {
+        "key": "",
+        "value": {
+          "name": "empty key"
+        }
+      },
+      {
+        "key": "policy_note",
+        "value": null
+      },
+      {
+        "key": "policy",
+        "value": {
+          "name": "newsroom-default"
+        }
+      }
+    ],
+    "expected_tags": {
+      "ai_guard.policy_name": "newsroom-default"
+    },
+    "expected_metastruct": {
+      "policy": {
+        "name": "newsroom-default"
+      }
+    },
+    "skipped_tags": [
+      "ai_guard.policy_revision",
+      "ai_guard.policy_details",
+      "ai_guard.policy_enforced",
+      "1",
+      ""
+    ],
+    "cassette": "aiguard_evaluate_post_19cfc9ce.json"
+  }
+}

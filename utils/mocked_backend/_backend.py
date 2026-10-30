@@ -1,9 +1,9 @@
 """MockedBackendServer: the base class for every mocked HTTP backend, and, used as-is, the generic
-mocked backend standing in for the real Datadog backend API used by ``interfaces.backend_v2``
+mocked backend standing in for the real Datadog backend API used by ``interfaces.mocked_backend``
 (``utils/interfaces/_backend.py``).
 
 Used directly, its only job is to record every request it receives into the interface's log folder
-(``logs/interfaces/backend_v2``), the same way every other interface persists what it observes.
+(``logs/interfaces/mocked_backend``), the same way every other interface persists what it observes.
 """
 
 from __future__ import annotations
@@ -17,6 +17,7 @@ from typing import TYPE_CHECKING
 
 from ._request_handler import MockedBackendServerCore, MockBackendV2RequestHandler, HttpMethod, RouteHandler
 from ._backend_ffe import MockedBackendServerFfeMixin
+from ._backend_rc import MockedBackendServerRcMixin
 from ._client import MockedBackendClient
 from ._utils import CONTROL_URL_PREFIX, HOST_DOCKER_INTERNAL, logger
 
@@ -27,7 +28,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable, Mapping
 
 
-class MockedBackendServer(MockedBackendServerFfeMixin, MockedBackendServerCore):
+class MockedBackendServer(MockedBackendServerFfeMixin, MockedBackendServerRcMixin, MockedBackendServerCore):
     """Base HTTP server for every mocked backend, and, used as-is, a local HTTP server standing in
     for the Datadog backend API: it binds on every interface (not just loopback) so containers can
     reach it through host.docker.internal, runs requests on daemon threads, starts itself on its
@@ -91,6 +92,7 @@ class MockedBackendServer(MockedBackendServerFfeMixin, MockedBackendServerCore):
         self.add_handler("GET", f"{CONTROL_URL_PREFIX}/health", self._handle_health)
         self.add_handler("PUT", f"{CONTROL_URL_PREFIX}/mocked-responses", self._handle_mocked_responses)
         self._ffe_configure()
+        self._rc_configure()
 
         self._thread = threading.Thread(target=self.serve_forever, name=self.thread_name, daemon=True)
         self._thread.start()

@@ -32,7 +32,7 @@ class OtlpRuntimeMetrics(DdTraceEndToEndScenario):
             runtime_metrics_enabled=True,
             include_opentelemetry=True,
             library_interface_timeout=20,
-            mocked_backend_v2=True,
+            mocked_backend=True,
             use_proxy_for_agent=False,
             doc="Test ddtrace runtime metrics exported via OTLP with OTel semantic convention names",
         )

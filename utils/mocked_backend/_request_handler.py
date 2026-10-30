@@ -146,7 +146,7 @@ class MockBackendV2RequestHandler(BaseHTTPRequestHandler):
 
         self._data["response"]["content"] = str(response) if isinstance(response, bytes) else response
 
-        logger.debug(f"Mocked backend v2 received {self.command} {self.path}, logging into {log_filename}")
+        logger.info(f"{self.command} {self.path} -> handled by {handler}: {self._data['response'].get('status_code')}")
 
         if log_filename:
             with open(log_filename, mode="w", encoding="utf-8") as f:

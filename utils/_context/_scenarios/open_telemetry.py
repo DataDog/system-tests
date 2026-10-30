@@ -43,7 +43,6 @@ class _OpenTelemetryScenario(DockerScenario):
         include_intake: bool = True,
         backend_interface_timeout: int = 20,
         require_api_key: bool = False,
-        mocked_backend: bool = True,
         extra_containers: tuple[type[TestedContainer], ...] = (),
     ) -> None:
         super().__init__(
@@ -53,7 +52,6 @@ class _OpenTelemetryScenario(DockerScenario):
             scenario_groups=[scenario_groups.all, scenario_groups.open_telemetry],
             weblog_categories=[WeblogCategory.open_telemetry],
             use_proxy=True,
-            mocked_backend=mocked_backend,
             extra_containers=extra_containers,
         )
         if include_agent:
