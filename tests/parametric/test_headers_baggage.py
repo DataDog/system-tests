@@ -429,3 +429,72 @@ class Test_Headers_Baggage_Span_Tags:
         assert meta.get("baggage.account.id") == "12345"
         assert meta.get("baggage.foo") is None
         assert meta.get("baggage.test") is None
+
+
+def _parse_w3c_baggage(header: str) -> dict[str, str]:
+    items = {}
+    for member in header.split(","):
+        key, _, value = member.strip().partition("=")
+        items[key.strip()] = value.strip()
+    return items
+
+
+# An old dd-trace-go (query-form encoding) writes a space as "+".
+# A W3C-compliant tracer must read "+" as a literal plus, never as a space.
+_DD_PARENT = [("x-datadog-trace-id", "123456789"), ("x-datadog-parent-id", "987654321")]
+_ENCODED_BAGGAGE = "plus=a+b,space=a%20b,pct=100%25,k+y=v,k%25y=v"
+
+
+@features.datadog_headers_propagation
+@scenarios.parametric
+class Test_Headers_Baggage_Percent_Encoding:
+    """Baggage values use percent-encoding only (W3C), not query-form encoding.
+
+    space -> %20, literal + stays literal (or %2B), literal % -> %25.
+    See https://github.com/DataDog/dd-trace-go/issues/5181
+
+    The parametric scenario runs one tracer at a time, so a real two-tracer hop is not possible here.
+    Each test simulates the upstream hop: it sends the headers that an old dd-trace-go (query-form,
+    space as "+") or another tracer writes, and checks what the tracer under test re-injects.
+    W3C keys are opaque: "k+y" is a token and must come back unchanged. "k%25y" must never be
+    percent-decoded to "k%y"; a tracer may keep it verbatim (dd-trace-go does) or drop it on inject.
+    """
+
+    def test_w3c_encoding(self, test_library: APMLibrary) -> None:
+        # Re-injection proves the decode step: an undecoded "%25" would come back as "%2525",
+        # and a query-form decoder would turn "+" into a space ("%20").
+        with test_library:
+            headers = test_library.dd_make_child_span_and_get_headers([*_DD_PARENT, ("baggage", _ENCODED_BAGGAGE)])
+
+        # Wire shape after re-injection.
+        items = _parse_w3c_baggage(headers["baggage"])
+        assert items["plus"] in ("a+b", "a%2Bb")
+        assert items["space"] == "a%20b"
+        assert items["pct"] == "100%25"
+        assert items["k+y"] == "v"
+        assert "k%y" not in items
+        assert items.get("k%25y", "v") == "v"
+
+    def test_w3c_non_token_key_dropped(self, test_library: APMLibrary) -> None:
+        """A key outside the key character set ("(") is dropped on inject; keys with "+" or "%" are kept verbatim."""
+        with test_library:
+            headers = test_library.dd_make_child_span_and_get_headers([*_DD_PARENT, ("baggage", "k+y=v,k%25y=w,k(y=x")])
+
+        items = _parse_w3c_baggage(headers["baggage"])
+        assert items == {"k+y": "v", "k%25y": "w"}
+
+    @parametrize("library_env", [{"DD_TRACE_PROPAGATION_STYLE": "datadog"}])
+    def test_ot_baggage_encoding(self, test_library: APMLibrary) -> None:
+        with test_library:
+            headers = test_library.dd_make_child_span_and_get_headers(
+                [
+                    *_DD_PARENT,
+                    ("ot-baggage-plus", "a+b"),
+                    ("ot-baggage-space", "a%20b"),
+                    ("ot-baggage-pct", "100%25"),
+                ]
+            )
+
+        assert headers["ot-baggage-plus"] in ("a+b", "a%2Bb")
+        assert headers["ot-baggage-space"] == "a%20b"
+        assert headers["ot-baggage-pct"] == "100%25"

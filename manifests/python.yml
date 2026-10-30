@@ -3183,6 +3183,9 @@ manifest:
       component_version: '>2.20.0'
   tests/parametric/test_headers_b3multi.py::Test_Headers_B3multi: v2.8.0
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage: v2.16.0
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Percent_Encoding::test_ot_baggage_encoding: missing_feature (ot-baggage-* re-injection not verified)
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Percent_Encoding::test_w3c_encoding: missing_feature (injects literal % unencoded and percent-decodes W3C keys)
+  tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Percent_Encoding::test_w3c_non_token_key_dropped: missing_feature (drop of W3C keys outside the key character set not verified)
   tests/parametric/test_headers_baggage.py::Test_Headers_Baggage_Span_Tags: v3.7.0
   tests/parametric/test_headers_datadog.py::Test_Headers_Datadog: v2.8.0
   tests/parametric/test_headers_none.py::Test_Headers_None: v2.8.0
