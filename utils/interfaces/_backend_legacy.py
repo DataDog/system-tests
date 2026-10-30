@@ -18,7 +18,7 @@ from utils._logger import logger
 from utils._weblog import HttpResponse
 
 
-class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
+class _BackendLegacyInterfaceValidator(ProxyBasedInterfaceValidator):
     """Validate backend data processors"""
 
     def __init__(self, library_interface: LibraryInterfaceValidator):

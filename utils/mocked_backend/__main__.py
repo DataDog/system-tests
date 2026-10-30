@@ -1,6 +1,6 @@
 """Run the mocked backend in its own process, e.g. in a container:
 
-    python -m utils.mocked_backend --port 4900 --log-folder logs/interfaces/backend_v2
+    python -m utils.mocked_backend --port 4900 --log-folder logs/interfaces/mocked_backend
 
 It serves until it receives SIGTERM (sent by `docker stop`) or SIGINT.
 """
@@ -27,7 +27,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)-8s %(message)s")
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)-8s %(message)s", stream=sys.stdout)
 
     if args.log_folder:
         Path(args.log_folder).mkdir(parents=True, exist_ok=True)

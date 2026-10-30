@@ -311,7 +311,7 @@ patterns:
     utils/mocked_backend/ffe.py:
         scenario_groups: agentless
         scenarios: PARAMETRIC
-    utils/mocked_backend/*:  # generic mocked backend, also used by interfaces.backend_v2
+    utils/mocked_backend/*:  # generic mocked backend, also used by interfaces.mocked_backend
         scenario_groups: agentless
         scenarios: [PARAMETRIC, APM_TRACING_E2E_OTEL, APM_TRACING_E2E_SINGLE_SPAN]
 
@@ -496,6 +496,9 @@ patterns:
     manifests/php.yml:
         scenario_groups: null  # already handled by the manifest comparison
         libraries: php
+    utils/build/docker/php/parametric.base.Dockerfile:
+        libraries: php
+        scenarios: PARAMETRIC
     utils/build/docker/php/*:
         scenario_groups: [ end_to_end, open_telemetry]
         libraries: php

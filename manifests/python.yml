@@ -60,6 +60,14 @@ manifest:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
         "flask-poc": v3.18.1
+  tests/ai_guard/test_ai_guard_sdk.py::Test_ExtraTags:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "flask-poc": v4.17.0-dev
+  tests/ai_guard/test_ai_guard_sdk.py::Test_ExtraTagsFailSafe:
+    - weblog_declaration:
+        "*": irrelevant (just one weblog is enough to test the SDK)
+        "flask-poc": v4.17.0-dev
   tests/ai_guard/test_ai_guard_sdk.py::Test_Full_Response_And_Tags:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)

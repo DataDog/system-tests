@@ -411,14 +411,20 @@ system_tests_param:
       python3 -c "
       import json, shlex
       with open('raw_params.txt') as f:
-          for line in f:
-              line = line.strip()
-              if '=' not in line: continue
-              key, val = line.split('=', 1)
-              val = json.loads(val)
-              if key == 'libraries': print('export LIBRARIES=' + shlex.quote(str(val)))
-              elif key == 'scenarios': print('export SCENARIOS=' + shlex.quote(str(val)))
-              elif key == 'scenarios_groups': print('export SCENARIO_GROUPS=' + shlex.quote(str(val)))
+          params = dict(line.strip().split('=', 1) for line in f if '=' in line)
+      params = {key: json.loads(val) for key, val in params.items()}
+      if 'library_weblog_scenarios' in params and 'libraries' not in params:
+          # alongside library_weblog_scenarios, build_pipeline.py needs libraries for scenarios/scenarios_groups
+          params.pop('scenarios', None)
+          params.pop('scenarios_groups', None)
+      variables = {
+          'LIBRARIES': 'libraries',
+          'SCENARIOS': 'scenarios',
+          'SCENARIO_GROUPS': 'scenarios_groups',
+          'LIBRARY_WEBLOG_SCENARIOS': 'library_weblog_scenarios',
+      }
+      for variable, key in variables.items():
+          if key in params: print('export ' + variable + '=' + shlex.quote(str(params[key])))
       " > set_vars.sh
       source set_vars.sh
     - export EXCLUDED_SCENARIOS='DEBUGGER_EXPRESSION_LANGUAGE'

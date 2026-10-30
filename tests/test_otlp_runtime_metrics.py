@@ -251,7 +251,7 @@ def get_runtime_metrics_by_name() -> dict[str, list[dict[str, str]]]:
     Tags are parsed from "key:value" strings in the series the agent sent to the mocked backend.
     """
     result: dict[str, list[dict[str, str]]] = {}
-    for _, metric in interfaces.backend_v2.get_metrics():
+    for _, metric in interfaces.mocked_backend.get_metrics():
         name: str = metric["metric"]
         tags: dict[str, str] = dict(tag.split(":", 1) for tag in metric.get("tags", []) if ":" in tag)
         result.setdefault(name, []).append(tags)
@@ -268,7 +268,7 @@ def wait_for_runtime_metrics(library: str) -> None:
     if not expected:
         return
 
-    interfaces.backend_v2.wait_for(
+    interfaces.mocked_backend.wait_for(
         lambda _: expected.keys() <= get_runtime_metrics_by_name().keys(),
         timeout=RUNTIME_METRICS_WAIT_TIMEOUT,
     )
