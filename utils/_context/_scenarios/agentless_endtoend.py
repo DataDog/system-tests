@@ -4,6 +4,7 @@ import hashlib
 import json
 from pathlib import Path
 import time
+from collections.abc import Callable
 from typing import Any, Literal, cast
 
 from docker.models.containers import Container
@@ -29,6 +30,7 @@ DIRECT_EVP_FLAGEVALUATIONS_PATH = "/api/v2/flagevaluation"
 DIRECT_EVP_SIGNAL_PATHS = frozenset({DIRECT_EVP_EXPOSURES_PATH, DIRECT_EVP_FLAGEVALUATIONS_PATH})
 DIRECT_EVP_CAPTURE_WAIT_SECONDS = 30
 DIRECT_EVP_CAPTURE_SETTLE_SECONDS = 3
+DIRECT_EVP_CAPTURE_POLL_SECONDS = 0.01
 DIRECT_EVP_RUNTIME_EVIDENCE_FILENAME = "direct_evp_runtime.json"
 DIRECT_EVP_SHUTDOWN_EVIDENCE_FILENAME = "direct_evp_shutdown.json"
 DIRECT_EVP_STOP_TIMEOUT_SECONDS = 10
@@ -491,6 +493,19 @@ class FeatureFlaggingAgentlessEndToEndScenario(_AgentlessEndToEndScenario):
                 )
         return markers, errors
 
+    def _wait_for_evp_capture(self, matcher: Callable[[dict[str, Any]], bool], timeout: float) -> bool:
+        """Like interfaces.mocked_backend.wait_for, without the watchdog latency: it polls files about once per
+        second, as long as the flush interval of timer-based writers
+        """
+        deadline = time.monotonic() + timeout
+        while True:
+            interfaces.mocked_backend.ingest_all_files()
+            if any(matcher(data) for data in self._evp_captures()):
+                return True
+            if time.monotonic() >= deadline:
+                return False
+            time.sleep(DIRECT_EVP_CAPTURE_POLL_SECONDS)
+
     def _stop_weblog(self, *, is_empty_test_run: bool) -> None:
         if self.exposure_egress != "direct" or self.replay or is_empty_test_run:
             super()._stop_weblog(is_empty_test_run=is_empty_test_run)
@@ -529,7 +544,9 @@ class FeatureFlaggingAgentlessEndToEndScenario(_AgentlessEndToEndScenario):
         priming_started_at = datetime.now(UTC)
         priming_response = weblog.post(priming_evaluation.request_path, json=priming_evaluation.body)
         priming_finished_at = datetime.now(UTC)
-        priming_observed = interfaces.mocked_backend.wait_for(priming_matcher, timeout=DIRECT_EVP_CAPTURE_WAIT_SECONDS)
+        # The fresh flush window starts when the priming request reaches the mocked backend: the target must be
+        # produced and the weblog stopped right after, well before the writer's next timer flush
+        priming_observed = self._wait_for_evp_capture(priming_matcher, timeout=DIRECT_EVP_CAPTURE_WAIT_SECONDS)
         priming_captures = list(filter(priming_matcher, self._evp_captures()))
         if not priming_observed or len(priming_captures) != 1:
             raise RuntimeError(

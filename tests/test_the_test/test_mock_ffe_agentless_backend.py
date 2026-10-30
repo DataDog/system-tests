@@ -470,6 +470,7 @@ def test_direct_evp_shutdown_probe_uses_sigterm_without_explicit_flush(
             [priming_capture],
             [priming_capture],
             [priming_capture],
+            [priming_capture],
             [priming_capture, capture],
         )
     )
@@ -488,6 +489,8 @@ def test_direct_evp_shutdown_probe_uses_sigterm_without_explicit_flush(
     monkeypatch.setattr(interfaces.mocked_backend, "get_data", get_data)
     monkeypatch.setattr(interfaces.mocked_backend, "wait_for", wait_for)
     monkeypatch.setattr(interfaces.mocked_backend, "wait", settle)
+    # the priming capture is polled from the recorded files, without the watchdog latency
+    monkeypatch.setattr(interfaces.mocked_backend, "ingest_all_files", lambda: lifecycle.append("capture-ingest"))
 
     runtime_container = MagicMock()
     runtime_container.status = "exited"
@@ -516,7 +519,8 @@ def test_direct_evp_shutdown_probe_uses_sigterm_without_explicit_flush(
     assert lifecycle == [
         "runtime-evidence",
         "evaluate",
-        "capture-wait",
+        "capture-ingest",
+        "capture-snapshot",
         "capture-snapshot",
         "capture-snapshot",
         "evaluate",
