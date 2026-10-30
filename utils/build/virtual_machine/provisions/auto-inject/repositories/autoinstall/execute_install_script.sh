@@ -79,9 +79,13 @@ else
     curl -L "$INSTALLER_URL" -o install_script.sh
 fi
 
+# STRICT is the mode the install script actually applies (host or docker).
+# It must match ENABLED, and an SSI failure then stops the script.
+echo "SSI instrumentation mode: ${DD_APM_INSTRUMENTATION_ENABLED}"
 # shellcheck disable=SC2154
 DD_REPO_URL="$DD_injection_repo_url" \
 DD_APM_INSTRUMENTATION_LANGUAGES="$DD_LANG" \
+DD_APM_INSTRUMENTATION_STRICT="${DD_APM_INSTRUMENTATION_ENABLED}" \
 bash -c "$(cat install_script.sh)"
 
 sudo cp /tmp/datadog-installer-*.log /var/log/datadog

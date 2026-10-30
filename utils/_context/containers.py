@@ -786,8 +786,15 @@ class MockedBackendContainer(TestedContainer):
     # senders must trust it. See utils/mocked_backend/tls/README.md
     tls_hostnames = (
         MOCKED_BACKEND_DOMAIN,
+        f"agent-http-intake.logs.{MOCKED_BACKEND_DOMAIN}",
+        f"api.{MOCKED_BACKEND_DOMAIN}",
+        f"app.{MOCKED_BACKEND_DOMAIN}",
+        f"config.{MOCKED_BACKEND_DOMAIN}",
+        f"debugger-intake.{MOCKED_BACKEND_DOMAIN}",
         f"event-platform-intake.{MOCKED_BACKEND_DOMAIN}",
+        f"http-intake.logs.{MOCKED_BACKEND_DOMAIN}",
         f"instrumentation-telemetry-intake.{MOCKED_BACKEND_DOMAIN}",
+        f"trace.agent.{MOCKED_BACKEND_DOMAIN}",
     )
     tls_cert_file = "utils/mocked_backend/tls/mocked-backend.pem"
     tls_ca_file = "utils/proxy/.mitmproxy/mitmproxy-ca-cert.pem"
@@ -924,6 +931,7 @@ class AgentContainer(TestedContainer):
         dd_api_key: str,
         use_proxy: bool = True,
         rc_backend_enabled: bool = False,
+        mocked_backend: bool = False,
         environment: dict[str, str | None] | None = None,
     ) -> None:
         environment = environment or {}
@@ -931,7 +939,9 @@ class AgentContainer(TestedContainer):
             {
                 "DD_ENV": "system-tests",
                 "DD_HOSTNAME": "test",
-                "DD_SITE": self.dd_site,
+                # with the mocked backend, like a customer setup: every intake hostname, remote config included, is
+                # derived from it, and is an alias of the mocked backend container
+                "DD_SITE": MOCKED_BACKEND_DOMAIN if mocked_backend else os.environ.get("DD_SITE", "datad0g.com"),
                 "DD_APM_RECEIVER_PORT": str(self.apm_receiver_port),
                 "DD_DOGSTATSD_PORT": str(self.dogstatsd_port),
                 "DD_API_KEY": dd_api_key,
@@ -988,8 +998,8 @@ class AgentContainer(TestedContainer):
         return super().start(network)
 
     @property
-    def dd_site(self):
-        return os.environ.get("DD_SITE", "datad0g.com")
+    def dd_site(self) -> str:
+        return str(self.environment["DD_SITE"])
 
 
 class ServerlessInitContainer(TestedContainer):

@@ -64,6 +64,7 @@ if ! run_with_retry \
     "DD_REPO_URL=${DD_injection_repo_url}" \
     DD_INSTALL_ONLY=true \
     DD_APM_INSTRUMENTATION_ENABLED=host \
+    DD_APM_INSTRUMENTATION_STRICT=host \
     bash ./install_script_agent7.sh; then
     echo "[ERROR] aborting SSI install after Datadog Agent installer failure" >&2
     exit 1

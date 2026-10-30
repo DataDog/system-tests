@@ -11,9 +11,21 @@ from utils import features, scenarios
 from utils.docker_fixtures import TestAgentAPI
 from tests.parametric.conftest import APMLibrary
 from tests.parametric.otel_env_vars import utils as otel_env_var_utils
+from tests.parametric.otel_env_vars.conftest import DefaultProtocol
 from tests.parametric.utils import generate_default_counter_data_point
 
 VARIABLE = "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL"
+
+
+# default_protocol is the fixture from otel_env_vars/conftest.py that observes the SDK's default.
+@pytest.fixture
+def expected_protocol(
+    generic_protocol: otel_env_var_utils.ProtocolInput,
+    protocol: otel_env_var_utils.ProtocolInput,
+    signal: str,
+    default_protocol: DefaultProtocol,
+) -> str:
+    return otel_env_var_utils.expected_protocol(generic_protocol, protocol, signal, default_protocol)
 
 
 # The test matrix supplies the protocol value to exercise protocol selection.
@@ -22,29 +34,29 @@ VARIABLE = "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL"
 # Use the generic endpoint so each SDK derives its HTTP or gRPC signal path.
 @pytest.fixture
 def library_env(
-    generic_protocol: str | None,
-    protocol: str | None,
+    generic_protocol: otel_env_var_utils.ProtocolInput,
+    protocol: otel_env_var_utils.ProtocolInput,
     signal: str,
+    default_protocol: DefaultProtocol,
+    expected_protocol: str,
     test_agent: TestAgentAPI,
     test_agent_otlp_http_port: int,
     test_agent_otlp_grpc_port: int,
 ) -> dict[str, str | None]:
-    expected_protocol = otel_env_var_utils.expected_protocol(generic_protocol, protocol, signal)
     port = test_agent_otlp_grpc_port if expected_protocol == "grpc" else test_agent_otlp_http_port
     env: dict[str, str | None] = {
         f"DD_{signal.upper()}_OTEL_ENABLED": "true",
         "OTEL_EXPORTER_OTLP_ENDPOINT": f"http://{test_agent.container_name}:{port}",
-        VARIABLE: protocol,
+        VARIABLE: otel_env_var_utils.resolve_protocol(protocol, signal, default_protocol),
     }
     if generic_protocol is not None:
-        env["OTEL_EXPORTER_OTLP_PROTOCOL"] = generic_protocol
+        env["OTEL_EXPORTER_OTLP_PROTOCOL"] = otel_env_var_utils.resolve_protocol(
+            generic_protocol, signal, default_protocol
+        )
     return env
 
 
-def _assert_export(
-    test_library: APMLibrary, test_agent: TestAgentAPI, signal: str, protocol: str | None, generic_protocol: str | None
-) -> None:
-    expected_protocol = otel_env_var_utils.expected_protocol(generic_protocol, protocol, signal)
+def _assert_export(test_library: APMLibrary, test_agent: TestAgentAPI, signal: str, expected_protocol: str) -> None:
     with test_library as library:
         generate_default_counter_data_point(library, "selected_protocol_counter")
 
@@ -82,129 +94,86 @@ class Test_OTEL_EXPORTER_OTLP_METRICS_PROTOCOL:
         ("protocol", "generic_protocol"), [pytest.param("http/protobuf", None, id="http-protobuf")]
     )
     def test_http_protobuf(
-        self,
-        test_library: APMLibrary,
-        test_agent: TestAgentAPI,
-        signal: str,
-        protocol: str | None,
-        generic_protocol: str | None,
+        self, test_library: APMLibrary, test_agent: TestAgentAPI, signal: str, expected_protocol: str
     ) -> None:
-        _assert_export(test_library, test_agent, signal, protocol, generic_protocol)
+        _assert_export(test_library, test_agent, signal, expected_protocol)
 
     @pytest.mark.parametrize(("protocol", "generic_protocol"), [pytest.param("grpc", None, id="grpc")])
     def test_grpc(
-        self,
-        test_library: APMLibrary,
-        test_agent: TestAgentAPI,
-        signal: str,
-        protocol: str | None,
-        generic_protocol: str | None,
+        self, test_library: APMLibrary, test_agent: TestAgentAPI, signal: str, expected_protocol: str
     ) -> None:
-        _assert_export(test_library, test_agent, signal, protocol, generic_protocol)
+        _assert_export(test_library, test_agent, signal, expected_protocol)
 
     @pytest.mark.parametrize(("protocol", "generic_protocol"), [pytest.param("http/json", None, id="http-json")])
     def test_http_json(
-        self,
-        test_library: APMLibrary,
-        test_agent: TestAgentAPI,
-        signal: str,
-        protocol: str | None,
-        generic_protocol: str | None,
+        self, test_library: APMLibrary, test_agent: TestAgentAPI, signal: str, expected_protocol: str
     ) -> None:
-        _assert_export(test_library, test_agent, signal, protocol, generic_protocol)
+        _assert_export(test_library, test_agent, signal, expected_protocol)
 
     @pytest.mark.parametrize(("protocol", "generic_protocol"), [pytest.param(None, None, id="unset")])
     def test_default(
-        self,
-        test_library: APMLibrary,
-        test_agent: TestAgentAPI,
-        signal: str,
-        protocol: str | None,
-        generic_protocol: str | None,
+        self, test_library: APMLibrary, test_agent: TestAgentAPI, signal: str, expected_protocol: str
     ) -> None:
-        assert otel_env_var_utils.default_protocol(signal) in ("http/protobuf", "grpc")
-        _assert_export(test_library, test_agent, signal, protocol, generic_protocol)
+        # OTel recommends HTTP/protobuf and permits retaining a historical gRPC default.
+        assert expected_protocol in ("http/protobuf", "grpc")
+        _assert_export(test_library, test_agent, signal, expected_protocol)
 
     @pytest.mark.parametrize(("protocol", "generic_protocol"), [pytest.param("", None, id="empty")])
     def test_empty(
-        self,
-        test_library: APMLibrary,
-        test_agent: TestAgentAPI,
-        signal: str,
-        protocol: str | None,
-        generic_protocol: str | None,
+        self, test_library: APMLibrary, test_agent: TestAgentAPI, signal: str, expected_protocol: str
     ) -> None:
-        _assert_export(test_library, test_agent, signal, protocol, generic_protocol)
+        _assert_export(test_library, test_agent, signal, expected_protocol)
 
     @pytest.mark.parametrize(("protocol", "generic_protocol"), [pytest.param("unsupported", None, id="invalid")])
     def test_invalid(
-        self,
-        test_library: APMLibrary,
-        test_agent: TestAgentAPI,
-        signal: str,
-        protocol: str | None,
-        generic_protocol: str | None,
+        self, test_library: APMLibrary, test_agent: TestAgentAPI, signal: str, expected_protocol: str
     ) -> None:
-        _assert_export(test_library, test_agent, signal, protocol, generic_protocol)
-
-    @pytest.mark.parametrize(
-        ("protocol", "generic_protocol"),
-        [pytest.param(otel_env_var_utils.non_default_protocol("metrics"), None, id="uppercase")],
-    )
-    def test_case_insensitive(
-        self,
-        test_library: APMLibrary,
-        test_agent: TestAgentAPI,
-        signal: str,
-        protocol: str | None,
-        generic_protocol: str | None,
-    ) -> None:
-        _assert_export(test_library, test_agent, signal, protocol, generic_protocol)
+        _assert_export(test_library, test_agent, signal, expected_protocol)
 
     @pytest.mark.parametrize(
         ("protocol", "generic_protocol"),
         [
             pytest.param(
-                otel_env_var_utils.non_default_protocol("metrics").lower(),
-                otel_env_var_utils.default_protocol("metrics"),
+                lambda signal, default: otel_env_var_utils.sdk_non_default(signal, default).upper(),
+                None,
+                id="uppercase",
+            )
+        ],
+    )
+    def test_case_insensitive(
+        self, test_library: APMLibrary, test_agent: TestAgentAPI, signal: str, expected_protocol: str
+    ) -> None:
+        _assert_export(test_library, test_agent, signal, expected_protocol)
+
+    @pytest.mark.parametrize(
+        ("protocol", "generic_protocol"),
+        [
+            pytest.param(
+                otel_env_var_utils.sdk_non_default,
+                otel_env_var_utils.sdk_default,
                 id="signal-nondefault-generic-default",
             )
         ],
     )
     def test_signal_precedence(
-        self,
-        test_library: APMLibrary,
-        test_agent: TestAgentAPI,
-        signal: str,
-        protocol: str | None,
-        generic_protocol: str | None,
+        self, test_library: APMLibrary, test_agent: TestAgentAPI, signal: str, expected_protocol: str
     ) -> None:
-        _assert_export(test_library, test_agent, signal, protocol, generic_protocol)
+        _assert_export(test_library, test_agent, signal, expected_protocol)
 
     @pytest.mark.parametrize(
         ("protocol", "generic_protocol"),
-        [pytest.param(None, otel_env_var_utils.non_default_protocol("metrics").lower(), id="unset-generic-nondefault")],
+        [pytest.param(None, otel_env_var_utils.sdk_non_default, id="unset-generic-nondefault")],
     )
     def test_generic_fallback(
-        self,
-        test_library: APMLibrary,
-        test_agent: TestAgentAPI,
-        signal: str,
-        protocol: str | None,
-        generic_protocol: str | None,
+        self, test_library: APMLibrary, test_agent: TestAgentAPI, signal: str, expected_protocol: str
     ) -> None:
-        _assert_export(test_library, test_agent, signal, protocol, generic_protocol)
+        _assert_export(test_library, test_agent, signal, expected_protocol)
 
     @pytest.mark.parametrize(
         ("protocol", "generic_protocol"),
-        [pytest.param("", otel_env_var_utils.non_default_protocol("metrics").lower(), id="empty-generic-nondefault")],
+        [pytest.param("", otel_env_var_utils.sdk_non_default, id="empty-generic-nondefault")],
     )
     def test_empty_generic_fallback(
-        self,
-        test_library: APMLibrary,
-        test_agent: TestAgentAPI,
-        signal: str,
-        protocol: str | None,
-        generic_protocol: str | None,
+        self, test_library: APMLibrary, test_agent: TestAgentAPI, signal: str, expected_protocol: str
     ) -> None:
-        _assert_export(test_library, test_agent, signal, protocol, generic_protocol)
+        _assert_export(test_library, test_agent, signal, expected_protocol)
