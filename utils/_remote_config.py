@@ -284,9 +284,14 @@ def send_state(
 
     if target == "backend":
         assert backend_enabled, f"Remote config backend is not enabled on {context.scenario}"
-        # Build protobuf on test runner side, send bytes to proxy
-        rc_protobuf = build_rc_configurations_protobuf(raw_payload)
-        MockedBackendResponse(path="/api/v0.1/configurations", content=rc_protobuf).send()
+        # Build protobuf on test runner side, send bytes to the backend the agent polls
+        rc_response = MockedBackendResponse(
+            path="/api/v0.1/configurations", content=build_rc_configurations_protobuf(raw_payload)
+        )
+        if getattr(context.scenario, "use_proxy_for_agent", True):
+            rc_response.send()
+        else:
+            context.scenario.mocked_backend_container.client.set_mocked_responses([rc_response])  # type: ignore[attr-defined]
     elif target == "tracer":
         assert not backend_enabled, f"Remote config backend is enabled on {context.scenario}"
         StaticJsonMockedTracerResponse(path="/v0.7/config", mocked_json=raw_payload).send()

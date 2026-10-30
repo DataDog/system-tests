@@ -1,3 +1,4 @@
+from collections.abc import Callable
 import re
 from typing import Any, Final
 
@@ -77,26 +78,34 @@ def assert_blrp_configuration(test_library: APMLibrary, variable_name: str, expe
     assert int(value) == expected_value
 
 
-def non_default_protocol(signal: str) -> str:
-    """An uppercase transport distinguishable from this SDK's default."""
+# A protocol test input: a literal value, or a function of (signal, SDK default)
+# for inputs that depend on the default, which is only known once observed.
+ProtocolInput = str | Callable[[str, str], str] | None
+
+
+def sdk_default(signal: str, default: str) -> str:  # noqa: ARG001
+    return default
+
+
+def sdk_non_default(signal: str, default: str) -> str:
+    """A transport supported by this SDK and distinguishable from its default."""
+    if default == "grpc":
+        return "http/protobuf"
+    # These SDKs do not implement a gRPC exporter for the signal.
     if context.library == "nodejs" or (context.library == "php" and signal == "logs"):
-        return "HTTP/JSON"
-    if context.library in ("python", "rust") or (context.library == "dotnet" and signal == "logs"):
-        return "HTTP/PROTOBUF"
-    return "GRPC"
-
-
-def default_protocol(signal: str) -> str:
-    # OTel permits retaining a historical gRPC default. These defaults are
-    # published by the SDKs; never derive the expectation from the tested input.
-    if context.library in ("python", "rust") or (context.library == "dotnet" and signal == "logs"):
-        return "grpc"
-    if context.library == "golang" and signal == "logs":
         return "http/json"
-    return "http/protobuf"
+    return "grpc"
 
 
-def expected_protocol(generic_protocol: str | None, protocol: str | None, signal: str) -> str:
+def resolve_protocol(value: ProtocolInput, signal: str, default_protocol: Callable[[str], str]) -> str | None:
+    return value(signal, default_protocol(signal)) if callable(value) else value
+
+
+def expected_protocol(
+    generic_protocol: ProtocolInput, protocol: ProtocolInput, signal: str, default_protocol: Callable[[str], str]
+) -> str:
+    generic_protocol = resolve_protocol(generic_protocol, signal, default_protocol)
+    protocol = resolve_protocol(protocol, signal, default_protocol)
     if generic_protocol and not protocol:
         return generic_protocol
     if protocol and protocol != "unsupported":
