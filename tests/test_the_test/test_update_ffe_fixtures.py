@@ -22,14 +22,22 @@ def test_validate_fixture_ref_rejects_unsafe_refs(fixture_ref: str) -> None:
         update_ffe_fixtures._validate_fixture_ref(fixture_ref)
 
 
+def _write_feature_suite(source: Path, cases: str = '[{"flag": "dependent"}]') -> None:
+    suite = source / "evaluation-suites" / "dependent-flags"
+    (suite / "cases").mkdir(parents=True)
+    (suite / "ufc-config.json").write_text('{"flags": {"dependent": {}}}', encoding="utf-8")
+    (suite / "cases" / "dependent.json").write_text(cases, encoding="utf-8")
+
+
 @scenarios.test_the_test
-def test_copy_fixture_snapshot_imports_only_server_evaluator_data(tmp_path: Path) -> None:
+def test_copy_fixture_snapshot_imports_only_rules_based_evaluator_data(tmp_path: Path) -> None:
     source = tmp_path / "source"
     snapshot = tmp_path / "snapshot"
     (source / "evaluation-cases").mkdir(parents=True)
     snapshot.mkdir()
     (source / "evaluation-cases" / "case.json").write_text("[]", encoding="utf-8")
     (source / "ufc-config.json").write_text("{}", encoding="utf-8")
+    _write_feature_suite(source)
     (source / "README.md").write_text("upstream documentation", encoding="utf-8")
     (source / "AGENTS.md").write_text("upstream instructions", encoding="utf-8")
     (source / "precomputed-assignments").mkdir()
@@ -38,6 +46,8 @@ def test_copy_fixture_snapshot_imports_only_server_evaluator_data(tmp_path: Path
 
     assert (snapshot / "ufc-config.json").is_file()
     assert (snapshot / "evaluation-cases" / "case.json").is_file()
+    assert (snapshot / "evaluation-suites" / "dependent-flags" / "ufc-config.json").is_file()
+    assert (snapshot / "evaluation-suites" / "dependent-flags" / "cases" / "dependent.json").is_file()
     assert not (snapshot / "README.md").exists()
     assert not (snapshot / "AGENTS.md").exists()
     assert not (snapshot / "precomputed-assignments").exists()
@@ -51,6 +61,7 @@ def test_copy_fixture_snapshot_rejects_symbolic_links(tmp_path: Path) -> None:
     snapshot.mkdir()
     (source / "evaluation-cases").mkdir()
     (source / "ufc-config.json").write_text("{}", encoding="utf-8")
+    _write_feature_suite(source)
     target = source / "target.json"
     target.write_text("{}", encoding="utf-8")
     (source / "evaluation-cases" / "linked.json").symlink_to(target)
@@ -66,8 +77,22 @@ def test_validate_fixture_snapshot_counts_evaluations(tmp_path: Path) -> None:
     (tmp_path / "ufc-config.json").write_text('{"flags": {"one": {}}}', encoding="utf-8")
     (cases_directory / "first.json").write_text('[{"flag": "one"}]', encoding="utf-8")
     (cases_directory / "second.json").write_text('[{"flag": "two"}, {"flag": "three"}]', encoding="utf-8")
+    _write_feature_suite(tmp_path)
 
-    assert update_ffe_fixtures._validate_fixture_snapshot(tmp_path) == 3
+    assert update_ffe_fixtures._validate_fixture_snapshot(tmp_path) == 4
+
+
+@scenarios.test_the_test
+def test_validate_fixture_snapshot_rejects_unexpected_feature_suite_entries(tmp_path: Path) -> None:
+    cases_directory = tmp_path / "evaluation-cases"
+    cases_directory.mkdir()
+    (tmp_path / "ufc-config.json").write_text('{"flags": {"one": {}}}', encoding="utf-8")
+    (cases_directory / "case.json").write_text('[{"flag": "one"}]', encoding="utf-8")
+    _write_feature_suite(tmp_path)
+    (tmp_path / "evaluation-suites" / "dependent-flags" / "README.md").write_text("unexpected", encoding="utf-8")
+
+    with pytest.raises(ValueError, match="must contain only ufc-config.json and cases"):
+        update_ffe_fixtures._validate_fixture_snapshot(tmp_path)
 
 
 @scenarios.test_the_test
@@ -95,6 +120,7 @@ def test_update_fixtures_preserves_snapshot_on_validation_failure(
     (source / "evaluation-cases").mkdir(parents=True)
     (source / "ufc-config.json").write_text('{"flags": {"flag": {}}}', encoding="utf-8")
     (source / "evaluation-cases" / "case.json").write_text("[]", encoding="utf-8")
+    _write_feature_suite(source)
     destination.mkdir()
     (destination / "SOURCE.md").write_text("original snapshot", encoding="utf-8")
 
@@ -121,6 +147,7 @@ def test_update_fixtures_records_source_and_removes_stale_files(
     (source / "ufc-config.json").write_text('{"flags": {"flag": {}}}', encoding="utf-8")
     case_file = source / "evaluation-cases" / "case.json"
     case_file.write_text('[{"flag": "flag"}]', encoding="utf-8")
+    _write_feature_suite(source)
     destination.mkdir()
     (destination / "stale.json").write_text("[]", encoding="utf-8")
 
@@ -135,9 +162,10 @@ def test_update_fixtures_records_source_and_removes_stale_files(
     assert update_ffe_fixtures.update_fixtures("main")
     assert not (destination / "stale.json").exists()
     assert (destination / "evaluation-cases" / "case.json").read_bytes() == case_file.read_bytes()
+    assert (destination / "evaluation-suites" / "dependent-flags" / "cases" / "dependent.json").is_file()
     metadata = (destination / "SOURCE.md").read_bytes()
     assert ("a" * 40).encode() in metadata
-    assert "fixture_count=1\nchanged=true\n" in output.read_text()
+    assert "fixture_count=2\nchanged=true\n" in output.read_text()
 
     (source / "README.md").write_text("documentation-only upstream change", encoding="utf-8")
     assert not update_ffe_fixtures.update_fixtures("main")

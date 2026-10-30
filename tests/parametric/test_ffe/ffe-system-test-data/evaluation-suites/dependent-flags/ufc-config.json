@@ -427,6 +427,208 @@
         }
       ]
     },
+    "dependent-inapplicable-rule-root": {
+      "key": "dependent-inapplicable-rule-root",
+      "enabled": true,
+      "variationType": "STRING",
+      "variations": {
+        "matched": {
+          "key": "matched",
+          "value": "inapplicable-rule-match"
+        },
+        "fallback": {
+          "key": "fallback",
+          "value": "inapplicable-rule-fallback"
+        }
+      },
+      "allocations": [
+        {
+          "key": "prerequisite-before-false-condition",
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "flagEvaluation": {
+                    "key": "dependent-leaf-on"
+                  },
+                  "operator": "ONE_OF",
+                  "value": [
+                    "on"
+                  ]
+                },
+                {
+                  "attribute": "gate",
+                  "operator": "ONE_OF",
+                  "value": [
+                    "open"
+                  ]
+                }
+              ]
+            }
+          ],
+          "splits": [
+            {
+              "variationKey": "matched",
+              "shards": []
+            }
+          ],
+          "doLog": true
+        },
+        {
+          "key": "fallback",
+          "splits": [
+            {
+              "variationKey": "fallback",
+              "shards": []
+            }
+          ],
+          "doLog": true
+        }
+      ]
+    },
+    "dependent-reuse-after-rejection-root": {
+      "key": "dependent-reuse-after-rejection-root",
+      "enabled": true,
+      "variationType": "STRING",
+      "variations": {
+        "matched": {
+          "key": "matched",
+          "value": "reuse-after-rejection-match"
+        },
+        "fallback": {
+          "key": "fallback",
+          "value": "reuse-after-rejection-fallback"
+        }
+      },
+      "allocations": [
+        {
+          "key": "rejected-first-use",
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "flagEvaluation": {
+                    "key": "dependent-leaf-on"
+                  },
+                  "operator": "ONE_OF",
+                  "value": [
+                    "on"
+                  ]
+                },
+                {
+                  "attribute": "gate",
+                  "operator": "ONE_OF",
+                  "value": [
+                    "open"
+                  ]
+                }
+              ]
+            }
+          ],
+          "splits": [
+            {
+              "variationKey": "matched",
+              "shards": []
+            }
+          ],
+          "doLog": true
+        },
+        {
+          "key": "selected-reuse",
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "flagEvaluation": {
+                    "key": "dependent-leaf-on"
+                  },
+                  "operator": "ONE_OF",
+                  "value": [
+                    "on"
+                  ]
+                }
+              ]
+            }
+          ],
+          "splits": [
+            {
+              "variationKey": "matched",
+              "shards": []
+            }
+          ],
+          "doLog": true
+        },
+        {
+          "key": "fallback",
+          "splits": [
+            {
+              "variationKey": "fallback",
+              "shards": []
+            }
+          ],
+          "doLog": true
+        }
+      ]
+    },
+    "dependent-transitive-inapplicable-rule-root": {
+      "key": "dependent-transitive-inapplicable-rule-root",
+      "enabled": true,
+      "variationType": "STRING",
+      "variations": {
+        "matched": {
+          "key": "matched",
+          "value": "must-not-be-returned"
+        },
+        "fallback": {
+          "key": "fallback",
+          "value": "transitive-inapplicable-fallback"
+        }
+      },
+      "allocations": [
+        {
+          "key": "transitive-prerequisite-before-false-condition",
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "flagEvaluation": {
+                    "key": "dependent-transitive-parent"
+                  },
+                  "operator": "ONE_OF",
+                  "value": [
+                    "parent-on"
+                  ]
+                },
+                {
+                  "attribute": "gate",
+                  "operator": "ONE_OF",
+                  "value": [
+                    "open"
+                  ]
+                }
+              ]
+            }
+          ],
+          "splits": [
+            {
+              "variationKey": "matched",
+              "shards": []
+            }
+          ],
+          "doLog": true
+        },
+        {
+          "key": "fallback",
+          "splits": [
+            {
+              "variationKey": "fallback",
+              "shards": []
+            }
+          ],
+          "doLog": true
+        }
+      ]
+    },
     "dependent-memoized-root": {
       "key": "dependent-memoized-root",
       "enabled": true,
