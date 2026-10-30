@@ -9,6 +9,7 @@ import dev.openfeature.sdk.EvaluationContext;
 import dev.openfeature.sdk.FeatureProvider;
 import dev.openfeature.sdk.FlagEvaluationDetails;
 import dev.openfeature.sdk.FlagEvaluationOptions;
+import dev.openfeature.sdk.Hook;
 import dev.openfeature.sdk.MutableContext;
 import dev.openfeature.sdk.NoOpProvider;
 import dev.openfeature.sdk.OpenFeatureAPI;
@@ -32,12 +33,35 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 @RestController
 @RequestMapping("/ffe")
 public class FeatureFlagEvaluatorController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FeatureFlagEvaluatorController.class);
+
+    private static final boolean CAPTURE_HOOK_FEATURES =
+            Boolean.parseBoolean(System.getenv("SYSTEM_TESTS_FFE_CAPTURE_HOOK_FEATURES"));
+    private static final ThreadLocal<Object> HOOK_FEATURES = new ThreadLocal<>();
+
+    private static void captureHookFeatures(Client client) {
+        // Load the optional public API only for tests whose manifest requires it.
+        // Older dd-openfeature versions must still build and run the baseline suite.
+        try {
+            Class<?> hookClass = Class.forName("com.datadog.openfeature.ExposureHook");
+            Consumer<Object> callback = evaluation -> {
+                try {
+                    HOOK_FEATURES.set(evaluation.getClass().getMethod("getFeatures").invoke(evaluation));
+                } catch (ReflectiveOperationException e) {
+                    throw new IllegalStateException("Cannot capture ExposureHook features", e);
+                }
+            };
+            client.addHooks((Hook<?>) hookClass.getConstructor(Consumer.class).newInstance(callback));
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException("Split-feature tests require the public ExposureHook API", e);
+        }
+    }
 
     @Configuration
     public static class FeatureFlagEvaluatorConfig {
@@ -63,7 +87,11 @@ public class FeatureFlagEvaluatorController {
                 };
             }
             api.setProviderAndWait(provider);
-            return api.getClient();
+            Client client = api.getClient();
+            if (CAPTURE_HOOK_FEATURES) {
+                captureHookFeatures(client);
+            }
+            return client;
         }
     }
 
@@ -83,6 +111,7 @@ public class FeatureFlagEvaluatorController {
 
     @PostMapping(value = "/evaluate", consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, Object>> evaluate(@RequestBody final EvaluateRequest request) {
+        HOOK_FEATURES.remove();
         Object value;
         String reason;
         String errorCode = null;
@@ -132,6 +161,10 @@ public class FeatureFlagEvaluatorController {
         if (request.isExposureHooks()) {
             result.put("exposureHooks", exposureRows);
         }
+        if (CAPTURE_HOOK_FEATURES) {
+            result.put("hookFeatures", HOOK_FEATURES.get());
+        }
+        HOOK_FEATURES.remove();
         return ResponseEntity.ok(result);
     }
 

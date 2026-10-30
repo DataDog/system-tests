@@ -386,9 +386,9 @@ def test_feature_flagging_agentless_evp_topology_supports_both_routes(
         scenario.weblog_infra.http_container._library = ComponentVersion("java", "0.66.0")  # noqa: SLF001
         scenario._last_direct_evp_runtime_evidence = _direct_runtime_evidence("java")  # noqa: SLF001
     monkeypatch.setattr(context, "scenario", scenario)
-    monkeypatch.setattr(interfaces.backend_v2, "get_data", lambda **_: [])
+    monkeypatch.setattr(interfaces.mocked_backend, "get_data", lambda **_: [])
 
-    assert_agentless_evp_topology(FeatureFlaggingEVPEgress(interfaces.backend_v2, route))
+    assert_agentless_evp_topology(FeatureFlaggingEVPEgress(interfaces.mocked_backend, route))
 
     environment = scenario.weblog_infra.library_container.environment
     for runtime_trust_variable in ("REQUESTS_CA_BUNDLE", "SSL_CERT_FILE"):
@@ -407,7 +407,7 @@ def test_feature_flagging_agentless_evp_topology_supports_both_routes(
         library_container._fix_host_pwd_in_volumes()  # noqa: SLF001 - reproduce container start normalization
         normalized_source = f"{library_container.host_project_dir}{DIRECT_EVP_CA_BUNDLE_SOURCE[1:]}"
         assert library_container.volumes[normalized_source] == expected_mount
-        assert_agentless_evp_topology(FeatureFlaggingEVPEgress(interfaces.backend_v2, route))
+        assert_agentless_evp_topology(FeatureFlaggingEVPEgress(interfaces.mocked_backend, route))
 
 
 @scenarios.test_the_test

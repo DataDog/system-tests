@@ -1,9 +1,9 @@
 """MockedBackendServer: the base class for every mocked HTTP backend, and, used as-is, the generic
-mocked backend standing in for the real Datadog backend API used by ``interfaces.backend_v2``
+mocked backend standing in for the real Datadog backend API used by ``interfaces.mocked_backend``
 (``utils/interfaces/_backend.py``).
 
 Used directly, its only job is to record every request it receives into the interface's log folder
-(``logs/interfaces/backend_v2``), the same way every other interface persists what it observes.
+(``logs/interfaces/mocked_backend``), the same way every other interface persists what it observes.
 """
 
 from __future__ import annotations
@@ -15,8 +15,9 @@ import ssl
 import threading
 from typing import TYPE_CHECKING
 
-from ._request_handler import MockedBackendServerCore, MockBackendV2RequestHandler, HttpMethod, RouteHandler
+from ._request_handler import MockedBackendServerCore, MockedBackendRequestHandler, HttpMethod, RouteHandler
 from ._backend_ffe import MockedBackendServerFfeMixin
+from ._backend_rc import MockedBackendServerRcMixin
 from ._client import MockedBackendClient
 from ._utils import CONTROL_URL_PREFIX, HOST_DOCKER_INTERNAL, logger
 
@@ -27,7 +28,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable, Mapping
 
 
-class MockedBackendServer(MockedBackendServerFfeMixin, MockedBackendServerCore):
+class MockedBackendServer(MockedBackendServerFfeMixin, MockedBackendServerRcMixin, MockedBackendServerCore):
     """Base HTTP server for every mocked backend, and, used as-is, a local HTTP server standing in
     for the Datadog backend API: it binds on every interface (not just loopback) so containers can
     reach it through host.docker.internal, runs requests on daemon threads, starts itself on its
@@ -63,7 +64,7 @@ class MockedBackendServer(MockedBackendServerFfeMixin, MockedBackendServerCore):
             data = json.loads(Path(internal_mocked_responses_file).read_text(encoding="utf-8"))
             internal_mocked_responses = MockedBackendResponse.from_dicts(data)
 
-        super().__init__(("0.0.0.0", port), MockBackendV2RequestHandler)  # noqa: S104
+        super().__init__(("0.0.0.0", port), MockedBackendRequestHandler)  # noqa: S104
         self.scheme = "https" if tls_cert_file else "http"
         if tls_cert_file:
             try:
@@ -91,6 +92,7 @@ class MockedBackendServer(MockedBackendServerFfeMixin, MockedBackendServerCore):
         self.add_handler("GET", f"{CONTROL_URL_PREFIX}/health", self._handle_health)
         self.add_handler("PUT", f"{CONTROL_URL_PREFIX}/mocked-responses", self._handle_mocked_responses)
         self._ffe_configure()
+        self._rc_configure()
 
         self._thread = threading.Thread(target=self.serve_forever, name=self.thread_name, daemon=True)
         self._thread.start()
@@ -156,7 +158,7 @@ class MockedBackendServer(MockedBackendServerFfeMixin, MockedBackendServerCore):
         if mock is None:
             return None
 
-        def handler(request: MockBackendV2RequestHandler, _: bytes | dict | None) -> tuple[bytes, bytes]:
+        def handler(request: MockedBackendRequestHandler, _: bytes | dict | None) -> tuple[bytes, bytes]:
             request.send_response(mock.status_code)
             request.send_header("Content-Type", mock.content_type)
             return mock.content, mock.content
@@ -164,7 +166,7 @@ class MockedBackendServer(MockedBackendServerFfeMixin, MockedBackendServerCore):
         return handler
 
     def _handle_mocked_responses(
-        self, request: MockBackendV2RequestHandler, payload: bytes | dict | None
+        self, request: MockedBackendRequestHandler, payload: bytes | dict | None
     ) -> tuple[Mapping, bytes]:
         """Replace the runtime mocked responses, like the proxy's /mocked_backend_responses endpoint"""
         responses = payload.get("responses") if isinstance(payload, dict) else None
@@ -181,10 +183,10 @@ class MockedBackendServer(MockedBackendServerFfeMixin, MockedBackendServerCore):
 
         return request.write_json(HTTPStatus.OK, {})
 
-    def _handle_health(self, request: MockBackendV2RequestHandler, _: bytes | dict | None) -> tuple[Mapping, bytes]:
+    def _handle_health(self, request: MockedBackendRequestHandler, _: bytes | dict | None) -> tuple[Mapping, bytes]:
         return request.write_json(HTTPStatus.OK, {"status": "ok"})
 
-    def _default_handler(self, request: MockBackendV2RequestHandler, _: bytes | dict | None) -> tuple[Mapping, bytes]:
+    def _default_handler(self, request: MockedBackendRequestHandler, _: bytes | dict | None) -> tuple[Mapping, bytes]:
         return request.write_json(HTTPStatus.OK, {})
 
     def close(self) -> None:

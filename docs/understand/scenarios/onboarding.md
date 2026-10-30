@@ -859,6 +859,7 @@ Located in: **var/log/datadog_weblog/**
 * **core-diagnostics.txt:** Core dump configuration and the core files collected after a PHP host application crash.
 * **core.\* / systemd-coredump:** PHP process core dumps. Use these with `gdb` when investigating a segmentation fault or exit status 139.
 * **coredumpctl-list.txt:** PHP entries reported by `coredumpctl`, when the command is available on the VM.
+* **hs_err_pid\*.log:** HotSpot fatal-error report for a Java weblog. Copied from the process working directory (`/home/datadog`) or `/tmp` when the JVM aborts. Absent when the JVM stays up.
 
 ## How to read VM log markers (`[vm_name].log`)
 
@@ -1004,6 +1005,7 @@ Waited too long for the port 5985 on host [MACHINE_IP] to start accepting connec
      ```
      /var/log/datadog_weblog/app.log
      ```
+     If that log contains `A fatal error has been detected by the Java Runtime Environment`, open `hs_err_pid*.log` in the same folder. That file is the full HotSpot report.
    - **Containerized apps:**
      ```
      /var/log/datadog_weblog/docker_logs.log

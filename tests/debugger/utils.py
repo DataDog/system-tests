@@ -499,7 +499,7 @@ class BaseDebuggerTest:
         logger.debug("Wating for all probes")
         self._wait_successful = False
         found_ids: set[str] = set()
-        interfaces.agent.wait_for(
+        interfaces.mocked_backend.wait_for(
             lambda data: self._wait_for_all_probes(data, statuses=statuses, found_ids=found_ids), timeout=timeout
         )
         return self._wait_successful
@@ -561,7 +561,7 @@ class BaseDebuggerTest:
 
         self._snapshot_found = False
 
-        interfaces.agent.wait_for(
+        interfaces.mocked_backend.wait_for(
             lambda data: self._wait_for_snapshot_received(data, exception_snapshot=exception_snapshot), timeout=timeout
         )
         return self._snapshot_found
@@ -619,7 +619,7 @@ class BaseDebuggerTest:
             logger.debug(f"Waiting for snapshot with exception message: {exception_message}")
             self._exception_message = exception_message
             self._snapshot_found = False
-            interfaces.agent.wait_for(
+            interfaces.mocked_backend.wait_for(
                 lambda data: self._wait_for_all_snapshots(data, exception_snapshot=True), timeout=timeout
             )
             return self._snapshot_found
@@ -627,7 +627,7 @@ class BaseDebuggerTest:
             logger.debug(f"Waiting for snapshots from all probes: {self.probe_ids}")
             self._all_snapshots_found = False
             self._found_probe_ids: set[str] = set()
-            interfaces.agent.wait_for(
+            interfaces.mocked_backend.wait_for(
                 lambda data: self._wait_for_all_snapshots(data, exception_snapshot=False), timeout=timeout
             )
             return self._all_snapshots_found
@@ -691,7 +691,9 @@ class BaseDebuggerTest:
         """
         logger.debug(f"Waiting for {count} snapshots from probes: {self.probe_ids}")
         seen: set[tuple[str, int]] = set()
-        return interfaces.agent.wait_for(lambda data: self._count_snapshots(data, seen=seen) >= count, timeout=timeout)
+        return interfaces.mocked_backend.wait_for(
+            lambda data: self._count_snapshots(data, seen=seen) >= count, timeout=timeout
+        )
 
     def _count_snapshots(self, data: dict, seen: set[tuple[str, int]]) -> int:
         if data["path"] in [_LOGS_PATH, _DEBUGGER_PATH]:
@@ -710,7 +712,7 @@ class BaseDebuggerTest:
         self._error_message = error_message
         self._no_capture_reason_span_found = False
 
-        interfaces.agent.wait_for(self._wait_for_no_capture_reason_span, timeout=timeout)
+        interfaces.mocked_backend.wait_for(self._wait_for_no_capture_reason_span, timeout=timeout)
         return self._no_capture_reason_span_found
 
     def _wait_for_no_capture_reason_span(self, data: dict):
@@ -722,7 +724,7 @@ class BaseDebuggerTest:
                 + self._error_message
                 + "'"
             )
-            spans = interfaces.agent.get_spans_list()
+            spans = interfaces.mocked_backend.get_spans_list()
             for span in spans:
                 meta = span.meta
                 if "_dd.debug.error.no_capture_reason" in meta:
@@ -749,7 +751,7 @@ class BaseDebuggerTest:
         """
         self._span_found = False
 
-        interfaces.agent.wait_for(
+        interfaces.mocked_backend.wait_for(
             lambda data: self._wait_for_code_origin_span(data, request=request, stop_when_absent=stop_when_absent),
             timeout=timeout,
         )
@@ -762,7 +764,7 @@ class BaseDebuggerTest:
         # Select the trace using the request ID, then inspect every span because the code origin
         # entry span is not guaranteed to carry the request ID itself.
         trace_found = False
-        for _, trace in interfaces.agent.get_traces(request=request):
+        for _, trace in interfaces.mocked_backend.get_traces(request=request):
             trace_found = True
             if any(
                 span.get_span_type() == "web"
@@ -779,7 +781,7 @@ class BaseDebuggerTest:
 
     def wait_for_telemetry(self, telemetry_type: str, timeout: int = 5) -> dict | None:
         self._telemetry: dict | None = None
-        interfaces.agent.wait_for(
+        interfaces.mocked_backend.wait_for(
             lambda data: self._wait_for_telemetry(data, telemetry_type=telemetry_type), timeout=timeout
         )
         return self._telemetry
@@ -832,7 +834,7 @@ class BaseDebuggerTest:
                 path = _LOGS_PATH  # TODO: Should the default not be _DEBUGGER_PATH?
 
             logger.debug(f"Reading data from {path}")
-            return list(interfaces.agent.get_data(path))
+            return list(interfaces.mocked_backend.get_data(path))
 
         all_data = _read_data()
         self.probe_diagnostics = self._process_diagnostics_data(all_data)
@@ -886,10 +888,10 @@ class BaseDebuggerTest:
             # Collect snapshots from both the logs and debugger endpoints for compatibility for when we switched
             # snapshots to the debugger endpoint.
             if not self.use_debugger_endpoint:
-                agent_logs_endpoint_requests += list(interfaces.agent.get_data(_LOGS_PATH))
-                agent_logs_endpoint_requests += list(interfaces.agent.get_data(_DEBUGGER_PATH))
+                agent_logs_endpoint_requests += list(interfaces.mocked_backend.get_data(_LOGS_PATH))
+                agent_logs_endpoint_requests += list(interfaces.mocked_backend.get_data(_DEBUGGER_PATH))
             else:
-                agent_logs_endpoint_requests += list(interfaces.agent.get_data(_DEBUGGER_PATH))
+                agent_logs_endpoint_requests += list(interfaces.mocked_backend.get_data(_DEBUGGER_PATH))
 
             snapshot_hash: dict = {}
 
@@ -912,8 +914,8 @@ class BaseDebuggerTest:
 
     def get_snapshot_request_lengths(self, probe_id: str) -> list[int]:
         """Return decoded body lengths for backend requests containing a probe snapshot."""
-        requests = list(interfaces.agent.get_data(_LOGS_PATH))
-        requests += list(interfaces.agent.get_data(_DEBUGGER_PATH))
+        requests = list(interfaces.mocked_backend.get_data(_LOGS_PATH))
+        requests += list(interfaces.mocked_backend.get_data(_DEBUGGER_PATH))
 
         lengths: list[int] = []
         for request in requests:
@@ -931,7 +933,9 @@ class BaseDebuggerTest:
     def wait_for_additional_snapshots(self, timeout: int = 5) -> bool:
         """Wait for another backend request containing a snapshot for an expected probe."""
         existing_files = {
-            data["log_filename"] for path in (_LOGS_PATH, _DEBUGGER_PATH) for data in interfaces.agent.get_data(path)
+            data["log_filename"]
+            for path in (_LOGS_PATH, _DEBUGGER_PATH)
+            for data in interfaces.mocked_backend.get_data(path)
         }
         expected_probe_ids = set(self.probe_ids)
 
@@ -947,7 +951,7 @@ class BaseDebuggerTest:
 
             return False
 
-        return interfaces.agent.wait_for(_contains_additional_snapshot, timeout=timeout)
+        return interfaces.mocked_backend.wait_for(_contains_additional_snapshot, timeout=timeout)
 
     def _debugger_v2_input_snapshots_received(self):
         """Test that the library sends snapshots to the debugger/v2/input endpoint"""
@@ -971,7 +975,7 @@ class BaseDebuggerTest:
             else:
                 span_decoration_line_key = "_dd.di.spandecorationargsandlocals.probe_id"
 
-            spans_list = interfaces.agent.get_spans_list()
+            spans_list = interfaces.mocked_backend.get_spans_list()
             for span in spans_list:
                 self.all_spans.append(span)
 
