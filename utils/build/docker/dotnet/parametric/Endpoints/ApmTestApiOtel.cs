@@ -8,6 +8,9 @@ namespace ApmTestApi.Endpoints;
 
 public abstract partial class ApmTestApiOtel : ApmTestApi
 {
+    // A no-op span has an invalid span context, whose span id is 0.
+    private const ulong NoopSpanId = 0;
+
     private static readonly ActivitySource ApmTestApiActivitySource = new("ApmTestApi");
     private static readonly Dictionary<ulong, Activity> Activities = new();
     private static readonly Dictionary<string, Meter> OtelMeters = new();
@@ -142,9 +145,18 @@ public abstract partial class ApmTestApiOtel : ApmTestApi
             links: linksList,
             startTime);
 
+        // StartActivity returns null when no ActivityListener is registered, for example with
+        // OTEL_SDK_DISABLED=true. Return a no-op span, as the OpenTelemetry API does without an SDK.
         if (activity is null)
         {
-            throw new ApplicationException("Failed to start activity. Make sure there are listeners registered.");
+            var noopResult = JsonConvert.SerializeObject(new
+            {
+                trace_id = 0UL,
+                span_id = NoopSpanId,
+            });
+
+            _logger?.LogInformation("OtelStartSpanReturn (no-op span): {Result}", noopResult);
+            return noopResult;
         }
 
         activity.ActivityTraceFlags = ActivityTraceFlags.Recorded;
@@ -180,6 +192,13 @@ public abstract partial class ApmTestApiOtel : ApmTestApi
         var requestBodyObject = await DeserializeRequestObjectAsync(request.Body);
 
         _logger?.LogInformation("OtelEndSpan: {RequestBodyObject}", requestBodyObject);
+
+        // A no-op span has no activity to stop.
+        if (Convert.ToUInt64(requestBodyObject["id"]!.ToString()) == NoopSpanId)
+        {
+            _logger?.LogInformation("OtelEndSpanReturn (no-op span)");
+            return;
+        }
 
         var activity = FindActivity(requestBodyObject["id"]);
 
