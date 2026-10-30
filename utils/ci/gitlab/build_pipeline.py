@@ -261,6 +261,7 @@ OVERRIDE_VARIABLES = {
     "binaries_artifact_path": "BINARIES_ARTIFACT_PATH",
     "split_pipeline": "SYSTEM_TESTS_SPLIT_PIPELINE",
     "pipeline_start_time": "SYSTEM_TESTS_PIPELINE_START_TIME",
+    "library_weblog_scenarios": "LIBRARY_WEBLOG_SCENARIOS",
 }
 
 COMPUTE_PARAMETERS_SCRIPT = "utils/scripts/compute-workflow-parameters.py"
@@ -298,6 +299,27 @@ def resolve_inputs(args: argparse.Namespace, environ: Mapping[str, str]) -> argp
 
 def compute_params(library: str, inputs: argparse.Namespace, params_dir: Path) -> None:
     """Write params_<library>.json, the scenarios/weblogs/parametric matrix of one library."""
+    _compute_workflow_parameters(
+        library,
+        inputs,
+        params_dir / f"params_{library}.json",
+        scenarios=inputs.scenarios,
+        scenario_groups=inputs.scenario_groups,
+        excluded_scenarios=inputs.excluded_scenarios,
+        weblogs=inputs.weblogs,
+    )
+
+
+def _compute_workflow_parameters(
+    library: str,
+    inputs: argparse.Namespace,
+    output: Path,
+    *,
+    scenarios: list[str],
+    scenario_groups: list[str],
+    excluded_scenarios: list[str],
+    weblogs: list[str],
+) -> None:
     command = [
         sys.executable,
         COMPUTE_PARAMETERS_SCRIPT,
@@ -305,13 +327,13 @@ def compute_params(library: str, inputs: argparse.Namespace, params_dir: Path) -
         "--format",
         "json",
         "--scenarios",
-        ",".join(inputs.scenarios),
+        ",".join(scenarios),
         "--groups",
-        ",".join(inputs.scenario_groups),
+        ",".join(scenario_groups),
         "--excluded-scenarios",
-        ",".join(inputs.excluded_scenarios),
+        ",".join(excluded_scenarios),
         "--weblogs",
-        ",".join(inputs.weblogs),
+        ",".join(weblogs),
         "--explicit-binaries-artifact",
         inputs.binaries_artifacts,
         "--parametric-job-count",
@@ -319,11 +341,121 @@ def compute_params(library: str, inputs: argparse.Namespace, params_dir: Path) -
         "--parametric-workers",
         str(inputs.parametric_workers),
         "--output",
-        str(params_dir / f"params_{library}.json"),
+        str(output),
     ]
     returncode = subprocess.run(command, check=False).returncode
     if returncode != 0:
         sys.exit(returncode)
+
+
+# library_weblog_scenarios input: JSON object {library: {weblog: [entry, ...]}}, where each entry is either a
+# scenario (uppercase, e.g. DEFAULT) or a scenario group (lowercase, e.g. appsec). PARAMETRIC is not weblog-bound:
+# it is enabled with the "parametric" key, e.g. {"python": {"parametric": [], "flask-poc": ["DEFAULT"]}}
+# (["PARAMETRIC"] is also accepted as value).
+PARAMETRIC_KEY = "parametric"
+PARAMETRIC_SCENARIO = "PARAMETRIC"
+
+
+def parse_library_weblog_scenarios(value: str) -> dict[str, dict[str, list[str]]]:
+    """Parse and check the library_weblog_scenarios input (its format is checked by validate_param_env.py)."""
+    mapping: dict[str, dict[str, list[str]]] = json.loads(value)
+    for library, weblog_scenarios in mapping.items():
+        parametric_entries = weblog_scenarios.get(PARAMETRIC_KEY)
+        if parametric_entries not in (None, [], [PARAMETRIC_SCENARIO]):
+            raise ValueError(
+                f'{library}: "{PARAMETRIC_KEY}" expects [] or ["{PARAMETRIC_SCENARIO}"], got {parametric_entries}'
+            )
+        for weblog, entries in weblog_scenarios.items():
+            if weblog != PARAMETRIC_KEY and PARAMETRIC_SCENARIO in entries:
+                raise ValueError(f'{library}/{weblog}: {PARAMETRIC_SCENARIO} must be listed as "{PARAMETRIC_KEY}": []')
+        if not weblog_scenarios:
+            raise ValueError(f"{library}: no weblog listed")
+    return mapping
+
+
+def split_weblog_entries(entries: list[str], excluded_scenarios: list[str]) -> tuple[list[str], list[str], list[str]]:
+    """Return the scenarios, scenario groups and excluded scenarios of one weblog of library_weblog_scenarios.
+
+    Explicitly listed scenarios are removed from excluded_scenarios, so the exclusion only applies to
+    scenarios coming from groups.
+    """
+    scenarios = sorted({entry for entry in entries if not entry.islower()})
+    groups = sorted({entry for entry in entries if entry.islower()})
+    excluded = [name for name in excluded_scenarios if name not in scenarios]
+    return scenarios, groups, excluded
+
+
+def merge_params(weblog_params: list[dict], parametric_params: dict | None) -> dict:
+    """Merge params computed for each weblog of a library, and for its parametric scenario.
+
+    Only the parts used by library_jobs() are merged: end-to-end jobs and weblogs are concatenated from the
+    weblog params, and parametric comes from the parametric params only (disabled if there are none).
+    Other parts (miscs, SSI matrices...) are taken from the first params.
+    """
+    all_params = weblog_params + ([parametric_params] if parametric_params is not None else [])
+    result = dict(all_params[0])
+    parallel_jobs = [job for p in weblog_params for job in p["endtoend_defs"]["parallel_jobs"]]
+    result["endtoend_defs"] = {
+        "parallel_enable": len(parallel_jobs) > 0,
+        "parallel_weblogs": [w for p in weblog_params for w in p["endtoend_defs"]["parallel_weblogs"]],
+        "parallel_jobs": parallel_jobs,
+    }
+    if parametric_params is not None:
+        result["parametric"] = parametric_params["parametric"]
+    else:
+        result["parametric"] = {**result["parametric"], "enable": False, "scenarios": []}
+    return result
+
+
+def compute_mapped_params(
+    library: str, weblog_scenarios: dict[str, list[str]], inputs: argparse.Namespace, params_dir: Path
+) -> None:
+    """Write params_<library>.json for a library of library_weblog_scenarios.
+
+    compute-workflow-parameters.py is called once per weblog, with only the scenarios/groups of that weblog,
+    plus once for parametric, and the results are merged.
+    """
+    weblog_params = []
+    for weblog, entries in weblog_scenarios.items():
+        if weblog == PARAMETRIC_KEY:
+            continue
+        scenarios, groups, excluded = split_weblog_entries(entries, inputs.excluded_scenarios)
+        output = params_dir / f"params_{library}__{weblog}.json"
+        _compute_workflow_parameters(
+            library,
+            inputs,
+            output,
+            scenarios=scenarios,
+            scenario_groups=groups,
+            excluded_scenarios=excluded,
+            weblogs=[weblog],
+        )
+        params = json.loads(output.read_text())
+        if not params["endtoend_defs"]["parallel_jobs"]:
+            print(  # noqa: T201
+                f"⚠️ {library}/{weblog}: no job to run, the weblog does not exist or "
+                f"does not support any of {', '.join(entries)}"
+            )
+        weblog_params.append(params)
+
+    parametric_params = None
+    if PARAMETRIC_KEY in weblog_scenarios:
+        output = params_dir / f"params_{library}__{PARAMETRIC_KEY}.json"
+        _compute_workflow_parameters(
+            library,
+            inputs,
+            output,
+            scenarios=[PARAMETRIC_SCENARIO],
+            scenario_groups=[],
+            excluded_scenarios=[],
+            weblogs=[],
+        )
+        parametric_params = json.loads(output.read_text())
+        if not parametric_params["parametric"]["enable"]:
+            print(f"⚠️ {library}: {PARAMETRIC_SCENARIO} is not supported, no job to run")  # noqa: T201
+
+    params = merge_params(weblog_params, parametric_params)
+    (params_dir / f"params_{library}.json").write_text(json.dumps(params))
 
 
 def parse_args(argv: list[str] | None) -> argparse.Namespace:
@@ -371,6 +503,12 @@ def parse_args(argv: list[str] | None) -> argparse.Namespace:
         help="Unix epoch timestamp (from .system_tests_param_base) written as a literal pipeline variable in "
         "the generated child pipeline, so run jobs can compute elapsed time",
     )
+    parser.add_argument(
+        "--library-weblog-scenarios",
+        default="",
+        help='JSON object {library: {weblog: [scenario or group, ...]}}, e.g. {"python": {"flask-poc": ["DEFAULT"]}}. '
+        "Alternative to --libraries/--scenarios/--scenario-groups/--weblogs",
+    )
     return parser.parse_args(argv)
 
 
@@ -393,6 +531,17 @@ def main(argv: list[str] | None = None, environ: Mapping[str, str] | None = None
     output_dir = Path(inputs.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    mapping = None
+    if inputs.library_weblog_scenarios:
+        if inputs.libraries or inputs.scenarios or inputs.scenario_groups or inputs.weblogs:
+            print(  # noqa: T201
+                "❌ library_weblog_scenarios is not compatible with libraries, scenarios, scenarios_groups and weblogs",
+                file=sys.stderr,
+            )
+            return 1
+        mapping = parse_library_weblog_scenarios(inputs.library_weblog_scenarios)
+        inputs.libraries = list(mapping)
+
     for name in (*MERGED_LIST_VARIABLES, *OVERRIDE_VARIABLES):
         value = getattr(inputs, name)
         if isinstance(value, list):
@@ -404,7 +553,10 @@ def main(argv: list[str] | None = None, environ: Mapping[str, str] | None = None
     if inputs.params_dir is None:
         params_dir = output_dir
         for library in inputs.libraries:
-            compute_params(library, inputs, params_dir)
+            if mapping is None:
+                compute_params(library, inputs, params_dir)
+            else:
+                compute_mapped_params(library, mapping[library], inputs, params_dir)
     else:
         params_dir = Path(inputs.params_dir)
 

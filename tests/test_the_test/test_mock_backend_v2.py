@@ -19,7 +19,7 @@ from cryptography import x509
 from cryptography.hazmat.primitives.serialization import pkcs12
 
 from utils import scenarios
-from utils.interfaces._backend_v2 import _BackendV2InterfaceValidator
+from utils.interfaces._mocked_backend import _MockedBackendInterfaceValidator
 from utils._context.containers import MockedBackendContainer, TestedContainer
 from utils._context._scenarios.agentless_endtoend import JAVA_TRUSTSTORE_SOURCE
 from utils.mocked_backend import MockedBackendClient, MockedBackendServer
@@ -330,7 +330,7 @@ def test_runs_without_the_rest_of_utils(tmp_path: Path):
 @scenarios.test_the_test
 def test_entry_point_serves_until_sigterm(tmp_path: Path):
     """`python -m utils.mocked_backend` is how the mocked backend will run in its own container."""
-    log_folder = tmp_path / "backend_v2"  # created by the entry point
+    log_folder = tmp_path / "mocked_backend"  # created by the entry point
     process = subprocess.Popen(
         [sys.executable, "-m", "utils.mocked_backend", "--port", "0", "--log-folder", str(log_folder)],
         cwd=Path(__file__).parents[2],
@@ -372,9 +372,11 @@ def test_health_endpoint(server: MockedBackendServer, tmp_path: Path):
     assert list(tmp_path.glob("*.json")) == []
 
 
-def _backend_v2_with_requests(tmp_path: Path, requests_: list[tuple[str, str | None]]) -> _BackendV2InterfaceValidator:
-    """A backend_v2 interface that received a series request per (filename, api_key)"""
-    interface = _BackendV2InterfaceValidator()
+def _mocked_backend_with_requests(
+    tmp_path: Path, requests_: list[tuple[str, str | None]]
+) -> _MockedBackendInterfaceValidator:
+    """A mocked backend interface that received a series request per (filename, api_key)"""
+    interface = _MockedBackendInterfaceValidator()
     interface.configure(str(tmp_path), replay=False)
     for filename, api_key in requests_:
         headers = [["Content-Type", "application/json"]] + ([["DD-API-KEY", api_key]] if api_key else [])
@@ -391,8 +393,8 @@ def _backend_v2_with_requests(tmp_path: Path, requests_: list[tuple[str, str | N
 
 
 @scenarios.test_the_test
-def test_backend_v2_with_api_key_only_returns_requests_sent_with_this_key(tmp_path: Path):
-    interface = _backend_v2_with_requests(
+def test_mocked_backend_with_api_key_only_returns_requests_sent_with_this_key(tmp_path: Path):
+    interface = _mocked_backend_with_requests(
         tmp_path, [("000__agent.json", "agent-key"), ("001__sidecar.json", "sidecar-key"), ("002__nokey.json", None)]
     )
 
@@ -406,8 +408,8 @@ def test_backend_v2_with_api_key_only_returns_requests_sent_with_this_key(tmp_pa
 
 
 @scenarios.test_the_test
-def test_backend_v2_with_api_key_ignores_the_header_name_case(tmp_path: Path):
-    interface = _backend_v2_with_requests(tmp_path, [("000__agent.json", "agent-key")])
+def test_mocked_backend_with_api_key_ignores_the_header_name_case(tmp_path: Path):
+    interface = _mocked_backend_with_requests(tmp_path, [("000__agent.json", "agent-key")])
     data = next(interface.get_data())
     data["request"]["headers"] = [["dd-api-key", "agent-key"]]
 

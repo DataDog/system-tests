@@ -33,7 +33,7 @@ from utils.mocked_backend.ffe import (
 
 parametrize = pytest.mark.parametrize
 
-UFC_VALID_FIXTURE = Path(__file__).parent / "flags-v1.json"
+UFC_VALID_FIXTURE = Path(__file__).parent / "ffe-system-test-data" / "ufc-config.json"
 RC_PRODUCT = "FFE_FLAGS"
 MOCK_STATUS_ATTEMPTS = 25
 MOCK_STATUS_INTERVAL_SECONDS = 0.2

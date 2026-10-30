@@ -73,7 +73,7 @@ EXPECTED_DD_ENV = "test"
 CONFIG_QUERY = urlencode({"dd_env": EXPECTED_DD_ENV})
 REPO_ROOT = Path(__file__).parents[2]
 # relative to the repository root: the mocked backend container mounts it at the same place
-UFC_FIXTURE_RELATIVE_PATH = "tests/parametric/test_ffe/flags-v1.json"
+UFC_FIXTURE_RELATIVE_PATH = "tests/parametric/test_ffe/ffe-system-test-data/ufc-config.json"
 UFC_FIXTURE_PATH = REPO_ROOT / UFC_FIXTURE_RELATIVE_PATH
 MALFORMED_UFC_BYTES = b'{"flags": ['
 UFC_RESPONSE_TYPE = "universal-flag-configuration"

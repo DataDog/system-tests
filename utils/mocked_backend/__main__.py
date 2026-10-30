@@ -1,6 +1,6 @@
 """Run the mocked backend in its own process, e.g. in a container:
 
-    python -m utils.mocked_backend --port 4900 --log-folder logs/interfaces/backend_v2
+    python -m utils.mocked_backend --port 4900 --log-folder logs/interfaces/mocked_backend
 
 It serves until it receives SIGTERM (sent by `docker stop`) or SIGINT.
 """

@@ -82,7 +82,7 @@ class _AgentlessEndToEndScenario(DdTraceEndToEndScenario):
             use_proxy_for_agent=False,
             use_proxy_for_weblog=False,
             weblog_env=weblog_env,
-            mocked_backend_v2=True,
+            mocked_backend=True,
         )
 
         # The tested library fetches its agentless configuration from the mocked backend container
@@ -137,7 +137,7 @@ class _AgentlessEndToEndScenario(DdTraceEndToEndScenario):
             json.loads(self._mock_backend_status_path.read_text(encoding="utf-8")),
         )
 
-    def _stop_mocked_backend_v2(self) -> None:
+    def _stop_mocked_backend(self) -> None:
         # The mocked backend counters are not recorded as interface data: persist them for replay
         # TODO : remove this, as it will strongly depends on test order.
         # Either we need to call the client in setup method, or the interface in test methods.
@@ -149,7 +149,7 @@ class _AgentlessEndToEndScenario(DdTraceEndToEndScenario):
                 encoding="utf-8",
             )
         finally:
-            super()._stop_mocked_backend_v2()
+            super()._stop_mocked_backend()
 
 
 class FeatureFlaggingAgentlessEndToEndScenario(_AgentlessEndToEndScenario):
@@ -240,10 +240,10 @@ class FeatureFlaggingAgentlessEndToEndScenario(_AgentlessEndToEndScenario):
 
     def _is_evp_capture(self, data: dict[str, Any]) -> bool:
         """True if the mocked backend received this request with evp_api_key"""
-        return interfaces.backend_v2.get_api_key(data) == self.evp_api_key
+        return interfaces.mocked_backend.get_api_key(data) == self.evp_api_key
 
     def _evp_captures(self) -> list[dict[str, Any]]:
-        return list(interfaces.backend_v2.get_data(with_api_key=self.evp_api_key))
+        return list(interfaces.mocked_backend.get_data(with_api_key=self.evp_api_key))
 
     def register_expected_evp_capture(self, path: str) -> None:
         """Register a canonical signal path that must be captured before shutdown."""
@@ -529,7 +529,7 @@ class FeatureFlaggingAgentlessEndToEndScenario(_AgentlessEndToEndScenario):
         priming_started_at = datetime.now(UTC)
         priming_response = weblog.post(priming_evaluation.request_path, json=priming_evaluation.body)
         priming_finished_at = datetime.now(UTC)
-        priming_observed = interfaces.backend_v2.wait_for(priming_matcher, timeout=DIRECT_EVP_CAPTURE_WAIT_SECONDS)
+        priming_observed = interfaces.mocked_backend.wait_for(priming_matcher, timeout=DIRECT_EVP_CAPTURE_WAIT_SECONDS)
         priming_captures = list(filter(priming_matcher, self._evp_captures()))
         if not priming_observed or len(priming_captures) != 1:
             raise RuntimeError(
@@ -558,8 +558,8 @@ class FeatureFlaggingAgentlessEndToEndScenario(_AgentlessEndToEndScenario):
         stopped_state = self._stopped_container_state(runtime_container)
         shutdown_markers, shutdown_marker_errors = self._shutdown_markers(runtime_container)
 
-        capture_observed = interfaces.backend_v2.wait_for(matcher, timeout=DIRECT_EVP_CAPTURE_WAIT_SECONDS)
-        interfaces.backend_v2.wait(DIRECT_EVP_CAPTURE_SETTLE_SECONDS)
+        capture_observed = interfaces.mocked_backend.wait_for(matcher, timeout=DIRECT_EVP_CAPTURE_WAIT_SECONDS)
+        interfaces.mocked_backend.wait(DIRECT_EVP_CAPTURE_SETTLE_SECONDS)
         matching_after = list(filter(matcher, self._evp_captures()))
         self._last_direct_evp_shutdown_evidence = {
             "capture_files": [capture.get("log_filename") for capture in matching_after],
@@ -618,16 +618,16 @@ class FeatureFlaggingAgentlessEndToEndScenario(_AgentlessEndToEndScenario):
             def captured(data: dict[str, Any], expected_path: str = path) -> bool:
                 return self._is_evp_capture(data) and data.get("path") == expected_path
 
-            logger.terminal.write_sep("-", f"Wait for {path} on {interfaces.backend_v2} before stopping the weblog")
+            logger.terminal.write_sep("-", f"Wait for {path} on {interfaces.mocked_backend} before stopping the weblog")
             logger.terminal.flush()
-            if not interfaces.backend_v2.wait_for(captured, timeout=DIRECT_EVP_CAPTURE_WAIT_SECONDS):
+            if not interfaces.mocked_backend.wait_for(captured, timeout=DIRECT_EVP_CAPTURE_WAIT_SECONDS):
                 missing_paths.append(path)
 
         if missing_paths:
             raise RuntimeError(f"Timed out waiting for Feature Flags EVP captures: {', '.join(missing_paths)}")
 
         # Preserve a bounded window in which an unsafe retry would appear as a duplicate capture.
-        interfaces.backend_v2.wait(DIRECT_EVP_CAPTURE_SETTLE_SECONDS)
+        interfaces.mocked_backend.wait(DIRECT_EVP_CAPTURE_SETTLE_SECONDS)
 
     def _wait_and_stop_containers(self, *, is_empty_test_run: bool) -> None:
         try:

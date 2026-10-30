@@ -2388,9 +2388,6 @@ manifest:
         nextjs: missing_feature (AppSec/IAST force-samples traces, overriding unsampled traceparent)
   tests/otel/test_tracing_otlp.py::Test_Otlp_Carries_Ot: v6.20.0-dev
   tests/otel/test_tracing_otlp.py::Test_Otlp_Forwards_Inherited_Ot: v6.20.0-dev
-  tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
-  tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
-  tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
   tests/parametric/otel_env_vars/test_otel_blrp_export_timeout.py::Test_OTEL_BLRP_EXPORT_TIMEOUT: missing_feature
   tests/parametric/otel_env_vars/test_otel_blrp_max_export_batch_size.py::Test_OTEL_BLRP_MAX_EXPORT_BATCH_SIZE: missing_feature
   tests/parametric/otel_env_vars/test_otel_blrp_max_queue_size.py::Test_OTEL_BLRP_MAX_QUEUE_SIZE: missing_feature
@@ -2678,6 +2675,7 @@ manifest:
   tests/parametric/test_ffe/test_configuration_sources.py: *ref_6_8_0
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: *ref_5_75_0
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_dependent_flags: missing_feature (FFL-1694)
+  tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Split_Features: incomplete_test_app (Split-feature hook capture is currently implemented only in the Java parametric client)
   tests/parametric/test_ffe/test_rules_configuration.py: 7.0.0-pre  # Exact development version until the first containing release is confirmed.
   tests/parametric/test_ffe/test_serial_id_metadata.py: v6.18.0
   tests/parametric/test_ffe/test_serial_id_metadata.py::Test_FFE_Serial_Id_Metadata_Go: irrelevant (Legacy Go metadata key)
@@ -2865,6 +2863,7 @@ manifest:
   tests/parametric/test_otel_tracer.py::Test_Otel_Tracer::test_otel_force_flush: missing_feature (Not implemented)
   tests/parametric/test_otel_tracestate_sampling.py::Test_OtelTracestateSampling: v6.20.0-dev
   tests/parametric/test_otlp_trace_metrics.py: v6.11.0
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR01_Enablement_Configuration::test_fr01_3_disabled_by_default: missing_feature (OTLP trace metrics are still auto-enabled without OTEL_TRACES_SPAN_METRICS_ENABLED=true)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR01_Enablement_Configuration::test_fr01_6_disabled_when_apm_tracing_disabled: missing_feature (OTLP trace metrics are still emitted when DD_APM_TRACING_ENABLED=false)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Resource_Attributes::test_fr06_10_hostname: irrelevant (DD_HOSTNAME is only supported in Python)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Resource_Attributes::test_fr06_9_service_env_version: *ref_5_125_0

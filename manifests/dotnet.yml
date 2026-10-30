@@ -950,9 +950,6 @@ manifest:
     - declaration: missing_feature (agent sampling decision happens after export)
       excluded_weblog: [poc, uds]
   tests/otel/test_tracing_otlp.py::Test_Otlp_Forwards_Inherited_Ot: v3.55.0-dev
-  tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: irrelevant
-  tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E: irrelevant
-  tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E: irrelevant
   tests/parametric/otel_env_vars/test_otel_blrp_export_timeout.py::Test_OTEL_BLRP_EXPORT_TIMEOUT: missing_feature
   tests/parametric/otel_env_vars/test_otel_blrp_max_export_batch_size.py::Test_OTEL_BLRP_MAX_EXPORT_BATCH_SIZE: missing_feature
   tests/parametric/otel_env_vars/test_otel_blrp_max_queue_size.py::Test_OTEL_BLRP_MAX_QUEUE_SIZE: missing_feature
@@ -1210,6 +1207,7 @@ manifest:
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: '>=3.36.0'  # Modified by easy win activation script
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_dependent_flags: missing_feature (FFL-1694)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_flag_evaluation: missing_feature  # Created by easy win activation script
+  tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Split_Features: incomplete_test_app (Split-feature hook capture is currently implemented only in the Java parametric client)
   tests/parametric/test_ffe/test_rules_configuration.py: missing_feature (Standalone rules configuration helpers are currently tested only in Node.js)
   tests/parametric/test_ffe/test_serial_id_metadata.py: missing_feature
   tests/parametric/test_ffe/test_serial_id_metadata.py::Test_FFE_Serial_Id_Metadata_Go: irrelevant (Legacy Go metadata key)
@@ -1414,6 +1412,7 @@ manifest:
   tests/parametric/test_otel_tracestate_sampling.py::Test_OtelTracestateSampling::test_emits_probability_sampling_vectors: bug (APMAPI-2488)
   tests/parametric/test_otel_tracestate_sampling.py::Test_OtelTracestateSampling::test_precision_boundary_decisions: bug (APMAPI-2488)
   tests/parametric/test_otlp_trace_metrics.py: v3.52.0
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR01_Enablement_Configuration::test_fr01_3_disabled_by_default: missing_feature (OTLP trace metrics are still auto-enabled without OTEL_TRACES_SPAN_METRICS_ENABLED=true)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR02_Mutual_Exclusion::test_fr02_3_otlp_suppresses_native_stats: irrelevant (OTLP trace metrics alongside native (non-OTLP) trace export was removed and will not be supported; OTLP trace metrics now require OTEL_TRACES_EXPORTER=otlp)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Resource_Attributes::test_fr06_10_hostname: missing_feature (host.name is not yet reported on the OTLP trace metrics resource)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR06_Otel_Resource_Attributes::test_fr06_9_service_env_version: v3.54.0

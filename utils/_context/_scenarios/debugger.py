@@ -225,7 +225,7 @@ class DebuggerTelemetry(DdTraceEndToEndScenario):
     def __init__(self) -> None:
         super().__init__(
             "DEBUGGER_TELEMETRY",
-            mocked_backend_v2=True,
+            mocked_backend=True,
             use_proxy_for_agent=False,
             weblog_env={
                 "DD_REMOTE_CONFIG_ENABLED": "true",
