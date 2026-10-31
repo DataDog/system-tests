@@ -1230,6 +1230,7 @@ manifest:
       component_version: '>1.8.3'
   tests/debugger/test_debugger_snapshot_correlation.py::Test_Debugger_Coordinated_Sampling: missing_feature (no per-trace coordinated sampling; probabilistic per-trace rate not implemented)
   tests/debugger/test_debugger_snapshot_correlation.py::Test_Debugger_Coordinated_Sampling_Line_Probe: irrelevant (Line-probe variant is only used by Node.js)
+  tests/debugger/test_debugger_snapshot_sampling.py::Test_Debugger_Sub_Second_Sampling: missing_feature (snapshot sampling below 1 per second, DEBUG-6454)
   tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb: missing_feature
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry:
     - weblog_declaration:

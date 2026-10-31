@@ -1860,6 +1860,10 @@ manifest:
     - weblog_declaration:
         "*": *ref_6_21_0
         nextjs: irrelevant
+  tests/debugger/test_debugger_snapshot_sampling.py::Test_Debugger_Sub_Second_Sampling:
+    - weblog_declaration:
+        "*": *ref_5_81_0
+        nextjs: irrelevant
   tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb: missing_feature (feature not implented)
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry:
     - weblog_declaration:
