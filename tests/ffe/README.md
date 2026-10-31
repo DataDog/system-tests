@@ -65,6 +65,10 @@ Standalone rules-configuration helpers are covered in `tests/parametric/test_ffe
 
 These tests report to [Offline initialization and portable configuration helpers (#562)](https://feature-parity.us1.prod.dog/?feature=562). Current coverage is limited to Node's rules-based fetching and serialization; precomputed helpers and provider offline initialization are not covered here.
 
+`Test_FFE_Rules_Configuration_Selection` covers tag/key-pattern query parameters on both distribution channels, invalid selections rejected before HTTP, empty/URL-overflow selection omission, and retention of the full response when the backend ignores selection. The mock does not implement backend filtering. These cases require [openfeature-js-client #445](https://github.com/DataDog/openfeature-js-client/pull/445) in the `dd-trace` dependency and remain gated in the Node manifest until a containing build is available. Other SDKs retain the existing file-level gate.
+
+To validate an unreleased build containing the selection change, use the [custom Node tracer instructions](../../docs/execute/binaries.md#nodejs-library), select `tests/parametric/test_ffe/test_rules_configuration.py::Test_FFE_Rules_Configuration_Selection`, and pass the same node ID to `-F`. Once released, update the class gate and the existing file-level version restriction together.
+
 With Docker and the Python 3.12 runner installed:
 
 ```bash
