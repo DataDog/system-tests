@@ -284,6 +284,11 @@ class EndToEndScenario(DockerScenario):
         self.mocked_backend_container = MockedBackendContainer(tls=True)
         if mocked_backend:
             self._containers.append(self.mocked_backend_container)
+            if include_agent and not rc_api_enabled:
+                # the mocked backend always serves remote config: tests can send configs through it. Unless the
+                # scenario has the proxy answer the library itself (rc_api_enabled without rc_backend_enabled)
+                self.rc_api_enabled = True
+                self.rc_backend_enabled = True
 
         self.agent_container = AgentContainer(
             dd_api_key=self.dd_api_key,
