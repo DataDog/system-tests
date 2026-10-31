@@ -5,7 +5,7 @@
 import time
 import tests.debugger.utils as debugger
 
-from utils import slow, scenarios, features, bug, context
+from utils import slow, scenarios, features
 
 
 @features.debugger_probe_budgets
@@ -122,25 +122,28 @@ class Test_Debugger_Probe_Budgets(debugger.BaseDebuggerTest):
     def setup_span_probe_expression_budgets(self):
         self.initialize_weblog_remote_config()
 
-        probes = debugger.read_probes("probe_span_method_budgets_expression")
+        probes = debugger.read_probes("probe_span_line_budgets_expression")
         for probe in probes:
             probe["id"] = debugger.generate_probe_id("decor")
+
+        # A line probe in the loop body fires 150 times within a single trace. Sending 150 requests instead
+        # would lower the agent sampling rate and drop traces of the following span decoration tests.
+        self._rewrite_where_for_lines(
+            probes, self.method_and_language_to_line_number("Budgets", self.get_tracer()["language"])
+        )
 
         self.set_probes(probes)
         self.send_rc_probes()
         self.wait_for_all_probes(statuses=["INSTALLED"])
 
         start_time = time.time()
-        self.send_weblog_request("/debugger/budgets/1")
-        for _ in range(149):
-            self.send_weblog_request("/debugger/budgets/1", reset=False)
+        self.send_weblog_request("/debugger/budgets/150")
         end_time = time.time()
         self.total_request_time = end_time - start_time
 
         # Allow time for the agent to receive data after the last request
         time.sleep(2)
 
-    @bug(context.library == "java", reason="DEBUG-3797")
     def test_span_probe_expression_budgets(self):
         self.collect()
         self.assert_setup_ok()
@@ -160,9 +163,10 @@ class Test_Debugger_Probe_Budgets(debugger.BaseDebuggerTest):
             "Expected at least 1 error entry to verify the span probe expression error was logged, got 0"
         )
 
-        # Error entries should be rate-limited to at most 1 per second.
-        # Allow a buffer for timing imprecision.
-        max_expected = int(self.total_request_time) + 5
+        # Error entries should be rate-limited to at most 1 per second. Probe budgets aren't exact: rate limiters
+        # may allow an initial burst (e.g. Java's adaptive sampler starts with a budget of 17), so we allow up to
+        # 20 entries on top of the 1/s budget, matching the log line budget tests.
+        max_expected = int(self.total_request_time) + 20
         assert total_error_entries <= max_expected, (
             f"Expected at most {max_expected} error entries (1/sec budget for "
             f"{self.total_request_time:.1f}s), got {total_error_entries}. "
