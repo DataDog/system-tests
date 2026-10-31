@@ -161,3 +161,99 @@ class Test_FFE_Rules_Configuration:
                 assert CLIENT_TOKEN not in json.dumps(result), case
                 assert API_KEY not in json.dumps(result), case
                 assert mocked_backend.ffe_get_requests() == [], case
+
+
+@scenarios.parametric
+@features.feature_flags_portable_configuration
+@slow
+class Test_FFE_Rules_Configuration_Selection:
+    def test_selection_query_and_unfiltered_response(
+        self, test_library: APMLibrary, mocked_backend: MockedBackendServer
+    ) -> None:
+        with test_library:
+            for channel, credential in (("client", {"clientToken": CLIENT_TOKEN}), ("server", {"apiKey": API_KEY})):
+                options = {"distributionChannel": channel, "env": "test env", **credential}
+                baseline = test_library.ffe_fetch_rules_configuration(options)
+                request_count = len(mocked_backend.ffe_get_requests())
+                result = test_library.ffe_fetch_rules_configuration(
+                    {
+                        **options,
+                        "flagSelection": {
+                            "tags": ["team:checkout", "release:summer sale", "team:checkout"],
+                            "keyPatterns": ["checkout-*", "checkout-banner", "checkout-*"],
+                        },
+                    }
+                )
+
+                assert "error" not in result, (channel, result)
+                requests = mocked_backend.ffe_get_requests()[request_count:]
+                assert len(requests) == 1, (channel, requests)
+                url = urlsplit(requests[0]["path"])
+                assert url.path == f"{RULES_CONFIG_PATH}/{channel}", channel
+                assert parse_qs(url.query) == {
+                    "dd_env": ["test env"],
+                    "selected_flag_tags": ["release:summer sale", "team:checkout"],
+                    "selected_flag_key_patterns": ["checkout-*", "checkout-banner"],
+                }, (channel, url.query)
+                assert "release%3Asummer%20sale" in url.query, channel
+                assert "checkout-%2A" in url.query, channel
+                headers = requests[0]["headers"]
+                assert headers.get("dd-client-token") == (CLIENT_TOKEN if channel == "client" else None), channel
+                assert headers.get("dd-api-key") == (API_KEY if channel == "server" else None), channel
+
+                # The mock ignores selection. Retain its full response even though test-flag
+                # does not match either requested key pattern.
+                wire = json.loads(result["wire"])
+                original = json.loads(baseline["wire"])
+                assert wire["version"] == original["version"], channel
+                assert wire["rules"]["response"] == original["rules"]["response"], channel
+                assert wire["rules"]["etag"] == original["rules"]["etag"], channel
+
+    def test_empty_and_url_overflow_selections_are_not_sent(
+        self, test_library: APMLibrary, mocked_backend: MockedBackendServer
+    ) -> None:
+        cases = {
+            "empty": {"tags": [], "keyPatterns": []},
+            # Each list and value is valid; the combined encoded URL exceeds 8192 bytes.
+            "url-overflow": {
+                "tags": [f"team:{index}:" + "a" * 180 for index in range(31)],
+                "keyPatterns": [f"flag-{index}-" + "b" * 180 + "*" for index in range(31)],
+            },
+        }
+        with test_library:
+            for channel, credential in (("client", {"clientToken": CLIENT_TOKEN}), ("server", {"apiKey": API_KEY})):
+                for case, selection in cases.items():
+                    request_count = len(mocked_backend.ffe_get_requests())
+                    result = test_library.ffe_fetch_rules_configuration(
+                        {"distributionChannel": channel, "env": "test env", **credential, "flagSelection": selection}
+                    )
+                    assert "error" not in result, (channel, case, result)
+                    assert json.loads(result["wire"])["rules"]["response"], (channel, case)
+                    requests = mocked_backend.ffe_get_requests()[request_count:]
+                    assert len(requests) == 1, (channel, case, requests)
+                    url = urlsplit(requests[0]["path"])
+                    assert url.path == f"{RULES_CONFIG_PATH}/{channel}", (channel, case)
+                    assert parse_qs(url.query) == {"dd_env": ["test env"]}, (channel, case, url.query)
+
+    def test_invalid_selection_fails_before_request(
+        self, test_library: APMLibrary, mocked_backend: MockedBackendServer
+    ) -> None:
+        cases: dict[str, dict[str, Any]] = {
+            "malformed-tags": {"tags": "private-selection-value"},
+            "too-many-tags": {"tags": [f"tag:{index}" for index in range(32)]},
+            "too-many-patterns": {"keyPatterns": [f"flag-{index}" for index in range(32)]},
+            "oversized-tag": {"tags": ["x" * 201]},
+        }
+        with test_library:
+            for channel, credential in (("client", {"clientToken": CLIENT_TOKEN}), ("server", {"apiKey": API_KEY})):
+                for case, selection in cases.items():
+                    result = test_library.ffe_fetch_rules_configuration(
+                        {"distributionChannel": channel, "env": "test env", **credential, "flagSelection": selection}
+                    )
+                    assert "wire" not in result, (channel, case, result)
+                    assert result["error"]["name"] == "ConfigurationFetchError", (channel, case, result)
+                    assert result["error"]["code"] == "invalid_options", (channel, case, result)
+                    assert "private-selection-value" not in json.dumps(result), (channel, case)
+                    assert CLIENT_TOKEN not in json.dumps(result), (channel, case)
+                    assert API_KEY not in json.dumps(result), (channel, case)
+                    assert mocked_backend.ffe_get_requests() == [], (channel, case)
