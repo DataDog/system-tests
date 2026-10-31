@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "rules": {
+    "etag": "private-source-etag",
+    "response": "CgYIgPLWygYSBHRlc3QabwoIY2hlY2tvdXQSYxAEGgIoARoECAEoACJBCg11cy1hbGxvY2F0aW9uEAAiLBgqIAEqJgoKZXhwZXJpbWVudBIIY2hlY2tvdXQqBEhPT0sqCEVYUE9TVVJFKAEiEgoIZmFsbGJhY2siBhABGCsgBBokCghudWxsYWJsZRIYEAUaBAgEMAAiDgoIbnVsbGFibGUiAiADGhQKCnVuYXNzaWduZWQSBhAEGgIoARorCgt1bnN1cHBvcnRlZBIcCOcHEAQaAigBIhEKC3Vuc3VwcG9ydGVkIgIgAyIGEgQKAggDKgdlbmFibGVkKghkaXNhYmxlZCoCVVMqB2NvdW50cnkqCW51bGwtanNvbkIEbnVsbEoFKgMSAQJQAQ=="
+  }
+}

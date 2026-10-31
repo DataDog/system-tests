@@ -234,6 +234,12 @@ Use `mocked_backend.client.ffe_set_response` or `mocked_backend.client.ffe_set_r
 
 The protobuf response IDs `selection_ignored_empty`, `selection_ignored_tag_load_failed`, and `selection_ignored_unknown` return the full rules fixture with a `DD-Flag-Selection-Ignored` header set to an empty string, `tag_load_failed`, or `future_reason`, respectively. Use these shared responses to test selection diagnostics without replacing the rules endpoint handler. The `valid` response omits the header.
 
+#### Standalone Precomputation
+
+`test_library.ffe_precompute_configuration(payload)` calls `POST /ffe/precompute-configuration` (Node.js only). It starts a fresh process without tracer/provider initialization and calls the public `dd-trace/openfeature/rules-based` helpers. Supply either a serialized `wire` or `fetchOptions` (using the same custom transport as the rules-fetch endpoint), an array of `contexts`, and optional precomputation `options`. One configuration is reused for every context. No browser is initialized.
+
+Success returns `{ "results": [{ "wire": "...", "errors": [{ "flagKey": "...", "errorCode": "PARSE_ERROR" }] }], "httpRequests": 0, "trackingEvents": 0 }`. The error array contains omitted-flag diagnostics. Expected input/fetch failures return `{ "error": { "name": "...", "code": "...", "message": "..." }, "httpRequests": 0, "trackingEvents": 0 }`; unexpected failures return HTTP 500. Counts observe Node's Undici/HTTP request diagnostics and the FFE exposure/evaluation channels, including import and optional fetch. Local conversion expects zero requests; fetching then precomputing multiple contexts expects one.
+
 #### Effective OpenTelemetry configuration
 
 Use `test_library.otel_effective_config()` to inspect resolved OTLP exporter timeouts.

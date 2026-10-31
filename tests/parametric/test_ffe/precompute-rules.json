@@ -1,0 +1,44 @@
+{
+  "createdAt": "2026-01-01T00:00:00Z",
+  "environmentName": "test",
+  "observeFullEvaluationData": true,
+  "strings": ["enabled", "disabled", "US", "country", "null-json"],
+  "attributes": [{"attributePath": {"segments": [{"objectKeyStringIndex": 3}]}}],
+  "conditions": [{"stringMembership": {"stringIndexes": [2]}}],
+  "jsonStrings": ["null"],
+  "flags": {
+    "checkout": {
+      "variationType": "VARIATION_TYPE_BOOLEAN",
+      "variations": [
+        {"keyStringIndex": 0, "booleanValue": true},
+        {"keyStringIndex": 1, "booleanValue": false}
+      ],
+      "allocations": [
+        {
+          "key": "us-allocation",
+          "targetingConditionIndex": 0,
+          "logExposureEvent": true,
+          "splits": [{
+            "variationIndex": 0,
+            "reason": "REASON_TARGETING_MATCH",
+            "serialId": 42,
+            "features": [{"key": "experiment", "stringValue": "checkout", "destinations": ["HOOK", "EXPOSURE"]}]
+          }]
+        },
+        {"key": "fallback", "splits": [{"variationIndex": 1, "reason": "REASON_DEFAULT", "serialId": 43}]}
+      ]
+    },
+    "nullable": {
+      "variationType": "VARIATION_TYPE_JSON",
+      "variations": [{"keyStringIndex": 4, "jsonStringIndex": 0}],
+      "allocations": [{"key": "nullable", "splits": [{"reason": "REASON_STATIC"}]}]
+    },
+    "unassigned": {"variationType": "VARIATION_TYPE_BOOLEAN", "variations": [{"booleanValue": true}]},
+    "unsupported": {
+      "minimumFeatureLevel": 999,
+      "variationType": "VARIATION_TYPE_BOOLEAN",
+      "variations": [{"booleanValue": true}],
+      "allocations": [{"key": "unsupported", "splits": [{"reason": "REASON_STATIC"}]}]
+    }
+  }
+}
