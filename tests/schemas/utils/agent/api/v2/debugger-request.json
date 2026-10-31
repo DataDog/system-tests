@@ -3,6 +3,11 @@
   "type": "array",
   "items": {
     "type": "object",
+    "if": {
+      "required": ["debugger"],
+      "properties": { "debugger": { "type": "object", "required": ["snapshot"] } }
+    },
+    "then": { "required": ["timestamp"] },
     "oneOf": [
       {
         "properties": {
