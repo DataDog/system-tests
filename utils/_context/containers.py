@@ -26,7 +26,7 @@ from utils.base_images.base_image import base_image_contexts
 from utils._context.weblog_metadata import WeblogMetaData
 from utils.docker_fixtures._core import extra_hosts_for_environment
 from utils.proxy.tuf import get_tuf_root_json
-from utils.mocked_backend import MockedBackendClient
+from utils.mocked_backend import MOCKED_BACKEND_DOMAIN, MockedBackendClient, MockedBackendServer
 from utils.mocked_backend.ffe import UFC_FIXTURE_RELATIVE_PATH
 from utils.proxy.ports import ProxyPorts
 from utils.proxy.mocked_response import (
@@ -51,9 +51,6 @@ from utils.k8s_lib_injection.k8s_weblog import K8sWeblog
 from utils.interfaces._library.core import LibraryInterfaceValidator
 from utils.interfaces import StdoutLogsInterface, LibraryStdoutInterface
 
-# Domain of the mocked backend, also the DD_SITE of its senders: the intake hostnames derived from it are its network
-# aliases. The reserved .invalid domain fails closed if a request is sent anywhere else
-MOCKED_BACKEND_DOMAIN = "mocked-backend.invalid"
 
 _DEFAULT_NETWORK_NAME = "system-tests_default"
 _NETWORK_NAME = "bridge" if "GITLAB_CI" in os.environ else _DEFAULT_NETWORK_NAME
@@ -781,24 +778,9 @@ class MockedBackendContainer(TestedContainer):
     What it receives is recorded in the logs folder, and read by interfaces.mocked_backend.
     """
 
-    # With tls, it serves HTTPS instead of HTTP: for senders that only speak HTTPS to the intake hostnames derived
-    # from DD_SITE (e.g. an SDK sending exposures directly). Its certificate is signed by the mitmproxy CA: these
-    # senders must trust it. See utils/mocked_backend/tls/README.md
-    tls_hostnames = (
-        MOCKED_BACKEND_DOMAIN,
-        f"agent-http-intake.logs.{MOCKED_BACKEND_DOMAIN}",
-        f"api.{MOCKED_BACKEND_DOMAIN}",
-        f"app.{MOCKED_BACKEND_DOMAIN}",
-        f"config.{MOCKED_BACKEND_DOMAIN}",
-        f"debugger-intake.{MOCKED_BACKEND_DOMAIN}",
-        f"event-platform-intake.{MOCKED_BACKEND_DOMAIN}",
-        f"http-intake.logs.{MOCKED_BACKEND_DOMAIN}",
-        f"instrumentation-telemetry-intake.{MOCKED_BACKEND_DOMAIN}",
-        f"llmobs-intake.{MOCKED_BACKEND_DOMAIN}",
-        f"process.{MOCKED_BACKEND_DOMAIN}",
-        f"trace.agent.{MOCKED_BACKEND_DOMAIN}",
-    )
-    tls_cert_file = "utils/mocked_backend/tls/mocked-backend.pem"
+    # With tls, it serves HTTPS instead of HTTP, for MockedBackendServer.tls_hostnames: for senders that only speak
+    # HTTPS to the intake hostnames derived from DD_SITE (e.g. an SDK sending exposures directly). Its certificate is
+    # signed by the mitmproxy CA: these senders must trust it
     tls_ca_file = "utils/proxy/.mitmproxy/mitmproxy-ca-cert.pem"
 
     def __init__(self, *, tls: bool = False) -> None:
@@ -816,8 +798,8 @@ class MockedBackendContainer(TestedContainer):
             # a valid hostname: some HTTP clients reject an underscore
             name="mocked-backend",
             # Docker rejects aliases on the default bridge network, used on GitLab (see _NETWORK_NAME). If a tls
-            # scenario runs there, map tls_hostnames to this container with extra_hosts on the senders instead
-            network_aliases=list(self.tls_hostnames) if tls else None,
+            # scenario runs there, map these hostnames to this container with extra_hosts on the senders instead
+            network_aliases=list(MockedBackendServer.tls_hostnames) if tls else None,
             working_dir="/app",
             volumes={
                 # without utils/__init__.py: utils is a namespace package, and the rest of utils is not needed
@@ -850,7 +832,7 @@ class MockedBackendContainer(TestedContainer):
             log_folder,
         ]
         if self.tls:
-            self.command += ["--tls-cert-file", self.tls_cert_file]
+            self.command += ["--tls"]
 
         if self.internal_mocked_responses:
             # not in the recordings folder: interfaces.mocked_backend reads every JSON file there
