@@ -299,9 +299,10 @@ def _get_endtoend_weblogs(
             else binaries_artifact
         )
 
-    # skipping dd-trace-go span pool weblog while it's not released
+    # skipping weblogs whose tracer support is not released yet (net-http-span-pool, php-fpm-8.6)
+    # TODO: remove php-fpm-8.6 once a dd-trace-php release ships PHP 8.6
     if ci_environment == "prod":
-        weblogs = [w for w in weblogs if w.name != "net-http-span-pool"]
+        weblogs = [w for w in weblogs if w.name not in ("net-http-span-pool", "php-fpm-8.6")]
 
     return sorted(weblogs, key=lambda w: w.name)
 
