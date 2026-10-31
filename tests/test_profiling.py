@@ -43,7 +43,7 @@ class Test_Profile:
 
     def test_agent(self):
         """All profiling agent payload have recording-start and recording-end fields"""
-        interfaces.agent.validate_all(self._validate_data, path_filters="/api/v2/profile")
+        interfaces.mocked_backend.validate_all(self._validate_data, path_filters="/api/v2/profile")
 
     def setup_process_tags(self):
         self._common_setup()
@@ -53,7 +53,7 @@ class Test_Profile:
 
     def check_process_tags(self, validate_process_tags_func: Callable):
         """All profiling libraries payload have process tags field"""
-        profiling_data_list = list(interfaces.agent.get_profiling_data())
+        profiling_data_list = list(interfaces.mocked_backend.get_profiling_data())
         if not profiling_data_list:
             raise ValueError("No profiling data received")
         for data in profiling_data_list:
