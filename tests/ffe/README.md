@@ -63,7 +63,11 @@ configuration copies are needed.
 
 Standalone rules-configuration helpers are covered in `tests/parametric/test_ffe/test_rules_configuration.py` (Node.js only for now). These tests use `dd-trace/openfeature/rules-based` in a fresh process without initializing a tracer or provider, fetch protobuf over HTTP, and validate the portable wire output, channel credentials, typed errors, deadlines and cancellation during headers/body delivery, transport failures, invalid options, and redirect protection. They do not initialize a browser SDK or contact Datadog.
 
-These tests report to [Offline initialization and portable configuration helpers (#562)](https://feature-parity.us1.prod.dog/?feature=562). Current coverage is limited to Node's rules-based fetching and serialization; precomputed helpers and provider offline initialization are not covered here.
+These tests report to [Offline initialization and portable configuration helpers (#562)](https://feature-parity.us1.prod.dog/?feature=562). `Test_FFE_Rules_Configuration_Precompute` adds Node's local rules-to-precomputed conversion: context-specific assignments, metadata preservation, omitted failed/unassigned flags, sanitized input errors, and reuse of one fetch across multiple contexts. It observes Node HTTP and FFE diagnostics channels to check that local precomputation adds no requests or tracking. Provider offline initialization and browser handoff remain outside this coverage.
+
+The precomputation class requires [openfeature-js-client #448](https://github.com/DataDog/openfeature-js-client/pull/448) plus the dependency and public exports in `dd-trace/openfeature/rules-based`. It remains gated in the Node manifest until a containing build is available; other SDKs retain the existing file-level gate.
+
+To validate an unreleased build containing these changes, use the [custom Node tracer instructions](../../docs/execute/binaries.md#nodejs-library), select `tests/parametric/test_ffe/test_rules_configuration.py::Test_FFE_Rules_Configuration_Precompute`, and pass the same node ID to `-F`. The required new public exports are `configurationFromString`, `precomputeConfiguration`, and `ConfigurationPrecomputeError`. Once released, update the class gate and the existing file-level version restriction together.
 
 With Docker and the Python 3.12 runner installed:
 
@@ -73,7 +77,9 @@ PYTEST_XDIST_AUTO_NUM_WORKERS=1 TEST_LIBRARY=nodejs ./run.sh PARAMETRIC tests/pa
 
 Until the helpers are released, use a master build as described in the [custom Node.js binary instructions](../../docs/execute/binaries.md#nodejs-library). The Node manifest currently targets master's `7.0.0-pre` development version; update that gate to the actual release version once published.
 
-The protobuf fixture `tests/parametric/test_ffe/rules-wire.json` comes from `openfeature-js-client/packages/browser/test/data/rules-v1-wire.json`. The test checks serialization without evaluating flags or depending on a browser package.
+The protobuf fixture `tests/parametric/test_ffe/rules-wire.json` comes from `openfeature-js-client/packages/browser/test/data/rules-v1-wire.json`. Fetch-only tests check serialization without evaluation; the fetch-then-precompute case also resolves this fixture for two contexts. Neither path depends on a browser package.
+
+`precompute-rules.json` is the readable protobuf JSON source for `precompute-rules-wire.json`. It contains a US-targeted boolean, a false fallback with reason `DEFAULT`, a JSON-null assignment, an unassigned flag, and an unsupported-feature flag. The wire is encoded with `@bufbuild/protobuf`'s `fromJson`/`toBinary` and the `FlagsConfigurationSchema` from `flagging-core` at PR #448 commit `b2a42f26ce9ece08e5d317563b4246163d5d0acf`; it carries a deliberately distinct source ETag to check that precomputation does not forward it.
 
 ```bash
 ./run.sh FEATURE_FLAGGING_AND_EXPERIMENTATION --library <language>

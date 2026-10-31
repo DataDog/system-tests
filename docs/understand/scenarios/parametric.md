@@ -228,6 +228,12 @@ The shared `mocked_backend` fixture serves these protobuf responses. Import shar
 
 Use `mocked_backend.client.ffe_set_response` or `mocked_backend.client.ffe_set_responses` with `response_format="protobuf"` to configure these responses; the default format is JSON. Each format has an independent response timeline, and controls reject response IDs unsupported by the selected format. `mocked_backend.client.ffe_reset` resets both timelines and the shared request history. Use `mocked_backend.ffe_get_requests` to inspect paths, queries, and headers without including fixture control traffic.
 
+#### Standalone Precomputation
+
+`test_library.ffe_precompute_configuration(payload)` calls `POST /ffe/precompute-configuration` (Node.js only). It starts a fresh process without tracer/provider initialization and calls the public `dd-trace/openfeature/rules-based` helpers. Supply either a serialized `wire` or `fetchOptions` (using the same custom transport as the rules-fetch endpoint), an array of `contexts`, and optional precomputation `options`. One configuration is reused for every context. No browser is initialized.
+
+Success returns `{ "results": [{ "wire": "...", "errors": [{ "flagKey": "...", "errorCode": "PARSE_ERROR" }] }], "httpRequests": 0, "trackingEvents": 0 }`. The error array contains omitted-flag diagnostics. Expected input/fetch failures return `{ "error": { "name": "...", "code": "...", "message": "..." }, "httpRequests": 0, "trackingEvents": 0 }`; unexpected failures return HTTP 500. Counts observe Node's Undici/HTTP request diagnostics and the FFE exposure/evaluation channels, including import and optional fetch. Local conversion expects zero requests; fetching then precomputing multiple contexts expects one.
+
 #### Effective OpenTelemetry configuration
 
 Use `test_library.otel_effective_config()` to inspect resolved OTLP exporter timeouts.

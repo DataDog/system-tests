@@ -605,13 +605,16 @@ app.post("/trace/otel/otel_set_baggage", (req, res) => {
 });
 
 // Feature Flag & Experimentation endpoints
-app.post('/ffe/fetch-rules-configuration', (req, res) => {
+app.post(['/ffe/fetch-rules-configuration', '/ffe/precompute-configuration'], (req, res) => {
   const { execFile } = require('node:child_process')
   const path = require('node:path')
   const env = { ...process.env }
   // The helper must work without the parent server's tracer or preload hooks.
   delete env.NODE_OPTIONS
-  execFile(process.execPath, [path.join(__dirname, 'ffe-rules-configuration.js'), JSON.stringify(req.body)], {
+  const script = req.path === '/ffe/precompute-configuration'
+    ? 'ffe-precompute-configuration.js'
+    : 'ffe-rules-configuration.js'
+  execFile(process.execPath, [path.join(__dirname, script), JSON.stringify(req.body)], {
     env,
     timeout: 10000
   }, (error, stdout, stderr) => {

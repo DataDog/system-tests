@@ -1,7 +1,9 @@
 """Standalone SSR producer contract; intentionally does not initialize a browser SDK."""
 
 import base64
+from datetime import datetime
 import json
+from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, urlsplit
 
@@ -14,6 +16,7 @@ WIRE_FIXTURE = load_rules_wire_fixture()
 CLIENT_TOKEN = "system-tests-client-token"
 API_KEY = "system-tests-api-key"
 CLIENT_OPTIONS = {"distributionChannel": "client", "clientToken": CLIENT_TOKEN, "env": "test env"}
+PRECOMPUTE_WIRE = Path(__file__).with_name("precompute-rules-wire.json").read_text()
 
 
 @pytest.fixture
@@ -160,4 +163,114 @@ class Test_FFE_Rules_Configuration:
                 assert result["error"]["code"] == "invalid_options", (case, result)
                 assert CLIENT_TOKEN not in json.dumps(result), case
                 assert API_KEY not in json.dumps(result), case
+                assert mocked_backend.ffe_get_requests() == [], case
+
+
+@scenarios.parametric
+@features.feature_flags_portable_configuration
+@slow
+class Test_FFE_Rules_Configuration_Precompute:
+    def test_local_context_assignments_and_metadata(
+        self, test_library: APMLibrary, mocked_backend: MockedBackendServer
+    ) -> None:
+        contexts = [
+            {"targetingKey": "subject-us", "country": "US"},
+            {"targetingKey": "subject-ca", "country": "CA"},
+        ]
+        with test_library:
+            result = test_library.ffe_precompute_configuration({"wire": PRECOMPUTE_WIRE, "contexts": contexts})
+
+        assert "error" not in result, result
+        assert result["httpRequests"] == 0, result
+        assert result["trackingEvents"] == 0, result
+        assert mocked_backend.ffe_get_requests() == []
+        assert len(result["results"]) == len(contexts), result
+        for context, output in zip(contexts, result["results"], strict=True):
+            wire = json.loads(output["wire"])
+            assert set(wire) == {"version", "precomputed"}, wire
+            assert wire["version"] == 1
+            snapshot = wire["precomputed"]
+            assert snapshot["context"] == context
+            assert "etag" not in snapshot
+            assert snapshot["fetchedAt"] > 0
+            attributes = json.loads(snapshot["response"])["data"]["attributes"]
+            assert attributes["format"] == "PRECOMPUTED"
+            assert attributes["obfuscated"] is False
+            assert attributes["environment"] == {"name": "test"}
+            assert attributes["observeFullEvaluationData"] is True
+            assert datetime.fromisoformat(attributes["createdAt"]).timestamp() * 1000 == snapshot["fetchedAt"]
+            flags = attributes["flags"]
+            assert set(flags) == {"checkout", "nullable"}, flags
+            is_us = context["country"] == "US"
+            assert flags["checkout"] == {
+                "allocationKey": "us-allocation" if is_us else "fallback",
+                "variationKey": "enabled" if is_us else "disabled",
+                "variationType": "boolean",
+                "variationValue": is_us,
+                "reason": "TARGETING_MATCH" if is_us else "DEFAULT",
+                "doLog": is_us,
+                "serialId": 42 if is_us else 43,
+                **(
+                    {"features": [{"key": "experiment", "value": "checkout", "destinations": ["HOOK", "EXPOSURE"]}]}
+                    if is_us
+                    else {}
+                ),
+            }
+            assert flags["nullable"]["variationType"] == "object"
+            assert flags["nullable"]["variationValue"] is None
+            assert output["errors"] == [{"flagKey": "unsupported", "errorCode": "PARSE_ERROR"}]
+            # No default assignment is invented for the unassigned or unsupported flags.
+            assert "private-source-etag" not in output["wire"]
+
+    def test_fetch_once_precompute_multiple_contexts(
+        self, test_library: APMLibrary, mocked_backend: MockedBackendServer
+    ) -> None:
+        contexts = [{"targetingKey": "subject", "country": country} for country in ("US", "CA")]
+        with test_library:
+            result = test_library.ffe_precompute_configuration({"fetchOptions": CLIENT_OPTIONS, "contexts": contexts})
+
+        assert "error" not in result, result
+        assert result["httpRequests"] == 1, result
+        assert result["trackingEvents"] == 0, result
+        requests = mocked_backend.ffe_get_requests()
+        assert len(requests) == 1, requests
+        assert urlsplit(requests[0]["path"]).path == f"{RULES_CONFIG_PATH}/client"
+        assert len(result["results"]) == 2, result
+        for context, output in zip(contexts, result["results"], strict=True):
+            wire = json.loads(output["wire"])
+            assert set(wire) == {"version", "precomputed"}, wire
+            snapshot = wire["precomputed"]
+            assert snapshot["context"] == context
+            assert "etag" not in snapshot
+            flag = json.loads(snapshot["response"])["data"]["attributes"]["flags"]["test-flag"]
+            assert flag["variationValue"] is True
+            assert flag["variationKey"] == "on"
+            assert flag["reason"] == ("TARGETING_MATCH" if context["country"] == "US" else "SPLIT")
+            assert flag["serialId"] == 7
+            assert output["errors"] == []
+            assert CLIENT_TOKEN not in output["wire"]
+
+    def test_invalid_precompute_inputs(self, test_library: APMLibrary, mocked_backend: MockedBackendServer) -> None:
+        cases: list[tuple[str, dict[str, Any], str]] = [
+            ("malformed-wire", {"wire": "private-invalid-wire"}, "invalid_configuration"),
+            ("empty-configuration", {"wire": json.dumps({"version": 1})}, "invalid_configuration"),
+            ("null-context", {"contexts": [None]}, "invalid_context"),
+            (
+                "invalid-targeting-key",
+                {"contexts": [{"targetingKey": 42, "private": "private-context"}]},
+                "invalid_context",
+            ),
+            ("invalid-policy", {"options": {"experimentationOptOutMode": "private-policy"}}, "invalid_options"),
+        ]
+        with test_library:
+            for case, overrides, code in cases:
+                result = test_library.ffe_precompute_configuration(
+                    {"wire": PRECOMPUTE_WIRE, "contexts": [{"targetingKey": "subject"}], **overrides}
+                )
+                assert "results" not in result, (case, result)
+                assert result["error"]["name"] == "ConfigurationPrecomputeError", (case, result)
+                assert result["error"]["code"] == code, (case, result)
+                assert "private-" not in json.dumps(result), (case, result)
+                assert result["httpRequests"] == 0, (case, result)
+                assert result["trackingEvents"] == 0, (case, result)
                 assert mocked_backend.ffe_get_requests() == [], case
