@@ -4,7 +4,7 @@
 
 from typing import Any
 
-from utils import features, interfaces, remote_config, scenarios, weblog
+from utils import context, features, interfaces, remote_config, scenarios, weblog
 from utils.dd_constants import RemoteConfigApplyState
 
 
@@ -40,7 +40,8 @@ class Test_Debugger_RC_Unsubscribe:
 
         Returns:
             The matching request's client object, or an empty dict if no
-            matching poll arrives within 30 seconds.
+            matching poll arrives within the scenario's library interface
+            timeout.
 
         """
         observed: dict[str, Any] = {}
@@ -63,7 +64,7 @@ class Test_Debugger_RC_Unsubscribe:
             observed.update(client)
             return True
 
-        interfaces.library.wait_for(matches, timeout=30)
+        interfaces.library.wait_for(matches, timeout=context.scenario.library_interface_timeout)
         return observed
 
     @staticmethod
@@ -87,7 +88,9 @@ class Test_Debugger_RC_Unsubscribe:
         }
         # Request-driven tracers need traffic to initialize remote configuration.
         result["http_status"] = weblog.get("/").status_code
-        if not interfaces.library.wait_for(lambda data: data["path"] == "/v0.7/config", timeout=30):
+        if not interfaces.library.wait_for(
+            lambda data: data["path"] == "/v0.7/config", timeout=context.scenario.library_interface_timeout
+        ):
             return result
         state = remote_config.tracer_rc_state
         # Other tests in this scenario can publish versions outside this singleton.
