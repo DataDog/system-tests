@@ -5,6 +5,7 @@
 from typing import Any
 
 from utils import context, features, interfaces, remote_config, scenarios, weblog
+from utils._context._scenarios import EndToEndScenario
 from utils.dd_constants import RemoteConfigApplyState
 
 
@@ -64,6 +65,7 @@ class Test_Debugger_RC_Unsubscribe:
             observed.update(client)
             return True
 
+        assert isinstance(context.scenario, EndToEndScenario)
         interfaces.library.wait_for(matches, timeout=context.scenario.library_interface_timeout)
         return observed
 
@@ -88,6 +90,7 @@ class Test_Debugger_RC_Unsubscribe:
         }
         # Request-driven tracers need traffic to initialize remote configuration.
         result["http_status"] = weblog.get("/").status_code
+        assert isinstance(context.scenario, EndToEndScenario)
         if not interfaces.library.wait_for(
             lambda data: data["path"] == "/v0.7/config", timeout=context.scenario.library_interface_timeout
         ):
