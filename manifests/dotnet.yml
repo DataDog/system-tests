@@ -802,6 +802,7 @@ manifest:
     - declaration: bug (DEBUG-5101)
       component_version: '<3.45.0'
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Method_Probe_Statuses: v2.53.0
+  tests/debugger/test_debugger_rc_unsubscribe.py::Test_Debugger_RC_Unsubscribe: bug (DEBUG-4637)
   tests/debugger/test_debugger_snapshot_correlation.py::Test_Debugger_Coordinated_Sampling: v3.55.0  # DEBUG-5828: per-trace coordinated snapshot sampling (#9266)
   tests/debugger/test_debugger_snapshot_correlation.py::Test_Debugger_Coordinated_Sampling_Line_Probe: irrelevant (Line-probe variant is only used by Node.js)
   tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb: v2.53.0
