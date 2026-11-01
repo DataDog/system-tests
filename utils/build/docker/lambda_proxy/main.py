@@ -167,6 +167,8 @@ match LAMBDA_EVENT_TYPE:
         exit(1)
 
 ROUTES = [
+    ("/sca/vulnerable-call", ["GET"]),
+    ("/sca/vulnerable-call-alt", ["GET"]),
     ("/", ["GET", "POST", "OPTIONS"]),
     ("/finger_print", ["GET"]),
     ("/headers", ["GET"]),

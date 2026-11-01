@@ -1,6 +1,5 @@
 import pytest
-from .core import scenario_groups
-from .endtoend import EndToEndScenario
+from ._core import EndToEndScenario, scenario_groups
 from utils._context.containers import InternalServerContainer, PostgresContainer
 from utils._context.constants import WeblogCategory
 
@@ -56,9 +55,9 @@ _iast_security_controls_map = {
 
 
 class DefaultScenario(EndToEndScenario):
-    def __init__(self, name: str):
+    def __init__(self) -> None:
         super().__init__(
-            name,
+            "DEFAULT",
             weblog_env={
                 "DD_DBM_PROPAGATION_MODE": "service",
                 "SOME_SECRET_ENV": "leaked-env-var",  # used for test that env var are not leaked

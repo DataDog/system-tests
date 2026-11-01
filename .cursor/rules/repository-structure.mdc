@@ -42,11 +42,10 @@ system-tests/
 |   |-- _context/       # Test context and scenario definitions
 |   |   |-- _scenarios/ # Scenario implementations
 |   |   |   |-- __init__.py # Here you can find all the scenarios implemented. Parse this file to discover the scenarios implemented.
-|   |   |   |-- appsec_low_waf_timeout.py # AppSec WAF timeout scenario
 |   |   |   |-- auto_injection.py # Auto-injection scenario
 |   |   |   |-- default.py       # Default scenario implementation
 |   |   |   |-- docker_ssi.py    # Docker SSI scenario
-|   |   |   |-- endtoend.py      # End-to-end testing framework
+|   |   |   |-- _core/           # Base classes shared by several scenario modules (endtoend.py: end-to-end framework)
 |   |   |   |-- parametric.py    # Parametric scenario
 |   |   |   |-- k8s_lib_injection.py # K8s lib injection scenario
 |   |-- assets/         # Images and other static assets

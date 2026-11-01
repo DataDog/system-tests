@@ -28,7 +28,7 @@ class Test_SingleSpan:
 
     def test_parent_span_is_single_span(self):
         # Only the parent span should be submitted to the backend!
-        spans = interfaces.backend_v2.get_spans_list(self.req)
+        spans = interfaces.mocked_backend.get_spans_list(self.req)
         assert len(spans) == 1, "Agent did not submit the spans we want!"
 
         # Assert the spans sent by the agent.
@@ -47,7 +47,7 @@ class Test_SingleSpan:
 
     def test_child_span_is_single_span(self):
         # Only the child should be submitted to the backend!
-        spans = interfaces.backend_v2.get_spans_list(self.req)
+        spans = interfaces.mocked_backend.get_spans_list(self.req)
         assert len(spans) == 1, "Agent did not submit the spans we want!"
 
         # Assert the spans sent by the agent.

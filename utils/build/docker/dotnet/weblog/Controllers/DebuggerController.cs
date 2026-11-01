@@ -14,7 +14,7 @@ namespace weblog
     public class DebuggerController : Controller
     {
         [HttpGet("log")]
-        [Consumes("application/json", "application/xml")]
+        [Consumes("application/json", "application/xml"), System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
         public IActionResult LogProbe()
         {
             return Content($"Log probe");

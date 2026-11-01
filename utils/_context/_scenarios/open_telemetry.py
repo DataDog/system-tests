@@ -16,15 +16,20 @@ from utils._context.containers import (
     OpenTelemetryCollectorContainer,
     TestedContainer,
     WeblogContainer,
-    FAKE_DD_API_KEY,
+    CassandraContainer,
+    KafkaContainer,
+    MongoContainer,
+    MsSqlServerContainer,
+    MySqlContainer,
+    PostgresContainer,
+    RabbitMqContainer,
 )
 
+from ._core import DockerScenario, FakeDatadogKey, scenario_groups
+from utils.proxy.ports import ProxyPorts
 
-from .core import scenario_groups
-from .endtoend import DockerScenario
 
-
-class OpenTelemetryScenario(DockerScenario):
+class _OpenTelemetryScenario(DockerScenario):
     """Scenario for testing opentelemetry"""
 
     def __init__(
@@ -38,7 +43,6 @@ class OpenTelemetryScenario(DockerScenario):
         include_intake: bool = True,
         backend_interface_timeout: int = 20,
         require_api_key: bool = False,
-        mocked_backend: bool = True,
         extra_containers: tuple[type[TestedContainer], ...] = (),
     ) -> None:
         super().__init__(
@@ -48,13 +52,12 @@ class OpenTelemetryScenario(DockerScenario):
             scenario_groups=[scenario_groups.all, scenario_groups.open_telemetry],
             weblog_categories=[WeblogCategory.open_telemetry],
             use_proxy=True,
-            mocked_backend=mocked_backend,
             extra_containers=extra_containers,
         )
         if include_agent:
             # the E2E scenarios (require_api_key) send the agent data to the real backend
             self.agent_container = AgentContainer(
-                dd_api_key=os.environ.get("DD_API_KEY", FAKE_DD_API_KEY), use_proxy=True
+                dd_api_key=os.environ.get("DD_API_KEY", FakeDatadogKey.DEFAULT), use_proxy=True
             )
             self._containers.append(self.agent_container)
         if include_collector:
@@ -203,3 +206,33 @@ class OpenTelemetryScenario(DockerScenario):
         # return {"python_otel", "java_otel", "nodejs_otel"}
         # nodejs_otel is broken since a while
         return {"python_otel", "java_otel"}
+
+
+class OtelIntegrations(_OpenTelemetryScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "OTEL_INTEGRATIONS",
+            weblog_env={
+                "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
+                "OTEL_EXPORTER_OTLP_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}",
+                "OTEL_EXPORTER_OTLP_TRACES_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
+                "OTEL_INTEGRATIONS_TEST": True,
+            },
+            include_intake=False,
+            include_collector=False,
+            extra_containers=(
+                MsSqlServerContainer,
+                MySqlContainer,
+                RabbitMqContainer,
+                KafkaContainer,
+                MongoContainer,
+                CassandraContainer,
+                PostgresContainer,
+            ),
+            doc=(
+                "We use the open telemetry library to automatically instrument the weblogs instead of using the DD "
+                "library."
+                "This scenario represents this case in the integration with different external systems, for example "
+                "the interaction with sql database."
+            ),
+        )

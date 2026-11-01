@@ -5,6 +5,7 @@
 from utils import context, interfaces, rfc, scenarios, weblog, features
 
 from tests.appsec.api_security.test_schemas import get_schema
+from tests.appsec.api_security.utils import get_sampled_response, send_until_schema
 
 
 def _extract_telemetry_metrics(datas: list[dict]) -> list[dict]:
@@ -63,7 +64,7 @@ class Test_API_Security_Telemetry_Metric:
 
     def setup_shema_metric(self):
         # normal request that must generate schema telemetry
-        self.request_1 = weblog.get("/tag_value/api_match_AS001/200")
+        self.requests_1 = send_until_schema(lambda: weblog.get("/tag_value/api_match_AS001/200"), "req.headers")
         # blocked request, that may generate schema telemetry
         self.request_2 = weblog.get("/waf", headers={"User-Agent": "dd-test-scanner-log-block"})
         # request with 404 response, that must not generate schema telemetry
@@ -75,8 +76,8 @@ class Test_API_Security_Telemetry_Metric:
 
     def test_shema_metric(self):
         """Can provide request header schema"""
-        schema = get_schema(self.request_1, "req.headers")
-        assert self.request_1.status_code == 200
+        assert all(r.status_code == 200 for r in self.requests_1)
+        schema = get_schema(get_sampled_response(self.requests_1, "req.headers"), "req.headers")
         assert self.request_2.status_code == 403
         assert self.request_3.status_code == 404
         assert self.request_4.status_code == 403

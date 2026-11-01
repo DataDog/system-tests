@@ -7,17 +7,24 @@ from pathlib import Path
 from typing import Any
 
 from utils import (
+    context,
     features,
     scenarios,
+    slow,
 )
 from utils.dd_constants import RemoteConfigApplyState
 from utils.docker_fixtures import TestAgentAPI
 from tests.parametric.conftest import APMLibrary
+from tests.parametric.test_ffe.utils import assert_feature_map, ffe_events_from_requests
 
 RC_PRODUCT = "FFE_FLAGS"
 RC_PATH = f"datadog/2/{RC_PRODUCT}"
 FFE_READY_RETRY_ATTEMPTS = 10
 FFE_READY_RETRY_INTERVAL_SECONDS = 0.2
+FFE_SYSTEM_TEST_DATA_DIR = Path(__file__).parent / "ffe-system-test-data"
+FFE_EVALUATION_CASES_DIR = FFE_SYSTEM_TEST_DATA_DIR / "evaluation-cases"
+DEPENDENT_FLAGS_DIR = Path(__file__).parent / "dependent-flags"
+DEPENDENT_FLAGS_CASES_DIR = DEPENDENT_FLAGS_DIR / "cases"
 
 parametrize = pytest.mark.parametrize
 
@@ -25,10 +32,7 @@ parametrize = pytest.mark.parametrize
 # Load the UFC fixture file at module level
 def _load_ufc_fixture() -> dict[str, Any]:
     """Load the UFC fixture file."""
-    fixture_path = Path(__file__).parent / "flags-v1.json"
-
-    if not fixture_path.exists():
-        pytest.skip(f"Fixture file not found: {fixture_path}")
+    fixture_path = FFE_SYSTEM_TEST_DATA_DIR / "ufc-config.json"
 
     with fixture_path.open() as f:
         return json.load(f)
@@ -36,18 +40,44 @@ def _load_ufc_fixture() -> dict[str, Any]:
 
 def _get_test_case_files() -> list[str]:
     """Get all test case files from the fixtures directory."""
-    test_data_dir = Path(__file__).parent
-    if not test_data_dir.exists():
-        return []
+    case_files = sorted(path.name for path in FFE_EVALUATION_CASES_DIR.glob("*.json"))
+    if not case_files:
+        raise FileNotFoundError(f"No canonical evaluation cases found in {FFE_EVALUATION_CASES_DIR}")
+    return case_files
 
-    # Exclude base fixtures that aren't test cases
-    excluded = {"flags-v1.json", "serial-id-metadata-flags.json", "span-enrichment-flags.json"}
-    return [f.name for f in test_data_dir.iterdir() if f.suffix == ".json" and f.name not in excluded]
+
+def _filter_test_cases_for_platform(test_cases: list[dict[str, Any]], platform: str) -> list[dict[str, Any]]:
+    """Apply the canonical corpus _skip/_include selection rules."""
+    applicable_cases = []
+    for test_case in test_cases:
+        if "_skip" in test_case and "_include" in test_case:
+            raise ValueError("Evaluation cases cannot define both _skip and _include")
+        skipped_platforms = {entry["platform"] for entry in test_case.get("_skip", [])}
+        included_platforms = {entry["platform"] for entry in test_case.get("_include", [])}
+        if platform in skipped_platforms:
+            continue
+        if included_platforms and platform not in included_platforms:
+            continue
+        applicable_cases.append(test_case)
+    return applicable_cases
+
+
+def _get_dependent_flags_test_case_files() -> list[Path]:
+    """Get the test case files owned by the dependent-flags suite."""
+    return sorted(DEPENDENT_FLAGS_CASES_DIR.glob("*.json"))
 
 
 # Load fixture at module level for reuse across tests
 UFC_FIXTURE_DATA = _load_ufc_fixture()
 ALL_TEST_CASE_FILES = _get_test_case_files()
+SPLIT_FEATURE_CASES = [
+    case
+    for filename in ALL_TEST_CASE_FILES
+    for case in json.loads((FFE_EVALUATION_CASES_DIR / filename).read_text())
+    if "features" in case["result"]
+]
+DEPENDENT_FLAGS_UFC_DATA = json.loads((DEPENDENT_FLAGS_DIR / "ufc-config.json").read_text())
+DEPENDENT_FLAGS_TEST_CASE_FILES = _get_dependent_flags_test_case_files()
 
 DEFAULT_ENVVARS = {
     "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
@@ -103,7 +133,7 @@ def _ffe_evaluate_with_rc_retry(
     flag: str,
     variation_type: str,
     default_value: bool | str | float | dict[str, Any],
-    targeting_key: str,
+    targeting_key: str | None,
     attributes: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     result = test_library.ffe_evaluate(
@@ -159,13 +189,17 @@ class Test_Feature_Flag_Dynamic_Evaluation:
 
         """
         # Load the test case file
-        test_case_path = Path(__file__).parent / test_case_file
-
-        if not test_case_path.exists():
-            pytest.skip(f"Test case file not found: {test_case_path}")
+        test_case_path = FFE_EVALUATION_CASES_DIR / test_case_file
 
         with test_case_path.open() as f:
             test_cases = json.load(f)
+        assert isinstance(test_cases, list), f"Expected an evaluation-case array in {test_case_file}"
+        assert test_cases, f"No evaluation cases in {test_case_file}"
+
+        platform = context.library.name
+        test_cases = _filter_test_cases_for_platform(test_cases, platform)
+        if not test_cases:
+            pytest.skip(f"No cases in {test_case_file} apply to platform {platform}")
 
         # Set up UFC Remote Config and wait for it to be applied
         _set_and_wait_ffe_rc(test_agent, UFC_FIXTURE_DATA)
@@ -181,7 +215,7 @@ class Test_Feature_Flag_Dynamic_Evaluation:
             default_value = test_case["defaultValue"]
             targeting_key = test_case["targetingKey"]
             attributes = test_case.get("attributes", {})
-            expected_result = test_case["result"]["value"]
+            expected_result = test_case["result"]
 
             result = _ffe_evaluate_with_rc_retry(
                 test_library,
@@ -198,8 +232,141 @@ class Test_Feature_Flag_Dynamic_Evaluation:
             actual_value = result.get("value")
 
             # Assert the evaluation result matches expected value
-            assert actual_value == expected_result, (
+            assert actual_value == expected_result["value"], (
                 f"Test case {i} in {test_case_file} failed: "
                 f"flag='{flag}', targetingKey='{targeting_key}', "
-                f"expected={expected_result}, actual={actual_value}"
+                f"expected={expected_result}, actual={result}"
             )
+            assert result.get("reason") == expected_result["reason"], (
+                f"Test case {i} in {test_case_file}: expected reason={expected_result['reason']}, result={result}"
+            )
+            if "errorCode" in expected_result:
+                assert result.get("errorCode") == expected_result["errorCode"], (
+                    f"Test case {i} in {test_case_file}: expected errorCode={expected_result['errorCode']}, result={result}"
+                )
+            elif expected_result["reason"] != "ERROR":
+                assert result.get("errorCode") in {None, ""}, (
+                    f"Test case {i} in {test_case_file}: unexpected evaluation error; result={result}"
+                )
+
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @parametrize("test_case_file", DEPENDENT_FLAGS_TEST_CASE_FILES)
+    def test_ffe_dependent_flags(
+        self,
+        test_case_file: Path,
+        test_agent: TestAgentAPI,
+        test_library: APMLibrary,
+    ) -> None:
+        """Test dependent flags using only the fixtures in the dependent-flags suite."""
+        with test_case_file.open() as f:
+            test_cases = json.load(f)
+
+        _set_and_wait_ffe_rc(test_agent, DEPENDENT_FLAGS_UFC_DATA)
+
+        success = test_library.ffe_start(DEPENDENT_FLAGS_UFC_DATA)
+        assert success, "Failed to start FFE provider"
+
+        for i, test_case in enumerate(test_cases):
+            flag = test_case["flag"]
+            targeting_key = test_case["targetingKey"]
+            expected_result = test_case["result"]
+            result = _ffe_evaluate_with_rc_retry(
+                test_library,
+                flag=flag,
+                variation_type=test_case["variationType"],
+                default_value=test_case["defaultValue"],
+                targeting_key=targeting_key,
+                attributes=test_case.get("attributes", {}),
+            )
+            assert not _is_ffe_waiting_for_rc(result), (
+                f"Test case {i} in {test_case_file.name} failed: FFE provider did not load RC data after "
+                f"{FFE_READY_RETRY_ATTEMPTS} attempts; result={result}"
+            )
+            for field in ("value", "reason", "errorCode"):
+                if field not in expected_result:
+                    continue
+                assert result.get(field) == expected_result[field], (
+                    f"Test case {i} in {test_case_file.name} failed: "
+                    f"flag='{flag}', targetingKey='{targeting_key}', field='{field}', "
+                    f"expected={expected_result[field]!r}, actual={result.get(field)!r}"
+                )
+            if "errorCode" not in expected_result and expected_result.get("reason") != "ERROR":
+                assert result.get("errorCode") in {None, ""}, (
+                    f"Test case {i} in {test_case_file.name} failed: "
+                    f"flag='{flag}' unexpectedly returned errorCode={result.get('errorCode')!r}"
+                )
+
+
+@scenarios.parametric
+@features.feature_flags_dynamic_evaluation
+@slow
+class Test_Feature_Flag_Split_Features:
+    """Check canonical destination maps at the public hook and EVP boundaries."""
+
+    @parametrize(
+        "library_env",
+        [
+            {
+                **DEFAULT_ENVVARS,
+                "SYSTEM_TESTS_FFE_CAPTURE_HOOK_FEATURES": "true",
+                "DD_EXPERIMENTAL_FLAGGING_PROVIDER_SPAN_ENRICHMENT_ENABLED": "true",
+                "DD_FEATURE_FLAGS_EXPOSURES_DATADOG_LOGGING_ENABLED": "true",
+                "DD_FLAGGING_EVALUATION_COUNTS_ENABLED": "true",
+            }
+        ],
+    )
+    @parametrize("agent_env", [{"SYSTEM_TESTS_FFE_INTAKE": "true"}])
+    @parametrize("case", SPLIT_FEATURE_CASES)
+    def test_split_feature_destinations(
+        self, case: dict[str, Any], test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
+        if not _filter_test_cases_for_platform([case], context.library.name):
+            pytest.skip(f"Case does not apply to {context.library.name}")
+        expected = case["result"]
+        _set_and_wait_ffe_rc(test_agent, UFC_FIXTURE_DATA)
+        assert test_library.ffe_start(UFC_FIXTURE_DATA), "Failed to start FFE provider"
+        result = _ffe_evaluate_with_rc_retry(
+            test_library,
+            flag=case["flag"],
+            variation_type=case["variationType"],
+            default_value=case["defaultValue"],
+            targeting_key=case["targetingKey"],
+            attributes=case.get("attributes", {}),
+        )
+        assert result.get("value") == expected["value"], result
+        assert result.get("reason") == expected["reason"], result
+        assert result.get("errorCode") in (None, ""), result
+        assert_feature_map(result.get("hookFeatures"), expected["features"]["HOOK"], "HOOK callback")
+
+        # Selected metadata remains available even when doLog=false suppresses delivery.
+        # Also check the actual payloads below: metadata alone cannot prove isolation.
+        metadata = result.get("flagMetadata")
+        assert isinstance(metadata, dict), result
+        for destination, prefix in (
+            ("EXPOSURE", "__dd_exposure_feature."),
+            ("EVALUATION", "__dd_evaluation_feature."),
+        ):
+            selected = {key.removeprefix(prefix): value for key, value in metadata.items() if key.startswith(prefix)}
+            assert_feature_map(selected, expected["features"][destination], f"{destination} selected metadata")
+
+        # Evaluation batches flush every 10s; continue briefly after a matching batch
+        # to observe forbidden exposures for the doLog=false case as well.
+        deadline = time.monotonic() + 30
+        received_at = None
+        while True:
+            events = ffe_events_from_requests(test_agent.requests(), case["flag"])
+            if events["EVALUATION"] and (events["EXPOSURE"] or not expected["doLog"]):
+                if received_at is None:
+                    received_at = time.monotonic()
+                if time.monotonic() - received_at >= 2:
+                    break
+            assert time.monotonic() < deadline, f"Missing split-feature events for {case['flag']}: {events}"
+            time.sleep(0.2)
+
+        if not expected["doLog"]:
+            assert not events["EXPOSURE"], f"doLog=false emitted exposures: {events['EXPOSURE']}"
+        for destination, observed_events in events.items():
+            for event in observed_events:
+                # Empty features are omitted from the wire format, but the event itself
+                # must exist. An absent event never stands in for an empty feature map.
+                assert_feature_map(event.get("features", {}), expected["features"][destination], destination)

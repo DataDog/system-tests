@@ -7,6 +7,7 @@ set -e
 sudo chmod -R 755 *
 
 sudo cp django_app.py /home/datadog/
+sudo cp pip.conf /etc/pip.conf
 sudo /home/datadog/.pyenv/shims/pip install django
 echo "Testing weblog with python version:"
 sudo /home/datadog/.pyenv/shims/python --version

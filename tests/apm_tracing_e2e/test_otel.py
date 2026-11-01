@@ -22,7 +22,7 @@ class Test_Otel_Span:
     # - duration of one second
     # - span kind of SpanKind - Internal
     def test_datadog_otel_span(self):
-        spans = interfaces.backend_v2.get_spans_list(self.req)
+        spans = interfaces.mocked_backend.get_spans_list(self.req)
         assert len(spans) >= 2, "Agent did not submit the spans we want!"
 
         # Assert the parent span sent by the agent.
@@ -50,7 +50,7 @@ class Test_Otel_Span:
         )
 
     def test_distributed_otel_trace(self):
-        spans = interfaces.backend_v2.get_spans_list(self.req)
+        spans = interfaces.mocked_backend.get_spans_list(self.req)
         assert len(spans) >= 3, "Agent did not submit the spans we want!"
 
         # Assert the parent span sent by the agent.

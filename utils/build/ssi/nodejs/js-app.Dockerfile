@@ -7,11 +7,14 @@ WORKDIR /app
 COPY lib-injection/build/docker/nodejs/sample-app/package*.json ./
 COPY lib-injection/build/docker/nodejs/sample-app/.npmrc ./
 
+# Depot npm mirror. Env overrides the copied .npmrc, which pins registry.npmjs.org.
+ENV npm_config_registry=https://depot-read-api-npm.us1.ddbuild.io/internal/magicmirror/magicmirror/
+ENV npm_config_replace_registry_host=npmjs
 # Install dependencies with exact versions only if package.json exists
 RUN if [ -f package.json ]; then \
       export NVM_DIR="/root/.nvm" && \
       . "$NVM_DIR/nvm.sh" && \
-      npm ci --only=production --no-audit --no-fund; \
+      npm ci --only=production --no-audit --no-fund --loglevel http; \
     fi
 
 # Copy the rest of the application

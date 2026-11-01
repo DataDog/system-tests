@@ -224,6 +224,17 @@ def _wait_for_otlp_metrics(test_agent: TestAgentAPI, num: int = 1) -> list[Any]:
     return _normalize_keys(test_agent.wait_for_num_otlp_metrics(num=num))
 
 
+def _assert_no_otlp_trace_metrics(test_agent: TestAgentAPI) -> None:
+    # General OTLP metrics may still arrive; reject only trace metrics throughout the flush window.
+    deadline = time.monotonic() + 8
+    while time.monotonic() < deadline:
+        names = _all_metric_names(_normalize_keys(test_agent.metrics()))
+        assert SPAN_DURATION_METRIC not in names, (
+            f"OTLP trace metrics require OTEL_TRACES_SPAN_METRICS_ENABLED=true, got: {names}"
+        )
+        time.sleep(0.2)
+
+
 def _duration_data_points(metrics: list[Any]) -> list[dict]:
     """Collect traces.span.sdk.metrics.duration data points across all payloads / resources / scopes."""
     data_points: list[dict] = []
@@ -333,58 +344,113 @@ def _stats_computed_resource_attr_values(otlp_trace_reqs: list[dict]) -> list[An
 @scenarios.parametric
 @features.client_side_stats_supported
 class Test_FR01_Enablement_Configuration:
-    """FR01: OTLP trace metrics export is gated by OTEL_TRACES_SPAN_METRICS_ENABLED."""
+    """FR01: Only OTEL_TRACES_SPAN_METRICS_ENABLED enables trace metrics in OTLP trace mode."""
 
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS_OTLP}])
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            pytest.param(DEFAULT_ENVVARS_OTLP.copy(), id="other-settings-unset"),
+            *[
+                pytest.param(
+                    {
+                        **DEFAULT_ENVVARS_OTLP,
+                        "DD_TRACE_STATS_COMPUTATION_ENABLED": stats,
+                        "DD_METRICS_OTEL_ENABLED": metrics,
+                    },
+                    id=f"stats-{stats}-metrics-{metrics}",
+                )
+                for stats in ("false", "true")
+                for metrics in ("false", "true")
+            ],
+        ],
+    )
     def test_fr01_1_enabled_explicit(
         self,
         otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
-    ):
-        """OTEL_TRACES_SPAN_METRICS_ENABLED=true exports the histogram."""
+    ) -> None:
+        """Explicit span-metrics enablement overrides native stats and general metrics settings."""
         with test_library as t:
             with t.dd_start_span(name="web.request", service=SERVICE, typestr="web"):
                 pass
             t.dd_flush()
 
-        metrics = _wait_for_otlp_metrics(test_agent)
+        deadline = time.monotonic() + 8
+        while True:
+            metrics = _normalize_keys(test_agent.metrics())
+            if _duration_data_points(metrics) or time.monotonic() >= deadline:
+                break
+            time.sleep(0.2)
         assert _duration_data_points(metrics), f"No span duration data points exported: {_all_metric_names(metrics)}"
 
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS_OTLP, "OTEL_TRACES_SPAN_METRICS_ENABLED": "false"}])
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            pytest.param(
+                {**DEFAULT_ENVVARS_OTLP, "OTEL_TRACES_SPAN_METRICS_ENABLED": "false"}, id="other-settings-unset"
+            ),
+            *[
+                pytest.param(
+                    {
+                        **DEFAULT_ENVVARS_OTLP,
+                        "OTEL_TRACES_SPAN_METRICS_ENABLED": "false",
+                        "DD_TRACE_STATS_COMPUTATION_ENABLED": stats,
+                        "DD_METRICS_OTEL_ENABLED": metrics,
+                    },
+                    id=f"stats-{stats}-metrics-{metrics}",
+                )
+                for stats in ("false", "true")
+                for metrics in ("false", "true")
+            ],
+        ],
+    )
     def test_fr01_2_disabled_explicit(
         self,
         otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
-    ):
-        """OTEL_TRACES_SPAN_METRICS_ENABLED=false exports no OTLP trace metric."""
+    ) -> None:
+        """Explicit span-metrics disablement overrides native stats and general metrics settings."""
         with test_library as t:
             with t.dd_start_span(name="web.request", service=SERVICE, typestr="web"):
                 pass
             t.dd_flush()
 
-        with pytest.raises(ValueError):
-            _wait_for_otlp_metrics(test_agent)
+        _assert_no_otlp_trace_metrics(test_agent)
 
     @pytest.mark.parametrize(
         "library_env",
-        [{**_BASE_ENVVARS, "OTEL_TRACES_EXPORTER": "otlp", "DD_METRICS_OTEL_ENABLED": "true"}],
+        [
+            pytest.param(
+                {
+                    **_BASE_ENVVARS,
+                    "OTEL_TRACES_EXPORTER": "otlp",
+                    "DD_METRICS_OTEL_ENABLED": "true",
+                    **stats_env,
+                },
+                id=f"stats-{stats_env.get('DD_TRACE_STATS_COMPUTATION_ENABLED', 'unset')}",
+            )
+            for stats_env in (
+                {},
+                {"DD_TRACE_STATS_COMPUTATION_ENABLED": "false"},
+                {"DD_TRACE_STATS_COMPUTATION_ENABLED": "true"},
+            )
+        ],
     )
-    def test_fr01_3_enabled_by_default(
+    def test_fr01_3_disabled_by_default(
         self,
         otlp_traces_and_metrics_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
-    ):
-        """When unset, OTLP trace metrics are enabled if OTLP trace export and metrics export are both on."""
+    ) -> None:
+        """Native stats and general metrics settings cannot enable OTLP trace metrics by default."""
         with test_library as t:
             with t.dd_start_span(name="web.request", service=SERVICE, typestr="web"):
                 pass
             t.dd_flush()
 
-        metrics = _wait_for_otlp_metrics(test_agent)
-        assert _duration_data_points(metrics), f"No span duration data points exported: {_all_metric_names(metrics)}"
+        _assert_no_otlp_trace_metrics(test_agent)
 
     @pytest.mark.parametrize(
         "library_env",
@@ -415,7 +481,7 @@ class Test_FR01_Enablement_Configuration:
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ):
-        """When unset, OTLP trace metrics stay disabled if OTLP trace export is off (the other AND branch)."""
+        """When unset, OTLP trace metrics stay disabled if OTLP trace export is off."""
         with test_library as t:
             with t.dd_start_span(name="web.request", service=SERVICE, typestr="web"):
                 pass

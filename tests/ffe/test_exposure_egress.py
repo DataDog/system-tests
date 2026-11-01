@@ -74,11 +74,9 @@ class ExposureEgressContract:
                 library_version=context.library.raw_version,
             )
 
-        for excluded_interface in egress.excluded_interfaces:
-            assert not any(
-                exposure_events_from_data(data, {self.flag_key}, self.targeting_key)
-                for data in excluded_interface.get_data()
-            )
+        assert not any(
+            exposure_events_from_data(data, {self.flag_key}, self.targeting_key) for data in egress.excluded_data()
+        )
 
 
 @scenarios.feature_flagging_and_experimentation
@@ -156,11 +154,9 @@ class Test_FFE_Exposure_Egress_Agentless_Direct_Shutdown:
             library_name=context.library.name,
             library_version=context.library.raw_version,
         )
-        for excluded_interface in egress.excluded_interfaces:
-            assert not any(
-                exposure_events_from_data(data, {self.flag_key}, self.targeting_key)
-                for data in excluded_interface.get_data()
-            )
+        assert not any(
+            exposure_events_from_data(data, {self.flag_key}, self.targeting_key) for data in egress.excluded_data()
+        )
 
 
 @scenario_crash

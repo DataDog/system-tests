@@ -37,8 +37,8 @@ services:
       test: ["CMD-SHELL", "curl -fsS --max-time 4 http://localhost:18080/ >/dev/null"]
       interval: 10s
       timeout: 5s
-      retries: 6
-      start_period: 35s
+      retries: 12
+      start_period: 90s
 
   java_11:
     env_file: "scenario_app.env"
@@ -51,8 +51,8 @@ services:
       test: ["CMD-SHELL", "curl -fsS --max-time 4 http://localhost:18080/ >/dev/null"]
       interval: 10s
       timeout: 5s
-      retries: 6
-      start_period: 35s
+      retries: 12
+      start_period: 90s
 
   java_15:
     env_file: "scenario_app.env"
@@ -65,8 +65,8 @@ services:
       test: ["CMD-SHELL", "curl -fsS --max-time 4 http://localhost:18080/ >/dev/null"]
       interval: 10s
       timeout: 5s
-      retries: 6
-      start_period: 35s
+      retries: 12
+      start_period: 90s
 
   java_17:
     env_file: "scenario_app.env"
@@ -79,8 +79,8 @@ services:
       test: ["CMD-SHELL", "curl -fsS --max-time 4 http://localhost:18080/ >/dev/null"]
       interval: 10s
       timeout: 5s
-      retries: 6
-      start_period: 35s
+      retries: 12
+      start_period: 90s
 
   java_21:
     env_file: "scenario_app.env"
@@ -93,5 +93,5 @@ services:
       test: ["CMD-SHELL", "curl -fsS --max-time 4 http://localhost:18080/ >/dev/null"]
       interval: 10s
       timeout: 5s
-      retries: 6
-      start_period: 35s
+      retries: 12
+      start_period: 90s

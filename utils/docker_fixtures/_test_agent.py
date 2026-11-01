@@ -35,6 +35,31 @@ from ._core import HOST_GATEWAY_EXTRA_HOSTS, get_host_port, get_docker_client, d
 DEFAULT_OTLP_HTTP_PORT = 4318
 DEFAULT_OTLP_GRPC_PORT = 4317
 
+# The pinned test agent only registers FFE exposures on EVP v2. Opt-in tests use
+# its supported app factory to register the remaining FFE intake routes with the
+# existing recording/200-response handler; no requests are sent to Datadog.
+_FFE_INTAKE_COMMAND = """
+from aiohttp import web
+from ddapm_test_agent.agent import main, make_app
+
+
+def make_ffe_app(**kwargs):
+    kwargs["agent_url"] = ""
+    app = make_app(**kwargs)
+    agent = app["agent"]
+    paths = (
+        "/evp_proxy/v2/api/v2/flagevaluation",
+        "/evp_proxy/v4/api/v2/exposures",
+        "/evp_proxy/v4/api/v2/flagevaluation",
+    )
+    agent._forward_endpoints.extend(paths)
+    app.add_routes([web.post(path, agent.handle_evp_proxy_v2_api_v2_exposures) for path in paths])
+    return app
+
+
+main(app_factory=make_ffe_app)
+"""
+
 
 def _request_token(request: pytest.FixtureRequest) -> str:
     token = ""
@@ -132,6 +157,9 @@ class TestAgentFactory:
             open(log_path, "w+", encoding="utf-8") as log_file,
             docker_run(
                 image=self.image,
+                command=["python", "-c", _FFE_INTAKE_COMMAND]
+                if agent_env.get("SYSTEM_TESTS_FFE_INTAKE") == "true"
+                else None,
                 name=container_name,
                 env=env,
                 volumes={

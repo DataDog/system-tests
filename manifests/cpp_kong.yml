@@ -14,6 +14,7 @@ manifest:
   tests/integrations/: missing_feature (Endpoints not implemented)
   tests/otel/: irrelevant (library does not implement OpenTelemetry)
   tests/parametric/: irrelevant (Parametric scenario is not applied on Kong)
+  tests/parametric/test_ffe/test_exposure_hooks.py: incomplete_test_app (Exposure hook observations are not implemented)
   tests/remote_config/: missing_feature
   tests/serverless/: missing_feature
   tests/stats/: missing_feature

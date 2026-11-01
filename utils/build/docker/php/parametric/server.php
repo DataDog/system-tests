@@ -324,6 +324,16 @@ $router->addRoute('POST', '/metrics/otel/force_flush', new ClosureRequestHandler
     }
     return jsonResponse(['success' => $sdkMeterProvider->forceFlush()]);
 }));
+$router->addRoute('POST', '/metrics/otel/shutdown', new ClosureRequestHandler(function () use ($sdkMeterProvider) {
+    if (!method_exists($sdkMeterProvider, 'shutdown')) {
+        return jsonResponse(['success' => false]);
+    }
+    try {
+        return jsonResponse(['success' => $sdkMeterProvider->shutdown()]);
+    } catch (\Throwable $e) {
+        return jsonResponse(['success' => false]);
+    }
+}));
 $router->addRoute('POST', '/ffe/start', new ClosureRequestHandler(function (Request $req) use (&$ffeClient) {
     if (!class_exists('\\DDTrace\\FeatureFlags\\Client')) {
         return new Response(status: 500, headers: ['content-type' => 'application/json'], body: json_encode([

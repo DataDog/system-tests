@@ -7,6 +7,7 @@ using OpenFeature;
 using OpenFeature.Model;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -139,25 +140,32 @@ namespace weblog
             {
                 foreach (var attr in request.Attributes)
                 {
-                    // Preserve primitive types so boolean context controls stay boolean.
-                    switch (attr.Value)
+                    // Preserve JSON types when building the OpenFeature context.
+                    var value = attr.Value switch
                     {
-                        case JsonElement jsonElement when jsonElement.ValueKind is JsonValueKind.True or JsonValueKind.False:
-                            builder.Set(attr.Key, jsonElement.GetBoolean());
-                            break;
-                        case JsonElement jsonElement when jsonElement.ValueKind == JsonValueKind.Number:
-                            builder.Set(attr.Key, jsonElement.GetDouble());
-                            break;
-                        case JsonElement jsonElement when jsonElement.ValueKind == JsonValueKind.String:
-                            builder.Set(attr.Key, jsonElement.GetString());
-                            break;
-                        default:
-                            builder.Set(attr.Key, attr.Value?.ToString());
-                            break;
-                    }
+                        JsonElement jsonElement => JsonElementToValue(jsonElement),
+                        string s => new Value(s),
+                        _ => new Value(attr.Value?.ToString())
+                    };
+                    builder.Set(attr.Key, value);
                 }
             }
             return builder.Build();
+        }
+
+        private static Value JsonElementToValue(JsonElement element)
+        {
+            return element.ValueKind switch
+            {
+                JsonValueKind.String => new Value(element.GetString()),
+                JsonValueKind.Number => new Value(element.GetDouble()),
+                JsonValueKind.True => new Value(true),
+                JsonValueKind.False => new Value(false),
+                JsonValueKind.Array => new Value(element.EnumerateArray().Select(JsonElementToValue).ToList()),
+                JsonValueKind.Object => new Value(new Structure(element.EnumerateObject()
+                    .ToDictionary(property => property.Name, property => JsonElementToValue(property.Value)))),
+                _ => new Value()
+            };
         }
 
         public class EvaluateRequest
