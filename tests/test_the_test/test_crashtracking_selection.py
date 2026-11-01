@@ -1,8 +1,8 @@
 """Unit tests for the crash report selection in the parametric crashtracking tests.
 
 Covers the ``is_crash:true`` report selection, the log entry flattening for both
-crashtracking payload shapes, the telemetry event enumeration it builds on, and the
-Error Tracking report selection.
+crashtracking payload shapes, the telemetry event enumeration it builds on, the
+Error Tracking report selection, and the disable test's absence assertion.
 """
 
 import base64
@@ -17,7 +17,7 @@ import requests
 from utils import pytest
 
 from tests.parametric import test_crashtracking
-from tests.parametric.test_crashtracking import is_crash_report
+from tests.parametric.test_crashtracking import is_crash_report, is_crashtracker_upload
 from utils.docker_fixtures import TestAgentAPI
 from utils.docker_fixtures import ParametricTestClientApi as APMLibrary
 
@@ -148,6 +148,14 @@ def test_is_crash_report_matches_only_the_report_entry() -> None:
     assert not is_crash_report("not a log entry")
 
 
+def test_is_crashtracker_upload_matches_every_crashtracker_entry() -> None:
+    assert is_crashtracker_upload(_crash_report_entry())
+    assert is_crashtracker_upload(_crash_ping_entry())
+    assert is_crashtracker_upload(_debug_log_entry())
+    assert not is_crashtracker_upload(_log_entry("service:service,env:dev"))
+    assert not is_crashtracker_upload("not a log entry")
+
+
 def test_telemetry_log_entries_flattens_both_payload_shapes() -> None:
     ping_entry = _crash_ping_entry()
     report_entry = _crash_report_entry()
@@ -244,32 +252,49 @@ def test_wait_for_crash_report_raises_with_captured_tags_after_the_budget(monkey
     assert recorded_sleeps == []
 
 
-def test_assert_no_crash_report_passes_without_any_report(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_assert_no_crashtracker_upload_passes_without_any_crashtracker_entry(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     monkeypatch.setattr(test_crashtracking.time, "sleep", lambda _seconds: None)
-    monotonic_values = iter([0.0, test_crashtracking.CRASH_REPORT_WAIT_SECONDS])
+    monotonic_values = iter([0.0, test_crashtracking.CRASHTRACKING_ACTIVITY_WAIT_SECONDS])
     monkeypatch.setattr(test_crashtracking.time, "monotonic", lambda: next(monotonic_values))
     test_agent = _snapshot_test_agent(
         [
-            [_v1_logs_event(_crash_ping_entry()), _v2_logs_event(_debug_log_entry())],
+            [_v1_logs_event(_log_entry("service:service,env:dev"))],
         ]
     )
 
-    _crashtracking.assert_no_crash_report(test_agent)
+    _crashtracking.assert_no_crashtracker_upload(test_agent)
 
 
-def test_assert_no_crash_report_fails_when_a_report_appears(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_assert_no_crashtracker_upload_fails_when_a_report_appears(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(test_crashtracking.time, "sleep", lambda _seconds: None)
     monotonic_values = iter([0.0, 1.0])
     monkeypatch.setattr(test_crashtracking.time, "monotonic", lambda: next(monotonic_values))
     test_agent = _snapshot_test_agent(
         [
-            [_v1_logs_event(_crash_ping_entry())],
+            [_v1_logs_event(_log_entry("service:service,env:dev"))],
             [_v2_logs_event(_crash_report_entry())],
         ]
     )
 
     with pytest.raises(AssertionError):
-        _crashtracking.assert_no_crash_report(test_agent)
+        _crashtracking.assert_no_crashtracker_upload(test_agent)
+
+
+def test_assert_no_crashtracker_upload_fails_when_a_ping_appears(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(test_crashtracking.time, "sleep", lambda _seconds: None)
+    monotonic_values = iter([0.0, 1.0])
+    monkeypatch.setattr(test_crashtracking.time, "monotonic", lambda: next(monotonic_values))
+    test_agent = _snapshot_test_agent(
+        [
+            [],
+            [_v2_logs_event(_crash_ping_entry())],
+        ]
+    )
+
+    with pytest.raises(AssertionError):
+        _crashtracking.assert_no_crashtracker_upload(test_agent)
 
 
 def test_assert_crash_report_java_checks_the_severity_tag() -> None:

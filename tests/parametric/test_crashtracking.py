@@ -18,6 +18,12 @@ from utils.docker_fixtures import TestAgentAPI, ParametricTestClientApi as APMLi
 CRASH_REPORT_WAIT_SECONDS = 15.0
 CRASH_REPORT_POLL_INTERVAL_SECONDS = 0.5
 
+# A crashtracker that is wrongly active announces itself within seconds of the crash: the
+# receiver uploads the crash ping before it collects the stack, so the ping precedes the
+# report and no report can follow a window in which no ping arrived. The receiver starts
+# within roughly a second in practice, so this window is an order of magnitude over it.
+CRASHTRACKING_ACTIVITY_WAIT_SECONDS = 5.0
+
 
 def is_crash_report(entry: object) -> bool:
     """Return whether a telemetry log entry is a crash report.
@@ -26,6 +32,18 @@ def is_crash_report(entry: object) -> bool:
     are tagged ``is_crash_ping:true`` and receiver debug logs ``is_crash_debug:true``.
     """
     return isinstance(entry, dict) and "is_crash:true" in entry.get("tags", "")
+
+
+def is_crashtracker_upload(entry: object) -> bool:
+    """Return whether a telemetry log entry is any crashtracker upload.
+
+    A crash report, crash ping or receiver debug log marker proves that crash processing
+    is active, whatever the configuration claimed.
+    """
+    if not isinstance(entry, dict):
+        return False
+    tags = entry.get("tags", "")
+    return "is_crash:true" in tags or "is_crash_ping:true" in tags or "is_crash_debug:true" in tags
 
 
 @scenarios.parametric
@@ -80,21 +98,22 @@ class Test_Crashtracking:
     def test_disable_crashtracking(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         test_library.crash()
 
-        self.assert_no_crash_report(test_agent)
+        self.assert_no_crashtracker_upload(test_agent)
 
-    def assert_no_crash_report(self, test_agent: TestAgentAPI) -> None:
-        """Assert that no crash report appears in the captured telemetry.
+    def assert_no_crashtracker_upload(self, test_agent: TestAgentAPI) -> None:
+        """Assert that the crashtracker uploads nothing while crashtracking is disabled.
 
-        A crash report uploaded by a regression arrives within the crashtracker's
-        upload budget, so absence is polled over that budget instead of asserted from a
-        single read. Java's crash endpoint leaves the app running when crashtracking is
-        disabled, so waiting for the container to exit, as the error-tracking disable
-        test does, cannot gate the check here.
+        A wrongly active crashtracker uploads its crash ping within
+        ``CRASHTRACKING_ACTIVITY_WAIT_SECONDS`` of the crash, before collecting the
+        stack, so no report can follow a window in which no ping arrived. Java's crash
+        endpoint leaves the app running when crashtracking is disabled, so waiting for
+        the container to exit, as the error-tracking disable test does, cannot gate the
+        check here.
         """
-        deadline = time.monotonic() + CRASH_REPORT_WAIT_SECONDS
+        deadline = time.monotonic() + CRASHTRACKING_ACTIVITY_WAIT_SECONDS
         while True:
             for entry in self.telemetry_log_entries(test_agent):
-                assert not is_crash_report(entry), entry.get("tags", "")
+                assert not is_crashtracker_upload(entry), entry.get("tags", "")
             if time.monotonic() >= deadline:
                 return
             time.sleep(CRASH_REPORT_POLL_INTERVAL_SECONDS)
