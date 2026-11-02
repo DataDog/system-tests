@@ -11,6 +11,7 @@ from tests.parametric.utils import MIN_AGENT_VERSION_FOR_CSS
 from utils import features, scenarios
 from utils.docker_fixtures import TestAgentAPI
 from utils.docker_fixtures.parametric import LogLevel
+from utils.docker_fixtures.spec.llm_observability import LlmObsSpanRequest
 
 
 COUNTER = "otel_sdk_disabled_probe"
@@ -25,9 +26,19 @@ OTLP_TRACES_ENV = {
 }
 # Client-side stats are only computed for an agent version that supports them.
 CSS_AGENT_ENV = {"TEST_AGENT_VERSION": MIN_AGENT_VERSION_FOR_CSS}
+# Profilers upload every 60 s by default. These settings make .NET, Java, Node.js and Python upload
+# every 5 s. Ruby uploads every 60 s at the earliest, but also when it shuts down.
+PROFILING_ENV = {
+    "DD_PROFILING_ENABLED": "true",
+    "DD_PROFILING_UPLOAD_PERIOD": "5",  # .NET, Java, Node.js
+    "DD_PROFILING_UPLOAD_INTERVAL": "5",  # Python
+    "DD_PROFILING_START_FORCE_FIRST": "true",  # Java, which otherwise waits up to 10 s plus one period
+    "DD_INTERNAL_PROFILING_ENABLED_ARM64": "1",  # .NET on ARM64
+}
 
-# Runtime metrics and OTLP trace metrics are exported periodically rather than on flush. The control
-# must export within this many seconds, and the disabled run must then export nothing for as long.
+# Runtime metrics, OTLP trace metrics and profiles are exported periodically rather than on flush.
+# The control must export within this many seconds, and the disabled run must then export nothing
+# for as long.
 PERIODIC_EXPORT_WINDOW = 30
 
 
@@ -75,9 +86,13 @@ def _dogstatsd_metrics(test_agent: TestAgentAPI) -> list[str]:
 
 
 def _exported(test_agent: TestAgentAPI, *, dogstatsd: bool) -> dict[str, list[Any]]:
+    urls = [request["url"] for request in test_agent.requests()]
     exported: dict[str, list[Any]] = {
         "Datadog traces": test_agent.traces(),
         "Datadog trace stats": test_agent.get_v06_stats_requests(),
+        "Datadog profiles": [url for url in urls if "/profiling/v1/input" in url],
+        # LLM Observability, feature flag exposures and Error Tracking
+        "Datadog EVP proxy": [url for url in urls if "/evp_proxy/" in url],
         "OTLP": _otlp_urls(test_agent, "traces", "metrics", "logs"),
     }
     if dogstatsd:
@@ -96,12 +111,19 @@ def _assert_nothing_exported(test_agent: TestAgentAPI, seconds: float = 3, *, do
         time.sleep(0.1)
 
 
+def _wait_until(probe: Callable[[], object], seconds: float) -> bool:
+    deadline = time.monotonic() + seconds
+    while not probe():
+        if time.monotonic() > deadline:
+            return False
+        time.sleep(0.1)
+    return True
+
+
 def _wait_for_periodic_export(probe: Callable[[], object]) -> None:
     """Wait until `probe` sees a payload of the control run."""
-    deadline = time.monotonic() + PERIODIC_EXPORT_WINDOW
-    while not probe():
-        assert time.monotonic() < deadline, f"The control run exported nothing in {PERIODIC_EXPORT_WINDOW}s"
-        time.sleep(0.1)
+    exported = _wait_until(probe, PERIODIC_EXPORT_WINDOW)
+    assert exported, f"The control run exported nothing in {PERIODIC_EXPORT_WINDOW}s"
 
 
 def _assert_tracing_kept(
@@ -351,3 +373,41 @@ class Test_OTEL_SDK_DISABLED:
         with test_library_factory(library_env) as library:
             _emit_span(library)
             _assert_nothing_exported(test_agent, PERIODIC_EXPORT_WINDOW)
+
+    @pytest.mark.parametrize("library_env", [{"OTEL_SDK_DISABLED": "true", **PROFILING_ENV}])
+    @pytest.mark.usefixtures("otlp_endpoints")
+    def test_true_disables_profiling(
+        self, test_agent: TestAgentAPI, test_library_factory: APMLibraryFactory, library_env: dict[str, str | None]
+    ) -> None:
+        # Control: the profiler uploads profiles periodically, and at the latest when the SDK shuts down.
+        with test_library_factory({**library_env, "OTEL_SDK_DISABLED": None}):
+            uploaded = _wait_until(test_agent.profiling_requests, PERIODIC_EXPORT_WINDOW)
+        assert uploaded or _wait_until(test_agent.profiling_requests, 3), "The control run uploaded no profile"
+
+        with test_library_factory(library_env):
+            _assert_nothing_exported(test_agent, PERIODIC_EXPORT_WINDOW)
+        # Nor when the SDK shuts down.
+        _assert_nothing_exported(test_agent)
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                "OTEL_SDK_DISABLED": "true",
+                "DD_LLMOBS_ENABLED": "true",
+                "DD_LLMOBS_ML_APP": "otel-sdk-disabled",
+            }
+        ],
+    )
+    @pytest.mark.usefixtures("otlp_endpoints")
+    def test_true_disables_llm_observability(
+        self, test_agent: TestAgentAPI, test_library_factory: APMLibraryFactory, library_env: dict[str, str | None]
+    ) -> None:
+        # Control: LLM Observability spans are sent through the EVP proxy of the agent.
+        with test_library_factory({**library_env, "OTEL_SDK_DISABLED": None}) as library:
+            library.llmobs_trace(LlmObsSpanRequest(kind="task"))
+            test_agent.wait_for_llmobs_requests(num=1)
+
+        with test_library_factory(library_env) as library:
+            library.llmobs_trace(LlmObsSpanRequest(kind="task"))
+        _assert_nothing_exported(test_agent)
