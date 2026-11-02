@@ -32,7 +32,7 @@ Give every reviewer the same frozen evidence. Each reviewer reads only its assig
 | Activation and metadata | [activation-and-metadata.md](../../../docs/ai/code-review/activation-and-metadata.md) |
 | Infrastructure and conventions | [infrastructure-and-conventions.md](../../../docs/ai/code-review/infrastructure-and-conventions.md) |
 
-Each lens file lists rules with stable IDs (for example, `TEST-001`) followed by `flag:`, `detect:`, `not when:`, `ie good:`, `ie bad:`, and optional `ref:` fields. Cite the rule ID in each finding, apply the `flag:` and `detect:` criteria, and respect `not when:`. A `<TODO_RMM>` field is intentionally incomplete; do not infer missing guidance from it.
+Each lens file lists rules with stable IDs (for example, `TEST-001`), an optional audit-only `old_id:`, then `Flag:`, `Detect:`, `Not when:`, `✅`, `❌`, and optional `Ref:` fields. Cite the stable rule ID, never `old_id`, in each finding. Apply the `Flag:` and `Detect:` criteria, and respect `Not when:`. A `<TODO_RMM>` field is intentionally incomplete; do not infer missing guidance from it.
 
 Use fresh subagents in parallel when available. Otherwise run the lenses separately without carrying conclusions between them. Do not edit while reviewers run.
 
