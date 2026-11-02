@@ -179,10 +179,18 @@ class Test_FFE_Rules_Configuration_Precompute:
         ]
         with test_library:
             result = test_library.ffe_precompute_configuration({"wire": PRECOMPUTE_WIRE, "contexts": contexts})
+            opted_out_context = {**contexts[0], "dd_experimentation_opt_out_at": "2026-10-01T00:00:00Z"}
+            opted_out = test_library.ffe_precompute_configuration(
+                {
+                    "wire": PRECOMPUTE_WIRE,
+                    "contexts": [opted_out_context],
+                    "options": {"experimentationOptOutMode": "immediate"},
+                }
+            )
 
         assert "error" not in result, result
         assert result["httpRequests"] == 0, result
-        assert result["trackingEvents"] == 0, result
+        assert result["exposureEvents"] == 0, result
         assert mocked_backend.ffe_get_requests() == []
         assert len(result["results"]) == len(contexts), result
         for context, output in zip(contexts, result["results"], strict=True):
@@ -216,11 +224,29 @@ class Test_FFE_Rules_Configuration_Precompute:
                     else {}
                 ),
             }
+            assert flags["checkout"]["variationValue"] is is_us
+            assert flags["checkout"]["doLog"] is is_us
             assert flags["nullable"]["variationType"] == "object"
             assert flags["nullable"]["variationValue"] is None
             assert output["errors"] == [{"flagKey": "unsupported", "errorCode": "PARSE_ERROR"}]
             # No default assignment is invented for the unassigned or unsupported flags.
             assert "private-source-etag" not in output["wire"]
+
+        assert "error" not in opted_out, opted_out
+        assert opted_out["httpRequests"] == 0, opted_out
+        assert opted_out["exposureEvents"] == 0, opted_out
+        assert len(opted_out["results"]) == 1, opted_out
+        opted_out_result = opted_out["results"][0]
+        opted_out_snapshot = json.loads(opted_out_result["wire"])["precomputed"]
+        assert opted_out_snapshot["context"] == opted_out_context
+        opted_out_attributes = json.loads(opted_out_snapshot["response"])["data"]["attributes"]
+        assert opted_out_attributes["evaluation_options"] == {"experimentation_opt_out": True}
+        assert opted_out_attributes["evaluation_options"]["experimentation_opt_out"] is True
+        assert opted_out_attributes["flags"]["checkout"]["variationValue"] is False
+        assert opted_out_attributes["flags"]["checkout"]["allocationKey"] == "fallback"
+        assert opted_out_attributes["flags"]["checkout"]["reason"] == "DEFAULT"
+        assert opted_out_attributes["flags"]["checkout"]["doLog"] is False
+        assert opted_out_result["errors"] == [{"flagKey": "unsupported", "errorCode": "PARSE_ERROR"}]
 
     def test_fetch_once_precompute_multiple_contexts(
         self, test_library: APMLibrary, mocked_backend: MockedBackendServer
@@ -231,7 +257,7 @@ class Test_FFE_Rules_Configuration_Precompute:
 
         assert "error" not in result, result
         assert result["httpRequests"] == 1, result
-        assert result["trackingEvents"] == 0, result
+        assert result["exposureEvents"] == 0, result
         requests = mocked_backend.ffe_get_requests()
         assert len(requests) == 1, requests
         assert urlsplit(requests[0]["path"]).path == f"{RULES_CONFIG_PATH}/client"
@@ -272,5 +298,5 @@ class Test_FFE_Rules_Configuration_Precompute:
                 assert result["error"]["code"] == code, (case, result)
                 assert "private-" not in json.dumps(result), (case, result)
                 assert result["httpRequests"] == 0, (case, result)
-                assert result["trackingEvents"] == 0, (case, result)
+                assert result["exposureEvents"] == 0, (case, result)
                 assert mocked_backend.ffe_get_requests() == [], case

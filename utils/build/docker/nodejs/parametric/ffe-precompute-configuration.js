@@ -1,18 +1,19 @@
 'use strict'
 
 const { channel } = require('node:diagnostics_channel')
+const { writeFileSync } = require('node:fs')
 
 async function main () {
   const { wire, fetchOptions, contexts, options } = JSON.parse(process.argv[2])
   let httpRequests = 0
-  let trackingEvents = 0
+  let exposureEvents = 0
+  let outcome
   const observeHttp = () => { httpRequests++ }
-  const observeTracking = () => { trackingEvents++ }
+  const observeExposure = () => { exposureEvents++ }
   const subscriptions = [
     ['undici:request:create', observeHttp],
     ['http.client.request.start', observeHttp],
-    ['dd-trace:openfeature:exposure', observeTracking],
-    ['dd-trace:openfeature:evaluation', observeTracking]
+    ['ffe:exposure:submit', observeExposure]
   ]
   for (const [name, listener] of subscriptions) channel(name).subscribe(listener)
 
@@ -43,17 +44,17 @@ async function main () {
         })
         return { wire: configurationToString(precomputed), errors }
       })
-      process.stdout.write(JSON.stringify({ results, httpRequests, trackingEvents }))
+      outcome = { results }
     } catch (error) {
       if (!(error instanceof ConfigurationPrecomputeError) && !(error instanceof ConfigurationFetchError)) throw error
-      process.stdout.write(JSON.stringify({
-        error: { name: error.name, code: error.code, message: error.message },
-        httpRequests,
-        trackingEvents
-      }))
+      outcome = { error: { name: error.name, code: error.code, message: error.message } }
     }
   } finally {
-    for (const [name, listener] of subscriptions) channel(name).unsubscribe(listener)
+    // Include deferred activity until the child exits; persistent work hits the parent timeout.
+    process.once('exit', () => {
+      if (outcome !== undefined) writeFileSync(1, JSON.stringify({ ...outcome, httpRequests, exposureEvents }))
+      for (const [name, listener] of subscriptions) channel(name).unsubscribe(listener)
+    })
   }
 }
 

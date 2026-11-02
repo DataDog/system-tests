@@ -28,17 +28,17 @@
         {"key": "fallback", "splits": [{"variationIndex": 1, "reason": "REASON_DEFAULT", "serialId": 43}]}
       ]
     },
-    "nullable": {
-      "variationType": "VARIATION_TYPE_JSON",
-      "variations": [{"keyStringIndex": 4, "jsonStringIndex": 0}],
-      "allocations": [{"key": "nullable", "splits": [{"reason": "REASON_STATIC"}]}]
-    },
-    "unassigned": {"variationType": "VARIATION_TYPE_BOOLEAN", "variations": [{"booleanValue": true}]},
     "unsupported": {
       "minimumFeatureLevel": 999,
       "variationType": "VARIATION_TYPE_BOOLEAN",
       "variations": [{"booleanValue": true}],
       "allocations": [{"key": "unsupported", "splits": [{"reason": "REASON_STATIC"}]}]
-    }
+    },
+    "nullable": {
+      "variationType": "VARIATION_TYPE_JSON",
+      "variations": [{"keyStringIndex": 4, "jsonStringIndex": 0}],
+      "allocations": [{"key": "nullable", "splits": [{"reason": "REASON_STATIC"}]}]
+    },
+    "unassigned": {"variationType": "VARIATION_TYPE_BOOLEAN", "variations": [{"booleanValue": true}]}
   }
 }
