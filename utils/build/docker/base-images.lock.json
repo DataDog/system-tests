@@ -2,9 +2,9 @@
   "version": 1,
   "images": {
     "system_tests_base_java_lambda_java_lambda_runtime": "datadog/system-tests:java-lambda-runtime.base-e9a494d2bc57",
-    "system_tests_base_nodejs_express4": "datadog/system-tests:express4.base-527c2a306057",
+    "system_tests_base_nodejs_express4": "datadog/system-tests:express4.base-ab6e263f1e85",
     "system_tests_base_nodejs_express4_typescript": "datadog/system-tests:express4-typescript.base-070fd1ba6efd",
-    "system_tests_base_nodejs_express5": "datadog/system-tests:express5.base-5bff656d2059",
+    "system_tests_base_nodejs_express5": "datadog/system-tests:express5.base-3c347dfb1d31",
     "system_tests_base_nodejs_fastify": "datadog/system-tests:fastify.base-d8786a519f91",
     "system_tests_base_nodejs_lambda_nodejs_lambda_runtime": "datadog/system-tests:nodejs-lambda-runtime.base-93b9660a8ce9",
     "system_tests_base_nodejs_nextjs": "datadog/system-tests:nextjs.base-5c42165eff3e",
