@@ -8,13 +8,13 @@
 - Not when: The bare version is an intentional exact-version declaration, including a development version used to avoid matching an older release candidate as described by META-007.
 - Ref: [Manifest](../../edit/manifest.md)
 
-### META-003: Keep manifest entries aligned with existing tests
-- Flag: A manifest entry must reference an existing test node. Remove the corresponding manifest entry when a test file, class, or method is deleted. When the test remains but is deactivated for a library, keep the node and use the declaration that matches the cause; use `irrelevant` only when the feature does not apply to that library.
-- Detect: A PR deletes or renames a test node but leaves its manifest entry, adds a manifest entry for a node that no longer exists, or uses `irrelevant` for a test whose actual cause is a bug, missing feature, flaky behavior, or incomplete test application.
-- Not when: The test node still exists and the manifest declaration accurately describes why it is deactivated for that library.
-- ✅ Remove the manifest entry together with a deleted test. For an existing test that does not apply to a library, keep the test and declare it `irrelevant` for that library.
-- ❌ Delete a test method and add or retain an `irrelevant` entry for its now-missing node ID.
-- Ref: [Manifest validation](../../edit/manifest.md#notes), [Declaration decorators](../../edit/skip-tests.md#declaration-decorators)
+### META-003: Use irrelevant only when the feature does not apply
+- Flag: When a test remains but is deactivated for a library, keep the node and use the declaration that matches the cause. Use `irrelevant` only when the feature does not apply to that library.
+- Detect: A manifest uses `irrelevant` for a test whose actual cause is a bug, a missing feature, flaky behavior, or an incomplete test application.
+- Not when: The feature does not apply to that library, and the declaration says so.
+- ✅ Keep the test and declare it `irrelevant (GraalVM. Tracing support only)` for a weblog that cannot produce the span.
+- ❌ Declare `irrelevant (AIDM-594)` when AIDM-594 is a tracer bug. Use `bug (AIDM-594)`.
+- Ref: [Declaration decorators](../../edit/skip-tests.md#declaration-decorators)
 
 ### META-004: Manifest YAML Syntax
 - Flag: `bug` and `flaky` markers must include a JIRA ticket (e.g., `bug (JIRA-123)`). Values with special YAML characters (`>`, `<`, `:`, `#`) must be quoted. Entries should be sorted alphabetically within each manifest file.
