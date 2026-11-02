@@ -66,8 +66,12 @@ def _copy_entry(source: Path, destination: Path) -> None:
 def _copy_fixture_snapshot(source: Path, snapshot: Path) -> None:
     # Import only rules-based evaluator corpora. Precomputed assignments use a
     # different format and are consumed by a different test harness.
-    for name in ("ufc-config.json", "evaluation-cases", "evaluation-suites"):
+    for name in ("ufc-config.json", "evaluation-cases"):
         _copy_entry(source / name, snapshot / name)
+
+    feature_suites = source / "evaluation-suites"
+    if feature_suites.exists() or feature_suites.is_symlink():
+        _copy_entry(feature_suites, snapshot / feature_suites.name)
 
 
 def _validate_evaluation_suite(config_path: Path, cases_directory: Path) -> int:
@@ -108,8 +112,10 @@ def _validate_fixture_snapshot(snapshot: Path) -> int:
     fixture_count = _validate_evaluation_suite(snapshot / "ufc-config.json", snapshot / "evaluation-cases")
 
     suites_directory = snapshot / "evaluation-suites"
-    if not suites_directory.is_dir():
-        msg = "FFE fixture repository does not contain evaluation-suites"
+    if not suites_directory.exists():
+        return fixture_count
+    if not suites_directory.is_dir() or suites_directory.is_symlink():
+        msg = "FFE evaluation-suites must be a directory"
         raise ValueError(msg)
     suite_directories = sorted(suites_directory.iterdir())
     if not suite_directories:
