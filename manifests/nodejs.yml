@@ -2676,6 +2676,7 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets: *ref_5_4_0
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV1_ServiceTargets::test_not_match_service_target: bug (APMAPI-865)
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2: *ref_4_23_0
+  tests/parametric/test_dynamic_configuration.py::Test_DynamicConfigMultiConfig: '>=5.135.0 <6.0.0 || >=6.25.0'
   tests/parametric/test_dynamic_configuration.py::Test_DynamicConfigSdkConfiguration:  # TODO: a lower version might be supported
     - declaration: missing_feature (SDK_CONFIGURATION capability not yet implemented)
       component_version: <6.16.0

@@ -291,6 +291,7 @@ manifest:
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_capability_tracing_http_header_tags: missing_feature
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_capability_tracing_logs_injection: missing_feature
   tests/parametric/test_dynamic_configuration.py::TestDynamicConfigV2::test_tracing_client_tracing_tags: missing_feature
+  tests/parametric/test_dynamic_configuration.py::Test_DynamicConfigMultiConfig: missing_feature (APM_TRACING_MULTICONFIG_MERGE not yet implemented)
   tests/parametric/test_dynamic_configuration.py::Test_DynamicConfigSdkConfiguration:  # TODO: a lower version might be supported
     - declaration: missing_feature (SDK_CONFIGURATION capability not yet implemented)
       component_version: <0.6.1-dev+c374e58
