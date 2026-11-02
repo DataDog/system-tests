@@ -1,6 +1,6 @@
 """Unit coverage for MockedBackendServer (utils.mocked_backend)."""
 
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 import gzip
 import signal
 import socket
@@ -23,6 +23,7 @@ from utils.interfaces._mocked_backend import _MockedBackendInterfaceValidator
 from utils._context.containers import MockedBackendContainer, TestedContainer
 from utils._context._scenarios.agentless_endtoend import JAVA_TRUSTSTORE_SOURCE
 from utils.mocked_backend import MockedBackendClient, MockedBackendServer
+from utils.mocked_backend._tls import generate_certificate
 from utils.mocked_backend.ffe import UFC_FIXTURE_RELATIVE_PATH
 from utils.proxy.mocked_response import MockedBackendResponse
 
@@ -436,7 +437,7 @@ def test_mocked_backend_with_api_key_ignores_the_header_name_case(tmp_path: Path
 
 
 _MITMPROXY_CA = "utils/proxy/.mitmproxy/mitmproxy-ca-cert.pem"
-_TLS_CERT_FILE = MockedBackendContainer.tls_cert_file
+_TLS_HOSTNAMES = MockedBackendServer.tls_hostnames
 _INTAKE_HOSTNAME = "event-platform-intake.mocked-backend.invalid"
 
 
@@ -454,7 +455,7 @@ def _https_post(port: int, hostname: str, path: str, body: bytes) -> str:
 
 @scenarios.test_the_test
 def test_https_mode_serves_and_records_https_requests(tmp_path: Path):
-    server = MockedBackendServer(str(tmp_path), port=0, tls_cert_file=_TLS_CERT_FILE)
+    server = MockedBackendServer(str(tmp_path), port=0, tls=True)
     try:
         status_line = _https_post(server.port, _INTAKE_HOSTNAME, "/api/v2/exposures", b'{"over": "https"}')
         # the control endpoints, as used from the host
@@ -471,7 +472,7 @@ def test_https_mode_serves_and_records_https_requests(tmp_path: Path):
 
 @scenarios.test_the_test
 def test_https_mode_does_not_serve_http(tmp_path: Path):
-    server = MockedBackendServer(str(tmp_path), port=0, tls_cert_file=_TLS_CERT_FILE)
+    server = MockedBackendServer(str(tmp_path), port=0, tls=True)
     try:
         with pytest.raises(requests.exceptions.ConnectionError):
             requests.post(f"http://127.0.0.1:{server.port}/api/v2/series", json={}, timeout=5)
@@ -480,13 +481,13 @@ def test_https_mode_does_not_serve_http(tmp_path: Path):
 
 
 @scenarios.test_the_test
-def test_https_mode_releases_the_port_if_the_certificate_cannot_be_loaded(tmp_path: Path):
+def test_https_mode_releases_the_port_if_the_certificate_cannot_be_generated(tmp_path: Path):
     with socket.socket() as probe:
         probe.bind(("127.0.0.1", 0))
         port = probe.getsockname()[1]
 
     with pytest.raises(FileNotFoundError) as error:
-        MockedBackendServer(str(tmp_path), port=port, tls_cert_file=str(tmp_path / "missing.pem"))
+        MockedBackendServer(str(tmp_path), port=port, tls=True, tls_ca_file=str(tmp_path / "missing.pem"))
 
     # the port is free again, even while the error (holding the half-built server) is still referenced
     assert error.traceback
@@ -495,7 +496,7 @@ def test_https_mode_releases_the_port_if_the_certificate_cannot_be_loaded(tmp_pa
 
 @scenarios.test_the_test
 def test_https_mode_is_not_blocked_by_an_idle_connection(tmp_path: Path):
-    server = MockedBackendServer(str(tmp_path), port=0, tls_cert_file=_TLS_CERT_FILE)
+    server = MockedBackendServer(str(tmp_path), port=0, tls=True)
     closed = threading.Event()
 
     def close() -> None:
@@ -518,7 +519,7 @@ def test_https_mode_is_not_blocked_by_an_idle_connection(tmp_path: Path):
 
 @scenarios.test_the_test
 def test_https_mode_advertises_https_urls(tmp_path: Path):
-    server = MockedBackendServer(str(tmp_path), port=0, tls_cert_file=_TLS_CERT_FILE)
+    server = MockedBackendServer(str(tmp_path), port=0, tls=True)
     try:
         assert server.container_url.startswith("https://")
         assert server.ffe_library_config_url.startswith("https://")
@@ -528,7 +529,7 @@ def test_https_mode_advertises_https_urls(tmp_path: Path):
 
 @scenarios.test_the_test
 def test_https_certificate_is_only_valid_for_the_served_hostnames(tmp_path: Path):
-    server = MockedBackendServer(str(tmp_path), port=0, tls_cert_file=_TLS_CERT_FILE)
+    server = MockedBackendServer(str(tmp_path), port=0, tls=True)
     try:
         with pytest.raises(ssl.SSLCertVerificationError):
             _https_post(server.port, "other.mocked-backend.invalid", "/api/v2/exposures", b"{}")
@@ -537,17 +538,19 @@ def test_https_certificate_is_only_valid_for_the_served_hostnames(tmp_path: Path
 
 
 @scenarios.test_the_test
-def test_https_certificate_covers_the_container_hostnames_for_a_while():
-    """The committed certificate must be regenerated when a hostname is added, or before it expires"""
-    cert = x509.load_pem_x509_certificate(Path(_TLS_CERT_FILE).read_bytes())
+def test_generated_certificate_covers_the_hostnames_and_is_signed_by_the_ca():
+    cert_pem, _ = generate_certificate(_TLS_HOSTNAMES)
+    cert = x509.load_pem_x509_certificate(cert_pem)
+    ca = x509.load_pem_x509_certificate(Path(_MITMPROXY_CA).read_bytes())
     names = cert.extensions.get_extension_for_class(x509.SubjectAlternativeName).value
-    container = MockedBackendContainer(tls=True)
 
     # reached by its domain, its intake hostnames, and by localhost from the healthcheck and the host
-    assert sorted(names.get_values_for_type(x509.DNSName)) == sorted([*container.network_aliases, "localhost"])
+    assert names.get_values_for_type(x509.DNSName) == [*_TLS_HOSTNAMES, "localhost"]
     assert [str(ip) for ip in names.get_values_for_type(x509.IPAddress)] == ["127.0.0.1"]
+    assert cert.issuer == ca.subject
     # naive, in UTC
-    assert cert.not_valid_after.replace(tzinfo=UTC) - datetime.now(UTC) > timedelta(days=180)
+    assert cert.not_valid_before.replace(tzinfo=UTC) < datetime.now(UTC) < cert.not_valid_after.replace(tzinfo=UTC)
+    assert cert.not_valid_after <= ca.not_valid_after
 
 
 @scenarios.test_the_test
@@ -555,7 +558,7 @@ def test_java_truststore_holds_the_ca_of_the_certificate():
     """The JVM trusts the mocked backend with this trust store: it must hold the CA that signs its certificate"""
     truststore = pkcs12.load_pkcs12(Path(JAVA_TRUSTSTORE_SOURCE).read_bytes(), b"changeit")
     ca = x509.load_pem_x509_certificate(Path(_MITMPROXY_CA).read_bytes())
-    cert = x509.load_pem_x509_certificate(Path(_TLS_CERT_FILE).read_bytes())
+    cert = x509.load_pem_x509_certificate(generate_certificate(_TLS_HOSTNAMES)[0])
 
     assert [entry.certificate for entry in truststore.additional_certs] == [ca]
     assert cert.issuer == ca.subject
@@ -570,7 +573,7 @@ def test_mocked_backend_container_serves_either_http_or_https():
     https = MockedBackendContainer(tls=True)
     # senders build the intake URLs from DD_SITE: the default HTTPS port, its domain and the intake hostnames
     assert https.container_url == "https://mocked-backend.invalid"
-    assert https.network_aliases == list(MockedBackendContainer.tls_hostnames)
+    assert https.network_aliases == list(MockedBackendServer.tls_hostnames)
 
 
 @scenarios.test_the_test
