@@ -8,6 +8,7 @@ from urllib.parse import parse_qs, urlsplit
 from utils import features, pytest, scenarios, slow
 from utils.docker_fixtures import ParametricTestClientApi as APMLibrary
 from utils.mocked_backend import MockedBackendServer
+from utils.mocked_backend._request_handler import MockedBackendRequestHandler
 from utils.mocked_backend.ffe import RULES_CONFIG_PATH, RESPONSE_SECRET, load_rules_wire_fixture
 
 WIRE_FIXTURE = load_rules_wire_fixture()
@@ -208,6 +209,54 @@ class Test_FFE_Rules_Configuration_Selection:
                 assert wire["version"] == original["version"], channel
                 assert wire["rules"]["response"] == original["rules"]["response"], channel
                 assert wire["rules"]["etag"] == original["rules"]["etag"], channel
+                assert result["diagnostics"] == [], (channel, result)
+
+    def test_server_ignored_selection_diagnostics(
+        self, test_library: APMLibrary, mocked_backend: MockedBackendServer
+    ) -> None:
+        requests: list[str] = []
+        ignored_reason = ""
+        body = base64.b64decode(WIRE_FIXTURE["rules"]["response"])
+
+        def handle_rules(request: MockedBackendRequestHandler, _: bytes | dict | None) -> tuple[bytes, bytes]:
+            requests.append(request.path)
+            request.send_response(200)
+            request.send_header("Content-Type", "application/protobuf")
+            request.send_header("ETag", WIRE_FIXTURE["rules"]["etag"])
+            request.send_header("DD-Flag-Selection-Ignored", ignored_reason)
+            return body, body
+
+        for channel in ("client", "server"):
+            mocked_backend.add_handler("GET", f"{RULES_CONFIG_PATH}/{channel}", handle_rules)
+
+        with test_library:
+            for channel, credential in (("client", {"clientToken": CLIENT_TOKEN}), ("server", {"apiKey": API_KEY})):
+                options = {"distributionChannel": channel, "env": "test env", **credential}
+                baseline = test_library.ffe_fetch_rules_configuration(options)
+                original = json.loads(baseline["wire"])
+                assert baseline["diagnostics"] == [], (channel, baseline)
+                for ignored_reason in ("", "tag_load_failed", "future_reason"):
+                    request_count = len(requests)
+                    result = test_library.ffe_fetch_rules_configuration(
+                        {**options, "flagSelection": {"keyPatterns": ["non-matching-*"]}}
+                    )
+                    assert "error" not in result, (channel, ignored_reason, result)
+                    assert len(requests) == request_count + 1, (channel, ignored_reason, requests)
+                    assert parse_qs(urlsplit(requests[-1]).query, keep_blank_values=True) == {
+                        "dd_env": ["test env"],
+                        "selected_flag_key_patterns": ["non-matching-*"],
+                    }, (channel, ignored_reason, requests[-1])
+                    wire = json.loads(result["wire"])
+                    assert wire["version"] == original["version"], channel
+                    assert wire["rules"]["response"] == original["rules"]["response"], channel
+                    assert wire["rules"]["etag"] == original["rules"]["etag"], channel
+                    assert result["diagnostics"] == (
+                        [
+                            f"flagSelection was ignored by the server ({ignored_reason}). Loaded the full flag configuration."
+                        ]
+                        if ignored_reason
+                        else []
+                    ), (channel, ignored_reason, result)
 
     def test_empty_and_url_overflow_selections_are_not_sent(
         self, test_library: APMLibrary, mocked_backend: MockedBackendServer
@@ -238,26 +287,63 @@ class Test_FFE_Rules_Configuration_Selection:
                         case,
                         url.query,
                     )
+                    assert result["diagnostics"] == (
+                        [
+                            "flagSelection was not sent (too_many_values: the request URL is at most 8192 bytes). Loading the full flag configuration."
+                        ]
+                        if case == "url-overflow"
+                        else []
+                    ), (channel, case, result)
 
-    def test_invalid_selection_fails_before_request(
-        self, test_library: APMLibrary, mocked_backend: MockedBackendServer
-    ) -> None:
-        cases: dict[str, dict[str, Any]] = {
-            "malformed-tags": {"tags": "private-selection-value"},
-            "too-many-tags": {"tags": [f"private-selection-value-tag:{index}" for index in range(32)]},
-            "too-many-patterns": {"keyPatterns": [f"private-selection-value-flag-{index}" for index in range(32)]},
-            "oversized-tag": {"tags": ["private-selection-value".ljust(201, "x")]},
-        }
+    def test_invalid_selection_is_not_sent(self, test_library: APMLibrary, mocked_backend: MockedBackendServer) -> None:
+        cases = [
+            ("malformed-tags", {"tags": "private-selection-value"}, "malformed_selection"),
+            (
+                "too-many-tags",
+                {"tags": [f"private-selection-value-tag:{index}" for index in range(32)]},
+                "too_many_values",
+            ),
+            (
+                "too-many-patterns",
+                {"keyPatterns": [f"private-selection-value-flag-{index}" for index in range(32)]},
+                "too_many_values",
+            ),
+            ("oversized-tag", {"tags": ["private-selection-value".ljust(201, "x")]}, "invalid_tag"),
+            ("oversized-pattern", {"keyPatterns": ["private-selection-value".ljust(201, "x")]}, "invalid_key_pattern"),
+        ]
         with test_library:
             for channel, credential in (("client", {"clientToken": CLIENT_TOKEN}), ("server", {"apiKey": API_KEY})):
-                for case, selection in cases.items():
-                    result = test_library.ffe_fetch_rules_configuration(
-                        {"distributionChannel": channel, "env": "test env", **credential, "flagSelection": selection}
+                options = {"distributionChannel": channel, "env": "test env", **credential}
+                baseline = test_library.ffe_fetch_rules_configuration(options)
+                original = json.loads(baseline["wire"])
+                for case, selection, reason in cases:
+                    request_count = len(mocked_backend.ffe_get_requests())
+                    result = test_library.ffe_fetch_rules_configuration({**options, "flagSelection": selection})
+                    assert "error" not in result, (channel, case, result)
+                    wire = json.loads(result["wire"])
+                    assert wire["version"] == original["version"], (channel, case)
+                    assert wire["rules"]["response"] == original["rules"]["response"], (channel, case)
+                    assert wire["rules"]["etag"] == original["rules"]["etag"], (channel, case)
+                    assert len(result["diagnostics"]) == 1, (channel, case, result)
+                    assert result["diagnostics"][0].startswith(f"flagSelection was not sent ({reason}: "), (
+                        channel,
+                        case,
+                        result,
                     )
-                    assert "wire" not in result, (channel, case, result)
-                    assert result["error"]["name"] == "ConfigurationFetchError", (channel, case, result)
-                    assert result["error"]["code"] == "invalid_options", (channel, case, result)
+                    assert result["diagnostics"][0].endswith("). Loading the full flag configuration."), (
+                        channel,
+                        case,
+                        result,
+                    )
                     assert "private-selection-value" not in json.dumps(result), (channel, case)
                     assert CLIENT_TOKEN not in json.dumps(result), (channel, case)
                     assert API_KEY not in json.dumps(result), (channel, case)
-                    assert mocked_backend.ffe_get_requests() == [], (channel, case)
+                    requests = mocked_backend.ffe_get_requests()[request_count:]
+                    assert len(requests) == 1, (channel, case, requests)
+                    url = urlsplit(requests[0]["path"])
+                    assert url.path == f"{RULES_CONFIG_PATH}/{channel}", (channel, case)
+                    assert parse_qs(url.query, keep_blank_values=True) == {"dd_env": ["test env"]}, (
+                        channel,
+                        case,
+                        url.query,
+                    )
