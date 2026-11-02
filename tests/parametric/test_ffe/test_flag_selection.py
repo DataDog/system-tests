@@ -29,12 +29,19 @@ def library_env(mocked_backend: MockedBackendServer) -> dict[str, str]:
     }
 
 
+def _is_waiting_for_config(result: dict[str, Any]) -> bool:
+    provider_state = result.get("providerState")
+    return result.get("errorCode") == "PROVIDER_NOT_READY" or (
+        isinstance(provider_state, dict) and provider_state.get("hasConfig") is False
+    )
+
+
 def _evaluate_boolean(test_library: APMLibrary, flag: str) -> dict[str, Any]:
     for _ in range(10):
         result = test_library.ffe_evaluate(
             flag=flag, variation_type="BOOLEAN", default_value=False, targeting_key="alice", attributes={}
         )
-        if result.get("errorCode") != "PROVIDER_NOT_READY":
+        if not _is_waiting_for_config(result):
             break
         time.sleep(0.2)
     return result

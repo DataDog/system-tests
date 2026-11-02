@@ -32,7 +32,7 @@ UFC_FLAGS = sorted(json.loads((REPO_ROOT / UFC_FIXTURE_RELATIVE_PATH).read_text(
 
 
 def _encode(value: str) -> str:
-    # Matches the browser SDK, which also escapes !'()* beyond encodeURIComponent.
+    # Escape every reserved character, so '+', '%', '&', '=' and '*' in a value reach the parser literally.
     return quote(value, safe="-_.~")
 
 
@@ -108,6 +108,7 @@ def _flag_keys(response: _Response) -> list[str]:
             ["experiment-flag", "numeric_flag"],
         ),
         ("selected_flag_tags=no-flag-has-this-tag", []),
+        ("selected_flag_tags=%85", []),
     ],
 )
 def test_valid_selection_serves_only_selected_flags(selection_query: str, expected_keys: list[str]) -> None:

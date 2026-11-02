@@ -22,6 +22,7 @@ if TYPE_CHECKING:
 SELECTED_FLAG_TAGS = "selected_flag_tags"
 SELECTED_FLAG_KEY_PATTERNS = "selected_flag_key_patterns"
 FLAG_SELECTION_IGNORED_HEADER = "DD-Flag-Selection-Ignored"
+# Limits from flag-selection/README.md in DataDog/ffe-system-test-data.
 MAX_VALUES = 31
 MAX_VALUE_BYTES = 200
 FORCED_REASON_PATTERN = re.compile(r"[A-Za-z0-9_.-]{1,64}")
@@ -63,10 +64,10 @@ class Selection:
 
     def digest(self) -> str:
         canonical = urlencode(
-            [(SELECTED_FLAG_KEY_PATTERNS, value) for value in self.key_patterns]
-            + [(SELECTED_FLAG_TAGS, value) for value in self.tags]
+            [(SELECTED_FLAG_KEY_PATTERNS, _utf8(value)) for value in self.key_patterns]
+            + [(SELECTED_FLAG_TAGS, _utf8(value)) for value in self.tags]
         )
-        return hashlib.sha256(canonical.encode("utf-8", "surrogateescape")).hexdigest()[:16]
+        return hashlib.sha256(canonical.encode()).hexdigest()[:16]
 
 
 def _raw_bytes(value: str) -> bytes:
@@ -84,8 +85,9 @@ def _query_unescape(value: str) -> str:
     return unquote_to_bytes(_raw_bytes(value.replace("+", " "))).decode("utf-8", "surrogateescape")
 
 
-def _utf8_length(value: str) -> int:
-    return len(value.encode("utf-8", "surrogateescape"))
+def _utf8(value: str) -> bytes:
+    """The value's bytes on the wire, including bytes that are not valid UTF-8."""
+    return value.encode("utf-8", "surrogateescape")
 
 
 def _parameter_name(pair: str) -> str | None:
@@ -106,7 +108,7 @@ def has_selection_parameters(raw_query: str) -> bool:
 def _normalize(values: Iterable[str]) -> tuple[str, ...]:
     trimmed = {value.strip(_WHITE_SPACE) for value in values}
     trimmed.discard("")
-    return tuple(sorted(trimmed, key=lambda value: value.encode("utf-8", "surrogateescape")))
+    return tuple(sorted(trimmed, key=_utf8))
 
 
 def parse_selection(raw_query: str) -> Selection:
@@ -129,9 +131,9 @@ def parse_selection(raw_query: str) -> Selection:
     )
     if len(selection.tags) > MAX_VALUES or len(selection.key_patterns) > MAX_VALUES:
         raise SelectionIgnoredError("too_many_values")
-    if any(_utf8_length(pattern) > MAX_VALUE_BYTES for pattern in selection.key_patterns):
+    if any(len(_utf8(pattern)) > MAX_VALUE_BYTES for pattern in selection.key_patterns):
         raise SelectionIgnoredError("invalid_key_pattern")
-    if any(_utf8_length(tag) > MAX_VALUE_BYTES for tag in selection.tags):
+    if any(len(_utf8(tag)) > MAX_VALUE_BYTES for tag in selection.tags):
         raise SelectionIgnoredError("invalid_tag")
     return selection
 
