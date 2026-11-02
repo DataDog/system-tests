@@ -191,15 +191,19 @@ def _assert_evaluation_cases(
             f"Test case {index} in {test_case_file.name} failed: FFE provider did not load RC data after "
             f"{FFE_READY_RETRY_ATTEMPTS} attempts; result={result}"
         )
-        for field in ("value", "reason", "errorCode"):
-            if field not in expected_result:
-                continue
+        for field in ("value", "reason"):
             assert result.get(field) == expected_result[field], (
                 f"Test case {index} in {test_case_file.name} failed: "
                 f"flag='{test_case['flag']}', targetingKey='{test_case['targetingKey']}', field='{field}', "
                 f"expected={expected_result[field]!r}, actual={result.get(field)!r}"
             )
-        if "errorCode" not in expected_result and expected_result.get("reason") != "ERROR":
+        if "errorCode" in expected_result:
+            assert result.get("errorCode") == expected_result["errorCode"], (
+                f"Test case {index} in {test_case_file.name} failed: "
+                f"flag='{test_case['flag']}', targetingKey='{test_case['targetingKey']}', field='errorCode', "
+                f"expected={expected_result['errorCode']!r}, actual={result.get('errorCode')!r}"
+            )
+        elif expected_result["reason"] != "ERROR":
             assert result.get("errorCode") in {None, ""}, (
                 f"Test case {index} in {test_case_file.name} failed: "
                 f"flag='{test_case['flag']}' unexpectedly returned errorCode={result.get('errorCode')!r}"

@@ -676,6 +676,70 @@
         }
       ]
     },
+    "dependent-no-assignment-parent": {
+      "key": "dependent-no-assignment-parent",
+      "enabled": true,
+      "variationType": "STRING",
+      "variations": {
+        "assigned": {
+          "key": "assigned",
+          "value": "must-never-be-returned-no-assignment-parent"
+        }
+      },
+      "allocations": []
+    },
+    "dependent-no-assignment-root": {
+      "key": "dependent-no-assignment-root",
+      "enabled": true,
+      "variationType": "STRING",
+      "variations": {
+        "matched": {
+          "key": "matched",
+          "value": "must-not-be-returned-no-assignment-match"
+        },
+        "fallback": {
+          "key": "fallback",
+          "value": "must-not-be-returned-no-assignment-fallback"
+        }
+      },
+      "allocations": [
+        {
+          "key": "parent-assigned",
+          "rules": [
+            {
+              "conditions": [
+                {
+                  "flagEvaluation": {
+                    "key": "dependent-no-assignment-parent"
+                  },
+                  "operator": "ONE_OF",
+                  "value": [
+                    "assigned"
+                  ]
+                }
+              ]
+            }
+          ],
+          "splits": [
+            {
+              "variationKey": "matched",
+              "shards": []
+            }
+          ],
+          "doLog": true
+        },
+        {
+          "key": "must-not-be-reached-fallback",
+          "splits": [
+            {
+              "variationKey": "fallback",
+              "shards": []
+            }
+          ],
+          "doLog": true
+        }
+      ]
+    },
     "dependent-atomic-error-root": {
       "key": "dependent-atomic-error-root",
       "enabled": true,

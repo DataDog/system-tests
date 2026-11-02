@@ -278,6 +278,33 @@
     "variationType": "STRING"
   },
   {
+    "description": "A reached prerequisite that produces no assignment aborts the graph before a later unconditional root allocation can return or publish an exposure.",
+    "attributes": {},
+    "defaultValue": "caller-default",
+    "flag": "dependent-no-assignment-root",
+    "result": {
+      "reason": "ERROR",
+      "errorCode": "GENERAL",
+      "value": "caller-default"
+    },
+    "targetingKey": "dependent-no-assignment",
+    "variationType": "STRING",
+    "expectations": {
+      "exposures": [],
+      "evaluationEvents": [
+        {
+          "flag": "dependent-no-assignment-parent",
+          "errorCode": "GENERAL"
+        },
+        {
+          "flag": "dependent-no-assignment-root",
+          "errorCode": "GENERAL"
+        }
+      ],
+      "noUnmatchedEvents": true
+    }
+  },
+  {
     "description": "A successful prerequisite followed by a missing prerequisite aborts the graph and returns the caller default.",
     "attributes": {},
     "defaultValue": "atomic-default",
