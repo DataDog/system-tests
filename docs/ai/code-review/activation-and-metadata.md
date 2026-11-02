@@ -16,8 +16,13 @@
 - ❌ Declare `irrelevant (AIDM-594)` when AIDM-594 is a tracer bug. Use `bug (AIDM-594)`.
 - Ref: [Declaration decorators](../../edit/skip-tests.md#declaration-decorators)
 
-### META-004: Manifest YAML Syntax
-- Flag: `bug` and `flaky` markers must include a JIRA ticket (e.g., `bug (JIRA-123)`). Values with special YAML characters (`>`, `<`, `:`, `#`) must be quoted. Entries should be sorted alphabetically within each manifest file.
+### META-004: Quote special YAML characters in manifest values
+- Flag: Values that contain `:`, `#`, `<`, or `>` should be quoted, even when the YAML parser accepts them unquoted, because they are easy to misread.
+- Detect: A manifest value contains one of these characters without quotes.
+- Not when: The value is already quoted, or the character appears inside a quoted string.
+- ✅ `component_version: '<1.2.0'`
+- ❌ `component_version: <1.2.0`
+- Ref: [Manifest](../../edit/manifest.md)
 
 ### META-005: Use weblog scenario exclusions only for weblog-specific incompatibilities
 - Flag: `excluded_scenarios` removes the entire weblog–scenario combination from the generated CI matrix and takes precedence over `supported_scenarios` and category matching. Use it only when that specific weblog is incompatible with a scenario that would otherwise select it; do not use it to deactivate individual tests or hide a tracer failure.
