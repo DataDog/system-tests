@@ -259,6 +259,7 @@ class OtelIntegrations(_OpenTelemetryScenario):
             },
             include_intake=False,
             include_collector=False,
+            mocked_backend=True,
             extra_containers=(
                 MsSqlServerContainer,
                 MySqlContainer,
