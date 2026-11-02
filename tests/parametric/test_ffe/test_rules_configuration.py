@@ -2,6 +2,7 @@
 
 import base64
 import json
+from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, urlsplit
 
@@ -15,6 +16,7 @@ WIRE_FIXTURE = load_rules_wire_fixture()
 CLIENT_TOKEN = "system-tests-client-token"
 API_KEY = "system-tests-api-key"
 CLIENT_OPTIONS = {"distributionChannel": "client", "clientToken": CLIENT_TOKEN, "env": "test env"}
+SELECTION_VECTORS_PATH = Path(__file__).parent / "ffe-system-test-data" / "flag-selection" / "selection-vectors.json"
 
 
 @pytest.fixture
@@ -168,6 +170,66 @@ class Test_FFE_Rules_Configuration:
 @features.feature_flags_portable_configuration
 @slow
 class Test_FFE_Rules_Configuration_Selection:
+    @pytest.mark.parametrize("channel", ["client", "server"])
+    def test_canonical_selection_vectors(
+        self, test_library: APMLibrary, mocked_backend: MockedBackendServer, channel: str
+    ) -> None:
+        vectors = json.loads(SELECTION_VECTORS_PATH.read_text(encoding="utf-8"))
+        # Raw-query cases exercise backend percent-decoding, not an SDK option.
+        sdk_cases = [vector for vector in vectors["cases"] if "sdk" in vector]
+        assert sdk_cases, "No canonical SDK selection vectors found"
+        credential = {"clientToken": CLIENT_TOKEN} if channel == "client" else {"apiKey": API_KEY}
+        options = {"distributionChannel": channel, "env": "test env", **credential}
+        with test_library:
+            baseline = test_library.ffe_fetch_rules_configuration(options)
+            assert "error" not in baseline, (channel, baseline)
+            assert baseline["diagnostics"] == [], (channel, baseline)
+            original = json.loads(baseline["wire"])
+            for vector in sdk_cases:
+                case = (channel, vector["name"])
+                selection = {
+                    field: vector["query"][parameter]
+                    for field, parameter in (
+                        ("tags", "selected_flag_tags"),
+                        ("keyPatterns", "selected_flag_key_patterns"),
+                    )
+                    if parameter in vector["query"]
+                }
+                request_count = len(mocked_backend.ffe_get_requests())
+                result = test_library.ffe_fetch_rules_configuration({**options, "flagSelection": selection})
+                assert "error" not in result, (case, result)
+                requests = mocked_backend.ffe_get_requests()[request_count:]
+                assert len(requests) == 1, (case, requests)
+                url = urlsplit(requests[0]["path"])
+                assert url.path == f"{RULES_CONFIG_PATH}/{channel}", case
+                expected_query = {"dd_env": ["test env"]}
+                sdk = vector["sdk"]
+                if "dropped" in sdk:
+                    assert len(result["diagnostics"]) == 1, (case, result)
+                    assert result["diagnostics"][0].startswith(f"flagSelection was not sent ({sdk['dropped']}: "), (
+                        case,
+                        result,
+                    )
+                    assert result["diagnostics"][0].endswith("). Loading the full flag configuration."), (case, result)
+                else:
+                    for field, parameter in (
+                        ("tags", "selected_flag_tags"),
+                        ("keyPatterns", "selected_flag_key_patterns"),
+                    ):
+                        if sdk["selection"][field]:
+                            expected_query[parameter] = sdk["selection"][field]
+                    assert result["diagnostics"] == [], (case, result)
+                assert parse_qs(url.query, keep_blank_values=True) == expected_query, (case, url.query)
+
+                # The mock deliberately returns its full configuration; do not test
+                # the vectors' server-side selectedKeys using an SDK-side filter.
+                wire = json.loads(result["wire"])
+                assert wire["version"] == original["version"], case
+                assert wire["rules"]["response"] == original["rules"]["response"], case
+                assert wire["rules"]["etag"] == original["rules"]["etag"], case
+                assert CLIENT_TOKEN not in json.dumps(result), case
+                assert API_KEY not in json.dumps(result), case
+
     def test_selection_query_and_unfiltered_response(
         self, test_library: APMLibrary, mocked_backend: MockedBackendServer
     ) -> None:
