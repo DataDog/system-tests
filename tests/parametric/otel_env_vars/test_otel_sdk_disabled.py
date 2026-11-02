@@ -26,8 +26,8 @@ OTLP_TRACES_ENV = {
 # Client-side stats are only computed for an agent version that supports them.
 CSS_AGENT_ENV = {"TEST_AGENT_VERSION": MIN_AGENT_VERSION_FOR_CSS}
 
-# Runtime metrics are exported periodically rather than on flush. The control must export within
-# this many seconds, and the disabled run must then export nothing for as long.
+# Runtime metrics and OTLP trace metrics are exported periodically rather than on flush. The control
+# must export within this many seconds, and the disabled run must then export nothing for as long.
 PERIODIC_EXPORT_WINDOW = 30
 
 
@@ -306,3 +306,28 @@ class Test_OTEL_SDK_DISABLED:
 
         with test_library_factory(library_env):
             _assert_nothing_exported(test_agent, PERIODIC_EXPORT_WINDOW, dogstatsd=True)
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                "OTEL_SDK_DISABLED": "true",
+                "OTEL_TRACES_SPAN_METRICS_ENABLED": "true",
+                # Shortens the fixed 10 s export period of OTLP trace metrics.
+                "_DD_TRACE_METRICS_OTEL_FLUSH_INTERVAL": "1000",
+                **OTLP_TRACES_ENV,
+            }
+        ],
+    )
+    @pytest.mark.usefixtures("otlp_endpoints")
+    def test_true_disables_otlp_trace_metrics(
+        self, test_agent: TestAgentAPI, test_library_factory: APMLibraryFactory, library_env: dict[str, str | None]
+    ) -> None:
+        # Control: the SDK computes trace metrics from the span and exports them over OTLP.
+        with test_library_factory({**library_env, "OTEL_SDK_DISABLED": None}) as library:
+            _emit_span(library)
+            _wait_for_periodic_export(lambda: _otlp_urls(test_agent, "metrics"))
+
+        with test_library_factory(library_env) as library:
+            _emit_span(library)
+            _assert_nothing_exported(test_agent, PERIODIC_EXPORT_WINDOW)
