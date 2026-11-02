@@ -475,6 +475,10 @@ class TestAgentAPI:
         self._write_log("requests", resp_json)
         return resp_json
 
+    def pipeline_stats_requests(self) -> list[AgentRequest]:
+        """Data Streams Monitoring payloads sent to /v0.1/pipeline_stats."""
+        return [r for r in self.requests() if "/v0.1/pipeline_stats" in r["url"]]
+
     def dogstatsd_metrics(self) -> list[str]:
         """DogStatsD lines received on UDP 8125, the default DogStatsD address of the SDKs."""
         resp = self._session.get(self._url("/test/session/dogstatsd"))
