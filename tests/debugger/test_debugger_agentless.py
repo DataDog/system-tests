@@ -99,8 +99,8 @@ class Test_Agentless_SymbolDB(debugger.AgentlessBaseDebuggerTest):
                 )
         assert not errors, "Found system-tests-errors:\n" + "\n".join(f"- {err}" for err in errors)
 
-        requests = list(self._symbols_interface.get_data(self._symbols_path))
-        assert len(requests) > 0, f"No request captured on {self._symbols_path}"
+        requests = list(interfaces.mocked_backend.get_data(self._snapshot_paths[0]))
+        assert len(requests) > 0, f"No request captured on {self._snapshot_paths[0]}"
         headers = {name.lower(): value for name, value in requests[-1]["request"]["headers"]}
         assert headers["dd-api-key"] in {_weblog_api_key(), "--redacted--"}
         # Symbol DB shares the same debugger intake path/evp-origin as logs/snapshots/diagnostics -

@@ -13,7 +13,6 @@ from typing import Any, Literal, TypedDict
 from collections.abc import Iterator
 
 from utils import interfaces, remote_config, weblog, context, logger
-from utils.interfaces import ProxyBasedInterfaceValidator
 from utils._weblog import HttpResponse
 from utils.dd_constants import RemoteConfigApplyState as ApplyState
 from utils.dd_types import DataDogAgentSpan
@@ -23,7 +22,6 @@ _CONFIG_PATH = "/v0.7/config"
 _DEBUGGER_PATH = "/api/v2/debugger"
 _LOGS_PATH = "/api/v2/logs"
 _TRACES_PATH = "/api/v0.2/traces"
-_SYMBOLS_PATH = "/symdb/v1/input"
 _TELEMETRY_PATH = "/api/v2/apmtelemetry"
 
 # Agentless (direct-to-intake) path: libdatadog's agentless debugger sender collapses logs,
@@ -164,7 +162,7 @@ class BaseDebuggerTest:
     all_spans: list[DataDogAgentSpan] = []
     symbols: list[dict[str, Any]] = []
     # symdb_upload_events holds the parsed JSON metadata blobs from each
-    # /symdb/v1/input upload (the "event" multipart part, alongside the
+    # symbol database upload (the "event" multipart part, alongside the
     # gzipped symbols attachment). Each entry is the deserialized event
     # JSON (e.g. {"ddsource": ..., "service": ..., "type": "symdb", ...}).
     symdb_upload_events: list[dict[str, Any]] = []
@@ -179,12 +177,11 @@ class BaseDebuggerTest:
     use_debugger_endpoint: bool = False
 
     # Paths of what is sent to the backend, overridden by AgentlessBaseDebuggerTest for scenarios without a Datadog
-    # Agent (logs/snapshots/diagnostics/symdb all collapse onto _AGENTLESS_DEBUGGER_PATH).
+    # Agent (logs/snapshots/diagnostics all collapse onto _AGENTLESS_DEBUGGER_PATH). The symbol database is sent to
+    # _DEBUGGER_PATH in both cases.
     _snapshot_paths: tuple[str, ...] = (_LOGS_PATH, _DEBUGGER_PATH)
     _traces_path: str = _TRACES_PATH
     _telemetry_path: str = _TELEMETRY_PATH
-    _symbols_interface: ProxyBasedInterfaceValidator = interfaces.library
-    _symbols_path: str = _SYMBOLS_PATH
 
     def initialize_weblog_remote_config(self) -> None:
         self.setup_failures = []
@@ -1064,10 +1061,10 @@ class BaseDebuggerTest:
     def _collect_symbols(self):
         def _get_symbols():
             result: list[dict] = []
-            raw_data = list(self._symbols_interface.get_data(self._symbols_path))
+            raw_data = list(interfaces.mocked_backend.get_data(_DEBUGGER_PATH))
 
             if len(raw_data) == 0:
-                logger.info(f"No request has been sent to {self._symbols_path}")
+                logger.info(f"No request has been sent to {_DEBUGGER_PATH}")
                 return result
 
             for data in raw_data:
@@ -1083,9 +1080,9 @@ class BaseDebuggerTest:
         self.symbols = _get_symbols()
 
     def _collect_symdb_upload_events(self):
-        """Collect the JSON event metadata from each /symdb/v1/input upload.
+        """Collect the JSON event metadata from each symbol database upload.
 
-        Each request to /symdb/v1/input is a multipart with two parts: the
+        Each upload is a multipart with two parts: the
         gzipped symbols attachment (collected by _collect_symbols) and a
         small JSON blob describing the upload (the "event" part). This
         populates self.symdb_upload_events with the parsed event JSON for
@@ -1093,7 +1090,7 @@ class BaseDebuggerTest:
         parameter equaling "event".
         """
         events: list[dict[str, Any]] = []
-        raw_data = list(self._symbols_interface.get_data(self._symbols_path))
+        raw_data = list(interfaces.mocked_backend.get_data(_DEBUGGER_PATH))
         for data in raw_data:
             if not isinstance(data, dict) or "request" not in data:
                 continue
@@ -1205,5 +1202,3 @@ class AgentlessBaseDebuggerTest(BaseDebuggerTest):
     """
 
     _snapshot_paths: tuple[str, ...] = (_AGENTLESS_DEBUGGER_PATH,)
-    _symbols_interface = interfaces.mocked_backend
-    _symbols_path: str = _AGENTLESS_DEBUGGER_PATH
