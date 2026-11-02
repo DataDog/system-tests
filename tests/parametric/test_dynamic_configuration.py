@@ -697,15 +697,18 @@ class Test_DynamicConfigMultiConfig:
     as the short-lived config a Datadog feature writes to change one setting temporarily (for example
     turning on profiling during a Bits AI investigation).
 
-    A library advertising APM_TRACING_MULTICONFIG applies both configs: a setting set by only one of
-    them applies, a setting set by both comes from the config with the newer revision whatever order
-    the configs are received in, and removing the overlay restores what the customer's config sets.
+    These tests define APM_TRACING_MULTICONFIG_MERGE: a library advertising it applies both configs, a
+    setting set by only one of them applies, a setting set by both comes from the config with the newer
+    revision whatever order the configs are received in, and removing the overlay restores what the
+    customer's config sets.
     """
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_capability_multiconfig(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+    def test_capability_multiconfig_merge(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         assert test_library.is_alive(), "library container is not alive"
-        test_agent.assert_rc_capabilities({Capabilities.APM_TRACING_MULTICONFIG})
+        test_agent.assert_rc_capabilities(
+            {Capabilities.APM_TRACING_MULTICONFIG, Capabilities.APM_TRACING_MULTICONFIG_MERGE}
+        )
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_overlay_lifecycle(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:

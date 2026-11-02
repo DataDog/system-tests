@@ -85,6 +85,7 @@ class Capabilities(IntEnum):
     DATA_STREAMS_TRANSACTION_EXTRACTORS = 47
     APM_TRACING_LLMOBS = 48
     SDK_CONFIGURATION = 49
+    APM_TRACING_MULTICONFIG_MERGE = 51
 
 
 class SamplingPriority(IntEnum):
