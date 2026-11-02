@@ -51,9 +51,6 @@ class Test_Feature():
 
         # Validate data at agent-to-backend level
         interfaces.agent.assert_trace_exists(self.r)
-
-        # Validate data reaches the backend and is searchable
-        interfaces.backend.assert_library_traces_exist(self.r)
 ```
 
 ### Available Interface Validators
@@ -68,11 +65,6 @@ class Test_Feature():
    - Ideal for validating metrics, stats, processed traces, and agent forwarding behavior
    - See detailed methods: [Agent Interface Validation Methods](./agent-interface-validation-methods.md)
 
-3. **Backend Interface (`interfaces.backend`)** - Validates data by querying Datadog's production APIs
-   - Makes actual API calls to verify end-to-end data ingestion
-   - Essential for validating search functionality and customer-visible data
-   - Requires `DD_API_KEY` and `DD_APP_KEY` environment variables
-   - See detailed methods: [Backend Interface Validation Methods](./backend-interface-validation-methods.md)
 
 ### Common Validation Patterns
 
@@ -86,9 +78,6 @@ def test_basic_tracing(self):
 
     # Validate specific span tags
     interfaces.library.add_span_tag_validation(r, tags={"http.method": "GET"})
-
-    # Verify trace reaches backend
-    interfaces.backend.assert_library_traces_exist(r)
 ```
 
 #### AppSec Event Validation

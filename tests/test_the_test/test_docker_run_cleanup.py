@@ -4,7 +4,7 @@ import io
 
 from _pytest.outcomes import Failed
 from docker.errors import APIError, NotFound
-import pytest
+from utils import pytest
 
 from utils import scenarios
 from utils.docker_fixtures import _core as docker_core

@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta, UTC
 from typing import Any
 
-import pytest
+from utils import pytest
 
 from tests.test_telemetry_heartbeat_utils import heartbeat_delays_by_runtime
 

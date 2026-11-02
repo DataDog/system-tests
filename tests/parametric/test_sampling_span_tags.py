@@ -1,6 +1,6 @@
 import json
 
-import pytest
+from utils import pytest
 from utils import scenarios, features
 from utils.docker_fixtures.spec.trace import MANUAL_DROP_KEY
 from utils.docker_fixtures.spec.trace import MANUAL_KEEP_KEY

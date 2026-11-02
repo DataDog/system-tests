@@ -158,6 +158,7 @@ func main() {
 	})
 
 	r.Any("/trace/manual_keep_drop", ginHandleFunc(common.ManualKeepDrop))
+	r.Any("/security/thread_context_sharing", ginHandleFunc(common.ThreadContextSharing))
 
 	r.Any("/make_distant_call", func(ctx *gin.Context) {
 		url := ctx.Request.URL.Query().Get("url")
@@ -382,6 +383,11 @@ func main() {
 	r.Any("/debugger/budgets/:count", func(ctx *gin.Context) {
 		loops, _ := strconv.Atoi(ctx.Param("count"))
 		d.budgets(ctx.Writer, ctx.Request, loops)
+	})
+	r.Any("/debugger/correlation", ginHandleFunc(d.correlation))
+	r.Any("/debugger/correlation/loop/:count", func(ctx *gin.Context) {
+		loops, _ := strconv.Atoi(ctx.Param("count"))
+		d.correlationLoop(ctx.Writer, ctx.Request, loops)
 	})
 
 	srv := &http.Server{

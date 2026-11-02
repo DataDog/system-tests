@@ -35,6 +35,31 @@ from ._core import HOST_GATEWAY_EXTRA_HOSTS, get_host_port, get_docker_client, d
 DEFAULT_OTLP_HTTP_PORT = 4318
 DEFAULT_OTLP_GRPC_PORT = 4317
 
+# The pinned test agent only registers FFE exposures on EVP v2. Opt-in tests use
+# its supported app factory to register the remaining FFE intake routes with the
+# existing recording/200-response handler; no requests are sent to Datadog.
+_FFE_INTAKE_COMMAND = """
+from aiohttp import web
+from ddapm_test_agent.agent import main, make_app
+
+
+def make_ffe_app(**kwargs):
+    kwargs["agent_url"] = ""
+    app = make_app(**kwargs)
+    agent = app["agent"]
+    paths = (
+        "/evp_proxy/v2/api/v2/flagevaluation",
+        "/evp_proxy/v4/api/v2/exposures",
+        "/evp_proxy/v4/api/v2/flagevaluation",
+    )
+    agent._forward_endpoints.extend(paths)
+    app.add_routes([web.post(path, agent.handle_evp_proxy_v2_api_v2_exposures) for path in paths])
+    return app
+
+
+main(app_factory=make_ffe_app)
+"""
+
 
 def _request_token(request: pytest.FixtureRequest) -> str:
     token = ""
@@ -132,6 +157,9 @@ class TestAgentFactory:
             open(log_path, "w+", encoding="utf-8") as log_file,
             docker_run(
                 image=self.image,
+                command=["python", "-c", _FFE_INTAKE_COMMAND]
+                if agent_env.get("SYSTEM_TESTS_FFE_INTAKE") == "true"
+                else None,
                 name=container_name,
                 env=env,
                 volumes={
@@ -687,6 +715,20 @@ class TestAgentAPI:
                     return metrics
             time.sleep(0.1)
         raise ValueError(f"Number ({num}) of metrics not available from test agent, got {len(metrics)}")
+
+    def wait_for_num_otlp_requests(self, num: int, *, wait_loops: int = 30) -> list[dict]:
+        """Wait for `num` OTLP requests to be received from the test agent."""
+        otlp_requests = []
+        for _ in range(wait_loops):
+            try:
+                otlp_requests = self.otlp_requests()
+            except requests.exceptions.RequestException:
+                pass
+            else:
+                if len(otlp_requests) >= num:
+                    return otlp_requests
+            time.sleep(0.1)
+        raise ValueError(f"Number ({num}) of OTLP requests not available from test agent, got {len(otlp_requests)}")
 
     def wait_for_telemetry_event(self, event_name: str, *, clear: bool = False, wait_loops: int = 200):
         """Wait for and return the given telemetry event from the test agent."""

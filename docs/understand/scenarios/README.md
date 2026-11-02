@@ -62,6 +62,10 @@ This feature enables applications written in Java, Node.js, Python, .NET or Ruby
 
 The `AI_GUARD` scenario tests the [AI Guard SDK](https://docs.datadoghq.com/security/ai_guard/) integration across tracer libraries. It uses a VCR cassettes container to replay pre-recorded AI Guard API responses, validating evaluation actions (ALLOW, DENY, ABORT), span metadata, sensitive data scanning, and multi-modal content handling. See [ai_guard.md](ai_guard.md) for details.
 
+### Thread context sharing scenario
+
+The `THREAD_CONTEXT_SHARING` scenario runs the agent with CWS (Cloud Workload Security), and checks that security events triggered by the weblog carry the trace context of the active span. It needs the docker daemon to run on the instrumented kernel, with an opt-in for Kata docker-in-docker environments. See [thread_context_sharing.md](thread_context_sharing.md) for details.
+
 ### IPv6 scenario
 
 The `IPV6` scenario sets up an IPv6 docker network and uses an IPv6 address as DD_AGENT_HOST to verify that the library is able to communicate to the agent using an IPv6 address. It does not use a proxy between the lib and the agent to not interfere at any point here, so all assertions must be done on the outgoing traffic from the agent.

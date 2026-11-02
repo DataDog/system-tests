@@ -1,14 +1,15 @@
 import pytest
 
 from utils._context.constants import WeblogCategory
-from .core import scenario_groups
-from .endtoend import EndToEndScenario
+from ._core import EndToEndScenario, scenario_groups
 
 
 class ProfilingScenario(EndToEndScenario):
-    def __init__(self, name: str) -> None:
+    def __init__(self) -> None:
         super().__init__(
-            name,
+            "PROFILING",
+            mocked_backend=True,
+            use_proxy_for_agent=False,
             library_interface_timeout=160,
             weblog_env={
                 "DD_PROFILING_ENABLED": "true",

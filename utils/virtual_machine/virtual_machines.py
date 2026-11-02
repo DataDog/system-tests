@@ -232,6 +232,11 @@ class _VirtualMachine:
         command_env["DD_LANG"] = command_env["DD_LANG"] if command_env["DD_LANG"] != "nodejs" else "js"
         # VM name
         command_env["DD_VM_NAME"] = self.name
+        # host, container, alpine, or multicontainer. The installer uses this to
+        # choose host injection or host+docker injection.
+        deployed_app_type = self.get_deployed_weblog().app_type
+        if deployed_app_type is not None:
+            command_env["DD_APP_TYPE"] = deployed_app_type
         # Scenario custom environment: agent and app env variables
         command_env["DD_AGENT_ENV"] = ""
         command_env["DD_APP_ENV"] = ""

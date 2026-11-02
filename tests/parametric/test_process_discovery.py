@@ -1,6 +1,6 @@
 """Test the instrumented process discovery mechanism feature."""
 
-import pytest
+from utils import pytest
 import json
 import msgpack
 import re
@@ -92,6 +92,13 @@ def assert_metadata_content(test_library: APMLibrary, library_env: dict[str, str
         pid = int(out)
     elif context.library.name == "nodejs":
         rc, out = test_library.container_exec_run("pidof node")
+        assert rc
+        pid = int(out)
+    elif context.library.name == "golang":
+        # The Go parametric container wraps the server in a shell so the
+        # crashtracker monitor keeps the container alive while it uploads the
+        # crash report. The server is the only direct child of PID 1.
+        rc, out = test_library.container_exec_run("pgrep -P 1")
         assert rc
         pid = int(out)
     memfds = find_dd_memfds(test_library, pid)

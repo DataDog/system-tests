@@ -417,7 +417,7 @@ export K8S_LIB_INIT_IMG="my-registry/my-lib-init:my-tag"
 ### Implementation Details
 
 - **Parser**: [`utils/k8s/k8s_components_parser.py`](../../utils/k8s/k8s_components_parser.py) - Singleton that reads `k8s_components.json`
-- **CI Matrix Builder**: [`utils/scripts/ci_orchestrators/gitlab_exporter.py`](../../utils/scripts/ci_orchestrators/gitlab_exporter.py) - Generates test matrix for GitLab CI
+- **CI Matrix Builder**: [`utils/scripts/ci_orchestrators/gitlab_exporter.py`](../../utils/scripts/ci_orchestrators/gitlab_exporter.py) - Generates test matrix for GitLab CI. Image values in the job name are the path without the registry host (`ssi/cluster-agent:7.84.3`). The job prepends `PRIVATE_DOCKER_REGISTRY` before `./run.sh`.
 - **Scenario Configuration**: [`utils/_context/_scenarios/k8s_lib_injection.py`](../../utils/_context/_scenarios/k8s_lib_injection.py) - Uses parser to load default versions
 
 

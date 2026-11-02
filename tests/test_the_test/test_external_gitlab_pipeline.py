@@ -1,6 +1,6 @@
 """Tests for utils/scripts/ci_orchestrators/external_gitlab_pipeline.py."""
 
-import pytest
+from utils import pytest
 
 from utils import scenarios
 from utils.scripts.ci_orchestrators.external_gitlab_pipeline import (

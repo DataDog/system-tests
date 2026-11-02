@@ -9,6 +9,10 @@ It unions every Docker image required by the CI-run ``DockerScenario`` instances
 via the dd-repo-tools ``mirror_images.py add`` command, then resolves digests
 into ``mirror_images.lock.yaml`` via ``lock``.
 
+``mirror_images.yaml`` is rebuilt from scratch on every run: images no longer
+required by any scenario (e.g. a base image whose content tag was replaced) are
+dropped, and ``lock`` then prunes their entries from ``mirror_images.lock.yaml``.
+
 It never pushes or mirrors anything: commit the updated ``mirror_images.yaml``
 and ``mirror_images.lock.yaml`` yourself.
 
@@ -31,11 +35,13 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO_ROOT))
 
 from utils._context._scenarios import get_all_scenarios, DockerScenario  # noqa: E402
+from utils._context._scenarios.parametric import ParametricScenario  # noqa: E402
+from utils._context.containers import dockerfile_image_list  # noqa: E402
 
 # Pinned dd-repo-tools mirror_images.py (override with $MIRROR_IMAGES_URL).
 MIRROR_IMAGES_URL = os.environ.get(
     "MIRROR_IMAGES_URL",
-    "https://binaries.ddbuild.io/dd-repo-tools/default/ca/9d4911e4cf0e0fba6093854cb8bbfe0ae5fd9752/mirror_images.py",
+    "https://binaries.ddbuild.io/dd-repo-tools/default/ca/457b58d8c5ae7dad8ce0cba3c5d99171a843d678/mirror_images.py",
 )
 
 # Destination registry for the mirrored images (override with $MIRROR_DEST_REGISTRY).
@@ -45,28 +51,26 @@ MIRROR_YAML = REPO_ROOT / "mirror_images.yaml"
 LOCK_YAML = REPO_ROOT / "mirror_images.lock.yaml"
 BUILDKITD_TOML = REPO_ROOT / "utils" / "build" / "docker" / "buildkitd.toml"
 
-# Header written when mirror_images.yaml does not exist yet. The mirror_images.py
-# `add` command preserves existing comments, so this is only used on first run.
+# Canonical header for mirror_images.yaml. The mirror_images.py `add` command
+# rewrites the file through a YAML parser and drops comments, so the script
+# restores this header after every run.
 MIRROR_YAML_HEADER = """\
+---
 # Docker images mirrored into registry.ddbuild.io/system-tests/mirror.
 #
-# Generated: this file lists every image required by the CI scenarios.
+# This file is generated: it lists every image required by the CI scenarios.
 # Regenerate after changing scenarios or weblog Dockerfiles with:
 #
 #   python utils/scripts/update_mirror_images.py
 #
-# The `mirror_images_check` CI job fails if this file is out of date.
+# (also refreshes mirror_images.lock.yaml; commit both). The
+# `mirror_images_check` CI job fails if this file is out of date.
 """
 
 # Scenarios excluded from the GitLab end-to-end pipeline. Mirrors the
 # `excluded_scenarios` input in .gitlab-ci.yml so the mirrored image set matches
 # what actually runs in CI. Override with --exclude when the CI list changes.
-DEFAULT_EXCLUDED = (
-    "DEBUGGER_EXPRESSION_LANGUAGE",
-    "APM_TRACING_E2E_SINGLE_SPAN",
-    "APM_TRACING_E2E_OTEL",
-    "OTEL_COLLECTOR_E2E",
-)
+DEFAULT_EXCLUDED = ("DEBUGGER_EXPRESSION_LANGUAGE",)
 
 
 def _library_weblog_pairs() -> list[tuple[str, str]]:
@@ -93,11 +97,30 @@ def _is_mirrorable(image: str) -> bool:
     return not image.startswith("registry.ddbuild.io/")
 
 
+def _parametric_images() -> set[str]:
+    """Images the parametric test clients build FROM.
+
+    Parametric is not a DockerScenario and has no get_image_list: its
+    test client is built from utils/build/docker/<library>/parametric/Dockerfile,
+    outside the weblog layout enumerated by _library_weblog_pairs. Like weblogs,
+    the test client is built with the mirror-configured buildx builder (see
+    TestClientFactory.build), so every FROM image is pulled through the mirror.
+    """
+    images: set[str] = set()
+    for path in Path("utils/build/docker").glob("*/parametric/Dockerfile"):
+        images.update(dockerfile_image_list(path))
+    return images
+
+
 def collect_images(excluded: set[str]) -> list[str]:
     pairs = _library_weblog_pairs()
     images: set[str] = set()
     for scenario in get_all_scenarios():
-        if not isinstance(scenario, DockerScenario) or scenario.name in excluded:
+        if scenario.name in excluded:
+            continue
+        if isinstance(scenario, ParametricScenario):
+            images.update(_parametric_images())
+        if not isinstance(scenario, DockerScenario):
             continue
         for library, weblog in pairs:
             images.update(scenario.get_image_list(library, weblog))
@@ -114,6 +137,7 @@ def _run_mirror_images(*args: str) -> None:
         "uv",
         "run",
         "--no-config",
+        "--no-project",
         "--script",
         MIRROR_IMAGES_URL,
         "--mirror-yaml",
@@ -135,6 +159,24 @@ def _refresh_lock_file() -> str | None:
     return original_lock
 
 
+def _restore_yaml_header() -> None:
+    """Apply the canonical header, replacing whatever preamble the file has.
+
+    ``mirror_images.py add`` rewrites the file through a YAML parser and drops
+    comments, but only when it actually adds an image, and its serializer may emit
+    a document-start marker of its own. Replacing the whole preamble rather than
+    just that marker keeps the file a single YAML document and makes repeated runs
+    idempotent, which the mirror_images_check CI job depends on: it runs this
+    script and fails if mirror_images.yaml then differs from what is committed.
+    """
+    lines = MIRROR_YAML.read_text(encoding="utf-8").splitlines(keepends=True)
+    body_starts = next(
+        (i for i, line in enumerate(lines) if line.strip() and not line.startswith(("---", "#"))),
+        len(lines),
+    )
+    MIRROR_YAML.write_text(MIRROR_YAML_HEADER + "".join(lines[body_starts:]), encoding="utf-8")
+
+
 def main(excluded: set[str], *, skip_lock: bool, refresh: bool = False) -> None:
     if skip_lock and refresh:
         raise ValueError("refresh cannot be used when skip_lock is true")
@@ -144,11 +186,19 @@ def main(excluded: set[str], *, skip_lock: bool, refresh: bool = False) -> None:
 
     images = collect_images(excluded)
     print(f"Collected {len(images)} mirrorable image(s) from the CI scenarios.", flush=True)
+    if not images:
+        # The CI scenarios always need images: an empty set means the enumeration
+        # is broken, so fail before the manifest below gets reset.
+        sys.exit("error: no mirrorable images collected from the CI scenarios; refusing to empty mirror_images.yaml")
 
-    if not MIRROR_YAML.exists():
-        MIRROR_YAML.write_text(MIRROR_YAML_HEADER)
+    # Replace the list rather than appending to it: `add` only ever adds, so start
+    # from an empty manifest to drop images that are no longer required. `lock`
+    # keeps only entries still declared in mirror_images.yaml, so stale images
+    # are pruned from the lock file too.
+    MIRROR_YAML.write_text(MIRROR_YAML_HEADER, encoding="utf-8")
 
     _run_mirror_images("add", *images)
+    _restore_yaml_header()
     if not skip_lock:
         original_lock = _refresh_lock_file() if refresh else None
         try:

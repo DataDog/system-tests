@@ -13,12 +13,17 @@ from tests.otel.utils import (
     FORWARD_TRACE_ID,
 )
 from utils import context, features, interfaces, scenarios, weblog
-from utils._context._scenarios.endtoend import EndToEndScenario
+from utils._context._scenarios import EndToEndScenario
 from utils.dd_constants import SpanKind, StatusCode
 from utils.docker_fixtures.spec.tracecontext import Tracestate
+from utils.interfaces._open_telemetry import is_otel_span_for_request
 
 
 type OtelSpanRecord = tuple[Any, Any, Any]
+
+# Must match DD_GIT_REPOSITORY_URL / DD_GIT_COMMIT_SHA in the APM_TRACING_OTLP scenario
+GIT_REPOSITORY_URL = "https://github.com/DataDog/system-tests"
+GIT_COMMIT_SHA = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 
 
 def _trace_id_to_hex(tid: str | None) -> str:
@@ -45,18 +50,24 @@ def _server_span_by_request_id(data: list[OtelSpanRecord], request_id: str) -> O
     matching_server_spans = []
     for entry in data:
         span = entry[2]
-        attributes = span.get("attributes", {})
-        user_agent = " ".join(
-            str(attributes.get(key, ""))
-            for key in ("user_agent.original", "http.useragent", "http.request.headers.user-agent")
-        )
-        if span.get("kind") == SpanKind.SERVER.value and request_id in user_agent:
+        if span.get("kind") == SpanKind.SERVER.value and is_otel_span_for_request(span, request_id):
             matching_server_spans.append(entry)
 
     assert len(matching_server_spans) == 1, (
         f"expected exactly one SERVER span correlated to request {request_id}, found {len(matching_server_spans)}"
     )
     return matching_server_spans[0]
+
+
+def _has_git_attribute(resource_attributes: dict, chunk_spans: list[dict], name: str, expected: str) -> bool:
+    """Tell if a git value is set on a trace chunk in one of the layouts the backend reads:
+    `_dd.git.<name>` on the first span, `git.<name>` on every span, or `git.<name>` on the resource.
+    """
+    if resource_attributes.get(f"git.{name}") == expected:
+        return True
+    if chunk_spans[0].get("attributes", {}).get(f"_dd.git.{name}") == expected:
+        return True
+    return all(span.get("attributes", {}).get(f"git.{name}") == expected for span in chunk_spans)
 
 
 # @scenarios.apm_tracing_e2e_otel
@@ -73,6 +84,51 @@ class Test_Otel_Tracing_OTLP:
 
         self.start_time_ns = int(stripped)
         self.req = weblog.get("/")
+
+    def setup_git_span_attributes(self):
+        self.req = weblog.get("/")
+
+    def test_git_span_attributes(self):
+        """DD_GIT_REPOSITORY_URL and DD_GIT_COMMIT_SHA are exported so that the backend can link spans to the source
+        code, as with the Datadog trace protocol (see tests/parametric/test_tracer.py::Test_TracerSCITagging).
+
+        For each value, these layouts are equivalent for the backend, and any of them is accepted:
+        - `_dd.git.<name>` on the first span of each trace chunk;
+        - `git.<name>` on every span of the trace chunk;
+        - `git.<name>` as a resource attribute, which the Agent copies to every span.
+
+        OTLP has no trace chunks. The Agent builds them when converting OTLP to Datadog spans: each resourceSpans
+        of an export request becomes one payload, whose chunks group spans by trace ID in payload order. So the first
+        span of a chunk is the first span of the trace in each resourceSpans.
+        """
+        data = list(interfaces.open_telemetry.get_otel_spans(self.req))
+        _, _, server_span = _server_span_by_request_id(data, self.req.get_rid())
+        trace_id = _trace_id_to_hex(server_span.get("traceId"))
+        assert trace_id, f"invalid traceId on server span: {server_span.get('traceId')}"
+
+        chunk_count = 0
+        for export in interfaces.open_telemetry.get_data(path_filters=["/v1/traces"]):
+            content = export["request"]["content"]
+            for resource_span in content.get("resourceSpans") or []:
+                trace_spans = [
+                    span
+                    for scope_span in resource_span.get("scopeSpans") or []
+                    for span in scope_span.get("spans") or []
+                    if _trace_id_to_hex(span.get("traceId")) == trace_id
+                ]
+                if not trace_spans:
+                    continue
+
+                chunk_count += 1
+                resource_attributes = resource_span.get("resource", {}).get("attributes", {})
+                for name, expected in (("repository_url", GIT_REPOSITORY_URL), ("commit.sha", GIT_COMMIT_SHA)):
+                    assert _has_git_attribute(resource_attributes, trace_spans, name, expected), (
+                        f"git.{name}={expected!r} not found in {export['log_filename']}: "
+                        f"resource attributes: {resource_attributes}, "
+                        f"span attributes: {[span.get('attributes', {}) for span in trace_spans]}"
+                    )
+
+        assert chunk_count > 0, f"no OTLP export request contains trace {trace_id}"
 
     def test_single_server_trace(self):
         """Validates the required elements of the OTLP payload for a single trace"""
@@ -93,13 +149,10 @@ class Test_Otel_Tracing_OTLP:
         attributes = resource_span.get("resource", {}).get("attributes", {})
 
         # Assert that the resource attributes contain the service-level attributes and tracer-level attributes we expect
-        # TODO: Assert the following attributes: runtime-id, git.commit.sha, git.repository_url
+        # TODO: Assert the following attributes: runtime-id
         assert attributes.get("service.name") == "weblog"
         assert attributes.get("service.version") == "1.0.0"
-        assert (
-            attributes.get("deployment.environment.name") == "system-tests"
-            or attributes.get("deployment.environment") == "system-tests"
-        )
+        assert attributes.get("deployment.environment.name") == "system-tests"
         assert attributes.get("telemetry.sdk.name") == "datadog"
         assert "telemetry.sdk.language" in attributes
         # assert "telemetry.sdk.version" in attributes

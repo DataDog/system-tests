@@ -39,13 +39,12 @@ Each component has its own manifest file in the `manifests/` directory.
 - `manifests/python_lambda.yml` - Python AWS Lambda
 - `manifests/python_otel.yml` - Python OpenTelemetry
 - `manifests/ruby.yml` - Ruby library
+- `manifests/ruby_lambda.yml` - Ruby AWS Lambda
 - `manifests/rust.yml` - Rust library
 
 ### Infrastructure Manifests
 - `manifests/agent.yml` - Datadog Agent version conditions
 - `manifests/k8s_cluster_agent.yml` - Kubernetes Cluster Agent
-- `manifests/envoy.yml` - Envoy proxy
-- `manifests/haproxy.yml` - HAProxy
 
 **Note:** Do not create new manifest files without consulting the team in **#apm-shared-testing** Slack channel first.
 
@@ -378,7 +377,6 @@ The `agent.yml` manifest uses the same syntax for agent version conditions:
 
 ```yaml
 manifest:
-  tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E: "v7.48.0"
   tests/test_sampling_rates.py::Test_SamplingRates: "v7.33.0"
   tests/test_telemetry.py::Test_APMOnboardingInstallID: "v7.50.0"
 ```

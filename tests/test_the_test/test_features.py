@@ -1,4 +1,4 @@
-import pytest
+from utils import pytest
 from collections.abc import Callable
 from utils import scenarios, features, logger
 from utils._features import NOT_REPORTED_ID

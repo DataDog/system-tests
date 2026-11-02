@@ -42,11 +42,10 @@ system-tests/
 |   |-- _context/       # Test context and scenario definitions
 |   |   |-- _scenarios/ # Scenario implementations
 |   |   |   |-- __init__.py # Here you can find all the scenarios implemented. Parse this file to discover the scenarios implemented.
-|   |   |   |-- appsec_low_waf_timeout.py # AppSec WAF timeout scenario
 |   |   |   |-- auto_injection.py # Auto-injection scenario
 |   |   |   |-- default.py       # Default scenario implementation
 |   |   |   |-- docker_ssi.py    # Docker SSI scenario
-|   |   |   |-- endtoend.py      # End-to-end testing framework
+|   |   |   |-- _core/           # Base classes shared by several scenario modules (endtoend.py: end-to-end framework)
 |   |   |   |-- parametric.py    # Parametric scenario
 |   |   |   |-- k8s_lib_injection.py # K8s lib injection scenario
 |   |-- assets/         # Images and other static assets
@@ -120,3 +119,10 @@ system-tests/
       ...
   ```
 - Never define a setup method without a matching test method.
+
+## 6. No Cross-Test-File Imports
+
+- A test file (`test_*.py`) must never import anything from another test file, whether through an absolute import such as `from tests.xxx.test_yyy import ...` or a relative import such as `from .test_yyy import ...`.
+- If logic needs to be shared between test files, move it into a non-test utility module and have both test files import from there.
+- Existing exceptions are explicitly listed in `.importlinter`. Do not add a new exception; refactor the shared logic instead.
+- This is enforced by the `Test files do not import other test files` Import Linter contract run by `./format.sh`.

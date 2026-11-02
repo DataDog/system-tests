@@ -1,5 +1,5 @@
 import os
-import pytest
+from utils import pytest
 
 from utils import bug, irrelevant, scenarios, features
 from utils._context._scenarios import Scenario

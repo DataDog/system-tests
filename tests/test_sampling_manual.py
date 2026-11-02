@@ -8,33 +8,39 @@ from utils import weblog, interfaces, scenarios, features
 from utils._weblog import HttpResponse
 from utils.dd_constants import SamplingPriority
 
-# Arbitrary upstream trace context, the ids only have to be stable and non-zero
-UPSTREAM_TRACE_ID = 1212121212121212121
-UPSTREAM_PARENT_ID = 34343434
+UPSTREAM_TRACE_ID_BASE = 1212121212121212121
+UPSTREAM_PARENT_ID_BASE = 34343434
+
+
+def _upstream_ids(sampling_priority: SamplingPriority) -> tuple[int, int]:
+    offset = int(sampling_priority)
+    return UPSTREAM_TRACE_ID_BASE + offset, UPSTREAM_PARENT_ID_BASE + offset
 
 
 def _upstream_headers(sampling_priority: SamplingPriority) -> dict[str, str]:
+    trace_id, parent_id = _upstream_ids(sampling_priority)
     return {
-        "x-datadog-trace-id": str(UPSTREAM_TRACE_ID),
-        "x-datadog-parent-id": str(UPSTREAM_PARENT_ID),
+        "x-datadog-trace-id": str(trace_id),
+        "x-datadog-parent-id": str(parent_id),
         "x-datadog-sampling-priority": str(int(sampling_priority)),
     }
 
 
-def _assert_upstream_trace_continued(request: HttpResponse) -> None:
+def _assert_upstream_trace_continued(request: HttpResponse, upstream_sampling_priority: SamplingPriority) -> None:
     """Without this check, a weblog that does not extract the upstream context at all would start a
     fresh trace, and the manual decision alone would still yield the expected priority.
     """
     spans = [span for _, _, span in interfaces.library.get_spans(request=request)]
     assert spans, "No span reported for that request"
 
+    trace_id, parent_id = _upstream_ids(upstream_sampling_priority)
     trace_ids = {span["trace_id"] for span in spans}
-    assert all(span.trace_id_equals(UPSTREAM_TRACE_ID) for span in spans), (
+    assert all(span.trace_id_equals(trace_id) for span in spans), (
         f"Spans do not belong to the upstream trace: {trace_ids}"
     )
 
     parent_ids = {span.get("parent_id") for span in spans}
-    assert UPSTREAM_PARENT_ID in parent_ids, f"No span is a child of the upstream span: {parent_ids}"
+    assert parent_id in parent_ids, f"No span is a child of the upstream span: {parent_ids}"
 
 
 def _assert_decision_propagated_downstream(request: HttpResponse, expected: SamplingPriority) -> None:
@@ -93,7 +99,7 @@ class Test_Manual_Sampling:
 
     def test_manual_keep_overrides_upstream_drop(self):
         assert self.r_keep.status_code == 200
-        _assert_upstream_trace_continued(self.r_keep)
+        _assert_upstream_trace_continued(self.r_keep, SamplingPriority.AUTO_REJECT)
         assert _get_sampling_priority(self.r_keep) == SamplingPriority.USER_KEEP
         _assert_decision_propagated_downstream(self.r_keep, SamplingPriority.USER_KEEP)
 
@@ -106,6 +112,6 @@ class Test_Manual_Sampling:
 
     def test_manual_drop_overrides_upstream_keep(self):
         assert self.r_drop.status_code == 200
-        _assert_upstream_trace_continued(self.r_drop)
+        _assert_upstream_trace_continued(self.r_drop, SamplingPriority.USER_KEEP)
         assert _get_sampling_priority(self.r_drop) == SamplingPriority.USER_REJECT
         _assert_decision_propagated_downstream(self.r_drop, SamplingPriority.USER_REJECT)

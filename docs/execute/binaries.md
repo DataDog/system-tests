@@ -7,6 +7,38 @@ But we often want to run system tests against unmerged changes. The general appr
 
 * Add a file `agent-image` in `binaries/`. The content must be a valid docker image name containing the datadog agent, like `datadog/agent` or `datadog/agent-dev:master-py3`.
 
+### Building an agent image from a local datadog-agent branch
+
+If your datadog-agent changes are limited to `pkg/trace` or `cmd/trace-agent`, you don't need
+to wait for a datadog-agent CI image build (or run the slow, Linux-devcontainer-only
+`dda inv agent.hacky-dev-image-build`) to test them. `utils/scripts/build-local-agent-image.sh`
+compiles just the trace-agent binary from your local checkout/worktree and overlays it onto a
+published agent base image:
+
+```bash
+./utils/scripts/build-local-agent-image.sh /path/to/datadog-agent datadog/agent-dev:my-branch
+echo datadog/agent-dev:my-branch > binaries/agent-image
+./build.sh golang
+TEST_LIBRARY=golang ./run.sh DEFAULT
+```
+
+Run `./utils/scripts/build-local-agent-image.sh --help` for all options (base image, output
+image tag/path via flags or env vars, etc). The script builds the trace-agent with `CGO_ENABLED=1`
+(required by the zstd dependency, so it can't cross-compile from macOS with `CGO_ENABLED=0`)
+inside a `golang` container matching your Docker host's architecture and your agent checkout's
+`.go-version`, and sets version ldflags so the resulting binary reports the same agent version as
+the base image (otherwise system-tests' agent-version gating sees a generic `6.0.0`).
+
+To confirm the custom binary is actually running once a scenario has executed:
+* `logs_<scenario>/docker/agent/stdout.log` -- TRACE-level log lines show `/src/...` source
+  paths, since the binary was compiled inside the script's `/src` mount.
+* `logs_<scenario>/docker/agent/image.json` -- shows the image tag that was used.
+
+**Limitation**: only the trace-agent binary is replaced, so this only covers changes inside
+`pkg/trace`/`cmd/trace-agent`. For changes elsewhere in datadog-agent, build a full agent image
+instead, either with `dda inv agent.hacky-dev-image-build` from a Linux devcontainer, or by using
+the CI-built `datadog/agent-dev:<branch>` image from your datadog-agent PR.
+
 ## C++ library
 
 * Tracer:
@@ -82,7 +114,17 @@ By default you will be on the `master` branch, but if you'd like to run system-t
   * The Java tracer agent artifact `dd-java-agent-*.jar` from `dd-java-agent/build/libs/`
   * Its public API `dd-trace-api-*.jar` from `dd-trace-api/build/libs/` into
 
-Note, you should have only TWO jar files in `system-tests/binaries`. Do NOT copy sources or javadoc jars.
+For ordinary Java tests, copy these two JARs. Do not copy sources or Javadoc JARs.
+
+For OpenFeature parametric tests at SDK revision
+`411eb0537e93cbdea7309cd49694aebdbfbcd389`, also build
+`:products:feature-flagging:feature-flagging-api:jar` and copy
+`products/feature-flagging/feature-flagging-api/build/libs/dd-openfeature-*.jar`
+from that same revision. Older SDK revisions may use `:dd-openfeature:jar` and
+`dd-openfeature/build/libs/` instead. The development artifact loader downloads
+`dd-java-agent.jar` and `dd-openfeature.jar` from the same SDK branch for both
+ordinary Java weblogs and the parametric application. Do not combine an
+automatically downloaded API with a second custom copy of that API.
 
 4. Build your selected weblog:
 

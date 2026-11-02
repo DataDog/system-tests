@@ -14,6 +14,7 @@ from collections.abc import Iterator
 
 from utils import interfaces, remote_config, weblog, context, logger
 from utils.interfaces import ProxyBasedInterfaceValidator
+from utils._weblog import HttpResponse
 from utils.dd_constants import RemoteConfigApplyState as ApplyState
 from utils.dd_types import DataDogAgentSpan
 
@@ -177,10 +178,8 @@ class BaseDebuggerTest:
 
     use_debugger_endpoint: bool = False
 
-    # Backend interface/paths, overridden by AgentlessBaseDebuggerTest for scenarios without a
-    # Datadog Agent (data captured over interfaces.datadog_direct instead of interfaces.agent,
-    # and logs/snapshots/diagnostics/symdb all collapse onto _AGENTLESS_DEBUGGER_PATH).
-    _backend_interface: ProxyBasedInterfaceValidator = interfaces.agent
+    # Paths of what is sent to the backend, overridden by AgentlessBaseDebuggerTest for scenarios without a Datadog
+    # Agent (logs/snapshots/diagnostics/symdb all collapse onto _AGENTLESS_DEBUGGER_PATH).
     _snapshot_paths: tuple[str, ...] = (_LOGS_PATH, _DEBUGGER_PATH)
     _traces_path: str = _TRACES_PATH
     _telemetry_path: str = _TELEMETRY_PATH
@@ -205,14 +204,21 @@ class BaseDebuggerTest:
     def method_and_language_to_line_number(self, method: str, language: str) -> list:
         """method_and_language_to_line_number returns the respective line number given the method and language"""
         definitions: dict[str, dict[str, list[int]]] = {
-            "Budgets": {"java": [140], "dotnet": [138], "python": [144], "golang": [117]},
+            "Budgets": {"java": [140], "dotnet": [138], "python": [144], "golang": [117], "nodejs": [165]},
             "LogProbe": {"nodejs": [20]},
             "Pii": {"java": [66], "dotnet": [66], "python": [66], "ruby": [66], "nodejs": [64]},
             "Expression": {"java": [73], "dotnet": [76], "python": [74], "ruby": [82], "nodejs": [82], "golang": [71]},
             # In-scope line for the probe_capture_expressions_line line probe. Kept separate
             # from "Expression" because Node.js captures at a different line (71) than its
             # expression-language probe (82); Ruby's weblog layout puts the line at 82, not 71.
-            "CaptureExpressionsLine": {"java": [73], "nodejs": [71], "golang": [71], "ruby": [82]},
+            "CaptureExpressionsLine": {
+                "java": [73],
+                "dotnet": [76],
+                "python": [74],
+                "nodejs": [71],
+                "golang": [71],
+                "ruby": [82],
+            },
             # The `@exception` variable is not available in the context of line probes.
             "ExpressionException": {},
             "ExpressionOperators": {"java": [84], "dotnet": [92], "python": [89], "ruby": [102], "nodejs": [90]},
@@ -220,7 +226,13 @@ class BaseDebuggerTest:
             "CollectionOperations": {"java": [116], "dotnet": [116], "python": [125], "ruby": [162], "nodejs": [120]},
             "Nulls": {"java": [132], "dotnet": [129], "python": [138], "ruby": [192], "nodejs": [126]},
             "SnapshotLimits": {"java": [155], "python": [174], "nodejs": [136], "ruby": [233], "dotnet": [152]},
-            "CaptureTimeout": {"java": [174], "nodejs": [155], "dotnet": [173]},
+            "CaptureTimeout": {"java": [174], "nodejs": [159], "dotnet": [173], "python": [183]},
+            # Lines the probed methods of the correlation endpoint return on, for tracers without method probes
+            "Correlation": {"nodejs": [178]},
+            "CorrelationMiddle": {"nodejs": [184]},
+            "CorrelationLeaf": {"nodejs": [188]},
+            "CorrelationLoopBody": {"golang": [144], "nodejs": [194]},
+            "CorrelationLoopSibling": {"golang": [147], "nodejs": [197]},
         }
 
         return definitions.get(method, {}).get(language, [])
@@ -305,7 +317,11 @@ class BaseDebuggerTest:
                     source_file = ""
 
                     if language == "dotnet":
-                        source_file = "DebuggerController.cs"
+                        # Docker COPY flattens weblog sources into WORKDIR /app, so the PDB
+                        # document is /app/DebuggerController.cs (not Controllers/...).
+                        # Include the app/ segment so prefix-stripping and Windows-separator
+                        # tests exercise trailing-segment matching (DEBUG-5101 / DEBUG-5108).
+                        source_file = "app/DebuggerController.cs"
                     elif language == "java":
                         source_file = "com/datadoghq/system_tests/springboot/debugger/DebuggerController.java"
                     elif language == "python":
@@ -359,6 +375,8 @@ class BaseDebuggerTest:
                             "20": "main.(*DebuggerController).logProbe",
                             "71": "main.(*DebuggerController).expression",
                             "117": "main.(*DebuggerController).budgetStep",
+                            "144": "main.(*DebuggerController).correlationLoop",
+                            "147": "main.(*DebuggerController).correlationLoop",
                         }
                         line = str(probe["where"]["lines"][0])
                         if line in golang_line_to_method:
@@ -387,6 +405,9 @@ class BaseDebuggerTest:
             remote_config.send_debugger_command(probes=self.probe_definitions, version=BaseDebuggerTest._rc_version)
         )
 
+        self.resolve_php_probes()
+
+    def resolve_php_probes(self) -> None:
         # PHP tracer requires requests to /debugger/* to process RC and resolve probe hooks.
         # Pass probe IDs so the PHP endpoint polls until they appear in the loaded RC state.
         if context.library == "php":
@@ -468,11 +489,7 @@ class BaseDebuggerTest:
             )
         )
 
-        # PHP tracer requires requests to /debugger/* to process RC before the test request.
-        # Pass probe IDs so the PHP endpoint polls until they appear in the loaded RC state.
-        if context.library == "php":
-            probe_ids = ",".join(p["id"] for p in self.probe_definitions if "id" in p)
-            weblog.get(f"/debugger/init?probes={probe_ids}")
+        self.resolve_php_probes()
 
     def send_rc_symdb(self, *, reset: bool = True) -> None:
         BaseDebuggerTest._rc_version += 1
@@ -481,11 +498,13 @@ class BaseDebuggerTest:
 
         self.rc_states.append(remote_config.send_symdb_command(BaseDebuggerTest._rc_version))
 
-    def send_weblog_request(self, request_path: str, *, reset: bool = True) -> None:
+    def send_weblog_request(self, request_path: str, *, reset: bool = True) -> HttpResponse:
         if reset:
             self.weblog_responses = []
 
-        self.weblog_responses.append(weblog.get(request_path))
+        response = weblog.get(request_path)
+        self.weblog_responses.append(response)
+        return response
 
     ###### wait for #####
     _last_read = 0
@@ -494,7 +513,7 @@ class BaseDebuggerTest:
         logger.debug("Wating for all probes")
         self._wait_successful = False
         found_ids: set[str] = set()
-        self._backend_interface.wait_for(
+        interfaces.mocked_backend.wait_for(
             lambda data: self._wait_for_all_probes(data, statuses=statuses, found_ids=found_ids), timeout=timeout
         )
         return self._wait_successful
@@ -556,7 +575,7 @@ class BaseDebuggerTest:
 
         self._snapshot_found = False
 
-        self._backend_interface.wait_for(
+        interfaces.mocked_backend.wait_for(
             lambda data: self._wait_for_snapshot_received(data, exception_snapshot=exception_snapshot), timeout=timeout
         )
         return self._snapshot_found
@@ -614,7 +633,7 @@ class BaseDebuggerTest:
             logger.debug(f"Waiting for snapshot with exception message: {exception_message}")
             self._exception_message = exception_message
             self._snapshot_found = False
-            self._backend_interface.wait_for(
+            interfaces.mocked_backend.wait_for(
                 lambda data: self._wait_for_all_snapshots(data, exception_snapshot=True), timeout=timeout
             )
             return self._snapshot_found
@@ -622,7 +641,7 @@ class BaseDebuggerTest:
             logger.debug(f"Waiting for snapshots from all probes: {self.probe_ids}")
             self._all_snapshots_found = False
             self._found_probe_ids: set[str] = set()
-            self._backend_interface.wait_for(
+            interfaces.mocked_backend.wait_for(
                 lambda data: self._wait_for_all_snapshots(data, exception_snapshot=False), timeout=timeout
             )
             return self._all_snapshots_found
@@ -686,7 +705,7 @@ class BaseDebuggerTest:
         """
         logger.debug(f"Waiting for {count} snapshots from probes: {self.probe_ids}")
         seen: set[tuple[str, int]] = set()
-        return self._backend_interface.wait_for(
+        return interfaces.mocked_backend.wait_for(
             lambda data: self._count_snapshots(data, seen=seen) >= count, timeout=timeout
         )
 
@@ -707,7 +726,7 @@ class BaseDebuggerTest:
         self._error_message = error_message
         self._no_capture_reason_span_found = False
 
-        self._backend_interface.wait_for(self._wait_for_no_capture_reason_span, timeout=timeout)
+        interfaces.mocked_backend.wait_for(self._wait_for_no_capture_reason_span, timeout=timeout)
         return self._no_capture_reason_span_found
 
     def _wait_for_no_capture_reason_span(self, data: dict):
@@ -719,13 +738,7 @@ class BaseDebuggerTest:
                 + self._error_message
                 + "'"
             )
-            if not hasattr(self._backend_interface, "get_spans_list"):
-                # Agentless mode's backend interface (interfaces.datadog_direct) captures direct-to-intake
-                # traffic in a different wire format than the agent-relayed /v0.4/traces payloads
-                # get_spans_list() parses, so this check is agent-only.
-                return None
-
-            spans = self._backend_interface.get_spans_list()
+            spans = interfaces.mocked_backend.get_spans_list()
             for span in spans:
                 meta = span.meta
                 if "_dd.debug.error.no_capture_reason" in meta:
@@ -740,53 +753,49 @@ class BaseDebuggerTest:
         logger.debug(f"No capture reason span found: {self._no_capture_reason_span_found}")
         return self._no_capture_reason_span_found
 
-    def wait_for_code_origin_span(self, timeout: int = 5) -> bool:
-        self._span_found = False
-        threshold = self._get_max_trace_file_number()
+    def wait_for_code_origin_span(
+        self, request: HttpResponse, timeout: int = 5, *, stop_when_absent: bool = True
+    ) -> bool:
+        """Wait for the request's trace and report whether it contains a code origin span.
 
-        self._backend_interface.wait_for(
-            lambda data: self._wait_for_code_origin_span(data, threshold=threshold),
+        By default the wait ends as soon as the correlated trace arrives, even without code
+        origin metadata, so that disabled-state checks do not wait for the whole timeout. Pass
+        stop_when_absent=False for warmup requests, so that the wait keeps running until the
+        tracer has finished its asynchronous instrumentation.
+        """
+        self._span_found = False
+
+        interfaces.mocked_backend.wait_for(
+            lambda data: self._wait_for_code_origin_span(data, request=request, stop_when_absent=stop_when_absent),
             timeout=timeout,
         )
         return self._span_found
 
-    def _get_max_trace_file_number(self) -> int:
-        """Get the maximum trace file number currently in the backend interface."""
-        max_number = 0
-        for data in self._backend_interface.get_data(self._traces_path):
-            log_filename_found = re.search(r"/(\d+)__", data["log_filename"])
-            if log_filename_found:
-                file_number = int(log_filename_found.group(1))
-                max_number = max(max_number, file_number)
-        return max_number
+    def _wait_for_code_origin_span(self, data: dict, *, request: HttpResponse, stop_when_absent: bool) -> bool:
+        if data["path"] != self._traces_path:
+            return False
 
-    def _wait_for_code_origin_span(self, data: dict, *, threshold: int) -> bool:
-        if data["path"] == self._traces_path:
-            log_filename_found = re.search(r"/(\d+)__", data["log_filename"])
-            if not log_filename_found:
-                return False
+        # Select the trace using the request ID, then inspect every span because the code origin
+        # entry span is not guaranteed to carry the request ID itself.
+        trace_found = False
+        for _, trace in interfaces.mocked_backend.get_traces(request=request):
+            trace_found = True
+            if any(
+                span.get_span_type() == "web"
+                and span.get_span_resource().startswith("GET")
+                and span.meta.get("_dd.code_origin.type", "") == "entry"
+                for span in trace.spans
+            ):
+                self._span_found = True
+                return True
 
-            log_number = int(log_filename_found.group(1))
-            if log_number > threshold:
-                content = data["request"]["content"]
-                if content:
-                    for payload in content["tracerPayloads"]:
-                        for chunk in payload["chunks"]:
-                            for span in chunk["spans"]:
-                                resource, resource_type = span.get("resource", ""), span.get("type")
-
-                                if resource.startswith("GET") and resource_type == "web":
-                                    code_origin_type = span["meta"].get("_dd.code_origin.type", "")
-
-                                    if code_origin_type == "entry":
-                                        self._span_found = True
-                                        return True
-
-        return False
+        # The correlated trace arrived without code origin metadata: that is a conclusive answer
+        # for a state check, but a warmup must keep waiting for instrumentation to complete.
+        return trace_found and stop_when_absent
 
     def wait_for_telemetry(self, telemetry_type: str, timeout: int = 5) -> dict | None:
         self._telemetry: dict | None = None
-        self._backend_interface.wait_for(
+        interfaces.mocked_backend.wait_for(
             lambda data: self._wait_for_telemetry(data, telemetry_type=telemetry_type), timeout=timeout
         )
         return self._telemetry
@@ -842,7 +851,7 @@ class BaseDebuggerTest:
                 path = _LOGS_PATH  # TODO: Should the default not be _DEBUGGER_PATH?
 
             logger.debug(f"Reading data from {path}")
-            return list(self._backend_interface.get_data(path))
+            return list(interfaces.mocked_backend.get_data(path))
 
         all_data = _read_data()
         self.probe_diagnostics = self._process_diagnostics_data(all_data)
@@ -896,10 +905,10 @@ class BaseDebuggerTest:
             # Collect snapshots from both the logs and debugger endpoints for compatibility for when we switched
             # snapshots to the debugger endpoint.
             if len(self._snapshot_paths) == 1 or self.use_debugger_endpoint:
-                agent_logs_endpoint_requests += list(self._backend_interface.get_data(self._snapshot_paths[-1]))
+                agent_logs_endpoint_requests += list(interfaces.mocked_backend.get_data(self._snapshot_paths[-1]))
             else:
                 for path in self._snapshot_paths:
-                    agent_logs_endpoint_requests += list(self._backend_interface.get_data(path))
+                    agent_logs_endpoint_requests += list(interfaces.mocked_backend.get_data(path))
 
             snapshot_hash: dict = {}
 
@@ -924,7 +933,7 @@ class BaseDebuggerTest:
         """Return decoded body lengths for backend requests containing a probe snapshot."""
         requests = []
         for path in dict.fromkeys(self._snapshot_paths):
-            requests += list(self._backend_interface.get_data(path))
+            requests += list(interfaces.mocked_backend.get_data(path))
 
         lengths: list[int] = []
         for request in requests:
@@ -944,7 +953,7 @@ class BaseDebuggerTest:
         existing_files = {
             data["log_filename"]
             for path in dict.fromkeys(self._snapshot_paths)
-            for data in self._backend_interface.get_data(path)
+            for data in interfaces.mocked_backend.get_data(path)
         }
         expected_probe_ids = set(self.probe_ids)
 
@@ -960,7 +969,7 @@ class BaseDebuggerTest:
 
             return False
 
-        return self._backend_interface.wait_for(_contains_additional_snapshot, timeout=timeout)
+        return interfaces.mocked_backend.wait_for(_contains_additional_snapshot, timeout=timeout)
 
     def _debugger_v2_input_snapshots_received(self):
         """Test that the library sends snapshots to the debugger/v2/input endpoint"""
@@ -984,13 +993,7 @@ class BaseDebuggerTest:
             else:
                 span_decoration_line_key = "_dd.di.spandecorationargsandlocals.probe_id"
 
-            if not hasattr(self._backend_interface, "get_spans_list"):
-                # Agentless mode's backend interface (interfaces.datadog_direct) captures direct-to-intake
-                # traffic in a different wire format than the agent-relayed /v0.4/traces payloads
-                # get_spans_list() parses, so span-decoration collection is agent-only.
-                return {}
-
-            spans_list = self._backend_interface.get_spans_list()
+            spans_list = interfaces.mocked_backend.get_spans_list()
             for span in spans_list:
                 self.all_spans.append(span)
 
@@ -1197,11 +1200,10 @@ class AgentlessBaseDebuggerTest(BaseDebuggerTest):
     """Base for debugger/SymDB tests run against DEBUGGER_AGENTLESS (no Datadog Agent).
 
     libdatadog's agentless debugger sender collapses logs, snapshots, diagnostics and SymDB
-    onto a single path on the debugger-intake host (see _AGENTLESS_DEBUGGER_PATH), captured
-    over the datadog_direct proxy interface instead of the agent.
+    onto a single path on the debugger-intake host (see _AGENTLESS_DEBUGGER_PATH), sent
+    straight to the mocked backend.
     """
 
-    _backend_interface = interfaces.datadog_direct
     _snapshot_paths: tuple[str, ...] = (_AGENTLESS_DEBUGGER_PATH,)
-    _symbols_interface = interfaces.datadog_direct
+    _symbols_interface = interfaces.mocked_backend
     _symbols_path: str = _AGENTLESS_DEBUGGER_PATH

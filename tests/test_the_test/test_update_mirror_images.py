@@ -3,7 +3,8 @@
 from pathlib import Path
 import subprocess
 
-import pytest
+from utils import pytest
+import yaml
 
 from utils import scenarios
 from utils.scripts import update_mirror_images
@@ -109,6 +110,115 @@ class Test_UpdateMirrorImages:
 
         assert lock_path.read_text(encoding="utf-8") == original_lock
 
+    @staticmethod
+    def _setup_mirror_yaml(
+        tmp_path: Path, monkeypatch: pytest.MonkeyPatch, *, serializer_emits_marker: bool = False
+    ) -> Path:
+        """Point the script at a temp mirror_images.yaml and fake `add` rewriting it.
+
+        The real dd-repo-tools `add` rewrites the file through a YAML parser, so it
+        drops comments, and only touches the file when it actually adds an image.
+        """
+        mirror_yaml = tmp_path / "mirror_images.yaml"
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setattr(update_mirror_images, "REPO_ROOT", tmp_path)
+        monkeypatch.setattr(update_mirror_images, "MIRROR_YAML", mirror_yaml)
+        monkeypatch.setattr(update_mirror_images, "BUILDKITD_TOML", tmp_path / "buildkitd.toml")
+        monkeypatch.setattr(update_mirror_images, "collect_images", lambda _excluded: ["redis:7"])
+
+        def fake_run_mirror_images(*args: str) -> None:
+            if args[0] != "add":
+                return
+            # Like the real tool, `add` merges into whatever the file already lists.
+            existing = yaml.safe_load(mirror_yaml.read_text(encoding="utf-8")) or []
+            body = "".join(f'- "{image}"\n' for image in sorted({*existing, *args[1:]}))
+            if serializer_emits_marker:
+                body = "---\n" + body
+            mirror_yaml.write_text(body, encoding="utf-8")  # comments dropped, as the real tool does
+
+        monkeypatch.setattr(update_mirror_images, "_run_mirror_images", fake_run_mirror_images)
+        return mirror_yaml
+
+    def test_main_normalizes_to_the_canonical_header(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        mirror_yaml = self._setup_mirror_yaml(tmp_path, monkeypatch)
+        mirror_yaml.write_text('# manually edited header\n- "alpine:3.22"\n', encoding="utf-8")
+
+        update_mirror_images.main(set(), skip_lock=True)
+
+        content = mirror_yaml.read_text(encoding="utf-8")
+        expected_header = update_mirror_images.MIRROR_YAML_HEADER
+        assert content.startswith(expected_header), f"canonical header was not applied:\n{content}"
+        assert '- "redis:7"' in content
+
+    def test_main_canonicalizes_an_unchanged_file(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        mirror_yaml = self._setup_mirror_yaml(tmp_path, monkeypatch)
+        mirror_yaml.write_text('# manually edited header\n- "redis:7"\n', encoding="utf-8")
+
+        update_mirror_images.main(set(), skip_lock=True)
+
+        content = mirror_yaml.read_text(encoding="utf-8")
+        assert content == update_mirror_images.MIRROR_YAML_HEADER + '- "redis:7"\n'
+
+    def test_main_replaces_the_image_list(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        """Images no longer required by any scenario are dropped, not kept around."""
+        mirror_yaml = self._setup_mirror_yaml(tmp_path, monkeypatch)
+        mirror_yaml.write_text(
+            update_mirror_images.MIRROR_YAML_HEADER + '- "alpine:3.22"\n- "redis:6"\n- "redis:7"\n',
+            encoding="utf-8",
+        )
+
+        update_mirror_images.main(set(), skip_lock=True)
+
+        content = mirror_yaml.read_text(encoding="utf-8")
+        assert content == update_mirror_images.MIRROR_YAML_HEADER + '- "redis:7"\n'
+
+    def test_main_refuses_an_empty_image_set(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        """An empty image set means the enumeration is broken: fail without touching the manifest."""
+        mirror_yaml = self._setup_mirror_yaml(tmp_path, monkeypatch)
+        monkeypatch.setattr(update_mirror_images, "collect_images", lambda _excluded: [])
+        original = update_mirror_images.MIRROR_YAML_HEADER + '- "redis:7"\n'
+        mirror_yaml.write_text(original, encoding="utf-8")
+
+        with pytest.raises(SystemExit, match="no mirrorable images"):
+            update_mirror_images.main(set(), skip_lock=True)
+
+        assert mirror_yaml.read_text(encoding="utf-8") == original
+
+    def test_main_writes_the_default_header_on_first_run(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        mirror_yaml = self._setup_mirror_yaml(tmp_path, monkeypatch)
+        assert not mirror_yaml.exists()
+
+        update_mirror_images.main(set(), skip_lock=True)
+
+        content = mirror_yaml.read_text(encoding="utf-8")
+        assert content.startswith(update_mirror_images.MIRROR_YAML_HEADER)
+        assert '- "redis:7"' in content
+
+    def test_main_does_not_produce_two_yaml_documents(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+        """The canonical header plus a serializer marker must stay one document."""
+        mirror_yaml = self._setup_mirror_yaml(tmp_path, monkeypatch, serializer_emits_marker=True)
+        mirror_yaml.write_text('# manually edited header\n- "alpine:3.22"\n', encoding="utf-8")
+
+        update_mirror_images.main(set(), skip_lock=True)
+
+        content = mirror_yaml.read_text(encoding="utf-8")
+        assert [line for line in content.splitlines() if line.strip() == "---"] == ["---"], content
+        assert yaml.safe_load(content) == ["redis:7"]
+
     def test_main_rejects_refresh_with_skip_lock(self):
         with pytest.raises(ValueError, match="refresh cannot be used when skip_lock is true"):
             update_mirror_images.main(set(), skip_lock=True, refresh=True)
+
+    def test_collect_images_includes_parametric_images(self):
+        """The parametric test clients are not weblogs, but their FROM images must be mirrored."""
+        images = set(update_mirror_images.collect_images(set()))
+
+        # public image, and system-tests base image resolved from its alias
+        assert "golang:1.26" in images
+        assert any(image.startswith("datadog/system-tests:python-parametric.base-") for image in images)
+
+    def test_collect_images_skips_parametric_images_when_excluded(self, monkeypatch: pytest.MonkeyPatch):
+        monkeypatch.setattr(update_mirror_images, "_parametric_images", lambda: {"parametric:only"})
+
+        assert "parametric:only" in update_mirror_images.collect_images(set())
+        assert "parametric:only" not in update_mirror_images.collect_images({"PARAMETRIC"})

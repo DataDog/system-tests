@@ -22,8 +22,12 @@ from utils._context.component_version import ComponentVersion, Version
 from utils._context.docker import get_docker_client
 from utils._context._image_mirror import mirror_image
 from utils._context.constants import ContainerPorts
+from utils.base_images.base_image import base_image_contexts
+from utils._context.weblog_metadata import WeblogMetaData
 from utils.docker_fixtures._core import extra_hosts_for_environment
 from utils.proxy.tuf import get_tuf_root_json
+from utils.mocked_backend import MOCKED_BACKEND_DOMAIN, MockedBackendClient, MockedBackendServer
+from utils.mocked_backend.ffe import UFC_FIXTURE_RELATIVE_PATH
 from utils.proxy.ports import ProxyPorts
 from utils.proxy.mocked_response import (
     RemoveMetaStructsSupport,
@@ -47,8 +51,6 @@ from utils.k8s_lib_injection.k8s_weblog import K8sWeblog
 from utils.interfaces._library.core import LibraryInterfaceValidator
 from utils.interfaces import StdoutLogsInterface, LibraryStdoutInterface
 
-# fake key of length 32
-_FAKE_DD_API_KEY = "0123456789abcdef0123456789abcdef"
 
 _DEFAULT_NETWORK_NAME = "system-tests_default"
 _NETWORK_NAME = "bridge" if "GITLAB_CI" in os.environ else _DEFAULT_NETWORK_NAME
@@ -97,6 +99,9 @@ class TestedContainer:
         volumes: dict | None = None,
         working_dir: str | None = None,
         pid_mode: str | None = None,
+        cgroupns: str | None = None,
+        mounts: list[docker.types.Mount] | None = None,
+        network_aliases: list[str] | None = None,
     ) -> None:
         assert name
         assert image_name
@@ -131,6 +136,12 @@ class TestedContainer:
         self.ulimits: list | None = None
         self.privileged = False
         self.pid_mode = pid_mode
+        self.cgroupns = cgroupns
+        # Unlike volumes, a bind mount listed here fails container creation when its source is
+        # missing, instead of being created as an empty directory by the docker daemon.
+        self.mounts = mounts
+        # other names other containers of the network can reach it with
+        self.network_aliases = network_aliases or []
 
     def _get_image_name(self, binary_file_name: str | None, default_name: str) -> str:
         # if the container provide binary_file_name, then a file named binaries/{binary_file_name}
@@ -143,6 +154,14 @@ class TestedContainer:
                 return f.read().strip()
         except FileNotFoundError:
             return default_name
+
+    def enable_ptrace(self) -> None:
+        """Allow processes in this container to be traced from outside, e.g. by py-spy"""
+
+        self.cap_add = self.cap_add if self.cap_add is not None else []
+
+        if "SYS_PTRACE" not in self.cap_add:
+            self.cap_add.append("SYS_PTRACE")
 
     def enable_core_dumps(self) -> None:
         """Modify container options to enable the possibility of core dumps"""
@@ -236,6 +255,11 @@ class TestedContainer:
             # auto_remove=True,
             detach=True,
             network=network.name,
+            networking_config=(
+                {network.name: get_docker_client().api.create_endpoint_config(aliases=self.network_aliases)}
+                if self.network_aliases
+                else None
+            ),
             volumes=self.volumes,
             ports=self.ports,
             working_dir=self.working_dir,
@@ -246,6 +270,8 @@ class TestedContainer:
             privileged=self.privileged,
             ulimits=self.ulimits,
             pid_mode=self.pid_mode,
+            cgroupns=self.cgroupns,
+            mounts=self.mounts,
         )
 
         self.healthy = self.wait_for_health()
@@ -413,7 +439,14 @@ class TestedContainer:
 
         self.volumes = result
 
-    def stop(self):
+    @property
+    def runtime_container(self) -> Container:
+        """Return the live Docker object backing this configured container."""
+        if self._container is None:
+            raise RuntimeError(f"Container {self.name} has not been started")
+        return self._container
+
+    def stop(self, *, timeout: int | None = None) -> None:
         self._starting_thread = None
 
         logger.debug(f"Stopping container {self.name}")
@@ -424,7 +457,18 @@ class TestedContainer:
                 self.healthy = False
                 pytest.exit(f"Container {self.name} is not running ({self._container.status}), please check logs", 1)
 
-            self._container.stop()
+            try:
+                if timeout is None:
+                    self._container.stop()
+                else:
+                    self._container.stop(timeout=timeout)
+            except requests.exceptions.Timeout as e:
+                pytest.exit(
+                    f"Container {self.name} failed to stop: the docker client timed out waiting for a response "
+                    f"from the daemon. This may mean the container's process did not exit within the stop grace "
+                    f"period, or that the docker daemon/host is overloaded and unresponsive. ({e})",
+                    1,
+                )
 
             if not self.healthy:
                 pytest.exit(f"Container {self.name} is not healthy, please check logs", 1)
@@ -468,6 +512,10 @@ class TestedContainer:
 
         if self.stdout_interface is not None:
             self.stdout_interface.load_data()
+
+    def is_removed(self) -> bool:
+        """Check that the container has been removed."""
+        return self.get_existing_container() is None
 
     def _set_aws_auth_environment(self):
         # Set default AWS values
@@ -614,16 +662,12 @@ class ProxyContainer(TestedContainer):
         client_drop_p0s: bool | None = None,
         obfuscation_version: int | None | Literal["MISSING"] = None,
         enable_ipv6: bool,
-        mocked_backend: bool = True,
     ) -> None:
         """Parameters:
         span_events: Whether the agent supports the native serialization of span events
         rc_backend_enabled: Whether to act as backend for core agent (instead of mocking tracer RC)
 
         """
-
-        if rc_api_enabled and not mocked_backend:
-            raise ValueError("rc_backend_enabled requires mocked_backend")
 
         # Adjust healthcheck for IPv6 scenarios
         host_target = "::1" if enable_ipv6 else "localhost"
@@ -634,10 +678,9 @@ class ProxyContainer(TestedContainer):
             name="proxy",
             environment={
                 "DD_SITE": os.environ.get("DD_SITE"),
-                "DD_API_KEY": os.environ.get("DD_API_KEY", _FAKE_DD_API_KEY),
+                "DD_API_KEY": os.environ.get("DD_API_KEY"),
                 "DD_APP_KEY": os.environ.get("DD_APP_KEY"),
                 "SYSTEM_TESTS_IPV6": str(enable_ipv6),
-                "SYSTEM_TESTS_MOCKED_BACKEND": str(mocked_backend),
             },
             working_dir="/app",
             volumes={
@@ -700,8 +743,6 @@ class ProxyContainer(TestedContainer):
                 ),
             ]
 
-        self.mocked_backend = mocked_backend
-
     def configure(self, *, host_log_folder: str, replay: bool):
         super().configure(host_log_folder=host_log_folder, replay=replay)
 
@@ -730,6 +771,93 @@ class ProxyContainer(TestedContainer):
             "bind": f"/app/logs/{MockedBackendResponse.internal_filename}",
             "mode": "ro",
         }
+
+
+class MockedBackendContainer(TestedContainer):
+    """The mocked backend (utils/mocked_backend), standing in for the Datadog backend in its own container.
+    What it receives is recorded in the logs folder, and read by interfaces.mocked_backend.
+    """
+
+    # With tls, it serves HTTPS instead of HTTP, for MockedBackendServer.tls_hostnames: for senders that only speak
+    # HTTPS to the intake hostnames derived from DD_SITE (e.g. an SDK sending exposures directly). Its certificate is
+    # signed by the mitmproxy CA: these senders must trust it
+    tls_ca_file = "utils/proxy/.mitmproxy/mitmproxy-ca-cert.pem"
+
+    def __init__(self, *, tls: bool = False) -> None:
+        self.tls = tls
+        self.scheme = "https" if tls else "http"
+        self.internal_mocked_responses: list[MockedBackendResponse] = []
+        """Responses served for the whole session (like the proxy's internal ones), unless a test sets its own"""
+        # the default HTTPS port: senders build the intake URLs from DD_SITE, without port
+        self.port = 443 if tls else 4900
+        # in the healthcheck, the certificate is checked against localhost
+        health_context = f"ssl.create_default_context(cafile='/app/{self.tls_ca_file}')" if tls else "None"
+        super().__init__(
+            # it has every dependency of utils/mocked_backend
+            image_name="datadog/system-tests:proxy-v1",
+            # a valid hostname: some HTTP clients reject an underscore
+            name="mocked-backend",
+            # Docker rejects aliases on the default bridge network, used on GitLab (see _NETWORK_NAME). If a tls
+            # scenario runs there, map these hostnames to this container with extra_hosts on the senders instead
+            network_aliases=list(MockedBackendServer.tls_hostnames) if tls else None,
+            working_dir="/app",
+            volumes={
+                # without utils/__init__.py: utils is a namespace package, and the rest of utils is not needed
+                "./utils/mocked_backend": {"bind": "/app/utils/mocked_backend", "mode": "ro"},
+                "./utils/proxy": {"bind": "/app/utils/proxy", "mode": "ro"},
+                # served as the FFE agentless configuration
+                f"./{UFC_FIXTURE_RELATIVE_PATH}": {"bind": f"/app/{UFC_FIXTURE_RELATIVE_PATH}", "mode": "ro"},
+            },
+            # for the control endpoints, used from the host. Docker picks a free host port
+            ports={f"{self.port}/tcp": ("127.0.0.1", None)},
+            healthcheck={
+                "test": f"python -c \"import ssl, urllib.request; print(urllib.request.urlopen('{self.scheme}://localhost:{self.port}/system-tests/health', timeout=2, context={health_context}).read().decode())\"",  # noqa: E501
+                "retries": 30,
+            },
+        )
+
+    def configure(self, *, host_log_folder: str, replay: bool):
+        super().configure(host_log_folder=host_log_folder, replay=replay)
+
+        # Same relative path in the container and on the host, so recorded log filenames are the same
+        log_folder = f"{host_log_folder}/interfaces/mocked_backend"
+        self.volumes[f"./{log_folder}"] = {"bind": f"/app/{log_folder}", "mode": "rw"}
+        self.command = [
+            "python",
+            "-m",
+            "utils.mocked_backend",
+            "--port",
+            str(self.port),
+            "--log-folder",
+            log_folder,
+        ]
+        if self.tls:
+            self.command += ["--tls"]
+
+        if self.internal_mocked_responses:
+            # not in the recordings folder: interfaces.mocked_backend reads every JSON file there
+            mocks_path = f"{self.log_folder_path}/{MockedBackendResponse.internal_filename}"
+            with Path(mocks_path).open(encoding="utf-8", mode="w") as f:
+                json.dump([mock.to_json() for mock in self.internal_mocked_responses], f, indent=2)
+            container_mocks_path = f"/app/{MockedBackendResponse.internal_filename}"
+            self.volumes[mocks_path] = {"bind": container_mocks_path, "mode": "ro"}
+            self.command += ["--internal-mocked-responses-file", container_mocks_path]
+
+    @property
+    def container_url(self) -> str:
+        """The URL other containers use to reach the mocked backend"""
+        if self.tls:
+            # its domain, on the default HTTPS port
+            return f"https://{MOCKED_BACKEND_DOMAIN}"
+        return f"http://{self.name}:{self.port}"
+
+    @property
+    def client(self) -> MockedBackendClient:
+        """Client of the control endpoints, from the host"""
+        host_port = self.runtime_container.attrs["NetworkSettings"]["Ports"][f"{self.port}/tcp"][0]["HostPort"]
+        return MockedBackendClient(
+            f"{self.scheme}://127.0.0.1:{host_port}", verify=self.tls_ca_file if self.tls else True
+        )
 
 
 class LambdaProxyContainer(TestedContainer):
@@ -765,6 +893,17 @@ class LambdaProxyContainer(TestedContainer):
         logger.stdout(f"Proxied event type: {self.environment.get('LAMBDA_EVENT_TYPE')}")
 
 
+def _add_environment_extra_hosts(container: TestedContainer) -> None:
+    """Map host.docker.internal when the container's environment points to it. Done right before the
+    container starts, as scenarios may still update the environment after it is instantiated (e.g. to
+    point it to a mocked backend). On Linux docker hosts, host.docker.internal only resolves with it.
+    """
+    container.extra_hosts = {
+        **(container.extra_hosts or {}),
+        **(extra_hosts_for_environment(container.environment) or {}),
+    } or None
+
+
 class AgentContainer(TestedContainer):
     apm_receiver_port: int = 8127
     dogstatsd_port: int = 8125
@@ -773,8 +912,10 @@ class AgentContainer(TestedContainer):
     def __init__(
         self,
         *,
+        dd_api_key: str,
         use_proxy: bool = True,
         rc_backend_enabled: bool = False,
+        mocked_backend: bool = False,
         environment: dict[str, str | None] | None = None,
     ) -> None:
         environment = environment or {}
@@ -782,10 +923,12 @@ class AgentContainer(TestedContainer):
             {
                 "DD_ENV": "system-tests",
                 "DD_HOSTNAME": "test",
-                "DD_SITE": self.dd_site,
+                # with the mocked backend, like a customer setup: every intake hostname, remote config included, is
+                # derived from it, and is an alias of the mocked backend container
+                "DD_SITE": MOCKED_BACKEND_DOMAIN if mocked_backend else os.environ.get("DD_SITE", "datad0g.com"),
                 "DD_APM_RECEIVER_PORT": str(self.apm_receiver_port),
                 "DD_DOGSTATSD_PORT": str(self.dogstatsd_port),
-                "DD_API_KEY": os.environ.get("DD_API_KEY", _FAKE_DD_API_KEY),
+                "DD_API_KEY": dd_api_key,
             }
         )
 
@@ -800,7 +943,8 @@ class AgentContainer(TestedContainer):
             tuf_root_json = get_tuf_root_json()
             environment["DD_REMOTE_CONFIGURATION_ENABLED"] = "true"
             environment["DD_REMOTE_CONFIGURATION_REFRESH_INTERVAL"] = "5s"
-            environment["DD_REMOTE_CONFIGURATION_NO_TLS"] = "true"
+            if use_proxy:
+                environment["DD_REMOTE_CONFIGURATION_NO_TLS"] = "true"
             environment["DD_REMOTE_CONFIGURATION_CONFIG_ROOT"] = tuf_root_json
             environment["DD_REMOTE_CONFIGURATION_DIRECTOR_ROOT"] = tuf_root_json
 
@@ -833,9 +977,13 @@ class AgentContainer(TestedContainer):
         logger.stdout(f"Agent: {self.agent_version}")
         logger.stdout(f"Backend: {self.dd_site}")
 
+    def start(self, network: Network) -> Container:
+        _add_environment_extra_hosts(self)
+        return super().start(network)
+
     @property
-    def dd_site(self):
-        return os.environ.get("DD_SITE", "datad0g.com")
+    def dd_site(self) -> str:
+        return str(self.environment["DD_SITE"])
 
 
 class ServerlessInitContainer(TestedContainer):
@@ -843,20 +991,22 @@ class ServerlessInitContainer(TestedContainer):
 
     apm_receiver_port = 8126
 
-    def __init__(self) -> None:
+    def __init__(self, *, dd_api_key: str) -> None:
         apm_receiver_port_hex = f"{self.apm_receiver_port:04X}"
         super().__init__(
             name="ffe-serverless-init",
-            image_name="datadog/serverless-init:1.10.2",
+            image_name="datadog/serverless-init:1.10.4",
             environment={
-                "DD_API_KEY": _FAKE_DD_API_KEY,
-                "DD_SITE": "mock-intake.invalid",
+                "DD_API_KEY": dd_api_key,
+                "DD_SITE": MOCKED_BACKEND_DOMAIN,
                 "DD_SERVICE": "ffe-system-tests-serverless-init",
                 "DD_ENV": "system-tests",
                 "DD_APM_ENABLED": "true",
                 "DD_APM_NON_LOCAL_TRAFFIC": "true",
-                "DD_PROXY_HTTPS": f"http://proxy:{ProxyPorts.datadog_sidecar}",
-                "DD_PROXY_HTTP": f"http://proxy:{ProxyPorts.datadog_sidecar}",
+                # Feature Flags events go to the event platform intake derived from DD_SITE, served by the mocked
+                # backend (MockedBackendContainer(tls=True)). Send everything else to the mocked backend too
+                "DD_DD_URL": f"https://{MOCKED_BACKEND_DOMAIN}",
+                "DD_APM_DD_URL": f"https://{MOCKED_BACKEND_DOMAIN}",
                 "DD_SERVERLESS_FLUSH_STRATEGY": "periodically,100",
                 "DD_SKIP_SSL_VALIDATION": "true",
             },
@@ -916,6 +1066,35 @@ class BuddyContainer(TestedContainer):
         result = getattr(interfaces, self.name)
         assert result is not None, "Interface is not set"
         return result
+
+
+def dockerfile_image_list(dockerfile: Path) -> list[str]:
+    """Return the images referenced in the FROM lines of a Dockerfile.
+
+    system-tests base-image aliases are resolved to their locked reference, and
+    ARG defaults are substituted. Unresolved placeholders are kept as-is.
+    """
+    result: list[str] = []
+    args: dict[str, str] = {}
+
+    pattern = re.compile(r"^FROM\s+(?:--\S+\s+)*(?P<image_name>\S+)", re.IGNORECASE)
+    arg_pattern = re.compile(r"^ARG\s+(?P<arg_name>[^\s]+)\s*=\s*(?P<arg_value>[^\s]+)")
+    dockerfile_text = dockerfile.read_text()
+    base_contexts = base_image_contexts(dockerfile_text)
+    for line in dockerfile_text.splitlines():
+        if match := arg_pattern.match(line):
+            args[match.group("arg_name")] = match.group("arg_value")
+
+        if match := pattern.match(line):
+            image_name = match.group("image_name")
+            image_name = base_contexts.get(image_name, image_name)
+
+            for name, value in args.items():
+                image_name = image_name.replace(f"${name}", value)
+
+            result.append(image_name)
+
+    return result
 
 
 class WeblogContainer(TestedContainer):
@@ -998,7 +1177,6 @@ class WeblogContainer(TestedContainer):
             image_name="system_tests/weblog",
             name="weblog",
             environment=environment,
-            extra_hosts=extra_hosts_for_environment(environment),
             volumes=volumes,
             # ddprof's perf event open is blocked by default by docker's seccomp profile
             # This is worse than the line above though prevents mmap bugs locally
@@ -1022,6 +1200,10 @@ class WeblogContainer(TestedContainer):
         self.weblog_variant = ""
         self._library: ComponentVersion | None = None
 
+    def start(self, network: Network) -> Container:
+        _add_environment_extra_hosts(self)
+        return super().start(network)
+
     @property
     def trace_agent_port(self):
         return ProxyPorts.weblog
@@ -1044,24 +1226,7 @@ class WeblogContainer(TestedContainer):
             # Those are not based on a dockerfile. TODO : weblog abstraction
             return result
 
-        args = {}
-
-        pattern = re.compile(r"^FROM\s+(?P<image_name>[^\s]+)")
-        arg_pattern = re.compile(r"^ARG\s+(?P<arg_name>[^\s]+)\s*=\s*(?P<arg_value>[^\s]+)")
-        with open(f"utils/build/docker/{library}/{weblog}.Dockerfile", encoding="utf-8") as f:
-            for line in f:
-                if match := arg_pattern.match(line):
-                    args[match.group("arg_name")] = match.group("arg_value")
-
-                if match := pattern.match(line):
-                    image_name = match.group("image_name")
-
-                    for name, value in args.items():
-                        image_name = image_name.replace(f"${name}", value)
-
-                    result.append(image_name)
-
-        return result
+        return dockerfile_image_list(Path(f"utils/build/docker/{library}/{weblog}.Dockerfile"))
 
     def configure(self, *, host_log_folder: str, replay: bool):
         super().configure(host_log_folder=host_log_folder, replay=replay)
@@ -1078,6 +1243,11 @@ class WeblogContainer(TestedContainer):
         self._set_aws_auth_environment()
 
         library = self.image.labels["system-tests-library"]
+
+        metadata = next((w for w in WeblogMetaData.load(library) if w.name == self.weblog_variant), None)
+        if metadata is not None and metadata.request_timeout is not None:
+            logger.info(f"Weblog {self.weblog_variant} declares a {metadata.request_timeout}s request timeout")
+            weblog.set_default_timeout(metadata.request_timeout)
 
         header_tags = ""
         if library in ("cpp_nginx", "cpp_httpd", "dotnet", "java", "python"):
@@ -1140,6 +1310,11 @@ class WeblogContainer(TestedContainer):
 
         if library in ("php", "cpp_nginx", "nodejs"):
             self.enable_core_dumps()
+
+        if library == "python":
+            # py-spy dumps this weblog's thread stacks when a remote config apply
+            # stalls (see utils/_remote_config.py), and needs ptrace to do so
+            self.enable_ptrace()
 
     def warmup_request(self, timeout: int = 10):
         weblog.get("/", timeout=timeout)
@@ -1223,14 +1398,15 @@ class LambdaWeblogContainer(WeblogContainer):
     def __init__(
         self,
         *,
+        dd_api_key: str,
         environment: dict[str, str | None] | None = None,
         volumes: dict | None = None,
         trace_managed_services: bool = False,
     ):
         environment = (environment or {}) | {
             "DD_HOSTNAME": "test",
-            "DD_SITE": os.environ.get("DD_SITE", "datad0g.com"),
-            "DD_API_KEY": os.environ.get("DD_API_KEY", _FAKE_DD_API_KEY),
+            "DD_SITE": "datad0g.com",
+            "DD_API_KEY": dd_api_key,
             "DD_SERVERLESS_FLUSH_STRATEGY": "periodically,100",
             "DD_TRACE_MANAGED_SERVICES": str(trace_managed_services).lower(),
         }
@@ -1556,7 +1732,7 @@ class VCRCassettesContainer(TestedContainer):
 
     def __init__(self, vcr_port: int = ContainerPorts.vcr_cassettes) -> None:
         super().__init__(
-            image_name="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.64.1",
+            image_name="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.67.0",
             name="vcr_cassettes",
             environment={
                 "PORT": str(vcr_port),
@@ -1678,7 +1854,6 @@ class InternalServerContainer(TestedContainer):
             command="uvicorn app:app --host 0.0.0.0 --port 8089",
             volumes={
                 "./utils/build/docker/internal_server/app.py": {"bind": "/app/app.py", "mode": "ro"},
-                "./utils/build/docker/internal_server/app.sh": {"bind": "/app/app.sh", "mode": "ro"},
             },
         )
 

@@ -3232,16 +3232,16 @@
     "DEBUGGER_CAPTURE_TIMEOUT"
   ],
   "tests/debugger/test_debugger_guardrails.py::Test_Debugger_Evaluation_Timeout_Line_Probe::test_evaluation_timeout_collection_filter": [
-    "DEBUGGER_PROBES_SNAPSHOT"
+    "DEBUGGER_EVALUATION_TIMEOUT"
   ],
   "tests/debugger/test_debugger_guardrails.py::Test_Debugger_Evaluation_Timeout_Line_Probe::test_evaluation_timeout_regex": [
-    "DEBUGGER_PROBES_SNAPSHOT"
+    "DEBUGGER_EVALUATION_TIMEOUT"
   ],
   "tests/debugger/test_debugger_guardrails.py::Test_Debugger_Evaluation_Timeout_Method_Probe::test_evaluation_timeout_collection_filter": [
-    "DEBUGGER_PROBES_SNAPSHOT"
+    "DEBUGGER_EVALUATION_TIMEOUT"
   ],
   "tests/debugger/test_debugger_guardrails.py::Test_Debugger_Evaluation_Timeout_Method_Probe::test_evaluation_timeout_regex": [
-    "DEBUGGER_PROBES_SNAPSHOT"
+    "DEBUGGER_EVALUATION_TIMEOUT"
   ],
   "tests/debugger/test_debugger_guardrails.py::Test_Debugger_Snapshot_Size_Guardrail::test_snapshot_size_cap": [
     "DEBUGGER_PROBES_SNAPSHOT"
@@ -3896,15 +3896,6 @@
   ],
   "tests/otel/test_context_propagation.py::Test_Otel_Context_Propagation_Default_Propagator_Api::test_propagation_inject": [
     "APM_TRACING_E2E_OTEL"
-  ],
-  "tests/otel_tracing_e2e/test_e2e.py::Test_OTelTracingE2E::test_main": [
-    "OTEL_TRACING_E2E"
-  ],
-  "tests/otel_tracing_e2e/test_e2e.py::Test_OTelMetricE2E::test_main": [
-    "OTEL_METRIC_E2E"
-  ],
-  "tests/otel_tracing_e2e/test_e2e.py::Test_OTelLogE2E::test_main": [
-    "OTEL_LOG_E2E"
   ],
   "tests/parametric/test_128_bit_traceids.py::Test_128_Bit_Traceids::test_datadog_128_bit_propagation[library_env0]": [
     "PARAMETRIC"
@@ -5696,6 +5687,12 @@
     "TEST_THE_TEST"
   ],
   "tests/test_the_test/test_decorators.py::Test_Skips::test_regular": [
+    "TEST_THE_TEST"
+  ],
+  "tests/test_the_test/test_decorators.py::Test_PytestProxy::test_exposes_approved_apis": [
+    "TEST_THE_TEST"
+  ],
+  "tests/test_the_test/test_decorators.py::Test_PytestProxy::test_hides_internal_force_skip_marker": [
     "TEST_THE_TEST"
   ],
   "tests/test_the_test/test_decorators.py::test_version_range": [

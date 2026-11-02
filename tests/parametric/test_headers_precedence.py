@@ -1,4 +1,4 @@
-import pytest
+from utils import pytest
 
 from utils.docker_fixtures.spec.tracecontext import get_tracecontext
 from utils import scenarios, features

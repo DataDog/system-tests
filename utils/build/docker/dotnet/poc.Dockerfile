@@ -1,6 +1,10 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-app
 WORKDIR /app
 
+# Pass [version] to pin local SDK packages exactly; a plain version is a minimum.
+ARG DD_TRACE_PACKAGE_VERSION=*
+ARG DD_OPENFEATURE_PACKAGE_VERSION=*
+
 # Copy binaries folder for local NuGet packages (for testing with local builds)
 COPY binaries/ /binaries/
 RUN if ls /binaries/*.nupkg 1> /dev/null 2>&1; then \
@@ -9,11 +13,15 @@ RUN if ls /binaries/*.nupkg 1> /dev/null 2>&1; then \
 
 # dotnet restore
 COPY utils/build/docker/dotnet/weblog/app.csproj app.csproj
-RUN dotnet restore
+RUN dotnet restore \
+    -p:DatadogTracePackageVersion="$DD_TRACE_PACKAGE_VERSION" \
+    -p:DatadogOpenFeaturePackageVersion="$DD_OPENFEATURE_PACKAGE_VERSION"
 
 # dotnet publish
 COPY utils/build/docker/dotnet/weblog/* .
-RUN dotnet publish --no-restore -c Release -f net8.0 -o out
+RUN dotnet publish --no-restore -c Release -f net8.0 -o out \
+    -p:DatadogTracePackageVersion="$DD_TRACE_PACKAGE_VERSION" \
+    -p:DatadogOpenFeaturePackageVersion="$DD_OPENFEATURE_PACKAGE_VERSION"
 
 #########
 

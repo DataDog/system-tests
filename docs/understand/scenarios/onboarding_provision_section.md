@@ -17,7 +17,7 @@ Both types of provisions work together to create a complete testing environment:
 
 ## Scenario Provision Structure
 
-Scenario provisions are referenced in the scenario declaration in `utils/_context/_scenarios/__init__.py` or `utils/_context/_scenarios/auto_injection.py` via the `vm_provision` parameter. These YAML files have the following main sections:
+Scenario provisions are referenced in the scenario declaration in `utils/_context/_scenarios/auto_injection.py` via the `vm_provision` parameter. These YAML files have the following main sections:
 
 ### 1. init-environment (Optional)
 

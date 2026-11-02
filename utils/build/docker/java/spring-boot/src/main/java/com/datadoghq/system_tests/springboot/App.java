@@ -33,6 +33,7 @@ import datadog.trace.api.interceptor.MutableSpan;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import org.springframework.boot.autoconfigure.r2dbc.R2dbcAutoConfiguration;
 import org.springframework.web.server.ResponseStatusException;
@@ -94,6 +95,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.Collections;
@@ -394,6 +396,29 @@ public class App {
                 .forUser(user)
                 .blockIfMatch();
         return "Hello " + user;
+    }
+
+    @GetMapping("/security/thread_context_sharing")
+    ResponseEntity<Map<String, String>> threadContextSharing(@RequestParam String path) throws IOException {
+        final Span span = GlobalTracer.get().activeSpan();
+        if (span == null) {
+            return ResponseEntity.status(500).build();
+        }
+
+        try (FileWriter writer = new FileWriter(path)) {
+            writer.write("system-tests thread context sharing");
+        }
+
+        // The OpenTracing SpanContext only exposes the low-order 64 bits of the trace id;
+        // datadog.trace.api.GlobalTracer surfaces the full 128-bit trace id, as hex, while its
+        // span id is already decimal.
+        final String traceIdHex = datadog.trace.api.GlobalTracer.get().getTraceId();
+        final String spanId = datadog.trace.api.GlobalTracer.get().getSpanId();
+
+        final Map<String, String> body = new HashMap<>();
+        body.put("trace_id", new BigInteger(traceIdHex, 16).toString());
+        body.put("span_id", spanId);
+        return ResponseEntity.ok(body);
     }
 
     @GetMapping("/identify")

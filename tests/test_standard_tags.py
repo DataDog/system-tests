@@ -185,7 +185,7 @@ class Test_StandardTagsRoute:
             if "net-http" in context.weblog_variant:
                 # net/http doesn't support parametrized routes but a path catches anything down the tree.
                 tags["http.route"] = "/sample_rate_route/"
-            if context.weblog_variant in ("gin", "echo", "uds-echo"):
+            if context.weblog_variant in ("gin", "echo", "uds-echo", "fiber-v2-orchestrion"):
                 tags["http.route"] = "/sample_rate_route/:i"
         if context.library == "dotnet":
             tags["http.route"] = "/sample_rate_route/{i:int}"
@@ -196,6 +196,8 @@ class Test_StandardTagsRoute:
                 tags["http.route"] = "sample_rate_route/<int:i>"
             elif context.weblog_variant == "tornado":
                 tags["http.route"] = "/sample_rate_route/%s"
+            elif context.weblog_variant == "aiohttp":
+                tags["http.route"] = "/sample_rate_route/{i}"
         if context.library == "java":
             if context.weblog_variant in ("ratpack", "vertx3", "vertx4"):
                 tags["http.route"] = "/sample_rate_route/:i"

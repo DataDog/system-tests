@@ -1,5 +1,5 @@
 import json
-import pytest
+from utils import pytest
 
 from .conftest import APMLibrary
 from .utils import MIN_AGENT_VERSION_FOR_CSS, enable_tracestats
@@ -177,7 +177,7 @@ class Test_Trace_Filters:
             test_library.dd_start_span(name="web.request", tags=[("reject_tag", "[invalid")]),
         ):
             pass
-        assert len(test_agent.traces()) == 1, "trace kept: invalid regex filter is dropped"
+        assert len(test_agent.wait_for_num_traces(1)) == 1, "trace kept: invalid regex filter is dropped"
 
     @enable_tracestats()
     @enable_trace_filters(reject=[" \treject_tag \t:\t true\t "])

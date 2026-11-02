@@ -221,6 +221,24 @@ app.get("/make_distant_call", (req: Request, res: Response) => {
   request.end()
 })
 
+app.get("/security/thread_context_sharing", (req: Request, res: Response) => {
+  const path = req.query.path;
+  if (typeof path !== "string" || path === "") {
+    res.status(400).send("missing path query parameter");
+    return;
+  }
+
+  // Synchronous on purpose: async fs opens the file on a libuv worker thread, which does not carry
+  // the request's thread context that the security agent reads.
+  require("fs").writeFileSync(path, "thread context sharing");
+
+  const context = tracer.scope().active().context();
+  res.json({
+    trace_id: BigInt(`0x${context.toTraceId(true)}`).toString(),
+    span_id: context.toSpanId()
+  });
+});
+
 app.get("/user_login_success_event", (req: Request, res: Response) => {
   const userId = req.query.event_user_id || "system_tests_user";
 
@@ -388,6 +406,8 @@ app.get('/flush', (req: Request, res: Response) => {
   tracer.dogstatsd?.flush?.()
   tracer._pluginManager?._pluginsByName?.openai?.metrics?.flush?.()
   tracer._tracer?._processor?._stats?.onInterval()
+  // force FFE exposure events out immediately instead of waiting for the writer's periodic flush
+  require('diagnostics_channel').channel('ffe:writers:flush').publish()
 
   // does have a callback :)
   const promises = []

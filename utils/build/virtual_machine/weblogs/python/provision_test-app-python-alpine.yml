@@ -6,6 +6,8 @@ weblog:
         copy_files:
           - name: copy-container-run-script
             local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_container.sh
+          - name: copy-pull-agent-image-script
+            local_path: utils/build/virtual_machine/weblogs/common/pull_agent_image.sh
           - name: copy-docker-compose-file
             local_path: utils/build/virtual_machine/weblogs/common/docker-compose.yml
           - name: copy-python-app
@@ -13,5 +15,8 @@ weblog:
           - name: copy-python-app-dockerfile
             local_path: utils/build/virtual_machine/weblogs/python/test-app-python-alpine/Dockerfile.template
             remote_path: Dockerfile.template
+
+          - name: copy-pip-conf
+            local_path: utils/build/virtual_machine/weblogs/python/pip.conf
 
         remote-command: sh create_and_run_app_container.sh

@@ -112,6 +112,8 @@ class BaseSinkTestWithoutTelemetry:
     insecure_headers: dict | None = None
     location_map: str | dict | None = None
     evidence_map: str | dict | None = None
+    allow_redirects: bool = True
+    expected_secure_status_codes: tuple[int, ...] = (200,)
 
     insecure_request: HttpResponse
     secure_request: HttpResponse
@@ -136,6 +138,7 @@ class BaseSinkTestWithoutTelemetry:
                 params=self.params,
                 data=self.data,
                 headers=self.insecure_headers if self.insecure_headers is not None else self.headers,
+                allow_redirects=self.allow_redirects,
             )
 
         self.insecure_request = self.__class__.insecure_request
@@ -175,6 +178,7 @@ class BaseSinkTestWithoutTelemetry:
                 params=self.params,
                 data=self.data,
                 headers=self.secure_headers if self.secure_headers is not None else self.headers,
+                allow_redirects=self.allow_redirects,
             )
 
         self.secure_request = self.__class__.secure_request
@@ -183,11 +187,15 @@ class BaseSinkTestWithoutTelemetry:
         # to avoid false positive, we need to check first that the insecure endpoint is vulnerable
         self.check_test_insecure()
 
-        self.assert_no_iast_event(self.secure_request, self.vulnerability_type)
+        self.assert_no_iast_event(self.secure_request, self.vulnerability_type, self.expected_secure_status_codes)
 
     @staticmethod
-    def assert_no_iast_event(request: HttpResponse, tested_vulnerability_type: str | None = None) -> None:
-        assert request.status_code == 200, f"Request failed with status code {request.status_code}"
+    def assert_no_iast_event(
+        request: HttpResponse,
+        tested_vulnerability_type: str | None = None,
+        expected_status_codes: tuple[int, ...] = (200,),
+    ) -> None:
+        assert request.status_code in expected_status_codes, f"Request failed with status code {request.status_code}"
 
         meta, meta_struct = _get_span_meta(request=request)
         iast_json = (meta or {}).get("_dd.iast.json", (meta_struct or {}).get("iast"))

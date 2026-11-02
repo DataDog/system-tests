@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"runtime"
+	"time"
 )
 
 // The `debugger` feature allows attachment to specific lines of code.
@@ -13,7 +14,6 @@ import (
 
 type DebuggerController struct{}
 
-// Dummy line
 // Dummy line
 func (d *DebuggerController) logProbe(w http.ResponseWriter, r *http.Request) {
 	// Dummy line
@@ -115,4 +115,36 @@ func (d *DebuggerController) budgets(w http.ResponseWriter, r *http.Request, loo
 //go:noinline
 func (d *DebuggerController) budgetStep(i, loops int) int {
 	return i + loops // loops is referenced so the capture-expression probe can read it at this line.
+}
+
+//go:noinline
+func (d *DebuggerController) correlation(w http.ResponseWriter, r *http.Request) {
+	result := d.correlationMiddle()
+	time.Sleep(400 * time.Millisecond) // space the probed call sites in time
+	runtime.KeepAlive(result)
+	w.Write([]byte(fmt.Sprintf("Correlation %d", result)))
+}
+
+//go:noinline
+func (d *DebuggerController) correlationMiddle() int {
+	result := d.correlationLeaf()
+	time.Sleep(400 * time.Millisecond) // space the probed call sites in time
+	return result
+}
+
+//go:noinline
+func (d *DebuggerController) correlationLeaf() int {
+	return 3
+}
+
+//go:noinline
+func (d *DebuggerController) correlationLoop(w http.ResponseWriter, r *http.Request, loops int) {
+	total := 0
+	for i := 0; i < loops; i++ {
+		total += i // correlation loop body line probe
+		time.Sleep(time.Second)
+	}
+	afterLoop := total // correlation loop sibling line probe
+	runtime.KeepAlive(afterLoop)
+	w.Write([]byte(fmt.Sprintf("Loop %d", afterLoop)))
 }

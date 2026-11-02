@@ -60,6 +60,15 @@ class VmProvider:
         """Stop and destroy machines"""
         raise NotImplementedError
 
+    def use_created_cache(
+        self, _vm: _VirtualMachine, server: object, server_connection: object, created_cache: object
+    ) -> tuple[object, object, object]:
+        """Keep running on the current server. AWS can override this for a new candidate."""
+        return server, server_connection, created_cache
+
+    def promote_booted_candidate(self, new_state: str | None) -> None:
+        """Providers that boot a candidate apply active or rejected after the tests."""
+
     def install_provision(
         self,
         vm: _VirtualMachine,
@@ -89,6 +98,7 @@ class VmProvider:
             # After cacheable installations, we update the cache
             if vm.datadog_config.update_cache and not vm.datadog_config.skip_cache:
                 last_task = self.commander.create_cache(vm, server, last_task)
+                server, server_connection, last_task = self.use_created_cache(vm, server, server_connection, last_task)
 
         # Then install non cacheable installations
         for installation in provision.installations:

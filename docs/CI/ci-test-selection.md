@@ -52,7 +52,7 @@ Each entry maps a file pattern to the libraries and scenario groups to select:
 
 > Use `scenario_groups` when you want to target a category of scenarios, and
 > `scenarios` when you need to target a single scenario by name. Valid scenario
-> group names are listed in `utils/_context/_scenarios/core.py`.
+> group names are listed in `utils/_context/_scenarios/_core/scenario.py`.
 
 **Important:** The `DEFAULT` scenario always runs on every selected library, even
 if `scenario_groups` and `scenarios` are both set to `null`. In other words, as
