@@ -11,7 +11,7 @@ from typing import Any
 
 from utils._logger import logger
 from utils._weblog import HttpResponse
-from utils.dd_types import AgentTraceFormat, DataDogAgentSpan, DataDogAgentTrace
+from utils.dd_types import DataDogAgentSpan, DataDogAgentTrace
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils.interfaces._misc_validators import HeadersPresenceValidator
 
@@ -132,18 +132,6 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
             for span in trace.spans:
                 if rid is None or span.get_rid() == rid:
                     yield data, span
-
-    @staticmethod
-    def get_span_metrics(span: DataDogAgentSpan) -> dict[str, str]:
-        """Returns the metrics dictionary of a span according to its format"""
-        if span.trace.format == AgentTraceFormat.legacy:
-            return span["metrics"]
-
-        if span.trace.format == AgentTraceFormat.efficient_trace_payload_format:
-            # in the new format, metrics and meta are joined in attributes
-            return span["attributes"]
-
-        raise ValueError(f"Unknown span format: {span.trace.format}")
 
     def get_spans_list(self, request: HttpResponse | None = None) -> list[DataDogAgentSpan]:
         return [span for _, span in self.get_spans(request)]
