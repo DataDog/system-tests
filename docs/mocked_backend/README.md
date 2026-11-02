@@ -23,7 +23,7 @@ One single way to observe what is sent to the Datadog backend, whatever the setu
 * **HTTPS on many hostnames**: `mocked-backend.invalid` and the intake hostnames derived from it (`trace.agent.`, `config.`, `instrumentation-telemetry-intake.`, `debugger-intake.`...) are network aliases of its container. Its certificate is generated when it starts, for all of them, signed by the mitmproxy CA (`utils/proxy/.mitmproxy`) the senders trust.
 * **Remote config**: it serves the remote config backend by default (no config until a test sends one). Tests send configs with `remote_config.send_state`, which sets them on the mocked backend, then waits for the library to apply them. See [Remote config](../edit/remote-config.md).
 * **Controlled responses**: `MockedBackendResponse` overrides the answer on a path, for the whole session (`MockedBackendContainer.internal_mocked_responses`) or at runtime (`client.set_mocked_responses`), like the proxy's mocked responses.
-* **Feature flagging**: endpoints serving the agentless FFE configuration, with scripted responses (`client.ffe_set_response(s)`) and counters (`client.ffe_get_status`).
+* **Feature flagging**: endpoints serving the agentless FFE configuration, with scripted responses (`client.ffe_set_response(s)`) and counters (`client.ffe_get_status`). The JSON configuration applies flag selection (`selected_flag_tags`, `selected_flag_key_patterns`) like production, with the shared tags in `ffe-system-test-data/flag-selection/ufc-config-tags.json`; `client.ffe_set_flag_selection_ignored_reason(...)` makes it ignore valid selections, as when production cannot load tags.
 * **Control endpoints**: under `/system-tests/`, never recorded, used by `MockedBackendClient` from the test runner.
 
 ## Using it in a scenario

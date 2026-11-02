@@ -5,6 +5,12 @@ Tests configure the response timeline with ``mocked_backend.client.ffe_set_respo
 default to JSON; use ``response_format="protobuf"`` for an independent protobuf timeline.
 ``mocked_backend.client.ffe_get_status()`` reports request counts, auth, ETag, response codes,
 and paths observed across both formats.
+
+The JSON configuration applies the ``selected_flag_tags`` and ``selected_flag_key_patterns`` query
+parameters like production, using the shared tags in ``UFC_TAGS_FIXTURE_RELATIVE_PATH``.
+``mocked_backend.client.ffe_set_flag_selection_ignored_reason(...)`` makes it ignore every valid
+selection with that reason, as when production cannot load flag tags. The protobuf helpers ignore
+selection.
 """
 
 from __future__ import annotations
@@ -21,6 +27,17 @@ import time
 from typing import TYPE_CHECKING, Literal, TypedDict, cast
 from urllib.parse import parse_qs, urlencode, urlparse
 
+from ._ffe_flag_selection import (
+    FLAG_SELECTION_IGNORED_HEADER,
+    Selection,
+    SelectionIgnoredError,
+    has_selection_parameters,
+    is_selection_parameter,
+    load_ufc_flag_tags,
+    parse_selection,
+    select_flags,
+    validate_forced_reason,
+)
 from ._utils import CONTROL_URL_PREFIX
 
 
@@ -120,6 +137,7 @@ class _MockedBackendFFEState:
         self.last_status_code: int | None = None
         self.status_codes: list[int] = []
         self.requests: list[MockedBackendFFERequest] = []
+        self._flag_selection_ignored_reason: str | None = None
 
     def reset(self) -> None:
         with self._lock:
@@ -133,6 +151,7 @@ class _MockedBackendFFEState:
             self.last_status_code = None
             self.status_codes = []
             self.requests = []
+            self._flag_selection_ignored_reason = None
 
     def set_responses(self, responses: object, response_format: ResponseFormat) -> None:
         validated_responses = validate_responses(responses, response_format)
@@ -159,6 +178,15 @@ class _MockedBackendFFEState:
             if len(responses) > 1:
                 responses.pop(0)
             return response
+
+    @property
+    def flag_selection_ignored_reason(self) -> str | None:
+        with self._lock:
+            return self._flag_selection_ignored_reason
+
+    def set_flag_selection_ignored_reason(self, reason: str | None) -> None:
+        with self._lock:
+            self._flag_selection_ignored_reason = reason
 
     def record_response(self, status_code: int) -> None:
         with self._lock:
@@ -192,8 +220,10 @@ def _get_dd_api_key(headers: Mapping[str, str]) -> str | None:
     return normalized.get("dd-api-key")
 
 
-def _valid_ufc_bytes() -> bytes:
+def _valid_ufc_bytes(selected_keys: list[str] | None = None) -> bytes:
     attributes = json.loads(UFC_FIXTURE_PATH.read_text())
+    if selected_keys is not None:
+        attributes["flags"] = {key: attributes["flags"][key] for key in selected_keys}
     return json.dumps(
         {
             "data": {
@@ -228,7 +258,29 @@ def validate_responses(responses: object, response_format: ResponseFormat = "jso
     return responses
 
 
-def _response_for_response(response: str) -> tuple[int, bytes, dict[str, str]]:
+def _flag_selection_for_query(raw_query: str, forced_reason: str | None) -> tuple[Selection | None, str | None]:
+    """Return the selection to apply, or None to serve every flag, and the DD-Flag-Selection-Ignored reason."""
+    if not has_selection_parameters(raw_query):
+        return None, None
+    try:
+        selection = parse_selection(raw_query)
+    except SelectionIgnoredError as error:
+        return None, error.reason
+    if selection.is_empty():
+        return None, None
+    if forced_reason is not None:
+        return None, forced_reason
+    return selection, None
+
+
+def _has_expected_config_query(raw_query: str) -> bool:
+    other_pairs = [pair for pair in raw_query.split("&") if not is_selection_parameter(pair)]
+    return parse_qs("&".join(other_pairs), keep_blank_values=True) == {"dd_env": [EXPECTED_DD_ENV]}
+
+
+def _response_for_response(
+    response: str, selection: Selection | None = None, ignored_reason: str | None = None
+) -> tuple[int, bytes, dict[str, str]]:
     if response == "unauthorized":
         return HTTPStatus.UNAUTHORIZED, b"", {}
     if response == "malformed":
@@ -238,7 +290,17 @@ def _response_for_response(response: str) -> tuple[int, bytes, dict[str, str]]:
     if response == "server_error":
         return HTTPStatus.INTERNAL_SERVER_ERROR, b"", {}
     if response in {"valid", "delayed_valid", "timeout"}:
-        return HTTPStatus.OK, _valid_ufc_bytes(), {"Content-Type": "application/json", "ETag": UFC_ETAG}
+        headers = {"Content-Type": "application/json", "ETag": UFC_ETAG}
+        if ignored_reason is not None:
+            headers[FLAG_SELECTION_IGNORED_HEADER] = ignored_reason
+        if selection is None:
+            return HTTPStatus.OK, _valid_ufc_bytes(), headers
+        flags = json.loads(UFC_FIXTURE_PATH.read_text())["flags"]
+        flag_tags = load_ufc_flag_tags(REPO_ROOT)
+        selected_keys = select_flags(selection, {key: flag_tags.get(key, []) for key in flags})
+        # A 304 must not confirm a body built for another selection.
+        headers["ETag"] = f'{UFC_ETAG[:-1]}-{selection.digest()}"'
+        return HTTPStatus.OK, _valid_ufc_bytes(selected_keys), headers
     raise ValueError(f"Unsupported JSON response: {response}")
 
 
@@ -282,6 +344,7 @@ class MockedBackendServerFfeMixin(_Base):
     # - GET /system-tests/ffe/status
     # - POST /system-tests/ffe/responses
     # - POST /system-tests/ffe/reset
+    # - POST /system-tests/ffe/flag-selection
 
     def _ffe_configure(self) -> None:
         self._ffe_state = _MockedBackendFFEState()
@@ -298,6 +361,7 @@ class MockedBackendServerFfeMixin(_Base):
         self.add_handler("GET", f"{self._ffe_control_path}/status", self._ffe_handle_status)
         self.add_handler("POST", f"{self._ffe_control_path}/responses", self._ffe_handle_control_responses)
         self.add_handler("POST", f"{self._ffe_control_path}/reset", self._ffe_handle_control_reset)
+        self.add_handler("POST", f"{self._ffe_control_path}/flag-selection", self._ffe_handle_control_flag_selection)
 
     @property
     def ffe_library_base_url(self) -> str:
@@ -335,7 +399,7 @@ class MockedBackendServerFfeMixin(_Base):
             return self._ffe_handle_rules_config(request, _)
 
         parsed = urlparse(request.path)
-        if parse_qs(parsed.query, keep_blank_values=True) == {"dd_env": [EXPECTED_DD_ENV]}:
+        if _has_expected_config_query(parsed.query):
             return self._ffe_handle_config_exec(request)
 
         return request.write_json(HTTPStatus.NOT_FOUND, {"error": "not found"})
@@ -347,7 +411,10 @@ class MockedBackendServerFfeMixin(_Base):
             if response in {"delayed_valid", "timeout"}:
                 time.sleep(TIMEOUT_RESPONSE_SECONDS if response == "timeout" else DELAYED_RESPONSE_SECONDS)
 
-            status_code, body, headers = _response_for_response(response)
+            selection, ignored_reason = _flag_selection_for_query(
+                urlparse(request.path).query, self._ffe_state.flag_selection_ignored_reason
+            )
+            status_code, body, headers = _response_for_response(response, selection, ignored_reason)
             self._ffe_state.record_response(status_code)
             with contextlib.suppress(BrokenPipeError, ConnectionResetError):
                 request.send_response(status_code)
@@ -427,6 +494,18 @@ class MockedBackendServerFfeMixin(_Base):
             return request.write_json(HTTPStatus.BAD_REQUEST, {"error": str(error)})
 
         return request.write_json(HTTPStatus.OK, self._ffe_state.status())
+
+    def _ffe_handle_control_flag_selection(
+        self, request: MockedBackendRequestHandler, payload: bytes | dict | None
+    ) -> tuple[Mapping, bytes]:
+        if not isinstance(payload, dict) or set(payload) != {"ignored_reason"}:
+            return request.write_json(HTTPStatus.BAD_REQUEST, {"error": "control body must contain ignored_reason"})
+        try:
+            reason = validate_forced_reason(payload["ignored_reason"])
+        except ValueError as error:
+            return request.write_json(HTTPStatus.BAD_REQUEST, {"error": str(error)})
+        self._ffe_state.set_flag_selection_ignored_reason(reason)
+        return request.write_json(HTTPStatus.OK, {"ignored_reason": reason})
 
     def _ffe_handle_control_reset(
         self, request: MockedBackendRequestHandler, _: bytes | dict | None

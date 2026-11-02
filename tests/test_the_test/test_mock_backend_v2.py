@@ -24,7 +24,7 @@ from utils._context.containers import MockedBackendContainer, TestedContainer
 from utils._context._scenarios.agentless_endtoend import JAVA_TRUSTSTORE_SOURCE
 from utils.mocked_backend import MockedBackendClient, MockedBackendServer
 from utils.mocked_backend._tls import generate_certificate
-from utils.mocked_backend.ffe import UFC_FIXTURE_RELATIVE_PATH
+from utils.mocked_backend.ffe import UFC_FIXTURE_RELATIVE_PATH, UFC_TAGS_FIXTURE_RELATIVE_PATH
 from utils.proxy.mocked_response import MockedBackendResponse
 
 
@@ -323,14 +323,15 @@ def test_control_requests_are_not_recorded(tmp_path: Path):
 @scenarios.test_the_test
 def test_runs_without_the_rest_of_utils(tmp_path: Path):
     """The mocked backend must work with only what its container mounts (utils/mocked_backend, utils/proxy and the
-    FFE fixture, see MockedBackendContainer), and without pytest.
+    FFE fixtures, see MockedBackendContainer), and without pytest.
     """
     repo_root = Path(__file__).parents[2]
     (tmp_path / "utils").mkdir()  # no __init__.py: a namespace package, as in the proxy image
     for package in ("mocked_backend", "proxy"):
         (tmp_path / "utils" / package).symlink_to(repo_root / "utils" / package)
-    (tmp_path / UFC_FIXTURE_RELATIVE_PATH).parent.mkdir(parents=True)
-    (tmp_path / UFC_FIXTURE_RELATIVE_PATH).symlink_to(repo_root / UFC_FIXTURE_RELATIVE_PATH)
+    for fixture in (UFC_FIXTURE_RELATIVE_PATH, UFC_TAGS_FIXTURE_RELATIVE_PATH):
+        (tmp_path / fixture).parent.mkdir(parents=True, exist_ok=True)
+        (tmp_path / fixture).symlink_to(repo_root / fixture)
 
     # Not `python -I`: third-party packages may come from PYTHONPATH (e.g. Nix). Instead, drop the repository
     # from sys.path, otherwise the real utils package would be imported, and this test would always pass.
@@ -350,6 +351,9 @@ def test_runs_without_the_rest_of_utils(tmp_path: Path):
         "server = MockedBackendServer(port=0)\n"
         "try:\n"
         "    with urlopen(ffe_library_config_url(server.base_url), timeout=5) as response:\n"
+        "        assert response.status == 200, response.status\n"
+        "    selection_url = ffe_library_config_url(server.base_url) + '&selected_flag_tags=team%3Acheckout'\n"
+        "    with urlopen(selection_url, timeout=5) as response:\n"
         "        assert response.status == 200, response.status\n"
         "finally:\n"
         "    server.close()\n"

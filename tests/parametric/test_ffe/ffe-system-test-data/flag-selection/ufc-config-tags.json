@@ -1,0 +1,7 @@
+{
+  "flags": [
+    {"key": "basic-flag", "tags": ["team:checkout", "release:summer sale"]},
+    {"key": "numeric_flag", "tags": ["team:checkout"]},
+    {"key": "experiment-flag", "tags": ["team:search"]}
+  ]
+}

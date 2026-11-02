@@ -43,6 +43,16 @@ class MockedBackendClient:
         )
         response.raise_for_status()
 
+    def ffe_set_flag_selection_ignored_reason(self, reason: str | None) -> None:
+        """Ignore every valid flag selection with this DD-Flag-Selection-Ignored reason; None applies them again"""
+        response = requests.post(
+            f"{self.base_url}{_FFE_CONTROL_PATH}/flag-selection",
+            json={"ignored_reason": reason},
+            timeout=5,
+            verify=self.verify,
+        )
+        response.raise_for_status()
+
     def set_mocked_responses(self, responses: Sequence[MockedBackendResponse]) -> None:
         """Replace the mocked responses set by tests, like MockedBackendResponse.send() does with the proxy"""
         response = requests.put(

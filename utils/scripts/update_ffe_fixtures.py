@@ -161,6 +161,29 @@ def _set_github_outputs(source_commit: str, fixture_count: int, *, changed: bool
             output_file.write(f"changed={str(changed).lower()}\n")
 
 
+def _copy_flag_selection_snapshot(source: Path, snapshot: Path) -> None:
+    # The mocked backend applies flag selection to ufc-config.json with these vectors' semantics and tags.
+    flag_selection = source / "flag-selection"
+    if flag_selection.exists() or flag_selection.is_symlink():
+        _copy_entry(flag_selection, snapshot / flag_selection.name)
+
+
+def _validate_flag_selection_snapshot(snapshot: Path) -> None:
+    directory = snapshot / "flag-selection"
+    if not directory.exists():
+        return
+    for name, fields in (("selection-vectors.json", {"flags", "cases"}), ("ufc-config-tags.json", {"flags"})):
+        path = directory / name
+        if not path.is_file():
+            msg = f"FFE flag-selection must contain {name}"
+            raise ValueError(msg)
+        with path.open(encoding="utf-8") as fixture_file:
+            content = json.load(fixture_file)
+        if not isinstance(content, dict) or set(content) != fields:
+            msg = f"{path.name} must contain only {', '.join(sorted(fields))}"
+            raise ValueError(msg)
+
+
 def update_fixtures(fixture_ref: str) -> bool:
     """Update the snapshot and return whether its allowed contents changed."""
     _validate_fixture_ref(fixture_ref)
@@ -179,7 +202,9 @@ def update_fixtures(fixture_ref: str) -> bool:
         source_commit = _run_git(source, "rev-parse", "HEAD")
 
         _copy_fixture_snapshot(source, snapshot)
+        _copy_flag_selection_snapshot(source, snapshot)
         fixture_count = _validate_fixture_snapshot(snapshot)
+        _validate_flag_selection_snapshot(snapshot)
         changed = not _have_same_contents(snapshot, FIXTURE_DESTINATION)
 
         if changed:

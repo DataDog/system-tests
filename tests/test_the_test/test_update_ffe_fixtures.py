@@ -60,6 +60,26 @@ def test_copy_fixture_snapshot_rejects_symbolic_links(tmp_path: Path) -> None:
 
 
 @scenarios.test_the_test
+def test_copy_flag_selection_snapshot_imports_vectors_and_tags(tmp_path: Path) -> None:
+    source = tmp_path / "source"
+    snapshot = tmp_path / "snapshot"
+    (source / "flag-selection").mkdir(parents=True)
+    snapshot.mkdir()
+    (source / "flag-selection" / "selection-vectors.json").write_text('{"flags": [], "cases": []}', encoding="utf-8")
+    (source / "flag-selection" / "ufc-config-tags.json").write_text('{"flags": []}', encoding="utf-8")
+
+    update_ffe_fixtures._copy_flag_selection_snapshot(source, snapshot)
+    update_ffe_fixtures._validate_flag_selection_snapshot(snapshot)
+
+    assert (snapshot / "flag-selection" / "selection-vectors.json").is_file()
+    assert (snapshot / "flag-selection" / "ufc-config-tags.json").is_file()
+
+    (snapshot / "flag-selection" / "ufc-config-tags.json").unlink()
+    with pytest.raises(ValueError, match="must contain ufc-config-tags.json"):
+        update_ffe_fixtures._validate_flag_selection_snapshot(snapshot)
+
+
+@scenarios.test_the_test
 def test_validate_fixture_snapshot_counts_evaluations(tmp_path: Path) -> None:
     cases_directory = tmp_path / "evaluation-cases"
     cases_directory.mkdir()
