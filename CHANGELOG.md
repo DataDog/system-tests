@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-### 2026-09 (154 PR merged)
+### 2026-09 (138 PR merged)
 
 * 2026-09-30 [Switching easy win auto merge from opt in to opt out](https://github.com/DataDog/system-tests/pull/7865) by @nccatoni
 * 2026-09-28 [Remove any calls to public.ecr.aws on critical path for python lambda](https://github.com/DataDog/system-tests/pull/7838) by @cbeauchesne
@@ -13,25 +13,25 @@ All notable changes to this project will be documented in this file.
 * 2026-09-14 [Reliable and automated base image build process](https://github.com/DataDog/system-tests/pull/7270) by @nccatoni
 
 
-### 2026-08 (158 PR merged)
+### 2026-08 (113 PR merged)
 
 * 2026-08-24 [chore: add system-tests-reviewers to CODEOWNERS](https://github.com/DataDog/system-tests/pull/7564) by @brettlangdon
 * 2026-08-12 [Ew auto merge per team lang](https://github.com/DataDog/system-tests/pull/7475) by @nccatoni
 
 
-### 2026-07 (150 PR merged)
+### 2026-07 (143 PR merged)
 
 * 2026-07-01 [feat: add per-weblog metadata to control CI build requirement](https://github.com/DataDog/system-tests/pull/7130) by @rochdev
 * 2026-07-03 [Gitlab pipeline for End to End and parametric scenarios](https://github.com/DataDog/system-tests/pull/6651) by @nccatoni
 
 
-### 2026-06 (140 PR merged)
+### 2026-06 (123 PR merged)
 
 * 2026-06-05 [[ruby] Add new Ruby-lang weblog `ruby_lambda`](https://github.com/DataDog/system-tests/pull/7065) by @Strech
 * 2026-06-01 [SSI GitLab Test Optimization](https://github.com/DataDog/system-tests/pull/6966) by @robertomonteromiguel
 
 
-### 2026-05 (159 PR merged)
+### 2026-05 (142 PR merged)
 
 * 2026-05-20 [SSI: Pin agent version to 7.78.4](https://github.com/DataDog/system-tests/pull/6984) by @robertomonteromiguel
 * 2026-05-26 [SSI: Print the content fo the log folder to collapsible section](https://github.com/DataDog/system-tests/pull/6975) by @robertomonteromiguel
@@ -39,7 +39,7 @@ All notable changes to this project will be documented in this file.
 * 2026-05-07 [Add PHP apache base images](https://github.com/DataDog/system-tests/pull/6874) by @cbeauchesne
 
 
-### 2026-04 (119 PR merged)
+### 2026-04 (113 PR merged)
 
 * 2026-04-23 [feat(features): resolve test owner to per-repo sub-team in CI](https://github.com/DataDog/system-tests/pull/6796) by @cbeauchesne
 * 2026-04-21 [Automatically close stale PRs](https://github.com/DataDog/system-tests/pull/6783) by @cbeauchesne
