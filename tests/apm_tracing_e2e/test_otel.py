@@ -33,7 +33,7 @@ class Test_Otel_Span:
             assert parent.get("spanID") == "10000"
         assert parent_meta.get("attributes") == "values"
         assert parent_meta.get("error.message") == "testing_end_span_options"
-        parent_metrics = interfaces.agent.get_span_metrics(parent)
+        parent_metrics = interfaces.mocked_backend.get_span_metrics(parent)
         assert parent_metrics["_dd.top_level"] == 1.0
         # Assert the child sent by the agent.
         # childName is no longer the operation name, rather the resource name
@@ -57,7 +57,7 @@ class Test_Otel_Span:
         parent = _get_span_by_resource(spans, "root-otel-name.dd-resource")
         assert parent.get_span_name() == "internal"
         assert parent.get("parentID") is None
-        parent_metrics = interfaces.agent.get_span_metrics(parent)
+        parent_metrics = interfaces.mocked_backend.get_span_metrics(parent)
         assert parent_metrics["_dd.top_level"] == 1.0
 
         # Assert the Roundtrip child span sent by the agent, this span is created by an external OTel contrib package

@@ -35,7 +35,7 @@ class Test_SingleSpan:
         span = spans[0]
         assert span.get_span_name() == "parent.span.single_span_submitted"
         assert span.get("parentID") is None
-        metrics = interfaces.agent.get_span_metrics(span)
+        metrics = interfaces.mocked_backend.get_span_metrics(span)
         assert metrics["_dd.top_level"] == 1.0
         _assert_single_span_metrics(span)
 
@@ -70,7 +70,7 @@ def _assert_single_span_event(event: dict, name: str, *, is_root: bool):
 
 
 def _assert_single_span_metrics(span: DataDogAgentSpan):
-    metrics = interfaces.agent.get_span_metrics(span)
+    metrics = interfaces.mocked_backend.get_span_metrics(span)
     assert metrics[SAMPLING_PRIORITY_KEY] == -1  # due to the global sampling rate = 0
     assert metrics[SINGLE_SPAN_SAMPLING_RATE] == 1.0
     assert metrics[SINGLE_SPAN_SAMPLING_MECHANISM] == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
