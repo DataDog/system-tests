@@ -928,9 +928,7 @@ class BaseDebuggerTest:
 
     def get_snapshot_request_lengths(self, probe_id: str) -> list[int]:
         """Return decoded body lengths for backend requests containing a probe snapshot."""
-        requests = []
-        for path in dict.fromkeys(self._snapshot_paths):
-            requests += list(interfaces.mocked_backend.get_data(path))
+        requests = list(interfaces.mocked_backend.get_data(self._snapshot_paths))
 
         lengths: list[int] = []
         for request in requests:
@@ -947,11 +945,7 @@ class BaseDebuggerTest:
 
     def wait_for_additional_snapshots(self, timeout: int = 5) -> bool:
         """Wait for another backend request containing a snapshot for an expected probe."""
-        existing_files = {
-            data["log_filename"]
-            for path in dict.fromkeys(self._snapshot_paths)
-            for data in interfaces.mocked_backend.get_data(path)
-        }
+        existing_files = {data["log_filename"] for data in interfaces.mocked_backend.get_data(self._snapshot_paths)}
         expected_probe_ids = set(self.probe_ids)
 
         def _contains_additional_snapshot(data: dict[str, Any]) -> bool:
