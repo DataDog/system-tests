@@ -5491,7 +5491,7 @@ manifest:
   tests/test_standard_tags.py::Test_StandardTagsClientIp::test_client_ip_with_appsec_event_and_vendor_headers:
     - declaration: missing_feature (missing fastly-client-ip, cf-connecting-ip, cf-connecting-ipv6)
       component_version: <1.19.0
-  tests/test_standard_tags.py::Test_StandardTagsMethod: v0.102.0
+  tests/test_standard_tags.py::Test_StandardTagsMethod: 0.102.0
   tests/test_standard_tags.py::Test_StandardTagsMethod::test_method_trace:
     - weblog_declaration:
         spring-boot-payara: missing_feature (This weblog variant is currently not accepting TRACE)
