@@ -21,7 +21,7 @@ TAG_RUN = ["datadog-ci", "tag", "--level", "job", "--tags", "system-tests.job_ty
 def commands(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> list[list[str]]:
     """Record commands instead of running them, from a fake system-tests clone in $CI_PROJECT_DIR."""
     recorded: list[list[str]] = []
-    monkeypatch.setattr(_common, "run", recorded.append)
+    monkeypatch.setattr(_common, "run", lambda command, **_: recorded.append(command))
 
     clone = tmp_path / "system-tests"
     (clone / "binaries").mkdir(parents=True)
@@ -205,3 +205,13 @@ class Test_GitlabJobScripts:
         )
         assert result.returncode != 0
         assert "usage: run_job.py" in result.stderr
+
+
+@scenarios.test_the_test
+def test_run_exits_on_failure_unless_allowed() -> None:
+    with pytest.raises(SystemExit) as exc_info:
+        _common.run(["false"])
+    assert exc_info.value.code == 1
+
+    # e.g. datadog-ci tag, when the Datadog API answers 500
+    _common.run(["false"], allow_failure=True)
