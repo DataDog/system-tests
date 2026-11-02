@@ -176,12 +176,10 @@ class BaseDebuggerTest:
 
     use_debugger_endpoint: bool = False
 
-    # Paths of what is sent to the backend, overridden by AgentlessBaseDebuggerTest for scenarios without a Datadog
-    # Agent (logs/snapshots/diagnostics all collapse onto _AGENTLESS_DEBUGGER_PATH). The symbol database is sent to
-    # _DEBUGGER_PATH in both cases.
+    # Paths of the logs, snapshots and diagnostics sent to the backend, overridden by AgentlessBaseDebuggerTest for
+    # scenarios without a Datadog Agent, where they all collapse onto _AGENTLESS_DEBUGGER_PATH. The symbol database
+    # is sent to _DEBUGGER_PATH in both cases.
     _snapshot_paths: tuple[str, ...] = (_LOGS_PATH, _DEBUGGER_PATH)
-    _traces_path: str = _TRACES_PATH
-    _telemetry_path: str = _TELEMETRY_PATH
 
     def initialize_weblog_remote_config(self) -> None:
         self.setup_failures = []
@@ -727,7 +725,7 @@ class BaseDebuggerTest:
         return self._no_capture_reason_span_found
 
     def _wait_for_no_capture_reason_span(self, data: dict):
-        if data["path"] == self._traces_path:
+        if data["path"] == _TRACES_PATH:
             logger.debug(
                 "Reading "
                 + data["log_filename"]
@@ -769,7 +767,7 @@ class BaseDebuggerTest:
         return self._span_found
 
     def _wait_for_code_origin_span(self, data: dict, *, request: HttpResponse, stop_when_absent: bool) -> bool:
-        if data["path"] != self._traces_path:
+        if data["path"] != _TRACES_PATH:
             return False
 
         # Select the trace using the request ID, then inspect every span because the code origin
@@ -798,7 +796,7 @@ class BaseDebuggerTest:
         return self._telemetry
 
     def _wait_for_telemetry(self, data: dict, telemetry_type: str) -> bool:
-        if data["path"] != self._telemetry_path:
+        if data["path"] != _TELEMETRY_PATH:
             return False
 
         content = data.get("request", {}).get("content", {})
