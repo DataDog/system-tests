@@ -18,7 +18,7 @@ from collections.abc import Callable, Iterator, Mapping
 from utils._context.core import context
 
 from utils.dd_constants import Capabilities, RemoteConfigApplyState as ApplyState
-from utils.interfaces import library
+from utils.interfaces import library, mocked_backend
 from utils._logger import logger
 from utils.proxy.mocked_response import (
     StaticJsonMockedTracerResponse,
@@ -245,6 +245,26 @@ def _dump_stacks_if_apply_stalls(started: float) -> Iterator[None]:
         thread.join(timeout=STACK_DUMP_TIMEOUT)
 
 
+def _agentless_client_state(data: dict) -> dict:
+    """The client state a tracer reports when it polls the backend itself: like its state in its requests to the agent,
+    but in protobuf, where 64-bit integers are rendered as strings, and default values are omitted
+    """
+    clients = data.get("request", {}).get("content", {}).get("active_clients", [])
+    state = clients[0].get("state", {}) if clients else {}
+    return {
+        **state,
+        "targets_version": int(state.get("targets_version", 0)),
+        "config_states": [
+            {
+                **config_state,
+                "version": int(config_state.get("version", 0)),
+                "apply_state": int(config_state.get("apply_state", 0)),
+            }
+            for config_state in state.get("config_states", [])
+        ],
+    }
+
+
 def send_state(
     raw_payload: dict,
     *,
@@ -314,12 +334,19 @@ def send_state(
 
     last_client_state: dict[str, Any] = {}
 
+    # Without an agent, the tracer polls the backend itself, and reports the state of its configs there
+    agentless = not getattr(context.scenario, "include_agent", True)
+    rc_path, rc_interface = ("/api/v0.1/configurations", mocked_backend) if agentless else ("/v0.7/config", library)
+
     def remote_config_applied(data: dict) -> bool:
         nonlocal last_client_state
-        if data["path"] != "/v0.7/config":
+        if data["path"] != rc_path:
             return False
 
-        last_client_state = data.get("request", {}).get("content", {}).get("client", {}).get("state", {})
+        if agentless:
+            last_client_state = _agentless_client_state(data)
+        else:
+            last_client_state = data.get("request", {}).get("content", {}).get("client", {}).get("state", {})
         # read with .get(): a poll carrying no client state used to raise KeyError from
         # inside this callback, which is not a useful way to report a malformed payload.
         # It now reads as "not the version we are waiting for" and the wait continues.
@@ -361,7 +388,7 @@ def send_state(
     wait_started = time.monotonic()
     wait_started_at = datetime.now(UTC)
     with _dump_stacks_if_apply_stalls(wait_started):
-        rv = library.wait_for(remote_config_applied, timeout=APPLY_TIMEOUT)
+        rv = rc_interface.wait_for(remote_config_applied, timeout=APPLY_TIMEOUT)
         # measured inside, so watcher teardown is not counted as part of the apply
         elapsed = time.monotonic() - wait_started
 

@@ -58,3 +58,51 @@ message OrgStatusResponse {
   bool enabled = 1;
   bool authorized = 2;
 }
+
+// Request sent when polling /api/v0.1/configurations. Without an agent, the tracer polls it directly, and reports the
+// apply state of its configs in it (active_clients[].state), instead of in its requests to the agent's /v0.7/config
+
+message LatestConfigsRequest {
+  string hostname = 1;
+  string agentVersion = 2;
+  uint64 current_config_snapshot_version = 3;
+  uint64 current_config_root_version = 9;
+  uint64 current_director_root_version = 8;
+  repeated string products = 4;
+  repeated string new_products = 5;
+  repeated Client active_clients = 6;
+  bytes backend_client_state = 10;
+  bool has_error = 11;
+  string error = 12;
+  string trace_agent_env = 13;
+  string org_uuid = 14;
+  repeated string tags = 15;
+  string agent_uuid = 16;
+}
+
+message Client {
+  ClientState state = 1;
+  string id = 2;
+  repeated string products = 3;
+  bool is_tracer = 6;
+  bool is_agent = 8;
+  uint64 last_seen = 10;
+  bytes capabilities = 11;
+}
+
+message ClientState {
+  uint64 root_version = 1;
+  uint64 targets_version = 2;
+  repeated ConfigState config_states = 3;
+  bool has_error = 4;
+  string error = 5;
+  bytes backend_client_state = 6;
+}
+
+message ConfigState {
+  string id = 1;
+  uint64 version = 2;
+  string product = 3;
+  uint64 apply_state = 4;
+  string apply_error = 5;
+}
