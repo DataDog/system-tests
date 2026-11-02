@@ -73,6 +73,18 @@ def test_query_string_is_stripped_from_the_log_filename(server: MockedBackendSer
 
 
 @scenarios.test_the_test
+def test_records_the_host_without_port_like_the_proxy(server: MockedBackendServer, tmp_path: Path):
+    # senders build the intake URLs from DD_SITE: the Host header names the intake they target
+    response = requests.get(
+        f"{server.base_url}/info", headers={"Host": "trace.agent.mocked-backend.invalid:443"}, timeout=5
+    )
+    assert response.status_code == 200
+
+    (written,) = tmp_path.glob("*.json")
+    assert json.loads(written.read_text())["host"] == "trace.agent.mocked-backend.invalid"
+
+
+@scenarios.test_the_test
 def test_reads_chunked_request_bodies(server: MockedBackendServer, tmp_path: Path):
     # requests sends a generator with Transfer-Encoding: chunked, like the agent forwarding to the debugger intake
     with requests.Session() as session:

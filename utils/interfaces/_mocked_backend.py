@@ -2,8 +2,9 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-"""Mocked backend (v2) interface: what the mocked backend container (utils/mocked_backend) receives, standing
-in for the real Datadog backend.
+"""Mocked backend (v2) interface: what the mocked backend (utils/mocked_backend) receives, standing in for the real
+Datadog backend. The mocked backend runs in its own container, or, for scenarios that can't use it (e.g. the VM
+scenarios), in the pytest process (see start_mocked_backend).
 """
 
 from collections.abc import Callable, Generator, Iterable
@@ -16,11 +17,13 @@ from utils._weblog import HttpResponse
 from utils.dd_types import AgentTraceFormat, DataDogAgentSpan, DataDogAgentTrace
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils.interfaces._misc_validators import HeadersPresenceValidator
+from utils.mocked_backend import MockedBackendServer
 
 
 class _MockedBackendInterfaceValidator(ProxyBasedInterfaceValidator):
     def __init__(self):
         super().__init__("mocked_backend")
+        self._mock_server: MockedBackendServer | None = None
 
     def ingest_all_files(self) -> None:
         """Ingest every recorded file not seen yet by the watchdog. To call once the mocked backend is stopped.
@@ -40,6 +43,36 @@ class _MockedBackendInterfaceValidator(ProxyBasedInterfaceValidator):
         for data in super().get_data(path_filters=path_filters):
             if with_api_key is None or self.get_api_key(data) == with_api_key:
                 yield data
+
+    def start_mocked_backend(self) -> None:
+        """Run the mocked backend in this process, for scenarios that can't use MockedBackendContainer (e.g. the
+        VM scenarios, where the agent reaches it through an SSH reverse tunnel)
+        """
+        if self._mock_server is None:
+            self._mock_server = MockedBackendServer(self.log_folder, on_message=self._on_message)
+
+    @property
+    def mocked_backend_running(self) -> bool:
+        return self._mock_server is not None
+
+    @property
+    def mocked_backend_port(self) -> int:
+        assert self._mock_server is not None, "mocked backend is not running"
+        return self._mock_server.port
+
+    def stop_mocked_backend(self) -> None:
+        if self._mock_server is not None:
+            self._mock_server.close()
+            self._mock_server = None
+
+    def _on_message(self, data: dict) -> None:
+        # The mock server runs in this same process: data is appended as it is received, without the watchdog
+        with self._lock:
+            self._append_data(data)
+            self._data_list.sort(key=lambda data: data["log_filename"])
+
+        if self._wait_for_function and self._wait_for_function(data):
+            self._wait_for_event.set()
 
     @staticmethod
     def get_api_key(data: dict) -> str | None:
