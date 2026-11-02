@@ -168,6 +168,9 @@ class _OpenTelemetryScenario(DockerScenario):
                 interfaces.mocked_backend.check_deserialization_errors()
         elif self.use_proxy:
             self._wait_interface(interfaces.open_telemetry, 5)
+            if self.include_agent:
+                # gives the agent time to send what it received: close_targets removes it without waiting for that
+                self._wait_interface(interfaces.mocked_backend, 5)
 
         self.close_targets()
 
