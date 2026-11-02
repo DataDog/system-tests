@@ -144,6 +144,8 @@ class MockedBackendRequestHandler(BaseHTTPRequestHandler):
             "path": path,
             # like the proxy
             "query": url_parts.query,
+            # like the proxy: the hostname the sender targeted, without the port (e.g. an intake hostname)
+            "host": urlsplit(f"//{self.headers.get('Host', '')}").hostname or "",
             "request": {"timestamp_start": timestamp_start, "headers": list(self.headers.items())},
             "response": {"headers": []},
         }
