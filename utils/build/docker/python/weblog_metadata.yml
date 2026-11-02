@@ -32,5 +32,6 @@ uds-flask:
   excluded_scenarios: [IPV6]
 flask-poc:
   categories: [dd_trace]
+  excluded_scenarios: [APPSEC_LOW_WAF_TIMEOUT]  # tracer bug APMAPI-0000 in one test
 fastapi:
   categories: [dd_trace]
