@@ -1,5 +1,7 @@
 include:
-  - remote: https://gitlab-templates.ddbuild.io/libdatadog/include/versions/1.11.1/single-step-instrumentation-tests.yml
+  # Temporary trial of libdatadog-build#290. Images are system-tests and
+  # system-tests-pulumi tagged 149290858. Restore the 1.11.1 include before merge.
+  - remote: https://gitlab-templates.ddbuild.io/libdatadog/include-wip/bake-ssi-runner-venv/single-step-instrumentation-tests.yml
 
 stages:
   - SSI_TESTS
