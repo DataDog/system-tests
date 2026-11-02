@@ -114,7 +114,7 @@ def evp_flagevaluation_events_from_data(
 def find_evp_flagevaluation_events(flag_key: str) -> list[tuple[JSON, JSON]]:
     results: list[tuple[JSON, JSON]] = []
 
-    for data in interfaces.agent.get_data(path_filters=EVP_FLAGEVALUATIONS_PATH):
+    for data in interfaces.mocked_backend.get_data(path_filters=EVP_FLAGEVALUATIONS_PATH):
         results.extend(evp_flagevaluation_events_from_data(cast("JSON", data), flag_key))
 
     return results
@@ -333,8 +333,8 @@ class Test_FFE_EVP_Flagevaluation_SDK_Identity(FlagevaluationEgressContract):
 
     def test_ffe_evp_flagevaluation_egress(self) -> None:
         super().test_ffe_evp_flagevaluation_egress()
-        # interfaces.agent captures Agent-to-intake traffic, after forwarding.
-        for data in interfaces.agent.get_data(path_filters=EVP_FLAGEVALUATIONS_PATH):
+        # interfaces.mocked_backend captures Agent-to-intake traffic, after forwarding.
+        for data in interfaces.mocked_backend.get_data(path_filters=EVP_FLAGEVALUATIONS_PATH):
             if evp_flagevaluation_events_from_data(cast("JSON", data), self.flag_key, self.targeting_key):
                 assert_evp_sdk_identity(
                     cast("JSON", data),

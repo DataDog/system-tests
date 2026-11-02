@@ -119,7 +119,7 @@ def feature_flagging_evp_egress() -> FeatureFlaggingEVPEgress:
     scenario = context.scenario
     if not isinstance(scenario, FeatureFlaggingAgentlessEndToEndScenario):
         assert scenario.name == "FEATURE_FLAGGING_AND_EXPERIMENTATION"
-        return FeatureFlaggingEVPEgress(interfaces.agent, "agent")
+        return FeatureFlaggingEVPEgress(interfaces.mocked_backend, "agent")
 
     if scenario.exposure_egress == "sidecar":
         assert "serverless-init" in scenario.components
