@@ -5509,7 +5509,7 @@ manifest:
   tests/test_standard_tags.py::Test_StandardTagsRoute:
     - weblog_declaration:
         "*": v0.102.0
-        akka-http: bug (AIDM-594)
+        akka-http: irrelevant (AIDM-594)
         play: bug (AIDM-593)
   tests/test_standard_tags.py::Test_StandardTagsStatusCode: v0.102.0
   tests/test_standard_tags.py::Test_StandardTagsUrl: v0.107.1
