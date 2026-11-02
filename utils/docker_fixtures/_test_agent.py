@@ -60,6 +60,56 @@ def make_ffe_app(**kwargs):
 main(app_factory=make_ffe_app)
 """
 
+# The pinned test agent has no DogStatsD listener. Opt-in tests record the datagrams
+# sent to DD_AGENT_HOST:8125, the default DogStatsD address of the SDKs, and read
+# them back from /test/session/dogstatsd. /test/session/clear also drops them.
+_DOGSTATSD_INTAKE_COMMAND = """
+import asyncio
+
+from aiohttp import web
+from ddapm_test_agent.agent import main, make_app
+
+
+class DogStatsD(asyncio.DatagramProtocol):
+    def __init__(self, metrics):
+        self.metrics = metrics
+
+    def datagram_received(self, data, addr):
+        self.metrics.extend(line for line in data.decode(errors="replace").splitlines() if line)
+
+
+def make_dogstatsd_app(**kwargs):
+    app = make_app(**kwargs)
+    metrics = []
+
+    async def listen(app):
+        await asyncio.get_running_loop().create_datagram_endpoint(
+            lambda: DogStatsD(metrics), local_addr=("0.0.0.0", 8125)
+        )
+
+    @web.middleware
+    async def clear(request, handler):
+        if request.path == "/test/session/clear":
+            metrics.clear()
+        return await handler(request)
+
+    async def handle_dogstatsd(request):
+        return web.json_response(metrics)
+
+    app.on_startup.append(listen)
+    app.middlewares.append(clear)
+    app.add_routes([web.get("/test/session/dogstatsd", handle_dogstatsd)])
+    return app
+
+
+main(app_factory=make_dogstatsd_app)
+"""
+
+_INTAKE_COMMANDS = {
+    "SYSTEM_TESTS_FFE_INTAKE": _FFE_INTAKE_COMMAND,
+    "SYSTEM_TESTS_DOGSTATSD_INTAKE": _DOGSTATSD_INTAKE_COMMAND,
+}
+
 
 def _request_token(request: pytest.FixtureRequest) -> str:
     token = ""
@@ -145,6 +195,11 @@ class TestAgentFactory:
             env["SNAPSHOT_CI"] = "0"
         env |= agent_env
 
+        intakes = [key for key in _INTAKE_COMMANDS if agent_env.get(key) == "true"]
+        if len(intakes) > 1:
+            pytest.fail(f"Only one test agent intake can be enabled, got {intakes}", pytrace=False)
+        command = ["python", "-c", _INTAKE_COMMANDS[intakes[0]]] if intakes else None
+
         host_port = get_host_port(worker_id, agent_port_base)
         otlp_http_host_port = get_host_port(worker_id, otlp_http_port_base)
         otlp_grpc_host_port = get_host_port(worker_id, otlp_grpc_port_base)
@@ -157,9 +212,7 @@ class TestAgentFactory:
             open(log_path, "w+", encoding="utf-8") as log_file,
             docker_run(
                 image=self.image,
-                command=["python", "-c", _FFE_INTAKE_COMMAND]
-                if agent_env.get("SYSTEM_TESTS_FFE_INTAKE") == "true"
-                else None,
+                command=command,
                 name=container_name,
                 env=env,
                 volumes={
@@ -435,6 +488,17 @@ class TestAgentAPI:
         resp = self._session.get(self._url("/test/session/requests"))
         resp_json = resp.json()
         self._write_log("requests", resp_json)
+        return resp_json
+
+    def dogstatsd_metrics(self) -> list[str]:
+        """DogStatsD lines received on UDP 8125.
+
+        Requires the SYSTEM_TESTS_DOGSTATSD_INTAKE=true agent_env.
+        """
+        resp = self._session.get(self._url("/test/session/dogstatsd"))
+        resp.raise_for_status()
+        resp_json = cast("list[str]", resp.json())
+        self._write_log("dogstatsd", resp_json)
         return resp_json
 
     def rc_requests(self, *, post_only: bool = False):

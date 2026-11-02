@@ -228,6 +228,10 @@ The shared `mocked_backend` fixture serves these protobuf responses. Import shar
 
 Use `mocked_backend.client.ffe_set_response` or `mocked_backend.client.ffe_set_responses` with `response_format="protobuf"` to configure these responses; the default format is JSON. Each format has an independent response timeline, and controls reject response IDs unsupported by the selected format. `mocked_backend.client.ffe_reset` resets both timelines and the shared request history. Use `mocked_backend.ffe_get_requests` to inspect paths, queries, and headers without including fixture control traffic.
 
+#### DogStatsD metrics
+
+The test agent does not listen for DogStatsD by default. Parametrize `agent_env` with `{"SYSTEM_TESTS_DOGSTATSD_INTAKE": "true"}` to record the datagrams that SDKs send to `DD_AGENT_HOST:8125`, their default DogStatsD address. `test_agent.dogstatsd_metrics()` returns the received lines, and `test_agent.clear()` drops them. Such a test uses its own test agent instead of a pooled one.
+
 #### Effective OpenTelemetry configuration
 
 Use `test_library.otel_effective_config()` to inspect resolved OTLP exporter timeouts.
