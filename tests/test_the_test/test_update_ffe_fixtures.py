@@ -60,23 +60,65 @@ def test_copy_fixture_snapshot_rejects_symbolic_links(tmp_path: Path) -> None:
 
 
 @scenarios.test_the_test
-def test_copy_flag_selection_snapshot_imports_vectors_and_tags(tmp_path: Path) -> None:
+def test_copy_flag_selection_snapshot_imports_only_vectors_and_tags(tmp_path: Path) -> None:
     source = tmp_path / "source"
     snapshot = tmp_path / "snapshot"
     (source / "flag-selection").mkdir(parents=True)
     snapshot.mkdir()
     (source / "flag-selection" / "selection-vectors.json").write_text('{"flags": [], "cases": []}', encoding="utf-8")
     (source / "flag-selection" / "ufc-config-tags.json").write_text('{"flags": []}', encoding="utf-8")
+    (source / "flag-selection" / "README.md").write_text("upstream documentation", encoding="utf-8")
 
     update_ffe_fixtures._copy_flag_selection_snapshot(source, snapshot)
     update_ffe_fixtures._validate_flag_selection_snapshot(snapshot)
 
-    assert (snapshot / "flag-selection" / "selection-vectors.json").is_file()
-    assert (snapshot / "flag-selection" / "ufc-config-tags.json").is_file()
+    assert sorted(path.name for path in (snapshot / "flag-selection").iterdir()) == [
+        "selection-vectors.json",
+        "ufc-config-tags.json",
+    ]
 
-    (snapshot / "flag-selection" / "ufc-config-tags.json").unlink()
+
+@scenarios.test_the_test
+def test_copy_flag_selection_snapshot_skips_absent_directory(tmp_path: Path) -> None:
+    (tmp_path / "source").mkdir()
+    (tmp_path / "snapshot").mkdir()
+
+    update_ffe_fixtures._copy_flag_selection_snapshot(tmp_path / "source", tmp_path / "snapshot")
+    update_ffe_fixtures._validate_flag_selection_snapshot(tmp_path / "snapshot")
+
+    assert not (tmp_path / "snapshot" / "flag-selection").exists()
+
+
+@scenarios.test_the_test
+def test_copy_flag_selection_snapshot_requires_tags(tmp_path: Path) -> None:
+    source = tmp_path / "source"
+    (source / "flag-selection").mkdir(parents=True)
+    (source / "flag-selection" / "selection-vectors.json").write_text('{"flags": [], "cases": []}', encoding="utf-8")
+
     with pytest.raises(ValueError, match="must contain ufc-config-tags.json"):
-        update_ffe_fixtures._validate_flag_selection_snapshot(snapshot)
+        update_ffe_fixtures._copy_flag_selection_snapshot(source, tmp_path / "snapshot")
+
+
+@scenarios.test_the_test
+def test_copy_flag_selection_snapshot_rejects_symbolic_link_directory(tmp_path: Path) -> None:
+    source = tmp_path / "source"
+    target = tmp_path / "target"
+    source.mkdir()
+    target.mkdir()
+    (source / "flag-selection").symlink_to(target, target_is_directory=True)
+
+    with pytest.raises(ValueError, match="Refusing to copy symbolic link"):
+        update_ffe_fixtures._copy_flag_selection_snapshot(source, tmp_path / "snapshot")
+
+
+@scenarios.test_the_test
+def test_validate_flag_selection_snapshot_rejects_unexpected_fields(tmp_path: Path) -> None:
+    (tmp_path / "flag-selection").mkdir()
+    (tmp_path / "flag-selection" / "selection-vectors.json").write_text('{"flags": [], "cases": []}', encoding="utf-8")
+    (tmp_path / "flag-selection" / "ufc-config-tags.json").write_text('{"flags": [], "extra": 1}', encoding="utf-8")
+
+    with pytest.raises(ValueError, match="ufc-config-tags.json must contain only flags"):
+        update_ffe_fixtures._validate_flag_selection_snapshot(tmp_path)
 
 
 @scenarios.test_the_test

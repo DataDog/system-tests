@@ -14,6 +14,8 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 FIXTURE_DESTINATION = REPOSITORY_ROOT / "tests" / "parametric" / "test_ffe" / "ffe-system-test-data"
 FIXTURE_REPOSITORY = "https://github.com/DataDog/ffe-system-test-data.git"
 FIXTURE_REF_PATTERN = re.compile(r"[A-Za-z0-9._/-]+")
+SELECTION_VECTORS_PATH = Path("flag-selection/selection-vectors.json")
+SELECTION_UFC_TAGS_PATH = Path("flag-selection/ufc-config-tags.json")
 
 
 def _validate_fixture_ref(fixture_ref: str) -> None:
@@ -163,21 +165,24 @@ def _set_github_outputs(source_commit: str, fixture_count: int, *, changed: bool
 
 def _copy_flag_selection_snapshot(source: Path, snapshot: Path) -> None:
     # The mocked backend applies flag selection to ufc-config.json with these vectors' semantics and tags.
-    flag_selection = source / "flag-selection"
-    if flag_selection.exists() or flag_selection.is_symlink():
-        _copy_entry(flag_selection, snapshot / flag_selection.name)
+    directory = source / SELECTION_VECTORS_PATH.parent
+    if directory.is_symlink():
+        msg = f"Refusing to copy symbolic link from FFE fixture repository: {directory}"
+        raise ValueError(msg)
+    if not directory.exists():
+        return
+    for path in (SELECTION_VECTORS_PATH, SELECTION_UFC_TAGS_PATH):
+        if not (source / path).exists() and not (source / path).is_symlink():
+            msg = f"FFE flag-selection must contain {path.name}"
+            raise ValueError(msg)
+        _copy_entry(source / path, snapshot / path)
 
 
 def _validate_flag_selection_snapshot(snapshot: Path) -> None:
-    directory = snapshot / "flag-selection"
-    if not directory.exists():
+    if not (snapshot / SELECTION_VECTORS_PATH.parent).exists():
         return
-    for name, fields in (("selection-vectors.json", {"flags", "cases"}), ("ufc-config-tags.json", {"flags"})):
-        path = directory / name
-        if not path.is_file():
-            msg = f"FFE flag-selection must contain {name}"
-            raise ValueError(msg)
-        with path.open(encoding="utf-8") as fixture_file:
+    for path, fields in ((SELECTION_VECTORS_PATH, {"flags", "cases"}), (SELECTION_UFC_TAGS_PATH, {"flags"})):
+        with (snapshot / path).open(encoding="utf-8") as fixture_file:
             content = json.load(fixture_file)
         if not isinstance(content, dict) or set(content) != fields:
             msg = f"{path.name} must contain only {', '.join(sorted(fields))}"
