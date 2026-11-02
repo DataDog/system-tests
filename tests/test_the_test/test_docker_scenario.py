@@ -163,24 +163,16 @@ def test_mocked_backend_agent_sends_to_the_mocked_backend_container(monkeypatch:
 
 @scenarios.test_the_test
 def test_open_telemetry_scenario_agent_sends_to_the_mocked_backend_container() -> None:
-    mocked = _OpenTelemetryScenario(
-        "FAKE_OTEL_MOCKED_BACKEND", doc="", include_intake=False, include_collector=False, mocked_backend=True
-    )
-    agent = mocked.agent_container
-    assert mocked.mocked_backend_container in mocked._containers  # noqa: SLF001
-    assert mocked.use_proxy_for_agent is False
+    scenario = _OpenTelemetryScenario("FAKE_OTEL", doc="", include_intake=False, include_collector=False)
+    agent = scenario.agent_container
+    assert scenario.use_proxy_for_agent is False
     # every intake hostname is derived from it, and is an alias of the mocked backend
     assert agent.environment["DD_SITE"] == "mocked-backend.invalid"
     assert "DD_PROXY_HTTPS" not in agent.environment
-    assert mocked.mocked_backend_container in agent.depends_on
+    assert scenario.mocked_backend_container in agent.depends_on
     # removed in reverse order: the agent stops before the mocked backend, that receives all it sends
-    containers = mocked._containers  # noqa: SLF001
-    assert containers.index(mocked.mocked_backend_container) < containers.index(agent)
-
-    proxied = _OpenTelemetryScenario("FAKE_OTEL_PROXY", doc="", include_intake=False, include_collector=False)
-    assert proxied.use_proxy_for_agent is True
-    assert not hasattr(proxied, "mocked_backend_container")
-    assert str(proxied.agent_container.environment["DD_PROXY_HTTPS"]).startswith("http://proxy:")
+    containers = scenario._containers  # noqa: SLF001
+    assert containers.index(scenario.mocked_backend_container) < containers.index(agent)
 
 
 @scenarios.test_the_test

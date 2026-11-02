@@ -42,10 +42,6 @@ class _OpenTelemetryScenario(DockerScenario):
         include_agent: bool = True,
         include_collector: bool = True,
         include_intake: bool = True,
-        backend_interface_timeout: int = 20,
-        agent_interface_timeout: int = 5,
-        require_api_key: bool = False,
-        mocked_backend: bool = False,
         extra_containers: tuple[type[TestedContainer], ...] = (),
     ) -> None:
         super().__init__(
@@ -57,26 +53,20 @@ class _OpenTelemetryScenario(DockerScenario):
             use_proxy=True,
             extra_containers=extra_containers,
         )
-        self._mocked_backend = include_agent and mocked_backend
-        self.use_proxy_for_agent = include_agent and not mocked_backend
-        """When False, the agent sends to the mocked backend (or nothing): interfaces.agent is not used"""
-        if self._mocked_backend:
+        self.use_proxy_for_agent = False
+        """The agent sends to the mocked backend: interfaces.agent is not used"""
+        if include_agent:
             # it serves HTTPS on its domain, and on the intake hostnames derived from it (see MOCKED_BACKEND_DOMAIN)
             self.mocked_backend_container = MockedBackendContainer(tls=True)
             self._containers.append(self.mocked_backend_container)
-        if include_agent:
             self.agent_container = AgentContainer(
-                # the E2E scenarios (require_api_key) send the agent data to the real backend
-                dd_api_key=FakeDatadogKey.DEFAULT
-                if self._mocked_backend
-                else os.environ.get("DD_API_KEY", FakeDatadogKey.DEFAULT),
-                use_proxy=not self._mocked_backend,
+                dd_api_key=FakeDatadogKey.DEFAULT,
+                use_proxy=False,
                 # the mocked backend serves remote config, signed with the TUF roots set by rc_backend_enabled
-                rc_backend_enabled=self._mocked_backend,
-                mocked_backend=self._mocked_backend,
+                rc_backend_enabled=True,
+                mocked_backend=True,
             )
-            if self._mocked_backend:
-                self.agent_container.depends_on.append(self.mocked_backend_container)
+            self.agent_container.depends_on.append(self.mocked_backend_container)
             # after the mocked backend: close_targets removes the containers in reverse order, so it receives
             # what the agent sends until the agent stops
             self._containers.append(self.agent_container)
@@ -92,9 +82,6 @@ class _OpenTelemetryScenario(DockerScenario):
         self.include_agent = include_agent
         self.include_collector = include_collector
         self.include_intake = include_intake
-        self.backend_interface_timeout = backend_interface_timeout
-        self.agent_interface_timeout = agent_interface_timeout
-        self._require_api_key = require_api_key
 
     def configure(self, config: pytest.Config):
         super().configure(config)
@@ -111,13 +98,8 @@ class _OpenTelemetryScenario(DockerScenario):
             self.collector_container.environment["DD_SITE"] = dd_site
         if self.include_agent:
             self.weblog_container.environment["OTEL_SYSTEST_INCLUDE_AGENT"] = "True"
-            if self._mocked_backend:
-                interfaces.mocked_backend.configure(self.host_log_folder, replay=self.replay)
-            else:
-                interfaces.agent.configure(self.host_log_folder, replay=self.replay)
+            interfaces.mocked_backend.configure(self.host_log_folder, replay=self.replay)
 
-        if self._require_api_key:  # only used by scenarios querying the real Datadog backend
-            interfaces.backend_legacy.configure(self.host_log_folder, replay=self.replay)
         interfaces.open_telemetry.configure(self.host_log_folder, replay=self.replay)
         interfaces.library_dotnet_managed.configure(self.host_log_folder, replay=self.replay)
 
@@ -151,10 +133,8 @@ class _OpenTelemetryScenario(DockerScenario):
         observer.schedule(
             Event(interfaces.open_telemetry), path=f"{self.host_log_folder}/interfaces/open_telemetry", recursive=True
         )
-        if self._mocked_backend:
+        if self.include_agent:
             observer.schedule(Event(interfaces.mocked_backend), path=interfaces.mocked_backend.log_folder)
-        elif self.include_agent:
-            observer.schedule(Event(interfaces.agent), path=f"{self.host_log_folder}/interfaces/agent")
 
         observer.start()
 
@@ -183,26 +163,15 @@ class _OpenTelemetryScenario(DockerScenario):
             interfaces.open_telemetry.load_data_from_logs()
             interfaces.open_telemetry.check_deserialization_errors()
 
-            if self._mocked_backend:
+            if self.include_agent:
                 interfaces.mocked_backend.load_data_from_logs()
                 interfaces.mocked_backend.check_deserialization_errors()
-            elif self.include_agent:
-                interfaces.agent.load_data_from_logs()
-                interfaces.agent.check_deserialization_errors()
-
-            if self._require_api_key:
-                interfaces.backend_legacy.load_data_from_logs()
         elif self.use_proxy:
             self._wait_interface(interfaces.open_telemetry, 5)
-            if self._require_api_key:  # only configured for the scenarios querying the real Datadog backend
-                self._wait_interface(interfaces.backend_legacy, self.backend_interface_timeout)
-            if self._mocked_backend:
-                # gives the agent time to send what it received before stopping it
-                self._wait_interface(interfaces.mocked_backend, self.agent_interface_timeout)
 
         self.close_targets()
 
-        if self._mocked_backend and not self.replay:
+        if self.include_agent and not self.replay:
             # the watchdog polls files about once per second: the last ones may not be ingested yet. Nothing else
             # can arrive now, so ingest them all instead of waiting an arbitrary time
             interfaces.mocked_backend.ingest_all_files()
@@ -217,9 +186,6 @@ class _OpenTelemetryScenario(DockerScenario):
         interface.wait(timeout)
 
     def _check_env_vars(self):
-        if self._require_api_key and "DD_API_KEY" not in os.environ:
-            pytest.exit("DD_API_KEY is required for this scenario", 1)
-
         if self.include_intake:
             assert all(key in os.environ for key in ("DD_API_KEY_2", "DD_APP_KEY_2")), (
                 "OTel E2E test requires DD_API_KEY_2 and DD_APP_KEY_2"
