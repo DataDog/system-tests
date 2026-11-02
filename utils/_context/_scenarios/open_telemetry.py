@@ -43,6 +43,7 @@ class _OpenTelemetryScenario(DockerScenario):
         include_collector: bool = True,
         include_intake: bool = True,
         backend_interface_timeout: int = 20,
+        agent_interface_timeout: int = 5,
         require_api_key: bool = False,
         mocked_backend: bool = False,
         extra_containers: tuple[type[TestedContainer], ...] = (),
@@ -92,6 +93,7 @@ class _OpenTelemetryScenario(DockerScenario):
         self.include_collector = include_collector
         self.include_intake = include_intake
         self.backend_interface_timeout = backend_interface_timeout
+        self.agent_interface_timeout = agent_interface_timeout
         self._require_api_key = require_api_key
 
     def configure(self, config: pytest.Config):
@@ -192,7 +194,11 @@ class _OpenTelemetryScenario(DockerScenario):
                 interfaces.backend_legacy.load_data_from_logs()
         elif self.use_proxy:
             self._wait_interface(interfaces.open_telemetry, 5)
-            self._wait_interface(interfaces.backend_legacy, self.backend_interface_timeout)
+            if self._require_api_key:  # only configured for the scenarios querying the real Datadog backend
+                self._wait_interface(interfaces.backend_legacy, self.backend_interface_timeout)
+            if self._mocked_backend:
+                # gives the agent time to send what it received before stopping it
+                self._wait_interface(interfaces.mocked_backend, self.agent_interface_timeout)
 
         self.close_targets()
 
