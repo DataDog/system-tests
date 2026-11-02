@@ -48,7 +48,10 @@ class MockedBackendServer(MockedBackendServerFfeMixin, MockedBackendServerRcMixi
         f"agent-http-intake.logs.{MOCKED_BACKEND_DOMAIN}",
         f"api.{MOCKED_BACKEND_DOMAIN}",
         f"app.{MOCKED_BACKEND_DOMAIN}",
-        # with a hyphen: the tracer's agentless trace intake
+        # The python tracer's agentless trace intake. Also derived from DD_SITE, but not as a subdomain: dd-trace-py
+        # maps known Datadog sites to their intake (e.g. public-trace-http-intake.logs.datadoghq.com), and falls back
+        # to browser-intake-<site, dots replaced by dashes> for any other site, like ours. See
+        # compute_agentless_intake_url in ddtrace/internal/writer/writer.py
         f"browser-intake-{MOCKED_BACKEND_DOMAIN}",
         f"config.{MOCKED_BACKEND_DOMAIN}",
         f"debugger-intake.{MOCKED_BACKEND_DOMAIN}",
