@@ -111,17 +111,21 @@ class MockedBackendRequestHandler(BaseHTTPRequestHandler):
 
     def _read_body(self) -> bytes:
         if "chunked" in self.headers.get("Transfer-Encoding", "").lower():
-            # e.g. the agent streams what it forwards to the debugger intake
+            # the trace agent forwards some payloads (e.g. profiles, debugger intake) with chunked encoding
             chunks: list[bytes] = []
             while True:
-                size = int(self.rfile.readline().split(b";")[0].strip(), 16)
+                size_line = self.rfile.readline()
+                if not size_line:
+                    break
+                size = int(size_line.split(b";", 1)[0].strip(), 16)
                 if size == 0:
-                    # skip the trailer, until the empty line ending the body
+                    # consume optional trailers up to the terminating empty line
                     while self.rfile.readline() not in (b"\r\n", b"\n", b""):
                         pass
-                    return b"".join(chunks)
+                    break
                 chunks.append(self.rfile.read(size))
-                self.rfile.readline()  # the CRLF after each chunk
+                self.rfile.readline()  # CRLF after each chunk
+            return b"".join(chunks)
 
         content_length = int(self.headers.get("Content-Length", "0"))
         return self.rfile.read(content_length) if content_length else b""
