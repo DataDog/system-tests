@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022 Datadog, Inc.
 
-from utils import context, interfaces, rfc, weblog, features, scenarios
+from utils import bug, context, interfaces, rfc, weblog, features, scenarios
 from utils._weblog import HttpResponse
 
 
@@ -19,6 +19,7 @@ class Test_StandardTagsMethod:
             data = "notmuchofabody" if verb in ("POST", "PUT") else None
             self.requests[verb] = weblog.request(verb, "/waf", data=data)
 
+    @bug(context.library == "java", reason="APMAPI-0000")
     def test_methods(self):
         for verb, request in self.requests.items():
             interfaces.library.add_span_tag_validation(request=request, tags={"http.method": verb})
