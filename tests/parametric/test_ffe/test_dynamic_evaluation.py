@@ -62,9 +62,12 @@ def _filter_test_cases_for_platform(test_cases: list[dict[str, Any]], platform: 
     return applicable_cases
 
 
-def _get_dependent_flags_test_case_files() -> list[Path]:
-    """Get the test case files owned by the dependent-flags suite."""
-    return sorted(DEPENDENT_FLAGS_CASES_DIR.glob("*.json"))
+def _load_dependent_flags_suite() -> tuple[dict[str, Any], list[Path]]:
+    """Load the dependent-flags suite when it is present in the corpus."""
+    case_files = sorted(DEPENDENT_FLAGS_CASES_DIR.glob("*.json"))
+    if not case_files:
+        return {}, []
+    return json.loads((DEPENDENT_FLAGS_DIR / "ufc-config.json").read_text()), case_files
 
 
 # Load fixture at module level for reuse across tests
@@ -76,8 +79,7 @@ SPLIT_FEATURE_CASES = [
     for case in json.loads((FFE_EVALUATION_CASES_DIR / filename).read_text())
     if "features" in case["result"]
 ]
-DEPENDENT_FLAGS_UFC_DATA = json.loads((DEPENDENT_FLAGS_DIR / "ufc-config.json").read_text())
-DEPENDENT_FLAGS_TEST_CASE_FILES = _get_dependent_flags_test_case_files()
+DEPENDENT_FLAGS_UFC_DATA, DEPENDENT_FLAGS_TEST_CASE_FILES = _load_dependent_flags_suite()
 
 DEFAULT_ENVVARS = {
     "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
