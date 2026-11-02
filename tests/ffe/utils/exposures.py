@@ -4,7 +4,7 @@ from collections.abc import Iterable
 import json
 
 from utils._weblog import HttpResponse
-from utils.interfaces._core import ProxyBasedInterfaceValidator
+from utils import interfaces
 
 EXPOSURES_PATH = "/api/v2/exposures"
 EXPOSURE_WAIT_TIMEOUT_SECONDS = 30
@@ -45,7 +45,6 @@ def exposure_events_from_data(
 
 
 def assert_exposure_side_effects_contract(
-    interface: ProxyBasedInterfaceValidator,
     responses: Iterable[HttpResponse],
     *,
     flag_key: str,
@@ -63,15 +62,16 @@ def assert_exposure_side_effects_contract(
     def matches_exposure(data: dict) -> bool:
         return bool(exposure_events_from_data(data, {flag_key}, targeting_key))
 
-    assert interface.wait_for(
+    assert interfaces.mocked_backend.wait_for(
         matches_exposure,
         timeout=EXPOSURE_WAIT_TIMEOUT_SECONDS,
     ), f"Timed out waiting for exposure event for {flag_key!r} and {targeting_key!r}"
 
-    if not interface.replay:
-        interface.wait(EXPOSURE_CACHE_SETTLE_SECONDS)
+    # TODO : this wait serve no purpose, at this point, all data are available
+    if not interfaces.mocked_backend.replay:
+        interfaces.mocked_backend.wait(EXPOSURE_CACHE_SETTLE_SECONDS)
 
-    matching_requests = [data for data in interface.get_data() if matches_exposure(data)]
+    matching_requests = [data for data in interfaces.mocked_backend.get_data() if matches_exposure(data)]
     events = [
         event
         for request in matching_requests

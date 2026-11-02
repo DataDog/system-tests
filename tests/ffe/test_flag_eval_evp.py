@@ -278,7 +278,7 @@ class FlagevaluationEgressContract:
         # Validation only inspects the completed capture, including in replay mode.
         matching_requests = [
             cast("JSON", data)
-            for data in egress.interface.get_data(path_filters=EVP_FLAGEVALUATIONS_PATH)
+            for data in interfaces.mocked_backend.get_data(path_filters=EVP_FLAGEVALUATIONS_PATH)
             if matcher(cast("JSON", data))
         ]
         assert matching_requests, f"Expected flagevaluation requests for {self.flag_key}"
