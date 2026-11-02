@@ -3,6 +3,9 @@
 Feature under test: a server SDK given a flag selection sends it on the agentless configuration request and serves
 only the flags the backend returns. The mocked backend applies the selection to the shared ufc-config.json with the
 shared tags in flag-selection/ufc-config-tags.json.
+
+The selection reaches the SDK as written, through ffe_start's flag_selection field, so the canonical selection on the
+request is the SDK's own work.
 """
 
 import time
@@ -53,7 +56,7 @@ class Test_FFE_Flag_Selection:
     def test_tag_selection_loads_only_selected_flags(
         self, test_library: APMLibrary, mocked_backend: MockedBackendServer
     ) -> None:
-        assert test_library.ffe_start({"flagSelection": {"tags": [" team:checkout ", "team:checkout"]}})
+        assert test_library.ffe_start(flag_selection={"tags": [" team:checkout ", "team:checkout"]})
 
         selected = _evaluate_boolean(test_library, "basic-flag")
         requests = mocked_backend.ffe_get_requests()
