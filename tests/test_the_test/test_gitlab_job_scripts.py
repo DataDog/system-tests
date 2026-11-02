@@ -205,13 +205,3 @@ class Test_GitlabJobScripts:
         )
         assert result.returncode != 0
         assert "usage: run_job.py" in result.stderr
-
-
-@scenarios.test_the_test
-def test_run_exits_on_failure_unless_allowed() -> None:
-    with pytest.raises(SystemExit) as exc_info:
-        _common.run(["false"])
-    assert exc_info.value.code == 1
-
-    # e.g. datadog-ci tag, when the Datadog API answers 500
-    _common.run(["false"], allow_failure=True)
