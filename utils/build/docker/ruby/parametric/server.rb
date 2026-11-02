@@ -240,6 +240,21 @@ class TraceStatsFlushReturn
   end
 end
 
+class DsmProduceCheckpointArgs
+  attr_accessor :type, :target
+
+  def initialize(params)
+    @type = params['type']
+    @target = params['target']
+  end
+end
+
+class DsmProduceCheckpointReturn
+  def to_json(*_args)
+    {}.to_json
+  end
+end
+
 class TraceSpanErrorArgs
   attr_accessor :span_id, :type, :message, :stack
 
@@ -990,6 +1005,8 @@ class MyApp
       handle_trace_span_flush(req, res)
     when '/trace/stats/flush'
       handle_trace_stats_flush(req, res)
+    when '/trace/dsm/produce_checkpoint'
+      handle_dsm_produce_checkpoint(req, res)
     when '/trace/span/error'
       handle_trace_span_error(req, res)
     when '/trace/span/add_link'
@@ -1204,6 +1221,12 @@ class MyApp
 
   def handle_trace_stats_flush(_req, res)
     res.write(TraceStatsFlushReturn.new.to_json)
+  end
+
+  def handle_dsm_produce_checkpoint(req, res)
+    args = DsmProduceCheckpointArgs.new(JSON.parse(req.body.read))
+    Datadog::DataStreams.set_produce_checkpoint(type: args.type, destination: args.target)
+    res.write(DsmProduceCheckpointReturn.new.to_json)
   end
 
   def handle_trace_span_error(req, res)

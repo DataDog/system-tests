@@ -228,6 +228,10 @@ The shared `mocked_backend` fixture serves these protobuf responses. Import shar
 
 Use `mocked_backend.client.ffe_set_response` or `mocked_backend.client.ffe_set_responses` with `response_format="protobuf"` to configure these responses; the default format is JSON. Each format has an independent response timeline, and controls reject response IDs unsupported by the selected format. `mocked_backend.client.ffe_reset` resets both timelines and the shared request history. Use `mocked_backend.ffe_get_requests` to inspect paths, queries, and headers without including fixture control traffic.
 
+#### Data Streams Monitoring checkpoints
+
+`test_library.dsm_produce_checkpoint(checkpoint_type, target)` calls `POST /trace/dsm/produce_checkpoint`, which sets a produce checkpoint through the SDK's manual Data Streams Monitoring API. It succeeds whether or not DSM is enabled. The SDK sends the resulting stats to `/v0.1/pipeline_stats` periodically, and `test_agent.pipeline_stats_requests()` returns them. Some SDKs only send them when the agent advertises this endpoint in `/info`, which the test agent does not do by default: set the `DD_AGENT_EXTRA_INFO` `agent_env` to an `endpoints` list that includes it.
+
 #### Effective OpenTelemetry configuration
 
 Use `test_library.otel_effective_config()` to inspect resolved OTLP exporter timeouts.
