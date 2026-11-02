@@ -5512,6 +5512,7 @@ manifest:
         akka-http: irrelevant (AIDM-594)
         play: bug (AIDM-593)
   tests/test_standard_tags.py::Test_StandardTagsStatusCode: v0.102.0
+  tests/test_standard_tags.py::Test_StandardTagsStatusCode::test_status_code: missing_feature (endpoint missing:/status)
   tests/test_standard_tags.py::Test_StandardTagsUrl: v0.107.1
   tests/test_standard_tags.py::Test_StandardTagsUrl::test_multiple_matching_substring:
     - declaration: irrelevant (java release the new version at 1.22.0)
