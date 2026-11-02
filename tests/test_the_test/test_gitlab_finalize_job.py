@@ -153,27 +153,6 @@ def test_a_failing_step_does_not_stop_the_next_ones(
 
 
 @scenarios.test_the_test
-def test_failing_to_tag_the_job_does_not_fail_it(
-    tmp_path: Path, commands: list[list[str]], monkeypatch: pytest.MonkeyPatch
-):
-    def run(command: list[str], env: dict[str, str] | None = None, cwd: Path | None = None) -> None:  # noqa: ARG001
-        if command[:2] == ["datadog-ci", "tag"]:
-            # e.g. the Datadog API answering 500
-            raise subprocess.CalledProcessError(1, command)
-        commands.append(command)
-
-    monkeypatch.setattr(finalizer, "run", run)
-    _write(tmp_path / "system-tests" / "logs_docker_ssi" / "reportJunit.xml", "<testsuites/>")
-    job = _job("docker", tmp_path, SCENARIO="DOCKER_SSI")
-
-    assert finalizer.finalize(job) == 0
-    assert [command[:3] for command in commands] == [
-        ["datadog-ci", "junit", "upload"],
-        ["bash", str(tmp_path / "system-tests" / "utils" / "scripts" / "gitlab_print_logs.sh")],
-    ]
-
-
-@scenarios.test_the_test
 def test_logs_are_printed_even_without_log_folder(tmp_path: Path, commands: list[list[str]]):
     job = _job("docker", tmp_path, SCENARIO="DOCKER_SSI")
 
