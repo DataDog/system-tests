@@ -143,14 +143,33 @@ def test_pipeline_variable_overrides_input(tmp_path: Path) -> None:
     ("args", "environ"),
     [
         (["--libraries", "python"], {}),
+        ([], {"LIBRARIES": "java python"}),
         (["--scenarios", "DEFAULT"], {}),
         ([], {"SCENARIO_GROUPS": "appsec"}),
         ([], {"WEBLOGS": "flask-poc"}),
     ],
 )
 def test_not_compatible_with_other_selection_inputs(tmp_path: Path, args: list[str], environ: dict) -> None:
+    """Other selection inputs need libraries, which must not be in library_weblog_scenarios"""
     mapping = '{"python": {"flask-poc": ["DEFAULT"]}}'
     assert _main(tmp_path, "--library-weblog-scenarios", mapping, *args, environ=environ) == 1
+
+
+@scenarios.test_the_test
+def test_combined_with_other_selection_inputs(tmp_path: Path) -> None:
+    """libraries/scenarios/weblogs apply to the other libraries, library_weblog_scenarios to its own libraries"""
+    mapping = '{"python": {"flask-poc": ["APPSEC_BLOCKING"]}}'
+    args = ["--libraries", "java", "--scenarios", "DEFAULT", "--weblogs", "spring-boot,flask-poc"]
+    assert _main(tmp_path, "--library-weblog-scenarios", mapping, *args) == 0
+
+    pipeline = yaml.safe_load((tmp_path / "generated-pipeline-chunk-0.yml").read_text())
+    jobs = {name for name in pipeline if name.startswith(("system_tests_build_", "system_tests_run_"))}
+    assert jobs == {
+        "system_tests_build_java_spring-boot",
+        "system_tests_run_java_DEFAULT_spring-boot",
+        "system_tests_build_python_flask-poc",
+        "system_tests_run_python_APPSEC_BLOCKING_flask-poc",
+    }
 
 
 @scenarios.test_the_test

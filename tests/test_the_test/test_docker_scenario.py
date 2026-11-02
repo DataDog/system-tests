@@ -146,8 +146,10 @@ def test_mocked_backend_agent_sends_to_the_mocked_backend_container(monkeypatch:
     assert mocked_backend in scenario._containers  # noqa: SLF001
 
     agent = scenario.agent_container
-    assert agent.environment["DD_DD_URL"] == "https://mocked-backend.invalid"
-    assert agent.environment["DD_APM_DD_URL"] == "https://mocked-backend.invalid"
+    # every intake hostname is derived from it, and is an alias of the mocked backend
+    assert agent.environment["DD_SITE"] == "mocked-backend.invalid"
+    assert agent.dd_site == "mocked-backend.invalid"
+    assert "DD_DD_URL" not in agent.environment
     # reached by its name on the scenario network: no mapping to the docker host
     assert extra_hosts_at_start(monkeypatch, agent) is None
 
@@ -162,7 +164,7 @@ def test_mocked_backend_agent_sends_to_the_mocked_backend_container(monkeypatch:
 def test_no_mocked_backend_container_without_mocked_backend() -> None:
     scenario = DdTraceEndToEndScenario("FAKE_NO_MOCKED_BACKEND_V2", doc="", use_proxy_for_agent=False)
     assert scenario.mocked_backend_container not in scenario._containers  # noqa: SLF001
-    assert "DD_DD_URL" not in scenario.agent_container.environment
+    assert scenario.agent_container.environment["DD_SITE"] != "mocked-backend.invalid"
 
 
 @scenarios.test_the_test

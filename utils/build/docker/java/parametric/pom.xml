@@ -99,7 +99,7 @@
         <dependency>
             <groupId>dev.openfeature</groupId>
             <artifactId>sdk</artifactId>
-            <version>1.18.2</version>
+            <version>1.23.0</version>
         </dependency>
     </dependencies>
 

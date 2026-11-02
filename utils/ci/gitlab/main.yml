@@ -23,8 +23,9 @@ spec:
         (uppercase) and/or scenario groups (lowercase),
         e.g. '{"python": {"flask-poc": ["DEFAULT", "appsec"], "django-poc": ["DEFAULT"]}}'.
         PARAMETRIC is not weblog-bound, it is enabled with the "parametric" key, e.g. '{"python": {"parametric": []}}'.
-        Alternative to libraries/scenarios/scenarios_groups/weblogs (not compatible with them);
-        excluded_scenarios only applies to scenarios coming from groups.
+        Can be combined with libraries/scenarios/scenarios_groups/weblogs, which then apply to the other libraries
+        (a library cannot be in both).
+        In library_weblog_scenarios, excluded_scenarios only applies to scenarios coming from groups.
         GitLab limits inputs interpolation to 1 KB: for larger mappings, set the LIBRARY_WEBLOG_SCENARIOS
         variable in your system_tests_param job (extending .system_tests_param_base) instead; it takes precedence over this input.
       default: ""
