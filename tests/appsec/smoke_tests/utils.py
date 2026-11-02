@@ -92,7 +92,7 @@ SMOKE_RC_RULE_FILE: tuple[str, dict[str, object]] = (
 
 def _assert_rasp_attack(response: HttpResponse, expected_rule: str, expected_params: dict[str, dict[str, str]]) -> None:
     """Walk agent appsec data and assert the expected RASP rule triggered."""
-    for _, _, appsec_data in interfaces.agent.get_appsec_data(response):
+    for _, _, appsec_data in interfaces.mocked_backend.get_appsec_data(response):
         for trigger in appsec_data.get("triggers", []):
             if trigger.get("rule", {}).get("id") != expected_rule:
                 continue
@@ -127,7 +127,7 @@ class BaseThreatsSmokeTests:
         found_attack = False
         has_appsec_data = False
 
-        for _, span, _ in interfaces.agent.get_appsec_data(self.r):
+        for _, span, _ in interfaces.mocked_backend.get_appsec_data(self.r):
             if is_same_boolean(actual=span.meta.get("appsec.event"), expected="true"):
                 found_attack = True
                 has_appsec_data = True
@@ -211,7 +211,7 @@ class BaseTelemetrySmokeTests:
         self.r = weblog.get("/waf", headers={"User-Agent": "Arachni/v1"})
 
     def test_telemetry_smoke(self) -> None:
-        telemetry_data = list(interfaces.agent.get_telemetry_data(flatten_message_batches=False))
+        telemetry_data = list(interfaces.mocked_backend.get_telemetry_data(flatten_message_batches=False))
 
         assert telemetry_data, "Agent should forward telemetry data from the library"
 
@@ -264,7 +264,7 @@ class BaseRemoteConfigSmokeTests:
             and any(
                 trigger.get("rule", {}).get("id") == SMOKE_RC_RULE_ID for trigger in appsec_data.get("triggers", [])
             )
-            for _, span, appsec_data in interfaces.agent.get_appsec_data(self.r)
+            for _, span, appsec_data in interfaces.mocked_backend.get_appsec_data(self.r)
         ), "Agent should forward AppSec events for the RC-updated rule"
 
     def setup_rasp_blocking_smoke(self) -> None:
@@ -317,7 +317,8 @@ class BaseApiSecuritySmokeTests:
 
     def test_api_security_smoke(self) -> None:
         assert any(
-            any(key.startswith("_dd.appsec.s.") for key in span.meta) for _, span in interfaces.agent.get_spans(self.r)
+            any(key.startswith("_dd.appsec.s.") for key in span.meta)
+            for _, span in interfaces.mocked_backend.get_spans(self.r)
         )
 
 
@@ -335,7 +336,7 @@ class BaseUserEventsSmokeTests:
         self.r = weblog.post("/login?auth=local", data={username_key: "test", password_key: "1234"})
 
     def test_login_success_smoke(self) -> None:
-        for _, span in interfaces.agent.get_spans(self.r):
+        for _, span in interfaces.mocked_backend.get_spans(self.r):
             meta = span.meta
             if meta.get("_dd.appsec.usr.login") or meta.get("appsec.events.users.login.success.usr.login"):
                 return

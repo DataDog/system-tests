@@ -113,6 +113,8 @@ class AiGuardStandalone(_AIGuardScenario):
             agent_env={
                 "DD_INFRASTRUCTURE_MODE": "none",
             },
+            mocked_backend=True,
+            use_proxy_for_agent=False,
             doc="AI Guard standalone mode, with the infra product disabled on the agent",
             scenario_groups=[scenario_groups.ai_guard],
         )
