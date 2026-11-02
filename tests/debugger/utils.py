@@ -27,7 +27,7 @@ _TELEMETRY_PATH = "/api/v2/apmtelemetry"
 # Agentless (direct-to-intake) path: libdatadog's agentless debugger sender collapses logs,
 # snapshots, diagnostics AND symdb onto this single path on the debugger-intake host -- the
 # intake demultiplexes by payload, not path (datadog-live-debugger/src/sender.rs derive_endpoint_path).
-_AGENTLESS_DEBUGGER_PATH = "/api/v2/debugger"
+AGENTLESS_DEBUGGER_PATH = "/api/v2/debugger"
 
 # Library paths
 _DEBUGGER_V2_INPUT_PATH = "/debugger/v2/input"
@@ -175,9 +175,11 @@ class BaseDebuggerTest:
     setup_failures: list = []
 
     use_debugger_endpoint: bool = False
+    agentless: bool = False
+    """Without a Datadog Agent: the library sends straight to the debugger intake"""
 
     # Paths of the logs, snapshots and diagnostics sent to the backend, overridden by AgentlessBaseDebuggerTest for
-    # scenarios without a Datadog Agent, where they all collapse onto _AGENTLESS_DEBUGGER_PATH. The symbol database
+    # scenarios without a Datadog Agent, where they all collapse onto AGENTLESS_DEBUGGER_PATH. The symbol database
     # is sent to _DEBUGGER_PATH in both cases.
     _snapshot_paths: tuple[str, ...] = (_LOGS_PATH, _DEBUGGER_PATH)
 
@@ -827,9 +829,9 @@ class BaseDebuggerTest:
 
     def _collect_probe_diagnostics(self):
         def _read_data():
-            if len(self._snapshot_paths) == 1:
+            if self.agentless:
                 # Agentless: diagnostics, logs and snapshots all collapse onto one path.
-                path = self._snapshot_paths[0]
+                path = AGENTLESS_DEBUGGER_PATH
             elif context.library == "java":
                 if context.library.version > "1.27.0":
                     path = _DEBUGGER_PATH
@@ -899,8 +901,8 @@ class BaseDebuggerTest:
 
             # Collect snapshots from both the logs and debugger endpoints for compatibility for when we switched
             # snapshots to the debugger endpoint.
-            if len(self._snapshot_paths) == 1 or self.use_debugger_endpoint:
-                agent_logs_endpoint_requests += list(interfaces.mocked_backend.get_data(self._snapshot_paths[-1]))
+            if self.agentless or self.use_debugger_endpoint:
+                agent_logs_endpoint_requests += list(interfaces.mocked_backend.get_data(_DEBUGGER_PATH))
             else:
                 for path in self._snapshot_paths:
                     agent_logs_endpoint_requests += list(interfaces.mocked_backend.get_data(path))
@@ -1195,8 +1197,9 @@ class AgentlessBaseDebuggerTest(BaseDebuggerTest):
     """Base for debugger/SymDB tests run against DEBUGGER_AGENTLESS (no Datadog Agent).
 
     libdatadog's agentless debugger sender collapses logs, snapshots, diagnostics and SymDB
-    onto a single path on the debugger-intake host (see _AGENTLESS_DEBUGGER_PATH), sent
+    onto a single path on the debugger-intake host (see AGENTLESS_DEBUGGER_PATH), sent
     straight to the mocked backend.
     """
 
-    _snapshot_paths: tuple[str, ...] = (_AGENTLESS_DEBUGGER_PATH,)
+    agentless = True
+    _snapshot_paths: tuple[str, ...] = (AGENTLESS_DEBUGGER_PATH,)
