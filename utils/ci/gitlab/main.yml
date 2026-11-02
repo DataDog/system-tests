@@ -23,8 +23,9 @@ spec:
         (uppercase) and/or scenario groups (lowercase),
         e.g. '{"python": {"flask-poc": ["DEFAULT", "appsec"], "django-poc": ["DEFAULT"]}}'.
         PARAMETRIC is not weblog-bound, it is enabled with the "parametric" key, e.g. '{"python": {"parametric": []}}'.
-        Alternative to libraries/scenarios/scenarios_groups/weblogs (not compatible with them);
-        excluded_scenarios only applies to scenarios coming from groups.
+        Can be combined with libraries/scenarios/scenarios_groups/weblogs, which then apply to the other libraries
+        (a library cannot be in both).
+        In library_weblog_scenarios, excluded_scenarios only applies to scenarios coming from groups.
         GitLab limits inputs interpolation to 1 KB: for larger mappings, set the LIBRARY_WEBLOG_SCENARIOS
         variable in your system_tests_param job (extending .system_tests_param_base) instead; it takes precedence over this input.
       default: ""
@@ -104,7 +105,8 @@ variables:
     DD_STS_OIDC_TOKEN:
       aud: dd-sts
   script:
-    - dd-sts exchange --policy system-tests-gitlab -- datadog-ci tag --level job --tags "system-tests.job_type:setup" --tags "ci.framework.name:system-tests"
+    # job metadata for Datadog CI Visibility: the Datadog API being unavailable must not fail the job
+    - dd-sts exchange --policy system-tests-gitlab -- datadog-ci tag --level job --tags "system-tests.job_type:setup" --tags "ci.framework.name:system-tests" || true
     - python3 /system-tests/utils/ci/gitlab/validate_param_env.py
     - echo "SYSTEM_TESTS_PIPELINE_START_TIME=$(date +%s)" >> param.env
   artifacts:
@@ -130,7 +132,7 @@ system_tests_build_pipeline:
     # Passed through a variable rather than inlined in the script, as the JSON value contains quotes
     SYSTEM_TESTS_LIBRARY_WEBLOG_SCENARIOS_INPUT: $[[ inputs.library_weblog_scenarios ]]
   script:
-    - dd-sts exchange --policy system-tests-gitlab -- datadog-ci tag --level job --tags "system-tests.job_type:generate-pipeline"
+    - dd-sts exchange --policy system-tests-gitlab -- datadog-ci tag --level job --tags "system-tests.job_type:generate-pipeline" || true
     # pipeline variables set by the caller (LIBRARIES, SCENARIOS, SYSTEM_TESTS_PARAMETRIC_JOB_COUNT, ...) are
     # read from the environment and merged with the inputs by build_pipeline.py
     - >

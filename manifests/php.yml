@@ -11,6 +11,8 @@ manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_ClientIPTagsCollected: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_ContentParts: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_Evaluation: missing_feature
+  tests/ai_guard/test_ai_guard_sdk.py::Test_ExtraTags: missing_feature (APPSEC-70724)
+  tests/ai_guard/test_ai_guard_sdk.py::Test_ExtraTagsFailSafe: missing_feature (APPSEC-70724)
   tests/ai_guard/test_ai_guard_sdk.py::Test_Full_Response_And_Tags: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_NoRedaction: missing_feature
   tests/ai_guard/test_ai_guard_sdk.py::Test_RedactedMessagesInSDKResponse: missing_feature
@@ -1231,6 +1233,7 @@ manifest:
         apache-mod-8.0: v1.8.3
     - declaration: flaky (DEBUG-3814)
       component_version: '>1.8.3'
+  tests/debugger/test_debugger_rc_unsubscribe.py::Test_Debugger_RC_Unsubscribe: missing_feature (LIVE_DEBUGGING subscription is set at startup from DD_DYNAMIC_INSTRUMENTATION_ENABLED; RC cannot add it)
   tests/debugger/test_debugger_snapshot_correlation.py::Test_Debugger_Coordinated_Sampling: missing_feature (no per-trace coordinated sampling; probabilistic per-trace rate not implemented)
   tests/debugger/test_debugger_snapshot_correlation.py::Test_Debugger_Coordinated_Sampling_Line_Probe: irrelevant (Line-probe variant is only used by Node.js)
   tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb: missing_feature
@@ -1240,6 +1243,7 @@ manifest:
         laravel11x: v1.23.3  # TODO: a lower version might be supported
         symfony7x: v1.23.3  # TODO: a lower version might be supported
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry::test_telemetry_symdb: missing_feature (SymDb not implemented in PHP)
+  tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry_Metrics: missing_feature (Debugger telemetry metrics are not implemented)
   tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_injection_metadata:
     - declaration: missing_feature (Not implemented yet)
       component_version: <1.12.0
@@ -1634,6 +1638,8 @@ manifest:
   tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Warm_State_Preservation: missing_feature (FFL-2705 tracks PHP agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v1.21.0-dev
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_dependent_flags: missing_feature (FFL-1694)
+  tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Split_Features: incomplete_test_app (Split-feature hook capture is currently implemented only in the Java parametric client)
+  tests/parametric/test_ffe/test_exposure_hooks.py: incomplete_test_app (Exposure hook observations are not implemented)
   tests/parametric/test_ffe/test_rules_configuration.py: missing_feature (Standalone rules configuration helpers are currently tested only in Node.js)
   tests/parametric/test_ffe/test_serial_id_metadata.py: missing_feature
   tests/parametric/test_ffe/test_serial_id_metadata.py::Test_FFE_Serial_Id_Metadata_Go: irrelevant (Legacy Go metadata key)
@@ -1822,7 +1828,6 @@ manifest:
   tests/parametric/test_otel_tracestate_sampling.py::Test_OtelTracestateSampling: v1.26.0-dev
   tests/parametric/test_otlp_trace_metrics.py: '>=1.23.3'  # TODO: a lower version might be supported
   tests/parametric/test_otlp_trace_metrics.py::Test_FR01_Enablement_Configuration::test_fr01_1_enabled_explicit: missing_feature
-  tests/parametric/test_otlp_trace_metrics.py::Test_FR01_Enablement_Configuration::test_fr01_3_enabled_by_default: missing_feature
   tests/parametric/test_otlp_trace_metrics.py::Test_FR02_Metric_Identity: missing_feature
   tests/parametric/test_otlp_trace_metrics.py::Test_FR02_Mutual_Exclusion: missing_feature
   tests/parametric/test_otlp_trace_metrics.py::Test_FR03_Metric_Shape: missing_feature

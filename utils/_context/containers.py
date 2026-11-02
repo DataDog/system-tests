@@ -26,7 +26,7 @@ from utils.base_images.base_image import base_image_contexts
 from utils._context.weblog_metadata import WeblogMetaData
 from utils.docker_fixtures._core import extra_hosts_for_environment
 from utils.proxy.tuf import get_tuf_root_json
-from utils.mocked_backend import MockedBackendClient
+from utils.mocked_backend import MOCKED_BACKEND_DOMAIN, MockedBackendClient, MockedBackendServer
 from utils.mocked_backend.ffe import UFC_FIXTURE_RELATIVE_PATH
 from utils.proxy.ports import ProxyPorts
 from utils.proxy.mocked_response import (
@@ -51,9 +51,6 @@ from utils.k8s_lib_injection.k8s_weblog import K8sWeblog
 from utils.interfaces._library.core import LibraryInterfaceValidator
 from utils.interfaces import StdoutLogsInterface, LibraryStdoutInterface
 
-# Domain of the mocked backend, also the DD_SITE of its senders: the intake hostnames derived from it are its network
-# aliases. The reserved .invalid domain fails closed if a request is sent anywhere else
-MOCKED_BACKEND_DOMAIN = "mocked-backend.invalid"
 
 _DEFAULT_NETWORK_NAME = "system-tests_default"
 _NETWORK_NAME = "bridge" if "GITLAB_CI" in os.environ else _DEFAULT_NETWORK_NAME
@@ -665,16 +662,12 @@ class ProxyContainer(TestedContainer):
         client_drop_p0s: bool | None = None,
         obfuscation_version: int | None | Literal["MISSING"] = None,
         enable_ipv6: bool,
-        mocked_backend: bool = True,
     ) -> None:
         """Parameters:
         span_events: Whether the agent supports the native serialization of span events
         rc_backend_enabled: Whether to act as backend for core agent (instead of mocking tracer RC)
 
         """
-
-        if rc_api_enabled and not mocked_backend:
-            raise ValueError("rc_backend_enabled requires mocked_backend")
 
         # Adjust healthcheck for IPv6 scenarios
         host_target = "::1" if enable_ipv6 else "localhost"
@@ -688,7 +681,6 @@ class ProxyContainer(TestedContainer):
                 "DD_API_KEY": os.environ.get("DD_API_KEY"),
                 "DD_APP_KEY": os.environ.get("DD_APP_KEY"),
                 "SYSTEM_TESTS_IPV6": str(enable_ipv6),
-                "SYSTEM_TESTS_MOCKED_BACKEND": str(mocked_backend),
             },
             working_dir="/app",
             volumes={
@@ -751,8 +743,6 @@ class ProxyContainer(TestedContainer):
                 ),
             ]
 
-        self.mocked_backend = mocked_backend
-
     def configure(self, *, host_log_folder: str, replay: bool):
         super().configure(host_log_folder=host_log_folder, replay=replay)
 
@@ -785,18 +775,12 @@ class ProxyContainer(TestedContainer):
 
 class MockedBackendContainer(TestedContainer):
     """The mocked backend (utils/mocked_backend), standing in for the Datadog backend in its own container.
-    What it receives is recorded in the logs folder, and read by interfaces.backend_v2.
+    What it receives is recorded in the logs folder, and read by interfaces.mocked_backend.
     """
 
-    # With tls, it serves HTTPS instead of HTTP: for senders that only speak HTTPS to the intake hostnames derived
-    # from DD_SITE (e.g. an SDK sending exposures directly). Its certificate is signed by the mitmproxy CA: these
-    # senders must trust it. See utils/mocked_backend/tls/README.md
-    tls_hostnames = (
-        MOCKED_BACKEND_DOMAIN,
-        f"event-platform-intake.{MOCKED_BACKEND_DOMAIN}",
-        f"instrumentation-telemetry-intake.{MOCKED_BACKEND_DOMAIN}",
-    )
-    tls_cert_file = "utils/mocked_backend/tls/mocked-backend.pem"
+    # With tls, it serves HTTPS instead of HTTP, for MockedBackendServer.tls_hostnames: for senders that only speak
+    # HTTPS to the intake hostnames derived from DD_SITE (e.g. an SDK sending exposures directly). Its certificate is
+    # signed by the mitmproxy CA: these senders must trust it
     tls_ca_file = "utils/proxy/.mitmproxy/mitmproxy-ca-cert.pem"
 
     def __init__(self, *, tls: bool = False) -> None:
@@ -814,8 +798,8 @@ class MockedBackendContainer(TestedContainer):
             # a valid hostname: some HTTP clients reject an underscore
             name="mocked-backend",
             # Docker rejects aliases on the default bridge network, used on GitLab (see _NETWORK_NAME). If a tls
-            # scenario runs there, map tls_hostnames to this container with extra_hosts on the senders instead
-            network_aliases=list(self.tls_hostnames) if tls else None,
+            # scenario runs there, map these hostnames to this container with extra_hosts on the senders instead
+            network_aliases=list(MockedBackendServer.tls_hostnames) if tls else None,
             working_dir="/app",
             volumes={
                 # without utils/__init__.py: utils is a namespace package, and the rest of utils is not needed
@@ -836,7 +820,7 @@ class MockedBackendContainer(TestedContainer):
         super().configure(host_log_folder=host_log_folder, replay=replay)
 
         # Same relative path in the container and on the host, so recorded log filenames are the same
-        log_folder = f"{host_log_folder}/interfaces/backend_v2"
+        log_folder = f"{host_log_folder}/interfaces/mocked_backend"
         self.volumes[f"./{log_folder}"] = {"bind": f"/app/{log_folder}", "mode": "rw"}
         self.command = [
             "python",
@@ -848,10 +832,10 @@ class MockedBackendContainer(TestedContainer):
             log_folder,
         ]
         if self.tls:
-            self.command += ["--tls-cert-file", self.tls_cert_file]
+            self.command += ["--tls"]
 
         if self.internal_mocked_responses:
-            # not in the recordings folder: interfaces.backend_v2 reads every JSON file there
+            # not in the recordings folder: interfaces.mocked_backend reads every JSON file there
             mocks_path = f"{self.log_folder_path}/{MockedBackendResponse.internal_filename}"
             with Path(mocks_path).open(encoding="utf-8", mode="w") as f:
                 json.dump([mock.to_json() for mock in self.internal_mocked_responses], f, indent=2)
@@ -931,6 +915,7 @@ class AgentContainer(TestedContainer):
         dd_api_key: str,
         use_proxy: bool = True,
         rc_backend_enabled: bool = False,
+        mocked_backend: bool = False,
         environment: dict[str, str | None] | None = None,
     ) -> None:
         environment = environment or {}
@@ -938,7 +923,9 @@ class AgentContainer(TestedContainer):
             {
                 "DD_ENV": "system-tests",
                 "DD_HOSTNAME": "test",
-                "DD_SITE": self.dd_site,
+                # with the mocked backend, like a customer setup: every intake hostname, remote config included, is
+                # derived from it, and is an alias of the mocked backend container
+                "DD_SITE": MOCKED_BACKEND_DOMAIN if mocked_backend else os.environ.get("DD_SITE", "datad0g.com"),
                 "DD_APM_RECEIVER_PORT": str(self.apm_receiver_port),
                 "DD_DOGSTATSD_PORT": str(self.dogstatsd_port),
                 "DD_API_KEY": dd_api_key,
@@ -956,7 +943,8 @@ class AgentContainer(TestedContainer):
             tuf_root_json = get_tuf_root_json()
             environment["DD_REMOTE_CONFIGURATION_ENABLED"] = "true"
             environment["DD_REMOTE_CONFIGURATION_REFRESH_INTERVAL"] = "5s"
-            environment["DD_REMOTE_CONFIGURATION_NO_TLS"] = "true"
+            if use_proxy:
+                environment["DD_REMOTE_CONFIGURATION_NO_TLS"] = "true"
             environment["DD_REMOTE_CONFIGURATION_CONFIG_ROOT"] = tuf_root_json
             environment["DD_REMOTE_CONFIGURATION_DIRECTOR_ROOT"] = tuf_root_json
 
@@ -994,8 +982,8 @@ class AgentContainer(TestedContainer):
         return super().start(network)
 
     @property
-    def dd_site(self):
-        return os.environ.get("DD_SITE", "datad0g.com")
+    def dd_site(self) -> str:
+        return str(self.environment["DD_SITE"])
 
 
 class ServerlessInitContainer(TestedContainer):

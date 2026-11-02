@@ -132,6 +132,6 @@ class TracingConfigNondefault4(DdTraceEndToEndScenario):
                 "DD_TRACE_OTEL_ENABLED": "true",
             },
             doc="",
-            rc_api_enabled=True,
-            rc_backend_enabled=True,
+            mocked_backend=True,
+            use_proxy_for_agent=False,
         )

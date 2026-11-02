@@ -12,6 +12,9 @@
 /tests/ @DataDog/system-tests-reviewers
 
 # FFE
+/.github/chainguard/self.update-ffe-fixtures.create-pr.sts.yaml @DataDog/feature-flagging-and-experimentation-sdk @DataDog/system-tests-core
+/.github/workflows/update-ffe-fixtures.yml @DataDog/feature-flagging-and-experimentation-sdk @DataDog/system-tests-core
+/utils/scripts/update_ffe_fixtures.py @DataDog/feature-flagging-and-experimentation-sdk @DataDog/system-tests-core
 /utils/mocked_backend/_backend_ffe.py @DataDog/feature-flagging-and-experimentation-sdk @DataDog/system-tests-core
 /utils/build/docker/dotnet/parametric/Endpoints/FfeTestApi.cs @DataDog/feature-flagging-and-experimentation-sdk @DataDog/system-tests-core
 /utils/build/docker/dotnet/weblog/Controllers/FeatureFlagEvaluatorController.cs @DataDog/feature-flagging-and-experimentation-sdk @DataDog/system-tests-core
@@ -24,6 +27,7 @@
 /tests/ffe/ @DataDog/feature-flagging-and-experimentation-sdk
 /tests/test_the_test/test_ffe_tests.py @DataDog/feature-flagging-and-experimentation-sdk
 /tests/test_the_test/test_mock_ffe_agentless_backend.py @DataDog/feature-flagging-and-experimentation-sdk
+/tests/test_the_test/test_update_ffe_fixtures.py @DataDog/feature-flagging-and-experimentation-sdk
 /tests/parametric/test_ffe/ @DataDog/feature-flagging-and-experimentation-sdk
 
 # SDK cap

@@ -21,7 +21,7 @@ TAG_RUN = ["datadog-ci", "tag", "--level", "job", "--tags", "system-tests.job_ty
 def commands(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> list[list[str]]:
     """Record commands instead of running them, from a fake system-tests clone in $CI_PROJECT_DIR."""
     recorded: list[list[str]] = []
-    monkeypatch.setattr(_common, "run", recorded.append)
+    monkeypatch.setattr(_common, "run", lambda command, **_: recorded.append(command))
 
     clone = tmp_path / "system-tests"
     (clone / "binaries").mkdir(parents=True)

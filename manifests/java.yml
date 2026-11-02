@@ -47,6 +47,8 @@ manifest:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
         "spring-boot": v1.54.0
+  tests/ai_guard/test_ai_guard_sdk.py::Test_ExtraTags: missing_feature (APPSEC-70724)
+  tests/ai_guard/test_ai_guard_sdk.py::Test_ExtraTagsFailSafe: missing_feature (APPSEC-70724)
   tests/ai_guard/test_ai_guard_sdk.py::Test_Full_Response_And_Tags:
     - weblog_declaration:
         "*": irrelevant (just one weblog is enough to test the SDK)
@@ -3401,6 +3403,11 @@ manifest:
         spring-boot-undertow: v1.38.0
         spring-boot-wildfly: v1.38.0
         uds-spring-boot: v1.38.0
+  tests/debugger/test_debugger_rc_unsubscribe.py::Test_Debugger_RC_Unsubscribe:
+    - weblog_declaration:
+        "*": v1.67.0
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+  tests/debugger/test_debugger_rc_unsubscribe.py::Test_Debugger_RC_Unsubscribe::test_remove_config_with_other_config_remaining: missing_feature (DI config deletion does not restore local enablement while other APM_TRACING configs remain)
   tests/debugger/test_debugger_snapshot_correlation.py::Test_Debugger_Coordinated_Sampling: incomplete_test_app (no /debugger/correlation endpoint)
   tests/debugger/test_debugger_snapshot_correlation.py::Test_Debugger_Coordinated_Sampling_Line_Probe: irrelevant (Line-probe variant is only used by Node.js)
   tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb:
@@ -3455,6 +3462,16 @@ manifest:
         akka-http: v1.58.2+06122213c8  # Modified by easy win activation script
         play: v1.58.2+06122213c8  # Modified by easy win activation script
         spring-boot-payara: v1.58.2+06122213c8  # Modified by easy win activation script
+  tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry_Metrics:
+    - weblog_declaration:
+        "*": missing_feature
+        spring-boot: v1.68.0
+        spring-boot-jetty: v1.68.0
+        spring-boot-openliberty: v1.68.0
+        spring-boot-payara: v1.68.0
+        spring-boot-undertow: v1.68.0
+        spring-boot-wildfly: v1.68.0
+        uds-spring-boot: v1.68.0
   tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_injection_metadata:
     - declaration: missing_feature (Not implemented yet)
       component_version: <1.52.0
@@ -4253,6 +4270,10 @@ manifest:
   tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Warm_State_Preservation: v1.65.0
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v1.56.0
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_dependent_flags: missing_feature (FFL-1694)
+  tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Split_Features: v1.69.0-SNAPSHOT
+  tests/parametric/test_ffe/test_exposure_hooks.py: v1.68.0-SNAPSHOT
+  tests/parametric/test_ffe/test_exposure_hooks.py::Test_FFE_ExposureHooks::test_evaluation_feature_aggregation: missing_feature (Test agent needs EVP flagevaluation capture)
+  tests/parametric/test_ffe/test_exposure_hooks.py::Test_FFE_ExposureHooks::test_multiprovider_exposure_guard: irrelevant (Go exposure hook composition guard)
   tests/parametric/test_ffe/test_rules_configuration.py: missing_feature (Standalone rules configuration helpers are currently tested only in Node.js)
   tests/parametric/test_ffe/test_serial_id_metadata.py: v1.66.0
   tests/parametric/test_ffe/test_serial_id_metadata.py::Test_FFE_Serial_Id_Metadata_Go: irrelevant (Legacy Go metadata key)
@@ -4447,6 +4468,7 @@ manifest:
       component_version: <=1.23.0
   tests/parametric/test_otel_tracestate_sampling.py::Test_OtelTracestateSampling: v1.67.0-SNAPSHOT  # Easy win for all weblogs and version 1.66.0
   tests/parametric/test_otlp_trace_metrics.py: v1.66.0-SNAPSHOT
+  tests/parametric/test_otlp_trace_metrics.py::Test_FR01_Enablement_Configuration::test_fr01_3_disabled_by_default: missing_feature (OTLP trace metrics are still auto-enabled without OTEL_TRACES_SPAN_METRICS_ENABLED=true)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR01_Enablement_Configuration::test_fr01_6_disabled_when_apm_tracing_disabled: missing_feature (OTLP trace metrics are still emitted when DD_APM_TRACING_ENABLED=false)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_AdditionalTags::test_fr08_10_dd_tags_tracer_tags_resource_attributes: missing_feature (DD_TAGS is not yet reported as datadog.tracer_tags on the OTLP trace metrics resource)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR08_AdditionalTags::test_fr08_11_otel_resource_attributes_env_tracer_tags: missing_feature (OTEL_RESOURCE_ATTRIBUTES is not yet reported as datadog.tracer_tags on the OTLP trace metrics resource)

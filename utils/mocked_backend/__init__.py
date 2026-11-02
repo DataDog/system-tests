@@ -2,5 +2,6 @@
 
 from ._backend import MockedBackendServer
 from ._client import MockedBackendClient
+from ._utils import MOCKED_BACKEND_DOMAIN
 
-__all__ = ["MockedBackendClient", "MockedBackendServer"]
+__all__ = ["MOCKED_BACKEND_DOMAIN", "MockedBackendClient", "MockedBackendServer"]

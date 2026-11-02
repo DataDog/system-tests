@@ -28,14 +28,14 @@ class Test_SingleSpan:
 
     def test_parent_span_is_single_span(self):
         # Only the parent span should be submitted to the backend!
-        spans = interfaces.backend_v2.get_spans_list(self.req)
+        spans = interfaces.mocked_backend.get_spans_list(self.req)
         assert len(spans) == 1, "Agent did not submit the spans we want!"
 
         # Assert the spans sent by the agent.
         span = spans[0]
         assert span.get_span_name() == "parent.span.single_span_submitted"
         assert span.get("parentID") is None
-        metrics = interfaces.agent.get_span_metrics(span)
+        metrics = span.metrics
         assert metrics["_dd.top_level"] == 1.0
         _assert_single_span_metrics(span)
 
@@ -47,7 +47,7 @@ class Test_SingleSpan:
 
     def test_child_span_is_single_span(self):
         # Only the child should be submitted to the backend!
-        spans = interfaces.backend_v2.get_spans_list(self.req)
+        spans = interfaces.mocked_backend.get_spans_list(self.req)
         assert len(spans) == 1, "Agent did not submit the spans we want!"
 
         # Assert the spans sent by the agent.
@@ -70,7 +70,7 @@ def _assert_single_span_event(event: dict, name: str, *, is_root: bool):
 
 
 def _assert_single_span_metrics(span: DataDogAgentSpan):
-    metrics = interfaces.agent.get_span_metrics(span)
+    metrics = span.metrics
     assert metrics[SAMPLING_PRIORITY_KEY] == -1  # due to the global sampling rate = 0
     assert metrics[SINGLE_SPAN_SAMPLING_RATE] == 1.0
     assert metrics[SINGLE_SPAN_SAMPLING_MECHANISM] == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
