@@ -179,8 +179,8 @@ class Test_FFE_Rules_Configuration_Selection:
                     {
                         **options,
                         "flagSelection": {
-                            "tags": ["team:checkout", "release:summer sale", "team:checkout"],
-                            "keyPatterns": ["checkout-*", "checkout-banner", "checkout-*"],
+                            "tags": [" team:checkout ", "release:summer sale", "team:checkout"],
+                            "keyPatterns": [" checkout-banner ", "checkout-*", "checkout-banner"],
                         },
                     }
                 )
@@ -190,7 +190,7 @@ class Test_FFE_Rules_Configuration_Selection:
                 assert len(requests) == 1, (channel, requests)
                 url = urlsplit(requests[0]["path"])
                 assert url.path == f"{RULES_CONFIG_PATH}/{channel}", channel
-                assert parse_qs(url.query) == {
+                assert parse_qs(url.query, keep_blank_values=True) == {
                     "dd_env": ["test env"],
                     "selected_flag_tags": ["release:summer sale", "team:checkout"],
                     "selected_flag_key_patterns": ["checkout-*", "checkout-banner"],
@@ -233,16 +233,20 @@ class Test_FFE_Rules_Configuration_Selection:
                     assert len(requests) == 1, (channel, case, requests)
                     url = urlsplit(requests[0]["path"])
                     assert url.path == f"{RULES_CONFIG_PATH}/{channel}", (channel, case)
-                    assert parse_qs(url.query) == {"dd_env": ["test env"]}, (channel, case, url.query)
+                    assert parse_qs(url.query, keep_blank_values=True) == {"dd_env": ["test env"]}, (
+                        channel,
+                        case,
+                        url.query,
+                    )
 
     def test_invalid_selection_fails_before_request(
         self, test_library: APMLibrary, mocked_backend: MockedBackendServer
     ) -> None:
         cases: dict[str, dict[str, Any]] = {
             "malformed-tags": {"tags": "private-selection-value"},
-            "too-many-tags": {"tags": [f"tag:{index}" for index in range(32)]},
-            "too-many-patterns": {"keyPatterns": [f"flag-{index}" for index in range(32)]},
-            "oversized-tag": {"tags": ["x" * 201]},
+            "too-many-tags": {"tags": [f"private-selection-value-tag:{index}" for index in range(32)]},
+            "too-many-patterns": {"keyPatterns": [f"private-selection-value-flag-{index}" for index in range(32)]},
+            "oversized-tag": {"tags": ["private-selection-value".ljust(201, "x")]},
         }
         with test_library:
             for channel, credential in (("client", {"clientToken": CLIENT_TOKEN}), ("server", {"apiKey": API_KEY})):
