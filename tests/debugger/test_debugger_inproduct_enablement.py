@@ -396,7 +396,7 @@ class Test_Debugger_InProduct_Enablement_Probe_Removal(debugger.BaseDebuggerTest
     @staticmethod
     def _get_trace_spans(request: HttpResponse) -> list[DataDogAgentSpan]:
         # Spans created by probes don't carry the request ID, so all the spans of the request's trace are returned
-        return [span for _, trace in interfaces.agent.get_traces(request=request) for span in trace.spans]
+        return [span for _, trace in interfaces.mocked_backend.get_traces(request=request) for span in trace.spans]
 
     def _is_probe_span(self, span: DataDogAgentSpan) -> bool:
         return span.get_span_name() == "dd.dynamic.span" and span.meta.get("debugger.probeid") in self.probe_ids

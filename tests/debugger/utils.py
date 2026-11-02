@@ -554,7 +554,7 @@ class BaseDebuggerTest:
     def get_probe_diagnostics_files(self) -> set[str]:
         """Return the files of the probe diagnostics received so far, so that a later wait can ignore them."""
         return {
-            data["log_filename"] for path in (_LOGS_PATH, _DEBUGGER_PATH) for data in interfaces.agent.get_data(path)
+            data["log_filename"] for path in (_LOGS_PATH, _DEBUGGER_PATH) for data in interfaces.mocked_backend.get_data(path)
         }
 
     def wait_for_all_probes_installed(self, *, ignored_files: set[str] | None = None, timeout: int = 30) -> bool:
@@ -580,7 +580,7 @@ class BaseDebuggerTest:
             logger.debug(f"Installed probes: {installed_ids}, expected: {self.probe_ids}")
             return set(self.probe_ids).issubset(installed_ids)
 
-        return interfaces.agent.wait_for(_all_probes_installed, timeout=timeout)
+        return interfaces.mocked_backend.wait_for(_all_probes_installed, timeout=timeout)
 
     _exception_message = None
     _snapshot_found = False
