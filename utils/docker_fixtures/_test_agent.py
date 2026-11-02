@@ -338,6 +338,13 @@ class TestAgentAPI:
         resp = self._session.post(self._url("/test/session/responses/config"), remote_config_payload)
         assert resp.status_code == HTTPStatus.ACCEPTED
 
+    def set_remote_configs(self, configs: list[dict[str, Any]]) -> None:
+        """Serve exactly these {"path", "msg"} files, in this order, dropping every file served before."""
+        resp = self._session.post(
+            self._url("/test/session/responses/config"), self._build_config_path_response(configs)
+        )
+        assert resp.status_code == HTTPStatus.ACCEPTED
+
     @staticmethod
     def _build_config_path_response(config: list) -> str:
         expires_date = datetime.datetime.strftime(

@@ -652,6 +652,113 @@ class Test_DynamicConfigSdkConfiguration:
                 test_agent.clear()
 
 
+CUSTOMER_REVISION = 1_700_000_000_000
+OVERLAY_REVISION = CUSTOMER_REVISION + 1_000
+
+
+def _rc_file(
+    test_agent: TestAgentAPI, config_id: str, revision: int, config_overrides: dict[str, Any]
+) -> dict[str, Any]:
+    """Build an APM_TRACING file targeting the test service+env, in the shape the library reads."""
+    config = _create_rc_config(config_overrides)
+    config["id"] = config_id
+    config["revision"] = revision
+    payload = remote_config.to_sdk_config_payload(config) if uses_sdk_configuration(test_agent) else config
+    return {"path": f"datadog/2/APM_TRACING/{config_id}/config", "msg": payload}
+
+
+def _wait_for_applied_configs(test_agent: TestAgentAPI, test_library: APMLibrary, config_ids: set[str]) -> None:
+    """Wait until the library's latest RC request reports exactly config_ids as acknowledged APM_TRACING
+    configs, then drain the library.
+
+    Removing a config produces no ACK, so the set of reported configs is what shows a removal applied.
+    """
+    reported: set[str] = set()
+    for _ in range(_RC_WAIT_LOOPS):
+        for req in reversed(test_agent.rc_requests()):
+            states = [
+                s for s in req["body"]["client"]["state"].get("config_states") or [] if s["product"] == "APM_TRACING"
+            ]
+            reported = {str(s["id"]) for s in states}
+            if reported == config_ids and all(
+                s["apply_state"] == RemoteConfigApplyState.ACKNOWLEDGED.value for s in states
+            ):
+                test_library.flush_remote_config()
+                return
+            break
+        time.sleep(0.01)
+    raise AssertionError(f"Expected APM_TRACING configs {config_ids} to be applied, last reported {reported}")
+
+
+@scenarios.parametric
+@features.dynamic_configuration
+class Test_DynamicConfigMultiConfig:
+    """Two APM_TRACING configs targeting the same service+env: a customer's config, and an overlay such
+    as the short-lived config a Datadog feature writes to change one setting temporarily (for example
+    turning on profiling during a Bits AI investigation).
+
+    A library advertising APM_TRACING_MULTICONFIG applies both configs: a setting set by only one of
+    them applies, a setting set by both comes from the config with the newer revision whatever order
+    the configs are received in, and removing the overlay restores what the customer's config sets.
+    """
+
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_capability_multiconfig(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        assert test_library.is_alive(), "library container is not alive"
+        test_agent.assert_rc_capabilities({Capabilities.APM_TRACING_MULTICONFIG})
+
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_overlay_lifecycle(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
+        """The overlay overrides a setting of the customer's config while it exists, keeps the customer's
+        other settings, and the customer's value comes back once the overlay is removed.
+        """
+        suffix = uuid.uuid4().hex
+        customer_id, overlay_id = f"customer-{suffix}", f"overlay-{suffix}"
+        customer = _rc_file(
+            test_agent,
+            customer_id,
+            CUSTOMER_REVISION,
+            {"tracing_sampling_rate": 0.9, "tracing_tags": ["owner:customer"]},
+        )
+        overlay = _rc_file(test_agent, overlay_id, OVERLAY_REVISION, {"tracing_sampling_rate": 0.5})
+
+        test_agent.set_remote_configs([customer])
+        _wait_for_applied_configs(test_agent, test_library, {customer_id})
+        trace = send_and_wait_trace(test_library, test_agent, name="customer")
+        assert_sampling_rate(trace, 0.9)
+        assert_trace_has_tags(trace, {"owner": "customer"})
+
+        test_agent.set_remote_configs([customer, overlay])
+        _wait_for_applied_configs(test_agent, test_library, {customer_id, overlay_id})
+        trace = send_and_wait_trace(test_library, test_agent, name="overlay")
+        assert_sampling_rate(trace, 0.5)
+        assert_trace_has_tags(trace, {"owner": "customer"})
+
+        test_agent.set_remote_configs([customer])
+        _wait_for_applied_configs(test_agent, test_library, {customer_id})
+        trace = send_and_wait_trace(test_library, test_agent, name="removed")
+        assert_sampling_rate(trace, 0.9)
+        assert_trace_has_tags(trace, {"owner": "customer"})
+
+    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @parametrize("order", ["overlay_first", "customer_first"])
+    def test_newer_revision_wins_when_received_together(
+        self, order: str, test_agent: TestAgentAPI, test_library: APMLibrary
+    ) -> None:
+        """A library that receives both configs in one response, as after a restart while the overlay
+        exists, applies the overlay's value whatever the order of the configs in the response.
+        """
+        suffix = uuid.uuid4().hex
+        customer_id, overlay_id = f"customer-{suffix}", f"overlay-{suffix}"
+        customer = _rc_file(test_agent, customer_id, CUSTOMER_REVISION, {"tracing_sampling_rate": 0.9})
+        overlay = _rc_file(test_agent, overlay_id, OVERLAY_REVISION, {"tracing_sampling_rate": 0.5})
+
+        test_agent.set_remote_configs([overlay, customer] if order == "overlay_first" else [customer, overlay])
+        _wait_for_applied_configs(test_agent, test_library, {customer_id, overlay_id})
+        trace = send_and_wait_trace(test_library, test_agent, name="test")
+        assert_sampling_rate(trace, 0.5)
+
+
 def reverse_case(s: str) -> str:
     return "".join([char.lower() if char.isupper() else char.upper() for char in s])
 
