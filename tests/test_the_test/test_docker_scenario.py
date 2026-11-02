@@ -6,6 +6,7 @@ from utils import pytest
 from utils import interfaces, scenarios
 from utils._context._scenarios._core import endtoend as endtoend_scenarios
 from utils._context._scenarios._core.endtoend import DdTraceEndToEndScenario, DockerScenario
+from utils._context._scenarios.open_telemetry import _OpenTelemetryScenario
 from utils._context.containers import TestedContainer as _TestedContainer
 
 from .utils import extra_hosts_at_start
@@ -158,6 +159,28 @@ def test_mocked_backend_agent_sends_to_the_mocked_backend_container(monkeypatch:
     scenario._set_containers_dependancies()  # noqa: SLF001
     assert mocked_backend in agent.depends_on
     assert mocked_backend in weblog.depends_on
+
+
+@scenarios.test_the_test
+def test_open_telemetry_scenario_agent_sends_to_the_mocked_backend_container() -> None:
+    mocked = _OpenTelemetryScenario(
+        "FAKE_OTEL_MOCKED_BACKEND", doc="", include_intake=False, include_collector=False, mocked_backend=True
+    )
+    agent = mocked.agent_container
+    assert mocked.mocked_backend_container in mocked._containers  # noqa: SLF001
+    assert mocked.use_proxy_for_agent is False
+    # every intake hostname is derived from it, and is an alias of the mocked backend
+    assert agent.environment["DD_SITE"] == "mocked-backend.invalid"
+    assert "DD_PROXY_HTTPS" not in agent.environment
+    assert mocked.mocked_backend_container in agent.depends_on
+    # removed in reverse order: the agent stops before the mocked backend, that receives all it sends
+    containers = mocked._containers  # noqa: SLF001
+    assert containers.index(mocked.mocked_backend_container) < containers.index(agent)
+
+    proxied = _OpenTelemetryScenario("FAKE_OTEL_PROXY", doc="", include_intake=False, include_collector=False)
+    assert proxied.use_proxy_for_agent is True
+    assert not hasattr(proxied, "mocked_backend_container")
+    assert str(proxied.agent_container.environment["DD_PROXY_HTTPS"]).startswith("http://proxy:")
 
 
 @scenarios.test_the_test
