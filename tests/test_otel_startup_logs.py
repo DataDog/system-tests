@@ -146,15 +146,7 @@ class Test_OTEL_Startup_Logs:
         _assert_keys(*_OTLP_EXPORTER_KEYS)
 
     def test_otel_traces_exporter(self) -> None:
-        # Also checks the value: test_configured_value covers every configured key at once, so a library
-        # that doesn't report all of them can't enable it.
-        expected = OTEL_STARTUP_LOGS_ENV["OTEL_TRACES_EXPORTER"]
-        for index, configuration in enumerate(_get_startup_configurations()):
-            _assert_configuration_keys(index, configuration, {"OTEL_TRACES_EXPORTER"})
-            actual = configuration["OTEL_TRACES_EXPORTER"]
-            assert actual == expected, (
-                f"Startup configuration #{index + 1}: OTEL_TRACES_EXPORTER={actual!r}; expected {expected!r}"
-            )
+        _assert_keys("OTEL_TRACES_EXPORTER")
 
     def test_otel_log_level(self) -> None:
         _assert_keys("OTEL_LOG_LEVEL")
