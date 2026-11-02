@@ -80,7 +80,9 @@ def _headers():
 
 
 def _query_for_trace_id(trace_id: str, validator: Callable | None = None):
-    url = f"{API_HOST}/api/ui/trace/{trace_id}"
+    # The trace was just produced by the test, so the current time is an accurate time hint.
+    time_hint_ms = int(time.time() * 1000)
+    url = f"{API_HOST}/api/ui/trace/{trace_id}?time_hint={time_hint_ms}"
 
     results = {}
 
