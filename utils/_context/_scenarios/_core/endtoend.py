@@ -284,6 +284,11 @@ class EndToEndScenario(DockerScenario):
         self.mocked_backend_container = MockedBackendContainer(tls=True)
         if mocked_backend:
             self._containers.append(self.mocked_backend_container)
+            if include_agent and not rc_api_enabled:
+                # the mocked backend always serves remote config: tests can send configs through it. Unless the
+                # scenario has the proxy answer the library itself (rc_api_enabled without rc_backend_enabled)
+                self.rc_api_enabled = True
+                self.rc_backend_enabled = True
 
         self.agent_container = AgentContainer(
             dd_api_key=self.dd_api_key,
@@ -429,8 +434,9 @@ class EndToEndScenario(DockerScenario):
         if self._mocked_backend:
             if self.include_agent:
                 self.agent_container.depends_on.append(self.mocked_backend_container)
-            # e.g. agentless libraries may reach it as soon as they start
-            for container in self.weblog_infra.get_containers():
+            # e.g. agentless libraries may reach it as soon as they start. Not the other weblog containers (databases,
+            # ...), that never reach it: everything else depends on MsSql, the mocked backend included
+            for container in self.weblog_infra.get_weblog_containers():
                 container.depends_on.append(self.mocked_backend_container)
 
     def _start_interfaces_watchdog(self):
