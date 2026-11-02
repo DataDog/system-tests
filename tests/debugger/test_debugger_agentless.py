@@ -15,12 +15,12 @@ utils/_context/_scenarios/debugger_agentless.py for the scenario/interface wirin
 import tests.debugger.utils as debugger
 from utils import context, features, interfaces, scenarios
 from utils._context.containers import MOCKED_BACKEND_DOMAIN
-from utils._context._scenarios.agentless_endtoend import TracerAgentlessEndToEndScenario
+from utils._context._scenarios.agentless_endtoend import DebuggerAgentless
 
 
 def _weblog_api_key() -> str:
     scenario = context.scenario
-    assert isinstance(scenario, TracerAgentlessEndToEndScenario)
+    assert isinstance(scenario, DebuggerAgentless)
     return scenario.weblog_api_key
 
 

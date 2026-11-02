@@ -17,7 +17,7 @@ import time
 
 from utils import context, features, interfaces, scenarios, weblog
 from utils._context.containers import MOCKED_BACKEND_DOMAIN
-from utils._context._scenarios.agentless_endtoend import TracerAgentlessEndToEndScenario
+from utils._context._scenarios.agentless_endtoend import ApmTracingAgentless, ApmTracingAgentlessFastHeartbeat
 from utils._remote_config import send_apm_tracing_command
 from utils.dd_constants import RemoteConfigApplyState as ApplyState
 
@@ -66,7 +66,7 @@ def _assert_headers(headers: dict[str, str], *, exact: dict[str, str], present: 
 
 def _assert_api_key(headers: dict[str, str]) -> None:
     scenario = context.scenario
-    assert isinstance(scenario, TracerAgentlessEndToEndScenario)
+    assert isinstance(scenario, (ApmTracingAgentless, ApmTracingAgentlessFastHeartbeat))
     assert headers["dd-api-key"] in {scenario.weblog_api_key, "--redacted--"}
 
 

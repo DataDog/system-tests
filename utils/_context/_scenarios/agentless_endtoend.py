@@ -170,7 +170,7 @@ class _AgentlessEndToEndScenario(DdTraceEndToEndScenario):
             super()._stop_mocked_backend()
 
 
-class TracerAgentlessEndToEndScenario(_AgentlessEndToEndScenario):
+class _TracerAgentlessEndToEndScenario(_AgentlessEndToEndScenario):
     """The tracer sends traces, stats, telemetry... straight to the intake (DD_AGENTLESS_ENABLED). The intake hostnames
     derived from DD_SITE are network aliases of the mocked backend.
     """
@@ -198,7 +198,7 @@ class TracerAgentlessEndToEndScenario(_AgentlessEndToEndScenario):
         )
 
 
-class ApmTracingAgentless(TracerAgentlessEndToEndScenario):
+class ApmTracingAgentless(_TracerAgentlessEndToEndScenario):
     def __init__(self) -> None:
         super().__init__(
             "APM_TRACING_AGENTLESS",
@@ -214,7 +214,7 @@ class ApmTracingAgentless(TracerAgentlessEndToEndScenario):
         )
 
 
-class ApmTracingAgentlessFastHeartbeat(TracerAgentlessEndToEndScenario):
+class ApmTracingAgentlessFastHeartbeat(_TracerAgentlessEndToEndScenario):
     def __init__(self) -> None:
         super().__init__(
             "APM_TRACING_AGENTLESS_FAST_HEARTBEAT",
@@ -225,7 +225,7 @@ class ApmTracingAgentlessFastHeartbeat(TracerAgentlessEndToEndScenario):
         )
 
 
-class DebuggerAgentless(TracerAgentlessEndToEndScenario):
+class DebuggerAgentless(_TracerAgentlessEndToEndScenario):
     """Agentless Dynamic Instrumentation (probes) and Symbol DB, without a Datadog Agent.
 
     Probes are pushed through the remote configuration served by the mocked backend, which the native agentless RC
