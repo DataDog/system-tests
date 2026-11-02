@@ -228,6 +228,19 @@ The shared `mocked_backend` fixture serves these protobuf responses. Import shar
 
 Use `mocked_backend.client.ffe_set_response` or `mocked_backend.client.ffe_set_responses` with `response_format="protobuf"` to configure these responses; the default format is JSON. Each format has an independent response timeline, and controls reject response IDs unsupported by the selected format. `mocked_backend.client.ffe_reset` resets both timelines and the shared request history. Use `mocked_backend.ffe_get_requests` to inspect paths, queries, and headers without including fixture control traffic.
 
+#### Profiles
+
+`test_agent.profiling_requests()` returns the profiles that SDKs upload to `/profiling/v1/input`. Profilers upload every 60 seconds by default. These settings make them upload sooner:
+
+| SDK | Settings |
+|---|---|
+| .NET | `DD_PROFILING_UPLOAD_PERIOD` (seconds). On ARM64, the profiler also needs `DD_INTERNAL_PROFILING_ENABLED_ARM64=1`. |
+| Java | `DD_PROFILING_UPLOAD_PERIOD` (seconds), and `DD_PROFILING_START_FORCE_FIRST=true`, without which recording starts after up to 10 seconds plus one period. |
+| Node.js | `DD_PROFILING_UPLOAD_PERIOD` (seconds) |
+| Python | `DD_PROFILING_UPLOAD_INTERVAL` (seconds) |
+
+Ruby uploads every 60 seconds at the earliest and PHP every 67 seconds, but both also upload when they shut down. The Go app only runs the profiler while it serves `/trace/config`.
+
 #### Effective OpenTelemetry configuration
 
 Use `test_library.otel_effective_config()` to inspect resolved OTLP exporter timeouts.
