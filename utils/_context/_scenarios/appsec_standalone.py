@@ -18,6 +18,8 @@ class AppsecStandalone(DdTraceEndToEndScenario):
             agent_env={
                 "DD_INFRASTRUCTURE_MODE": "none",
             },
+            mocked_backend=True,
+            use_proxy_for_agent=False,
             doc="Appsec standalone mode (APM opt out), with the infra product disabled on the agent",
             scenario_groups=[scenario_groups.appsec],
         )
@@ -38,6 +40,8 @@ class AppsecApmStandalone(DdTraceEndToEndScenario):
             agent_env={
                 "DD_INFRASTRUCTURE_MODE": "none",
             },
+            mocked_backend=True,
+            use_proxy_for_agent=False,
             doc="Appsec with APM Standalone (infra opt out)",
             scenario_groups=[scenario_groups.appsec],
         )
@@ -58,6 +62,8 @@ class AppsecStandaloneApmStandalone(DdTraceEndToEndScenario):
             agent_env={
                 "DD_INFRASTRUCTURE_MODE": "none",
             },
+            mocked_backend=True,
+            use_proxy_for_agent=False,
             doc="Appsec standalone mode (APM opt out) with APM Standalone (infra opt out)",
             scenario_groups=[scenario_groups.appsec],
         )
@@ -99,6 +105,8 @@ class IastStandalone(DdTraceEndToEndScenario):
             agent_env={
                 "DD_INFRASTRUCTURE_MODE": "none",
             },
+            mocked_backend=True,
+            use_proxy_for_agent=False,
             doc="Source code vulnerability standalone mode (APM opt out), with the infra product disabled on the agent",
             scenario_groups=[scenario_groups.appsec],
         )
@@ -119,6 +127,8 @@ class ScaStandalone(DdTraceEndToEndScenario):
             agent_env={
                 "DD_INFRASTRUCTURE_MODE": "none",
             },
+            mocked_backend=True,
+            use_proxy_for_agent=False,
             doc="SCA standalone mode (APM opt out), with the infra product disabled on the agent",
             scenario_groups=[scenario_groups.appsec],
         )

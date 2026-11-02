@@ -40,7 +40,7 @@ class BaseInfraDisabled:
     def setup_no_infra_metrics(self):
         # Metrics are flushed on an interval, so wait for the first payload instead of relying on
         # the fixed collection window: an empty interface would make the assertion vacuous.
-        self.agent_has_flushed_metrics = interfaces.agent.wait_for(
+        self.agent_has_flushed_metrics = interfaces.mocked_backend.wait_for(
             _is_metrics_payload, timeout=AGENT_METRICS_FLUSH_TIMEOUT
         )
 
@@ -53,7 +53,7 @@ class BaseInfraDisabled:
         infra_metrics = sorted(
             {
                 metric["metric"]
-                for _, metric in interfaces.agent.get_metrics()
+                for _, metric in interfaces.mocked_backend.get_metrics()
                 if metric.get("metric", "").startswith(INFRA_METRIC_PREFIXES)
             }
         )
