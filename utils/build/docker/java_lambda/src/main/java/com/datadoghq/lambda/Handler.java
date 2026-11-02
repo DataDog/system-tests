@@ -53,6 +53,10 @@ public class Handler implements RequestHandler<Object, Object> {
     private static final String TRACK_CUSTOM_APPSEC_EVENT_NAME = "system_tests_appsec_event";
     private static final String TRACK_USER = "system_tests_user";
 
+    static {
+        ScaReachability.preloadVulnerableClass();
+    }
+
     private enum ResponseType { API_GATEWAY_REST, API_GATEWAY_HTTP, ALB, ALB_MULTI }
 
     /**
@@ -241,6 +245,10 @@ public class Handler implements RequestHandler<Object, Object> {
         // Route to handlers
         if (ctx.path.equals("/") || ctx.path.isEmpty()) {
             return handleRoot(ctx);
+        } else if (ctx.path.equals("/sca/vulnerable-call") && "GET".equals(ctx.method)) {
+            return createResponse(ctx, ScaReachability.junrarHit(), 200);
+        } else if (ctx.path.equals("/sca/vulnerable-call-alt") && "GET".equals(ctx.method)) {
+            return createResponse(ctx, ScaReachability.junrarHitAlt(), 200);
         } else if (ctx.path.equals("/headers") && "GET".equals(ctx.method)) {
             return handleHeaders(ctx);
         } else if (ctx.path.equals("/healthcheck") && "GET".equals(ctx.method)) {

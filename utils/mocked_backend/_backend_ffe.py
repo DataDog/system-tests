@@ -25,7 +25,7 @@ from ._utils import CONTROL_URL_PREFIX
 
 
 if TYPE_CHECKING:
-    from utils.mocked_backend._request_handler import MockBackendV2RequestHandler, MockedBackendServerCore
+    from utils.mocked_backend._request_handler import MockedBackendRequestHandler, MockedBackendServerCore
     from collections.abc import Mapping
 
     _Base = MockedBackendServerCore
@@ -68,11 +68,12 @@ TIMEOUT_RESPONSE_SECONDS = 1.5
 MAX_CONTROL_BODY_BYTES = 512
 CONFIG_PATH = "/api/v2/feature-flagging/config/rules-based/server"
 RULES_CONFIG_PATH = CONFIG_PATH.removesuffix("/server")
+EVP_INTAKE_PATHS = ("/api/v2/exposures", "/api/v2/flagevaluation")
 EXPECTED_DD_ENV = "test"
 CONFIG_QUERY = urlencode({"dd_env": EXPECTED_DD_ENV})
 REPO_ROOT = Path(__file__).parents[2]
 # relative to the repository root: the mocked backend container mounts it at the same place
-UFC_FIXTURE_RELATIVE_PATH = "tests/parametric/test_ffe/flags-v1.json"
+UFC_FIXTURE_RELATIVE_PATH = "tests/parametric/test_ffe/ffe-system-test-data/ufc-config.json"
 UFC_FIXTURE_PATH = REPO_ROOT / UFC_FIXTURE_RELATIVE_PATH
 MALFORMED_UFC_BYTES = b'{"flags": ['
 UFC_RESPONSE_TYPE = "universal-flag-configuration"
@@ -290,6 +291,10 @@ class MockedBackendServerFfeMixin(_Base):
         self.add_handler("GET", f"{RULES_CONFIG_PATH}/client", self._ffe_handle_rules_config)
         self.add_handler("GET", f"{RULES_CONFIG_PATH}/redirected", self._ffe_handle_rules_config)
 
+        # exposures and flag evaluations sent straight to the event platform intake
+        for path in EVP_INTAKE_PATHS:
+            self.add_handler("POST", path, self._ffe_handle_evp_intake)
+
         self.add_handler("GET", f"{self._ffe_control_path}/status", self._ffe_handle_status)
         self.add_handler("POST", f"{self._ffe_control_path}/responses", self._ffe_handle_control_responses)
         self.add_handler("POST", f"{self._ffe_control_path}/reset", self._ffe_handle_control_reset)
@@ -305,7 +310,7 @@ class MockedBackendServerFfeMixin(_Base):
         host = os.environ.get("SYSTEM_TESTS_MOCK_FFE_AGENTLESS_BACKEND_HOST") or os.environ.get(
             "SYSTEM_TESTS_MOCK_AGENTLESS_BACKEND_HOST", "host.docker.internal"
         )
-        return f"http://{host}:{self.port}"
+        return f"{self.scheme}://{host}:{self.port}"
 
     @property
     def ffe_library_config_url(self) -> str:
@@ -315,11 +320,16 @@ class MockedBackendServerFfeMixin(_Base):
         """Return captured FFE requests, excluding the fixture's control requests."""
         return self._ffe_state.get_requests()
 
-    def _ffe_handle_status(self, request: MockBackendV2RequestHandler, _: bytes | dict | None) -> tuple[Mapping, bytes]:
+    def _ffe_handle_status(self, request: MockedBackendRequestHandler, _: bytes | dict | None) -> tuple[Mapping, bytes]:
         return request.write_json(HTTPStatus.OK, self._ffe_state.status())
 
+    @staticmethod
+    def _ffe_handle_evp_intake(request: MockedBackendRequestHandler, _: bytes | dict | None) -> tuple[Mapping, bytes]:
+        # the event platform intake accepts the payload for asynchronous processing
+        return request.write_json(HTTPStatus.ACCEPTED, {})
+
     def _ffe_handle_config(
-        self, request: MockBackendV2RequestHandler, _: bytes | dict | None
+        self, request: MockedBackendRequestHandler, _: bytes | dict | None
     ) -> tuple[Mapping | bytes, bytes]:
         if _accepts_protobuf(",".join(request.headers.get_all("Accept", []))):
             return self._ffe_handle_rules_config(request, _)
@@ -330,7 +340,7 @@ class MockedBackendServerFfeMixin(_Base):
 
         return request.write_json(HTTPStatus.NOT_FOUND, {"error": "not found"})
 
-    def _ffe_handle_config_exec(self, request: MockBackendV2RequestHandler) -> tuple[bytes, bytes]:
+    def _ffe_handle_config_exec(self, request: MockedBackendRequestHandler) -> tuple[bytes, bytes]:
         request_headers = dict(request.headers)
         response = self._ffe_state.record_request(request_headers, request.path, "json")
         try:
@@ -350,7 +360,7 @@ class MockedBackendServerFfeMixin(_Base):
         return body, body
 
     def _ffe_handle_rules_config(
-        self, request: MockBackendV2RequestHandler, _: bytes | dict | None
+        self, request: MockedBackendRequestHandler, _: bytes | dict | None
     ) -> tuple[bytes, bytes]:
         response = self._ffe_state.record_request(dict(request.headers), request.path, "protobuf")
         try:
@@ -398,7 +408,7 @@ class MockedBackendServerFfeMixin(_Base):
             self._ffe_state.finish_request()
 
     def _ffe_handle_control_responses(
-        self, request: MockBackendV2RequestHandler, payload: bytes | dict | None
+        self, request: MockedBackendRequestHandler, payload: bytes | dict | None
     ) -> tuple[Mapping, bytes]:
         content_length = int(request.headers.get("Content-Length", "0"))
         if content_length > MAX_CONTROL_BODY_BYTES:
@@ -419,7 +429,7 @@ class MockedBackendServerFfeMixin(_Base):
         return request.write_json(HTTPStatus.OK, self._ffe_state.status())
 
     def _ffe_handle_control_reset(
-        self, request: MockBackendV2RequestHandler, _: bytes | dict | None
+        self, request: MockedBackendRequestHandler, _: bytes | dict | None
     ) -> tuple[Mapping, bytes]:
         self._ffe_state.reset()
         return request.write_json(HTTPStatus.OK, self._ffe_state.status())

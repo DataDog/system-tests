@@ -289,6 +289,10 @@ class ParametricTestClientApi(TestClientApi):
         except RequestException as e:
             logger.info(f"Expected exception when calling /trace/crash: {e}")
 
+    def terminate(self) -> None:
+        self.container.kill(signal="SIGKILL")
+        self.container.wait(timeout=10)
+
     def get_logs(self) -> str:
         return self.container.logs().decode("utf-8")
 
@@ -838,9 +842,11 @@ class ParametricTestClientApi(TestClientApi):
         flag: str,
         variation_type: str,
         default_value: bool | str | float | dict,
-        targeting_key: str,
+        targeting_key: str | None,
         attributes: dict | None = None,
         span_id: int | str | None = None,
+        exposure_hooks: bool = False,
+        fail_after_hook: bool = False,
     ) -> dict:
         """Evaluate a feature flag.
 
@@ -851,9 +857,19 @@ class ParametricTestClientApi(TestClientApi):
             targeting_key: The targeting key (usually user ID) for evaluation context
             attributes: Optional additional attributes for evaluation context
             span_id: Optional span ID to activate during evaluation (for span enrichment)
+            exposure_hooks: Capture two exposure-aware callback observations for this evaluation
+            fail_after_hook: Reject the resolved result in an application After hook;
+                requires exposure_hooks=True
 
         Returns:
-            dict: Evaluation result containing 'value' and 'reason'
+            dict: Evaluation result containing 'value', 'reason', and 'errorCode'.
+                When exposure_hooks=True, 'exposureHooks' contains two callback rows,
+                identified by 'hook' (0 or 1), with no required callback order.
+                Each row contains flag, subject, variant, allocationKey, metadata, value, errorCode,
+                reason, features, isExposure, isCacheHit, and shouldSend from the
+                public exposure hook. Unsupported provider compositions can return
+                no rows when their SDK explicitly disables customer exposure hooks.
+                allocationKey normalizes the SDK metadata name; metadata retains the original keys.
 
         """
         payload = {
@@ -865,6 +881,10 @@ class ParametricTestClientApi(TestClientApi):
         }
         if span_id is not None:
             payload["span_id"] = str(span_id)
+        if exposure_hooks:
+            payload["exposureHooks"] = True
+        if fail_after_hook:
+            payload["failAfterHook"] = True
 
         resp = self._session.post(self._url("/ffe/evaluate"), json=payload)
         return resp.json()
@@ -1008,6 +1028,12 @@ class ParametricTestClientApi(TestClientApi):
 
     def otel_metrics_force_flush(self) -> bool:
         resp = self._session.post(self._url("/metrics/otel/force_flush"), json={}).json()
+        return resp["success"]
+
+    def otel_metrics_shutdown(self, seconds: int = 10) -> bool:
+        resp = self._session.post(
+            self._url("/metrics/otel/shutdown"), json={"seconds": seconds}, timeout=seconds + 1
+        ).json()
         return resp["success"]
 
     def llmobs_trace(
@@ -1258,6 +1284,12 @@ class APMLibrary:
     def otel_metrics_force_flush(self) -> bool:
         return self._client.otel_metrics_force_flush()
 
+    def otel_metrics_shutdown(self, seconds: int = 10) -> bool:
+        return self._client.otel_metrics_shutdown(seconds)
+
+    def terminate(self) -> None:
+        self._client.terminate()
+
     def is_alive(self) -> bool:
         return self._client.is_alive()
 
@@ -1285,9 +1317,11 @@ class APMLibrary:
         flag: str,
         variation_type: str,
         default_value: bool | str | float | dict,
-        targeting_key: str,
+        targeting_key: str | None,
         attributes: dict | None = None,
         span_id: int | str | None = None,
+        exposure_hooks: bool = False,
+        fail_after_hook: bool = False,
     ) -> dict:
         """Evaluate a feature flag."""
         return self._client.ffe_evaluate(
@@ -1297,6 +1331,8 @@ class APMLibrary:
             targeting_key=targeting_key,
             attributes=attributes,
             span_id=span_id,
+            exposure_hooks=exposure_hooks,
+            fail_after_hook=fail_after_hook,
         )
 
     def llmobs_trace(

@@ -56,7 +56,10 @@ def test_parametric_jobs_limit_xdist_workers_and_preserve_throughput(tmp_path: P
 
     pipeline = yaml.safe_load((out / "generated-pipeline-chunk-0.yml").read_text())
     jobs = [pipeline[f"system_tests_run_python_PARAMETRIC_{index}"] for index in range(1, job_count + 1)]
-    assert all(any(f"--maxprocesses={worker_count}" in command for command in job["script"]) for job in jobs)
+    assert all(job["variables"]["SYSTEM_TESTS_PARAMETRIC_WORKERS"] == str(worker_count) for job in jobs)
+    assert [job["variables"]["SYSTEM_TESTS_PARAMETRIC_GROUP"] for job in jobs] == [
+        str(index) for index in range(1, job_count + 1)
+    ]
 
 
 @scenarios.test_the_test

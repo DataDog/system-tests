@@ -3,6 +3,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from collections.abc import Callable, Mapping
 import contextlib
+from datetime import UTC, datetime
 import gzip
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import io
@@ -24,7 +25,7 @@ if TYPE_CHECKING:
     from http import HTTPStatus
 
 
-RouteHandler = Callable[["MockBackendV2RequestHandler", bytes | dict | None], tuple[list | Mapping | bytes, bytes]]
+RouteHandler = Callable[["MockedBackendRequestHandler", bytes | dict | None], tuple[list | Mapping | bytes, bytes]]
 HttpMethod = Literal["GET", "POST", "PUT"]
 
 
@@ -49,17 +50,20 @@ def _decode_content(raw_body: bytes, content_encoding: str) -> bytes:
 
 # We need to do some shenanigans to avoid circular import:
 #
-# * MockBackendV2RequestHandler needs to know MockedBackendV2Server
-# * MockedBackendV2Server needs to know MockBackendV2RequestHandler
+# * MockedBackendRequestHandler needs to know MockedBackendV2Server
+# * MockedBackendV2Server needs to know MockedBackendRequestHandler
 #
-# So we extract the part of MockedBackendV2Server that needs to be known by MockBackendV2RequestHandler
+# So we extract the part of MockedBackendV2Server that needs to be known by MockedBackendRequestHandler
 # in this "core" class
 class MockedBackendServerCore(ABC, ThreadingHTTPServer):
     on_message: Callable[[dict], None]
     port: int
+    scheme: str
 
     @abstractmethod
-    def get_handler(self, method: HttpMethod, path: str) -> tuple[RouteHandler, str | None, str | None]: ...
+    def get_handler(
+        self, method: HttpMethod, path: str, *, query: str = ""
+    ) -> tuple[RouteHandler, str | None, str | None]: ...
 
     @abstractmethod
     def add_handler(self, method: HttpMethod, path: str, handler: RouteHandler) -> None: ...
@@ -69,7 +73,7 @@ class MockedBackendServerCore(ABC, ThreadingHTTPServer):
     def base_url(self) -> str: ...
 
 
-class MockBackendV2RequestHandler(BaseHTTPRequestHandler):
+class MockedBackendRequestHandler(BaseHTTPRequestHandler):
     server: MockedBackendServerCore
     _data: dict  # use to store request and response info
     # Routes can delay or interrupt body delivery after headers and request logging.
@@ -105,19 +109,44 @@ class MockBackendV2RequestHandler(BaseHTTPRequestHandler):
     def do_PUT(self) -> None:
         self._handle("PUT")
 
-    def _handle(self, method: HttpMethod) -> None:
+    def _read_body(self) -> bytes:
+        if "chunked" in self.headers.get("Transfer-Encoding", "").lower():
+            # the trace agent forwards some payloads (e.g. profiles, debugger intake) with chunked encoding
+            chunks: list[bytes] = []
+            while True:
+                size_line = self.rfile.readline()
+                if not size_line:
+                    break
+                size = int(size_line.split(b";", 1)[0].strip(), 16)
+                if size == 0:
+                    # consume optional trailers up to the terminating empty line
+                    while self.rfile.readline() not in (b"\r\n", b"\n", b""):
+                        pass
+                    break
+                chunks.append(self.rfile.read(size))
+                self.rfile.readline()  # CRLF after each chunk
+            return b"".join(chunks)
+
         content_length = int(self.headers.get("Content-Length", "0"))
-        raw_body = self.rfile.read(content_length) if content_length else b""
+        return self.rfile.read(content_length) if content_length else b""
+
+    def _handle(self, method: HttpMethod) -> None:
+        timestamp_start = datetime.now(UTC).isoformat()
+        raw_body = self._read_body()
         url_parts = urlsplit(self.path)
         path = url_parts.path
 
-        handler, log_filename, export_content_files_to = self.server.get_handler(method, path)
+        handler, log_filename, export_content_files_to = self.server.get_handler(method, path, query=url_parts.query)
 
         self._data: dict[str, Any] = {
             "log_filename": log_filename,
             "method": self.command,
             "path": path,
-            "request": {"headers": list(self.headers.items())},
+            # like the proxy
+            "query": url_parts.query,
+            # like the proxy: the hostname the sender targeted, without the port (e.g. an intake hostname)
+            "host": urlsplit(f"//{self.headers.get('Host', '')}").hostname or "",
+            "request": {"timestamp_start": timestamp_start, "headers": list(self.headers.items())},
             "response": {"headers": []},
         }
 
@@ -129,6 +158,8 @@ class MockBackendV2RequestHandler(BaseHTTPRequestHandler):
             self._data["request"]["raw_content"] = repr(raw_body)
             self._data["request"]["traceback"] = traceback.format_exc()
         else:
+            # like the proxy: the uncompressed body length
+            self._data["request"]["length"] = len(content) if content else 0
             deserialize(
                 self._data,
                 key="request",
@@ -141,7 +172,7 @@ class MockBackendV2RequestHandler(BaseHTTPRequestHandler):
 
         self._data["response"]["content"] = str(response) if isinstance(response, bytes) else response
 
-        logger.debug(f"Mocked backend v2 received {self.command} {self.path}, logging into {log_filename}")
+        logger.info(f"{self.command} {self.path} -> handled by {handler}: {self._data['response'].get('status_code')}")
 
         if log_filename:
             with open(log_filename, mode="w", encoding="utf-8") as f:
