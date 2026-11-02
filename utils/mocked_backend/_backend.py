@@ -43,7 +43,7 @@ class MockedBackendServer(MockedBackendServerFfeMixin, MockedBackendServerRcMixi
     daemon_threads = True
     thread_name = "mock-backend-v2"
 
-    tls_hostnames: tuple[str, ...] = (
+    hostnames: tuple[str, ...] = (
         MOCKED_BACKEND_DOMAIN,
         f"agent-http-intake.logs.{MOCKED_BACKEND_DOMAIN}",
         f"api.{MOCKED_BACKEND_DOMAIN}",
@@ -58,7 +58,18 @@ class MockedBackendServer(MockedBackendServerFfeMixin, MockedBackendServerRcMixi
         f"process.{MOCKED_BACKEND_DOMAIN}",
         f"trace.agent.{MOCKED_BACKEND_DOMAIN}",
     )
-    """With tls: its domain, and the intake hostnames derived from it, covered by its certificate"""
+    """With tls: its domain, and the intake hostnames derived from it. They are its network aliases, that can't be
+    wildcards: a sender of a new intake hostname needs it here"""
+
+    tls_hostnames: tuple[str, ...] = (
+        MOCKED_BACKEND_DOMAIN,
+        f"*.{MOCKED_BACKEND_DOMAIN}",
+        f"*.agent.{MOCKED_BACKEND_DOMAIN}",
+        f"*.logs.{MOCKED_BACKEND_DOMAIN}",
+        f"*.profile.{MOCKED_BACKEND_DOMAIN}",
+    )
+    """With tls: the names covered by its certificate. A wildcard matches a single label, so each parent domain of
+    the hostnames has its own: a new hostname under one of them needs no change here"""
 
     def __init__(
         self,

@@ -778,7 +778,7 @@ class MockedBackendContainer(TestedContainer):
     What it receives is recorded in the logs folder, and read by interfaces.mocked_backend.
     """
 
-    # With tls, it serves HTTPS instead of HTTP, for MockedBackendServer.tls_hostnames: for senders that only speak
+    # With tls, it serves HTTPS instead of HTTP, for MockedBackendServer.hostnames: for senders that only speak
     # HTTPS to the intake hostnames derived from DD_SITE (e.g. an SDK sending exposures directly). Its certificate is
     # signed by the mitmproxy CA: these senders must trust it
     tls_ca_file = "utils/proxy/.mitmproxy/mitmproxy-ca-cert.pem"
@@ -799,7 +799,7 @@ class MockedBackendContainer(TestedContainer):
             name="mocked-backend",
             # Docker rejects aliases on the default bridge network, used on GitLab (see _NETWORK_NAME). If a tls
             # scenario runs there, map these hostnames to this container with extra_hosts on the senders instead
-            network_aliases=list(MockedBackendServer.tls_hostnames) if tls else None,
+            network_aliases=list(MockedBackendServer.hostnames) if tls else None,
             working_dir="/app",
             volumes={
                 # without utils/__init__.py: utils is a namespace package, and the rest of utils is not needed

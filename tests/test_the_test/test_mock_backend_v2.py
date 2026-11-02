@@ -470,6 +470,27 @@ def test_https_mode_serves_and_records_https_requests(tmp_path: Path):
     assert recorded["request"]["content"] == {"over": "https"}
 
 
+def _tls_handshake(port: int, hostname: str) -> None:
+    """A TLS handshake with 127.0.0.1, verifying the certificate is valid for hostname"""
+    context = ssl.create_default_context(cafile=_MITMPROXY_CA)
+    with (
+        socket.create_connection(("127.0.0.1", port), timeout=5) as raw,
+        context.wrap_socket(raw, server_hostname=hostname),
+    ):
+        pass
+
+
+@scenarios.test_the_test
+def test_https_mode_certificate_covers_every_hostname(tmp_path: Path):
+    server = MockedBackendServer(str(tmp_path), port=0, tls=True)
+    try:
+        # its network aliases: a hostname added there must be under the parent domain of a wildcard
+        for hostname in MockedBackendServer.hostnames:
+            _tls_handshake(server.port, hostname)
+    finally:
+        server.close()
+
+
 @scenarios.test_the_test
 def test_https_mode_does_not_serve_http(tmp_path: Path):
     server = MockedBackendServer(str(tmp_path), port=0, tls=True)
@@ -531,8 +552,10 @@ def test_https_mode_advertises_https_urls(tmp_path: Path):
 def test_https_certificate_is_only_valid_for_the_served_hostnames(tmp_path: Path):
     server = MockedBackendServer(str(tmp_path), port=0, tls=True)
     try:
-        with pytest.raises(ssl.SSLCertVerificationError):
-            _https_post(server.port, "other.mocked-backend.invalid", "/api/v2/exposures", b"{}")
+        # outside its domain, or below the parent domains of its wildcards: a wildcard matches a single label
+        for hostname in ("mocked-backend.example", "a.b.c.mocked-backend.invalid"):
+            with pytest.raises(ssl.SSLCertVerificationError):
+                _https_post(server.port, hostname, "/api/v2/exposures", b"{}")
     finally:
         server.close()
 
@@ -544,7 +567,7 @@ def test_generated_certificate_covers_the_hostnames_and_is_signed_by_the_ca():
     ca = x509.load_pem_x509_certificate(Path(_MITMPROXY_CA).read_bytes())
     names = cert.extensions.get_extension_for_class(x509.SubjectAlternativeName).value
 
-    # reached by its domain, its intake hostnames, and by localhost from the healthcheck and the host
+    # reached by its domain, its intake hostnames (wildcards), and by localhost from the healthcheck and the host
     assert names.get_values_for_type(x509.DNSName) == [*_TLS_HOSTNAMES, "localhost"]
     assert [str(ip) for ip in names.get_values_for_type(x509.IPAddress)] == ["127.0.0.1"]
     assert cert.issuer == ca.subject
@@ -573,7 +596,7 @@ def test_mocked_backend_container_serves_either_http_or_https():
     https = MockedBackendContainer(tls=True)
     # senders build the intake URLs from DD_SITE: the default HTTPS port, its domain and the intake hostnames
     assert https.container_url == "https://mocked-backend.invalid"
-    assert https.network_aliases == list(MockedBackendServer.tls_hostnames)
+    assert https.network_aliases == list(MockedBackendServer.hostnames)
 
 
 @scenarios.test_the_test
