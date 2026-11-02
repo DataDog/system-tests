@@ -56,6 +56,7 @@ def test_tracer_release():
         dormant_agentless_scenario,
         *agentless_exposure_scenarios,
         scenarios.apm_tracing_agentless,
+        scenarios.apm_tracing_agentless_fast_heartbeat,
         scenarios.debugger_agentless,
         scenarios.mock_the_test,
         scenarios.mock_the_test_2,
