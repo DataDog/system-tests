@@ -25,7 +25,7 @@ if TYPE_CHECKING:
     from http import HTTPStatus
 
 
-RouteHandler = Callable[["MockBackendV2RequestHandler", bytes | dict | None], tuple[list | Mapping | bytes, bytes]]
+RouteHandler = Callable[["MockedBackendRequestHandler", bytes | dict | None], tuple[list | Mapping | bytes, bytes]]
 HttpMethod = Literal["GET", "POST", "PUT"]
 
 
@@ -50,10 +50,10 @@ def _decode_content(raw_body: bytes, content_encoding: str) -> bytes:
 
 # We need to do some shenanigans to avoid circular import:
 #
-# * MockBackendV2RequestHandler needs to know MockedBackendV2Server
-# * MockedBackendV2Server needs to know MockBackendV2RequestHandler
+# * MockedBackendRequestHandler needs to know MockedBackendV2Server
+# * MockedBackendV2Server needs to know MockedBackendRequestHandler
 #
-# So we extract the part of MockedBackendV2Server that needs to be known by MockBackendV2RequestHandler
+# So we extract the part of MockedBackendV2Server that needs to be known by MockedBackendRequestHandler
 # in this "core" class
 class MockedBackendServerCore(ABC, ThreadingHTTPServer):
     on_message: Callable[[dict], None]
@@ -73,7 +73,7 @@ class MockedBackendServerCore(ABC, ThreadingHTTPServer):
     def base_url(self) -> str: ...
 
 
-class MockBackendV2RequestHandler(BaseHTTPRequestHandler):
+class MockedBackendRequestHandler(BaseHTTPRequestHandler):
     server: MockedBackendServerCore
     _data: dict  # use to store request and response info
     # Routes can delay or interrupt body delivery after headers and request logging.
@@ -109,10 +109,30 @@ class MockBackendV2RequestHandler(BaseHTTPRequestHandler):
     def do_PUT(self) -> None:
         self._handle("PUT")
 
+    def _read_body(self) -> bytes:
+        if "chunked" in self.headers.get("Transfer-Encoding", "").lower():
+            # the trace agent forwards some payloads (e.g. profiles, debugger intake) with chunked encoding
+            chunks: list[bytes] = []
+            while True:
+                size_line = self.rfile.readline()
+                if not size_line:
+                    break
+                size = int(size_line.split(b";", 1)[0].strip(), 16)
+                if size == 0:
+                    # consume optional trailers up to the terminating empty line
+                    while self.rfile.readline() not in (b"\r\n", b"\n", b""):
+                        pass
+                    break
+                chunks.append(self.rfile.read(size))
+                self.rfile.readline()  # CRLF after each chunk
+            return b"".join(chunks)
+
+        content_length = int(self.headers.get("Content-Length", "0"))
+        return self.rfile.read(content_length) if content_length else b""
+
     def _handle(self, method: HttpMethod) -> None:
         timestamp_start = datetime.now(UTC).isoformat()
-        content_length = int(self.headers.get("Content-Length", "0"))
-        raw_body = self.rfile.read(content_length) if content_length else b""
+        raw_body = self._read_body()
         url_parts = urlsplit(self.path)
         path = url_parts.path
 
@@ -122,6 +142,10 @@ class MockBackendV2RequestHandler(BaseHTTPRequestHandler):
             "log_filename": log_filename,
             "method": self.command,
             "path": path,
+            # like the proxy
+            "query": url_parts.query,
+            # like the proxy: the hostname the sender targeted, without the port (e.g. an intake hostname)
+            "host": urlsplit(f"//{self.headers.get('Host', '')}").hostname or "",
             "request": {"timestamp_start": timestamp_start, "headers": list(self.headers.items())},
             "response": {"headers": []},
         }
@@ -134,6 +158,8 @@ class MockBackendV2RequestHandler(BaseHTTPRequestHandler):
             self._data["request"]["raw_content"] = repr(raw_body)
             self._data["request"]["traceback"] = traceback.format_exc()
         else:
+            # like the proxy: the uncompressed body length
+            self._data["request"]["length"] = len(content) if content else 0
             deserialize(
                 self._data,
                 key="request",

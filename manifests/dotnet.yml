@@ -444,7 +444,11 @@ manifest:
   tests/appsec/test_client_ip.py::Test_StandardTagsClientIp: v2.20.0
   tests/appsec/test_conf.py::Test_ConfigurationVariables: v3.26.3
   tests/appsec/test_conf.py::Test_ConfigurationVariables_New_Obfuscation: v3.26.3
-  tests/appsec/test_customconf.py::Test_CorruptedRules_Telemetry: missing_feature
+  tests/appsec/test_customconf.py::Test_CorruptedRules_Telemetry:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        uds: '>=3.57.0'
+        poc: '>=3.57.0'
   tests/appsec/test_customconf.py::Test_NoLimitOnWafRules: v2.4.4
   tests/appsec/test_event_tracking.py::Test_CustomEvent: v2.27.0
   tests/appsec/test_event_tracking.py::Test_CustomEvent_Metrics: v3.26.3
@@ -530,7 +534,11 @@ manifest:
   tests/appsec/test_remote_config_rule_changes.py::Test_AsmDdMultiConfiguration::test_update_rules_with_rules_compat: v3.44.0
   tests/appsec/test_remote_config_rule_changes.py::Test_BlockingActionChangesWithRemoteConfig: v3.4.0
   tests/appsec/test_remote_config_rule_changes.py::Test_Empty_Config: v3.26.3
-  tests/appsec/test_remote_config_rule_changes.py::Test_Invalid_Config: missing_feature
+  tests/appsec/test_remote_config_rule_changes.py::Test_Invalid_Config:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        uds: '>=3.57.0'
+        poc: '>=3.57.0'
   tests/appsec/test_remote_config_rule_changes.py::Test_Multiple_Actions: v3.4.0
   tests/appsec/test_remote_config_rule_changes.py::Test_Unknown_Action: v3.4.0
   tests/appsec/test_remote_config_rule_changes.py::Test_UpdateRuleFileWithRemoteConfig: v3.5.0
@@ -802,6 +810,7 @@ manifest:
     - declaration: bug (DEBUG-5101)
       component_version: '<3.45.0'
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Method_Probe_Statuses: v2.53.0
+  tests/debugger/test_debugger_rc_unsubscribe.py::Test_Debugger_RC_Unsubscribe: bug (DEBUG-4637)
   tests/debugger/test_debugger_snapshot_correlation.py::Test_Debugger_Coordinated_Sampling: v3.55.0  # DEBUG-5828: per-trace coordinated snapshot sampling (#9266)
   tests/debugger/test_debugger_snapshot_correlation.py::Test_Debugger_Coordinated_Sampling_Line_Probe: irrelevant (Line-probe variant is only used by Node.js)
   tests/debugger/test_debugger_snapshot_sampling.py::Test_Debugger_Sub_Second_Sampling: missing_feature (Requires a release containing dd-trace-dotnet#9496; DEBUG-6455)
@@ -820,6 +829,7 @@ manifest:
       weblog: [uds, poc]
     - declaration: missing_feature (feature not implemented)
       excluded_weblog: [uds, poc]
+  tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry_Metrics: v3.57.0-dev
   tests/docker_ssi/test_docker_ssi.py::TestDockerSSIFeatures::test_injection_metadata:
     - declaration: missing_feature (Not implemented yet)
       component_version: <3.22.0
@@ -1060,7 +1070,9 @@ manifest:
   : bug (APMAPI-2479)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_protocol.py::Test_OTEL_EXPORTER_OTLP_TRACES_PROTOCOL: v3.41.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_protocol.py::Test_OTEL_EXPORTER_OTLP_TRACES_PROTOCOL::test_empty_is_treated_as_unset
-  : bug (APMAPI-2531)
+  :  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-2531)
+      component_version: <3.56.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_protocol.py::Test_OTEL_EXPORTER_OTLP_TRACES_PROTOCOL::test_grpc_protocol_is_used_for_trace_export
   : missing_feature (Trace exporter does not support gRPC)
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_protocol.py::Test_OTEL_EXPORTER_OTLP_TRACES_PROTOCOL::test_unset_uses_specification_default
@@ -1211,6 +1223,7 @@ manifest:
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_dependent_flags: missing_feature (FFL-1694)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_flag_evaluation: missing_feature  # Created by easy win activation script
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Split_Features: incomplete_test_app (Split-feature hook capture is currently implemented only in the Java parametric client)
+  tests/parametric/test_ffe/test_exposure_hooks.py: incomplete_test_app (Exposure hook observations are not implemented)
   tests/parametric/test_ffe/test_rules_configuration.py: missing_feature (Standalone rules configuration helpers are currently tested only in Node.js)
   tests/parametric/test_ffe/test_serial_id_metadata.py: missing_feature
   tests/parametric/test_ffe/test_serial_id_metadata.py::Test_FFE_Serial_Id_Metadata_Go: irrelevant (Legacy Go metadata key)

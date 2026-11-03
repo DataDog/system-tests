@@ -16,7 +16,7 @@ query ($query: String!, $after: String) {
       ... on PullRequest {
         title
         url
-        author { login }
+        author { __typename login }
         mergedAt
         labels(first: 100) {
           nodes { name }
@@ -93,6 +93,9 @@ def print_pr_data(month: int | None = None) -> None:
         data = gh_request(token, QUERY, {"query": q, "after": after})
 
         for pr in data["search"]["nodes"]:
+            if pr["author"] is not None and pr["author"]["__typename"] == "Bot":
+                continue
+
             n_prs += 1
             labels = [labels["name"] for labels in pr["labels"]["nodes"]]
             # if True:

@@ -2183,6 +2183,7 @@ manifest:
       component_version: 2.16.0
     - declaration: bug (DEBUG-3127)
       component_version: 2.16.1
+  tests/debugger/test_debugger_rc_unsubscribe.py::Test_Debugger_RC_Unsubscribe: missing_feature (DI config deletion does not restore local enablement)
   tests/debugger/test_debugger_snapshot_correlation.py::Test_Debugger_Coordinated_Sampling: missing_feature (no per-trace coordinated sampling; probabilistic per-trace rate not implemented)
   tests/debugger/test_debugger_snapshot_correlation.py::Test_Debugger_Coordinated_Sampling_Line_Probe: irrelevant (Line-probe variant is only used by Node.js)
   tests/debugger/test_debugger_snapshot_sampling.py::Test_Debugger_Sub_Second_Sampling:
@@ -2227,6 +2228,10 @@ manifest:
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry::test_telemetry_symdb:
     - weblog_declaration:
         aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry_Metrics:
+    - weblog_declaration:
+        "*": missing_feature
+        *flask : v4.17.0.dev
   tests/docker_ssi:
     - weblog_declaration:
         aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
@@ -3155,6 +3160,7 @@ manifest:
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v4.0.0
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_dependent_flags: missing_feature (FFL-1694)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Split_Features: incomplete_test_app (Split-feature hook capture is currently implemented only in the Java parametric client)
+  tests/parametric/test_ffe/test_exposure_hooks.py: incomplete_test_app (Exposure hook observations are not implemented)
   tests/parametric/test_ffe/test_rules_configuration.py: missing_feature (Standalone rules configuration helpers are currently tested only in Node.js)
   tests/parametric/test_ffe/test_serial_id_metadata.py: missing_feature
   tests/parametric/test_ffe/test_serial_id_metadata.py::Test_FFE_Serial_Id_Metadata_Go: irrelevant (Legacy Go metadata key)
