@@ -60,7 +60,6 @@ class _OpenTelemetryScenario(DockerScenario):
             self._containers.append(self.mocked_backend_container)
             self.agent_container = AgentContainer(
                 dd_api_key=FakeDatadogKey.DEFAULT,
-                use_proxy=False,
                 # the mocked backend serves remote config, signed with the TUF roots set by rc_backend_enabled
                 rc_backend_enabled=True,
                 mocked_backend=True,

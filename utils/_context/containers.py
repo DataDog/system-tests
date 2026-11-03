@@ -913,7 +913,6 @@ class AgentContainer(TestedContainer):
         self,
         *,
         dd_api_key: str,
-        use_proxy: bool = True,
         rc_backend_enabled: bool = False,
         mocked_backend: bool = False,
         environment: dict[str, str | None] | None = None,
@@ -932,10 +931,6 @@ class AgentContainer(TestedContainer):
             }
         )
 
-        if use_proxy:
-            environment["DD_PROXY_HTTPS"] = f"http://proxy:{ProxyPorts.agent}"
-            environment["DD_PROXY_HTTP"] = f"http://proxy:{ProxyPorts.agent}"
-
         # Configure backend mode via environment variables
         # Agent uses HTTP_PROXY to reach backend, TUF roots validate RC responses
         # We set RC_DD_URL to a fake hostname - HTTP_PROXY will intercept it on the agent port
@@ -943,8 +938,6 @@ class AgentContainer(TestedContainer):
             tuf_root_json = get_tuf_root_json()
             environment["DD_REMOTE_CONFIGURATION_ENABLED"] = "true"
             environment["DD_REMOTE_CONFIGURATION_REFRESH_INTERVAL"] = "5s"
-            if use_proxy:
-                environment["DD_REMOTE_CONFIGURATION_NO_TLS"] = "true"
             environment["DD_REMOTE_CONFIGURATION_CONFIG_ROOT"] = tuf_root_json
             environment["DD_REMOTE_CONFIGURATION_DIRECTOR_ROOT"] = tuf_root_json
 
@@ -1429,7 +1422,6 @@ class LambdaWeblogContainer(WeblogContainer):
 
         volumes = volumes or {}
 
-        environment["DD_PROXY_HTTPS"] = f"http://proxy:{ProxyPorts.agent}"
         environment["DD_LOG_LEVEL"] = "debug"
         volumes.update(
             {

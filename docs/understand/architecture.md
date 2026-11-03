@@ -197,7 +197,7 @@ It is [mitmdump](https://mitmproxy.org/).
 The proxy listens on several ports and uses the listen port to know where a request came from:
 
 - Weblog / library traffic is reverse-proxied to the agent
-- Agent intake is intercepted because the agent is configured with `DD_PROXY_HTTPS` / `DD_PROXY_HTTP`
+- Backend intake is mocked.
 
 Captured request/response pairs are written as JSON to `logs_<scenario>/interfaces/<interface>/` on a volume shared with the host.
 
