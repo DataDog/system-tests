@@ -692,10 +692,10 @@ class Test_Config_RuntimeMetrics_Enabled_WithRuntimeId:
 
     def setup_main(self):
         self.req = weblog.get("/")
-        wait_for_runtime_metrics()
 
     def test_main(self):
         assert self.req.status_code == 200
+        wait_for_runtime_metrics()
 
         runtime_metrics_gauges, runtime_metrics_sketches = get_runtime_metrics()
 
