@@ -727,6 +727,21 @@ class Test_Config_RuntimeMetrics_Default:
         assert len(runtime_metrics_sketches) == 0
 
 
+@scenarios.default
+@features.trace_data_integrity
+class Test_Config_ReportHostname_Default:
+    """Verify the hostname is not reported by default (DD_TRACE_REPORT_HOSTNAME unset)"""
+
+    def setup_main(self):
+        self.req = weblog.get("/")
+
+    def test_main(self):
+        assert self.req.status_code == 200
+
+        for _, _, span in interfaces.library.get_spans(self.req):
+            assert "_dd.hostname" not in span["meta"]
+
+
 def get_runtime_metrics():
     runtime_metrics_gauges = [
         metric
