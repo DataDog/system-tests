@@ -49,10 +49,9 @@ class Test_Config_HttpServerErrorStatuses_Default:
 
     def setup_status_code_500(self):
         self.r = weblog.get("/status?code=500")
+        assert self.r.status_code == 500, "The weblog did not return the expected status code"
 
     def test_status_code_500(self):
-        assert self.r.status_code == 500
-
         interfaces.library.assert_trace_exists(self.r)
         spans = interfaces.agent.get_spans_list(self.r)
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
