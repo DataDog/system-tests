@@ -29,6 +29,13 @@ class Test_DistributedHttp:
         assert "x-datadog-tags" not in data["request_headers"]
         assert "x-datadog-trace-id" not in data["request_headers"]
 
+    def setup_client_span(self):
+        self.r_client = weblog.get("/make_distant_call", params={"url": "http://weblog:7777"})
+
+    def test_client_span(self):
+        assert self.r_client.status_code == 200
+        interfaces.library_stdout.assert_presence(r"Finished span .*http\.request")
+
 
 @scenarios.default
 @features.w3c_headers_injection_and_extraction
