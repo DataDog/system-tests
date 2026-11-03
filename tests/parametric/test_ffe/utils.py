@@ -157,7 +157,16 @@ def assert_feature_map(actual: object, expected: dict[str, Any], destination: st
         assert actual_value == expected_value, f"{destination}.{key}: expected {expected_value!r}, got {actual_value!r}"
 
 
-def _targeting_key_matches(actual: object, expected: str) -> bool:
+class _TargetingKeyUnset:
+    pass
+
+
+TARGETING_KEY_UNSET = _TargetingKeyUnset()
+
+
+def _targeting_key_matches(actual: object, expected: str | None) -> bool:
+    if expected is None:
+        return actual is None
     hashed = f"sha256_{hashlib.sha256(expected.encode()).hexdigest()}"
     return actual in (expected, hashed)
 
@@ -165,7 +174,7 @@ def _targeting_key_matches(actual: object, expected: str) -> bool:
 def ffe_events_from_requests(
     requests: Sequence[Mapping[str, Any]],
     flag: str | None = None,
-    targeting_key: str | None = None,
+    targeting_key: str | None | _TargetingKeyUnset = TARGETING_KEY_UNSET,
 ) -> dict[str, list[dict[str, Any]]]:
     """Read matching EVP payloads recorded by the parametric test agent."""
     events: dict[str, list[dict[str, Any]]] = {"EXPOSURE": [], "EVALUATION": []}
@@ -185,16 +194,33 @@ def ffe_events_from_requests(
         for event in payload[field]:
             if flag is not None and event.get("flag", {}).get("key") != flag:
                 continue
-            if targeting_key is not None:
+            if not isinstance(targeting_key, _TargetingKeyUnset):
                 if destination == "EXPOSURE":
                     subject = event.get("subject")
                     actual_targeting_key = subject.get("id") if isinstance(subject, dict) else None
-                    if actual_targeting_key != targeting_key:
+                    if not _targeting_key_matches(actual_targeting_key, targeting_key):
                         continue
                 elif not _targeting_key_matches(event.get("targeting_key"), targeting_key):
                     continue
             events[destination].append(event)
     return events
+
+
+def ffe_events_for_target(
+    events: Mapping[str, Sequence[dict[str, Any]]], targeting_key: str | None
+) -> dict[str, list[dict[str, Any]]]:
+    """Filter already decoded FFE events for one raw or hashed targeting key."""
+    result: dict[str, list[dict[str, Any]]] = {"EXPOSURE": [], "EVALUATION": []}
+    for destination, destination_events in events.items():
+        for event in destination_events:
+            if destination == "EXPOSURE":
+                subject = event.get("subject")
+                actual_targeting_key = subject.get("id") if isinstance(subject, dict) else None
+            else:
+                actual_targeting_key = event.get("targeting_key")
+            if _targeting_key_matches(actual_targeting_key, targeting_key):
+                result[destination].append(event)
+    return result
 
 
 def ffe_event_matches(event: dict[str, Any], matcher: dict[str, Any]) -> bool:

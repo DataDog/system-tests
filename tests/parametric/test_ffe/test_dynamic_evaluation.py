@@ -15,18 +15,24 @@ from utils import (
 from utils.dd_constants import RemoteConfigApplyState
 from utils.docker_fixtures import TestAgentAPI
 from tests.parametric.conftest import APMLibrary
-from tests.parametric.test_ffe.utils import assert_feature_map, events_match, ffe_events_from_requests
+from tests.parametric.test_ffe.utils import (
+    assert_feature_map,
+    events_match,
+    ffe_events_for_target,
+    ffe_events_from_requests,
+)
 
 RC_PRODUCT = "FFE_FLAGS"
 RC_PATH = f"datadog/2/{RC_PRODUCT}"
 FFE_READY_RETRY_ATTEMPTS = 10
 FFE_READY_RETRY_INTERVAL_SECONDS = 0.2
-FFE_EVENT_WAIT_ATTEMPTS = 300
-FFE_EVENT_WAIT_INTERVAL_SECONDS = 0.1
+FFE_EVENT_WAIT_ATTEMPTS = 60
+FFE_EVENT_WAIT_INTERVAL_SECONDS = 0.5
 FFE_SYSTEM_TEST_DATA_DIR = Path(__file__).parent / "ffe-system-test-data"
 FFE_EVALUATION_CASES_DIR = FFE_SYSTEM_TEST_DATA_DIR / "evaluation-cases"
 DEPENDENT_FLAGS_DIR = FFE_SYSTEM_TEST_DATA_DIR / "evaluation-suites" / "dependent-flags"
 DEPENDENT_FLAGS_CASES_DIR = DEPENDENT_FLAGS_DIR / "cases"
+TELEMETRY_DRAIN_TARGETING_KEY = "system-tests-telemetry-drain"
 
 parametrize = pytest.mark.parametrize
 
@@ -37,14 +43,17 @@ def _load_evaluation_suite(
     cases_directory: Path,
     *,
     required: bool,
-) -> tuple[dict[str, Any], list[Path]]:
-    """Load one canonical rules-based evaluation suite."""
+) -> tuple[Path, list[Path]]:
+    """Discover one canonical rules-based evaluation suite without parsing its UFC."""
     case_files = sorted(cases_directory.glob("*.json"))
     if not case_files:
         if required:
             raise FileNotFoundError(f"No canonical evaluation cases found in {cases_directory}")
-        return {}, []
-    return json.loads((suite_directory / "ufc-config.json").read_text()), case_files
+        return suite_directory / "ufc-config.json", []
+    config_path = suite_directory / "ufc-config.json"
+    if not config_path.is_file():
+        raise FileNotFoundError(f"No canonical UFC configuration found at {config_path}")
+    return config_path, case_files
 
 
 def _filter_for_platform(items: list[dict[str, Any]], platform: str) -> list[dict[str, Any]]:
@@ -64,22 +73,40 @@ def _filter_for_platform(items: list[dict[str, Any]], platform: str) -> list[dic
 
 
 # Load fixture at module level for reuse across tests
-UFC_FIXTURE_DATA, ALL_TEST_CASE_FILES = _load_evaluation_suite(
+UFC_FIXTURE_PATH, ALL_TEST_CASE_FILES = _load_evaluation_suite(
     FFE_SYSTEM_TEST_DATA_DIR,
     FFE_EVALUATION_CASES_DIR,
     required=True,
 )
+UFC_FIXTURE_DATA = json.loads(UFC_FIXTURE_PATH.read_text())
 SPLIT_FEATURE_CASES = [
     case
     for case_file in ALL_TEST_CASE_FILES
     for case in json.loads(case_file.read_text())
     if "features" in case["result"]
 ]
-DEPENDENT_FLAGS_UFC_DATA, DEPENDENT_FLAGS_TEST_CASE_FILES = _load_evaluation_suite(
+DEPENDENT_FLAGS_UFC_PATH, DEPENDENT_FLAGS_TEST_CASE_FILES = _load_evaluation_suite(
     DEPENDENT_FLAGS_DIR,
     DEPENDENT_FLAGS_CASES_DIR,
     required=False,
 )
+DEPENDENT_FLAGS_CASE_PARAMETERS = [
+    pytest.param(case_file, id=case_file.stem) for case_file in DEPENDENT_FLAGS_TEST_CASE_FILES
+] or [pytest.param(None, id="missing-suite")]
+
+
+def _case_file_has_telemetry_expectations(case_file: Path) -> bool:
+    return any("expectations" in case for case in json.loads(case_file.read_text()))
+
+
+CORE_CASE_PARAMETERS = [
+    pytest.param(
+        case_file,
+        {"SYSTEM_TESTS_FFE_INTAKE": "true"} if _case_file_has_telemetry_expectations(case_file) else {},
+        id=case_file.stem,
+    )
+    for case_file in ALL_TEST_CASE_FILES
+]
 
 DEFAULT_ENVVARS = {
     "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
@@ -162,7 +189,7 @@ def _ffe_evaluate_with_rc_retry(
 
 def _assert_evaluation_cases(
     test_case_file: Path,
-    ufc_data: dict[str, Any],
+    ufc_path: Path,
     test_agent: TestAgentAPI,
     test_library: APMLibrary,
 ) -> None:
@@ -175,6 +202,10 @@ def _assert_evaluation_cases(
     test_cases = _filter_for_platform(test_cases, platform)
     if not test_cases:
         pytest.skip(f"No cases in {test_case_file.name} apply to platform {platform}")
+
+    ufc_data = json.loads(ufc_path.read_text())
+    telemetry_cases = [test_case for test_case in test_cases if "expectations" in test_case]
+    telemetry_drain_case = _find_telemetry_drain_case(ufc_data) if telemetry_cases else None
 
     _set_and_wait_ffe_rc(test_agent, ufc_data)
     assert test_library.ffe_start(ufc_data), "Failed to start FFE provider"
@@ -211,9 +242,69 @@ def _assert_evaluation_cases(
                 f"flag='{test_case['flag']}' unexpectedly returned errorCode={result.get('errorCode')!r}"
             )
 
-    telemetry_cases = [test_case for test_case in test_cases if "expectations" in test_case]
     if telemetry_cases:
-        _assert_evaluation_telemetry(test_agent, test_library, telemetry_cases)
+        assert telemetry_drain_case is not None
+        _assert_evaluation_telemetry(test_agent, test_library, test_cases, telemetry_drain_case)
+
+
+def _find_telemetry_drain_case(ufc_data: dict[str, Any]) -> dict[str, Any]:
+    """Find a corpus-owned static logging flag suitable for draining both writers."""
+    flags = ufc_data.get("flags")
+    assert isinstance(flags, dict), "UFC flags must be an object"
+    defaults: dict[str, Any] = {
+        "BOOLEAN": False,
+        "INTEGER": 0,
+        "JSON": {},
+        "NUMERIC": 0.0,
+        "STRING": "",
+    }
+    for flag_key, flag in flags.items():
+        if not isinstance(flag, dict) or flag.get("key") != flag_key or flag.get("enabled") is not True:
+            continue
+        allocations = flag.get("allocations")
+        if not isinstance(allocations, list) or len(allocations) != 1:
+            continue
+        allocation = allocations[0]
+        if not isinstance(allocation, dict) or allocation.get("doLog") is not True:
+            continue
+        if allocation.get("rules", []) != []:
+            continue
+        splits = allocation.get("splits")
+        if (
+            not isinstance(splits, list)
+            or len(splits) != 1
+            or not isinstance(splits[0], dict)
+            or splits[0].get("shards") != []
+        ):
+            continue
+        variation_type = flag.get("variationType")
+        variations = flag.get("variations")
+        variation_key = splits[0].get("variationKey")
+        if variation_type not in defaults or not isinstance(variations, dict):
+            continue
+        variation = variations.get(variation_key)
+        if not isinstance(variation, dict) or variation.get("key") != variation_key or "value" not in variation:
+            continue
+        value = variation["value"]
+        if variation_type == "BOOLEAN":
+            valid_value = type(value) is bool
+        elif variation_type == "INTEGER":
+            valid_value = type(value) is int
+        elif variation_type == "NUMERIC":
+            valid_value = type(value) in (int, float)
+        elif variation_type == "STRING":
+            valid_value = isinstance(value, str)
+        else:
+            valid_value = isinstance(value, dict)
+        if not valid_value:
+            continue
+        return {
+            "flag": flag_key,
+            "variationType": variation_type,
+            "defaultValue": defaults[variation_type],
+            "value": value,
+        }
+    raise AssertionError("Telemetry expectations require a static doLog=true flag for the drain barrier")
 
 
 def _expected_event_matchers(expectations: dict[str, Any], event_type: str, platform: str) -> list[dict[str, Any]]:
@@ -231,69 +322,98 @@ def _expected_event_matchers(expectations: dict[str, Any], event_type: str, plat
     return expanded
 
 
+def _expected_events_for_cases(
+    cases: list[dict[str, Any]], platform: str
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], bool] | None:
+    expectation_cases = [case for case in cases if "expectations" in case]
+    if not expectation_cases:
+        return None
+    exposures = [
+        matcher
+        for case in expectation_cases
+        for matcher in _expected_event_matchers(case["expectations"], "exposures", platform)
+    ]
+    evaluations = [
+        matcher
+        for case in expectation_cases
+        for matcher in _expected_event_matchers(case["expectations"], "evaluationEvents", platform)
+    ]
+    exact = len(expectation_cases) == len(cases) and all(
+        case["expectations"].get("noUnmatchedEvents") is True for case in expectation_cases
+    )
+    return exposures, evaluations, exact
+
+
 def _assert_evaluation_telemetry(
-    test_agent: TestAgentAPI, test_library: APMLibrary, test_cases: list[dict[str, Any]]
+    test_agent: TestAgentAPI,
+    test_library: APMLibrary,
+    test_cases: list[dict[str, Any]],
+    drain_case: dict[str, Any],
 ) -> None:
     platform = context.library.name
-    marker_cases = [
-        test_case
-        for test_case in test_cases
-        if _expected_event_matchers(test_case["expectations"], "exposures", platform)
-    ]
-    assert marker_cases, "Telemetry expectations require a case that emits an exposure drain marker"
-    marker_case = marker_cases[0]
-    marker_targeting_key = f"{marker_case['targetingKey']}-telemetry-drain-marker"
+    assert all(test_case["targetingKey"] != TELEMETRY_DRAIN_TARGETING_KEY for test_case in test_cases), (
+        f"Evaluation cases may not use reserved targeting key {TELEMETRY_DRAIN_TARGETING_KEY}"
+    )
+    telemetry_targeting_keys = [test_case["targetingKey"] for test_case in test_cases if "expectations" in test_case]
+    assert all(
+        sum(case["targetingKey"] == targeting_key for case in test_cases) == 1
+        for targeting_key in telemetry_targeting_keys
+    ), "Telemetry expectations require a targeting key unique within the case file"
     marker_result = _ffe_evaluate_with_rc_retry(
         test_library,
-        flag=marker_case["flag"],
-        variation_type=marker_case["variationType"],
-        default_value=marker_case["defaultValue"],
-        targeting_key=marker_targeting_key,
-        attributes=marker_case.get("attributes", {}),
+        flag=drain_case["flag"],
+        variation_type=drain_case["variationType"],
+        default_value=drain_case["defaultValue"],
+        targeting_key=TELEMETRY_DRAIN_TARGETING_KEY,
+        attributes={},
+    )
+    assert marker_result.get("value") == drain_case["value"], (
+        f"telemetry drain marker evaluation failed: {marker_result}"
     )
     assert marker_result.get("reason") != "ERROR", f"telemetry drain marker evaluation failed: {marker_result}"
 
-    captured: dict[str, tuple[list[dict[str, Any]], list[dict[str, Any]]]] = {}
+    grouped_cases: dict[str | None, list[dict[str, Any]]] = {}
+    for test_case in test_cases:
+        grouped_cases.setdefault(test_case["targetingKey"], []).append(test_case)
+    captured: dict[str | None, dict[str, list[dict[str, Any]]]] = {}
 
     for _ in range(FFE_EVENT_WAIT_ATTEMPTS):
         requests = test_agent.requests()
-        captured = {}
-        for test_case in test_cases:
-            case_events = ffe_events_from_requests(requests, targeting_key=test_case["targetingKey"])
-            captured[test_case["targetingKey"]] = (case_events["EXPOSURE"], case_events["EVALUATION"])
+        all_events = ffe_events_from_requests(requests)
+        captured = {targeting_key: ffe_events_for_target(all_events, targeting_key) for targeting_key in grouped_cases}
 
         # Each writer preserves event order. Seeing the post-batch marker from both writers
         # proves that all telemetry from the evaluation cases has drained before exact checks.
-        marker_events = ffe_events_from_requests(requests, targeting_key=marker_targeting_key)
+        marker_events = ffe_events_for_target(all_events, TELEMETRY_DRAIN_TARGETING_KEY)
         complete = all(marker_events.values())
-        for test_case in test_cases:
-            expectations = test_case["expectations"]
-            assert isinstance(expectations, dict)
-            exposures, evaluations = captured[test_case["targetingKey"]]
-            exact = expectations.get("noUnmatchedEvents") is True
+        for targeting_key, cases in grouped_cases.items():
+            expected = _expected_events_for_cases(cases, platform)
+            if expected is None:
+                continue
+            expected_exposures, expected_evaluations, exact = expected
+            complete = complete and events_match(captured[targeting_key]["EXPOSURE"], expected_exposures, exact=exact)
             complete = complete and events_match(
-                exposures, _expected_event_matchers(expectations, "exposures", platform), exact=exact
-            )
-            complete = complete and events_match(
-                evaluations, _expected_event_matchers(expectations, "evaluationEvents", platform), exact=exact
+                captured[targeting_key]["EVALUATION"], expected_evaluations, exact=exact
             )
 
         if complete:
             break
         time.sleep(FFE_EVENT_WAIT_INTERVAL_SECONDS)
     else:
-        raise AssertionError(f"evaluation telemetry did not stabilize: {captured}")
+        raise AssertionError(f"evaluation telemetry did not stabilize: marker={marker_events}, captured={captured}")
 
-    for test_case in test_cases:
-        expectations = test_case["expectations"]
-        exposures, evaluations = captured[test_case["targetingKey"]]
-        exact = expectations.get("noUnmatchedEvents") is True
-        assert events_match(exposures, _expected_event_matchers(expectations, "exposures", platform), exact=exact), (
-            f"unexpected exposures for {test_case['flag']}: {exposures}"
+    for targeting_key, cases in grouped_cases.items():
+        expected = _expected_events_for_cases(cases, platform)
+        if expected is None:
+            continue
+        expected_exposures, expected_evaluations, exact = expected
+        events = captured[targeting_key]
+        assert events_match(events["EXPOSURE"], expected_exposures, exact=exact), (
+            f"unexpected exposures for targeting key {targeting_key!r}: {events['EXPOSURE']}"
         )
-        assert events_match(
-            evaluations, _expected_event_matchers(expectations, "evaluationEvents", platform), exact=exact
-        ), f"unexpected evaluation events for {test_case['flag']}: {evaluations}"
+        assert events_match(events["EVALUATION"], expected_evaluations, exact=exact), (
+            f"unexpected evaluation events for targeting key {targeting_key!r}: {events['EVALUATION']}"
+        )
 
 
 @scenarios.parametric
@@ -315,8 +435,7 @@ class Test_Feature_Flag_Dynamic_Evaluation:
         assert apply_state["product"] == RC_PRODUCT
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    @parametrize("agent_env", [{"SYSTEM_TESTS_FFE_INTAKE": "true"}])
-    @parametrize("test_case_file", ALL_TEST_CASE_FILES)
+    @parametrize("test_case_file,agent_env", CORE_CASE_PARAMETERS)
     def test_ffe_flag_evaluation(
         self,
         test_case_file: Path,
@@ -332,19 +451,21 @@ class Test_Feature_Flag_Dynamic_Evaluation:
         4. Handles user targeting, attribute matching, and rollout percentages
 
         """
-        _assert_evaluation_cases(test_case_file, UFC_FIXTURE_DATA, test_agent, test_library)
+        _assert_evaluation_cases(test_case_file, UFC_FIXTURE_PATH, test_agent, test_library)
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     @parametrize("agent_env", [{"SYSTEM_TESTS_FFE_INTAKE": "true"}])
-    @parametrize("test_case_file", DEPENDENT_FLAGS_TEST_CASE_FILES)
+    @parametrize("test_case_file", DEPENDENT_FLAGS_CASE_PARAMETERS)
     def test_ffe_dependent_flags(
         self,
-        test_case_file: Path,
+        test_case_file: Path | None,
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ) -> None:
         """Run the imported dependent-flags feature suite through the shared evaluator harness."""
-        _assert_evaluation_cases(test_case_file, DEPENDENT_FLAGS_UFC_DATA, test_agent, test_library)
+        if test_case_file is None:
+            raise FileNotFoundError(f"No canonical evaluation cases found in {DEPENDENT_FLAGS_CASES_DIR}")
+        _assert_evaluation_cases(test_case_file, DEPENDENT_FLAGS_UFC_PATH, test_agent, test_library)
 
 
 @scenarios.parametric
