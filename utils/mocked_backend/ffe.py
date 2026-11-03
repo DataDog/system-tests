@@ -3,6 +3,7 @@ from ._ffe_flag_selection import (
     SELECTED_FLAG_KEY_PATTERNS,
     SELECTED_FLAG_TAGS,
     UFC_TAGS_FIXTURE_RELATIVE_PATH,
+    Selection,
 )
 from ._backend_ffe import (
     CONFIG_PATH,
@@ -16,6 +17,7 @@ from ._backend_ffe import (
     UFC_RESPONSE_TYPE,
     ffe_library_config_url,
     load_rules_wire_fixture,
+    ufc_etag_for,
 )
 
 __all__ = [
@@ -32,6 +34,8 @@ __all__ = [
     "UFC_TAGS_FIXTURE_RELATIVE_PATH",
     "MockedBackendFFEStatus",
     "ResponseFormat",
+    "Selection",
     "ffe_library_config_url",
     "load_rules_wire_fixture",
+    "ufc_etag_for",
 ]

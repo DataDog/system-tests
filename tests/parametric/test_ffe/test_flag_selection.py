@@ -17,12 +17,12 @@ from utils import pytest
 from tests.parametric.conftest import APMLibrary
 from utils import features, scenarios
 from utils.mocked_backend import MockedBackendServer
-from utils.mocked_backend.ffe import EXPECTED_DD_ENV, SELECTED_FLAG_TAGS
+from utils.mocked_backend.ffe import EXPECTED_DD_ENV, SELECTED_FLAG_TAGS, Selection, ufc_etag_for
 
 
 @pytest.fixture
 def library_env(mocked_backend: MockedBackendServer) -> dict[str, str]:
-    mocked_backend.client.ffe_set_response("valid")
+    mocked_backend.client.ffe_set_responses(["valid", "not_modified"])
     return {
         "DD_API_KEY": scenarios.parametric.dd_api_key,
         "DD_INSTRUMENTATION_TELEMETRY_ENABLED": "false",
@@ -70,3 +70,11 @@ class Test_FFE_Flag_Selection:
         unselected = _evaluate_boolean(test_library, "serial-id-basic-flag")
         assert unselected.get("value") is False, unselected
         assert unselected.get("errorCode") == "FLAG_NOT_FOUND", unselected
+
+        deadline = time.monotonic() + 5
+        while len(requests := mocked_backend.ffe_get_requests()) < 2 and time.monotonic() < deadline:
+            time.sleep(0.2)
+        assert len(requests) >= 2, "the SDK did not poll its configuration again"
+        assert requests[1]["headers"].get("if-none-match") == ufc_etag_for(
+            Selection(tags=("team:checkout",), key_patterns=())
+        ), "the SDK did not revalidate with the ETag of its selection"

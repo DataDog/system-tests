@@ -278,19 +278,43 @@ def _has_expected_config_query(raw_query: str) -> bool:
     return parse_qs("&".join(other_pairs), keep_blank_values=True) == {"dd_env": [EXPECTED_DD_ENV]}
 
 
+def ufc_etag_for(selection: Selection | None) -> str:
+    """The ETag of the JSON configuration served for selection; None serves every flag."""
+    if selection is None:
+        return UFC_ETAG
+    # A 304 must not confirm a body built for another selection.
+    return f'{UFC_ETAG[:-1]}-{selection.digest()}"'
+
+
+def _matches_if_none_match(if_none_match: str | None, etag: str) -> bool:
+    """Weak comparison against every validator in the header, like net/http's checkIfNoneMatch."""
+    if if_none_match is None:
+        return False
+    return any(
+        candidate.strip() == "*" or candidate.strip().removeprefix("W/") == etag.removeprefix("W/")
+        for candidate in if_none_match.split(",")
+    )
+
+
 def _response_for_response(
-    response: str, selection: Selection | None = None, ignored_reason: str | None = None
+    response: str,
+    selection: Selection | None = None,
+    ignored_reason: str | None = None,
+    if_none_match: str | None = None,
 ) -> tuple[int, bytes, dict[str, str]]:
     if response == "unauthorized":
         return HTTPStatus.UNAUTHORIZED, b"", {}
     if response == "malformed":
         return HTTPStatus.OK, MALFORMED_UFC_BYTES, {"Content-Type": "application/json"}
-    if response == "not_modified":
-        return HTTPStatus.NOT_MODIFIED, b"", {"ETag": UFC_ETAG}
+    # Under a selection, a scripted 304 needs the selection's own validator; any other gets the selected flags.
+    if response == "not_modified" and (
+        selection is None or _matches_if_none_match(if_none_match, ufc_etag_for(selection))
+    ):
+        return HTTPStatus.NOT_MODIFIED, b"", {"ETag": ufc_etag_for(selection)}
     if response == "server_error":
         return HTTPStatus.INTERNAL_SERVER_ERROR, b"", {}
-    if response in {"valid", "delayed_valid", "timeout"}:
-        headers = {"Content-Type": "application/json", "ETag": UFC_ETAG}
+    if response in {"valid", "delayed_valid", "timeout", "not_modified"}:
+        headers = {"Content-Type": "application/json", "ETag": ufc_etag_for(selection)}
         if ignored_reason is not None:
             headers[FLAG_SELECTION_IGNORED_HEADER] = ignored_reason
         if selection is None:
@@ -298,8 +322,6 @@ def _response_for_response(
         flags = json.loads(UFC_FIXTURE_PATH.read_text())["flags"]
         flag_tags = load_ufc_flag_tags(REPO_ROOT)
         selected_keys = select_flags(selection, {key: flag_tags.get(key, []) for key in flags})
-        # A 304 must not confirm a body built for another selection.
-        headers["ETag"] = f'{UFC_ETAG[:-1]}-{selection.digest()}"'
         return HTTPStatus.OK, _valid_ufc_bytes(selected_keys), headers
     raise ValueError(f"Unsupported JSON response: {response}")
 
@@ -414,7 +436,9 @@ class MockedBackendServerFfeMixin(_Base):
             selection, ignored_reason = _flag_selection_for_query(
                 urlparse(request.path).query, self._ffe_state.flag_selection_ignored_reason
             )
-            status_code, body, headers = _response_for_response(response, selection, ignored_reason)
+            status_code, body, headers = _response_for_response(
+                response, selection, ignored_reason, request.headers.get("If-None-Match")
+            )
             self._ffe_state.record_response(status_code)
             with contextlib.suppress(BrokenPipeError, ConnectionResetError):
                 request.send_response(status_code)

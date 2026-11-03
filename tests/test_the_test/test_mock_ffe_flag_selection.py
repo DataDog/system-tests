@@ -22,6 +22,8 @@ from utils.mocked_backend.ffe import (
     CONFIG_QUERY,
     FLAG_SELECTION_IGNORED_HEADER,
     UFC_FIXTURE_RELATIVE_PATH,
+    Selection,
+    ufc_etag_for,
 )
 
 REPO_ROOT = Path(__file__).parents[2]
@@ -71,11 +73,11 @@ class _Response:
         return json.loads(self.body)
 
 
-def _get(server: MockedBackendServer, query: str) -> _Response:
+def _get(server: MockedBackendServer, query: str, headers: dict[str, str] | None = None) -> _Response:
     # Not requests: it re-encodes invalid percent-escapes such as %zz, which the malformed cases must send as is.
     connection = http.client.HTTPConnection(urlsplit(server.base_url).netloc, timeout=5)
     try:
-        connection.request("GET", f"{CONFIG_PATH}?{query}")
+        connection.request("GET", f"{CONFIG_PATH}?{query}", headers=headers or {})
         response = connection.getresponse()
         return _Response(response.status, response.headers, response.read())
     finally:
@@ -225,5 +227,43 @@ def test_selection_is_not_applied_to_error_responses() -> None:
             response = _get(server, f"{CONFIG_QUERY}&selected_flag_tags=%zz")
             assert response.status == expected_status
             assert FLAG_SELECTION_IGNORED_HEADER not in response.headers
+    finally:
+        server.close()
+
+
+@scenarios.test_the_test
+def test_not_modified_under_a_selection_revalidates_only_its_own_etag() -> None:
+    server = MockedBackendServer()
+    selection_query = f"{CONFIG_QUERY}&selected_flag_tags=team%3Acheckout"
+    try:
+        server.client.ffe_set_responses(["valid", "not_modified"])
+        etag = _get(server, selection_query).headers["ETag"]
+        assert etag == ufc_etag_for(Selection(tags=("team:checkout",), key_patterns=()))
+        assert etag != ufc_etag_for(None)
+
+        for validator in (etag, f"W/{etag}", f'"other", {etag}'):
+            revalidated = _get(server, selection_query, {"If-None-Match": validator})
+            assert revalidated.status == 304, validator
+            assert revalidated.headers["ETag"] == etag, validator
+            assert FLAG_SELECTION_IGNORED_HEADER not in revalidated.headers, validator
+
+        for headers in ({"If-None-Match": ufc_etag_for(None)}, {}):
+            stale = _get(server, selection_query, headers)
+            assert stale.status == 200, headers
+            assert stale.headers["ETag"] == etag, headers
+            assert _flag_keys(stale) == ["basic-flag", "numeric_flag"], headers
+    finally:
+        server.close()
+
+
+@scenarios.test_the_test
+def test_not_modified_without_a_selection_keeps_the_plain_etag() -> None:
+    server = MockedBackendServer()
+    try:
+        server.client.ffe_set_response("not_modified")
+        for headers in ({"If-None-Match": ufc_etag_for(None)}, {}):
+            response = _get(server, CONFIG_QUERY, headers)
+            assert response.status == 304, headers
+            assert response.headers["ETag"] == ufc_etag_for(None), headers
     finally:
         server.close()
