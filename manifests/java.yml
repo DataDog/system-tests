@@ -5520,6 +5520,7 @@ manifest:
   tests/test_standard_tags.py::Test_StandardTagsUrl::test_multiple_matching_substring_legacy:
     - declaration: irrelevant (java released the new version at 1.21.0)
       component_version: '>=1.21.0'
+  tests/test_standard_tags.py::Test_StandardTagsUrl::test_url_basic: missing_feature (weblog has no /waf endpoint)
   tests/test_standard_tags.py::Test_StandardTagsUrl::test_url_with_sensitive_query_string:
     - declaration: irrelevant (java release the new version at 1.22.0)
       component_version: <1.22.0
