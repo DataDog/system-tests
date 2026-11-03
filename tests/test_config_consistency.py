@@ -4,6 +4,7 @@
 
 import re
 import json
+import time
 from utils import (
     weblog,
     interfaces,
@@ -656,7 +657,7 @@ class Test_Config_RuntimeMetrics_Enabled:
 
     def setup_main(self):
         self.req = weblog.get("/")
-        wait_for_runtime_metrics()
+        time.sleep(30)
 
     def test_main(self):
         assert self.req.status_code == 200
