@@ -1,4 +1,5 @@
 from collections.abc import Callable
+import json
 import time
 from typing import Any
 
@@ -17,6 +18,8 @@ COUNTER = "otel_sdk_disabled_probe"
 LOGGER = "otel_sdk_disabled_probe"
 LOG_MESSAGE = "Test log for OTEL_SDK_DISABLED"
 SPAN_NAME = "otel-sdk-disabled-span"
+DSM_TYPE = "kafka"
+DSM_TARGET = "otel-sdk-disabled-topic"
 
 OTLP_TRACES_ENV = {
     "OTEL_TRACES_EXPORTER": "otlp",
@@ -25,9 +28,31 @@ OTLP_TRACES_ENV = {
 }
 # Client-side stats are only computed for an agent version that supports them.
 CSS_AGENT_ENV = {"TEST_AGENT_VERSION": MIN_AGENT_VERSION_FOR_CSS}
+# SDKs only send DSM stats to an agent that advertises /v0.1/pipeline_stats. The test agent
+# serves it without advertising it, so its endpoint list is replaced by one that does.
+DSM_AGENT_ENV = {
+    "DD_AGENT_EXTRA_INFO": json.dumps(
+        {
+            "endpoints": [
+                "/v0.4/traces",
+                "/v0.5/traces",
+                "/v0.7/traces",
+                "/v1.0/traces",
+                "/v0.6/stats",
+                "/v0.1/pipeline_stats",
+                "/telemetry/proxy/",
+                "/v0.7/config",
+                "/tracer_flare/v1",
+                "/evp_proxy/v2/",
+                "/evp_proxy/v4/",
+            ]
+        }
+    )
+}
 
-# Runtime metrics and OTLP trace metrics are exported periodically rather than on flush. The control
-# must export within this many seconds, and the disabled run must then export nothing for as long.
+# Runtime metrics, OTLP trace metrics and DSM stats are exported periodically rather than on flush.
+# The control must export within this many seconds, and the disabled run must then export nothing
+# for as long.
 PERIODIC_EXPORT_WINDOW = 30
 
 
@@ -78,6 +103,7 @@ def _exported(test_agent: TestAgentAPI, *, dogstatsd: bool) -> dict[str, list[An
     exported: dict[str, list[Any]] = {
         "Datadog traces": test_agent.traces(),
         "Datadog trace stats": test_agent.get_v06_stats_requests(),
+        "Datadog DSM stats": test_agent.pipeline_stats_requests(),
         "OTLP": _otlp_urls(test_agent, "traces", "metrics", "logs"),
     }
     if dogstatsd:
@@ -350,4 +376,27 @@ class Test_OTEL_SDK_DISABLED:
 
         with test_library_factory(library_env) as library:
             _emit_span(library)
+            _assert_nothing_exported(test_agent, PERIODIC_EXPORT_WINDOW)
+
+    @pytest.mark.parametrize("agent_env", [DSM_AGENT_ENV])
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                "OTEL_SDK_DISABLED": "true",
+                "DD_DATA_STREAMS_ENABLED": "true",
+            }
+        ],
+    )
+    @pytest.mark.usefixtures("otlp_endpoints")
+    def test_true_disables_data_streams(
+        self, test_agent: TestAgentAPI, test_library_factory: APMLibraryFactory, library_env: dict[str, str | None]
+    ) -> None:
+        # Control: a manual checkpoint makes the SDK send DSM stats to the agent.
+        with test_library_factory({**library_env, "OTEL_SDK_DISABLED": None}) as library:
+            assert library.dsm_produce_checkpoint(DSM_TYPE, DSM_TARGET)
+            _wait_for_periodic_export(test_agent.pipeline_stats_requests)
+
+        with test_library_factory(library_env) as library:
+            assert library.dsm_produce_checkpoint(DSM_TYPE, DSM_TARGET)
             _assert_nothing_exported(test_agent, PERIODIC_EXPORT_WINDOW)

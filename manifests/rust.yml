@@ -213,6 +213,7 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_datadog_configuration_takes_precedence: missing_feature (OTEL_SDK_DISABLED is not mapped to DD_TRACE_ENABLED)
   tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_default_matches_specification: missing_feature (OTEL_SDK_DISABLED is not mapped to DD_TRACE_ENABLED)
   tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_stable_false: missing_feature (OTEL_SDK_DISABLED is not mapped to DD_TRACE_ENABLED)
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_true_disables_data_streams: missing_feature (Data Streams Monitoring is not supported)
   tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_true_disables_otel_logs: missing_feature (OTEL_SDK_DISABLED does not disable OTLP logs export)
   tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_true_disables_otel_metrics: missing_feature (OTEL_SDK_DISABLED does not disable OTLP metrics export)
   tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED::test_true_disables_otel_traces_over_otlp: missing_feature (OTLP trace export is not implemented)
@@ -503,6 +504,7 @@ manifest:
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Current_Span: v0.0.1
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Extract_Headers: v0.0.1
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_DDTrace_Flush: v0.0.1
+  tests/parametric/test_parametric_endpoints.py::Test_Parametric_DSM_Produce_Checkpoint: missing_feature (Data Streams Monitoring is not supported)
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_FFE_Start: missing_feature
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_Inject_Headers: v0.0.1
   tests/parametric/test_parametric_endpoints.py::Test_Parametric_OtelSpan_Events: v0.0.1
