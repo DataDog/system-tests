@@ -63,6 +63,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
       - name: Export github token to a file
+        if: env.SCENARIO != 'PARAMETRIC'
         run: echo "${{ secrets.GITHUB_TOKEN }}" > "$RUNNER_TEMP/github_token.txt"
       - name: Select agent image
         run: echo ${{ env.AGENT_IMAGE }} > binaries/agent-image
@@ -74,7 +75,7 @@ jobs:
         if: env.SCENARIO != 'PARAMETRIC'
         run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ env.LIBRARY }} -i weblog -w ${{ env.WEBLOG }} -s --github-token-file "$RUNNER_TEMP/github_token.txt"
       - name: Remove secrets
-        if: always()
+        if: always() && env.SCENARIO != 'PARAMETRIC'
         run: |
           TOKEN_FILE="$RUNNER_TEMP/github_token.txt"
           if [ -f "$TOKEN_FILE" ]; then
@@ -120,24 +121,18 @@ jobs:
     - name: Run scenario
       run: |
         set -e
-        # ++ makes run.sh forward everything after it to pytest, without parsing it as scenarios
         read -ra run_args <<< "$RUN_ARGS"
+        scenario_args=()
         if [[ "$SCENARIO" == "PARAMETRIC" ]]; then
-          # the parametric image is built by run.sh on the first run, then reused
-          echo "Run #1"
-          ./run.sh PARAMETRIC -L "$LIBRARY" --github-token-file="$RUNNER_TEMP/github_token.txt" ++ "${run_args[@]}"
-          for i in {2..100}
-          do
-            echo "Run #$i"
-            ./run.sh PARAMETRIC -L "$LIBRARY" --skip-parametric-build ++ "${run_args[@]}"
-          done
-        else
-          for i in {1..100}
-          do
-            echo "Run #$i"
-            ./run.sh "$SCENARIO" ++ "${run_args[@]}"
-          done
+          # the image is only built if missing: by the first run, then reused
+          scenario_args=(-L "$LIBRARY" --skip-parametric-build --github-token-file="$RUNNER_TEMP/github_token.txt")
         fi
+        for i in {1..100}
+        do
+          echo "Run #$i"
+          # ++ makes run.sh forward run_args to pytest, without parsing them as scenarios
+          ./run.sh "$SCENARIO" "${scenario_args[@]}" ++ "${run_args[@]}"
+        done
     - name: Remove secrets
       if: always() && steps.export_token.outcome == 'success'
       run: rm -f "$RUNNER_TEMP/github_token.txt"
