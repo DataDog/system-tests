@@ -15,6 +15,8 @@ COPY utils/build/docker/nodejs/express /usr/app
 #overwrite app.js and package files
 COPY utils/build/docker/nodejs_otel/express4-otel /usr/app
 RUN npm ci || (sleep 30 && npm ci)
+# read by build.sh, to label the image with it, like the healthcheck reports it
+RUN mkdir -p /binaries && node -p "require('./node_modules/@opentelemetry/auto-instrumentations-node/package.json').version" > /binaries/SYSTEM_TESTS_LIBRARY_VERSION
 
 EXPOSE 7777
 

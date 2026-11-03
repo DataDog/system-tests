@@ -62,19 +62,18 @@ def test_flagevaluation_egress_validates_captured_data_without_waiting(
             }
         },
     }
-    interface = MagicMock()
-    interface.get_data.return_value = [capture] if has_capture else []
-    interface.wait_for.side_effect = AssertionError("Validation must not wait after containers have stopped")
-    monkeypatch.setattr(
-        flag_eval_evp_tests, "feature_flagging_evp_egress", lambda: FeatureFlaggingEVPEgress(interface, "agent")
-    )
+    get_data = MagicMock(return_value=[capture] if has_capture else [])
+    wait_for = MagicMock(side_effect=AssertionError("Validation must not wait after containers have stopped"))
+    monkeypatch.setattr(interfaces.mocked_backend, "get_data", get_data)
+    monkeypatch.setattr(interfaces.mocked_backend, "wait_for", wait_for)
+    monkeypatch.setattr(flag_eval_evp_tests, "feature_flagging_evp_egress", lambda: FeatureFlaggingEVPEgress("agent"))
 
     if has_capture:
         contract.test_ffe_evp_flagevaluation_egress()
     else:
         with pytest.raises(AssertionError, match="Expected flagevaluation requests"):
             contract.test_ffe_evp_flagevaluation_egress()
-    interface.wait_for.assert_not_called()
+    wait_for.assert_not_called()
 
 
 def _direct_runtime_evidence(library_name: str = "nodejs") -> dict[str, Any]:
@@ -388,7 +387,7 @@ def test_feature_flagging_agentless_evp_topology_supports_both_routes(
     monkeypatch.setattr(context, "scenario", scenario)
     monkeypatch.setattr(interfaces.mocked_backend, "get_data", lambda **_: [])
 
-    assert_agentless_evp_topology(FeatureFlaggingEVPEgress(interfaces.mocked_backend, route))
+    assert_agentless_evp_topology(FeatureFlaggingEVPEgress(route))
 
     environment = scenario.weblog_infra.library_container.environment
     for runtime_trust_variable in ("REQUESTS_CA_BUNDLE", "SSL_CERT_FILE"):
@@ -407,7 +406,7 @@ def test_feature_flagging_agentless_evp_topology_supports_both_routes(
         library_container._fix_host_pwd_in_volumes()  # noqa: SLF001 - reproduce container start normalization
         normalized_source = f"{library_container.host_project_dir}{DIRECT_EVP_CA_BUNDLE_SOURCE[1:]}"
         assert library_container.volumes[normalized_source] == expected_mount
-        assert_agentless_evp_topology(FeatureFlaggingEVPEgress(interfaces.mocked_backend, route))
+        assert_agentless_evp_topology(FeatureFlaggingEVPEgress(route))
 
 
 @scenarios.test_the_test
