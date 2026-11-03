@@ -20,7 +20,6 @@ from utils.mocked_backend.ffe import (
     CONFIG_PATH,
     CONFIG_QUERY,
     EXPECTED_DD_ENV,
-    UFC_RESPONSE_TYPE,
 )
 from utils._context._scenarios.agentless_endtoend import (
     DIRECT_EVP_AGENT_VARIABLES,
@@ -55,9 +54,8 @@ def test_mock_ffe_agentless_backend_serves_fixture_and_tracks_metadata() -> None
         assert response.headers["Content-Length"] == str(len(response.content))
 
         payload = response.json()
-        assert payload["data"]["type"] == UFC_RESPONSE_TYPE
-        assert payload["data"]["attributes"]["environment"]["name"] == "Test"
-        assert "new-user-onboarding" in payload["data"]["attributes"]["flags"]
+        assert payload["environment"]["name"] == "Test"
+        assert "new-user-onboarding" in payload["flags"]
 
         status = server.client.ffe_get_status()
         assert status["requests_total"] == 1

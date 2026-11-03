@@ -193,16 +193,7 @@ def _get_dd_api_key(headers: Mapping[str, str]) -> str | None:
 
 
 def _valid_ufc_bytes() -> bytes:
-    attributes = json.loads(UFC_FIXTURE_PATH.read_text())
-    return json.dumps(
-        {
-            "data": {
-                "id": "1",
-                "type": UFC_RESPONSE_TYPE,
-                "attributes": attributes,
-            }
-        }
-    ).encode("utf-8")
+    return json.dumps(json.loads(UFC_FIXTURE_PATH.read_text())).encode("utf-8")
 
 
 def _validate_response_format(response_format: object) -> ResponseFormat:
