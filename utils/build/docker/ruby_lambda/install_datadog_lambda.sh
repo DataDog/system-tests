@@ -51,3 +51,6 @@ cd /binaries
 gem install faraday --install-dir "${GEM_DIR}" --no-document
 
 rm -rf "${GEM_DIR}/cache"
+
+# read by build.sh, to label the image with it, like the healthcheck reports it (Datadog::Lambda::VERSION::STRING)
+GEM_PATH="${GEM_DIR}" ruby -e "require 'datadog/lambda/version'; print Datadog::Lambda::VERSION::STRING" > /binaries/SYSTEM_TESTS_LIBRARY_VERSION

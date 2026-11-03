@@ -17,7 +17,7 @@ RUN mvn -Dmaven.repo.local=/maven play2:routes-compile package play2:dist-explod
 FROM eclipse-temurin:11-jre
 
 WORKDIR /app
-COPY --from=build /binaries/SYSTEM_TESTS_LIBRARY_VERSION SYSTEM_TESTS_LIBRARY_VERSION
+COPY --from=build /binaries/SYSTEM_TESTS_LIBRARY_VERSION /binaries/SYSTEM_TESTS_LIBRARY_VERSION
 COPY --from=build /app/target/dist/play-app-1.0.0 .
 COPY --from=build /dd-tracer/dd-java-agent.jar .
 
