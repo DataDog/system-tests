@@ -32,16 +32,17 @@ Give every reviewer the same frozen evidence. Each reviewer reads only its assig
 | Activation and metadata | [activation-and-metadata.md](../../../docs/ai/code-review/activation-and-metadata.md) |
 | Infrastructure and conventions | [infrastructure-and-conventions.md](../../../docs/ai/code-review/infrastructure-and-conventions.md) |
 
-Each lens file lists rules with stable IDs (for example, `TEST-001`), an optional audit-only `Old_id:`, a required `Flag:`, and any applicable `Detect:`, `Not when:`, `✅`, `❌`, and `Ref:` fields. Cite the stable rule ID, never `Old_id`, in each finding. Apply the available `Flag:` and `Detect:` criteria, and respect `Not when:` when present.
+Each lens file lists rules with stable IDs (for example, `TEST-002`), an optional audit-only `Old_id:`, a required `Severity:`, a required `Flag:`, and any applicable `Detect:`, `Not when:`, `✅`, `❌`, and `Ref:` fields. Cite the stable rule ID, never `Old_id`, in each finding. Copy the rule's `Severity:` into the finding. Do not choose a different severity. Apply the available `Flag:` and `Detect:` criteria, and respect `Not when:` when present.
 
 Use fresh subagents in parallel when available. Otherwise run the lenses separately without carrying conclusions between them. Do not edit while reviewers run.
 
-Each lens returns either findings with severity, exact location, evidence, impact, and the smallest safe fix, or `NO_FINDINGS` followed by what it inspected.
+Each lens returns either findings with the rule's severity, exact location, evidence, impact, and the smallest safe fix, or `NO_FINDINGS` followed by what it inspected.
 
-- `P0`: catastrophic or actively exploitable; stop publication.
-- `P1`: likely severe user impact, data exposure, or a broken release.
-- `P2`: meaningful defect, compatibility risk, or maintenance cost.
-- `P3`: localized low-impact issue with a clear fix.
+The rule's `Severity:` is the only severity a finding may use:
+
+- `P0`: must fix. The change can hide a failure, skip coverage, or make a test pass or fail for the wrong reason.
+- `P1`: informative. Report it. It does not by itself block publication.
+- `P2`: localized nit. No current rule uses `P2`.
 
 A missing lens is incomplete coverage, not approval.
 
