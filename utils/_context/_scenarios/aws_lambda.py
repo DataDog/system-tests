@@ -256,9 +256,13 @@ class AppsecLambdaSca(_LambdaScenario):
         super().configure(config)
 
         language = self.lambda_weblog.library_name.removesuffix("_lambda")
-        if language in ("python", "java"):
+        catalog_paths = {
+            "python": "/opt/python/lib/python3.13/site-packages/ddtrace/appsec/sca/_cve_data.json",
+            "java": "/sca_advisories.json",
+        }
+        if language in catalog_paths:
             self.lambda_weblog.volumes[f"./tests/appsec/sca/{language}/advisories.json"] = {
-                "bind": "/sca_advisories.json",
+                "bind": catalog_paths[language],
                 "mode": "ro",
             }
 
