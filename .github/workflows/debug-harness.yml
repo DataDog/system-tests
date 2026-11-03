@@ -16,7 +16,7 @@ on:
         default: datadog/agent:latest
         type: string
       scenario:
-        description: Which scenario (PARAMETRIC is supported)
+        description: Which scenario
         default: DEBUGGER_EXPRESSION_LANGUAGE
         type: string
       run_args:
