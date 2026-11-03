@@ -1,12 +1,13 @@
 from utils import weblog, interfaces, rfc, scenarios, features
 from utils.dd_constants import (
-    SAMPLING_PRIORITY_KEY,
     SINGLE_SPAN_SAMPLING_MECHANISM,
     SINGLE_SPAN_SAMPLING_MECHANISM_VALUE,
     SINGLE_SPAN_SAMPLING_RATE,
     SINGLE_SPAN_SAMPLING_MAX_PER_SEC,
 )
 from utils.dd_types import DataDogAgentSpan
+
+SAMPLING_PRIORITY_KEY = "_sampling_priority_v1"
 
 
 @rfc("ATI-2419")
