@@ -1100,6 +1100,10 @@ def dockerfile_image_list(dockerfile: Path) -> list[str]:
 class WeblogContainer(TestedContainer):
     stdout_interface: LibraryStdoutInterface
 
+    # properties set during configure()
+    weblog_variant: str
+    _library: ComponentVersion
+
     def __init__(
         self,
         *,
@@ -1197,9 +1201,6 @@ class WeblogContainer(TestedContainer):
         self.tracer_sampling_rate = tracer_sampling_rate
         self.additional_trace_header_tags = additional_trace_header_tags
 
-        self.weblog_variant = ""
-        self._library: ComponentVersion | None = None
-
     def start(self, network: Network) -> Container:
         _add_environment_extra_hosts(self)
         return super().start(network)
@@ -1233,6 +1234,8 @@ class WeblogContainer(TestedContainer):
 
         self.volumes[f"./{self.host_log_folder}/docker/weblog/logs/"] = {"bind": "/var/log/system-tests", "mode": "rw"}
 
+        library = self.image.labels["system-tests-library"]
+        self._library = ComponentVersion(library, self.image.labels["system-tests-library-version"])
         self.weblog_variant = self.image.labels["system-tests-weblog-variant"]
 
         # Some weblogs like uwsgi-poc may have known connection issues, when cpu is under heavy load.
@@ -1241,8 +1244,6 @@ class WeblogContainer(TestedContainer):
             weblog.set_request_default_retry(5)
 
         self._set_aws_auth_environment()
-
-        library = self.image.labels["system-tests-library"]
 
         metadata = next((w for w in WeblogMetaData.load(library) if w.name == self.weblog_variant), None)
         if metadata is not None and metadata.request_timeout is not None:
@@ -1294,6 +1295,8 @@ class WeblogContainer(TestedContainer):
                         "bind": "/volumes/dd-trace-js",
                         "mode": "rw",
                     }
+                    package = json.loads((Path(path_str) / "package.json").read_text(encoding="utf-8"))
+                    self._library = ComponentVersion(library, package["version"])
             except Exception:
                 logger.info("No local dd-trace-js found")
 
@@ -1305,6 +1308,13 @@ class WeblogContainer(TestedContainer):
                     resolved_path = Path(source).resolve()
                     self.volumes[str(resolved_path)] = {"bind": "/volumes/dd-trace-py", "mode": "ro"}
                     self.environment["PYTHONPATH"] = f"{resolved_path!s}/ddtrace/bootstrap:/volumes/dd-trace-py"
+                    # set by `pip install -e .` in the checkout, it's what ddtrace.__version__ reports
+                    pkg_info = resolved_path / "ddtrace.egg-info" / "PKG-INFO"
+                    if pkg_info.exists():
+                        for line in pkg_info.read_text(encoding="utf-8").splitlines():
+                            if line.startswith("Version: "):
+                                self._library = ComponentVersion(library, line.removeprefix("Version: ").strip())
+                                break
             except FileNotFoundError:
                 logger.info("No local dd-trace-py found, do not mount any volume or set any python path")
 
@@ -1355,7 +1365,13 @@ class WeblogContainer(TestedContainer):
             data = json.load(f)
             lib = data["library"]
 
-        self._library = ComponentVersion(lib["name"], lib["version"])
+        reported_library = ComponentVersion(lib["name"], lib["version"])
+        if reported_library.name != self._library.name or reported_library.version != self._library.version:
+            pytest.exit(
+                f"The weblog runs {reported_library}, but its image was built with {self._library}",
+                1,
+            )
+        self._library = reported_library
 
         logger.stdout(f"Library: {self.library}")
 

@@ -22,7 +22,7 @@ RUN /usr/share/maven/bin/mvn -Pnative,without-profiling native:compile
 FROM rockylinux:9
 
 WORKDIR /app
-COPY --from=build /binaries/SYSTEM_TESTS_LIBRARY_VERSION SYSTEM_TESTS_LIBRARY_VERSION
+COPY --from=build /binaries/SYSTEM_TESTS_LIBRARY_VERSION /binaries/SYSTEM_TESTS_LIBRARY_VERSION
 COPY --from=build /app/with-profiling/myproject ./with-profiling/
 COPY --from=build /app/without-profiling/myproject ./without-profiling/
 
