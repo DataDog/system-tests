@@ -11,6 +11,7 @@ group "default" {
     "php-fpm-8_1",
     "php-fpm-8_2",
     "php-fpm-8_5",
+    "php-fpm-8_6",
 
     "apache-mod-7_0",
     "apache-mod-7_1",
@@ -211,6 +212,13 @@ target "php-fpm-8_5" {
   dockerfile = "php-fpm.base.Dockerfile"
   args       = { PHP_VERSION = "8.5" }
   tags       = ["datadog/system-tests:php-fpm-8.5.base"]
+}
+
+target "php-fpm-8_6" {
+  inherits   = ["_common"]
+  dockerfile = "php-fpm.base.Dockerfile"
+  args       = { PHP_VERSION = "8.6" }
+  tags       = ["datadog/system-tests:php-fpm-8.6.base"]
 }
 
 target "parametric" {
