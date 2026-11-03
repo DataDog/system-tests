@@ -126,6 +126,8 @@ jobs:
         ref: ${{ steps.compute_ref.outputs.ref }}
     - name: Install runner
       uses: ./.github/actions/install_runner
+    - name: Install datadog-ci
+      run: npm install -g @datadog/datadog-ci@3.10.0
     - name: Get binaries artifact
       if: ${{ inputs.binaries_artifact != '' }}
       uses: ./.github/actions/download_artifact
