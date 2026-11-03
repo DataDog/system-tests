@@ -127,7 +127,7 @@ class Test_Span_Links_From_Conflicting_Contexts:
             span
             for _, _, span in interfaces.library.get_spans(self.req, full_trace=True)
             if len(span.get_span_links()) != 0
-            and span.trace_id_equals(5)
+            and span["trace_id"] == 5
             and span["parent_id"] == 987654324  # Only fetch the trace that is related to the header extractions
         ]
 
