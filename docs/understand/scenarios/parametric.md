@@ -308,3 +308,37 @@ def test_stuff(test_library):
 [2]: https://docs.pytest.org/en/6.2.x/usage.html#specifying-tests-selecting-tests
 [3]: https://github.com/roydahan/xunit-viewer
 [4]: ../../utils/build/docker/cpp/parametric/CMakeLists.txt
+
+### Dependent flags over Remote Configuration
+
+`tests/parametric/test_ffe/test_dependent_flags_rc.py` checks the wire contract for
+server SDKs using Agent RC. The supported-build test requires bit 50 on every
+observed request subscribing to `FFE_FLAGS`, before any dependent configuration
+is delivered and after configuration updates. It verifies prerequisite variant
+keys rather than flag values, using configuration delivered exclusively by RC.
+The test agent models capability-gated delivery; this does not validate production
+backend targeting.
+
+Use the [custom tracer build instructions](../../execute/binaries.md) to select
+the SDK and native library under test. With an unreleased supported build, force
+the positive class so a missing-feature manifest cannot turn a regression into
+an expected failure:
+
+```sh
+TEST_LIBRARY=python ./run.sh PARAMETRIC \
+  tests/parametric/test_ffe/test_dependent_flags_rc.py::Test_FFE_Dependent_Flags_RC \
+  -F tests/parametric/test_ffe/test_dependent_flags_rc.py::Test_FFE_Dependent_Flags_RC
+```
+
+For a build known to lack dependent-flag support, select and force
+`Test_FFE_Without_Dependent_Flags_RC` instead. It must receive and evaluate an
+ordinary RC flag while advertising no bit 50. No RC traffic is a failure, not
+proof that an unsupported build is safe. Python 4.16.0 is the explicit legacy
+baseline in the manifest; other legacy/native combinations can use `-F`.
+
+Enable the positive class in each SDK's manifest when its dependent-flag support
+ships, alongside the evaluation suite. Python's test targets the tested 4.17
+development line and must land with its SDK implementation. Other SDKs retain
+missing-feature declarations until their supporting native packages ship. For
+Ruby, verify the loaded native package as well as the SDK version. Do not infer
+expected support from whether the SDK happens to advertise bit 50.

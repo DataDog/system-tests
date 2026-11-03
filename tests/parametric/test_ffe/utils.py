@@ -175,3 +175,15 @@ def ffe_events_from_requests(requests: Sequence[Mapping[str, Any]], flag: str) -
         payload = json.loads(body)
         events[destination].extend(event for event in payload[field] if event.get("flag", {}).get("key") == flag)
     return events
+
+
+def assert_dependent_flag_capability(requests: list[dict[str, Any]], *, supported: bool) -> None:
+    assert requests, "No FFE_FLAGS RC requests observed; absence of traffic is not evidence of compatibility"
+    for request in requests:
+        client = request["body"]["client"]
+        raw = client.get("capabilities", "")
+        decoded = bytes(raw) if isinstance(raw, list) else base64.b64decode(raw)
+        mask = int.from_bytes(decoded, byteorder="big")
+        assert bool(mask & (1 << 50)) is supported, (
+            f"FFE RC client {client.get('id')} must advertise bit 50={supported}; got {mask:#x}"
+        )
