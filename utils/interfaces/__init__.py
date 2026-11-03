@@ -3,7 +3,6 @@
 # Copyright 2021 Datadog, Inc.
 
 from ._agent import AgentInterfaceValidator
-from ._backend_legacy import _BackendLegacyInterfaceValidator
 from ._mocked_backend import _MockedBackendInterfaceValidator
 from ._library.core import LibraryInterfaceValidator
 from ._core import ProxyBasedInterfaceValidator
@@ -24,7 +23,6 @@ library = LibraryInterfaceValidator("library")
 library_stdout = _LibraryStdout()
 agent_stdout = _AgentStdout()
 library_dotnet_managed = _LibraryDotnetManaged()
-backend_legacy = _BackendLegacyInterfaceValidator(library_interface=library)
 mocked_backend = _MockedBackendInterfaceValidator()
 open_telemetry = OpenTelemetryInterfaceValidator()
 otel_collector = ProxyBasedInterfaceValidator("otel_collector")
@@ -42,7 +40,6 @@ __all__ = [
     "StdoutLogsInterface",
     "agent",
     "agent_stdout",
-    "backend_legacy",
     "golang_buddy",
     "java_buddy",
     "library",

@@ -43,7 +43,6 @@ class ApmTracingOtlp(DdTraceEndToEndScenario):
                 "DD_GIT_REPOSITORY_URL": "https://github.com/DataDog/system-tests",
                 "DD_GIT_COMMIT_SHA": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
             },
-            backend_interface_timeout=5,
             include_opentelemetry=True,
             doc="",
         )

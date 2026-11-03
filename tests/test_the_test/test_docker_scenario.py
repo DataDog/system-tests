@@ -4,7 +4,6 @@ from unittest.mock import MagicMock
 from utils import pytest
 
 from utils import interfaces, scenarios
-from utils._context._scenarios._core import endtoend as endtoend_scenarios
 from utils._context._scenarios._core.endtoend import DdTraceEndToEndScenario, DockerScenario
 from utils._context._scenarios.open_telemetry import _OpenTelemetryScenario
 from utils._context.containers import MsSqlServerContainer, TestedContainer as _TestedContainer
@@ -131,7 +130,6 @@ def test_end_to_end_scenario_only_flushes_agent_backed_non_empty_test_runs(
     monkeypatch.setattr(scenario, "_wait_interface", MagicMock())
 
     monkeypatch.setattr(interfaces.library, "check_deserialization_errors", MagicMock())
-    monkeypatch.setattr(interfaces.backend_legacy, "check_deserialization_errors", MagicMock())
 
     scenario._wait_and_stop_containers(  # noqa: SLF001 - focused lifecycle test
         is_empty_test_run=is_empty_test_run
@@ -203,22 +201,3 @@ def test_no_mocked_backend_container_without_mocked_backend() -> None:
 def test_agent_without_host_docker_internal_has_no_extra_hosts(monkeypatch: pytest.MonkeyPatch) -> None:
     scenario = DdTraceEndToEndScenario("FAKE_NO_MOCKED_BACKEND", doc="", use_proxy_for_agent=False)
     assert extra_hosts_at_start(monkeypatch, scenario.agent_container) is None
-
-
-@scenarios.test_the_test
-@pytest.mark.parametrize("require_api_key", [True, False])
-def test_backend_legacy_is_only_configured_when_an_api_key_is_required(
-    monkeypatch: pytest.MonkeyPatch, *, require_api_key: bool
-) -> None:
-    """interfaces.backend_legacy queries the real Datadog backend: only scenarios requiring an API key use it."""
-    monkeypatch.setenv("DD_API_KEY", "fake")
-    scenario = DdTraceEndToEndScenario("FAKE_BACKEND_LEGACY", doc="", require_api_key=require_api_key)
-    scenario.replay = False
-    scenario.weblog_infra = MagicMock()
-    monkeypatch.setattr(DockerScenario, "configure", MagicMock())
-    fake_interfaces = MagicMock()
-    monkeypatch.setattr(endtoend_scenarios, "interfaces", fake_interfaces)
-
-    scenario.configure(MagicMock(spec=pytest.Config))
-
-    assert fake_interfaces.backend_legacy.configure.called is require_api_key

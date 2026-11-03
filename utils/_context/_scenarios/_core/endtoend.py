@@ -233,11 +233,9 @@ class EndToEndScenario(DockerScenario):
         client_drop_p0s: bool | None = None,
         obfuscation_version: int | None | Literal["MISSING"] = None,
         runtime_metrics_enabled: bool = False,
-        backend_interface_timeout: int = 0,
         include_buddies: bool = False,
         include_agent: bool = True,
         include_opentelemetry: bool = False,
-        require_api_key: bool = False,
         mocked_backend: bool = False,
         other_weblog_containers: tuple[type[TestedContainer], ...] = (),
     ) -> None:
@@ -266,7 +264,6 @@ class EndToEndScenario(DockerScenario):
         self.use_proxy_for_agent = include_agent and use_proxy_for_agent
         """When False, the agent sends to the mocked backend (or nothing): interfaces.agent is not used"""
         self._use_proxy_for_weblog = use_proxy_for_weblog
-        self._require_api_key = require_api_key
         self._mocked_backend = mocked_backend
 
         if mocked_backend and self.use_proxy_for_agent:
@@ -345,7 +342,6 @@ class EndToEndScenario(DockerScenario):
         self._containers += self.buddies
 
         self.agent_interface_timeout = agent_interface_timeout
-        self.backend_interface_timeout = backend_interface_timeout
         self._library_interface_timeout = library_interface_timeout
         self.include_opentelemetry = include_opentelemetry
 
@@ -355,9 +351,6 @@ class EndToEndScenario(DockerScenario):
         ] + self.weblog_infra.get_image_list(library, weblog)
 
     def configure(self, config: pytest.Config):
-        if self._require_api_key and "DD_API_KEY" not in os.environ and not self.replay:
-            pytest.exit("DD_API_KEY is required for this scenario", 1)
-
         self.weblog_infra.configure(config)
         self._containers += list(self.weblog_infra.get_containers())
 
@@ -367,8 +360,6 @@ class EndToEndScenario(DockerScenario):
         if self.use_proxy_for_agent:
             interfaces.agent.configure(self.host_log_folder, replay=self.replay)
         interfaces.library.configure(self.host_log_folder, replay=self.replay)
-        if self._require_api_key:  # only used by scenarios querying the real Datadog backend
-            interfaces.backend_legacy.configure(self.host_log_folder, replay=self.replay)
         if self._mocked_backend:
             interfaces.mocked_backend.configure(self.host_log_folder, replay=self.replay)
         interfaces.library_dotnet_managed.configure(self.host_log_folder, replay=self.replay)
@@ -512,9 +503,6 @@ class EndToEndScenario(DockerScenario):
                 interfaces.agent.load_data_from_logs()
                 interfaces.agent.check_deserialization_errors()
 
-            if self._require_api_key:
-                interfaces.backend_legacy.load_data_from_logs()
-
             if self._mocked_backend:
                 interfaces.mocked_backend.load_data_from_logs()
                 interfaces.mocked_backend.check_deserialization_errors()
@@ -548,15 +536,8 @@ class EndToEndScenario(DockerScenario):
                 if self.use_proxy_for_agent:
                     interfaces.agent.check_deserialization_errors()
 
-            if self._require_api_key:
-                self._wait_interface(
-                    interfaces.backend_legacy, 0 if is_empty_test_run else self.backend_interface_timeout
-                )
-
             if self.include_opentelemetry:
-                self._wait_interface(
-                    interfaces.open_telemetry, 0 if is_empty_test_run else self.backend_interface_timeout
-                )
+                self._wait_interface(interfaces.open_telemetry, 0 if is_empty_test_run else 5)
             if self._mocked_backend:
                 # stopped last: it receives what the agent and the weblog send until they stop
                 self._stop_mocked_backend()
@@ -639,7 +620,6 @@ class DdTraceEndToEndScenario(EndToEndScenario):
         agent_env: dict[str, str | None] | None = None,
         agent_interface_timeout: int = 5,
         appsec_enabled: bool = True,
-        backend_interface_timeout: int = 0,
         client_drop_p0s: bool | None = None,
         iast_enabled: bool = True,
         include_agent: bool = True,
@@ -651,7 +631,6 @@ class DdTraceEndToEndScenario(EndToEndScenario):
         other_weblog_containers: tuple[type[TestedContainer], ...] = (),
         rc_api_enabled: bool = False,
         rc_backend_enabled: bool = False,
-        require_api_key: bool = False,
         runtime_metrics_enabled: bool = False,
         scenario_groups: list[ScenarioGroup] | None = None,
         span_events: bool = True,
@@ -667,7 +646,6 @@ class DdTraceEndToEndScenario(EndToEndScenario):
             agent_env=agent_env,
             agent_interface_timeout=agent_interface_timeout,
             appsec_enabled=appsec_enabled,
-            backend_interface_timeout=backend_interface_timeout,
             client_drop_p0s=client_drop_p0s,
             doc=doc,
             iast_enabled=iast_enabled,
@@ -680,7 +658,6 @@ class DdTraceEndToEndScenario(EndToEndScenario):
             other_weblog_containers=other_weblog_containers,
             rc_api_enabled=rc_api_enabled,
             rc_backend_enabled=rc_backend_enabled,
-            require_api_key=require_api_key,
             runtime_metrics_enabled=runtime_metrics_enabled,
             scenario_groups=scenario_groups,
             span_events=span_events,

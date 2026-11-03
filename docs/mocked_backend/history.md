@@ -25,7 +25,7 @@ What the agent (or an agentless library) sent to the backend was observed in up 
 
 * **The proxy between the agent and the backend** (mitmproxy, `utils/proxy`), read by `interfaces.agent`. The agent reached it with `DD_PROXY_HTTPS`, and it forwarded to the real backend (`datad0g.com`), or answered itself with mocked responses. Remote config was served to the agent by the proxy, without TLS (`DD_REMOTE_CONFIGURATION_NO_TLS`).
 * **Some proxy-specific setups for OpenTelemetry.**
-* **The real Datadog backend**, queried by `interfaces.backend` (now `interfaces.backend_legacy`): flaky, and it needs a real API key.
+* **The real Datadog backend**, queried by the now deleted `interfaces.backend`: flaky, and it needs a real API key.
 * **The FFE agentless backend**, a separate mock for the feature flagging agentless scenarios.
 * **Proxy interfaces for agentless traffic** (`datadog_direct`, `datadog_sidecar`), with the libraries sending through a proxy they would not use in a customer setup.
 
