@@ -26,7 +26,6 @@ FLAG_SELECTION_IGNORED_HEADER = "DD-Flag-Selection-Ignored"
 MAX_VALUES = 31
 MAX_VALUE_BYTES = 200
 FORCED_REASON_PATTERN = re.compile(r"[A-Za-z0-9_.-]{1,64}")
-UFC_TAGS_FIXTURE_RELATIVE_PATH = "tests/parametric/test_ffe/ffe-system-test-data/flag-selection/ufc-config-tags.json"
 
 # The Unicode White_Space property. str.strip() would also remove U+001C..U+001F, which production keeps.
 _WHITE_SPACE = "".join(
@@ -168,9 +167,9 @@ def select_flags(selection: Selection, flag_tags: Mapping[str, Sequence[str]]) -
     )
 
 
-def load_ufc_flag_tags(repository_root: Path) -> dict[str, list[str]]:
-    """Tags of the shared UFC flags. A flag that is not listed has no tags."""
-    fixture = json.loads((repository_root / UFC_TAGS_FIXTURE_RELATIVE_PATH).read_text(encoding="utf-8"))
+def load_flag_tags(path: Path) -> dict[str, list[str]]:
+    """Tags per flag key from an evaluation suite's flag-tags.json. A flag that is not listed has no tags."""
+    fixture = json.loads(path.read_text(encoding="utf-8"))
     return {flag["key"]: list(flag["tags"]) for flag in fixture["flags"]}
 
 

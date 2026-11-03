@@ -60,22 +60,18 @@ def test_copy_fixture_snapshot_rejects_symbolic_links(tmp_path: Path) -> None:
 
 
 @scenarios.test_the_test
-def test_copy_flag_selection_snapshot_imports_only_vectors_and_tags(tmp_path: Path) -> None:
+def test_copy_flag_selection_snapshot_imports_only_vectors(tmp_path: Path) -> None:
     source = tmp_path / "source"
     snapshot = tmp_path / "snapshot"
     (source / "flag-selection").mkdir(parents=True)
     snapshot.mkdir()
     (source / "flag-selection" / "selection-vectors.json").write_text('{"flags": [], "cases": []}', encoding="utf-8")
-    (source / "flag-selection" / "ufc-config-tags.json").write_text('{"flags": []}', encoding="utf-8")
     (source / "flag-selection" / "README.md").write_text("upstream documentation", encoding="utf-8")
 
     update_ffe_fixtures._copy_flag_selection_snapshot(source, snapshot)
     update_ffe_fixtures._validate_flag_selection_snapshot(snapshot)
 
-    assert sorted(path.name for path in (snapshot / "flag-selection").iterdir()) == [
-        "selection-vectors.json",
-        "ufc-config-tags.json",
-    ]
+    assert [path.name for path in (snapshot / "flag-selection").iterdir()] == ["selection-vectors.json"]
 
 
 @scenarios.test_the_test
@@ -90,12 +86,12 @@ def test_copy_flag_selection_snapshot_skips_absent_directory(tmp_path: Path) -> 
 
 
 @scenarios.test_the_test
-def test_copy_flag_selection_snapshot_requires_tags(tmp_path: Path) -> None:
+def test_copy_flag_selection_snapshot_requires_vectors(tmp_path: Path) -> None:
     source = tmp_path / "source"
     (source / "flag-selection").mkdir(parents=True)
-    (source / "flag-selection" / "selection-vectors.json").write_text('{"flags": [], "cases": []}', encoding="utf-8")
+    (source / "flag-selection" / "README.md").write_text("upstream documentation", encoding="utf-8")
 
-    with pytest.raises(ValueError, match="must contain ufc-config-tags.json"):
+    with pytest.raises(ValueError, match="must contain selection-vectors.json"):
         update_ffe_fixtures._copy_flag_selection_snapshot(source, tmp_path / "snapshot")
 
 
@@ -114,11 +110,49 @@ def test_copy_flag_selection_snapshot_rejects_symbolic_link_directory(tmp_path: 
 @scenarios.test_the_test
 def test_validate_flag_selection_snapshot_rejects_unexpected_fields(tmp_path: Path) -> None:
     (tmp_path / "flag-selection").mkdir()
-    (tmp_path / "flag-selection" / "selection-vectors.json").write_text('{"flags": [], "cases": []}', encoding="utf-8")
-    (tmp_path / "flag-selection" / "ufc-config-tags.json").write_text('{"flags": [], "extra": 1}', encoding="utf-8")
+    (tmp_path / "flag-selection" / "selection-vectors.json").write_text(
+        '{"flags": [], "cases": [], "extra": 1}', encoding="utf-8"
+    )
 
-    with pytest.raises(ValueError, match="ufc-config-tags.json must contain only flags"):
+    with pytest.raises(ValueError, match="selection-vectors.json must contain only cases, flags"):
         update_ffe_fixtures._validate_flag_selection_snapshot(tmp_path)
+
+
+def _write_suite(snapshot: Path) -> Path:
+    (snapshot / "evaluation-cases").mkdir(parents=True)
+    (snapshot / "ufc-config.json").write_text('{"flags": {"one": {}}}', encoding="utf-8")
+    (snapshot / "evaluation-cases" / "case.json").write_text('[{"flag": "one"}]', encoding="utf-8")
+    suite = snapshot / "evaluation-suites" / "flag-selection"
+    (suite / "cases").mkdir(parents=True)
+    (suite / "ufc-config.json").write_text('{"flags": {"two": {}}}', encoding="utf-8")
+    (suite / "cases" / "tags.json").write_text('[{"flag": "two"}]', encoding="utf-8")
+    return suite
+
+
+@scenarios.test_the_test
+def test_validate_fixture_snapshot_accepts_suite_flag_tags(tmp_path: Path) -> None:
+    suite = _write_suite(tmp_path)
+    (suite / "flag-tags.json").write_text('{"flags": [{"key": "two", "tags": ["team:checkout"]}]}', encoding="utf-8")
+
+    assert update_ffe_fixtures._validate_fixture_snapshot(tmp_path) == 2
+
+
+@scenarios.test_the_test
+@pytest.mark.parametrize(
+    ("name", "content", "message"),
+    [
+        ("flag-tags.json", '{"flags": {}}', "must contain only a flags array"),
+        ("flag-tags.json", '{"flags": [], "extra": 1}', "must contain only a flags array"),
+        ("notes.json", "{}", "must contain only ufc-config.json, cases and an optional flag-tags.json"),
+    ],
+)
+def test_validate_fixture_snapshot_rejects_invalid_suite_entries(
+    tmp_path: Path, name: str, content: str, message: str
+) -> None:
+    (_write_suite(tmp_path) / name).write_text(content, encoding="utf-8")
+
+    with pytest.raises(ValueError, match=message):
+        update_ffe_fixtures._validate_fixture_snapshot(tmp_path)
 
 
 @scenarios.test_the_test

@@ -6,11 +6,12 @@ default to JSON; use ``response_format="protobuf"`` for an independent protobuf 
 ``mocked_backend.client.ffe_get_status()`` reports request counts, auth, ETag, response codes,
 and paths observed across both formats.
 
-The JSON configuration applies the ``selected_flag_tags`` and ``selected_flag_key_patterns`` query
-parameters like production, using the shared tags in ``UFC_TAGS_FIXTURE_RELATIVE_PATH``.
-``mocked_backend.client.ffe_set_flag_selection_ignored_reason(...)`` makes it ignore every valid
-selection with that reason, as when production cannot load flag tags. The protobuf helpers ignore
-selection.
+The JSON configuration serves the root UFC, or with ``mocked_backend.client.ffe_use_suite(name)``
+the UFC of that ffe-system-test-data evaluation suite. It applies the ``selected_flag_tags`` and
+``selected_flag_key_patterns`` query parameters like production, matching tags from the suite's
+``flag-tags.json``; the root UFC has no tags. ``mocked_backend.client.ffe_set_flag_selection_ignored_reason(...)``
+makes it ignore every valid selection with that reason, as when production cannot load flag tags.
+The protobuf helpers ignore both.
 """
 
 from __future__ import annotations
@@ -21,6 +22,7 @@ from http import HTTPStatus
 import json
 import os
 from pathlib import Path
+import re
 import socket
 import threading
 import time
@@ -33,7 +35,7 @@ from ._ffe_flag_selection import (
     SelectionIgnoredError,
     has_selection_parameters,
     is_selection_parameter,
-    load_ufc_flag_tags,
+    load_flag_tags,
     parse_selection,
     select_flags,
     validate_forced_reason,
@@ -89,9 +91,11 @@ EVP_INTAKE_PATHS = ("/api/v2/exposures", "/api/v2/flagevaluation")
 EXPECTED_DD_ENV = "test"
 CONFIG_QUERY = urlencode({"dd_env": EXPECTED_DD_ENV})
 REPO_ROOT = Path(__file__).parents[2]
-# relative to the repository root: the mocked backend container mounts it at the same place
+# relative to the repository root: the mocked backend container mounts them at the same place
 UFC_FIXTURE_RELATIVE_PATH = "tests/parametric/test_ffe/ffe-system-test-data/ufc-config.json"
+EVALUATION_SUITES_RELATIVE_PATH = "tests/parametric/test_ffe/ffe-system-test-data/evaluation-suites"
 UFC_FIXTURE_PATH = REPO_ROOT / UFC_FIXTURE_RELATIVE_PATH
+SUITE_NAME_PATTERN = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
 MALFORMED_UFC_BYTES = b'{"flags": ['
 UFC_RESPONSE_TYPE = "universal-flag-configuration"
 RESPONSE_SECRET = "private-response-body"  # noqa: S105 - dummy body used to detect error-message leakage
@@ -138,6 +142,7 @@ class _MockedBackendFFEState:
         self.status_codes: list[int] = []
         self.requests: list[MockedBackendFFERequest] = []
         self._flag_selection_ignored_reason: str | None = None
+        self._suite: str | None = None
 
     def reset(self) -> None:
         with self._lock:
@@ -152,6 +157,7 @@ class _MockedBackendFFEState:
             self.status_codes = []
             self.requests = []
             self._flag_selection_ignored_reason = None
+            self._suite = None
 
     def set_responses(self, responses: object, response_format: ResponseFormat) -> None:
         validated_responses = validate_responses(responses, response_format)
@@ -188,6 +194,15 @@ class _MockedBackendFFEState:
         with self._lock:
             self._flag_selection_ignored_reason = reason
 
+    @property
+    def suite(self) -> str | None:
+        with self._lock:
+            return self._suite
+
+    def set_suite(self, suite: str | None) -> None:
+        with self._lock:
+            self._suite = suite
+
     def record_response(self, status_code: int) -> None:
         with self._lock:
             self.last_status_code = status_code
@@ -220,8 +235,34 @@ def _get_dd_api_key(headers: Mapping[str, str]) -> str | None:
     return normalized.get("dd-api-key")
 
 
-def _valid_ufc_bytes(selected_keys: list[str] | None = None) -> bytes:
-    attributes = json.loads(UFC_FIXTURE_PATH.read_text())
+def _suite_directory(suite: str) -> Path:
+    return REPO_ROOT / EVALUATION_SUITES_RELATIVE_PATH / suite
+
+
+def validate_suite(suite: object) -> str | None:
+    if suite is None:
+        return None
+    if (
+        not isinstance(suite, str)
+        or SUITE_NAME_PATTERN.fullmatch(suite) is None
+        or not (_suite_directory(suite) / "ufc-config.json").is_file()
+    ):
+        raise ValueError("suite must be null or the name of an evaluation suite in the FFE fixture snapshot")
+    return suite
+
+
+def _ufc_path(suite: str | None) -> Path:
+    return UFC_FIXTURE_PATH if suite is None else _suite_directory(suite) / "ufc-config.json"
+
+
+def _flag_tags(suite: str | None) -> dict[str, list[str]]:
+    if suite is None or not (path := _suite_directory(suite) / "flag-tags.json").is_file():
+        return {}
+    return load_flag_tags(path)
+
+
+def _valid_ufc_bytes(selected_keys: list[str] | None = None, suite: str | None = None) -> bytes:
+    attributes = json.loads(_ufc_path(suite).read_text())
     if selected_keys is not None:
         attributes["flags"] = {key: attributes["flags"][key] for key in selected_keys}
     return json.dumps(
@@ -278,12 +319,15 @@ def _has_expected_config_query(raw_query: str) -> bool:
     return parse_qs("&".join(other_pairs), keep_blank_values=True) == {"dd_env": [EXPECTED_DD_ENV]}
 
 
-def ufc_etag_for(selection: Selection | None) -> str:
-    """The ETag of the JSON configuration served for selection; None serves every flag."""
-    if selection is None:
-        return UFC_ETAG
-    # A 304 must not confirm a body built for another selection.
-    return f'{UFC_ETAG[:-1]}-{selection.digest()}"'
+def ufc_etag_for(selection: Selection | None, suite: str | None = None) -> str:
+    """The ETag of the JSON configuration served from suite (None: the root UFC) for selection (None: every flag)."""
+    # A 304 must not confirm a body built from another configuration or for another selection.
+    etag = UFC_ETAG[:-1]
+    if suite is not None:
+        etag += f"-{suite}"
+    if selection is not None:
+        etag += f"-{selection.digest()}"
+    return f'{etag}"'
 
 
 def _matches_if_none_match(if_none_match: str | None, etag: str) -> bool:
@@ -301,28 +345,28 @@ def _response_for_response(
     selection: Selection | None = None,
     ignored_reason: str | None = None,
     if_none_match: str | None = None,
+    suite: str | None = None,
 ) -> tuple[int, bytes, dict[str, str]]:
     if response == "unauthorized":
         return HTTPStatus.UNAUTHORIZED, b"", {}
     if response == "malformed":
         return HTTPStatus.OK, MALFORMED_UFC_BYTES, {"Content-Type": "application/json"}
     # Under a selection, a scripted 304 needs the selection's own validator; any other gets the selected flags.
-    if response == "not_modified" and (
-        selection is None or _matches_if_none_match(if_none_match, ufc_etag_for(selection))
-    ):
-        return HTTPStatus.NOT_MODIFIED, b"", {"ETag": ufc_etag_for(selection)}
+    etag = ufc_etag_for(selection, suite)
+    if response == "not_modified" and (selection is None or _matches_if_none_match(if_none_match, etag)):
+        return HTTPStatus.NOT_MODIFIED, b"", {"ETag": etag}
     if response == "server_error":
         return HTTPStatus.INTERNAL_SERVER_ERROR, b"", {}
     if response in {"valid", "delayed_valid", "timeout", "not_modified"}:
-        headers = {"Content-Type": "application/json", "ETag": ufc_etag_for(selection)}
+        headers = {"Content-Type": "application/json", "ETag": etag}
         if ignored_reason is not None:
             headers[FLAG_SELECTION_IGNORED_HEADER] = ignored_reason
         if selection is None:
-            return HTTPStatus.OK, _valid_ufc_bytes(), headers
-        flags = json.loads(UFC_FIXTURE_PATH.read_text())["flags"]
-        flag_tags = load_ufc_flag_tags(REPO_ROOT)
+            return HTTPStatus.OK, _valid_ufc_bytes(suite=suite), headers
+        flags = json.loads(_ufc_path(suite).read_text())["flags"]
+        flag_tags = _flag_tags(suite)
         selected_keys = select_flags(selection, {key: flag_tags.get(key, []) for key in flags})
-        return HTTPStatus.OK, _valid_ufc_bytes(selected_keys), headers
+        return HTTPStatus.OK, _valid_ufc_bytes(selected_keys, suite), headers
     raise ValueError(f"Unsupported JSON response: {response}")
 
 
@@ -367,6 +411,7 @@ class MockedBackendServerFfeMixin(_Base):
     # - POST /system-tests/ffe/responses
     # - POST /system-tests/ffe/reset
     # - POST /system-tests/ffe/flag-selection
+    # - POST /system-tests/ffe/suite
 
     def _ffe_configure(self) -> None:
         self._ffe_state = _MockedBackendFFEState()
@@ -384,6 +429,7 @@ class MockedBackendServerFfeMixin(_Base):
         self.add_handler("POST", f"{self._ffe_control_path}/responses", self._ffe_handle_control_responses)
         self.add_handler("POST", f"{self._ffe_control_path}/reset", self._ffe_handle_control_reset)
         self.add_handler("POST", f"{self._ffe_control_path}/flag-selection", self._ffe_handle_control_flag_selection)
+        self.add_handler("POST", f"{self._ffe_control_path}/suite", self._ffe_handle_control_suite)
 
     @property
     def ffe_library_base_url(self) -> str:
@@ -437,7 +483,7 @@ class MockedBackendServerFfeMixin(_Base):
                 urlparse(request.path).query, self._ffe_state.flag_selection_ignored_reason
             )
             status_code, body, headers = _response_for_response(
-                response, selection, ignored_reason, request.headers.get("If-None-Match")
+                response, selection, ignored_reason, request.headers.get("If-None-Match"), self._ffe_state.suite
             )
             self._ffe_state.record_response(status_code)
             with contextlib.suppress(BrokenPipeError, ConnectionResetError):
@@ -530,6 +576,18 @@ class MockedBackendServerFfeMixin(_Base):
             return request.write_json(HTTPStatus.BAD_REQUEST, {"error": str(error)})
         self._ffe_state.set_flag_selection_ignored_reason(reason)
         return request.write_json(HTTPStatus.OK, {"ignored_reason": reason})
+
+    def _ffe_handle_control_suite(
+        self, request: MockedBackendRequestHandler, payload: bytes | dict | None
+    ) -> tuple[Mapping, bytes]:
+        if not isinstance(payload, dict) or set(payload) != {"suite"}:
+            return request.write_json(HTTPStatus.BAD_REQUEST, {"error": "control body must contain suite"})
+        try:
+            suite = validate_suite(payload["suite"])
+        except ValueError as error:
+            return request.write_json(HTTPStatus.BAD_REQUEST, {"error": str(error)})
+        self._ffe_state.set_suite(suite)
+        return request.write_json(HTTPStatus.OK, {"suite": suite})
 
     def _ffe_handle_control_reset(
         self, request: MockedBackendRequestHandler, _: bytes | dict | None

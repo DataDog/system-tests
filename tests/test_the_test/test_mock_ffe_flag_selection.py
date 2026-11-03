@@ -20,6 +20,7 @@ from utils.mocked_backend._ffe_flag_selection import (
 from utils.mocked_backend.ffe import (
     CONFIG_PATH,
     CONFIG_QUERY,
+    EVALUATION_SUITES_RELATIVE_PATH,
     FLAG_SELECTION_IGNORED_HEADER,
     UFC_FIXTURE_RELATIVE_PATH,
     Selection,
@@ -31,6 +32,11 @@ VECTORS = json.loads(
     (REPO_ROOT / "tests/parametric/test_ffe/ffe-system-test-data/flag-selection/selection-vectors.json").read_text()
 )
 UFC_FLAGS = sorted(json.loads((REPO_ROOT / UFC_FIXTURE_RELATIVE_PATH).read_text())["flags"])
+SUITE = "flag-selection"
+SUITE_FLAGS = sorted(
+    json.loads((REPO_ROOT / EVALUATION_SUITES_RELATIVE_PATH / SUITE / "ufc-config.json").read_text())["flags"]
+)
+CHECKOUT_FLAGS = ["checkout-banner", "checkout-pricing"]
 
 
 def _encode(value: str) -> str:
@@ -98,16 +104,13 @@ def _flag_keys(response: _Response) -> list[str]:
 @pytest.mark.parametrize(
     ("selection_query", "expected_keys"),
     [
-        ("selected_flag_tags=team%3Acheckout", ["basic-flag", "numeric_flag"]),
-        ("selected_flag_tags=release%3Asummer%20sale", ["basic-flag"]),
-        ("selected_flag_tags=release:summer+sale", ["basic-flag"]),
+        ("selected_flag_tags=team%3Acheckout", CHECKOUT_FLAGS),
+        ("selected_flag_tags=release%3Asummer%20sale", ["summer-sale"]),
+        ("selected_flag_tags=release:summer+sale", ["summer-sale"]),
+        ("selected_flag_key_patterns=search-%2A", ["search-ranking"]),
         (
-            "selected_flag_key_patterns=serial-id-%2A",
-            ["serial-id-basic-flag", "serial-id-missing-flag", "serial-id-targeting-flag", "serial-id-zero-flag"],
-        ),
-        (
-            "selected_flag_tags=team%3Asearch&selected_flag_key_patterns=numeric_flag",
-            ["experiment-flag", "numeric_flag"],
+            "selected_flag_tags=team%3Aops&selected_flag_key_patterns=checkout-b%2A",
+            ["checkout-banner", "ops-kill-switch"],
         ),
         ("selected_flag_tags=no-flag-has-this-tag", []),
         ("selected_flag_tags=%85", []),
@@ -116,6 +119,7 @@ def _flag_keys(response: _Response) -> list[str]:
 def test_valid_selection_serves_only_selected_flags(selection_query: str, expected_keys: list[str]) -> None:
     server = MockedBackendServer()
     try:
+        server.client.ffe_use_suite(SUITE)
         unfiltered = _get_config(server)
         response = _get_config(server, selection_query)
 
@@ -127,6 +131,64 @@ def test_valid_selection_serves_only_selected_flags(selection_query: str, expect
             == unfiltered.json()["data"]["attributes"]["environment"]
         )
         assert server.ffe_get_requests()[-1]["path"].endswith(selection_query)
+    finally:
+        server.close()
+
+
+@scenarios.test_the_test
+def test_root_configuration_has_no_tags() -> None:
+    server = MockedBackendServer()
+    try:
+        assert _flag_keys(_get_config(server, "selected_flag_tags=team%3Acheckout")) == []
+        assert _flag_keys(_get_config(server, "selected_flag_key_patterns=serial-id-%2A")) == [
+            "serial-id-basic-flag",
+            "serial-id-missing-flag",
+            "serial-id-targeting-flag",
+            "serial-id-zero-flag",
+        ]
+    finally:
+        server.close()
+
+
+@scenarios.test_the_test
+def test_suite_control_serves_the_suite_configuration() -> None:
+    server = MockedBackendServer()
+    try:
+        server.client.ffe_use_suite(SUITE)
+        response = _get_config(server)
+        assert _flag_keys(response) == SUITE_FLAGS
+        assert response.headers["ETag"] == ufc_etag_for(None, SUITE)
+
+        server.client.ffe_use_suite("dependent-flags")
+        assert _flag_keys(_get_config(server, "selected_flag_tags=team%3Acheckout")) == []
+
+        server.client.ffe_use_suite(None)
+        response = _get_config(server)
+        assert _flag_keys(response) == UFC_FLAGS
+        assert response.headers["ETag"] == ufc_etag_for(None)
+
+        server.client.ffe_use_suite(SUITE)
+        server.client.ffe_reset()
+        assert _flag_keys(_get_config(server)) == UFC_FLAGS
+    finally:
+        server.close()
+
+
+@scenarios.test_the_test
+def test_suite_control_rejects_unknown_suites() -> None:
+    server = MockedBackendServer()
+    try:
+        for body in (
+            {"suite": "missing-suite"},
+            {"suite": "../evaluation-suites/flag-selection"},
+            {"suite": "Flag-Selection"},
+            {"suite": ""},
+            {"suite": 1},
+            {},
+            {"other": None},
+        ):
+            response = requests.post(f"{server.base_url}/system-tests/ffe/suite", json=body, timeout=5)
+            assert response.status_code == 400, body
     finally:
         server.close()
 
@@ -183,10 +245,11 @@ def test_selection_does_not_relax_the_environment_query() -> None:
 def test_forced_ignored_reason_applies_only_to_valid_selections() -> None:
     server = MockedBackendServer()
     try:
+        server.client.ffe_use_suite(SUITE)
         server.client.ffe_set_flag_selection_ignored_reason("tag_load_failed")
 
         response = _get_config(server, "selected_flag_tags=team%3Acheckout")
-        assert _flag_keys(response) == UFC_FLAGS
+        assert _flag_keys(response) == SUITE_FLAGS
         assert response.headers[FLAG_SELECTION_IGNORED_HEADER] == "tag_load_failed"
 
         response = _get_config(server)
@@ -197,7 +260,7 @@ def test_forced_ignored_reason_applies_only_to_valid_selections() -> None:
 
         server.client.ffe_set_flag_selection_ignored_reason(None)
         response = _get_config(server, "selected_flag_tags=team%3Acheckout")
-        assert _flag_keys(response) == ["basic-flag", "numeric_flag"]
+        assert _flag_keys(response) == CHECKOUT_FLAGS
 
         server.client.ffe_set_flag_selection_ignored_reason("future_reason")
         server.client.ffe_reset()
@@ -236,10 +299,14 @@ def test_not_modified_under_a_selection_revalidates_only_its_own_etag() -> None:
     server = MockedBackendServer()
     selection_query = f"{CONFIG_QUERY}&selected_flag_tags=team%3Acheckout"
     try:
+        server.client.ffe_use_suite(SUITE)
         server.client.ffe_set_responses(["valid", "not_modified"])
         etag = _get(server, selection_query).headers["ETag"]
-        assert etag == ufc_etag_for(Selection(tags=("team:checkout",), key_patterns=()))
-        assert etag != ufc_etag_for(None)
+        assert etag == ufc_etag_for(Selection(tags=("team:checkout",), key_patterns=()), SUITE)
+        assert etag not in {
+            ufc_etag_for(None, SUITE),
+            ufc_etag_for(Selection(tags=("team:checkout",), key_patterns=())),
+        }
 
         for validator in (etag, f"W/{etag}", f'"other", {etag}'):
             revalidated = _get(server, selection_query, {"If-None-Match": validator})
@@ -247,11 +314,11 @@ def test_not_modified_under_a_selection_revalidates_only_its_own_etag() -> None:
             assert revalidated.headers["ETag"] == etag, validator
             assert FLAG_SELECTION_IGNORED_HEADER not in revalidated.headers, validator
 
-        for headers in ({"If-None-Match": ufc_etag_for(None)}, {}):
+        for headers in ({"If-None-Match": ufc_etag_for(None, SUITE)}, {}):
             stale = _get(server, selection_query, headers)
             assert stale.status == 200, headers
             assert stale.headers["ETag"] == etag, headers
-            assert _flag_keys(stale) == ["basic-flag", "numeric_flag"], headers
+            assert _flag_keys(stale) == CHECKOUT_FLAGS, headers
     finally:
         server.close()
 

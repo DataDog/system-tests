@@ -2,12 +2,13 @@ from ._ffe_flag_selection import (
     FLAG_SELECTION_IGNORED_HEADER,
     SELECTED_FLAG_KEY_PATTERNS,
     SELECTED_FLAG_TAGS,
-    UFC_TAGS_FIXTURE_RELATIVE_PATH,
     Selection,
 )
 from ._backend_ffe import (
     CONFIG_PATH,
     CONFIG_QUERY,
+    EVALUATION_SUITES_RELATIVE_PATH,
+    MockedBackendFFERequest,
     MockedBackendFFEStatus,
     EXPECTED_DD_ENV,
     RULES_CONFIG_PATH,
@@ -23,6 +24,7 @@ from ._backend_ffe import (
 __all__ = [
     "CONFIG_PATH",
     "CONFIG_QUERY",
+    "EVALUATION_SUITES_RELATIVE_PATH",
     "EXPECTED_DD_ENV",
     "FLAG_SELECTION_IGNORED_HEADER",
     "RESPONSE_SECRET",
@@ -31,7 +33,7 @@ __all__ = [
     "SELECTED_FLAG_TAGS",
     "UFC_FIXTURE_RELATIVE_PATH",
     "UFC_RESPONSE_TYPE",
-    "UFC_TAGS_FIXTURE_RELATIVE_PATH",
+    "MockedBackendFFERequest",
     "MockedBackendFFEStatus",
     "ResponseFormat",
     "Selection",

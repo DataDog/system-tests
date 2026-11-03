@@ -15,7 +15,7 @@ FIXTURE_DESTINATION = REPOSITORY_ROOT / "tests" / "parametric" / "test_ffe" / "f
 FIXTURE_REPOSITORY = "https://github.com/DataDog/ffe-system-test-data.git"
 FIXTURE_REF_PATTERN = re.compile(r"[A-Za-z0-9._/-]+")
 SELECTION_VECTORS_PATH = Path("flag-selection/selection-vectors.json")
-SELECTION_UFC_TAGS_PATH = Path("flag-selection/ufc-config-tags.json")
+SUITE_FLAG_TAGS_FILE = "flag-tags.json"
 
 
 def _validate_fixture_ref(fixture_ref: str) -> None:
@@ -110,6 +110,14 @@ def _validate_evaluation_suite(config_path: Path, cases_directory: Path) -> int:
     return case_count
 
 
+def _validate_flag_tags(path: Path) -> None:
+    with path.open(encoding="utf-8") as tags_file:
+        content = json.load(tags_file)
+    if not isinstance(content, dict) or set(content) != {"flags"} or not isinstance(content["flags"], list):
+        msg = f"{path.parent.name}/{path.name} must contain only a flags array"
+        raise ValueError(msg)
+
+
 def _validate_fixture_snapshot(snapshot: Path) -> int:
     fixture_count = _validate_evaluation_suite(snapshot / "ufc-config.json", snapshot / "evaluation-cases")
 
@@ -127,9 +135,15 @@ def _validate_fixture_snapshot(snapshot: Path) -> int:
         if not suite_directory.is_dir() or suite_directory.is_symlink():
             msg = "FFE evaluation-suites must contain only suite directories"
             raise ValueError(msg)
-        if {entry.name for entry in suite_directory.iterdir()} != {"ufc-config.json", "cases"}:
-            msg = f"FFE feature suite {suite_directory.name} must contain only ufc-config.json and cases"
+        entries = {entry.name for entry in suite_directory.iterdir()}
+        if not {"ufc-config.json", "cases"} <= entries <= {"ufc-config.json", "cases", SUITE_FLAG_TAGS_FILE}:
+            msg = (
+                f"FFE feature suite {suite_directory.name} must contain only ufc-config.json, cases and an optional "
+                f"{SUITE_FLAG_TAGS_FILE}"
+            )
             raise ValueError(msg)
+        if SUITE_FLAG_TAGS_FILE in entries:
+            _validate_flag_tags(suite_directory / SUITE_FLAG_TAGS_FILE)
         fixture_count += _validate_evaluation_suite(
             suite_directory / "ufc-config.json",
             suite_directory / "cases",
@@ -190,29 +204,27 @@ def _set_github_outputs(source_commit: str, fixture_count: int, *, changed: bool
 
 
 def _copy_flag_selection_snapshot(source: Path, snapshot: Path) -> None:
-    # The mocked backend applies flag selection to ufc-config.json with these vectors' semantics and tags.
+    # The mocked backend's flag selection unit tests run these vectors.
     directory = source / SELECTION_VECTORS_PATH.parent
     if directory.is_symlink():
         msg = f"Refusing to copy symbolic link from FFE fixture repository: {directory}"
         raise ValueError(msg)
     if not directory.exists():
         return
-    for path in (SELECTION_VECTORS_PATH, SELECTION_UFC_TAGS_PATH):
-        if not (source / path).exists() and not (source / path).is_symlink():
-            msg = f"FFE flag-selection must contain {path.name}"
-            raise ValueError(msg)
-        _copy_entry(source / path, snapshot / path)
+    if not (source / SELECTION_VECTORS_PATH).exists() and not (source / SELECTION_VECTORS_PATH).is_symlink():
+        msg = f"FFE flag-selection must contain {SELECTION_VECTORS_PATH.name}"
+        raise ValueError(msg)
+    _copy_entry(source / SELECTION_VECTORS_PATH, snapshot / SELECTION_VECTORS_PATH)
 
 
 def _validate_flag_selection_snapshot(snapshot: Path) -> None:
     if not (snapshot / SELECTION_VECTORS_PATH.parent).exists():
         return
-    for path, fields in ((SELECTION_VECTORS_PATH, {"flags", "cases"}), (SELECTION_UFC_TAGS_PATH, {"flags"})):
-        with (snapshot / path).open(encoding="utf-8") as fixture_file:
-            content = json.load(fixture_file)
-        if not isinstance(content, dict) or set(content) != fields:
-            msg = f"{path.name} must contain only {', '.join(sorted(fields))}"
-            raise ValueError(msg)
+    with (snapshot / SELECTION_VECTORS_PATH).open(encoding="utf-8") as fixture_file:
+        content = json.load(fixture_file)
+    if not isinstance(content, dict) or set(content) != {"flags", "cases"}:
+        msg = f"{SELECTION_VECTORS_PATH.name} must contain only cases, flags"
+        raise ValueError(msg)
 
 
 def update_fixtures(fixture_ref: str) -> bool:

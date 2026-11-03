@@ -53,6 +53,18 @@ class MockedBackendClient:
         )
         response.raise_for_status()
 
+    def ffe_use_suite(self, suite: str | None) -> None:
+        """Serve the JSON FFE configuration from this ffe-system-test-data evaluation suite, filtering selections with
+        its flag-tags.json; None serves the root UFC again
+        """
+        response = requests.post(
+            f"{self.base_url}{_FFE_CONTROL_PATH}/suite",
+            json={"suite": suite},
+            timeout=5,
+            verify=self.verify,
+        )
+        response.raise_for_status()
+
     def set_mocked_responses(self, responses: Sequence[MockedBackendResponse]) -> None:
         """Replace the mocked responses set by tests, like MockedBackendResponse.send() does with the proxy"""
         response = requests.put(
