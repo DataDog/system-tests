@@ -14,6 +14,7 @@ class Test_DistributedHttp:
 
     def setup_main(self):
         self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777"})
+        interfaces.library.wait_for(lambda data: data["path"] in interfaces.library.trace_paths, timeout=10)
 
     def test_main(self):
         interfaces.library.assert_trace_exists(self.r)
