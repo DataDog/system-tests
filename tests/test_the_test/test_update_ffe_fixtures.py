@@ -8,6 +8,8 @@ from utils import pytest
 from utils import scenarios
 from utils.scripts import update_ffe_fixtures
 
+VALID_VECTORS = '{"flags": [{"key": "one", "tags": []}], "cases": [{"name": "case", "expected": {}}]}'
+
 
 @scenarios.test_the_test
 @pytest.mark.parametrize("fixture_ref", ["main", "feature/fixture-update", "v1.2.3", "ea8b5cc5"])
@@ -65,7 +67,7 @@ def test_copy_flag_selection_snapshot_imports_only_vectors(tmp_path: Path) -> No
     snapshot = tmp_path / "snapshot"
     (source / "flag-selection").mkdir(parents=True)
     snapshot.mkdir()
-    (source / "flag-selection" / "selection-vectors.json").write_text('{"flags": [], "cases": []}', encoding="utf-8")
+    (source / "flag-selection" / "selection-vectors.json").write_text(VALID_VECTORS, encoding="utf-8")
     (source / "flag-selection" / "README.md").write_text("upstream documentation", encoding="utf-8")
 
     update_ffe_fixtures._copy_flag_selection_snapshot(source, snapshot)
@@ -110,12 +112,17 @@ def test_copy_flag_selection_snapshot_rejects_symbolic_link_directory(tmp_path: 
 @scenarios.test_the_test
 def test_validate_flag_selection_snapshot_rejects_unexpected_fields(tmp_path: Path) -> None:
     (tmp_path / "flag-selection").mkdir()
-    (tmp_path / "flag-selection" / "selection-vectors.json").write_text(
-        '{"flags": [], "cases": [], "extra": 1}', encoding="utf-8"
-    )
-
-    with pytest.raises(ValueError, match="selection-vectors.json must contain only cases, flags"):
-        update_ffe_fixtures._validate_flag_selection_snapshot(tmp_path)
+    vectors = tmp_path / "flag-selection" / "selection-vectors.json"
+    for content, message in (
+        ('{"flags": [], "cases": [], "extra": 1}', "must contain only cases, flags"),
+        ('{"flags": null, "cases": "bad"}', "flags must be a non-empty array"),
+        ('{"flags": [{"key": "one", "tags": [1]}], "cases": []}', "flags must be a non-empty array"),
+        ('{"flags": [{"key": "one", "tags": []}], "cases": []}', "cases must be a non-empty array"),
+        ('{"flags": [{"key": "one", "tags": []}], "cases": [{"name": "case"}]}', "cases must be a non-empty array"),
+    ):
+        vectors.write_text(content, encoding="utf-8")
+        with pytest.raises(ValueError, match=message):
+            update_ffe_fixtures._validate_flag_selection_snapshot(tmp_path)
 
 
 def _write_suite(snapshot: Path) -> Path:
@@ -141,8 +148,9 @@ def test_validate_fixture_snapshot_accepts_suite_flag_tags(tmp_path: Path) -> No
 @pytest.mark.parametrize(
     ("name", "content", "message"),
     [
-        ("flag-tags.json", '{"flags": {}}', "must contain only a flags array"),
-        ("flag-tags.json", '{"flags": [], "extra": 1}', "must contain only a flags array"),
+        ("flag-tags.json", '{"flags": {}}', "flags must be a non-empty array of key and tags entries"),
+        ("flag-tags.json", '{"flags": [{"key": "two"}]}', "flags must be a non-empty array of key and tags entries"),
+        ("flag-tags.json", '{"flags": [], "extra": 1}', "must contain only flags"),
         ("notes.json", "{}", "must contain only ufc-config.json, cases and an optional flag-tags.json"),
     ],
 )

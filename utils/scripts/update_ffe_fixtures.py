@@ -110,12 +110,30 @@ def _validate_evaluation_suite(config_path: Path, cases_directory: Path) -> int:
     return case_count
 
 
+def _validate_flag_entries(flags: object, location: str) -> None:
+    if (
+        not isinstance(flags, list)
+        or not flags
+        or not all(
+            isinstance(flag, dict)
+            and isinstance(flag.get("key"), str)
+            and isinstance(flag.get("tags"), list)
+            and all(isinstance(tag, str) for tag in flag["tags"])
+            for flag in flags
+        )
+    ):
+        msg = f"{location} flags must be a non-empty array of key and tags entries"
+        raise ValueError(msg)
+
+
 def _validate_flag_tags(path: Path) -> None:
+    location = f"{path.parent.name}/{path.name}"
     with path.open(encoding="utf-8") as tags_file:
         content = json.load(tags_file)
-    if not isinstance(content, dict) or set(content) != {"flags"} or not isinstance(content["flags"], list):
-        msg = f"{path.parent.name}/{path.name} must contain only a flags array"
+    if not isinstance(content, dict) or set(content) != {"flags"}:
+        msg = f"{location} must contain only flags"
         raise ValueError(msg)
+    _validate_flag_entries(content["flags"], location)
 
 
 def _validate_fixture_snapshot(snapshot: Path) -> int:
@@ -224,6 +242,18 @@ def _validate_flag_selection_snapshot(snapshot: Path) -> None:
         content = json.load(fixture_file)
     if not isinstance(content, dict) or set(content) != {"flags", "cases"}:
         msg = f"{SELECTION_VECTORS_PATH.name} must contain only cases, flags"
+        raise ValueError(msg)
+    _validate_flag_entries(content["flags"], SELECTION_VECTORS_PATH.name)
+    cases = content["cases"]
+    if (
+        not isinstance(cases, list)
+        or not cases
+        or not all(
+            isinstance(case, dict) and isinstance(case.get("name"), str) and isinstance(case.get("expected"), dict)
+            for case in cases
+        )
+    ):
+        msg = f"{SELECTION_VECTORS_PATH.name} cases must be a non-empty array of named cases with expected outcomes"
         raise ValueError(msg)
 
 

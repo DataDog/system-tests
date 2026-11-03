@@ -346,14 +346,17 @@ def _response_for_response(
     ignored_reason: str | None = None,
     if_none_match: str | None = None,
     suite: str | None = None,
+    *,
+    selection_requested: bool = False,
 ) -> tuple[int, bytes, dict[str, str]]:
     if response == "unauthorized":
         return HTTPStatus.UNAUTHORIZED, b"", {}
     if response == "malformed":
         return HTTPStatus.OK, MALFORMED_UFC_BYTES, {"Content-Type": "application/json"}
-    # Under a selection, a scripted 304 needs the selection's own validator; any other gets the selected flags.
+    # A request carrying a selection, applied or ignored, gets a scripted 304 only for the validator of the body it
+    # would get otherwise, so a 304 never confirms a body built for another selection.
     etag = ufc_etag_for(selection, suite)
-    if response == "not_modified" and (selection is None or _matches_if_none_match(if_none_match, etag)):
+    if response == "not_modified" and (not selection_requested or _matches_if_none_match(if_none_match, etag)):
         return HTTPStatus.NOT_MODIFIED, b"", {"ETag": etag}
     if response == "server_error":
         return HTTPStatus.INTERNAL_SERVER_ERROR, b"", {}
@@ -479,11 +482,15 @@ class MockedBackendServerFfeMixin(_Base):
             if response in {"delayed_valid", "timeout"}:
                 time.sleep(TIMEOUT_RESPONSE_SECONDS if response == "timeout" else DELAYED_RESPONSE_SECONDS)
 
-            selection, ignored_reason = _flag_selection_for_query(
-                urlparse(request.path).query, self._ffe_state.flag_selection_ignored_reason
-            )
+            query = urlparse(request.path).query
+            selection, ignored_reason = _flag_selection_for_query(query, self._ffe_state.flag_selection_ignored_reason)
             status_code, body, headers = _response_for_response(
-                response, selection, ignored_reason, request.headers.get("If-None-Match"), self._ffe_state.suite
+                response,
+                selection,
+                ignored_reason,
+                request.headers.get("If-None-Match"),
+                self._ffe_state.suite,
+                selection_requested=has_selection_parameters(query),
             )
             self._ffe_state.record_response(status_code)
             with contextlib.suppress(BrokenPipeError, ConnectionResetError):

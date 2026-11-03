@@ -287,7 +287,7 @@ def test_selection_is_not_applied_to_error_responses() -> None:
     try:
         server.client.ffe_set_responses(["server_error", "not_modified"])
         for expected_status in (500, 304):
-            response = _get(server, f"{CONFIG_QUERY}&selected_flag_tags=%zz")
+            response = _get(server, f"{CONFIG_QUERY}&selected_flag_tags=%zz", {"If-None-Match": ufc_etag_for(None)})
             assert response.status == expected_status
             assert FLAG_SELECTION_IGNORED_HEADER not in response.headers
     finally:
@@ -319,6 +319,29 @@ def test_not_modified_under_a_selection_revalidates_only_its_own_etag() -> None:
             assert stale.status == 200, headers
             assert stale.headers["ETag"] == etag, headers
             assert _flag_keys(stale) == CHECKOUT_FLAGS, headers
+    finally:
+        server.close()
+
+
+@scenarios.test_the_test
+def test_not_modified_does_not_confirm_a_selected_body_once_the_selection_is_ignored() -> None:
+    server = MockedBackendServer()
+    selection_query = f"{CONFIG_QUERY}&selected_flag_tags=team%3Acheckout"
+    try:
+        server.client.ffe_use_suite(SUITE)
+        server.client.ffe_set_responses(["valid", "not_modified"])
+        selected_etag = _get(server, selection_query).headers["ETag"]
+        server.client.ffe_set_flag_selection_ignored_reason("tag_load_failed")
+
+        response = _get(server, selection_query, {"If-None-Match": selected_etag})
+        assert response.status == 200
+        assert _flag_keys(response) == SUITE_FLAGS
+        assert response.headers[FLAG_SELECTION_IGNORED_HEADER] == "tag_load_failed"
+        assert response.headers["ETag"] == ufc_etag_for(None, SUITE)
+
+        revalidated = _get(server, selection_query, {"If-None-Match": ufc_etag_for(None, SUITE)})
+        assert revalidated.status == 304
+        assert FLAG_SELECTION_IGNORED_HEADER not in revalidated.headers
     finally:
         server.close()
 
