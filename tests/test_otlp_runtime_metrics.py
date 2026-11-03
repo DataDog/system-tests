@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from typing import TypedDict
 
+from tests.test_config_consistency import RUNTIME_METRICS_WAIT_TIMEOUT
 from utils import context, features, interfaces, scenarios, weblog
 
 
@@ -256,9 +257,6 @@ def get_runtime_metrics_by_name() -> dict[str, list[dict[str, str]]]:
         tags: dict[str, str] = dict(tag.split(":", 1) for tag in metric.get("tags", []) if ":" in tag)
         result.setdefault(name, []).append(tags)
     return result
-
-
-RUNTIME_METRICS_WAIT_TIMEOUT = 60
 
 
 def wait_for_runtime_metrics(library: str) -> None:

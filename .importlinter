@@ -25,6 +25,7 @@ ignore_imports =
     tests.docker_ssi.test_docker_ssi_appsec -> tests.parametric.test_telemetry
     tests.parametric.test_ffe.test_configuration_sources -> tests.parametric.test_ffe.test_dynamic_evaluation
     tests.parametric.test_parametric_endpoints -> tests.parametric.test_dynamic_configuration
+    tests.test_otlp_runtime_metrics -> tests.test_config_consistency
     tests.test_telemetry -> tests.test_telemetry_heartbeat_utils
     tests.test_the_test.test_telemetry_heartbeat -> tests.test_telemetry_heartbeat_utils
     tests.test_the_test.test_ffe_tests -> tests.ffe.test_exposure_egress
