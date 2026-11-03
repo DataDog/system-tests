@@ -21,6 +21,9 @@ class Test_DistributedHttp:
         assert self.r.status_code == 200
         data = json.loads(self.r.text)
         assert "traceparent" in data["request_headers"]
+        tracestate = data["request_headers"]["tracestate"].split(",")
+        assert len(tracestate) == 1
+        assert tracestate[0].startswith("dd=")
         assert "x-datadog-parent-id" not in data["request_headers"]
         assert "x-datadog-sampling-priority" not in data["request_headers"]
         assert "x-datadog-tags" not in data["request_headers"]
