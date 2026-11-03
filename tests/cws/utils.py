@@ -2,11 +2,11 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-"""Helpers for reading CWS (Cloud Workload Security) security events out of the agent's
-captured HTTPS traffic.
+"""Helpers for reading CWS (Cloud Workload Security) security events out of what the agent
+sends to the mocked backend.
 
-The security agent ships its events to runtime-security-http-intake.logs.datadoghq.com,
-which the proxy captures under "/api/v2/secruntime", as a batch (JSON array) of objects
+The security agent ships its events to runtime-security-http-intake.logs.<DD_SITE>, which
+the mocked backend records under "/api/v2/secruntime", as a batch (JSON array) of objects
 shaped like:
 
     {"message": "<the event JSON, escaped as a string>", "ddsource": ..., "ddtags": ...,
@@ -26,7 +26,7 @@ CWS_EVENTS_PATH = "/api/v2/secruntime"
 
 def iter_cws_events(data: dict[str, Any]) -> Generator[dict[str, Any], None, None]:
     """Yield every decoded CWS security event body carried by one captured request
-    (as returned by interfaces.agent.get_data()/wait_for()).
+    (as returned by interfaces.mocked_backend.get_data()/wait_for()).
     """
     if data["path"] != CWS_EVENTS_PATH:
         return
