@@ -554,7 +554,9 @@ class BaseDebuggerTest:
     def get_probe_diagnostics_files(self) -> set[str]:
         """Return the files of the probe diagnostics received so far, so that a later wait can ignore them."""
         return {
-            data["log_filename"] for path in (_LOGS_PATH, _DEBUGGER_PATH) for data in interfaces.mocked_backend.get_data(path)
+            data["log_filename"]
+            for path in (_LOGS_PATH, _DEBUGGER_PATH)
+            for data in interfaces.mocked_backend.get_data(path)
         }
 
     def wait_for_all_probes_installed(self, *, ignored_files: set[str] | None = None, timeout: int = 30) -> bool:
