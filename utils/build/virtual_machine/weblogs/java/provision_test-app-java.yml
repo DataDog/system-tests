@@ -6,20 +6,33 @@ lang_variant:
   install:
     - os_type: linux
       os_distro: deb
-      remote-command: sudo apt-get -y update && sudo apt-get -y install openjdk-11-jdk
+      copy_files:
+        - name: copy-select-java11
+          local_path: utils/build/virtual_machine/weblogs/java/test-app-java/select_java11.sh
+      remote-command: |
+        sudo apt-get -y update && sudo apt-get -y install openjdk-11-jdk
+        sh select_java11.sh
 
     - os_type: linux
       os_distro: rpm
       os_branch: amazon_linux2
+      copy_files:
+        - name: copy-select-java11
+          local_path: utils/build/virtual_machine/weblogs/java/test-app-java/select_java11.sh
       remote-command: |
-        sudo yum install tar -y || true
-        sudo yum -y install java-11-amazon-corretto-devel
+        sudo yum install -y tar || true
+        sudo yum -y install java-11-amazon-corretto
+        sh select_java11.sh
 
     - os_type: linux
       os_distro: rpm
+      copy_files:
+        - name: copy-select-java11
+          local_path: utils/build/virtual_machine/weblogs/java/test-app-java/select_java11.sh
       remote-command: |
-        sudo yum install tar -y || sudo dnf install tar -y || true
-        sudo dnf -y install java-11-openjdk-devel || sudo yum -y install java-11-openjdk-devel
+        sudo yum install -y tar || sudo dnf install -y tar || true
+        sudo dnf -y install java-11-openjdk-devel || sudo dnf -y install java-11-amazon-corretto-devel || sudo yum -y install java-11-openjdk-devel || sudo yum -y install java-11-amazon-corretto
+        sh select_java11.sh
 
 weblog:
   name: test-app-java
