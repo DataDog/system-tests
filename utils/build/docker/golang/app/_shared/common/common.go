@@ -141,9 +141,12 @@ func GetHealtchCheck() (HealtchCheck, error) {
 	}, nil
 }
 
+// LibraryVersionFile holds the version of the tracer installed in the image
+var LibraryVersionFile = "/binaries/SYSTEM_TESTS_LIBRARY_VERSION"
+
 func GetDatadogInformations() (DatadogInformations, error) {
 
-	tracerVersion, err := os.ReadFile("SYSTEM_TESTS_LIBRARY_VERSION")
+	tracerVersion, err := os.ReadFile(LibraryVersionFile)
 	if err != nil {
 		return DatadogInformations{}, errors.New("Can't get SYSTEM_TESTS_LIBRARY_VERSION")
 	}

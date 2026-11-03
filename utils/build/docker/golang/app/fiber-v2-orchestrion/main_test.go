@@ -8,10 +8,12 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/gofiber/fiber/v2"
+	"systemtests.weblog/_shared/common"
 )
 
 func request(t *testing.T, app *fiber.App, method, path, body, contentType string) (*http.Response, string) {
@@ -73,13 +75,13 @@ func TestRoutes(t *testing.T) {
 }
 
 func TestHealthcheck(t *testing.T) {
-	t.Chdir(t.TempDir())
+	common.LibraryVersionFile = filepath.Join(t.TempDir(), "SYSTEM_TESTS_LIBRARY_VERSION")
 	app := newApp()
 	res, _ := request(t, app, http.MethodGet, "/healthcheck", "", "")
 	if res.StatusCode != http.StatusInternalServerError {
 		t.Fatalf("missing version file returned %d", res.StatusCode)
 	}
-	if err := os.WriteFile("SYSTEM_TESTS_LIBRARY_VERSION", []byte("2.7.0"), 0600); err != nil {
+	if err := os.WriteFile(common.LibraryVersionFile, []byte("2.7.0"), 0600); err != nil {
 		t.Fatal(err)
 	}
 	res, body := request(t, app, http.MethodGet, "/healthcheck", "", "")

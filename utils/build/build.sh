@@ -400,6 +400,23 @@ build() {
                         .
                 fi
 
+                # The version of the tracer installed in the image, as its healthcheck reports it, written at build time
+                LIBRARY_VERSION=$(docker run --rm ${DOCKER_PLATFORM_ARGS} --entrypoint cat system_tests/weblog \
+                    /binaries/SYSTEM_TESTS_LIBRARY_VERSION | head -n 1 | tr -d '[:space:]' || true)
+                if [[ -z "$LIBRARY_VERSION" ]]; then
+                    echo "The weblog image has no /binaries/SYSTEM_TESTS_LIBRARY_VERSION file, it can't be labelled" >&2
+                    exit 1
+                fi
+                echo "Labelling the weblog image with library version $LIBRARY_VERSION"
+                echo "FROM system_tests/weblog" | run_build_command docker buildx build \
+                    --load \
+                    --progress=plain \
+                    ${DOCKER_PLATFORM_ARGS} \
+                    --label "system-tests-library-version=${LIBRARY_VERSION}" \
+                    -t system_tests/weblog \
+                    $MIRROR_BUILDER_ARG \
+                    -
+
                 if [[ $SAVE_TO_BINARIES == 1 ]]; then
                     echo "Saving image to $BINARIES_FILENAME"
                     docker save system_tests/weblog | zstd > "$BINARIES_FILENAME"
