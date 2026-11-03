@@ -8,7 +8,7 @@ on:
         default: php
         type: string
       weblog:
-        description: Which weblog
+        description: Which weblog (ignored for PARAMETRIC)
         default: apache-mod-8.1
         type: string
       agent_image:
@@ -16,8 +16,12 @@ on:
         default: datadog/agent:latest
         type: string
       scenario:
-        description: Which scenario
+        description: Which scenario (PARAMETRIC is supported)
         default: DEBUGGER_EXPRESSION_LANGUAGE
+        type: string
+      run_args:
+        description: Extra arguments passed to run.sh (e.g. a test nodeid, or -k filter)
+        default: ""
         type: string
       job_count:
         description: How many jobs
@@ -40,6 +44,7 @@ env:
   AGENT_IMAGE:            ${{ (github.event_name == 'workflow_dispatch' && inputs.agent_image)           || 'datadog/agent:latest' }}
   DEV_OR_PROD:            ${{ (github.event_name == 'workflow_dispatch' && inputs.dev_or_prod)           || 'prod' }}
   LIBRARY_TARGET_BRANCH:  ${{ (github.event_name == 'workflow_dispatch' && inputs.library_target_branch) || '' }}
+  RUN_ARGS:               ${{ (github.event_name == 'workflow_dispatch' && inputs.run_args)              || '' }}
 
 jobs:
   generate-matrix:
@@ -66,6 +71,7 @@ jobs:
         run: ./utils/scripts/load-binary.sh ${{ env.LIBRARY }}
       - name: Build weblog
         id: build
+        if: env.SCENARIO != 'PARAMETRIC'
         run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ env.LIBRARY }} -i weblog -w ${{ env.WEBLOG }} -s --github-token-file "$RUNNER_TEMP/github_token.txt"
       - name: Remove secrets
         if: always()
@@ -104,18 +110,40 @@ jobs:
         path: binaries/
     - name: Build weblog
       id: build
+      if: env.SCENARIO != 'PARAMETRIC'
       run: ./build.sh ${{ env.LIBRARY }} -i weblog -w ${{ env.WEBLOG }}
+    - name: Wait for parametric base image
+      if: env.SCENARIO == 'PARAMETRIC'
+      run: python3 ./utils/scripts/wait-for-base-images.py ${{ env.LIBRARY }} parametric --timeout 900 --poll-interval 30
+    - name: Export github token to a file
+      if: env.SCENARIO == 'PARAMETRIC'
+      run: echo "${{ secrets.GITHUB_TOKEN }}" > "$RUNNER_TEMP/github_token.txt"
 
-    - run: |
+    - name: Run scenario
+      run: |
         set -e
-        for i in {1..100}
-        do
-          echo "Run #$i"
-          ./run.sh ${{ env.SCENARIO }}
-        done
+        if [[ "$SCENARIO" == "PARAMETRIC" ]]; then
+          # the parametric image is built by run.sh on the first run, then reused
+          echo "Run #1"
+          ./run.sh PARAMETRIC -L "$LIBRARY" --github-token-file="$RUNNER_TEMP/github_token.txt" $RUN_ARGS
+          for i in {2..100}
+          do
+            echo "Run #$i"
+            ./run.sh PARAMETRIC -L "$LIBRARY" --skip-parametric-build $RUN_ARGS
+          done
+        else
+          for i in {1..100}
+          do
+            echo "Run #$i"
+            ./run.sh "$SCENARIO" $RUN_ARGS
+          done
+        fi
+    - name: Remove secrets
+      if: always()
+      run: rm -f "$RUNNER_TEMP/github_token.txt"
 
     - name: Upload artifact
-      if: steps.build.outcome == 'success' && !cancelled()
+      if: steps.build.outcome != 'failure' && !cancelled()
       uses: ./.github/actions/upload_artifact
       with:
         name: logs_${{ matrix.n }}
