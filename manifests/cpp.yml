@@ -124,6 +124,7 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_invalid_is_ignored: missing_feature
   tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_none_exporter: missing_feature
   tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_otlp_exporter: missing_feature
+  tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_otlp_in_list: missing_feature (OTEL_TRACES_EXPORTER lists are not supported)
   tests/parametric/otel_env_vars/test_otel_traces_exporter.py::Test_OTEL_TRACES_EXPORTER::test_zipkin_exporter: missing_feature
   tests/parametric/otel_env_vars/test_otel_traces_sampler.py::Test_OTEL_TRACES_SAMPLER: missing_feature
   tests/parametric/otel_env_vars/test_otel_traces_sampler_arg.py::Test_OTEL_TRACES_SAMPLER_ARG: missing_feature
