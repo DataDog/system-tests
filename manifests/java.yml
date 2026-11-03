@@ -5013,6 +5013,9 @@ manifest:
         akka-http: irrelevant (integration injects Date header after bytecode injection occurs)
         play: irrelevant (integration injects Date header after bytecode injection occurs)
   tests/test_library_logs.py::Test_NoExceptions::test_dotnet: irrelevant (only for .NET)
+  tests/test_otel_http_semantics.py:
+    - declaration: missing_feature (GraalVM native images do not reload OpenTelemetry exporter configuration at runtime)
+      weblog: [spring-boot-3-native]
   tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_Spans_Http_ErrorStatusConfiguration: v1.68.0
   tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics: v1.68.0
   tests/test_otel_http_semantics.py::Test_OtelSemantics_SamplingRules: v1.68.0
