@@ -434,8 +434,9 @@ class EndToEndScenario(DockerScenario):
         if self._mocked_backend:
             if self.include_agent:
                 self.agent_container.depends_on.append(self.mocked_backend_container)
-            # e.g. agentless libraries may reach it as soon as they start
-            for container in self.weblog_infra.get_containers():
+            # e.g. agentless libraries may reach it as soon as they start. Not the other weblog containers (databases,
+            # ...), that never reach it: everything else depends on MsSql, the mocked backend included
+            for container in self.weblog_infra.get_weblog_containers():
                 container.depends_on.append(self.mocked_backend_container)
 
     def _start_interfaces_watchdog(self):
