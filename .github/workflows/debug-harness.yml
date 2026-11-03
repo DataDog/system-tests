@@ -20,7 +20,7 @@ on:
         default: DEBUGGER_EXPRESSION_LANGUAGE
         type: string
       run_args:
-        description: Extra arguments passed to run.sh (e.g. a test nodeid, or -k filter)
+        description: Extra space-separated arguments passed to pytest, no quoting (e.g. a test nodeid, or -k filter)
         default: ""
         type: string
       job_count:
@@ -112,38 +112,38 @@ jobs:
       id: build
       if: env.SCENARIO != 'PARAMETRIC'
       run: ./build.sh ${{ env.LIBRARY }} -i weblog -w ${{ env.WEBLOG }}
-    - name: Wait for parametric base image
-      if: env.SCENARIO == 'PARAMETRIC'
-      run: python3 ./utils/scripts/wait-for-base-images.py ${{ env.LIBRARY }} parametric --timeout 900 --poll-interval 30
     - name: Export github token to a file
+      id: export_token
       if: env.SCENARIO == 'PARAMETRIC'
       run: echo "${{ secrets.GITHUB_TOKEN }}" > "$RUNNER_TEMP/github_token.txt"
 
     - name: Run scenario
       run: |
         set -e
+        # ++ makes run.sh forward everything after it to pytest, without parsing it as scenarios
+        read -ra run_args <<< "$RUN_ARGS"
         if [[ "$SCENARIO" == "PARAMETRIC" ]]; then
           # the parametric image is built by run.sh on the first run, then reused
           echo "Run #1"
-          ./run.sh PARAMETRIC -L "$LIBRARY" --github-token-file="$RUNNER_TEMP/github_token.txt" $RUN_ARGS
+          ./run.sh PARAMETRIC -L "$LIBRARY" --github-token-file="$RUNNER_TEMP/github_token.txt" ++ "${run_args[@]}"
           for i in {2..100}
           do
             echo "Run #$i"
-            ./run.sh PARAMETRIC -L "$LIBRARY" --skip-parametric-build $RUN_ARGS
+            ./run.sh PARAMETRIC -L "$LIBRARY" --skip-parametric-build ++ "${run_args[@]}"
           done
         else
           for i in {1..100}
           do
             echo "Run #$i"
-            ./run.sh "$SCENARIO" $RUN_ARGS
+            ./run.sh "$SCENARIO" ++ "${run_args[@]}"
           done
         fi
     - name: Remove secrets
-      if: always()
+      if: always() && steps.export_token.outcome == 'success'
       run: rm -f "$RUNNER_TEMP/github_token.txt"
 
     - name: Upload artifact
-      if: steps.build.outcome != 'failure' && !cancelled()
+      if: ${{ !cancelled() && (steps.build.outcome == 'success' || env.SCENARIO == 'PARAMETRIC') }}
       uses: ./.github/actions/upload_artifact
       with:
         name: logs_${{ matrix.n }}
