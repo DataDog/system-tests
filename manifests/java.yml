@@ -5041,13 +5041,13 @@ manifest:
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_span_name_route_invariance:
     - weblog_declaration:
         "*": v1.68.0
-        akka-http: v1.69.0
-        play: v1.69.0
+        akka-http: v1.69.0-SNAPSHOT
+        play: v1.69.0-SNAPSHOT
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_span_name_with_route:
     - weblog_declaration:
         "*": v1.68.0
-        akka-http: v1.69.0
-        play: v1.69.0
+        akka-http: v1.69.0-SNAPSHOT
+        play: v1.69.0-SNAPSHOT
   tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs: missing_feature
   tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5:
     - weblog_declaration:
