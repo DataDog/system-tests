@@ -557,7 +557,7 @@ jobs:
           echo "No logs*/ found; skipping tar."
         fi
     - name: Upload artifact
-      if: steps.compress_logs.outcome == 'success' && !cancelled()
+      if: steps.compress_logs.outcome == 'success'
       uses: ./.github/actions/upload_artifact
       with:
         # log name convention to respect : logs_$SCENARIO-FAMILY_$LIBRARY_$WEBLOG_$CI-ENVIRONMENT
