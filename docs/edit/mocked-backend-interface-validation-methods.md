@@ -1,10 +1,10 @@
-# Agent Interface Validation Methods
+# Mocked  Backend Interface Validation Methods
 
-This document provides a comprehensive overview of all validation methods available in the `AgentInterfaceValidator` class. The agent interface validates messages intercepted between the Datadog Agent and the Datadog Backend.
+This document provides a comprehensive overview of all validation methods available in the `MockedBackendInterfaceValidator` class. The mocked backend interface validates messages intercepted between the Datadog Agent and the Datadog Backend.
 
 ## Overview
 
-The `AgentInterfaceValidator` is instantiated as a singleton in `utils/interfaces/__init__.py` and can be accessed as `interfaces.agent` in your test cases. It intercepts and validates JSON messages stored in the `logs_<scenario_name>/interfaces/agent` folder.
+The `MockedBackendInterfaceValidator` is instantiated as a singleton in `utils/interfaces/__init__.py` and can be accessed as `interfaces.mocked_backend` in your test cases. It intercepts and validates JSON messages stored in the `logs_<scenario_name>/interfaces/mocked_backend` folder.
 
 ## Usage Pattern
 
@@ -20,13 +20,13 @@ class MyTestClass:
 
     def test_my_validation(self):
         # Use validation methods to verify intercepted data
-        interfaces.agent.assert_trace_exists(self.r)
+        interfaces.mocked_backend.assert_trace_exists(self.r)
 
         # Validate custom span data
         def span_validator(span):
             return span.get("service") == "my-service"
 
-        spans = list(interfaces.agent.get_spans(self.r))
+        spans = list(interfaces.mocked_backend.get_spans(self.r))
         assert any(span_validator(span) for _, span in spans)
 ```
 
@@ -52,17 +52,17 @@ class MyTestClass:
 
 ## Key Differences from Library Interface
 
-The agent interface differs from the library interface in several important ways:
+The mocked backend interface differs from the library interface in several important ways:
 
 1. **Data Source**: Validates data **after** it has been processed by the agent, not raw tracer output
 2. **Endpoints**: Monitors backend API endpoints (`/api/v0.2/traces`, `/api/v2/series`, etc.)
 3. **Data Structure**: Works with agent-formatted payloads including `tracerPayloads`, `chunks`, and aggregated data
-4. **Scope**: Focuses on agent-to-backend communication rather than tracer-to-agent
+4. **Scope**: Focuses on anything-to-backend communication rather than tracer-to-agent
 
 ## Best Practices
 
 1. **Use request filtering**: Always filter by specific requests when possible to avoid interference from other tests
-2. **Understand data flow**: Agent interface data represents what reaches the backend, which may be sampled, aggregated, or modified by the agent
+2. **Understand data flow**: Mocked backend interface data represents what reaches the backend, which may be sampled, aggregated, or modified by the agent
 3. **Combine with library validation**: Use both library and agent interfaces together to validate the complete data pipeline
 4. **Check data transformation**: Verify that data transformations performed by the agent are correct
 5. **Validate aggregations**: Use stats and metrics methods to ensure proper aggregation by the agent

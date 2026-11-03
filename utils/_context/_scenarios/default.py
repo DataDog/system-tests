@@ -80,7 +80,6 @@ class DefaultScenario(EndToEndScenario):
             weblog_categories=[WeblogCategory.dd_trace],
             doc="Default scenario, spawn tracer, the Postgres databases and agent, and run most of exisiting tests",
             mocked_backend=True,
-            use_proxy_for_agent=False,
         )
 
     def configure(self, config: pytest.Config):

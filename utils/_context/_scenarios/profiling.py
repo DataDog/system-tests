@@ -9,7 +9,6 @@ class ProfilingScenario(EndToEndScenario):
         super().__init__(
             "PROFILING",
             mocked_backend=True,
-            use_proxy_for_agent=False,
             library_interface_timeout=160,
             weblog_env={
                 "DD_PROFILING_ENABLED": "true",

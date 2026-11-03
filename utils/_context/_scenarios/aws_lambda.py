@@ -95,7 +95,7 @@ class _LambdaScenario(DockerScenario):
 
         self.lambda_proxy_container.environment.update({"LAMBDA_EVENT_TYPE": event_type})
 
-        interfaces.agent.configure(self.host_log_folder, replay=self.replay)
+        interfaces.mocked_backend.configure(self.host_log_folder, replay=self.replay)
         interfaces.library.configure(self.host_log_folder, replay=self.replay)
         interfaces.library_stdout.configure(self.host_log_folder, replay=self.replay)
 
@@ -123,7 +123,7 @@ class _LambdaScenario(DockerScenario):
         logger.stdout("")
 
     def _start_interfaces_watchdog(self):
-        return super().start_interfaces_watchdog([interfaces.library, interfaces.agent])
+        return super().start_interfaces_watchdog([interfaces.library, interfaces.mocked_backend])
 
     def _set_components(self):
         self.components["library"] = self.library.version
@@ -152,10 +152,10 @@ class _LambdaScenario(DockerScenario):
             interfaces.library.check_deserialization_errors()
         else:
             self._wait_interface(interfaces.library, 0 if force_interface_timeout_to_zero else 5)
-            self._wait_interface(interfaces.agent, 0 if force_interface_timeout_to_zero else 5)
+            self._wait_interface(interfaces.mocked_backend, 0 if force_interface_timeout_to_zero else 5)
             self.lambda_weblog.stop()
             interfaces.library.check_deserialization_errors()
-            interfaces.agent.check_deserialization_errors()
+            interfaces.mocked_backend.check_deserialization_errors()
 
     def post_setup(self, session: pytest.Session):
         is_empty_test_run = session.config.option.skip_empty_scenario and len(session.items) == 0

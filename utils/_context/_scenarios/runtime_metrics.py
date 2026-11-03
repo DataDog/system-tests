@@ -15,7 +15,6 @@ class RuntimeMetricsEnabled(DdTraceEndToEndScenario):
             library_interface_timeout=20,
             doc="Test runtime metrics",
             mocked_backend=True,
-            use_proxy_for_agent=False,
         )
 
 
@@ -35,6 +34,5 @@ class OtlpRuntimeMetrics(DdTraceEndToEndScenario):
             include_opentelemetry=True,
             library_interface_timeout=20,
             mocked_backend=True,
-            use_proxy_for_agent=False,
             doc="Test ddtrace runtime metrics exported via OTLP with OTel semantic convention names",
         )

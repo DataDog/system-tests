@@ -19,7 +19,6 @@ class TraceStatsComputation(DdTraceEndToEndScenario):
             ),
             scenario_groups=[scenario_groups.appsec],
             mocked_backend=True,
-            use_proxy_for_agent=False,
         )
 
 
@@ -44,7 +43,6 @@ class TraceStatsComputationClientDropP0sFalse(DdTraceEndToEndScenario):
             ),
             scenario_groups=[scenario_groups.appsec],
             mocked_backend=True,
-            use_proxy_for_agent=False,
         )
 
 
@@ -70,7 +68,6 @@ class TraceStatsComputationFutureObfuscationVersion(DdTraceEndToEndScenario):
             ),
             scenario_groups=[scenario_groups.appsec],
             mocked_backend=True,
-            use_proxy_for_agent=False,
         )
 
 
@@ -95,7 +92,6 @@ class TraceStatsComputationMissingObfuscationVersion(DdTraceEndToEndScenario):
             ),
             scenario_groups=[scenario_groups.appsec],
             mocked_backend=True,
-            use_proxy_for_agent=False,
         )
 
 
@@ -120,7 +116,6 @@ class TraceStatsComputationObfuscationVersionZero(DdTraceEndToEndScenario):
             ),
             scenario_groups=[scenario_groups.appsec],
             mocked_backend=True,
-            use_proxy_for_agent=False,
         )
 
 
@@ -143,7 +138,6 @@ class TraceStatsComputationObfuscationDisabled(DdTraceEndToEndScenario):
             doc=("End to end testing with DD_TRACE_COMPUTE_STATS=1 and obfuscation disabled."),
             scenario_groups=[scenario_groups.appsec],
             mocked_backend=True,
-            use_proxy_for_agent=False,
         )
 
 
@@ -167,5 +161,4 @@ class TraceStatsComputationErrorSampler(DdTraceEndToEndScenario):
             ),
             scenario_groups=[scenario_groups.appsec],
             mocked_backend=True,
-            use_proxy_for_agent=False,
         )

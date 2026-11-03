@@ -70,7 +70,6 @@ class Integrations(EndToEndScenario):
             scenario_groups=[scenario_groups.integrations, scenario_groups.appsec, scenario_groups.essentials],
             weblog_categories=[WeblogCategory.dd_trace],
             mocked_backend=True,
-            use_proxy_for_agent=False,
         )
 
     def configure(self, config: pytest.Config):
@@ -113,7 +112,6 @@ class AWSIntegrationsScenario(EndToEndScenario):
             scenario_groups=[scenario_groups.integrations, scenario_groups.essentials],
             weblog_categories=[WeblogCategory.dd_trace],
             mocked_backend=True,
-            use_proxy_for_agent=False,
         )
 
     def configure(self, config: pytest.Config):

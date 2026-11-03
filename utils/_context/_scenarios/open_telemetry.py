@@ -54,8 +54,6 @@ class _OpenTelemetryScenario(DockerScenario):
             use_proxy=True,
             extra_containers=extra_containers,
         )
-        self.use_proxy_for_agent = False
-        """The agent sends to the mocked backend: interfaces.agent is not used"""
         if include_agent:
             # it serves HTTPS on its domain, and on the intake hostnames derived from it (see MOCKED_BACKEND_DOMAIN)
             self.mocked_backend_container = MockedBackendContainer(tls=True)

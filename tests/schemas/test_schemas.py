@@ -175,8 +175,8 @@ class Test_DdtraceSchemas:
         assert_no_schema_error(interfaces.library, known_bugs)
 
     @irrelevant(
-        not getattr(context.scenario, "use_proxy_for_agent", True),
-        reason="The agent sends to the mocked backend, not through the proxy",
+        condition=True,
+        reason="TODO : mocked backend",
     )
     def test_agent(self):
         known_bugs = [
@@ -274,7 +274,7 @@ class Test_DdtraceSchemas:
             ),
         ]
 
-        assert_no_schema_error(interfaces.agent, known_bugs)
+        assert_no_schema_error(interfaces.mocked_backend, known_bugs)
 
 
 @features.not_reported

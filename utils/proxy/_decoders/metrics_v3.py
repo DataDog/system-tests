@@ -139,7 +139,7 @@ def decode_metrics_v3(content: bytes) -> dict:
 
     The returned dict has a ``series`` list whose entries expose at least ``metric`` and
     ``tags`` (and ``type``/``interval``/``points`` when present), matching what the v2
-    ``MetricPayload`` deserialization produced and what ``interfaces.agent.get_metrics``
+    ``MetricPayload`` deserialization produced and what ``interfaces.mocked_backend.get_metrics``
     consumes. ``points`` mirrors the v2 shape: a list of {"value": <float>, "timestamp": <str>}.
     """
     series = _decode_payload(content)
@@ -151,7 +151,7 @@ def decode_sketches_v3(content: bytes) -> dict:
 
     The returned dict has a ``sketches`` list whose entries expose ``metric``, ``tags`` and
     ``dogsketches``, matching what the v2 ``SketchPayload`` deserialization produced and what
-    ``interfaces.agent.get_sketches`` consumes. Each dogsketch mirrors the v2 shape:
+    ``interfaces.mocked_backend.get_sketches`` consumes. Each dogsketch mirrors the v2 shape:
     {"ts": <str>, "cnt": <str>, "min", "max", "avg", "sum": <float>, "k": [<int>], "n": [<int>]}.
     """
     sketches = _decode_payload(content)

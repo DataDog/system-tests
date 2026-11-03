@@ -72,7 +72,6 @@ class TracingConfigNondefault(DdTraceEndToEndScenario):
             doc="",
             scenario_groups=[scenario_groups.tracing_config, scenario_groups.essentials],
             mocked_backend=True,
-            use_proxy_for_agent=False,
         )
 
 
@@ -94,7 +93,6 @@ class TracingConfigNondefault2(DdTraceEndToEndScenario):
             doc="Test tracer configuration when a collection of non-default settings are applied",
             scenario_groups=[scenario_groups.tracing_config],
             mocked_backend=True,
-            use_proxy_for_agent=False,
         )
 
 
@@ -118,7 +116,6 @@ class TracingConfigNondefault3(DdTraceEndToEndScenario):
             doc="",
             scenario_groups=[scenario_groups.tracing_config],
             mocked_backend=True,
-            use_proxy_for_agent=False,
         )
 
 
@@ -139,5 +136,4 @@ class TracingConfigNondefault4(DdTraceEndToEndScenario):
             },
             doc="",
             mocked_backend=True,
-            use_proxy_for_agent=False,
         )

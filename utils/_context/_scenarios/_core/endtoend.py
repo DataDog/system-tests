@@ -225,7 +225,6 @@ class EndToEndScenario(DockerScenario):
         library_interface_timeout: int | None = None,
         agent_interface_timeout: int = 5,
         use_proxy_for_weblog: bool = True,
-        use_proxy_for_agent: bool = True,
         rc_api_enabled: bool = False,
         rc_backend_enabled: bool = False,
         meta_structs_disabled: bool = False,
@@ -248,7 +247,7 @@ class EndToEndScenario(DockerScenario):
             scenario_groups=scenario_groups,
             weblog_categories=weblog_categories,
             enable_ipv6=enable_ipv6,
-            use_proxy=(include_agent and use_proxy_for_agent) or use_proxy_for_weblog,
+            use_proxy=use_proxy_for_weblog,
             rc_api_enabled=rc_api_enabled,
             rc_backend_enabled=rc_backend_enabled,
             meta_structs_disabled=meta_structs_disabled,
@@ -261,16 +260,10 @@ class EndToEndScenario(DockerScenario):
             raise ValueError("include_buddies requires include_agent")
 
         self.include_agent = include_agent
-        self.use_proxy_for_agent = include_agent and use_proxy_for_agent
-        """When False, the agent sends to the mocked backend (or nothing): interfaces.agent is not used"""
+        """When False, weblogs sends to the mocked backend (or nothing)"""
+
         self._use_proxy_for_weblog = use_proxy_for_weblog
         self._mocked_backend = mocked_backend
-
-        if mocked_backend and self.use_proxy_for_agent:
-            raise ValueError(
-                "mocked_backend is not compatible with use_proxy_for_agent: the agent can't send its "
-                "traffic to both the proxy and the mocked backend. Set use_proxy_for_agent=False."
-            )
 
         self.dd_api_key = (
             FakeDatadogKey.DEFAULT if mocked_backend else os.environ.get("DD_API_KEY", FakeDatadogKey.DEFAULT)
@@ -289,7 +282,6 @@ class EndToEndScenario(DockerScenario):
 
         self.agent_container = AgentContainer(
             dd_api_key=self.dd_api_key,
-            use_proxy=use_proxy_for_agent,
             # the mocked backend always serves remote config
             rc_backend_enabled=rc_backend_enabled or mocked_backend,
             mocked_backend=mocked_backend,
@@ -357,8 +349,6 @@ class EndToEndScenario(DockerScenario):
         self._set_containers_dependancies()
 
         super().configure(config)
-        if self.use_proxy_for_agent:
-            interfaces.agent.configure(self.host_log_folder, replay=self.replay)
         interfaces.library.configure(self.host_log_folder, replay=self.replay)
         if self._mocked_backend:
             interfaces.mocked_backend.configure(self.host_log_folder, replay=self.replay)
@@ -412,9 +402,6 @@ class EndToEndScenario(DockerScenario):
         self.mocked_backend_container.stop()
 
     def _set_containers_dependancies(self) -> None:
-        if self.use_proxy_for_agent:
-            self.agent_container.depends_on.append(self.proxy_container)
-
         proxy_container = self.proxy_container if self._use_proxy_for_weblog else None
         agent_container = self.agent_container if self.include_agent else None
         self.weblog_infra.set_weblog_dependencies(agent_container, proxy_container)
@@ -434,13 +421,11 @@ class EndToEndScenario(DockerScenario):
         open_telemetry_interfaces: list[ProxyBasedInterfaceValidator] = (
             [interfaces.open_telemetry] if self.include_opentelemetry else []
         )
-        agent_interfaces: list[ProxyBasedInterfaceValidator] = [interfaces.agent] if self.use_proxy_for_agent else []
         backend_interfaces: list[ProxyBasedInterfaceValidator] = (
             [interfaces.mocked_backend] if self._mocked_backend else []
         )
         super().start_interfaces_watchdog(
             [interfaces.library]
-            + agent_interfaces
             + [container.interface for container in self.buddies]
             + open_telemetry_interfaces
             + backend_interfaces
@@ -471,8 +456,8 @@ class EndToEndScenario(DockerScenario):
 
                 logger.debug(f"{container.name} ready")
 
-        if self.use_proxy_for_agent:
-            if not interfaces.agent.ready.wait(40):
+        if self._mocked_backend:
+            if not interfaces.mocked_backend.ready.wait(40):
                 raise ValueError("Datadog agent not ready")
             logger.debug("Agent ready")
 
@@ -499,10 +484,6 @@ class EndToEndScenario(DockerScenario):
                 container.interface.load_data_from_logs()
                 container.interface.check_deserialization_errors()
 
-            if self.use_proxy_for_agent:
-                interfaces.agent.load_data_from_logs()
-                interfaces.agent.check_deserialization_errors()
-
             if self._mocked_backend:
                 interfaces.mocked_backend.load_data_from_logs()
                 interfaces.mocked_backend.check_deserialization_errors()
@@ -528,13 +509,9 @@ class EndToEndScenario(DockerScenario):
             if self.include_agent:
                 # gives the agent time to send what it received before stopping it, to the proxy or the mocked backend
                 agent_timeout = 0 if is_empty_test_run else self.agent_interface_timeout
-                if self.use_proxy_for_agent:
-                    self._wait_interface(interfaces.agent, agent_timeout)
-                elif self._mocked_backend:
+                if self._mocked_backend:
                     self._wait_interface(interfaces.mocked_backend, agent_timeout)
                 self.agent_container.stop()
-                if self.use_proxy_for_agent:
-                    interfaces.agent.check_deserialization_errors()
 
             if self.include_opentelemetry:
                 self._wait_interface(interfaces.open_telemetry, 0 if is_empty_test_run else 5)
@@ -635,7 +612,6 @@ class DdTraceEndToEndScenario(EndToEndScenario):
         scenario_groups: list[ScenarioGroup] | None = None,
         span_events: bool = True,
         tracer_sampling_rate: float | None = None,
-        use_proxy_for_agent: bool = True,
         use_proxy_for_weblog: bool = True,
         weblog_env: dict[str, str | None] | None = None,
         weblog_volumes: dict | None = None,
@@ -662,7 +638,6 @@ class DdTraceEndToEndScenario(EndToEndScenario):
             scenario_groups=scenario_groups,
             span_events=span_events,
             tracer_sampling_rate=tracer_sampling_rate,
-            use_proxy_for_agent=use_proxy_for_agent,
             use_proxy_for_weblog=use_proxy_for_weblog,
             weblog_categories=[WeblogCategory.dd_trace],
             weblog_env=weblog_env,

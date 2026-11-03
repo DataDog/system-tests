@@ -34,10 +34,10 @@ class my_test_class:
         weblog.request("/url_that_perform_and_action_and_generate_traces_to_be_intercepted")
     
     def test_mytestcase(self):
-        # The traces/messages should be generated in the setup method and intercepted by the library, agent or backend interfaces and stored in the log folder
+        # The traces/messages should be generated in the setup method and intercepted by the library or mocked backend interfaces and stored in the log folder
         # Use the interfaces instances to validate the json intercepted messages
         interfaces.library.<validation method>
-        interfaces.agent.<validation method>
+        interfaces.mocked_backend.<validation method>
 ```
 
 * The class "SchemaValidator" from [schema validator](mdc:utils/interfaces/_schemas_validators.py) can help you to validate the messages under the folder "logs_<scenario_name>/interfaces."
