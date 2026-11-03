@@ -8,6 +8,7 @@ from ._core import (
     scenario_groups as all_scenario_groups,
     ScenarioGroup,
 )
+from ._core.sca import configure_sca_advisories
 from utils._context.constants import WeblogCategory
 from utils._context.containers import (
     InternalServerContainer,
@@ -254,17 +255,7 @@ class AppsecLambdaSca(_LambdaScenario):
 
     def configure(self, config: pytest.Config) -> None:
         super().configure(config)
-
-        language = self.lambda_weblog.library_name.removesuffix("_lambda")
-        catalog_paths = {
-            "python": "/opt/python/lib/python3.13/site-packages/ddtrace/appsec/sca/_cve_data.json",
-            "java": "/sca_advisories.json",
-        }
-        if language in catalog_paths:
-            self.lambda_weblog.volumes[f"./tests/appsec/sca/{language}/advisories.json"] = {
-                "bind": catalog_paths[language],
-                "mode": "ro",
-            }
+        configure_sca_advisories(self.lambda_weblog)
 
 
 class AppsecLambdaRasp(_LambdaScenario):

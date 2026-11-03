@@ -231,6 +231,10 @@ patterns:
     utils/_context/_scenarios/_core/fake_datadog_keys.py:  # fake key values: tests get them from the scenario, none depends on a value
         scenario_groups: null
         libraries: null
+    utils/_context/_scenarios/_core/sca.py:
+        scenario_groups: null
+        scenarios: [APPSEC_LAMBDA_SCA, RUNTIME_SCA_REACHABILITY]
+        libraries: [java, java_lambda, python, python_lambda]
     utils/_context/_scenarios/_core/*:  # base classes shared by many scenarios: runs everything
     utils/_context/_scenarios/*/*:  # any other subfolder: not a definition file, runs everything
     utils/_context/_scenarios/open_telemetry.py:  # its scenarios only run with OTel libraries
@@ -603,15 +607,15 @@ patterns:
         scenario_groups: null
         libraries: [java, java_lambda, python, python_lambda]
 
-    tests/appsec/sca/python/advisories.json:
-        scenario_groups: null
-        scenarios: [APPSEC_LAMBDA_SCA]
-        libraries: python_lambda
-
     tests/appsec/sca/java/advisories.json:
         scenario_groups: null
-        scenarios: [APPSEC_LAMBDA_SCA]
-        libraries: java_lambda
+        scenarios: [APPSEC_LAMBDA_SCA, RUNTIME_SCA_REACHABILITY]
+        libraries: [java, java_lambda]
+
+    tests/appsec/sca/python/advisories.json:
+        scenario_groups: null
+        scenarios: [APPSEC_LAMBDA_SCA, RUNTIME_SCA_REACHABILITY]
+        libraries: [python, python_lambda]
 
 ################################# Default rules ################################
 # The rules in this section are only applied if no other rule is applicable.
