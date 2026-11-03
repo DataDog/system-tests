@@ -67,7 +67,9 @@ class ParametricScenario(DockerFixturesScenario):
             "PARAMETRIC",
             doc="WIP",
             github_workflow="parametric",
-            agent_image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.67.0",
+            # Built from DataDog/dd-apm-test-agent#447, which receives DogStatsD metrics. Use the released
+            # image that includes it once it ships.
+            agent_image="https://github.com/DataDog/dd-apm-test-agent.git#e56f8e357c3815a2df8156c5df29ad05060becc6",
             weblog_categories=[WeblogCategory.parametric],
         )
         self._parametric_tests_confs = ParametricScenario.PersistentParametricTestConf(self)

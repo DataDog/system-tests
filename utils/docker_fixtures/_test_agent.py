@@ -8,6 +8,8 @@ from http import HTTPStatus
 import json
 from pathlib import Path
 import os
+import shutil
+import subprocess
 import time
 from typing import TypedDict, Any, cast
 import urllib.parse
@@ -93,6 +95,12 @@ class TestAgentFactory:
     """
 
     def __init__(self, image: str):
+        # A git build context, such as https://github.com/DataDog/dd-apm-test-agent.git#<commit>, is
+        # built under a tag derived from its ref, so that every pytest-xdist worker uses the same tag.
+        self.build_context: str | None = None
+        if ".git#" in image:
+            self.build_context = image
+            image = f"ddapm-test-agent:git-{image.rsplit('#', 1)[1]}"
         # Pull/run from the mirror when USE_IMAGE_MIRROR is enabled (no-op otherwise).
         self.image = mirror_image(image)
         self.host_log_folder = ""
@@ -106,8 +114,38 @@ class TestAgentFactory:
             pytest.exit("You need to call TestAgentFactory.configure()")
 
         if len(get_docker_client().images.list(name=self.image)) == 0:
-            logger.stdout(f"Pull test agent image {self.image}...")
-            get_docker_client().images.pull(self.image)
+            if self.build_context is not None:
+                self._build()
+            else:
+                logger.stdout(f"Pull test agent image {self.image}...")
+                get_docker_client().images.pull(self.image)
+
+    def _build(self) -> None:
+        logger.stdout(f"Build test agent image {self.image} from {self.build_context}...")
+        docker_bin = shutil.which("docker")
+        if docker_bin is None:
+            raise FileNotFoundError("Docker not found in PATH")
+        log_path = Path(f"{self.host_log_folder}/outputs/test_agent_build.log")
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+        with log_path.open("w", encoding="utf-8") as log_file:
+            # The docker CLI only resolves the credentials of the registries that the build uses. The test
+            # agent Dockerfile adds .git, which BuildKit drops from git contexts unless told to keep it.
+            subprocess.run(
+                [
+                    docker_bin,
+                    "build",
+                    "--progress=plain",
+                    "--build-arg",
+                    "BUILDKIT_CONTEXT_KEEP_GIT_DIR=1",
+                    "-t",
+                    self.image,
+                    str(self.build_context),
+                ],
+                stdout=log_file,
+                stderr=subprocess.STDOUT,
+                timeout=600,
+                check=True,
+            )
 
     @contextlib.contextmanager
     def start_agent(
