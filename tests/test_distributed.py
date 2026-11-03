@@ -3,7 +3,7 @@
 # Copyright 2022 Datadog, Inc.
 
 import json
-from utils import features, interfaces, scenarios, slow, weblog
+from utils import context, features, interfaces, scenarios, slow, weblog
 from utils.dd_types import DataDogSpanLink
 
 
@@ -255,7 +255,7 @@ class Test_Synthetics_APM_Datadog:
         assert trace.trace_id_as_int == 1234567891
 
         spans = list(interfaces.agent.get_spans(self.r))
-        assert len(spans) == 1, "Agent received the incorrect amount of spans"
+        assert len(spans) == (2 if context.library == "java" else 1), "Agent received the incorrect amount of spans"
         _, span = spans[0]
         assert "parentID" not in span or span.get("parentID") == 0 or span.get("parentID") is None
 
