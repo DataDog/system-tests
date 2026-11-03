@@ -1,4 +1,6 @@
 
+alb:
+  categories: [dd_trace_lambda]
 ruby-apigw-http:
   categories: [dd_trace_lambda]
 ruby-apigw-rest:
