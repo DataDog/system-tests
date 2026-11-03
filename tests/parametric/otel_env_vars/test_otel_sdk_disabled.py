@@ -281,11 +281,9 @@ class Test_OTEL_SDK_DISABLED:
             _emit_span(library)
         _assert_nothing_exported(test_agent)
 
-    # OTEL_SDK_DISABLED=true maps to DD_RUNTIME_METRICS_ENABLED=false, which a valid
-    # DD_RUNTIME_METRICS_ENABLED overrides like DD_TRACE_ENABLED (APMAPI-2676). The disabled run
-    # therefore keeps the SDK default, which turns runtime metrics on in .NET and Java. With
-    # DD_METRICS_OTEL_ENABLED=true an SDK may send them over OTLP instead of DogStatsD, and
-    # disabling OTLP must not send them over DogStatsD again.
+    # The disabled run keeps the SDK default, which turns runtime metrics on in .NET and Java. With
+    # DD_METRICS_OTEL_ENABLED=true an SDK may send them over OTLP instead of DogStatsD, and disabling
+    # OTLP must not send them over DogStatsD again.
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -302,6 +300,28 @@ class Test_OTEL_SDK_DISABLED:
     ) -> None:
         # Control: runtime metrics are sent over DogStatsD or OTLP.
         with test_library_factory({**library_env, "OTEL_SDK_DISABLED": None, "DD_RUNTIME_METRICS_ENABLED": "true"}):
+            _wait_for_periodic_export(lambda: _dogstatsd_metrics(test_agent) or _otlp_urls(test_agent, "metrics"))
+
+        with test_library_factory(library_env):
+            _assert_nothing_exported(test_agent, PERIODIC_EXPORT_WINDOW, dogstatsd=True)
+
+    # Unlike DD_TRACE_ENABLED=true, DD_RUNTIME_METRICS_ENABLED=true does not override
+    # OTEL_SDK_DISABLED=true, like DD_METRICS_OTEL_ENABLED=true.
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                "OTEL_SDK_DISABLED": "true",
+                "DD_RUNTIME_METRICS_ENABLED": "true",
+            }
+        ],
+    )
+    @pytest.mark.usefixtures("otlp_endpoints")
+    def test_true_overrides_runtime_metrics_enabled(
+        self, test_agent: TestAgentAPI, test_library_factory: APMLibraryFactory, library_env: dict[str, str | None]
+    ) -> None:
+        # Control: DD_RUNTIME_METRICS_ENABLED=true alone sends runtime metrics over DogStatsD or OTLP.
+        with test_library_factory({**library_env, "OTEL_SDK_DISABLED": None}):
             _wait_for_periodic_export(lambda: _dogstatsd_metrics(test_agent) or _otlp_urls(test_agent, "metrics"))
 
         with test_library_factory(library_env):
