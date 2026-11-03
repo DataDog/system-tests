@@ -437,6 +437,14 @@ class TestAgentAPI:
         self._write_log("requests", resp_json)
         return resp_json
 
+    def dogstatsd_metrics(self) -> list[str]:
+        """DogStatsD lines received on UDP 8125, the default DogStatsD address of the SDKs."""
+        resp = self._session.get(self._url("/test/session/dogstatsd"))
+        resp.raise_for_status()
+        resp_json = cast("list[str]", resp.json())
+        self._write_log("dogstatsd", resp_json)
+        return resp_json
+
     def rc_requests(self, *, post_only: bool = False):
         reqs = self.requests()
         rc_reqs = [r for r in reqs if r["url"].endswith("/v0.7/config") and (not post_only or r["method"] == "POST")]
