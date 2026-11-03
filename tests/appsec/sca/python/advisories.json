@@ -1,0 +1,15 @@
+{
+  "targets": [
+    {
+      "id": "system-tests-sca",
+      "lang": "python",
+      "dependency_name": "requests",
+      "package_versions": [
+        ">=0"
+      ],
+      "targets": [
+        "requests.sessions:Session.send"
+      ]
+    }
+  ]
+}
