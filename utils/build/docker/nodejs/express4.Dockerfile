@@ -8,7 +8,7 @@ COPY utils/build/docker/nodejs/express/debugger debugger
 
 # Refresh the dependencies baked into the base image.
 COPY utils/build/docker/nodejs/express4/package.json utils/build/docker/nodejs/express4/bun.lock ./
-RUN bun install --frozen-lockfile --network-concurrency 8 --linker=hoisted
+RUN bun install --network-concurrency 8 --linker=hoisted
 
 EXPOSE 7777
 
