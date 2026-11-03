@@ -1553,6 +1553,10 @@ def track_user_login_failure_event():
 
 @app.before_request
 def before_request():
+    root_span = tracer.current_root_span()
+    if root_span is not None and not root_span.get_tag("runtime-id"):
+        root_span.set_tag("runtime-id", os.environ.get("HOSTNAME", "weblog"))
+
     try:
         current_user = DB_USER.get(flask.session.get("login"), None)
         login = current_user.login if current_user else None
