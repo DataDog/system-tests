@@ -408,13 +408,13 @@ build() {
                     exit 1
                 fi
                 echo "Labelling the weblog image with library version $LIBRARY_VERSION"
+                # Not on the mirror builder: it has its own image store, and can't see the image just loaded in the daemon
                 echo "FROM system_tests/weblog" | run_build_command docker buildx build \
                     --load \
                     --progress=plain \
                     ${DOCKER_PLATFORM_ARGS} \
                     --label "system-tests-library-version=${LIBRARY_VERSION}" \
                     -t system_tests/weblog \
-                    $MIRROR_BUILDER_ARG \
                     -
 
                 if [[ $SAVE_TO_BINARIES == 1 ]]; then
