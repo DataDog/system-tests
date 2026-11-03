@@ -248,10 +248,19 @@ class AppsecLambdaSca(_LambdaScenario):
                 "DD_APPSEC_ENABLED": "false",
                 "DD_APPSEC_SCA_ENABLED": "true",
             },
-            weblog_volumes={"./tests/appsec/sca_advisories.json": {"bind": "/sca_advisories.json", "mode": "ro"}},
             doc="SCA dependency metadata and runtime reachability in Lambda with AppSec disabled",
             scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
         )
+
+    def configure(self, config: pytest.Config) -> None:
+        super().configure(config)
+
+        language = self.lambda_weblog.library_name.removesuffix("_lambda")
+        if language in ("python", "java"):
+            self.lambda_weblog.volumes[f"./tests/appsec/sca/{language}/advisories.json"] = {
+                "bind": "/sca_advisories.json",
+                "mode": "ro",
+            }
 
 
 class AppsecLambdaRasp(_LambdaScenario):

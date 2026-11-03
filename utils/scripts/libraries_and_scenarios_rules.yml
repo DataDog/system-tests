@@ -603,10 +603,15 @@ patterns:
         scenario_groups: null
         libraries: [java, java_lambda, python, python_lambda]
 
-    tests/appsec/sca_advisories.json:
+    tests/appsec/sca/python/advisories.json:
         scenario_groups: null
         scenarios: [APPSEC_LAMBDA_SCA]
         libraries: python_lambda
+
+    tests/appsec/sca/java/advisories.json:
+        scenario_groups: null
+        scenarios: [APPSEC_LAMBDA_SCA]
+        libraries: java_lambda
 
 ################################# Default rules ################################
 # The rules in this section are only applied if no other rule is applicable.
