@@ -1,10 +1,12 @@
 """Test FFE (Feature Flags & Experimentation) functionality via parametric tests."""
 
+# ruff: noqa: UP045 - Repository guidance requires explicit Optional annotations.
+
 import json
 from utils import pytest
 import time
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 from utils import (
     context,
@@ -33,6 +35,7 @@ FFE_EVALUATION_CASES_DIR = FFE_SYSTEM_TEST_DATA_DIR / "evaluation-cases"
 DEPENDENT_FLAGS_DIR = FFE_SYSTEM_TEST_DATA_DIR / "evaluation-suites" / "dependent-flags"
 DEPENDENT_FLAGS_CASES_DIR = DEPENDENT_FLAGS_DIR / "cases"
 TELEMETRY_DRAIN_TARGETING_KEY = "system-tests-telemetry-drain"
+TELEMETRY_READINESS_TARGETING_KEY = "system-tests-telemetry-readiness"
 
 parametrize = pytest.mark.parametrize
 
@@ -117,7 +120,7 @@ DEFAULT_ENVVARS = {
 
 
 def _set_and_wait_ffe_rc(
-    test_agent: TestAgentAPI, ufc_data: dict[str, Any], config_id: str | None = None
+    test_agent: TestAgentAPI, ufc_data: dict[str, Any], config_id: Optional[str] = None
 ) -> dict[str, Any]:
     """Set FFE Remote Config and wait for it to be acknowledged.
 
@@ -162,8 +165,9 @@ def _ffe_evaluate_with_rc_retry(
     flag: str,
     variation_type: str,
     default_value: bool | str | float | dict[str, Any],
-    targeting_key: str | None,
-    attributes: dict[str, Any] | None = None,
+    targeting_key: Optional[str],
+    attributes: Optional[dict[str, Any]] = None,
+    retry_if_waiting: bool = True,
 ) -> dict[str, Any]:
     result = test_library.ffe_evaluate(
         flag=flag,
@@ -172,7 +176,8 @@ def _ffe_evaluate_with_rc_retry(
         targeting_key=targeting_key,
         attributes=attributes,
     )
-    for _ in range(FFE_READY_RETRY_ATTEMPTS - 1):
+    retry_attempts = FFE_READY_RETRY_ATTEMPTS - 1 if retry_if_waiting else 0
+    for _ in range(retry_attempts):
         if not _is_ffe_waiting_for_rc(result):
             return result
         time.sleep(FFE_READY_RETRY_INTERVAL_SECONDS)
@@ -209,6 +214,9 @@ def _assert_evaluation_cases(
 
     _set_and_wait_ffe_rc(test_agent, ufc_data)
     assert test_library.ffe_start(ufc_data), "Failed to start FFE provider"
+    if telemetry_cases:
+        assert telemetry_drain_case is not None
+        _prepare_telemetry_capture(test_agent, test_library, telemetry_drain_case)
 
     for index, test_case in enumerate(test_cases):
         expected_result = test_case["result"]
@@ -219,6 +227,7 @@ def _assert_evaluation_cases(
             default_value=test_case["defaultValue"],
             targeting_key=test_case["targetingKey"],
             attributes=test_case.get("attributes", {}),
+            retry_if_waiting=not telemetry_cases,
         )
         assert not _is_ffe_waiting_for_rc(result), (
             f"Test case {index} in {test_case_file.name} failed: FFE provider did not load RC data after "
@@ -324,7 +333,7 @@ def _expected_event_matchers(expectations: dict[str, Any], event_type: str, plat
 
 def _expected_events_for_cases(
     cases: list[dict[str, Any]], platform: str
-) -> tuple[list[dict[str, Any]], list[dict[str, Any]], bool] | None:
+) -> Optional[tuple[list[dict[str, Any]], list[dict[str, Any]], bool]]:
     expectation_cases = [case for case in cases if "expectations" in case]
     if not expectation_cases:
         return None
@@ -344,6 +353,53 @@ def _expected_events_for_cases(
     return exposures, evaluations, exact
 
 
+def _logical_evaluation_events(events: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Expand aggregated evaluation rows into the logical evaluations they represent."""
+    expanded: list[dict[str, Any]] = []
+    for event in events:
+        count = event.get("evaluation_count", 1)
+        assert type(count) is int, f"evaluation_count must be an integer: {count!r}"
+        assert count >= 1, f"evaluation_count must be positive: {count!r}"
+        expanded.extend([event] * count)
+    return expanded
+
+
+def _evaluate_telemetry_marker(
+    test_library: APMLibrary,
+    drain_case: dict[str, Any],
+    targeting_key: str,
+) -> dict[str, Any]:
+    result = _ffe_evaluate_with_rc_retry(
+        test_library,
+        flag=drain_case["flag"],
+        variation_type=drain_case["variationType"],
+        default_value=drain_case["defaultValue"],
+        targeting_key=targeting_key,
+        attributes={},
+    )
+    assert result.get("value") == drain_case["value"], f"telemetry marker evaluation failed: {result}"
+    assert result.get("reason") != "ERROR", f"telemetry marker evaluation failed: {result}"
+    return result
+
+
+def _prepare_telemetry_capture(
+    test_agent: TestAgentAPI,
+    test_library: APMLibrary,
+    drain_case: dict[str, Any],
+) -> None:
+    """Establish provider readiness, drain retry telemetry, then start with an empty capture."""
+    _evaluate_telemetry_marker(test_library, drain_case, TELEMETRY_READINESS_TARGETING_KEY)
+    for _ in range(FFE_EVENT_WAIT_ATTEMPTS):
+        events = ffe_events_for_target(
+            ffe_events_from_requests(test_agent.requests()), TELEMETRY_READINESS_TARGETING_KEY
+        )
+        if all(events.values()):
+            test_agent.clear()
+            return
+        time.sleep(FFE_EVENT_WAIT_INTERVAL_SECONDS)
+    raise AssertionError(f"telemetry readiness marker did not drain: {events}")
+
+
 def _assert_evaluation_telemetry(
     test_agent: TestAgentAPI,
     test_library: APMLibrary,
@@ -351,31 +407,21 @@ def _assert_evaluation_telemetry(
     drain_case: dict[str, Any],
 ) -> None:
     platform = context.library.name
-    assert all(test_case["targetingKey"] != TELEMETRY_DRAIN_TARGETING_KEY for test_case in test_cases), (
-        f"Evaluation cases may not use reserved targeting key {TELEMETRY_DRAIN_TARGETING_KEY}"
+    reserved_targeting_keys = {TELEMETRY_DRAIN_TARGETING_KEY, TELEMETRY_READINESS_TARGETING_KEY}
+    assert all(test_case["targetingKey"] not in reserved_targeting_keys for test_case in test_cases), (
+        f"Evaluation cases may not use reserved targeting keys {sorted(reserved_targeting_keys)}"
     )
     telemetry_targeting_keys = [test_case["targetingKey"] for test_case in test_cases if "expectations" in test_case]
     assert all(
         sum(case["targetingKey"] == targeting_key for case in test_cases) == 1
         for targeting_key in telemetry_targeting_keys
     ), "Telemetry expectations require a targeting key unique within the case file"
-    marker_result = _ffe_evaluate_with_rc_retry(
-        test_library,
-        flag=drain_case["flag"],
-        variation_type=drain_case["variationType"],
-        default_value=drain_case["defaultValue"],
-        targeting_key=TELEMETRY_DRAIN_TARGETING_KEY,
-        attributes={},
-    )
-    assert marker_result.get("value") == drain_case["value"], (
-        f"telemetry drain marker evaluation failed: {marker_result}"
-    )
-    assert marker_result.get("reason") != "ERROR", f"telemetry drain marker evaluation failed: {marker_result}"
+    _evaluate_telemetry_marker(test_library, drain_case, TELEMETRY_DRAIN_TARGETING_KEY)
 
-    grouped_cases: dict[str | None, list[dict[str, Any]]] = {}
+    grouped_cases: dict[Optional[str], list[dict[str, Any]]] = {}
     for test_case in test_cases:
         grouped_cases.setdefault(test_case["targetingKey"], []).append(test_case)
-    captured: dict[str | None, dict[str, list[dict[str, Any]]]] = {}
+    captured: dict[Optional[str], dict[str, list[dict[str, Any]]]] = {}
 
     for _ in range(FFE_EVENT_WAIT_ATTEMPTS):
         requests = test_agent.requests()
@@ -393,7 +439,9 @@ def _assert_evaluation_telemetry(
             expected_exposures, expected_evaluations, exact = expected
             complete = complete and events_match(captured[targeting_key]["EXPOSURE"], expected_exposures, exact=exact)
             complete = complete and events_match(
-                captured[targeting_key]["EVALUATION"], expected_evaluations, exact=exact
+                _logical_evaluation_events(captured[targeting_key]["EVALUATION"]),
+                expected_evaluations,
+                exact=exact,
             )
 
         if complete:
@@ -411,7 +459,7 @@ def _assert_evaluation_telemetry(
         assert events_match(events["EXPOSURE"], expected_exposures, exact=exact), (
             f"unexpected exposures for targeting key {targeting_key!r}: {events['EXPOSURE']}"
         )
-        assert events_match(events["EVALUATION"], expected_evaluations, exact=exact), (
+        assert events_match(_logical_evaluation_events(events["EVALUATION"]), expected_evaluations, exact=exact), (
             f"unexpected evaluation events for targeting key {targeting_key!r}: {events['EVALUATION']}"
         )
 
@@ -458,7 +506,7 @@ class Test_Feature_Flag_Dynamic_Evaluation:
     @parametrize("test_case_file", DEPENDENT_FLAGS_CASE_PARAMETERS)
     def test_ffe_dependent_flags(
         self,
-        test_case_file: Path | None,
+        test_case_file: Optional[Path],
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
     ) -> None:

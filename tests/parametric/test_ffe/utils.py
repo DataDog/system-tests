@@ -9,13 +9,15 @@ Feature flag event enrichment encodes serial IDs using delta varint encoding:
 Example: [100, 108, 128, 130] -> deltas [100, 8, 20, 2] -> varint bytes -> base64
 """
 
+# ruff: noqa: UP007, UP045 - Repository guidance requires explicit Optional annotations.
+
 from collections.abc import Mapping, Sequence
 import base64
 import gzip
 import hashlib
 import json
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional, Union
 
 # Varint encoding constants
 VARINT_DATA_BITS = 0x7F  # Lower 7 bits contain data
@@ -164,7 +166,7 @@ class _TargetingKeyUnset:
 TARGETING_KEY_UNSET = _TargetingKeyUnset()
 
 
-def _targeting_key_matches(actual: object, expected: str | None) -> bool:
+def _targeting_key_matches(actual: object, expected: Optional[str]) -> bool:
     if expected is None:
         return actual is None
     hashed = f"sha256_{hashlib.sha256(expected.encode()).hexdigest()}"
@@ -173,8 +175,8 @@ def _targeting_key_matches(actual: object, expected: str | None) -> bool:
 
 def ffe_events_from_requests(
     requests: Sequence[Mapping[str, Any]],
-    flag: str | None = None,
-    targeting_key: str | None | _TargetingKeyUnset = TARGETING_KEY_UNSET,
+    flag: Optional[str] = None,
+    targeting_key: Optional[Union[str, _TargetingKeyUnset]] = TARGETING_KEY_UNSET,
 ) -> dict[str, list[dict[str, Any]]]:
     """Read matching EVP payloads recorded by the parametric test agent."""
     events: dict[str, list[dict[str, Any]]] = {"EXPOSURE": [], "EVALUATION": []}
@@ -207,7 +209,7 @@ def ffe_events_from_requests(
 
 
 def ffe_events_for_target(
-    events: Mapping[str, Sequence[dict[str, Any]]], targeting_key: str | None
+    events: Mapping[str, Sequence[dict[str, Any]]], targeting_key: Optional[str]
 ) -> dict[str, list[dict[str, Any]]]:
     """Filter already decoded FFE events for one raw or hashed targeting key."""
     result: dict[str, list[dict[str, Any]]] = {"EXPOSURE": [], "EVALUATION": []}
