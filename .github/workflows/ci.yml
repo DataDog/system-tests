@@ -52,7 +52,9 @@ jobs:
     if: needs.compute_libraries_and_scenarios.outputs.has-target-branch == 'true'
     runs-on: ubuntu-latest
     permissions:
-      pull-requests: write  # to convert the PR to draft
+      # to convert the PR to draft: the mutation requires both. The job doesn't run any code of the PR
+      contents: write
+      pull-requests: write
     steps:
       - name: Convert the PR to draft
         # it can't be merged: it must not ask for reviews either
