@@ -4,14 +4,14 @@
 - Ref: [Manifest](../../../docs/edit/manifest.md), [Skip tests](../../../docs/edit/skip-tests.md)
 
 ### META-002: Manifest Version Prefix
-- Severity: P0
+- Severity: P1
 - Flag: Versions in manifest files must use the `v` prefix for "this version and above" semantics (e.g., `v1.2.0`). A bare `1.2.0` means **exactly** that version only. Flag bare versions and ask if `v` prefix was intended.
 - Detect: A manifest contains a bare version; ask whether the `v` prefix was intended.
 - Not when: The bare version is an intentional exact-version declaration, including a development version used to avoid matching an older release candidate as described by META-007.
 - Ref: [Manifest](../../../docs/edit/manifest.md)
 
 ### META-003: Use irrelevant only when the feature does not apply
-- Severity: P0
+- Severity: P1
 - Flag: When a test remains but is deactivated for a library, keep the node and use the declaration that matches the cause. Use `irrelevant` only when the feature does not apply to that library.
 - Detect: A manifest uses `irrelevant` for a test whose actual cause is a bug, a missing feature, flaky behavior, or an incomplete test application.
 - Not when: The feature does not apply to that library, and the declaration says so.
@@ -20,7 +20,7 @@
 - Ref: [Declaration decorators](../../../docs/edit/skip-tests.md#declaration-decorators)
 
 ### META-004: Quote special YAML characters in manifest values
-- Severity: P1
+- Severity: P2
 - Flag: Values that contain `:`, `#`, `<`, or `>` should be quoted, even when the YAML parser accepts them unquoted, because they are easy to misread.
 - Detect: A manifest value contains one of these characters without quotes.
 - Not when: The value is already quoted, or the character appears inside a quoted string.
@@ -39,7 +39,7 @@
 
 ### META-006: Match each manifest marker to its cause.
 - Old_id: claude-07
-- Severity: P0
+- Severity: P1
 - Flag: Pick the marker that matches the cause. When one PR excludes tests for different causes, give each exclusion its own reason, and make each reason state the real cause. By default, markers other than `irrelevant` and `flaky` become a non-strict xfail, and `conftest.py` also records a fixture error as `xfailed`. When a marked test fails before its assertions, the reason must name that failure.
 - Detect: A marker contradicts its cause, or several exclusions with different causes share one vague reason. A marked test fails during setup because of invalid configuration or a missing required secret that the marker does not describe.
 - ✅ Use `incomplete_test_app (weblog has no /ffe endpoint)` when the weblog does not implement the endpoint.
@@ -48,7 +48,7 @@
 
 ### META-007: Do not let a minimum dev version match an older release candidate.
 - Old_id: cursor-08
-- Severity: P0
+- Severity: P1
 - Flag: Do not declare a minimum dev version, such as `v4.15.0-dev`, when a release candidate (RC) of that version lacks the feature. Use the exact version without the `v` prefix until a release contains the feature. Then switch back to a minimum version.
 - Detect: A manifest declares a minimum dev version, and an RC of that version predates the change.
 - Not when: A bare dev version intentionally prevents an older release candidate from matching.
