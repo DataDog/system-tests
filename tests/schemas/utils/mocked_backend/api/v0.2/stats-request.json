@@ -1,5 +1,5 @@
 {
-  "$id": "/agent/api/v0.2/stats-request.json",
+  "$id": "/mocked_backend/api/v0.2/stats-request.json",
   "type": "object",
   "required": ["Stats"],
   "properties": {

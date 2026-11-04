@@ -1,5 +1,5 @@
 {
-  "$id": "/agent/api/v0.2/traces-request.json",
+  "$id": "/mocked_backend/api/v0.2/traces-request.json",
   "type": "object",
   "properties": {
     "hostName": { "type": "string" },

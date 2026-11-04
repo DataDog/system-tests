@@ -44,7 +44,7 @@ _ApiObjectValidator = extend(Draft7Validator, type_checker=_type_checker)
 def _get_schemas_filenames():
     for schema_dir in (
         "tests/schemas/utils/library/",
-        "tests/schemas/utils/agent/",
+        "tests/schemas/utils/mocked_backend/",
         "tests/schemas/utils/miscs/",
         "tests/schemas/utils/otel_collector/",
     ):
@@ -168,7 +168,7 @@ class SchemaValidator:
             return result
 
         # For agent debugger endpoint, handle multipart structure
-        if self.interface == "agent" and path == "/api/v2/debugger":
+        if self.interface == "mocked_backend" and path == "/api/v2/debugger":
             # Extract the actual debugger data from multipart structure
             result = []
             content = data["request"].get("content", [])
@@ -196,9 +196,8 @@ class SchemaValidator:
 
 
 def _main():
-    # schemas, and the interface folder they describe: the agent sends to the mocked backend
-    for schemas, interface in (("agent", "mocked_backend"), ("library", "library")):
-        validator = SchemaValidator(schemas)
+    for interface in ("mocked_backend", "library"):
+        validator = SchemaValidator(interface)
         folders = [folder for folder in Path().iterdir() if folder.is_dir() and str(folder).startswith("logs")]
         for folder in folders:
             path = folder / f"interfaces/{interface}"
@@ -215,14 +214,11 @@ def _main():
                         print(error.message)  # noqa: T201
 
 
-def assert_no_schema_error(
-    interface: ProxyBasedInterfaceValidator, known_bugs: list[SchemaBug], *, schemas: str | None = None
-) -> None:
-    """schemas: the folder of schemas to validate against (default: the interface name)"""
+def assert_no_schema_error(interface: ProxyBasedInterfaceValidator, known_bugs: list[SchemaBug]) -> None:
     excluded_points = {(bug.endpoint, bug.data_path) for bug in known_bugs if bug.condition}
 
     schema_errors: list[SchemaError] = []
-    validator = SchemaValidator(schemas or interface.name)
+    validator = SchemaValidator(interface.name)
 
     for data in interface.get_data():
         for error in validator.get_errors(data):
