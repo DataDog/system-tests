@@ -15,9 +15,8 @@
 * CRITICAL BUILD COMMAND: When providing build commands for end-to-end weblogs, ALWAYS use the correct format: `./build.sh <language> -w <weblog-variant>` (e.g., `./build.sh java -w spring-boot`, `./build.sh python -w flask-poc`, `./build.sh nodejs -w express4`). NEVER use `./build.sh <weblog-variant>` without the language parameter. The language parameter is MANDATORY. The correct syntax is documented in [build script documentation](../../docs/execute/build.md).
 * End to End scenarios store and validate messages:
   * Intercepted between instrumented application (instrumented by library/datadog tracer) and datadog agent. these messages are stored as json files in the logs folder: logs_<scenario_name>/interfaces/library. These intercepted json messages are parsed and validated using the "library interface" implemented as class "LibraryInterfaceValidator" in the [Libray interface core implementation](../../utils/interfaces/_library/core.py). For details use the [library interface](../../docs/edit/library-interface-validation-methods.md) documentation.
-  * Intercepted between datadog agent and datadog backend. These messages are stored as json files in the logs folder: logs_<scenario_name>/interfaces/agent. These intercepted json messages are parsed and validated using the "agent interface" implemented as class "AgentInterfaceValidator" in the [agent interface core implementation](../../utils/interfaces/_agent.py). For details use the [agent interface](../../docs/edit/agent-interface-validation-methods.md) documentation.
-  * Returned by the Datadog backend API. These messages are stored as JSON files in the logs folder: logs_<scenario_name>/interfaces/backend/files. The legacy backend interface implemented as `_BackendLegacyInterfaceValidator` in the [backend interface implementation](../../utils/interfaces/_backend_legacy.py) exposes methods to interact with the Datadog backend API. For details use the [backend interface](../../docs/edit/backend-interface-validation-methods.md) documentation.
-* The library interface, agent interface and backend interface are instantiated as singleton in [validation interfaces](../../utils/interfaces/__init__.py) and they can be used by the end to end test cases as following example:
+  * Sent to the datadog backend (by the agent, or by an agentless library), received by the mocked backend. These messages are stored as json files in the logs folder: logs_<scenario_name>/interfaces/mocked_backend. They are parsed and validated using the "mocked backend interface" implemented as class "_MockedBackendInterfaceValidator" in the [mocked backend interface implementation](../../utils/interfaces/_mocked_backend.py). For details use the [mocked backend interface](../../docs/edit/mocked-backend-interface-validation-methods.md) documentation.
+* The library interface and mocked backend interface are instantiated as singleton in [validation interfaces](../../utils/interfaces/__init__.py) and they can be used by the end to end test cases as following example:
 
 ```python
 from utils import interfaces, weblog, scenarios
@@ -29,10 +28,10 @@ class my_test_class:
         weblog.request("/url_that_perform_and_action_and_generate_traces_to_be_intercepted")
 
     def test_mytestcase(self):
-        # The traces/messages should be generated in the setup method and intercepted by the library, agent or backend interfaces and stored in the log folder
+        # The traces/messages should be generated in the setup method and intercepted by the library or mocked backend interfaces and stored in the log folder
         # Use the interfaces instances to validate the json intercepted messages
         interfaces.library.<validation method>
-        interfaces.agent.<validation method>
+        interfaces.mocked_backend.<validation method>
 ```
 
 * The `SchemaValidator` class from the [schema validators](../../tests/schemas/utils/schemas_validators.py) can help validate messages under `logs_<scenario_name>/interfaces`.
