@@ -1,11 +1,6 @@
----
-description: Parametric scenario testing and how to run parametric tests faster when re-running multiple times
-globs:
-alwaysApply: true
----
 # Parametric Testing
 
-* To run parametric tests use the document [parametric scenario](mdc:docs/understand/scenarios/parametric.md). The scenario runs shared tests against all APM libraries via a common HTTP interface.
+* To run parametric tests use the document [parametric scenario](../../docs/understand/scenarios/parametric.md). The scenario runs shared tests against all APM libraries via a common HTTP interface.
 * Parametric tests live under `tests/parametric/`. The parametric library server per language is in `utils/build/docker/<lang>/parametric/`.
 
 ## Running a subset of tests
@@ -33,4 +28,4 @@ TEST_LIBRARY=java ./run.sh PARAMETRIC --skip-parametric-build tests/parametric/t
 
 Only safe when `utils/build/docker/<lang>/parametric/` has not changed. Run without the flag after modifying the Dockerfile or app code.
 
-* Full details: see the "Making parametric runs faster" section in [parametric scenario](mdc:docs/understand/scenarios/parametric.md).
+* Full details: see the "Making parametric runs faster" section in [parametric scenario](../../docs/understand/scenarios/parametric.md).

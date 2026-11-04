@@ -1,8 +1,3 @@
----
-description: Procedure to triage a failing system-tests test in system-tests own CI called PROD (recurrence analysis, fix proposal, JIRA ticket, team ping, skip PR)
-globs:
-alwaysApply: false
----
 # Test Failure Triage
 
 > **DRAFT**
@@ -27,10 +22,10 @@ Not culprits: infrastructure issues do not make a test fail (they break the setu
 
 ## Key Documentation
 
-- @.cursor/rules/test-activation.mdc: How to write the skip (manifest vs decorator)
-- @docs/edit/manifest.md: Manifest format
-- @docs/edit/skip-tests.md: Declarations and their behavior (`bug`, `flaky`, ...)
-- @.github/CODEOWNERS: Owner team of a test file
+- [test-activation.md](test-activation.md): How to write the skip (manifest vs decorator)
+- [manifest.md](../../docs/edit/manifest.md): Manifest format
+- [skip-tests.md](../../docs/edit/skip-tests.md): Declarations and their behavior (`bug`, `flaky`, ...)
+- [utils/_features.py](../../utils/_features.py): Features and their owner team
 
 ---
 
@@ -146,9 +141,9 @@ For now, the system-tests team takes care of this part. Do not ping anyone.
 
 ## Step 6: Skip PR
 
-Follow @.cursor/rules/test-activation.mdc. In particular:
+Follow [test-activation.md](test-activation.md). In particular:
 
-- Use manifests, except where @.cursor/rules/test-activation.mdc requires a decorator (e.g. a scenario-specific skip)
+- Use manifests, except where [test-activation.md](test-activation.md) requires a decorator (e.g. a scenario-specific skip)
 - use `bug (<JIRA-KEY>)` for a regression, `flaky (<JIRA-KEY>)` for an intermittent failure. `bug` still runs the test as xfail (a fix is detected as xpass), `flaky` does not run it at all
 - scope the skip to what step 1 found: only the failing weblog(s) (`weblog_declaration`), only from the failing version (`component_version`), only the failing method rather than the whole class
 - run `./format.sh` after modifying a manifest
