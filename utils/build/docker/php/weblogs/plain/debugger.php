@@ -266,10 +266,65 @@ class DebuggerController {
 
     public function Budgets($loops) {
         for ($i = 0; $i < $loops; $i++) {
-            // Empty loop to simulate the Python version
+            $this->intLocal = $i; // the line probe target; a property store survives OPcache's dead code elimination
         }
         return "Budgets";
     }
+
+    public function snapshotLimits($depth, $fields, $collectionSize, $stringLength) {
+        $deepObject = $depth > 0 ? createNestedObject($depth) : null;
+        $manyFields = new ManyFieldsObject($fields);
+        $largeCollection = $collectionSize > 0 ? range(0, $collectionSize - 1) : [];
+        $longString = str_repeat("A", $stringLength);
+        return "Capture limits probe" . keepAlive($deepObject, $manyFields, $largeCollection, $longString); // the line probe target
+    }
+
+    public function snapshotCaptureTimeout($collectionSize, $nestingDepth) {
+        $largeCollection = generateNestedCollection($collectionSize, $nestingDepth);
+        return "Capture timeout probe" . keepAlive($largeCollection); // the line probe target
+    }
+}
+
+// Fixtures for the snapshot limits and capture timeout endpoints, mirroring the other weblogs.
+class NestedObject {
+    public $level;
+    public $nested;
+
+    public function __construct($level, $nested = null) {
+        $this->level = $level;
+        $this->nested = $nested;
+    }
+}
+
+#[\AllowDynamicProperties]
+class ManyFieldsObject {
+    public function __construct($fieldCount) {
+        for ($i = 0; $i < $fieldCount; $i++) {
+            $this->{"field$i"} = $i;
+        }
+    }
+}
+
+// Reads its arguments, so OPcache cannot drop the fixture assignments as dead stores before the probed line runs.
+function keepAlive(...$values) {
+    return "";
+}
+
+function createNestedObject($maxLevel, $level = 1) {
+    return new NestedObject($level, $level == $maxLevel ? null : createNestedObject($maxLevel, $level + 1));
+}
+
+// A collection of nested objects that is expensive to capture.
+function generateNestedCollection($collectionSize, $nestingDepth) {
+    $collection = [];
+    for ($index = 0; $index < $collectionSize; $index++) {
+        $nested = new NestedObject($index);
+        for ($level = $nestingDepth; $level > 0; $level--) {
+            $nested = new NestedObject($level, $nested);
+        }
+        $collection[] = $nested;
+    }
+    return $collection;
 }
 
 // Request handling
@@ -394,6 +449,22 @@ if (count($parts) === 1) {
             break;
         case 'budgets':
             echo $controller->Budgets(intval($parts[1]));
+            break;
+        case 'snapshot':
+            $intParam = function ($name) use ($queryParams) {
+                return isset($queryParams[$name]) ? intval($queryParams[$name]) : 0;
+            };
+            switch ($parts[1]) {
+                case 'limits':
+                    echo $controller->snapshotLimits($intParam('depth'), $intParam('fields'), $intParam('collectionSize'), $intParam('stringLength'));
+                    break;
+                case 'capture-timeout':
+                    echo $controller->snapshotCaptureTimeout($intParam('collectionSize'), $intParam('nestingDepth'));
+                    break;
+                default:
+                    http_response_code(404);
+                    break;
+            }
             break;
         case 'expression':
             switch ($parts[1]) {
