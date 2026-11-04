@@ -40,8 +40,6 @@ These rules apply in EVERY interaction.
 
 ## Code Review Rules
 
-- @./.agents/rules/pr-review.md — Apply when reviewing a pull request
-
 Before pushing code or creating a pull request, you MUST run the [system-tests-review skill](./.claude/skills/system-tests-review/SKILL.md) on the committed changes unless the user specifically says not to. You MUST also perform a standard self-review, using the platform's standard review capability when available. All other required publication checks still apply.
 
 When performing a code review where the skill cannot be invoked, including an automated GitHub codex review, read the skill file as ordinary workflow instructions and apply every lens directly:
