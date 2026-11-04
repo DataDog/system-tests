@@ -19,6 +19,11 @@ The procedure has six steps. **Never create a ticket or a PR without an explicit
 * A component has been released, and a test was activated only for the released version of this component, so it was never tested before: a test activated at `>=X.Y.Z` is skipped in the component's CI (`X.Y.Z-dev` < `X.Y.Z` in semver), and runs for the first time once `X.Y.Z` is released
 * A test is flaky because something in the test logic is flaky
 * A test is flaky because something in a tested component is flaky
+* A system-tests change (test, weblog or `utils/`): the usual suspect. Look at `git log` between the system-tests commits of the last pass and the first failure
+* A weblog dependency that is not pinned has been updated: the failure starts without any system-tests or component change. Low-hanging fruit: pin the dependency in the weblog
+* An agent release: easy to spot, it breaks almost all tracers at once, right after the agent version (`@systest.suite.context.agent`) changes
+
+Not culprits: infrastructure issues do not make a test fail (they break the setup, not the test), and system-tests does not use the real Datadog backend anymore.
 
 ## Key Documentation
 
@@ -31,7 +36,7 @@ The procedure has six steps. **Never create a ticket or a PR without an explicit
 
 ## Step 1: Gather recurrence data (Test Optimization)
 
-Use the Datadog MCP test tools (`search_datadog_test_events`, `aggregate_datadog_test_events`, `get_datadog_flaky_tests`).
+Use the Datadog MCP test tools (`search_datadog_test_events`, `aggregate_datadog_test_events`).
 
 ### Useful attributes
 
@@ -49,6 +54,8 @@ Use the Datadog MCP test tools (`search_datadog_test_events`, `aggregate_datadog
 | `@git.branch` / `@git.commit.sha` | system-tests branch and commit |
 | `@error.message` | Assertion and stack trace |
 
+Do not rely on the Test Optimization flaky tags (`@test.is_flaky`, `@test.is_known_flaky`, `@test.is_new_flaky`) or on `get_datadog_flaky_tests`. Those are based on a test both passing and failing on the same commit, and system-tests never runs the same test twice on a commit, so they are mostly meaningless here. Assess flakiness from the pass/fail ratio across runs instead (question 2 below).
+
 ### Questions to answer
 
 Query at least the last 30 days (`from: now-30d`), on `@git.is_default_branch:true`, then answer:
@@ -56,11 +63,7 @@ Query at least the last 30 days (`from: now-30d`), on `@git.is_default_branch:tr
 1. **Since when?** First failure date, and the last passing run before it.
 2. **How often?** Fail/pass ratio on the same (test, scenario, weblog, library) combination. A mix of pass and fail on the same versions suggests flakiness; a consistent failure suggests a regression.
 3. **Which scope?** Does it fail on one weblog or all of them? One scenario or all of them? One library version or from a given version onwards? Other tests of the same class/feature failing at the same time? This scope is a huge hint to determine the culprit.
-4. **What changed?** Compare the library version, agent version and system-tests commit between the last pass and the first failure:
-   - library version changed → look at the tracer repository commits between both versions (`DataDog/dd-trace-<lang>`)
-   - system-tests commit changed → look at `git log` between both commits on the test, the weblog and `utils/`
-   - agent version changed → likely agent-side
-   - nothing changed → likely flaky or infrastructure
+4. **What changed?** Note the library version, agent version and system-tests commit of the last pass and of the first failure (they are investigated in step 2).
 5. **Same error?** Compare `@error.message` across failures, to tell whether it's one root cause or several.
 6. **Already known?** Check system-tests manifests to see if other failures are registered on the same tests.
 
@@ -68,11 +71,15 @@ Query at least the last 30 days (`from: now-30d`), on `@git.is_default_branch:tr
 
 ## Step 2: Gather recent changes
 
-Based on results from step 1, try to identify the change that introduced the error:
+Based on the step 1 results, identify the change that introduced the error. Check each [possible culprit](#possible-culprits), starting with the most likely:
 
-* Is it a test activation in system-tests
-* Or a change in tests in system-tests
-* Or a change in a tested component
+- **system-tests changed** between the last pass and the first failure → `git log <last-pass-sha>..<first-fail-sha>` on:
+  - `manifests/<library>.yml`: a test activation, in particular one at exactly the newly released version
+  - the test file, and the weblog (`utils/build/docker/<library>/`)
+  - `utils/`
+- **agent version changed** → check whether almost all tracers started failing at the same time. If so, it's the agent
+- **library version changed** → look at the tracer repository commits between both versions (`DataDog/dd-trace-<lang>`). Remember that this is unlikely (see above)
+- **nothing changed** → either the test is flaky (mix of pass and fail on the same versions), or a weblog dependency that is not pinned has been updated (look at the weblog Dockerfile and dependency files)
 
 ## Step 3: Try to propose a fix
 
