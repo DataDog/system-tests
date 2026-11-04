@@ -35,6 +35,7 @@ These rules apply in EVERY interaction.
 
 - [Java endpoint generation](.agents/rules/java-endpoint-prompt.md) — Java endpoint creation workflow
 - [Promptfoo evaluations](.agents/rules/promptfoo-llm.md) — Promptfoo LLM testing guidelines
+- [Test failure triage](.agents/rules/test-failure-triage.md) — Triage a failing test: recurrence analysis in Test Optimization, fix proposal, JIRA ticket, skip PR
 
 ## Pull request review guidelines
 
