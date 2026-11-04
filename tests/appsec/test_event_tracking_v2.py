@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, interfaces, features, scenarios
+from utils import weblog, interfaces, features, scenarios, context, incomplete_test_app
 from utils.dd_types import DataDogLibrarySpan, is_same_boolean
 from tests.appsec.utils import find_series
 from abc import ABC, abstractmethod
@@ -186,6 +186,11 @@ class BaseUserLoginSuccessEventV2Tags:
 
 @features.event_tracking_sdk_v2
 @scenarios.appsec_ato_sdk
+@scenarios.appsec_lambda_default
+@incomplete_test_app(
+    context.scenario == scenarios.appsec_lambda_default and context.library.name != "java_lambda",
+    reason="The v2 login endpoints are not implemented in this Lambda weblog",
+)
 class Test_UserLoginSuccessEventV2_Tags_AppsecEnabled(BaseUserLoginSuccessEventV2Tags):
     """Test tags created in AppSec User Login Success Event SDK v2 when appsec is enabled"""
 
@@ -211,6 +216,11 @@ class BaseUserLoginSuccessEventV2HeaderCollection(ABC):
 
 @features.event_tracking_sdk_v2
 @scenarios.appsec_ato_sdk
+@scenarios.appsec_lambda_default
+@incomplete_test_app(
+    context.scenario == scenarios.appsec_lambda_default and context.library.name != "java_lambda",
+    reason="The v2 login endpoints are not implemented in this Lambda weblog",
+)
 class Test_UserLoginSuccessEventV2_HeaderCollection_AppsecEnabled(BaseUserLoginSuccessEventV2HeaderCollection):
     """Test headers are collected in AppSec User Login Success Event SDK v2 when appsec is enabled"""
 
@@ -276,6 +286,11 @@ class BaseUserLoginSuccessEventV2Metrics:
 
 @features.event_tracking_sdk_v2
 @scenarios.appsec_ato_sdk
+@scenarios.appsec_lambda_default
+@incomplete_test_app(
+    context.scenario == scenarios.appsec_lambda_default and context.library.name != "java_lambda",
+    reason="The v2 login endpoints are not implemented in this Lambda weblog",
+)
 class Test_UserLoginSuccessEventV2_Metrics_AppsecEnabled(BaseUserLoginSuccessEventV2Metrics):
     """Test metrics in AppSec User Login Success Event SDK v2 when appsec is enabled"""
 
@@ -445,6 +460,11 @@ class BaseUserLoginFailureEventV2Tags:
 
 @features.event_tracking_sdk_v2
 @scenarios.appsec_ato_sdk
+@scenarios.appsec_lambda_default
+@incomplete_test_app(
+    context.scenario == scenarios.appsec_lambda_default and context.library.name != "java_lambda",
+    reason="The v2 login endpoints are not implemented in this Lambda weblog",
+)
 class Test_UserLoginFailureEventV2_Tags_AppsecEnabled(BaseUserLoginFailureEventV2Tags):
     """Test tags created in AppSec User Login Failure Event SDK v2 when appsec is enabled"""
 
@@ -470,6 +490,11 @@ class BaseUserLoginFailureEventV2HeaderCollection(ABC):
 
 @features.event_tracking_sdk_v2
 @scenarios.appsec_ato_sdk
+@scenarios.appsec_lambda_default
+@incomplete_test_app(
+    context.scenario == scenarios.appsec_lambda_default and context.library.name != "java_lambda",
+    reason="The v2 login endpoints are not implemented in this Lambda weblog",
+)
 class Test_UserLoginFailureEventV2_HeaderCollection_AppsecEnabled(BaseUserLoginFailureEventV2HeaderCollection):
     """Test headers are collected in AppSec User Login Failure Event SDK v2 when appsec is enabled"""
 
@@ -533,6 +558,11 @@ class BaseUserLoginFailureEventV2Metrics:
 
 @features.event_tracking_sdk_v2
 @scenarios.appsec_ato_sdk
+@scenarios.appsec_lambda_default
+@incomplete_test_app(
+    context.scenario == scenarios.appsec_lambda_default and context.library.name != "java_lambda",
+    reason="The v2 login endpoints are not implemented in this Lambda weblog",
+)
 class Test_UserLoginFailureEventV2_Metrics_AppsecEnabled(BaseUserLoginFailureEventV2Metrics):
     """Test metrics in AppSec User Login Failure Event SDK v2 when AppSec is enabled"""
 
