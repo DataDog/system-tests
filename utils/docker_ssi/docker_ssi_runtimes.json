@@ -196,6 +196,14 @@
     ],
     "dotnet": [
       {
+        "version_id": "DOTNET10",
+        "version": "10.0.403"
+      },
+      {
+        "version_id": "DOTNET9",
+        "version": "9.0.320"
+      },
+      {
         "version_id": "DOTNET80",
         "version": "8.0.404"
       },
