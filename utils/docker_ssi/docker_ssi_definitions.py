@@ -54,6 +54,8 @@ class PHPRuntimeInstallableVersions:
     PHP81 = RuntimeInstallableVersion("PHP81", "8.1")
     PHP82 = RuntimeInstallableVersion("PHP82", "8.2")
     PHP83 = RuntimeInstallableVersion("PHP83", "8.3")
+    PHP84 = RuntimeInstallableVersion("PHP84", "8.4")
+    PHP85 = RuntimeInstallableVersion("PHP85", "8.5")
 
     @staticmethod
     def get_all_versions() -> list["RuntimeInstallableVersion"]:
@@ -68,6 +70,8 @@ class PHPRuntimeInstallableVersions:
             PHPRuntimeInstallableVersions.PHP81,
             PHPRuntimeInstallableVersions.PHP82,
             PHPRuntimeInstallableVersions.PHP83,
+            PHPRuntimeInstallableVersions.PHP84,
+            PHPRuntimeInstallableVersions.PHP85,
         ]
 
     @staticmethod
