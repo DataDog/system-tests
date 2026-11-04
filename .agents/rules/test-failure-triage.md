@@ -54,7 +54,7 @@ Do not rely on the Test Optimization flaky tags (`@test.is_flaky`, `@test.is_kno
 
 Query at least the last 30 days (`from: now-30d`), on `@git.is_default_branch:true`, then answer:
 
-1. **Since when?** First failure date, and the last passing run before it.
+1. **Since when?** First failure date, and the last passing run before it. If the window doesn't contain a passing run, widen it (e.g. `now-90d`) until you find one. If none is found within the data retention, report "earliest failure seen: <date>, no passing run found" instead.
 2. **How often?** Fail/pass ratio on the same (test, scenario, weblog, library) combination. A mix of pass and fail on the same versions suggests flakiness; a consistent failure suggests a regression.
 3. **Which scope?** Does it fail on one weblog or all of them? One scenario or all of them? One library version or from a given version onwards? Other tests of the same class/feature failing at the same time? This scope is a huge hint to determine the culprit.
 4. **What changed?** Note the library version, agent version and system-tests commit of the last pass and of the first failure (they are investigated in step 2).
@@ -72,7 +72,7 @@ Based on the step 1 results, identify the change that introduced the error. Chec
   - the test file, and the weblog (`utils/build/docker/<library>/`)
   - `utils/`
 - **agent version changed** → check whether almost all tracers started failing at the same time. If so, it's the agent
-- **library version changed** → look at the tracer repository commits between both versions (`DataDog/dd-trace-<lang>`). Remember that this is unlikely (see above)
+- **library version changed** → look at the tracer repository commits between both versions (`DataDog/dd-trace-<lang-id>`). Remember that this is unlikely (see above)
 - **nothing changed** → either the test is flaky (mix of pass and fail on the same versions), or a weblog dependency that is not pinned has been updated (look at the weblog Dockerfile and dependency files)
 
 Before going to step 3 or 4, confirm with the user the scope, and your next steps.
@@ -85,6 +85,8 @@ If you have enough confidence about the root cause and how we should fix it, pro
 
 Because JIRA tickets can't be amended or commented once created, the order is: skip PR first (with a placeholder ticket), then the ticket (with the PR link), then a commit replacing the placeholder.
 
+Prepare the change, and let the user create the PR with the Slack button. Wait until the PR exists before going to step 5.
+
 First, find the JIRA project (see [Find the JIRA project](#find-the-jira-project)) and check for an existing ticket (see [Avoid duplicates](#avoid-duplicates)).
 
 Follow [test-activation.md](test-activation.md). In particular:
@@ -94,7 +96,7 @@ Follow [test-activation.md](test-activation.md). In particular:
 - if an existing ticket is reused, use its key. Otherwise, use the placeholder `<PROJECT>-TBD` (e.g. `APPSEC-TBD`): the manifest validation requires a value matching a JIRA key
 - scope the skip to what step 1 found: only the failing weblog(s) (`weblog_declaration`), only from the failing version (`component_version`), only the failing method rather than the whole class
 - run `./format.sh` after modifying a manifest
-- always open the PR as a draft (this also applies to the fix PR from step 3)
+- the PR must be a draft (this also applies to the fix PR from step 3): remind the user when they create it
 
 If an existing ticket is reused, stop here: steps 5 and 6 are not needed.
 
@@ -110,13 +112,13 @@ The JIRA project is derived from the owner of the feature tested by the test. Fi
 * asm: APPSEC
 * debugger: DEBUG
 * idm: AIDM
-* dsm: DSMOM
+* dsm: DSMON
 * sdk_capabilities: APMAPI
-* ffe: FFE
+* ffe: FFL
 * language_platform: APMLP
 * injection_platform: INPLAT
 * ml_observability: MLOB
-* profiler: PROFLIB
+* profiler: PRFLIB
 * rp: APMSP
 
 If the project can't be determined, ask the user.
@@ -151,7 +153,7 @@ Before proposing a new ticket, search JIRA for an open ticket mentioning the tes
 
 ## Step 6: Update the skip PR
 
-Add a commit to the skip PR replacing the `<PROJECT>-0` placeholder with the created ticket key, run `./format.sh`, push, and add the ticket link to the PR description.
+Add a commit to the skip PR replacing the placeholder with the created ticket key, run `./format.sh`, push, and add the ticket link to the PR description.
 
 ---
 
@@ -178,4 +180,7 @@ After the steps 1–2 analysis (and **before** creating anything), post a summar
 3. JIRA: create in <PROJECT> | reuse <KEY>
 ```
 
-The user may amend any part. Only then create the fix PR, or the skip PR, the ticket, and the commit with the ticket key.
+The user may amend any part. Only then prepare the fix PR, or the skip PR (the user creates it with the Slack button), then:
+
+- if the proposal was `create`: the ticket, and the commit with the ticket key (steps 5 and 6)
+- if the proposal was `reuse <KEY>`: nothing else, the skip PR already uses `<KEY>`
