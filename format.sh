@@ -198,15 +198,24 @@ echo "Checking AI Guard redaction fixtures..."
 # from ever matching the requests the tests send. The generator is deterministic, so it can report
 # drift on its own; --check compares against the files it owns without writing any of them.
 if [ "$COMMAND" == "check" ]; then
-  gen_redaction_args="--check"
+  fixture_generator_args="--check"
 else
-  gen_redaction_args=""
+  fixture_generator_args=""
 fi
 
-if ! gen_redaction_output="$(python utils/scripts/gen_redaction_cassettes.py $gen_redaction_args 2>&1)"; then
+if ! gen_redaction_output="$(python utils/scripts/gen_redaction_cassettes.py $fixture_generator_args 2>&1)"; then
   echo "$gen_redaction_output"
   echo "AI Guard redaction fixtures are out of date or invalid. Regenerate them with"
   echo "python utils/scripts/gen_redaction_cassettes.py 💥 💔 💥"
+  exit 1
+fi
+
+echo "Checking AI Guard MCP cassettes..."
+# Same as above: the hand-crafted MCP cassettes are addressed by a hash of the request body.
+if ! gen_mcp_output="$(python utils/scripts/gen_aiguard_mcp_cassettes.py $fixture_generator_args 2>&1)"; then
+  echo "$gen_mcp_output"
+  echo "AI Guard MCP cassettes are out of date. Regenerate them with"
+  echo "python utils/scripts/gen_aiguard_mcp_cassettes.py 💥 💔 💥"
   exit 1
 fi
 

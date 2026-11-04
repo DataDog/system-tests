@@ -2029,6 +2029,7 @@ manifest:
       weblog: [openai-js@6.0.0]
     - declaration: missing_feature (APPSEC-68977, AI Guard/OpenAI integration not yet wired into INTEGRATION_FRAMEWORKS)
       excluded_weblog: [openai-js@6.0.0]
+  tests/integration_frameworks/llm/openai/test_openai_ai_guard_mcp.py: missing_feature (AI Guard MCP tool calls not implemented)
   tests/integration_frameworks/llm/openai/test_openai_apm.py::TestOpenAiApmChatCompletions: *ref_5_76_0
   tests/integration_frameworks/llm/openai/test_openai_apm.py::TestOpenAiApmCompletions: *ref_5_76_0
   tests/integration_frameworks/llm/openai/test_openai_apm.py::TestOpenAiApmEmbeddings: *ref_5_76_0

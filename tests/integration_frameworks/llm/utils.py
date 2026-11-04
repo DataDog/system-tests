@@ -246,7 +246,7 @@ def assert_ai_guard_evaluated(test_agent: TestAgentAPI, *, target: str) -> list[
 
     The spans may land nested in the SDK trace or in their own, so poll rather than wait on a trace count.
     """
-    spans = _wait_for(test_agent, lambda traces: _ai_guard_spans(traces, target))
+    spans = _wait_for(test_agent, lambda traces: ai_guard_spans(traces, target))
     assert spans, f"expected an ai_guard span with target '{target}'"
 
     assert _wait_for(test_agent, _ai_guard_event_root_spans), "expected a local root span tagged ai_guard.event:true"
@@ -262,11 +262,39 @@ def assert_assistant_tool_calls_forwarded(guard_spans: list[dict]) -> None:
     assert any(
         message.get("role") == "assistant" and message.get("tool_calls")
         for span in guard_spans
-        for message in _guard_messages(span)
+        for message in ai_guard_messages(span)
     ), "expected the assistant tool_calls entry in the ai_guard evaluation payload"
 
 
-def _ai_guard_spans(traces: list[list[dict]], target: str | None = None) -> list[dict]:
+def find_ai_guard_spans_with_reason(test_agent: TestAgentAPI, reason: str) -> list[dict]:
+    """Poll for the ai_guard spans whose evaluation returned reason, [] if none shows up.
+
+    Hand-crafted cassettes return a reason unique to the exact request body they were built for, so
+    finding it proves the tracer sent that body: on a cassette miss no evaluation carries it.
+    """
+    return _wait_for(
+        test_agent,
+        lambda traces: [
+            span for span in ai_guard_spans(traces) if span.get("meta", {}).get("ai_guard.reason") == reason
+        ],
+    )
+
+
+def wait_for_ai_guard_spans(test_agent: TestAgentAPI, count: int) -> list[dict]:
+    """Poll until at least count ai_guard spans arrived, and return all of them (fewer on timeout)."""
+    spans: list[dict] = []
+
+    def select(traces: list[list[dict]]) -> list[dict]:
+        nonlocal spans
+        spans = ai_guard_spans(traces)
+        return spans if len(spans) >= count else []
+
+    _wait_for(test_agent, select)
+    return spans
+
+
+def ai_guard_spans(traces: list[list[dict]], target: str | None = None) -> list[dict]:
+    """The ai_guard spans of traces, only those evaluating target when it is set."""
     return [
         span
         for trace in traces
@@ -289,7 +317,7 @@ def _ai_guard_event_root_spans(traces: list[list[dict]]) -> list[dict]:
     ]
 
 
-def _guard_messages(span: dict) -> list[dict]:
+def ai_guard_messages(span: dict) -> list[dict]:
     """The messages AI Guard evaluated, as captured in meta_struct.ai_guard.messages."""
     return span.get("meta_struct", {}).get("ai_guard", {}).get("messages", [])
 
