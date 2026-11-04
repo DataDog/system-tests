@@ -203,9 +203,6 @@ ignore = [
     "S108",      # hardcoded-temp-file: test code may contains weird things
     "SIM108",    # if-else-block-instead-of-if-exp: ternary operator nay be harder to read on long statements
 ]
-"tests/auto_inject/*" = [
-    "SLF001",  # private-member-access: TODO
-]
 "tests/fuzzer/*" = [
     "T201",     # print: fuzzer use prints...
 ]
