@@ -1,5 +1,5 @@
 ---
-description: Procedure to triage a failing system-tests test (recurrence analysis, JIRA ticket, team ping, skip PR)
+description: Procedure to triage a failing system-tests test in system-tests own CI called PROD (recurrence analysis, fix proposal, JIRA ticket, team ping, skip PR)
 globs:
 alwaysApply: false
 ---
@@ -10,7 +10,16 @@ alwaysApply: false
 Apply this rule when a user asks to triage a failing test (e.g. "triage this failure", "this test failed on the nightly, handle it").
 The input is usually a test name, a CI job URL, or a Test Optimization link.
 
+The key question is to determine the root cause. Runs on this CI uses the last release of all components. So the root cause is unlikely a tested components. The outcome of the process is bases on the most probable culprit.
+
 The procedure has four steps. **Never create a ticket or a PR without an explicit confirmation from the user** (see [Confirmation](#confirmation)).
+
+## Possible culprits
+
+* A component has been released, and a test was activated only for the release version of this components, and so, it was never tested
+* A test is flaky because anything in the test logic is flaky
+* A test is flaky because anything in a tested component is flaky
+* 
 
 ## Key Documentation
 
@@ -33,7 +42,6 @@ Use the Datadog MCP test tools (`search_datadog_test_events`, `aggregate_datadog
 | `@test.name` | `tests.<path>.<Class>.<method>[<weblog>]` |
 | `@test.status` / `@test.final_status` | `pass`, `fail`, `skip` |
 | `@test.codeowners` | Owner team(s), e.g. `@DataDog/asm-libraries` |
-| `@test.is_known_flaky` | Test is already known as flaky in Test Optimization |
 | `@systest.suite.context.scenario` | Scenario name |
 | `@systest.suite.context.weblog_variant` | Weblog |
 | `@systest.suite.context.library.name` / `.version` | Tested library and version |
@@ -44,30 +52,50 @@ Use the Datadog MCP test tools (`search_datadog_test_events`, `aggregate_datadog
 
 ### Questions to answer
 
-Query at least the last 14 days (`from: now-14d`), on `@git.branch:main`, then answer:
+Query at least the last 30 days (`from: now-30d`), on `@git.is_default_branch:true`, then answer:
 
 1. **Since when?** First failure date, and the last passing run before it.
 2. **How often?** Fail/pass ratio on the same (test, scenario, weblog, library) combination. A mix of pass and fail on the same versions suggests flakiness; a consistent failure suggests a regression.
-3. **Which scope?** Does it fail on one weblog or all of them? One scenario or all of them? One library version or from a given version onwards? Other tests of the same class/feature failing at the same time?
+3. **Which scope?** Does it fail on one weblog or all of them? One scenario or all of them? One library version or from a given version onwards? Other tests of the same class/feature failing at the same time? This scope is a huge hint to determine who is the culprit
 4. **What changed?** Compare the library version, agent version and system-tests commit between the last pass and the first failure:
    - library version changed → look at the tracer repository commits between both versions (`DataDog/dd-trace-<lang>`)
    - system-tests commit changed → look at `git log` between both commits on the test, the weblog and `utils/`
    - agent version changed → likely agent-side
    - nothing changed → likely flaky or infrastructure
 5. **Same error?** Compare `@error.message` across failures, to tell whether it's one root cause or several.
-6. **Already known?** Check `@test.is_known_flaky`, existing manifest entries for this test, and existing JIRA tickets (see step 2).
-
-TODO: document team heuristics (e.g. threshold to consider a test flaky, failures to ignore because they are infrastructure issues, PR branches vs main).
+6. Also check system-tests manifests to see if other failures are registred on the same tests
 
 ---
 
-## Step 2: JIRA ticket
+## Step 2: Gather recent changes
+
+Based on results from step 1, try to identify what could be the change that introduced the error : 
+
+* Is it a test actiivation on system-tests
+* Or a change in tests in  system-tests
+* Or a change in a tested component
+
+## Step 3: Try to propose a fix
+
+If you have enough confidence about the root cause and how we should fix it, propose to user to create a PR to fix the issue. If he refuses, go to step 4.
+
+## Step 4: JIRA ticket
 
 ### Find the JIRA project
 
-The JIRA project is derived from the owner team (`@test.codeowners`, or @.github/CODEOWNERS for the test file).
+The JIRA project is derived from the owner team (`@test.codeowners`, or @.github/CODEOWNERS for the test file). Owners are declared in `utils/_features.py`, and here is the map owner -> JIRA project to use : 
 
-TODO: define where the team → JIRA project mapping lives (it's in the private `DataDog/ci-checks` repository, which can't be read from a system-tests session), and reference it here.
+* agent_apm: APMLP
+* asm: APPSEC
+* debugger: DEBUG
+* idm: AIDM
+* dsm: DSMOM 
+* sdk_capabilities: APMAPI
+* ffe: FFE
+* language_platform: APMLP
+* injection_platform: INPLAT
+* ml_observability: MLOB
+* profiler: PROFLIB
 
 If the project can't be determined, ask the user.
 
@@ -78,6 +106,7 @@ Before proposing a new ticket, search JIRA for an open ticket mentioning the tes
 ### Ticket content
 
 - **Title:** `[system-tests] <Class>::<method> fails on <library> <scope>`
+- **Issue type:**: Bug
 - **Body:**
   - Test: full test path (`tests/...py::Class::method`)
   - Scope: scenario(s), weblog(s), library version(s), agent version
@@ -86,29 +115,25 @@ Before proposing a new ticket, search JIRA for an open ticket mentioning the tes
   - Suspected cause: what changed between last pass and first failure, and confidence level
   - Error: the relevant part of `@error.message`
   - Links: failing CI run(s), Test Optimization query
-
-TODO: issue type, labels, components, priority.
-
----
-
-## Step 3: Ping the team
-
-TODO: define how to reach each team (Slack channel or handle), and where the mapping lives.
-
-The message must be short: test name, scope, ticket link, and a link to the skip PR once it exists.
+  - Link to system-tests PR that skip the test (must be added after step 6)
+- **Labels:** `system-tests`
 
 ---
 
-## Step 4: Skip PR
+## Step 5: Ping the team
+
+As now, we'll take care of that part
+
+---
+
+## Step 6: Skip PR
 
 Follow @.cursor/rules/test-activation.mdc. In particular:
 
-- prefer manifests over decorators
+- Use manifests
 - use `bug (<JIRA-KEY>)` for a regression, `flaky (<JIRA-KEY>)` for an intermittent failure
 - scope the skip to what step 1 found: only the failing weblog(s) (`weblog_declaration`), only from the failing version (`component_version`), only the failing method rather than the whole class
 - run `./format.sh` after modifying a manifest
-
-TODO: define when to skip vs only ticket and wait (e.g. regression in a dev version only, failure on main only, etc.).
 
 ---
 
