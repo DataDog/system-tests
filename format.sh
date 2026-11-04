@@ -52,6 +52,12 @@ if ! lint-imports; then
   exit 1
 fi
 
+echo "Checking shared agent instructions..."
+if ! python utils/scripts/check_agent_instructions.py; then
+  echo "Agent instruction sync check failed. Please fix the errors above. 💥 💔 💥"
+  exit 1
+fi
+
 echo "Running ruff formatter..."
 if [ "$COMMAND" == "fix" ]; then
   ruff format

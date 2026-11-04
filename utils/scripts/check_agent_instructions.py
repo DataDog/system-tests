@@ -1,0 +1,49 @@
+from __future__ import annotations
+
+import difflib
+from pathlib import Path
+import re
+import sys
+
+
+ROOT = Path(__file__).resolve().parents[2]
+AGENTS_PATH = ROOT / "AGENTS.md"
+CLAUDE_PATH = ROOT / "CLAUDE.md"
+CLAUDE_COMMENT = (
+    "<!-- Keep this file as an exact replica of AGENTS.md, replacing rule links with Claude @ imports "
+    "and AGENTS.md filename references with CLAUDE.md. -->"
+)
+RULE_LINK_PATTERN = re.compile(r"\[[^\]]+\]\((\.agents/rules/[^)]+)\)")
+
+
+def _replace_rule_link(match: re.Match[str]) -> str:
+    return f"@./{match.group(1)}"
+
+
+def _expected_claude_content(agents_content: str) -> str:
+    content = f"{agents_content.rstrip()}\n"
+    content = content.replace("# AGENTS.md -", "# CLAUDE.md -", 1)
+    content = content.replace("`AGENTS.md`", "`CLAUDE.md`")
+    content = RULE_LINK_PATTERN.sub(_replace_rule_link, content)
+    return f"{CLAUDE_COMMENT}\n\n{content}"
+
+
+def main() -> int:
+    expected = _expected_claude_content(AGENTS_PATH.read_text(encoding="utf-8"))
+    actual = CLAUDE_PATH.read_text(encoding="utf-8")
+    if actual == expected:
+        return 0
+
+    diff = difflib.unified_diff(
+        actual.splitlines(keepends=True),
+        expected.splitlines(keepends=True),
+        fromfile=str(CLAUDE_PATH.relative_to(ROOT)),
+        tofile=f"{CLAUDE_PATH.relative_to(ROOT)} (expected)",
+    )
+    sys.stderr.write("CLAUDE.md is not synchronized with AGENTS.md:\n")
+    sys.stderr.writelines(diff)
+    return 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

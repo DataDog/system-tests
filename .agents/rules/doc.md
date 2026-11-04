@@ -1,13 +1,8 @@
----
-description: Rules to edit the documentation
-globs: docs/*
-alwaysApply: true
----
 # Editing the documenation
 
 ## Key Documentation
 
-- @docs/glossary.md: Technical definitions to use
+- [Glossary](../../docs/glossary.md): technical definitions to use
 
 ## Rules
 
@@ -23,6 +18,6 @@ know behavior of the system signal it to the user and propose a fix.
 
 ### Glossary
 
-When appropriate use the words from the glossary. You should avoid using similar 
+When appropriate use the words from the glossary. You should avoid using similar
 words to avoid ambiguities. When you use many words from the glossary you can
 add a link to the glossary to help the reader.
