@@ -1,8 +1,3 @@
----
-description: 
-globs: 
-alwaysApply: false
----
 # Java Endpoint Generation Guidelines
 
 ## Repository Structure
@@ -20,7 +15,7 @@ system-tests/
 |   |   |   |   |-- play/               # Weblog implementation for play
 |   |   |   |   |-- ratpack/            # Weblog implementation for ratpack
 |   |   |   |   |-- resteasy-netty3/    # Weblog implementation for resteasy-netty3
-|   |   |   |   |-- spring-boot/        # Weblog implementation for spring-boot 
+|   |   |   |   |-- spring-boot/        # Weblog implementation for spring-boot
 |   |   |   |   |-- vertx3/             # Weblog implementation for vertx3
 |   |   |   |   |-- vertx4/             # Weblog implementation for vertx4
 |-- build.sh                # Script to build test environment
@@ -46,7 +41,7 @@ system-tests/
 
 ### 2. Validation Before Changes
 - **ALWAYS search for existing endpoints** with similar paths before creating new ones
-- Use `grep_search` to find existing implementations in other languages (Node.js, Python, etc.)
+- Use the available repository search tool to find existing implementations in other languages (Node.js, Python, etc.)
 - Check if the test file already has endpoint definitions to understand requirements
 - Look for existing controller classes that handle the same base path (e.g., `/iast/`)
 
@@ -88,7 +83,7 @@ system-tests/
    # Example:
    ./build.sh java -w spring-boot
    ```
-   
+
 2. **Run the test to validate**:
    ```bash
    ./run.sh tests/path/to/test_file.py
@@ -132,7 +127,7 @@ system-tests/
 ### Jersey (JAX-RS) with Grizzly2
 - Resource classes are in `src/main/java/com/datadoghq/jersey/`
 - Use JAX-RS annotations: `@Path`, `@GET`, `@POST`, `@PathParam`, `@FormParam`
-- Class-level `@Path("/base")` and method-level `@Path("/endpoint/{param}")` 
+- Class-level `@Path("/base")` and method-level `@Path("/endpoint/{param}")`
 - Parameters: `@PathParam("id")` for URL params, `@FormParam("param")` for form data
 - Response with `String` return or `Response.builder()` for complex responses
 - Common imports needed: `jakarta.ws.rs.*`, `Response`, `MediaType`
@@ -155,7 +150,7 @@ system-tests/
 - Handler classes are in `src/main/java/com/datadoghq/ratpack/`
 - Implement setup method that receives `Chain` parameter
 - Use `chain.path("endpoint", ctx -> ctx.getResponse().send("message"))`
-- Path parameters via `chain.path("endpoint/:id", ctx -> ...)` 
+- Path parameters via `chain.path("endpoint/:id", ctx -> ...)`
 - Access request with `ctx.getRequest()` and query params with `getQueryParams().get("param")`
 - Response with `ctx.getResponse().send("message")`
 - Common imports needed: `ratpack.handling.Chain`, `ratpack.handling.Context`

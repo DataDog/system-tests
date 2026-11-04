@@ -1,8 +1,3 @@
----
-description: 
-globs: 
-alwaysApply: true
----
 # What are the system-tests
 
 * This is a repository (system-tests) with system tests for Datadog tracer libraries.
@@ -18,5 +13,5 @@ alwaysApply: true
 
 # Main concepts
 
-* Types of system-tests: we are talking about the scenario types. Use the document [scenarios](mdc:docs/understand/scenarios/README.md) to provide a good answer about the types of system-tests. Give detailed information about each type of scenario. Follow the links for a specific scenario or type of tests.
+* Types of system-tests: we are talking about the scenario types. Use the document [scenarios](../../docs/understand/scenarios/README.md) to provide a good answer about the types of system-tests. Give detailed information about each type of scenario. Follow the links for a specific scenario or type of tests.
 * SSI=Single Step Instrumentation AWS SSI=AWS Single Step Instrumentation=Onboarding tests=auto-instrumentation tests=auto-injection tests

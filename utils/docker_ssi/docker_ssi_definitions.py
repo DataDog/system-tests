@@ -13,6 +13,9 @@ class RuntimeInstallableVersion:
 class JavaRuntimeInstallableVersions:
     """Java runtime versions that can be installed automatically"""
 
+    JAVA_27 = RuntimeInstallableVersion("JAVA_27", "27.0.1.0+9-zulu")
+    JAVA_26 = RuntimeInstallableVersion("JAVA_26", "26.0.2.1+1-zulu")
+    JAVA_25 = RuntimeInstallableVersion("JAVA_25", "25.0.5.0+8-zulu")
     JAVA_24 = RuntimeInstallableVersion("JAVA_24", "24.0.1-zulu")
     JAVA_21 = RuntimeInstallableVersion("JAVA_21", "21.0.7-zulu")
     JAVA_17 = RuntimeInstallableVersion("JAVA_17", "17.0.15-zulu")
@@ -21,6 +24,9 @@ class JavaRuntimeInstallableVersions:
     @staticmethod
     def get_all_versions() -> list["RuntimeInstallableVersion"]:
         return [
+            JavaRuntimeInstallableVersions.JAVA_27,
+            JavaRuntimeInstallableVersions.JAVA_26,
+            JavaRuntimeInstallableVersions.JAVA_25,
             JavaRuntimeInstallableVersions.JAVA_24,
             JavaRuntimeInstallableVersions.JAVA_21,
             JavaRuntimeInstallableVersions.JAVA_17,
@@ -151,6 +157,8 @@ class JSRuntimeInstallableVersions:
 class DotnetRuntimeInstallableVersions:
     """.NET runtime versions that can be installed automatically"""
 
+    DOTNET10 = RuntimeInstallableVersion("DOTNET10", "10.0.403")
+    DOTNET9 = RuntimeInstallableVersion("DOTNET9", "9.0.320")
     DOTNET80 = RuntimeInstallableVersion("DOTNET80", "8.0.404")
     DOTNET70 = RuntimeInstallableVersion("DOTNET70", "7.0.410")
     DOTNET60 = RuntimeInstallableVersion("DOTNET60", "6.0.428")
@@ -158,6 +166,8 @@ class DotnetRuntimeInstallableVersions:
     @staticmethod
     def get_all_versions() -> list["RuntimeInstallableVersion"]:
         return [
+            DotnetRuntimeInstallableVersions.DOTNET10,
+            DotnetRuntimeInstallableVersions.DOTNET9,
             DotnetRuntimeInstallableVersions.DOTNET80,
             DotnetRuntimeInstallableVersions.DOTNET70,
             DotnetRuntimeInstallableVersions.DOTNET60,
