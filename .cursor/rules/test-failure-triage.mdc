@@ -89,9 +89,9 @@ If you have enough confidence about the root cause and how we should fix it, pro
 
 ### Find the JIRA project
 
-The JIRA project is derived from the owner team (`@test.codeowners`, or @.github/CODEOWNERS for the test file). Owners are declared in `utils/_features.py`, and here is the map owner -> JIRA project to use:
+The JIRA project is derived from the owner of the feature tested by the test. Find the `@features.<name>` decorator on the test class, then the `owner=_Owner.<key>` of this feature in `utils/_features.py`. Here is the map owner key -> JIRA project to use:
 
-* agent_apm: APMLP
+* agent_apm: APMLP (the agent team does not run system-tests, so the system-tests team will mostly be the first line of defense for agent failures)
 * asm: APPSEC
 * debugger: DEBUG
 * idm: AIDM
@@ -102,6 +102,7 @@ The JIRA project is derived from the owner team (`@test.codeowners`, or @.github
 * injection_platform: INPLAT
 * ml_observability: MLOB
 * profiler: PROFLIB
+* rp: APMSP
 
 If the project can't be determined, ask the user.
 
