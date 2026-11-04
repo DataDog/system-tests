@@ -243,7 +243,4 @@ ignore = [
 "utils/virtual_machine/virtual_machine_provider.py" = [
     "PLC0415", # import-outside-top-level: lazy imports avoid circular dependencies between providers
 ]
-"utils/virtual_machine/virtual_machine_provisioner.py" = [
-    "S506",    # unsafe-yaml-load: TODO
-]
 "utils/waf_rules.py" = ["N801"]  # generated file
