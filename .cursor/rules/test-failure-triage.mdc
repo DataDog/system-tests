@@ -152,6 +152,7 @@ Follow @.cursor/rules/test-activation.mdc. In particular:
 - use `bug (<JIRA-KEY>)` for a regression, `flaky (<JIRA-KEY>)` for an intermittent failure. `bug` still runs the test as xfail (a fix is detected as xpass), `flaky` does not run it at all
 - scope the skip to what step 1 found: only the failing weblog(s) (`weblog_declaration`), only from the failing version (`component_version`), only the failing method rather than the whole class
 - run `./format.sh` after modifying a manifest
+- always open the PR as a draft (this also applies to the fix PR from step 3)
 
 ---
 
