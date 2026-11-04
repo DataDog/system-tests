@@ -44,3 +44,6 @@ else
     echo "ERROR: Found several usable wheel files in binaries/, abort."
     exit 1
 fi
+
+# read by build.sh, to label the image with it, like the healthcheck reports it. A tracer mounted at runtime overrides it
+python -c "import ddtrace; open('/binaries/SYSTEM_TESTS_LIBRARY_VERSION', 'w').write(ddtrace.__version__)"
