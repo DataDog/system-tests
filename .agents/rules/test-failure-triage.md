@@ -151,7 +151,9 @@ Before proposing a new ticket, search JIRA for an open ticket mentioning the tes
 
 ## Step 6: Update the skip PR
 
-Add a commit to the skip PR replacing the placeholder with the created ticket key, run `./format.sh`, push, and add the ticket link to the PR description.
+In the same session as the skip PR, replace the placeholder with the created ticket key, run `./format.sh`, and commit. Also update the PR description so it links the ticket.
+
+You can't push or edit the PR yourself: ask the user to click **Update PR** to publish the commit and the new description. Until they do, the PR still holds the placeholder, and its CI fails on manifest validation. That's expected.
 
 ---
 
