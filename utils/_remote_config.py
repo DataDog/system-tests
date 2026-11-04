@@ -389,7 +389,7 @@ def send_state(
         _log_library_telemetry_warnings(wait_started_at)
 
     # Opt-in fail-fast for Ruby RC timeouts (default off). Setup paths in CI
-    # must not raise (.agents/rules/pr-review.md §4); the default-off gate
+    # must not raise (.cursor/rules/pr-review.mdc §4); the default-off gate
     # keeps that invariant while letting local debugging see the failure at
     # the timeout point.
     if not rv and context.library == "ruby" and os.environ.get("SYSTEM_TESTS_FAIL_FAST", "").lower() == "true":
