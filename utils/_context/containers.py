@@ -39,11 +39,6 @@ from utils.proxy.mocked_response import (
     AddRemoteConfigEndpoint,
     StaticJsonMockedTracerResponse,
 )
-from utils.proxy.rc_response_builder import (
-    build_rc_configurations_protobuf,
-    build_org_data_protobuf,
-    build_org_status_protobuf,
-)
 from utils._logger import logger
 from utils._weblog import weblog
 from utils import interfaces
@@ -665,7 +660,8 @@ class ProxyContainer(TestedContainer):
     ) -> None:
         """Parameters:
         span_events: Whether the agent supports the native serialization of span events
-        rc_backend_enabled: Whether to act as backend for core agent (instead of mocking tracer RC)
+        rc_backend_enabled: Whether the agent gets remote config from the (mocked) backend, instead of the proxy
+            mocking the tracer remote config
 
         """
 
@@ -715,34 +711,6 @@ class ProxyContainer(TestedContainer):
                     StaticJsonMockedTracerResponse(path="/v0.7/config", mocked_json={})
                 )
 
-        # Backend mocked responses (create responses from scratch)
-        self.internal_mocked_backend_responses: list[MockedBackendResponse] = []
-
-        if rc_backend_enabled:
-            # Set up internal backend mocks for backend endpoints
-            self.internal_mocked_backend_responses = [
-                MockedBackendResponse(
-                    path="/api/v0.1/org",
-                    content=build_org_data_protobuf(),
-                    content_type="application/x-protobuf",
-                ),
-                MockedBackendResponse(
-                    path="/api/v0.1/status",
-                    content=build_org_status_protobuf(),
-                    content_type="application/x-protobuf",
-                ),
-                MockedBackendResponse(
-                    path="/api/v0.2/echo-test",
-                    content=b"ok",
-                    content_type="text/plain",
-                ),
-                MockedBackendResponse(
-                    path="/api/v0.1/configurations",
-                    content=build_rc_configurations_protobuf(None),
-                    content_type="application/x-protobuf",
-                ),
-            ]
-
     def configure(self, *, host_log_folder: str, replay: bool):
         super().configure(host_log_folder=host_log_folder, replay=replay)
 
@@ -750,11 +718,6 @@ class ProxyContainer(TestedContainer):
         tracer_mocks_path = f"{self.log_folder_path}/{MockedTracerResponse.internal_filename}"
         with Path(tracer_mocks_path).open(encoding="utf-8", mode="w") as f:
             json.dump([resp.to_json() for resp in self.internal_mocked_tracer_responses], f, indent=2)
-
-        # Write backend mocked responses JSON
-        backend_mocks_path = f"{self.log_folder_path}/{MockedBackendResponse.internal_filename}"
-        with Path(backend_mocks_path).open(encoding="utf-8", mode="w") as f:
-            json.dump([resp.to_json() for resp in self.internal_mocked_backend_responses], f, indent=2)
 
         # in any info printed in stdout, log filename should be the same as the host.
         # In the host, they are accessible in ./logs_<scenario_name>
@@ -767,10 +730,6 @@ class ProxyContainer(TestedContainer):
 
         # mount mocked responses valid for the entire scenario
         self.volumes[tracer_mocks_path] = {"bind": f"/app/logs/{MockedTracerResponse.internal_filename}", "mode": "ro"}
-        self.volumes[backend_mocks_path] = {
-            "bind": f"/app/logs/{MockedBackendResponse.internal_filename}",
-            "mode": "ro",
-        }
 
 
 class MockedBackendContainer(TestedContainer):
