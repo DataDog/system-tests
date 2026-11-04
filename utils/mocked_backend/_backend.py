@@ -11,15 +11,15 @@ from __future__ import annotations
 from http import HTTPStatus
 import json
 from pathlib import Path
-import ssl
 import threading
 from typing import TYPE_CHECKING
 
-from ._request_handler import MockedBackendServerCore, MockBackendV2RequestHandler, HttpMethod, RouteHandler
+from ._request_handler import MockedBackendServerCore, MockedBackendRequestHandler, HttpMethod, RouteHandler
 from ._backend_ffe import MockedBackendServerFfeMixin
 from ._backend_rc import MockedBackendServerRcMixin
 from ._client import MockedBackendClient
-from ._utils import CONTROL_URL_PREFIX, HOST_DOCKER_INTERNAL, logger
+from ._tls import CA_FILE, server_context
+from ._utils import CONTROL_URL_PREFIX, HOST_DOCKER_INTERNAL, MOCKED_BACKEND_DOMAIN, logger
 
 # from utils/proxy, also mounted in the mocked backend container
 from utils.proxy.mocked_response import MockedBackendResponse
@@ -43,17 +43,36 @@ class MockedBackendServer(MockedBackendServerFfeMixin, MockedBackendServerRcMixi
     daemon_threads = True
     thread_name = "mock-backend-v2"
 
+    tls_hostnames: tuple[str, ...] = (
+        MOCKED_BACKEND_DOMAIN,
+        f"agent-http-intake.logs.{MOCKED_BACKEND_DOMAIN}",
+        f"api.{MOCKED_BACKEND_DOMAIN}",
+        f"app.{MOCKED_BACKEND_DOMAIN}",
+        f"config.{MOCKED_BACKEND_DOMAIN}",
+        f"debugger-intake.{MOCKED_BACKEND_DOMAIN}",
+        f"event-platform-intake.{MOCKED_BACKEND_DOMAIN}",
+        f"http-intake.logs.{MOCKED_BACKEND_DOMAIN}",
+        f"instrumentation-telemetry-intake.{MOCKED_BACKEND_DOMAIN}",
+        f"intake.profile.{MOCKED_BACKEND_DOMAIN}",
+        f"llmobs-intake.{MOCKED_BACKEND_DOMAIN}",
+        f"process.{MOCKED_BACKEND_DOMAIN}",
+        f"runtime-security-http-intake.logs.{MOCKED_BACKEND_DOMAIN}",
+        f"trace.agent.{MOCKED_BACKEND_DOMAIN}",
+    )
+    """With tls: its domain, and the intake hostnames derived from it, covered by its certificate"""
+
     def __init__(
         self,
         log_folder: str | None = None,
         on_message: Callable[[dict], None] | None = None,
         *,
         port: int = _DEFAULT_PORT,
-        tls_cert_file: str | None = None,
+        tls: bool = False,
+        tls_ca_file: str = CA_FILE,
         internal_mocked_responses_file: str | None = None,
     ) -> None:
-        """With tls_cert_file (a certificate and its key), it serves HTTPS instead of HTTP: for senders that only speak
-        HTTPS to the intake hostnames derived from DD_SITE.
+        """With tls, it serves HTTPS instead of HTTP, with a certificate generated for tls_hostnames and signed by the
+        CA in tls_ca_file: for senders that only speak HTTPS to the intake hostnames derived from DD_SITE.
 
         HTTPS is meant for the mocked backend container (MockedBackendContainer(tls=True)): the certificate covers its
         hostnames, not host.docker.internal, so the URLs this server advertises to containers can't be verified.
@@ -64,12 +83,11 @@ class MockedBackendServer(MockedBackendServerFfeMixin, MockedBackendServerRcMixi
             data = json.loads(Path(internal_mocked_responses_file).read_text(encoding="utf-8"))
             internal_mocked_responses = MockedBackendResponse.from_dicts(data)
 
-        super().__init__(("0.0.0.0", port), MockBackendV2RequestHandler)  # noqa: S104
-        self.scheme = "https" if tls_cert_file else "http"
-        if tls_cert_file:
+        super().__init__(("0.0.0.0", port), MockedBackendRequestHandler)  # noqa: S104
+        self.scheme = "https" if tls else "http"
+        if tls:
             try:
-                context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-                context.load_cert_chain(tls_cert_file)
+                context = server_context(self.tls_hostnames, tls_ca_file)
                 # the handshake runs in each request thread, not in the accepting one: an idle client blocks nothing
                 self.socket = context.wrap_socket(self.socket, server_side=True, do_handshake_on_connect=False)
             except Exception:
@@ -158,7 +176,7 @@ class MockedBackendServer(MockedBackendServerFfeMixin, MockedBackendServerRcMixi
         if mock is None:
             return None
 
-        def handler(request: MockBackendV2RequestHandler, _: bytes | dict | None) -> tuple[bytes, bytes]:
+        def handler(request: MockedBackendRequestHandler, _: bytes | dict | None) -> tuple[bytes, bytes]:
             request.send_response(mock.status_code)
             request.send_header("Content-Type", mock.content_type)
             return mock.content, mock.content
@@ -166,7 +184,7 @@ class MockedBackendServer(MockedBackendServerFfeMixin, MockedBackendServerRcMixi
         return handler
 
     def _handle_mocked_responses(
-        self, request: MockBackendV2RequestHandler, payload: bytes | dict | None
+        self, request: MockedBackendRequestHandler, payload: bytes | dict | None
     ) -> tuple[Mapping, bytes]:
         """Replace the runtime mocked responses, like the proxy's /mocked_backend_responses endpoint"""
         responses = payload.get("responses") if isinstance(payload, dict) else None
@@ -183,10 +201,10 @@ class MockedBackendServer(MockedBackendServerFfeMixin, MockedBackendServerRcMixi
 
         return request.write_json(HTTPStatus.OK, {})
 
-    def _handle_health(self, request: MockBackendV2RequestHandler, _: bytes | dict | None) -> tuple[Mapping, bytes]:
+    def _handle_health(self, request: MockedBackendRequestHandler, _: bytes | dict | None) -> tuple[Mapping, bytes]:
         return request.write_json(HTTPStatus.OK, {"status": "ok"})
 
-    def _default_handler(self, request: MockBackendV2RequestHandler, _: bytes | dict | None) -> tuple[Mapping, bytes]:
+    def _default_handler(self, request: MockedBackendRequestHandler, _: bytes | dict | None) -> tuple[Mapping, bytes]:
         return request.write_json(HTTPStatus.OK, {})
 
     def close(self) -> None:

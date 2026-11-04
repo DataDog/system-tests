@@ -15,7 +15,7 @@ from utils.proxy.rc_response_builder import (
 
 
 if TYPE_CHECKING:
-    from utils.mocked_backend._request_handler import HttpMethod, MockBackendV2RequestHandler, MockedBackendServerCore
+    from utils.mocked_backend._request_handler import HttpMethod, MockedBackendRequestHandler, MockedBackendServerCore
 
     _Base = MockedBackendServerCore
 else:
@@ -38,7 +38,7 @@ class MockedBackendServerRcMixin(_Base):
         )
 
     def _rc_add_static_handler(self, method: HttpMethod, path: str, content: bytes, content_type: str) -> None:
-        def handler(request: MockBackendV2RequestHandler, _: bytes | dict | None) -> tuple[bytes, bytes]:
+        def handler(request: MockedBackendRequestHandler, _: bytes | dict | None) -> tuple[bytes, bytes]:
             request.send_response(HTTPStatus.OK)
             request.send_header("Content-Type", content_type)
             return content, content

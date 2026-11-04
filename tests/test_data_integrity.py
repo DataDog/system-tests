@@ -218,7 +218,7 @@ class Test_Agent:
 
         # get list of trace ids reported by the agent
         trace_ids_reported_by_agent = set[int]()
-        for _, chunk in interfaces.agent.get_traces():
+        for _, chunk in interfaces.mocked_backend.get_traces():
             if chunk.format == AgentTraceFormat.efficient_trace_payload_format:
                 # the chunk TraceID is a hex encoded string like "0x69274AA50000000068F1C3D5F2D1A9B0"
                 # We need to convert it to an integer taking only the lower 64 bits

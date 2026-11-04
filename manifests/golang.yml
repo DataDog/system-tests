@@ -1668,6 +1668,7 @@ manifest:
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: missing_feature
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Multiconfig_Partial_Update: missing_feature
+  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Probe_Removal: missing_feature
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction: missing_feature (feature not implemented)
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction_Excluded_Identifiers: missing_feature (feature not implemented)
   tests/debugger/test_debugger_probe_budgets.py::Test_Debugger_Probe_Budgets: v2.2.3
@@ -1719,6 +1720,7 @@ manifest:
     - declaration: missing_feature (extended event schema not yet shipped)
       excluded_weblog: [gin, net-http, fiber-v2-orchestrion, uds-echo, echo, chi, net-http-orchestrion]
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry: missing_feature
+  tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry_Metrics: missing_feature (Debugger telemetry metrics are not implemented)
   tests/docker_ssi/test_docker_ssi_appsec.py::TestDockerSSIAppsecFeatures::test_telemetry_source_ssi: v2.0.0
   tests/ffe/test_agentless_configuration.py: v2.11.0-dev
   tests/ffe/test_dynamic_evaluation.py::Test_FFE_Flag_Parse_Error_Isolation::test_valid_flag_unaffected:  # TODO: a lower version might be supported
@@ -1999,31 +2001,39 @@ manifest:
         chi: '>=2.11.1'
   tests/otel/test_tracing_otlp.py::Test_Otlp_Carries_Ot: v2.11.0-dev
   tests/otel/test_tracing_otlp.py::Test_Otlp_Forwards_Inherited_Ot: v2.11.0-dev  # Easy win for chi, echo, fiber-v2-orchestrion, gin, net-http, net-http-orchestrion, uds-echo and version 2.10.1
-  tests/parametric/otel_env_vars/test_otel_blrp_export_timeout.py::Test_OTEL_BLRP_EXPORT_TIMEOUT: v2.13.0-dev
+  tests/parametric/otel_env_vars/test_otel_blrp_export_timeout.py::Test_OTEL_BLRP_EXPORT_TIMEOUT: v2.13.0-dev  # Easy win for all weblogs and version 2.12.0
   tests/parametric/otel_env_vars/test_otel_blrp_export_timeout.py::Test_OTEL_BLRP_EXPORT_TIMEOUT::test_zero_value: bug (APMAPI-2502)  # OTel Go SDK replaces values below 1 with the default
-  tests/parametric/otel_env_vars/test_otel_blrp_max_export_batch_size.py::Test_OTEL_BLRP_MAX_EXPORT_BATCH_SIZE: v2.13.0-dev
+  tests/parametric/otel_env_vars/test_otel_blrp_max_export_batch_size.py::Test_OTEL_BLRP_MAX_EXPORT_BATCH_SIZE: v2.13.0-dev  # Easy win for all weblogs and version 2.12.0
   ? tests/parametric/otel_env_vars/test_otel_blrp_max_export_batch_size.py::Test_OTEL_BLRP_MAX_EXPORT_BATCH_SIZE::test_invalid_value_is_ignored
   : bug (APMAPI-2502)  # OTel Go SDK caps a batch size larger than the queue to the queue size
-  tests/parametric/otel_env_vars/test_otel_blrp_max_queue_size.py::Test_OTEL_BLRP_MAX_QUEUE_SIZE: v2.13.0-dev
-  tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY: v2.13.0-dev
+  tests/parametric/otel_env_vars/test_otel_blrp_max_queue_size.py::Test_OTEL_BLRP_MAX_QUEUE_SIZE: v2.13.0-dev  # Easy win for all weblogs and version 2.12.0
+  tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY: v2.13.0-dev  # Easy win for all weblogs and version 2.12.0
   tests/parametric/otel_env_vars/test_otel_blrp_schedule_delay.py::Test_OTEL_BLRP_SCHEDULE_DELAY::test_zero_value: bug (APMAPI-2502)  # OTel Go SDK replaces values below 1 with the default
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_compression.py::Test_OTEL_EXPORTER_OTLP_COMPRESSION: '>=2.11.1'  # TODO: a lower version might be supported
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_endpoint.py::Test_OTEL_EXPORTER_OTLP_ENDPOINT: v2.6.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS: v2.6.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_logs_percent_encoded_value
-  : bug (APMAPI-2497)
+  :  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-2497)
+      component_version: <2.12.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_compression.py::Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION: '>=2.11.1'  # TODO: a lower version might be supported
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_endpoint.py::Test_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT: v2.7.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_headers.py::Test_OTEL_EXPORTER_OTLP_LOGS_HEADERS: v2.7.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_headers.py::Test_OTEL_EXPORTER_OTLP_LOGS_HEADERS::test_logs_percent_encoded_value
-  : bug (APMAPI-2497)
+  :  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-2497)
+      component_version: <2.12.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL: v2.7.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL::test_default: irrelevant (The SDK documents HTTP JSON as its logs default)
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL::test_documented_json_default
   : bug (APMAPI-2501)
-  tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL::test_empty: bug (APMAPI-2501)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL::test_empty:  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-2501)
+      component_version: <2.11.2
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL::test_http_json: bug (APMAPI-2501)
-  tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL::test_invalid: bug (APMAPI-2501)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL::test_invalid:  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-2501)
+      component_version: <2.11.2
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_timeout.py::Test_OTEL_EXPORTER_OTLP_LOGS_TIMEOUT: missing_feature (OTLP exporter timeout configuration is not centralized)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_compression.py::Test_OTEL_EXPORTER_OTLP_METRICS_COMPRESSION: '>=2.11.1'  # TODO: a lower version might be supported
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_endpoint.py::Test_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: v2.6.0
@@ -2046,16 +2056,20 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs::test_default: irrelevant (The SDK documents HTTP JSON as its logs default)
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs::test_documented_json_default
   : bug (APMAPI-2501)
-  tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs::test_empty: bug (APMAPI-2501)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs::test_empty:  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-2501)
+      component_version: <2.11.2
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs::test_http_json: bug (APMAPI-2501)
-  tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs::test_invalid: bug (APMAPI-2501)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs::test_invalid:  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-2501)
+      component_version: <2.11.2
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_timeout.py::Test_OTEL_EXPORTER_OTLP_TIMEOUT: missing_feature (OTLP exporter timeout configuration is not centralized)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_endpoint.py::Test_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: v2.8.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_headers.py::Test_OTEL_EXPORTER_OTLP_TRACES_HEADERS: '>=2.11.1'  # TODO: a lower version might be supported
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_headers.py::Test_OTEL_EXPORTER_OTLP_TRACES_HEADERS::test_empty_is_treated_as_unset
-  : missing_feature
+  : '>=2.12.0'  # TODO: a lower version might be supported
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_headers.py::Test_OTEL_EXPORTER_OTLP_TRACES_HEADERS::test_unset_uses_global_headers
-  : missing_feature
+  : '>=2.12.0'  # TODO: a lower version might be supported
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_protocol.py::Test_OTEL_EXPORTER_OTLP_TRACES_PROTOCOL: '>=2.11.1'  # TODO: a lower version might be supported
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_protocol.py::Test_OTEL_EXPORTER_OTLP_TRACES_PROTOCOL::test_grpc_protocol_is_used_for_trace_export
   : missing_feature
@@ -2072,7 +2086,9 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER::test_development_values: missing_feature (OTEL_LOGS_EXPORTER does not configure the logs pipeline)
   tests/parametric/otel_env_vars/test_otel_logs_exporter.py::Test_OTEL_LOGS_EXPORTER::test_none: missing_feature (OTEL_LOGS_EXPORTER does not configure the logs pipeline)
   tests/parametric/otel_env_vars/test_otel_metric_export_interval.py::Test_OTEL_METRIC_EXPORT_INTERVAL: v2.5.0
-  tests/parametric/otel_env_vars/test_otel_metric_export_interval.py::Test_OTEL_METRIC_EXPORT_INTERVAL::test_negative_is_ignored: bug (APMAPI-2460)
+  tests/parametric/otel_env_vars/test_otel_metric_export_interval.py::Test_OTEL_METRIC_EXPORT_INTERVAL::test_negative_is_ignored:  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-2460)
+      component_version: <2.12.0
   tests/parametric/otel_env_vars/test_otel_metric_export_interval.py::Test_OTEL_METRIC_EXPORT_INTERVAL::test_spec_default: irrelevant (Datadog intentionally defaults to 10000 ms)
   tests/parametric/otel_env_vars/test_otel_metric_export_interval.py::Test_OTEL_METRIC_EXPORT_INTERVAL::test_zero: bug (APMAPI-2460)
   tests/parametric/otel_env_vars/test_otel_metric_export_timeout.py::Test_OTEL_METRIC_EXPORT_TIMEOUT: v2.5.0
@@ -2094,12 +2110,12 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES::test_invalid_value_is_discarded: bug (APMAPI-2432)
   tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES::test_percent_encoded_separators: bug (APMAPI-2425)
   ? tests/parametric/otel_env_vars/test_otel_resource_attributes.py::Test_OTEL_RESOURCE_ATTRIBUTES::test_reserved_attributes_are_mapped
-  : missing_feature
-  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED: missing_feature
+  : '>=2.12.0'  # TODO: a lower version might be supported
+  tests/parametric/otel_env_vars/test_otel_sdk_disabled.py::Test_OTEL_SDK_DISABLED: '>=2.12.0'  # TODO: a lower version might be supported
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME: v2.6.0
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_default_follows_otel_spec: irrelevant
   tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_logs_service_name: v2.10.1
-  tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_logs_service_name_takes_precedence:
+  tests/parametric/otel_env_vars/test_otel_service_name.py::Test_OTEL_SERVICE_NAME::test_logs_service_name_takes_precedence:  # Easy win for all weblogs and version 2.12.0
     - declaration: missing_feature
       component_version: '<2.10.1'
     - declaration: bug (OTEL-3381)
@@ -2179,6 +2195,8 @@ manifest:
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation: v2.5.0-dev
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Dynamic_Evaluation::test_ffe_dependent_flags: missing_feature (FFL-1694)
   tests/parametric/test_ffe/test_dynamic_evaluation.py::Test_Feature_Flag_Split_Features: incomplete_test_app (Split-feature hook capture is currently implemented only in the Java parametric client)
+  tests/parametric/test_ffe/test_exposure_hooks.py: v2.13.0-dev
+  tests/parametric/test_ffe/test_exposure_hooks.py::Test_FFE_ExposureHooks::test_evaluation_feature_aggregation: missing_feature (Test agent needs EVP flagevaluation capture)
   tests/parametric/test_ffe/test_rules_configuration.py: missing_feature (Standalone rules configuration helpers are currently tested only in Node.js)
   tests/parametric/test_ffe/test_serial_id_metadata.py: v2.10.1
   tests/parametric/test_ffe/test_serial_id_metadata.py::Test_FFE_Serial_Id_Metadata:
@@ -2283,14 +2301,14 @@ manifest:
   tests/parametric/test_otel_logs.py::Test_FR07_Host_Name: '>=2.10.1'  # Created by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR07_Host_Name::test_hostname_from_dd_hostname: irrelevant (DD_HOSTNAME is only supported in Python)
   tests/parametric/test_otel_logs.py::Test_FR09_Log_Injection: '>=2.10.1'  # Created by easy win activation script
-  tests/parametric/test_otel_logs.py::Test_FR10_Timeout_Configuration: missing_feature  # Created by easy win activation script
+  tests/parametric/test_otel_logs.py::Test_FR10_Timeout_Configuration: '>=2.12.0'  # Created by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR11_Telemetry: '>=2.10.1'  # Created by easy win activation script
-  tests/parametric/test_otel_logs.py::Test_FR11_Telemetry::test_telemetry_exporter_configurations: missing_feature
-  tests/parametric/test_otel_logs.py::Test_FR11_Telemetry::test_telemetry_exporter_logs_configurations: missing_feature
+  tests/parametric/test_otel_logs.py::Test_FR11_Telemetry::test_telemetry_exporter_configurations: '>=2.12.0'  # TODO: a lower version might be supported
+  tests/parametric/test_otel_logs.py::Test_FR11_Telemetry::test_telemetry_exporter_logs_configurations: '>=2.12.0'  # TODO: a lower version might be supported
   tests/parametric/test_otel_logs.py::Test_FR12_Log_Levels: '>=2.10.1'  # Created by easy win activation script
   tests/parametric/test_otel_logs.py::Test_FR13_Scope_Fields: '>=2.10.1'  # Created by easy win activation script
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Lifecycle: v2.5.0
-  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Resource_Attributes::test_dd_env_vars_override_otel: missing_feature
+  tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Resource_Attributes::test_dd_env_vars_override_otel: '>=2.12.0'  # TODO: a lower version might be supported
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_default_configurations: '>=2.10.1'  # TODO: a lower version might be supported
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_exporter_configurations: '>=2.10.1'  # TODO: a lower version might be supported
   tests/parametric/test_otel_metrics.py::Test_Otel_Metrics_Telemetry::test_telemetry_exporter_metrics_configurations: '>=2.10.1'  # TODO: a lower version might be supported
@@ -2502,7 +2520,7 @@ manifest:
   tests/test_config_consistency.py::Test_Config_LogInjection_128Bit_TraceId_Disabled:
     - weblog_declaration:
         "*": v2.1.0-dev
-        fiber-v2-orchestrion: bug (APMLP-659)
+        fiber-v2-orchestrion: v2.12.0  # TODO: a lower version might be supported
         net-http-orchestrion: bug (APMLP-659)
   tests/test_config_consistency.py::Test_Config_LogInjection_128Bit_TraceId_Enabled:  # Modified by easy win activation script
     - declaration: bug (APMLP-659)
