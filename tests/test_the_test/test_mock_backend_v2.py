@@ -20,7 +20,7 @@ from cryptography.hazmat.primitives.serialization import pkcs12
 
 from utils import scenarios
 from utils.interfaces._mocked_backend import _MockedBackendInterfaceValidator
-from utils._context.containers import MockedBackendContainer, TestedContainer
+from utils._context.containers import MockedBackendContainer, TestedContainer as _TestedContainer
 from utils._context._scenarios.agentless_endtoend import JAVA_TRUSTSTORE_SOURCE
 from utils.mocked_backend import MockedBackendClient, MockedBackendServer
 from utils.mocked_backend._tls import generate_certificate
@@ -209,11 +209,11 @@ def test_runtime_mocked_responses_take_precedence_and_are_replaced(tmp_path: Pat
 def _configure_without_docker(container: MockedBackendContainer, monkeypatch: pytest.MonkeyPatch) -> None:
     """Run MockedBackendContainer.configure without the base one, which stops containers and loads the image"""
 
-    def base_configure(self: TestedContainer, *, host_log_folder: str, replay: bool) -> None:  # noqa: ARG001
+    def base_configure(self: _TestedContainer, *, host_log_folder: str, replay: bool) -> None:  # noqa: ARG001
         self.host_log_folder = host_log_folder
         Path(self.log_folder_path).mkdir(parents=True)
 
-    monkeypatch.setattr(TestedContainer, "configure", base_configure)
+    monkeypatch.setattr(_TestedContainer, "configure", base_configure)
     container.configure(host_log_folder="logs_x", replay=False)
 
 
