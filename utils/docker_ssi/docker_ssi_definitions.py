@@ -151,6 +151,8 @@ class JSRuntimeInstallableVersions:
 class DotnetRuntimeInstallableVersions:
     """.NET runtime versions that can be installed automatically"""
 
+    DOTNET10 = RuntimeInstallableVersion("DOTNET10", "10.0.403")
+    DOTNET9 = RuntimeInstallableVersion("DOTNET9", "9.0.320")
     DOTNET80 = RuntimeInstallableVersion("DOTNET80", "8.0.404")
     DOTNET70 = RuntimeInstallableVersion("DOTNET70", "7.0.410")
     DOTNET60 = RuntimeInstallableVersion("DOTNET60", "6.0.428")
@@ -158,6 +160,8 @@ class DotnetRuntimeInstallableVersions:
     @staticmethod
     def get_all_versions() -> list["RuntimeInstallableVersion"]:
         return [
+            DotnetRuntimeInstallableVersions.DOTNET10,
+            DotnetRuntimeInstallableVersions.DOTNET9,
             DotnetRuntimeInstallableVersions.DOTNET80,
             DotnetRuntimeInstallableVersions.DOTNET70,
             DotnetRuntimeInstallableVersions.DOTNET60,
