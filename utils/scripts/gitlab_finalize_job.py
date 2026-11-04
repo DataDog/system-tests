@@ -81,7 +81,11 @@ def read_secret(*path: str) -> str:
 
 
 def tag_official_workflow(job: Job) -> None:
-    run(["datadog-ci", "tag", "--level", "job", "--tags", "ci.framework.name:system-tests"], env=job.datadog_env())
+    # job metadata for Datadog CI Visibility: the Datadog API being unavailable must not fail the job
+    try:
+        run(["datadog-ci", "tag", "--level", "job", "--tags", "ci.framework.name:system-tests"], env=job.datadog_env())
+    except subprocess.CalledProcessError as error:
+        print(f"⚠️ Could not tag the job, ignored: {error}", flush=True)
 
 
 def delete_kind_clusters(_job: Job) -> None:

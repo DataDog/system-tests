@@ -43,9 +43,8 @@ class ThreadContextSharingScenario(EndToEndScenario):
     classes using this scenario should be marked `@missing_feature` per-library until
     each tracer's implementation lands.
 
-    CWS security events are observed through the agent's proxy-captured HTTPS traffic
-    (`/api/v2/logs`), decoded via `tests/cws/utils.py` - the same way this scenario
-    already observes telemetry, remote config, etc.
+    CWS security events are observed in what the agent sends to the mocked backend
+    (`/api/v2/secruntime`), decoded via `tests/cws/utils.py`.
 
     When /vm-host exists, the scenario assumes it runs inside a Kata VM's docker-in-docker
     container, where the kernel filesystems of the VM are mounted under /vm-host by the CI
@@ -64,6 +63,8 @@ class ThreadContextSharingScenario(EndToEndScenario):
             appsec_enabled=True,
             iast_enabled=False,
             scenario_groups=[scenario_groups.thread_context_sharing],
+            mocked_backend=True,
+            use_proxy_for_agent=False,
         )
 
     def configure(self, config: pytest.Config):
@@ -184,7 +185,7 @@ class ThreadContextSharingScenario(EndToEndScenario):
 
         self._agent_warmup()
 
-        if not interfaces.agent.wait_for(cws_self_test_succeeded, timeout=CWS_READINESS_TIMEOUT):
+        if not interfaces.mocked_backend.wait_for(cws_self_test_succeeded, timeout=CWS_READINESS_TIMEOUT):
             message = (
                 f"CWS did not report a successful self test within {CWS_READINESS_TIMEOUT}s; check the agent logs."
             )

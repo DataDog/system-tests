@@ -37,6 +37,8 @@ RUN apt-get update \
 
 COPY --from=packages /packages/c/ /opt/datadog/apm/library/c/
 COPY --from=packages /packages/inject/ /opt/datadog-packages/datadog-apm-inject/
+# read by build.sh, to label the image with it, like the healthcheck reports it
+COPY --from=packages /packages/c/version /binaries/SYSTEM_TESTS_LIBRARY_VERSION
 
 WORKDIR /app
 COPY utils/build/docker/c/perl-mojolicious/ /app/
