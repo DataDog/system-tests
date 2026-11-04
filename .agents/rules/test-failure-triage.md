@@ -52,7 +52,7 @@ Do not rely on the Test Optimization flaky tags (`@test.is_flaky`, `@test.is_kno
 
 ### Questions to answer
 
-Query at least the last 30 days (`from: now-30d`), on `@git.is_default_branch:true`, then answer:
+Query at least the last 30 days (`from: now-30d`), on `@git.is_default_branch:true @git.repository.id_v2:*/system-tests`, then answer:
 
 1. **Since when?** First failure date, and the last passing run before it. If the window doesn't contain a passing run, widen it (e.g. `now-90d`) until you find one. If none is found within the data retention, report "earliest failure seen: <date>, no passing run found" instead.
 2. **How often?** Fail/pass ratio on the same (test, scenario, weblog, library) combination. A mix of pass and fail on the same versions suggests flakiness; a consistent failure suggests a regression.
@@ -128,8 +128,6 @@ If the project can't be determined, ask the user.
 Create tickets yourself.
 
 A ticket can't be amended or commented once created: it must be complete at creation.
-
-If the Atlassian MCP server is not available or not authenticated, stop and tell the user, instead of falling back to another method.
 
 ### Avoid duplicates
 
