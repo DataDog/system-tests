@@ -461,6 +461,39 @@ class Test_ComputeLibrariesAndScenarios:
             "",
         )
 
+    def test_agent_tooling_files(self):
+        for file in (
+            ".agents/config.json",
+            ".promptfoo/tests_overview.yaml",
+            "format.sh",
+            "utils/scripts/check_agent_instructions.py",
+        ):
+            inputs = build_inputs([file])
+
+            assert_github_processor(
+                inputs,
+                default_libs_with_prod,
+                default_libs_with_dev,
+                3600,
+                "false",
+                "DEFAULT",
+                "",
+            )
+
+    def test_agent_specific_configuration_files(self):
+        for file in (".claude/settings.json", ".cursor/mcp.json"):
+            inputs = build_inputs([file])
+
+            assert_github_processor(
+                inputs,
+                [],
+                [],
+                3600,
+                "false",
+                "DEFAULT",
+                "",
+            )
+
     def test_nix_workflow(self):
         inputs = build_inputs([".github/workflows/nix.yml"])
 

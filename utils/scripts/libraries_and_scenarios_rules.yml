@@ -76,6 +76,8 @@ patterns:
 # rule from this section to the default section at the end of the file.
 ################################################################################
 
+    .agents/*:
+        scenario_groups: null
     .claude/*:
         scenario_groups: null
         libraries: null
@@ -254,6 +256,8 @@ patterns:
     utils/scripts/build-local-agent-image.sh:
         scenario_groups: null
         libraries: null
+    utils/scripts/check_agent_instructions.py:
+        scenario_groups: null
     utils/scripts/check_version.sh:
         scenario_groups: null
     utils/scripts/ci_orchestrators/compute-time-stats.py:
