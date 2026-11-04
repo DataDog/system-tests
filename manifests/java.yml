@@ -5500,7 +5500,7 @@ manifest:
   tests/test_standard_tags.py::Test_StandardTagsClientIp::test_client_ip_with_appsec_event_and_vendor_headers:
     - declaration: missing_feature (missing fastly-client-ip, cf-connecting-ip, cf-connecting-ipv6)
       component_version: <1.19.0
-  tests/test_standard_tags.py::Test_StandardTagsMethod: v0.102.0
+  tests/test_standard_tags.py::Test_StandardTagsMethod: 0.102.0
   tests/test_standard_tags.py::Test_StandardTagsMethod::test_method_trace:
     - weblog_declaration:
         spring-boot-payara: missing_feature (This weblog variant is currently not accepting TRACE)
@@ -5518,9 +5518,10 @@ manifest:
   tests/test_standard_tags.py::Test_StandardTagsRoute:
     - weblog_declaration:
         "*": v0.102.0
-        akka-http: bug (AIDM-594)
+        akka-http: irrelevant (AIDM-594)
         play: bug (AIDM-593)
   tests/test_standard_tags.py::Test_StandardTagsStatusCode: v0.102.0
+  tests/test_standard_tags.py::Test_StandardTagsStatusCode::test_status_code: missing_feature (endpoint missing:/status)
   tests/test_standard_tags.py::Test_StandardTagsUrl: v0.107.1
   tests/test_standard_tags.py::Test_StandardTagsUrl::test_multiple_matching_substring:
     - declaration: irrelevant (java release the new version at 1.22.0)
@@ -5528,6 +5529,8 @@ manifest:
   tests/test_standard_tags.py::Test_StandardTagsUrl::test_multiple_matching_substring_legacy:
     - declaration: irrelevant (java released the new version at 1.21.0)
       component_version: '>=1.21.0'
+  tests/test_standard_tags.py::Test_StandardTagsUrl::test_url_basic: missing_feature (weblog has no /waf endpoint)
+  tests/test_standard_tags.py::Test_StandardTagsUrl::test_url_with_query_string: v1.22.0-dev
   tests/test_standard_tags.py::Test_StandardTagsUrl::test_url_with_sensitive_query_string:
     - declaration: irrelevant (java release the new version at 1.22.0)
       component_version: <1.22.0

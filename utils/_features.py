@@ -3700,5 +3700,13 @@ class _Features:
         """
         return _mark_test_object(test_object, feature_id=647, owner=_Owner.asm)
 
+    @staticmethod
+    def llm_business_logic_events(test_object):
+        """API Security - Business logic events for LLM-based SDKs
+
+        https://feature-parity.us1.prod.dog/#/?feature=544
+        """
+        return _mark_test_object(test_object, feature_id=NOT_REPORTED_ID, owner=_Owner.asm)
+
 
 features = _Features()

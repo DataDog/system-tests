@@ -42,6 +42,22 @@ class _ProvisionalFeatureFlaggingScenario(DdTraceEndToEndScenario):
     _default_scenario_groups: tuple[ScenarioGroup, ...] = ()
 
 
+class FeatureFlaggingReviewSample(DdTraceEndToEndScenario):
+    """Sample scenario for a new flagging check."""
+
+    _default_scenario_groups: tuple[ScenarioGroup, ...] = ()
+
+    def __init__(self) -> None:
+        super().__init__(
+            "FEATURE_FLAGGING_REVIEW_SAMPLE",
+            rc_api_enabled=True,
+            agent_interface_timeout=15,
+            weblog_env={**_FFE_WEBLOG_ENV, "DD_REVIEW_SAMPLE": "1"},
+            doc="Sample scenario for a new flagging check.",
+            scenario_groups=[],
+        )
+
+
 class FeatureFlaggingEvaluationTelemetryOptOut(_ProvisionalFeatureFlaggingScenario):
     def __init__(self) -> None:
         super().__init__(
