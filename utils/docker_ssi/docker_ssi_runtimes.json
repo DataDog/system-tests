@@ -146,6 +146,14 @@
       {
         "version_id": "PHP83",
         "version": "8.3"
+      },
+      {
+        "version_id": "PHP84",
+        "version": "8.4"
+      },
+      {
+        "version_id": "PHP85",
+        "version": "8.5"
       }
     ],
     "ruby": [
