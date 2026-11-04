@@ -1,11 +1,6 @@
----
-description: 
-globs: 
-alwaysApply: true
----
 # promptfoo llm tests: prompts quality evaluation
 
-* The comprehensive documentation for promptfoo evaluations in system-tests is in the document [ai-tools-prompt-validation](mdc:docs/ai/ai-tools-prompt-validation.md). This document contains the complete guide about what promptfoo is, installation, repository structure, how to run evaluations, and how the testing works.
+* The comprehensive documentation for promptfoo evaluations in system-tests is in the document [ai-tools-prompt-validation](../../docs/ai/ai-tools-prompt-validation.md). This document contains the complete guide about what promptfoo is, installation, repository structure, how to run evaluations, and how the testing works.
 * you are going to launch the promptfoo tests to verify that the new rules/instructions/prompts introduced on the workspace are working well.
 * You can run the promptfoo evaluation running the wizard script: utils/scripts/ai/promptfoo_eval.sh
 * The requisites to run the promptfoo tests are documented in the tool public documentation: https://www.promptfoo.dev/docs/installation/ and https://www.promptfoo.dev/docs/getting-started/.

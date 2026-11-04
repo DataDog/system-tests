@@ -41,7 +41,7 @@
 - Not when: A read of `context.library` leaves the assertion unchanged, or a `setup_*` branch only changes which request triggers the behavior.
 - ✅ `setup_metrics` calls an exception endpoint only for .NET, so that the exception metric exists, and the test asserts the same values for every library.
 - ❌ `assert count == (2 if context.library == "java" else 1)`.
-- Ref: [Manifest](../../edit/manifest.md)
+- Ref: [Manifest](../../../docs/edit/manifest.md)
 
 ### TEST-007: Do not set the value the test expects.
 - Old_id: codex-11

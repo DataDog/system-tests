@@ -1201,7 +1201,12 @@ class Test_BuildScriptBaseImageContexts:
         fake_bin.mkdir()
         capture = tmp_path / "docker-args"
         docker = fake_bin / "docker"
-        docker.write_text('#!/usr/bin/env bash\nprintf "%s\\n" "$@" > "$CAPTURE"\n')
+        # records the build command: build.sh then runs the image to read its tracer version, and labels it with another
+        # build reading its Dockerfile from stdin, they are not recorded
+        docker.write_text(
+            '#!/usr/bin/env bash\n[ "$1" = run ] && echo 1.2.3 && exit 0\n[ "${*: -1}" = - ] && exit 0\n'
+            'printf "%s\\n" "$@" > "$CAPTURE"\n'
+        )
         docker.chmod(0o755)
         token = tmp_path / "github-token"
         token.write_text("secret")

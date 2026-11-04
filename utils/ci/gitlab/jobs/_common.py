@@ -52,16 +52,20 @@ def section(name: str, description: str, *, collapsed: bool = True) -> Iterator[
         log(f"section_end:{int(time.time())}:{name}\r\x1b[0K")
 
 
-def run(command: list[str]) -> None:
-    """Run a command, exit with its return code if it fails."""
+def run(command: list[str], *, allow_failure: bool = False) -> None:
+    """Run a command, exit with its return code if it fails, unless allow_failure: then only log a warning."""
     log(f"$ {' '.join(command)}")
     returncode = subprocess.run(command, check=False).returncode
     if returncode != 0:
+        if allow_failure:
+            log(f"WARNING: {command[0]} failed with exit code {returncode}, ignored")
+            return
         sys.exit(returncode)
 
 
 def tag_job(job_type: str) -> None:
-    run(["datadog-ci", "tag", "--level", "job", "--tags", f"system-tests.job_type:{job_type}"])
+    # job metadata for Datadog CI Visibility: the Datadog API being unavailable must not fail the job
+    run(["datadog-ci", "tag", "--level", "job", "--tags", f"system-tests.job_type:{job_type}"], allow_failure=True)
 
 
 def traced(name: str, command: list[str], *, scenario: str | None = None) -> None:
@@ -102,4 +106,8 @@ def emit_execution_time_metric() -> None:
         return
 
     elapsed = int(time.time()) - int(start_time)
-    run(["datadog-ci", "measure", "--level", "job", "--measures", f"system-tests.total_duration:{elapsed}"])
+    # like tag_job: a metric that can't be sent must not fail the job
+    run(
+        ["datadog-ci", "measure", "--level", "job", "--measures", f"system-tests.total_duration:{elapsed}"],
+        allow_failure=True,
+    )

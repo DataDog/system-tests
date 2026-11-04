@@ -38,3 +38,6 @@ else
 
     unzip -o "${ZIP_NAME}" -d /opt
 fi
+
+# read by build.sh, to label the image with it, like the healthcheck reports it
+node -p "require('/opt/nodejs/node_modules/datadog-lambda-js/package.json').version" > /binaries/SYSTEM_TESTS_LIBRARY_VERSION

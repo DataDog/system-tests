@@ -14,6 +14,8 @@ class RuntimeMetricsEnabled(DdTraceEndToEndScenario):
             runtime_metrics_enabled=True,
             library_interface_timeout=20,
             doc="Test runtime metrics",
+            mocked_backend=True,
+            use_proxy_for_agent=False,
         )
 
 

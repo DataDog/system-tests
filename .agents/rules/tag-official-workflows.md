@@ -1,8 +1,3 @@
----
-description: Rules for the official system-tests CI workflows (GitHub and GitLab)
-globs: .github/workflows/system-tests.yml,utils/ci/gitlab/main.yml
-alwaysApply: true
----
 # Official workflows
 
 The official system-tests workflows are:

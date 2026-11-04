@@ -31,6 +31,8 @@ class FeatureFlaggingAndExperimentation(DdTraceEndToEndScenario):
             weblog_env=_FFE_WEBLOG_ENV,
             doc="",
             scenario_groups=[scenario_groups.ffe],
+            mocked_backend=True,
+            use_proxy_for_agent=False,
         )
 
 
@@ -69,6 +71,8 @@ class FeatureFlaggingEvaluationTelemetryOptOut(_ProvisionalFeatureFlaggingScenar
             },
             doc="Per-subject evaluation telemetry opt-out, with unchanged assignments and exposures.",
             scenario_groups=[scenario_groups.ffe],
+            mocked_backend=True,
+            use_proxy_for_agent=False,
         )
 
 
@@ -85,6 +89,8 @@ class FeatureFlaggingEvaluationTelemetryOptOutDisabled(_ProvisionalFeatureFlaggi
             },
             doc="Default-disabled control for per-subject evaluation telemetry opt-out.",
             scenario_groups=[scenario_groups.ffe],
+            mocked_backend=True,
+            use_proxy_for_agent=False,
         )
 
 
@@ -97,6 +103,8 @@ class FeatureFlaggingEvpStress(DdTraceEndToEndScenario):
             weblog_env=_FFE_WEBLOG_ENV,
             doc="Isolated high-cardinality EVP accounting: delivered evaluations plus reported capacity drops.",
             scenario_groups=[scenario_groups.ffe],
+            mocked_backend=True,
+            use_proxy_for_agent=False,
         )
 
     def configure(self, config: pytest.Config) -> None:

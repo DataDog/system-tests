@@ -47,7 +47,7 @@ public class WebController {
   Map<String, Object> healtchcheck() {
       tracer.spanBuilder("Healthcheck").setSpanKind(SpanKind.SERVER).startSpan().end();
 
-      String filePath = "/app/SYSTEM_TESTS_LIBRARY_VERSION";
+      String filePath = "/binaries/SYSTEM_TESTS_LIBRARY_VERSION";
       String version;
       try {
           version = new String(Files.readAllBytes(Paths.get(filePath)));
