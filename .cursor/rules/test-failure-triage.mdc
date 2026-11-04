@@ -5,21 +5,20 @@ alwaysApply: false
 ---
 # Test Failure Triage
 
-> **DRAFT** — sections marked `TODO` must be completed by the system-tests team.
+> **DRAFT**
 
 Apply this rule when a user asks to triage a failing test (e.g. "triage this failure", "this test failed on the nightly, handle it").
 The input is usually a test name, a CI job URL, or a Test Optimization link.
 
-The key question is to determine the root cause. Runs on this CI uses the last release of all components. So the root cause is unlikely a tested components. The outcome of the process is bases on the most probable culprit.
+The key question is to determine the root cause. Runs on this CI use the last release of all components (except rust, which runs on its `dev` version). A regression in a component should already have been caught by that component's own CI, which runs system-tests on its dev version. So the root cause is unlikely to be a tested component: look first at system-tests-side causes. The outcome of the process is based on the most probable culprit.
 
-The procedure has four steps. **Never create a ticket or a PR without an explicit confirmation from the user** (see [Confirmation](#confirmation)).
+The procedure has six steps. **Never create a ticket or a PR without an explicit confirmation from the user** (see [Confirmation](#confirmation)).
 
 ## Possible culprits
 
-* A component has been released, and a test was activated only for the release version of this components, and so, it was never tested
-* A test is flaky because anything in the test logic is flaky
-* A test is flaky because anything in a tested component is flaky
-* 
+* A component has been released, and a test was activated only for the released version of this component, so it was never tested before: a test activated at `>=X.Y.Z` is skipped in the component's CI (`X.Y.Z-dev` < `X.Y.Z` in semver), and runs for the first time once `X.Y.Z` is released
+* A test is flaky because something in the test logic is flaky
+* A test is flaky because something in a tested component is flaky
 
 ## Key Documentation
 
@@ -56,40 +55,40 @@ Query at least the last 30 days (`from: now-30d`), on `@git.is_default_branch:tr
 
 1. **Since when?** First failure date, and the last passing run before it.
 2. **How often?** Fail/pass ratio on the same (test, scenario, weblog, library) combination. A mix of pass and fail on the same versions suggests flakiness; a consistent failure suggests a regression.
-3. **Which scope?** Does it fail on one weblog or all of them? One scenario or all of them? One library version or from a given version onwards? Other tests of the same class/feature failing at the same time? This scope is a huge hint to determine who is the culprit
+3. **Which scope?** Does it fail on one weblog or all of them? One scenario or all of them? One library version or from a given version onwards? Other tests of the same class/feature failing at the same time? This scope is a huge hint to determine the culprit.
 4. **What changed?** Compare the library version, agent version and system-tests commit between the last pass and the first failure:
    - library version changed → look at the tracer repository commits between both versions (`DataDog/dd-trace-<lang>`)
    - system-tests commit changed → look at `git log` between both commits on the test, the weblog and `utils/`
    - agent version changed → likely agent-side
    - nothing changed → likely flaky or infrastructure
 5. **Same error?** Compare `@error.message` across failures, to tell whether it's one root cause or several.
-6. Also check system-tests manifests to see if other failures are registred on the same tests
+6. **Already known?** Check system-tests manifests to see if other failures are registered on the same tests.
 
 ---
 
 ## Step 2: Gather recent changes
 
-Based on results from step 1, try to identify what could be the change that introduced the error : 
+Based on results from step 1, try to identify the change that introduced the error:
 
-* Is it a test actiivation on system-tests
-* Or a change in tests in  system-tests
+* Is it a test activation in system-tests
+* Or a change in tests in system-tests
 * Or a change in a tested component
 
 ## Step 3: Try to propose a fix
 
-If you have enough confidence about the root cause and how we should fix it, propose to user to create a PR to fix the issue. If he refuses, go to step 4.
+If you have enough confidence about the root cause and how we should fix it, propose to the user to create a PR to fix the issue (see [Confirmation](#confirmation)). If the user refuses, go to step 4.
 
 ## Step 4: JIRA ticket
 
 ### Find the JIRA project
 
-The JIRA project is derived from the owner team (`@test.codeowners`, or @.github/CODEOWNERS for the test file). Owners are declared in `utils/_features.py`, and here is the map owner -> JIRA project to use : 
+The JIRA project is derived from the owner team (`@test.codeowners`, or @.github/CODEOWNERS for the test file). Owners are declared in `utils/_features.py`, and here is the map owner -> JIRA project to use:
 
 * agent_apm: APMLP
 * asm: APPSEC
 * debugger: DEBUG
 * idm: AIDM
-* dsm: DSMOM 
+* dsm: DSMOM
 * sdk_capabilities: APMAPI
 * ffe: FFE
 * language_platform: APMLP
@@ -106,7 +105,7 @@ Before proposing a new ticket, search JIRA for an open ticket mentioning the tes
 ### Ticket content
 
 - **Title:** `[system-tests] <Class>::<method> fails on <library> <scope>`
-- **Issue type:**: Bug
+- **Issue type:** Bug
 - **Body:**
   - Test: full test path (`tests/...py::Class::method`)
   - Scope: scenario(s), weblog(s), library version(s), agent version
@@ -115,14 +114,14 @@ Before proposing a new ticket, search JIRA for an open ticket mentioning the tes
   - Suspected cause: what changed between last pass and first failure, and confidence level
   - Error: the relevant part of `@error.message`
   - Links: failing CI run(s), Test Optimization query
-  - Link to system-tests PR that skip the test (must be added after step 6)
+  - Link to the system-tests PR that skips the test: the ticket is created before this PR, so add the link as a ticket comment once the PR from step 6 is open
 - **Labels:** `system-tests`
 
 ---
 
 ## Step 5: Ping the team
 
-As now, we'll take care of that part
+For now, the system-tests team takes care of this part. Do not ping anyone.
 
 ---
 
@@ -130,8 +129,8 @@ As now, we'll take care of that part
 
 Follow @.cursor/rules/test-activation.mdc. In particular:
 
-- Use manifests
-- use `bug (<JIRA-KEY>)` for a regression, `flaky (<JIRA-KEY>)` for an intermittent failure
+- Use manifests, except where @.cursor/rules/test-activation.mdc requires a decorator (e.g. a scenario-specific skip)
+- use `bug (<JIRA-KEY>)` for a regression, `flaky (<JIRA-KEY>)` for an intermittent failure. `bug` still runs the test as xfail (a fix is detected as xpass), `flaky` does not run it at all
 - scope the skip to what step 1 found: only the failing weblog(s) (`weblog_declaration`), only from the failing version (`component_version`), only the failing method rather than the whole class
 - run `./format.sh` after modifying a manifest
 
@@ -139,7 +138,7 @@ Follow @.cursor/rules/test-activation.mdc. In particular:
 
 ## Confirmation
 
-After steps 1–2 analysis (and **before** creating anything), post a summary and wait for an explicit "go" from the user:
+After the steps 1–2 analysis (and **before** creating anything), post a summary and wait for an explicit "go" from the user:
 
 ```
 **Test:** tests/...::Class::method
@@ -149,9 +148,9 @@ After steps 1–2 analysis (and **before** creating anything), post a summary an
 **Suspected cause:** <regression in library X.Y.Z | flaky | system-tests change | infra> (<confidence>)
 
 **Proposed actions:**
-1. JIRA: create in <PROJECT> | reuse <KEY>
-2. Ping: <team / channel>
+1. Fix: <PR description> | none
+2. JIRA: create in <PROJECT> | reuse <KEY>
 3. Skip: `<manifest entry or decorator>` in `<file>`
 ```
 
-The user may amend any part. Only then create the ticket, prepare the skip, and post the ping.
+The user may amend any part. Only then create the fix PR, or the ticket and the skip PR.
