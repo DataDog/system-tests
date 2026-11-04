@@ -53,7 +53,7 @@ if ! lint-imports; then
 fi
 
 echo "Checking shared agent instructions..."
-if ! python utils/scripts/check_agent_instructions.py; then
+if ! python utils/scripts/check_agent_instructions.py "--$COMMAND"; then
   echo "Agent instruction sync check failed. Please fix the errors above. 💥 💔 💥"
   exit 1
 fi

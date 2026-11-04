@@ -28,9 +28,21 @@ def _expected_claude_content(agents_content: str) -> str:
     return f"{CLAUDE_COMMENT}\n\n{content}"
 
 
-def main() -> int:
+def main(arguments: list[str]) -> int:
+    if len(arguments) > 1 or (arguments and arguments[0] not in {"--check", "--fix"}):
+        sys.stderr.write("Usage: python utils/scripts/check_agent_instructions.py [--check|--fix]\n")
+        return 2
+
+    mode = arguments[0] if arguments else "--check"
     expected = _expected_claude_content(AGENTS_PATH.read_text(encoding="utf-8"))
-    actual = CLAUDE_PATH.read_text(encoding="utf-8")
+    actual = CLAUDE_PATH.read_text(encoding="utf-8") if CLAUDE_PATH.exists() else ""
+
+    if mode == "--fix":
+        if actual != expected:
+            CLAUDE_PATH.write_text(expected, encoding="utf-8")
+            print("Updated CLAUDE.md from AGENTS.md")
+        return 0
+
     if actual == expected:
         return 0
 
@@ -46,4 +58,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(main(sys.argv[1:]))
