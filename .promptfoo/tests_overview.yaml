@@ -5,6 +5,11 @@
         - type: llm-rubric
           value: "it's a framework for testing Datadog tracer libraries. It's a collection of tests for different tracer libraries and different scenarios. black box testing. There are different types of scenarios."
           threshold: 0.7
+        - type: icontains-all
+          value:
+            - "RULES APPLIED"
+            - ".agents/rules/general-behavior.md"
+            - ".agents/rules/system-tests-overview.md"
 
   - description: "[Generic questions] main scenarios"
     vars:
