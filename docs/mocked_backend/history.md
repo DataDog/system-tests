@@ -33,7 +33,7 @@ Any request to an intake that was not mocked could silently reach the real `DD_S
 
 ## After
 
-* **One mocked backend** (`utils/mocked_backend`), run in its own container (`MockedBackendContainer`) when a scenario sets `mocked_backend=True`. What it receives is recorded in the logs folder and read by `interfaces.mocked_backend`, which has the same methods as `interfaces.agent`.
+* **One mocked backend** (`utils/mocked_backend`), run in its own container (`MockedBackendContainer`) in every end-to-end scenario, and in the Lambda scenarios. What it receives is recorded in the logs folder and read by `interfaces.mocked_backend`, which has the methods `interfaces.agent` had. `interfaces.agent` and `interfaces.backend_legacy` are removed.
 * **Like a customer setup**: it serves HTTPS on `mocked-backend.invalid`, which is the `DD_SITE` of its senders. The intake hostnames derived from it (`trace.agent.`, `config.`, `instrumentation-telemetry-intake.`, ...) are network aliases of its container, listed in `MockedBackendServer.tls_hostnames`. Its certificate is generated when it starts, signed by the mitmproxy CA the senders trust. The agent is only given `DD_SITE` (and its API key), no intake URL. A request to an intake that is not listed fails, as `.invalid` never resolves.
 * **The sender is identified by its API key** (`FakeDatadogKey`): the agent, an agentless library and serverless-init each use their own, and `interfaces.mocked_backend.get_data(..., with_api_key=...)` filters on it.
 * **Remote config**: the mocked backend serves the remote config backend by default (`MockedBackendServerRcMixin`). Tests send configs with `remote_config.send_state`, which sets them on the mocked backend when the agent polls it. See [Remote config](../edit/remote-config.md).
@@ -58,6 +58,8 @@ This revamp was pretty big, and would probably have taken around 30 days. In thi
   * [#8220](https://github.com/DataDog/system-tests/pull/8220) Gather the fake Datadog keys in a `StrEnum`
   * [#8223](https://github.com/DataDog/system-tests/pull/8223) Support `MockedBackendResponse` in the mocked backend, like the proxy
   * [#8259](https://github.com/DataDog/system-tests/pull/8259) Generate the mocked backend TLS certificate when it starts
+  * [#8285](https://github.com/DataDog/system-tests/pull/8285) Record the host of each request, like the proxy
+  * [#8321](https://github.com/DataDog/system-tests/pull/8321) Cover the CWS intake hostname
 * Migrate legacy features to the new design
   * [#7814](https://github.com/DataDog/system-tests/pull/7814) Unify the FFE and v2 backends (first step)
   * [#8137](https://github.com/DataDog/system-tests/pull/8137) Rename `interfaces.backend` to `interfaces.backend_legacy`
@@ -67,6 +69,7 @@ This revamp was pretty big, and would probably have taken around 30 days. In thi
   * [#8211](https://github.com/DataDog/system-tests/pull/8211) Send agentless FFE events to the mocked backend, always over TLS, on `mocked-backend.invalid`
   * [#8240](https://github.com/DataDog/system-tests/pull/8240) Rename dead and legacy features: `backend_v2` becomes `mocked_backend`
   * [#8254](https://github.com/DataDog/system-tests/pull/8254) Agent on the mocked backend: set `DD_SITE` instead of each intake URL
+  * [#8283](https://github.com/DataDog/system-tests/pull/8283) Remove `get_span_metrics` from the interfaces, use `DataDogAgentSpan.metrics`
 * Scenarios moved to the mocked backend
   * [#7738](https://github.com/DataDog/system-tests/pull/7738) `APM_TRACING_E2E_OTEL`
   * [#8177](https://github.com/DataDog/system-tests/pull/8177) `APM_TRACING_EFFICIENT_PAYLOAD`
@@ -77,8 +80,11 @@ This revamp was pretty big, and would probably have taken around 30 days. In thi
   * [#8275](https://github.com/DataDog/system-tests/pull/8275) The `TRACE_STATS_COMPUTATION*` scenarios
   * [#8277](https://github.com/DataDog/system-tests/pull/8277) The infra-disabled standalone scenarios
   * [#8280](https://github.com/DataDog/system-tests/pull/8280) `INTEGRATIONS`, `INTEGRATIONS_AWS` and `OTEL_INTEGRATIONS`
-  * [#8276](https://github.com/DataDog/system-tests/pull/8276) (open) The agent-based `FEATURE_FLAGGING` scenarios
-  * [#8282](https://github.com/DataDog/system-tests/pull/8282) (open) `IPV6`
+  * [#8276](https://github.com/DataDog/system-tests/pull/8276) The agent-based `FEATURE_FLAGGING` scenarios
+  * [#8282](https://github.com/DataDog/system-tests/pull/8282) `IPV6`
+  * [#8286](https://github.com/DataDog/system-tests/pull/8286) `DEFAULT`, `SAMPLING`, `TRACING_CONFIG_NONDEFAULT(_2, _3)` and `RUNTIME_METRICS_ENABLED`
+  * [#8322](https://github.com/DataDog/system-tests/pull/8322) `THREAD_CONTEXT_SHARING`
+  * [#8340](https://github.com/DataDog/system-tests/pull/8340) (open) All the other scenarios, and the Lambda extension. `interfaces.agent` and `interfaces.backend_legacy` are removed
 * Related
   * [#8150](https://github.com/DataDog/system-tests/pull/8150) Run the FFE contract self-tests in `TEST_THE_TEST`
   * [#8165](https://github.com/DataDog/system-tests/pull/8165) Each scenario is defined in its own module, so changing one only runs it in the CI
