@@ -931,9 +931,7 @@ class AgentContainer(TestedContainer):
             }
         )
 
-        # Configure backend mode via environment variables
-        # Agent uses HTTP_PROXY to reach backend, TUF roots validate RC responses
-        # We set RC_DD_URL to a fake hostname - HTTP_PROXY will intercept it on the agent port
+        # Remote config from the backend: the TUF roots validate the responses of the mocked backend
         if rc_backend_enabled:
             tuf_root_json = get_tuf_root_json()
             environment["DD_REMOTE_CONFIGURATION_ENABLED"] = "true"
@@ -1414,9 +1412,12 @@ class LambdaWeblogContainer(WeblogContainer):
     ):
         environment = (environment or {}) | {
             "DD_HOSTNAME": "test",
-            "DD_SITE": "datad0g.com",
+            # like the agent: every intake hostname is derived from it, and is an alias of the mocked backend
+            "DD_SITE": MOCKED_BACKEND_DOMAIN,
             "DD_API_KEY": dd_api_key,
             "DD_SERVERLESS_FLUSH_STRATEGY": "periodically,100",
+            # the extension doesn't use the CA bundle that signs the mocked backend certificate
+            "DD_SKIP_SSL_VALIDATION": "true",
             "DD_TRACE_MANAGED_SERVICES": str(trace_managed_services).lower(),
         }
 

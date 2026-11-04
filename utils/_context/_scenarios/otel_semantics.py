@@ -65,6 +65,7 @@ class OtelSemanticsOtlp(DdTraceEndToEndScenario):
                 "OTEL_EXPORTER_OTLP_TRACES_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
             },
             include_opentelemetry=True,
+            open_telemetry_interface_timeout=5,
             doc="Validate HTTP spans exported directly over OTLP, including typed OpenTelemetry "
             "attributes such as http.response.status_code and server.port",
             scenario_groups=[scenario_groups.open_telemetry],
@@ -87,6 +88,7 @@ class OtelSemanticsOtlpCustomErrorStatuses(DdTraceEndToEndScenario):
                 "OTEL_EXPORTER_OTLP_TRACES_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
             },
             include_opentelemetry=True,
+            open_telemetry_interface_timeout=5,
             doc="Like OTEL_SEMANTICS_OTLP but marks HTTP status 200 as an error to verify that a custom "
             "client and server error status configuration takes precedence over the OTel defaults",
             scenario_groups=[scenario_groups.open_telemetry],
@@ -111,6 +113,7 @@ class OtelSemanticsOtlpTraceMetrics(DdTraceEndToEndScenario):
                 "_DD_TRACE_METRICS_OTEL_FLUSH_INTERVAL": "1000",
             },
             include_opentelemetry=True,
+            open_telemetry_interface_timeout=5,
             doc="Validate that OTLP trace metrics retain the OTel HTTP method, status, name, kind, "
             "and error decision used by the corresponding span",
             scenario_groups=[scenario_groups.open_telemetry],
@@ -133,6 +136,7 @@ class OtelSemanticsOtlpSamplingRules(DdTraceEndToEndScenario):
                 "OTEL_EXPORTER_OTLP_TRACES_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
             },
             include_opentelemetry=True,
+            open_telemetry_interface_timeout=5,
             doc="Validate that OTel HTTP span names are available before DD_TRACE_SAMPLING_RULES are evaluated",
             scenario_groups=[scenario_groups.open_telemetry],
         )

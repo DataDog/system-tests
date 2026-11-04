@@ -175,8 +175,12 @@ class Test_DdtraceSchemas:
         assert_no_schema_error(interfaces.library, known_bugs)
 
     @irrelevant(
-        condition=True,
-        reason="TODO : mocked backend",
+        not getattr(context.scenario, "include_agent", True),
+        reason="No agent: what the library sends to the backend is not described by the agent schemas",
+    )
+    @irrelevant(
+        scenario_groups.lambda_end_to_end in context.scenario.scenario_groups,
+        reason="The Lambda extension is not the agent: e.g. its traces have no env and hostName",
     )
     def test_agent(self):
         known_bugs = [
@@ -274,7 +278,8 @@ class Test_DdtraceSchemas:
             ),
         ]
 
-        assert_no_schema_error(interfaces.mocked_backend, known_bugs)
+        # what the agent sends to the backend, received by the mocked backend
+        assert_no_schema_error(interfaces.mocked_backend, known_bugs, schemas="agent")
 
 
 @features.not_reported

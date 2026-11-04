@@ -31,7 +31,7 @@ When an end-to-end scenario is running, these are the main pieces:
    - Single [mitmdump](https://mitmproxy.org/) container that intercepts library traffic
  - [Agent](#agent)
    - Datadog agent container
- - [Mocked backend](#agent)
+ - [Mocked backend](../mocked_backend/README.md)
    - Datadog mocked backend container
 
 ```mermaid
@@ -46,7 +46,7 @@ flowchart TD
 pytest on the host sends requests directly to the [weblog](weblogs/README.md) (the customer application).
 The weblog tracer talks to the [proxy](#proxy) (`DD_AGENT_HOST=proxy`), which forwards that traffic to the agent.
 The proxy writes the intercepted messages as JSON under `logs_<scenario>/interfaces/library` ([doc](../edit/library-interface-validation-methods.md)).
-The agent talks back to the mocked backend, which also logs message  as JSON under `logs_<scenario>/interfaces/mocked_backend`.
+The agent sends to the [mocked backend](../mocked_backend/README.md), which writes the received messages as JSON under `logs_<scenario>/interfaces/mocked_backend` ([doc](../edit/mocked-backend-interface-validation-methods.md)).
 Tests read those files; they do not receive a live dump stream.
 
 
@@ -197,7 +197,8 @@ It is [mitmdump](https://mitmproxy.org/).
 The proxy listens on several ports and uses the listen port to know where a request came from:
 
 - Weblog / library traffic is reverse-proxied to the agent
-- Backend intake is mocked.
+
+It doesn't see what is sent to the backend: the agent sends it to the [mocked backend](../mocked_backend/README.md).
 
 Captured request/response pairs are written as JSON to `logs_<scenario>/interfaces/<interface>/` on a volume shared with the host.
 

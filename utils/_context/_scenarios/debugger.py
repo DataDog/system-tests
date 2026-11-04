@@ -20,7 +20,6 @@ class _DebuggerScenario(EndToEndScenario):
         super().__init__(
             name=name,
             doc=doc,
-            mocked_backend=True,
             library_interface_timeout=5,
             weblog_env=base_weblog_env,
             scenario_groups=[scenario_groups.debugger],
@@ -210,7 +209,6 @@ class DebuggerInproductEnablement(DdTraceEndToEndScenario):
             "DEBUGGER_INPRODUCT_ENABLEMENT",
             rc_api_enabled=True,
             rc_backend_enabled=False,
-            mocked_backend=True,
             weblog_env={
                 "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.1",
                 "DD_TRACE_FLUSH_INTERVAL": "100",
@@ -225,7 +223,6 @@ class DebuggerTelemetry(DdTraceEndToEndScenario):
     def __init__(self) -> None:
         super().__init__(
             "DEBUGGER_TELEMETRY",
-            mocked_backend=True,
             weblog_env={
                 "DD_REMOTE_CONFIG_ENABLED": "true",
                 "DD_CODE_ORIGIN_FOR_SPANS_ENABLED": "1",

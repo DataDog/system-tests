@@ -9,7 +9,12 @@ from ._core import (
     ScenarioGroup,
 )
 from utils._context.constants import WeblogCategory
-from utils._context.containers import LambdaProxyContainer, LambdaWeblogContainer, InternalServerContainer
+from utils._context.containers import (
+    InternalServerContainer,
+    LambdaProxyContainer,
+    LambdaWeblogContainer,
+    MockedBackendContainer,
+)
 from utils._logger import logger
 
 
@@ -21,7 +26,7 @@ class _LambdaScenario(DockerScenario):
     - A LambdaProxy container that converts between http requests and lambda events to invoke the function.
 
     In this scenario, there is no agent container, but the LambdaWeblog contains the `datadog-lambda-extension`
-    which is the agent in the context of Lambda.
+    which is the agent in the context of Lambda. It sends to the mocked backend.
     """
 
     def __init__(
@@ -64,8 +69,12 @@ class _LambdaScenario(DockerScenario):
             lambda_weblog_port=str(self.lambda_weblog.container_port),
         )
 
+        # it serves HTTPS on its domain, and on the intake hostnames derived from it (see MOCKED_BACKEND_DOMAIN)
+        self.mocked_backend_container = MockedBackendContainer(tls=True)
+
         self.lambda_proxy_container.depends_on.append(self.lambda_weblog)
         self.lambda_weblog.depends_on.append(self.proxy_container)
+        self.lambda_weblog.depends_on.append(self.mocked_backend_container)
 
         self.proxy_container.environment.update(
             {
@@ -74,7 +83,9 @@ class _LambdaScenario(DockerScenario):
             }
         )
 
-        self._containers.extend((self.lambda_weblog, self.lambda_proxy_container))
+        # before the weblog: close_targets removes the containers in reverse order, so it receives what the
+        # extension sends until the weblog stops
+        self._containers.extend((self.mocked_backend_container, self.lambda_weblog, self.lambda_proxy_container))
 
     def configure(self, config: pytest.Config):
         super().configure(config)
@@ -150,12 +161,13 @@ class _LambdaScenario(DockerScenario):
 
             interfaces.library.load_data_from_logs()
             interfaces.library.check_deserialization_errors()
+            interfaces.mocked_backend.load_data_from_logs()
+            interfaces.mocked_backend.check_deserialization_errors()
         else:
             self._wait_interface(interfaces.library, 0 if force_interface_timeout_to_zero else 5)
             self._wait_interface(interfaces.mocked_backend, 0 if force_interface_timeout_to_zero else 5)
             self.lambda_weblog.stop()
             interfaces.library.check_deserialization_errors()
-            interfaces.mocked_backend.check_deserialization_errors()
 
     def post_setup(self, session: pytest.Session):
         is_empty_test_run = session.config.option.skip_empty_scenario and len(session.items) == 0
@@ -164,6 +176,12 @@ class _LambdaScenario(DockerScenario):
             self._wait_and_stop_containers(force_interface_timeout_to_zero=is_empty_test_run)
         finally:
             self.close_targets()
+
+        if not self.replay:
+            # the watchdog polls files about once per second: the last ones may not be ingested yet. Nothing else
+            # can arrive now, so ingest them all instead of waiting an arbitrary time
+            interfaces.mocked_backend.ingest_all_files()
+            interfaces.mocked_backend.check_deserialization_errors()
 
     @property
     def library(self):

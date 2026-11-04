@@ -60,10 +60,10 @@ class Test_Feature():
    - Perfect for validating span content, AppSec events, telemetry, and remote configuration
    - See detailed methods: [Library Interface Validation Methods](./library-interface-validation-methods.md)
 
-2. **Mocked Backend Interface (`interfaces.mocked_backend`)** - Validates messages between the Datadog Agent and Datadog Backend
-   - Intercepts data after agent processing (sampling, aggregation, transformation)
+2. **Mocked Backend Interface (`interfaces.mocked_backend`)** - Validates what is sent to the Datadog Backend, by the agent or by an agentless library
+   - Receives data after agent processing (sampling, aggregation, transformation)
    - Ideal for validating metrics, stats, processed traces, and agent forwarding behavior
-   - See detailed methods: [Agent Interface Validation Methods](./agent-interface-validation-methods.md)
+   - See detailed methods: [Mocked Backend Interface Validation Methods](./mocked-backend-interface-validation-methods.md)
 
 
 ### Common Validation Patterns

@@ -196,11 +196,12 @@ class SchemaValidator:
 
 
 def _main():
-    for interface in ("agent", "library"):
-        validator = SchemaValidator(interface)
+    # schemas, and the interface folder they describe: the agent sends to the mocked backend
+    for schemas, interface in (("agent", "mocked_backend"), ("library", "library")):
+        validator = SchemaValidator(schemas)
         folders = [folder for folder in Path().iterdir() if folder.is_dir() and str(folder).startswith("logs")]
         for folder in folders:
-            path = folder / f"/interfaces/{interface}"
+            path = folder / f"interfaces/{interface}"
 
             if not Path(path).exists():
                 continue
@@ -214,11 +215,14 @@ def _main():
                         print(error.message)  # noqa: T201
 
 
-def assert_no_schema_error(interface: ProxyBasedInterfaceValidator, known_bugs: list[SchemaBug]) -> None:
+def assert_no_schema_error(
+    interface: ProxyBasedInterfaceValidator, known_bugs: list[SchemaBug], *, schemas: str | None = None
+) -> None:
+    """schemas: the folder of schemas to validate against (default: the interface name)"""
     excluded_points = {(bug.endpoint, bug.data_path) for bug in known_bugs if bug.condition}
 
     schema_errors: list[SchemaError] = []
-    validator = SchemaValidator(interface.name)
+    validator = SchemaValidator(schemas or interface.name)
 
     for data in interface.get_data():
         for error in validator.get_errors(data):

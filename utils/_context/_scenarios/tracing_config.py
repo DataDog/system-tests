@@ -71,7 +71,6 @@ class TracingConfigNondefault(DdTraceEndToEndScenario):
             rc_api_enabled=True,
             doc="",
             scenario_groups=[scenario_groups.tracing_config, scenario_groups.essentials],
-            mocked_backend=True,
         )
 
 
@@ -92,7 +91,6 @@ class TracingConfigNondefault2(DdTraceEndToEndScenario):
             other_weblog_containers=(PostgresContainer, KafkaContainer),
             doc="Test tracer configuration when a collection of non-default settings are applied",
             scenario_groups=[scenario_groups.tracing_config],
-            mocked_backend=True,
         )
 
 
@@ -115,7 +113,6 @@ class TracingConfigNondefault3(DdTraceEndToEndScenario):
             appsec_enabled=False,
             doc="",
             scenario_groups=[scenario_groups.tracing_config],
-            mocked_backend=True,
         )
 
 
@@ -135,5 +132,4 @@ class TracingConfigNondefault4(DdTraceEndToEndScenario):
                 "DD_TRACE_OTEL_ENABLED": "true",
             },
             doc="",
-            mocked_backend=True,
         )

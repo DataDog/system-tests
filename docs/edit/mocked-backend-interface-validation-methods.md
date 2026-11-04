@@ -1,190 +1,75 @@
-# Mocked  Backend Interface Validation Methods
+# Mocked Backend Interface Validation Methods
 
-This document provides a comprehensive overview of all validation methods available in the `MockedBackendInterfaceValidator` class. The mocked backend interface validates messages intercepted between the Datadog Agent and the Datadog Backend.
+`interfaces.mocked_backend` exposes what the [mocked backend](../mocked_backend/README.md) received: everything sent to the Datadog backend, by the agent, by an agentless library, or by the Lambda extension. Every end-to-end scenario uses it.
 
-## Overview
-
-The `MockedBackendInterfaceValidator` is instantiated as a singleton in `utils/interfaces/__init__.py` and can be accessed as `interfaces.mocked_backend` in your test cases. It intercepts and validates JSON messages stored in the `logs_<scenario_name>/interfaces/mocked_backend` folder.
+The requests are recorded as JSON files in `logs_<scenario_name>/interfaces/mocked_backend`, and decoded like the proxy does (msgpack, protobuf, gzip...). Each recorded request has its `path`, `host`, `query`, `request` (`headers`, `content`) and `response`.
 
 ## Usage Pattern
 
 ```python
-from utils import interfaces, weblog
-from utils import scenarios
+from utils import interfaces, scenarios, weblog
 
-@scenarios.scenario
-class MyTestClass:
-    def setup_my_test(self):
-        # Generate traces by making requests
-        self.r = weblog.get("/endpoint")
 
-    def test_my_validation(self):
-        # Use validation methods to verify intercepted data
+@scenarios.default
+class Test_Feature:
+    def setup_main(self):
+        self.r = weblog.get("/")
+
+    def test_main(self):
         interfaces.mocked_backend.assert_trace_exists(self.r)
 
-        # Validate custom span data
-        def span_validator(span):
-            return span.get("service") == "my-service"
+        for _, span in interfaces.mocked_backend.get_spans(self.r):
+            assert span["service"] == "weblog"
+```
 
-        spans = list(interfaces.mocked_backend.get_spans(self.r))
-        assert any(span_validator(span) for _, span in spans)
+## Provenance: `with_api_key`
+
+Senders that must be told apart use their own fake API key (see `FakeDatadogKey`), e.g. serverless-init relaying what the weblog sends. `get_data` and the getters below take an optional `with_api_key`, to keep only what one sender sent. Get the key from the running scenario (e.g. `context.scenario.dd_api_key`, or `context.scenario.weblog_api_key` in agentless scenarios), never from `FakeDatadogKey` directly.
+
+```python
+for data in interfaces.mocked_backend.get_data("/api/v2/apmtelemetry", with_api_key=context.scenario.weblog_api_key):
+    ...
 ```
 
 ## Methods
 
-### Data Retrieval Methods
-- `get_spans(request=None)` - Get spans submitted to backend, optionally filtered by request
-- `get_spans_list(request)` - Get spans for a specific request as a list
-- `get_telemetry_data(*, flatten_message_batches=True)` - Get telemetry data sent to backend
-- `get_profiling_data()` - Get profiling data from `/api/v2/profile` endpoint
-- `get_metrics()` - Get metrics submitted to `/api/v2/series` endpoint
-- `get_sketches()` - Get distribution sketches from `/api/beta/sketches` endpoint
-- `get_stats(resource="")` - Get APM stats from `/api/v0.2/stats`, optionally filtered by resource
-- `get_dsm_data()` - Get Data Streams Monitoring data from `/api/v0.1/pipeline_stats`
+### Generic
 
-### Validation Methods
-- `assert_trace_exists(request)` - Assert at least one trace exists for request
-- `validate_appsec(request, validator)` - Validate AppSec data using custom validator function
+- `get_data(path_filters=None, *, with_api_key=None)`: every recorded request, optionally filtered by path (a string, or a list of strings) and API key
+- `validate_all(validator, path_filters=None, *, allow_no_data=False)`: run `validator(data)` on every matching request, and fail if one fails, or if there is no data (unless `allow_no_data`)
+- `wait_for(wait_for_function, timeout)`: wait until `wait_for_function(data)` is true for a request, during the setup. Returns whether it happened
+- `get_api_key(data)`: the API key a request was sent with
 
-### Header Validation Methods
-- `assert_headers_presence(path_filter, request_headers=(), response_headers=(), check_condition=None)` - Validate presence of HTTP headers in agent communications
-- `assert_headers_match(path_filter, request_headers=None, response_headers=None, check_condition=None)` - Validate HTTP headers match expected values
+### Traces
 
-## Key Differences from Library Interface
+- `get_traces(request=None, *, with_api_key=None)`: `(data, trace)` for every trace chunk sent to `/api/v0.2/traces`, optionally only those with a span of the weblog request. Legacy (`tracerPayloads`) and v1 (`idxTracerPayloads`) payloads give the same `DataDogAgentTrace`
+- `get_spans(request=None, *, with_api_key=None)`: `(data, span)` for every span, optionally only those of the weblog request
+- `get_spans_list(request, *, with_api_key=None)`: the spans of the weblog request, as a list
+- `get_appsec_data(request, *, with_api_key=None)`: `(data, span, appsec_data)` for every span of the request carrying AppSec data (`_dd.appsec.json`, or meta struct)
+- `assert_trace_exists(request, *, with_api_key=None)`: fail if no trace has a span of the weblog request
 
-The mocked backend interface differs from the library interface in several important ways:
+### Other products
 
-1. **Data Source**: Validates data **after** it has been processed by the agent, not raw tracer output
-2. **Endpoints**: Monitors backend API endpoints (`/api/v0.2/traces`, `/api/v2/series`, etc.)
-3. **Data Structure**: Works with agent-formatted payloads including `tracerPayloads`, `chunks`, and aggregated data
-4. **Scope**: Focuses on anything-to-backend communication rather than tracer-to-agent
+- `get_telemetry_data(*, flatten_message_batches=True, with_api_key=None)`: telemetry sent to `/api/v2/apmtelemetry`. With `flatten_message_batches`, each payload of a `message-batch` is yielded as its own request
+- `get_profiling_data(*, with_api_key=None)`: profiles sent to `/api/v2/profile`
+- `get_metrics(*, with_api_key=None)`: `(data, point)` for every series sent to `/api/v2/series` or `/api/intake/metrics/v3/series`
+- `get_sketches(*, with_api_key=None)`: `(data, point)` for every sketch sent to `/api/beta/sketches` or `/api/intake/metrics/v3/sketches`
+- `get_stats(resource="", *, with_api_key=None)`: APM stats sent to `/api/v0.2/stats`, optionally only those of a resource (or a list of resources)
+- `get_dsm_data(*, with_api_key=None)`: Data Streams Monitoring payloads sent to `/api/v0.1/pipeline_stats`
 
-## Best Practices
+### Headers
 
-1. **Use request filtering**: Always filter by specific requests when possible to avoid interference from other tests
-2. **Understand data flow**: Mocked backend interface data represents what reaches the backend, which may be sampled, aggregated, or modified by the agent
-3. **Combine with library validation**: Use both library and agent interfaces together to validate the complete data pipeline
-4. **Check data transformation**: Verify that data transformations performed by the agent are correct
-5. **Validate aggregations**: Use stats and metrics methods to ensure proper aggregation by the agent
+- `assert_headers_presence(path_filter, request_headers=(), response_headers=(), check_condition=None)`: fail if a matching request lacks one of the headers. No matching request is not a failure
 
-## Common Patterns
+## What it is not
 
-### Basic Trace Validation
-```python
-def test_agent_trace_forwarding(self):
-    r = weblog.get("/")
-    interfaces.agent.assert_trace_exists(r)
-
-    # Verify spans reach the backend with correct structure
-    spans = list(interfaces.agent.get_spans(r))
-    assert len(spans) > 0
-
-    for _, span in spans:
-        assert "trace_id" in span
-        assert "span_id" in span
-```
-
-### AppSec Event Validation
-```python
-def test_appsec_agent_forwarding(self):
-    r = weblog.get("/", headers={"X-Attack": "' OR 1=1--"})
-
-    appsec_spans = list(interfaces.agent.get_appsec_data(r))
-    assert len(appsec_spans) > 0
-
-    for data, span, appsec_data in appsec_spans:
-        assert "triggers" in appsec_data
-```
-
-### Metrics Validation
-```python
-def test_agent_metrics_collection(self):
-    r = weblog.get("/")
-
-    # Check that metrics are properly collected and forwarded
-    metrics = list(interfaces.agent.get_metrics())
-    assert len(metrics) > 0
-
-    for _, metric in metrics:
-        assert "metric" in metric
-        assert "points" in metric
-```
-
-### Stats Validation
-```python
-def test_agent_stats_aggregation(self):
-    r = weblog.get("/")
-
-    # Verify stats are aggregated by resource
-    stats = list(interfaces.agent.get_stats(resource="/"))
-    assert len(stats) > 0
-
-    for stat in stats:
-        assert stat["Resource"] == "/"
-        assert "Hits" in stat
-        assert "Duration" in stat
-```
-
-### Telemetry Validation
-```python
-def test_agent_telemetry_forwarding(self):
-    def telemetry_validator(data):
-        content = data["request"]["content"]
-        return content.get("request_type") == "generate-metrics"
-
-    interfaces.agent.validate_telemetry(telemetry_validator)
-```
-
-### Custom Span Validation
-```python
-def test_custom_span_processing(self):
-    r = weblog.get("/")
-
-    def span_validator(data):
-        content = data["request"]["content"]
-        if "tracerPayloads" not in content:
-            return False
-
-        for payload in content["tracerPayloads"]:
-            for chunk in payload["chunks"]:
-                for span in chunk["spans"]:
-                    if span.get("service") == "my-service":
-                        return True
-        return False
-
-    interfaces.agent.add_traces_validation(span_validator)
-```
-
-## Data Flow Understanding
-
-The agent interface sits in the middle of the data pipeline:
-
-```
-[Tracer] → [Agent] → [Backend]
-           ↑
-    Agent Interface
-    (validates here)
-```
-
-This means:
-- Data has been processed/transformed by the agent
-- Sampling decisions have been applied
-- Stats aggregation has occurred
-- Rate limiting may have been applied
-
-## Common Use Cases
-
-1. **End-to-End Validation**: Ensure data flows completely through the system
-2. **Agent Processing**: Verify agent correctly processes and forwards data
-3. **Sampling Verification**: Check that sampling decisions are properly applied
-4. **Aggregation Testing**: Validate stats and metrics aggregation
-5. **Performance Monitoring**: Ensure profiling and metrics collection works
-6. **Security Integration**: Verify AppSec events are properly forwarded
+- It doesn't see what the library sends to the agent: use `interfaces.library` (see [library interface validation methods](./library-interface-validation-methods.md)).
+- With an agent, the data has been processed by it: sampling, stats computation, obfuscation and rate limiting have been applied.
+- It's not the real backend: nothing is processed, and it answers what it's told to (default responses, remote config, `MockedBackendResponse`). See the [mocked backend documentation](../mocked_backend/README.md).
 
 ## Related Documentation
 
-- [Agent Interface Core Implementation](../../utils/interfaces/_agent.py)
-- [Interface Initialization](../../utils/interfaces/__init__.py)
-- [Library Interface Validation Methods](./library-interface-validation-methods.md)
-- [End-to-End Testing Guide](../execute/README.md)
-- [Adding New Tests](./add-new-test.md)
+- [Mocked backend](../mocked_backend/README.md)
+- [Interface implementation](../../utils/interfaces/_mocked_backend.py)
+- [Library interface validation methods](./library-interface-validation-methods.md)
+- [Adding new tests](./add-new-test.md)

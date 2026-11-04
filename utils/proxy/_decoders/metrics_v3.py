@@ -32,7 +32,7 @@ Both endpoints share this wire format; sketches only differ by their per-point c
 This decoder reconstructs payloads shaped like the v2 output, i.e.
 ``{"series": [{"metric": <name>, "tags": [<tag>, ...], "type": <int>, ...}, ...]}`` for series and
 ``{"sketches": [{"metric": <name>, "tags": [...], "dogsketches": [...]}, ...]}`` for sketches, so that
-``utils/interfaces/_agent.py::get_metrics`` and ``get_sketches`` work the same way on v2 and v3.
+``utils/interfaces/_mocked_backend.py::get_metrics`` and ``get_sketches`` work the same way on v2 and v3.
 """
 
 from __future__ import annotations

@@ -5,6 +5,7 @@ from utils import pytest
 
 from utils import interfaces, scenarios
 from utils._context._scenarios._core.endtoend import DdTraceEndToEndScenario, DockerScenario
+from utils._context._scenarios.aws_lambda import _LambdaScenario
 from utils._context._scenarios.open_telemetry import _OpenTelemetryScenario
 from utils._context.containers import MsSqlServerContainer, TestedContainer as _TestedContainer
 
@@ -129,6 +130,9 @@ def test_end_to_end_scenario_only_flushes_agent_backed_non_empty_test_runs(
     monkeypatch.setattr(scenario, "_wait_interface", MagicMock())
 
     monkeypatch.setattr(interfaces.library, "check_deserialization_errors", MagicMock())
+    monkeypatch.setattr(scenario, "_stop_mocked_backend", MagicMock())
+    monkeypatch.setattr(interfaces.mocked_backend, "ingest_all_files", MagicMock())
+    monkeypatch.setattr(interfaces.mocked_backend, "check_deserialization_errors", MagicMock())
 
     scenario._wait_and_stop_containers(  # noqa: SLF001 - focused lifecycle test
         is_empty_test_run=is_empty_test_run
@@ -139,7 +143,7 @@ def test_end_to_end_scenario_only_flushes_agent_backed_non_empty_test_runs(
 
 @scenarios.test_the_test
 def test_mocked_backend_agent_sends_to_the_mocked_backend_container(monkeypatch: pytest.MonkeyPatch) -> None:
-    scenario = DdTraceEndToEndScenario("FAKE_MOCKED_BACKEND_V2", doc="", mocked_backend=True)
+    scenario = DdTraceEndToEndScenario("FAKE_MOCKED_BACKEND_V2", doc="")
     mocked_backend = scenario.mocked_backend_container
     assert mocked_backend in scenario._containers  # noqa: SLF001
 
@@ -148,6 +152,7 @@ def test_mocked_backend_agent_sends_to_the_mocked_backend_container(monkeypatch:
     assert agent.environment["DD_SITE"] == "mocked-backend.invalid"
     assert agent.dd_site == "mocked-backend.invalid"
     assert "DD_DD_URL" not in agent.environment
+    assert "DD_PROXY_HTTPS" not in agent.environment
     # reached by its name on the scenario network: no mapping to the docker host
     assert extra_hosts_at_start(monkeypatch, agent) is None
 
@@ -177,7 +182,6 @@ def test_mocked_backend_does_not_make_the_weblog_databases_depend_on_it() -> Non
     scenario = DdTraceEndToEndScenario(
         "FAKE_MOCKED_BACKEND_MSSQL",
         doc="",
-        mocked_backend=True,
         other_weblog_containers=(MsSqlServerContainer,),
     )
     scenario._set_containers_dependancies()  # noqa: SLF001
@@ -188,13 +192,13 @@ def test_mocked_backend_does_not_make_the_weblog_databases_depend_on_it() -> Non
 
 
 @scenarios.test_the_test
-def test_no_mocked_backend_container_without_mocked_backend() -> None:
-    scenario = DdTraceEndToEndScenario("FAKE_NO_MOCKED_BACKEND_V2", doc="")
-    assert scenario.mocked_backend_container not in scenario._containers  # noqa: SLF001
-    assert scenario.agent_container.environment["DD_SITE"] != "mocked-backend.invalid"
-
-
-@scenarios.test_the_test
-def test_agent_without_host_docker_internal_has_no_extra_hosts(monkeypatch: pytest.MonkeyPatch) -> None:
-    scenario = DdTraceEndToEndScenario("FAKE_NO_MOCKED_BACKEND", doc="")
-    assert extra_hosts_at_start(monkeypatch, scenario.agent_container) is None
+def test_lambda_extension_sends_to_the_mocked_backend_container() -> None:
+    scenario = _LambdaScenario("FAKE_LAMBDA", doc="")
+    weblog = scenario.lambda_weblog
+    # every intake hostname is derived from it, and is an alias of the mocked backend
+    assert weblog.environment["DD_SITE"] == "mocked-backend.invalid"
+    assert "DD_PROXY_HTTPS" not in weblog.environment
+    assert scenario.mocked_backend_container in weblog.depends_on
+    # removed in reverse order: the weblog stops before the mocked backend, that receives all it sends
+    containers = scenario._containers  # noqa: SLF001
+    assert containers.index(scenario.mocked_backend_container) < containers.index(weblog)

@@ -8,7 +8,6 @@ class ProfilingScenario(EndToEndScenario):
     def __init__(self) -> None:
         super().__init__(
             "PROFILING",
-            mocked_backend=True,
             library_interface_timeout=160,
             weblog_env={
                 "DD_PROFILING_ENABLED": "true",

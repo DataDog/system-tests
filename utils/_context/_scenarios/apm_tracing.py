@@ -9,7 +9,6 @@ class ApmTracingE2eOtel(DdTraceEndToEndScenario):
         super().__init__(
             "APM_TRACING_E2E_OTEL",
             weblog_env={"DD_TRACE_OTEL_ENABLED": "true"},
-            mocked_backend=True,
             doc="",
         )
 
@@ -24,7 +23,6 @@ class ApmTracingE2eSingleSpan(DdTraceEndToEndScenario):
                 ),
                 "DD_TRACE_SAMPLE_RATE": "0",
             },
-            mocked_backend=True,
             doc="",
         )
 
@@ -42,6 +40,7 @@ class ApmTracingOtlp(DdTraceEndToEndScenario):
                 "DD_GIT_COMMIT_SHA": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
             },
             include_opentelemetry=True,
+            open_telemetry_interface_timeout=5,
             doc="",
         )
 
@@ -57,6 +56,5 @@ class ApmTracingEfficientPayload(DdTraceEndToEndScenario):
             agent_env={
                 "DD_APM_ENABLE_V1_TRACE_ENDPOINT": "true",
             },
-            mocked_backend=True,
             doc="End-to-end testing scenario focused on efficient payload handling and v1 trace format validation",
         )

@@ -63,7 +63,6 @@ class ThreadContextSharingScenario(EndToEndScenario):
             appsec_enabled=True,
             iast_enabled=False,
             scenario_groups=[scenario_groups.thread_context_sharing],
-            mocked_backend=True,
         )
 
     def configure(self, config: pytest.Config):

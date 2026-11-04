@@ -1,4 +1,3 @@
-import os
 from typing import Literal
 
 import pytest
@@ -235,7 +234,7 @@ class EndToEndScenario(DockerScenario):
         include_buddies: bool = False,
         include_agent: bool = True,
         include_opentelemetry: bool = False,
-        mocked_backend: bool = False,
+        open_telemetry_interface_timeout: int = 0,
         other_weblog_containers: tuple[type[TestedContainer], ...] = (),
     ) -> None:
         scenario_groups = [*self._default_scenario_groups, *(scenario_groups or [])]
@@ -260,31 +259,27 @@ class EndToEndScenario(DockerScenario):
             raise ValueError("include_buddies requires include_agent")
 
         self.include_agent = include_agent
-        """When False, weblogs sends to the mocked backend (or nothing)"""
+        """When False, there is no agent: the weblog sends to the mocked backend directly (agentless), or nothing"""
 
         self._use_proxy_for_weblog = use_proxy_for_weblog
-        self._mocked_backend = mocked_backend
 
-        self.dd_api_key = (
-            FakeDatadogKey.DEFAULT if mocked_backend else os.environ.get("DD_API_KEY", FakeDatadogKey.DEFAULT)
-        )
+        self.dd_api_key = FakeDatadogKey.DEFAULT
         """The API key used by the agent to send data to the backend"""
 
         # it serves HTTPS on its domain, and on the intake hostnames derived from it (see MOCKED_BACKEND_DOMAIN)
         self.mocked_backend_container = MockedBackendContainer(tls=True)
-        if mocked_backend:
-            self._containers.append(self.mocked_backend_container)
-            if include_agent and not rc_api_enabled:
-                # the mocked backend always serves remote config: tests can send configs through it. Unless the
-                # scenario has the proxy answer the library itself (rc_api_enabled without rc_backend_enabled)
-                self.rc_api_enabled = True
-                self.rc_backend_enabled = True
+        self._containers.append(self.mocked_backend_container)
+        if include_agent and not rc_api_enabled:
+            # the mocked backend always serves remote config: tests can send configs through it. Unless the
+            # scenario has the proxy answer the library itself (rc_api_enabled without rc_backend_enabled)
+            self.rc_api_enabled = True
+            self.rc_backend_enabled = True
 
         self.agent_container = AgentContainer(
             dd_api_key=self.dd_api_key,
             # the mocked backend always serves remote config
-            rc_backend_enabled=rc_backend_enabled or mocked_backend,
-            mocked_backend=mocked_backend,
+            rc_backend_enabled=True,
+            mocked_backend=True,
             environment=agent_env,
         )
         if include_agent:
@@ -336,6 +331,7 @@ class EndToEndScenario(DockerScenario):
         self.agent_interface_timeout = agent_interface_timeout
         self._library_interface_timeout = library_interface_timeout
         self.include_opentelemetry = include_opentelemetry
+        self.open_telemetry_interface_timeout = open_telemetry_interface_timeout
 
     def get_image_list(self, library: str, weblog: str) -> list[str]:
         return [
@@ -350,8 +346,7 @@ class EndToEndScenario(DockerScenario):
 
         super().configure(config)
         interfaces.library.configure(self.host_log_folder, replay=self.replay)
-        if self._mocked_backend:
-            interfaces.mocked_backend.configure(self.host_log_folder, replay=self.replay)
+        interfaces.mocked_backend.configure(self.host_log_folder, replay=self.replay)
         interfaces.library_dotnet_managed.configure(self.host_log_folder, replay=self.replay)
         interfaces.library_stdout.configure(self.host_log_folder, replay=self.replay)
         if self.include_agent:
@@ -409,26 +404,22 @@ class EndToEndScenario(DockerScenario):
         for buddy in self.buddies:
             buddy.depends_on.append(self.agent_container)
 
-        if self._mocked_backend:
-            if self.include_agent:
-                self.agent_container.depends_on.append(self.mocked_backend_container)
-            # e.g. agentless libraries may reach it as soon as they start. Not the other weblog containers (databases,
-            # ...), that never reach it: everything else depends on MsSql, the mocked backend included
-            for container in self.weblog_infra.get_weblog_containers():
-                container.depends_on.append(self.mocked_backend_container)
+        if self.include_agent:
+            self.agent_container.depends_on.append(self.mocked_backend_container)
+        # e.g. agentless libraries may reach it as soon as they start. Not the other weblog containers (databases,
+        # ...), that never reach it: everything else depends on MsSql, the mocked backend included
+        for container in self.weblog_infra.get_weblog_containers():
+            container.depends_on.append(self.mocked_backend_container)
 
     def _start_interfaces_watchdog(self):
         open_telemetry_interfaces: list[ProxyBasedInterfaceValidator] = (
             [interfaces.open_telemetry] if self.include_opentelemetry else []
         )
-        backend_interfaces: list[ProxyBasedInterfaceValidator] = (
-            [interfaces.mocked_backend] if self._mocked_backend else []
-        )
         super().start_interfaces_watchdog(
             [interfaces.library]
             + [container.interface for container in self.buddies]
             + open_telemetry_interfaces
-            + backend_interfaces
+            + [interfaces.mocked_backend]
         )
 
     def _set_weblog_domain(self):
@@ -456,7 +447,8 @@ class EndToEndScenario(DockerScenario):
 
                 logger.debug(f"{container.name} ready")
 
-        if self._mocked_backend:
+        if self.include_agent:
+            # the agent sends to the mocked backend as soon as it starts
             if not interfaces.mocked_backend.ready.wait(40):
                 raise ValueError("Datadog agent not ready")
             logger.debug("Agent ready")
@@ -484,9 +476,8 @@ class EndToEndScenario(DockerScenario):
                 container.interface.load_data_from_logs()
                 container.interface.check_deserialization_errors()
 
-            if self._mocked_backend:
-                interfaces.mocked_backend.load_data_from_logs()
-                interfaces.mocked_backend.check_deserialization_errors()
+            interfaces.mocked_backend.load_data_from_logs()
+            interfaces.mocked_backend.check_deserialization_errors()
 
             if self.include_opentelemetry:
                 interfaces.open_telemetry.load_data_from_logs()
@@ -509,19 +500,20 @@ class EndToEndScenario(DockerScenario):
             if self.include_agent:
                 # gives the agent time to send what it received before stopping it, to the proxy or the mocked backend
                 agent_timeout = 0 if is_empty_test_run else self.agent_interface_timeout
-                if self._mocked_backend:
-                    self._wait_interface(interfaces.mocked_backend, agent_timeout)
+                self._wait_interface(interfaces.mocked_backend, agent_timeout)
                 self.agent_container.stop()
 
             if self.include_opentelemetry:
-                self._wait_interface(interfaces.open_telemetry, 0 if is_empty_test_run else 5)
-            if self._mocked_backend:
-                # stopped last: it receives what the agent and the weblog send until they stop
-                self._stop_mocked_backend()
-                # the watchdog polls files about once per second: the last ones may not be ingested yet. Nothing else
-                # can arrive now, so ingest them all instead of waiting an arbitrary time
-                interfaces.mocked_backend.ingest_all_files()
-                interfaces.mocked_backend.check_deserialization_errors()
+                self._wait_interface(
+                    interfaces.open_telemetry, 0 if is_empty_test_run else self.open_telemetry_interface_timeout
+                )
+
+            # stopped last: it receives what the agent and the weblog send until they stop
+            self._stop_mocked_backend()
+            # the watchdog polls files about once per second: the last ones may not be ingested yet. Nothing else
+            # can arrive now, so ingest them all instead of waiting an arbitrary time
+            interfaces.mocked_backend.ingest_all_files()
+            interfaces.mocked_backend.check_deserialization_errors()
 
     def _stop_weblog(self, *, is_empty_test_run: bool) -> None:
         """Stop the weblog after setup traffic has been generated."""
@@ -601,9 +593,9 @@ class DdTraceEndToEndScenario(EndToEndScenario):
         iast_enabled: bool = True,
         include_agent: bool = True,
         include_opentelemetry: bool = False,
+        open_telemetry_interface_timeout: int = 0,
         library_interface_timeout: int | None = None,
         meta_structs_disabled: bool = False,
-        mocked_backend: bool = False,
         obfuscation_version: int | None | Literal["MISSING"] = None,
         other_weblog_containers: tuple[type[TestedContainer], ...] = (),
         rc_api_enabled: bool = False,
@@ -627,9 +619,9 @@ class DdTraceEndToEndScenario(EndToEndScenario):
             iast_enabled=iast_enabled,
             include_agent=include_agent,
             include_opentelemetry=include_opentelemetry,
+            open_telemetry_interface_timeout=open_telemetry_interface_timeout,
             library_interface_timeout=library_interface_timeout,
             meta_structs_disabled=meta_structs_disabled,
-            mocked_backend=mocked_backend,
             obfuscation_version=obfuscation_version,
             other_weblog_containers=other_weblog_containers,
             rc_api_enabled=rc_api_enabled,
