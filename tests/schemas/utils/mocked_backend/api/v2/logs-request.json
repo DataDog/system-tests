@@ -1,5 +1,5 @@
 {
-  "$id": "/agent/api/v2/logs-request.json",
+  "$id": "/mocked_backend/api/v2/logs-request.json",
   "items": {
     "if": {
       "required": ["debugger"],
