@@ -106,9 +106,20 @@ The JIRA project is derived from the owner of the feature tested by the test. Fi
 
 If the project can't be determined, ask the user.
 
+### JIRA tools
+
+Create and update tickets yourself, with the Atlassian MCP server (`datadoghq.atlassian.net`):
+
+- `mcp__atlassian__getAccessibleAtlassianResources`: get the `cloudId` required by the other tools, and check the server is connected
+- `mcp__atlassian__searchJiraIssuesUsingJql`: search existing tickets
+- `mcp__atlassian__createJiraIssue`: create the ticket
+- `mcp__atlassian__addCommentToJiraIssue`: add new data, or the skip PR link, to a ticket
+
+If the Atlassian MCP server is not available or not authenticated, stop and tell the user, instead of falling back to another method.
+
 ### Avoid duplicates
 
-Before proposing a new ticket, search JIRA for an open ticket mentioning the test class or method name. If one exists, propose to reuse it (and add a comment with the new data) instead of creating a new one.
+Before proposing a new ticket, search JIRA for an open ticket mentioning the test class or method name (e.g. JQL `project = <PROJECT> AND statusCategory != Done AND text ~ "<Class>"`). If one exists, propose to reuse it (and add a comment with the new data) instead of creating a new one.
 
 ### Ticket content
 
