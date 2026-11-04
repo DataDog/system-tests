@@ -40,7 +40,7 @@ These rules apply in EVERY interaction.
 
 ## Code Review Rules
 
-Before pushing code or creating a pull request, you MUST run the [system-tests-review skill](./.claude/skills/system-tests-review/SKILL.md) on the committed changes unless the user specifically says not to. You MUST also perform a standard self-review, using the platform's standard review capability when available. All other required publication checks still apply.
+Before pushing code or creating a pull request, you MUST run the [system-tests-review skill](./.agents/skills/system-tests-review/SKILL.md) on the committed changes unless the user specifically says not to. You MUST also perform a standard self-review, using the platform's standard review capability when available. All other required publication checks still apply.
 
 When performing a code review where the skill cannot be invoked, including an automated GitHub codex review, read the skill file as ordinary workflow instructions and apply every lens directly:
 
@@ -66,4 +66,4 @@ When the reviewed change modifies the skill, a lens, or this section, use the tr
 
 ---
 
-**Note**: This `CLAUDE.md` points to the shared rules under `.agents/rules/` and the code-review workflow under `.claude/skills/system-tests-review/`. Read the linked files directly for complete context and instructions. Reusable cross-agent skills belong under `.agents/skills/`.
+**Note**: This `CLAUDE.md` points to the shared rules under `.agents/rules/` and reusable skills under `.agents/skills/`. Read the linked files directly for complete context and instructions.
