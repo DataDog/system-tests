@@ -768,6 +768,9 @@ manifest:
   tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Multiconfig_Partial_Update:  # DEBUG-4637: fix remote enablement (#9344)
     - declaration: bug (DEBUG-4637)
       component_version: '<3.57.0'
+  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Probe_Removal:  # DEBUG-4637: remove probes when DI is disabled remotely
+    - declaration: bug (DEBUG-4637)
+      component_version: '<3.57.0'
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction: v2.50.0
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction::test_pii_redaction_method_full:
     - declaration: missing_feature (keywords are not fully redacted)
@@ -810,7 +813,12 @@ manifest:
     - declaration: bug (DEBUG-5101)
       component_version: '<3.45.0'
   tests/debugger/test_debugger_probe_status.py::Test_Debugger_Method_Probe_Statuses: v2.53.0
-  tests/debugger/test_debugger_rc_unsubscribe.py::Test_Debugger_RC_Unsubscribe: bug (DEBUG-4637)
+  tests/debugger/test_debugger_rc_unsubscribe.py::Test_Debugger_RC_Unsubscribe:  # TODO: a lower version might be supported
+    - declaration: bug (DEBUG-4637)
+      component_version: <3.57.0
+      weblog: [poc, uds]
+    - declaration: bug (DEBUG-4637)
+      excluded_weblog: [poc, uds]
   tests/debugger/test_debugger_snapshot_correlation.py::Test_Debugger_Coordinated_Sampling: v3.55.0  # DEBUG-5828: per-trace coordinated snapshot sampling (#9266)
   tests/debugger/test_debugger_snapshot_correlation.py::Test_Debugger_Coordinated_Sampling_Line_Probe: irrelevant (Line-probe variant is only used by Node.js)
   tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb: v2.53.0
@@ -970,35 +978,53 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_compression.py::Test_OTEL_EXPORTER_OTLP_COMPRESSION::test_stable_values: missing_feature
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_endpoint.py::Test_OTEL_EXPORTER_OTLP_ENDPOINT: v3.37.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_endpoint.py::Test_OTEL_EXPORTER_OTLP_ENDPOINT::test_empty_endpoint_falls_back_to_default
-  : bug (APMAPI-2509)
+  :  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-2509)
+      component_version: <3.57.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS: v3.29.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_logs_default_headers: v3.37.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_logs_empty_headers: v3.37.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_logs_headers: v3.37.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_logs_override: v3.37.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_logs_percent_encoded_value
-  : - component_version: <3.37.0
+  :  # Easy win for all weblogs and version 3.57.0
+    - component_version: <3.37.0
       declaration: missing_feature
     - component_version: '>=3.37.0'
       declaration: bug (APMAPI-2468)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_metrics_default_headers: v3.37.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_metrics_override: v3.37.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_headers.py::Test_OTEL_EXPORTER_OTLP_HEADERS::test_metrics_percent_encoded_value
-  : - component_version: <3.37.0
+  :  # Easy win for all weblogs and version 3.57.0
+    - component_version: <3.37.0
       declaration: missing_feature
     - component_version: '>=3.37.0'
       declaration: bug (APMAPI-2468)
-  tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_compression.py::Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION: missing_feature
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_compression.py::Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION: '>=3.57.0'  # TODO: a lower version might be supported
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_compression.py::Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION::test_empty_inherits_general
+  : missing_feature
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_compression.py::Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION::test_signal_precedence
+  : missing_feature
+  ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_compression.py::Test_OTEL_EXPORTER_OTLP_LOGS_COMPRESSION::test_stable_values
+  : missing_feature
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_endpoint.py::Test_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT: v3.37.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_endpoint.py::Test_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT::test_empty_falls_back_to_global_endpoint
-  : bug (APMAPI-2509)
+  :  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-2509)
+      component_version: <3.57.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_endpoint.py::Test_OTEL_EXPORTER_OTLP_LOGS_ENDPOINT::test_generic_endpoint_with_base_path
-  : bug (APMAPI-2620)
+  :  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-2620)
+      component_version: <3.57.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_headers.py::Test_OTEL_EXPORTER_OTLP_LOGS_HEADERS: v3.37.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_headers.py::Test_OTEL_EXPORTER_OTLP_LOGS_HEADERS::test_empty_falls_back
-  : bug (APMAPI-2479)
+  :  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-2479)
+      component_version: <3.57.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_headers.py::Test_OTEL_EXPORTER_OTLP_LOGS_HEADERS::test_logs_percent_encoded_value
-  : bug (APMAPI-2468)
+  :  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-2468)
+      component_version: <3.57.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL: v3.37.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_logs_protocol.py::Test_OTEL_EXPORTER_OTLP_LOGS_PROTOCOL::test_documented_json_default
   : irrelevant (The SDK uses the specification default)
@@ -1017,17 +1043,21 @@ manifest:
   : missing_feature
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_endpoint.py::Test_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT: v3.37.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_endpoint.py::Test_OTEL_EXPORTER_OTLP_METRICS_ENDPOINT::test_empty_falls_back_to_global_endpoint
-  : bug (APMAPI-2509)
+  :  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-2509)
+      component_version: <3.57.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_headers.py::Test_OTEL_EXPORTER_OTLP_METRICS_HEADERS: v3.29.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_headers.py::Test_OTEL_EXPORTER_OTLP_METRICS_HEADERS::test_empty_falls_back
-  : - component_version: <3.37.0
+  :  # Easy win for all weblogs and version 3.57.0
+    - component_version: <3.37.0
       declaration: missing_feature
     - component_version: '>=3.37.0'
       declaration: bug (APMAPI-2479)
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_headers.py::Test_OTEL_EXPORTER_OTLP_METRICS_HEADERS::test_metrics_default_headers
   : v3.37.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_headers.py::Test_OTEL_EXPORTER_OTLP_METRICS_HEADERS::test_metrics_percent_encoded_value
-  : - component_version: <3.37.0
+  :  # Easy win for all weblogs and version 3.57.0
+    - component_version: <3.37.0
       declaration: missing_feature
     - component_version: '>=3.37.0'
       declaration: bug (APMAPI-2468)
@@ -1037,9 +1067,13 @@ manifest:
   : v3.37.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_protocol.py::Test_OTEL_EXPORTER_OTLP_METRICS_PROTOCOL: v3.37.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_protocol.py::Test_OTEL_EXPORTER_OTLP_METRICS_PROTOCOL::test_case_insensitive
-  : bug (APMAPI-2489)
+  :  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-2489)
+      component_version: <3.57.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_protocol.py::Test_OTEL_EXPORTER_OTLP_METRICS_PROTOCOL::test_empty_generic_fallback
-  : bug (APMAPI-2479)
+  :  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-2479)
+      component_version: <3.57.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_protocol.py::Test_OTEL_EXPORTER_OTLP_METRICS_PROTOCOL::test_http_json
   : missing_feature (OTLP HTTP JSON exporter is not implemented)
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_temporality_preference.py::Test_OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE
@@ -1047,14 +1081,20 @@ manifest:
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_temporality_preference.py::Test_OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE::test_default_matches_specification
   : missing_feature (Datadog intentionally defaults to Delta)
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_temporality_preference.py::Test_OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE::test_lowmemory
-  : bug (APMAPI-2563)
+  :  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-2563)
+      component_version: <3.57.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_temporality_preference.py::Test_OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE::test_lowmemory_case_insensitive
-  : bug (APMAPI-2563)
+  :  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-2563)
+      component_version: <3.57.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_timeout.py::Test_OTEL_EXPORTER_OTLP_METRICS_TIMEOUT: v3.37.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_metrics_timeout.py::Test_OTEL_EXPORTER_OTLP_METRICS_TIMEOUT::test_invalid_value_is_ignored
   : bug (APMAPI-2459)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL: v3.37.0
-  tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL::test_case_insensitive: bug (APMAPI-2489)
+  tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL::test_case_insensitive:  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-2489)
+      component_version: <3.57.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL::test_http_json: missing_feature (OTLP HTTP JSON exporter is not implemented)
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs: v3.37.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_protocol.py::Test_OTEL_EXPORTER_OTLP_PROTOCOL_Logs::test_documented_json_default
@@ -1066,7 +1106,9 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_endpoint.py::Test_OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: v3.41.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_headers.py::Test_OTEL_EXPORTER_OTLP_TRACES_HEADERS: v3.41.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_headers.py::Test_OTEL_EXPORTER_OTLP_TRACES_HEADERS::test_empty_is_treated_as_unset
-  : bug (APMAPI-2479)
+  :  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-2479)
+      component_version: <3.57.0
   tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_protocol.py::Test_OTEL_EXPORTER_OTLP_TRACES_PROTOCOL: v3.41.0
   ? tests/parametric/otel_env_vars/test_otel_exporter_otlp_traces_protocol.py::Test_OTEL_EXPORTER_OTLP_TRACES_PROTOCOL::test_empty_is_treated_as_unset
   :  # TODO: a lower version might be supported
@@ -1099,7 +1141,9 @@ manifest:
   tests/parametric/otel_env_vars/test_otel_metrics_exporter.py::Test_OTEL_METRICS_EXPORTER::test_console: missing_feature (Only otlp and none metrics exporters are implemented)
   tests/parametric/otel_env_vars/test_otel_metrics_exporter.py::Test_OTEL_METRICS_EXPORTER::test_deprecated_values: missing_feature (Only otlp and none metrics exporters are implemented)
   tests/parametric/otel_env_vars/test_otel_metrics_exporter.py::Test_OTEL_METRICS_EXPORTER::test_development_values: missing_feature (Only otlp and none metrics exporters are implemented)
-  tests/parametric/otel_env_vars/test_otel_metrics_exporter.py::Test_OTEL_METRICS_EXPORTER::test_empty_is_unset: bug (APMAPI-2542)
+  tests/parametric/otel_env_vars/test_otel_metrics_exporter.py::Test_OTEL_METRICS_EXPORTER::test_empty_is_unset:  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-2542)
+      component_version: <3.57.0
   tests/parametric/otel_env_vars/test_otel_metrics_exporter.py::Test_OTEL_METRICS_EXPORTER::test_invalid_is_ignored: bug (APMAPI-2542)
   tests/parametric/otel_env_vars/test_otel_metrics_exporter.py::Test_OTEL_METRICS_EXPORTER::test_prometheus: missing_feature (Only otlp and none metrics exporters are implemented)
   tests/parametric/otel_env_vars/test_otel_propagators.py::Test_OTEL_PROPAGATORS: v3.37.0
@@ -1424,8 +1468,12 @@ manifest:
   tests/parametric/test_otel_span_with_baggage.py::Test_Otel_Span_With_Baggage: missing_feature
   tests/parametric/test_otel_tracer.py::Test_Otel_Tracer: v2.8.0
   tests/parametric/test_otel_tracestate_sampling.py::Test_OtelTracestateSampling: v3.54.0
-  tests/parametric/test_otel_tracestate_sampling.py::Test_OtelTracestateSampling::test_emits_probability_sampling_vectors: bug (APMAPI-2488)
-  tests/parametric/test_otel_tracestate_sampling.py::Test_OtelTracestateSampling::test_precision_boundary_decisions: bug (APMAPI-2488)
+  tests/parametric/test_otel_tracestate_sampling.py::Test_OtelTracestateSampling::test_emits_probability_sampling_vectors:  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-2488)
+      component_version: <3.57.0
+  tests/parametric/test_otel_tracestate_sampling.py::Test_OtelTracestateSampling::test_precision_boundary_decisions:  # TODO: a lower version might be supported
+    - declaration: bug (APMAPI-2488)
+      component_version: <3.57.0
   tests/parametric/test_otlp_trace_metrics.py: v3.52.0
   tests/parametric/test_otlp_trace_metrics.py::Test_FR01_Enablement_Configuration::test_fr01_3_disabled_by_default: missing_feature (OTLP trace metrics are still auto-enabled without OTEL_TRACES_SPAN_METRICS_ENABLED=true)
   tests/parametric/test_otlp_trace_metrics.py::Test_FR02_Mutual_Exclusion::test_fr02_3_otlp_suppresses_native_stats: irrelevant (OTLP trace metrics alongside native (non-OTLP) trace export was removed and will not be supported; OTLP trace metrics now require OTEL_TRACES_EXPORTER=otlp)
@@ -1669,7 +1717,12 @@ manifest:
   tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs: v3.56.0
   tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_configured_value: missing_feature (Some configured settings are unsupported or not reported as uppercase startup fields)
   tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_logs_blrp: irrelevant (The logs batching sink has no export timeout setting)
-  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_otel_enabled: missing_feature (Only effective signal-specific OTLP settings are reported)
+  tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_otel_enabled:  # TODO: a lower version might be supported
+    - declaration: missing_feature (Only effective signal-specific OTLP settings are reported)
+      component_version: <3.57.0
+      weblog: [poc, uds]
+    - declaration: missing_feature (Only effective signal-specific OTLP settings are reported)
+      excluded_weblog: [poc, uds]
   tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_otlp_exporter: irrelevant (Only effective signal-specific OTLP settings are reported)
   tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5: v3.54.0
   tests/test_otel_tracestate_sampling.py::Test_ForceKeepClearsTh: v3.54.0
