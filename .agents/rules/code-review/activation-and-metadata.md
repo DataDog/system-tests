@@ -65,12 +65,12 @@
 - ❌ The docstring links `?feature=544` and the code passes `feature_id=NOT_REPORTED_ID`.
 - Ref: [Create a feature](../../../docs/edit/features.md#hello-world-test)
 
-### META-009: Make a new scenario reachable by CI.
+### META-009: Register named end-to-end scenarios in the GitHub workflow.
 - Old_id: claude-02
 - Severity: P0
-- Flag: A PR that adds an end-to-end scenario must add its `Run <NAME> scenario` step to `.github/workflows/run-end-to-end.yml`. The scenario must belong to the scenario groups that the official workflow runs, unless its docstring explains why it is opt-in. A PR that removes or renames a scenario must remove or rename that step too.
-- Detect: A new scenario has no step with `contains(inputs.scenarios, '"<NAME>"')`, or it leaves the default groups without an explanation. A removed scenario keeps its step.
-- Not when: The change targets the `DEFAULT` scenario, whose workflow step already exists and does not require registering a new named scenario. An intentionally opt-in scenario may be omitted from the default groups when its docstring explains why, but it still requires its own workflow step.
-- ✅ Add the run step and keep the scenario in its groups, or document why it is opt-in.
-- ❌ Add a scenario with no run step and outside every default group.
+- Flag: A PR that adds a named end-to-end scenario must add its `Run <NAME> scenario` step to `.github/workflows/run-end-to-end.yml`. A PR that removes or renames a scenario must remove or rename that step too.
+- Detect: A non-`DEFAULT` scenario has no step with `contains(inputs.scenarios, '"<NAME>"')`, or a removed or renamed scenario keeps a stale step.
+- Not when: The change targets the `DEFAULT` scenario. Its workflow step already exists, so it does not require a new named step.
+- ✅ Add, remove, or rename the workflow step in the same PR as the scenario.
+- ❌ Add a named scenario without its workflow step, even when its scenario groups are otherwise valid.
 - Ref: [End-to-end testing rules](../end-to-end-testing.md)
