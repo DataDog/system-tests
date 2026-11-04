@@ -76,11 +76,32 @@ Based on the step 1 results, identify the change that introduced the error. Chec
 - **library version changed** → look at the tracer repository commits between both versions (`DataDog/dd-trace-<lang>`). Remember that this is unlikely (see above)
 - **nothing changed** → either the test is flaky (mix of pass and fail on the same versions), or a weblog dependency that is not pinned has been updated (look at the weblog Dockerfile and dependency files)
 
+Before going to step 3 or 4, confirm with the user the scope, and your next steps.
+
 ## Step 3: Try to propose a fix
 
 If you have enough confidence about the root cause and how we should fix it, propose to the user to create a PR to fix the issue (see [Confirmation](#confirmation)). If the user refuses, go to step 4.
 
-## Step 4: JIRA ticket
+## Step 4: Skip PR
+
+Because JIRA tickets can't be amended or commented once created, the order is: skip PR first (with a placeholder ticket), then the ticket (with the PR link), then a commit replacing the placeholder.
+
+First, find the JIRA project (see [Find the JIRA project](#find-the-jira-project)) and check for an existing ticket (see [Avoid duplicates](#avoid-duplicates)).
+
+Follow [test-activation.md](test-activation.md). In particular:
+
+- Use manifests, except where [test-activation.md](test-activation.md) requires a decorator (e.g. a scenario-specific skip)
+- use `bug (<JIRA-KEY>)` for a regression, `flaky (<JIRA-KEY>)` for an intermittent failure. `bug` still runs the test as xfail (a fix is detected as xpass), `flaky` does not run it at all
+- if an existing ticket is reused, use its key. Otherwise, use the placeholder `<PROJECT>-TBD` (e.g. `APPSEC-TBD`): the manifest validation requires a value matching a JIRA key
+- scope the skip to what step 1 found: only the failing weblog(s) (`weblog_declaration`), only from the failing version (`component_version`), only the failing method rather than the whole class
+- run `./format.sh` after modifying a manifest
+- always open the PR as a draft (this also applies to the fix PR from step 3)
+
+If an existing ticket is reused, stop here: steps 5 and 6 are not needed.
+
+---
+
+## Step 5: JIRA ticket
 
 ### Find the JIRA project
 
@@ -103,18 +124,15 @@ If the project can't be determined, ask the user.
 
 ### JIRA tools
 
-Create and update tickets yourself, with the Atlassian MCP server (`datadoghq.atlassian.net`):
+Create tickets yourself.
 
-- `mcp__atlassian__getAccessibleAtlassianResources`: get the `cloudId` required by the other tools, and check the server is connected
-- `mcp__atlassian__searchJiraIssuesUsingJql`: search existing tickets
-- `mcp__atlassian__createJiraIssue`: create the ticket
-- `mcp__atlassian__addCommentToJiraIssue`: add new data, or the skip PR link, to a ticket
+A ticket can't be amended or commented once created: it must be complete at creation.
 
 If the Atlassian MCP server is not available or not authenticated, stop and tell the user, instead of falling back to another method.
 
 ### Avoid duplicates
 
-Before proposing a new ticket, search JIRA for an open ticket mentioning the test class or method name (e.g. JQL `project = <PROJECT> AND statusCategory != Done AND text ~ "<Class>"`). If one exists, propose to reuse it (and add a comment with the new data) instead of creating a new one.
+Before proposing a new ticket, search JIRA for an open ticket mentioning the test class or method name (e.g. JQL `project = <PROJECT> AND statusCategory != Done AND text ~ "<Class>"`). If one exists, propose to reuse it instead of creating a new one.
 
 ### Ticket content
 
@@ -127,27 +145,20 @@ Before proposing a new ticket, search JIRA for an open ticket mentioning the tes
   - Recurrence: fail/pass counts over the analysed period
   - Suspected cause: what changed between last pass and first failure, and confidence level
   - Error: the relevant part of `@error.message`
-  - Links: failing CI run(s), Test Optimization query
-  - Link to the system-tests PR that skips the test: the ticket is created before this PR, so add the link as a ticket comment once the PR from step 6 is open
+  - Links: failing CI run(s), Test Optimization query, and the skip PR from step 4
 - **Labels:** `system-tests`
 
 ---
 
-## Step 5: Ping the team
+## Step 6: Update the skip PR
 
-For now, the system-tests team takes care of this part. Do not ping anyone.
+Add a commit to the skip PR replacing the `<PROJECT>-0` placeholder with the created ticket key, run `./format.sh`, push, and add the ticket link to the PR description.
 
 ---
 
-## Step 6: Skip PR
+## Ping the team
 
-Follow [test-activation.md](test-activation.md). In particular:
-
-- Use manifests, except where [test-activation.md](test-activation.md) requires a decorator (e.g. a scenario-specific skip)
-- use `bug (<JIRA-KEY>)` for a regression, `flaky (<JIRA-KEY>)` for an intermittent failure. `bug` still runs the test as xfail (a fix is detected as xpass), `flaky` does not run it at all
-- scope the skip to what step 1 found: only the failing weblog(s) (`weblog_declaration`), only from the failing version (`component_version`), only the failing method rather than the whole class
-- run `./format.sh` after modifying a manifest
-- always open the PR as a draft (this also applies to the fix PR from step 3)
+For now, the system-tests team takes care of this part. Do not ping anyone.
 
 ---
 
@@ -160,12 +171,12 @@ After the steps 1–2 analysis (and **before** creating anything), post a summar
 **Scope:** <scenario> / <weblog(s)> / <library> <versions>
 **Since:** <date> (last pass: <date>, <run url>)
 **Recurrence:** <n> failures / <m> runs in the last <d> days
-**Suspected cause:** <regression in library X.Y.Z | flaky | system-tests change | infra> (<confidence>)
+**Suspected cause:** <regression in library X.Y.Z | flaky | system-tests change | weblog dependency | agent> (<confidence>)
 
 **Proposed actions:**
 1. Fix: <PR description> | none
-2. JIRA: create in <PROJECT> | reuse <KEY>
-3. Skip: `<manifest entry or decorator>` in `<file>`
+2. Skip: `<manifest entry or decorator>` in `<file>`
+3. JIRA: create in <PROJECT> | reuse <KEY>
 ```
 
-The user may amend any part. Only then create the fix PR, or the ticket and the skip PR.
+The user may amend any part. Only then create the fix PR, or the skip PR, the ticket, and the commit with the ticket key.
