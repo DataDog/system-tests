@@ -80,10 +80,8 @@ patterns:
         scenario_groups: null
     .claude/*:
         scenario_groups: null
-        libraries: null
     .cursor/*:
         scenario_groups: null
-        libraries: null
     .circleci/*:
         scenario_groups: null
     .vscode/*:

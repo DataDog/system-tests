@@ -464,6 +464,8 @@ class Test_ComputeLibrariesAndScenarios:
     def test_agent_tooling_files(self):
         for file in (
             ".agents/config.json",
+            ".claude/settings.json",
+            ".cursor/mcp.json",
             ".promptfoo/tests_overview.yaml",
             "format.sh",
             "utils/scripts/check_agent_instructions.py",
@@ -474,20 +476,6 @@ class Test_ComputeLibrariesAndScenarios:
                 inputs,
                 default_libs_with_prod,
                 default_libs_with_dev,
-                3600,
-                "false",
-                "DEFAULT",
-                "",
-            )
-
-    def test_agent_specific_configuration_files(self):
-        for file in (".claude/settings.json", ".cursor/mcp.json"):
-            inputs = build_inputs([file])
-
-            assert_github_processor(
-                inputs,
-                [],
-                [],
                 3600,
                 "false",
                 "DEFAULT",
