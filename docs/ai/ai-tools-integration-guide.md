@@ -20,7 +20,7 @@
 
 The `system-tests` repository includes built-in AI integration capabilities designed to enhance developer productivity when implementing new tests, troubleshooting issues, and working with complex testing scenarios. These tools leverage comprehensive context about the repository structure, testing patterns, and best practices to provide intelligent assistance.
 
-Knowledge of AI tools is drawn from the project's documentation (found in the docs directory), the source code itself, and predefined rules and instructions (.cursor/rules). Users are strongly encouraged to actively participate in continuous improvement efforts and contribute new capabilities to enhance the AI tools' functionality and effectiveness.
+Knowledge of AI tools is drawn from the project's documentation (found in the docs directory), the source code itself, and the shared rules under `.agents/rules/`. The root `AGENTS.md` file is the portable entry point that routes coding agents to those rules. Users are strongly encouraged to actively participate in continuous improvement efforts and contribute new capabilities to enhance the AI tools' functionality and effectiveness.
 
 The default and recommended AI tool for developing with system-tests is Cursor AI. Additionally, **Claude CLI** and other AI coding agents are fully supported through dedicated configuration files. Using alternative tools is encouraged.
 
@@ -28,31 +28,13 @@ The default and recommended AI tool for developing with system-tests is Cursor A
 
 ### Github Copilot support
 
-The predefined rules within the `system-tests` repository are optimized specifically for **Cursor AI**, but you can effortlessly adapt them for **GitHub Copilot** using Copilot itself.
+GitHub Copilot agent features support the repository's root `AGENTS.md`. No generated `.github/copilot-instructions.md` copy is required: Copilot reads the shared entry point and follows its links to `.agents/rules/`.
 
-To adapt rules for GitHub Copilot:
-
-1. Activate Copilot's **Agent Mode**.
-2. Open the Copilot chat and input the following instruction:
-
-   ```
-   Parse all files within the .cursor/rules directory, combine their contents into a single new file at .github/copilot-instructions.md, and remove any occurrences of the text:
-    ---
-    description:
-    globs:
-    alwaysApply:
-    ---
-   ```
-
-**Important Reminders:**
-
-* Do not commit the `.github/copilot-instructions.md` file.
-* To add new rules or instructions, always use Cursor AI’s standard rule files located at ".cursor/rules"
-* If you introduce new instructions or modify existing documentation, always include new tests. These tests are essential for validating the impact and effectiveness of your changes on the AI assistant’s functionality. Please refer to section [Prompt validation](ai-tools-prompt-validation.md) to know about the ai prompt validations.
+To add a rule for all supported coding agents, add the Markdown rule under `.agents/rules/` and register it in `AGENTS.md`. If you introduce new instructions or modify existing documentation, include tests that validate the assistant behavior. See [Prompt validation](ai-tools-prompt-validation.md).
 
 ### Cursor
 
-Cursor AI is the default IDE and automatically integrates the predefined rules located in the .cursor/rules directory. No additional setup is required—the rules will load automatically.
+Cursor AI is the default IDE. It automatically loads the root `AGENTS.md`, which requires the agent to read the applicable shared rules under `.agents/rules/`. No additional setup is required.
 
 Cursor allows you to add specialized rules tailored for very specific tasks. These rules aren't loaded by default into the AI context but can easily be activated by mentioning them explicitly in the chat, enabling precise and focused interactions.
 
@@ -64,7 +46,7 @@ These are manual rules you need to explicitly mention to activate them:
   - Comprehensive guidelines for implementing Java weblog endpoints across different frameworks
   - Covers Spring Boot, Vert.x 3/4, Jersey, Play, Ratpack, Akka-HTTP, RESTEasy
   - Includes build validation, dependency preservation, and framework-specific patterns
-  - **How to activate**: Mention "java-endpoint-prompt.mdc" in your request
+  - **How to activate**: Ask the agent to apply `.agents/rules/java-endpoint-prompt.md`
   - **Additional documentation**: [Java Endpoint Implementation Guide](ai-prompt-java-endpoint-prompt.md)
 
 Feel free to create and contribute as many specialized rules as you need—your teammates will greatly appreciate your efforts!
@@ -100,14 +82,17 @@ The system-tests repository provides native support for **Claude CLI** (Anthropi
 
 ```
 .claude/
-├── CLAUDE.md           # Claude-specific instructions and rules pointer
 ├── settings.json       # Claude CLI settings (permissions, environment, MCP enablement)
 └── settings.local.json # Local settings (personal overrides, not committed)
 
+.agents/rules/          # Shared agent rules referenced by AGENTS.md
+AGENTS.md               # Portable shared-rule entry point
+CLAUDE.md               # Claude-specific import of AGENTS.md
 .mcp.json               # MCP server configuration (shared across AI tools)
 ```
 
-* **`.claude/CLAUDE.md`**: Contains Claude-specific instructions and points to the shared rules in `.cursor/rules/`
+* **`CLAUDE.md`**: Imports the portable `AGENTS.md` entry point for Claude Code
+* **`AGENTS.md`**: Lists the shared rules in `.agents/rules/` and defines when they apply
 * **`.claude/settings.json`**: Configures Claude CLI behavior, including default permission mode, environment variables, MCP server enablement (e.g., the Datadog MCP server), and the [`ddoghq/claude-marketplace`](https://github.com/ddoghq/claude-marketplace) plugins which provide Datadog-specific `dd:*` skills (CI debugging, PR feedback, Jira automation, and more)
 * **`.claude/settings.local.json`**: Personal overrides for local development (not shared via git)
 * **`.mcp.json`**: Defines MCP server connections at the repository root. Claude CLI automatically discovers this file and makes the configured servers available. Currently includes the Datadog MCP server for CI Visibility integration
@@ -123,7 +108,7 @@ The system-tests repository provides native support for **Claude CLI** (Anthropi
    claude
    ```
 
-   Claude CLI automatically reads the `.claude/CLAUDE.md` file and follows the shared rules defined in `.cursor/rules/`.
+   Claude CLI automatically reads `CLAUDE.md`, imports `AGENTS.md`, and follows the applicable shared rules defined in `.agents/rules/`.
 
 3. **For non-interactive usage** (e.g., scripts or automation):
 
@@ -200,7 +185,7 @@ For compatibility with other AI coding agents (such as Aider, Windsurf, Cline, e
 
 The `AGENTS.md` file serves as a **unified entry point for AI coding agents** that follow the AGENTS.md convention. It:
 
-* Points to the shared rules in `.cursor/rules/` directory
+* Points to the shared rules in `.agents/rules/`
 * Lists all "always applied" rules that agents must follow
 * Identifies "manual" rules that require explicit activation
 * Provides a quick reference for project context

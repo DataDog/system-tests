@@ -1,8 +1,3 @@
----
-description: 
-globs: 
-alwaysApply: true
----
 # Code format
 
 * All shell/bash scripts must be compatible with shellcheck. All shell/bash scripts you create or modify must pass shellcheck without errors or warnings.
@@ -11,5 +6,5 @@ alwaysApply: true
   * If a pytest API is missing, first decide whether it belongs in the facade. Add only the narrow, reviewed API to `utils/pytest.py`; do not bypass the facade.
   * Do not expose `pytest.mark.skip_if_xfail`. Use the semantic `slow` or `scenario_crash` decorators from `utils`, together with a manifest declaration, as described in the test activation rules.
   * Run `lint-imports` (also included in `./format.sh`) to verify this policy.
-* Always run [format](mdc:format.sh) before committing changes to ensure code follows the project's style guidelines,  including proper Path usage instead of os.path, no unused variables, complete type annotations, and efficient code patterns that satisfy mypy and ruff checks. if the format.sh script fails, try to fix the format mistakes.
+* Always run [format](../../format.sh) before committing changes to ensure code follows the project's style guidelines,  including proper Path usage instead of os.path, no unused variables, complete type annotations, and efficient code patterns that satisfy mypy and ruff checks. if the format.sh script fails, try to fix the format mistakes.
 * All YAML files you create or modify must pass both yamllint and yamlfmt checks before being committed.
