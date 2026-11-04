@@ -1,33 +1,28 @@
----
-description: Rules for reviewing Pull Requests in system-tests
-globs: 
-alwaysApply: false
----
 # PR Review Guidelines
 
 ## 1. Manifests Over Decorators
 
 If a PR adds `@missing_feature`, `@bug`, `@irrelevant`, or `@flaky` decorators whose condition depends **only** on library name, library version, or weblog variant, flag it: the manifest file should be used instead.
 
-- Ref: [manifest.md](mdc:docs/edit/manifest.md), [skip-tests.md](mdc:docs/edit/skip-tests.md)
+- Ref: [manifest.md](../../docs/edit/manifest.md), [skip-tests.md](../../docs/edit/skip-tests.md)
 
 ## 2. No Runtime Library Branching in Test Logic
 
 Tests must not use `if context.library == "python"` (or similar) to run different logic per language. Instead, create separate test methods and use manifests to activate the relevant one per library.
 
-- Ref: [manifest.md](mdc:docs/edit/manifest.md)
+- Ref: [manifest.md](../../docs/edit/manifest.md)
 
 ## 3. Manifest Version Prefix
 
 Versions in manifest files must use the `v` prefix for "this version and above" semantics (e.g., `v1.2.0`). A bare `1.2.0` means **exactly** that version only. Flag bare versions and ask if `v` prefix was intended.
 
-- Ref: [manifest.md](mdc:docs/edit/manifest.md)
+- Ref: [manifest.md](../../docs/edit/manifest.md)
 
 ## 4. Setup Methods Must Not Fail
 
 `setup_*` methods must never contain assertions, raise exceptions, or call code that can fail. They exist only for observability (trigger trace generation). If one fails, the entire scenario stops. Assertions belong in `test_*` methods.
 
-- Ref: [add-new-test.md](mdc:docs/edit/add-new-test.md), [test-flow.md](mdc:docs/understand/test-flow.md)
+- Ref: [add-new-test.md](../../docs/edit/add-new-test.md), [test-flow.md](../../docs/understand/test-flow.md)
 
 ## 5. Use Scenario-Level Timeouts, Not Test-Level Sleeps
 
@@ -37,32 +32,32 @@ Do not add `time.sleep()` or explicit waits inside `setup_` method in end-to-end
 
 Env vars that modify tracer/agent behavior should be set at the scenario level (`weblog_env`, `agent_env`), not in weblog Dockerfiles. Setting them in Dockerfiles affects all scenarios, not just the intended one.
 
-- Ref: [scenarios](mdc:utils/_context/_scenarios/__init__.py)
+- Ref: [scenarios](../../utils/_context/_scenarios/__init__.py)
 
 ## 7. Use Existing Utilities
 
 Do not redefine constants, enums, or helpers that already exist in `utils/`. In particular:
 
 - Constants/enums: check `utils/dd_constants.py` and `utils/_features.py`
-- Logger: use `from utils._logger import logger` — see [Using logger](mdc:docs/edit/README.md)
+- Logger: use `from utils._logger import logger` — see [Using logger](../../docs/edit/README.md)
 
 ## 8. Removed or Skipped Tests Need Manifest Entries
 
 When a test is removed or permanently skipped for a language, add an `irrelevant` entry in the corresponding manifest file. Otherwise, downstream processes (easy-win) will incorrectly assume the test passes.
 
-- Ref: [manifest.md](mdc:docs/edit/manifest.md)
+- Ref: [manifest.md](../../docs/edit/manifest.md)
 
 ## 9. Unique Weblog Names
 
 When adding a new weblog, verify the name is unique across all languages. Search existing weblogs under `utils/build/docker/` before using a name.
 
-- Ref: [build.md](mdc:docs/execute/build.md)
+- Ref: [build.md](../../docs/execute/build.md)
 
 ## 10. No Cross-Test-File Imports
 
 A `test_*.py` file must never import from another `test_*.py` file. If logic is shared between test files, it must be moved to a non-test utility module instead. Flag any PR that adds a cross-test import or a new exception to `.importlinter`.
 
-- Ref: [repository-structure.mdc](mdc:.cursor/rules/repository-structure.mdc), enforced by the `Test files do not import other test files` Import Linter contract
+- Ref: [repository-structure.md](repository-structure.md), enforced by the `Test files do not import other test files` Import Linter contract
 
 ## 11. Manifest YAML Syntax
 
@@ -70,6 +65,6 @@ A `test_*.py` file must never import from another `test_*.py` file. If logic is 
 - Values with special YAML characters (`>`, `<`, `:`, `#`) must be quoted
 - Entries should be sorted alphabetically within each manifest file
 
-## 11. Deactivating scenarios in weblog_metadata files
+## 12. Deactivating scenarios in weblog_metadata files
 
 Deactivating scenarios in weblog_metadata files is rare and should only be done when it aims at deactivating a test or group of tests that runs on multiple scenarios for only one scenario.
