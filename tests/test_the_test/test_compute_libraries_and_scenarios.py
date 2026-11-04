@@ -461,6 +461,27 @@ class Test_ComputeLibrariesAndScenarios:
             "",
         )
 
+    def test_agent_tooling_files(self):
+        for file in (
+            ".agents/config.json",
+            ".claude/settings.json",
+            ".cursor/mcp.json",
+            ".promptfoo/tests_overview.yaml",
+            "format.sh",
+            "utils/scripts/check_agent_instructions.py",
+        ):
+            inputs = build_inputs([file])
+
+            assert_github_processor(
+                inputs,
+                default_libs_with_prod,
+                default_libs_with_dev,
+                3600,
+                "false",
+                "DEFAULT",
+                "",
+            )
+
     def test_nix_workflow(self):
         inputs = build_inputs([".github/workflows/nix.yml"])
 
@@ -642,7 +663,7 @@ class Test_ComputeLibrariesAndScenarios:
             "utils/mocked_backend/_client.py",
             "utils/mocked_backend/_request_handler.py",
             "utils/mocked_backend/_utils.py",
-            "utils/mocked_backend/tls/mocked-backend.pem",
+            "utils/mocked_backend/_tls.py",
         ],
     )
     def test_generic_mocked_backend_file(self, file: str):

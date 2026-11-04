@@ -66,7 +66,7 @@ def _copy_entry(source: Path, destination: Path) -> None:
 
 
 def _copy_fixture_snapshot(source: Path, snapshot: Path) -> None:
-    # Import only the evaluator corpus and selection vectors consumed by this suite.
+    # Import rules-based evaluator corpora and selection vectors, not precomputed assignments.
     for name in ("ufc-config.json", "evaluation-cases"):
         _copy_entry(source / name, snapshot / name)
     if (source / SELECTION_VECTORS_PATH.parent).is_symlink():
@@ -74,10 +74,12 @@ def _copy_fixture_snapshot(source: Path, snapshot: Path) -> None:
         raise ValueError(msg)
     _copy_entry(source / SELECTION_VECTORS_PATH, snapshot / SELECTION_VECTORS_PATH)
 
+    feature_suites = source / "evaluation-suites"
+    if feature_suites.exists() or feature_suites.is_symlink():
+        _copy_entry(feature_suites, snapshot / feature_suites.name)
 
-def _validate_fixture_snapshot(snapshot: Path) -> int:
-    config_path = snapshot / "ufc-config.json"
-    cases_directory = snapshot / "evaluation-cases"
+
+def _validate_evaluation_suite(config_path: Path, cases_directory: Path) -> int:
     if not config_path.is_file() or not cases_directory.is_dir():
         msg = "FFE fixture repository does not contain the expected fixture layout"
         raise ValueError(msg)
@@ -96,7 +98,7 @@ def _validate_fixture_snapshot(snapshot: Path) -> int:
         msg = "No FFE JSON fixture files found"
         raise ValueError(msg)
 
-    fixture_count = 0
+    case_count = 0
     for case_file in case_files:
         with case_file.open(encoding="utf-8") as fixture_file:
             test_cases = json.load(fixture_file)
@@ -106,11 +108,35 @@ def _validate_fixture_snapshot(snapshot: Path) -> int:
         if not test_cases:
             msg = f"{case_file} must contain at least one evaluation case"
             raise ValueError(msg)
-        fixture_count += len(test_cases)
+        case_count += len(test_cases)
 
-    if fixture_count == 0:
-        msg = "No FFE fixture test cases found"
+    return case_count
+
+
+def _validate_fixture_snapshot(snapshot: Path) -> int:
+    fixture_count = _validate_evaluation_suite(snapshot / "ufc-config.json", snapshot / "evaluation-cases")
+
+    suites_directory = snapshot / "evaluation-suites"
+    if not suites_directory.exists():
+        return fixture_count
+    if not suites_directory.is_dir() or suites_directory.is_symlink():
+        msg = "FFE evaluation-suites must be a directory"
         raise ValueError(msg)
+    suite_directories = sorted(suites_directory.iterdir())
+    if not suite_directories:
+        msg = "FFE evaluation-suites must contain at least one feature suite"
+        raise ValueError(msg)
+    for suite_directory in suite_directories:
+        if not suite_directory.is_dir() or suite_directory.is_symlink():
+            msg = "FFE evaluation-suites must contain only suite directories"
+            raise ValueError(msg)
+        if {entry.name for entry in suite_directory.iterdir()} != {"ufc-config.json", "cases"}:
+            msg = f"FFE feature suite {suite_directory.name} must contain only ufc-config.json and cases"
+            raise ValueError(msg)
+        fixture_count += _validate_evaluation_suite(
+            suite_directory / "ufc-config.json",
+            suite_directory / "cases",
+        )
 
     return fixture_count
 

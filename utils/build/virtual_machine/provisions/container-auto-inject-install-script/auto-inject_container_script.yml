@@ -32,3 +32,13 @@
     DD_APM_INSTRUMENTATION_ENABLED=docker DD_APM_INSTRUMENTATION_STRICT=docker bash execute_install_script.sh
     sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
     sudo cp debug_config.yaml /etc/datadog-agent/inject/debug_config.yaml
+
+    if [ -n "${DD_AGENT_BACKEND_URL}" ]; then
+        # Point the agent to the mocked backend. The SSH reverse tunnel to it only listens on the VM loopback, so
+        # the agent container must use the host network. Compose override used by the weblog scripts starting
+        # the agent
+        printf 'services:\n  datadog:\n    network_mode: host\n    environment:\n      - DD_DD_URL=%s\n      - DD_APM_DD_URL=%s\n      - DD_APM_PROFILING_DD_URL=%s/api/v2/profile\n' \
+            "${DD_AGENT_BACKEND_URL}" "${DD_AGENT_BACKEND_URL}" "${DD_AGENT_BACKEND_URL}" \
+            > docker-compose-agent-mocked-backend.yml \
+            || echo "Warning: Could not point the agent to the mocked backend"
+    fi

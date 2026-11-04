@@ -9,7 +9,6 @@ from urllib.parse import parse_qs, urlsplit
 from utils import features, pytest, scenarios, slow
 from utils.docker_fixtures import ParametricTestClientApi as APMLibrary
 from utils.mocked_backend import MockedBackendServer
-from utils.mocked_backend._request_handler import MockedBackendRequestHandler
 from utils.mocked_backend.ffe import RULES_CONFIG_PATH, RESPONSE_SECRET, load_rules_wire_fixture
 
 WIRE_FIXTURE = load_rules_wire_fixture()
@@ -276,38 +275,32 @@ class Test_FFE_Rules_Configuration_Selection:
     def test_server_ignored_selection_diagnostics(
         self, test_library: APMLibrary, mocked_backend: MockedBackendServer
     ) -> None:
-        requests: list[str] = []
-        ignored_reason = ""
-        body = base64.b64decode(WIRE_FIXTURE["rules"]["response"])
-
-        def handle_rules(request: MockedBackendRequestHandler, _: bytes | dict | None) -> tuple[bytes, bytes]:
-            requests.append(request.path)
-            request.send_response(200)
-            request.send_header("Content-Type", "application/protobuf")
-            request.send_header("ETag", WIRE_FIXTURE["rules"]["etag"])
-            request.send_header("DD-Flag-Selection-Ignored", ignored_reason)
-            return body, body
-
-        for channel in ("client", "server"):
-            mocked_backend.add_handler("GET", f"{RULES_CONFIG_PATH}/{channel}", handle_rules)
-
         with test_library:
             for channel, credential in (("client", {"clientToken": CLIENT_TOKEN}), ("server", {"apiKey": API_KEY})):
+                mocked_backend.client.ffe_set_response("valid", response_format="protobuf")
                 options = {"distributionChannel": channel, "env": "test env", **credential}
                 baseline = test_library.ffe_fetch_rules_configuration(options)
                 original = json.loads(baseline["wire"])
                 assert baseline["diagnostics"] == [], (channel, baseline)
-                for ignored_reason in ("", "tag_load_failed", "future_reason"):
-                    request_count = len(requests)
+                for response, ignored_reason in (
+                    ("selection_ignored_empty", ""),
+                    ("selection_ignored_tag_load_failed", "tag_load_failed"),
+                    ("selection_ignored_unknown", "future_reason"),
+                ):
+                    mocked_backend.client.ffe_set_response(response, response_format="protobuf")
+                    request_count = len(mocked_backend.ffe_get_requests())
                     result = test_library.ffe_fetch_rules_configuration(
                         {**options, "flagSelection": {"keyPatterns": ["non-matching-*"]}}
                     )
                     assert "error" not in result, (channel, ignored_reason, result)
-                    assert len(requests) == request_count + 1, (channel, ignored_reason, requests)
-                    assert parse_qs(urlsplit(requests[-1]).query, keep_blank_values=True) == {
+                    requests = mocked_backend.ffe_get_requests()[request_count:]
+                    assert len(requests) == 1, (channel, ignored_reason, requests)
+                    url = urlsplit(requests[0]["path"])
+                    assert url.path == f"{RULES_CONFIG_PATH}/{channel}", (channel, ignored_reason)
+                    assert parse_qs(url.query, keep_blank_values=True) == {
                         "dd_env": ["test env"],
                         "selected_flag_key_patterns": ["non-matching-*"],
-                    }, (channel, ignored_reason, requests[-1])
+                    }, (channel, ignored_reason, requests[0])
                     wire = json.loads(result["wire"])
                     assert wire["version"] == original["version"], channel
                     assert wire["rules"]["response"] == original["rules"]["response"], channel

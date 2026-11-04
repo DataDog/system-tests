@@ -25,6 +25,12 @@ RUN dotnet publish --no-restore -c Release -f net8.0 -o out \
 
 #########
 
+# reads the version of an assembly, like the weblog healthcheck does for Datadog.Trace
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-version-tool
+WORKDIR /src
+COPY utils/build/docker/dotnet/GetAssemblyVersion ./
+RUN dotnet publish -c Release -o /out
+
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 
@@ -57,6 +63,10 @@ ENV DOTNET_ThreadPool_ForceMinIOCompletionThreads=32
 
 # copy the dotnet app (built above)
 COPY --from=build-app /app/out .
+
+# read by build.sh, to label the image with it: the version of the installed Datadog.Trace, that the healthcheck loads
+COPY --from=build-version-tool /out /opt/system-tests-version-tool
+RUN dotnet /opt/system-tests-version-tool/GetAssemblyVersion.dll /opt/datadog/net6.0/Datadog.Trace.dll > /binaries/SYSTEM_TESTS_LIBRARY_VERSION
 
 COPY utils/build/docker/dotnet/weblog/app.sh app.sh
 CMD [ "./app.sh" ]

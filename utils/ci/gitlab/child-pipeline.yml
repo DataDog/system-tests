@@ -24,7 +24,7 @@ setup:
   extends: .system_tests_base
   tags: ["arch:amd64"]
   script:
-    - datadog-ci tag --level pipeline --tags "system-tests:true"
+    - datadog-ci tag --level pipeline --tags "system-tests:true" || true
 
 .push_to_test_optimization:
   after_script:

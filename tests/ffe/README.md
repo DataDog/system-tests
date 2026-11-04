@@ -369,7 +369,7 @@ cat logs_feature_flagging_and_experimentation/docker/weblog/stderr.log
 ```
 
 ### Check Agent Metrics
-The tests use `interfaces.agent.get_metrics()` to retrieve metrics from the agent.
+The tests use `interfaces.mocked_backend.get_metrics()` to retrieve the metrics the agent sends to the mocked backend.
 
 ### Run Single Test
 ```bash

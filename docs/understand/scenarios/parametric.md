@@ -228,6 +228,8 @@ The shared `mocked_backend` fixture serves these protobuf responses. Import shar
 
 Use `mocked_backend.client.ffe_set_response` or `mocked_backend.client.ffe_set_responses` with `response_format="protobuf"` to configure these responses; the default format is JSON. Each format has an independent response timeline, and controls reject response IDs unsupported by the selected format. `mocked_backend.client.ffe_reset` resets both timelines and the shared request history. Use `mocked_backend.ffe_get_requests` to inspect paths, queries, and headers without including fixture control traffic.
 
+The protobuf response IDs `selection_ignored_empty`, `selection_ignored_tag_load_failed`, and `selection_ignored_unknown` return the full rules fixture with a `DD-Flag-Selection-Ignored` header set to an empty string, `tag_load_failed`, or `future_reason`, respectively. Use these shared responses to test selection diagnostics without replacing the rules endpoint handler. The `valid` response omits the header.
+
 #### Effective OpenTelemetry configuration
 
 Use `test_library.otel_effective_config()` to inspect resolved OTLP exporter timeouts.

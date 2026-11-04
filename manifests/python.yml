@@ -1977,7 +1977,7 @@ manifest:
       component_version: <3.0.0
   tests/cws:
     - weblog_declaration:
-        aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+        aiohttp: v4.16.1  # TODO: a lower version might be supported
   tests/cws/test_thread_context_sharing.py::Test_ThreadContextSharing: v4.16.0.dev0
   tests/debugger:
     - weblog_declaration:
@@ -2091,6 +2091,10 @@ manifest:
     - weblog_declaration:
         "*": missing_feature
         *flask : v3.15.0
+  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Probe_Removal:
+    - weblog_declaration:
+        "*": missing_feature
+        *flask : v4.4.0  # probes are removed when DI is disabled remotely since #16123
   tests/debugger/test_debugger_pii.py:
     - weblog_declaration:
         aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
@@ -2183,6 +2187,7 @@ manifest:
       component_version: 2.16.0
     - declaration: bug (DEBUG-3127)
       component_version: 2.16.1
+  tests/debugger/test_debugger_rc_unsubscribe.py::Test_Debugger_RC_Unsubscribe: missing_feature (DI config deletion does not restore local enablement)
   tests/debugger/test_debugger_snapshot_correlation.py::Test_Debugger_Coordinated_Sampling: missing_feature (no per-trace coordinated sampling; probabilistic per-trace rate not implemented)
   tests/debugger/test_debugger_snapshot_correlation.py::Test_Debugger_Coordinated_Sampling_Line_Probe: irrelevant (Line-probe variant is only used by Node.js)
   tests/debugger/test_debugger_symdb.py::Test_Debugger_SymDb:
@@ -2223,6 +2228,10 @@ manifest:
   tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry::test_telemetry_symdb:
     - weblog_declaration:
         aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/debugger/test_debugger_telemetry.py::Test_Debugger_Telemetry_Metrics:
+    - weblog_declaration:
+        "*": missing_feature
+        *flask : v4.17.0.dev
   tests/docker_ssi:
     - weblog_declaration:
         aiohttp: missing_feature (new weblog, tests are enabled with easy wins)

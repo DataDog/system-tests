@@ -26,7 +26,7 @@ from utils.base_images.base_image import base_image_contexts
 from utils._context.weblog_metadata import WeblogMetaData
 from utils.docker_fixtures._core import extra_hosts_for_environment
 from utils.proxy.tuf import get_tuf_root_json
-from utils.mocked_backend import MockedBackendClient
+from utils.mocked_backend import MOCKED_BACKEND_DOMAIN, MockedBackendClient, MockedBackendServer
 from utils.mocked_backend.ffe import UFC_FIXTURE_RELATIVE_PATH
 from utils.proxy.ports import ProxyPorts
 from utils.proxy.mocked_response import (
@@ -51,9 +51,6 @@ from utils.k8s_lib_injection.k8s_weblog import K8sWeblog
 from utils.interfaces._library.core import LibraryInterfaceValidator
 from utils.interfaces import StdoutLogsInterface, LibraryStdoutInterface
 
-# Domain of the mocked backend, also the DD_SITE of its senders: the intake hostnames derived from it are its network
-# aliases. The reserved .invalid domain fails closed if a request is sent anywhere else
-MOCKED_BACKEND_DOMAIN = "mocked-backend.invalid"
 
 _DEFAULT_NETWORK_NAME = "system-tests_default"
 _NETWORK_NAME = "bridge" if "GITLAB_CI" in os.environ else _DEFAULT_NETWORK_NAME
@@ -781,24 +778,9 @@ class MockedBackendContainer(TestedContainer):
     What it receives is recorded in the logs folder, and read by interfaces.mocked_backend.
     """
 
-    # With tls, it serves HTTPS instead of HTTP: for senders that only speak HTTPS to the intake hostnames derived
-    # from DD_SITE (e.g. an SDK sending exposures directly). Its certificate is signed by the mitmproxy CA: these
-    # senders must trust it. See utils/mocked_backend/tls/README.md
-    tls_hostnames = (
-        MOCKED_BACKEND_DOMAIN,
-        f"agent-http-intake.logs.{MOCKED_BACKEND_DOMAIN}",
-        f"api.{MOCKED_BACKEND_DOMAIN}",
-        f"app.{MOCKED_BACKEND_DOMAIN}",
-        f"config.{MOCKED_BACKEND_DOMAIN}",
-        f"debugger-intake.{MOCKED_BACKEND_DOMAIN}",
-        f"event-platform-intake.{MOCKED_BACKEND_DOMAIN}",
-        f"http-intake.logs.{MOCKED_BACKEND_DOMAIN}",
-        f"instrumentation-telemetry-intake.{MOCKED_BACKEND_DOMAIN}",
-        f"llmobs-intake.{MOCKED_BACKEND_DOMAIN}",
-        f"process.{MOCKED_BACKEND_DOMAIN}",
-        f"trace.agent.{MOCKED_BACKEND_DOMAIN}",
-    )
-    tls_cert_file = "utils/mocked_backend/tls/mocked-backend.pem"
+    # With tls, it serves HTTPS instead of HTTP, for MockedBackendServer.tls_hostnames: for senders that only speak
+    # HTTPS to the intake hostnames derived from DD_SITE (e.g. an SDK sending exposures directly). Its certificate is
+    # signed by the mitmproxy CA: these senders must trust it
     tls_ca_file = "utils/proxy/.mitmproxy/mitmproxy-ca-cert.pem"
 
     def __init__(self, *, tls: bool = False) -> None:
@@ -816,8 +798,8 @@ class MockedBackendContainer(TestedContainer):
             # a valid hostname: some HTTP clients reject an underscore
             name="mocked-backend",
             # Docker rejects aliases on the default bridge network, used on GitLab (see _NETWORK_NAME). If a tls
-            # scenario runs there, map tls_hostnames to this container with extra_hosts on the senders instead
-            network_aliases=list(self.tls_hostnames) if tls else None,
+            # scenario runs there, map these hostnames to this container with extra_hosts on the senders instead
+            network_aliases=list(MockedBackendServer.tls_hostnames) if tls else None,
             working_dir="/app",
             volumes={
                 # without utils/__init__.py: utils is a namespace package, and the rest of utils is not needed
@@ -850,7 +832,7 @@ class MockedBackendContainer(TestedContainer):
             log_folder,
         ]
         if self.tls:
-            self.command += ["--tls-cert-file", self.tls_cert_file]
+            self.command += ["--tls"]
 
         if self.internal_mocked_responses:
             # not in the recordings folder: interfaces.mocked_backend reads every JSON file there
@@ -931,7 +913,6 @@ class AgentContainer(TestedContainer):
         self,
         *,
         dd_api_key: str,
-        use_proxy: bool = True,
         rc_backend_enabled: bool = False,
         mocked_backend: bool = False,
         environment: dict[str, str | None] | None = None,
@@ -950,19 +931,11 @@ class AgentContainer(TestedContainer):
             }
         )
 
-        if use_proxy:
-            environment["DD_PROXY_HTTPS"] = f"http://proxy:{ProxyPorts.agent}"
-            environment["DD_PROXY_HTTP"] = f"http://proxy:{ProxyPorts.agent}"
-
-        # Configure backend mode via environment variables
-        # Agent uses HTTP_PROXY to reach backend, TUF roots validate RC responses
-        # We set RC_DD_URL to a fake hostname - HTTP_PROXY will intercept it on the agent port
+        # Remote config from the backend: the TUF roots validate the responses of the mocked backend
         if rc_backend_enabled:
             tuf_root_json = get_tuf_root_json()
             environment["DD_REMOTE_CONFIGURATION_ENABLED"] = "true"
             environment["DD_REMOTE_CONFIGURATION_REFRESH_INTERVAL"] = "5s"
-            if use_proxy:
-                environment["DD_REMOTE_CONFIGURATION_NO_TLS"] = "true"
             environment["DD_REMOTE_CONFIGURATION_CONFIG_ROOT"] = tuf_root_json
             environment["DD_REMOTE_CONFIGURATION_DIRECTOR_ROOT"] = tuf_root_json
 
@@ -1118,6 +1091,10 @@ def dockerfile_image_list(dockerfile: Path) -> list[str]:
 class WeblogContainer(TestedContainer):
     stdout_interface: LibraryStdoutInterface
 
+    # properties set during configure()
+    weblog_variant: str
+    _library: ComponentVersion
+
     def __init__(
         self,
         *,
@@ -1215,9 +1192,6 @@ class WeblogContainer(TestedContainer):
         self.tracer_sampling_rate = tracer_sampling_rate
         self.additional_trace_header_tags = additional_trace_header_tags
 
-        self.weblog_variant = ""
-        self._library: ComponentVersion | None = None
-
     def start(self, network: Network) -> Container:
         _add_environment_extra_hosts(self)
         return super().start(network)
@@ -1251,6 +1225,8 @@ class WeblogContainer(TestedContainer):
 
         self.volumes[f"./{self.host_log_folder}/docker/weblog/logs/"] = {"bind": "/var/log/system-tests", "mode": "rw"}
 
+        library = self.image.labels["system-tests-library"]
+        self._library = ComponentVersion(library, self.image.labels["system-tests-library-version"])
         self.weblog_variant = self.image.labels["system-tests-weblog-variant"]
 
         # Some weblogs like uwsgi-poc may have known connection issues, when cpu is under heavy load.
@@ -1259,8 +1235,6 @@ class WeblogContainer(TestedContainer):
             weblog.set_request_default_retry(5)
 
         self._set_aws_auth_environment()
-
-        library = self.image.labels["system-tests-library"]
 
         metadata = next((w for w in WeblogMetaData.load(library) if w.name == self.weblog_variant), None)
         if metadata is not None and metadata.request_timeout is not None:
@@ -1312,6 +1286,8 @@ class WeblogContainer(TestedContainer):
                         "bind": "/volumes/dd-trace-js",
                         "mode": "rw",
                     }
+                    package = json.loads((Path(path_str) / "package.json").read_text(encoding="utf-8"))
+                    self._library = ComponentVersion(library, package["version"])
             except Exception:
                 logger.info("No local dd-trace-js found")
 
@@ -1323,6 +1299,13 @@ class WeblogContainer(TestedContainer):
                     resolved_path = Path(source).resolve()
                     self.volumes[str(resolved_path)] = {"bind": "/volumes/dd-trace-py", "mode": "ro"}
                     self.environment["PYTHONPATH"] = f"{resolved_path!s}/ddtrace/bootstrap:/volumes/dd-trace-py"
+                    # set by `pip install -e .` in the checkout, it's what ddtrace.__version__ reports
+                    pkg_info = resolved_path / "ddtrace.egg-info" / "PKG-INFO"
+                    if pkg_info.exists():
+                        for line in pkg_info.read_text(encoding="utf-8").splitlines():
+                            if line.startswith("Version: "):
+                                self._library = ComponentVersion(library, line.removeprefix("Version: ").strip())
+                                break
             except FileNotFoundError:
                 logger.info("No local dd-trace-py found, do not mount any volume or set any python path")
 
@@ -1373,7 +1356,13 @@ class WeblogContainer(TestedContainer):
             data = json.load(f)
             lib = data["library"]
 
-        self._library = ComponentVersion(lib["name"], lib["version"])
+        reported_library = ComponentVersion(lib["name"], lib["version"])
+        if reported_library.name != self._library.name or reported_library.version != self._library.version:
+            pytest.exit(
+                f"The weblog runs {reported_library}, but its image was built with {self._library}",
+                1,
+            )
+        self._library = reported_library
 
         logger.stdout(f"Library: {self.library}")
 
@@ -1423,15 +1412,18 @@ class LambdaWeblogContainer(WeblogContainer):
     ):
         environment = (environment or {}) | {
             "DD_HOSTNAME": "test",
-            "DD_SITE": "datad0g.com",
+            # like the agent: every intake hostname is derived from it, and is an alias of the mocked backend
+            "DD_SITE": MOCKED_BACKEND_DOMAIN,
             "DD_API_KEY": dd_api_key,
             "DD_SERVERLESS_FLUSH_STRATEGY": "periodically,100",
+            # the extension only trusts its compiled-in roots: add the bundle mounted below, with the CA signing
+            # the mocked backend certificate
+            "DD_TLS_CERT_FILE": "/etc/ssl/certs/ca-certificates.crt",
             "DD_TRACE_MANAGED_SERVICES": str(trace_managed_services).lower(),
         }
 
         volumes = volumes or {}
 
-        environment["DD_PROXY_HTTPS"] = f"http://proxy:{ProxyPorts.agent}"
         environment["DD_LOG_LEVEL"] = "debug"
         volumes.update(
             {
