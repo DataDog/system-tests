@@ -339,8 +339,9 @@ proof that an unsupported build is safe. Python 4.16.0 is the explicit legacy
 baseline in the manifest; other legacy/native combinations can use `-F`.
 
 Enable the positive class in each SDK's manifest when its dependent-flag support
-ships, alongside the evaluation suite. Python's test targets the tested 4.17
-development line and must land with its SDK implementation. Other SDKs retain
-missing-feature declarations until their supporting native packages ship. For
-Ruby, verify the loaded native package as well as the SDK version. Do not infer
+ships, alongside the evaluation suite. All SDKs retain missing-feature declarations
+until a release containing dependent-flag support is confirmed. Python's
+implementation is tracked in [dd-trace-py #21346](https://github.com/DataDog/dd-trace-py/pull/21346);
+use the forced positive class to test that build before enabling a release threshold.
+For Ruby, verify the loaded native package as well as the SDK version. Do not infer
 expected support from whether the SDK happens to advertise bit 50.
