@@ -1719,9 +1719,13 @@ manifest:
   tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_logs_blrp: irrelevant (The logs batching sink has no export timeout setting)
   tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_otel_enabled:  # TODO: a lower version might be supported
     - declaration: missing_feature (Only effective signal-specific OTLP settings are reported)
+      component_version: <3.57.0
+      weblog: [poc, uds]
+    - declaration: missing_feature (Only effective signal-specific OTLP settings are reported)
       component_version: 3.57.0
       excluded_weblog: [poc, uds]
     - declaration: missing_feature (Only effective signal-specific OTLP settings are reported)
+      component_version: '>3.57.0'
       weblog: [poc, uds]
   tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_otlp_exporter: irrelevant (Only effective signal-specific OTLP settings are reported)
   tests/test_otel_tracestate_sampling.py::Test_EmitOtOnProbabilityDecision_Rate0_5: v3.54.0
