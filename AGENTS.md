@@ -30,10 +30,11 @@ These rules apply in EVERY interaction.
 
 13. **`.cursor/rules/java-endpoint-prompt.mdc`** - Java endpoint creation prompts
 14. **`.cursor/rules/promptfoo-llm.mdc`** - Promptfoo LLM testing guidelines
+15. **`.cursor/rules/test-failure-triage.mdc`** - Triage a failing test: recurrence analysis in Test Optimization, JIRA ticket, team ping, skip PR
 
 ## Pull request review guidelines
 
-15. **`.cursor/rules/pr-review.mdc`** - Pull Request review guidelines and checklist
+16. **`.cursor/rules/pr-review.mdc`** - Pull Request review guidelines and checklist
 
 ---
 

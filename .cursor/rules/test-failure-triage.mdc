@@ -1,0 +1,132 @@
+---
+description: Procedure to triage a failing system-tests test (recurrence analysis, JIRA ticket, team ping, skip PR)
+globs:
+alwaysApply: false
+---
+# Test Failure Triage
+
+> **DRAFT** — sections marked `TODO` must be completed by the system-tests team.
+
+Apply this rule when a user asks to triage a failing test (e.g. "triage this failure", "this test failed on the nightly, handle it").
+The input is usually a test name, a CI job URL, or a Test Optimization link.
+
+The procedure has four steps. **Never create a ticket or a PR without an explicit confirmation from the user** (see [Confirmation](#confirmation)).
+
+## Key Documentation
+
+- @.cursor/rules/test-activation.mdc: How to write the skip (manifest vs decorator)
+- @docs/edit/manifest.md: Manifest format
+- @docs/edit/skip-tests.md: Declarations and their behavior (`bug`, `flaky`, ...)
+- @.github/CODEOWNERS: Owner team of a test file
+
+---
+
+## Step 1: Gather recurrence data (Test Optimization)
+
+Use the Datadog MCP test tools (`search_datadog_test_events`, `aggregate_datadog_test_events`, `get_datadog_flaky_tests`).
+
+### Useful attributes
+
+| Attribute | Content |
+|-----------|---------|
+| `@test.service:system-tests` | Scopes to system-tests results |
+| `@test.name` | `tests.<path>.<Class>.<method>[<weblog>]` |
+| `@test.status` / `@test.final_status` | `pass`, `fail`, `skip` |
+| `@test.codeowners` | Owner team(s), e.g. `@DataDog/asm-libraries` |
+| `@test.is_known_flaky` | Test is already known as flaky in Test Optimization |
+| `@systest.suite.context.scenario` | Scenario name |
+| `@systest.suite.context.weblog_variant` | Weblog |
+| `@systest.suite.context.library.name` / `.version` | Tested library and version |
+| `@systest.suite.context.agent` | Agent version |
+| `@ci.pipeline.name` / `@ci.pipeline.url` | Pipeline (e.g. `Nightly`) and run URL |
+| `@git.branch` / `@git.commit.sha` | system-tests branch and commit |
+| `@error.message` | Assertion and stack trace |
+
+### Questions to answer
+
+Query at least the last 14 days (`from: now-14d`), on `@git.branch:main`, then answer:
+
+1. **Since when?** First failure date, and the last passing run before it.
+2. **How often?** Fail/pass ratio on the same (test, scenario, weblog, library) combination. A mix of pass and fail on the same versions suggests flakiness; a consistent failure suggests a regression.
+3. **Which scope?** Does it fail on one weblog or all of them? One scenario or all of them? One library version or from a given version onwards? Other tests of the same class/feature failing at the same time?
+4. **What changed?** Compare the library version, agent version and system-tests commit between the last pass and the first failure:
+   - library version changed → look at the tracer repository commits between both versions (`DataDog/dd-trace-<lang>`)
+   - system-tests commit changed → look at `git log` between both commits on the test, the weblog and `utils/`
+   - agent version changed → likely agent-side
+   - nothing changed → likely flaky or infrastructure
+5. **Same error?** Compare `@error.message` across failures, to tell whether it's one root cause or several.
+6. **Already known?** Check `@test.is_known_flaky`, existing manifest entries for this test, and existing JIRA tickets (see step 2).
+
+TODO: document team heuristics (e.g. threshold to consider a test flaky, failures to ignore because they are infrastructure issues, PR branches vs main).
+
+---
+
+## Step 2: JIRA ticket
+
+### Find the JIRA project
+
+The JIRA project is derived from the owner team (`@test.codeowners`, or @.github/CODEOWNERS for the test file).
+
+TODO: define where the team → JIRA project mapping lives (it's in the private `DataDog/ci-checks` repository, which can't be read from a system-tests session), and reference it here.
+
+If the project can't be determined, ask the user.
+
+### Avoid duplicates
+
+Before proposing a new ticket, search JIRA for an open ticket mentioning the test class or method name. If one exists, propose to reuse it (and add a comment with the new data) instead of creating a new one.
+
+### Ticket content
+
+- **Title:** `[system-tests] <Class>::<method> fails on <library> <scope>`
+- **Body:**
+  - Test: full test path (`tests/...py::Class::method`)
+  - Scope: scenario(s), weblog(s), library version(s), agent version
+  - Since: first failure date, last passing run
+  - Recurrence: fail/pass counts over the analysed period
+  - Suspected cause: what changed between last pass and first failure, and confidence level
+  - Error: the relevant part of `@error.message`
+  - Links: failing CI run(s), Test Optimization query
+
+TODO: issue type, labels, components, priority.
+
+---
+
+## Step 3: Ping the team
+
+TODO: define how to reach each team (Slack channel or handle), and where the mapping lives.
+
+The message must be short: test name, scope, ticket link, and a link to the skip PR once it exists.
+
+---
+
+## Step 4: Skip PR
+
+Follow @.cursor/rules/test-activation.mdc. In particular:
+
+- prefer manifests over decorators
+- use `bug (<JIRA-KEY>)` for a regression, `flaky (<JIRA-KEY>)` for an intermittent failure
+- scope the skip to what step 1 found: only the failing weblog(s) (`weblog_declaration`), only from the failing version (`component_version`), only the failing method rather than the whole class
+- run `./format.sh` after modifying a manifest
+
+TODO: define when to skip vs only ticket and wait (e.g. regression in a dev version only, failure on main only, etc.).
+
+---
+
+## Confirmation
+
+After steps 1–2 analysis (and **before** creating anything), post a summary and wait for an explicit "go" from the user:
+
+```
+**Test:** tests/...::Class::method
+**Scope:** <scenario> / <weblog(s)> / <library> <versions>
+**Since:** <date> (last pass: <date>, <run url>)
+**Recurrence:** <n> failures / <m> runs in the last <d> days
+**Suspected cause:** <regression in library X.Y.Z | flaky | system-tests change | infra> (<confidence>)
+
+**Proposed actions:**
+1. JIRA: create in <PROJECT> | reuse <KEY>
+2. Ping: <team / channel>
+3. Skip: `<manifest entry or decorator>` in `<file>`
+```
+
+The user may amend any part. Only then create the ticket, prepare the skip, and post the ping.
