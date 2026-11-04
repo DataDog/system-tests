@@ -37,7 +37,6 @@ Use the Datadog MCP test tools (`search_datadog_test_events`, `aggregate_datadog
 
 | Attribute | Content |
 |-----------|---------|
-| `@test.service:system-tests` | Scopes to system-tests results |
 | `@test.name` | `tests.<path>.<Class>.<method>[<weblog>]` |
 | `@test.status` / `@test.final_status` | `pass`, `fail`, `skip` |
 | `@test.codeowners` | Owner team(s), e.g. `@DataDog/asm-libraries` |
