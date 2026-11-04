@@ -69,6 +69,7 @@ manifest:
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRoute: irrelevant (not applicable to proxies)
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteMultiParamsInSegment: irrelevant (not applicable to proxies)
   tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteOptionalParams: irrelevant (not applicable to proxies)
+  tests/appsec/api_security_testing/test_normalized_route.py::Test_NormalizedRouteStaticTextInSegment: irrelevant (not applicable to proxies)
   tests/appsec/iast/sink/: irrelevant (ASM is not implemented in C++)
   tests/appsec/iast/source/: irrelevant (ASM is not implemented in C++)
   tests/appsec/iast/source/test_parameter_value.py::TestParameterValue::test_source_reported: irrelevant

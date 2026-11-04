@@ -33,4 +33,11 @@ public class ApiSecController : Controller
     {
         return Content("ok");
     }
+
+    [HttpGet]
+    [Route("api_security/static-text-in-segment/user-{id}")]
+    public IActionResult StaticTextInSegment(string id)
+    {
+        return Content("ok");
+    }
 }
