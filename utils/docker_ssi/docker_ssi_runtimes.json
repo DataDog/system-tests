@@ -104,6 +104,14 @@
       {
         "version_id": "PY312",
         "version": "3.12.7"
+      },
+      {
+        "version_id": "PY313",
+        "version": "3.13.18"
+      },
+      {
+        "version_id": "PY314",
+        "version": "3.14.10"
       }
     ],
     "php": [

@@ -82,6 +82,8 @@ class PythonRuntimeInstallableVersions:
     PY310 = RuntimeInstallableVersion("PY310", "3.10.15")
     PY311 = RuntimeInstallableVersion("PY311", "3.11.10")
     PY312 = RuntimeInstallableVersion("PY312", "3.12.7")
+    PY313 = RuntimeInstallableVersion("PY313", "3.13.18")
+    PY314 = RuntimeInstallableVersion("PY314", "3.14.10")
 
     @staticmethod
     def get_all_versions() -> list["RuntimeInstallableVersion"]:
@@ -93,6 +95,8 @@ class PythonRuntimeInstallableVersions:
             PythonRuntimeInstallableVersions.PY310,
             PythonRuntimeInstallableVersions.PY311,
             PythonRuntimeInstallableVersions.PY312,
+            PythonRuntimeInstallableVersions.PY313,
+            PythonRuntimeInstallableVersions.PY314,
         ]
 
     @staticmethod
