@@ -1,7 +1,7 @@
 ### LIFE-001: Setup Methods Must Not Fail
 - Severity: P0
 - Flag: `setup_*` methods must never contain assertions, raise exceptions. They exist only for observability (trigger trace generation). If one fails, the entire scenario stops. Assertions belong in `test_*` methods.
-- Ref: [Add a new test](../../edit/add-new-test.md), [Test flow](../../understand/test-flow.md)
+- Ref: [Add a new test](../../../docs/edit/add-new-test.md), [Test flow](../../../docs/understand/test-flow.md)
 
 ### LIFE-002: Avoid fixed sleeps and unbounded waits
 - Severity: P0
@@ -29,4 +29,4 @@
 - Not when: The test is parametric, or the wait verifies an infrastructure prerequisite required to execute later setup actions safely.
 - ✅ Store the response and wait result during setup, then assert and inspect the captured data in `test_*`.
 - ❌ Poll for traces in `test_*` after the containers have stopped, or assert expected trace contents from `setup_*`.
-- Ref: [End-to-end test flow](../../understand/test-flow.md#end-to-end-scenario), [Flushing default behavior](../../edit/flushing.md#default-behavior)
+- Ref: [End-to-end test flow](../../../docs/understand/test-flow.md#end-to-end-scenario), [Flushing default behavior](../../../docs/edit/flushing.md#default-behavior)

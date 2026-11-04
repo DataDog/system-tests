@@ -1,14 +1,14 @@
 ### META-001: Manifests Over Decorators
 - Severity: P0
 - Flag: If a PR adds `@missing_feature`, `@bug`, `@irrelevant`, or `@flaky` decorators whose condition depends **only** on library name, library version, or weblog variant, flag it: the manifest file should be used instead.
-- Ref: [Manifest](../../edit/manifest.md), [Skip tests](../../edit/skip-tests.md)
+- Ref: [Manifest](../../../docs/edit/manifest.md), [Skip tests](../../../docs/edit/skip-tests.md)
 
 ### META-002: Manifest Version Prefix
 - Severity: P0
 - Flag: Versions in manifest files must use the `v` prefix for "this version and above" semantics (e.g., `v1.2.0`). A bare `1.2.0` means **exactly** that version only. Flag bare versions and ask if `v` prefix was intended.
 - Detect: A manifest contains a bare version; ask whether the `v` prefix was intended.
 - Not when: The bare version is an intentional exact-version declaration, including a development version used to avoid matching an older release candidate as described by META-007.
-- Ref: [Manifest](../../edit/manifest.md)
+- Ref: [Manifest](../../../docs/edit/manifest.md)
 
 ### META-003: Use irrelevant only when the feature does not apply
 - Severity: P0
@@ -17,7 +17,7 @@
 - Not when: The feature does not apply to that library, and the declaration says so.
 - ✅ Keep the test and declare it `irrelevant (GraalVM. Tracing support only)` for a weblog that cannot produce the span.
 - ❌ Declare `irrelevant (AIDM-594)` when AIDM-594 is a tracer bug. Use `bug (AIDM-594)`.
-- Ref: [Declaration decorators](../../edit/skip-tests.md#declaration-decorators)
+- Ref: [Declaration decorators](../../../docs/edit/skip-tests.md#declaration-decorators)
 
 ### META-004: Quote special YAML characters in manifest values
 - Severity: P1
@@ -26,7 +26,7 @@
 - Not when: The value is already quoted, or the character appears inside a quoted string.
 - ✅ `component_version: '<1.2.0'`
 - ❌ `component_version: <1.2.0`
-- Ref: [Manifest](../../edit/manifest.md)
+- Ref: [Manifest](../../../docs/edit/manifest.md)
 
 ### META-005: Use weblog scenario exclusions only for weblog-specific incompatibilities
 - Severity: P0
@@ -35,7 +35,7 @@
 - Not when: The excluded scenario would otherwise select the weblog and the entry documents a concrete incompatibility of that weblog, such as an unsupported transport or an application freeze.
 - ✅ Exclude `APPSEC_MISSING_RULES` for a specific `httpd` weblog when that application freezes if the rules file is missing, and document the reason next to the exclusion.
 - ❌ Exclude an entire scenario for a weblog because one test has a tracer bug; keep the weblog–scenario job and declare that test in the library manifest instead.
-- Ref: [Weblog scenario matching](../../understand/weblogs/weblog-metadata.md#scenario-matching-categories-supported_scenarios-excluded_scenarios)
+- Ref: [Weblog scenario matching](../../../docs/understand/weblogs/weblog-metadata.md#scenario-matching-categories-supported_scenarios-excluded_scenarios)
 
 ### META-006: Match each manifest marker to its cause.
 - Old_id: claude-07
@@ -44,7 +44,7 @@
 - Detect: A marker contradicts its cause, or several exclusions with different causes share one vague reason. A marked test fails during setup because of invalid configuration or a missing required secret that the marker does not describe.
 - ✅ Use `incomplete_test_app (weblog has no /ffe endpoint)` when the weblog does not implement the endpoint.
 - ❌ Use `missing_feature` for an endpoint that the weblog does not implement. Set `DD_TRACE_AGENT_PORT` to the literal `agent.port`, causing the library to exit at startup while the run reports an expected failure.
-- Ref: [Declaration decorators](../../edit/skip-tests.md#declaration-decorators)
+- Ref: [Declaration decorators](../../../docs/edit/skip-tests.md#declaration-decorators)
 
 ### META-007: Do not let a minimum dev version match an older release candidate.
 - Old_id: cursor-08
@@ -54,7 +54,7 @@
 - Not when: A bare dev version intentionally prevents an older release candidate from matching.
 - ✅ Use `Test_Foo: 4.15.0-dev` until a release that contains the feature, such as `4.15.0`, then use `Test_Foo: v4.15.0`.
 - ❌ Use `Test_Foo: v4.15.0-dev` while `4.15.0-rc1` lacks the feature.
-- Ref: [Simple manifest version](../../edit/manifest.md#simple-version)
+- Ref: [Simple manifest version](../../../docs/edit/manifest.md#simple-version)
 
 ### META-008: Do not hide a documented feature behind NOT_REPORTED_ID.
 - Old_id: claude-06
@@ -63,7 +63,7 @@
 - Detect: A feature in `utils/_features.py` links `feature-parity.us1.prod.dog/#/?feature=<n>` and passes `feature_id=NOT_REPORTED_ID`.
 - ✅ The docstring links `?feature=544` and the code passes `feature_id=544`.
 - ❌ The docstring links `?feature=544` and the code passes `feature_id=NOT_REPORTED_ID`.
-- Ref: [Create a feature](../../edit/features.md#hello-world-test)
+- Ref: [Create a feature](../../../docs/edit/features.md#hello-world-test)
 
 ### META-009: Make a new scenario reachable by CI.
 - Old_id: claude-02
@@ -73,4 +73,4 @@
 - Not when: The change targets the `DEFAULT` scenario, whose workflow step already exists and does not require registering a new named scenario. An intentionally opt-in scenario may be omitted from the default groups when its docstring explains why, but it still requires its own workflow step.
 - ✅ Add the run step and keep the scenario in its groups, or document why it is opt-in.
 - ❌ Add a scenario with no run step and outside every default group.
-- Ref: [End-to-end testing rules](../../../.cursor/rules/end-to-end-testing.mdc)
+- Ref: [End-to-end testing rules](../end-to-end-testing.md)

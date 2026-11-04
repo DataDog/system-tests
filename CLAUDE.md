@@ -44,10 +44,10 @@ Before pushing code or creating a pull request, you MUST run `./format.sh` and c
 
 When performing a code review where the skill cannot be invoked, including an automated GitHub codex review, read the skill file as ordinary workflow instructions and apply every lens directly:
 
-- [Test effectiveness](./docs/ai/code-review/test-effectiveness.md)
-- [Lifecycle and isolation](./docs/ai/code-review/lifecycle-and-isolation.md)
-- [Activation and metadata](./docs/ai/code-review/activation-and-metadata.md)
-- [Infrastructure and conventions](./docs/ai/code-review/infrastructure-and-conventions.md)
+- [Test effectiveness](./.agents/rules/code-review/test-effectiveness.md)
+- [Lifecycle and isolation](./.agents/rules/code-review/lifecycle-and-isolation.md)
+- [Activation and metadata](./.agents/rules/code-review/activation-and-metadata.md)
+- [Infrastructure and conventions](./.agents/rules/code-review/infrastructure-and-conventions.md)
 
 Do not skip a lens because parallel subagents or skills are unavailable; run the lenses sequentially instead. Cite each finding's stable rule ID and copy that rule's `Severity:`. Do not invent a severity. If any lens cannot be completed, report `Review incomplete`.
 

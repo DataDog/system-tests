@@ -27,10 +27,10 @@ Give every reviewer the same frozen evidence. Each reviewer reads only its assig
 
 | Lens | Guidance |
 | --- | --- |
-| Test effectiveness | [test-effectiveness.md](../../../docs/ai/code-review/test-effectiveness.md) |
-| Lifecycle and isolation | [lifecycle-and-isolation.md](../../../docs/ai/code-review/lifecycle-and-isolation.md) |
-| Activation and metadata | [activation-and-metadata.md](../../../docs/ai/code-review/activation-and-metadata.md) |
-| Infrastructure and conventions | [infrastructure-and-conventions.md](../../../docs/ai/code-review/infrastructure-and-conventions.md) |
+| Test effectiveness | [test-effectiveness.md](../../rules/code-review/test-effectiveness.md) |
+| Lifecycle and isolation | [lifecycle-and-isolation.md](../../rules/code-review/lifecycle-and-isolation.md) |
+| Activation and metadata | [activation-and-metadata.md](../../rules/code-review/activation-and-metadata.md) |
+| Infrastructure and conventions | [infrastructure-and-conventions.md](../../rules/code-review/infrastructure-and-conventions.md) |
 
 Each lens file lists rules with stable IDs (for example, `TEST-002`), an optional audit-only `Old_id:`, a required `Severity:`, a required `Flag:`, and any applicable `Detect:`, `Not when:`, `✅`, `❌`, and `Ref:` fields. Cite the stable rule ID, never `Old_id`, in each finding. Copy the rule's `Severity:` into the finding. Do not choose a different severity. Apply the available `Flag:` and `Detect:` criteria, and respect `Not when:` when present.
 
