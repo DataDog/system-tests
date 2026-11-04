@@ -10,8 +10,8 @@ ROOT = Path(__file__).resolve().parents[2]
 AGENTS_PATH = ROOT / "AGENTS.md"
 CLAUDE_PATH = ROOT / "CLAUDE.md"
 CLAUDE_COMMENT = (
-    "<!-- Keep this file as an exact replica of AGENTS.md, replacing rule links with Claude @ imports "
-    "and AGENTS.md filename references with CLAUDE.md. -->"
+    "<!-- This file is generated from AGENTS.md. Rule links become Claude @ imports, and AGENTS.md filename "
+    "references become CLAUDE.md. Edit AGENTS.md and run ./format.sh to regenerate this file. -->"
 )
 RULE_LINK_PATTERN = re.compile(r"\[[^\]]+\]\((\.agents/rules/[^)]+)\)")
 

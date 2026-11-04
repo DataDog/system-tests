@@ -1,4 +1,4 @@
-<!-- Keep this file as an exact replica of AGENTS.md, replacing rule links with Claude @ imports and AGENTS.md filename references with CLAUDE.md. -->
+<!-- This file is generated from AGENTS.md. Rule links become Claude @ imports, and AGENTS.md filename references become CLAUDE.md. Edit AGENTS.md and run ./format.sh to regenerate this file. -->
 
 # CLAUDE.md - System-Tests
 
