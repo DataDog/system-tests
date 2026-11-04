@@ -1,8 +1,3 @@
----
-description: Rules for interacting with developer tools and external ci services
-globs: 
-alwaysApply: true
----
 # Developer Tools
 
 ## MCP Tools
@@ -12,12 +7,12 @@ alwaysApply: true
 ## GitHub Tools
 
 - When interacting with GitHub (github.com), ALWAYS use `gh` on the command line.
-- If `gh` CLI is not installed or there are authentication or configuration problems, check the document: [AI Tools Integration Guide - GitHub CLI](mdc:docs/ai/ai-tools-integration-guide.md#github-cli-gh)
+- If `gh` CLI is not installed or there are authentication or configuration problems, check the document: [AI Tools Integration Guide - GitHub CLI](../../docs/ai/ai-tools-integration-guide.md#github-cli-gh)
 
 ## GitLab Tools
 
 - When interacting with GitLab (gitlab.ddbuild.io), ALWAYS use `glab` on the command line.
-- If `glab` CLI is not installed or there are authentication or configuration problems, check the document: [AI Tools Integration Guide - GitLab CLI](mdc:docs/ai/ai-tools-integration-guide.md#gitlab-cli-glab)
+- If `glab` CLI is not installed or there are authentication or configuration problems, check the document: [AI Tools Integration Guide - GitLab CLI](../../docs/ai/ai-tools-integration-guide.md#gitlab-cli-glab)
 
 
 ## Handling the Pull Request and CI
