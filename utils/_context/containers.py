@@ -1416,8 +1416,8 @@ class LambdaWeblogContainer(WeblogContainer):
             "DD_SITE": MOCKED_BACKEND_DOMAIN,
             "DD_API_KEY": dd_api_key,
             "DD_SERVERLESS_FLUSH_STRATEGY": "periodically,100",
-            # the extension only trusts its compiled-in roots: add the bundle mounted below, with the CA signing the mocked
-            # backend certificate
+            # the extension only trusts its compiled-in roots: add the bundle mounted below, with the CA signing
+            # the mocked backend certificate
             "DD_TLS_CERT_FILE": "/etc/ssl/certs/ca-certificates.crt",
             "DD_TRACE_MANAGED_SERVICES": str(trace_managed_services).lower(),
         }
