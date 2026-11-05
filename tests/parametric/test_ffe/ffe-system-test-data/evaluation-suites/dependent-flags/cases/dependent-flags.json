@@ -339,5 +339,46 @@
     },
     "targetingKey": "dependent-cycle",
     "variationType": "STRING"
+  },
+  {
+    "description": "Unknown fields inside flagEvaluation, on its condition, and in evaluatorParams are ignored while the prerequisite key is evaluated normally.",
+    "attributes": {},
+    "defaultValue": "caller-default",
+    "flag": "dependent-unknown-fields-root",
+    "result": {
+      "reason": "TARGETING_MATCH",
+      "value": "direct-match"
+    },
+    "targetingKey": "dependent-unknown-fields",
+    "variationType": "STRING",
+    "expectations": {
+      "noUnmatchedEvents": true,
+      "exposures": [
+        {
+          "flag": "dependent-leaf-on",
+          "allocation": "leaf-static",
+          "variant": "on",
+          "_count": 1
+        },
+        {
+          "flag": "dependent-unknown-fields-root",
+          "allocation": "dependent-match",
+          "variant": "matched",
+          "_count": 1
+        }
+      ],
+      "evaluationEvents": [
+        {
+          "flag": "dependent-leaf-on",
+          "errorCode": null,
+          "_count": 1
+        },
+        {
+          "flag": "dependent-unknown-fields-root",
+          "errorCode": null,
+          "_count": 1
+        }
+      ]
+    }
   }
 ]
