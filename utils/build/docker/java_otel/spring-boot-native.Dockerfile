@@ -15,7 +15,7 @@ ENV OTEL_VERSION="1.26.0"
 RUN mvn clean package
 
 # Set up required args
-RUN echo $OTEL_VERSION > SYSTEM_TESTS_LIBRARY_VERSION
+RUN mkdir -p /binaries && echo $OTEL_VERSION > /binaries/SYSTEM_TESTS_LIBRARY_VERSION
 
 RUN echo "#!/bin/bash\njava -jar target/myproject-3.0.0-SNAPSHOT.jar --server.port=7777" > app.sh
 RUN chmod +x app.sh

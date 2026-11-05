@@ -29,7 +29,7 @@ use integration::DatadogClientSpanBackend;
 
 mod integration;
 
-const VERSION_FILE: &str = "/app/SYSTEM_TESTS_LIBRARY_VERSION";
+const VERSION_FILE: &str = "/binaries/SYSTEM_TESTS_LIBRARY_VERSION";
 const DOWNSTREAM_RETURN_HEADERS_URL: &str = "http://localhost:7777/returnheaders";
 const DOWNSTREAM_ROOT_URL: &str = "http://localhost:7777/";
 const CHILD_SLEEP_ENV: &str = "DD_SYSTEM_TEST_CHILD_SLEEP";
