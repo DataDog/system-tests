@@ -1,6 +1,8 @@
 ### LIFE-001: Setup Methods Must Not Fail
 - Severity: P0
-- Flag: `setup_*` methods must never contain assertions, raise exceptions. They exist only for observability (trigger trace generation). If one fails, the entire scenario stops. Assertions belong in `test_*` methods.
+- Flag: `setup_*` methods must not assert or raise to validate expected test data. Store results and validate them in `test_*`. One setup failure stops the scenario.
+- Detect: A setup method asserts, explicitly raises, or calls a validation helper that raises when expected test data is absent.
+- Not when: A required setup action fails unexpectedly, or a prerequisite must succeed before later setup actions can run.
 - Ref: [Add a new test](../../../docs/edit/add-new-test.md), [Test flow](../../../docs/understand/test-flow.md)
 
 ### LIFE-002: Avoid fixed sleeps and unbounded waits
