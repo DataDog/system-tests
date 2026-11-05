@@ -114,6 +114,7 @@ def _flag_keys(response: _Response) -> list[str]:
         ),
         ("selected_flag_tags=no-flag-has-this-tag", []),
         ("selected_flag_tags=%85", []),
+        ("selected%5Fflag%5Ftags=team%3Acheckout", CHECKOUT_FLAGS),
     ],
 )
 def test_valid_selection_serves_only_selected_flags(selection_query: str, expected_keys: list[str]) -> None:
@@ -235,6 +236,8 @@ def test_selection_does_not_relax_the_environment_query() -> None:
         for query in (
             "selected_flag_tags=team%3Acheckout",
             "dd_env=test&dd_env=wrong&selected_flag_tags=team%3Acheckout",
+            "dd_env=test&other=1&selected_flag_tags=team%3Acheckout",
+            "dd_env=test&selected_flag_bogus=1",
         ):
             assert _get(server, query).status == 404, query
     finally:
@@ -252,8 +255,10 @@ def test_forced_ignored_reason_applies_only_to_valid_selections() -> None:
         assert _flag_keys(response) == SUITE_FLAGS
         assert response.headers[FLAG_SELECTION_IGNORED_HEADER] == "tag_load_failed"
 
-        response = _get_config(server)
-        assert FLAG_SELECTION_IGNORED_HEADER not in response.headers
+        for selection_query in ("", "selected_flag_tags=%20&selected_flag_key_patterns="):
+            response = _get_config(server, selection_query)
+            assert _flag_keys(response) == SUITE_FLAGS, selection_query
+            assert FLAG_SELECTION_IGNORED_HEADER not in response.headers, selection_query
 
         response = _get_config(server, "selected_flag_tags=%zz")
         assert response.headers[FLAG_SELECTION_IGNORED_HEADER] == "malformed_selection"
@@ -355,5 +360,28 @@ def test_not_modified_without_a_selection_keeps_the_plain_etag() -> None:
             response = _get(server, CONFIG_QUERY, headers)
             assert response.status == 304, headers
             assert response.headers["ETag"] == ufc_etag_for(None), headers
+    finally:
+        server.close()
+
+
+@scenarios.test_the_test
+def test_each_selection_and_suite_has_its_own_etag() -> None:
+    server = MockedBackendServer()
+    queries = (
+        "selected_flag_tags=team%3Acheckout",
+        "selected_flag_tags=team%3Aops",
+        "selected_flag_key_patterns=team%3Acheckout",
+        "selected_flag_key_patterns=search-%2A",
+        "selected_flag_tags=team%3Acheckout&selected_flag_key_patterns=search-%2A",
+    )
+    try:
+        server.client.ffe_use_suite(SUITE)
+        etags = [_get_config(server, query).headers["ETag"] for query in ("", *queries)]
+        assert len(set(etags)) == len(etags), etags
+        equivalent = "selected_flag_tags=%20team%3Acheckout&selected_flag_tags=team%3Acheckout"
+        assert _get_config(server, equivalent).headers["ETag"] == etags[1]
+
+        server.client.ffe_use_suite("dependent-flags")
+        assert _get_config(server, queries[0]).headers["ETag"] not in etags
     finally:
         server.close()

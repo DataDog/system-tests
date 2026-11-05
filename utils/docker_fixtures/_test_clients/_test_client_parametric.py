@@ -825,8 +825,8 @@ class ParametricTestClientApi(TestClientApi):
     def ffe_start(self, configuration: dict | None = None, *, flag_selection: object = None) -> bool:
         """Initialize the FFE (Feature Flagging & Experimentation) provider.
 
-        flag_selection is sent as is in the flag_selection field. The test app must pass it untouched to the SDK's
-        flag selection provider option: only the SDK canonicalizes and validates it.
+        flag_selection, unless None, is sent as is in the flag_selection field; None omits the field. The test app must
+        pass it untouched to the SDK's flag selection provider option: only the SDK canonicalizes and validates it.
 
         Returns:
             bool: True if the provider was initialized successfully, False otherwise

@@ -94,7 +94,7 @@ def _agentless_env(mocked_backend: MockedBackendServer, flag_selection: object) 
 
 
 def _config_requests(mocked_backend: MockedBackendServer, count: int) -> list[MockedBackendFFERequest]:
-    deadline = time.monotonic() + 10
+    deadline = time.monotonic() + 5
     while len(requests := mocked_backend.ffe_get_requests()) < count and time.monotonic() < deadline:
         time.sleep(0.2)
     assert len(requests) >= count, f"the SDK made {len(requests)} configuration requests, expected {count}"
@@ -183,6 +183,9 @@ class Test_FFE_Flag_Selection_Revalidation:
             SELECTED_FLAG_TAGS: ["team:checkout"],
         }, "the configuration request does not carry the selection"
 
-        assert _config_requests(mocked_backend, 2)[1]["headers"].get("if-none-match") == ufc_etag_for(
+        first, second = _config_requests(mocked_backend, 2)[:2]
+        # The mock answers a scripted 304 to a request without a selection whatever its If-None-Match.
+        assert _query(second) == _query(first), "the SDK dropped its selection on the revalidation poll"
+        assert second["headers"].get("if-none-match") == ufc_etag_for(
             Selection(tags=("team:checkout",), key_patterns=()), SUITE
         ), "the SDK did not revalidate with the ETag of its selection"

@@ -9,13 +9,13 @@
     "providerOptions": {
       "flagSelection": {
         "tags": ["  team:search ", "team:checkout", "team:search", ""],
-        "keyPatterns": ["\tops-*", "ops-*"]
+        "keyPatterns": ["\tops-*", "ops-*", "billing-*", ""]
       }
     },
     "expectations": {
       "configurationRequest": {
         "selectedFlagTags": ["team:checkout", "team:search"],
-        "selectedFlagKeyPatterns": ["ops-*"]
+        "selectedFlagKeyPatterns": ["billing-*", "ops-*"]
       }
     },
     "result": {
@@ -33,13 +33,13 @@
     "providerOptions": {
       "flagSelection": {
         "tags": ["  team:search ", "team:checkout", "team:search", ""],
-        "keyPatterns": ["\tops-*", "ops-*"]
+        "keyPatterns": ["\tops-*", "ops-*", "billing-*", ""]
       }
     },
     "expectations": {
       "configurationRequest": {
         "selectedFlagTags": ["team:checkout", "team:search"],
-        "selectedFlagKeyPatterns": ["ops-*"]
+        "selectedFlagKeyPatterns": ["billing-*", "ops-*"]
       }
     },
     "result": {
@@ -57,13 +57,13 @@
     "providerOptions": {
       "flagSelection": {
         "tags": ["  team:search ", "team:checkout", "team:search", ""],
-        "keyPatterns": ["\tops-*", "ops-*"]
+        "keyPatterns": ["\tops-*", "ops-*", "billing-*", ""]
       }
     },
     "expectations": {
       "configurationRequest": {
         "selectedFlagTags": ["team:checkout", "team:search"],
-        "selectedFlagKeyPatterns": ["ops-*"]
+        "selectedFlagKeyPatterns": ["billing-*", "ops-*"]
       }
     },
     "result": {
@@ -81,13 +81,13 @@
     "providerOptions": {
       "flagSelection": {
         "tags": ["  team:search ", "team:checkout", "team:search", ""],
-        "keyPatterns": ["\tops-*", "ops-*"]
+        "keyPatterns": ["\tops-*", "ops-*", "billing-*", ""]
       }
     },
     "expectations": {
       "configurationRequest": {
         "selectedFlagTags": ["team:checkout", "team:search"],
-        "selectedFlagKeyPatterns": ["ops-*"]
+        "selectedFlagKeyPatterns": ["billing-*", "ops-*"]
       }
     },
     "result": {
@@ -106,13 +106,13 @@
     "providerOptions": {
       "flagSelection": {
         "tags": ["  team:search ", "team:checkout", "team:search", ""],
-        "keyPatterns": ["\tops-*", "ops-*"]
+        "keyPatterns": ["\tops-*", "ops-*", "billing-*", ""]
       }
     },
     "expectations": {
       "configurationRequest": {
         "selectedFlagTags": ["team:checkout", "team:search"],
-        "selectedFlagKeyPatterns": ["ops-*"]
+        "selectedFlagKeyPatterns": ["billing-*", "ops-*"]
       }
     },
     "result": {
@@ -130,13 +130,13 @@
     "providerOptions": {
       "flagSelection": {
         "tags": ["  team:search ", "team:checkout", "team:search", ""],
-        "keyPatterns": ["\tops-*", "ops-*"]
+        "keyPatterns": ["\tops-*", "ops-*", "billing-*", ""]
       }
     },
     "expectations": {
       "configurationRequest": {
         "selectedFlagTags": ["team:checkout", "team:search"],
-        "selectedFlagKeyPatterns": ["ops-*"]
+        "selectedFlagKeyPatterns": ["billing-*", "ops-*"]
       }
     },
     "result": {

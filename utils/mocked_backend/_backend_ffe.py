@@ -331,7 +331,7 @@ def ufc_etag_for(selection: Selection | None, suite: str | None = None) -> str:
 
 
 def _matches_if_none_match(if_none_match: str | None, etag: str) -> bool:
-    """Weak comparison against every validator in the header, like net/http's checkIfNoneMatch."""
+    """'*' or a weak match with any comma-separated validator in the header."""
     if if_none_match is None:
         return False
     return any(

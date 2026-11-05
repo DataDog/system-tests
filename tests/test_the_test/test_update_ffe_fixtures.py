@@ -247,3 +247,30 @@ def test_update_fixtures_records_source_and_removes_stale_files(
     assert not update_ffe_fixtures.update_fixtures("main")
     assert (destination / "SOURCE.md").read_bytes() == metadata
     assert output.read_text().endswith("changed=false\n")
+
+
+@scenarios.test_the_test
+def test_update_fixtures_vendors_and_checks_selection_vectors(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    source = tmp_path / "upstream"
+    destination = tmp_path / "destination"
+    _write_suite(source)
+    (source / "flag-selection").mkdir()
+    (source / "flag-selection" / "selection-vectors.json").write_text(VALID_VECTORS, encoding="utf-8")
+    (source / "flag-selection" / "README.md").write_text("upstream documentation", encoding="utf-8")
+    destination.mkdir()
+
+    def fake_git(working_directory: Path, *arguments: str) -> str:
+        if arguments[0] == "checkout":
+            shutil.copytree(source, working_directory, dirs_exist_ok=True)
+        return "a" * 40
+
+    monkeypatch.setattr(update_ffe_fixtures, "_run_git", fake_git)
+    monkeypatch.setattr(update_ffe_fixtures, "FIXTURE_DESTINATION", destination)
+    monkeypatch.setenv("GITHUB_OUTPUT", str(tmp_path / "outputs"))
+    assert update_ffe_fixtures.update_fixtures("main")
+    assert [path.name for path in (destination / "flag-selection").iterdir()] == ["selection-vectors.json"]
+
+    (source / "flag-selection" / "selection-vectors.json").write_text('{"flags": [], "cases": []}', encoding="utf-8")
+    with pytest.raises(ValueError, match="flags must be a non-empty array"):
+        update_ffe_fixtures.update_fixtures("main")
+    assert (destination / "flag-selection" / "selection-vectors.json").read_text(encoding="utf-8") == VALID_VECTORS
