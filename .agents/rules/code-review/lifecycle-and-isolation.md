@@ -4,7 +4,7 @@
 - Ref: [Add a new test](../../../docs/edit/add-new-test.md), [Test flow](../../../docs/understand/test-flow.md)
 
 ### LIFE-002: Avoid fixed sleeps and unbounded waits
-- Severity: P0
+- Severity: P1
 - Flag: Do not use `time.sleep()`, fixed delays, or unbounded polling to wait for end-to-end data. Use `agent_interface_timeout` or `library_interface_timeout` for the general post-setup flush window. Use a bounded condition wait in `setup_*` when a specific condition must be observed before teardown or before triggering a subsequent action.
 - Detect: A setup or test uses a fixed sleep, polls without a deadline, or increases an arbitrary delay instead of waiting for an observable condition.
 - Not when: The delay itself is the behavior under test and no observable condition can represent it.
