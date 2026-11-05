@@ -22,7 +22,7 @@ def commands(monkeypatch: pytest.MonkeyPatch) -> list[list[str]]:
     """Record the commands run by the steps instead of running them."""
     recorded: list[list[str]] = []
 
-    def run(command: list[str], env: dict[str, str] | None = None, cwd: Path | None = None) -> None:  # noqa: ARG001
+    def run(command: list[str], **_kwargs: object) -> None:
         recorded.append(command)
 
     monkeypatch.setattr(finalizer, "run", run)
@@ -136,10 +136,53 @@ def test_log_folders_with_sockets_are_collected(tmp_path: Path, commands: list[l
 
 
 @scenarios.test_the_test
+def test_publish_failures_are_retried_and_then_ignored(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    calls: list[str] = []
+
+    def run(command: list[str], **_kwargs: object) -> None:
+        calls.append(command[0])
+        if command[0] in {"curl", "aws"} or (command[0] == "datadog-ci" and "junit" in command):
+            raise subprocess.CalledProcessError(56, command)
+
+    monkeypatch.setattr(finalizer, "run", run)
+    monkeypatch.setattr(finalizer, "read_secret", lambda *path: "/".join(path))
+    monkeypatch.setattr(finalizer.time, "sleep", lambda _delay: None)
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+
+    logs = tmp_path / "system-tests" / "logs_docker_ssi"
+    _write(logs / "feature_parity.json", "{}")
+    _write(logs / "reportJunit.xml", "<testsuites/>")
+    docker_job = _job(
+        "docker", tmp_path, SCENARIO="DOCKER_SSI", CI_PROJECT_NAME="system-tests", CI_COMMIT_BRANCH="main"
+    )
+
+    assert finalizer.finalize(docker_job) == 0
+    assert calls.count("curl") == finalizer.PUBLISH_ATTEMPTS
+    assert calls.count("datadog-ci") == 1 + finalizer.PUBLISH_ATTEMPTS
+
+    calls.clear()
+    _write(tmp_path / "system-tests" / "logs_simple_installer_auto_injection" / "vm_feature_parity.json", "{}")
+    aws_job = _job(
+        "aws",
+        tmp_path,
+        SCENARIO="SIMPLE_INSTALLER_AUTO_INJECTION",
+        VM="Ubuntu_22_amd64",
+        WEBLOG="test-app-java",
+        CI_PIPELINE_ID="42",
+        CI_PROJECT_NAME="system-tests",
+        CI_COMMIT_BRANCH="main",
+    )
+
+    assert finalizer.finalize(aws_job) == 0
+    assert calls.count("aws") == finalizer.PUBLISH_ATTEMPTS
+    assert aws_job.aws_console_url == ""
+
+
+@scenarios.test_the_test
 def test_a_failing_step_does_not_stop_the_next_ones(
     tmp_path: Path, commands: list[list[str]], monkeypatch: pytest.MonkeyPatch
 ):
-    def run(command: list[str], env: dict[str, str] | None = None, cwd: Path | None = None) -> None:  # noqa: ARG001
+    def run(command: list[str], **_kwargs: object) -> None:
         if command[0] == "datadog-ci":
             raise subprocess.CalledProcessError(1, command)
         commands.append(command)

@@ -23,11 +23,15 @@ from pathlib import Path
 import shutil
 import subprocess
 import sys
+import time
 
 SYSTEM_TESTS_DIR = Path(__file__).resolve().parents[2]
 
 AWS_LOGS_BUCKET = "system-tests-aws-ssi-apm"
 MAX_ARTIFACT_FILE_SIZE = 50 * 1024 * 1024
+PUBLISH_ATTEMPTS = 3
+PUBLISH_TIMEOUT_SECONDS = 30
+PUBLISH_RETRY_DELAY_SECONDS = 5
 
 
 @dataclass
@@ -70,8 +74,28 @@ class Job:
 Step = Callable[[Job], None]
 
 
-def run(command: list[str], env: Mapping[str, str] | None = None, cwd: Path | None = None) -> None:
-    subprocess.run(command, check=True, cwd=cwd, env=None if env is None else {**os.environ, **env})
+def run(
+    command: list[str],
+    env: Mapping[str, str] | None = None,
+    cwd: Path | None = None,
+    timeout: float | None = None,
+) -> None:
+    subprocess.run(command, check=True, cwd=cwd, timeout=timeout, env=None if env is None else {**os.environ, **env})
+
+
+def run_publish(command: list[str], env: Mapping[str, str] | None = None) -> bool:
+    """Retry a best-effort publish. A remaining failure is logged and ignored."""
+    for attempt in range(1, PUBLISH_ATTEMPTS + 1):
+        try:
+            run(command, env=env, timeout=PUBLISH_TIMEOUT_SECONDS)
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as error:
+            print(f"⚠️ {command[0]} attempt {attempt}/{PUBLISH_ATTEMPTS} failed: {error}", flush=True)
+            if attempt < PUBLISH_ATTEMPTS:
+                time.sleep(PUBLISH_RETRY_DELAY_SECONDS)
+            continue
+        return True
+    print(f"⚠️ {command[0]} failed after {PUBLISH_ATTEMPTS} attempts, ignored", flush=True)
+    return False
 
 
 @cache
@@ -100,13 +124,14 @@ def upload_logs_to_s3(job: Job) -> None:
     for folder in job.log_folders:
         pipeline_id = job.env.get("CI_PIPELINE_ID", "datadog-local")
         prefix = f"{pipeline_id}/{folder.name}/{job.env['VM']}_{job.env['WEBLOG']}/"
-        run(
+        uploaded = run_publish(
             ["aws", "s3", "cp", str(folder), f"s3://{AWS_LOGS_BUCKET}/{prefix}", "--recursive", "--quiet"],
             env={"AWS_PROFILE": "apm-ecosystems-reliability-ci"},
         )
-        job.aws_console_url = (
-            f"https://s3.console.aws.amazon.com/s3/buckets/{AWS_LOGS_BUCKET}?region=us-east-1&prefix={prefix}"
-        )
+        if uploaded:
+            job.aws_console_url = (
+                f"https://s3.console.aws.amazon.com/s3/buckets/{AWS_LOGS_BUCKET}?region=us-east-1&prefix={prefix}"
+            )
 
 
 def delete_large_log_files(job: Job) -> None:
@@ -138,7 +163,7 @@ def publish_feature_parity(job: Job) -> None:
     api_key = read_secret("fpd", "fp_api_key")
     for report in sorted(job.reports_dir.glob(f"logs*/{job.profile.feature_parity_pattern}")):
         print(f"Processing report: {report}")
-        run(
+        run_publish(
             [
                 "curl",
                 "-X",
@@ -161,7 +186,7 @@ def upload_junit_reports(job: Job) -> None:
     if not reports:
         print("No reports/logs*/reportJunit.xml found; skipping Test Optimization upload")
         return
-    run(
+    run_publish(
         [
             "datadog-ci",
             "junit",
