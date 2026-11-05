@@ -134,6 +134,7 @@ class JSRuntimeInstallableVersions:
     JS2211 = RuntimeInstallableVersion("JS2211", "22.11")
     JS2300 = RuntimeInstallableVersion("JS2300", "23.0")
     JS2303 = RuntimeInstallableVersion("JS2303", "23.3")
+    JS2613 = RuntimeInstallableVersion("JS2613", "26.13")
 
     @staticmethod
     def get_all_versions() -> list["RuntimeInstallableVersion"]:
@@ -152,6 +153,7 @@ class JSRuntimeInstallableVersions:
             JSRuntimeInstallableVersions.JS2211,
             JSRuntimeInstallableVersions.JS2300,
             JSRuntimeInstallableVersions.JS2303,
+            JSRuntimeInstallableVersions.JS2613,
         ]
 
     @staticmethod
