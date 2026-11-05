@@ -21,7 +21,9 @@ esac
 ENABLE_OTEL_TRACING_API=-Ddd.trace.otel.enabled=true
 
 # Enable crash tracking for /trace/crash related tests
+# Keep hs_err reports for the uploader without waiting for native core dumps.
 ENABLE_CRASH_TRACKING=(-XX:OnError="/tmp/datadog/java/dd_crash_uploader.sh %p" \
+  -XX:-CreateCoredumpOnCrash \
   -XX:ErrorFile=/tmp/datadog/java/hs_err_pid_%p.log \
   -XX:OnOutOfMemoryError="/tmp/datadog/java/dd_oome_notifier.sh %p")
 

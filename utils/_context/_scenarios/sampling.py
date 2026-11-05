@@ -11,8 +11,6 @@ class Sampling(DdTraceEndToEndScenario):
             weblog_env={"DD_TRACE_RATE_LIMIT": "10000000", "DD_TRACE_STATS_COMPUTATION_ENABLED": "false"},
             doc="Test sampling mechanism. Not included in default scenario because it's a little bit too flaky",
             scenario_groups=[scenario_groups.sampling],
-            mocked_backend=True,
-            use_proxy_for_agent=False,
         )
 
 

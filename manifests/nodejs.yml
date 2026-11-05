@@ -112,6 +112,7 @@ refs:
   - &ref_6_20_1 '>=6.20.1 || ^5.131.1'
   - &ref_6_21_0 '>=6.21.0 || ^5.132.0'
   - &ref_6_22_0 '>=6.22.0 || ^5.133.0'
+  - &ref_6_24_0 '>=6.24.0 || ^5.135.0'
 manifest:
   tests/ai_guard/test_ai_guard_sdk.py::Test_AIGuardEvent_Tag:
     - weblog_declaration:
@@ -1696,7 +1697,7 @@ manifest:
   tests/cws/test_thread_context_sharing.py::Test_ThreadContextSharing:
     - weblog_declaration:
         "*": irrelevant (requires AsyncContextFrame, Node.js 22.9+; covered on fastify)
-        fastify: missing_feature (thread context sharing not enabled for appsec yet)
+        fastify: *ref_6_24_0
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Line_Capture_Expressions:
     - weblog_declaration:
         "*": irrelevant
@@ -1782,6 +1783,7 @@ manifest:
     - weblog_declaration:
         "*": *ref_5_83_0
         nextjs: irrelevant
+  tests/debugger/test_debugger_inproduct_enablement.py::Test_Debugger_InProduct_Enablement_Probe_Removal: missing_feature (method probes are not supported)
   tests/debugger/test_debugger_pii.py::Test_Debugger_PII_Redaction:
     - weblog_declaration:
         "*": *ref_5_39_0

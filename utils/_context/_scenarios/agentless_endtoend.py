@@ -81,10 +81,8 @@ class _AgentlessEndToEndScenario(DdTraceEndToEndScenario):
             include_agent=False,
             library_interface_timeout=0,
             scenario_groups=[*scenario_groups, all_scenario_groups.agentless],
-            use_proxy_for_agent=False,
             use_proxy_for_weblog=False,
             weblog_env=weblog_env,
-            mocked_backend=True,
         )
 
         # The tested library fetches its agentless configuration from the mocked backend container
