@@ -2156,6 +2156,10 @@ manifest:
         php-fpm-8.6: missing_feature (profiling seems not to be activated)
         laravel11x: missing_feature (profiling seems not to be activated)
         symfony7x: missing_feature (profiling seems not to be activated)
+    - weblog_declaration:
+        php-fpm-8.5: missing_feature (profiling seems not to be activated)
+        laravel11x: missing_feature (profiling seems not to be activated)
+        symfony7x: missing_feature (profiling seems not to be activated)
   tests/test_profiling.py::Test_Profile::test_process_tags_svc:
     - declaration: missing_feature
     - weblog_declaration:
@@ -2183,6 +2187,10 @@ manifest:
     - weblog_declaration:
         php-fpm-8.5: missing_feature (profiling seems not to be activated)
         php-fpm-8.6: missing_feature (profiling seems not to be activated)
+        laravel11x: missing_feature (profiling seems not to be activated)
+        symfony7x: missing_feature (profiling seems not to be activated)
+    - weblog_declaration:
+        php-fpm-8.5: missing_feature (profiling seems not to be activated)
         laravel11x: missing_feature (profiling seems not to be activated)
         symfony7x: missing_feature (profiling seems not to be activated)
   tests/test_resource_renaming.py: v1.14.0
