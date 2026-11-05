@@ -328,7 +328,6 @@ class TestGoogleGenAiGenerateContentReasoning(BaseGoogleGenaiTest):
                 "input_tokens": mock.ANY,
                 "output_tokens": mock.ANY,
                 "total_tokens": mock.ANY,
-                **({"reasoning_output_tokens": mock.ANY} if context.library > "nodejs@6.23.0" else {}),
             },
         )
 
