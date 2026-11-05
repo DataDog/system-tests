@@ -32,7 +32,6 @@ spring-boot-wildfly:
   categories: [dd_trace]
 uds-spring-boot:
   categories: [dd_trace]
-  supported_scenarios: [FEATURE_FLAGGING_CAPABILITY_REFRESH, FEATURE_FLAGGING_CAPABILITY_REFRESH_PRELOADED]
   excluded_scenarios: [IPV6]
 vertx3:
   categories: [dd_trace]
