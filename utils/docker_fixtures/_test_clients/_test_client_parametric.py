@@ -822,6 +822,12 @@ class ParametricTestClientApi(TestClientApi):
         response.raise_for_status()
         return cast("dict[str, Any]", response.json())
 
+    def ffe_precompute_configuration(self, payload: dict[str, Any]) -> dict[str, Any]:
+        """Resolve portable rules for contexts in a process without tracer/provider initialization."""
+        response = self._session.post(self._url("/ffe/precompute-configuration"), json=payload, timeout=15)
+        response.raise_for_status()
+        return cast("dict[str, Any]", response.json())
+
     def ffe_start(self, configuration: dict | None = None) -> bool:
         """Initialize the FFE (Feature Flagging & Experimentation) provider.
 
@@ -1306,6 +1312,10 @@ class APMLibrary:
     def ffe_fetch_rules_configuration(self, options: dict[str, Any]) -> dict[str, Any]:
         """Fetch and serialize portable rules without initializing a tracer or provider."""
         return self._client.ffe_fetch_rules_configuration(options)
+
+    def ffe_precompute_configuration(self, payload: dict[str, Any]) -> dict[str, Any]:
+        """Resolve portable rules without initializing a tracer or provider."""
+        return self._client.ffe_precompute_configuration(payload)
 
     def ffe_start(self, configuration: dict | None = None) -> bool:
         """Initialize the FFE (Feature Flagging & Experimentation) provider."""
