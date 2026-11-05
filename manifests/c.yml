@@ -72,4 +72,12 @@ manifest:
   tests/test_telemetry.py::Test_Telemetry::test_telemetry_proxy_enrichment: missing_feature (dd-trace-c does not send standard app telemetry through the proxy)
   tests/test_telemetry.py::Test_TelemetrySCAEnvVar: missing_feature (dd-trace-c does not implement SCA telemetry)
   tests/test_telemetry.py::Test_TelemetryV2::test_telemetry_v2_required_headers: missing_feature (dd-trace-c telemetry does not include all standard headers)
-  tests/test_v1_payloads.py::Test_V1PayloadByDefault: missing_feature (dd-trace-c sends v0.4 trace payloads)
+  tests/test_v1_payloads.py::Test_V1PayloadByDefault:
+    - declaration: missing_feature (dd-trace-c sends v0.4 trace payloads before 0.33.0)
+      component_version: <0.33.0
+  tests/test_v1_payloads.py::Test_V1Payloads: missing_feature (dd-trace-c applies DD_TRACE_SAMPLE_RATE as an automatic sampling decision, not a rule, and keeps the query string in HTTP resource names)
+  tests/test_v1_payloads.py::Test_V1SpanEvents: incomplete_test_app (The Perl Mojolicious workload does not provide the /add_event endpoint)
+  tests/test_v1_payloads.py::Test_V1SpanLinks: missing_feature (dd-trace-c does not create span links from conflicting propagation contexts)
+  tests/test_v1_payloads.py::Test_V1TopLevelSpans:
+    - declaration: missing_feature (dd-trace-c sends v0.4 trace payloads before 0.33.0)
+      component_version: <0.33.0
