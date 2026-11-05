@@ -43,6 +43,10 @@ FAILED tests/appsec/test_suspicious_attacker_blocking.py::Test_Suspicious_Attack
     ("APPSEC_RUNTIME_ACTIVATION", "REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING"): "TODO",
     ("APPSEC_RUNTIME_ACTIVATION", "TRACING_CONFIG_NONDEFAULT_4"): "TODO",
     (
+        "FEATURE_FLAGGING_CAPABILITY_REFRESH",
+        "FEATURE_FLAGGING_CAPABILITY_REFRESH_PRELOADED",
+    ): "Each cache state needs a fresh Agent and an uninitialized provider; the transition runs once per process",
+    (
         "FEATURE_FLAGGING_AND_EXPERIMENTATION",
         "FEATURE_FLAGGING_EVP_STRESS",
     ): "Process-wide FFE drop counters cannot be attributed to the stress workload if other evaluations run",

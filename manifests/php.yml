@@ -1326,6 +1326,7 @@ manifest:
         "*": v1.21.0-dev
         laravel11x: incomplete_test_app
         symfony7x: incomplete_test_app
+  tests/ffe/test_rc_capability_refresh.py: incomplete_test_app (Requires a provider initialized lazily after the initial FFE_FLAGS RC subscription)
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_error: bug (MLOB-1234)
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka: missing_feature
   tests/integrations/crossed_integrations/test_kinesis.py::Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES: missing_feature

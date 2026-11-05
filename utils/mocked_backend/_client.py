@@ -57,3 +57,22 @@ class MockedBackendClient:
         response = requests.get(f"{self.base_url}{_FFE_CONTROL_PATH}/status", timeout=5, verify=self.verify)
         response.raise_for_status()
         return cast("MockedBackendFFEStatus", response.json())
+
+    def rc_publish_capability_variants(self, base: dict, dependent: dict) -> dict:
+        response = requests.post(
+            f"{self.base_url}{CONTROL_URL_PREFIX}/rc/capability-routing",
+            json={"base": base, "dependent": dependent},
+            timeout=5,
+            verify=self.verify,
+        )
+        response.raise_for_status()
+        return cast("dict", response.json())
+
+    def rc_capability_status(self) -> dict:
+        response = requests.get(
+            f"{self.base_url}{CONTROL_URL_PREFIX}/rc/capability-routing",
+            timeout=5,
+            verify=self.verify,
+        )
+        response.raise_for_status()
+        return cast("dict", response.json())

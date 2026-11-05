@@ -419,3 +419,39 @@ The tests use `interfaces.mocked_backend.get_metrics()` to retrieve the metrics 
 4. **Enable tests** in manifest file
 5. **Run locally** with `./run.sh` to iterate quickly
 6. **Push to CI** only when local tests pass
+
+
+### Delayed provider capability registration (real Agent)
+
+`FEATURE_FLAGGING_CAPABILITY_REFRESH` and `FEATURE_FLAGGING_CAPABILITY_REFRESH_PRELOADED`
+exercise the SDK → real Agent → mocked HTTPS RC backend path. They require Python 3.12
+and the Java `spring-boot` weblog, whose provider starts lazily on the first `/ffe` request.
+They are provisional scenarios selected explicitly, rather than scheduled for every SDK.
+
+Publish base and dependent configurations once, observe Java ACK the base with capability
+46 but without 50, then initialize the provider. The same RC client must add 50 without
+resetting its targets version, receive and ACK the companion, and evaluate a dependent
+flag successfully. The preloaded case first caches the companion through another capable
+protocol client, with a legacy client kept active so the selected file union stays
+unchanged when Java upgrades.
+
+The mocked backend renews signed director metadata on its ordinary Agent polling cadence.
+It models backend capability selection and client-ID predicates; configuration repository
+metadata, file hashes, and publication version stay fixed. A second publication is rejected.
+This guards the real Agent and SDK transition, including the Java replacement failure in
+[dd-trace-java#13258](https://github.com/DataDog/dd-trace-java/pull/13258). It does not verify
+that the production backend continues renewing director metadata; that needs a backend
+contract test or a live environment test.
+
+Use a Java build with dependent capability reporting, dependent evaluation, and the RC
+replacement fix in `binaries/` (see [custom binaries](../../docs/execute/binaries.md)):
+
+```sh
+./build.sh java -w spring-boot
+TEST_LIBRARY=java ./run.sh FEATURE_FLAGGING_CAPABILITY_REFRESH -F tests/ffe/test_rc_capability_refresh.py
+TEST_LIBRARY=java ./run.sh FEATURE_FLAGGING_CAPABILITY_REFRESH_PRELOADED -F tests/ffe/test_rc_capability_refresh.py
+```
+
+`-F` makes failures blocking while the manifest remains provisional. Enable the Java
+manifest entry for the confirmed SDK release once the changes ship. Other weblogs need
+an equivalent delayed provider lifecycle before this scenario can cover them.

@@ -2197,6 +2197,7 @@ manifest:
     - weblog_declaration:
         "*": irrelevant
         rails72: v2.32.0
+  tests/ffe/test_rc_capability_refresh.py: incomplete_test_app (Requires a provider initialized lazily after the initial FFE_FLAGS RC subscription)
   tests/integration_frameworks/llm/anthropic/test_anthropic_llmobs.py::TestAnthropicLlmObsMessages::test_create_error: bug (MLOB-1234)
   tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka:
     - weblog_declaration:
