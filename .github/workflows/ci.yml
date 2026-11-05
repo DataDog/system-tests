@@ -51,7 +51,19 @@ jobs:
       - compute_libraries_and_scenarios
     if: needs.compute_libraries_and_scenarios.outputs.has-target-branch == 'true'
     runs-on: ubuntu-latest
+    permissions:
+      # to convert the PR to draft: the mutation requires both. The job doesn't run any code of the PR
+      contents: write
+      pull-requests: write
     steps:
+      - name: Convert the PR to draft
+        # it can't be merged: it must not ask for reviews either
+        if: github.event.pull_request.draft == false
+        # the token is read-only on PRs from forks: the next step fails the job anyway
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh pr ready --undo "${{ github.event.pull_request.number }}" --repo "${{ github.repository }}"
       - name: Fail if PR title contains a target branch
         run: |
           echo "This PR can't be merged, due to the title specifying a target branch"

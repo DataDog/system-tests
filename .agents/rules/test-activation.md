@@ -1,18 +1,13 @@
----
-description: Rules for activating and deactivating tests using manifests or decorators
-globs: 
-alwaysApply: true
----
 # Test Activation and Deactivation
 
 **Always prefer manifests over decorators.**
 
 ## Key Documentation
 
-- @docs/edit/manifest.md: Manifest file format, entry formats, and syntax rules
-- @docs/edit/skip-tests.md: Decorator usage (when manifests cannot be used)
-- @docs/edit/enable-test.md: How to enable tests
-- @docs/edit/versions.md: Version specification guidelines
+- [Manifest format](../../docs/edit/manifest.md): entry formats and syntax rules
+- [Skipping tests](../../docs/edit/skip-tests.md): decorator usage when manifests cannot be used
+- [Enabling tests](../../docs/edit/enable-test.md): how to enable tests
+- [Versions](../../docs/edit/versions.md): version specification guidelines
 
 ---
 
@@ -30,7 +25,7 @@ Does the condition depend ONLY on:
     │         - Library conditions → manifests/{library}.yml
     │         - Agent version conditions → manifests/agent.yml
     │
-    └─► NO (uses context.scenario, context.vm_name, 
+    └─► NO (uses context.scenario, context.vm_name,
             or other attributes, or complex combinations)
             → Use DECORATOR (only option)
 ```
@@ -65,8 +60,8 @@ refs:
 2. Verify what a reference contains before using it
 3. Don't mix reference types (version refs vs declaration refs)
 4. You should not change existing references without explicit approval from the user.
-5. You can create new references only in manifests that already have references and 
-   with approval from the user. You should propose creating new references when there 
+5. You can create new references only in manifests that already have references and
+   with approval from the user. You should propose creating new references when there
 
 **Mistake to avoid:**
 ```yaml

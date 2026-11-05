@@ -101,7 +101,9 @@ class Test_Telemetry:
     def validate_agent_telemetry_data(
         self, validator: Callable[[dict], None], *, flatten_message_batches: bool = True, allow_no_data: bool = False
     ):
-        telemetry_data = list(interfaces.agent.get_telemetry_data(flatten_message_batches=flatten_message_batches))
+        telemetry_data = list(
+            interfaces.mocked_backend.get_telemetry_data(flatten_message_batches=flatten_message_batches)
+        )
 
         if len(telemetry_data) == 0 and not allow_no_data:
             raise ValueError("No telemetry data to validate on")
@@ -145,14 +147,16 @@ class Test_Telemetry:
 
     def test_telemetry_message_has_datadog_container_id(self):
         """Test telemetry messages contain datadog-container-id"""
-        interfaces.agent.assert_headers_presence(
+        interfaces.mocked_backend.assert_headers_presence(
             path_filter=INTAKE_TELEMETRY_PATH, request_headers=["datadog-container-id"]
         )
 
     def test_telemetry_message_required_headers(self):
         """Test telemetry messages contain required headers"""
 
-        interfaces.agent.assert_headers_presence(path_filter=INTAKE_TELEMETRY_PATH, request_headers=["dd-api-key"])
+        interfaces.mocked_backend.assert_headers_presence(
+            path_filter=INTAKE_TELEMETRY_PATH, request_headers=["dd-api-key"]
+        )
         interfaces.library.assert_headers_presence(
             path_filter=AGENT_TELEMETRY_PATH,
             request_headers=["dd-telemetry-api-version", "dd-telemetry-request-type"],
@@ -281,8 +285,8 @@ class Test_Telemetry:
 
             if key not in self.library_requests:
                 # once the library interface is validated, weblog is not stopped. But it can send other data, and
-                # they won't be seen. The agent interface wait 5 second after, and can collect data. So if the
-                # library sent some data during this 5s, the agent interface will see it, but not the library
+                # they won't be seen. The mocked backend interface waits 5 seconds after, and can collect data. So if the
+                # library sent some data during this 5s, the mocked backend interface will see it, but not the library
                 # interface. For now, simply do not consider this use case, waiting for a better solution.
 
                 pass
@@ -772,7 +776,7 @@ class Test_APMOnboardingInstallID:
         """Assert that at least one trace carries APM onboarding info"""
 
         def validate_at_least_one_span_with_tag(tag: str):
-            for _, chunk in interfaces.agent.get_traces():
+            for _, chunk in interfaces.mocked_backend.get_traces():
                 for span in chunk.spans:
                     span_meta = span.meta
                     if tag in span_meta:

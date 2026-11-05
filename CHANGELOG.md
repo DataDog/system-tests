@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file.
 
+### 2026-10 (237 PR merged)
+
+* 2026-10-30 [Collect HotSpot hs_err logs from Java AWS SSI weblogs](https://github.com/DataDog/system-tests/pull/8249) by @robertomonteromiguel
+* 2026-10-29 [Gitlba e2e: let's the user select a list of scenarios to run for each weblogs](https://github.com/DataDog/system-tests/pull/8225) by @nccatoni
+* 2026-10-29 [Shorten K8s lib injection GitLab job names](https://github.com/DataDog/system-tests/pull/8195) by @robertomonteromiguel
+* 2026-10-26 [Install Docker SSI Node.js dependencies from Depot](https://github.com/DataDog/system-tests/pull/8181) by @robertomonteromiguel
+* 2026-10-26 [Fail Docker SSI when the installer leaves the tracer uninstalled](https://github.com/DataDog/system-tests/pull/8176) by @robertomonteromiguel
+* 2026-10-26 [Install AWS SSI Node.js dependencies from Depot](https://github.com/DataDog/system-tests/pull/8175) by @robertomonteromiguel
+* 2026-10-30 [PHP parametric base image](https://github.com/DataDog/system-tests/pull/8172) by @nccatoni
+* 2026-10-26 [Install Docker SSI Python dependencies from Depot](https://github.com/DataDog/system-tests/pull/8171) by @robertomonteromiguel
+* 2026-10-26 [Improve CI time : Each scenario is defined in its own module, so the CI stayed limited to it when modified](https://github.com/DataDog/system-tests/pull/8165) by @cbeauchesne
+* 2026-10-23 [Use the Depot Maven mirror for Docker SSI Java builds](https://github.com/DataDog/system-tests/pull/8148) by @robertomonteromiguel
+* 2026-10-22 [Unify FFE and Mocked backend](https://github.com/DataDog/system-tests/pull/8143) by @cbeauchesne
+* 2026-10-22 [AWS SSI: fix CentOS 7 Docker install](https://github.com/DataDog/system-tests/pull/8136) by @robertomonteromiguel
+* 2026-10-22 [Harden AWS SSI multicontainer startup](https://github.com/DataDog/system-tests/pull/8134) by @robertomonteromiguel
+* 2026-10-19 [AWS SSI: Validate every new cache AMI and delete stale images](https://github.com/DataDog/system-tests/pull/8073) by @robertomonteromiguel
+* 2026-10-16 [AWS SSI: Validate a new cache AMI before promoting it](https://github.com/DataDog/system-tests/pull/8065) by @robertomonteromiguel
+* 2026-10-21 [Multi arch support for base images](https://github.com/DataDog/system-tests/pull/8028) by @nccatoni
+* 2026-10-16 [Migrate SSI CI secrets from AWS SSM to Vault](https://github.com/DataDog/system-tests/pull/7993) by @robertomonteromiguel
+* 2026-10-06 [Old images from are no longer retained in the image mirroring list.](https://github.com/DataDog/system-tests/pull/7942) by @nccatoni
+* 2026-10-05 [Deprecate OTEL_COLLECTOR_E2E scenario](https://github.com/DataDog/system-tests/pull/7941) by @cbeauchesne
+* 2026-10-05 [Stop merging when targetting non main system-tests ref](https://github.com/DataDog/system-tests/pull/7874) by @nccatoni
+
+
 ### 2026-09 (138 PR merged)
 
 * 2026-09-30 [Switching easy win auto merge from opt in to opt out](https://github.com/DataDog/system-tests/pull/7865) by @nccatoni

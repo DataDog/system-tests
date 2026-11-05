@@ -40,7 +40,7 @@ class Test_Config_HttpServerErrorStatuses_Default:
         assert self.r.status_code == 400
 
         interfaces.library.assert_trace_exists(self.r)
-        spans = interfaces.agent.get_spans_list(self.r)
+        spans = interfaces.mocked_backend.get_spans_list(self.r)
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
         span = spans[0]
 
@@ -54,7 +54,7 @@ class Test_Config_HttpServerErrorStatuses_Default:
 
     def test_status_code_500(self):
         interfaces.library.assert_trace_exists(self.r)
-        spans = interfaces.agent.get_spans_list(self.r)
+        spans = interfaces.mocked_backend.get_spans_list(self.r)
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
         span = spans[0]
 
@@ -74,7 +74,7 @@ class Test_Config_HttpServerErrorStatuses_FeatureFlagCustom:
         assert self.r.status_code == 200
 
         interfaces.library.assert_trace_exists(self.r)
-        spans = interfaces.agent.get_spans_list(self.r)
+        spans = interfaces.mocked_backend.get_spans_list(self.r)
         assert len(spans) == 1, "Agent received the incorrect amount of chunks"
         span = spans[0]
         assert span.get_span_type() == "web"
@@ -88,7 +88,7 @@ class Test_Config_HttpServerErrorStatuses_FeatureFlagCustom:
         assert self.r.status_code == 202
 
         interfaces.library.assert_trace_exists(self.r)
-        spans = interfaces.agent.get_spans_list(self.r)
+        spans = interfaces.mocked_backend.get_spans_list(self.r)
         assert len(spans) == 1, "Agent received the incorrect amount of chunks"
         span = spans[0]
         assert span.get_span_type() == "web"
@@ -385,7 +385,7 @@ class Test_Config_UnifiedServiceTagging_CustomService:
 
     def test_specified_service_name(self):
         interfaces.library.assert_trace_exists(self.r)
-        spans = interfaces.agent.get_spans_list(self.r)
+        spans = interfaces.mocked_backend.get_spans_list(self.r)
         assert len(spans) == 1, f"Agent received the incorrect amount of spans, Spans: {spans}"
         assert spans[0].get_span_service() == "service_test"
 
@@ -400,7 +400,7 @@ class Test_Config_UnifiedServiceTagging_Default:
 
     def test_default_service_name(self):
         interfaces.library.assert_trace_exists(self.r)
-        spans = interfaces.agent.get_spans_list(self.r)
+        spans = interfaces.mocked_backend.get_spans_list(self.r)
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
         span = spans[0]
 
@@ -730,13 +730,13 @@ class Test_Config_RuntimeMetrics_Default:
 def get_runtime_metrics():
     runtime_metrics_gauges = [
         metric
-        for _, metric in interfaces.agent.get_metrics()
+        for _, metric in interfaces.mocked_backend.get_metrics()
         if metric["metric"].startswith("runtime.") or metric["metric"].startswith("jvm.")
     ]
 
     runtime_metrics_sketches = [
         metric
-        for _, metric in interfaces.agent.get_sketches()
+        for _, metric in interfaces.mocked_backend.get_sketches()
         if metric["metric"].startswith("runtime.") or metric["metric"].startswith("jvm.")
     ]
 
@@ -748,8 +748,8 @@ RUNTIME_METRICS_WAIT_TIMEOUT = 60
 
 def wait_for_runtime_metrics() -> None:
     # Runtime metrics are emitted on an interval, so wait (while the weblog is still up) until at least one
-    # reaches the agent instead of relying on the fixed collection window, which is racy.
-    interfaces.agent.wait_for(
+    # reaches the mocked backend instead of relying on the fixed collection window, which is racy.
+    interfaces.mocked_backend.wait_for(
         lambda _: any(len(metrics) > 0 for metrics in get_runtime_metrics()),
         timeout=RUNTIME_METRICS_WAIT_TIMEOUT,
     )

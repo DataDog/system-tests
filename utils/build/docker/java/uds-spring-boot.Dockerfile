@@ -17,7 +17,7 @@ RUN mvn -Dmaven.repo.local=/maven package
 FROM eclipse-temurin:11-jre
 
 WORKDIR /app
-COPY --from=build /binaries/SYSTEM_TESTS_LIBRARY_VERSION SYSTEM_TESTS_LIBRARY_VERSION
+COPY --from=build /binaries/SYSTEM_TESTS_LIBRARY_VERSION /binaries/SYSTEM_TESTS_LIBRARY_VERSION
 
 COPY --from=build /app/target/myproject-0.0.1-SNAPSHOT.jar .
 COPY --from=build /dd-tracer/dd-java-agent.jar .

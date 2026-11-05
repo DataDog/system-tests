@@ -1,10 +1,10 @@
 ### LIFE-001: Setup Methods Must Not Fail
 - Severity: P0
 - Flag: `setup_*` methods must never contain assertions, raise exceptions. They exist only for observability (trigger trace generation). If one fails, the entire scenario stops. Assertions belong in `test_*` methods.
-- Ref: [Add a new test](../../edit/add-new-test.md), [Test flow](../../understand/test-flow.md)
+- Ref: [Add a new test](../../../docs/edit/add-new-test.md), [Test flow](../../../docs/understand/test-flow.md)
 
 ### LIFE-002: Avoid fixed sleeps and unbounded waits
-- Severity: P0
+- Severity: P1
 - Flag: Do not use `time.sleep()`, fixed delays, or unbounded polling to wait for end-to-end data. Use `agent_interface_timeout` or `library_interface_timeout` for the general post-setup flush window. Use a bounded condition wait in `setup_*` when a specific condition must be observed before teardown or before triggering a subsequent action.
 - Detect: A setup or test uses a fixed sleep, polls without a deadline, or increases an arbitrary delay instead of waiting for an observable condition.
 - Not when: The delay itself is the behavior under test and no observable condition can represent it.
@@ -29,4 +29,4 @@
 - Not when: The test is parametric, or the wait verifies an infrastructure prerequisite required to execute later setup actions safely.
 - ✅ Store the response and wait result during setup, then assert and inspect the captured data in `test_*`.
 - ❌ Poll for traces in `test_*` after the containers have stopped, or assert expected trace contents from `setup_*`.
-- Ref: [End-to-end test flow](../../understand/test-flow.md#end-to-end-scenario), [Flushing default behavior](../../edit/flushing.md#default-behavior)
+- Ref: [End-to-end test flow](../../../docs/understand/test-flow.md#end-to-end-scenario), [Flushing default behavior](../../../docs/edit/flushing.md#default-behavior)

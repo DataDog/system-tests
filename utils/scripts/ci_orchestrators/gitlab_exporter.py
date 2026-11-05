@@ -340,14 +340,14 @@ def print_docker_ssi_gitlab_pipeline(
 
                 result_pipeline[vm_job]["script"] = [
                     "aws ecr get-login-password | docker login --username ${PRIVATE_DOCKER_REGISTRY_USER} --password-stdin ${PRIVATE_DOCKER_REGISTRY}",  # noqa: E501
-                    "SYSTEM_TEST_BUILD_ATTEMPTS=3 SYSTEM_TEST_BUILD_TIMEOUT=240 ./build.sh -i runner",
-                    "source venv/bin/activate",
+                    "bash utils/scripts/use_prebuilt_runner_venv.sh",
                     "echo 'Running SSI tests'",
                     (
                         # Capture stdout+stderr so the after_script can re-print the
                         # run summary (pipefail keeps run.sh's real exit code).
+                        # PYTHONPATH selects this checkout over the copy baked into the image.
                         "set -o pipefail\n"
-                        'timeout 1200s ./run.sh $SCENARIO --ssi-weblog "$WEBLOG" '
+                        'PYTHONPATH="${PWD}" timeout 1200s ./run.sh $SCENARIO --ssi-weblog "$WEBLOG" '
                         '--ssi-library "$TEST_LIBRARY" --ssi-base-image "$IMAGE" '
                         '--ssi-arch "$ARCH" --ssi-installable-runtime "$RUNTIME" '
                         "--ssi-env $ONBOARDING_FILTER_ENV"
