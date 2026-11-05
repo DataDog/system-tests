@@ -141,6 +141,7 @@ func main() {
 	http.HandleFunc("/trace/span/start", s.startSpanHandler)
 	http.HandleFunc("/trace/span/flush", s.flushSpansHandler)
 	http.HandleFunc("/trace/stats/flush", s.flushStatsHandler)
+	http.HandleFunc("/trace/dsm/produce_checkpoint", s.dsmProduceCheckpointHandler)
 	http.HandleFunc("/trace/span/set_meta", s.spanSetMetaHandler)
 	http.HandleFunc("/trace/span/finish", s.finishSpanHandler)
 	http.HandleFunc("/trace/span/set_metric", s.spanSetMetricHandler)
