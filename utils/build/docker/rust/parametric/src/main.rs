@@ -31,7 +31,13 @@ use tokio::{
 use tower::{Service, ServiceBuilder};
 use tower_http::trace::{DefaultOnFailure, DefaultOnRequest, DefaultOnResponse, TraceLayer};
 use tracing::{debug, error, field, info, info_span, Level, Span};
-use tracing_subscriber::{fmt, layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
+use tracing_subscriber::{
+    filter::{LevelFilter, Targets},
+    fmt,
+    layer::SubscriberExt,
+    util::SubscriberInitExt,
+    EnvFilter, Layer,
+};
 
 mod datadog;
 mod opentelemetry;
@@ -155,15 +161,24 @@ async fn main() {
 fn init_tracing(
     config: &datadog_opentelemetry::configuration::Config,
 ) -> Result<SdkTracerProvider> {
+    let app_filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| {
+        format!(
+            "{}=debug", // ,hyper=debug,tower_http=debug
+            env!("CARGO_CRATE_NAME")
+        )
+        .into()
+    });
+    // The tracer's own logs go to stderr, as in the other SDKs. Their level is already filtered by
+    // the tracer (DD_LOG_LEVEL).
+    let tracer_filter = Targets::new().with_target("datadog_opentelemetry", LevelFilter::TRACE);
     let _ = tracing_subscriber::registry()
-        .with(EnvFilter::try_from_default_env().unwrap_or_else(|_| {
-            format!(
-                "{}=debug", // ,hyper=debug,tower_http=debug
-                env!("CARGO_CRATE_NAME")
-            )
-            .into()
-        }))
-        .with(fmt::layer().json().flatten_event(true))
+        .with(fmt::layer().json().flatten_event(true).with_filter(app_filter))
+        .with(
+            fmt::layer()
+                .with_writer(std::io::stderr)
+                .with_ansi(false)
+                .with_filter(tracer_filter),
+        )
         .try_init()
         .context("initialize tracing subscriber");
 
