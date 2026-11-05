@@ -1,5 +1,5 @@
 ### INFRA-001: Environment Variables at Scenario Level, Not in Dockerfiles
-- Severity: P0
+- Severity: P1
 - Flag: Env vars that modify tracer/agent behavior should be set at the scenario level (`weblog_env`, `agent_env`), not in weblog Dockerfiles. Setting them in Dockerfiles affects all scenarios, not just the intended one.
 - Ref: [Scenarios](../../../utils/_context/_scenarios/__init__.py)
 
@@ -21,7 +21,7 @@
 
 ### INFRA-005: Run cleanup when the job fails, not when it is cancelled.
 - Old_id: claude-08
-- Severity: P0
+- Severity: P1
 - Flag: A tag, upload, or cleanup that must run after a failure uses `if: !cancelled()`, or a shell trap. Do not use `if: always()` unless that step must also run after a cancel. A missing `if` means `success()`, so a failed job skips the step. A tag may run before the work it names.
 - Detect: A required upload, tag, or cleanup has no `if`, or it uses `if: always()`. In one `set -e` script it follows a command that can fail, and no trap runs it.
 - Not when: The step must also run after a cancellation.
