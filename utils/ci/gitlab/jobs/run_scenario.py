@@ -33,7 +33,8 @@ def pull_images(library: str, weblog: str, scenario: str) -> None:
     """Pull the images of the scenario before running it, like the GitHub workflow: an image missing when the
     session starts its container is pulled then, which is slow and fails on any transient registry error.
 
-    To call once binaries/ is set up: the images needed to build the weblog are skipped when it's prebuilt.
+    The images needed to build the weblog are not pulled: build.sh builds it with the mirror BuildKit builder, that
+    pulls them itself.
     """
     compose_file = Path("compose.yaml")
     ci.run(

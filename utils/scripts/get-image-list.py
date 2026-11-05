@@ -6,7 +6,8 @@ import yaml
 
 from utils.const import COMPONENT_GROUPS
 from utils._context._scenarios import get_all_scenarios, DockerScenario
-from utils._context._image_mirror import mirror_image
+from utils._context._image_mirror import mirror_enabled, mirror_image
+from utils._context.containers import dockerfile_image_list
 from utils._context.docker import get_docker_client
 
 
@@ -23,6 +24,13 @@ def main(scenarios: list[str], library: str, weblog: str, output: str | None = N
 
     # remove images that will be built locally
     images = {image for image in images if not image.startswith("system_tests/")}
+
+    if mirror_enabled() and library and weblog:
+        # build.sh then builds the weblog with the system-tests-mirror BuildKit builder, that has its own image store
+        # and pulls the FROM images itself: pulled in the docker daemon, they would never be used
+        dockerfile = Path(f"utils/build/docker/{library}/{weblog}.Dockerfile")
+        if dockerfile.is_file():
+            images -= set(dockerfile_image_list(dockerfile))
 
     # with USE_IMAGE_MIRROR, pulled from the mirror, like the session does
     images = {mirror_image(image) for image in images}
