@@ -2718,10 +2718,49 @@ manifest:
   tests/test_library_logs.py::Test_NoExceptions::test_dotnet: irrelevant (only for .NET)
   tests/test_library_logs.py::Test_NoExceptions::test_java_logs: irrelevant (only for Java)
   tests/test_library_logs.py::Test_NoExceptions::test_java_telemetry_logs: irrelevant (only for Java)
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_Spans_Http_ErrorStatusConfiguration: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_SamplingRules: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_Spans_Http_ErrorStatusConfiguration:  # TODO: a lower version might be supported
+    - declaration: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+      component_version: <2.12.0
+      weblog: [gin, echo, net-http, fiber-v2-orchestrion, chi, uds-echo, net-http-orchestrion]
+    - declaration: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+      excluded_weblog: [gin, echo, net-http, fiber-v2-orchestrion, chi, uds-echo, net-http-orchestrion]
+  ? tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_Spans_Http_ErrorStatusConfiguration::test_server_error_statuses_config_excludes_500
+  : - weblog_declaration:
+        fiber-v2-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+  ? tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_Spans_Http_ErrorStatusConfiguration::test_server_error_statuses_config_overrides
+  : - weblog_declaration:
+        fiber-v2-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics:  # TODO: a lower version might be supported
+    - declaration: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+      component_version: <2.12.0
+      weblog: [gin, echo, net-http, fiber-v2-orchestrion, chi, uds-echo, net-http-orchestrion]
+    - declaration: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+      excluded_weblog: [gin, echo, net-http, fiber-v2-orchestrion, chi, uds-echo, net-http-orchestrion]
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics::test_trace_metric_agrees_with_server_error:
+    - weblog_declaration:
+        fiber-v2-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics::test_trace_metric_agrees_with_server_success:
+    - weblog_declaration:
+        fiber-v2-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_SamplingRules:  # TODO: a lower version might be supported
+    - declaration: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+      component_version: <2.12.0
+      weblog: [gin, echo, net-http, chi, uds-echo, net-http-orchestrion]
+    - declaration: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+      excluded_weblog: [gin, echo, net-http, chi, uds-echo, net-http-orchestrion]
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client:  # TODO: a lower version might be supported
+    - declaration: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+      component_version: <2.12.0
+      weblog: [gin, echo, net-http, fiber-v2-orchestrion, chi, uds-echo, net-http-orchestrion]
+    - declaration: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+      excluded_weblog: [gin, echo, net-http, fiber-v2-orchestrion, chi, uds-echo, net-http-orchestrion]
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client::test_span_name_unknown_method:
+    - weblog_declaration:
+        net-http-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        uds-echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        chi: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        gin: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server:  # TODO: a lower version might be supported
     - declaration: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
       component_version: <2.10.1
@@ -2730,139 +2769,176 @@ manifest:
       excluded_weblog: [gin, net-http, uds-echo, echo, chi, net-http-orchestrion]
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_client_address:
     - weblog_declaration:
-        chi: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        net-http-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        net-http: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        uds-echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        gin: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        chi: v2.12.0  # TODO: a lower version might be supported
+        echo: v2.12.0  # TODO: a lower version might be supported
+        net-http-orchestrion: v2.12.0  # TODO: a lower version might be supported
+        net-http: v2.12.0  # TODO: a lower version might be supported
+        uds-echo: v2.12.0  # TODO: a lower version might be supported
+        gin: v2.12.0  # TODO: a lower version might be supported
+    - weblog_declaration:
+        fiber-v2-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_datadog_attributes_absent:
     - weblog_declaration:
-        chi: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        net-http-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        net-http: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        uds-echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        gin: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_http_endpoint_retained_from_appsec: irrelevant (The AppSec endpoint retention request is specific to .NET)
+        chi: v2.12.0  # TODO: a lower version might be supported
+        echo: v2.12.0  # TODO: a lower version might be supported
+        net-http-orchestrion: v2.12.0  # TODO: a lower version might be supported
+        net-http: v2.12.0  # TODO: a lower version might be supported
+        uds-echo: v2.12.0  # TODO: a lower version might be supported
+        gin: v2.12.0  # TODO: a lower version might be supported
+    - weblog_declaration:
+        fiber-v2-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_http_endpoint_retained_from_appsec:
+    - declaration: irrelevant (The AppSec endpoint retention request is specific to .NET)
+    - weblog_declaration:
+        fiber-v2-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_http_endpoint_retained_from_resource_renaming:
     - weblog_declaration:
-        chi: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        gin: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        uds-echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        chi: v2.12.0  # TODO: a lower version might be supported
+        echo: v2.12.0  # TODO: a lower version might be supported
+        gin: v2.12.0  # TODO: a lower version might be supported
+        uds-echo: v2.12.0  # TODO: a lower version might be supported
+    - weblog_declaration:
+        fiber-v2-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_network_peer_address:
     - weblog_declaration:
-        chi: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        net-http-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        net-http: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        uds-echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        gin: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        chi: v2.12.0  # TODO: a lower version might be supported
+        echo: v2.12.0  # TODO: a lower version might be supported
+        net-http-orchestrion: v2.12.0  # TODO: a lower version might be supported
+        net-http: v2.12.0  # TODO: a lower version might be supported
+        uds-echo: v2.12.0  # TODO: a lower version might be supported
+        gin: v2.12.0  # TODO: a lower version might be supported
+    - weblog_declaration:
+        fiber-v2-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_otel_attributes_present:
     - weblog_declaration:
-        chi: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        net-http-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        net-http: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        uds-echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        gin: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        chi: v2.12.0  # TODO: a lower version might be supported
+        echo: v2.12.0  # TODO: a lower version might be supported
+        net-http-orchestrion: v2.12.0  # TODO: a lower version might be supported
+        net-http: v2.12.0  # TODO: a lower version might be supported
+        uds-echo: v2.12.0  # TODO: a lower version might be supported
+        gin: v2.12.0  # TODO: a lower version might be supported
+    - weblog_declaration:
+        fiber-v2-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_server_address:
     - weblog_declaration:
-        chi: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        net-http-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        net-http: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        uds-echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        gin: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        chi: v2.12.0  # TODO: a lower version might be supported
+        echo: v2.12.0  # TODO: a lower version might be supported
+        net-http-orchestrion: v2.12.0  # TODO: a lower version might be supported
+        net-http: v2.12.0  # TODO: a lower version might be supported
+        uds-echo: v2.12.0  # TODO: a lower version might be supported
+        gin: v2.12.0  # TODO: a lower version might be supported
+    - weblog_declaration:
+        fiber-v2-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_server_port:
     - weblog_declaration:
-        chi: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        net-http-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        net-http: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        uds-echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        gin: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        chi: v2.12.0  # TODO: a lower version might be supported
+        echo: v2.12.0  # TODO: a lower version might be supported
+        net-http-orchestrion: v2.12.0  # TODO: a lower version might be supported
+        net-http: v2.12.0  # TODO: a lower version might be supported
+        uds-echo: v2.12.0  # TODO: a lower version might be supported
+        gin: v2.12.0  # TODO: a lower version might be supported
+    - weblog_declaration:
+        fiber-v2-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_span_name_route_invariance:
     - weblog_declaration:
-        chi: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        net-http-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        net-http: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        uds-echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        gin: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        chi: v2.12.0  # TODO: a lower version might be supported
+        echo: v2.12.0  # TODO: a lower version might be supported
+        net-http-orchestrion: v2.12.0  # TODO: a lower version might be supported
+        net-http: v2.12.0  # TODO: a lower version might be supported
+        uds-echo: v2.12.0  # TODO: a lower version might be supported
+        gin: v2.12.0  # TODO: a lower version might be supported
+    - weblog_declaration:
+        fiber-v2-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_span_name_unknown_method:
     - weblog_declaration:
-        chi: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        net-http-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        net-http: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        uds-echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        gin: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        chi: v2.12.0  # TODO: a lower version might be supported
+        echo: v2.12.0  # TODO: a lower version might be supported
+        net-http-orchestrion: v2.12.0  # TODO: a lower version might be supported
+        net-http: v2.12.0  # TODO: a lower version might be supported
+        uds-echo: v2.12.0  # TODO: a lower version might be supported
+        gin: v2.12.0  # TODO: a lower version might be supported
+    - weblog_declaration:
+        fiber-v2-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_span_name_with_route:
     - weblog_declaration:
-        chi: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        net-http-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        net-http: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        uds-echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        gin: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        chi: v2.12.0  # TODO: a lower version might be supported
+        echo: v2.12.0  # TODO: a lower version might be supported
+        net-http-orchestrion: v2.12.0  # TODO: a lower version might be supported
+        net-http: v2.12.0  # TODO: a lower version might be supported
+        uds-echo: v2.12.0  # TODO: a lower version might be supported
+        gin: v2.12.0  # TODO: a lower version might be supported
+    - weblog_declaration:
+        fiber-v2-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_span_name_without_route:
     - weblog_declaration:
-        chi: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        net-http-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        net-http: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        uds-echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        gin: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        chi: v2.12.0  # TODO: a lower version might be supported
+        echo: v2.12.0  # TODO: a lower version might be supported
+        net-http-orchestrion: v2.12.0  # TODO: a lower version might be supported
+        net-http: v2.12.0  # TODO: a lower version might be supported
+        uds-echo: v2.12.0  # TODO: a lower version might be supported
+        gin: v2.12.0  # TODO: a lower version might be supported
+    - weblog_declaration:
+        fiber-v2-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_status_3xx_is_not_error:
     - weblog_declaration:
-        chi: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        net-http-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        net-http: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        uds-echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        gin: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        chi: v2.12.0  # TODO: a lower version might be supported
+        echo: v2.12.0  # TODO: a lower version might be supported
+        net-http-orchestrion: v2.12.0  # TODO: a lower version might be supported
+        net-http: v2.12.0  # TODO: a lower version might be supported
+        uds-echo: v2.12.0  # TODO: a lower version might be supported
+        gin: v2.12.0  # TODO: a lower version might be supported
+    - weblog_declaration:
+        fiber-v2-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_status_400_is_not_error:
     - weblog_declaration:
-        chi: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        net-http-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        net-http: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        uds-echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        gin: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        chi: v2.12.0  # TODO: a lower version might be supported
+        echo: v2.12.0  # TODO: a lower version might be supported
+        net-http-orchestrion: v2.12.0  # TODO: a lower version might be supported
+        net-http: v2.12.0  # TODO: a lower version might be supported
+        uds-echo: v2.12.0  # TODO: a lower version might be supported
+        gin: v2.12.0  # TODO: a lower version might be supported
+    - weblog_declaration:
+        fiber-v2-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_status_500_no_exception_is_status_code_error:
     - weblog_declaration:
-        chi: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        net-http-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        net-http: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        uds-echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        gin: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        chi: v2.12.0  # TODO: a lower version might be supported
+        echo: v2.12.0  # TODO: a lower version might be supported
+        net-http-orchestrion: v2.12.0  # TODO: a lower version might be supported
+        net-http: v2.12.0  # TODO: a lower version might be supported
+        uds-echo: v2.12.0  # TODO: a lower version might be supported
+        gin: v2.12.0  # TODO: a lower version might be supported
+    - weblog_declaration:
+        fiber-v2-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_url_query_obfuscation:
     - weblog_declaration:
-        chi: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        net-http-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        net-http: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        uds-echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        gin: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        chi: v2.12.0  # TODO: a lower version might be supported
+        echo: v2.12.0  # TODO: a lower version might be supported
+        net-http-orchestrion: v2.12.0  # TODO: a lower version might be supported
+        net-http: v2.12.0  # TODO: a lower version might be supported
+        uds-echo: v2.12.0  # TODO: a lower version might be supported
+        gin: v2.12.0  # TODO: a lower version might be supported
+    - weblog_declaration:
+        fiber-v2-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_url_query_present_with_query_string:
     - weblog_declaration:
-        chi: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        net-http-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        net-http: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        uds-echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        gin: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        chi: v2.12.0  # TODO: a lower version might be supported
+        echo: v2.12.0  # TODO: a lower version might be supported
+        net-http-orchestrion: v2.12.0  # TODO: a lower version might be supported
+        net-http: v2.12.0  # TODO: a lower version might be supported
+        uds-echo: v2.12.0  # TODO: a lower version might be supported
+        gin: v2.12.0  # TODO: a lower version might be supported
+    - weblog_declaration:
+        fiber-v2-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_user_agent:
     - weblog_declaration:
-        chi: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        net-http-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        net-http: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        uds-echo: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
-        gin: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
+        chi: v2.12.0  # TODO: a lower version might be supported
+        echo: v2.12.0  # TODO: a lower version might be supported
+        net-http-orchestrion: v2.12.0  # TODO: a lower version might be supported
+        net-http: v2.12.0  # TODO: a lower version might be supported
+        uds-echo: v2.12.0  # TODO: a lower version might be supported
+        gin: v2.12.0  # TODO: a lower version might be supported
+    - weblog_declaration:
+        fiber-v2-orchestrion: missing_feature (DD_TRACE_OTEL_SEMANTICS_ENABLED not implemented)
   tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs: v2.12.0-dev
   tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_configured_value: irrelevant (DD_TRACE_OTEL_ENABLED and the shared OTLP settings are not reported)
   tests/test_otel_startup_logs.py::Test_OTEL_Startup_Logs::test_metrics:
