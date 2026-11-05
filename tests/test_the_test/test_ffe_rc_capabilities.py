@@ -5,8 +5,7 @@ from threading import Event
 from typing import Any
 from unittest.mock import MagicMock, patch
 
-from tests.parametric.test_ffe.dependent_flags_rc import deliver, ffe_requests, start_and_deliver
-from tests.parametric.test_ffe.utils import assert_dependent_flag_capability
+from tests.parametric.test_ffe.utils import assert_dependent_flag_capability, deliver, ffe_requests, start_and_deliver
 from utils import features, pytest, scenarios
 from utils.dd_constants import Capabilities, RemoteConfigApplyState
 from utils.docker_fixtures import TestAgentAPI, ParametricTestClientApi
@@ -106,7 +105,7 @@ class Test_FFE_RC_Delivery:
             [old, old, new_without_ack, wrong_product],
             [old, old, new_without_ack, wrong_product, new_ack],
         ]
-        with patch("tests.parametric.test_ffe.dependent_flags_rc.time.sleep"):
+        with patch("tests.parametric.test_ffe.utils.time.sleep"):
             deliver(agent, config_id="flags", payload={"flags": {}})
         assert agent.rc_requests.call_count == 5
         agent.clear.assert_not_called()
@@ -116,8 +115,8 @@ class Test_FFE_RC_Delivery:
         old = _poll(content="old", acknowledged=True)
         agent.rc_requests.side_effect = [[old], [old, old]]
         with (
-            patch("tests.parametric.test_ffe.dependent_flags_rc.time.monotonic", side_effect=[0, 0, 11]),
-            patch("tests.parametric.test_ffe.dependent_flags_rc.time.sleep"),
+            patch("tests.parametric.test_ffe.utils.time.monotonic", side_effect=[0, 0, 11]),
+            patch("tests.parametric.test_ffe.utils.time.sleep"),
             pytest.raises(AssertionError, match="did not acknowledge new configuration content"),
         ):
             deliver(agent, config_id="flags", payload={"flags": {}})

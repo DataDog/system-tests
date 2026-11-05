@@ -8,13 +8,13 @@ import time
 from typing import Any
 
 from tests.parametric.conftest import APMLibrary
-from tests.parametric.test_ffe.dependent_flags_rc import (
+from tests.parametric.test_ffe.utils import (
+    assert_dependent_flag_capability,
     deliver,
     ffe_requests,
     observe_polls,
     start_and_deliver,
 )
-from tests.parametric.test_ffe.utils import assert_dependent_flag_capability
 from utils import features, pytest, scenarios
 from utils.docker_fixtures import TestAgentAPI
 
