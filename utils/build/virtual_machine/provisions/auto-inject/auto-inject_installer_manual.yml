@@ -271,56 +271,37 @@
         (New-Object System.Net.WebClient).DownloadFile('https://install.datadoghq.com/Install-Datadog.ps1', 'C:\Windows\SystemTemp\Install-Datadog.ps1');
     }
 
+    $datadogDataDir = "C:\ProgramData\Datadog"
+    $datadogYaml = Join-Path $datadogDataDir "datadog.yaml"
+    if ($env:DD_AGENT_BACKEND_URL) {
+      # Point the agent to the mocked backend before it is installed, so it starts with the right config and never
+      # needs a restart (stopping the agent and its dependent services is not reliable on Windows).
+      # The fleet installer merges its config into an existing datadog.yaml and the MSI doesn't modify it
+      if (Test-Path $datadogYaml) {
+        throw "$datadogYaml already exists before the agent install, can't point the agent to the mocked backend"
+      }
+      if (-not (Test-Path $datadogDataDir)) {
+        # Same owner and permissions as the ones set by the installer, it refuses a directory not owned by Administrators
+        New-Item -ItemType Directory -Path $datadogDataDir | Out-Null
+        $acl = Get-Acl -Path $datadogDataDir
+        $acl.SetSecurityDescriptorSddlForm("O:BAG:BAD:PAI(A;OICI;FA;;;SY)(A;OICI;FA;;;BA)(A;CI;0x1200a9;;;WD)")
+        Set-Acl -Path $datadogDataDir -AclObject $acl
+      }
+      $backendConfig = @(
+        "dd_url: $env:DD_AGENT_BACKEND_URL",
+        "apm_config:",
+        "  apm_dd_url: $env:DD_AGENT_BACKEND_URL",
+        "  profiling_dd_url: $env:DD_AGENT_BACKEND_URL/api/v2/profile",
+        ""
+      ) -join "`n"
+      [System.IO.File]::WriteAllText($datadogYaml, $backendConfig)
+    }
+
     C:\Windows\SystemTemp\Install-Datadog.ps1
 
     if ($env:DD_AGENT_BACKEND_URL) {
-      # Point the agent to the mocked backend, before the weblog is installed. Services don't see machine level
-      # environment variables until a reboot: use the per-service Environment registry value instead
-      $backendEnv = @(
-        "DD_DD_URL=$env:DD_AGENT_BACKEND_URL",
-        "DD_APM_DD_URL=$env:DD_AGENT_BACKEND_URL",
-        "DD_APM_PROFILING_DD_URL=$env:DD_AGENT_BACKEND_URL/api/v2/profile"
-      )
-      foreach ($service in @("datadogagent", "datadog-trace-agent")) {
-        $serviceKey = "HKLM:\SYSTEM\CurrentControlSet\Services\$service"
-        if (-not (Test-Path $serviceKey)) {
-          throw "Service '$service' not found, can't point it to the mocked backend"
-        }
-        $existingEnv = (Get-ItemProperty -Path $serviceKey -Name Environment -ErrorAction SilentlyContinue).Environment
-        $serviceEnv = @($existingEnv | Where-Object { $_ -and $_ -notmatch '^DD_(DD_URL|APM_DD_URL|APM_PROFILING_DD_URL)=' }) + $backendEnv
-        New-ItemProperty -Path $serviceKey -Name Environment -PropertyType MultiString -Value $serviceEnv -Force | Out-Null
+      if (-not (Select-String -Path $datadogYaml -SimpleMatch -Quiet -Pattern $env:DD_AGENT_BACKEND_URL)) {
+        Get-Content -Path $datadogYaml
+        throw "The mocked backend URL is missing from $datadogYaml after the agent install"
       }
-      $agentServices = @("datadogagent", "datadog-trace-agent")
-      # The installer may still be starting the agent: a service doesn't accept a stop request until it runs
-      foreach ($service in $agentServices) {
-        try {
-          (Get-Service -Name $service).WaitForStatus("Running", [TimeSpan]::FromSeconds(120))
-        } catch {
-          Write-Host "Warning: service '$service' is not running before the restart: $_"
-        }
-      }
-      $restarted = $false
-      for ($attempt = 1; $attempt -le 5 -and -not $restarted; $attempt++) {
-        try {
-          # -Force stops the dependent services (trace agent...), they may not be started again with the core agent
-          Restart-Service -Name datadogagent -Force -ErrorAction Stop
-          Start-Service -Name datadog-trace-agent -ErrorAction Stop
-          $restarted = $true
-        } catch {
-          Write-Host "Attempt $attempt to restart the agent failed: $_"
-          Start-Sleep -Seconds 10
-        }
-      }
-      if (-not $restarted) {
-        throw "Could not restart the agent, it may not use the mocked backend"
-      }
-      foreach ($service in $agentServices) {
-        try {
-          (Get-Service -Name $service).WaitForStatus("Running", [TimeSpan]::FromSeconds(60))
-        } catch {
-          Get-Service -Name $agentServices
-          throw "Service '$service' is not running after the restart, it may not use the mocked backend"
-        }
-      }
-      Get-Service -Name $agentServices
     }
