@@ -83,19 +83,29 @@ def run(
     subprocess.run(command, check=True, cwd=cwd, timeout=timeout, env=None if env is None else {**os.environ, **env})
 
 
-def run_publish(command: list[str], env: Mapping[str, str] | None = None) -> bool:
-    """Retry a best-effort publish. A remaining failure is logged and ignored."""
+def run_publish(command: list[str], env: Mapping[str, str] | None = None, *, ignore_failure: bool = False) -> bool:
+    """Retry a publish command.
+
+    Raise the last error when every attempt fails. The S3 log upload sets ignore_failure
+    so a remaining failure is logged and the after_script still exits 0.
+    """
+    error: subprocess.CalledProcessError | subprocess.TimeoutExpired | None = None
     for attempt in range(1, PUBLISH_ATTEMPTS + 1):
         try:
             run(command, env=env, timeout=PUBLISH_TIMEOUT_SECONDS)
-        except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as error:
-            print(f"⚠️ {command[0]} attempt {attempt}/{PUBLISH_ATTEMPTS} failed: {error}", flush=True)
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as attempt_error:
+            error = attempt_error
+            print(f"⚠️ {command[0]} attempt {attempt}/{PUBLISH_ATTEMPTS} failed: {attempt_error}", flush=True)
             if attempt < PUBLISH_ATTEMPTS:
                 time.sleep(PUBLISH_RETRY_DELAY_SECONDS)
             continue
         return True
-    print(f"⚠️ {command[0]} failed after {PUBLISH_ATTEMPTS} attempts, ignored", flush=True)
-    return False
+    if error is None:
+        raise RuntimeError(f"{command[0]} failed without an error")
+    if ignore_failure:
+        print(f"⚠️ {command[0]} failed after {PUBLISH_ATTEMPTS} attempts, ignored", flush=True)
+        return False
+    raise error
 
 
 @cache
@@ -127,6 +137,7 @@ def upload_logs_to_s3(job: Job) -> None:
         uploaded = run_publish(
             ["aws", "s3", "cp", str(folder), f"s3://{AWS_LOGS_BUCKET}/{prefix}", "--recursive", "--quiet"],
             env={"AWS_PROFILE": "apm-ecosystems-reliability-ci"},
+            ignore_failure=True,
         )
         if uploaded:
             job.aws_console_url = (
