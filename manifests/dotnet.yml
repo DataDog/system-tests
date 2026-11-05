@@ -1708,8 +1708,16 @@ manifest:
   tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_Spans_Http_ErrorStatusConfiguration: v3.52.0
   tests/test_otel_http_semantics.py::Test_OtelSemantics_OTLP_TraceMetrics: v3.53.0
   tests/test_otel_http_semantics.py::Test_OtelSemantics_SamplingRules: v3.53.0
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_SamplingRules::test_otel_span_name_is_available_to_sampling_rules: missing_feature
-  tests/test_otel_http_semantics.py::Test_OtelSemantics_SamplingRules::test_server_span_name_is_available_before_client_sampling: missing_feature
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_SamplingRules::test_otel_span_name_is_available_to_sampling_rules:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        uds: '>=3.57.0'
+        poc: '>=3.57.0'
+  tests/test_otel_http_semantics.py::Test_OtelSemantics_SamplingRules::test_server_span_name_is_available_before_client_sampling:  # TODO: a lower version might be supported
+    - weblog_declaration:
+        '*': missing_feature
+        uds: '>=3.57.0'
+        poc: '>=3.57.0'
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Client: v3.52.0
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server: v3.53.0
   tests/test_otel_http_semantics.py::Test_OtelSemantics_Spans_Http_Server::test_http_endpoint_retained_from_appsec: v3.53.0
