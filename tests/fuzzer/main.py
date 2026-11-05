@@ -62,7 +62,7 @@ def main() -> None:
 
     network = create_network()
 
-    agent = AgentContainer(use_proxy=False, dd_api_key=FakeDatadogKey.DEFAULT)
+    agent = AgentContainer(dd_api_key=FakeDatadogKey.DEFAULT)
     agent.configure(host_log_folder="logs_fuzzer", replay=False)
     agent.start(network)
 

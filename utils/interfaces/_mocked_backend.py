@@ -10,6 +10,7 @@ scenarios), in the pytest process (see start_mocked_backend).
 from collections.abc import Callable, Generator, Iterable
 import copy
 from pathlib import Path
+import threading
 from typing import Any
 
 from utils._logger import logger
@@ -24,6 +25,11 @@ class _MockedBackendInterfaceValidator(ProxyBasedInterfaceValidator):
     def __init__(self):
         super().__init__("mocked_backend")
         self._mock_server: MockedBackendServer | None = None
+        self.ready = threading.Event()
+
+    def ingest_file(self, src_path: str):
+        self.ready.set()
+        return super().ingest_file(src_path)
 
     def ingest_all_files(self) -> None:
         """Ingest every recorded file not seen yet by the watchdog. To call once the mocked backend is stopped.

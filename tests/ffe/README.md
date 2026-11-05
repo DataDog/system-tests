@@ -27,8 +27,8 @@ first, then refresh the snapshot:
 python3 utils/scripts/update_ffe_fixtures.py --ref <branch-tag-or-commit>
 ```
 
-The updater imports `ufc-config.json` and `evaluation-cases/*.json` only. Ordinary
-test runs use those checked-in files without submodules or network access. A
+The updater imports `ufc-config.json`, `evaluation-cases/*.json`, and
+`flag-selection/selection-vectors.json`. Ordinary test runs use those checked-in files without submodules or network access. A
 weekly/manual workflow opens a signed draft PR when their contents change and
 leaves any existing fixture update PR untouched. Review and resolve newly exposed
 SDK failures before merging an update.
@@ -64,6 +64,12 @@ configuration copies are needed.
 Standalone rules-configuration helpers are covered in `tests/parametric/test_ffe/test_rules_configuration.py` (Node.js only for now). These tests use `dd-trace/openfeature/rules-based` in a fresh process without initializing a tracer or provider, fetch protobuf over HTTP, and validate the portable wire output, channel credentials, typed errors, deadlines and cancellation during headers/body delivery, transport failures, invalid options, and redirect protection. They do not initialize a browser SDK or contact Datadog.
 
 These tests report to [Offline initialization and portable configuration helpers (#562)](https://feature-parity.us1.prod.dog/?feature=562). Current coverage is limited to Node's rules-based fetching and serialization; precomputed helpers and provider offline initialization are not covered here.
+
+`Test_FFE_Rules_Configuration_Selection` covers tag/key-pattern query parameters on both distribution channels, invalid/URL-overflow selections dropped with diagnostics, quiet empty-selection omission, and retention of the full response when the backend ignores selection. It also checks diagnostics for nonempty `DD-Flag-Selection-Ignored` response headers, including unknown reasons. The mock does not implement backend filtering. These cases require [openfeature-js-client #445](https://github.com/DataDog/openfeature-js-client/pull/445) in the `dd-trace` dependency and remain gated in the Node manifest until a containing build is available. Other SDKs retain the existing file-level gate.
+
+The class also runs the canonical selection vectors' `sdk` expectations through real HTTP requests, grouped by distribution channel to share container startup. These cover Unicode `White_Space` trimming, UTF-8 byte ordering and length, the 31/32-value and 200/201-byte boundaries, and drop-reason precedence. Raw-query percent-decoding and server-side `selectedKeys` expectations are intentionally excluded. The fixture updater validates the SDK vector shape before replacing the snapshot, and the existing update workflow tracks changes to both evaluator and selection fixtures.
+
+To validate an unreleased build containing the selection change, use the [custom Node tracer instructions](../../docs/execute/binaries.md#nodejs-library), select `tests/parametric/test_ffe/test_rules_configuration.py::Test_FFE_Rules_Configuration_Selection`, and pass the same node ID to `-F`. Once released, update the class gate and the existing file-level version restriction together.
 
 With Docker and the Python 3.12 runner installed:
 
