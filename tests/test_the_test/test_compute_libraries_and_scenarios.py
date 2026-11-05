@@ -5,7 +5,7 @@ from pathlib import Path
 from functools import wraps
 
 from utils import pytest
-from utils.scripts.compute_libraries_and_scenarios import Inputs, process
+from utils.scripts.compute_libraries_and_scenarios import Inputs, get_gitlab_ssi_library, process
 from utils import scenarios
 
 
@@ -509,6 +509,32 @@ class Test_ComputeLibrariesAndScenarios:
             'scenarios="DEFAULT"',
             'scenarios_groups=""',
         ]
+
+    @pytest.mark.parametrize(
+        ("pr_title", "expected"),
+        [
+            ("[nodejs] Test Node.js", "nodejs"),
+            ("[java] Test Java", "java"),
+            ("[dotnet] Test .NET", "dotnet"),
+            ("[PYTHON] Test Python", "python"),
+            ("[php] Test PHP", "php"),
+            ("[ruby] Test Ruby", "ruby"),
+            ("[golang] Test Go", None),
+            ("[java@feature] Test a Java branch", None),
+            ("Test Java [java]", None),
+        ],
+    )
+    def test_gitlab_ssi_library_title(self, pr_title: str, expected: str | None):
+        assert get_gitlab_ssi_library(pr_title) == expected
+
+    @set_env("GITLAB_CI", "true")
+    @set_env("CI_PIPELINE_SOURCE", "pull_request")
+    @set_env("CI_COMMIT_REF_NAME", "")
+    @set_env("GITHUB_PR_TITLE", "[java] Test Java")
+    def test_gitlab_ssi_library_output(self):
+        inputs = build_inputs(["README.md"])
+
+        assert 'ssi_library="java"' in process(inputs)
 
     def test_manifest_no_edit(self):
         inputs = build_inputs(

@@ -68,6 +68,19 @@ compute_pipeline:
         fi
         git diff --name-only "$BASE_COMMIT" "$CI_COMMIT_SHA" >> modified_files.txt # List modified files
         cat modified_files.txt
+        export GITHUB_PR_TITLE=""
+        if [ "$CI_COMMIT_REF_NAME" != "main" ]; then
+          if PR_DATA=$(curl -fsS \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/DataDog/system-tests/commits/$CI_COMMIT_SHA/pulls"); then
+            GITHUB_PR_TITLE=$(jq -r \
+              '[.[] | select(.state == "open")] | if length == 1 then .[0].title else "" end' <<< "$PR_DATA")
+            export GITHUB_PR_TITLE
+          else
+            echo "⚠️ Unable to read the GitHub PR title. Running all SSI languages."
+          fi
+        fi
         # Deliberate AWS SSI opt-in; shared callers keep the full matrix on main.
         python utils/scripts/compute_libraries_and_scenarios.py --select-main-push-from-diff >> impacted_scenarios.txt
         cat impacted_scenarios.txt
@@ -86,12 +99,21 @@ compute_pipeline:
            SYSTEM_TEST_BUILD_ATTEMPTS=3 SYSTEM_TEST_BUILD_TIMEOUT=240 ./build.sh -i runner
           source venv/bin/activate
       fi
-    - python utils/scripts/compute-workflow-parameters.py nodejs -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
-    - python utils/scripts/compute-workflow-parameters.py java -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
-    - python utils/scripts/compute-workflow-parameters.py dotnet -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
-    - python utils/scripts/compute-workflow-parameters.py python -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
-    - python utils/scripts/compute-workflow-parameters.py php -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
-    - python utils/scripts/compute-workflow-parameters.py ruby -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
+    - |
+      for library in nodejs java dotnet python php ruby; do
+        selected_scenarios="$scenarios"
+        selected_scenario_groups="$scenarios_groups"
+        if [ -n "${ssi_library:-}" ] && [ "$library" != "$ssi_library" ]; then
+          selected_scenarios=""
+          selected_scenario_groups=""
+        fi
+        python utils/scripts/compute-workflow-parameters.py "$library" \
+          -s "$selected_scenarios" \
+          -g "$selected_scenario_groups" \
+          --parametric-job-count 1 \
+          --ci-environment "${CI_ENVIRONMENT}" \
+          --format gitlab
+      done
     - |
       if [ -n "$SYSTEM_TESTS_SCENARIOS" ] || [ -n "$SYSTEM_TESTS_SCENARIOS_GROUPS" ]; then
         cp *.yml "$CI_PROJECT_DIR"
