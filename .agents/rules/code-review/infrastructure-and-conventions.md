@@ -5,7 +5,7 @@
 
 ### INFRA-002: Use Existing Utilities
 - Severity: P1
-- Flag: Do not redefine constants, enums, or helpers that already exist in `utils/`. In particular, check `utils/dd_constants.py` and `utils/_features.py` for constants and enums, and use `from utils._logger import logger`.
+- Flag: Do not redefine constants, enums, or helpers that already exist in `utils/`. In particular, check `utils/dd_constants.py` and `utils/_features.py` for constants and enums, and use `from utils import logger`.
 - Ref: [Datadog constants](../../../utils/dd_constants.py), [Features](../../../utils/_features.py), [Using logger](../../../docs/edit/README.md#using-logger)
 
 ### INFRA-003: Unique Weblog Names
