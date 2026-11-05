@@ -223,12 +223,12 @@ class Test_Synthetics_APM_Datadog:
 
     def test_synthetics(self):
         interfaces.library.assert_trace_exists(self.r)
-        traces = list(interfaces.agent.get_traces(self.r))
+        traces = list(interfaces.mocked_backend.get_traces(self.r))
         assert len(traces) == 1, "Agent received the incorrect amount of traces"
 
         _, trace = traces[0]
         assert trace.trace_id_as_int == 1234567890
-        spans = list(interfaces.agent.get_spans(self.r))
+        spans = list(interfaces.mocked_backend.get_spans(self.r))
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
         _, span = spans[0]
         assert "parentID" not in span or span.get("parentID") == 0 or span.get("parentID") is None
@@ -249,12 +249,12 @@ class Test_Synthetics_APM_Datadog:
 
     def test_synthetics_browser(self):
         interfaces.library.assert_trace_exists(self.r)
-        traces = list(interfaces.agent.get_traces(self.r))
+        traces = list(interfaces.mocked_backend.get_traces(self.r))
         assert len(traces) == 1, "Agent received the incorrect amount of traces"
         _, trace = traces[0]
         assert trace.trace_id_as_int == 1234567891
 
-        spans = list(interfaces.agent.get_spans(self.r))
+        spans = list(interfaces.mocked_backend.get_spans(self.r))
         assert len(spans) == (2 if context.library == "java" else 1), "Agent received the incorrect amount of spans"
         _, span = spans[0]
         assert "parentID" not in span or span.get("parentID") == 0 or span.get("parentID") is None

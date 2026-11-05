@@ -1,8 +1,3 @@
----
-description: 
-globs: 
-alwaysApply: true
----
 # K8s Library Injection
 
 * About K8s Library Injection tests use the document files: docs/understand/scenarios/k8s_library_injection_overview.md, docs/understand/scenarios/k8s_lib_injection.md and docs/understand/scenarios/k8s_injector_dev.md to provide an accurate answers.
