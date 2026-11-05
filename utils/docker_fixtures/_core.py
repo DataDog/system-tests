@@ -13,9 +13,9 @@ import pytest
 
 from utils._logger import logger
 from utils._context.docker import get_docker_client
+from utils.mocked_backend._utils import HOST_DOCKER_INTERNAL
 
 
-HOST_DOCKER_INTERNAL = "host.docker.internal"
 HOST_GATEWAY_EXTRA_HOSTS = {HOST_DOCKER_INTERNAL: "host-gateway"}
 
 INVOCATION_LABEL = "system-tests.invocation-id"

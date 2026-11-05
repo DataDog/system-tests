@@ -20,3 +20,8 @@ else
         exit 1
     fi
 fi
+
+# read by build.sh, to label the image with it, like the healthcheck reports it (datadog_lambda.__version__), with
+# the layer on the path, as the lambda runtime does
+PYTHONPATH="$(echo /opt/python/lib/python*/site-packages):/opt/python" \
+    python -c "import datadog_lambda; open('/binaries/SYSTEM_TESTS_LIBRARY_VERSION', 'w').write(datadog_lambda.__version__)"

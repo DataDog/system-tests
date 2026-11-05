@@ -8,7 +8,7 @@ on:
         default: php
         type: string
       weblog:
-        description: Which weblog
+        description: Which weblog (ignored for PARAMETRIC)
         default: apache-mod-8.1
         type: string
       agent_image:
@@ -18,6 +18,10 @@ on:
       scenario:
         description: Which scenario
         default: DEBUGGER_EXPRESSION_LANGUAGE
+        type: string
+      run_args:
+        description: Extra space-separated arguments passed to pytest, no quoting (e.g. a test nodeid, or -k filter)
+        default: ""
         type: string
       job_count:
         description: How many jobs
@@ -40,6 +44,7 @@ env:
   AGENT_IMAGE:            ${{ (github.event_name == 'workflow_dispatch' && inputs.agent_image)           || 'datadog/agent:latest' }}
   DEV_OR_PROD:            ${{ (github.event_name == 'workflow_dispatch' && inputs.dev_or_prod)           || 'prod' }}
   LIBRARY_TARGET_BRANCH:  ${{ (github.event_name == 'workflow_dispatch' && inputs.library_target_branch) || '' }}
+  RUN_ARGS:               ${{ (github.event_name == 'workflow_dispatch' && inputs.run_args)              || '' }}
 
 jobs:
   generate-matrix:
@@ -58,6 +63,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
       - name: Export github token to a file
+        if: env.SCENARIO != 'PARAMETRIC'
         run: echo "${{ secrets.GITHUB_TOKEN }}" > "$RUNNER_TEMP/github_token.txt"
       - name: Select agent image
         run: echo ${{ env.AGENT_IMAGE }} > binaries/agent-image
@@ -66,9 +72,10 @@ jobs:
         run: ./utils/scripts/load-binary.sh ${{ env.LIBRARY }}
       - name: Build weblog
         id: build
+        if: env.SCENARIO != 'PARAMETRIC'
         run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ env.LIBRARY }} -i weblog -w ${{ env.WEBLOG }} -s --github-token-file "$RUNNER_TEMP/github_token.txt"
       - name: Remove secrets
-        if: always()
+        if: always() && env.SCENARIO != 'PARAMETRIC'
         run: |
           TOKEN_FILE="$RUNNER_TEMP/github_token.txt"
           if [ -f "$TOKEN_FILE" ]; then
@@ -104,18 +111,34 @@ jobs:
         path: binaries/
     - name: Build weblog
       id: build
+      if: env.SCENARIO != 'PARAMETRIC'
       run: ./build.sh ${{ env.LIBRARY }} -i weblog -w ${{ env.WEBLOG }}
+    - name: Export github token to a file
+      id: export_token
+      if: env.SCENARIO == 'PARAMETRIC'
+      run: echo "${{ secrets.GITHUB_TOKEN }}" > "$RUNNER_TEMP/github_token.txt"
 
-    - run: |
+    - name: Run scenario
+      run: |
         set -e
+        read -ra run_args <<< "$RUN_ARGS"
+        scenario_args=()
+        if [[ "$SCENARIO" == "PARAMETRIC" ]]; then
+          # the image is only built if missing: by the first run, then reused
+          scenario_args=(-L "$LIBRARY" --skip-parametric-build --github-token-file="$RUNNER_TEMP/github_token.txt")
+        fi
         for i in {1..100}
         do
           echo "Run #$i"
-          ./run.sh ${{ env.SCENARIO }}
+          # ++ makes run.sh forward run_args to pytest, without parsing them as scenarios
+          ./run.sh "$SCENARIO" "${scenario_args[@]}" ++ "${run_args[@]}"
         done
+    - name: Remove secrets
+      if: always() && steps.export_token.outcome == 'success'
+      run: rm -f "$RUNNER_TEMP/github_token.txt"
 
     - name: Upload artifact
-      if: steps.build.outcome == 'success' && !cancelled()
+      if: ${{ !cancelled() && (steps.build.outcome == 'success' || env.SCENARIO == 'PARAMETRIC') }}
       uses: ./.github/actions/upload_artifact
       with:
         name: logs_${{ matrix.n }}

@@ -7,7 +7,7 @@ import uuid
 from paramiko.client import SSHClient
 from paramiko.sftp_client import SFTPClient
 
-from utils import scenarios, context, features, irrelevant, bug, logger
+from utils import scenarios, context, features, irrelevant, logger
 from utils.onboarding.injection_log_parser import command_injection_skipped
 
 
@@ -194,10 +194,6 @@ class TestAutoInjectWorkloadSelectionInstallManualHost(_AutoInjectWorkloadSelect
                 f"The command '{command}' was allowed by auto injection but should have been denied"
             )
 
-    @bug(
-        context.virtual_machine.os_distro == "rpm" and context.weblog_variant == "test-app-dotnet",
-        reason="APMSP-4036",
-    )
     @irrelevant(
         condition="container" in context.weblog_variant
         or "alpine" in context.weblog_variant

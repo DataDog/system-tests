@@ -15,6 +15,7 @@ group "default" {
     "tornado",
     "aiohttp",
     "openai-py",
+    "parametric",
   ]
 }
 
@@ -74,4 +75,10 @@ target "openai-py" {
   inherits   = ["_common"]
   dockerfile = "openai-py.base.Dockerfile"
   tags       = ["datadog/system-tests:openai-py.base"]
+}
+
+target "parametric" {
+  inherits   = ["_common"]
+  dockerfile = "parametric.base.Dockerfile"
+  tags       = ["datadog/system-tests:python-parametric.base"]
 }

@@ -1,3 +1,4 @@
+from collections.abc import Callable
 import re
 from typing import Any, Final
 
@@ -6,7 +7,6 @@ from utils import pytest
 from utils import context
 
 from tests.parametric.conftest import APMLibrary
-from utils.docker_fixtures import TestAgentAPI
 from utils.docker_fixtures.parametric import LogLevel
 
 
@@ -22,11 +22,13 @@ BLRP_LIBRARY_ENV: Final = {
     "OTEL_BLRP_MAX_EXPORT_BATCH_SIZE": None,
 }
 
-JAVA_TELEMETRY_NAMES: Final = {
-    "OTEL_BLRP_SCHEDULE_DELAY": "DD_LOGS_OTEL_INTERVAL",
-    "OTEL_BLRP_EXPORT_TIMEOUT": "DD_LOGS_OTEL_TIMEOUT",
-    "OTEL_BLRP_MAX_QUEUE_SIZE": "DD_LOGS_OTEL_QUEUE_SIZE",
-    "OTEL_BLRP_MAX_EXPORT_BATCH_SIZE": "DD_LOGS_OTEL_BATCH_SIZE",
+# Telemetry reports configured values, including rejected ones. These keys
+# expose the values the logs batch processor actually uses.
+BLRP_EFFECTIVE_CONFIG_KEYS: Final = {
+    "OTEL_BLRP_SCHEDULE_DELAY": "otel_blrp_schedule_delay_ms",
+    "OTEL_BLRP_EXPORT_TIMEOUT": "otel_blrp_export_timeout_ms",
+    "OTEL_BLRP_MAX_QUEUE_SIZE": "otel_blrp_max_queue_size",
+    "OTEL_BLRP_MAX_EXPORT_BATCH_SIZE": "otel_blrp_max_export_batch_size",
 }
 
 TEST_LOGGER_NAME: Final = "blrp_configuration"
@@ -64,46 +66,46 @@ def has_warning_for_value(language: str, logs: str, value: str) -> bool:
     return False
 
 
-def assert_blrp_configuration(
-    test_agent: TestAgentAPI,
-    test_library: APMLibrary,
-    variable_name: str,
-    expected_value: int,
-) -> None:
+def assert_blrp_configuration(test_library: APMLibrary, variable_name: str, expected_value: int) -> None:
     with test_library as library:
         library.create_logger(TEST_LOGGER_NAME, LogLevel.INFO)
         library.write_log(TEST_LOGGER_NAME, LogLevel.INFO, TEST_LOG_MESSAGE)
+        config = library.config()
 
-    configuration_name = variable_name
-    if test_library.lang == "java":
-        configuration_name = JAVA_TELEMETRY_NAMES.get(variable_name, variable_name)
-
-    configurations = test_agent.wait_for_telemetry_configurations()
-    entries = configurations.get(configuration_name)
-    assert entries, f"No telemetry configuration '{configuration_name}'"
-    assert int(entries[0]["value"]) == expected_value
+    key = BLRP_EFFECTIVE_CONFIG_KEYS[variable_name]
+    value = config[key]
+    assert value is not None, f"No effective BLRP configuration '{key}'"
+    assert int(value) == expected_value
 
 
-def non_default_protocol(signal: str) -> str:
-    """An uppercase transport distinguishable from this SDK's default."""
+# A protocol test input: a literal value, or a function of (signal, SDK default)
+# for inputs that depend on the default, which is only known once observed.
+ProtocolInput = str | Callable[[str, str], str] | None
+
+
+def sdk_default(signal: str, default: str) -> str:  # noqa: ARG001
+    return default
+
+
+def sdk_non_default(signal: str, default: str) -> str:
+    """A transport supported by this SDK and distinguishable from its default."""
+    if default == "grpc":
+        return "http/protobuf"
+    # These SDKs do not implement a gRPC exporter for the signal.
     if context.library == "nodejs" or (context.library == "php" and signal == "logs"):
-        return "HTTP/JSON"
-    if context.library in ("python", "rust") or (context.library == "dotnet" and signal == "logs"):
-        return "HTTP/PROTOBUF"
-    return "GRPC"
-
-
-def default_protocol(signal: str) -> str:
-    # OTel permits retaining a historical gRPC default. These defaults are
-    # published by the SDKs; never derive the expectation from the tested input.
-    if context.library in ("python", "rust") or (context.library == "dotnet" and signal == "logs"):
-        return "grpc"
-    if context.library == "golang" and signal == "logs":
         return "http/json"
-    return "http/protobuf"
+    return "grpc"
 
 
-def expected_protocol(generic_protocol: str | None, protocol: str | None, signal: str) -> str:
+def resolve_protocol(value: ProtocolInput, signal: str, default_protocol: Callable[[str], str]) -> str | None:
+    return value(signal, default_protocol(signal)) if callable(value) else value
+
+
+def expected_protocol(
+    generic_protocol: ProtocolInput, protocol: ProtocolInput, signal: str, default_protocol: Callable[[str], str]
+) -> str:
+    generic_protocol = resolve_protocol(generic_protocol, signal, default_protocol)
+    protocol = resolve_protocol(protocol, signal, default_protocol)
     if generic_protocol and not protocol:
         return generic_protocol
     if protocol and protocol != "unsupported":

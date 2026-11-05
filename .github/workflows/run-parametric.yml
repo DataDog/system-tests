@@ -115,6 +115,9 @@ jobs:
         with:
           name: ${{ inputs.binaries_artifact }}
           path: binaries/
+      - name: Wait for parametric base image
+        if: github.repository == 'DataDog/system-tests'
+        run: python3 ./utils/scripts/wait-for-base-images.py ${{ inputs.library }} parametric --timeout 900 --poll-interval 30
       - name: Export github token to a file
         run: echo "${{ secrets.GITHUB_TOKEN }}" > "$RUNNER_TEMP/github_token.txt"
       - name: Run PARAMETRIC scenario

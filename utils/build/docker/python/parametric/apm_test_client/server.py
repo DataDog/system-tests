@@ -219,6 +219,11 @@ def trace_config() -> TraceConfigReturn:
                     getattr(get_logger_provider(), "_multi_log_record_processor", None), "_log_record_processors", ()
                 )
             ),
+            **blrp_config(
+                getattr(
+                    getattr(get_logger_provider(), "_multi_log_record_processor", None), "_log_record_processors", ()
+                )
+            ),
             "dd_tags": ",".join(f"{k}:{v}" for k, v in config.tags.items()),
             "dd_trace_propagation_style": ",".join(config._propagation_style_extract),
             "dd_trace_debug": str(config._debug_mode).lower(),
@@ -265,6 +270,20 @@ def otlp_exporter_timeout(processors: Any) -> Optional[str]:
         if isinstance(timeout, (int, float)):
             timeouts.append(str(int(timeout * 1000)))
     return timeouts[0] if len(timeouts) == 1 else None
+
+
+def blrp_config(processors: Any) -> Dict[str, str]:
+    batch_processors = [processor for processor in processors if type(processor).__name__ == "BatchLogRecordProcessor"]
+    if len(batch_processors) != 1:
+        return {}
+    # Newer SDKs keep the batch settings in a shared BatchProcessor.
+    batch_processor = getattr(batch_processors[0], "_batch_processor", batch_processors[0])
+    return {
+        "otel_blrp_schedule_delay_ms": str(int(batch_processor._schedule_delay_millis)),
+        "otel_blrp_export_timeout_ms": str(int(batch_processor._export_timeout_millis)),
+        "otel_blrp_max_queue_size": str(batch_processor._max_queue_size),
+        "otel_blrp_max_export_batch_size": str(batch_processor._max_export_batch_size),
+    }
 
 
 @app.post("/trace/span/finish")
@@ -1360,6 +1379,27 @@ def otel_metrics_force_flush(args: OtelMetricsForceFlushArgs):
         meter_provider.force_flush()
 
     return OtelMetricsForceFlushReturn(success=True)
+
+
+class OtelMetricsShutdownArgs(BaseModel):
+    seconds: int = 10
+
+
+class OtelMetricsShutdownReturn(BaseModel):
+    success: bool
+
+
+@app.post("/metrics/otel/shutdown")
+def otel_metrics_shutdown(args: OtelMetricsShutdownArgs):
+    meter_provider = get_meter_provider()
+    if not hasattr(meter_provider, "shutdown"):
+        return OtelMetricsShutdownReturn(success=False)
+
+    try:
+        meter_provider.shutdown(timeout_millis=args.seconds * 1000)
+        return OtelMetricsShutdownReturn(success=True)
+    except Exception:
+        return OtelMetricsShutdownReturn(success=False)
 
 
 class LogCreateLoggerArgs(BaseModel):

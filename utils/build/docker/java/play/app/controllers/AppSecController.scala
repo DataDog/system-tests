@@ -193,16 +193,16 @@ class AppSecController @Inject()(cc: MessagesControllerComponents, ws: WSClient,
         span.setTag(if (decision == "keep") DDTags.MANUAL_KEEP else DDTags.MANUAL_DROP, true)
       }
       // Call downstream so that tests can assert on the sampling decision that gets propagated
-      makeDistantCall("http://localhost:7777/")
+      makeDistantCall("http://localhost:7777/", "GET")
     }
   }
 
-  def distantCall(url: String) = Action.async {
-    makeDistantCall(url)
+  def distantCall(url: String, method: String) = Action.async {
+    makeDistantCall(url, method)
   }
 
-  private def makeDistantCall(url: String): Future[Result] = {
-    val remoteReq: WSRequest = ws.url(url).withMethod("GET")
+  private def makeDistantCall(url: String, method: String): Future[Result] = {
+    val remoteReq: WSRequest = ws.url(url).withMethod(method)
 
     // we need to break the abstraction to be able to get to the request headers
     val ahcRequest: AHCRequest = remoteReq.asInstanceOf[AhcWSRequest].underlying.buildRequest()

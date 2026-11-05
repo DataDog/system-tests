@@ -96,7 +96,8 @@ class Test_DdtraceSchemas:
             SchemaBug(
                 endpoint="/debugger/v2/input",
                 data_path="$[].debugger.snapshot.stack",
-                condition=context.library == "python" and context.scenario is scenarios.debugger_probes_snapshot,
+                condition=context.library == "python"
+                and context.scenario in (scenarios.debugger_probes_snapshot, scenarios.debugger_evaluation_timeout),
                 ticket="DEBUG-5715",
             ),
             SchemaBug(
@@ -173,7 +174,23 @@ class Test_DdtraceSchemas:
 
         assert_no_schema_error(interfaces.library, known_bugs)
 
-    def test_agent(self):
+    @irrelevant(
+        not getattr(context.scenario, "include_agent", True),
+        reason="No agent: the mocked backend schemas describe what the agent sends, not an agentless library",
+    )
+    @irrelevant(
+        scenario_groups.lambda_end_to_end in context.scenario.scenario_groups,
+        reason="The Lambda extension is not the agent: e.g. its traces have no env and hostName",
+    )
+    def test_mocked_backend(self):
+        # these versions send debugger snapshots without the root timestamp
+        # (nodejs 6.0.0-pre is the first Node 6 version, it sorts before nodejs 6.0.0)
+        snapshot_without_root_timestamp = (
+            context.library < "dotnet@3.57.0"
+            or context.library < "nodejs@5.133.0"
+            or (context.library >= "nodejs@6.0.0-pre" and context.library < "nodejs@6.22.0")
+        )
+
         known_bugs = [
             SchemaBug(
                 endpoint="/api/v2/debugger",
@@ -251,7 +268,8 @@ class Test_DdtraceSchemas:
             SchemaBug(
                 endpoint="/api/v2/debugger",
                 data_path="$[]",
-                condition=context.library == "python" and context.scenario is scenarios.debugger_probes_snapshot,
+                condition=context.library == "python"
+                and context.scenario in (scenarios.debugger_probes_snapshot, scenarios.debugger_evaluation_timeout),
                 ticket="DEBUG-5715",
             ),
             SchemaBug(
@@ -261,6 +279,18 @@ class Test_DdtraceSchemas:
                 ticket="DEBUG-3709",
             ),
             SchemaBug(
+                endpoint="/api/v2/debugger",
+                data_path="$[]",
+                condition=snapshot_without_root_timestamp,
+                ticket="DEBUG-6442",
+            ),
+            SchemaBug(
+                endpoint="/api/v2/logs",
+                data_path="$[]",
+                condition=snapshot_without_root_timestamp,
+                ticket="DEBUG-6442",
+            ),
+            SchemaBug(
                 endpoint="/api/v2/apmtelemetry",
                 data_path="$.payload",
                 condition=context.library >= "python@4.3.0-rc1" and context.scenario is scenarios.profiling,
@@ -268,7 +298,7 @@ class Test_DdtraceSchemas:
             ),
         ]
 
-        assert_no_schema_error(interfaces.agent, known_bugs)
+        assert_no_schema_error(interfaces.mocked_backend, known_bugs)
 
 
 @features.not_reported

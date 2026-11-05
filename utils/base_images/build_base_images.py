@@ -6,9 +6,12 @@ For each library with a `utils/build/docker/<library>/docker-bake.hcl` and each 
   1. Resolves the bake config via `docker buildx bake --print`.
   2. Parses `COPY` instructions in the Dockerfile for local dependencies.
   3. Hardlinks those files + the Dockerfile into an isolated build context.
-  4. Hashes normalized build arguments + that context.
+  4. Hashes normalized build arguments, the target platforms + that context.
   5. Appends "-<hash12>" to the base tag (e.g. `datadog/system-tests:express4.base-<hash12>`).
-  6. Skips if that tag already exists on Docker Hub; otherwise builds and pushes.
+  6. Skips if that tag already exists on Docker Hub; otherwise publishes it as a multi-arch image:
+     each platform in ``PLATFORMS`` is built natively and pushed as ``<tag>-<arch>``
+     (``--platform``, one CI job per architecture), then ``--merge`` combines those into a
+     manifest list under ``<tag>``. Without either flag, both steps run in sequence.
 
 Idempotent: never overwrites an existing tag. The prospective aliases and tags are compared with
 ``utils/build/docker/base-images.lock.json`` on every run. Use ``--update-lock`` to atomically
@@ -36,6 +39,7 @@ import subprocess
 import sys
 import tempfile
 import time
+from collections.abc import Callable
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -64,6 +68,16 @@ _SUPPORTED_BAKE_FIELDS = {"args", "context", "dockerfile", "tags"}
 _BASE_TAG_PREFIX = "datadog/system-tests:"
 _REGULAR_FILE_MODE = 0o644
 _EXECUTABLE_FILE_MODE = 0o755
+
+# Every base image is published as a multi-arch manifest list: linux/amd64 for CI, linux/arm64 for
+# Apple Silicon machines. Part of the content hash, so changing it publishes new tags instead of
+# skipping existing images built for other platforms.
+PLATFORMS = ("linux/amd64", "linux/arm64")
+
+
+def platform_tag(tag: str, platform: str) -> str:
+    """Return the intermediate single-platform tag merged into the multi-arch ``tag``."""
+    return f"{tag}-{platform.rsplit('/', 1)[-1]}"
 
 
 def _bake_file(library: str) -> Path:
@@ -194,8 +208,8 @@ def _dependency_paths(context_root: Path, dockerfile: Path) -> list[Path]:
     return sorted(files)
 
 
-def compute_hash(build_dir: Path, bake_config: dict) -> str:
-    """Hash repository-controlled build arguments and materialized context."""
+def compute_hash(build_dir: Path, bake_config: dict, platforms: tuple[str, ...] = PLATFORMS) -> str:
+    """Hash repository-controlled build arguments, target platforms and materialized context."""
     digest = hashlib.sha256()
 
     unsupported = set(bake_config) - _SUPPORTED_BAKE_FIELDS
@@ -209,7 +223,9 @@ def compute_hash(build_dir: Path, bake_config: dict) -> str:
         not isinstance(key, str) or not isinstance(value, str) for key, value in args.items()
     ):
         raise ValueError("Bake target args must be a string-to-string mapping")
-    digest.update(json.dumps({"args": args}, sort_keys=True, separators=(",", ":")).encode())
+    digest.update(
+        json.dumps({"args": args, "platforms": sorted(platforms)}, sort_keys=True, separators=(",", ":")).encode()
+    )
 
     for file in sorted(p for p in build_dir.rglob("*") if p.is_file()):
         digest.update(str(file.relative_to(build_dir)).encode())
@@ -363,7 +379,9 @@ def image_exists(
     raise AssertionError("unreachable")
 
 
-def build_and_push(bake_file: Path, target: str, tag: str, build_dir: Path, dockerfile_name: str) -> None:
+def build_and_push(
+    bake_file: Path, target: str, tag: str, build_dir: Path, dockerfile_name: str, platform: str
+) -> None:
     logger.info("Building and pushing %s", tag)
     _run_streaming(
         [
@@ -378,6 +396,8 @@ def build_and_push(bake_file: Path, target: str, tag: str, build_dir: Path, dock
             f"{target}.context={build_dir}",
             "--set",
             f"{target}.dockerfile={dockerfile_name}",
+            "--set",
+            f"{target}.platform={platform}",
             "-f",
             str(bake_file),
             target,
@@ -385,19 +405,64 @@ def build_and_push(bake_file: Path, target: str, tag: str, build_dir: Path, dock
     )
 
 
-def process_target(
-    library: str, bake_file: Path, target: str, tag: str, build_dir: Path, dockerfile: str, *, dry_run: bool
-) -> None:
-    if dry_run:
-        state = "exists" if image_exists(tag) else "missing"
-        logger.info("%s/%s: %s (%s)", library, target, tag, state)
-        return
+def create_manifest_list(tag: str, sources: list[str]) -> None:
+    logger.info("Creating multi-arch %s from %s", tag, ", ".join(sources))
+    _run_streaming(["docker", "buildx", "imagetools", "create", "--tag", tag, *sources])
 
+
+def report_target(library: str, _bake_file: Path, target: str, tag: str, _build_dir: Path, _dockerfile: str) -> None:
+    state = "exists" if image_exists(tag) else "missing"
+    logger.info("%s/%s: %s (%s)", library, target, tag, state)
+
+
+def build_platform(
+    _library: str, bake_file: Path, target: str, tag: str, build_dir: Path, dockerfile: str, *, platform: str
+) -> None:
+    """Build and push the single-platform image that --merge later folds into ``tag``."""
     if image_exists(tag):
         logger.info("%s already exists, skipping", tag)
         return
 
-    build_and_push(bake_file, target, tag, build_dir, dockerfile)
+    single_platform_tag = platform_tag(tag, platform)
+    if image_exists(single_platform_tag):
+        logger.info("%s already exists, skipping", single_platform_tag)
+        return
+
+    build_and_push(bake_file, target, single_platform_tag, build_dir, dockerfile, platform)
+
+
+def merge_platforms(
+    _library: str, _bake_file: Path, _target: str, tag: str, _build_dir: Path, _dockerfile: str
+) -> None:
+    """Publish ``tag`` as a manifest list of its single-platform images."""
+    if image_exists(tag):
+        logger.info("%s already exists, skipping", tag)
+        return
+
+    sources = [platform_tag(tag, platform) for platform in PLATFORMS]
+    missing = [source for source in sources if not image_exists(source)]
+    if missing:
+        raise RuntimeError(
+            f"Cannot create {tag}, single-platform image(s) not published: {', '.join(missing)} "
+            "(did every build_base_images_<arch> job succeed?)"
+        )
+
+    create_manifest_list(tag, sources)
+
+
+def _run_for_targets(action: Callable[..., None], targets: list[tuple], **kwargs: str) -> list[str]:
+    """Run ``action`` on every target in parallel and return the targets that failed."""
+    failures = []
+    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
+        futures = {executor.submit(action, *t, **kwargs): (t[0], t[2]) for t in targets}
+        for future in concurrent.futures.as_completed(futures):
+            library, target = futures[future]
+            try:
+                future.result()
+            except Exception:  # surface any target failure as a non-zero exit
+                logger.exception("Error: %s/%s failed", library, target)
+                failures.append(f"{library}/{target}")
+    return sorted(failures)
 
 
 def process_library(library: str) -> list[tuple]:
@@ -480,10 +545,25 @@ def main() -> None:
         action="store_true",
         help="Regenerate utils/build/docker/base-images.lock.json without building or pushing",
     )
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument(
+        "--platform",
+        choices=PLATFORMS,
+        help="Only build and push the single-platform <tag>-<arch> images for this platform",
+    )
+    mode.add_argument(
+        "--merge",
+        action="store_true",
+        help="Only combine the already pushed single-platform images into the multi-arch <tag>",
+    )
     args = parser.parse_args()
 
-    if args.update_lock and (args.library or args.changed_only or args.dry_run):
-        parser.error("--update-lock cannot be combined with --library, --changed-only, or --dry-run")
+    if args.update_lock and (args.library or args.changed_only or args.dry_run or args.platform or args.merge):
+        parser.error(
+            "--update-lock cannot be combined with --library, --changed-only, --dry-run, --platform or --merge"
+        )
+    if args.dry_run and (args.platform or args.merge):
+        parser.error("--dry-run cannot be combined with --platform or --merge")
 
     if args.library:
         if not _bake_file(args.library).exists():
@@ -508,25 +588,32 @@ def main() -> None:
         logger.info("Updated %s with %d base images", LOCK_PATH, len(prospective))
         return
 
-    drift = _lock_drift(prospective, full=not args.library and not args.changed_only)
-    failures = []
-    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
-        futures = {executor.submit(process_target, *t, dry_run=args.dry_run): (t[0], t[2]) for t in targets}
-        for future in concurrent.futures.as_completed(futures):
-            library, target = futures[future]
-            try:
-                future.result()
-            except Exception:  # surface any target failure as a non-zero exit
-                logger.exception("Error: %s/%s failed to build/push", library, target)
-                failures.append(f"{library}/{target}")
+    if args.dry_run:
+        drift = _lock_drift(prospective, full=not args.library and not args.changed_only)
+        failures = _run_for_targets(report_target, targets)
+        if drift:
+            logger.error("The committed lock is stale. Regenerate and commit it:")
+            logger.error("  python utils/scripts/update-base-images-lock.py")
+        sys.exit(1 if failures or drift else 0)
 
-    if failures:
-        logger.error("The following targets failed to build/push:")
-        for failure in failures:
-            logger.error("  %s", failure)
-        sys.exit(1)
+    steps: list[tuple[Callable[..., None], dict[str, str]]]
+    if args.platform:
+        # The lock is only checked by the --merge step, once the multi-arch images exist.
+        steps = [(build_platform, {"platform": args.platform})]
+    elif args.merge:
+        steps = [(merge_platforms, {})]
+    else:
+        steps = [(build_platform, {"platform": platform}) for platform in PLATFORMS] + [(merge_platforms, {})]
 
-    if drift:
+    for action, kwargs in steps:
+        failures = _run_for_targets(action, targets, **kwargs)
+        if failures:
+            logger.error("The following targets failed to build/push:")
+            for failure in failures:
+                logger.error("  %s", failure)
+            sys.exit(1)
+
+    if not args.platform and _lock_drift(prospective, full=not args.library and not args.changed_only):
         logger.error("Base images are published, but the committed lock is stale. Regenerate and commit it:")
         logger.error("  python utils/scripts/update-base-images-lock.py")
         sys.exit(1)

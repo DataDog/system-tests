@@ -2,7 +2,6 @@ from utils import pytest
 
 from tests.parametric.conftest import APMLibrary
 from utils import features, scenarios
-from utils.docker_fixtures import TestAgentAPI
 
 from .utils import BLRP_LIBRARY_ENV, assert_blrp_configuration
 
@@ -24,11 +23,10 @@ class Test_OTEL_BLRP_MAX_EXPORT_BATCH_SIZE:
     )
     def test_stable_value(
         self,
-        test_agent: TestAgentAPI,
         test_library: APMLibrary,
         expected_value: int,
     ) -> None:
-        assert_blrp_configuration(test_agent, test_library, VARIABLE_NAME, expected_value)
+        assert_blrp_configuration(test_library, VARIABLE_NAME, expected_value)
 
     @pytest.mark.parametrize(
         ("library_env", "expected_value"),
@@ -36,11 +34,10 @@ class Test_OTEL_BLRP_MAX_EXPORT_BATCH_SIZE:
     )
     def test_default_matches_specification(
         self,
-        test_agent: TestAgentAPI,
         test_library: APMLibrary,
         expected_value: int,
     ) -> None:
-        assert_blrp_configuration(test_agent, test_library, VARIABLE_NAME, expected_value)
+        assert_blrp_configuration(test_library, VARIABLE_NAME, expected_value)
 
     @pytest.mark.parametrize(
         ("library_env", "expected_value"),
@@ -48,11 +45,10 @@ class Test_OTEL_BLRP_MAX_EXPORT_BATCH_SIZE:
     )
     def test_empty_is_treated_as_unset(
         self,
-        test_agent: TestAgentAPI,
         test_library: APMLibrary,
         expected_value: int,
     ) -> None:
-        assert_blrp_configuration(test_agent, test_library, VARIABLE_NAME, expected_value)
+        assert_blrp_configuration(test_library, VARIABLE_NAME, expected_value)
 
     @pytest.mark.parametrize(
         ("library_env", "expected_value"),
@@ -63,8 +59,7 @@ class Test_OTEL_BLRP_MAX_EXPORT_BATCH_SIZE:
     )
     def test_invalid_value_is_ignored(
         self,
-        test_agent: TestAgentAPI,
         test_library: APMLibrary,
         expected_value: int,
     ) -> None:
-        assert_blrp_configuration(test_agent, test_library, VARIABLE_NAME, expected_value)
+        assert_blrp_configuration(test_library, VARIABLE_NAME, expected_value)

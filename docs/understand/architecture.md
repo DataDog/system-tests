@@ -28,27 +28,27 @@ When an end-to-end scenario is running, these are the main pieces:
  - [Customer application](#weblog) (aka "weblog")
    - Swappable webapp language module that replicate a real customer application. Mostly a simple HTTP application in the form of a docker container.
  - [Proxy](#proxy)
-   - Single [mitmdump](https://mitmproxy.org/) container that intercepts library and agent traffic
+   - Single [mitmdump](https://mitmproxy.org/) container that intercepts library traffic
  - [Agent](#agent)
    - Datadog agent container
+ - [Mocked backend](../mocked_backend/README.md)
+   - Datadog mocked backend container
 
 ```mermaid
 flowchart TD
     HOST[Host pytest] -->|HTTP requests| WEBLOG
     WEBLOG[Customer application] -->|library traffic| PROXY
     PROXY[Proxy] -->|forward| AGENT
-    AGENT[Agent] -->|agent traffic| PROXY
-    PROXY -.->|JSON dumps| HOST
+    AGENT[Agent] -->|agent traffic| MOCKED_BACKEND
+    MOCKED_BACKEND[Mocked backend] -.->|JSON dumps| HOST
 ```
 
 pytest on the host sends requests directly to the [weblog](weblogs/README.md) (the customer application).
 The weblog tracer talks to the [proxy](#proxy) (`DD_AGENT_HOST=proxy`), which forwards that traffic to the agent.
-The agent talks back through the **same** proxy (`DD_PROXY_HTTPS`).
-The proxy writes the intercepted messages as JSON under `logs_<scenario>/interfaces/` ([library](../edit/library-interface-validation-methods.md) and [agent](../edit/agent-interface-validation-methods.md)).
+The proxy writes the intercepted messages as JSON under `logs_<scenario>/interfaces/library` ([doc](../edit/library-interface-validation-methods.md)).
+The agent sends to the [mocked backend](../mocked_backend/README.md), which writes the received messages as JSON under `logs_<scenario>/interfaces/mocked_backend` ([doc](../edit/mocked-backend-interface-validation-methods.md)).
 Tests read those files; they do not receive a live dump stream.
 
-By default the proxy mocks backend intake instead of forwarding it to Datadog.
-Some scenarios disable that mock, and some tests query Datadog APIs from the host via [`interfaces.backend`](../edit/backend-interface-validation-methods.md). Though, it's highly discouraged to use any real backend, as our backend constraints does not guarantee time limit compatible with a test session : using the real backend will make tests sessions very unreliable.
 
 ## What are system-tests bad for?
 
@@ -197,7 +197,8 @@ It is [mitmdump](https://mitmproxy.org/).
 The proxy listens on several ports and uses the listen port to know where a request came from:
 
 - Weblog / library traffic is reverse-proxied to the agent
-- Agent intake is intercepted because the agent is configured with `DD_PROXY_HTTPS` / `DD_PROXY_HTTP`
+
+It doesn't see what is sent to the backend: the agent sends it to the [mocked backend](../mocked_backend/README.md).
 
 Captured request/response pairs are written as JSON to `logs_<scenario>/interfaces/<interface>/` on a volume shared with the host.
 

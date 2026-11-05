@@ -1,18 +1,16 @@
 from utils._logger import logger
 
 from utils._context.constants import WeblogCategory
-from .core import scenario_groups
-from .endtoend import EndToEndScenario
+from ._core import EndToEndScenario, scenario_groups
 
 
 class IPV6Scenario(EndToEndScenario):
-    def __init__(self, name: str) -> None:
+    def __init__(self) -> None:
         super().__init__(
-            name,
+            "IPV6",
             enable_ipv6=True,
             scenario_groups=[scenario_groups.ipv6],
             weblog_categories=[WeblogCategory.dd_trace],
-            use_proxy_for_agent=True,
             use_proxy_for_weblog=False,
             doc=(
                 "Test the agent/lib communication using an IPv6 address. We do not use the proxy between "
@@ -21,7 +19,8 @@ class IPV6Scenario(EndToEndScenario):
         )
 
     def _start_containers(self):
-        self.proxy_container.start(self._network)
+        # no proxy: the agent sends to the mocked backend as soon as it starts
+        self.mocked_backend_container.start(self._network)
         self.agent_container.start(self._network)
 
         agent_container_ip = self.agent_container.network_ipv6(self._network)

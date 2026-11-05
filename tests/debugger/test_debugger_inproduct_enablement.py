@@ -2,8 +2,10 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+from collections.abc import Callable
 import tests.debugger.utils as debugger
-from utils import context, features, logger, scenarios, slow
+from utils import context, features, interfaces, logger, remote_config, scenarios, slow, HttpResponse
+from utils.dd_types import DataDogAgentSpan
 import json
 import time
 
@@ -11,26 +13,25 @@ TIMEOUT = 5
 DEFAULT_ENVVARS = {
     "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
 }
+LOG_PROBE_TEMPLATE = """
+{
+    "version": 0,
+    "where": {
+        "typeName": null,
+        "sourceFile": "ACTUAL_SOURCE_FILE",
+        "lines": ["20"]
+    }
+}
+"""
 
 
 @features.debugger_inproduct_enablement
 @scenarios.debugger_inproduct_enablement
 class Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation(debugger.BaseDebuggerTest):
     ############ dynamic instrumentation ############
-    _probe_template = """
-    {
-        "version": 0,
-        "where": {
-            "typeName": null,
-            "sourceFile": "ACTUAL_SOURCE_FILE",
-            "lines": ["20"]
-        }
-    }
-    """
-
     def setup_inproduct_enablement_di(self):
         def _send_config(*, enabled: bool | None = None, reset: bool = True):
-            probe = json.loads(self._probe_template)
+            probe = json.loads(LOG_PROBE_TEMPLATE)
             probe["id"] = debugger.generate_probe_id("log")
             self.set_probes([probe])
 
@@ -134,22 +135,24 @@ class Test_Debugger_InProduct_Enablement_Exception_Replay(debugger.BaseDebuggerT
         self.initialize_weblog_remote_config()
         self.weblog_responses = []
 
+        # Tracers don't capture the same exception again for a while, even after exception replay is disabled and
+        # enabled again, so use exceptions that setup_inproduct_enablement_exception_replay doesn't capture.
         # Set a config with the wildcard service and env and ER=false.
         self._send_config(enabled=False, service_name="*", env="*")
         self.er_initial_enabled = not self._wait_for_exception_snapshot_received(
-            "/exceptionreplay/simple", "simple exception"
+            "/exceptionreplay/inner", "outer exception"
         )
 
         # Set a config with the wildcard service and env and ER=true.
         self._send_config(enabled=True, service_name="*", env="*")
         self.er_apm_multiconfig_enabled = self._wait_for_exception_snapshot_received(
-            "/exceptionreplay/simple", "simple exception"
+            "/exceptionreplay/inner", "outer exception"
         )
 
         # Set a config with the weblog service and env and ER=false.
         self._send_config(enabled=False, service_name="weblog", env="system-tests", reset=False)
         self.er_disabled_by_service_name = not self._wait_for_exception_snapshot_received(
-            "/exceptionreplay/recursion?depth=1", "recursion exception depth 1"
+            "/exceptionreplay/multiframe", "multiple stack frames exception"
         )
 
         # Set a config with the wildcard service and env and ER=true.
@@ -196,10 +199,10 @@ class Test_Debugger_InProduct_Enablement_Code_Origin(debugger.BaseDebuggerTest):
         self.initialize_weblog_remote_config()
         self.weblog_responses = []
 
-        # Node.js starts code origin asynchronously. Let it instrument the view
-        # function before checking the default-on state with a fresh request.
-        if context.library == "nodejs":
-            self._warmup_code_origin()
+        # Some tracers start code origin asynchronously. Let the tracer instrument the view
+        # function before checking the default state with a fresh request. Where code origin
+        # is off by default, the warmup waits for its whole timeout.
+        self._warmup_code_origin()
 
         # Check initial state (default varies by language)
         self.co_initial_state = self._check_code_origin()
@@ -218,7 +221,7 @@ class Test_Debugger_InProduct_Enablement_Code_Origin(debugger.BaseDebuggerTest):
         self.assert_all_weblog_responses_ok()
 
         # Check initial state based on language-specific defaults
-        if context.library == "nodejs":
+        if context.library in ("nodejs", "dotnet"):
             assert self.co_initial_state, "Expected code origin enabled by default"
         else:
             assert not self.co_initial_state, "Expected code origin disabled by default"
@@ -263,3 +266,182 @@ class Test_Debugger_InProduct_Enablement_Code_Origin_Default_On(debugger.BaseDeb
         self.assert_all_weblog_responses_ok()
 
         assert self.code_origin_enabled_by_default, "Expected code origin enabled by default"
+
+
+@features.debugger_inproduct_enablement
+@scenarios.debugger_inproduct_enablement
+class Test_Debugger_InProduct_Enablement_Multiconfig_Partial_Update(debugger.BaseDebuggerTest):
+    """Updating one APM_TRACING config must not drop the other active configs.
+
+    An unchanged file keeps its hash, so libraries skip it, but it is still listed
+    in client_configs and must stay applied.
+    """
+
+    _WILDCARD_CONFIG_PATH = "datadog/2/APM_TRACING/inproduct-multiconfig-wildcard/config"
+    _SERVICE_CONFIG_PATH = "datadog/2/APM_TRACING/inproduct-multiconfig-service/config"
+
+    def _set_apm_tracing_config(self, path: str, settings: dict, *, service_name: str, env: str) -> None:
+        lib_config = {"library_language": "all", "library_version": "latest", "tracing_enabled": True} | settings
+        config = {
+            "schema_version": "v1.0.0",
+            "action": "enable",
+            "lib_config": lib_config,
+            "service_target": {"service": service_name, "env": env},
+        }
+        if remote_config.library_supports_sdk_configuration():
+            config = remote_config.to_sdk_config_payload(config)
+        remote_config.tracer_rc_state.set_config(path, config)
+
+    def _apply_with_new_probe_and_check_emitting(self) -> bool:
+        probe = json.loads(LOG_PROBE_TEMPLATE)
+        probe["id"] = debugger.generate_probe_id("log")
+        self.set_probes([probe])
+        self.step_probe_ids.append(probe["id"])
+        remote_config.tracer_rc_state.set_config(
+            f"datadog/2/LIVE_DEBUGGING/logProbe_{probe['id']}/config", self.probe_definitions[0]
+        )
+
+        self.rc_states.append(remote_config.tracer_rc_state.apply())
+        self.resolve_php_probes()
+
+        self.send_weblog_request("/debugger/log", reset=False)
+        # An ERROR status also ends this wait, so the test checks that each probe reached EMITTING
+        return self.wait_for_all_probes(statuses=["EMITTING"], timeout=TIMEOUT)
+
+    def setup_inproduct_enablement_multiconfig_partial_update(self):
+        self.initialize_weblog_remote_config()
+        self.weblog_responses = []
+        self.rc_states = []
+        self.step_probe_ids: list[str] = []
+        remote_config.tracer_rc_state.reset().apply()
+
+        # The wildcard config enables dynamic instrumentation, the service config only sets code origin.
+        self._set_apm_tracing_config(
+            self._WILDCARD_CONFIG_PATH, {"dynamic_instrumentation_enabled": True}, service_name="*", env="*"
+        )
+        self._set_apm_tracing_config(
+            self._SERVICE_CONFIG_PATH, {"code_origin_enabled": True}, service_name="weblog", env="system-tests"
+        )
+        self.di_enabled = self._apply_with_new_probe_and_check_emitting()
+
+        # Change a single setting of the service config. The wildcard config is resent unchanged.
+        self._set_apm_tracing_config(
+            self._SERVICE_CONFIG_PATH, {"code_origin_enabled": False}, service_name="weblog", env="system-tests"
+        )
+        self.di_kept_enabled = self._apply_with_new_probe_and_check_emitting()
+
+    def test_inproduct_enablement_multiconfig_partial_update(self):
+        self.assert_rc_state_not_error()
+        self.assert_all_weblog_responses_ok()
+
+        self.collect()
+        statuses = {probe_id: diagnostics["status"] for probe_id, diagnostics in self.probe_diagnostics.items()}
+        first_status, second_status = (statuses.get(probe_id) for probe_id in self.step_probe_ids)
+
+        assert self.di_enabled, (
+            "Expected probes to be emitting after the wildcard config enabled dynamic instrumentation"
+        )
+        assert first_status == "EMITTING", f"Expected the first probe to be EMITTING, got {first_status}"
+        assert self.di_kept_enabled, "Expected probes to keep emitting after updating only the service config"
+        assert second_status == "EMITTING", f"Expected the second probe to be EMITTING, got {second_status}"
+
+
+@features.debugger_inproduct_enablement
+@scenarios.debugger_inproduct_enablement
+@slow
+class Test_Debugger_InProduct_Enablement_Probe_Removal(debugger.BaseDebuggerTest):
+    """Probes are removed when dynamic instrumentation is disabled through remote configuration.
+
+    Span and span decoration probes change the trace of the request whether or not dynamic instrumentation
+    is enabled, so the trace of a request sent while it is disabled shows whether the probe is still installed.
+    A log probe can't show it, because libraries drop its snapshots once dynamic instrumentation is disabled.
+    """
+
+    _PROBE_TIMEOUT = 30
+
+    def _enable_dynamic_instrumentation(self, *, reset: bool) -> bool:
+        # The statuses sent when the probes were first installed must not end the wait when they are installed again
+        previous_diagnostics = self.get_probe_diagnostics_files()
+        self.send_rc_apm_tracing_and_probes(dynamic_instrumentation_enabled=True, reset=reset)
+        return self.wait_for_all_probes_installed(ignored_files=previous_diagnostics, timeout=self._PROBE_TIMEOUT)
+
+    def _setup_probe_removal(self, probes_name: str, probe_type: str, request_path: str):
+        self.initialize_weblog_remote_config()
+        self.weblog_responses = []
+
+        probes = debugger.read_probes(probes_name)
+        for probe in probes:
+            probe["id"] = debugger.generate_probe_id(probe_type)
+        self.set_probes(probes)
+
+        # The probed method must not run before its probe is installed: .NET doesn't instrument a method that
+        # the JIT already inlined into its caller.
+        if not self._enable_dynamic_instrumentation(reset=True):
+            self.setup_failures.append("Probes did not reach INSTALLED status after enabling DI")
+            return
+        self.request_when_enabled = self.send_weblog_request(request_path, reset=False)
+
+        # The backend keeps the probes when dynamic instrumentation is disabled, so they stay in the payload.
+        # Some libraries stop reporting the state of the probes' config once dynamic instrumentation is disabled,
+        # so the request is sent once the library reported the new targets version, not once it acknowledged
+        # every config.
+        self.send_rc_apm_tracing_and_probes(
+            dynamic_instrumentation_enabled=False, reset=False, wait_for_acknowledged_status=False
+        )
+        self.request_when_disabled = self.send_weblog_request(request_path, reset=False)
+
+        self.installed_when_reenabled = self._enable_dynamic_instrumentation(reset=False)
+        self.request_when_reenabled = self.send_weblog_request(request_path, reset=False)
+
+    @staticmethod
+    def _get_trace_spans(request: HttpResponse) -> list[DataDogAgentSpan]:
+        # Spans created by probes don't carry the request ID, so all the spans of the request's trace are returned
+        return [span for _, trace in interfaces.mocked_backend.get_traces(request=request) for span in trace.spans]
+
+    def _is_probe_span(self, span: DataDogAgentSpan) -> bool:
+        return span.get_span_name() == "dd.dynamic.span" and span.meta.get("debugger.probeid") in self.probe_ids
+
+    def _is_decorated_span(self, span: DataDogAgentSpan) -> bool:
+        # Libraries don't use the same case for the tag names
+        return any(
+            key.lower() == "spandecorationargsandlocals"
+            or (key.lower() == "_dd.di.spandecorationargsandlocals.probe_id" and value in self.probe_ids)
+            for key, value in span.meta.items()
+        )
+
+    def _assert_probe_removal(self, is_probe_effect: Callable[[DataDogAgentSpan], bool]):
+        self.assert_setup_ok()
+        self.assert_rc_state_not_error()
+        self.assert_all_weblog_responses_ok()
+
+        spans = self._get_trace_spans(self.request_when_enabled)
+        assert spans, "Trace of the request sent while DI was enabled not received"
+        assert any(is_probe_effect(span) for span in spans), (
+            "Expected the probes to change the trace of the request sent while DI was enabled"
+        )
+
+        spans = self._get_trace_spans(self.request_when_disabled)
+        assert spans, "Trace of the request sent while DI was disabled not received"
+        assert not any(is_probe_effect(span) for span in spans), (
+            "Expected the probes to be removed after disabling DI remotely, "
+            "but they still changed the trace of the request sent while DI was disabled"
+        )
+
+        spans = self._get_trace_spans(self.request_when_reenabled)
+        assert spans, "Trace of the request sent after re-enabling DI not received"
+        assert any(is_probe_effect(span) for span in spans), (
+            "Expected the probes to change the trace of the request sent after re-enabling DI "
+            f"(probes reported installed again: {self.installed_when_reenabled})"
+        )
+
+    def setup_span_probe_removed_on_remote_disable(self):
+        self._setup_probe_removal("probe_snapshot_span_method", "span", "/debugger/span")
+
+    def test_span_probe_removed_on_remote_disable(self):
+        self._assert_probe_removal(self._is_probe_span)
+
+    def setup_span_decoration_probe_removed_on_remote_disable(self):
+        self._setup_probe_removal("probe_snapshot_span_decoration_method", "decor", "/debugger/span-decoration/asd/1")
+
+    def test_span_decoration_probe_removed_on_remote_disable(self):
+        self._assert_probe_removal(self._is_decorated_span)

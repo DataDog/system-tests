@@ -8,7 +8,9 @@ two-step lock-file workflow:
    `COPY` instructions in its `<name>.base.Dockerfile` (see `docs/understand/weblogs/weblog-metadata.md`
    for the Dockerfile rules this relies on), computes a content hash of those dependencies, and, if a base
    image tagged with that hash doesn't already exist on Docker Hub, builds and pushes it as
-   `<base tag>-<hash>`. If `utils/build/docker/base-images.lock.json` is stale, the job fails
+   `<base tag>-<hash>`, as a multi-arch image (`linux/amd64` and `linux/arm64`): the
+   `build_base_images_amd64` / `build_base_images_arm64` jobs build each architecture natively and
+   push `<base tag>-<hash>-<arch>`, then `build_base_images` merges them into `<base tag>-<hash>`. If `utils/build/docker/base-images.lock.json` is stale, the job fails
    only after it has published all missing images.
 2. After that publish job finishes, regenerate the lock and mirror artifacts:
 

@@ -1,0 +1,38 @@
+[
+    {
+        "language": "",
+        "type": "",
+        "id": "",
+        "version": 0,
+        "where": {
+            "typeName": "ACTUAL_TYPE_NAME",
+            "methodName": "Correlation",
+            "sourceFile": null
+        },
+        "captureSnapshot": true
+    },
+    {
+        "language": "",
+        "type": "",
+        "id": "",
+        "version": 0,
+        "where": {
+            "typeName": "ACTUAL_TYPE_NAME",
+            "methodName": "CorrelationMiddle",
+            "sourceFile": null
+        },
+        "captureSnapshot": true
+    },
+    {
+        "language": "",
+        "type": "",
+        "id": "",
+        "version": 0,
+        "where": {
+            "typeName": "ACTUAL_TYPE_NAME",
+            "methodName": "CorrelationLeaf",
+            "sourceFile": null
+        },
+        "captureSnapshot": true
+    }
+]

@@ -1,15 +1,18 @@
 import builtins
 import io
 import os
-from pathlib import Path
 import re
+from pathlib import Path
 from typing import Any
 
-_not_secrets = {
+_not_secret_names = {
     "AWS_VAULT_KEYCHAIN_NAME",  # Name of macOS keychain to use => it's a name, not a key
     "ONBOARDING_AWS_INFRA_KEY_PATH",  # key pair local path
     "ONBOARDING_AWS_INFRA_KEYPAIR_NAME",  # key pair name
 }
+
+_not_secret_values = {"datadog"}
+""" Values present in env var, but that are not secret """
 
 _name_filter = re.compile(r"key|token|secret|pass|docker_login", re.IGNORECASE)
 
@@ -17,12 +20,18 @@ _MINIMUM_SECRET_LENGTH = 6  # below this size, we don't consider it a secret
 
 
 def _get_secrets() -> set[str]:
-    secrets: list = [
-        value.strip()
-        for name, value in os.environ.items()
-        if len(value.strip()) > _MINIMUM_SECRET_LENGTH and name not in _not_secrets and _name_filter.search(name)
-    ]
-    return set(secrets)
+    secrets: set[str] = set()
+    for name, value in os.environ.items():
+        stripped_value = value.strip()
+        if (
+            len(stripped_value) > _MINIMUM_SECRET_LENGTH
+            and name not in _not_secret_names
+            and stripped_value not in _not_secret_values
+            and _name_filter.search(name)
+        ):
+            secrets.add(stripped_value)
+
+    return secrets
 
 
 def _instrument_write_methods_str(f: Any, secrets: set[str]) -> None:  # noqa: ANN401
