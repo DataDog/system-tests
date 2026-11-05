@@ -161,7 +161,7 @@ def library_env() -> dict[str, str]:
 
 @features.ai_guard
 @scenarios.integration_frameworks
-class TestOpenAiAiGuardMcp(BaseOpenaiTest):
+class Test_OpenAiAiGuardMcp(BaseOpenaiTest):
     """OpenAI Responses hosted MCP tool calls are evaluated with their MCP server metadata."""
 
     def test_ai_guard_openai_mcp_call_server_url(
@@ -278,7 +278,7 @@ class TestOpenAiAiGuardMcp(BaseOpenaiTest):
 
 @features.ai_guard
 @scenarios.integration_frameworks
-class TestOpenAiAiGuardMcpDisabled(BaseOpenaiTest):
+class Test_OpenAiAiGuardMcpDisabled(BaseOpenaiTest):
     """With DD_AI_GUARD_MCP_ENABLED=false, MCP tool calls are evaluated as ordinary tool calls."""
 
     @pytest.fixture
@@ -293,7 +293,7 @@ class TestOpenAiAiGuardMcpDisabled(BaseOpenaiTest):
         A regression guard for the kill-switch: a tracer without MCP support sends this very payload, so
         it passes there too. That is acceptable, as for the redaction kill-switch tests: what it must
         catch is a tracer with MCP support that ignores DD_AI_GUARD_MCP_ENABLED=false, and the feature
-        itself is covered by TestOpenAiAiGuardMcp, which fails on such tracers.
+        itself is covered by Test_OpenAiAiGuardMcp, which fails on such tracers.
         """
         with test_agent.vcr_context():
             _create_response(test_client, EXAMPLE_PROMPT, [EXAMPLE_TOOL])
