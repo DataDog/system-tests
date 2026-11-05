@@ -22,8 +22,12 @@ _CONFIG_PATH = "/v0.7/config"
 _DEBUGGER_PATH = "/api/v2/debugger"
 _LOGS_PATH = "/api/v2/logs"
 _TRACES_PATH = "/api/v0.2/traces"
-_SYMBOLS_PATH = "/symdb/v1/input"
 _TELEMETRY_PATH = "/api/v2/apmtelemetry"
+
+# Agentless (direct-to-intake) path: libdatadog's agentless debugger sender collapses logs,
+# snapshots, diagnostics AND symdb onto this single path on the debugger-intake host -- the
+# intake demultiplexes by payload, not path (datadog-live-debugger/src/sender.rs derive_endpoint_path).
+AGENTLESS_DEBUGGER_PATH = "/api/v2/debugger"
 
 # Library paths
 _DEBUGGER_V2_INPUT_PATH = "/debugger/v2/input"
@@ -158,7 +162,7 @@ class BaseDebuggerTest:
     all_spans: list[DataDogAgentSpan] = []
     symbols: list[dict[str, Any]] = []
     # symdb_upload_events holds the parsed JSON metadata blobs from each
-    # /symdb/v1/input upload (the "event" multipart part, alongside the
+    # symbol database upload (the "event" multipart part, alongside the
     # gzipped symbols attachment). Each entry is the deserialized event
     # JSON (e.g. {"ddsource": ..., "service": ..., "type": "symdb", ...}).
     symdb_upload_events: list[dict[str, Any]] = []
@@ -171,6 +175,13 @@ class BaseDebuggerTest:
     setup_failures: list = []
 
     use_debugger_endpoint: bool = False
+    agentless: bool = False
+    """Without a Datadog Agent: the library sends straight to the debugger intake"""
+
+    # Paths of the logs, snapshots and diagnostics sent to the backend, overridden by AgentlessBaseDebuggerTest for
+    # scenarios without a Datadog Agent, where they all collapse onto AGENTLESS_DEBUGGER_PATH. The symbol database
+    # is sent to _DEBUGGER_PATH in both cases.
+    _snapshot_paths: tuple[str, ...] = (_LOGS_PATH, _DEBUGGER_PATH)
 
     def initialize_weblog_remote_config(self) -> None:
         self.setup_failures = []
@@ -539,7 +550,7 @@ class BaseDebuggerTest:
         if log_number >= BaseDebuggerTest._last_read:
             BaseDebuggerTest._last_read = log_number
 
-        if data["path"] in [_DEBUGGER_PATH, _LOGS_PATH]:
+        if data["path"] in self._snapshot_paths:
             probe_diagnostics = self._process_diagnostics_data([data])
             logger.debug(probe_diagnostics)
 
@@ -602,7 +613,7 @@ class BaseDebuggerTest:
         return self._snapshot_found
 
     def _wait_for_snapshot_received(self, data: dict, *, exception_snapshot: bool = False):
-        if data["path"] in [_LOGS_PATH, _DEBUGGER_PATH]:
+        if data["path"] in self._snapshot_paths:
             if exception_snapshot:
                 logger.debug("Reading " + data["log_filename"] + ", looking for '" + self._exception_message + "'")
 
@@ -668,7 +679,7 @@ class BaseDebuggerTest:
             return self._all_snapshots_found
 
     def _wait_for_all_snapshots(self, data: dict, *, exception_snapshot: bool = False) -> bool:
-        if data["path"] not in [_LOGS_PATH, _DEBUGGER_PATH]:
+        if data["path"] not in self._snapshot_paths:
             return False
 
         if exception_snapshot:
@@ -731,7 +742,7 @@ class BaseDebuggerTest:
         )
 
     def _count_snapshots(self, data: dict, seen: set[tuple[str, int]]) -> int:
-        if data["path"] in [_LOGS_PATH, _DEBUGGER_PATH]:
+        if data["path"] in self._snapshot_paths:
             contents = data["request"].get("content", []) or []
 
             for index, content in enumerate(_iter_snapshot_content_items(contents)):
@@ -853,7 +864,10 @@ class BaseDebuggerTest:
 
     def _collect_probe_diagnostics(self):
         def _read_data():
-            if context.library == "java":
+            if self.agentless:
+                # Agentless: diagnostics, logs and snapshots all collapse onto one path.
+                path = AGENTLESS_DEBUGGER_PATH
+            elif context.library == "java":
                 if context.library.version > "1.27.0":
                     path = _DEBUGGER_PATH
                 else:
@@ -922,11 +936,11 @@ class BaseDebuggerTest:
 
             # Collect snapshots from both the logs and debugger endpoints for compatibility for when we switched
             # snapshots to the debugger endpoint.
-            if not self.use_debugger_endpoint:
-                agent_logs_endpoint_requests += list(interfaces.mocked_backend.get_data(_LOGS_PATH))
+            if self.agentless or self.use_debugger_endpoint:
                 agent_logs_endpoint_requests += list(interfaces.mocked_backend.get_data(_DEBUGGER_PATH))
             else:
-                agent_logs_endpoint_requests += list(interfaces.mocked_backend.get_data(_DEBUGGER_PATH))
+                for path in self._snapshot_paths:
+                    agent_logs_endpoint_requests += list(interfaces.mocked_backend.get_data(path))
 
             snapshot_hash: dict = {}
 
@@ -949,8 +963,7 @@ class BaseDebuggerTest:
 
     def get_snapshot_request_lengths(self, probe_id: str) -> list[int]:
         """Return decoded body lengths for backend requests containing a probe snapshot."""
-        requests = list(interfaces.mocked_backend.get_data(_LOGS_PATH))
-        requests += list(interfaces.mocked_backend.get_data(_DEBUGGER_PATH))
+        requests = list(interfaces.mocked_backend.get_data(self._snapshot_paths))
 
         lengths: list[int] = []
         for request in requests:
@@ -967,15 +980,11 @@ class BaseDebuggerTest:
 
     def wait_for_additional_snapshots(self, timeout: int = 5) -> bool:
         """Wait for another backend request containing a snapshot for an expected probe."""
-        existing_files = {
-            data["log_filename"]
-            for path in (_LOGS_PATH, _DEBUGGER_PATH)
-            for data in interfaces.mocked_backend.get_data(path)
-        }
+        existing_files = {data["log_filename"] for data in interfaces.mocked_backend.get_data(self._snapshot_paths)}
         expected_probe_ids = set(self.probe_ids)
 
         def _contains_additional_snapshot(data: dict[str, Any]) -> bool:
-            if data["path"] not in (_LOGS_PATH, _DEBUGGER_PATH) or data["log_filename"] in existing_files:
+            if data["path"] not in self._snapshot_paths or data["log_filename"] in existing_files:
                 return False
 
             content = data["request"].get("content", []) or []
@@ -1081,10 +1090,10 @@ class BaseDebuggerTest:
     def _collect_symbols(self):
         def _get_symbols():
             result: list[dict] = []
-            raw_data = list(interfaces.library.get_data(_SYMBOLS_PATH))
+            raw_data = list(interfaces.mocked_backend.get_data(_DEBUGGER_PATH))
 
             if len(raw_data) == 0:
-                logger.info(f"No request has been sent to {_SYMBOLS_PATH}")
+                logger.info(f"No request has been sent to {_DEBUGGER_PATH}")
                 return result
 
             for data in raw_data:
@@ -1100,9 +1109,9 @@ class BaseDebuggerTest:
         self.symbols = _get_symbols()
 
     def _collect_symdb_upload_events(self):
-        """Collect the JSON event metadata from each /symdb/v1/input upload.
+        """Collect the JSON event metadata from each symbol database upload.
 
-        Each request to /symdb/v1/input is a multipart with two parts: the
+        Each upload is a multipart with two parts: the
         gzipped symbols attachment (collected by _collect_symbols) and a
         small JSON blob describing the upload (the "event" part). This
         populates self.symdb_upload_events with the parsed event JSON for
@@ -1110,7 +1119,7 @@ class BaseDebuggerTest:
         parameter equaling "event".
         """
         events: list[dict[str, Any]] = []
-        raw_data = list(interfaces.library.get_data(_SYMBOLS_PATH))
+        raw_data = list(interfaces.mocked_backend.get_data(_DEBUGGER_PATH))
         for data in raw_data:
             if not isinstance(data, dict) or "request" not in data:
                 continue
@@ -1211,3 +1220,15 @@ class BaseDebuggerTest:
     def read_approval(self, test_name: str, suffix: str) -> dict:
         with open(self._get_path(test_name, suffix), "r", encoding="utf-8") as f:
             return json.load(f)
+
+
+class AgentlessBaseDebuggerTest(BaseDebuggerTest):
+    """Base for debugger/SymDB tests run against DEBUGGER_AGENTLESS (no Datadog Agent).
+
+    libdatadog's agentless debugger sender collapses logs, snapshots, diagnostics and SymDB
+    onto a single path on the debugger-intake host (see AGENTLESS_DEBUGGER_PATH), sent
+    straight to the mocked backend.
+    """
+
+    agentless = True
+    _snapshot_paths: tuple[str, ...] = (AGENTLESS_DEBUGGER_PATH,)

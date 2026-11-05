@@ -110,14 +110,14 @@ images:
     digest: sha256:c805fcf6a950f68d3b1fe25102dfbe4a3175374857475ad417154e1e53ebc959
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:express4-typescript.base-070fd1ba6efd
     tag: express4-typescript.base-070fd1ba6efd
-  datadog/system-tests:express4.base-527c2a306057:
-    digest: sha256:5960fa4fcfdd56fee4754847c6400c78b6d1d4cc3f6093954ea9fa959ef6cd24
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:express4.base-527c2a306057
-    tag: express4.base-527c2a306057
-  datadog/system-tests:express5.base-5bff656d2059:
-    digest: sha256:56f6df4d24495b11e13e122f117d0938a3b86fc9b14c4d30e94bfb88e2999946
-    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:express5.base-5bff656d2059
-    tag: express5.base-5bff656d2059
+  datadog/system-tests:express4.base-ab6e263f1e85:
+    digest: sha256:1d6486885baca05eba813bdbc1351fbd6d22965e9fc126763b371129546c1a96
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:express4.base-ab6e263f1e85
+    tag: express4.base-ab6e263f1e85
+  datadog/system-tests:express5.base-3c347dfb1d31:
+    digest: sha256:485ee79922efc726ea02f6974c799703621c7164f329df343194516839317d32
+    target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:express5.base-3c347dfb1d31
+    tag: express5.base-3c347dfb1d31
   datadog/system-tests:fastapi.base-7f1b67ecf0c2:
     digest: sha256:6ee0374d82b4cb777189b4e5f9a6ceb8697ee92be2ab455691445b1c86e2df4a
     target: registry.ddbuild.io/system-tests/mirror/datadog/system-tests:fastapi.base-7f1b67ecf0c2

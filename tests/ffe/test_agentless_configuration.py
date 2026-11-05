@@ -26,6 +26,6 @@ class Test_FFE_Agentless_Configuration:
         assert json.loads(self.response.text)["value"] == "on-value"
 
         backend_status = scenarios.feature_flagging_and_experimentation_agentless.mock_backend_status()
-        assert backend_status is not None
+        assert isinstance(backend_status, dict)
         assert backend_status["requests_total"] >= 1
         assert backend_status["last_path"] == CONFIG_PATH

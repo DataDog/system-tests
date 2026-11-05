@@ -1697,6 +1697,7 @@ manifest:
     - weblog_declaration:
         "*": irrelevant (requires AsyncContextFrame, Node.js 22.9+; covered on fastify)
         fastify: missing_feature (thread context sharing not enabled for appsec yet)
+  tests/debugger/test_debugger_agentless.py: missing_feature (Agentless mode (DD_AGENTLESS_ENABLED) is not implemented for Node.js; python-only for now)
   tests/debugger/test_debugger_capture_expressions.py::Test_Debugger_Line_Capture_Expressions:
     - weblog_declaration:
         "*": irrelevant
@@ -3151,6 +3152,7 @@ manifest:
   tests/stats/test_stats.py::Test_Time_Bucketing::test_client_side_stats_bucket_alignment:
     - component_version: ">=6.10.0"  # may be before
       declaration: flaky (APMLP-1755)
+  tests/test_agentless.py: v6.14.0
   tests/test_baggage.py::Test_Baggage_Headers_Api_Datadog:
     - weblog_declaration:
         "*": incomplete_test_app (endpoint not implemented)

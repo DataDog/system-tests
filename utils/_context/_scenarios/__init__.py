@@ -111,6 +111,9 @@ from .docker_ssi import (
     DockerSsiServicenaming,
 )
 from .agentless_endtoend import (
+    ApmTracingAgentless,
+    ApmTracingAgentlessFastHeartbeat,
+    DebuggerAgentless,
     FeatureFlaggingAndExperimentationAgentless,
     FeatureFlaggingAndExperimentationAgentlessDirect,
     FeatureFlaggingAndExperimentationAgentlessServerless,
@@ -318,6 +321,9 @@ class _Scenarios:
     feature_flagging_and_experimentation_agentless = FeatureFlaggingAndExperimentationAgentless()
     feature_flagging_and_experimentation_agentless_direct = FeatureFlaggingAndExperimentationAgentlessDirect()
     feature_flagging_and_experimentation_agentless_serverless = FeatureFlaggingAndExperimentationAgentlessServerless()
+    apm_tracing_agentless = ApmTracingAgentless()
+    apm_tracing_agentless_fast_heartbeat = ApmTracingAgentlessFastHeartbeat()
+    debugger_agentless = DebuggerAgentless()
     feature_flagging_evaluation_telemetry_opt_out = FeatureFlaggingEvaluationTelemetryOptOut()
     feature_flagging_evaluation_telemetry_opt_out_disabled = FeatureFlaggingEvaluationTelemetryOptOutDisabled()
     feature_flagging_evp_stress = FeatureFlaggingEvpStress()

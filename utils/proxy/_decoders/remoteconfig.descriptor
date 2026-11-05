@@ -1,5 +1,5 @@
 
-Ö
+Ñ
 (utils/proxy/_decoders/remoteconfig.protodatadog.config"¬
 ConfigMetas-
 roots (2.datadog.config.TopMetaRroots5
@@ -34,4 +34,22 @@ topTargetsI
 enabled (Renabled
 
 authorized (R
-authorizedbproto3
+authorized"U
+LatestConfigsRequest=
+active_clients (2.datadog.config.ClientRactiveClients";
+Client1
+state (2.datadog.config.ClientStateRstate"Î
+ClientState!
+root_version (RrootVersion'
+targets_version (RtargetsVersion@
+config_states (2.datadog.config.ConfigStateRconfigStates
+	has_error (RhasError
+error (	Rerror"“
+ConfigState
+id (	Rid
+version (Rversion
+product (	Rproduct
+apply_state (R
+applyState
+apply_error (	R
+applyErrorbproto3

@@ -18,14 +18,14 @@ from collections.abc import Callable, Iterator, Mapping
 from utils._context.core import context
 
 from utils.dd_constants import Capabilities, RemoteConfigApplyState as ApplyState
-from utils.interfaces import library
+from utils.interfaces import library, mocked_backend
 from utils._logger import logger
 from utils.proxy.mocked_response import (
     StaticJsonMockedTracerResponse,
     SequentialRemoteConfigJsonMockedTracerResponse,
     MockedBackendResponse,
 )
-from utils.proxy.tuf import build_signed_targets
+from utils.proxy.tuf import build_signed_targets, sign_tuf_document
 from utils.proxy.rc_response_builder import build_rc_configurations_protobuf
 
 RemoteConfigTarget = Literal["tracer", "backend"]
@@ -245,6 +245,25 @@ def _dump_stacks_if_apply_stalls(started: float) -> Iterator[None]:
         thread.join(timeout=STACK_DUMP_TIMEOUT)
 
 
+def _normalize_protobuf_client_state(state: dict) -> dict:
+    """Coerce uint64 fields back to int.
+
+    protobuf's JSON mapping (MessageToDict) renders uint64/int64 fields as strings (they don't
+    fit precisely in a JS number), unlike the plain-JSON client state reported over /v0.7/config
+    where these are already native ints. Comparing a str against the int constants/versions used
+    below (e.g. `state["apply_state"] == ApplyState.UNKNOWN`) would silently always be False.
+    """
+    return {
+        **state,
+        "targets_version": int(state["targets_version"]) if "targets_version" in state else 0,
+        "root_version": int(state["root_version"]) if "root_version" in state else 0,
+        "config_states": [
+            {**cs, "version": int(cs["version"]), "apply_state": int(cs.get("apply_state", 0))}
+            for cs in state.get("config_states", [])
+        ],
+    }
+
+
 def send_state(
     raw_payload: dict,
     *,
@@ -284,6 +303,20 @@ def send_state(
 
     if target == "backend":
         assert backend_enabled, f"Remote config backend is not enabled on {context.scenario}"
+        # The backend's "no config pushed yet" placeholder occupies TUF version 1 (see
+        # rc_response_builder.build_rc_configurations_protobuf) -- 0 isn't spec-valid and
+        # real TUF/uptane clients reject it. So every real push is shifted up by one here to
+        # stay strictly greater than that placeholder.
+        targets = json.loads(base64.b64decode(raw_payload["targets"]))
+        targets["signed"]["version"] += 1
+        # Also keep the agentless client polling fast (see rc_response_builder.py for why),
+        # since real config pushes go through this same TUF targets document.
+        targets["signed"]["custom"]["agent_refresh_interval"] = 1
+        raw_payload = {**raw_payload, "targets": _json_to_base64(sign_tuf_document(targets["signed"]))}
+        if state_version != -1:
+            # Keep state_version (the caller's own global-state counter, e.g. _RemoteConfigState.version)
+            # shifted in lockstep, so the empty-client_configs comparison below still lines up.
+            state_version += 1
         # Build protobuf on test runner side, send bytes to the backend the agent polls
         rc_response = MockedBackendResponse(
             path="/api/v0.1/configurations", content=build_rc_configurations_protobuf(raw_payload)
@@ -311,12 +344,24 @@ def send_state(
 
     last_client_state: dict[str, Any] = {}
 
+    # Agentless scenarios have no agent to relay client state via /v0.7/config: the native RC
+    # client polls /api/v0.1/configurations directly and reports the same per-config apply state
+    # inline on that request (LatestConfigsRequest.active_clients[0].state), instead of via a
+    # separate follow-up request.
+    agentless = not getattr(context.scenario, "include_agent", True)
+    watched_path = "/api/v0.1/configurations" if agentless else "/v0.7/config"
+
     def remote_config_applied(data: dict) -> bool:
         nonlocal last_client_state
-        if data["path"] != "/v0.7/config":
+        if data["path"] != watched_path:
             return False
 
-        last_client_state = data.get("request", {}).get("content", {}).get("client", {}).get("state", {})
+        if agentless:
+            active_clients = data.get("request", {}).get("content", {}).get("active_clients", [])
+            last_client_state = active_clients[0].get("state", {}) if active_clients else {}
+            last_client_state = _normalize_protobuf_client_state(last_client_state)
+        else:
+            last_client_state = data.get("request", {}).get("content", {}).get("client", {}).get("state", {})
         # read with .get(): a poll carrying no client state used to raise KeyError from
         # inside this callback, which is not a useful way to report a malformed payload.
         # It now reads as "not the version we are waiting for" and the wait continues.
@@ -358,7 +403,7 @@ def send_state(
     wait_started = time.monotonic()
     wait_started_at = datetime.now(UTC)
     with _dump_stacks_if_apply_stalls(wait_started):
-        rv = library.wait_for(remote_config_applied, timeout=APPLY_TIMEOUT)
+        rv = (mocked_backend if agentless else library).wait_for(remote_config_applied, timeout=APPLY_TIMEOUT)
         # measured inside, so watcher teardown is not counted as part of the apply
         elapsed = time.monotonic() - wait_started
 

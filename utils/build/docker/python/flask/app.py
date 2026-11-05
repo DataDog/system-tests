@@ -66,6 +66,7 @@ import requests
 import stripe
 import opentelemetry.baggage
 import opentelemetry.context
+import opentelemetry.metrics
 import opentelemetry.propagate
 import opentelemetry.trace
 
@@ -326,6 +327,13 @@ def healthcheck():
             "version": ddtrace.__version__,
         },
     }
+
+
+@app.route("/agentless-obfuscation")
+def agentless_obfuscation():
+    with tracer.trace("sql.query", span_type="sql") as span:
+        span.resource = "SELECT * FROM users WHERE card_number = '4111111111111111'"
+    return "OK"
 
 
 @app.route("/spawn_child")
@@ -1988,6 +1996,39 @@ def otel_drop_in_default_propagator_inject():
     opentelemetry.propagate.inject(result, opentelemetry.context.get_current())
 
     return jsonify(result)
+
+
+@app.route("/otel_create_metric", methods=["GET"])
+def otel_create_metric():
+    """Record a value via the standard OTel Metrics API (opentelemetry.metrics.get_meter(...)).
+
+    Unrelated to dd-trace-py's own runtime metrics (DD_RUNTIME_METRICS_ENABLED), which are never
+    fed into the OTel meter - this exercises a genuine, user-created OTel metric instead, so its
+    export can be verified independently of that gap.
+    """
+    meter = opentelemetry.metrics.get_meter("system-tests")
+    counter = meter.create_counter("system_tests.otel_metric", description="system-tests OTel metrics test")
+    counter.add(1, {"system_tests.metric_test": "true"})
+
+    return "OK"
+
+
+OTEL_LOG_MESSAGE_MARKER = "[otel_create_log] test log record"
+
+
+@app.route("/otel_create_log", methods=["GET"])
+def otel_create_log():
+    """Emit a log record via the standard `logging` module, which dd-trace-py's OTel logs
+    integration bridges automatically. The language-agnostic equivalent of /otel_create_metric
+    above for logs - other tracers without an automatic bridge use the explicit OTel Logs API
+    instead to produce the same marker record.
+    """
+    logging.basicConfig(
+        format="%(asctime)s %(levelname)-8s %(message)s", level=logging.INFO, datefmt="%Y-%m-%d %H:%M:%S"
+    )
+    logging.info(OTEL_LOG_MESSAGE_MARKER)
+
+    return "OK"
 
 
 # From https://github.com/open-telemetry/opentelemetry-python/issues/2432#issuecomment-1742425474

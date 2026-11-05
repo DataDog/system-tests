@@ -26,7 +26,13 @@ from opentelemetry.proto.collector.logs.v1.logs_service_pb2 import (
     ExportLogsServiceRequest,
     ExportLogsServiceResponse,
 )
-from ._decoders.protobuf_schemas import MetricPayload, TracePayload, SketchPayload, BackendResponsePayload
+from ._decoders.protobuf_schemas import (
+    MetricPayload,
+    TracePayload,
+    SketchPayload,
+    BackendResponsePayload,
+    LatestConfigsRequest,
+)
 from ._decoders.metrics_v3 import decode_metrics_v3, decode_sketches_v3
 from .trace_bytes_decoding import decode_trace_bytes_ascii, unpack_trace_bytes_msgpack
 from .traces.trace_v1 import deserialize_v1_trace, _uncompress_agent_v1_trace, decode_appsec_s_value
@@ -196,8 +202,15 @@ def deserialize_http_message(
 
     if content_type == "application/x-protobuf":
         assert isinstance(content, bytes)
+        # dd-protocol: otlp is set by the agent's own OTLP relay path, which doesn't carry the
+        # exact /v1/{traces,metrics,logs} path this direct-to-intake capture does. Real OTLP
+        # exporters (dd-trace-py's included) never set that header themselves, so also decode
+        # as a *Request* whenever this is actually a request body on one of those exact paths -
+        # otherwise it would fall through to the unconditional (response-shaped) branches below
+        # and silently mis-decode direct-to-intake OTLP request payloads.
         dd_protocol = get_header_value("dd-protocol", message["headers"])
-        if dd_protocol == "otlp" and "traces" in path:
+        is_direct_otlp_request = key == "request" and path in ("/v1/traces", "/v1/metrics", "/v1/logs")
+        if (dd_protocol == "otlp" and "traces" in path) or (is_direct_otlp_request and path == "/v1/traces"):
             return deserialize_otlp_v1_trace(
                 MessageToDict(
                     ExportTraceServiceRequest.FromString(content),
@@ -205,13 +218,13 @@ def deserialize_http_message(
                     use_integers_for_enums=True,
                 )
             )
-        if dd_protocol == "otlp" and "metrics" in path:
+        if (dd_protocol == "otlp" and "metrics" in path) or (is_direct_otlp_request and path == "/v1/metrics"):
             return MessageToDict(
                 ExportMetricsServiceRequest.FromString(content),
                 preserving_proto_field_name=False,
                 use_integers_for_enums=True,
             )
-        if dd_protocol == "otlp" and "logs" in path:
+        if (dd_protocol == "otlp" and "logs" in path) or (is_direct_otlp_request and path == "/v1/logs"):
             return MessageToDict(
                 ExportLogsServiceRequest.FromString(content),
                 preserving_proto_field_name=False,
@@ -255,6 +268,15 @@ def deserialize_http_message(
         if path == "/api/intake/metrics/v3/sketches" and key == "request":
             # same columnar format as /api/intake/metrics/v3/series
             return decode_sketches_v3(content)
+        if path == "/api/v0.1/configurations" and key == "request":
+            # The agentless native RC client polls this endpoint directly (no agent relay), and
+            # reports its per-config apply state inline on the request, the same information an
+            # agent-relayed client reports via a subsequent POST to /v0.7/config.
+            return MessageToDict(
+                LatestConfigsRequest.FromString(content),
+                preserving_proto_field_name=True,
+                use_integers_for_enums=True,
+            )
 
     if content_type == "application/x-www-form-urlencoded" and content == b"[]" and path == "/v0.4/traces":
         return []

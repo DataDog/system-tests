@@ -16,6 +16,7 @@ from utils._context.docker import get_docker_client
 from utils._logger import logger
 from utils._weblog import weblog
 from utils.mocked_backend.ffe import MockedBackendFFEStatus, ffe_library_config_url
+from utils.proxy.tuf import get_tuf_root_json
 
 from ._core import DdTraceEndToEndScenario, FakeDatadogKey, ScenarioGroup, scenario_groups as all_scenario_groups
 
@@ -74,6 +75,7 @@ class _AgentlessEndToEndScenario(DdTraceEndToEndScenario):
         doc: str,
         weblog_env: dict[str, str | None] | None = None,
         scenario_groups: tuple[ScenarioGroup, ...] = (),
+        remote_config: bool = False,
     ) -> None:
         super().__init__(
             name,
@@ -103,6 +105,20 @@ class _AgentlessEndToEndScenario(DdTraceEndToEndScenario):
             DIRECT_EVP_CA_BUNDLE_SOURCE: {"bind": DIRECT_EVP_CA_BUNDLE_CONTAINER_PATH, "mode": "ro"},
             JAVA_TRUSTSTORE_SOURCE: {"bind": JAVA_TRUSTSTORE_CONTAINER_PATH, "mode": "ro"},
         }
+
+        if remote_config:
+            # Without an agent to relay it, the library polls remote config from the backend: the mocked backend serves
+            # it (see send_state), so the proxy-based RC options of DockerScenario do not apply
+            self.rc_api_enabled = True
+            self.rc_backend_enabled = True
+            # The native RC client only trusts Datadog's embedded TUF roots: make it trust the test-signed responses,
+            # like the agent does (see AgentContainer)
+            tuf_root_json = get_tuf_root_json()
+            self.weblog_infra.library_container.environment |= {
+                "DD_REMOTE_CONFIGURATION_ENABLED": "true",
+                "DD_REMOTE_CONFIGURATION_CONFIG_ROOT": tuf_root_json,
+                "DD_REMOTE_CONFIGURATION_DIRECTOR_ROOT": tuf_root_json,
+            }
 
     @property
     def weblog_api_key(self) -> str:
@@ -150,6 +166,85 @@ class _AgentlessEndToEndScenario(DdTraceEndToEndScenario):
             )
         finally:
             super()._stop_mocked_backend()
+
+
+class _TracerAgentlessEndToEndScenario(_AgentlessEndToEndScenario):
+    """The tracer sends traces, stats, telemetry... straight to the intake (DD_AGENTLESS_ENABLED). The intake hostnames
+    derived from DD_SITE are network aliases of the mocked backend.
+    """
+
+    def __init__(
+        self,
+        name: str,
+        *,
+        doc: str,
+        weblog_env: dict[str, str | None] | None = None,
+        scenario_groups: tuple[ScenarioGroup, ...] = (),
+        remote_config: bool = False,
+    ) -> None:
+        environment: dict[str, str | None] = {
+            "DD_AGENTLESS_ENABLED": "true",
+            "DD_SITE": MOCKED_BACKEND_DOMAIN,
+            # HTTP clients ignoring the system CA bundle: python requests, and native subprocesses like the crashtracker
+            "REQUESTS_CA_BUNDLE": DIRECT_EVP_CA_BUNDLE_CONTAINER_PATH,
+            "SSL_CERT_FILE": DIRECT_EVP_CA_BUNDLE_CONTAINER_PATH,
+        }
+        environment.update(weblog_env or {})
+
+        super().__init__(
+            name, doc=doc, weblog_env=environment, scenario_groups=scenario_groups, remote_config=remote_config
+        )
+
+
+class ApmTracingAgentless(_TracerAgentlessEndToEndScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "APM_TRACING_AGENTLESS",
+            doc="Validate direct-to-intake trace submission, client-side stats, Remote Configuration, and "
+            "OpenTelemetry log/metric export when DD_AGENTLESS_ENABLED is set, without a Datadog Agent.",
+            remote_config=True,
+            weblog_env={
+                "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",
+                "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "1",
+                "DD_LOGS_OTEL_ENABLED": "true",
+                "DD_METRICS_OTEL_ENABLED": "true",
+            },
+        )
+
+
+class ApmTracingAgentlessFastHeartbeat(_TracerAgentlessEndToEndScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "APM_TRACING_AGENTLESS_FAST_HEARTBEAT",
+            doc="Validate the generate-metrics telemetry event under DD_AGENTLESS_ENABLED with a shortened telemetry "
+            "heartbeat - split out from APM_TRACING_AGENTLESS so the fast heartbeat doesn't flood every other test "
+            "in that (much larger) scenario.",
+            weblog_env={"DD_TELEMETRY_HEARTBEAT_INTERVAL": "2"},
+        )
+
+
+class DebuggerAgentless(_TracerAgentlessEndToEndScenario):
+    """Agentless Dynamic Instrumentation (probes) and Symbol DB, without a Datadog Agent.
+
+    Probes are pushed through the remote configuration served by the mocked backend, which the native agentless RC
+    client polls directly.
+    """
+
+    def __init__(self) -> None:
+        super().__init__(
+            "DEBUGGER_AGENTLESS",
+            doc="Validate agentless Dynamic Instrumentation (probe upload/logs/snapshots) and Symbol DB, without a "
+            "Datadog Agent.",
+            remote_config=True,
+            scenario_groups=(all_scenario_groups.debugger,),
+            weblog_env={
+                "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "true",
+                "_DD_SYMBOL_DATABASE_FORCE_UPLOAD": "true",
+                "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
+                "DD_DYNAMIC_INSTRUMENTATION_UPLOAD_INTERVAL_SECONDS": "0.1",
+                "DD_DYNAMIC_INSTRUMENTATION_UPLOAD_FLUSH_INTERVAL": "0.1",
+            },
+        )
 
 
 class FeatureFlaggingAgentlessEndToEndScenario(_AgentlessEndToEndScenario):
