@@ -153,20 +153,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
     def adjust_meta_checks_for_schema(
         self, span: DataDogLibrarySpan, default_checks: dict[str, str | Callable | None]
     ) -> dict[str, str | Callable | None]:
-        schema_collected = "_dd.appsec.s.req.headers" in span["meta"]
-
-        # TODO(validation): temporary logs to confirm the API Security sampling race in CI, remove before merging
-        details = (
-            f"schema_collected={schema_collected} "
-            f"{self.propagated_tag()}={span['meta'].get(self.propagated_tag())} "
-            f"priority={span.get_sampling_priority()} "
-            f"start_ns={span.get('start')} duration_ns={span.get('duration')} "
-            f"user_agent={span['meta'].get('http.useragent')}"
-        )
-        logger.info(f"[apisec-validation] {details}")
-
-        if schema_collected:
-            logger.stdout(f"[apisec-validation] API Security schema collected on a no-ASM-event request: {details}")
+        if "_dd.appsec.s.req.headers" in span["meta"]:
             # the API Security sampling window expired before this request: its schema was collected, so the trace
             # is kept by ASM (priority 2, see fix_priority_lambda) and the trace source tag is set
             return {**default_checks, self.propagated_tag(): self.propagated_tag_value()}
