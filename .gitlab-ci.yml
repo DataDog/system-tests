@@ -27,10 +27,36 @@ variables:
     # Destination registry for mirrored CI images.
     MIRROR_DEST_REGISTRY: "registry.ddbuild.io/system-tests/mirror"
 
+resolve_ssi_pr_title:
+  image: registry.ddbuild.io/system-tests/ci-runner:9b1520f98ee9
+  tags: ["arch:amd64"]
+  stage: configure
+  id_tokens:
+    DDOCTOSTS_ID_TOKEN:
+      aud: dd-octo-sts
+  rules:
+    - if: >-
+        $CI_PROJECT_PATH == "DataDog/system-tests" &&
+        $CI_PIPELINE_SOURCE == "push" &&
+        $CI_COMMIT_BRANCH &&
+        $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH &&
+        ($SYSTEM_TESTS_SCENARIOS == null || $SYSTEM_TESTS_SCENARIOS == "") &&
+        ($SYSTEM_TESTS_SCENARIOS_GROUPS == null || $SYSTEM_TESTS_SCENARIOS_GROUPS == "")
+    - when: never
+  script:
+    - bash utils/scripts/ci_orchestrators/resolve_gitlab_pr_title.sh
+  artifacts:
+    reports:
+      dotenv: pr-title.env
+
 compute_pipeline:
   image: registry.ddbuild.io/ci/libdatadog-build/system-tests:146143169
   tags: ["arch:amd64"]
   stage: configure
+  needs:
+    - job: resolve_ssi_pr_title
+      artifacts: true
+      optional: true
   variables:
     CI_ENVIRONMENT: "prod"
   script:
@@ -68,19 +94,6 @@ compute_pipeline:
         fi
         git diff --name-only "$BASE_COMMIT" "$CI_COMMIT_SHA" >> modified_files.txt # List modified files
         cat modified_files.txt
-        export GITHUB_PR_TITLE=""
-        if [ "$CI_COMMIT_REF_NAME" != "main" ]; then
-          if PR_DATA=$(curl -fsS \
-            -H "Accept: application/vnd.github+json" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
-            "https://api.github.com/repos/DataDog/system-tests/commits/$CI_COMMIT_SHA/pulls"); then
-            GITHUB_PR_TITLE=$(jq -r \
-              '[.[] | select(.state == "open")] | if length == 1 then .[0].title else "" end' <<< "$PR_DATA")
-            export GITHUB_PR_TITLE
-          else
-            echo "⚠️ Unable to read the GitHub PR title. Running all SSI languages."
-          fi
-        fi
         # Deliberate AWS SSI opt-in; shared callers keep the full matrix on main.
         python utils/scripts/compute_libraries_and_scenarios.py --select-main-push-from-diff >> impacted_scenarios.txt
         cat impacted_scenarios.txt

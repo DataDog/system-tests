@@ -151,6 +151,19 @@ class Test_ComputeLibrariesAndScenarios:
             "docker_ssi",
         )
 
+    def test_gitlab_ssi_title_resolver_file_does_not_select_scenarios(self):
+        inputs = build_inputs(["utils/scripts/ci_orchestrators/resolve_gitlab_pr_title.sh"])
+
+        assert_github_processor(
+            inputs,
+            [],
+            [],
+            3600,
+            "false",
+            "DEFAULT",
+            "",
+        )
+
     def test_multiple_file_changes(self):
         inputs = build_inputs([".github/workflows/run-docker-ssi.yml", "README.md"])
 
@@ -513,6 +526,7 @@ class Test_ComputeLibrariesAndScenarios:
     @pytest.mark.parametrize(
         ("pr_title", "expected"),
         [
+            ("", None),
             ("[nodejs] Test Node.js", "nodejs"),
             ("[java] Test Java", "java"),
             ("[dotnet] Test .NET", "dotnet"),
