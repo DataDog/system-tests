@@ -42,7 +42,7 @@ else
         fi
 
         echo "Using artifact ${artifact}"
-        curl -L --fail "${GITHUB_AUTH_HEADER[@]}" https://github.com/DataDog/dd-trace-dotnet/releases/download/v${DDTRACE_VERSION}/${artifact} --output ${artifact}
+        curl -L --fail --retry 3 "${GITHUB_AUTH_HEADER[@]}" https://github.com/DataDog/dd-trace-dotnet/releases/download/v${DDTRACE_VERSION}/${artifact} --output ${artifact}
     fi
 
     tar xzf $(ls datadog-dotnet-apm*.tar.gz) -C /opt/datadog
