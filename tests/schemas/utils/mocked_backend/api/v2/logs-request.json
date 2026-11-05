@@ -1,0 +1,10 @@
+{
+  "$id": "/mocked_backend/api/v2/logs-request.json",
+  "items": {
+    "if": {
+      "required": ["debugger"],
+      "properties": { "debugger": { "type": "object", "required": ["snapshot"] } }
+    },
+    "then": { "required": ["timestamp"] }
+  }
+}

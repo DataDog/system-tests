@@ -18,8 +18,6 @@ class TraceStatsComputation(DdTraceEndToEndScenario):
                 "may drop some of them"
             ),
             scenario_groups=[scenario_groups.appsec],
-            mocked_backend=True,
-            use_proxy_for_agent=False,
         )
 
 
@@ -43,8 +41,6 @@ class TraceStatsComputationClientDropP0sFalse(DdTraceEndToEndScenario):
                 "dropping."
             ),
             scenario_groups=[scenario_groups.appsec],
-            mocked_backend=True,
-            use_proxy_for_agent=False,
         )
 
 
@@ -69,8 +65,6 @@ class TraceStatsComputationFutureObfuscationVersion(DdTraceEndToEndScenario):
                 "header when the agent advertises an obfuscation version higher than what the SDK supports."
             ),
             scenario_groups=[scenario_groups.appsec],
-            mocked_backend=True,
-            use_proxy_for_agent=False,
         )
 
 
@@ -94,8 +88,6 @@ class TraceStatsComputationMissingObfuscationVersion(DdTraceEndToEndScenario):
                 "header when the agent does not advertise any obfuscation version."
             ),
             scenario_groups=[scenario_groups.appsec],
-            mocked_backend=True,
-            use_proxy_for_agent=False,
         )
 
 
@@ -119,8 +111,6 @@ class TraceStatsComputationObfuscationVersionZero(DdTraceEndToEndScenario):
                 "header when the agent advertises obfuscation_version=0."
             ),
             scenario_groups=[scenario_groups.appsec],
-            mocked_backend=True,
-            use_proxy_for_agent=False,
         )
 
 
@@ -142,8 +132,6 @@ class TraceStatsComputationObfuscationDisabled(DdTraceEndToEndScenario):
             },
             doc=("End to end testing with DD_TRACE_COMPUTE_STATS=1 and obfuscation disabled."),
             scenario_groups=[scenario_groups.appsec],
-            mocked_backend=True,
-            use_proxy_for_agent=False,
         )
 
 
@@ -166,6 +154,4 @@ class TraceStatsComputationErrorSampler(DdTraceEndToEndScenario):
                 "Tests that traces containing errors are still sent to the agent even when sampling would drop them."
             ),
             scenario_groups=[scenario_groups.appsec],
-            mocked_backend=True,
-            use_proxy_for_agent=False,
         )

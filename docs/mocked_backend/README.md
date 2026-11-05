@@ -28,6 +28,6 @@ One single way to observe what is sent to the Datadog backend, whatever the setu
 
 ## Using it in a scenario
 
-* With an agent: `mocked_backend=True, use_proxy_for_agent=False`. The library still talks to the agent through the proxy (`interfaces.library`); what the agent sends to the backend is in `interfaces.mocked_backend`.
+* With an agent: nothing to do, every end-to-end scenario uses it. The library still talks to the agent through the proxy (`interfaces.library`); what the agent sends to the backend is in `interfaces.mocked_backend`.
 * Without an agent: the agentless scenarios (`utils/_context/_scenarios/agentless_endtoend.py`) set it up, with `DD_SITE` pointing to it.
 * In tests: read `interfaces.mocked_backend`, and use the scenario's API key (e.g. `scenario.weblog_api_key`) to keep only what a given sender sent.

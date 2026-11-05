@@ -16,7 +16,7 @@ This directory contains tools and configurations for Java weblog development in 
 
 ## 🎯 Description
 
-The `java-endpoint-prompt.mdc` file is a **specialized prompt** for Cursor IDE that contains:
+The `.agents/rules/java-endpoint-prompt.md` file is a **specialized prompt** for Cursor IDE that contains:
 
 - **Implementation guidelines** for Java endpoints in system-tests weblogs
 - **Framework-specific patterns** for each framework (Spring Boot, Vert.x, Jersey, etc.)
@@ -37,7 +37,7 @@ The **fundamental way to work** with this prompt is to **create endpoints from t
 ### 💡 Example Usage
 
 ```markdown
-@java-endpoint-prompt.mdc
+@.agents/rules/java-endpoint-prompt.md
 
 Analyze this test file and create the missing endpoints for Spring Boot:
 
@@ -61,17 +61,17 @@ Once you have the prompt loaded, you can use commands like:
 
 ```markdown
 # Create endpoints from test file (RECOMMENDED APPROACH)
-@java-endpoint-prompt.mdc Analyze this test file and create the missing endpoints for Spring Boot:
+@.agents/rules/java-endpoint-prompt.md Analyze this test file and create the missing endpoints for Spring Boot:
 [paste test content or reference test file]
 
 # Create a specific endpoint
-@java-endpoint-prompt.mdc Create a POST /iast/sqli/test endpoint for Spring Boot
+@.agents/rules/java-endpoint-prompt.md Create a POST /iast/sqli/test endpoint for Spring Boot
 
 # Analyze existing endpoint
-@java-endpoint-prompt.mdc Analyze the /rasp/lfi endpoint in vertx4
+@.agents/rules/java-endpoint-prompt.md Analyze the /rasp/lfi endpoint in vertx4
 
 # Fix build issues
-@java-endpoint-prompt.mdc Help me fix this compilation error in Jersey
+@.agents/rules/java-endpoint-prompt.md Help me fix this compilation error in Jersey
 ```
 
 ### Request Structure
@@ -79,7 +79,7 @@ Once you have the prompt loaded, you can use commands like:
 For best results, structure your requests like this:
 
 ```markdown
-@java-endpoint-prompt.mdc
+@.agents/rules/java-endpoint-prompt.md
 
 Framework: [spring-boot/vertx3/vertx4/jersey-grizzly2/etc.]
 Test file: [path/to/test_file.py] (RECOMMENDED)
@@ -93,7 +93,7 @@ Detailed description of what you need...
 The most effective way to use this prompt:
 
 ```markdown
-@java-endpoint-prompt.mdc
+@.agents/rules/java-endpoint-prompt.md
 
 Framework: spring-boot
 Test file: tests/appsec/iast/test_sql_injection.py
@@ -122,17 +122,17 @@ The prompt includes specific configurations for:
 
 ```bash
 # 1. Analyze test file to understand requirements
-@java-endpoint-prompt.mdc Analyze this test file and extract endpoint requirements:
+@.agents/rules/java-endpoint-prompt.md Analyze this test file and extract endpoint requirements:
 [paste or reference test file]
 
 # 2. Find existing implementations in other languages (optional)
-@java-endpoint-prompt.mdc Search for similar endpoints in other languages
+@.agents/rules/java-endpoint-prompt.md Search for similar endpoints in other languages
 
 # 3. Generate endpoints based on test analysis
-@java-endpoint-prompt.mdc Create the missing endpoints for [framework] based on the test analysis
+@.agents/rules/java-endpoint-prompt.md Create the missing endpoints for [framework] based on the test analysis
 
 # 4. Build and validate
-./utils/build/build.sh --library java --weblog-variant spring-boot
+./build.sh java -w spring-boot
 
 # 5. Run the test
 ./run.sh tests/path/to/test_file.py
@@ -142,10 +142,10 @@ The prompt includes specific configurations for:
 
 ```bash
 # For compilation errors
-@java-endpoint-prompt.mdc Analyze this build error: [error]
+@.agents/rules/java-endpoint-prompt.md Analyze this build error: [error]
 
 # For test failures
-@java-endpoint-prompt.mdc This test fails with 404, what should I check?
+@.agents/rules/java-endpoint-prompt.md This test fails with 404, what should I check?
 ```
 
 ## 🚨 Troubleshooting
@@ -155,14 +155,14 @@ The prompt includes specific configurations for:
 **Problem**: Cursor doesn't recognize the prompt
 **Solution**:
 1. Verify you're in the correct directory
-2. Use the full path: `@utils/build/docker/java/.cursor/rules/java-endpoint-prompt.mdc`
+2. Use the full path: `@.agents/rules/java-endpoint-prompt.md`
 3. Restart Cursor IDE
 
 ### Generic responses
 
 **Problem**: Cursor gives generic responses without following the rules
 **Solution**:
-1. Make sure to reference the file with `@java-endpoint-prompt.mdc`
+1. Make sure to reference the file with `@.agents/rules/java-endpoint-prompt.md`
 2. Specify the framework in your request
 3. Include specific endpoint context
 4. **Use the test-first approach** for better results
@@ -190,7 +190,7 @@ The prompt includes specific configurations for:
 
 If you find patterns or rules that should be added:
 
-1. **Edit** `java-endpoint-prompt.mdc`
+1. **Edit** `.agents/rules/java-endpoint-prompt.md`
 2. **Test** the changes with various frameworks
 3. **Document** the changes in this README
 
@@ -203,4 +203,4 @@ If you find patterns or rules that should be added:
 
 ---
 
-**📋 DOCUMENTATION USED**: @java-endpoint-prompt.mdc, @docs/understand/weblogs/, @docs/understand/scenarios/
+**📋 DOCUMENTATION USED**: `.agents/rules/java-endpoint-prompt.md`, `docs/understand/weblogs/`, `docs/understand/scenarios/`
