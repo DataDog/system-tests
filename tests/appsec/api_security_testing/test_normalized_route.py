@@ -11,17 +11,15 @@ from utils._weblog import HttpResponse
 NORMALIZED_ROUTE_TAG = "_dd.appsec.normalized_route"
 HTTP_ROUTE_TAG = "http.route"
 
-# RFC-1103 syntax validator for `_dd.appsec.normalized_route`.
-# Atomic elements are slash-separated; static constants use [A-Za-z0-9.-~_] or
-# percent-encoded sequences; dynamic parameters use {name} where name may
-# contain anything except the six reserved characters /?#+{} (with `+` allowed
-# only as the rule-5 combining marker between framework-supplied subnames).
-# Percent-encoded sequences are accepted in either case (RFC 3986 normalization
-# treats them as equivalent), even though the RFC text recommends uppercase.
+# Syntax validator for `_dd.appsec.normalized_route`: RFC-1103, amended by RFC-1125 for OpenAPI compliance.
+# Segments are slash-separated. A segment mixes static text and dynamic parameters, e.g. `user-{id}` or
+# `{id}.{format}`. Static text uses [A-Za-z0-9.-~_] or percent-encoded sequences, and parameter names use
+# [A-Za-z0-9_] only. Percent-encoded sequences are accepted in either case (RFC 3986 normalization treats them
+# as equivalent), even though the RFC text recommends uppercase.
 _STATIC_CHAR = r"[A-Za-z0-9.\-~_]|%[0-9A-Fa-f]{2}"
-_PARAM_NAME = r"(?:[^/?#+{}]|%[0-9A-Fa-f]{2})+(?:\+(?:[^/?#+{}]|%[0-9A-Fa-f]{2})+)*"
-_ATOMIC_ELEMENT = rf"(?:(?:{_STATIC_CHAR})+|\{{{_PARAM_NAME}\}})"
-_NORMALIZED_ROUTE_REGEX = re.compile(rf"^/(?:{_ATOMIC_ELEMENT}(?:/{_ATOMIC_ELEMENT})*/?)?$")
+_PARAMETER = r"\{[A-Za-z0-9_]+\}"
+_SEGMENT = rf"(?:{_STATIC_CHAR}|{_PARAMETER})+"
+_NORMALIZED_ROUTE_REGEX = re.compile(rf"^/(?:{_SEGMENT}(?:/{_SEGMENT})*/?)?$")
 
 
 def _get_meta(response: HttpResponse) -> dict:
@@ -43,7 +41,7 @@ def _require_normalized(meta: dict) -> str:
     # Every emitted value must conform to the RFC grammar regardless of the
     # underlying route shape; a malformed value is a tracer bug.
     assert _NORMALIZED_ROUTE_REGEX.match(normalized), (
-        f"{NORMALIZED_ROUTE_TAG}={normalized!r} does not conform to RFC-1103 syntax"
+        f"{NORMALIZED_ROUTE_TAG}={normalized!r} does not conform to the RFC-1103 / RFC-1125 syntax"
     )
     return normalized
 
@@ -131,43 +129,40 @@ class Test_NormalizedRoute:
         assert normalized == "/headers", f"expected '/headers', got {normalized!r}"
 
 
-@rfc("https://docs.google.com/document/d/1XfjniR6v6pL2V5JtxYdpiKbOF08tA9q2Sefk36gtXhs")
+@rfc("https://docs.google.com/document/d/1EFXGA1DI_tAjNWsWzSwjIqTxjxokXI0OeRKdlU_ZRdY")
 @features.api_security_normalized_route
 @scenarios.appsec_api_security
 class Test_NormalizedRouteMultiParamsInSegment:
-    """RFC-1103 rule 5: two mandatory path parameters within a single URL segment.
+    """RFC-1125: two mandatory path parameters within a single URL segment.
 
-    When a route template places two dynamic parameters inside the same
-    path segment (e.g. `/<id>.<format>`), the tracer must collapse them into a
-    single atomic element using the `+` combining marker, in declaration order:
-    `{id+format}`.  The resulting normalized route is deterministic and
-    identical across all weblogs because the parameter names `id` and `format`
-    are fixed in the endpoint declaration.
+    When a route template places two dynamic parameters inside the same path segment (e.g. `/<id>.<format>`),
+    the tracer must keep each parameter and the text between them, as OpenAPI does: `{id}.{format}`.
+    The resulting normalized route is deterministic and identical across all weblogs because the parameter
+    names `id` and `format` are fixed in the endpoint declaration.
     """
 
     def setup_multi_params_in_segment(self):
         self.r = weblog.get("/api_security/multi-params-in-segment/123.json")
 
     def test_multi_params_in_segment(self):
-        """Rule 5: two intra-segment params are joined with `+` into `{id+format}`."""
+        """Each intra-segment parameter is kept, with the text between them: `{id}.{format}`."""
         meta = _get_meta(self.r)
         normalized = _require_normalized(meta)
-        assert normalized == "/api_security/multi-params-in-segment/{id+format}", (
-            f"expected '/api_security/multi-params-in-segment/{{id+format}}', got {normalized!r}"
+        assert normalized == "/api_security/multi-params-in-segment/{id}.{format}", (
+            f"expected '/api_security/multi-params-in-segment/{{id}}.{{format}}', got {normalized!r}"
         )
 
 
-@rfc("https://docs.google.com/document/d/1XfjniR6v6pL2V5JtxYdpiKbOF08tA9q2Sefk36gtXhs")
+@rfc("https://docs.google.com/document/d/1EFXGA1DI_tAjNWsWzSwjIqTxjxokXI0OeRKdlU_ZRdY")
 @features.api_security_normalized_route
 @scenarios.appsec_api_security
 class Test_NormalizedRouteOptionalParams:
-    """RFC-1103 rule 5 + optional-element resolution: an optional path parameter
-    that shares a URL segment with a mandatory parameter must be combined with `+`
-    when present (`{id+format}`) and dropped from the combined name when absent,
-    leaving the mandatory parameter alone (`{id}`).
+    """RFC-1125 optional-element resolution: an optional path parameter that shares a URL segment with a
+    mandatory parameter is kept, with its separator, when present (`{id}.{format}`) and left out, with its
+    separator, when absent, leaving the mandatory parameter alone (`{id}`).
 
-    The two requests target the same route declaration but resolve to distinct
-    normalized routes, which is intentional per rule 6.
+    The two requests target the same route declaration but resolve to distinct normalized routes, which is
+    intentional per RFC-1103 rule 6.
     """
 
     def setup_without_optional(self):
@@ -185,11 +180,11 @@ class Test_NormalizedRouteOptionalParams:
         self.r_with = weblog.get("/api_security/optional-params/123.json")
 
     def test_with_optional(self):
-        """Optional param present in same segment: combined as `{id+format}`."""
+        """Optional param present in the same segment: kept with its separator, `{id}.{format}`."""
         meta = _get_meta(self.r_with)
         normalized = _require_normalized(meta)
-        assert normalized == "/api_security/optional-params/{id+format}", (
-            f"expected '/api_security/optional-params/{{id+format}}', got {normalized!r}"
+        assert normalized == "/api_security/optional-params/{id}.{format}", (
+            f"expected '/api_security/optional-params/{{id}}.{{format}}', got {normalized!r}"
         )
 
     def setup_optional_routes_are_distinct(self):
@@ -204,4 +199,26 @@ class Test_NormalizedRouteOptionalParams:
         normalized_with = _require_normalized(meta_with)
         assert normalized_without != normalized_with, (
             f"optional-absent and optional-present routes must differ; both got {normalized_without!r}"
+        )
+
+
+@rfc("https://docs.google.com/document/d/1EFXGA1DI_tAjNWsWzSwjIqTxjxokXI0OeRKdlU_ZRdY")
+@features.api_security_normalized_route
+@scenarios.appsec_api_security
+class Test_NormalizedRouteStaticTextInSegment:
+    """RFC-1125: the static text of a segment is kept next to its parameter.
+
+    OpenAPI path templates allow a template expression in a section of a segment, so `user-{id}` is valid as
+    written. Keeping the static text also keeps routes such as `user-{id}` and `admin-{id}` distinct.
+    """
+
+    def setup_static_text_in_segment(self):
+        self.r = weblog.get("/api_security/static-text-in-segment/user-123")
+
+    def test_static_text_in_segment(self):
+        """The static prefix of the segment is kept: `user-{id}`."""
+        meta = _get_meta(self.r)
+        normalized = _require_normalized(meta)
+        assert normalized == "/api_security/static-text-in-segment/user-{id}", (
+            f"expected '/api_security/static-text-in-segment/user-{{id}}', got {normalized!r}"
         )
