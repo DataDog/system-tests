@@ -30,6 +30,19 @@
 
 set -eu
 
+# A GET whose response is printed, retried on any error. Through a file: curl can't reset what it already wrote on
+# stdout, so a retry after a partial transfer would print the response twice
+curl_get() {
+    local output status=0
+    output=$(mktemp)
+    curl --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors --output "$output" "$@" || status=$?
+    if [ "$status" = 0 ]; then
+        cat "$output"
+    fi
+    rm -f "$output"
+    return "$status"
+}
+
 assert_version_is_dev() {
 
   if [ "$VERSION" = 'dev' ]; then
@@ -67,7 +80,7 @@ resolve_github_branch_sha() {
     local sha
 
     encoded_branch=$(jq -rn --arg value "$branch" '$value | @uri')
-    if ! response=$(curl --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors --fail --location --silent --show-error \
+    if ! response=$(curl_get --fail --location --silent --show-error \
         "${GITHUB_AUTH_HEADER[@]}" \
         "https://api.github.com/repos/${repository}/branches/${encoded_branch}"); then
         echo "Unable to resolve branch '${branch}' in ${repository}" >&2
@@ -103,7 +116,7 @@ get_github_action_artifact() {
     IGNORE_FAILED_WORKFLOW=${6:-true}  # 6th arg, with default "true"
 
     # query filter seems not to be working ??
-    WORKFLOWS=$(curl --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors --silent --fail --show-error -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/$SLUG/actions/workflows/$WORKFLOW/runs?per_page=100")
+    WORKFLOWS=$(curl_get --silent --fail --show-error -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/$SLUG/actions/workflows/$WORKFLOW/runs?per_page=100")
 
     if [ "$IGNORE_FAILED_WORKFLOW" = "true" ]; then
         QUERY="[.workflow_runs[] | select(.conclusion != \"failure\" and .head_branch == \"$BRANCH\" and .status == \"completed\")][0]"
@@ -117,7 +130,7 @@ get_github_action_artifact() {
 
     HTML_URL=$(echo "$WORKFLOWS" | jq -r "$QUERY | .html_url")
     echo "Load artifacts for $HTML_URL"
-    ARTIFACTS=$(curl --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors --fail --silent -H "Authorization: token $GITHUB_TOKEN" "$ARTIFACT_URL")
+    ARTIFACTS=$(curl_get --fail --silent -H "Authorization: token $GITHUB_TOKEN" "$ARTIFACT_URL")
     ARCHIVE_URL=$(echo "$ARTIFACTS" | jq -r --arg ARTIFACT_NAME "$ARTIFACT_NAME" '.artifacts | map(select(.name | contains($ARTIFACT_NAME))) | .[0].archive_download_url')
     echo "Load archive $ARCHIVE_URL"
 
@@ -135,7 +148,7 @@ get_github_release_asset() {
     SLUG=$1
     PATTERN=$2
 
-    release=$(curl --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors --silent --fail --show-error -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/$SLUG/releases/latest")
+    release=$(curl_get --silent --fail --show-error -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/$SLUG/releases/latest")
 
     name=$(echo "$release" | jq -r ".assets[].name | select(test(\"$PATTERN\"))")
     url=$(echo "$release" | jq -r ".assets[].browser_download_url | select(test(\"$PATTERN\"))")
@@ -284,7 +297,7 @@ elif [ "$TARGET" = "golang" ]; then
 
     LIBRARY_TARGET_BRANCH="${LIBRARY_TARGET_BRANCH:-main}"
     echo "load last commit on $LIBRARY_TARGET_BRANCH for DataDog/dd-trace-go"
-    COMMIT_ID=$(curl --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors -sS --fail "${GITHUB_AUTH_HEADER[@]}" "https://api.github.com/repos/DataDog/dd-trace-go/branches/$LIBRARY_TARGET_BRANCH" | jq -r .commit.sha)
+    COMMIT_ID=$(curl_get -sS --fail "${GITHUB_AUTH_HEADER[@]}" "https://api.github.com/repos/DataDog/dd-trace-go/branches/$LIBRARY_TARGET_BRANCH" | jq -r .commit.sha)
 
     echo "Using github.com/DataDog/dd-trace-go/v2@$COMMIT_ID"
     {

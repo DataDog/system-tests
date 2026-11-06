@@ -156,7 +156,12 @@ else
     esac
 
     YAMLFMT_URL="https://github.com/google/yamlfmt/releases/download/v${YAMLFMT_VERSION}/yamlfmt_${YAMLFMT_VERSION}_${YAMLFMT_OS}_${YAMLFMT_ARCH}.tar.gz"
-    curl --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors -fLo "$YAMLFMT_BIN.tar.gz" "$YAMLFMT_URL"
+    # --retry-all-errors needs curl 7.71, a developer machine may have an older one
+    curl_retry=(--retry 3 --retry-delay 5 --retry-connrefused)
+    if curl --retry-all-errors --version >/dev/null 2>&1; then
+        curl_retry+=(--retry-all-errors)
+    fi
+    curl "${curl_retry[@]}" -fLo "$YAMLFMT_BIN.tar.gz" "$YAMLFMT_URL"
 
     # Validate checksum of downloaded archive
     if command -v sha256sum > /dev/null; then

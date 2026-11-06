@@ -116,9 +116,10 @@ PLUGIN_VERSION=$(grep -oP 'VERSION\s*=\s*"\K[^"]+' \
 
 if [ "$KONG_IS_RELEASE" = "false" ]; then
   auth_header=$(get_authentication_header)
-  COMMIT_SHA=$(eval "curl --silent --fail --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors $auth_header \
-      https://api.github.com/repos/DataDog/kong-plugin-ddtrace/commits/main" \
-      | grep '"sha"' | head -1 | cut -d'"' -f4 | cut -c1-7)
+  # through a file: curl can't reset what it already wrote on stdout, before retrying after a partial transfer
+  eval "curl --silent --fail --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors --output /tmp/kong-commit.json $auth_header \
+      https://api.github.com/repos/DataDog/kong-plugin-ddtrace/commits/main" || true
+  COMMIT_SHA=$(grep '"sha"' /tmp/kong-commit.json 2>/dev/null | head -1 | cut -d'"' -f4 | cut -c1-7 || true)
   if [ -n "$COMMIT_SHA" ]; then
     PLUGIN_VERSION="${PLUGIN_VERSION}-dev+${COMMIT_SHA}"
   fi

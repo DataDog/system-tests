@@ -13,10 +13,12 @@ fi
 
 get_latest_release() {
     local releases
-    if ! releases=$(curl --fail --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors "${GITHUB_AUTH_HEADER[@]}" "https://api.github.com/repos/$1/releases/latest"); then
+    # through a file: curl can't reset what it already wrote on stdout, before retrying after a partial transfer
+    if ! curl --fail --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors --output /tmp/releases.json "${GITHUB_AUTH_HEADER[@]}" "https://api.github.com/repos/$1/releases/latest"; then
         echo "Failed to get latest release"
         exit 1
     fi
+    releases=$(cat /tmp/releases.json)
     echo $releases | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/';
 }
 

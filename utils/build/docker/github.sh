@@ -25,12 +25,18 @@ get_latest_release() {
     local auth_header
     auth_header=$(get_authentication_header)
 
-    local curl_cmd="curl --fail --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors $auth_header https://api.github.com/repos/${repo}/releases/latest"
+    # through a file: curl can't reset what it already wrote on stdout, before retrying after a partial transfer
+    local response_file
+    response_file=$(mktemp)
+    local curl_cmd="curl --fail --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors --output ${response_file} $auth_header https://api.github.com/repos/${repo}/releases/latest"
 
-    if ! releases=$(eval "$curl_cmd"); then
+    if ! eval "$curl_cmd"; then
+        rm -f "$response_file"
         echo "❌ Failed to get latest release for ${repo}" >&2
         exit 1
     fi
+    releases=$(cat "$response_file")
+    rm -f "$response_file"
 
     local version
     version=$(echo "$releases" | grep '"tag_name":' | sed -E 's/.*"tag_name": ?"(v?[^"]+)".*/\1/')
