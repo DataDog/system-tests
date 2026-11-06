@@ -40,7 +40,7 @@ def wait_for_port(port: int, host: str = "localhost", timeout: float = 5.0) -> b
             with socket.create_connection((host, port), timeout=timeout):
                 return True
         except OSError:
-            time.sleep(0.01)
+            time.sleep(0.5)
             if time.perf_counter() - start_time >= timeout:
                 logger.error(f"Waited too long for the port {port} on host {host} to start accepting connections.")
                 return False

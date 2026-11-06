@@ -197,7 +197,7 @@ class TestClientApi:
         self._wait(self.timeout)
 
     def _wait(self, timeout: float):
-        delay = 0.01
+        delay = 0.5
         logger.debug(f"Waiting for {self.container.name} being ready")
         for _ in range(int(timeout / delay)):
             try:
