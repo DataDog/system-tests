@@ -4,9 +4,11 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.*;
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
+import datadog.appsec.api.login.EventTrackerV2;
 import datadog.trace.api.EventTracker;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
@@ -263,6 +265,26 @@ public class Handler implements RequestHandler<Object, Object> {
             return handleTagValue(ctx);
         } else if (ctx.path.equals("/user_login_success_event") && "GET".equals(ctx.method)) {
             return handleUserLoginSuccessEvent(ctx);
+        } else if (ctx.path.equals("/user_login_failure_event") && "GET".equals(ctx.method)) {
+            datadog.trace.api.GlobalTracer.getEventTracker().trackLoginFailureEvent(
+                ctx.queryParams.getOrDefault("event_user_id", TRACK_USER),
+                Boolean.parseBoolean(ctx.queryParams.getOrDefault("event_user_exists", "true")),
+                eventTrackingMetadata());
+            return createResponse(ctx, "OK", 200);
+        } else if (ctx.path.equals("/user_login_success_event_v2") && "POST".equals(ctx.method)) {
+            return handleUserLoginSuccessEventV2(ctx);
+        } else if (ctx.path.equals("/user_login_failure_event_v2") && "POST".equals(ctx.method)) {
+            return handleUserLoginFailureEventV2(ctx);
+        } else if (ctx.path.equals("/custom_event") && "GET".equals(ctx.method)) {
+            datadog.trace.api.GlobalTracer.getEventTracker().trackCustomEvent(
+                ctx.queryParams.getOrDefault("event_name", "system_tests_event"), eventTrackingMetadata());
+            return createResponse(ctx, "OK", 200);
+        } else if (ctx.path.equals("/custom_event_v2") && "POST".equals(ctx.method)) {
+            JsonObject body = JsonParser.parseString(ctx.body).getAsJsonObject();
+            String eventName = body.has("event_name")
+                    ? body.get("event_name").getAsString() : "system_tests_event";
+            EventTrackerV2.trackCustomEvent(eventName, sdkEventMetadata(body));
+            return createResponse(ctx, "OK", 200);
         } else if (ctx.path.equals("/rasp/lfi")) {
             return handleRaspLfi(ctx);
         } else if (ctx.path.equals("/rasp/ssrf")) {
@@ -723,6 +745,44 @@ public class Handler implements RequestHandler<Object, Object> {
         } catch (Exception e) {
             logger.error("Failed to track custom event", e);
         }
+    }
+
+    private Map<String, String> eventTrackingMetadata() {
+        Map<String, String> metadata = new HashMap<>();
+        metadata.put("metadata0", "value0");
+        metadata.put("metadata1", "value1");
+        return metadata;
+    }
+
+    private Object handleUserLoginSuccessEventV2(RequestContext ctx) {
+        JsonObject body = JsonParser.parseString(ctx.body).getAsJsonObject();
+        String userId = body.has("user_id") && !body.get("user_id").isJsonNull()
+                ? body.get("user_id").getAsString() : null;
+        EventTrackerV2.trackUserLoginSuccess(
+                body.get("login").getAsString(), userId, sdkEventMetadata(body));
+        return createResponse(ctx, "OK", 200);
+    }
+
+    private Object handleUserLoginFailureEventV2(RequestContext ctx) {
+        JsonObject body = JsonParser.parseString(ctx.body).getAsJsonObject();
+        EventTrackerV2.trackUserLoginFailure(
+                body.get("login").getAsString(), body.get("exists").getAsBoolean(),
+                sdkEventMetadata(body));
+        return createResponse(ctx, "OK", 200);
+    }
+
+    private Map<String, String> sdkEventMetadata(JsonObject body) {
+        if (!body.has("metadata") || body.get("metadata").isJsonNull()) {
+            return Collections.emptyMap();
+        }
+        Map<String, String> metadata = new HashMap<>();
+        for (Map.Entry<String, JsonElement> entry : body.getAsJsonObject("metadata").entrySet()) {
+            JsonElement value = entry.getValue();
+            if (value.isJsonPrimitive() && value.getAsJsonPrimitive().isString()) {
+                metadata.put(entry.getKey(), value.getAsString());
+            }
+        }
+        return metadata;
     }
 
     private void trackUserLoginSuccessEvent() {
