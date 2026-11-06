@@ -7,7 +7,6 @@ claim_pattern:
   ref: "main"
   ref_type: "branch"
   ref_path: "refs/heads/main"
-  ref_protected: "true"
   pipeline_source: "push"
   ci_config_ref_uri: "gitlab\\.ddbuild\\.io/DataDog/system-tests//\\.gitlab-ci\\.yml@refs/heads/main"
 
