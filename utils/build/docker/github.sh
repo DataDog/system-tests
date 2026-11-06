@@ -25,7 +25,7 @@ get_latest_release() {
     local auth_header
     auth_header=$(get_authentication_header)
 
-    local curl_cmd="curl --fail --retry 3 $auth_header https://api.github.com/repos/${repo}/releases/latest"
+    local curl_cmd="curl --fail --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors $auth_header https://api.github.com/repos/${repo}/releases/latest"
 
     if ! releases=$(eval "$curl_cmd"); then
         echo "❌ Failed to get latest release for ${repo}" >&2

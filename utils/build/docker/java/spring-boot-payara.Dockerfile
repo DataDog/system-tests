@@ -16,7 +16,7 @@ RUN /binaries/install_ddtrace.sh -Dmaven.repo.local=/maven
 RUN mvn -Dmaven.repo.local=/maven -Ppayara package
 
 ARG PAYARA_VERSION=5.2022.1
-RUN curl https://nexus.payara.fish/repository/payara-community/fish/payara/extras/payara-micro/${PAYARA_VERSION}/payara-micro-${PAYARA_VERSION}.jar -o /binaries/payara-micro.jar
+RUN curl --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors --fail https://nexus.payara.fish/repository/payara-community/fish/payara/extras/payara-micro/${PAYARA_VERSION}/payara-micro-${PAYARA_VERSION}.jar -o /binaries/payara-micro.jar
 
 FROM eclipse-temurin:11-jre
 
