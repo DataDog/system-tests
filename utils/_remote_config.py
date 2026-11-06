@@ -3,6 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import base64
+from collections import deque
 from contextlib import contextmanager
 from datetime import UTC, datetime, timedelta
 import hashlib
@@ -395,6 +396,54 @@ def send_state(
     return current_states
 
 
+def _log_sequence_polls() -> None:
+    """Keep sequence diagnostics in CI output, including when setup does not raise."""
+    try:
+        polls = deque(library.get_data(path_filters=r"/v0\.7/config"), maxlen=10)
+    except Exception as error:  # diagnostics must never fail setup
+        logger.stdout(f"RC sequence: could not read polls ({type(error).__name__})")
+        return
+
+    logger.stdout(
+        f"RC sequence: last {len(polls)} captured polls (mocked_response_index is zero-based; "
+        "first 5 config states per poll; errors capped at 200 characters)"
+    )
+    for data in polls:
+        try:
+            request = data.get("request") or {}
+            client = (request.get("content") or {}).get("client") or {}
+            state = client.get("state") or {}
+            response = data.get("response") or {}
+            config_states = state.get("config_states") or []
+            summary = {
+                "log_filename": data.get("log_filename"),
+                "request_at": request.get("timestamp_start"),
+                "runtime_id": (client.get("client_tracer") or {}).get("runtime_id"),
+                "client_id": client.get("id"),
+                "targets_version": state.get("targets_version"),
+                "has_error": state.get("has_error"),
+                "error": str(state.get("error", ""))[:200],
+                "config_state_count": len(config_states),
+                "config_states": [
+                    {
+                        "id": config.get("id"),
+                        "version": config.get("version"),
+                        "apply_state": config.get("apply_state"),
+                        "apply_error": str(config.get("apply_error", ""))[:200],
+                    }
+                    for config in config_states[:5]
+                ],
+                "status_code": response.get("status_code"),
+                "mocked_response_index": next(
+                    (value for name, value in response.get("headers", []) if name == "st-proxy-overwrite-rc-response"),
+                    None,
+                ),
+            }
+            logger.stdout(f"RC sequence poll: {json.dumps(summary)}")
+        except Exception as error:  # one malformed poll must not hide the others
+            logger.stdout(f"RC sequence: could not summarize a poll ({type(error).__name__})")
+
+
 def send_sequential_commands(commands: list[dict], *, wait_for_all_command: bool = True) -> None:
     """DEPRECATED"""
 
@@ -407,10 +456,14 @@ def send_sequential_commands(commands: list[dict], *, wait_for_all_command: bool
         return
 
     counts_by_runtime_id: dict[str, int] = {}
+    last_evaluated_poll: str | None = None
 
     def all_payload_sent(data: dict) -> bool:
+        nonlocal last_evaluated_poll
         if data["path"] != "/v0.7/config":
             return False
+
+        last_evaluated_poll = data.get("log_filename")
 
         # wait for N successful responses, +1 for the ACK request from the lib
         for count in counts_by_runtime_id.values():
@@ -434,7 +487,18 @@ def send_sequential_commands(commands: list[dict], *, wait_for_all_command: bool
     extra_timeout = 10  # give more room for startup
     timeout = len(commands) * rc_poll_interval + extra_timeout
     logger.debug(f"Waiting for {timeout}s to see {len(commands)} responses")
-    library.wait_for(all_payload_sent, timeout=timeout)
+    wait_started = time.monotonic()
+    completed = library.wait_for(all_payload_sent, timeout=timeout)
+    elapsed = time.monotonic() - wait_started
+    # Setup runs before pytest's test phases, so ordinary setup logs can be absent
+    # from a failing test's console output. Report both wait outcomes directly,
+    # without changing completion criteria, the timeout, or the test verdict.
+    logger.stdout(
+        f"RC sequence wait: returned={completed}, elapsed={elapsed:.3f}s, budget={timeout}s, "
+        f"expected_responses={len(commands)} plus a follow-up poll, "
+        f"responses_by_runtime={counts_by_runtime_id}, last_evaluated_poll={last_evaluated_poll}"
+    )
+    _log_sequence_polls()
 
 
 def _create_base_rcm():
