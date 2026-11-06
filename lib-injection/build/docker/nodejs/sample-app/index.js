@@ -2,6 +2,7 @@ var fs = require('fs');
 var path = require('path');
 var fork = require('child_process').fork;
 
+// This sample application is shared by AWS SSI, Docker SSI, and Kubernetes library injection.
 // Load npm dependencies if available (for dependency injection testing)
 var express, lodash, moment, uuid, debug;
 try {
