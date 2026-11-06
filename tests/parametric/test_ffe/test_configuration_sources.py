@@ -47,7 +47,8 @@ MISSING_API_KEY_DEFAULT_ENDPOINT: dict[str, Any] = {
     "provider_initialization_timeout_ms": MISSING_API_KEY_INITIALIZATION_TIMEOUT_MS,
 }
 # Fixed SDKs fail within a second. The bound stays below the shortest unfixed wait the apps allow:
-# the Go app's 15 s start deadline; the other apps wait out the 30 s initialization timeout.
+# the Go app's 15 s start deadline; the others wait out the 30 s initialization timeout, except
+# PHP, whose start does not wait.
 MISSING_API_KEY_FAIL_FAST_SECONDS = 10.0
 
 BASE_ENVVARS = {
