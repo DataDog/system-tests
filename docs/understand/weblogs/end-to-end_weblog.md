@@ -370,6 +370,14 @@ This endpoint should set a cookie with the name and value coming from the reques
 
 This endpoint should set a cookie with empty cookie value without Secure flag, INSECURE_COOKIE vulnerability shouldn't be detected.
 
+### GET /iast/insecure_cipher/test_insecure_algorithm
+
+Parameterless endpoint. This endpoint performs an encryption operation using a weak cipher algorithm.
+
+### GET /iast/insecure_cipher/test_secure_algorithm
+
+Parameterless endpoint. This endpoint performs an encryption operation using a secure cipher algorithm.
+
 ### GET /iast/insecure_hashing/deduplicate
 
 Parameterless endpoint. This endpoint contains a vulnerable source code line (weak hash) in a loop with at least two iterations.
