@@ -1,0 +1,20 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "https://app.datadoghq.com/api/v2/ai-guard/evaluate",
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": "{\"data\": {\"attributes\": {\"messages\": [{\"role\": \"user\", \"content\": \"Ask the example MCP server about the RFC, then get the weather in Paris.\"}, {\"role\": \"assistant\", \"tool_calls\": [{\"id\": \"mcp_system_tests_4\", \"function\": {\"name\": \"ask_question\", \"arguments\": \"{\\\"question\\\":\\\"What is the AI Guard MCP RFC about?\\\"}\"}, \"mcp\": {\"server_id\": \"mcp_b77bc22583ac5006\"}}]}, {\"role\": \"tool\", \"tool_call_id\": \"mcp_system_tests_4\", \"content\": \"It describes how AI Guard evaluates MCP tool calls.\"}, {\"role\": \"assistant\", \"tool_calls\": [{\"id\": \"call_system_tests_4\", \"function\": {\"name\": \"get_weather\", \"arguments\": \"{\\\"city\\\":\\\"Paris\\\"}\"}}]}], \"meta\": {\"service\": \"openai\", \"env\": null}, \"mcp_servers\": [{\"id\": \"mcp_b77bc22583ac5006\", \"managed_by\": \"provider\", \"name\": \"example\", \"url\": \"https://mcp.example.com\", \"transport\": \"unknown\", \"tools\": {\"ask_question\": \"ask_question\"}}]}}}"
+  },
+  "response": {
+    "status": {
+      "code": 200,
+      "message": "OK"
+    },
+    "headers": {
+      "content-type": "application/vnd.api+json"
+    },
+    "body": "{\"data\": {\"id\": \"system-tests-test_ai_guard_openai_mcp_call_with_function_call\", \"type\": \"evaluations\", \"attributes\": {\"action\": \"ALLOW\", \"reason\": \"system-tests MCP response matched: test_ai_guard_openai_mcp_call_with_function_call\", \"tags\": [], \"tag_probs\": null, \"global_prob\": 0.001, \"is_blocking_enabled\": false}}}"
+  }
+}
