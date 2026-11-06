@@ -379,6 +379,11 @@ manifest:
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_duplicated:  # TODO: a lower version might be supported
     - declaration: missing_feature (dd-trace-rs extractors read only the first header value; DataDog/dd-trace-rs#33)
       component_version: <0.5.3-dev+2349288
+  tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_trace_flags_randomness_bit_new_trace: missing_feature (Random trace ID flag generation is not supported yet)
+  ? tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_trace_flags_randomness_bit_propagation
+  : missing_feature (Random trace ID flag propagation is not supported yet)
+  ? tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_traceparent_trace_flags_sampling_with_randomness_bit
+  : missing_feature (Rust rejects trace flags 0x03 for traceparent version 00)
   tests/parametric/test_headers_tracecontext.py::Test_Headers_Tracecontext::test_tracestate_empty_header:  # TODO: a lower version might be supported
     - declaration: missing_feature (dd-trace-rs extractors read only the first header value; DataDog/dd-trace-rs#33)
       component_version: <0.5.3-dev+2349288
