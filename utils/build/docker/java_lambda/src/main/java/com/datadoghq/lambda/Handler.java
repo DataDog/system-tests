@@ -267,7 +267,9 @@ public class Handler implements RequestHandler<Object, Object> {
             return handleUserLoginSuccessEvent(ctx);
         } else if (ctx.path.equals("/user_login_failure_event") && "GET".equals(ctx.method)) {
             datadog.trace.api.GlobalTracer.getEventTracker().trackLoginFailureEvent(
-                TRACK_USER, true, eventTrackingMetadata());
+                ctx.queryParams.getOrDefault("event_user_id", TRACK_USER),
+                Boolean.parseBoolean(ctx.queryParams.getOrDefault("event_user_exists", "true")),
+                eventTrackingMetadata());
             return createResponse(ctx, "OK", 200);
         } else if (ctx.path.equals("/user_login_success_event_v2") && "POST".equals(ctx.method)) {
             return handleUserLoginSuccessEventV2(ctx);

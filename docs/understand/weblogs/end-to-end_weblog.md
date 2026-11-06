@@ -843,17 +843,13 @@ The parameters in the body are:
 
 ### POST /custom_event_v2
 
-The Java Lambda weblog calls `EventTrackerV2.trackCustomEvent` with the JSON request body:
+This endpoint calls the v2 AppSec event tracking SDK function used for custom events with
+data from the JSON request body.
+
+The parameters in the body are:
 
 - `event_name`: Event name, defaulting to `system_tests_event`.
-- `metadata`: Optional object containing string values, matching the Java SDK contract.
-
-Java has no dedicated public signup method on either event-tracker API. The Java Lambda
-weblog reports manual signup as a `users.signup` custom event: use
-`GET /custom_event?event_name=users.signup` for SDK v1, or `POST /custom_event_v2`
-with `event_name: "users.signup"` for SDK v2. The v2 metadata can include `usr.id`
-and `usr.login`. These calls report the signup event; they do not perform account creation
-or replace automatic framework signup instrumentation.
+- `metadata`: Optional object containing event metadata.
 
 ### GET /inferred-proxy/span-creation
 

@@ -1,7 +1,7 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
-from utils import weblog, interfaces, features, scenarios, context, incomplete_test_app
+from utils import weblog, interfaces, features, scenarios
 from utils.dd_types import DataDogLibrarySpan, is_same_boolean
 from tests.appsec.utils import find_series
 
@@ -38,10 +38,6 @@ def validate_metric_type_and_version(event_type: str, version: str, metric: dict
 @features.user_monitoring
 @scenarios.default
 @scenarios.appsec_lambda_default
-@incomplete_test_app(
-    context.scenario == scenarios.appsec_lambda_default and context.library.name != "java_lambda",
-    reason="These event-tracking endpoints are only implemented in the Java Lambda weblog",
-)
 class Test_UserLoginSuccessEvent:
     """Success test for User Login Event SDK for AppSec"""
 
@@ -95,10 +91,6 @@ class Test_UserLoginSuccessEvent:
 @features.user_monitoring
 @scenarios.default
 @scenarios.appsec_lambda_default
-@incomplete_test_app(
-    context.scenario == scenarios.appsec_lambda_default and context.library.name != "java_lambda",
-    reason="These event-tracking endpoints are only implemented in the Java Lambda weblog",
-)
 class Test_UserLoginSuccessEvent_Metrics:
     """Success test for User Login Event SDK for AppSec"""
 
@@ -119,10 +111,6 @@ class Test_UserLoginSuccessEvent_Metrics:
 @features.user_monitoring
 @scenarios.default
 @scenarios.appsec_lambda_default
-@incomplete_test_app(
-    context.scenario == scenarios.appsec_lambda_default and context.library.name != "java_lambda",
-    reason="These event-tracking endpoints are only implemented in the Java Lambda weblog",
-)
 class Test_UserLoginFailureEvent:
     """Failure test for User Login Event SDK for AppSec"""
 
@@ -175,10 +163,6 @@ class Test_UserLoginFailureEvent:
 @features.user_monitoring
 @scenarios.default
 @scenarios.appsec_lambda_default
-@incomplete_test_app(
-    context.scenario == scenarios.appsec_lambda_default and context.library.name != "java_lambda",
-    reason="These event-tracking endpoints are only implemented in the Java Lambda weblog",
-)
 class Test_UserLoginFailureEvent_Metrics:
     """Success test for User Login Event SDK for AppSec"""
 
@@ -199,10 +183,6 @@ class Test_UserLoginFailureEvent_Metrics:
 @features.custom_business_logic_events
 @scenarios.default
 @scenarios.appsec_lambda_default
-@incomplete_test_app(
-    context.scenario == scenarios.appsec_lambda_default and context.library.name != "java_lambda",
-    reason="These event-tracking endpoints are only implemented in the Java Lambda weblog",
-)
 class Test_CustomEvent:
     """Test for Custom Event SDK for AppSec"""
 
@@ -238,10 +218,6 @@ class Test_CustomEvent:
 @features.user_monitoring
 @scenarios.default
 @scenarios.appsec_lambda_default
-@incomplete_test_app(
-    context.scenario == scenarios.appsec_lambda_default and context.library.name != "java_lambda",
-    reason="These event-tracking endpoints are only implemented in the Java Lambda weblog",
-)
 class Test_CustomEvent_Metrics:
     """Success test for User Login Event SDK for AppSec"""
 
