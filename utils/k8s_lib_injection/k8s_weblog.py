@@ -36,6 +36,8 @@ class K8sWeblog:
         self.library_init_image = library_init_image
         self.injector_image = injector_image
         self.output_folder = output_folder
+        self._observed_init_restart_counts: dict[str, int] = {}
+        self._captured_init_attempt_logs: set[tuple[str, int]] = set()
 
     def configure(
         self,
@@ -214,11 +216,13 @@ class K8sWeblog:
             label_selector=f"app={app_name}",
             timeout_seconds=timeout,
         ):
+            self.capture_init_container_diagnostics(app_name, namespace)
             if (
                 "status" in event["object"]
                 and event["object"]["status"]["phase"] == "Running"
                 and event["object"]["status"]["containerStatuses"][0]["ready"]
             ):
+                self.capture_init_container_diagnostics(app_name, namespace, capture_current=True)
                 w.stop()
                 logger.info("[Deploy weblog] Weblog started!")
                 pod_ready = True
@@ -233,6 +237,71 @@ class K8sWeblog:
             logger.error(f"[Deploy weblog] weblog logs: {pod_logs}")
             raise K8sLibInjectionError("[Deploy weblog] Weblog not created")
 
+    def capture_init_container_diagnostics(
+        self, pod_name: str, namespace: str, *, capture_current: bool = False
+    ) -> None:
+        """Capture an init container's failed attempt before kubelet removes it."""
+        try:
+            pod = self.k8s_cluster_info.core_v1_api().read_namespaced_pod_status(name=pod_name, namespace=namespace)
+        except Exception as e:
+            logger.debug(f"[Init container diagnostics] Unable to read pod status: {e}")
+            return
+
+        init_statuses = (pod.status.init_container_statuses or []) if pod.status else []
+        for init_status in init_statuses:
+            container_name = init_status.name
+            restart_count = init_status.restart_count or 0
+            observed_restart_count = self._observed_init_restart_counts.get(container_name, -1)
+
+            if restart_count > observed_restart_count or capture_current:
+                self._observed_init_restart_counts[container_name] = restart_count
+                k8s_logger(self.output_folder, "myapp.init-container-status").info(init_status.to_dict())
+
+            if restart_count > 0:
+                self._capture_init_container_log(
+                    pod_name,
+                    namespace,
+                    container_name,
+                    attempt=restart_count - 1,
+                    previous=True,
+                )
+
+            if capture_current:
+                self._capture_init_container_log(
+                    pod_name,
+                    namespace,
+                    container_name,
+                    attempt=restart_count,
+                    previous=False,
+                )
+
+    def _capture_init_container_log(
+        self,
+        pod_name: str,
+        namespace: str,
+        container_name: str,
+        *,
+        attempt: int,
+        previous: bool,
+    ) -> None:
+        attempt_key = (container_name, attempt)
+        if attempt_key in self._captured_init_attempt_logs:
+            return
+
+        log_name = f"myapp.init-{container_name}.attempt-{attempt}"
+        try:
+            init_logs = self.k8s_cluster_info.core_v1_api().read_namespaced_pod_log(
+                name=pod_name,
+                namespace=namespace,
+                container=container_name,
+                previous=previous,
+            )
+            k8s_logger(self.output_folder, log_name).info(init_logs)
+            self._captured_init_attempt_logs.add(attempt_key)
+        except Exception as e:
+            k8s_logger(self.output_folder, log_name).info(f"Unable to capture {container_name} attempt {attempt}: {e}")
+            logger.debug(f"[Init container diagnostics] Unable to capture {container_name} attempt {attempt}: {e}")
+
     @retry(delay=1, tries=5)
     def list_namespaced_pod(self, namespace: str, **kwargs: object) -> client.V1PodList:
         """Necessary to retry the list_namespaced_pod call in case of error (used by watch stream)"""
@@ -240,6 +309,8 @@ class K8sWeblog:
 
     def export_debug_info(self, namespace: str = "default") -> None:
         """Extracts debug info from the k8s weblog app and logs it to the specified folder."""
+
+        self.capture_init_container_diagnostics("my-app", namespace, capture_current=True)
 
         # check weblog describe pod
         try:
