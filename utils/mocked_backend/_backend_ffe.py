@@ -341,7 +341,10 @@ class MockedBackendServerFfeMixin(_Base):
             return self._ffe_handle_rules_config(request, _)
 
         parsed = urlparse(request.path)
-        if parse_qs(parsed.query, keep_blank_values=True) == {"dd_env": [EXPECTED_DD_ENV]}:
+        query = parse_qs(parsed.query, keep_blank_values=True)
+        # Capability negotiation must not change environment routing.
+        query.pop("cap_dependent-flags-variant-key", None)
+        if query == {"dd_env": [EXPECTED_DD_ENV]}:
             return self._ffe_handle_config_exec(request)
 
         return request.write_json(HTTPStatus.NOT_FOUND, {"error": "not found"})
