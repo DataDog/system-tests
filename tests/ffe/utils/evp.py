@@ -18,7 +18,6 @@ from utils._context._scenarios.agentless_endtoend import (
     DIRECT_EVP_STOP_TIMEOUT_SECONDS,
     FeatureFlaggingAgentlessEndToEndScenario,
 )
-from utils.interfaces._core import ProxyBasedInterfaceValidator
 
 
 EVP_DIRECT_HOST = f"event-platform-intake.{MOCKED_BACKEND_DOMAIN}"
@@ -99,7 +98,6 @@ def _is_expected_pid1_executable(library_name: str, executable: str, expected: s
 class FeatureFlaggingEVPEgress:
     """The capture interface and routing expectations for one FFE topology."""
 
-    interface: ProxyBasedInterfaceValidator
     route: EVPRoute
     excluded_api_keys: tuple[str, ...] = ()
     """API keys of the senders that must not deliver the tested events"""
@@ -110,7 +108,7 @@ class FeatureFlaggingEVPEgress:
         return [
             data
             for api_key in self.excluded_api_keys
-            for data in interfaces.backend_v2.get_data(path_filters=path_filters, with_api_key=api_key)
+            for data in interfaces.mocked_backend.get_data(path_filters=path_filters, with_api_key=api_key)
         ]
 
 
@@ -119,13 +117,12 @@ def feature_flagging_evp_egress() -> FeatureFlaggingEVPEgress:
     scenario = context.scenario
     if not isinstance(scenario, FeatureFlaggingAgentlessEndToEndScenario):
         assert scenario.name == "FEATURE_FLAGGING_AND_EXPERIMENTATION"
-        return FeatureFlaggingEVPEgress(interfaces.agent, "agent")
+        return FeatureFlaggingEVPEgress("agent")
 
     if scenario.exposure_egress == "sidecar":
         assert "serverless-init" in scenario.components
         # serverless-init relays the events: the SDK must not send them straight to the intake
         return FeatureFlaggingEVPEgress(
-            interfaces.backend_v2,
             "sidecar",
             excluded_api_keys=(scenario.weblog_api_key,),
             expected_api_key=scenario.sidecar_api_key,
@@ -133,7 +130,7 @@ def feature_flagging_evp_egress() -> FeatureFlaggingEVPEgress:
 
     assert scenario.exposure_egress == "direct"
     assert "serverless-init" not in scenario.components
-    return FeatureFlaggingEVPEgress(interfaces.backend_v2, "direct", expected_api_key=scenario.weblog_api_key)
+    return FeatureFlaggingEVPEgress("direct", expected_api_key=scenario.weblog_api_key)
 
 
 def register_expected_evp_capture(path: str) -> None:
@@ -468,7 +465,7 @@ def assert_agentless_evp_topology(egress: FeatureFlaggingEVPEgress) -> None:
             assert name not in environment
         assert "serverless-init" not in scenario.components
         assert scenario.serverless_init_container is None
-        assert_no_evp_proxy_requests(interfaces.backend_v2.get_data(with_api_key=scenario.weblog_api_key))
+        assert_no_evp_proxy_requests(interfaces.mocked_backend.get_data(with_api_key=scenario.weblog_api_key))
         return
 
     assert egress.route == "sidecar"

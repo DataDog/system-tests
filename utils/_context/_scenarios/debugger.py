@@ -20,8 +20,6 @@ class _DebuggerScenario(EndToEndScenario):
         super().__init__(
             name=name,
             doc=doc,
-            rc_api_enabled=True,
-            rc_backend_enabled=True,
             library_interface_timeout=5,
             weblog_env=base_weblog_env,
             scenario_groups=[scenario_groups.debugger],
@@ -213,20 +211,25 @@ class DebuggerInproductEnablement(DdTraceEndToEndScenario):
             rc_backend_enabled=False,
             weblog_env={
                 "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.1",
-                "DD_TRACE_FLUSH_INTERVAL": "100",
             },
             library_interface_timeout=5,
             doc="Test scenario for checking dynamic enablement.",
             scenario_groups=[scenario_groups.debugger],
         )
 
+    def configure(self, config: pytest.Config):
+        super().configure(config)
+
+        if self.weblog_infra.library_name == "nodejs":
+            # Node.js reads it in milliseconds. Java reads it in seconds, so it keeps its default of one second:
+            # with 100 seconds, the traces of the last requests were not sent before the end of the scenario.
+            self.weblog_infra.library_container.environment["DD_TRACE_FLUSH_INTERVAL"] = "100"
+
 
 class DebuggerTelemetry(DdTraceEndToEndScenario):
     def __init__(self) -> None:
         super().__init__(
             "DEBUGGER_TELEMETRY",
-            rc_api_enabled=True,
-            rc_backend_enabled=True,
             weblog_env={
                 "DD_REMOTE_CONFIG_ENABLED": "true",
                 "DD_CODE_ORIGIN_FOR_SPANS_ENABLED": "1",
@@ -234,7 +237,9 @@ class DebuggerTelemetry(DdTraceEndToEndScenario):
                 "DD_EXCEPTION_REPLAY_ENABLED": "1",
                 "DD_SYMBOL_DATABASE_UPLOAD_ENABLED": "1",
             },
-            library_interface_timeout=5,
+            # Java and Ruby aggregate telemetry metrics for 10s before sending them with the next heartbeat (every 2s),
+            # so the debugger telemetry metrics test needs this long for skipped events to be reported.
+            library_interface_timeout=15,
             doc="Test scenario for checking debugger telemetry.",
             scenario_groups=[scenario_groups.debugger, scenario_groups.telemetry],
         )

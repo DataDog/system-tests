@@ -38,7 +38,7 @@ COPY --from=build /binaries/kong-plugin-ddtrace/kong/plugins/ddtrace/ \
 
 # Copy version metadata
 COPY --from=build /builds/healthcheck.json /builds/healthcheck.json
-COPY --from=build /builds/SYSTEM_TESTS_LIBRARY_VERSION /builds/SYSTEM_TESTS_LIBRARY_VERSION
+COPY --from=build /binaries/SYSTEM_TESTS_LIBRARY_VERSION /binaries/SYSTEM_TESTS_LIBRARY_VERSION
 
 # Static response files for weblog endpoints
 RUN printf 'Hello world!\n' > /builds/hello.txt

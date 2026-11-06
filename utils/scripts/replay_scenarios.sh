@@ -4,7 +4,7 @@ set -e
 
 
 # scenarios getting backend data are not yet supported
-NOT_SUPPORTED=("PARAMETRIC" "OTEL_INTEGRATIONS" "OTEL_LOG_E2E" "OTEL_METRIC_E2E" "OTEL_TRACING_E2E" "INTEGRATION_FRAMEWORKS")
+NOT_SUPPORTED=("PARAMETRIC" "OTEL_INTEGRATIONS" "INTEGRATION_FRAMEWORKS")
 
 if [ -d "logs/" ]; then
     echo "[DEFAULT] Running replay mode"

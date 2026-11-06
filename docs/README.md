@@ -52,8 +52,7 @@ How to add, modify, enable, and disable tests.
 - [Update Docker images](edit/update-docker-images.md) -- modifying test app Docker images
 - [Flushing](edit/flushing.md) -- how data flushing works and implementing `/flush`
 - [Library interface validation](edit/library-interface-validation-methods.md) -- API reference for validating tracer-to-agent traces
-- [Agent interface validation](edit/agent-interface-validation-methods.md) -- API reference for validating agent-to-backend data
-- [Backend interface validation](edit/backend-interface-validation-methods.md) -- API reference for validating backend API responses
+- [Mocked backend interface validation](edit/mocked-backend-interface-validation-methods.md) -- API reference for validating what is sent to the backend
 
 ## Scenario-specific guides
 
@@ -90,6 +89,7 @@ Deep dives for maintainers and contributors to the system-tests framework itself
 - [End-to-end lifecycle](internals/end-to-end-life-cycle.md) -- how e2e scenarios execute step by step
 - [Parametric lifecycle](understand/scenarios/parametric.md#parametric-lifecycle) -- how parametric scenarios execute
 - [MITM certificate](internals/recreating_MITM_certificate.md) -- recreating the proxy certificate
+- [Mocked backend](mocked_backend/README.md) -- the stand-in for the Datadog backend: goal, design rules, key features
 - [Core dump generation](internals/generate-core-dump.md) -- generating core dumps for debugging
 - [Async model revamp](internals/revamp-asynchronous-model.md) -- asynchronous model documentation
 - [PR reviews](internals/PR-reviews.md) -- pull request review guidelines

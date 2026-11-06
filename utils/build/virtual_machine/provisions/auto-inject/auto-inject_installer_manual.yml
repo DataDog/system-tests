@@ -73,8 +73,26 @@
       fi
     fi
 
-    # Environment variables for the installer
-    export DD_APM_INSTRUMENTATION_ENABLED=host
+    # Environment variables for the installer.
+    # The install script uses STRICT as the instrumentation mode, and fails the
+    # install when that SSI setup fails. `docker` alone skips the agent install,
+    # so container apps on this provision use `all`: the agent stays on the host
+    # and docker injection is requested too.
+    case "${DD_APP_TYPE}" in
+      host)
+        instrumentation_mode=host
+        ;;
+      container|alpine|multicontainer)
+        instrumentation_mode=all
+        ;;
+      *)
+        echo "Unknown DD_APP_TYPE '${DD_APP_TYPE:-}', refusing to install SSI" >&2
+        exit 1
+        ;;
+    esac
+    echo "SSI instrumentation mode: ${instrumentation_mode} (app type: ${DD_APP_TYPE})"
+    export DD_APM_INSTRUMENTATION_ENABLED="${instrumentation_mode}"
+    export DD_APM_INSTRUMENTATION_STRICT="${instrumentation_mode}"
     export DD_APM_INSTRUMENTATION_LIBRARIES="${DD_LANG}"
 
     if [ -n "${DD_INSTALLER_LIBRARY_VERSION}" ]; then
@@ -156,6 +174,15 @@
     DD_REPO_URL=${DD_injection_repo_url} bash -c "$(cat install_script.sh)"
 
     sudo -E sh -c "sudo mkdir -p /etc/datadog-agent && printf \"api_key: ${DD_API_KEY}\nsite: datadoghq.com\n\" > /etc/datadog-agent/datadog.yaml"
+    if [ -n "${DD_AGENT_BACKEND_URL}" ]; then
+        # Point the agent to the mocked backend. Done before the agent restart below, so it is never restarted
+        # once the weblog runs (containers would lose the APM socket). Leading new line: the existing file may
+        # not end with one
+        printf '\nDD_DD_URL=%s\nDD_APM_DD_URL=%s\nDD_APM_PROFILING_DD_URL=%s/api/v2/profile\n' \
+            "${DD_AGENT_BACKEND_URL}" "${DD_AGENT_BACKEND_URL}" "${DD_AGENT_BACKEND_URL}" \
+            | sudo tee -a /etc/datadog-agent/environment > /dev/null \
+            || echo "Warning: Could not point the agent to the mocked backend"
+    fi
     sudo systemctl restart datadog-agent
 
     sudo cp /tmp/datadog-installer-*.log /var/log/datadog
@@ -231,7 +258,9 @@
     Set-ExecutionPolicy Bypass -Scope Process -Force;
     [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072;
     $env:DD_SITE = "datadoghq.com";
+    # STRICT must match ENABLED so an SSI component install failure stops the script.
     $env:DD_APM_INSTRUMENTATION_ENABLED = "iis"
+    $env:DD_APM_INSTRUMENTATION_STRICT = "iis"
 
     # Check if Install-Datadog.ps1 exists locally in binaries folder
     if (Test-Path "Install-Datadog.ps1") {
@@ -242,4 +271,37 @@
         (New-Object System.Net.WebClient).DownloadFile('https://install.datadoghq.com/Install-Datadog.ps1', 'C:\Windows\SystemTemp\Install-Datadog.ps1');
     }
 
+    $datadogDataDir = "C:\ProgramData\Datadog"
+    $datadogYaml = Join-Path $datadogDataDir "datadog.yaml"
+    if ($env:DD_AGENT_BACKEND_URL) {
+      # Point the agent to the mocked backend before it is installed, so it starts with the right config and never
+      # needs a restart (stopping the agent and its dependent services is not reliable on Windows).
+      # The fleet installer merges its config into an existing datadog.yaml and the MSI doesn't modify it
+      if (Test-Path $datadogYaml) {
+        throw "$datadogYaml already exists before the agent install, can't point the agent to the mocked backend"
+      }
+      if (-not (Test-Path $datadogDataDir)) {
+        # Same owner and permissions as the ones set by the installer, it refuses a directory not owned by Administrators
+        New-Item -ItemType Directory -Path $datadogDataDir | Out-Null
+        $acl = Get-Acl -Path $datadogDataDir
+        $acl.SetSecurityDescriptorSddlForm("O:BAG:BAD:PAI(A;OICI;FA;;;SY)(A;OICI;FA;;;BA)(A;CI;0x1200a9;;;WD)")
+        Set-Acl -Path $datadogDataDir -AclObject $acl
+      }
+      $backendConfig = @(
+        "dd_url: $env:DD_AGENT_BACKEND_URL",
+        "apm_config:",
+        "  apm_dd_url: $env:DD_AGENT_BACKEND_URL",
+        "  profiling_dd_url: $env:DD_AGENT_BACKEND_URL/api/v2/profile",
+        ""
+      ) -join "`n"
+      [System.IO.File]::WriteAllText($datadogYaml, $backendConfig)
+    }
+
     C:\Windows\SystemTemp\Install-Datadog.ps1
+
+    if ($env:DD_AGENT_BACKEND_URL) {
+      if (-not (Select-String -Path $datadogYaml -SimpleMatch -Quiet -Pattern $env:DD_AGENT_BACKEND_URL)) {
+        Get-Content -Path $datadogYaml
+        throw "The mocked backend URL is missing from $datadogYaml after the agent install"
+      }
+    }

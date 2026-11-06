@@ -132,6 +132,4 @@ class TracingConfigNondefault4(DdTraceEndToEndScenario):
                 "DD_TRACE_OTEL_ENABLED": "true",
             },
             doc="",
-            rc_api_enabled=True,
-            rc_backend_enabled=True,
         )
