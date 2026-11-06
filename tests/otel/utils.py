@@ -1,4 +1,9 @@
-"""Shared OpenTelemetry tracestate sampling fixtures."""
+"""Shared OpenTelemetry tracestate sampling fixtures and startup configuration log parsing."""
+
+import json
+import re
+
+from utils import pytest
 
 # ---------------------------------------------------------------------------
 # Expected ot.rv / ot.th values for known trace IDs and known sample rates
@@ -168,3 +173,29 @@ SAMPLING_RATE_0_99: list[SamplingVector] = [
 FORWARD_TRACE_ID = 18444899399302180863
 FORWARD_RV = "ef284ace7a91e1"
 FORWARD_TH = "e6666666666668"
+
+
+# ---------------------------------------------------------------------------
+# DATADOG TRACER CONFIGURATION startup log, shared by end-to-end and parametric tests
+# ---------------------------------------------------------------------------
+
+
+def parse_startup_configurations(logs: str) -> list[dict[str, object]]:
+    # Log prefixes and separators vary by tracer; only the JSON contents matter.
+    pattern = r"\bDATADOG TRACER CONFIGURATION\b[\s:-]*"
+    configurations = []
+    for match in re.finditer(pattern, logs):
+        try:
+            configuration, _ = json.JSONDecoder().raw_decode(logs[match.end() :])
+        except json.JSONDecodeError as error:
+            pytest.fail(f"Invalid DATADOG TRACER CONFIGURATION JSON: {error}")
+        assert isinstance(configuration, dict), "Startup configuration must be a JSON object"
+        configurations.append(configuration)
+
+    assert configurations, "No DATADOG TRACER CONFIGURATION JSON found in tracer logs"
+    return configurations
+
+
+def assert_configuration_keys(index: int, configuration: dict[str, object], keys: set[str]) -> None:
+    missing = keys - configuration.keys()
+    assert not missing, f"Startup configuration #{index + 1} is missing keys: {', '.join(sorted(missing))}"

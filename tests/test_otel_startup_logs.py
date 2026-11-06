@@ -6,10 +6,9 @@ Signal-specific OTLP settings belong to their signal's presence test; shared OTL
 settings have their own test. Key order and existing startup fields are unconstrained.
 """
 
-import json
 from pathlib import Path
-import re
 
+from tests.otel.utils import assert_configuration_keys, parse_startup_configurations
 from utils import context, features, interfaces, pytest, scenarios
 from utils._context._scenarios.otel_semantics import OTEL_STARTUP_LOGS_ENV
 
@@ -72,30 +71,13 @@ def _get_startup_configurations() -> list[dict[str, object]]:
         for log_file in sorted(log_directory.glob("ddtrace.log*")):
             if log_file.is_file():
                 logs += "\n" + log_file.read_text(encoding="utf-8")
-    # Log prefixes and separators vary by tracer; only the JSON contents matter.
-    pattern = r"\bDATADOG TRACER CONFIGURATION\b[\s:-]*"
-    configurations = []
-    for match in re.finditer(pattern, logs):
-        try:
-            configuration, _ = json.JSONDecoder().raw_decode(logs[match.end() :])
-        except json.JSONDecodeError as error:
-            pytest.fail(f"Invalid DATADOG TRACER CONFIGURATION JSON: {error}")
-        assert isinstance(configuration, dict), "Startup configuration must be a JSON object"
-        configurations.append(configuration)
-
-    assert configurations, "No DATADOG TRACER CONFIGURATION JSON found in tracer logs"
-    return configurations
-
-
-def _assert_configuration_keys(index: int, configuration: dict[str, object], keys: set[str]) -> None:
-    missing = keys - configuration.keys()
-    assert not missing, f"Startup configuration #{index + 1} is missing keys: {', '.join(sorted(missing))}"
+    return parse_startup_configurations(logs)
 
 
 def _assert_keys(*keys: str) -> None:
     # Do not combine keys across startup records from different workers/processes.
     for index, configuration in enumerate(_get_startup_configurations()):
-        _assert_configuration_keys(index, configuration, set(keys))
+        assert_configuration_keys(index, configuration, set(keys))
 
 
 @scenarios.otel_startup_logs
@@ -131,7 +113,7 @@ class Test_OTEL_Startup_Logs:
             keys = set(_TRACES_KEYS)
             if configuration.get("OTEL_TRACES_SAMPLER") not in _RATIO_SAMPLERS:
                 keys.discard("OTEL_TRACES_SAMPLER_ARG")
-            _assert_configuration_keys(index, configuration, keys)
+            assert_configuration_keys(index, configuration, keys)
 
     def test_logs(self) -> None:
         _assert_keys(*_LOGS_KEYS)
