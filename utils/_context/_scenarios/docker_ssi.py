@@ -640,6 +640,7 @@ def _get_free_port():
     raise OSError("no free ports")
 
 
+# These declarations share configuration across all supported Docker SSI languages and scenarios defined below.
 class DockerSsi(_DockerSSIScenario):
     def __init__(self) -> None:
         super().__init__(
