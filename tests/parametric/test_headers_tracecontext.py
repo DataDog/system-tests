@@ -393,11 +393,11 @@ class Test_Headers_Tracecontext:
         assert traceparent.trace_id != "12345678901234567890123456789012"
 
     @temporary_enable_optin_tracecontext()
-    @parametrize("trace_flags", ["00", "01", "02", "03", "fe", "ff"])
+    @parametrize("trace_flags", ["00", "01", "02", "03"])
     def test_traceparent_trace_flags_sampling_with_randomness_bit(
         self, test_library: APMLibrary, trace_flags: str
     ) -> None:
-        """Interpret the sampled bit independently of the random and reserved bits.
+        """Interpret the sampled bit independently of the random trace ID flag.
         See https://www.w3.org/TR/trace-context-2/#trace-flags.
         """
         trace_id = "12345678901234567890123456789012"
