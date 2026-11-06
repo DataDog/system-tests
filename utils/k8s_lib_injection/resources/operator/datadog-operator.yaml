@@ -7,6 +7,11 @@ spec:
 #https://github.com/DataDog/datadog-operator/blob/main/docs/configuration.v2alpha1.md
   global:
     clusterName: docker-desktop
+    csi:
+      enabled: true
+      apm:
+        pullSecrets:
+          - name: private-registry-secret
     kubelet:
       tlsVerify: false
     tags:
@@ -24,6 +29,7 @@ spec:
     apm:
       instrumentation:
         enabled: true
+        injectionMode: csi
   #override:
   #  clusterAgent:
   #    image:

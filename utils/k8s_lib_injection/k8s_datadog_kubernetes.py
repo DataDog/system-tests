@@ -254,6 +254,7 @@ class K8sDatadog:
         execute_command(f"kubectl apply -f {operator_config_file} --namespace={namespace}")
         logger.info("[Deploy datadog operator] Waiting for the cluster to be ready")
         self._wait_for_cluster_agent_ready(namespace, label_selector="agent.datadoghq.com/component=cluster-agent")
+        self._wait_for_daemonset_ready("datadog-csi-driver-node-server", namespace, "CSI driver")
 
     def _wait_for_daemonset_ready(self, name: str, namespace: str, component_name: str) -> None:
         daemonset_status = None
