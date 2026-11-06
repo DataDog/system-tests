@@ -437,8 +437,7 @@ def send_sequential_commands(commands: list[dict], *, wait_for_all_command: bool
     wait_started = time.monotonic()
     completed = library.wait_for(all_payload_sent, timeout=timeout)
     elapsed = time.monotonic() - wait_started
-    # Setup logs are absent from the failing test's captured output.
-    logger.stdout(
+    logger.info(
         f"RC sequence wait {'completed' if completed else 'timed out'} after {elapsed:.3f}s (timeout={timeout}s)"
     )
 
