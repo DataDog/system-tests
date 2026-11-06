@@ -7,7 +7,7 @@ def assert_llm_span(request: HttpResponse, model: str) -> None:
     span = interfaces.library.get_root_span(request)
     assert span["meta"]["appsec.events.llm.call.provider"] == "openai"
     assert span["meta"]["appsec.events.llm.call.model"] == model
-    assert span["metrics"]["_sampling_priority_v1"] == 2
+    assert span.get_sampling_priority() == 2
 
 
 @rfc(

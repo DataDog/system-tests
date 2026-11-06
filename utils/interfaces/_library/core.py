@@ -426,7 +426,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         self.validate_one_appsec(request, validator=validator.validate, legacy_validator=validator.validate_legacy)
 
     def validate_all_traces(self, validator: Callable[[dict], None], *, allow_no_trace: bool = False):
-        self.validate_all(validator=validator, allow_no_data=allow_no_trace, path_filters=r"/v0\.[1-9]+/traces")
+        self.validate_all(validator=validator, allow_no_data=allow_no_trace, path_filters=r"/v[0-9]+\.[0-9]+/traces")
 
     def validate_one_trace(self, request: HttpResponse, validator: Callable[[DataDogLibraryTrace], bool]):
         """Will call validator() on all traces trigerred by request. validator() returns a boolean :

@@ -48,6 +48,17 @@ Route::get('/status', function (Request $request) {
     return response('', $code);
 });
 
+Route::get('/add_event', function () {
+    $span = \DDTrace\root_span();
+    if ($span === null) {
+        return response('root span not found', 500);
+    }
+
+    $span->events[] = new \DDTrace\SpanEvent('span.event', ['string' => 'value', 'int' => 1]);
+
+    return response('[Event added]', 200);
+});
+
 Route::get('/trace/manual_keep_drop', function (Request $request) {
     $decision = $request->query('decision', '');
     if ($decision !== 'keep' && $decision !== 'drop') {
