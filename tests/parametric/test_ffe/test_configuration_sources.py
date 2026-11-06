@@ -41,6 +41,11 @@ NO_MOCK_REQUEST_ATTEMPTS = 7
 AGENTLESS_BASE_URL = "DD_FEATURE_FLAGS_CONFIGURATION_SOURCE_AGENTLESS_BASE_URL"
 SEMANTICALLY_UNSET_CONFIGURATION_SOURCES: tuple[str | None, ...] = (None, "", "   ")
 MISSING_API_KEY_INITIALIZATION_TIMEOUT_MS = 30000
+# Agentless without a custom base URL: the SDK selects the Datadog-hosted endpoint.
+MISSING_API_KEY_DEFAULT_ENDPOINT: dict[str, Any] = {
+    "agentless": False,
+    "provider_initialization_timeout_ms": MISSING_API_KEY_INITIALIZATION_TIMEOUT_MS,
+}
 # Fixed SDKs fail within a second. The bound stays below the shortest unfixed wait the apps allow:
 # the Go app's 15 s start deadline; the other apps wait out the 30 s initialization timeout.
 MISSING_API_KEY_FAIL_FAST_SECONDS = 10.0
@@ -669,24 +674,13 @@ class Test_Feature_Flag_Configuration_Source_Missing_Api_Key:
     @parametrize(
         "library_env",
         [
+            {**MISSING_API_KEY_DEFAULT_ENDPOINT, "configuration_source": "agentless", "api_key": None},
+            {**MISSING_API_KEY_DEFAULT_ENDPOINT, "configuration_source": "agentless", "api_key": ""},
             {
-                "configuration_source": "agentless",
-                "api_key": None,
-                "agentless": False,
-                "provider_initialization_timeout_ms": MISSING_API_KEY_INITIALIZATION_TIMEOUT_MS,
-            },
-            {
-                "configuration_source": "agentless",
-                "api_key": "",
-                "agentless": False,
-                "provider_initialization_timeout_ms": MISSING_API_KEY_INITIALIZATION_TIMEOUT_MS,
-            },
-            {
+                **MISSING_API_KEY_DEFAULT_ENDPOINT,
                 "configuration_source": None,
                 "provider_enabled": True,
                 "api_key": None,
-                "agentless": False,
-                "provider_initialization_timeout_ms": MISSING_API_KEY_INITIALIZATION_TIMEOUT_MS,
             },
         ],
         indirect=True,

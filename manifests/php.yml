@@ -1640,7 +1640,10 @@ manifest:
     - declaration: missing_feature (FFL-2705 tracks PHP agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
       component_version: <1.23.3
   tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Cold_Failure_And_Recovery: missing_feature (FFL-2705 tracks PHP agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
-  tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Missing_Api_Key: missing_feature (dd-trace-php has no agentless configuration source yet)
+  ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Missing_Api_Key::test_custom_endpoint_does_not_require_api_key
+  : missing_feature (dd-trace-php has no agentless configuration source yet)
+  ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Missing_Api_Key::test_default_endpoint_fails_fast
+  : missing_feature (dd-trace-php has no agentless configuration source yet)
   tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Poller_Concurrency: missing_feature (FFL-2705 tracks PHP agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
   ? tests/parametric/test_ffe/test_configuration_sources.py::Test_Feature_Flag_Configuration_Source_Selection::test_default_agentless_positive
   : missing_feature (FFL-2705 tracks PHP agentless configuration-source implementation; FFL-2731 tracks system-tests configuration-source contract)
