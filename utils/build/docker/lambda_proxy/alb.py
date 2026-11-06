@@ -46,15 +46,16 @@ def build_alb_event(request: Request, multi: bool) -> dict:
         "isBase64Encoded": is_b64,
     }
 
+    multi_value_headers = defaultdict(list)
+    for k, v in request.headers.to_wsgi_list():
+        multi_value_headers[k.lower()].append(v)
+
     if multi:
         event["multiValueQueryStringParameters"] = request.args.to_dict(flat=False)
-        multi_value_headers = defaultdict(list)
-        for k, v in request.headers.to_wsgi_list():
-            multi_value_headers[k].append(v)
         event["multiValueHeaders"] = dict(multi_value_headers)
     else:
         event["queryStringParameters"] = request.args.to_dict(flat=True)
-        event["headers"] = dict(request.headers)
+        event["headers"] = {k: v[-1] for k, v in multi_value_headers.items()}
 
     return event
 

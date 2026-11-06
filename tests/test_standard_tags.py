@@ -2,12 +2,11 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022 Datadog, Inc.
 
-from utils import context, interfaces, missing_feature, rfc, weblog, features, scenarios
+from utils import context, interfaces, rfc, weblog, features, scenarios
 from utils._weblog import HttpResponse
 
 
 @features.security_events_metadata
-@scenarios.go_proxies_default
 @scenarios.default
 class Test_StandardTagsMethod:
     """Tests to verify that libraries annotate spans with correct http.method tags"""
@@ -27,14 +26,12 @@ class Test_StandardTagsMethod:
     def setup_method_trace(self):
         self.trace_request = weblog.trace("/waf", data=None)
 
-    @missing_feature(weblog_variant="spring-boot-payara", reason="This weblog variant is currently not accepting TRACE")
     def test_method_trace(self):
         interfaces.library.add_span_tag_validation(request=self.trace_request, tags={"http.method": "TRACE"})
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2490990623/QueryString+-+Sensitive+Data+Obfuscation")
 @features.security_events_metadata
-@scenarios.go_proxies_default
 @scenarios.default
 # Tests for verifying behavior when query string obfuscation is configured can be found in the Test_Config_ObfuscationQueryStringRegexp test classes
 class Test_StandardTagsUrl:
@@ -112,10 +109,6 @@ class Test_StandardTagsUrl:
             ),
         ]
 
-    @missing_feature(
-        context.library in ["golang", "nodejs", "ruby"],
-        reason="tracer did not yet implemented the new version of query parameters obfuscation regex",
-    )
     def test_url_with_sensitive_query_string(self):
         for r, tag in self.requests_sensitive_query_string:
             interfaces.library.add_span_tag_validation(
@@ -139,10 +132,6 @@ class Test_StandardTagsUrl:
             "/waf?token=03cb9f67dbbc4cb8b9&key1=val1&key2=val2&pass=03cb9f67-dbbc-4cb8-b966-329951e10934&public_key=MDNjYjlmNjctZGJiYy00Y2I4LWI5NjYtMzI5OTUxZTEwOTM0&key3=val3&application-key=dogkey&json=%7B%20%22sign%22%3A%20%22%7D%7D%22%7D&ecdsa-1-1%20aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa=%09test&json=%7B%20%22app-key%22%3A%20%22test%22%7D"  # pylint: disable=line-too-long
         )
 
-    @missing_feature(
-        context.library in ["golang", "nodejs", "ruby"],
-        reason="tracer did not yet implemented the new version of query parameters obfuscation regex",
-    )
     def test_multiple_matching_substring(self):
         tag = r"^.*/waf\?<redacted>&key1=val1&key2=val2&<redacted>&<redacted>&key3=val3&<redacted>&json=%7B%20<redacted>%7D&<redacted>&json=%7B%20<redacted>%7D$"  # pylint: disable=line-too-long
         interfaces.library.add_span_tag_validation(
@@ -151,7 +140,6 @@ class Test_StandardTagsUrl:
 
 
 @features.security_events_metadata
-@scenarios.go_proxies_default
 @scenarios.default
 class Test_StandardTagsUserAgent:
     """Tests to verify that libraries annotate spans with correct http.useragent tags"""
@@ -197,7 +185,7 @@ class Test_StandardTagsRoute:
             if "net-http" in context.weblog_variant:
                 # net/http doesn't support parametrized routes but a path catches anything down the tree.
                 tags["http.route"] = "/sample_rate_route/"
-            if context.weblog_variant in ("gin", "echo", "uds-echo"):
+            if context.weblog_variant in ("gin", "echo", "uds-echo", "fiber-v2-orchestrion"):
                 tags["http.route"] = "/sample_rate_route/:i"
         if context.library == "dotnet":
             tags["http.route"] = "/sample_rate_route/{i:int}"
@@ -206,6 +194,10 @@ class Test_StandardTagsRoute:
                 tags["http.route"] = "/sample_rate_route/<i>"
             elif context.weblog_variant in ("django-poc", "python3.12", "django-py3.13"):
                 tags["http.route"] = "sample_rate_route/<int:i>"
+            elif context.weblog_variant == "tornado":
+                tags["http.route"] = "/sample_rate_route/%s"
+            elif context.weblog_variant == "aiohttp":
+                tags["http.route"] = "/sample_rate_route/{i}"
         if context.library == "java":
             if context.weblog_variant in ("ratpack", "vertx3", "vertx4"):
                 tags["http.route"] = "/sample_rate_route/:i"
@@ -213,9 +205,53 @@ class Test_StandardTagsRoute:
         interfaces.library.add_span_tag_validation(request=self.r, tags=tags)
 
 
+@features.security_events_metadata
+@scenarios.default
+class Test_StandardTagsNetworkClientIp:
+    """Tests to verify that libraries annotate spans with correct network.client.ip tags.
+    This can run on any scenario with either DD_APPSEC_ENABLED=true or DD_TRACE_CLIENT_IP_ENABLED=true.
+    """
+
+    PUBLIC_IP = "43.43.43.43"
+
+    def _setup(self, endpoint: str = "/", extra_headers: dict[str, str] | None = None):
+        headers = {"x-client-ip": self.PUBLIC_IP}
+        if extra_headers:
+            headers.update(extra_headers)
+        self.r = weblog.get(endpoint, headers=headers)
+
+    def _test(self):
+        span = interfaces.library.get_root_span(self.r)
+        assert span
+        meta = span.get("meta", {})
+        assert meta
+        assert "network.client.ip" in meta
+        network_client_ip = meta["network.client.ip"]
+        assert network_client_ip
+        assert network_client_ip != self.PUBLIC_IP
+        # http.client_ip resolves proxy headers, while network.client.ip does not, so both should be different here.
+        http_client_ip = meta.get("http.client_ip")
+        assert http_client_ip
+        assert network_client_ip != http_client_ip
+        assert http_client_ip == self.PUBLIC_IP
+
+    def setup_network_client_ip(self):
+        self._setup()
+
+    def test_network_client_ip(self):
+        """Test network.client.ip is reported and different from http.client_ip."""
+        self._test()
+
+    def setup_network_client_ip_with_attack(self):
+        self._setup(endpoint="/waf", extra_headers={"user-agent": "Arachni/v1"})
+
+    def test_network_client_ip_with_attack(self):
+        """Test network.client.ip is reported on ASM attacks. This is a special case to map the legacy behavior where this header would only be added on attacks, and not the general case."""
+        self._test()
+
+
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2118779066/Client+IP+addresses+resolution")
 @features.security_events_metadata
-@scenarios.go_proxies_default
 @scenarios.default
 class Test_StandardTagsClientIp:
     """Tests to verify that libraries annotate spans with correct http.client_ip tags"""

@@ -1,13 +1,17 @@
 import argparse
 import json
 import re
+from pathlib import Path
 import yaml
 
+from utils.const import COMPONENT_GROUPS
 from utils._context._scenarios import get_all_scenarios, DockerScenario
+from utils._context._image_mirror import mirror_enabled, mirror_image
+from utils._context.containers import dockerfile_image_list
 from utils._context.docker import get_docker_client
 
 
-def main(scenarios: list[str], library: str, weblog: str) -> None:
+def main(scenarios: list[str], library: str, weblog: str, output: str | None = None) -> None:
     images = set("")
 
     existing_tags = []
@@ -21,12 +25,26 @@ def main(scenarios: list[str], library: str, weblog: str) -> None:
     # remove images that will be built locally
     images = {image for image in images if not image.startswith("system_tests/")}
 
+    if mirror_enabled() and library and weblog:
+        # build.sh then builds the weblog with the system-tests-mirror BuildKit builder, that has its own image store
+        # and pulls the FROM images itself: pulled in the docker daemon, they would never be used
+        dockerfile = Path(f"utils/build/docker/{library}/{weblog}.Dockerfile")
+        if dockerfile.is_file():
+            images -= set(dockerfile_image_list(dockerfile))
+
+    # with USE_IMAGE_MIRROR, pulled from the mirror, like the session does
+    images = {mirror_image(image) for image in images}
+
     # remove images that exists locally (they may not exists in the registry, ex: buddies)
     images = {image for image in images if image not in existing_tags}
 
     compose_data = {"services": {re.sub(r"[/:\.@]", "-", image): {"image": image} for image in sorted(images)}}
 
-    print(yaml.dump(compose_data, default_flow_style=False))
+    compose = yaml.dump(compose_data, default_flow_style=False)
+    if output:
+        Path(output).write_text(compose, encoding="utf-8")
+    else:
+        print(compose)
 
 
 if __name__ == "__main__":
@@ -40,30 +58,11 @@ if __name__ == "__main__":
         type=str,
         default="",
         help="One of the supported Datadog library",
-        choices=[
-            "cpp",
-            "cpp_httpd",
-            "cpp_nginx",
-            "dotnet",
-            "python",
-            "ruby",
-            "golang",
-            "java",
-            "nodejs",
-            "otel_collector",
-            "php",
-            "java_otel",
-            "python_otel",
-            "nodejs_otel",
-            "python_lambda",
-            "rust",
-            "envoy",
-            "haproxy",
-            "",
-        ],
+        choices=[*sorted(COMPONENT_GROUPS.all), ""],
     )
 
     parser.add_argument("--weblog", "-w", type=str, help="End-to-end weblog", default="")
+    parser.add_argument("--output", "-o", type=str, help="Write the compose file there instead of stdout")
 
     args = parser.parse_args()
 
@@ -76,4 +75,5 @@ if __name__ == "__main__":
         json.loads(args.scenarios) if args.scenarios.startswith("[") else args.scenarios.split(","),
         library=args.library,
         weblog=args.weblog,
+        output=args.output,
     )

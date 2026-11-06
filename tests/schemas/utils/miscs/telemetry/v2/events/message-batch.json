@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "/miscs/telemetry/v2/events/message-batch.json",
+  "description": "message-batch payload: an array of nested telemetry events",
+  "title": "message-batch v2",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["request_type"],
+    "allOf": [
+      { "$ref": "/miscs/telemetry/v2/objects/request_type.json" },
+      { "$ref": "/miscs/telemetry/v2/objects/payload_dispatch.json" }
+    ]
+  }
+}

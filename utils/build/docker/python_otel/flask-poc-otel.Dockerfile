@@ -1,4 +1,4 @@
-FROM datadog/system-tests:flask-poc.base-v1
+FROM system_tests_base_python_flask_poc
 
 #TODO RMM: Change docker flask-poc base to fix psycopg2 ( psycopg2-binary is not supported by open telemetry)
 RUN apt update
@@ -11,6 +11,8 @@ RUN pip install opentelemetry-distro[otlp]==0.49b0
 
 WORKDIR /app
 COPY binaries* /binaries/
+# read by build.sh, to label the image with it, like the healthcheck reports it
+RUN python -c "from opentelemetry.distro.version import __version__; open('/binaries/SYSTEM_TESTS_LIBRARY_VERSION', 'w').write(__version__)"
 
 COPY utils/build/docker/python/flask /app
 COPY utils/build/docker/python_otel/flask-poc-otel/app.py /app

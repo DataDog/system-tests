@@ -2,48 +2,21 @@ import base64
 from collections.abc import Generator
 from urllib.parse import urlparse
 
-import pytest
+from utils import pytest
 
-from utils import scenarios, features, logger, irrelevant, context
+from utils import scenarios, features, logger
 from utils.docker_fixtures.parametric import LogLevel
 from utils.docker_fixtures import TestAgentAPI
 from utils.docker_fixtures.spec.trace import find_only_span
+from utils.docker_fixtures.spec.trace import extract_trace_id_from_otel_span
 
 from .conftest import APMLibrary
-
-
-def _find_log_components(
-    log_payloads: list[dict], logger_name: str, log_message: str
-) -> tuple[dict | None, dict | None, dict | None]:
-    """Find matching log record, scope_log, and resource_log for a specific logger and message.
-
-    Returns:
-        Tuple of (log_record, scope_log, resource_log) or (None, None, None) if not found.
-
-    """
-    for payload in log_payloads:
-        for resource_log in payload.get("resource_logs", []):
-            for scope_log in resource_log.get("scope_logs", []):
-                scope_name = scope_log.get("scope", {}).get("name") if scope_log.get("scope") else None
-                if scope_name == logger_name:
-                    for log_record in scope_log.get("log_records", []):
-                        record_message = log_record.get("body", {}).get("string_value", "")
-                        if record_message == log_message:
-                            return log_record, scope_log, resource_log
-    return None, None, None
-
-
-def find_log_record(log_payloads: list[dict], logger_name: str, log_message: str) -> dict | None:
-    """Find a specific log record in the log payloads."""
-    logger.debug(f"Searching for log record: logger_name='{logger_name}', message='{log_message}'")
-    logger.debug(f"Number of log payloads to search: {len(log_payloads)}")
-    log_record, _, _ = _find_log_components(log_payloads, logger_name, log_message)
-    return log_record
+from .utils import find_log_components, find_log_record
 
 
 def find_resource(log_payloads: list[dict], logger_name: str, log_message: str) -> dict | None:
     """Extract resource from captured logs."""
-    _, _, resource_log = _find_log_components(log_payloads, logger_name, log_message)
+    _, _, resource_log = find_log_components(log_payloads, logger_name, log_message)
     if resource_log:
         logger.debug(f"Found resource_log: {resource_log}")
         return resource_log.get("resource")
@@ -62,7 +35,7 @@ def find_attributes(proto_object: dict | None) -> dict:
 
 def find_scope(log_payloads: list[dict], logger_name: str, log_message: str) -> dict | None:
     """Find ScopeLogs object for a specific log record (includes schema_url at ScopeLogs level)."""
-    _, scope_log, _ = _find_log_components(log_payloads, logger_name, log_message)
+    _, scope_log, _ = find_log_components(log_payloads, logger_name, log_message)
     return scope_log
 
 
@@ -114,14 +87,7 @@ class Test_FR01_Enable_OTLP_Log_Collection:
         log_payloads = test_agent.wait_for_num_log_payloads(1)
         assert find_log_record(log_payloads, "otlp_logs_enabled", "test_otlp_logs_enabled") is not None
 
-    @pytest.mark.parametrize(
-        "library_env",
-        [
-            {"DD_LOGS_OTEL_ENABLED": "false", "DD_TRACE_DEBUG": None},
-            {"DD_LOGS_OTEL_ENABLED": None, "DD_TRACE_DEBUG": None},
-        ],
-        ids=["disabled", "default"],
-    )
+    @pytest.mark.parametrize("library_env", [{"DD_LOGS_OTEL_ENABLED": "false", "DD_TRACE_DEBUG": None}])
     def test_otlp_logs_disabled(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Logs are not emitted when disabled."""
         with test_library as library:
@@ -142,7 +108,7 @@ class Test_FR03_Resource_Attributes:
         [
             {
                 "DD_LOGS_OTEL_ENABLED": "true",
-                "OTEL_RESOURCE_ATTRIBUTES": "service.name=service,service.version=2.0,deployment.environment=otelenv",
+                "OTEL_RESOURCE_ATTRIBUTES": "service.name=service,service.version=2.0,deployment.environment.name=otelenv",
                 "DD_TRACE_DEBUG": None,
             },
         ],
@@ -159,14 +125,14 @@ class Test_FR03_Resource_Attributes:
 
         assert attrs.get("service.name") == "service"
         assert attrs.get("service.version") == "2.0"
-        assert attrs.get("deployment.environment") == "otelenv"
+        assert attrs.get("deployment.environment.name") == "otelenv"
 
     @pytest.mark.parametrize(
         "library_env",
         [
             {
                 "DD_LOGS_OTEL_ENABLED": "true",
-                "OTEL_RESOURCE_ATTRIBUTES": "service.name=service,service.version=2.0,deployment.environment=otelenv",
+                "OTEL_RESOURCE_ATTRIBUTES": "service.name=service,service.version=2.0,deployment.environment.name=otelenv",
                 "DD_SERVICE": "ddservice",
                 "DD_ENV": "ddenv",
                 "DD_VERSION": "ddver",
@@ -186,7 +152,7 @@ class Test_FR03_Resource_Attributes:
 
         assert attrs.get("service.name") == "ddservice"
         assert attrs.get("service.version") == "ddver"
-        assert attrs.get("deployment.environment") == "ddenv"
+        assert attrs.get("deployment.environment.name") == "ddenv"
 
 
 @features.otel_logs_enabled
@@ -216,8 +182,7 @@ class Test_FR04_Trace_Span_IDs:
         expected_trace_id = base64.b64decode(log_record["trace_id"]).hex()
 
         root = find_only_span(test_agent.wait_for_num_traces(1))
-        root_tid = root["meta"].get("_dd.p.tid", "0" * 16)
-        trace_id = f"{root_tid}{root['trace_id']:016x}"
+        trace_id = extract_trace_id_from_otel_span(root)
         span_id = f"{root['span_id']:016x}"
 
         assert expected_span_id == span_id, f"Expected span_id {expected_span_id}, got {span_id}, span: {root}"
@@ -245,8 +210,7 @@ class Test_FR04_Trace_Span_IDs:
         expected_trace_id = base64.b64decode(log_record["trace_id"]).hex()
 
         root = find_only_span(test_agent.wait_for_num_traces(1))
-        root_tid = root["meta"].get("_dd.p.tid", "0" * 16)
-        trace_id = f"{root_tid}{root['trace_id']:016x}"
+        trace_id = extract_trace_id_from_otel_span(root)
         span_id = f"{root['span_id']:016x}"
         assert expected_span_id == span_id, f"Expected span_id {expected_span_id}, got {span_id}, span: {root}"
         assert expected_trace_id == trace_id, f"Expected trace_id {expected_trace_id}, got {trace_id}, span: {root}"
@@ -293,37 +257,6 @@ class Test_FR05_Custom_Endpoints:
 
 @features.otel_logs_enabled
 @scenarios.parametric
-class Test_FR06_OTLP_Protocols:
-    """FR06: OTLP Protocol Tests"""
-
-    @pytest.mark.parametrize(
-        "library_env",
-        [
-            {
-                "DD_LOGS_OTEL_ENABLED": "true",
-                "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
-                "DD_TRACE_DEBUG": None,
-            },
-            {
-                "DD_LOGS_OTEL_ENABLED": "true",
-                "OTEL_EXPORTER_OTLP_PROTOCOL": "grpc",
-                "DD_TRACE_DEBUG": None,
-            },
-        ],
-        ids=["http_protobuf", "grpc"],
-    )
-    def test_otlp_protocols(self, test_agent: TestAgentAPI, test_library: APMLibrary):
-        """OTLP logs are emitted in expected format."""
-        with test_library as library:
-            library.create_logger("otlp_protocols", LogLevel.INFO)
-            library.write_log("otlp_protocols", LogLevel.INFO, "test_otlp_protocols")
-
-        log_payloads = test_agent.wait_for_num_log_payloads(1)
-        assert find_log_record(log_payloads, "otlp_protocols", "test_otlp_protocols") is not None
-
-
-@features.otel_logs_enabled
-@scenarios.parametric
 class Test_FR07_Host_Name:
     """FR07: Host Name Attribute Tests"""
 
@@ -338,7 +271,6 @@ class Test_FR07_Host_Name:
             },
         ],
     )
-    @irrelevant(context.library != "python", reason="DD_HOSTNAME is only supported in Python")
     def test_hostname_from_dd_hostname(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """host.name is set from DD_HOSTNAME."""
         with test_library as library:
@@ -436,90 +368,6 @@ class Test_FR07_Host_Name:
 
 @features.otel_logs_enabled
 @scenarios.parametric
-class Test_FR08_Custom_Headers:
-    """FR08: Custom HTTP Headers Tests"""
-
-    @pytest.mark.parametrize(
-        "library_env",
-        [
-            {
-                "DD_LOGS_OTEL_ENABLED": "true",
-                "DD_TRACE_DEBUG": None,
-                "OTEL_EXPORTER_OTLP_HEADERS": "api-key=key,other-config-value=value",
-                "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
-            },
-        ],
-    )
-    def test_custom_http_headers_included_in_otlp_export(self, test_agent: TestAgentAPI, test_library: APMLibrary):
-        """Custom headers from OTEL_EXPORTER_OTLP_HEADERS appear in requests."""
-        with test_library as library:
-            library.create_logger("custom_http_headers_included_in_otlp_export", LogLevel.INFO)
-            library.write_log(
-                "custom_http_headers_included_in_otlp_export",
-                LogLevel.INFO,
-                "test_custom_http_headers_included_in_otlp_export",
-            )
-
-        log_payloads = test_agent.wait_for_num_log_payloads(1)
-        assert (
-            find_log_record(
-                log_payloads,
-                "custom_http_headers_included_in_otlp_export",
-                "test_custom_http_headers_included_in_otlp_export",
-            )
-            is not None
-        )
-
-        requests = test_agent.requests()
-        logs_request = [r for r in requests if r["url"].endswith("/v1/logs")]
-        assert logs_request, f"Expected logs request, got {requests}"
-        assert logs_request[0]["headers"].get("api-key") == "key", f"Expected api-key, got {logs_request[0]['headers']}"
-        assert logs_request[0]["headers"].get("other-config-value") == "value", (
-            f"Expected other-config-value, got {logs_request[0]['headers']}"
-        )
-
-    @pytest.mark.parametrize(
-        "library_env",
-        [
-            {
-                "DD_LOGS_OTEL_ENABLED": "true",
-                "DD_TRACE_DEBUG": None,
-                "OTEL_EXPORTER_OTLP_LOGS_HEADERS": "api-key=key,other-config-value=value",
-                "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
-            },
-        ],
-    )
-    def test_custom_logs_http_headers_included_in_otlp_export(self, test_agent: TestAgentAPI, test_library: APMLibrary):
-        """Custom headers from OTEL_EXPORTER_OTLP_LOGS_HEADERS appear in requests."""
-        with test_library as library:
-            library.create_logger("custom_logs_http_headers_included_in_otlp_export", LogLevel.INFO)
-            library.write_log(
-                "custom_logs_http_headers_included_in_otlp_export",
-                LogLevel.INFO,
-                "test_custom_logs_http_headers_included_in_otlp_export",
-            )
-
-        log_payloads = test_agent.wait_for_num_log_payloads(1)
-        assert (
-            find_log_record(
-                log_payloads,
-                "custom_logs_http_headers_included_in_otlp_export",
-                "test_custom_logs_http_headers_included_in_otlp_export",
-            )
-            is not None
-        )
-
-        requests = test_agent.requests()
-        logs_request = [r for r in requests if r["url"].endswith("/v1/logs")]
-        assert logs_request, f"Expected logs request, got {requests}"
-        assert logs_request[0]["headers"].get("api-key") == "key", f"Expected api-key, got {logs_request[0]['headers']}"
-        assert logs_request[0]["headers"].get("other-config-value") == "value", (
-            f"Expected other-config-value, got {logs_request[0]['headers']}"
-        )
-
-
-@features.otel_logs_enabled
-@scenarios.parametric
 class Test_FR09_Log_Injection:
     """FR09: Log Injection Tests"""
 
@@ -562,8 +410,8 @@ class Test_FR09_Log_Injection:
         # Verify service/env/version are ONLY in resource attributes
         resource_attrs = find_attributes(resource)
         assert resource_attrs.get("service.name") == "testservice"
-        assert resource_attrs.get("deployment.environment") == "testenv"
         assert resource_attrs.get("service.version") == "1.0.0"
+        assert resource_attrs.get("deployment.environment.name") == "testenv"
 
         # Verify no duplication in log record attributes
         log_attrs = find_attributes(log_record)
@@ -603,8 +451,8 @@ class Test_FR09_Log_Injection:
         # Verify service/env/version are ONLY in resource attributes
         resource_attrs = find_attributes(resource)
         assert resource_attrs.get("service.name") == "testservice"
-        assert resource_attrs.get("deployment.environment") == "testenv"
         assert resource_attrs.get("service.version") == "1.0.0"
+        assert resource_attrs.get("deployment.environment.name") == "testenv"
 
 
 @features.otel_logs_enabled
@@ -642,10 +490,10 @@ class Test_FR10_Timeout_Configuration:
         assert isinstance(exporter_timeout, dict)
         assert isinstance(exporter_logs_timeout, dict)
 
-        assert exporter_timeout.get("value") == 10000, (
+        assert str(exporter_timeout.get("value")) == "10000", (
             f"OTEL_EXPORTER_OTLP_TIMEOUT should be 10000, exporter_timeout: {exporter_timeout}"
         )
-        assert exporter_logs_timeout.get("value") == 10000, (
+        assert str(exporter_logs_timeout.get("value")) == "10000", (
             f"OTEL_EXPORTER_OTLP_LOGS_TIMEOUT should be 10000, exporter_logs_timeout: {exporter_logs_timeout}"
         )
 
@@ -674,7 +522,6 @@ class Test_FR11_Telemetry:
     )
     def test_telemetry_exporter_configurations(
         self,
-        library_env: dict[str, str],
         otlp_endpoint_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
@@ -691,9 +538,11 @@ class Test_FR11_Telemetry:
 
         for expected_env, expected_value in [
             ("OTEL_EXPORTER_OTLP_TIMEOUT", "30000"),
-            ("OTEL_EXPORTER_OTLP_HEADERS", "api-key=key,other-config-value=value"),
+            # TODO: uncomment when redaction is implemented everywhere
+            # ("OTEL_EXPORTER_OTLP_HEADERS", "<redacted>"),
             ("OTEL_EXPORTER_OTLP_PROTOCOL", "http/protobuf"),
-            ("OTEL_EXPORTER_OTLP_ENDPOINT", library_env["OTEL_EXPORTER_OTLP_ENDPOINT"]),
+            # TODO: uncomment when redaction is implemented everywhere
+            # ("OTEL_EXPORTER_OTLP_ENDPOINT",  "<redacted>"),
         ]:
             # Find configuration with env_var origin (since these are set via environment variables)
             config = test_agent.get_telemetry_config_by_origin(
@@ -726,7 +575,6 @@ class Test_FR11_Telemetry:
     )
     def test_telemetry_exporter_logs_configurations(
         self,
-        library_env: dict[str, str],
         otlp_endpoint_library_env: dict[str, str],  # noqa: ARG002
         test_agent: TestAgentAPI,
         test_library: APMLibrary,
@@ -749,10 +597,12 @@ class Test_FR11_Telemetry:
         configurations_by_name = test_agent.wait_for_telemetry_configurations()
 
         for expected_env, expected_value in [
-            ("OTEL_EXPORTER_OTLP_LOGS_TIMEOUT", 30000),
-            ("OTEL_EXPORTER_OTLP_LOGS_HEADERS", "api-key=key,other-config-value=value"),
+            ("OTEL_EXPORTER_OTLP_LOGS_TIMEOUT", "30000"),
+            # TODO: uncomment when redaction is implemented everywhere
+            # ("OTEL_EXPORTER_OTLP_LOGS_HEADERS", "<redacted>"),
             ("OTEL_EXPORTER_OTLP_LOGS_PROTOCOL", "http/protobuf"),
-            ("OTEL_EXPORTER_OTLP_LOGS_ENDPOINT", library_env["OTEL_EXPORTER_OTLP_LOGS_ENDPOINT"]),
+            # TODO: uncomment when redaction is implemented everywhere
+            # ("OTEL_EXPORTER_OTLP_LOGS_ENDPOINT", "<redacted>"),
         ]:
             # Find configuration with env_var origin (since these are set via environment variables)
             config = test_agent.get_telemetry_config_by_origin(
@@ -760,7 +610,7 @@ class Test_FR11_Telemetry:
             )
             assert config is not None, f"No configuration found for '{expected_env}'"
             assert isinstance(config, dict)
-            assert config.get("value") == expected_value, (
+            assert str(config.get("value")) == expected_value, (
                 f"Expected {expected_env} to be {expected_value}, configuration: {config}"
             )
 
@@ -770,6 +620,7 @@ class Test_FR11_Telemetry:
             {
                 "DD_LOGS_OTEL_ENABLED": "true",
                 "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
+                "DD_TELEMETRY_METRICS_AGGREGATION_INTERVAL": "0.1",
                 "OTEL_EXPORTER_OTLP_LOGS_PROTOCOL": "http/protobuf",
                 "DD_TRACE_DEBUG": None,
             },

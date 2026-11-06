@@ -150,12 +150,22 @@ def validate_metric_variant_v2(
     )
 
 
-def validate_metric_tag_version(tag_prefix: str, min_version: list[int], metric: dict) -> bool:
+def _parse_semver(version_str: str) -> tuple:
+    """Parse a semver string into a comparable tuple.
+
+    Release versions sort above pre-releases with the same base: 2.0.0 > 2.0.0-beta0.
+    Pre-release suffixes are compared lexicographically: beta0 > alpha1 > alpha0.
+    """
+    base, _, suffix = version_str.partition("-")
+    return tuple(int(x) for x in base.split(".")) + (suffix if suffix else "~",)
+
+
+def validate_metric_tag_version(tag_prefix: str, min_version: str, metric: dict) -> bool:
+    min_ver = _parse_semver(min_version)
     for tag in metric["tags"]:
         if tag.startswith(tag_prefix + ":"):
             version_str = tag.split(":")[1]
-            current_version = list(map(int, version_str.split(".")))
-            if current_version >= min_version:
+            if _parse_semver(version_str) >= min_ver:
                 return True
     return False
 
@@ -207,10 +217,9 @@ class BaseRulesVersion:
     def test_min_version(self) -> None:
         """Checks data in waf.init metric to verify waf version"""
 
-        min_version_array = list(map(int, self.min_version.split(".")))
         series = find_series("appsec", "waf.init", is_metrics=True)
         assert series
-        assert any(validate_metric_tag_version("event_rules_version", min_version_array, s) for s in series)
+        assert any(validate_metric_tag_version("event_rules_version", self.min_version, s) for s in series)
 
 
 class BaseWAFVersion:
@@ -221,7 +230,6 @@ class BaseWAFVersion:
     def test_min_version(self) -> None:
         """Checks data in waf.init metric to verify waf version"""
 
-        min_version_array = list(map(int, self.min_version.split(".")))
         series = find_series("appsec", "waf.init", is_metrics=True)
         assert series
-        assert any(validate_metric_tag_version("waf_version", min_version_array, s) for s in series)
+        assert any(validate_metric_tag_version("waf_version", self.min_version, s) for s in series)

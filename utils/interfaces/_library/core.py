@@ -8,9 +8,10 @@ import copy
 import json
 import threading
 
-from utils.tools import get_rid_from_user_agent, get_rid_from_span
+from utils.tools import get_rid_from_user_agent
 from utils._logger import logger
 from utils.dd_constants import RemoteConfigApplyState, Capabilities
+from utils.dd_types import DataDogLibrarySpan, DataDogLibraryTrace
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils.interfaces._library.appsec import _WafAttack, _ReportedHeader
 from utils.interfaces._library.miscs import _SpanTagValidator
@@ -21,11 +22,20 @@ from utils.interfaces._library.telemetry import (
 from utils._weblog import HttpResponse, GrpcResponse
 from utils.interfaces._misc_validators import HeadersPresenceValidator
 
+LIFECYCLE_EVENTS = [
+    "app-started",
+    "app-closing",
+    "app-integrations-change",
+    "app-dependencies-loaded",
+    "app-client-configuration-change",
+    "app-product-change",
+]
+
 
 class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
     """Validate library/agent interface"""
 
-    trace_paths = ["/v0.4/traces", "/v0.5/traces"]
+    trace_paths = ["/v0.4/traces", "/v0.5/traces", "/v1.0/traces"]
 
     def __init__(self, name: str):
         super().__init__(name)
@@ -61,7 +71,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
     ############################################################
     def get_traces(
         self, request: HttpResponse | GrpcResponse | None = None
-    ) -> Generator[tuple[dict, list[dict]], None, None]:
+    ) -> Generator[tuple[dict, DataDogLibraryTrace], None, None]:
         rid: str | None = None
 
         if request:
@@ -72,55 +82,44 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
 
         trace_found = False
         for data in self.get_data(path_filters=self.trace_paths):
-            traces = data["request"]["content"]
-            if not traces:  # may be none
+            content = data["request"]["content"]
+
+            if not content:  # may be none
                 continue
 
-            for trace in traces:
-                if rid is None:
-                    trace_found = True
-                    yield data, trace
-                else:
-                    for span in trace:
-                        if rid == get_rid_from_span(span):
-                            logger.debug(f"Found a trace in {data['log_filename']}")
-                            trace_found = True
-                            yield data, trace
-                            break
+            if data["path"] in ("/v0.4/traces", "/v0.5/traces"):
+                for trace in content:
+                    result = DataDogLibraryTrace.from_legacy(data, trace)
+                    if rid is None:
+                        trace_found = True
+                        yield data, result
+                    else:
+                        for span in result.spans:
+                            if rid == span.get_rid():
+                                logger.debug(f"Found a trace in {result.log_filename}")
+                                trace_found = True
+                                yield data, result
+                                break
 
-        if not trace_found:
-            logger.warning("No trace found")
+            elif data["path"] == "/v1.0/traces":
+                if not content.get("chunks"):
+                    continue
 
-    def get_traces_v1(self, request: HttpResponse | GrpcResponse | None = None):
-        rid: str | None = None
+                for trace in content.get("chunks"):
+                    result = DataDogLibraryTrace.from_v1(data, trace)
+                    if rid is None:
+                        trace_found = True
+                        yield data, result
+                    else:
+                        for span in result.spans:
+                            if rid == span.get_rid():
+                                logger.debug(f"Found a trace in {result.log_filename}")
+                                trace_found = True
+                                yield data, result
+                                break
 
-        if request:
-            rid = request.get_rid()
-            logger.debug(f"Try to find traces related to request {rid}")
-            if isinstance(request, HttpResponse) and request.status_code is None:
-                logger.warning("HTTP app failed to respond, it will very probably fail")
-
-        trace_found = False
-        for data in self.get_data(path_filters="/v1.0/traces"):
-            traces = data["request"]["content"]
-            if not traces:  # may be none
-                continue
-
-            if not traces.get("chunks"):
-                continue
-
-            for trace in traces.get("chunks"):
-                if rid is None:
-                    trace_found = True
-                    yield data, trace
-                else:
-                    for span in trace.get("spans"):
-                        logger.debug("GOT SPAN", span)
-                        if rid == get_rid_from_span(span):
-                            logger.debug(f"Found a trace in {data['log_filename']}")
-                            trace_found = True
-                            yield data, trace
-                            break
+            else:
+                raise ValueError(f"Unkown trace path: {data['path']}")
 
         if not trace_found:
             logger.warning("No trace found")
@@ -136,19 +135,21 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         rid = request.get_rid() if request else None
 
         for data, trace in self.get_traces(request=request):
-            for span in trace:
+            for span in trace.spans:
                 if rid is None or full_trace:
                     yield data, trace, span
-                elif rid == get_rid_from_span(span):
-                    logger.debug(f"Found a span in {data['log_filename']}")
+                elif rid == span.get_rid():
+                    logger.debug(f"Found a span in {trace.log_filename}")
                     yield data, trace, span
 
-    def get_root_spans(self, request: HttpResponse | None = None):
-        for data, _, span in self.get_spans(request=request):
+    def get_root_spans(
+        self, request: HttpResponse | None = None
+    ) -> Generator[tuple[DataDogLibraryTrace, DataDogLibrarySpan], None, None]:
+        for _, trace, span in self.get_spans(request=request):
             if span.get("parent_id") in (0, None):
-                yield data, span
+                yield trace, span
 
-    def get_root_span(self, request: HttpResponse) -> dict:
+    def get_root_span(self, request: HttpResponse) -> DataDogLibrarySpan:
         """Get the root span associated with a given request. This function will fail
         if a request is not given, if there is no root span, or if there
         is more than one root span. For special cases, use get_root_spans.
@@ -156,7 +157,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         assert request is not None, "A request object is mandatory"
         spans = [s for _, s in self.get_root_spans(request=request)]
         assert spans, "No root spans found"
-        assert len(spans) == 1, "More then one root span found"
+        assert len(spans) == 1, "More than one root span found"
         return spans[0]
 
     def get_appsec_events(self, request: HttpResponse | None = None, *, full_trace: bool = False):
@@ -225,6 +226,13 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
                 else:
                     yield data
 
+    def get_lifecycle_events(self):
+        for data in self.get_telemetry_data(flatten_message_batches=True):
+            content = data["request"]["content"]
+            if content.get("request_type") not in LIFECYCLE_EVENTS:
+                continue
+            yield data
+
     def get_telemetry_configurations(self) -> list[dict]:
         """Extract and sort configuration entries from telemetry events."""
         configurations = []
@@ -274,7 +282,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
     def validate_one_appsec(
         self,
         request: HttpResponse | None = None,
-        validator: Callable[[dict, dict], bool] | None = None,
+        validator: Callable[[DataDogLibrarySpan, dict], bool] | None = None,
         *,
         legacy_validator: Callable | None = None,
         full_trace: bool = False,
@@ -300,7 +308,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
 
     def validate_all_appsec(
         self,
-        validator: Callable[[dict, dict], None],
+        validator: Callable[[DataDogLibrarySpan, dict], None],
         request: HttpResponse | None = None,
         *,
         allow_no_data: bool = False,
@@ -357,7 +365,6 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
             if spans:
                 log_filename = data["log_filename"]
                 span = spans[0]
-                assert "trace_id" in span, f"'trace_id' is missing in {log_filename}"
                 trace_id = span["trace_id"]
 
                 if trace_id in trace_ids:
@@ -387,7 +394,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         key_path: str | list[str] | None = None,
         *,
         full_trace: bool = False,
-        span_validator: Callable | None = None,
+        span_validator: Callable[[DataDogLibrarySpan, dict], None] | None = None,
     ):
         """Asserts the WAF detected an attack on the provided request.
 
@@ -421,7 +428,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
     def validate_all_traces(self, validator: Callable[[dict], None], *, allow_no_trace: bool = False):
         self.validate_all(validator=validator, allow_no_data=allow_no_trace, path_filters=r"/v0\.[1-9]+/traces")
 
-    def validate_one_trace(self, request: HttpResponse, validator: Callable[[list[dict]], bool]):
+    def validate_one_trace(self, request: HttpResponse, validator: Callable[[DataDogLibraryTrace], bool]):
         """Will call validator() on all traces trigerred by request. validator() returns a boolean :
         * True : the payload satisfies the condition, validate_one returns in success
         * False : the payload is ignored
@@ -445,7 +452,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         self,
         request: HttpResponse | None = None,
         *,
-        validator: Callable[[dict], bool],
+        validator: Callable[[DataDogLibrarySpan], bool],
         full_trace: bool = False,
     ):
         """Will call validator() on all spans (eventually filtered on span trigerred by request).
@@ -457,12 +464,13 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
 
         If no payload satisfies validator(), then validate_one will fail
         """
-        for _, _, span in self.get_spans(request=request, full_trace=full_trace):
+        for _, trace, span in self.get_spans(request=request, full_trace=full_trace):
             try:
                 if validator(span) is True:
                     return
+                logger.info(f"Trace {trace.trace_id} do not validate the condition")
             except Exception as e:
-                logger.error(f"This span is failing validation ({e}): {json.dumps(span, indent=2)}")
+                logger.error(f"This span is failing validation ({e}): {json.dumps(span.raw_span, indent=2)}")
                 raise
 
         raise ValueError("No span validates this test")
@@ -471,7 +479,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         self,
         request: HttpResponse | None = None,
         *,
-        validator: Callable[[dict], None],
+        validator: Callable[[DataDogLibrarySpan], None],
         full_trace: bool = False,
         allow_no_data: bool = False,
     ):
@@ -484,7 +492,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
             try:
                 validator(span)
             except Exception as e:
-                logger.error(f"This span is failing validation ({e}): {json.dumps(span, indent=2)}")
+                logger.error(f"This span is failing validation ({e}): {json.dumps(span.raw_span, indent=2)}")
                 raise
 
         if not allow_no_data and data_is_missing:
@@ -573,6 +581,38 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
                 found = True
         assert found, f"Capability {capability.name} not found"
 
+    def get_rc_capabilities(self, targets_version: int | None = None) -> set[Capabilities]:
+        """Return the RC capabilities advertised by the library.
+
+        If ``targets_version`` is provided, return the capabilities reported in the most recent
+        config request that acknowledged that version (config requests are time-ordered), which
+        allows asserting how the advertised set changes across activation/deactivation. Otherwise,
+        aggregate every capability seen across all config requests.
+        """
+        result: set[Capabilities] = set()
+        found = False
+        for data in self.get_data(path_filters="/v0.7/config"):
+            client = data["request"]["content"]["client"]
+            if targets_version is not None and client["state"]["targets_version"] != targets_version:
+                continue
+            capabilities = client["capabilities"]
+            if isinstance(capabilities, list):
+                decoded_capabilities = bytes(capabilities)
+            # base64-encoded string:
+            else:
+                decoded_capabilities = base64.b64decode(capabilities)
+            int_capabilities = int.from_bytes(decoded_capabilities, byteorder="big")
+            current = {capability for capability in Capabilities if (int_capabilities >> capability & 1) == 1}
+            found = True
+            if targets_version is None:
+                result |= current
+            else:
+                # Data is sorted by log filename, so the last match is the most recent request.
+                result = current
+        if targets_version is not None:
+            assert found, f"No remote config request found for targets_version {targets_version}"
+        return result
+
     def assert_rc_targets_version_states(self, targets_version: int, config_states: list) -> None:
         """Check that for a given targets_version, the config states is the one expected
         EXPERIMENTAL (is it the good testing API ?)
@@ -605,7 +645,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         assert found, f"Nothing has been found for targets_version {targets_version}"
 
     def assert_rasp_attack(self, request: HttpResponse, rule: str, parameters: dict | None = None):
-        def validator(_: dict, appsec_data: dict):
+        def validator(_: DataDogLibrarySpan, appsec_data: dict):
             assert "triggers" in appsec_data, "'triggers' not found in '_dd.appsec.json'"
 
             triggers = appsec_data["triggers"]

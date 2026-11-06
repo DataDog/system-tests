@@ -1,11 +1,12 @@
 name: Changelog Slack Notification
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'CHANGELOG.md'
+  workflow_dispatch:
+#   push:
+#     branches:
+#       - main
+#     paths:
+#       - 'CHANGELOG.md'
 
 jobs:
   notify-slack:
@@ -14,7 +15,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       - name: Send changelog to Slack
         run: |

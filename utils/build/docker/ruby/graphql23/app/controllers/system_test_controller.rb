@@ -4,7 +4,7 @@ class SystemTestController < ApplicationController
   skip_before_action :verify_authenticity_token
 
   def root
-    render plain: 'Hello, world!'
+    render plain: "Hello world!\n"
   end
 
   def waf

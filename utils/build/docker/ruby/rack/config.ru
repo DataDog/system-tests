@@ -4,6 +4,7 @@ require 'net/http'
 require 'uri'
 require 'json'
 require 'faraday'
+require 'faraday/follow_redirects'
 
 # tracer configuration of Rack integration
 
@@ -18,6 +19,7 @@ require 'datadog/kit/appsec/events/v2'
 
 Datadog.configure do |c|
   c.diagnostics.debug = true
+  c.tracing.log_injection = true if ENV['CONFIG_CHAINING_TEST'] == 'true'
   if c.respond_to?(:tracing)
     c.tracing.instrument :rack
   else
@@ -58,7 +60,7 @@ module Hello
   module_function
 
   def run
-    [200, { 'Content-Type' => 'text/plain' }, ['Hello, wat is love?']]
+    [200, { 'Content-Type' => 'text/plain' }, ["Hello world!\n"]]
   end
 end
 
@@ -69,7 +71,6 @@ module Healthcheck
   def run
     gemspec = Gem.loaded_specs['datadog'] || Gem.loaded_specs['ddtrace']
     version = gemspec.version.to_s
-    version = "#{version}-dev" unless gemspec.source.is_a?(Bundler::Source::Rubygems)
     response = {
       status: 'ok',
       library: {
@@ -148,6 +149,43 @@ module Status
     [code, { 'Content-Type' => 'text/plain' }, ['Ok']]
   rescue ArgumentError
     [400, { 'Content-Type' => 'text/plain' }, ['bad request']]
+  end
+end
+
+# /trace/manual_keep_drop
+module TraceManualKeepDrop
+  module_function
+
+  def run(request)
+    decision = request.params['decision']
+
+    unless %w[keep drop].include?(decision)
+      return [400, { 'Content-Type' => 'text/plain' }, ['decision must be keep or drop']]
+    end
+
+    trace = Datadog::Tracing.active_trace
+    decision == 'keep' ? trace.keep! : trace.reject!
+
+    # Call downstream so that tests can assert on the sampling decision that gets propagated
+    url = 'http://localhost:7777/'
+    uri = URI(url)
+    downstream_request = nil
+    response = nil
+
+    Net::HTTP.start(uri.host, uri.port) do |http|
+      downstream_request = Net::HTTP::Get.new(uri)
+
+      response = http.request(downstream_request)
+    end
+
+    result = {
+      url: url,
+      status_code: response.code.to_i,
+      request_headers: downstream_request.each_header.to_h,
+      response_headers: response.each_header.to_h
+    }
+
+    [200, { 'Content-Type' => 'application/json' }, [result.to_json]]
   end
 end
 
@@ -342,6 +380,35 @@ module ExternalRequest
   end
 end
 
+module ExternalRequestRedirect
+  module_function
+
+  def run(request)
+    total_redirects = request.params['totalRedirects'] || '0'
+
+    headers = request.params.each.with_object({}) do |(key, value), hash|
+      next if key == 'totalRedirects'
+      hash[key] = value.is_a?(Array) ? value.join(',') : value.to_s
+    end
+
+    url = "http://internal_server:8089/redirect?totalRedirects=#{total_redirects}"
+    conn = Faraday.new do |f|
+      f.response :follow_redirects, limit: 10
+    end
+    downstream_response = conn.get(url, nil, headers)
+
+    response = {
+      status: downstream_response.status,
+      headers: downstream_response.headers.to_h
+    }
+
+    [200, { 'Content-Type' => 'application/json' }, [response.to_json]]
+  rescue => e
+    response = { status: 599, error: "#{e.class}: #{e.message} (#{e.backtrace[0]})" }
+    [200, { 'Content-Type' => 'application/json' }, [response.to_json]]
+  end
+end
+
 # TODO: This require shouldn't be needed. `SpanEvent` should be loaded by default.
 # TODO: This is likely a bug in the Ruby tracer.
 require 'datadog/tracing/span_event'
@@ -440,6 +507,10 @@ class TraceSamplingMiddleware
 end
 
 use TraceSamplingMiddleware
+# NOTE: Most of the frameworks rely on Web Server to compute `Content-Length` header.
+#       But in this case to make it different from Rails and Sinatra we are going
+#       to provide it.
+use Rack::ContentLength
 
 # /flush
 module Flush
@@ -504,6 +575,8 @@ app = proc do |env|
     Identify.run
   elsif request.path.include?('/status')
     Status.run(request)
+  elsif request.path == '/trace/manual_keep_drop'
+    TraceManualKeepDrop.run(request)
   elsif request.path == '/make_distant_call'
     MakeDistantCall.run(request)
   elsif request.path == '/user_login_success_event'
@@ -526,6 +599,8 @@ app = proc do |env|
     SSRFHandler.run(request)
   elsif request.path == '/external_request'
     ExternalRequest.run(request)
+  elsif request.path == '/external_request/redirect'
+    ExternalRequestRedirect.run(request)
   elsif request.path.include?('/api_security/sampling/')
     ApiSecurityWithSampling.run(request)
   elsif request.path.include?('/api_security_sampling/')
@@ -538,6 +613,9 @@ app = proc do |env|
     Flush.run(request)
   elsif request.path.start_with?('/resource_renaming')
     ResourceRenaming.run
+  elsif request.path == '/inferred-proxy/span-creation'
+    status_code = (request.params['status_code'] || 200).to_i
+    [status_code, { 'Content-Type' => 'text/plain' }, ['ok']]
   else
     NotFound.run
   end

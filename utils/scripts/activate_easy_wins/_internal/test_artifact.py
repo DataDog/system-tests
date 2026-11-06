@@ -90,13 +90,15 @@ class TestData:
 
 
 def parse_artifact_data(
-    data_dir: Path, libraries: list[str], excluded_owners: set[str] | None = None
-) -> tuple[dict[Context, TestData], dict[str, set[str]]]:
+    data_dir: Path, libraries: list[str], *, excluded_owners: set[str] | None = None, use_dev: bool = False
+) -> tuple[dict[Context, TestData], dict[str, set[str]], set[str]]:
     test_data: dict[Context, TestData] = {}
     weblogs: dict[str, set[str]] = {}
+    owners: set[str] = set()
 
     for directory in data_dir.iterdir():
-        if "_dev_" in directory.name in directory.name:
+        is_dev = "_dev_" in directory.name
+        if is_dev != use_dev:
             continue
 
         for scenario_dir in directory.iterdir():
@@ -130,8 +132,8 @@ def parse_artifact_data(
                 if "metadata" in test and "owners" in test["metadata"]:
                     test_owners = set(test["metadata"]["owners"])
 
-                # Store nodeid to owners mapping
-                test_data[context].nodeid_to_owners[test["nodeid"]] = test_owners
+                # Store owners
+                owners |= test_owners
 
                 # If test is xpassed and has excluded owners, treat it as xfailed instead
                 outcome = test["outcome"]
@@ -139,6 +141,9 @@ def parse_artifact_data(
                     outcome = "xfailed"
 
                 nodeid = test["nodeid"].split("[")[0]
+
+                # Store nodeid to owners mapping
+                test_data[context].nodeid_to_owners[nodeid] = test_owners
 
                 if nodeid not in test_data[context].xfail_nodes:
                     if outcome == "xpassed":
@@ -162,7 +167,7 @@ def parse_artifact_data(
                         else:
                             test_data[context].trie[nodeid_slice] = ActivationStatus.XPASS
 
-                    if outcome == "xfailed":
+                    if outcome in ("xfailed", "skipped"):
                         if part.end() == len(nodeid):
                             test_data[context].trie[nodeid_slice] = ActivationStatus.XFAIL
                         elif previous in (ActivationStatus.XPASS, ActivationStatus.PASS, ActivationStatus.NONE):
@@ -176,4 +181,4 @@ def parse_artifact_data(
                         else:
                             test_data[context].trie[nodeid_slice] = ActivationStatus.PASS
 
-    return test_data, weblogs
+    return test_data, weblogs, owners

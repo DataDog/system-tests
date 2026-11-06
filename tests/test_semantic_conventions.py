@@ -5,7 +5,8 @@
 import re
 from urllib.parse import urlparse
 
-from utils import context, interfaces, features, scenarios
+from utils import context, interfaces, features, scenarios, logger
+from utils.dd_types import DataDogLibrarySpan
 
 
 RUNTIME_LANGUAGE_MAP = {
@@ -14,8 +15,6 @@ RUNTIME_LANGUAGE_MAP = {
     "java": "jvm",
     "cpp_httpd": "cpp",
     "cpp_nginx": "cpp",
-    "envoy": "go",
-    "haproxy": "go",
 }
 
 """
@@ -27,6 +26,7 @@ VARIANT_COMPONENT_MAP = {
     "chi": ["go-chi/chi", "go-chi/chi.v5"],
     "flask-poc": "flask",
     "fastapi": "fastapi",
+    "aiohttp": "aiohttp",
     "echo": ["labstack/echo.v4", "labstack/echo"],
     "express4": "express",
     "express4-typescript": "express",
@@ -37,6 +37,8 @@ VARIANT_COMPONENT_MAP = {
     "django-py3.13": "django",
     "python3.12": "django",
     "gin": "gin-gonic/gin",
+    "fiber-v2-orchestrion": "gofiber/fiber.v2",
+    "apim": "apim-callout",
     "haproxy": "haproxy-spoa",
     "gqlgen": "99designs/gqlgen",
     "graph-gophers": "graph-gophers/graphql-go",
@@ -44,6 +46,8 @@ VARIANT_COMPONENT_MAP = {
     "jersey-grizzly2": {"jakarta-rs.request": "jakarta-rs-controller", "grizzly.request": ["grizzly", "jakarta-rs"]},
     "net-http": "net/http",
     "net-http-orchestrion": "net/http",
+    "net-http-span-pool": "net/http",
+    "perl-mojolicious": "http",
     "sinatra": {"rack.request": "rack", "sinatra.route": "sinatra", "sinatra.request": "sinatra"},
     "spring-boot": {
         "servlet.request": "tomcat-server",
@@ -165,7 +169,6 @@ optional_uds_feature = (
 
 @features.runtime_id_in_span_metadata_for_service_entry_spans
 @optional_uds_feature
-@scenarios.go_proxies_default
 @scenarios.default
 class Test_Meta:
     """meta object in spans respect all conventions"""
@@ -173,7 +176,7 @@ class Test_Meta:
     def test_meta_span_kind(self):
         """Validates that traces from an http framework carry a span.kind meta tag, with value server or client"""
 
-        def validator(span: dict):
+        def validator(span: DataDogLibrarySpan):
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
                 return None
 
@@ -190,7 +193,7 @@ class Test_Meta:
     def test_meta_http_url(self):
         """Validates that traces from an http framework carry a http.url meta tag, formatted as a URL"""
 
-        def validator(span: dict):
+        def validator(span: DataDogLibrarySpan):
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
                 return None
 
@@ -209,7 +212,7 @@ class Test_Meta:
     def test_meta_http_status_code(self):
         """Validates that traces from an http framework carry a http.status_code meta tag, formatted as a int"""
 
-        def validator(span: dict):
+        def validator(span: DataDogLibrarySpan):
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
                 return None
 
@@ -227,7 +230,7 @@ class Test_Meta:
     def test_meta_http_method(self):
         """Validates that traces from an http framework carry a http.method meta tag, with a legal HTTP method"""
 
-        def validator(span: dict):
+        def validator(span: DataDogLibrarySpan):
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
                 return None
 
@@ -261,7 +264,7 @@ class Test_Meta:
     def test_meta_language_tag(self):
         """Assert that all spans have required language tag."""
 
-        def validator(span: dict):
+        def validator(span: DataDogLibrarySpan):
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
                 return
 
@@ -282,16 +285,19 @@ class Test_Meta:
     def test_meta_component_tag(self):
         """Assert that all spans generated from a weblog_variant have component metadata tag matching integration name."""
 
-        def validator(span: dict):
+        def validator(span: DataDogLibrarySpan):
             if span.get("type") != "web":  # do nothing if is not web related
                 return
 
+            logger.info(f"span name is {span['name']}")
             expected_component = get_component_name(span["name"])
 
             assert "component" in span.get("meta", {}), (
                 f"No component tag found. Expected span {span['name']} component to be: {expected_component}."
             )
             actual_component = span["meta"]["component"]
+
+            logger.info(f"actual_component is {actual_component}")
 
             if isinstance(expected_component, list):
                 exception_message = f"""Expected span {span["name"]} to have component meta tag equal
@@ -309,7 +315,7 @@ class Test_Meta:
     def test_meta_runtime_id_tag(self):
         """Assert that all spans generated from a weblog_variant have runtime-id metadata tag with some value."""
 
-        def validator(span: dict):
+        def validator(span: DataDogLibrarySpan):
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
                 return
 
@@ -325,7 +331,7 @@ class Test_MetaDatadogTags:
     """Spans carry meta tags that were set in DD_TAGS tracer environment"""
 
     def test_meta_dd_tags(self):
-        def validator(span: dict):
+        def validator(span: DataDogLibrarySpan):
             assert span["meta"]["key1"] == "val1", (
                 f'keyTag tag in span\'s meta should be "test", not {span["meta"]["env"]}'
             )
@@ -339,7 +345,6 @@ class Test_MetaDatadogTags:
 
 
 @features.trace_data_integrity
-@scenarios.go_proxies_default
 @scenarios.default
 class Test_MetricsStandardTags:
     """metrics object in spans respect all conventions regarding basic tags"""

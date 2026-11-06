@@ -24,6 +24,7 @@ public class IastSinkRouteProvider implements Consumer<Router> {
     public void accept(final Router router) {
         final String superSecretAccessKey = "insecure";
         final CmdExamples cmd = new CmdExamples();
+        final CodeInjectionExamples codeInjection = new CodeInjectionExamples();
         final CryptoExamples crypto = new CryptoExamples();
         final LDAPExamples ldap = new LDAPExamples(ldapContext);
         final PathExamples path = new PathExamples();
@@ -76,6 +77,14 @@ public class IastSinkRouteProvider implements Consumer<Router> {
             final String cmdParam = request.getParam("cmd");
             ctx.response().end(cmd.insecureCmd(cmdParam));
         });
+        router.post("/iast/code_injection/test_insecure").handler(ctx -> {
+            final HttpServerRequest request = ctx.request();
+            final String codeParam = request.getParam("code");
+            ctx.response().end(codeInjection.insecureCodeInjection(codeParam));
+        });
+        router.post("/iast/code_injection/test_secure").handler(ctx ->
+                ctx.response().end(codeInjection.secureCodeInjection())
+        );
         router.post("/iast/path_traversal/test_insecure").handler(ctx -> {
             final HttpServerRequest request = ctx.request();
             final String pathParam = request.getParam("path");

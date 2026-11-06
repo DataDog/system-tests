@@ -2,7 +2,6 @@
   "snapshot_0": [
     {
       "attributes": {
-        "_dd.convertedv1": "v04",
         "_dd.debug.error.0.snapshot_id": "<scrubbed>",
         "_dd.debug.error.1.snapshot_id": "<scrubbed>",
         "_dd.debug.error.2.snapshot_id": "<scrubbed>",
@@ -11,10 +10,9 @@
         "_dd.debug.error.exception_hash": "<scrubbed>",
         "_dd.debug.error.exception_id": "<scrubbed>",
         "_dd.integration": "spring-web-controller",
-        "_dd.p.tid": "<scrubbed>",
         "component": "spring-web-controller",
         "env": "system-tests",
-        "error.debug_info_captured": "true",
+        "error.debug_info_captured": true,
         "error.message": "500 INTERNAL_SERVER_ERROR \"recursion exception depth 3\"",
         "error.stack": "org.springframework.web.server.ResponseStatusException: 500 INTERNAL_SERVER_ERROR \"recursion exception depth 3\"\n\tat com.datadogh<scrubbed>",
         "error.type": "org.springframework.web.server.ResponseStatusException",
@@ -45,7 +43,6 @@
   "snapshot_1": [
     {
       "attributes": {
-        "_dd.convertedv1": "v04",
         "_dd.debug.error.0.snapshot_id": "<scrubbed>",
         "_dd.debug.error.1.snapshot_id": "<scrubbed>",
         "_dd.debug.error.2.snapshot_id": "<scrubbed>",
@@ -54,10 +51,9 @@
         "_dd.debug.error.exception_hash": "<scrubbed>",
         "_dd.debug.error.exception_id": "<scrubbed>",
         "_dd.integration": "spring-web-controller",
-        "_dd.p.tid": "<scrubbed>",
         "component": "spring-web-controller",
         "env": "system-tests",
-        "error.debug_info_captured": "true",
+        "error.debug_info_captured": true,
         "error.message": "500 INTERNAL_SERVER_ERROR \"recursion exception depth 3\"",
         "error.stack": "org.springframework.web.server.ResponseStatusException: 500 INTERNAL_SERVER_ERROR \"recursion exception depth 3\"\n\tat com.datadogh<scrubbed>",
         "error.type": "org.springframework.web.server.ResponseStatusException",
@@ -88,7 +84,6 @@
   "snapshot_2": [
     {
       "attributes": {
-        "_dd.convertedv1": "v04",
         "_dd.debug.error.0.snapshot_id": "<scrubbed>",
         "_dd.debug.error.1.snapshot_id": "<scrubbed>",
         "_dd.debug.error.2.snapshot_id": "<scrubbed>",
@@ -97,10 +92,9 @@
         "_dd.debug.error.exception_hash": "<scrubbed>",
         "_dd.debug.error.exception_id": "<scrubbed>",
         "_dd.integration": "spring-web-controller",
-        "_dd.p.tid": "<scrubbed>",
         "component": "spring-web-controller",
         "env": "system-tests",
-        "error.debug_info_captured": "true",
+        "error.debug_info_captured": true,
         "error.message": "500 INTERNAL_SERVER_ERROR \"recursion exception depth 3\"",
         "error.stack": "org.springframework.web.server.ResponseStatusException: 500 INTERNAL_SERVER_ERROR \"recursion exception depth 3\"\n\tat com.datadogh<scrubbed>",
         "error.type": "org.springframework.web.server.ResponseStatusException",
@@ -131,7 +125,6 @@
   "snapshot_3": [
     {
       "attributes": {
-        "_dd.convertedv1": "v04",
         "_dd.debug.error.0.snapshot_id": "<scrubbed>",
         "_dd.debug.error.1.snapshot_id": "<scrubbed>",
         "_dd.debug.error.2.snapshot_id": "<scrubbed>",
@@ -140,10 +133,9 @@
         "_dd.debug.error.exception_hash": "<scrubbed>",
         "_dd.debug.error.exception_id": "<scrubbed>",
         "_dd.integration": "spring-web-controller",
-        "_dd.p.tid": "<scrubbed>",
         "component": "spring-web-controller",
         "env": "system-tests",
-        "error.debug_info_captured": "true",
+        "error.debug_info_captured": true,
         "error.message": "500 INTERNAL_SERVER_ERROR \"recursion exception depth 3\"",
         "error.stack": "org.springframework.web.server.ResponseStatusException: 500 INTERNAL_SERVER_ERROR \"recursion exception depth 3\"\n\tat com.datadogh<scrubbed>",
         "error.type": "org.springframework.web.server.ResponseStatusException",
@@ -174,7 +166,6 @@
   "snapshot_4": [
     {
       "attributes": {
-        "_dd.convertedv1": "v04",
         "_dd.debug.error.0.snapshot_id": "<scrubbed>",
         "_dd.debug.error.1.snapshot_id": "<scrubbed>",
         "_dd.debug.error.2.snapshot_id": "<scrubbed>",
@@ -183,10 +174,9 @@
         "_dd.debug.error.exception_hash": "<scrubbed>",
         "_dd.debug.error.exception_id": "<scrubbed>",
         "_dd.integration": "spring-web-controller",
-        "_dd.p.tid": "<scrubbed>",
         "component": "spring-web-controller",
         "env": "system-tests",
-        "error.debug_info_captured": "true",
+        "error.debug_info_captured": true,
         "error.message": "500 INTERNAL_SERVER_ERROR \"recursion exception depth 3\"",
         "error.stack": "org.springframework.web.server.ResponseStatusException: 500 INTERNAL_SERVER_ERROR \"recursion exception depth 3\"\n\tat com.datadogh<scrubbed>",
         "error.type": "org.springframework.web.server.ResponseStatusException",

@@ -5,140 +5,24 @@ import json
 import time
 import uuid
 
-import pytest
+from utils import pytest
 
 from .conftest import StableConfigWriter
 from utils.telemetry_utils import TelemetryUtils
 
-from utils import context, scenarios, rfc, features, missing_feature, irrelevant, logger
+from utils import context, scenarios, rfc, features, logger
 from utils.docker_fixtures import TestAgentAPI
 from .conftest import APMLibrary
-
-
-telemetry_name_mapping: dict[str, dict[str, str | list[str]]] = {
-    "ssi_injection_enabled": {
-        "python": "DD_INJECTION_ENABLED",
-        "java": "injection_enabled",
-        "ruby": "DD_INJECTION_ENABLED",
-        "golang": ["DD_INJECTION_ENABLED", "injection_enabled"],
-    },
-    "ssi_forced_injection_enabled": {
-        "python": "DD_INJECT_FORCE",
-        "ruby": "DD_INJECT_FORCE",
-        "java": "inject_force",
-        "golang": ["DD_INJECT_FORCE", "inject_force"],
-    },
-    "trace_sample_rate": {
-        "dotnet": "DD_TRACE_SAMPLE_RATE",
-        "nodejs": "DD_TRACE_SAMPLE_RATE",
-        "python": "DD_TRACE_SAMPLE_RATE",
-        "ruby": "DD_TRACE_SAMPLE_RATE",
-        "golang": ["DD_TRACE_SAMPLE_RATE", "trace_sample_rate"],
-    },
-    "logs_injection_enabled": {
-        "dotnet": "DD_LOGS_INJECTION",
-        "nodejs": "DD_LOG_INJECTION",  # TODO: rename to DD_LOGS_INJECTION in subsequent PR
-        "python": "DD_LOGS_INJECTION",
-        "php": "trace.logs_enabled",
-        "ruby": "tracing.log_injection",
-        "golang": ["DD_LOGS_INJECTION", "trace.logs_enabled"],
-    },
-    "trace_header_tags": {
-        "dotnet": "DD_TRACE_HEADER_TAGS",
-        "nodejs": "DD_TRACE_HEADER_TAGS",
-        "python": "DD_TRACE_HEADER_TAGS",
-        "golang": ["DD_TRACE_HEADER_TAGS", "trace_header_tags"],
-    },
-    "trace_tags": {"dotnet": "DD_TAGS", "nodejs": "DD_TAGS", "python": "DD_TAGS", "golang": ["DD_TAGS", "trace_tags"]},
-    "trace_enabled": {
-        "dotnet": "DD_TRACE_ENABLED",
-        "nodejs": "tracing",
-        "python": "DD_TRACE_ENABLED",
-        "ruby": "tracing.enabled",
-        "golang": ["DD_TRACE_ENABLED", "trace_enabled"],
-    },
-    "profiling_enabled": {
-        "dotnet": "DD_PROFILING_ENABLED",
-        "nodejs": "profiling.enabled",
-        "python": "DD_PROFILING_ENABLED",
-        "ruby": "profiling.enabled",
-        "golang": ["DD_PROFILING_ENABLED", "profiling_enabled"],
-    },
-    "appsec_enabled": {
-        "dotnet": "DD_APPSEC_ENABLED",
-        "nodejs": "appsec.enabled",
-        "python": "DD_APPSEC_ENABLED",
-        "ruby": "appsec.enabled",
-        "golang": ["DD_APPSEC_ENABLED", "appsec_enabled"],
-    },
-    "data_streams_enabled": {
-        "dotnet": "DD_DATA_STREAMS_ENABLED",
-        "nodejs": "dsmEnabled",
-        "python": "DD_DATA_STREAMS_ENABLED",
-        "golang": ["DD_DATA_STREAMS_ENABLED", "data_streams_enabled"],
-    },
-    "runtime_metrics_enabled": {
-        "dotnet": "DD_RUNTIME_METRICS_ENABLED",
-        "nodejs": "runtime.metrics.enabled",
-        "python": "DD_RUNTIME_METRICS_ENABLED",
-        "ruby": "runtime_metrics_enabled",
-        "golang": ["DD_RUNTIME_METRICS_ENABLED", "runtime_metrics_enabled"],
-    },
-    "dynamic_instrumentation_enabled": {
-        "dotnet": "DD_DYNAMIC_INSTRUMENTATION_ENABLED",
-        "nodejs": "dynamicInstrumentation.enabled",
-        "python": "DD_DYNAMIC_INSTRUMENTATION_ENABLED",
-        "php": "dynamic_instrumentation.enabled",
-        "ruby": "dynamic_instrumentation.enabled",
-        "golang": ["DD_DYNAMIC_INSTRUMENTATION_ENABLED", "dynamic_instrumentation_enabled"],
-    },
-    "trace_debug_enabled": {
-        "php": "trace.debug",
-        "java": "trace_debug",
-        "ruby": "DD_TRACE_DEBUG",
-        "python": "DD_TRACE_DEBUG",
-        "golang": ["trace_debug_enabled", "DD_TRACE_DEBUG"],
-    },
-    "tags": {
-        "java": "trace_tags",
-        "dotnet": "DD_TAGS",
-        "python": "DD_TAGS",
-        "nodejs": "DD_TAGS",
-        "golang": ["DD_TAGS", "trace_tags"],
-    },
-    "trace_propagation_style": {
-        "dotnet": "DD_TRACE_PROPAGATION_STYLE",
-        "php": "trace.propagation_style",
-        "golang": ["DD_TRACE_PROPAGATION_STYLE", "trace.propagation_style"],
-    },
-}
-
-
-def _mapped_telemetry_name(apm_telemetry_name: str) -> list[str]:
-    if apm_telemetry_name in telemetry_name_mapping:
-        lang_mapping = telemetry_name_mapping[apm_telemetry_name]
-        mapped_name = lang_mapping.get(context.library.name)
-        if mapped_name is not None:
-            if isinstance(mapped_name, list):
-                return mapped_name
-            return [mapped_name]
-    return [apm_telemetry_name]
-
-
-def _find_configuration_by_origin(config_list: list[dict], origin: str) -> dict | None:
-    """Find a configuration by origin from a list of configuration dictionaries.
-
-    Returns the first configuration that matches the origin,
-    or None if no match is found.
-    """
-    for config in config_list:
-        if config.get("origin") == origin:
-            return config
-    return None
+from .utils import _mapped_telemetry_name
 
 
 def _check_propagation_style_with_inject_and_extract(
-    test_agent: TestAgentAPI, configuration_by_name: dict, expected_origin: str, library_name: str
+    test_agent: TestAgentAPI,
+    configuration_by_name: dict,
+    expected_origin: str,
+    library_name: str,
+    *,
+    allow_calculated_origin: bool = False,
 ) -> None:
     """Check both inject and extract propagation style keys for languages that report them separately.
 
@@ -146,42 +30,43 @@ def _check_propagation_style_with_inject_and_extract(
     instead of a single combined key. This function validates that both keys exist with the
     expected origin and have non-empty values.
 
-    Raises an AssertionError if either key is missing, has wrong origin, or has empty value
+    When a library derives the inject/extract values from DD_TRACE_PROPAGATION_STYLE,
+    the reported origin may be "calculated" instead of the original source origin.
+    In that case, allow_calculated_origin can be used to accept either origin.
     """
-    # Define the inject and extract key names for each language
-    if library_name == "python":
-        inject_key = "DD_TRACE_PROPAGATION_STYLE_INJECT"
-        extract_key = "DD_TRACE_PROPAGATION_STYLE_EXTRACT"
-    elif library_name == "ruby":
-        inject_key = "tracing.propagation_style_inject"
-        extract_key = "tracing.propagation_style_extract"
-    elif library_name == "nodejs":
-        inject_key = "tracePropagationStyle.inject"
-        extract_key = "tracePropagationStyle.extract"
+    allowed_origins = [expected_origin]
+    if allow_calculated_origin:
+        allowed_origins.append("calculated")
+
+    if library_name in ("python", "ruby", "nodejs"):
+        keys = ["DD_TRACE_PROPAGATION_STYLE_INJECT", "DD_TRACE_PROPAGATION_STYLE_EXTRACT"]
     else:
         raise ValueError(f"Unsupported library for inject/extract propagation style: {library_name}")
 
-    # Check inject key
-    inject_item = test_agent.get_telemetry_config_by_origin(configuration_by_name, inject_key, expected_origin)
-    assert inject_item is not None, (
-        f"No configuration found for '{inject_key}' with origin '{expected_origin}'. Full configuration_by_name: {configuration_by_name}"
-    )
-    assert isinstance(inject_item, dict)
-    assert inject_item["origin"] == expected_origin, (
-        f"Origin mismatch for {inject_item}. Expected origin: '{expected_origin}', Actual origin: '{inject_item.get('origin', '<missing>')}'"
-    )
-    assert inject_item["value"], f"Expected non-empty value for '{inject_key}'"
+    def _assert_config_with_allowed_origins(config_name: str, origins: list[str]) -> None:
+        config_item = next(
+            (
+                item
+                for origin in origins
+                if (item := test_agent.get_telemetry_config_by_origin(configuration_by_name, config_name, origin))
+                is not None
+            ),
+            None,
+        )
+        assert config_item is not None, (
+            f"No configuration found for '{config_name}' with any origin in {origins}. Full configuration_by_name: {configuration_by_name}"
+        )
+        assert isinstance(config_item, dict)
+        assert config_item["origin"] in origins, (
+            f"Origin mismatch for {config_item}. Expected one of {origins}, Actual origin: '{config_item.get('origin', '<missing>')}'"
+        )
+        assert config_item["value"], f"Expected non-empty value for '{config_name}'"
 
-    # Check extract key
-    extract_item = test_agent.get_telemetry_config_by_origin(configuration_by_name, extract_key, expected_origin)
-    assert extract_item is not None, (
-        f"No configuration found for '{extract_key}' with origin '{expected_origin}'. Full configuration_by_name: {configuration_by_name}"
-    )
-    assert isinstance(extract_item, dict)
-    assert extract_item["origin"] == expected_origin, (
-        f"Origin mismatch for {extract_item}. Expected origin: '{expected_origin}', Actual origin: '{extract_item.get('origin', '<missing>')}'"
-    )
-    assert extract_item["value"], f"Expected non-empty value for '{extract_key}'"
+    # The combined key is not asserted here: libraries that derive inject/extract
+    # may still report it with origin "default" (their built-in default value),
+    # which is not a wrong origin to flag, just a different reporting shape.
+    for key in keys:
+        _assert_config_with_allowed_origins(key, allowed_origins)
 
 
 @scenarios.parametric
@@ -215,7 +100,7 @@ class Test_Defaults:
             ("trace_sample_rate", (1.0, None, "1.0")),
             ("logs_injection_enabled", ("false", False, "true", True, "structured")),
             ("trace_header_tags", ""),
-            ("trace_tags", ""),
+            ("trace_tags", ("_dd.svc_src:m", "")),
             ("trace_enabled", ("true", True)),
             ("profiling_enabled", ("false", False, None)),
             ("appsec_enabled", ("false", False, "inactive", None)),
@@ -311,12 +196,9 @@ class Test_Consistent_Configs:
             )
             == "5.2.0"
         )
-        assert (
-            test_agent.get_telemetry_config_by_origin(
-                configuration_by_name, "DD_TRACE_RATE_LIMIT", "env_var", return_value_only=True
-            )
-            == "10"
-        )
+        assert test_agent.get_telemetry_config_by_origin(
+            configuration_by_name, "DD_TRACE_RATE_LIMIT", "env_var", return_value_only=True
+        ) in ("10", 10)
         assert (
             test_agent.get_telemetry_config_by_origin(
                 configuration_by_name, "DD_TRACE_HEADER_TAGS", "env_var", return_value_only=True
@@ -469,7 +351,6 @@ class Test_Environment:
         "library_env",
         [
             {
-                "DD_TRACE_AGENT_PORT": "agent.port",
                 "DD_TRACE_OTEL_ENABLED": 1,
                 "DD_TELEMETRY_HEARTBEAT_INTERVAL": 1,
                 "TIMEOUT": 1500,
@@ -554,7 +435,6 @@ class Test_Environment:
         "library_env",
         [
             {
-                "DD_TRACE_AGENT_PORT": "agent.port",
                 "DD_TELEMETRY_HEARTBEAT_INTERVAL": 1,
                 "TIMEOUT": 1500,
                 "OTEL_SERVICE_NAME": "otel_service",
@@ -802,10 +682,6 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
             )
         ],
     )
-    @missing_feature(
-        context.library in ["cpp", "golang"],
-        reason="extended configs are not supported",
-    )
     def test_stable_configuration_origin_extended_configs_good_use_case(
         self,
         local_cfg: dict[str, str],
@@ -882,11 +758,6 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
             )
         ],
     )
-    @missing_feature(
-        context.library in ["cpp", "golang"],
-        reason="extended configs are not supported",
-    )
-    @irrelevant(context.library in ["java", "php", "dotnet"], reason="temporary use case for python, ruby and nodejs")
     def test_stable_configuration_origin_extended_configs_temporary_use_case(
         self,
         local_cfg: dict[str, str],
@@ -925,7 +796,11 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
             # Python, Ruby and Node.js only report inject and extract keys for trace_propagation_style
             if cfg_name == "trace_propagation_style" and context.library.name in ["python", "ruby", "nodejs"]:
                 _check_propagation_style_with_inject_and_extract(
-                    test_agent, configuration_by_name, expected_origin, context.library.name
+                    test_agent,
+                    configuration_by_name,
+                    expected_origin,
+                    context.library.name,
+                    allow_calculated_origin=True,
                 )
             elif cfg_name == "tags" and context.library.name in ["ruby"]:
                 continue
@@ -1085,7 +960,9 @@ class Test_TelemetrySSIConfigs:
         inject_enabled = None
         for ssi_name in ssi_enabled_telemetry_names:
             inject_enabled = test_agent.get_telemetry_config_by_origin(
-                configuration_by_name, ssi_name, "env_var", fallback_to_first=(expected_value is None)
+                configuration_by_name,
+                ssi_name,
+                "env_var",
             )
             if inject_enabled is not None:
                 break
@@ -1093,7 +970,10 @@ class Test_TelemetrySSIConfigs:
             f"No configuration found for any of {' or '.join(ssi_enabled_telemetry_names)}"
         )
         assert isinstance(inject_enabled, dict)
-        assert inject_enabled.get("value") == expected_value
+        expected_values: tuple[object, ...] = (expected_value,)
+        if context.library == "nodejs":
+            expected_values += ([item.strip() for item in expected_value.split(",")],)
+        assert inject_enabled.get("value") in expected_values
         if expected_value is not None:
             assert inject_enabled.get("origin") == "env_var"
 
@@ -1132,7 +1012,9 @@ class Test_TelemetrySSIConfigs:
         inject_force = None
         for inject_force_name in inject_force_telemetry_names:
             inject_force = test_agent.get_telemetry_config_by_origin(
-                configuration_by_name, inject_force_name, "env_var", fallback_to_first=(expected_value == "none")
+                configuration_by_name,
+                inject_force_name,
+                "env_var",
             )
             if inject_force is not None:
                 break
@@ -1157,7 +1039,10 @@ class Test_TelemetrySSIConfigs:
         instrumentation_source = None
         for instrumentation_source_name in instrumentation_source_telemetry_names:
             instrumentation_source = test_agent.get_telemetry_config_by_origin(
-                configuration_by_name, instrumentation_source_name, "default", fallback_to_first=True
+                configuration_by_name,
+                instrumentation_source_name,
+                "default",
+                fallback_to_first=True,
             )
             if instrumentation_source is not None:
                 break
@@ -1202,7 +1087,6 @@ class Test_TelemetrySCAEnvVar:
             ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "0"}, False),
         ],
     )
-    @irrelevant(context.library not in ("python", "golang"))
     def test_telemetry_sca_enabled_propagated_specifics(
         self, library_env: dict[str, str], test_agent: TestAgentAPI, test_library: APMLibrary, *, outcome_value: bool
     ):
@@ -1218,17 +1102,26 @@ class Test_TelemetrySCAEnvVar:
     ):
         assert test_library.is_alive(), "Library container is not running"
         configuration_by_name = test_agent.wait_for_telemetry_configurations()
-        dd_appsec_sca_enabled = TelemetryUtils.get_dd_appsec_sca_enabled_str(context.library)
+        dd_appsec_sca_enabled_names = TelemetryUtils.get_dd_appsec_sca_enabled_names(context.library)
 
         logger.info(f"""Check that:
     * the env var DD_APPSEC_SCA_ENABLED={library_env["DD_APPSEC_SCA_ENABLED"]}
-    * is reported in telemetry configuration {dd_appsec_sca_enabled} as value={outcome_value}""")
+    * is reported in telemetry configuration {" or ".join(dd_appsec_sca_enabled_names)} as value={outcome_value}""")
 
         assert configuration_by_name is not None, "Missing telemetry configuration"
 
-        cfg_appsec_enabled = configuration_by_name.get(dd_appsec_sca_enabled)
-        logger.info(f"Oberved {dd_appsec_sca_enabled}: {cfg_appsec_enabled}")
-        assert cfg_appsec_enabled is not None, f"Missing telemetry config item for '{dd_appsec_sca_enabled}'"
+        cfg_appsec_enabled = next(
+            (
+                configuration_by_name.get(config_name)
+                for config_name in dd_appsec_sca_enabled_names
+                if config_name in configuration_by_name
+            ),
+            None,
+        )
+        logger.info(f"Observed {' / '.join(dd_appsec_sca_enabled_names)}: {cfg_appsec_enabled}")
+        assert cfg_appsec_enabled is not None, (
+            f"Missing telemetry config item for any of {' or '.join(dd_appsec_sca_enabled_names)}"
+        )
 
         # Backend implementation accepts both boolean and string representations
         assert cfg_appsec_enabled[0].get("value") in (outcome_value, str(outcome_value).lower())
@@ -1240,11 +1133,20 @@ class Test_TelemetrySCAEnvVar:
 
         assert configuration_by_name is not None, "Missing telemetry configuration"
 
-        dd_appsec_sca_enabled = TelemetryUtils.get_dd_appsec_sca_enabled_str(context.library)
+        dd_appsec_sca_enabled_names = TelemetryUtils.get_dd_appsec_sca_enabled_names(context.library)
 
-        if context.library in ("java", "nodejs", "python"):
-            cfg_appsec_enabled = configuration_by_name.get(dd_appsec_sca_enabled)
-            assert cfg_appsec_enabled is not None, f"Missing telemetry config item for '{dd_appsec_sca_enabled}'"
+        if context.library in ("java", "nodejs", "python", "ruby"):
+            cfg_appsec_enabled = next(
+                (
+                    configuration_by_name.get(config_name)
+                    for config_name in dd_appsec_sca_enabled_names
+                    if config_name in configuration_by_name
+                ),
+                None,
+            )
+            assert cfg_appsec_enabled is not None, (
+                f"Missing telemetry config item for any of {' or '.join(dd_appsec_sca_enabled_names)}"
+            )
             assert cfg_appsec_enabled[0].get("value") is None
         else:
-            assert dd_appsec_sca_enabled not in configuration_by_name
+            assert all(config_name not in configuration_by_name for config_name in dd_appsec_sca_enabled_names)

@@ -1,7 +1,9 @@
 'use strict'
 
 const tracer = require('dd-trace').init()
+const { tags: { MANUAL_KEEP, MANUAL_DROP } } = require('dd-trace/ext')
 
+const { OpenFeature } = require('@openfeature/server-sdk')
 const { promisify } = require('util')
 const axios = require('axios')
 const crypto = require('crypto')
@@ -89,7 +91,8 @@ fastify.addContentTypeParser('text/plain', { parseAs: 'buffer' }, function (req,
 
 fastify.get('/', async (request, reply) => {
   console.log('Received a request')
-  return 'Hello\n'
+  reply.type('text/plain')
+  return 'Hello world!\n'
 })
 
 fastify.get('/healthcheck', async (request, reply) => {
@@ -197,21 +200,49 @@ fastify.get('/status', async (request, reply) => {
   return 'OK'
 })
 
+fastify.get('/trace/manual_keep_drop', async (request, reply) => {
+  const decision = request.query.decision
+
+  if (decision !== 'keep' && decision !== 'drop') {
+    reply.status(400)
+    return 'decision must be keep or drop'
+  }
+
+  tracer.scope().active().setTag(decision === 'keep' ? MANUAL_KEEP : MANUAL_DROP, true)
+
+  // Call downstream so that tests can assert on the sampling decision that gets propagated
+  const url = 'http://localhost:7777/'
+  return new Promise((resolve, reject) => {
+    const httpRequest = http.request({ hostname: 'localhost', port: 7777, path: '/', method: 'GET' }, (response) => {
+      response.on('data', () => {})
+
+      response.on('end', () => {
+        resolve({
+          url,
+          status_code: response.statusCode,
+          request_headers: response.req.getHeaders(),
+          response_headers: response.headers
+        })
+      })
+    })
+
+    httpRequest.on('error', reject)
+
+    httpRequest.end()
+  })
+})
+
 fastify.get('/make_distant_call', async (request, reply) => {
   const url = request.query.url
   console.log(url)
 
   const parsedUrl = new URL(url)
-
-  const options = {
-    hostname: parsedUrl.hostname,
-    port: parsedUrl.port || 80, // Use default port if not provided
-    path: parsedUrl.pathname,
-    method: 'GET'
-  }
+  const method = request.query.method || 'GET'
 
   return new Promise((resolve, reject) => {
-    const httpRequest = http.request(options, (response) => {
+    // Passing the URL object preserves query strings and credentials. This endpoint is used by
+    // semantic-convention tests that need the tracer to observe the complete outbound request.
+    const httpRequest = http.request(parsedUrl, { method }, (response) => {
       let responseBody = ''
       response.on('data', (chunk) => {
         responseBody += chunk
@@ -221,7 +252,7 @@ fastify.get('/make_distant_call', async (request, reply) => {
         resolve({
           url,
           status_code: response.statusCode,
-          request_headers: response.req._headers,
+          request_headers: response.req.getHeaders(),
           response_headers: response.headers,
           response_body: responseBody
         })
@@ -240,6 +271,24 @@ fastify.get('/make_distant_call', async (request, reply) => {
 
     httpRequest.end()
   })
+})
+
+fastify.get('/security/thread_context_sharing', async (request, reply) => {
+  const path = request.query.path
+  if (typeof path !== 'string' || path === '') {
+    reply.status(400)
+    return 'missing path query parameter'
+  }
+
+  // Synchronous on purpose: async fs opens the file on a libuv worker thread, which does not carry
+  // the request's thread context that the security agent reads.
+  require('fs').writeFileSync(path, 'thread context sharing')
+
+  const context = tracer.scope().active().context()
+  return {
+    trace_id: BigInt(`0x${context.toTraceId(true)}`).toString(),
+    span_id: context.toSpanId()
+  }
 })
 
 fastify.get('/user_login_success_event', async (request, reply) => {
@@ -318,15 +367,12 @@ fastify.get('/stub_dbm', async (request, reply) => {
   const operation = request.query.operation
 
   if (integration === 'pg') {
-    tracer.use(integration, { dbmPropagationMode: 'full' })
     const dbmComment = await pgsql.doOperation(operation)
     return { status: 'ok', dbm_comment: dbmComment }
   } else if (integration === 'mysql2') {
-    tracer.use(integration, { dbmPropagationMode: 'full' })
     const result = await mysql.doOperation(operation)
     return { status: 'ok', dbm_comment: result }
   } else if (integration === 'mssql') {
-    tracer.use(integration, { dbmPropagationMode: 'full' })
     return await mssql.doOperation(operation)
   }
 })
@@ -609,6 +655,7 @@ fastify.get('/otel_drop_in_default_propagator_inject', async (request, reply) =>
 
 fastify.get('/otel_drop_in_baggage_api_otel', async (request, reply) => {
   const api = require('@opentelemetry/api')
+  const ContextManager = require('dd-trace/packages/dd-trace/src/opentelemetry/context_manager')
 
   const url = request.query.url
   console.log(url)
@@ -626,6 +673,9 @@ fastify.get('/otel_drop_in_baggage_api_otel', async (request, reply) => {
   const baggageSet = request.query.baggage_set
   const baggageToRemove = baggageRemove ? baggageRemove.split(',') : []
   const baggageToSet = baggageSet ? baggageSet.split(',').map(item => item.split('=')) : []
+
+  const contextManager = new ContextManager()
+  api.context.setGlobalContextManager(contextManager)
 
   let baggage = api.propagation.getActiveBaggage() || api.propagation.createBaggage()
   for (const key of baggageToRemove) {
@@ -649,7 +699,7 @@ fastify.get('/otel_drop_in_baggage_api_otel', async (request, reply) => {
           resolve({
             url,
             status_code: response.statusCode,
-            request_headers: response.req._headers,
+            request_headers: response.req.getHeaders(),
             response_headers: response.headers,
             response_body: responseBody
           })
@@ -711,7 +761,7 @@ fastify.get('/otel_drop_in_baggage_api_datadog', async (request, reply) => {
         resolve({
           url,
           status_code: response.statusCode,
-          request_headers: response.req._headers,
+          request_headers: response.req.getHeaders(),
           response_headers: response.headers,
           response_body: responseBody
         })
@@ -766,6 +816,9 @@ fastify.get('/flush', async (request, reply) => {
   // tracer._tracer?._dataStreamsProcessor?.writer?.flush?.()
   tracer.dogstatsd?.flush?.()
   tracer._pluginManager?._pluginsByName?.openai?.metrics?.flush?.()
+  tracer._tracer?._processor?._stats?.onInterval()
+  // force FFE exposure events out immediately instead of waiting for the writer's periodic flush
+  require('node:diagnostics_channel').channel('ffe:writers:flush').publish()
 
   // does have a callback :)
   const promises = []
@@ -839,7 +892,194 @@ fastify.get('/add_event', async (request, reply) => {
   return { message: 'Event added' }
 })
 
+const DOWNSTREAM_RESPONSE_BODY_LIMIT_PROFILES = new Set([
+  'invalid_content_type',
+  'content_length_missing',
+  'content_length_too_big'
+])
+
+function forwardExternalRequest (request, reply, downstreamPath) {
+  const status = request.query.status || '200'
+  const urlExtra = request.query.url_extra || ''
+
+  const headers = {}
+  const queryParamsExcludedFromHeaders = new Set(['status', 'url_extra'])
+  for (const [key, value] of Object.entries(request.query)) {
+    if (queryParamsExcludedFromHeaders.has(key)) continue
+    headers[key] = String(value)
+  }
+
+  let body = null
+  if (request.body && Object.keys(request.body).length > 0) {
+    body = JSON.stringify(request.body)
+    headers['Content-Type'] = request.headers['content-type'] || 'application/json'
+  }
+
+  const path = downstreamPath || `/mirror/${status}${urlExtra}`
+
+  const options = {
+    hostname: 'internal_server',
+    port: 8089,
+    path,
+    method: request.method,
+    headers
+  }
+
+  return new Promise((resolve) => {
+    const httpRequest = http.request(options, (response) => {
+      let responseBody = ''
+      response.on('data', (chunk) => {
+        responseBody += chunk
+      })
+
+      response.on('end', () => {
+        const payload = JSON.parse(responseBody)
+        reply.status(200)
+        resolve({
+          payload,
+          status: response.statusCode,
+          headers: response.headers
+        })
+      })
+    })
+
+    if (body) {
+      httpRequest.write(body)
+    }
+
+    httpRequest.end()
+  })
+}
+
+fastify.all('/external_request', async (request, reply) => {
+  return forwardExternalRequest(request, reply)
+})
+
+fastify.all('/external_request/body_limit/:failureReason', async (request, reply) => {
+  const { failureReason } = request.params
+  if (!DOWNSTREAM_RESPONSE_BODY_LIMIT_PROFILES.has(failureReason)) {
+    reply.status(404)
+    return { error: 'unknown failure reason' }
+  }
+
+  return forwardExternalRequest(request, reply, `/downstream_response/${failureReason}`)
+})
+
+fastify.get('/external_request/redirect', async (request, reply) => {
+  const headers = {}
+  for (const [key, value] of Object.entries(request.query)) {
+    headers[key] = String(value)
+  }
+
+  const totalRedirects = request.query.totalRedirects || '0'
+
+  // Recursive function to follow redirects
+  const followRedirect = (path) => {
+    return new Promise((resolve) => {
+      const options = {
+        hostname: 'internal_server',
+        port: 8089,
+        path,
+        method: 'GET',
+        headers
+      }
+
+      const httpRequest = http.request(options, (response) => {
+        if (response.statusCode === 302 && response.headers.location) {
+          // Follow the redirect
+          resolve(followRedirect(response.headers.location))
+        } else {
+          // Final response
+          response.on('end', () => {
+            resolve('OK')
+          })
+        }
+        response.resume()
+      })
+
+      httpRequest.end()
+    })
+  }
+
+  // Start the redirect chain
+  await followRedirect(`/redirect?totalRedirects=${totalRedirects}`)
+  reply.status(200)
+  return 'OK'
+})
+
 require('./rasp')(fastify)
+
+let openFeatureClient = null
+let openFeatureClientPromise = null
+
+async function getOpenFeatureClient () {
+  if (openFeatureClient) {
+    return openFeatureClient
+  }
+
+  if (process.env.DD_FEATURE_FLAGS_ENABLED === 'false') {
+    return null
+  }
+
+  if (!openFeatureClientPromise) {
+    openFeatureClientPromise = OpenFeature.setProviderAndWait(tracer.openfeature)
+      .then(() => {
+        openFeatureClient = OpenFeature.getClient()
+        return openFeatureClient
+      })
+      .catch(error => {
+        openFeatureClientPromise = null
+        throw error
+      })
+  }
+
+  return openFeatureClientPromise
+}
+
+fastify.post('/ffe', async (request, reply) => {
+  try {
+    const { flag, variationType, defaultValue, targetingKey, targetingKeys, attributes } = request.body
+    const client = await getOpenFeatureClient()
+
+    if (!client) {
+      reply.status(500)
+      return { error: 'FFE provider not initialized' }
+    }
+
+    let value
+    const keys = Array.isArray(targetingKeys) && targetingKeys.length > 0 ? targetingKeys : [targetingKey]
+
+    for (const key of keys) {
+      const context = { targetingKey: key, ...attributes }
+
+      switch (variationType) {
+        case 'BOOLEAN':
+          value = await client.getBooleanValue(flag, defaultValue, context)
+          break
+        case 'STRING':
+          value = await client.getStringValue(flag, defaultValue, context)
+          break
+        case 'INTEGER':
+        case 'NUMERIC':
+          value = await client.getNumberValue(flag, defaultValue, context)
+          break
+        case 'JSON':
+          value = await client.getObjectValue(flag, defaultValue, context)
+          break
+        default:
+          reply.status(400)
+          return { error: `Unknown variation type: ${variationType}` }
+      }
+    }
+
+    reply.status(200)
+    return { value, count: keys.length }
+  } catch (error) {
+    console.error('[FFE] Error:', error)
+    reply.status(500)
+    return { error: error.message }
+  }
+})
 
 const startServer = async () => {
   try {

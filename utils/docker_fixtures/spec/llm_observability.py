@@ -40,6 +40,7 @@ class LlmObsAnnotationRequest:
     metadata: dict | None = None
     metrics: dict | None = None
     tags: dict | None = None
+    cost_tags: list | None = None
     prompt: dict | None = None
 
     explicit_span: bool | None = False
@@ -50,6 +51,7 @@ class LlmObsAnnotationContextRequest:
     prompt: dict | None = None
     name: str | None = None
     tags: dict | None = None
+    cost_tags: list | None = None
 
     children: list[LlmObsAnnotationContextRequest | LlmObsSpanRequest] | None = None
     type: Literal["annotation_context"] = "annotation_context"

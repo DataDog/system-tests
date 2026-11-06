@@ -1,4 +1,4 @@
-FROM golang:1.24
+FROM golang:1.26
 
 # print important lib versions
 RUN go version && curl --version
@@ -10,6 +10,8 @@ RUN apt-get update && apt-get -y install jq git
 RUN mkdir -p /app
 COPY utils/build/docker/golang/app/go.mod utils/build/docker/golang/app/go.sum /app/
 WORKDIR /app
+ENV GONOSUMDB=github.com/DataDog/* \
+    GOPRIVATE=github.com/DataDog/*
 RUN go mod download && go mod verify
 
 # copy the app code
@@ -18,6 +20,7 @@ COPY utils/build/docker/golang/app /app
 # download the proper tracer version
 COPY utils/build/docker/golang/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
+RUN mv SYSTEM_TESTS_LIBRARY_VERSION /binaries/SYSTEM_TESTS_LIBRARY_VERSION
 ENV DD_TRACE_HEADER_TAGS='user-agent'
 
 RUN go build -v -tags appsec -o weblog ./gqlgen

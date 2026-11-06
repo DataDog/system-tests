@@ -7,6 +7,7 @@ import static ratpack.jackson.Jackson.json;
 import com.datadoghq.system_tests.iast.infra.SqlServer;
 import com.datadoghq.system_tests.iast.utils.CryptoExamples;
 import datadog.appsec.api.login.EventTrackerV2;
+import datadog.trace.api.DDTags;
 import datadog.trace.api.interceptor.MutableSpan;
 import datadog.trace.api.internal.InternalTracer;
 import io.opentracing.Span;
@@ -108,7 +109,8 @@ public class Main {
                                 Span span = tracer.buildSpan("test-span").start();
                                 span.setTag("test-tag", "my value");
                                 try {
-                                    ctx.getResponse().send("text/plain", "Hello World!");
+                                    ctx.getResponse().getHeaders().set("Content-Length", "13");
+                                    ctx.getResponse().send("text/plain", "Hello world!\n");
                                 } finally {
                                     span.finish();
                                 }
@@ -172,9 +174,21 @@ public class Main {
                                 response.getHeaders().add("content-language", "en-US");
                                 response.send("text/plain", "Response with more than 50 headers");
                             })
-                            .get("make_distant_call", ctx -> {
-                                final Promise<String> res = Blocking.get(() -> {
-                                    String url = ctx.getRequest().getQueryParams().get("url");
+                            .get("trace/manual_keep_drop", ctx -> {
+                                String decision = ctx.getRequest().getQueryParams().get("decision");
+                                if (!"keep".equals(decision) && !"drop".equals(decision)) {
+                                    ctx.getResponse().status(400).send("decision must be keep or drop");
+                                    return;
+                                }
+
+                                final Span span = GlobalTracer.get().activeSpan();
+                                if (span != null) {
+                                    span.setTag("keep".equals(decision) ? DDTags.MANUAL_KEEP : DDTags.MANUAL_DROP, true);
+                                }
+
+                                // Call downstream so that tests can assert on the sampling decision that gets propagated
+                                final Promise<String> downstream = Blocking.get(() -> {
+                                    String url = "http://localhost:7777/";
 
                                     URL urlObject = new URL(url);
 
@@ -199,6 +213,45 @@ public class Main {
                                             continue;
                                         }
 
+                                        response_headers.put(header.getKey(), header.getValue().get(0));
+                                    }
+
+                                    DistantCallResponse result = new DistantCallResponse();
+                                    result.url = url;
+                                    result.status_code = status_code;
+                                    result.request_headers = request_headers;
+                                    result.response_headers = response_headers;
+
+                                    return (new ObjectMapper()).writeValueAsString(result);
+                                });
+                                downstream.then((r) -> {
+                                    ctx.getResponse().send("application/json", r);
+                                });
+                            })
+                            .get("make_distant_call", ctx -> {
+                                final Promise<String> res = Blocking.get(() -> {
+                                    String url = ctx.getRequest().getQueryParams().get("url");
+                                    String method = Optional.ofNullable(
+                                            ctx.getRequest().getQueryParams().get("method"))
+                                            .orElse("GET");
+                                    java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
+                                            .uri(java.net.URI.create(url))
+                                            .method(method, java.net.http.HttpRequest.BodyPublishers.noBody())
+                                            .build();
+                                    java.net.http.HttpResponse<Void> response = java.net.http.HttpClient
+                                            .newHttpClient()
+                                            .send(request, java.net.http.HttpResponse.BodyHandlers.discarding());
+
+                                    // Save request headers
+                                    HashMap<String, String> request_headers = new HashMap<String, String>();
+                                    for (Map.Entry<String, List<String>> header : request.headers().map().entrySet()) {
+                                        request_headers.put(header.getKey(), header.getValue().get(0));
+                                    }
+
+                                    // Save response headers and status code
+                                    int status_code = response.statusCode();
+                                    HashMap<String, String> response_headers = new HashMap<String, String>();
+                                    for (Map.Entry<String, List<String>> header : response.headers().map().entrySet()) {
                                         response_headers.put(header.getKey(), header.getValue().get(0));
                                     }
 
@@ -260,6 +313,8 @@ public class Main {
                             })
                             .get("params/:params?:.*",
                                     ctx -> ctx.getResponse().send("text/plain", ctx.getPathTokens().toString()))
+                            .get("resource_renaming/:path?:.*",
+                                    ctx -> ctx.getResponse().send("text/plain", "ok"))
                             .path("status", ctx -> {
                                 String codeParam = ctx.getRequest().getQueryParams().get("code");
                                 int code = Integer.parseInt(codeParam);
@@ -368,6 +423,21 @@ public class Main {
                                 setRootSpanTag("service", serviceName);
                                 ctx.getResponse().send("ok");
                             })
+                            .get("inferred-proxy/span-creation", ctx -> {
+                                String statusCodeParam = ctx.getRequest().getQueryParams().get("status_code");
+                                int statusCode = 200;
+                                if (statusCodeParam != null && !statusCodeParam.isEmpty()) {
+                                    try {
+                                        statusCode = Integer.parseInt(statusCodeParam);
+                                    } catch (NumberFormatException e) {
+                                        statusCode = 400;
+                                    }
+                                }
+                                System.out.println("Received an API Gateway request:");
+                                Headers headers = ctx.getRequest().getHeaders();
+                                headers.getNames().forEach(name -> System.out.println(name + ": " + headers.get(name)));
+                                ctx.getResponse().status(statusCode).send("text/plain", "ok");
+                            })
                             .get("set_cookie", ctx -> {
                                 final String name = ctx.getRequest().getQueryParams().get("name");
                                 final String value = ctx.getRequest().getQueryParams().get("value");
@@ -410,4 +480,3 @@ public class Main {
 
     public static final DataSource DATA_SOURCE = new SqlServer().start();
 }
-

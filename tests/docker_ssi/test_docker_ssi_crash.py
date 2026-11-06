@@ -2,13 +2,19 @@ from urllib.parse import urlparse
 
 from utils import (
     irrelevant,
-    missing_feature,
     scenarios,
     features,
     context,
     interfaces,
 )
 from utils import weblog, logger
+
+
+_NODEJS_REQUIRES_NODE_22 = context.library == "nodejs" and context.library.version.major >= 6
+_NODEJS_UNSUPPORTED_RUNTIME = context.library == "nodejs" and (
+    (_NODEJS_REQUIRES_NODE_22 and context.installed_language_runtime < "22.0")
+    or (not _NODEJS_REQUIRES_NODE_22 and context.installed_language_runtime < "17.0")
+)
 
 
 @scenarios.docker_ssi_crashtracking
@@ -36,9 +42,8 @@ class TestDockerSSICrash:
         self.r = TestDockerSSICrash._r
 
     @features.ssi_crashtracking
-    @missing_feature(condition=context.library in ("java", "php"), reason="No implemented the endpoint /crashme")
     @irrelevant(context.library == "python" and context.installed_language_runtime < "3.7.0")
-    @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "17.0")
+    @irrelevant(_NODEJS_UNSUPPORTED_RUNTIME)
     @irrelevant(context.library == "ruby" and context.installed_language_runtime < "2.6.0")
     def test_crash(self):
         """Validate that a crash report is generated when the application crashes"""
@@ -53,6 +58,6 @@ class TestDockerSSICrash:
         )
 
         # Crash report should have been generated
-        crash_reports = interfaces.test_agent.get_crash_reports()
-        assert crash_reports, "No crash report found"
+        crash_reports = interfaces.test_agent.wait_for_crash_reports()
+
         assert len(crash_reports) == 1, "More than one crash report found"

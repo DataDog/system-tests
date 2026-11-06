@@ -1,0 +1,4 @@
+# This app is used with SSI runtime matrix Dockerfiles.
+# Each supported Ruby minor has its own Gemfile and lockfile under gemfiles/.
+ruby_minor = RUBY_VERSION.split(".").take(2).join(".")
+eval_gemfile File.expand_path("gemfiles/ruby-#{ruby_minor}.gemfile", __dir__)

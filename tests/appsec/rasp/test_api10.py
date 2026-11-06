@@ -5,7 +5,8 @@
 import json
 import urllib.parse
 
-from utils import features, weblog, interfaces, scenarios, rfc
+from utils import features, weblog, interfaces, scenarios, rfc, context
+from utils.dd_types import DataDogLibrarySpan
 
 from tests.appsec.rasp.utils import (
     find_series,
@@ -27,7 +28,7 @@ class API10:
     TAGS_EXPECTED: list[tuple[str, str]] = []
     TAGS_EXPECTED_METRIC: list[tuple[str, str]] = []
 
-    def validate(self, span: dict):
+    def validate(self, span: DataDogLibrarySpan):
         if span.get("parent_id") not in (0, None):
             return None
 
@@ -43,7 +44,7 @@ class API10:
 
         return True
 
-    def validate_metric(self, span: dict):
+    def validate_metric(self, span: DataDogLibrarySpan):
         for tag, expected in self.TAGS_EXPECTED_METRIC:
             # check also in meta to be safe
             assert tag in span["metrics"] or tag in span["meta"], f"Missing {tag} from span's meta/metrics"
@@ -91,7 +92,8 @@ class Test_API10_request_method(API10):
     TAGS_EXPECTED = [("_dd.appsec.trace.req_method", "TAG_API10_REQ_METHOD")]
 
     def setup_api10_req_method(self):
-        self.r = weblog.request("TRACE", "/external_request")
+        method = "PUT" if context.weblog_variant == "nextjs" else "TRACE"  # Next.js doesn't support TRACE method
+        self.r = weblog.request(method, "/external_request")
 
     def test_api10_req_method(self):
         assert self.r.status_code == 200
@@ -241,7 +243,8 @@ class Test_API10_downstream_request_tag(API10):
     ]
 
     def setup_api10_req_method(self):
-        self.r = weblog.request("TRACE", "/external_request")
+        method = "PUT" if context.weblog_variant == "nextjs" else "TRACE"  # Next.js doesn't support TRACE method
+        self.r = weblog.request(method, "/external_request")
 
     def test_api10_req_method(self):
         assert self.r.status_code == 200
@@ -288,7 +291,7 @@ class Test_API10_without_downstream_body_analysis_using_sample_rate(API10):
             "/external_request", data=json.dumps(self.BODY), headers={"Content-Type": "application/json"}
         )
 
-    def validate_absence(self, span: dict):
+    def validate_absence(self, span: DataDogLibrarySpan):
         if span.get("parent_id") not in (0, None):
             return None
 
@@ -319,7 +322,7 @@ class Test_API10_without_downstream_body_analysis_using_max(API10):
             "/external_request", data=json.dumps(self.BODY), headers={"Content-Type": "application/json"}
         )
 
-    def validate_absence(self, span: dict):
+    def validate_absence(self, span: DataDogLibrarySpan):
         if span.get("parent_id") not in (0, None):
             return None
 
@@ -334,6 +337,78 @@ class Test_API10_without_downstream_body_analysis_using_max(API10):
         assert "error" not in body
         assert int(body["status"]) == 200
         interfaces.library.validate_one_span(self.r, validator=self.validate_absence)
+
+
+class API10ResponseBodyIgnored(API10):
+    """Base for downstream response body guard tests."""
+
+    TAGS_NOT_EXPECTED = ["_dd.appsec.trace.res_body"]
+
+    def validate_ignored(self, span: DataDogLibrarySpan):
+        if span.get("parent_id") not in (0, None):
+            return None
+
+        if not self.validate_metric(span):
+            return None
+
+        for tag in self.TAGS_NOT_EXPECTED:
+            assert tag not in span.get("meta", {}), f"Tag {tag} should NOT be present in span's meta"
+
+        return True
+
+
+@rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
+@features.api10
+@scenarios.appsec_rasp
+class Test_API10_response_body_ignored_content_type(API10ResponseBodyIgnored):
+    """Downstream response body ignored when content-type is unsupported."""
+
+    TAGS_EXPECTED_METRIC = [
+        ("_dd.appsec.downstream_request.response_body_ignored.content_type_invalid", "1"),
+    ]
+
+    def setup_api10_response_body_ignored_content_type(self):
+        self.r = weblog.get("/external_request/body_limit/invalid_content_type")
+
+    def test_api10_response_body_ignored_content_type(self):
+        assert self.r.status_code == 200
+        interfaces.library.validate_one_span(self.r, validator=self.validate_ignored)
+
+
+@rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
+@features.api10
+@scenarios.appsec_rasp
+class Test_API10_response_body_ignored_content_length_missing(API10ResponseBodyIgnored):
+    """Downstream response body ignored when content-length is missing."""
+
+    TAGS_EXPECTED_METRIC = [
+        ("_dd.appsec.downstream_request.response_body_ignored.content_length_missing", "1"),
+    ]
+
+    def setup_api10_response_body_ignored_content_length_missing(self):
+        self.r = weblog.get("/external_request/body_limit/content_length_missing")
+
+    def test_api10_response_body_ignored_content_length_missing(self):
+        assert self.r.status_code == 200
+        interfaces.library.validate_one_span(self.r, validator=self.validate_ignored)
+
+
+@rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
+@features.api10
+@scenarios.appsec_rasp
+class Test_API10_response_body_ignored_content_length_too_big(API10ResponseBodyIgnored):
+    """Downstream response body ignored when content-length exceeds maxBytes."""
+
+    TAGS_EXPECTED_METRIC = [
+        ("_dd.appsec.downstream_request.response_body_ignored.content_length_too_big", "1"),
+    ]
+
+    def setup_api10_response_body_ignored_content_length_too_big(self):
+        self.r = weblog.get("/external_request/body_limit/content_length_too_big")
+
+    def test_api10_response_body_ignored_content_length_too_big(self):
+        assert self.r.status_code == 200
+        interfaces.library.validate_one_span(self.r, validator=self.validate_ignored)
 
 
 @rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")

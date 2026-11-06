@@ -1,0 +1,54 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "/miscs/telemetry/v2/objects/configuration.json",
+  "description": "V2 Configuration Object",
+  "title": "Instrumentation Telemetry V2 Configuration",
+  "type": "array",
+  "items": {
+    "properties": {
+      "name": {
+        "type": "string"
+      },
+      "value": {
+        "type": [
+          "number",
+          "boolean",
+          "string",
+          "null"
+        ]
+      },
+      "origin": {
+        "type": "string"
+      },
+      "error": {
+        "anyOf": [
+          {
+            "$ref": "/miscs/telemetry/common/objects/error.json"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "is_overridden": {
+        "type": "boolean"
+      },
+      "config_id": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "seq_id": {
+        "type": [
+          "integer",
+          "null"
+        ]
+      }
+    },
+    "required": [
+      "name",
+      "origin"
+    ]
+  }
+}

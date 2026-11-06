@@ -1,4 +1,4 @@
-FROM golang:1.24-alpine AS build
+FROM golang:1.26-alpine AS build
 
 RUN apk add --no-cache jq curl bash gcc musl-dev git
 
@@ -13,7 +13,9 @@ COPY utils/build/docker/golang/app/ /app/
 WORKDIR /app/net-http-orchestrion
 
 ENV GOCACHE=/root/.cache/go-build \
-    GOMODCACHE=/go/pkg/mod
+    GOMODCACHE=/go/pkg/mod \
+    GONOSUMDB=github.com/DataDog/* \
+    GOPRIVATE=github.com/DataDog/*
 RUN --mount=type=cache,target=${GOMODCACHE}                                     \
     --mount=type=cache,target=${GOCACHE}                                        \
     --mount=type=tmpfs,target=/tmp                                              \
@@ -26,12 +28,12 @@ RUN --mount=type=cache,target=${GOMODCACHE}                                     
 
 # ==============================================================================
 
-FROM golang:1.24-alpine
+FROM golang:1.26-alpine
 
 RUN apk add --no-cache curl bash gcc musl-dev
 
 COPY --from=build /app/weblog /app/weblog
-COPY --from=build /app/net-http-orchestrion/SYSTEM_TESTS_LIBRARY_VERSION /app/SYSTEM_TESTS_LIBRARY_VERSION
+COPY --from=build /app/net-http-orchestrion/SYSTEM_TESTS_LIBRARY_VERSION /binaries/SYSTEM_TESTS_LIBRARY_VERSION
 
 WORKDIR /app
 

@@ -83,8 +83,14 @@ func main() {
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
+		w.Header().Set("Content-Type", "text/plain")
+		w.Header().Set("Content-Length", "13")
 		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("Hello world!\n"))
 	})
+
+	mux.HandleFunc("/trace/manual_keep_drop", common.ManualKeepDrop)
+	mux.HandleFunc("/security/thread_context_sharing", common.ThreadContextSharing)
 
 	mux.HandleFunc("/healthcheck", func(w http.ResponseWriter, r *http.Request) {
 

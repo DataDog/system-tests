@@ -1,0 +1,7 @@
+# docs/understand/weblogs/weblog-metadata.md
+
+poc:
+  categories: [dd_trace]
+uds:
+  categories: [dd_trace]
+  excluded_scenarios: [IPV6]

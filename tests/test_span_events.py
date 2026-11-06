@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, interfaces, irrelevant, weblog, scenarios, features, rfc
+from utils import interfaces, weblog, scenarios, features, rfc
 
 
 @rfc("https://docs.google.com/document/d/1cVod_VI7Yruq8U9dfMRFJd7npDu-uBpste2IB04GyaQ")
@@ -30,7 +30,6 @@ class Test_SpanEvents_WithAgentSupport:
     def setup_v05_default_format(self):
         self.r = weblog.get("/add_event")
 
-    @irrelevant(context.library in ["ruby", "nodejs", "golang"], reason="v0.5 is not the default format")
     def test_v05_default_format(self):
         """For traces that default to the v0.5 format, send events as the span tag `events`
         given this format does not support native serialization.

@@ -1,1 +1,1 @@
-Full documentation can be found in [docs/scenarios/parametric.md](../../docs/scenarios/parametric.md).
+Full documentation can be found in [docs/understand/scenarios/parametric.md](../../docs/understand/scenarios/parametric.md).

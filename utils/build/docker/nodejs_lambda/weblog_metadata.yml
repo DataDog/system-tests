@@ -1,0 +1,10 @@
+nodejs-alb:
+  categories: [dd_trace_lambda]
+nodejs-alb-multi:
+  categories: [dd_trace_lambda]
+nodejs-apigw-http:
+  categories: [dd_trace_lambda]
+nodejs-apigw-rest:
+  categories: [dd_trace_lambda]
+nodejs-function-url:
+  categories: [dd_trace_lambda]

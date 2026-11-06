@@ -1,6 +1,11 @@
 mod dto;
 
-use std::sync::Arc;
+pub(crate) use dto::parse_attributes_native;
+
+use std::{
+    sync::Arc,
+    time::{Duration, UNIX_EPOCH},
+};
 
 use axum::{
     extract::State,
@@ -8,7 +13,9 @@ use axum::{
     Json, Router,
 };
 use opentelemetry::{
+    baggage::BaggageExt,
     global,
+    logs::{LoggerProvider, Logger, LogRecord, Severity, AnyValue},
     metrics::{Counter, Gauge, Histogram, Meter, MeterProvider, ObservableCounter, ObservableGauge, ObservableUpDownCounter, UpDownCounter},
     trace::{Link, Span, TraceContextExt, Tracer},
     Context, InstrumentationScope, KeyValue,
@@ -16,7 +23,7 @@ use opentelemetry::{
 
 use tracing::debug;
 
-use crate::{get_tracer, opentelemetry::dto::*, AppState, ContextWithParent};
+use crate::{copy_baggage, get_tracer, opentelemetry::dto::*, AppState, ContextWithParent};
 
 pub enum MeterInstrument {
     Counter(Counter<u64>),
@@ -38,6 +45,7 @@ pub fn app() -> Router<AppState> {
         .route("/trace/otel/set_status", post(set_status))
         .route("/trace/otel/set_attributes", post(set_attributes))
         .route("/trace/otel/add_event", post(add_event))
+        .route("/trace/otel/otel_set_baggage", post(otel_set_baggage))
         .route("/trace/otel/record_exception", post(record_exception))
         .route("/trace/otel/end_span", post(end_span))
         .route("/trace/otel/flush", post(flush))
@@ -54,6 +62,10 @@ pub fn app() -> Router<AppState> {
         .route("/metrics/otel/create_asynchronous_updowncounter", post(otel_create_asynchronous_updowncounter))
         .route("/metrics/otel/create_asynchronous_gauge", post(otel_create_asynchronous_gauge))
         .route("/metrics/otel/force_flush", post(otel_metrics_force_flush))
+        .route("/metrics/otel/shutdown", post(otel_metrics_shutdown))
+        .route("/otel/logger/create", post(otel_create_logger))
+        .route("/otel/logger/write", post(otel_write_log))
+        .route("/log/otel/flush", post(otel_logs_flush))
 }
 
 // Handler implementations
@@ -78,7 +90,7 @@ async fn start_span(
             if let Some(ctx) = state.contexts.lock().unwrap().get(&link.parent_id) {
                 let span = ctx.context.span();
                 if span.span_context().is_valid() {
-                    let attributes = parse_attributes(link.attributes.as_ref());
+                    let attributes = parse_attributes_native(link.attributes.as_ref());
                     valid_links.push(Link::new(span.span_context().clone(), attributes, 0));
                 }
             } else {
@@ -90,10 +102,24 @@ async fn start_span(
         }
     }
 
+    if !args.events.is_empty() {
+        builder = builder.with_events(
+            args.events
+                .iter()
+                .map(|event| {
+                    opentelemetry::trace::Event::new(
+                        event.name.clone(),
+                        UNIX_EPOCH + Duration::from_nanos(event.time_unix_nano),
+                        parse_attributes_native(event.attributes.as_ref()),
+                        0,
+                    )
+                })
+                .collect(),
+        );
+    }
+
     // TODO: review!
     let mut attributes = vec![
-        // hack to prevent libdatadog from dropping trace chunks
-        opentelemetry::KeyValue::new("_dd.top_level".to_string(), 1),
         // hack to fix some test_otel_span_methods.py with wrong resorce name
         opentelemetry::KeyValue::new("resource.name".to_string(), args.name),
     ];
@@ -103,20 +129,10 @@ async fn start_span(
     let parent_ctx = if let Some(parent_id) = args.parent_id {
         let spans = state.contexts.lock().unwrap();
         if let Some(ctx) = spans.get(&parent_id) {
-            let parent_span = ctx.context.span();
             debug!("build with otel span {parent_id:?} found");
 
-            let parent =
-                Context::new().with_remote_span_context(parent_span.span_context().clone());
-
-            let parent_span_id =
-                u64::from_be_bytes(parent.span().span_context().span_id().to_bytes());
-            debug!(
-                "build with otel span child {}, hex: {}",
-                parent_span_id,
-                parent.span().span_context().span_id(),
-            );
-            Some(parent)
+            // Use the stored context as-is so the child is parented to the live local span.
+            Some(ctx.context.clone())
         } else {
             debug!("build with otel span {parent_id:?} NOT found");
             None
@@ -139,7 +155,11 @@ async fn start_span(
             .unwrap(),
     );
 
-    let ctx = Context::current_with_span(span);
+    // Build from parent_ctx (not current) so the parent's baggage isn't dropped.
+    let ctx = match &parent_ctx {
+        Some(parent_ctx) => parent_ctx.with_span(span),
+        None => Context::current_with_span(span),
+    };
     let ctx_with_parent = Arc::new(ContextWithParent::new(ctx, parent_ctx));
     *state.current_context.lock().unwrap() = ctx_with_parent.clone();
     state
@@ -186,9 +206,13 @@ async fn get_span_context(
             span_context.span_id().to_string()
         );
         SpanContextResult {
-            span_id: span_context.span_id().to_string(),
+            span_id: u64::from_be_bytes(span_context.span_id().to_bytes()),
             trace_id: span_context.trace_id().to_string(),
-            trace_flags: Some(format!("{:02x}", span_context.trace_flags().to_u8())),
+            trace_flags: Some(if span_context.trace_flags().to_u8() == 1 {
+                "01".to_string()
+            } else {
+                "00".to_string()
+            }),
             trace_state: Some(span_context.trace_state().header().to_string()),
             remote: Some(span_context.is_remote()),
         }
@@ -196,7 +220,7 @@ async fn get_span_context(
         let span_id = args.span_id;
         debug!("get_span_context span NOT found: {span_id}");
         SpanContextResult {
-            span_id: "0000000000000000".to_string(),
+            span_id: 0,
             trace_id: "00000000000000000000000000000000".to_string(),
             trace_flags: Some("00".to_string()),
             trace_state: Some("".to_string()),
@@ -267,10 +291,10 @@ async fn add_event(State(state): State<AppState>, Json(args): Json<AddEventArgs>
             span.add_event_with_timestamp(
                 args.name,
                 system_time_from_micros(timestamp),
-                parse_attributes(args.attributes.as_ref()),
+                parse_attributes_native(args.attributes.as_ref()),
             );
         } else {
-            span.add_event(args.name, parse_attributes(args.attributes.as_ref()));
+            span.add_event(args.name, parse_attributes_native(args.attributes.as_ref()));
         }
     }
 }
@@ -336,6 +360,23 @@ async fn flush(State(state): State<AppState>, Json(_args): Json<FlushArgs>) -> J
     })
 }
 
+async fn otel_set_baggage(
+    State(state): State<AppState>,
+    Json(args): Json<SetBaggageArgs>,
+) -> Json<GetBaggageResult> {
+    let updated = state.update_context(args.span_id, |ctx| {
+        let mut baggage = copy_baggage(ctx.baggage());
+        let _ = baggage.insert(args.key.clone(), args.value.clone());
+        ctx.with_baggage(baggage)
+    });
+    let value = updated.and_then(|ctx| {
+        ctx.baggage()
+            .get(&args.key)
+            .map(|value| value.as_str().to_string())
+    });
+    Json(GetBaggageResult { value })
+}
+
 // async fn set_baggage(State(state): State<AppState>, Json(args): Json<SetBaggageArgs>) {
 //     let mut baggage = state.baggage.lock().unwrap();
 //     baggage.set(args.key, args.value);
@@ -395,6 +436,8 @@ async fn otel_get_meter(
     if !meters.contains_key(&args.name) {
         // Use global meter provider configured by init_metrics(), matching Python's get_meter_provider() behavior
         let meter_provider = global::meter_provider();
+        // NOTE: Box::leak is used here because InstrumentationScope::builder requires &'static str.
+        // This is a bounded leak (once per unique meter name) since meters are stored in a HashMap.
         let name_static: &'static str = Box::leak(args.name.clone().into_boxed_str());
 
         // Create InstrumentationScope with name, version, and schema_url
@@ -775,4 +818,140 @@ async fn otel_metrics_force_flush(
         false
     };
     Json(OtelMetricsForceFlushReturn { success: result })
+}
+
+async fn otel_metrics_shutdown(
+    State(state): State<AppState>,
+    Json(_args): Json<OtelMetricsForceFlushArgs>,
+) -> Json<OtelMetricsForceFlushReturn> {
+    let meter_provider_guard = state.meter_provider.lock().unwrap();
+    let result = if let Some(meter_provider) = meter_provider_guard.as_ref() {
+        meter_provider.shutdown().is_ok()
+    } else {
+        false
+    };
+    Json(OtelMetricsForceFlushReturn { success: result })
+}
+
+// --- Logs Handlers ---
+
+async fn otel_create_logger(
+    State(state): State<AppState>,
+    Json(args): Json<OtelCreateLoggerArgs>,
+) -> Json<OtelCreateLoggerReturn> {
+    let mut loggers = state.otel_loggers.lock().unwrap();
+    if loggers.contains_key(&args.name) {
+        return Json(OtelCreateLoggerReturn { success: false });
+    }
+
+    let logger_provider_guard = state.logger_provider.lock().unwrap();
+    let logger_provider = logger_provider_guard.as_ref().expect("Logger provider not initialized");
+    
+    // NOTE: Box::leak is used here because InstrumentationScope::builder requires &'static str.
+    // This is a bounded leak (once per unique logger name) since loggers are stored in a HashMap.
+    let name_static: &'static str = Box::leak(args.name.clone().into_boxed_str());
+    let mut scope_builder = InstrumentationScope::builder(name_static);
+    
+    // with_version and with_schema_url accept String, so we can use .clone() instead of Box::leak
+    if let Some(v) = &args.version {
+        scope_builder = scope_builder.with_version(v.clone());
+    }
+    
+    if let Some(s) = &args.schema_url {
+        scope_builder = scope_builder.with_schema_url(s.clone());
+    }
+    
+    if let Some(attrs) = &args.attributes {
+        let scope_attrs = dto::parse_attributes(Some(attrs));
+        scope_builder = scope_builder.with_attributes(scope_attrs);
+    }
+    
+    let scope = scope_builder.build();
+    loggers.insert(args.name, scope);
+    Json(OtelCreateLoggerReturn { success: true })
+}
+
+async fn otel_write_log(
+    State(state): State<AppState>,
+    Json(args): Json<OtelWriteLogArgs>,
+) -> Json<OtelWriteLogReturn> {
+    let loggers = state.otel_loggers.lock().unwrap();
+    let scope = loggers
+        .get(&args.logger_name)
+        .expect("Logger not found in registered loggers");
+
+    let logger_provider_guard = state.logger_provider.lock().unwrap();
+    let logger_provider = logger_provider_guard.as_ref().expect("Logger provider not initialized");
+    let logger = logger_provider.logger_with_scope(scope.clone());
+
+    let level_upper = args.level.to_uppercase();
+    let (severity, severity_text) = match level_upper.as_str() {
+        "DEBUG" => (Severity::Debug, "DEBUG"),
+        "INFO" => (Severity::Info, "INFO"),
+        "WARN" => (Severity::Warn, "WARN"),
+        "ERROR" => (Severity::Error, "ERROR"),
+        _ => (Severity::Info, "INFO"),
+    };
+
+    let mut log_record = logger.create_log_record();
+    log_record.set_severity_number(severity);
+    log_record.set_severity_text(severity_text);
+    log_record.set_body(AnyValue::String(args.message.clone().into()));
+    
+    if let Some(span_id) = args.span_id {
+        let contexts = state.contexts.lock().unwrap();
+        let otel_spans = state.extracted_span_contexts.lock().unwrap();
+        
+        if let Some(ctx) = contexts.get(&span_id) {
+            let span = ctx.context.span();
+            let span_context = span.span_context();
+            log_record.set_trace_context(
+                span_context.trace_id(),
+                span_context.span_id(),
+                Some(span_context.trace_flags()),
+            );
+        } else if let Some(ctx) = otel_spans.get(&span_id) {
+            let span = ctx.span();
+            let span_context = span.span_context();
+            log_record.set_trace_context(
+                span_context.trace_id(),
+                span_context.span_id(),
+                Some(span_context.trace_flags()),
+            );
+        }
+    }
+
+    logger.emit(log_record);
+    Json(OtelWriteLogReturn { success: true })
+}
+
+async fn otel_logs_flush(
+    State(state): State<AppState>,
+    Json(args): Json<FlushArgs>,
+) -> Json<OtelLogsFlushReturn> {
+    let provider = state.logger_provider.lock().unwrap().clone();
+    let Some(provider) = provider else {
+        return Json(OtelLogsFlushReturn {
+            success: false,
+            message: "Logger provider not initialized".to_string(),
+        });
+    };
+    let Ok(seconds) = u64::try_from(args.seconds) else {
+        return Json(OtelLogsFlushReturn {
+            success: false,
+            message: "Flush timeout must not be negative".to_string(),
+        });
+    };
+
+    // The SDK's synchronous flush must not block the async runtime. A timeout
+    // bounds this request; the worker still completes the SDK flush afterward.
+    let flush = tokio::task::spawn_blocking(move || provider.force_flush());
+    let result = tokio::time::timeout(Duration::from_secs(seconds), flush).await;
+    let (success, message) = match result {
+        Ok(Ok(Ok(()))) => (true, "SdkLoggerProvider".to_string()),
+        Ok(Ok(Err(error))) => (false, format!("Log flush failed: {error}")),
+        Ok(Err(error)) => (false, format!("Log flush worker failed: {error}")),
+        Err(_) => (false, format!("Log flush timed out after {seconds} seconds")),
+    };
+    Json(OtelLogsFlushReturn { success, message })
 }

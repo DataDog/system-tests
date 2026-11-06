@@ -21,19 +21,19 @@ class VirtualMachineProvisioner:
     ) -> "Provision":
         """Parse the provision files (main provision file and weblog provision file) and return a Provision object"""
 
-        YamlIncludeConstructor.add_to_loader_class(loader_class=yaml.FullLoader, base_dir=".")
+        YamlIncludeConstructor.add_to_loader_class(loader_class=yaml.SafeLoader, base_dir=".")
         provision = Provision(vm_provision_name)
         provision_file = f"utils/build/virtual_machine/provisions/{vm_provision_name}/provision.yml"
         weblog_provision_file = f"utils/build/virtual_machine/weblogs/{library_name}/provision_{weblog}.yml"
 
         provsion_raw_data = None
         with open(provision_file, encoding="utf-8") as f:
-            provsion_raw_data = yaml.load(f, Loader=yaml.FullLoader)
+            provsion_raw_data = yaml.load(f, Loader=yaml.SafeLoader)
         assert provsion_raw_data is not None, "Provision file is empty"
 
         weblog_raw_data = None
         with open(weblog_provision_file, encoding="utf-8") as f:
-            weblog_raw_data = yaml.load(f, Loader=yaml.FullLoader)
+            weblog_raw_data = yaml.load(f, Loader=yaml.SafeLoader)
         assert weblog_raw_data is not None, "Weblog provision file is empty"
         # Get environtment variables to be injected in the remote commands
         provision.env = self._get_env(env, library_name, provsion_raw_data)
@@ -173,6 +173,8 @@ class VirtualMachineProvisioner:
         installations = weblog["install"]
         # Use GIT does not work for windows machines
         ci_commit_branch = os.getenv("GITLAB_CI") if os_type != "windows" else None
+        # Only ruby uses git, because other languages don't need this checkout step,
+        # because they are handling less number of files
         installation = self._get_installation(
             env,
             library_name,
@@ -181,7 +183,7 @@ class VirtualMachineProvisioner:
             os_branch,
             os_cpu,
             installations,
-            use_git=ci_commit_branch is not None,
+            use_git=ci_commit_branch is not None and library_name == "ruby",
         )
         installation.id = weblog["name"]
         installation.nginx_config = weblog.get("nginx_config", None)

@@ -6,12 +6,12 @@ from collections.abc import Callable
 from utils import context
 from utils import features
 from utils import interfaces
-from utils import missing_feature
 from utils import remote_config as rc
 from utils import rfc
 from utils import scenarios
 from utils import weblog
 from utils.dd_constants import Capabilities, SamplingPriority
+from utils.dd_types import DataDogLibrarySpan, is_same_boolean
 
 
 def login_data(username: str, password: str):
@@ -24,6 +24,7 @@ def login_data(username: str, password: str):
 
 
 USER = "test"
+USER_EMAIL = "testuser@ddog.com"
 UUID_USER = "testuuid"
 PASSWORD = "1234"
 INVALID_USER = "invalidUser"
@@ -91,56 +92,55 @@ class Test_Login_Events:
 
     def test_login_pii_success_local(self):
         assert self.r_pii_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_pii_success):
+        for _, _, span in interfaces.library.get_spans(request=self.r_pii_success):
             meta = span.get("meta", {})
             assert "usr.id" not in meta
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "safe"
-            assert meta["appsec.events.users.login.success.track"] == "true"
-            assert_priority(span, trace)
+            assert_boolean_meta_tag(meta, "appsec.events.users.login.success.track")
+            assert_priority(span)
 
     def setup_login_pii_success_basic(self):
         self.r_pii_success = weblog.get("/login?auth=basic", headers={"Authorization": BASIC_AUTH_USER_HEADER})
 
     def test_login_pii_success_basic(self):
         assert self.r_pii_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_pii_success):
+        for _, _, span in interfaces.library.get_spans(request=self.r_pii_success):
             meta = span.get("meta", {})
             assert "usr.id" not in meta
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "safe"
-            assert meta["appsec.events.users.login.success.track"] == "true"
-            assert_priority(span, trace)
+            assert_boolean_meta_tag(meta, "appsec.events.users.login.success.track")
+            assert_priority(span)
 
     def setup_login_success_local(self):
         self.r_success = weblog.post("/login?auth=local", data=login_data(UUID_USER, PASSWORD))
 
     def test_login_success_local(self):
         assert self.r_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_success):
+        for _, _, span in interfaces.library.get_spans(request=self.r_success):
             meta = span.get("meta", {})
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "safe"
-            assert meta["appsec.events.users.login.success.track"] == "true"
+            assert_boolean_meta_tag(meta, "appsec.events.users.login.success.track")
             assert meta["usr.id"] == "591dc126-8431-4d0f-9509-b23318d3dce4"
-            assert_priority(span, trace)
+            assert_priority(span)
 
     def setup_login_success_basic(self):
         self.r_success = weblog.get("/login?auth=basic", headers={"Authorization": BASIC_AUTH_USER_UUID_HEADER})
 
     def test_login_success_basic(self):
         assert self.r_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_success):
+        for _, _, span in interfaces.library.get_spans(request=self.r_success):
             meta = span.get("meta", {})
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "safe"
-            assert meta["appsec.events.users.login.success.track"] == "true"
+            assert_boolean_meta_tag(meta, "appsec.events.users.login.success.track")
             assert meta["usr.id"] == "591dc126-8431-4d0f-9509-b23318d3dce4"
-            assert_priority(span, trace)
+            assert_priority(span)
 
     def setup_login_wrong_user_failure_local(self):
         self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(INVALID_USER, PASSWORD))
 
-    @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_wrong_user_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+        for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
             if context.library not in ("nodejs", "java"):
                 # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
@@ -149,18 +149,17 @@ class Test_Login_Events:
 
             assert "appsec.events.users.login.failure.usr.id" not in meta
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "safe"
-            assert meta["appsec.events.users.login.failure.track"] == "true"
-            assert_priority(span, trace)
+            assert_boolean_meta_tag(meta, "appsec.events.users.login.failure.track")
+            assert_priority(span)
 
     def setup_login_wrong_user_failure_basic(self):
         self.r_wrong_user_failure = weblog.get(
             "/login?auth=basic", headers={"Authorization": BASIC_AUTH_INVALID_USER_HEADER}
         )
 
-    @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_wrong_user_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+        for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
             if context.library not in ("nodejs", "java"):
                 # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
@@ -169,16 +168,15 @@ class Test_Login_Events:
 
             assert "appsec.events.users.login.failure.usr.id" not in meta
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "safe"
-            assert meta["appsec.events.users.login.failure.track"] == "true"
-            assert_priority(span, trace)
+            assert_boolean_meta_tag(meta, "appsec.events.users.login.failure.track")
+            assert_priority(span)
 
     def setup_login_wrong_password_failure_local(self):
         self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(USER, "12345"))
 
-    @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_wrong_password_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+        for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
             if context.library not in ("nodejs", "java"):
                 # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
@@ -187,28 +185,27 @@ class Test_Login_Events:
 
             assert "appsec.events.users.login.failure.usr.id" not in meta
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "safe"
-            assert meta["appsec.events.users.login.failure.track"] == "true"
-            assert_priority(span, trace)
+            assert_boolean_meta_tag(meta, "appsec.events.users.login.failure.track")
+            assert_priority(span)
 
     def setup_login_wrong_password_failure_basic(self):
         self.r_wrong_user_failure = weblog.get(
             "/login?auth=basic", headers={"Authorization": BASIC_AUTH_INVALID_PASSWORD_HEADER}
         )
 
-    @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_wrong_password_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+        for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
             if context.library not in ("nodejs", "java"):
                 # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
                 # this assertion is disabled for this library.
-                assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
+                assert_boolean_meta_tag(meta, "appsec.events.users.login.failure.usr.exists")
 
             assert "appsec.events.users.login.failure.usr.id" not in meta
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "safe"
-            assert meta["appsec.events.users.login.failure.track"] == "true"
-            assert_priority(span, trace)
+            assert_boolean_meta_tag(meta, "appsec.events.users.login.failure.track")
+            assert_priority(span)
 
     def setup_login_sdk_success_local(self):
         self.r_sdk_success = weblog.post(
@@ -218,13 +215,13 @@ class Test_Login_Events:
 
     def test_login_sdk_success_local(self):
         assert self.r_sdk_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_success):
+        for _, _, span in interfaces.library.get_spans(request=self.r_sdk_success):
             meta = span.get("meta", {})
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "safe"
             assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
-            assert meta["appsec.events.users.login.success.track"] == "true"
+            assert_boolean_meta_tag(meta, "appsec.events.users.login.success.track")
             assert meta["usr.id"] == "sdkUser"
-            assert_priority(span, trace)
+            assert_priority(span)
 
     def setup_login_sdk_success_basic(self):
         self.r_sdk_success = weblog.get(
@@ -234,13 +231,13 @@ class Test_Login_Events:
 
     def test_login_sdk_success_basic(self):
         assert self.r_sdk_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_success):
+        for _, _, span in interfaces.library.get_spans(request=self.r_sdk_success):
             meta = span.get("meta", {})
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "safe"
             assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
-            assert meta["appsec.events.users.login.success.track"] == "true"
+            assert_boolean_meta_tag(meta, "appsec.events.users.login.success.track")
             assert meta["usr.id"] == "sdkUser"
-            assert_priority(span, trace)
+            assert_priority(span)
 
     def setup_login_sdk_failure_local(self):
         self.r_sdk_failure = weblog.post(
@@ -248,17 +245,16 @@ class Test_Login_Events:
             data=login_data(INVALID_USER, PASSWORD),
         )
 
-    @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_sdk_failure_local(self):
         assert self.r_sdk_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_failure):
+        for _, _, span in interfaces.library.get_spans(request=self.r_sdk_failure):
             meta = span.get("meta", {})
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "safe"
             assert meta["_dd.appsec.events.users.login.failure.sdk"] == "true"
-            assert meta["appsec.events.users.login.failure.track"] == "true"
+            assert_boolean_meta_tag(meta, "appsec.events.users.login.failure.track")
             assert meta["appsec.events.users.login.failure.usr.id"] == "sdkUser"
             assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
-            assert_priority(span, trace)
+            assert_priority(span)
 
     def setup_login_sdk_failure_basic(self):
         self.r_sdk_failure = weblog.get(
@@ -266,17 +262,16 @@ class Test_Login_Events:
             headers={"Authorization": BASIC_AUTH_INVALID_USER_HEADER},
         )
 
-    @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_sdk_failure_basic(self):
         assert self.r_sdk_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_failure):
+        for _, _, span in interfaces.library.get_spans(request=self.r_sdk_failure):
             meta = span.get("meta", {})
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "safe"
             assert meta["_dd.appsec.events.users.login.failure.sdk"] == "true"
-            assert meta["appsec.events.users.login.failure.track"] == "true"
+            assert_boolean_meta_tag(meta, "appsec.events.users.login.failure.track")
             assert meta["appsec.events.users.login.failure.usr.id"] == "sdkUser"
             assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
-            assert_priority(span, trace)
+            assert_priority(span)
 
 
 @rfc("https://docs.google.com/document/d/1-trUpphvyZY7k5ldjhW-MgqWl0xOm7AMEQDJEAZ63_Q/edit#heading=h.8d3o7vtyu1y1")
@@ -290,7 +285,7 @@ class Test_Login_Events_Extended:
 
     def test_login_success_local(self):
         assert self.r_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_success):
+        for _, _, span in interfaces.library.get_spans(request=self.r_success):
             meta = span.get("meta", {})
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "extended"
             assert meta["appsec.events.users.login.success.track"] == "true"
@@ -314,14 +309,14 @@ class Test_Login_Events_Extended:
                 assert meta["usr.username"] == "test"
                 assert meta["usr.login"] == "test"
 
-            assert_priority(span, trace)
+            assert_priority(span)
 
     def setup_login_success_basic(self):
         self.r_success = weblog.get("/login?auth=basic", headers={"Authorization": BASIC_AUTH_USER_HEADER})
 
     def test_login_success_basic(self):
         assert self.r_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_success):
+        for _, _, span in interfaces.library.get_spans(request=self.r_success):
             meta = span.get("meta", {})
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "extended"
             assert meta["appsec.events.users.login.success.track"] == "true"
@@ -342,23 +337,22 @@ class Test_Login_Events_Extended:
                 assert meta["usr.login"] == "test"
                 assert meta["usr.email"] == "testuser@ddog.com"
 
-            assert_priority(span, trace)
+            assert_priority(span)
 
     def setup_login_wrong_user_failure_local(self):
         self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(INVALID_USER, PASSWORD))
 
-    @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_wrong_user_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+        for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
             if context.library not in ("nodejs", "java"):
                 # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
                 # this assertion is disabled for this library.
-                assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
+                assert_boolean_meta_tag(meta, "appsec.events.users.login.failure.usr.exists", expected="false")
 
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "extended"
-            assert meta["appsec.events.users.login.failure.track"] == "true"
+            assert_boolean_meta_tag(meta, "appsec.events.users.login.failure.track")
             if context.library == "ruby":
                 # In ruby we do not have access to the user object since it fails with invalid username
                 # For that reason we can not extract id, email or username
@@ -370,25 +364,24 @@ class Test_Login_Events_Extended:
                 assert meta["appsec.events.users.login.failure.username"] == INVALID_USER
             else:
                 assert meta["appsec.events.users.login.failure.usr.id"] == INVALID_USER
-            assert_priority(span, trace)
+            assert_priority(span)
 
     def setup_login_wrong_user_failure_basic(self):
         self.r_wrong_user_failure = weblog.get(
             "/login?auth=basic", headers={"Authorization": BASIC_AUTH_INVALID_USER_HEADER}
         )
 
-    @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_wrong_user_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+        for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
             if context.library not in ("nodejs", "java"):
                 # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
                 # this assertion is disabled for this library.
-                assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
+                assert_boolean_meta_tag(meta, "appsec.events.users.login.failure.usr.exists", expected="false")
 
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "extended"
-            assert meta["appsec.events.users.login.failure.track"] == "true"
+            assert_boolean_meta_tag(meta, "appsec.events.users.login.failure.track")
             if context.library == "ruby":
                 # In ruby we do not have access to the user object since it fails with invalid username
                 # For that reason we can not extract id, email or username
@@ -400,45 +393,43 @@ class Test_Login_Events_Extended:
                 assert meta["appsec.events.users.login.failure.username"] == INVALID_USER
             else:
                 assert meta["appsec.events.users.login.failure.usr.id"] == INVALID_USER
-            assert_priority(span, trace)
+            assert_priority(span)
 
     def setup_login_wrong_password_failure_local(self):
         self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(USER, "12345"))
 
-    @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_wrong_password_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+        for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
             if context.library in ("nodejs", "java"):
                 # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
                 # this assertion is disabled for this library.
                 assert meta["appsec.events.users.login.failure.usr.id"] == "test"
             else:
-                assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
+                assert_boolean_meta_tag(meta, "appsec.events.users.login.failure.usr.exists")
                 assert meta["appsec.events.users.login.failure.usr.id"] == "social-security-id"
                 assert meta["appsec.events.users.login.failure.email"] == "testuser@ddog.com"
                 assert meta["appsec.events.users.login.failure.username"] == "test"
 
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "extended"
-            assert meta["appsec.events.users.login.failure.track"] == "true"
+            assert_boolean_meta_tag(meta, "appsec.events.users.login.failure.track")
 
-            assert_priority(span, trace)
+            assert_priority(span)
 
     def setup_login_wrong_password_failure_basic(self):
         self.r_wrong_user_failure = weblog.get(
             "/login?auth=basic", headers={"Authorization": BASIC_AUTH_INVALID_PASSWORD_HEADER}
         )
 
-    @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_wrong_password_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+        for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
             if context.library not in ("nodejs", "java"):
                 # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
                 # this assertion is disabled for this library.
-                assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
+                assert_boolean_meta_tag(meta, "appsec.events.users.login.failure.usr.exists")
                 assert meta["appsec.events.users.login.failure.usr.id"] == "social-security-id"
                 assert meta["appsec.events.users.login.failure.email"] == "testuser@ddog.com"
                 assert meta["appsec.events.users.login.failure.username"] == "test"
@@ -446,9 +437,9 @@ class Test_Login_Events_Extended:
                 assert meta["appsec.events.users.login.failure.usr.id"] == "test"
 
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "extended"
-            assert meta["appsec.events.users.login.failure.track"] == "true"
+            assert_boolean_meta_tag(meta, "appsec.events.users.login.failure.track")
 
-            assert_priority(span, trace)
+            assert_priority(span)
 
     def setup_login_sdk_success_local(self):
         self.r_sdk_success = weblog.post(
@@ -458,13 +449,13 @@ class Test_Login_Events_Extended:
 
     def test_login_sdk_success_local(self):
         assert self.r_sdk_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_success):
+        for _, _, span in interfaces.library.get_spans(request=self.r_sdk_success):
             meta = span.get("meta", {})
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "extended"
             assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
             assert meta["appsec.events.users.login.success.track"] == "true"
             assert meta["usr.id"] == "sdkUser"
-            assert_priority(span, trace)
+            assert_priority(span)
 
     def setup_login_sdk_success_basic(self):
         self.r_sdk_success = weblog.get(
@@ -474,13 +465,13 @@ class Test_Login_Events_Extended:
 
     def test_login_sdk_success_basic(self):
         assert self.r_sdk_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_success):
+        for _, _, span in interfaces.library.get_spans(request=self.r_sdk_success):
             meta = span.get("meta", {})
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "extended"
             assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
             assert meta["appsec.events.users.login.success.track"] == "true"
             assert meta["usr.id"] == "sdkUser"
-            assert_priority(span, trace)
+            assert_priority(span)
 
     def setup_login_sdk_failure_basic(self):
         self.r_sdk_failure = weblog.get(
@@ -488,17 +479,16 @@ class Test_Login_Events_Extended:
             headers={"Authorization": BASIC_AUTH_INVALID_USER_HEADER},
         )
 
-    @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_sdk_failure_basic(self):
         assert self.r_sdk_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_failure):
+        for _, _, span in interfaces.library.get_spans(request=self.r_sdk_failure):
             meta = span.get("meta", {})
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "extended"
             assert meta["_dd.appsec.events.users.login.failure.sdk"] == "true"
-            assert meta["appsec.events.users.login.failure.track"] == "true"
+            assert_boolean_meta_tag(meta, "appsec.events.users.login.failure.track")
             assert meta["appsec.events.users.login.failure.usr.id"] == "sdkUser"
             assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
-            assert_priority(span, trace)
+            assert_priority(span)
 
     def setup_login_sdk_failure_local(self):
         self.r_sdk_failure = weblog.post(
@@ -506,17 +496,16 @@ class Test_Login_Events_Extended:
             data=login_data(INVALID_USER, PASSWORD),
         )
 
-    @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_sdk_failure_local(self):
         assert self.r_sdk_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_failure):
+        for _, _, span in interfaces.library.get_spans(request=self.r_sdk_failure):
             meta = span.get("meta", {})
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "extended"
             assert meta["_dd.appsec.events.users.login.failure.sdk"] == "true"
-            assert meta["appsec.events.users.login.failure.track"] == "true"
+            assert_boolean_meta_tag(meta, "appsec.events.users.login.failure.track")
             assert meta["appsec.events.users.login.failure.usr.id"] == "sdkUser"
             assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
-            assert_priority(span, trace)
+            assert_priority(span)
 
     def setup_login_success_headers(self):
         self.r_hdr_success = weblog.post(
@@ -528,7 +517,7 @@ class Test_Login_Events_Extended:
     def test_login_success_headers(self):
         # Validate that all relevant headers are included on user login success on extended mode
 
-        def validate_login_success_headers(span: dict):
+        def validate_login_success_headers(span: DataDogLibrarySpan):
             if span.get("parent_id") not in (0, None):
                 return None
 
@@ -548,7 +537,7 @@ class Test_Login_Events_Extended:
     def test_login_failure_headers(self):
         # Validate that all relevant headers are included on user login failure on extended mode
 
-        def validate_login_failure_headers(span: dict):
+        def validate_login_failure_headers(span: DataDogLibrarySpan):
             if span.get("parent_id") not in (0, None):
                 return None
 
@@ -588,7 +577,7 @@ class Test_V2_Login_Events:
 
     def test_login_pii_success_local(self):
         assert self.r_pii_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_pii_success):
+        for _, _, span in interfaces.library.get_spans(request=self.r_pii_success):
             meta = span.get("meta", {})
             assert "usr.id" in meta
             assert meta["usr.id"] == "social-security-id"
@@ -598,14 +587,14 @@ class Test_V2_Login_Events:
             assert "appsec.events.users.login.success.login" not in meta
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "identification"
             assert meta["appsec.events.users.login.success.track"] == "true"
-            assert_priority(span, trace)
+            assert_priority(span)
 
     def setup_login_pii_success_basic(self):
         self.r_pii_success = weblog.get("/login?auth=basic", headers={"Authorization": BASIC_AUTH_USER_HEADER})
 
     def test_login_pii_success_basic(self):
         assert self.r_pii_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_pii_success):
+        for _, _, span in interfaces.library.get_spans(request=self.r_pii_success):
             meta = span.get("meta", {})
             assert "usr.id" in meta
             assert meta["usr.id"] == "social-security-id"
@@ -615,14 +604,14 @@ class Test_V2_Login_Events:
             assert "appsec.events.users.login.success.login" not in meta
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "identification"
             assert meta["appsec.events.users.login.success.track"] == "true"
-            assert_priority(span, trace)
+            assert_priority(span)
 
     def setup_login_success_local(self):
         self.r_success = weblog.post("/login?auth=local", data=login_data(UUID_USER, PASSWORD))
 
     def test_login_success_local(self):
         assert self.r_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_success):
+        for _, _, span in interfaces.library.get_spans(request=self.r_success):
             meta = span.get("meta", {})
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "identification"
             assert meta["appsec.events.users.login.success.track"] == "true"
@@ -631,14 +620,14 @@ class Test_V2_Login_Events:
             assert "appsec.events.users.login.success.email" not in meta
             assert "appsec.events.users.login.success.username" not in meta
             assert "appsec.events.users.login.success.login" not in meta
-            assert_priority(span, trace)
+            assert_priority(span)
 
     def setup_login_success_basic(self):
         self.r_success = weblog.get("/login?auth=basic", headers={"Authorization": BASIC_AUTH_USER_UUID_HEADER})
 
     def test_login_success_basic(self):
         assert self.r_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_success):
+        for _, _, span in interfaces.library.get_spans(request=self.r_success):
             meta = span.get("meta", {})
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "identification"
             assert meta["appsec.events.users.login.success.track"] == "true"
@@ -647,14 +636,14 @@ class Test_V2_Login_Events:
             assert "appsec.events.users.login.success.email" not in meta
             assert "appsec.events.users.login.success.username" not in meta
             assert "appsec.events.users.login.success.login" not in meta
-            assert_priority(span, trace)
+            assert_priority(span)
 
     def setup_login_wrong_user_failure_local(self):
         self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(INVALID_USER, PASSWORD))
 
     def test_login_wrong_user_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+        for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
             if context.library not in ("nodejs", "java"):
                 # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
@@ -666,7 +655,7 @@ class Test_V2_Login_Events:
             assert "appsec.events.users.login.failure.usr.login" not in meta
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "identification"
             assert meta["appsec.events.users.login.failure.track"] == "true"
-            assert_priority(span, trace)
+            assert_priority(span)
 
     def setup_login_wrong_user_failure_basic(self):
         self.r_wrong_user_failure = weblog.get(
@@ -675,7 +664,7 @@ class Test_V2_Login_Events:
 
     def test_login_wrong_user_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+        for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
             if context.library not in ("nodejs", "java"):
                 # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
@@ -687,19 +676,19 @@ class Test_V2_Login_Events:
             assert "appsec.events.users.login.failure.usr.login" not in meta
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "identification"
             assert meta["appsec.events.users.login.failure.track"] == "true"
-            assert_priority(span, trace)
+            assert_priority(span)
 
     def setup_login_wrong_password_failure_local(self):
         self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(USER, "12345"))
 
     def test_login_wrong_password_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+        for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
             if context.library not in ("nodejs", "java"):
                 # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
                 # this assertion is disabled for this library.
-                assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
+                assert_boolean_meta_tag(meta, "appsec.events.users.login.failure.usr.exists")
 
             assert "appsec.events.users.login.failure.usr.id" in meta
             if context.library == "java":
@@ -712,7 +701,7 @@ class Test_V2_Login_Events:
             assert "appsec.events.users.login.failure.usr.login" not in meta
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "identification"
             assert meta["appsec.events.users.login.failure.track"] == "true"
-            assert_priority(span, trace)
+            assert_priority(span)
 
     def setup_login_wrong_password_failure_basic(self):
         self.r_wrong_user_failure = weblog.get(
@@ -721,7 +710,7 @@ class Test_V2_Login_Events:
 
     def test_login_wrong_password_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+        for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
             if context.library not in ("nodejs", "java"):
                 # Currently in nodejs/java there is no way to check if the user exists upon authentication failure so
@@ -738,7 +727,7 @@ class Test_V2_Login_Events:
             assert "appsec.events.users.login.failure.usr.login" not in meta
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "identification"
             assert meta["appsec.events.users.login.failure.track"] == "true"
-            assert_priority(span, trace)
+            assert_priority(span)
 
     def setup_login_sdk_success_local(self):
         self.r_sdk_success = weblog.post(
@@ -748,13 +737,13 @@ class Test_V2_Login_Events:
 
     def test_login_sdk_success_local(self):
         assert self.r_sdk_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_success):
+        for _, _, span in interfaces.library.get_spans(request=self.r_sdk_success):
             meta = span.get("meta", {})
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "identification"
             assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
             assert meta["appsec.events.users.login.success.track"] == "true"
             assert meta["usr.id"] == "sdkUser"
-            assert_priority(span, trace)
+            assert_priority(span)
 
     def setup_login_sdk_success_basic(self):
         self.r_sdk_success = weblog.get(
@@ -764,13 +753,13 @@ class Test_V2_Login_Events:
 
     def test_login_sdk_success_basic(self):
         assert self.r_sdk_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_success):
+        for _, _, span in interfaces.library.get_spans(request=self.r_sdk_success):
             meta = span.get("meta", {})
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "identification"
             assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
             assert meta["appsec.events.users.login.success.track"] == "true"
             assert meta["usr.id"] == "sdkUser"
-            assert_priority(span, trace)
+            assert_priority(span)
 
     def setup_login_sdk_failure_local(self):
         self.r_sdk_failure = weblog.post(
@@ -780,14 +769,14 @@ class Test_V2_Login_Events:
 
     def test_login_sdk_failure_local(self):
         assert self.r_sdk_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_failure):
+        for _, _, span in interfaces.library.get_spans(request=self.r_sdk_failure):
             meta = span.get("meta", {})
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "identification"
             assert meta["_dd.appsec.events.users.login.failure.sdk"] == "true"
             assert meta["appsec.events.users.login.failure.track"] == "true"
             assert meta["appsec.events.users.login.failure.usr.id"] == "sdkUser"
             assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
-            assert_priority(span, trace)
+            assert_priority(span)
 
     def setup_login_sdk_failure_basic(self):
         self.r_sdk_failure = weblog.get(
@@ -797,14 +786,14 @@ class Test_V2_Login_Events:
 
     def test_login_sdk_failure_basic(self):
         assert self.r_sdk_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_failure):
+        for _, _, span in interfaces.library.get_spans(request=self.r_sdk_failure):
             meta = span.get("meta", {})
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "identification"
             assert meta["_dd.appsec.events.users.login.failure.sdk"] == "true"
             assert meta["appsec.events.users.login.failure.track"] == "true"
             assert meta["appsec.events.users.login.failure.usr.id"] == "sdkUser"
             assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
-            assert_priority(span, trace)
+            assert_priority(span)
 
 
 @rfc("https://docs.google.com/document/d/19VHLdJLVFwRb_JrE87fmlIM5CL5LdOBv4AmLxgdo9qI/edit")
@@ -821,7 +810,7 @@ class Test_V2_Login_Events_Anon:
 
     def test_login_success_local(self):
         assert self.r_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_success):
+        for _, _, span in interfaces.library.get_spans(request=self.r_success):
             meta = span.get("meta", {})
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "anonymization"
             assert meta["appsec.events.users.login.success.track"] == "true"
@@ -834,14 +823,14 @@ class Test_V2_Login_Events_Anon:
             # "usr.username" not in meta
             # "usr.login" not in meta
 
-            assert_priority(span, trace)
+            assert_priority(span)
 
     def setup_login_success_basic(self):
         self.r_success = weblog.get("/login?auth=basic", headers={"Authorization": BASIC_AUTH_USER_HEADER})
 
     def test_login_success_basic(self):
         assert self.r_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_success):
+        for _, _, span in interfaces.library.get_spans(request=self.r_success):
             meta = span.get("meta", {})
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "anonymization"
             assert meta["appsec.events.users.login.success.track"] == "true"
@@ -854,14 +843,14 @@ class Test_V2_Login_Events_Anon:
             # "usr.username" not in meta
             # "usr.login" not in meta
 
-            assert_priority(span, trace)
+            assert_priority(span)
 
     def setup_login_wrong_user_failure_local(self):
         self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(INVALID_USER, PASSWORD))
 
     def test_login_wrong_user_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+        for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
             assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
 
@@ -872,7 +861,7 @@ class Test_V2_Login_Events_Anon:
             assert "appsec.events.users.login.failure.email" not in meta
             assert "appsec.events.users.login.failure.username" not in meta
 
-            assert_priority(span, trace)
+            assert_priority(span)
 
     def setup_login_wrong_user_failure_basic(self):
         self.r_wrong_user_failure = weblog.get(
@@ -881,7 +870,7 @@ class Test_V2_Login_Events_Anon:
 
     def test_login_wrong_user_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+        for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
             assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
 
@@ -892,14 +881,14 @@ class Test_V2_Login_Events_Anon:
             assert "appsec.events.users.login.failure.email" not in meta
             assert "appsec.events.users.login.failure.username" not in meta
 
-            assert_priority(span, trace)
+            assert_priority(span)
 
     def setup_login_wrong_password_failure_local(self):
         self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(USER, "12345"))
 
     def test_login_wrong_password_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+        for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
             if context.library != "java":
                 # Currently in java there is no way to check if the user exists upon authentication failure so
@@ -917,7 +906,7 @@ class Test_V2_Login_Events_Anon:
             assert "appsec.events.users.login.failure.email" not in meta
             assert "appsec.events.users.login.failure.username" not in meta
 
-            assert_priority(span, trace)
+            assert_priority(span)
 
     def setup_login_wrong_password_failure_basic(self):
         self.r_wrong_user_failure = weblog.get(
@@ -926,7 +915,7 @@ class Test_V2_Login_Events_Anon:
 
     def test_login_wrong_password_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+        for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
             meta = span.get("meta", {})
             if context.library != "java":
                 # Currently in java there is no way to check if the user exists upon authentication failure so
@@ -944,7 +933,7 @@ class Test_V2_Login_Events_Anon:
             assert "appsec.events.users.login.failure.email" not in meta
             assert "appsec.events.users.login.failure.username" not in meta
 
-            assert_priority(span, trace)
+            assert_priority(span)
 
     def setup_login_sdk_success_local(self):
         self.r_sdk_success = weblog.post(
@@ -954,13 +943,13 @@ class Test_V2_Login_Events_Anon:
 
     def test_login_sdk_success_local(self):
         assert self.r_sdk_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_success):
+        for _, _, span in interfaces.library.get_spans(request=self.r_sdk_success):
             meta = span.get("meta", {})
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "anonymization"
             assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
             assert meta["appsec.events.users.login.success.track"] == "true"
             assert meta["usr.id"] == "sdkUser"
-            assert_priority(span, trace)
+            assert_priority(span)
 
     def setup_login_sdk_success_basic(self):
         self.r_sdk_success = weblog.get(
@@ -970,13 +959,13 @@ class Test_V2_Login_Events_Anon:
 
     def test_login_sdk_success_basic(self):
         assert self.r_sdk_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_success):
+        for _, _, span in interfaces.library.get_spans(request=self.r_sdk_success):
             meta = span.get("meta", {})
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "anonymization"
             assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
             assert meta["appsec.events.users.login.success.track"] == "true"
             assert meta["usr.id"] == "sdkUser"
-            assert_priority(span, trace)
+            assert_priority(span)
 
     def setup_login_sdk_failure_basic(self):
         self.r_sdk_failure = weblog.get(
@@ -986,14 +975,14 @@ class Test_V2_Login_Events_Anon:
 
     def test_login_sdk_failure_basic(self):
         assert self.r_sdk_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_failure):
+        for _, _, span in interfaces.library.get_spans(request=self.r_sdk_failure):
             meta = span.get("meta", {})
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "anonymization"
             assert meta["_dd.appsec.events.users.login.failure.sdk"] == "true"
             assert meta["appsec.events.users.login.failure.track"] == "true"
             assert meta["appsec.events.users.login.failure.usr.id"] == "sdkUser"
             assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
-            assert_priority(span, trace)
+            assert_priority(span)
 
     def setup_login_sdk_failure_local(self):
         self.r_sdk_failure = weblog.post(
@@ -1003,14 +992,14 @@ class Test_V2_Login_Events_Anon:
 
     def test_login_sdk_failure_local(self):
         assert self.r_sdk_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_sdk_failure):
+        for _, _, span in interfaces.library.get_spans(request=self.r_sdk_failure):
             meta = span.get("meta", {})
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "anonymization"
             assert meta["_dd.appsec.events.users.login.failure.sdk"] == "true"
             assert meta["appsec.events.users.login.failure.track"] == "true"
             assert meta["appsec.events.users.login.failure.usr.id"] == "sdkUser"
             assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
-            assert_priority(span, trace)
+            assert_priority(span)
 
     def setup_login_success_headers(self):
         self.r_hdr_success = weblog.post(
@@ -1022,7 +1011,7 @@ class Test_V2_Login_Events_Anon:
     def test_login_success_headers(self):
         # Validate that all relevant headers are included on user login success on extended mode
 
-        def validate_login_success_headers(span: dict):
+        def validate_login_success_headers(span: DataDogLibrarySpan):
             if span.get("parent_id") not in (0, None):
                 return None
 
@@ -1042,7 +1031,7 @@ class Test_V2_Login_Events_Anon:
     def test_login_failure_headers(self):
         # Validate that all relevant headers are included on user login failure on extended mode
 
-        def validate_login_failure_headers(span: dict):
+        def validate_login_failure_headers(span: DataDogLibrarySpan):
             if span.get("parent_id") not in (0, None):
                 return None
 
@@ -1053,12 +1042,18 @@ class Test_V2_Login_Events_Anon:
         interfaces.library.validate_one_span(self.r_hdr_failure, validator=validate_login_failure_headers)
 
 
-def assert_priority(span: dict, trace: list[dict]):
-    if "_sampling_priority_v1" not in span["metrics"]:
-        # some tracers like java only send the priority in the first and last span of the trace
-        assert trace[0]["metrics"].get("_sampling_priority_v1") == SamplingPriority.USER_KEEP
-    else:
-        assert span["metrics"].get("_sampling_priority_v1") == SamplingPriority.USER_KEEP
+def assert_priority(span: DataDogLibrarySpan):
+    sampling_priority = span.get_sampling_priority()
+
+    assert sampling_priority == SamplingPriority.USER_KEEP, (
+        f"Expected sampling priority {SamplingPriority.USER_KEEP}, got {sampling_priority}"
+    )
+
+
+def assert_boolean_meta_tag(meta: dict, key: str, *, expected: bool | str = "true"):
+    assert is_same_boolean(actual=meta[key], expected=expected), (
+        f"Unexpected boolean value for tag {key}: actual={meta[key]!r}, expected={expected!r}"
+    )
 
 
 @rfc("https://docs.google.com/document/d/19VHLdJLVFwRb_JrE87fmlIM5CL5LdOBv4AmLxgdo9qI/edit")
@@ -1159,6 +1154,33 @@ libs_without_user_id = ["java"]
 libs_without_user_exist = ["nodejs", "java"]
 libs_without_user_id_on_failure = ["nodejs", "java"]
 
+# Weblog variants that omit appsec.events.users.login.failure.usr.exists (library-wide skips use libs_without_user_exist).
+weblogs_without_user_exist = ["laravel11x", "symfony7x"]
+
+# Weblog variants that omit usr.id on login failure (library-wide: libs_without_user_id_on_failure).
+weblogs_without_user_id_on_failure = ["laravel11x", "symfony7x"]
+
+# Weblog variants that omit usr.id on login success (library-wide: libs_without_user_id).
+weblogs_without_user_id = ["symfony7x"]
+
+
+def login_failure_includes_usr_exists_meta() -> bool:
+    """True when this library and weblog emit usr.exists on login failure spans."""
+    return context.library not in libs_without_user_exist and context.weblog_variant not in weblogs_without_user_exist
+
+
+def login_failure_includes_usr_id_meta() -> bool:
+    """True when this library and weblog emit usr.id on login failure spans."""
+    return (
+        context.library not in libs_without_user_id_on_failure
+        and context.weblog_variant not in weblogs_without_user_id_on_failure
+    )
+
+
+def login_success_includes_usr_id_meta() -> bool:
+    """True when this library and weblog emit usr.id on login success spans."""
+    return context.library not in libs_without_user_id and context.weblog_variant not in weblogs_without_user_id
+
 
 @rfc("https://docs.google.com/document/d/1RT38U6dTTcB-8muiYV4-aVDCsT_XrliyakjtAPyjUpw")
 @features.user_monitoring
@@ -1199,18 +1221,20 @@ class Test_V3_Login_Events:
 
     def test_login_success_local(self):
         assert self.r_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_success):
-            assert_priority(span, trace)
+        for _, _, span in interfaces.library.get_spans(request=self.r_success):
+            assert_priority(span)
             meta = span.get("meta", {})
 
+            login = USER
+
             # mandatory
-            assert meta["appsec.events.users.login.success.usr.login"] == USER
-            assert meta["_dd.appsec.usr.login"] == USER
+            assert meta["appsec.events.users.login.success.usr.login"] == login
+            assert meta["_dd.appsec.usr.login"] == login
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "identification"
-            assert meta["appsec.events.users.login.success.track"] == "true"
+            assert_boolean_meta_tag(meta, "appsec.events.users.login.success.track")
 
             # optional (to review for each library)
-            if context.library not in libs_without_user_id:
+            if login_success_includes_usr_id_meta():
                 assert meta["usr.id"] == "social-security-id"
                 assert meta["_dd.appsec.usr.id"] == "social-security-id"
 
@@ -1219,18 +1243,20 @@ class Test_V3_Login_Events:
 
     def test_login_success_basic(self):
         assert self.r_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_success):
-            assert_priority(span, trace)
+        for _, _, span in interfaces.library.get_spans(request=self.r_success):
+            assert_priority(span)
             meta = span.get("meta", {})
 
+            login = USER
+
             # mandatory
-            assert meta["appsec.events.users.login.success.usr.login"] == USER
-            assert meta["_dd.appsec.usr.login"] == USER
+            assert meta["appsec.events.users.login.success.usr.login"] == login
+            assert meta["_dd.appsec.usr.login"] == login
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "identification"
-            assert meta["appsec.events.users.login.success.track"] == "true"
+            assert_boolean_meta_tag(meta, "appsec.events.users.login.success.track")
 
             # optional (to review for each library)
-            if context.library not in libs_without_user_id:
+            if login_success_includes_usr_id_meta():
                 assert meta["usr.id"] == "social-security-id"
                 assert meta["_dd.appsec.usr.id"] == "social-security-id"
 
@@ -1239,18 +1265,18 @@ class Test_V3_Login_Events:
 
     def test_login_wrong_user_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
-            assert_priority(span, trace)
+        for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+            assert_priority(span)
             meta = span.get("meta", {})
 
             # mandatory
             assert meta["appsec.events.users.login.failure.usr.login"] == INVALID_USER
             assert meta["_dd.appsec.usr.login"] == INVALID_USER
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "identification"
-            assert meta["appsec.events.users.login.failure.track"] == "true"
+            assert_boolean_meta_tag(meta, "appsec.events.users.login.failure.track")
 
             # optional (to review for each library)
-            if context.library not in libs_without_user_exist:
+            if login_failure_includes_usr_exists_meta():
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
 
     def setup_login_wrong_user_failure_basic(self):
@@ -1260,18 +1286,18 @@ class Test_V3_Login_Events:
 
     def test_login_wrong_user_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
-            assert_priority(span, trace)
+        for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+            assert_priority(span)
             meta = span.get("meta", {})
 
             # mandatory
             assert meta["appsec.events.users.login.failure.usr.login"] == INVALID_USER
             assert meta["_dd.appsec.usr.login"] == INVALID_USER
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "identification"
-            assert meta["appsec.events.users.login.failure.track"] == "true"
+            assert_boolean_meta_tag(meta, "appsec.events.users.login.failure.track")
 
             # optional (to review for each library)
-            if context.library not in libs_without_user_exist:
+            if login_failure_includes_usr_exists_meta():
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
 
     def setup_login_wrong_password_failure_local(self):
@@ -1279,21 +1305,21 @@ class Test_V3_Login_Events:
 
     def test_login_wrong_password_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
-            assert_priority(span, trace)
+        for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+            assert_priority(span)
             meta = span.get("meta", {})
 
             # mandatory
             assert meta["appsec.events.users.login.failure.usr.login"] == USER
             assert meta["_dd.appsec.usr.login"] == USER
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "identification"
-            assert meta["appsec.events.users.login.failure.track"] == "true"
+            assert_boolean_meta_tag(meta, "appsec.events.users.login.failure.track")
 
             # optional (to review for each library)
-            if context.library not in libs_without_user_exist:
+            if login_failure_includes_usr_exists_meta():
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
 
-            if context.library not in libs_without_user_id_on_failure:
+            if login_failure_includes_usr_id_meta():
                 assert meta["appsec.events.users.login.failure.usr.id"] == "social-security-id"
                 assert meta["_dd.appsec.usr.id"] == "social-security-id"
 
@@ -1304,21 +1330,21 @@ class Test_V3_Login_Events:
 
     def test_login_wrong_password_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
-            assert_priority(span, trace)
+        for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+            assert_priority(span)
             meta = span.get("meta", {})
 
             # mandatory
             assert meta["appsec.events.users.login.failure.usr.login"] == USER
             assert meta["_dd.appsec.usr.login"] == USER
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "identification"
-            assert meta["appsec.events.users.login.failure.track"] == "true"
+            assert_boolean_meta_tag(meta, "appsec.events.users.login.failure.track")
 
             # optional (to review for each library)
-            if context.library not in libs_without_user_exist:
+            if login_failure_includes_usr_exists_meta():
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
 
-            if context.library not in libs_without_user_id_on_failure:
+            if login_failure_includes_usr_id_meta():
                 assert meta["appsec.events.users.login.failure.usr.id"] == "social-security-id"
                 assert meta["_dd.appsec.usr.id"] == "social-security-id"
 
@@ -1334,19 +1360,19 @@ class Test_V3_Login_Events:
     def test_login_sdk_success_local(self):
         for request in self.r_sdk_success:
             assert request.status_code == 200
-            for _, trace, span in interfaces.library.get_spans(request=request):
-                assert_priority(span, trace)
+            for _, _, span in interfaces.library.get_spans(request=request):
+                assert_priority(span)
                 meta = span.get("meta", {})
 
                 # mandatory
                 assert meta["appsec.events.users.login.success.usr.login"] == "sdkUser"
                 assert meta["_dd.appsec.usr.login"] == USER
                 assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "identification"
-                assert meta["appsec.events.users.login.success.track"] == "true"
-                assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
+                assert_boolean_meta_tag(meta, "appsec.events.users.login.success.track")
+                assert_boolean_meta_tag(meta, "_dd.appsec.events.users.login.success.sdk")
 
                 # optional (to review for each library)
-                if context.library not in libs_without_user_id:
+                if login_success_includes_usr_id_meta():
                     assert meta["usr.id"] == "sdkUser"
                     assert meta["_dd.appsec.usr.id"] == "social-security-id"
 
@@ -1362,19 +1388,21 @@ class Test_V3_Login_Events:
     def test_login_sdk_success_basic(self):
         for request in self.r_sdk_success:
             assert request.status_code == 200
-            for _, trace, span in interfaces.library.get_spans(request=request):
-                assert_priority(span, trace)
+            for _, _, span in interfaces.library.get_spans(request=request):
+                assert_priority(span)
                 meta = span.get("meta", {})
+
+                login = USER
 
                 # mandatory
                 assert meta["appsec.events.users.login.success.usr.login"] == "sdkUser"
-                assert meta["_dd.appsec.usr.login"] == USER
+                assert meta["_dd.appsec.usr.login"] == login
                 assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "identification"
-                assert meta["appsec.events.users.login.success.track"] == "true"
-                assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
+                assert_boolean_meta_tag(meta, "appsec.events.users.login.success.track")
+                assert_boolean_meta_tag(meta, "_dd.appsec.events.users.login.success.sdk")
 
                 # optional (to review for each library)
-                if context.library not in libs_without_user_id:
+                if login_success_includes_usr_id_meta():
                     assert meta["usr.id"] == "sdkUser"
                     assert meta["_dd.appsec.usr.id"] == "social-security-id"
 
@@ -1390,17 +1418,17 @@ class Test_V3_Login_Events:
     def test_login_sdk_failure_local(self):
         for request in self.r_sdk_failure:
             assert request.status_code == 401
-            for _, trace, span in interfaces.library.get_spans(request=request):
-                assert_priority(span, trace)
+            for _, _, span in interfaces.library.get_spans(request=request):
+                assert_priority(span)
                 meta = span.get("meta", {})
 
                 # mandatory
                 assert meta["appsec.events.users.login.failure.usr.login"] == "sdkUser"
                 assert meta["_dd.appsec.usr.login"] == INVALID_USER
                 assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "identification"
-                assert meta["appsec.events.users.login.failure.track"] == "true"
-                assert meta["_dd.appsec.events.users.login.failure.sdk"] == "true"
-                assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
+                assert_boolean_meta_tag(meta, "appsec.events.users.login.failure.track")
+                assert_boolean_meta_tag(meta, "_dd.appsec.events.users.login.failure.sdk")
+                assert_boolean_meta_tag(meta, "appsec.events.users.login.failure.usr.exists")
 
     def setup_login_sdk_failure_basic(self):
         self.r_sdk_failure = [
@@ -1414,35 +1442,35 @@ class Test_V3_Login_Events:
     def test_login_sdk_failure_basic(self):
         for request in self.r_sdk_failure:
             assert request.status_code == 401
-            for _, trace, span in interfaces.library.get_spans(request=request):
-                assert_priority(span, trace)
+            for _, _, span in interfaces.library.get_spans(request=request):
+                assert_priority(span)
                 meta = span.get("meta", {})
 
                 # mandatory
                 assert meta["appsec.events.users.login.failure.usr.login"] == "sdkUser"
                 assert meta["_dd.appsec.usr.login"] == INVALID_USER
                 assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "identification"
-                assert meta["appsec.events.users.login.failure.track"] == "true"
-                assert meta["_dd.appsec.events.users.login.failure.sdk"] == "true"
-                assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
+                assert_boolean_meta_tag(meta, "appsec.events.users.login.failure.track")
+                assert_boolean_meta_tag(meta, "_dd.appsec.events.users.login.failure.sdk")
+                assert_boolean_meta_tag(meta, "appsec.events.users.login.failure.usr.exists")
 
     def setup_signup_local(self):
         self.r_success = weblog.post("/signup", data=login_data(NEW_USER, PASSWORD))
 
     def test_signup_local(self):
         assert self.r_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_success):
-            assert_priority(span, trace)
+        for _, _, span in interfaces.library.get_spans(request=self.r_success):
+            assert_priority(span)
             meta = span.get("meta", {})
 
             # mandatory
             assert meta["appsec.events.users.signup.usr.login"] == NEW_USER
             assert meta["_dd.appsec.usr.login"] == NEW_USER
             assert meta["_dd.appsec.events.users.signup.auto.mode"] == "identification"
-            assert meta["appsec.events.users.signup.track"] == "true"
+            assert_boolean_meta_tag(meta, "appsec.events.users.signup.track")
 
             # optional (to review for each library)
-            if context.library not in libs_without_user_id:
+            if login_success_includes_usr_id_meta():
                 assert meta["appsec.events.users.signup.usr.id"] == "new-user"
                 assert meta["_dd.appsec.usr.id"] == "new-user"
 
@@ -1456,7 +1484,7 @@ class Test_V3_Login_Events:
     def test_login_success_headers(self):
         # Validate that all relevant headers are included on user login success on extended mode
 
-        def validate_login_success_headers(span: dict):
+        def validate_login_success_headers(span: DataDogLibrarySpan):
             if span.get("parent_id") not in (0, None):
                 return None
 
@@ -1476,7 +1504,7 @@ class Test_V3_Login_Events:
     def test_login_failure_headers(self):
         # Validate that all relevant headers are included on user login failure on extended mode
 
-        def validate_login_failure_headers(span: dict):
+        def validate_login_failure_headers(span: DataDogLibrarySpan):
             if span.get("parent_id") not in (0, None):
                 return None
 
@@ -1501,18 +1529,18 @@ class Test_V3_Login_Events_Anon:
 
     def test_login_success_local(self):
         assert self.r_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_success):
-            assert_priority(span, trace)
+        for _, _, span in interfaces.library.get_spans(request=self.r_success):
+            assert_priority(span)
             meta = span.get("meta", {})
 
             # mandatory
             assert meta["appsec.events.users.login.success.usr.login"] == USERNAME_HASH
             assert meta["_dd.appsec.usr.login"] == USERNAME_HASH
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "anonymization"
-            assert meta["appsec.events.users.login.success.track"] == "true"
+            assert is_same_boolean(actual=meta["appsec.events.users.login.success.track"], expected="true")
 
             # optional (to review for each library)
-            if context.library not in libs_without_user_id:
+            if login_success_includes_usr_id_meta():
                 assert meta["usr.id"] == USER_HASH
                 assert meta["_dd.appsec.usr.id"] == USER_HASH
 
@@ -1521,18 +1549,18 @@ class Test_V3_Login_Events_Anon:
 
     def test_login_success_basic(self):
         assert self.r_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_success):
-            assert_priority(span, trace)
+        for _, _, span in interfaces.library.get_spans(request=self.r_success):
+            assert_priority(span)
             meta = span.get("meta", {})
 
             # mandatory
             assert meta["appsec.events.users.login.success.usr.login"] == USERNAME_HASH
             assert meta["_dd.appsec.usr.login"] == USERNAME_HASH
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "anonymization"
-            assert meta["appsec.events.users.login.success.track"] == "true"
+            assert is_same_boolean(actual=meta["appsec.events.users.login.success.track"], expected="true")
 
             # optional (to review for each library)
-            if context.library not in libs_without_user_id:
+            if login_success_includes_usr_id_meta():
                 assert meta["usr.id"] == USER_HASH
                 assert meta["_dd.appsec.usr.id"] == USER_HASH
 
@@ -1541,19 +1569,19 @@ class Test_V3_Login_Events_Anon:
 
     def test_login_wrong_user_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
-            assert_priority(span, trace)
+        for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+            assert_priority(span)
             meta = span.get("meta", {})
 
             # mandatory
             assert meta["appsec.events.users.login.failure.usr.login"] == INVALID_USER_HASH
             assert meta["_dd.appsec.usr.login"] == INVALID_USER_HASH
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "anonymization"
-            assert meta["appsec.events.users.login.failure.track"] == "true"
+            assert is_same_boolean(actual=meta["appsec.events.users.login.failure.track"], expected="true")
 
             # optional (to review for each library)
-            if context.library not in libs_without_user_exist:
-                assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
+            if login_failure_includes_usr_exists_meta():
+                assert is_same_boolean(actual=meta["appsec.events.users.login.failure.usr.exists"], expected="false")
 
     def setup_login_wrong_user_failure_basic(self):
         self.r_wrong_user_failure = weblog.get(
@@ -1562,40 +1590,40 @@ class Test_V3_Login_Events_Anon:
 
     def test_login_wrong_user_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
-            assert_priority(span, trace)
+        for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+            assert_priority(span)
             meta = span.get("meta", {})
 
             # mandatory
             assert meta["appsec.events.users.login.failure.usr.login"] == INVALID_USER_HASH
             assert meta["_dd.appsec.usr.login"] == INVALID_USER_HASH
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "anonymization"
-            assert meta["appsec.events.users.login.failure.track"] == "true"
+            assert is_same_boolean(actual=meta["appsec.events.users.login.failure.track"], expected="true")
 
             # optional (to review for each library)
-            if context.library not in libs_without_user_exist:
-                assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
+            if login_failure_includes_usr_exists_meta():
+                assert is_same_boolean(actual=meta["appsec.events.users.login.failure.usr.exists"], expected="false")
 
     def setup_login_wrong_password_failure_local(self):
         self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(USER, "12345"))
 
     def test_login_wrong_password_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
-            assert_priority(span, trace)
+        for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+            assert_priority(span)
             meta = span.get("meta", {})
 
             # mandatory
             assert meta["appsec.events.users.login.failure.usr.login"] == USERNAME_HASH
             assert meta["_dd.appsec.usr.login"] == USERNAME_HASH
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "anonymization"
-            assert meta["appsec.events.users.login.failure.track"] == "true"
+            assert is_same_boolean(actual=meta["appsec.events.users.login.failure.track"], expected="true")
 
             # optional (to review for each library)
-            if context.library not in libs_without_user_exist:
-                assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
+            if login_failure_includes_usr_exists_meta():
+                assert is_same_boolean(actual=meta["appsec.events.users.login.failure.usr.exists"], expected="true")
 
-            if context.library not in libs_without_user_id_on_failure:
+            if login_failure_includes_usr_id_meta():
                 assert meta["appsec.events.users.login.failure.usr.id"] == USER_HASH
                 assert meta["_dd.appsec.usr.id"] == USER_HASH
 
@@ -1606,21 +1634,21 @@ class Test_V3_Login_Events_Anon:
 
     def test_login_wrong_password_failure_basic(self):
         assert self.r_wrong_user_failure.status_code == 401
-        for _, trace, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
-            assert_priority(span, trace)
+        for _, _, span in interfaces.library.get_spans(request=self.r_wrong_user_failure):
+            assert_priority(span)
             meta = span.get("meta", {})
 
             # mandatory
             assert meta["appsec.events.users.login.failure.usr.login"] == USERNAME_HASH
             assert meta["_dd.appsec.usr.login"] == USERNAME_HASH
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "anonymization"
-            assert meta["appsec.events.users.login.failure.track"] == "true"
+            assert is_same_boolean(actual=meta["appsec.events.users.login.failure.track"], expected="true")
 
             # optional (to review for each library)
-            if context.library not in libs_without_user_exist:
-                assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
+            if login_failure_includes_usr_exists_meta():
+                assert is_same_boolean(actual=meta["appsec.events.users.login.failure.usr.exists"], expected="true")
 
-            if context.library not in libs_without_user_id_on_failure:
+            if login_failure_includes_usr_id_meta():
                 assert meta["appsec.events.users.login.failure.usr.id"] == USER_HASH
                 assert meta["_dd.appsec.usr.id"] == USER_HASH
 
@@ -1636,19 +1664,19 @@ class Test_V3_Login_Events_Anon:
     def test_login_sdk_success_local(self):
         for request in self.r_sdk_success:
             assert request.status_code == 200
-            for _, trace, span in interfaces.library.get_spans(request=request):
-                assert_priority(span, trace)
+            for _, _, span in interfaces.library.get_spans(request=request):
+                assert_priority(span)
                 meta = span.get("meta", {})
 
                 # mandatory
                 assert meta["appsec.events.users.login.success.usr.login"] == "sdkUser"
                 assert meta["_dd.appsec.usr.login"] == USERNAME_HASH
                 assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "anonymization"
-                assert meta["appsec.events.users.login.success.track"] == "true"
-                assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
+                assert is_same_boolean(actual=meta["appsec.events.users.login.success.track"], expected="true")
+                assert is_same_boolean(actual=meta["_dd.appsec.events.users.login.success.sdk"], expected="true")
 
                 # optional (to review for each library)
-                if context.library not in libs_without_user_id:
+                if login_success_includes_usr_id_meta():
                     assert meta["usr.id"] == "sdkUser"
                     assert meta["_dd.appsec.usr.id"] == USER_HASH
 
@@ -1664,19 +1692,19 @@ class Test_V3_Login_Events_Anon:
     def test_login_sdk_success_basic(self):
         for request in self.r_sdk_success:
             assert request.status_code == 200
-            for _, trace, span in interfaces.library.get_spans(request=request):
-                assert_priority(span, trace)
+            for _, _, span in interfaces.library.get_spans(request=request):
+                assert_priority(span)
                 meta = span.get("meta", {})
 
                 # mandatory
                 assert meta["appsec.events.users.login.success.usr.login"] == "sdkUser"
                 assert meta["_dd.appsec.usr.login"] == USERNAME_HASH
                 assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "anonymization"
-                assert meta["appsec.events.users.login.success.track"] == "true"
-                assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
+                assert is_same_boolean(actual=meta["appsec.events.users.login.success.track"], expected="true")
+                assert is_same_boolean(actual=meta["_dd.appsec.events.users.login.success.sdk"], expected="true")
 
                 # optional (to review for each library)
-                if context.library not in libs_without_user_id:
+                if login_success_includes_usr_id_meta():
                     assert meta["usr.id"] == "sdkUser"
                     assert meta["_dd.appsec.usr.id"] == USER_HASH
 
@@ -1692,17 +1720,17 @@ class Test_V3_Login_Events_Anon:
     def test_login_sdk_failure_local(self):
         for request in self.r_sdk_failure:
             assert request.status_code == 401
-            for _, trace, span in interfaces.library.get_spans(request=request):
-                assert_priority(span, trace)
+            for _, _, span in interfaces.library.get_spans(request=request):
+                assert_priority(span)
                 meta = span.get("meta", {})
 
                 # mandatory
                 assert meta["appsec.events.users.login.failure.usr.login"] == "sdkUser"
                 assert meta["_dd.appsec.usr.login"] == INVALID_USER_HASH
                 assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "anonymization"
-                assert meta["appsec.events.users.login.failure.track"] == "true"
-                assert meta["_dd.appsec.events.users.login.failure.sdk"] == "true"
-                assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
+                assert is_same_boolean(actual=meta["appsec.events.users.login.failure.track"], expected="true")
+                assert is_same_boolean(actual=meta["_dd.appsec.events.users.login.failure.sdk"], expected="true")
+                assert is_same_boolean(actual=meta["appsec.events.users.login.failure.usr.exists"], expected="true")
 
     def setup_login_sdk_failure_basic(self):
         self.r_sdk_failure = [
@@ -1716,35 +1744,35 @@ class Test_V3_Login_Events_Anon:
     def test_login_sdk_failure_basic(self):
         for request in self.r_sdk_failure:
             assert request.status_code == 401
-            for _, trace, span in interfaces.library.get_spans(request=request):
-                assert_priority(span, trace)
+            for _, _, span in interfaces.library.get_spans(request=request):
+                assert_priority(span)
                 meta = span.get("meta", {})
 
                 # mandatory
                 assert meta["appsec.events.users.login.failure.usr.login"] == "sdkUser"
                 assert meta["_dd.appsec.usr.login"] == INVALID_USER_HASH
                 assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "anonymization"
-                assert meta["appsec.events.users.login.failure.track"] == "true"
-                assert meta["_dd.appsec.events.users.login.failure.sdk"] == "true"
-                assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
+                assert is_same_boolean(actual=meta["appsec.events.users.login.failure.track"], expected="true")
+                assert is_same_boolean(actual=meta["_dd.appsec.events.users.login.failure.sdk"], expected="true")
+                assert is_same_boolean(actual=meta["appsec.events.users.login.failure.usr.exists"], expected="true")
 
     def setup_signup_local(self):
         self.r_success = weblog.post("/signup", data=login_data(NEW_USER, PASSWORD))
 
     def test_signup_local(self):
         assert self.r_success.status_code == 200
-        for _, trace, span in interfaces.library.get_spans(request=self.r_success):
-            assert_priority(span, trace)
+        for _, _, span in interfaces.library.get_spans(request=self.r_success):
+            assert_priority(span)
             meta = span.get("meta", {})
 
             # mandatory
             assert meta["appsec.events.users.signup.usr.login"] == NEW_USERNAME_HASH
             assert meta["_dd.appsec.usr.login"] == NEW_USERNAME_HASH
             assert meta["_dd.appsec.events.users.signup.auto.mode"] == "anonymization"
-            assert meta["appsec.events.users.signup.track"] == "true"
+            assert is_same_boolean(actual=meta["appsec.events.users.signup.track"], expected="true")
 
             # optional (to review for each library)
-            if context.library not in libs_without_user_id:
+            if login_success_includes_usr_id_meta():
                 assert meta["appsec.events.users.signup.usr.id"] == NEW_USER_HASH
                 assert meta["_dd.appsec.usr.id"] == NEW_USER_HASH
 
@@ -1883,7 +1911,7 @@ class Test_V3_Login_Events_Blocking:
         assert self.config_state_1.state == rc.ApplyState.ACKNOWLEDGED
         assert self.config_state_2.state == rc.ApplyState.ACKNOWLEDGED
 
-        if context.library not in libs_without_user_id:
+        if login_success_includes_usr_id_meta():
             interfaces.library.assert_waf_attack(self.r_login_blocked, rule="block-user-id")
             assert self.r_login_blocked.status_code == 403
 

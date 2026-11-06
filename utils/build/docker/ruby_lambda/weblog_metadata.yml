@@ -1,0 +1,5 @@
+
+ruby-apigw-http:
+  categories: [dd_trace_lambda]
+ruby-apigw-rest:
+  categories: [dd_trace_lambda]

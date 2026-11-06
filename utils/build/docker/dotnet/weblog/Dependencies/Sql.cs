@@ -55,9 +55,9 @@ END
         {
             var commands = new string[]
             {
-                "CREATE TABLE users (user TEXT, pwd TEXT)",
-                "INSERT INTO users VALUES ('shaquille_oatmeal', 'Value1')",
-                "INSERT INTO users VALUES ('Key2', 'Value2')",
+                "CREATE TABLE users (id TEXT, user TEXT, pwd TEXT)",
+                "INSERT INTO users VALUES ('1', 'shaquille_oatmeal', 'Value1')",
+                "INSERT INTO users VALUES ('2', 'Key2', 'Value2')",
             };
 
             foreach(var command in commands)

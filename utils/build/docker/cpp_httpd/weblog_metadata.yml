@@ -1,0 +1,7 @@
+# docs/understand/weblogs/weblog-metadata.md
+
+httpd:
+  categories: [dd_trace]
+  excluded_scenarios:
+    - APPSEC_MISSING_RULES  # C++ 1.2.0 freezes when the rules file is missing
+    - APPSEC_CORRUPTED_RULES  # C++ 1.2.0 freezes when the rules file is corrupt

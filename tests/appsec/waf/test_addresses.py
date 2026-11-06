@@ -2,8 +2,10 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 import json
-import pytest
-from utils import weblog, bug, context, interfaces, missing_feature, rfc, scenarios, features, logger
+
+from utils import pytest
+from utils import weblog, interfaces, rfc, scenarios, features, logger
+from utils.dd_types import DataDogLibrarySpan
 
 
 @features.appsec_request_blocking
@@ -88,7 +90,6 @@ class Test_Headers:
     def setup_specific_key2(self):
         self.r_sk_4 = weblog.get("/waf/", headers={"X_Filename": "routing.yml"})
 
-    @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
     def test_specific_key2(self):
         """Attacks on specific header X_Filename, and report it"""
         try:
@@ -115,7 +116,6 @@ class Test_Headers:
         self.r_wk_1 = weblog.get("/waf/", headers={"xfilename": "routing.yml"})
         self.r_wk_2 = weblog.get("/waf/", headers={"not-referer": "<script >"})
 
-    @missing_feature(weblog_variant="spring-boot-3-native", reason="GraalVM. Tracing support only")
     def test_specific_wrong_key(self):
         """When a specific header key is specified in rules, other key are ignored"""
         for r in [self.r_wk_1, self.r_wk_2]:
@@ -221,10 +221,6 @@ class Test_BodyXml:
         self.r_attr_1 = self.weblog_post("/waf", data='<string attack="var_dump ()" />')
         self.r_attr_2 = self.weblog_post("/waf", data=f'<string attack="{self.ENCODED_ATTACK}" />')
 
-    @bug(
-        context.library <= "java@1.39.1" and context.weblog_variant in ("spring-boot-payara", "spring-boot-wildfly"),
-        reason="APMRP-360",
-    )
     def test_xml_attr_value(self):
         interfaces.library.assert_waf_attack(self.r_attr_1, address="server.request.body", value="var_dump ()")
         interfaces.library.assert_waf_attack(self.r_attr_2, address="server.request.body", value=self.ATTACK)
@@ -233,10 +229,6 @@ class Test_BodyXml:
         self.r_content_1 = self.weblog_post("/waf", data="<string>var_dump ()</string>")
         self.r_content_2 = self.weblog_post("/waf", data=f"<string>{self.ENCODED_ATTACK}</string>")
 
-    @bug(
-        context.library <= "java@1.39.1" and context.weblog_variant in ("spring-boot-payara", "spring-boot-wildfly"),
-        reason="APMRP-360",
-    )
     def test_xml_content(self):
         interfaces.library.assert_waf_attack(self.r_content_1, address="server.request.body", value="var_dump ()")
         interfaces.library.assert_waf_attack(self.r_content_2, address="server.request.body", value=self.ATTACK)
@@ -397,7 +389,7 @@ class Test_GraphQL:
 class Test_GrpcServerMethod:
     """Test as a custom rule until we have official rules for the address"""
 
-    def validate_span(self, span: dict, appsec_data: dict):
+    def validate_span(self, span: DataDogLibrarySpan, appsec_data: dict):
         tag = "rpc.grpc.full_method"
         if tag not in span["meta"]:
             logger.info(f"Can't find '{tag}' in span's meta")
@@ -427,4 +419,21 @@ class Test_GrpcServerMethod:
     def test_streaming_grpc_server_method_rule(self):
         interfaces.library.assert_waf_attack(
             self.request_streaming, address="grpc.server.method", span_validator=self.validate_span
+        )
+
+
+@features.appsec_request_blocking
+@scenarios.appsec_custom_rules
+class Test_IoFsFileWrite:
+    """Appsec WAF receives the server.io.fs.file_write address"""
+
+    def setup_file_write(self):
+        self.r = weblog.get("/rasp/lfi_write", params={"file": "../../evil.txt"})
+
+    def test_file_write(self):
+        """AppSec WAF receives the server.io.fs.file_write address"""
+        interfaces.library.assert_waf_attack(
+            self.r,
+            rule="custom-test-file-write",
+            address="server.io.fs.file_write",
         )

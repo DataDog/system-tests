@@ -2,6 +2,96 @@
 
 All notable changes to this project will be documented in this file.
 
+### 2026-10 (237 PR merged)
+
+* 2026-10-30 [Collect HotSpot hs_err logs from Java AWS SSI weblogs](https://github.com/DataDog/system-tests/pull/8249) by @robertomonteromiguel
+* 2026-10-29 [Gitlba e2e: let's the user select a list of scenarios to run for each weblogs](https://github.com/DataDog/system-tests/pull/8225) by @nccatoni
+* 2026-10-29 [Shorten K8s lib injection GitLab job names](https://github.com/DataDog/system-tests/pull/8195) by @robertomonteromiguel
+* 2026-10-26 [Install Docker SSI Node.js dependencies from Depot](https://github.com/DataDog/system-tests/pull/8181) by @robertomonteromiguel
+* 2026-10-26 [Fail Docker SSI when the installer leaves the tracer uninstalled](https://github.com/DataDog/system-tests/pull/8176) by @robertomonteromiguel
+* 2026-10-26 [Install AWS SSI Node.js dependencies from Depot](https://github.com/DataDog/system-tests/pull/8175) by @robertomonteromiguel
+* 2026-10-30 [PHP parametric base image](https://github.com/DataDog/system-tests/pull/8172) by @nccatoni
+* 2026-10-26 [Install Docker SSI Python dependencies from Depot](https://github.com/DataDog/system-tests/pull/8171) by @robertomonteromiguel
+* 2026-10-26 [Improve CI time : Each scenario is defined in its own module, so the CI stayed limited to it when modified](https://github.com/DataDog/system-tests/pull/8165) by @cbeauchesne
+* 2026-10-23 [Use the Depot Maven mirror for Docker SSI Java builds](https://github.com/DataDog/system-tests/pull/8148) by @robertomonteromiguel
+* 2026-10-22 [Unify FFE and Mocked backend](https://github.com/DataDog/system-tests/pull/8143) by @cbeauchesne
+* 2026-10-22 [AWS SSI: fix CentOS 7 Docker install](https://github.com/DataDog/system-tests/pull/8136) by @robertomonteromiguel
+* 2026-10-22 [Harden AWS SSI multicontainer startup](https://github.com/DataDog/system-tests/pull/8134) by @robertomonteromiguel
+* 2026-10-19 [AWS SSI: Validate every new cache AMI and delete stale images](https://github.com/DataDog/system-tests/pull/8073) by @robertomonteromiguel
+* 2026-10-16 [AWS SSI: Validate a new cache AMI before promoting it](https://github.com/DataDog/system-tests/pull/8065) by @robertomonteromiguel
+* 2026-10-21 [Multi arch support for base images](https://github.com/DataDog/system-tests/pull/8028) by @nccatoni
+* 2026-10-16 [Migrate SSI CI secrets from AWS SSM to Vault](https://github.com/DataDog/system-tests/pull/7993) by @robertomonteromiguel
+* 2026-10-06 [Old images from are no longer retained in the image mirroring list.](https://github.com/DataDog/system-tests/pull/7942) by @nccatoni
+* 2026-10-05 [Deprecate OTEL_COLLECTOR_E2E scenario](https://github.com/DataDog/system-tests/pull/7941) by @cbeauchesne
+* 2026-10-05 [Stop merging when targetting non main system-tests ref](https://github.com/DataDog/system-tests/pull/7874) by @nccatoni
+
+
+### 2026-09 (138 PR merged)
+
+* 2026-09-30 [Switching easy win auto merge from opt in to opt out](https://github.com/DataDog/system-tests/pull/7865) by @nccatoni
+* 2026-09-28 [Remove any calls to public.ecr.aws on critical path for python lambda](https://github.com/DataDog/system-tests/pull/7838) by @cbeauchesne
+* 2026-09-25 [Unify ffe and v2 backend](https://github.com/DataDog/system-tests/pull/7814) by @cbeauchesne
+* 2026-09-22 [Automate SSI Agent updates](https://github.com/DataDog/system-tests/pull/7719) by @nccatoni
+* 2026-09-09 [Introduce Mocked Backend V2](https://github.com/DataDog/system-tests/pull/7668) by @cbeauchesne
+* 2026-09-25 [Import restrictions on test modules](https://github.com/DataDog/system-tests/pull/7408) by @nccatoni
+* 2026-09-14 [Reliable and automated base image build process](https://github.com/DataDog/system-tests/pull/7270) by @nccatoni
+
+
+### 2026-08 (113 PR merged)
+
+* 2026-08-24 [chore: add system-tests-reviewers to CODEOWNERS](https://github.com/DataDog/system-tests/pull/7564) by @brettlangdon
+* 2026-08-12 [Ew auto merge per team lang](https://github.com/DataDog/system-tests/pull/7475) by @nccatoni
+
+
+### 2026-07 (143 PR merged)
+
+* 2026-07-01 [feat: add per-weblog metadata to control CI build requirement](https://github.com/DataDog/system-tests/pull/7130) by @rochdev
+* 2026-07-03 [Gitlab pipeline for End to End and parametric scenarios](https://github.com/DataDog/system-tests/pull/6651) by @nccatoni
+
+
+### 2026-06 (123 PR merged)
+
+* 2026-06-05 [[ruby] Add new Ruby-lang weblog `ruby_lambda`](https://github.com/DataDog/system-tests/pull/7065) by @Strech
+* 2026-06-01 [SSI GitLab Test Optimization](https://github.com/DataDog/system-tests/pull/6966) by @robertomonteromiguel
+
+
+### 2026-05 (142 PR merged)
+
+* 2026-05-20 [SSI: Pin agent version to 7.78.4](https://github.com/DataDog/system-tests/pull/6984) by @robertomonteromiguel
+* 2026-05-26 [SSI: Print the content fo the log folder to collapsible section](https://github.com/DataDog/system-tests/pull/6975) by @robertomonteromiguel
+* 2026-05-12 [Improve performances by reducing RC poll interval on all E2E scenarios on python and node.js](https://github.com/DataDog/system-tests/pull/6879) by @rochdev
+* 2026-05-07 [Add PHP apache base images](https://github.com/DataDog/system-tests/pull/6874) by @cbeauchesne
+
+
+### 2026-04 (113 PR merged)
+
+* 2026-04-23 [feat(features): resolve test owner to per-repo sub-team in CI](https://github.com/DataDog/system-tests/pull/6796) by @cbeauchesne
+* 2026-04-21 [Automatically close stale PRs](https://github.com/DataDog/system-tests/pull/6783) by @cbeauchesne
+* 2026-04-21 [Check that declared version are not ahead of tested version in dev mode](https://github.com/DataDog/system-tests/pull/6774) by @cbeauchesne
+* 2026-04-13 [Intercept HTTPS CONNECT tunnels in mocked backend mode](https://github.com/DataDog/system-tests/pull/6725) by @cbeauchesne
+
+
+### 2026-03 (196 PR merged)
+
+* 2026-03-19 [Deprecate force_skip argument](https://github.com/DataDog/system-tests/pull/6515) by @cbeauchesne
+* 2026-03-23 [Support multiple lang-branch overrides in PR title](https://github.com/DataDog/system-tests/pull/6468) by @bm1549
+* 2026-03-05 [revamp: use a classic test for schema validation](https://github.com/DataDog/system-tests/pull/6437) by @cbeauchesne
+* 2026-03-02 [AI devx tools](https://github.com/DataDog/system-tests/pull/6391) by @robertomonteromiguel
+* 2026-03-09 [Centralized constant handling: list of all components grouped by use case](https://github.com/DataDog/system-tests/pull/6359) by @nccatoni
+* 2026-03-10 [README improvement and restructuration of the documentation](https://github.com/DataDog/system-tests/pull/6290) by @nccatoni
+
+
+### 2026-02 (156 PR merged)
+
+* 2026-02-26 [Adding the datadog mcp to system-tests cursor configuration](https://github.com/DataDog/system-tests/pull/6380) by @nccatoni
+* 2026-02-23 [Support v1 trace format from libraries](https://github.com/DataDog/system-tests/pull/6360) by @cbeauchesne and @ajgajg1134
+* 2026-02-19 [[ruby] Use dd-trace-rb version as it is in the library](https://github.com/DataDog/system-tests/pull/6340) by @p-datadog
+* 2026-02-10 [codex: pr review rules](https://github.com/DataDog/system-tests/pull/6246) by @robertomonteromiguel
+* 2026-02-06 [Activate ANN001 format rules (typings) on K8s utils](https://github.com/DataDog/system-tests/pull/6231) by @robertomonteromiguel
+* 2026-02-02 [Update K8s Components github workflow](https://github.com/DataDog/system-tests/pull/6157) by @robertomonteromiguel
+* 2026-02-06 [[APMSP-2608] Introduce weblog infra abstraction](https://github.com/DataDog/system-tests/pull/6154) by @cbeauchesne
+
+
 ### 2026-01 (184 PR merged)
 
 * 2026-01-30 [Adds library branch selector in debug harness](https://github.com/DataDog/system-tests/pull/6159) by @cbeauchesne

@@ -1,6 +1,8 @@
 from kubernetes import client, watch
 from utils._logger import logger
+from utils.k8s_lib_injection.k8s_command_utils import K8sLibInjectionError
 from utils.k8s_lib_injection.k8s_logger import k8s_logger
+from utils.k8s_lib_injection.k8s_cluster_provider import K8sClusterInfo
 from retry import retry
 
 
@@ -26,14 +28,23 @@ class K8sWeblog:
         ],
     }
 
-    def __init__(self, app_image, library, library_init_image, injector_image, output_folder):
+    def __init__(
+        self, app_image: str, library: str, library_init_image: str, injector_image: str | None, output_folder: str
+    ) -> None:
         self.app_image = app_image
         self.library = library
         self.library_init_image = library_init_image
         self.injector_image = injector_image
         self.output_folder = output_folder
 
-    def configure(self, k8s_cluster_info, weblog_env=None, dd_cluster_uds=None, service_account=None):
+    def configure(
+        self,
+        k8s_cluster_info: K8sClusterInfo,
+        weblog_env: dict[str, str] | None = None,
+        *,
+        dd_cluster_uds: bool | None = None,
+        service_account: str | None = None,
+    ) -> None:
         self.weblog_env = weblog_env
         self.dd_cluster_uds = dd_cluster_uds
         self.dd_service_account = service_account
@@ -45,8 +56,9 @@ class K8sWeblog:
         """
 
         logger.info(
-            "[Deploy weblog] Creating weblog pod configuration. weblog_variant_image: [%s], library: [%s], library_init_image: [%s]"
-            % (self.app_image, self.library, self.library_init_image)
+            "[Deploy weblog] Creating weblog pod configuration. "
+            f"weblog_variant_image: [{self.app_image}], library: [{self.library}], "
+            f"library_init_image: [{self.library_init_image}]"
         )
         library_lib = "js" if self.library == "nodejs" else self.library
         pod_metadata = client.V1ObjectMeta(
@@ -119,7 +131,7 @@ class K8sWeblog:
         logger.info("[Deploy weblog] Weblog pod configuration done.")
         return pod_body
 
-    def install_weblog_pod(self, namespace="default"):
+    def install_weblog_pod(self, namespace: str = "default") -> None:
         try:
             logger.info("[Deploy weblog] Installing weblog pod using admission controller")
             pod_body = self._get_base_weblog_pod()
@@ -129,7 +141,7 @@ class K8sWeblog:
         except Exception as e:
             logger.error(f"[Deploy weblog] Error installing weblog pod: {e}")
 
-    def install_weblog_pod_with_manual_inject(self, namespace="default"):
+    def install_weblog_pod_with_manual_inject(self, namespace: str = "default") -> None:
         """We do our own pod mutation to inject the library manually instead of using the admission controller"""
         try:
             pod_body = self._get_base_weblog_pod()
@@ -190,7 +202,7 @@ class K8sWeblog:
         except Exception as e:
             logger.error(f"[Deploy weblog with manual inject] Error installing weblog pod: {e}")
 
-    def wait_for_weblog_ready_by_label_app(self, app_name, namespace, timeout=60):
+    def wait_for_weblog_ready_by_label_app(self, app_name: str, namespace: str, timeout: int = 60) -> None:
         logger.info(
             f"[Deploy weblog] Waiting for weblog to be ready(by label) .App {app_name}. Timeout {timeout} seconds."
         )
@@ -216,17 +228,17 @@ class K8sWeblog:
             pod_status = self.k8s_cluster_info.core_v1_api().read_namespaced_pod_status(
                 name="my-app", namespace=namespace
             )
-            logger.error("[Deploy weblog] weblog not created. Last status: %s" % pod_status)
+            logger.error(f"[Deploy weblog] weblog not created. Last status: {pod_status}")
             pod_logs = self.k8s_cluster_info.core_v1_api().read_namespaced_pod_log(name="my-app", namespace=namespace)
             logger.error(f"[Deploy weblog] weblog logs: {pod_logs}")
-            raise Exception("[Deploy weblog] Weblog not created")
+            raise K8sLibInjectionError("[Deploy weblog] Weblog not created")
 
     @retry(delay=1, tries=5)
-    def list_namespaced_pod(self, namespace, **kwargs):
+    def list_namespaced_pod(self, namespace: str, **kwargs: object) -> client.V1PodList:
         """Necessary to retry the list_namespaced_pod call in case of error (used by watch stream)"""
         return self.k8s_cluster_info.core_v1_api().list_namespaced_pod(namespace, **kwargs)
 
-    def export_debug_info(self, namespace="default"):
+    def export_debug_info(self, namespace: str = "default") -> None:
         """Extracts debug info from the k8s weblog app and logs it to the specified folder."""
 
         # check weblog describe pod
@@ -235,7 +247,7 @@ class K8sWeblog:
             k8s_logger(self.output_folder, "myapp.describe").info(api_response)
         except Exception as e:
             k8s_logger(self.output_folder, "myapp.describe").info(
-                "Exception when calling CoreV1Api->read_namespaced_pod: %s\n" % e
+                f"Exception when calling CoreV1Api->read_namespaced_pod: {e}\n"
             )
 
         # check weblog logs for pod
@@ -246,7 +258,7 @@ class K8sWeblog:
             k8s_logger(self.output_folder, "myapp.logs").info(api_response)
         except Exception as e:
             k8s_logger(self.output_folder, "myapp.logs").info(
-                "Exception when calling CoreV1Api->read_namespaced_pod_log: %s\n" % e
+                f"Exception when calling CoreV1Api->read_namespaced_pod_log: {e}\n"
             )
 
         app_name = f"{self.library}-app"
@@ -266,4 +278,4 @@ class K8sWeblog:
                 )
                 k8s_logger(self.output_folder, "deployment.logs").info(api_response)
         except Exception as e:
-            k8s_logger(self.output_folder, "deployment.logs").info("Exception when calling deployment data: %s\n" % e)
+            k8s_logger(self.output_folder, "deployment.logs").info(f"Exception when calling deployment data: {e}\n")

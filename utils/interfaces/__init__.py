@@ -2,8 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from ._agent import AgentInterfaceValidator
-from ._backend import _BackendInterfaceValidator
+from ._mocked_backend import _MockedBackendInterfaceValidator
 from ._library.core import LibraryInterfaceValidator
 from ._core import ProxyBasedInterfaceValidator
 from ._logs import (
@@ -18,12 +17,11 @@ from ._open_telemetry import OpenTelemetryInterfaceValidator
 from ._test_agent import _TestAgentInterfaceValidator
 
 # singletons
-agent = AgentInterfaceValidator()
 library = LibraryInterfaceValidator("library")
 library_stdout = _LibraryStdout()
 agent_stdout = _AgentStdout()
 library_dotnet_managed = _LibraryDotnetManaged()
-backend = _BackendInterfaceValidator(library_interface=library)
+mocked_backend = _MockedBackendInterfaceValidator()
 open_telemetry = OpenTelemetryInterfaceValidator()
 otel_collector = ProxyBasedInterfaceValidator("otel_collector")
 postgres = _PostgresStdout()
@@ -38,14 +36,13 @@ golang_buddy = LibraryInterfaceValidator("golang_buddy")
 __all__ = [
     "LibraryStdoutInterface",
     "StdoutLogsInterface",
-    "agent",
     "agent_stdout",
-    "backend",
     "golang_buddy",
     "java_buddy",
     "library",
     "library_dotnet_managed",
     "library_stdout",
+    "mocked_backend",
     "nodejs_buddy",
     "open_telemetry",
     "postgres",

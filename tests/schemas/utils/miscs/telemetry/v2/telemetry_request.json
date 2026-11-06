@@ -1,0 +1,54 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "/miscs/telemetry/v2/telemetry_request.json",
+  "description": "Instrumentation telemetry schema",
+  "type": "object",
+  "allOf": [
+    {
+      "required": ["api_version", "request_type"]
+    },
+    {
+      "$ref": "/miscs/telemetry/v2/objects/request_type.json"
+    },
+    {
+      "$comment": "Request types only ever emitted by a tracer (never by the agent's own telemetry, which uses an event_time/host-only header) must carry the full tracer header.",
+      "if": {
+        "required": ["request_type"],
+        "properties": {
+          "request_type": {
+            "enum": [
+              "app-started",
+              "app-extended-heartbeat",
+              "app-integrations-change",
+              "app-dependencies-loaded",
+              "app-client-configuration-change",
+              "app-product-change",
+              "app-endpoints",
+              "app-heartbeat",
+              "app-closing",
+              "generate-metrics",
+              "distributions",
+              "sketches",
+              "logs"
+            ]
+          }
+        }
+      },
+      "then": {
+        "required": ["application"]
+      }
+    },
+    {
+      "$comment": "Applied only when `application` is present, so the agent's own telemetry (agent-metrics/agent-bsod, and message-batches wrapping them) and apm-onboarding-event - which legitimately carry no application/runtime_id/seq_id - are not held to the tracer header shape. The branch above guarantees tracer payloads do reach this.",
+      "if": {
+        "required": ["application"]
+      },
+      "then": {
+        "$ref": "/miscs/telemetry/v2/objects/header.json"
+      }
+    },
+    {
+      "$ref": "/miscs/telemetry/v2/objects/payload_dispatch.json"
+    }
+  ]
+}

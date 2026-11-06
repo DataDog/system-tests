@@ -5,25 +5,35 @@ lang_variant:
     install: 
       - os_type: linux
         os_distro: deb
-        remote-command: sudo apt-get update && sudo apt-get install -y nodejs
+        remote-command: |
+          sudo apt-get update
+          sudo apt-get install -y ca-certificates curl gnupg
+          curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+          sudo apt-get install -y nodejs
 
       - os_type: linux
         os_distro: rpm
         os_branch: redhat
         remote-command: |
-          sudo dnf -y module enable nodejs:20
-          sudo dnf -y module switch-to nodejs:20
-          sudo dnf install -y nodejs
+          sudo yum install tar -y || sudo dnf install tar -y || true
+          curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+          nvm install --no-progress 22.11.0
+          nvm use 22.11.0
+          n=$(which node);n=${n%/bin/node}; chmod -R 755 $n/bin/*; sudo cp -r $n/{bin,lib,share} /usr/local
 
       - os_type: linux
         os_distro: rpm
         os_branch: centos_8_amd64
         remote-command: |
-          #one of the default method for centos 8
-          #https://www.digitalocean.com/community/tutorials/how-to-install-node-js-on-centos-8
-          sudo dnf -y module enable nodejs:20
-          sudo dnf -y module switch-to nodejs:20
-          sudo dnf install -y nodejs
+          sudo yum install tar -y || sudo dnf install tar -y || true
+          curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+          nvm install --no-progress 22.11.0
+          nvm use 22.11.0
+          n=$(which node);n=${n%/bin/node}; chmod -R 755 $n/bin/*; sudo cp -r $n/{bin,lib,share} /usr/local
 
       - os_type: linux
         os_distro: rpm
@@ -35,8 +45,8 @@ lang_variant:
           export NVM_DIR="$HOME/.nvm"
           [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
           [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-          nvm install --lts
-          nvm use node
+          nvm install --no-progress 22.11.0
+          nvm use 22.11.0
           n=$(which node);n=${n%/bin/node}; chmod -R 755 $n/bin/*; sudo cp -r $n/{bin,lib,share} /usr/local        
 
 weblog:

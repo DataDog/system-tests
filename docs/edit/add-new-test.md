@@ -1,9 +1,9 @@
-Whether it's adding a new test or modifying an existing test, a moderate amount of effort will be required. The instructions below cater to end-to-end tests, refer to [the parametric contributing doc](/docs/scenarios/parametric_contributing.md)for parametric-specific instructions.
+Whether it's adding a new test or modifying an existing test, a moderate amount of effort will be required. The instructions below cater to end-to-end tests, refer to [the parametric contributing doc](/docs/edit/parametric_contributing.md)for parametric-specific instructions.
 
 Once the changes are complete, post them in a PR.
 
 #### Notes
-* Each test class tests only one feature (see [the doc on features](https://github.com/DataDog/system-tests/blob/main/docs/edit/features.md))
+* Each test class tests only one feature (see [the doc on features](./features.md))
 * A test class can have several tests
 * If an RFC for the feature exists, you must use the decorator `rfc` decorator:
 ```python
@@ -50,10 +50,7 @@ class Test_Feature():
         interfaces.library.validate_spans(self.r, validator=lambda span: span["meta"]["http.method"] == "GET")
 
         # Validate data at agent-to-backend level
-        interfaces.agent.assert_trace_exists(self.r)
-
-        # Validate data reaches the backend and is searchable
-        interfaces.backend.assert_library_traces_exist(self.r)
+        interfaces.mocked_backend.assert_trace_exists(self.r)
 ```
 
 ### Available Interface Validators
@@ -61,18 +58,13 @@ class Test_Feature():
 1. **Library Interface (`interfaces.library`)** - Validates messages between instrumented applications and the Datadog Agent
    - Intercepts raw tracer output before agent processing
    - Perfect for validating span content, AppSec events, telemetry, and remote configuration
-   - See detailed methods: [Library Interface Validation Methods](../internals/library-interface-validation-methods.md)
+   - See detailed methods: [Library Interface Validation Methods](./library-interface-validation-methods.md)
 
-2. **Agent Interface (`interfaces.agent`)** - Validates messages between the Datadog Agent and Datadog Backend
-   - Intercepts data after agent processing (sampling, aggregation, transformation)
+2. **Mocked Backend Interface (`interfaces.mocked_backend`)** - Validates what is sent to the Datadog Backend, by the agent or by an agentless library
+   - Receives data after agent processing (sampling, aggregation, transformation)
    - Ideal for validating metrics, stats, processed traces, and agent forwarding behavior
-   - See detailed methods: [Agent Interface Validation Methods](../internals/agent-interface-validation-methods.md)
+   - See detailed methods: [Mocked Backend Interface Validation Methods](./mocked-backend-interface-validation-methods.md)
 
-3. **Backend Interface (`interfaces.backend`)** - Validates data by querying Datadog's production APIs
-   - Makes actual API calls to verify end-to-end data ingestion
-   - Essential for validating search functionality and customer-visible data
-   - Requires `DD_API_KEY` and `DD_APP_KEY` environment variables
-   - See detailed methods: [Backend Interface Validation Methods](../internals/backend-interface-validation-methods.md)
 
 ### Common Validation Patterns
 
@@ -86,9 +78,6 @@ def test_basic_tracing(self):
 
     # Validate specific span tags
     interfaces.library.add_span_tag_validation(r, tags={"http.method": "GET"})
-
-    # Verify trace reaches backend
-    interfaces.backend.assert_library_traces_exist(r)
 ```
 
 #### AppSec Event Validation
@@ -100,9 +89,10 @@ def test_waf_attack_detection(self):
     interfaces.library.assert_waf_attack(r, rule="sqli-detection")
 
     # Ensure AppSec data reaches agent
-    def appsec_validator(data, payload, chunk, span, appsec_data):
+    def appsec_validator(span, appsec_data):
         return "triggers" in appsec_data
-    interfaces.agent.validate_appsec(r, appsec_validator)
+
+    interfaces.library.validate_one_appsec(r, appsec_validator)
 ```
 
 #### Custom Validation with Validators

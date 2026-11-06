@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "datadog": {
+      "url": "https://mcp.datadoghq.com/api/unstable/mcp-server/mcp?toolsets=software-delivery",
+      "headers": {}
+    }
+  }
+}

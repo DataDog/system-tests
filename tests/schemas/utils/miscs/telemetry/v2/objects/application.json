@@ -1,0 +1,45 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "/miscs/telemetry/v2/objects/application.json",
+  "description": "V2 Application Object",
+  "title": "Instrumentation Telemetry V2 Application",
+  "type": "object",
+  "properties": {
+    "env": {
+      "type": "string"
+    },
+    "language_name": {
+      "type": "string"
+    },
+    "language_version": {
+      "type": "string"
+    },
+    "runtime_name": {
+      "type": "string"
+    },
+    "runtime_patches": {
+      "type": "string"
+    },
+    "runtime_version": {
+      "type": "string"
+    },
+    "service_name": {
+      "type": "string"
+    },
+    "service_version": {
+      "type": "string"
+    },
+    "tracer_version": {
+      "type": "string"
+    },
+    "process_tags": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "service_name",
+    "tracer_version",
+    "language_name",
+    "language_version"
+  ]
+}

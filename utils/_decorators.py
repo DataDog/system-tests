@@ -1,17 +1,13 @@
 import inspect
 import os
-import re
 from functools import partial
 from types import FunctionType, MethodType
 from typing import Any
 
 import pytest
 
-from utils.manifest import TestDeclaration
+from utils.manifest import TestDeclaration, validate_declaration_reason
 from utils._context.core import context
-
-
-_jira_ticket_pattern = re.compile(r"([A-Z]{3,}-\d+)(, [A-Z]{3,}-\d+)*")
 
 
 def configure(config: pytest.Config):
@@ -21,14 +17,17 @@ def configure(config: pytest.Config):
 _MANIFEST_ERROR_MESSAGE = "Please use manifest file, See docs/edit/manifest.md"
 
 
-def _is_jira_ticket(declaration_details: str | None) -> bool:
-    return declaration_details is not None and _jira_ticket_pattern.fullmatch(declaration_details) is not None
-
-
-def _ensure_jira_ticket_as_reason(item: type[Any] | FunctionType | MethodType, declaration_details: str | None) -> None:
+def _ensure_valid_declaration_reason(
+    item: type[Any] | FunctionType | MethodType,
+    declaration: TestDeclaration,
+    declaration_details: str | None,
+) -> None:
     if isinstance(item, pytest.Function):
         item = item.function
-    if not _is_jira_ticket(declaration_details):
+
+    try:
+        validate_declaration_reason(declaration, declaration_details)
+    except ValueError:
         path = inspect.getfile(item)
         rel_path = os.path.relpath(path)
         nodeid = f"{rel_path}::{item.__name__ if inspect.isclass(item) else item.__qualname__}"
@@ -40,8 +39,6 @@ def add_pytest_marker(
     item: pytest.Module | pytest.Function | FunctionType | MethodType,
     declaration: TestDeclaration,
     declaration_details: str | None,
-    *,
-    force_skip: bool = False,
 ) -> pytest.Module | pytest.Function | FunctionType | MethodType:
     if (
         not inspect.isfunction(item)
@@ -51,10 +48,9 @@ def add_pytest_marker(
     ):
         raise ValueError(f"Unexpected skipped object: {item}")
 
-    if declaration in (TestDeclaration.BUG, TestDeclaration.FLAKY):
-        _ensure_jira_ticket_as_reason(item, declaration_details)
+    _ensure_valid_declaration_reason(item, declaration, declaration_details)
 
-    if force_skip or declaration in (TestDeclaration.IRRELEVANT, TestDeclaration.FLAKY):
+    if declaration in (TestDeclaration.IRRELEVANT, TestDeclaration.FLAKY):
         marker = pytest.mark.skip
     else:
         marker = pytest.mark.xfail
@@ -88,8 +84,10 @@ def _expected_to_fail(
 
     if library is not None:
         if library not in (
+            "c",
             "cpp",
             "cpp_httpd",
+            "cpp_kong",
             "cpp_nginx",
             "dotnet",
             "golang",
@@ -102,6 +100,9 @@ def _expected_to_fail(
             "python_otel",
             "nodejs_otel",
             "python_lambda",
+            "java_lambda",
+            "nodejs_lambda",
+            "ruby_lambda",
             "rust",
         ):
             raise ValueError(f"Unknown library: {library}")
@@ -120,7 +121,6 @@ def _decorator(
     library: str | None,
     weblog_variant: str | None,
     declaration_details: str | None,
-    force_skip: bool = False,
 ):
     expected_to_fail = _expected_to_fail(library=library, weblog_variant=weblog_variant, condition=condition)
 
@@ -130,9 +130,7 @@ def _decorator(
     if not expected_to_fail:
         return function_or_class
 
-    return add_pytest_marker(
-        function_or_class, declaration=declaration, declaration_details=declaration_details, force_skip=force_skip
-    )
+    return add_pytest_marker(function_or_class, declaration=declaration, declaration_details=declaration_details)
 
 
 def missing_feature(
@@ -140,8 +138,6 @@ def missing_feature(
     library: str | None = None,
     weblog_variant: str | None = None,
     reason: str | None = None,
-    *,
-    force_skip: bool = False,
 ):
     """decorator, allow to mark a test function/class as missing"""
     return partial(
@@ -151,7 +147,6 @@ def missing_feature(
         library=library,
         weblog_variant=weblog_variant,
         declaration_details=reason,
-        force_skip=force_skip,
     )
 
 
@@ -195,7 +190,6 @@ def bug(
     weblog_variant: str | None = None,
     *,
     reason: str,
-    force_skip: bool = False,
 ):
     """Decorator, allow to mark a test function/class as an known bug.
     The test is executed, and if it passes, and warning is reported
@@ -207,7 +201,6 @@ def bug(
         library=library,
         weblog_variant=weblog_variant,
         declaration_details=reason,
-        force_skip=force_skip,
     )
 
 
@@ -238,4 +231,12 @@ Such tests are only executed if they were not deactivated
 scenario_crash = pytest.mark.skip_if_xfail
 """Decorator, marks a test function/class as making its scenario crash when failing.
 Such tests are only executed if they were not deactivated
+"""
+
+auxiliary_test = pytest.mark.auxiliary_test
+"""Mark a test as auxiliary to other tests.
+
+Auxiliary tests are meaningful only when primary tests are present in the
+session. When SYSTEM_TESTS_SKIP_EMPTY_SCENARIO is enabled, auxiliary tests
+alone will not cause the scenario to run.
 """

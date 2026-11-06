@@ -1,0 +1,115 @@
+[
+  {
+    "language": "php",
+    "id": "<scrubbed>",
+    "timestamp": "<scrubbed>",
+    "exceptionId": "<scrubbed>",
+    "exceptionHash": "d706604dced0ba8d",
+    "frameIndex": "1",
+    "captures": {
+      "return": {
+        "locals": {
+          "_COOKIE": {
+            "type": "array",
+            "notCapturedReason": "redactedIdent"
+          },
+          "_FILES": {
+            "type": "array"
+          },
+          "_GET": {
+            "type": "array"
+          },
+          "_POST": {
+            "type": "array"
+          },
+          "_SERVER": {
+            "type": "array"
+          },
+          "controller": {
+            "type": "DebuggerController",
+            "fields": {
+              "DebuggerController::intLocal": {
+                "type": "int",
+                "value": "0"
+              },
+              "DebuggerController::intMixLocal": {
+                "type": "int",
+                "notCapturedReason": "redactedIdent"
+              }
+            }
+          },
+          "parts": {
+            "type": "array",
+            "elements": [
+              {
+                "type": "string",
+                "value": "exceptionreplay"
+              },
+              {
+                "type": "string",
+                "value": "async"
+              }
+            ]
+          },
+          "path": {
+            "type": "string",
+            "value": "/exceptionreplay/async"
+          },
+          "query": {
+            "type": "null",
+            "isNull": true
+          },
+          "queryParams": {
+            "type": "array"
+          }
+        },
+        "throwable": {
+          "type": "RuntimeException",
+          "message": "async exception"
+        }
+      }
+    },
+    "probe": {
+      "id": "<scrubbed>",
+      "location": {}
+    }
+  },
+  {
+    "language": "php",
+    "id": "<scrubbed>",
+    "timestamp": "<scrubbed>",
+    "exceptionId": "<scrubbed>",
+    "exceptionHash": "d706604dced0ba8d",
+    "frameIndex": "0",
+    "captures": {
+      "return": {
+        "arguments": {
+          "this": {
+            "type": "DebuggerController",
+            "fields": {
+              "DebuggerController::intLocal": {
+                "type": "int",
+                "value": "0"
+              },
+              "DebuggerController::intMixLocal": {
+                "type": "int",
+                "notCapturedReason": "redactedIdent"
+              }
+            }
+          }
+        },
+        "throwable": {
+          "type": "RuntimeException",
+          "message": "async exception"
+        }
+      }
+    },
+    "probe": {
+      "id": "<scrubbed>",
+      "location": {
+        "method": "exceptionReplayAsync",
+        "type": "DebuggerController"
+      }
+    }
+  }
+]

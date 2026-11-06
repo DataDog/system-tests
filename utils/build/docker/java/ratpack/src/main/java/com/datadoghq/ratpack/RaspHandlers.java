@@ -27,6 +27,8 @@ import ratpack.parse.ParserSupport;
 import ratpack.registry.Registry;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -70,6 +72,19 @@ public class RaspHandlers {
                     ctx.insert(JsonLfiHandler.INSTANCE);
                 } else if (contentType.getType().equals("application/xml") || contentType.getType().equals("text/xml")) {
                     ctx.insert(Registry.single(XmlParser.INSTANCE), XmlLfiHandler.INSTANCE);
+                } else {
+                    ctx.getResponse().status(Status.BAD_REQUEST);
+                }
+            }
+        });
+        chain.path("rasp/lfi_write", new Handler() {
+            @Override
+            public void handle(final Context ctx) throws Exception {
+                MediaType contentType = ctx.getRequest().getContentType();
+                if (ctx.getRequest().getMethod() == HttpMethod.GET) {
+                    ctx.insert(QueryLfiWriteHandler.INSTANCE);
+                } else if (contentType.isForm()) {
+                    ctx.insert(FormLfiWriteHandler.INSTANCE);
                 } else {
                     ctx.getResponse().status(Status.BAD_REQUEST);
                 }
@@ -145,6 +160,26 @@ public class RaspHandlers {
         public void handle(Context ctx) throws Exception {
             var form = ctx.parse(Form.class);
             form.then(f -> executeLfi(ctx, f.get("file")));
+        }
+    }
+
+    enum FormLfiWriteHandler implements Handler {
+        INSTANCE;
+
+        @Override
+        public void handle(Context ctx) throws Exception {
+            var form = ctx.parse(Form.class);
+            form.then(f -> executeLfiWrite(ctx, f.get("file")));
+        }
+    }
+
+    enum QueryLfiWriteHandler implements Handler {
+        INSTANCE;
+
+        @Override
+        public void handle(Context ctx) throws Exception {
+            var file = ctx.getRequest().getQueryParams().get("file");
+            executeLfiWrite(ctx, file);
         }
     }
 
@@ -362,6 +397,11 @@ public class RaspHandlers {
 
     private static void executeLfi(final Context ctx, final String file) {
         new File(file);
+        ctx.getResponse().send("text/plain", "OK");
+    }
+
+    private static void executeLfiWrite(final Context ctx, final String file) throws IOException {
+        new FileOutputStream(file).close();
         ctx.getResponse().send("text/plain", "OK");
     }
 

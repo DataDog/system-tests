@@ -8,8 +8,8 @@ import json
 from typing import Any
 
 from utils._context.component_version import ComponentVersion, Version
-from utils._context._scenarios.core import Scenario
-from utils._context._scenarios.endtoend import DockerScenario
+from utils._context._scenarios._core.scenario import Scenario
+from utils._context._scenarios._core.endtoend import DockerScenario
 from utils.virtual_machine.virtual_machines import _VirtualMachine
 from utils._context.containers import SqlDbTestedContainer
 
@@ -64,8 +64,8 @@ class _Context:
         return self._get_scenario_property("telemetry_heartbeat_interval", None)
 
     @property
-    def appsec_rules_file(self):
-        return self._get_scenario_property("appsec_rules_file", "")
+    def appsec_rules_file(self) -> str | None:
+        return self._get_scenario_property("appsec_rules_file", None)
 
     @property
     def dd_apm_inject_version(self):
@@ -80,7 +80,7 @@ class _Context:
         return self._get_scenario_property("k8s_cluster_agent_version", "")
 
     @property
-    def components(self) -> dict[str, Version | str]:
+    def components(self) -> dict[str, Version]:
         assert self.scenario is not None
         return self.scenario.components
 

@@ -3,6 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import weblog, interfaces, scenarios, rfc, features, context
+from utils.dd_types import is_same_boolean
 from utils._weblog import HttpResponse
 
 
@@ -76,7 +77,7 @@ class Test_ExtendedRequestBodyCollection:
         assert body is not None
         assert_body_property(body, "command", "/usr/bin/touch /tmp/passwd" + "A" * 4070)
         meta = span.get("meta", {})
-        assert meta.get("_dd.appsec.rasp.request_body_size.exceeded") == "true"
+        assert is_same_boolean(actual=meta.get("_dd.appsec.rasp.request_body_size.exceeded"), expected="true")
 
     def setup_if_no_rasp_event_no_collect_request_body(self):
         self.setup_feature_is_enabled()

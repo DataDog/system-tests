@@ -9,7 +9,9 @@ from utils import (
     scenarios,
     weblog,
 )
+from utils import remote_config as rc
 from utils._weblog import HttpResponse
+from utils.dd_types import DataDogLibrarySpan
 
 WEBHOOK_SECRET = b"whsec_FAKE"
 
@@ -31,7 +33,7 @@ def make_webhook_request(data: dict, secret: bytes = WEBHOOK_SECRET):
     )
 
 
-def assert_payment_event(request: HttpResponse, validator: Callable[[dict], bool]):
+def assert_payment_event(request: HttpResponse, validator: Callable[[DataDogLibrarySpan], bool]):
     assert request.status_code == 200
 
     # make sure a Stripe object was returned by the Stripe SDK
@@ -41,13 +43,13 @@ def assert_payment_event(request: HttpResponse, validator: Callable[[dict], bool
     assert body.get("livemode")
 
     # wrap validator for asserts common to all tests
-    def _validator(span: dict):
+    def _validator(span: DataDogLibrarySpan):
         # discard non-root spans
         if span.get("parent_id") not in (0, None):
             return False
 
-        assert span["metrics"]["_sampling_priority_v1"] == 1
         assert span["meta"]["appsec.events.payments.integration"] == "stripe"
+        assert span["metrics"]["_sampling_priority_v1"] == 2
 
         return validator(span)
 
@@ -57,16 +59,13 @@ def assert_payment_event(request: HttpResponse, validator: Callable[[dict], bool
 def assert_no_payment_event(request: HttpResponse, status_code: int):
     assert request.status_code == status_code
 
-    def validator(span: dict):
+    def validator(span: DataDogLibrarySpan):
         assert "appsec.events.payments.integration" not in span["meta"]
 
     interfaces.library.validate_all_spans(request, validator=validator)
 
 
-@scenarios.appsec_rasp
-@features.appsec_automated_payment_events
-@rfc("https://docs.google.com/document/d/1OzuI3DB5VTLMfdcuztG8LD1agkFVM_6sVGwSRYPf4R0")
-class Test_Automated_Payment_Events_Stripe:
+class BaseTestAutomatedPaymentEventsStripe:
     def setup_checkout_session(self):
         self.r = weblog.post(
             "/stripe/create_checkout_session",
@@ -110,7 +109,7 @@ class Test_Automated_Payment_Events_Stripe:
     def test_checkout_session(self):
         """R1"""
 
-        def validator(span: dict):
+        def validator(span: DataDogLibrarySpan):
             assert span["meta"]["appsec.events.payments.creation.id"] == "cs_FAKE"
             assert span["metrics"]["appsec.events.payments.creation.amount_total"] == 950  # 100 * 10 * 0.9 + 50
             assert span["meta"]["appsec.events.payments.creation.client_reference_id"] == "GabeN"
@@ -184,7 +183,7 @@ class Test_Automated_Payment_Events_Stripe:
     def test_payment_intent(self):
         """R2"""
 
-        def validator(span: dict):
+        def validator(span: DataDogLibrarySpan):
             assert span["meta"]["appsec.events.payments.creation.id"] == "pi_FAKE"
             assert span["metrics"]["appsec.events.payments.creation.amount"] == 6969
             assert span["meta"]["appsec.events.payments.creation.currency"] == "eur"
@@ -215,7 +214,7 @@ class Test_Automated_Payment_Events_Stripe:
     def test_payment_success(self):
         """R3"""
 
-        def validator(span: dict):
+        def validator(span: DataDogLibrarySpan):
             assert span["meta"]["appsec.events.payments.success.id"] == "pi_FAKE"
             assert span["metrics"]["appsec.events.payments.success.amount"] == 420
             assert span["meta"]["appsec.events.payments.success.currency"] == "eur"
@@ -255,7 +254,7 @@ class Test_Automated_Payment_Events_Stripe:
     def test_payment_failure(self):
         """R4"""
 
-        def validator(span: dict):
+        def validator(span: DataDogLibrarySpan):
             assert span["meta"]["appsec.events.payments.failure.id"] == "pi_FAKE"
             assert span["metrics"]["appsec.events.payments.failure.amount"] == 1337
             assert span["meta"]["appsec.events.payments.failure.currency"] == "eur"
@@ -293,7 +292,7 @@ class Test_Automated_Payment_Events_Stripe:
     def test_payment_cancellation(self):
         """R5"""
 
-        def validator(span: dict):
+        def validator(span: DataDogLibrarySpan):
             assert span["meta"]["appsec.events.payments.cancellation.id"] == "pi_FAKE"
             assert span["metrics"]["appsec.events.payments.cancellation.amount"] == 1337
             assert span["meta"]["appsec.events.payments.cancellation.cancellation_reason"] == "requested_by_customer"
@@ -343,3 +342,78 @@ class Test_Automated_Payment_Events_Stripe:
     def test_unsupported_event(self):
         """R6.2"""
         assert_no_payment_event(self.r, 200)
+
+
+@scenarios.appsec_rasp
+@features.appsec_automated_payment_events
+@rfc("https://docs.google.com/document/d/1OzuI3DB5VTLMfdcuztG8LD1agkFVM_6sVGwSRYPf4R0")
+class Test_Automated_Payment_Events_Stripe_Custom_Rules(BaseTestAutomatedPaymentEventsStripe):
+    pass
+
+
+@scenarios.default
+@features.appsec_automated_payment_events
+@rfc("https://docs.google.com/document/d/1OzuI3DB5VTLMfdcuztG8LD1agkFVM_6sVGwSRYPf4R0")
+class Test_Automated_Payment_Events_Stripe_Default_Rules(BaseTestAutomatedPaymentEventsStripe):
+    pass
+
+
+DISABLE_STRIPE = (
+    "datadog/2/ASM/disable_stripe/config",
+    {
+        "rules_override": [
+            {
+                "rules_target": [
+                    {"rule_id": "api-100-001"},
+                ],
+                "enabled": False,
+            },
+        ],
+    },
+)
+
+
+@scenarios.appsec_auto_events_rc
+@features.appsec_automated_payment_events
+class Test_Automated_Payment_Events_Stripe_RC_disablement:
+    def setup_disable_stripe_rules(self):
+        rc.tracer_rc_state.reset().apply()
+
+        self.r_enabled = weblog.post(
+            "/stripe/create_payment_intent",
+            json={
+                "amount": 6969,
+                "currency": "eur",
+                "payment_method": "pm_FAKE",
+                "receipt_email": "gaben@valvesoftware.com",
+            },
+        )
+
+        self.config_state_1 = rc.tracer_rc_state.set_config(*DISABLE_STRIPE).apply()
+
+        self.r_disabled = weblog.post(
+            "/stripe/create_payment_intent",
+            json={
+                "amount": 6969,
+                "currency": "eur",
+                "payment_method": "pm_FAKE",
+                "receipt_email": "gaben@valvesoftware.com",
+            },
+        )
+
+    def test_disable_stripe_rules(self):
+        def validator(span: DataDogLibrarySpan):
+            assert span["meta"]["appsec.events.payments.creation.id"] == "pi_FAKE"
+            assert span["metrics"]["appsec.events.payments.creation.amount"] == 6969
+            assert span["meta"]["appsec.events.payments.creation.currency"] == "eur"
+            assert span["metrics"]["appsec.events.payments.creation.livemode"] == 1
+            assert span["meta"]["appsec.events.payments.creation.payment_method"] == "pm_FAKE"
+            assert "appsec.events.payments.creation.receipt_email" not in span["meta"]
+
+            return True
+
+        assert_payment_event(self.r_enabled, validator)
+
+        assert self.config_state_1.state == rc.ApplyState.ACKNOWLEDGED
+
+        assert_no_payment_event(self.r_disabled, 200)

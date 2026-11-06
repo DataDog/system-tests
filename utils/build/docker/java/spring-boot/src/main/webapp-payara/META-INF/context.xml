@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Catalina context configuration for Payara/GlassFish.
+    allowCasualMultipartParsing=true makes Catalina's parseParts() use a default
+    MultipartConfigElement when the servlet has no explicit multipart-config,
+    allowing HttpServletRequest.getParts() to parse the request and giving
+    the dd-trace-java parseParts() instrumentation a chance to capture filenames.
+
+    This file is only included in the Payara WAR build (via the payara Maven profile).
+-->
+<Context allowCasualMultipartParsing="true"/>

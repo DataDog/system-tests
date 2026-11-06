@@ -1,6 +1,7 @@
 Datadog.configure do |c|
   c.diagnostics.debug = true
   c.appsec.instrument :active_record
+  c.tracing.log_injection = true if ENV['CONFIG_CHAINING_TEST'] == 'true'
 
   # Trace logging should be enabled with general tracer debugging,
   # but it seems the tracer debugging is not enabled via the environment

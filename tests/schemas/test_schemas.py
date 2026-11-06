@@ -1,0 +1,309 @@
+from utils import scenario_groups, features, context, interfaces, scenarios, auxiliary_test, irrelevant
+
+
+from .utils.schemas_validators import SchemaBug, assert_no_schema_error
+
+
+@features.not_reported
+@scenario_groups.end_to_end
+@auxiliary_test
+@irrelevant(context.scenario.name == "OTEL_COLLECTOR", reason="This scenario does not use library/agent interfaces")
+class Test_DdtraceSchemas:
+    def test_library(self):
+        known_bugs = [
+            SchemaBug(
+                endpoint="/debugger/v1/diagnostics",
+                data_path="$[].content[]",
+                condition=context.library >= "php@1.12.0",
+                ticket="DEBUG-4431",
+            ),
+            SchemaBug(
+                endpoint="/debugger/v1/diagnostics",
+                data_path="$",
+                condition=context.library > "nodejs@5.36.0",
+                ticket="DEBUG-3487",
+            ),
+            SchemaBug(
+                endpoint="/v0.4/traces", data_path="$", condition=context.library == "java", ticket="APMAPI-1161"
+            ),
+            SchemaBug(
+                endpoint="/telemetry/proxy/api/v2/apmtelemetry",
+                data_path="$.payload.configuration[]",
+                condition=context.library >= "nodejs@2.27.1",
+                ticket="APPSEC-52805",
+            ),
+            SchemaBug(
+                endpoint="/telemetry/proxy/api/v2/apmtelemetry",
+                data_path="$.payload[].payload.configuration[].value",
+                condition=context.library == "ruby",
+                ticket="APMAPI-2220",
+            ),
+            SchemaBug(
+                endpoint="/telemetry/proxy/api/v2/apmtelemetry",
+                data_path="$.application.process_tags",
+                condition=context.library == "nodejs",
+                ticket="APMAPI-2221",
+            ),
+            SchemaBug(
+                endpoint="/telemetry/proxy/api/v2/apmtelemetry",
+                data_path="$.payload[].payload.series[]",
+                condition=context.library == "golang",
+                ticket="APMAPI-2222",
+            ),
+            SchemaBug(
+                endpoint="/telemetry/proxy/api/v2/apmtelemetry",
+                data_path="$.payload[].payload.series[]",
+                condition=context.library == "dotnet",
+                ticket="APMAPI-2223",
+            ),
+            SchemaBug(
+                endpoint="/telemetry/proxy/api/v2/apmtelemetry",
+                data_path="$.payload.dependencies",
+                condition=context.library == "php",
+                ticket="APMAPI-2259",
+            ),
+            SchemaBug(
+                endpoint="/telemetry/proxy/api/v2/apmtelemetry",
+                data_path="$.payload.integrations",
+                condition=context.library == "php",
+                ticket="APMAPI-2259",
+            ),
+            SchemaBug(
+                endpoint="/telemetry/proxy/api/v2/apmtelemetry",
+                data_path="$.payload[].payload.integrations",
+                condition=context.library == "dotnet",
+                ticket="APMAPI-2260",
+            ),
+            SchemaBug(
+                endpoint="/telemetry/proxy/api/v2/apmtelemetry",
+                data_path="$.payload",
+                condition=context.library < "python@v2.9.0.dev",
+                ticket="APPSEC-52845",
+            ),
+            SchemaBug(
+                endpoint="/debugger/v1/diagnostics",
+                data_path="$[].content",
+                condition=context.library < "nodejs@5.31.0",
+                ticket="DEBUG-2864",
+            ),
+            SchemaBug(
+                endpoint="/debugger/v1/input",
+                data_path="$[].debugger.snapshot.stack[].lineNumber",
+                condition=context.library in ("python@2.16.2", "python@2.16.3")
+                and context.scenario is scenarios.debugger_expression_language,
+                ticket="APMRP-360",
+            ),
+            SchemaBug(
+                endpoint="/debugger/v2/input",
+                data_path="$[].debugger.snapshot.stack",
+                condition=context.library == "python"
+                and context.scenario in (scenarios.debugger_probes_snapshot, scenarios.debugger_evaluation_timeout),
+                ticket="DEBUG-5715",
+            ),
+            SchemaBug(
+                endpoint="/debugger/v1/input",
+                data_path="$[].debugger.snapshot.probe.location.method",
+                condition=context.library == "dotnet",
+                ticket="DEBUG-3734",
+            ),
+            SchemaBug(
+                endpoint="/debugger/v2/input",
+                data_path="$[].debugger.snapshot.probe.location.method",
+                condition=context.library == "dotnet",
+                ticket="DEBUG-3734",
+            ),
+            SchemaBug(
+                endpoint="/symdb/v1/input",
+                data_path=None,
+                condition=context.library == "dotnet" and context.scenario is scenarios.debugger_symdb,
+                ticket="DEBUG-3298",
+            ),
+            SchemaBug(
+                endpoint="/debugger/v1/diagnostics",
+                data_path="$[]",
+                condition=context.library >= "php@1.8.3",
+                ticket="DEBUG-3709",
+            ),
+            SchemaBug(
+                endpoint="/v0.6/stats",
+                data_path=None,
+                condition=context.library
+                in ("c", "cpp", "cpp_httpd", "cpp_nginx", "dotnet", "java", "nodejs", "php", "python", "ruby")
+                and context.scenario
+                in (
+                    scenarios.appsec_blocking,
+                    scenarios.trace_stats_computation,
+                    scenarios.trace_stats_computation_error_sampler,
+                    scenarios.trace_stats_computation_obfuscation_disabled,
+                    scenarios.trace_stats_computation_future_obfuscation_version,
+                    scenarios.trace_stats_computation_missing_obfuscation_version,
+                    scenarios.trace_stats_computation_obfuscation_version_zero,
+                    scenarios.tracing_config_nondefault_3,
+                ),
+                ticket="APMSP-2158",
+            ),
+            SchemaBug(
+                endpoint="/telemetry/proxy/api/v2/apmtelemetry",
+                data_path="$.payload",
+                condition=context.library >= "python@4.3.0-rc1" and context.scenario is scenarios.profiling,
+                ticket="APMSP-2590",
+            ),
+            SchemaBug(
+                endpoint="/v0.7/config",
+                data_path="$.client.client_tracer",
+                condition=context.weblog_variant in ("haproxy", "envoy")
+                and context.scenario in (scenarios.appsec_blocking, scenarios.default)
+                and context.library < "golang@2.5.0",
+                ticket="APMSP-2590",
+            ),
+            SchemaBug(
+                endpoint="/v0.6/stats",
+                data_path="$",  # service is missing
+                condition=context.library == "nodejs"
+                and context.scenario is scenarios.trace_stats_computation_client_drop_p0s_false,
+                ticket="APMLP-1498",
+            ),
+            SchemaBug(
+                endpoint="/v0.6/stats",
+                data_path="$.Stats[].Stats[]",  # IsTraceRoot is missing
+                condition=context.library == "nodejs"
+                and context.scenario is scenarios.trace_stats_computation_client_drop_p0s_false,
+                ticket="APMLP-1498",
+            ),
+        ]
+
+        assert_no_schema_error(interfaces.library, known_bugs)
+
+    @irrelevant(
+        not getattr(context.scenario, "include_agent", True),
+        reason="No agent: the mocked backend schemas describe what the agent sends, not an agentless library",
+    )
+    @irrelevant(
+        scenario_groups.lambda_end_to_end in context.scenario.scenario_groups,
+        reason="The Lambda extension is not the agent: e.g. its traces have no env and hostName",
+    )
+    def test_mocked_backend(self):
+        # these versions send debugger snapshots without the root timestamp
+        # (nodejs 6.0.0-pre is the first Node 6 version, it sorts before nodejs 6.0.0)
+        snapshot_without_root_timestamp = (
+            context.library < "dotnet@3.57.0"
+            or context.library < "nodejs@5.133.0"
+            or (context.library >= "nodejs@6.0.0-pre" and context.library < "nodejs@6.22.0")
+        )
+
+        known_bugs = [
+            SchemaBug(
+                endpoint="/api/v2/debugger",
+                data_path="$",
+                condition=context.library > "nodejs@5.36.0",
+                ticket="DEBUG-3487",
+            ),
+            SchemaBug(
+                endpoint="/api/v2/apmtelemetry",
+                data_path="$.payload.configuration[]",
+                condition=context.library >= "nodejs@2.27.1"
+                or context.scenario in (scenarios.crossed_tracing_libraries, scenarios.graphql_appsec),
+                ticket="APPSEC-52805",
+            ),
+            SchemaBug(
+                endpoint="/api/v2/apmtelemetry",
+                data_path="$.payload[].payload.configuration[].value",
+                condition=context.library == "ruby",
+                ticket="APMAPI-2220",
+            ),
+            SchemaBug(
+                endpoint="/api/v2/apmtelemetry",
+                data_path="$.application.process_tags",
+                condition=context.library == "nodejs",
+                ticket="APMAPI-2221",
+            ),
+            SchemaBug(
+                endpoint="/api/v2/apmtelemetry",
+                data_path="$.payload[].payload.series[]",
+                condition=context.library == "golang",
+                ticket="APMAPI-2222",
+            ),
+            SchemaBug(
+                endpoint="/api/v2/apmtelemetry",
+                data_path="$.payload[].payload.series[]",
+                condition=context.library == "dotnet",
+                ticket="APMAPI-2223",
+            ),
+            SchemaBug(
+                endpoint="/api/v2/apmtelemetry",
+                data_path="$.payload.dependencies",
+                condition=context.library == "php",
+                ticket="APMAPI-2259",
+            ),
+            SchemaBug(
+                endpoint="/api/v2/apmtelemetry",
+                data_path="$.payload.integrations",
+                condition=context.library == "php",
+                ticket="APMAPI-2259",
+            ),
+            SchemaBug(
+                endpoint="/api/v2/apmtelemetry",
+                data_path="$.payload[].payload.integrations",
+                condition=context.library == "dotnet",
+                ticket="APMAPI-2260",
+            ),
+            SchemaBug(
+                endpoint="/api/v2/apmtelemetry",
+                data_path="$.payload",
+                condition=context.library < "python@v2.9.0.dev",
+                ticket="APPSEC-52845",
+            ),
+            SchemaBug(
+                endpoint="/api/v2/debugger",
+                data_path="$[].content",
+                condition=context.library < "nodejs@5.31.0",
+                ticket="DEBUG-2864",
+            ),
+            SchemaBug(
+                endpoint="/api/v2/debugger",
+                data_path="$[]",
+                condition=context.library == "dotnet" and context.scenario is scenarios.debugger_symdb,
+                ticket="DEBUG-3298",
+            ),
+            SchemaBug(
+                endpoint="/api/v2/debugger",
+                data_path="$[]",
+                condition=context.library == "python"
+                and context.scenario in (scenarios.debugger_probes_snapshot, scenarios.debugger_evaluation_timeout),
+                ticket="DEBUG-5715",
+            ),
+            SchemaBug(
+                endpoint="/api/v2/debugger",
+                data_path="$[]",
+                condition=context.library >= "php@1.8.3",
+                ticket="DEBUG-3709",
+            ),
+            SchemaBug(
+                endpoint="/api/v2/debugger",
+                data_path="$[]",
+                condition=snapshot_without_root_timestamp,
+                ticket="DEBUG-6442",
+            ),
+            SchemaBug(
+                endpoint="/api/v2/logs",
+                data_path="$[]",
+                condition=snapshot_without_root_timestamp,
+                ticket="DEBUG-6442",
+            ),
+            SchemaBug(
+                endpoint="/api/v2/apmtelemetry",
+                data_path="$.payload",
+                condition=context.library >= "python@4.3.0-rc1" and context.scenario is scenarios.profiling,
+                ticket="APMSP-2590",
+            ),
+        ]
+
+        assert_no_schema_error(interfaces.mocked_backend, known_bugs)
+
+
+@features.not_reported
+@scenarios.otel_collector
+@auxiliary_test
+class Test_OtelSchemas:
+    def test_main(self):
+        assert_no_schema_error(interfaces.otel_collector, [])

@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import datadog.appsec.api.blocking.Blocking;
 import datadog.appsec.api.login.EventTrackerV2;
+import datadog.trace.api.DDTags;
 import datadog.trace.api.interceptor.MutableSpan;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
@@ -47,12 +48,13 @@ public class MyResource {
     private final CryptoExamples cryptoExamples = new CryptoExamples();
 
     @GET
-    public String hello() {
+    public Response hello() {
         var tracer = GlobalTracer.get();
         Span span = tracer.buildSpan("test-span").start();
         span.setTag("test-tag", "my value");
         try {
-            return "Hello World!";
+            return Response.ok("Hello world!\n")
+                .build();
         } finally {
             span.finish();
         }
@@ -248,6 +250,12 @@ public class MyResource {
         return "Hello world!";
     }
 
+    @GET
+    @Path("/resource_renaming/{path: .*}")
+    public String resourceRenaming(@PathParam("path") String path) {
+        return "ok";
+    }
+
     @POST
     @Path("/waf")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
@@ -281,6 +289,13 @@ public class MyResource {
     @Consumes(MediaType.TEXT_PLAIN)
     public String postWafString(String data) {
         return data;
+    }
+
+    @POST
+    @Path("/waf")
+    @Consumes("multipart/form-data")
+    public String postWafMultipart(org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput input) {
+        return "ok";
     }
 
     @GET
@@ -438,31 +453,63 @@ public class MyResource {
     }
 
     @GET
-    @Path("/make_distant_call")
-    public DistantCallResponse make_distant_call(@QueryParam("url") String url) throws Exception {
-        URL urlObject = new URL(url);
+    @Path("/inferred-proxy/span-creation")
+    public Response inferredProxySpanCreation(@QueryParam("status_code") String statusCodeParam, @Context HttpHeaders headers) {
+        int statusCode = 200;
+        if (statusCodeParam != null && !statusCodeParam.isEmpty()) {
+            try {
+                statusCode = Integer.parseInt(statusCodeParam);
+            } catch (NumberFormatException e) {
+                statusCode = 400;
+            }
+        }
+        System.out.println("Received an API Gateway request:");
+        headers.getRequestHeaders().forEach((name, values) ->
+            values.forEach(value -> System.out.println(name + ": " + value)));
+        return Response.status(statusCode).entity("ok").build();
+    }
 
-        HttpURLConnection con = (HttpURLConnection) urlObject.openConnection();
-        con.setRequestMethod("GET");
+    @GET
+    @Path("/trace/manual_keep_drop")
+    public Response traceManualKeepDrop(@QueryParam("decision") String decision) throws Exception {
+        if (!"keep".equals(decision) && !"drop".equals(decision)) {
+            return Response.status(400).entity("decision must be keep or drop").build();
+        }
+
+        final Span span = GlobalTracer.get().activeSpan();
+        if (span != null) {
+            span.setTag("keep".equals(decision) ? DDTags.MANUAL_KEEP : DDTags.MANUAL_DROP, true);
+        }
+
+        // Call downstream so that tests can assert on the sampling decision that gets propagated
+        String result = new ObjectMapper().writeValueAsString(make_distant_call("http://localhost:7777/", "GET"));
+
+        return Response.ok(result).type(MediaType.APPLICATION_JSON).build();
+    }
+
+    @GET
+    @Path("/make_distant_call")
+    public DistantCallResponse make_distant_call(
+            @QueryParam("url") String url,
+            @DefaultValue("GET") @QueryParam("method") String method) throws Exception {
+        java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
+                .uri(java.net.URI.create(url))
+                .method(method, java.net.http.HttpRequest.BodyPublishers.noBody())
+                .build();
+        java.net.http.HttpResponse<Void> response = java.net.http.HttpClient.newHttpClient().send(
+                request,
+                java.net.http.HttpResponse.BodyHandlers.discarding());
 
         // Save request headers
         HashMap<String, String> request_headers = new HashMap<String, String>();
-        for (Map.Entry<String, List<String>> header: con.getRequestProperties().entrySet()) {
-            if (header.getKey() == null) {
-                continue;
-            }
-
+        for (Map.Entry<String, List<String>> header: request.headers().map().entrySet()) {
             request_headers.put(header.getKey(), header.getValue().get(0));
         }
 
         // Save response headers and status code
-        int status_code = con.getResponseCode();
+        int status_code = response.statusCode();
         HashMap<String, String> response_headers = new HashMap<String, String>();
-        for (Map.Entry<String, List<String>> header: con.getHeaderFields().entrySet()) {
-            if (header.getKey() == null) {
-                continue;
-            }
-
+        for (Map.Entry<String, List<String>> header: response.headers().map().entrySet()) {
             response_headers.put(header.getKey(), header.getValue().get(0));
         }
 

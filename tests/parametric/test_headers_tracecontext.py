@@ -8,7 +8,7 @@
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-import pytest
+from utils import pytest
 
 from utils.docker_fixtures.spec.tracecontext import get_tracecontext
 from utils.docker_fixtures.spec.trace import find_span_in_traces, find_only_span
@@ -393,83 +393,65 @@ class Test_Headers_Tracecontext:
         assert traceparent.trace_id != "12345678901234567890123456789012"
 
     @temporary_enable_optin_tracecontext()
-    def test_traceparent_trace_flags_sampling_with_randomness_bit(self, test_library: APMLibrary) -> None:
-        """Tests that only bit 0 (sampled flag) determines sampling, regardless of bit 1 (randomness bit).
-        Setting the randomness bit should not break sampling decisions. Only the rightmost bit matters.
-        See https://www.w3.org/TR/trace-context-2/#trace-flags for details.
+    @parametrize("trace_flags", ["00", "01", "02", "03", "fe", "ff"])
+    def test_traceparent_trace_flags_sampling_with_randomness_bit(
+        self, test_library: APMLibrary, trace_flags: str
+    ) -> None:
+        """Interpret the sampled bit independently of the random and reserved bits.
+        See https://www.w3.org/TR/trace-context-2/#trace-flags.
         """
+        trace_id = "12345678901234567890123456789012"
+        parent_id = "1234567890123456"
         with test_library:
-            traceparent1, _ = make_single_request_and_get_tracecontext(
-                test_library, [("traceparent", "00-12345678901234567890123456789012-1234567890123456-02")]
+            traceparent, _ = make_single_request_and_get_tracecontext(
+                test_library, [("traceparent", f"00-{trace_id}-{parent_id}-{trace_flags}")]
             )
 
-            traceparent2, _ = make_single_request_and_get_tracecontext(
-                test_library, [("traceparent", "00-12345678901234567890123456789012-1234567890123456-03")]
+        assert traceparent.trace_id == trace_id
+        assert traceparent.parent_id != parent_id
+        assert int(traceparent.trace_flags, 16) & 1 == int(trace_flags, 16) & 1
+
+    @parametrize(
+        "library_env",
+        [
+            {
+                "DD_TRACE_PROPAGATION_STYLE_INJECT": "tracecontext",
+                "DD_TRACE_SAMPLE_RATE": sample_rate,
+            }
+            for sample_rate in ("0", "1")
+        ],
+    )
+    def test_traceparent_trace_flags_randomness_bit_new_trace(
+        self, test_library: APMLibrary, library_env: dict[str, str]
+    ) -> None:
+        """New Datadog trace IDs should advertise randomness, regardless of sampling.
+        See https://www.w3.org/TR/trace-context-2/#random-trace-id-flag.
+        """
+        with test_library, test_library.dd_start_span(name="new_span") as span:
+            headers = test_library.dd_inject_headers(span.span_id)
+
+        traceparent, _ = get_tracecontext(dict(headers))
+        assert int(traceparent.trace_flags, 16) & 1 == int(library_env["DD_TRACE_SAMPLE_RATE"])
+        assert int(traceparent.trace_flags, 16) & 2 == 2
+
+    @temporary_enable_optin_tracecontext()
+    @parametrize("trace_flags", ["00", "01", "02", "03"])
+    def test_traceparent_trace_flags_randomness_bit_propagation(
+        self, test_library: APMLibrary, trace_flags: str
+    ) -> None:
+        """Preserve the random flag when continuing the same trace ID.
+        See https://www.w3.org/TR/trace-context-2/#random-trace-id-flag.
+        """
+        trace_id = "12345678901234567890123456789012"
+        parent_id = "1234567890123456"
+        with test_library:
+            traceparent, _ = make_single_request_and_get_tracecontext(
+                test_library, [("traceparent", f"00-{trace_id}-{parent_id}-{trace_flags}")]
             )
 
-        # 0x02 (binary: 00000010) - sampled flag (bit 0) is 0, so unsampled
-        trace_flags1 = int(traceparent1.trace_flags, 16)
-        assert (trace_flags1 & 1) == 0, (
-            f"trace_flags 0x02 should result in unsampled (rightmost bit = 0), got 0x{traceparent1.trace_flags}"
-        )
-
-        # 0x03 (binary: 00000011) - sampled flag (bit 0) is 1, so sampled
-        trace_flags2 = int(traceparent2.trace_flags, 16)
-        assert (trace_flags2 & 1) == 1, (
-            f"trace_flags 0x03 should result in sampled (rightmost bit = 1), got 0x{traceparent2.trace_flags}"
-        )
-
-    @temporary_enable_optin_tracecontext()
-    def test_traceparent_trace_flags_randomness_bit_new_trace(self, test_library: APMLibrary) -> None:
-        """Tests randomness bit (bit 1) for new Datadog traces.
-        New traces generated by Datadog should have randomness bit set to 1.
-        This is a new W3C spec not fully supported by Datadog yet.
-        See https://www.w3.org/TR/trace-context-2/#random-trace-id-flag for details.
-        """
-        with test_library:
-            with test_library.dd_start_span(name="new_span") as span:
-                headers = test_library.dd_inject_headers(span.span_id)
-
-            traceparent, _ = get_tracecontext(dict(headers))
-
-        trace_flags = int(traceparent.trace_flags, 16)
-        assert (trace_flags & 2) == 2, (
-            f"New Datadog trace should have randomness bit set to 1, got 0x{traceparent.trace_flags}"
-        )
-
-    @temporary_enable_optin_tracecontext()
-    def test_traceparent_trace_flags_randomness_bit_propagation(self, test_library: APMLibrary) -> None:
-        """Tests randomness bit (bit 1) propagation when extracting headers.
-        The randomness bit should be propagated exactly as received.
-        This bit contains information about how the trace-id was generated.
-        This is a new W3C spec not fully supported by Datadog yet.
-        See https://www.w3.org/TR/trace-context-2/#random-trace-id-flag for details.
-        """
-        with test_library:
-            with test_library.dd_extract_headers_and_make_child_span(
-                "span_with_randomness_bit_set",
-                [("traceparent", "00-12345678901234567890123456789012-1234567890123456-02")],
-            ) as span1:
-                headers1 = test_library.dd_inject_headers(span1.span_id)
-
-            with test_library.dd_extract_headers_and_make_child_span(
-                "span_without_randomness_bit_unset",
-                [("traceparent", "00-12345678901234567890123456789012-1234567890123456-00")],
-            ) as span2:
-                headers2 = test_library.dd_inject_headers(span2.span_id)
-
-        traceparent1, _ = get_tracecontext(dict(headers1))
-        traceparent2, _ = get_tracecontext(dict(headers2))
-
-        trace_flags1 = int(traceparent1.trace_flags, 16)
-        assert (trace_flags1 & 2) == 2, (
-            f"trace_flags 0x02 should propagate randomness bit unchanged, got 0x{traceparent1.trace_flags}"
-        )
-
-        trace_flags2 = int(traceparent2.trace_flags, 16)
-        assert (trace_flags2 & 2) == 0, (
-            f"trace_flags 0x00 should propagate randomness bit unchanged, got 0x{traceparent2.trace_flags}"
-        )
+        assert traceparent.trace_id == trace_id
+        assert traceparent.parent_id != parent_id
+        assert int(traceparent.trace_flags, 16) & 2 == int(trace_flags, 16) & 2
 
     @temporary_enable_optin_tracecontext()
     def test_traceparent_ows_handling(self, test_library: APMLibrary) -> None:

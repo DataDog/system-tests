@@ -10,10 +10,7 @@ from utils import (
     scenarios,
     features,
     rfc,
-    irrelevant,
     context,
-    bug,
-    missing_feature,
     logger,
 )
 
@@ -42,13 +39,12 @@ class Test_Config_HttpServerErrorStatuses_Default:
         assert self.r.status_code == 400
 
         interfaces.library.assert_trace_exists(self.r)
-        spans = interfaces.agent.get_spans_list(self.r)
+        spans = interfaces.mocked_backend.get_spans_list(self.r)
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
-        span, span_format = spans[0]
+        span = spans[0]
 
-        assert interfaces.agent.get_span_type(span, span_format) == "web"
-        span_meta = interfaces.agent.get_span_meta(span, span_format)
-        assert span_meta["http.status_code"] == "400"
+        assert span.get_span_type() == "web"
+        assert span.get_tag("http.status_code") == "400"
         assert "error" not in span or span["error"] == 0
 
     def setup_status_code_500(self):
@@ -58,12 +54,11 @@ class Test_Config_HttpServerErrorStatuses_Default:
         assert self.r.status_code == 500
 
         interfaces.library.assert_trace_exists(self.r)
-        spans = interfaces.agent.get_spans_list(self.r)
+        spans = interfaces.mocked_backend.get_spans_list(self.r)
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
-        span, span_format = spans[0]
+        span = spans[0]
 
-        span_meta = interfaces.agent.get_span_meta(span, span_format)
-        assert span_meta["http.status_code"] == "500"
+        assert span.get_tag("http.status_code") == "500"
         assert span["error"]
 
 
@@ -79,12 +74,11 @@ class Test_Config_HttpServerErrorStatuses_FeatureFlagCustom:
         assert self.r.status_code == 200
 
         interfaces.library.assert_trace_exists(self.r)
-        spans = interfaces.agent.get_spans_list(self.r)
+        spans = interfaces.mocked_backend.get_spans_list(self.r)
         assert len(spans) == 1, "Agent received the incorrect amount of chunks"
-        span, span_format = spans[0]
-        assert interfaces.agent.get_span_type(span, span_format) == "web"
-        span_meta = interfaces.agent.get_span_meta(span, span_format)
-        assert span_meta["http.status_code"] == "200"
+        span = spans[0]
+        assert span.get_span_type() == "web"
+        assert span.get_tag("http.status_code") == "200"
         assert span["error"]
 
     def setup_status_code_202(self):
@@ -94,12 +88,11 @@ class Test_Config_HttpServerErrorStatuses_FeatureFlagCustom:
         assert self.r.status_code == 202
 
         interfaces.library.assert_trace_exists(self.r)
-        spans = interfaces.agent.get_spans_list(self.r)
+        spans = interfaces.mocked_backend.get_spans_list(self.r)
         assert len(spans) == 1, "Agent received the incorrect amount of chunks"
-        span, span_format = spans[0]
-        assert interfaces.agent.get_span_type(span, span_format) == "web"
-        span_meta = interfaces.agent.get_span_meta(span, span_format)
-        assert span_meta.get("http.status_code") == "202"
+        span = spans[0]
+        assert span.get_span_type() == "web"
+        assert span.get_tag("http.status_code") == "202"
         assert span.get("error")
 
 
@@ -112,10 +105,6 @@ class Test_Config_ObfuscationQueryStringRegexp_Empty:
     def setup_query_string_obfuscation_empty_client(self):
         self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/?key=monkey"})
 
-    @bug(
-        context.library == "java" and context.weblog_variant in ("vertx3", "vertx4"),
-        reason="APMAPI-770",
-    )
     def test_query_string_obfuscation_empty_client(self):
         spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
         client_span = _get_span_by_tags(
@@ -129,6 +118,8 @@ class Test_Config_ObfuscationQueryStringRegexp_Empty:
     def test_query_string_obfuscation_empty_server(self):
         spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
         server_span = _get_span_by_tags(spans, tags={"http.url": "http://localhost:7777/?application_key=value"})
+        if not server_span:
+            server_span = _get_span_by_tags(spans, tags={"http.url": "http://docker:7777/?application_key=value"})
         assert server_span, "\n".join([str(s) for s in spans])
 
 
@@ -138,10 +129,6 @@ class Test_Config_ObfuscationQueryStringRegexp_Configured:
     def setup_query_string_obfuscation_configured_client(self):
         self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/?ssn=123-45-6789"})
 
-    @missing_feature(
-        context.library == "java" and context.weblog_variant in ("vertx3", "vertx4"),
-        reason="Missing endpoint",
-    )
     def test_query_string_obfuscation_configured_client(self):
         spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
         client_span = _get_span_by_tags(
@@ -163,10 +150,6 @@ class Test_Config_ObfuscationQueryStringRegexp_Default:
     def setup_query_string_obfuscation_configured_client(self):
         self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/?token=value"})
 
-    @missing_feature(
-        context.library == "java" and context.weblog_variant in ("vertx3", "vertx4"),
-        reason="Missing endpoint",
-    )
     def test_query_string_obfuscation_configured_client(self):
         spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
         client_span = _get_span_by_tags(
@@ -393,7 +376,6 @@ def _get_span_by_tags(spans: list, tags: dict):
 
 
 @features.unified_service_tagging
-@scenarios.go_proxies_default
 @scenarios.tracing_config_nondefault
 class Test_Config_UnifiedServiceTagging_CustomService:
     """Verify behavior of http clients and distributed traces"""
@@ -401,17 +383,11 @@ class Test_Config_UnifiedServiceTagging_CustomService:
     def setup_specified_service_name(self):
         self.r = weblog.get("/")
 
-    @irrelevant(
-        library="golang",
-        weblog_variant="gin",
-        reason="A custom service name is specified on the gin integration, causing a conflict",
-    )
     def test_specified_service_name(self):
         interfaces.library.assert_trace_exists(self.r)
-        spans = interfaces.agent.get_spans_list(self.r)
+        spans = interfaces.mocked_backend.get_spans_list(self.r)
         assert len(spans) == 1, f"Agent received the incorrect amount of spans, Spans: {spans}"
-        span_format = spans[0][1]
-        assert interfaces.agent.get_span_service(spans[0][0], span_format) == "service_test"
+        assert spans[0].get_span_service() == "service_test"
 
 
 @scenarios.default
@@ -424,12 +400,12 @@ class Test_Config_UnifiedServiceTagging_Default:
 
     def test_default_service_name(self):
         interfaces.library.assert_trace_exists(self.r)
-        spans = interfaces.agent.get_spans_list(self.r)
+        spans = interfaces.mocked_backend.get_spans_list(self.r)
         assert len(spans) == 1, "Agent received the incorrect amount of spans"
-        span, span_format = spans[0]
+        span = spans[0]
 
         assert (
-            interfaces.agent.get_span_service(span, span_format) != "service_test"
+            span.get_span_service() != "service_test"
         )  # in default scenario, DD_SERVICE is set to "weblog" in the dockerfile; this is a temp fix to test that it is not the value we manually set in the specific scenario
 
 
@@ -681,6 +657,7 @@ class Test_Config_RuntimeMetrics_Enabled:
 
     def setup_main(self):
         self.req = weblog.get("/")
+        wait_for_runtime_metrics()
 
     def test_main(self):
         assert self.req.status_code == 200
@@ -715,6 +692,7 @@ class Test_Config_RuntimeMetrics_Enabled_WithRuntimeId:
 
     def setup_main(self):
         self.req = weblog.get("/")
+        wait_for_runtime_metrics()
 
     def test_main(self):
         assert self.req.status_code == 200
@@ -752,17 +730,29 @@ class Test_Config_RuntimeMetrics_Default:
 def get_runtime_metrics():
     runtime_metrics_gauges = [
         metric
-        for _, metric in interfaces.agent.get_metrics()
+        for _, metric in interfaces.mocked_backend.get_metrics()
         if metric["metric"].startswith("runtime.") or metric["metric"].startswith("jvm.")
     ]
 
     runtime_metrics_sketches = [
         metric
-        for _, metric in interfaces.agent.get_sketches()
+        for _, metric in interfaces.mocked_backend.get_sketches()
         if metric["metric"].startswith("runtime.") or metric["metric"].startswith("jvm.")
     ]
 
     return runtime_metrics_gauges, runtime_metrics_sketches
+
+
+RUNTIME_METRICS_WAIT_TIMEOUT = 60
+
+
+def wait_for_runtime_metrics() -> None:
+    # Runtime metrics are emitted on an interval, so wait (while the weblog is still up) until at least one
+    # reaches the mocked backend instead of relying on the fixed collection window, which is racy.
+    interfaces.mocked_backend.wait_for(
+        lambda _: any(len(metrics) > 0 for metrics in get_runtime_metrics()),
+        timeout=RUNTIME_METRICS_WAIT_TIMEOUT,
+    )
 
 
 def parse_log_injection_message(log_message: str) -> dict:
@@ -876,10 +866,10 @@ def get_log_message_from_record(record: dict | str) -> str | None:
 def parse_log_trace_id(record: dict) -> str:
     # APMAPI-1199: update nodejs to use dd.trace_id instead of trace_id
     # APMAPI-1234: update dotnet to use dd.trace_id instead of dd_trace_id
-    return record.get("dd.trace_id", record.get("trace_id", record.get("dd_trace_id")))
+    return record.get("dd.trace_id", record.get("trace_id", record.get("dd_trace_id", "")))
 
 
 def parse_log_span_id(record: dict) -> str:
     # APMAPI-1199: update nodejs to use dd.span_id instead of span_id
     # APMAPI-1234: update dotnet to use dd.span_id instead of dd_span_id
-    return record.get("dd.span_id", record.get("span_id", record.get("dd_span_id")))
+    return record.get("dd.span_id", record.get("span_id", record.get("dd_span_id", "")))

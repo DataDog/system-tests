@@ -1,9 +1,8 @@
-from __future__ import annotations
-
 import json
 
 from utils.buddies import java_buddy, _Weblog as Weblog
 from utils import interfaces, scenarios, weblog, features, logger
+from utils.dd_types import DataDogLibrarySpan
 
 
 class _BaseRabbitMQ:
@@ -26,7 +25,7 @@ class _BaseRabbitMQ:
         queue: str,
         exchange: str,
         operation: list[str],
-    ) -> dict | None:
+    ) -> DataDogLibrarySpan | None:
         logger.debug(f"Trying to find traces with span kind: {span_kind} and queue: {queue} in {interface}")
 
         for data, trace in interface.get_traces():
@@ -56,7 +55,7 @@ class _BaseRabbitMQ:
                 ):
                     continue
 
-                logger.debug(f"span found in {data['log_filename']}:\n{json.dumps(span, indent=2)}")
+                logger.debug(f"span found in {data['log_filename']}:\n{json.dumps(span.raw_span, indent=2)}")
                 return span
 
         logger.debug("No span found")
@@ -123,7 +122,7 @@ class _BaseRabbitMQ:
         # asserting on direct parent/child relationships
         assert producer_span is not None
         assert consumer_span is not None
-        assert producer_span["trace_id"] == consumer_span["trace_id"]
+        assert producer_span.trace_id_equals(consumer_span["trace_id"])
 
     def setup_consume(self):
         """Send request A to library buddy : this request will produce a RabbitMQ message
@@ -189,7 +188,7 @@ class _BaseRabbitMQ:
         # asserting on direct parent/child relationships
         assert producer_span is not None
         assert consumer_span is not None
-        assert producer_span["trace_id"] == consumer_span["trace_id"]
+        assert producer_span.trace_id_equals(consumer_span["trace_id"])
 
     def validate_rabbitmq_spans(
         self,

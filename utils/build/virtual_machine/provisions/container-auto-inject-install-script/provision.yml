@@ -15,7 +15,7 @@ provision_steps:
   - prepare-docker #Prepare the docker environment
   - amazon-ecr-credential-helper # Install AWS ECR helper to download images from ECR
   - patch-docker-daemon #Patch the docker daemon to avoid networking issues/ip conflicts incident-31160
-  - install-agent #Install the agent (allways latest release)
+  - install-agent #Install the agent (version pinned in utils/build/virtual_machine/agent.lock)
   - autoinjection_install_script #Install the auto-injection softaware 'datadog-apm-inject' and 'datadog-apm-library-$DD_LANG'
 
 init-config:
@@ -41,9 +41,9 @@ install-agent:
       copy_files:
           - name: copy-agent-docker-compose
             local_path: utils/build/virtual_machine/provisions/auto-inject/docker/docker-compose-agent-prod.yml
+          - name: copy-agent-version-lock
+            local_path: utils/build/virtual_machine/agent.lock
       remote-command: cat docker-compose-agent-prod.yml
 
 autoinjection_install_script:
   install: !include utils/build/virtual_machine/provisions/container-auto-inject-install-script/auto-inject_container_script.yml
-
-

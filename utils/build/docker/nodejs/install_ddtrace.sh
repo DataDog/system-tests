@@ -4,21 +4,41 @@ set -eu
 
 cd /usr/app
 
+BUN_ARGS=(--network-concurrency 16 --trust --linker=hoisted)
+
+run_without_node_env () {
+    (
+        unset NODE_ENV
+        "$@"
+    )
+}
+
+install_custom_target () {
+    local target=$1
+    run_without_node_env bun add "${BUN_ARGS[@]}" "$target" || (sleep 30 && run_without_node_env bun add "${BUN_ARGS[@]}" "$target")
+}
+
 if [ -e /binaries/nodejs-load-from-local ]; then
     echo "using local version that will be mounted at runtime"
+    echo "0.0.0" > /binaries/SYSTEM_TESTS_LIBRARY_VERSION
 else
     if [ -e /binaries/nodejs-load-from-npm ]; then
-        target=$(</binaries/nodejs-load-from-npm)
+        target=$(xargs < /binaries/nodejs-load-from-npm)
         echo "install from: $target"
+        install_custom_target "$target"
 
     elif [ -e /binaries/dd-trace-js ]; then
-        target=$(npm pack /binaries/dd-trace-js)
+        # bun pm pack runs prepack/prepare lifecycle hooks needed to build dd-trace-js. Those hooks
+        # (e.g. the vendor postinstall) also write to stdout, so keep only the produced .tgz path.
+        target=$(cd /binaries/dd-trace-js && run_without_node_env bun pm pack --destination /usr/app --quiet | grep -E '\.tgz$' | tail -n 1)
         echo "install from local folder /binaries/dd-trace-js"
+        install_custom_target "$target"
 
     else
-        target="dd-trace"
         echo "install from NPM"
+        install_custom_target dd-trace
     fi
 
-    npm install $target || npm install $target
+    # read by build.sh, to label the image with it, like the healthcheck reports it. A tracer mounted at runtime overrides it
+    node -p "require('dd-trace/package.json').version" > /binaries/SYSTEM_TESTS_LIBRARY_VERSION
 fi

@@ -1,0 +1,19 @@
+FROM node:22-alpine
+
+COPY --from=oven/bun:1.4.0-alpine /usr/local/bin/bun /usr/local/bin/bun
+
+RUN apk add --no-cache bash curl git jq
+
+RUN node --version && npm --version && bun --version && curl --version
+
+WORKDIR /usr/app
+
+ENV NODE_ENV=production
+
+COPY express /usr/app
+COPY express5/package.json ./
+COPY express5/bun.lock ./
+COPY nft-prune.mjs ./
+RUN bun install --frozen-lockfile --network-concurrency 8 --linker=hoisted \
+ && node nft-prune.mjs app.js \
+ && rm -rf /root/.bun

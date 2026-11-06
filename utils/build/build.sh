@@ -34,11 +34,15 @@ readonly DEFAULT_python_otel=flask-poc-otel
 readonly DEFAULT_nodejs_otel=express4-otel
 readonly DEFAULT_php=apache-mod-8.0
 readonly DEFAULT_dotnet=poc
-readonly DEFAULT_cpp=nginx
 readonly DEFAULT_cpp_httpd=httpd
 readonly DEFAULT_cpp_nginx=nginx
+readonly DEFAULT_cpp_kong=kong
 readonly DEFAULT_python_lambda=apigw-rest
+readonly DEFAULT_java_lambda=java-apigw-rest
+readonly DEFAULT_nodejs_lambda=nodejs-apigw-rest
+readonly DEFAULT_ruby_lambda=ruby-apigw-rest
 readonly DEFAULT_rust=axum
+readonly DEFAULT_c=perl-mojolicious
 
 readonly SCRIPT_NAME="${0}"
 readonly SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
@@ -46,6 +50,8 @@ readonly SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 readonly CYAN='\033[0;36m'
 readonly NC='\033[0m'
 readonly WHITE_BOLD='\033[1;37m'
+
+VALID_LIBRARIES=$(python3 utils/const/__main__.py COMPONENT_GROUPS buildable)
 
 print_usage() {
     echo -e "${WHITE_BOLD}DESCRIPTION${NC}"
@@ -55,21 +61,21 @@ print_usage() {
     echo -e "  ${SCRIPT_NAME} [options...]"
     echo
     echo -e "${WHITE_BOLD}OPTIONS${NC}"
-    echo -e "  ${CYAN}--library <lib>${NC}            Language of the tracer (env: TEST_LIBRARY, default: ${DEFAULT_TEST_LIBRARY})."
-    echo -e "  ${CYAN}--weblog-variant <var>${NC}     Weblog variant (env: WEBLOG_VARIANT)."
-    echo -e "  ${CYAN}--images <images>${NC}          Comma-separated list of images to build (env: BUILD_IMAGES, default: ${DEFAULT_BUILD_IMAGES})."
-    echo -e "  ${CYAN}--docker${NC}                   Build docker image instead of local install (env: DOCKER_MODE, default: ${DEFAULT_DOCKER_MODE})."
-    echo -e "  ${CYAN}--github-token-file <file>${NC} Path to a file containing a GitHub token used for authenticated operations (e.g. cloning private repos, accessing the API)."
-    echo -e "  ${CYAN}--extra-docker-args <args>${NC} Extra arguments passed to docker build (env: EXTRA_DOCKER_ARGS)."
-    echo -e "  ${CYAN}--cache-mode <mode>${NC}        Cache mode (env: DOCKER_CACHE_MODE)."
-    echo -e "  ${CYAN}--platform <platform>${NC}      Target Docker platform."
-    echo -e "  ${CYAN}--list-libraries${NC}           Lists all available libraries and exits."
-    echo -e "  ${CYAN}--list-weblogs${NC}             Lists all available weblogs for a library and exits."
-    echo -e "  ${CYAN}--default-weblog${NC}           Prints the name of the default weblog for a given library and exits."
-    echo -e "  ${CYAN}--binary-path${NC}              Optional. Path of a directory binaries will be copied from. Should be used for local development only."
-    echo -e "  ${CYAN}--binary-url${NC}               Optional. Url of the client library redistributable. Should be used for local development only."
-    echo -e "  ${CYAN}--save-to-binaries${NC}         Optional. Save image in binaries folder as a tar.gz file."
-    echo -e "  ${CYAN}--help${NC}                     Prints this message and exits."
+    echo -e "  ${CYAN}--library <lib>${NC}              Language of the tracer (env: TEST_LIBRARY, default: ${DEFAULT_TEST_LIBRARY})."
+    echo -e "  ${CYAN}--weblog-variant <var>${NC}       Weblog variant (env: WEBLOG_VARIANT)."
+    echo -e "  ${CYAN}--images <images>${NC}            Comma-separated list of images to build (env: BUILD_IMAGES, default: ${DEFAULT_BUILD_IMAGES})."
+    echo -e "  ${CYAN}--docker${NC}                     Build docker image instead of local install (env: DOCKER_MODE, default: ${DEFAULT_DOCKER_MODE})."
+    echo -e "  ${CYAN}--github-token-file <file>${NC}   Path to a file containing a GitHub token used for authenticated operations (e.g. cloning private repos, accessing the API)."
+    echo -e "  ${CYAN}--extra-docker-args <args>${NC}   Extra arguments passed to docker build (env: EXTRA_DOCKER_ARGS)."
+    echo -e "  ${CYAN}--cache-mode <mode>${NC}          Cache mode (env: DOCKER_CACHE_MODE)."
+    echo -e "  ${CYAN}--docker-platform <platform>${NC} Target Docker platform."
+    echo -e "  ${CYAN}--list-libraries${NC}             Lists all available libraries and exits."
+    echo -e "  ${CYAN}--list-weblogs${NC}               Lists all available weblogs for a library and exits."
+    echo -e "  ${CYAN}--default-weblog${NC}             Prints the name of the default weblog for a given library and exits."
+    echo -e "  ${CYAN}--binary-path${NC}                Optional. Path of a directory binaries will be copied from. Should be used for local development only."
+    echo -e "  ${CYAN}--binary-url${NC}                 Optional. Url of the client library redistributable. Should be used for local development only."
+    echo -e "  ${CYAN}--save-to-binaries${NC}           Optional. Save image in binaries folder as a tar.zst file."
+    echo -e "  ${CYAN}--help${NC}                       Prints this message and exits."
     echo
     echo -e "${WHITE_BOLD}EXAMPLES${NC}"
     echo -e "  Build default images:"
@@ -101,26 +107,47 @@ list-weblogs() {
 
 default-weblog() {
     local var="DEFAULT_${TEST_LIBRARY}"
+    if [[ -z "${!var:-}" ]]; then
+        echo "ERROR: This script should not be run for the ${TEST_LIBRARY} library because it has no default weblog." >&2
+        exit 1
+    fi
     echo -n "${!var}"
 }
 
+run_build_command() {
+    local log_file
+    local exit_code
+    echo "Running command: $*"
+    # During development, we prefer non-verbose output in the absence of errors. This adds less clutter
+    # in terminals, and saves a significant amount of useless tokens for coding agents.
+    # In CI, however, we keep full logs that sometimes help troubleshooting build times.
+    if [[ ${CI:-} = true ]]; then
+	    "$@"
+	    exit_code=$?
+	    return $exit_code
+    fi
+    log_file=$(mktemp "${TMPDIR:-/tmp}/system-tests-build.XXXXXX")
+    echo "Build log file: ${log_file}"
+
+    set +e
+    "$@" >"${log_file}" 2>&1
+    exit_code=$?
+    set -e
+
+    if [ "${exit_code}" -eq 0 ]; then
+        rm -f "${log_file}"
+        return 0
+    fi
+    echo "Build command failed: $*" >&2
+    cat "${log_file}" >&2
+    return "${exit_code}"
+}
+
 build() {
-    CACHE_TO=
-    CACHE_FROM=
-    if [[ "$DOCKER_CACHE_MODE" == *"$ALIAS_CACHE_FROM"* ]]; then
-        echo "Setting remote cache for read"
-        CACHE_FROM="--cache-from type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache"
-    fi
-    if [[ "$DOCKER_CACHE_MODE" == *"$ALIAS_CACHE_TO"* ]]; then
-        echo "Setting remote cache for write"
-        CACHE_TO="--cache-to type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache"
-    fi
 
     echo "=================================="
     echo "build images for system tests"
     echo ""
-    echo "TEST_LIBRARY:      $TEST_LIBRARY"
-    echo "WEBLOG_VARIANT:    $WEBLOG_VARIANT"
     echo "BUILD_IMAGES:      $BUILD_IMAGES"
     echo "EXTRA_DOCKER_ARGS: $EXTRA_DOCKER_ARGS"
     echo ""
@@ -141,6 +168,23 @@ build() {
         echo Build $IMAGE_NAME
         if [[ $IMAGE_NAME == runner ]] && [[ $DOCKER_MODE != 1 ]]; then
             if [[ -z "${IN_NIX_SHELL:-}" ]]; then
+                # Homebrew/Python upgrades can invalidate an existing venv.
+                # If the interpreter is broken, recreate the venv automatically.
+                if [ -d "venv/" ] && ! venv/bin/python -V >/dev/null 2>&1
+                then
+                    echo "Existing venv is broken. Recreating it."
+                    rm -rf venv
+                fi
+
+                # venv/requirements.txt is written only once pip install has completed. If it's missing,
+                # a previous install was interrupted (e.g. killed by timeout), and the venv may contain
+                # half-installed packages that pip considers installed. Recreate it.
+                if [ -d "venv/" ] && [ ! -f "venv/requirements.txt" ]
+                then
+                    echo "Existing venv is incomplete. Recreating it."
+                    rm -rf venv
+                fi
+
                 if [ ! -d "venv/" ]
                 then
                     echo "Build virtual env"
@@ -160,14 +204,18 @@ build() {
                     fi
                 fi
                 source venv/bin/activate
-                python -m pip install --upgrade pip setuptools==75.8.0
+                # remove the completion marker before any change to the venv, it's written back only if the install succeeds
+                rm -f venv/requirements.txt
+                run_build_command python -m pip install --upgrade pip setuptools==75.8.0
             fi
-            python -m pip install -e .
-            cp requirements.txt venv/requirements.txt
+            run_build_command python -m pip install -e .
+            if [[ -d "venv/" ]]; then
+                cp requirements.txt venv/requirements.txt
+            fi
 
 
         elif [[ $IMAGE_NAME == runner ]] && [[ $DOCKER_MODE == 1 ]]; then
-            docker buildx build \
+            run_build_command docker buildx build \
                 --build-arg BUILDKIT_INLINE_CACHE=1 \
                 --load \
                 --progress=plain \
@@ -177,7 +225,7 @@ build() {
                 .
 
         elif [[ $IMAGE_NAME == proxy ]]; then
-            docker buildx build \
+            run_build_command docker buildx build \
                 --build-arg BUILDKIT_INLINE_CACHE=1 \
                 --load \
                 --progress=plain \
@@ -195,6 +243,23 @@ build() {
                 find . ! -name 'README.md' -type f -exec rm -f {} +
             }
 
+            if [[ ! -d "${SCRIPT_DIR}/docker/${TEST_LIBRARY}" ]]; then
+                echo "Library ${TEST_LIBRARY} not found"
+                echo "Available libraries: $(echo $(list-libraries))"
+                exit 1
+            fi
+
+            WEBLOG_VARIANT="${WEBLOG_VARIANT:-$(default-weblog)}"
+
+            if [[ (-n "$WEBLOG_VARIANT") && (! -f "${SCRIPT_DIR}/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile") ]]; then
+                echo "Variant ${WEBLOG_VARIANT} for library ${TEST_LIBRARY} not found"
+                echo "Available weblog variants for ${TEST_LIBRARY}: $(echo $(list-weblogs))"
+                exit 1
+            fi
+
+            echo "TEST_LIBRARY:      $TEST_LIBRARY"
+            echo "WEBLOG_VARIANT:    $WEBLOG_VARIANT"
+
             if ! [[ -z "$BINARY_URL" ]]; then
                 cd binaries
                 clean-binaries
@@ -210,11 +275,11 @@ build() {
             fi
 
             # keep this name consistent with WeblogContainer.get_image_list()
-            BINARIES_FILENAME=binaries/${TEST_LIBRARY}-${WEBLOG_VARIANT}-weblog.tar.gz
+            BINARIES_FILENAME=binaries/${TEST_LIBRARY}-${WEBLOG_VARIANT}-weblog.tar.zst
 
-            if [ -f $BINARIES_FILENAME ]; then
+            if [ -f "$BINARIES_FILENAME" ]; then
                 echo "Loading image from $BINARIES_FILENAME"
-                docker load --input $BINARIES_FILENAME
+                zstd -d -c "$BINARIES_FILENAME" | docker load
             else
 
                 if [[ $TEST_LIBRARY == python ]]; then
@@ -235,7 +300,7 @@ build() {
                         django-py3.13)
                             PYTHON_VERSION="3.13"
                             ;;
-                        tornado)
+                        tornado|aiohttp)
                             PYTHON_VERSION="3.14"
                             ;;
                         *)
@@ -245,12 +310,42 @@ build() {
                     esac
 
                     echo "Using Python version: $PYTHON_VERSION"
-                    docker run ${DOCKER_PLATFORM_ARGS} -v ./binaries/:/app -w /app ghcr.io/datadog/dd-trace-py/testrunner bash -c "pyenv global $PYTHON_VERSION; pip wheel --no-deps -w . /app/dd-trace-py"
+                    run_build_command docker run ${DOCKER_PLATFORM_ARGS} -v ./binaries/:/app -w /app ghcr.io/datadog/dd-trace-py/testrunner bash -c "pyenv global $PYTHON_VERSION; pip wheel --no-deps -w . /app/dd-trace-py"
                 fi
 
                 DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
+                BASE_IMAGE_CONTEXT_ARGS=()
+                BASE_IMAGE_CONTEXTS=$(python3 utils/scripts/resolve-base-images-contexts.py --build-contexts "$DOCKERFILE")
+                if [[ -n "$BASE_IMAGE_CONTEXTS" ]]; then
+                    while IFS= read -r base_image_context; do
+                        BASE_IMAGE_CONTEXT_ARGS+=(--build-context "$base_image_context")
+                    done <<< "$BASE_IMAGE_CONTEXTS"
+                fi
+
+                # When the image mirror is enabled, create (or reuse) a buildx
+                # builder whose buildkitd daemon is configured to redirect all
+                # FROM pulls through registry.ddbuild.io/system-tests/mirror.
+                MIRROR_BUILDER_ARG=""
+                if [[ "${USE_IMAGE_MIRROR:-}" =~ ^(1|true|yes)$ ]]; then
+                    if ! docker buildx inspect system-tests-mirror &>/dev/null 2>&1; then
+                        docker buildx create \
+                            --name system-tests-mirror \
+                            --config "${SCRIPT_DIR}/docker/buildkitd.toml"
+                    fi
+                    MIRROR_BUILDER_ARG="--builder system-tests-mirror"
+                fi
 
                 GITHUB_TOKEN_SECRET_ARG=""
+                C_PACKAGE_BUILD_ARGS=()
+
+                if [[ $TEST_LIBRARY == c ]]; then
+                    if [[ -f binaries/c-library-image ]]; then
+                        C_PACKAGE_BUILD_ARGS+=(--build-arg "DD_TRACE_C_IMAGE=$(<binaries/c-library-image)")
+                    fi
+                    if [[ -f binaries/c-injector-image ]]; then
+                        C_PACKAGE_BUILD_ARGS+=(--build-arg "AUTO_INJECT_IMAGE=$(<binaries/c-injector-image)")
+                    fi
+                fi
 
                 if [ -n "${GITHUB_TOKEN_FILE:-}" ]; then
                     if [ ! -f "$GITHUB_TOKEN_FILE" ]; then
@@ -262,41 +357,73 @@ build() {
                     GITHUB_TOKEN_SECRET_ARG="--secret id=github_token,src=$GITHUB_TOKEN_FILE"
                 fi
 
-                docker buildx build \
+                CACHE_TO=
+                CACHE_FROM=
+                if [[ "$DOCKER_CACHE_MODE" == *"$ALIAS_CACHE_FROM"* ]]; then
+                    echo "Setting remote cache for read"
+                    CACHE_FROM="--cache-from type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache"
+                fi
+                if [[ "$DOCKER_CACHE_MODE" == *"$ALIAS_CACHE_TO"* ]]; then
+                    echo "Setting remote cache for write"
+                    CACHE_TO="--cache-to type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache"
+                fi
+
+                run_build_command docker buildx build \
                     --build-arg BUILDKIT_INLINE_CACHE=1 \
                     --load \
                     --progress=plain \
                     ${DOCKER_PLATFORM_ARGS} \
                     ${GITHUB_TOKEN_SECRET_ARG} \
+                    "${C_PACKAGE_BUILD_ARGS[@]}" \
+                    "${BASE_IMAGE_CONTEXT_ARGS[@]}" \
                     -f ${DOCKERFILE} \
                     --label "system-tests-library=${TEST_LIBRARY}" \
                     --label "system-tests-weblog-variant=${WEBLOG_VARIANT}" \
                     -t system_tests/weblog \
                     $CACHE_TO \
                     $CACHE_FROM \
+                    $MIRROR_BUILDER_ARG \
                     $EXTRA_DOCKER_ARGS \
                     .
 
                 if test -f "binaries/waf_rule_set.json"; then
 
-                    docker buildx build \
+                    run_build_command docker buildx build \
                         --build-arg BUILDKIT_INLINE_CACHE=1 \
                         --load \
                         --progress=plain \
                         ${DOCKER_PLATFORM_ARGS} \
                         -f utils/build/docker/overwrite_waf_rules.Dockerfile \
                         -t system_tests/weblog \
+                        $MIRROR_BUILDER_ARG \
                         $EXTRA_DOCKER_ARGS \
                         .
                 fi
 
+                # The version of the tracer installed in the image, as its healthcheck reports it, written at build time
+                LIBRARY_VERSION=$(docker run --rm ${DOCKER_PLATFORM_ARGS} --entrypoint cat system_tests/weblog \
+                    /binaries/SYSTEM_TESTS_LIBRARY_VERSION | head -n 1 | tr -d '[:space:]' || true)
+                if [[ -z "$LIBRARY_VERSION" ]]; then
+                    echo "The weblog image has no /binaries/SYSTEM_TESTS_LIBRARY_VERSION file, it can't be labelled" >&2
+                    exit 1
+                fi
+                echo "Labelling the weblog image with library version $LIBRARY_VERSION"
+                # Not on the mirror builder: it has its own image store, and can't see the image just loaded in the daemon
+                echo "FROM system_tests/weblog" | run_build_command docker buildx build \
+                    --load \
+                    --progress=plain \
+                    ${DOCKER_PLATFORM_ARGS} \
+                    --label "system-tests-library-version=${LIBRARY_VERSION}" \
+                    -t system_tests/weblog \
+                    -
+
                 if [[ $SAVE_TO_BINARIES == 1 ]]; then
                     echo "Saving image to $BINARIES_FILENAME"
-                    docker save system_tests/weblog | gzip > $BINARIES_FILENAME
+                    docker save system_tests/weblog | zstd > "$BINARIES_FILENAME"
                 fi
             fi
         elif [[ $IMAGE_NAME == lambda-proxy ]]; then
-            docker buildx build \
+            run_build_command docker buildx build \
                 --build-arg BUILDKIT_INLINE_CACHE=1 \
                 --load \
                 --progress=plain \
@@ -316,7 +443,6 @@ COMMAND=build
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
-        cpp_nginx|cpp_httpd|dotnet|golang|java|java_otel|nodejs|nodejs_otel|php|python|python_lambda|python_otel|ruby|rust) TEST_LIBRARY="$1";;
         -l|--library) TEST_LIBRARY="$2"; shift ;;
         -i|--images) BUILD_IMAGES="$2"; shift ;;
         -d|--docker) DOCKER_MODE=1;;
@@ -333,7 +459,13 @@ while [[ "$#" -gt 0 ]]; do
         --default-weblog) COMMAND=default-weblog ;;
         -h|--help) print_usage; exit 0 ;;
         --agent-base-image) AGENT_BASE_IMAGE="$2"; shift ;;  # deprecated
-        *) echo "Invalid argument: ${1:-}"; echo; print_usage; exit 1 ;;
+        *)
+            if [[ "$1" =~ ^(${VALID_LIBRARIES})$ ]]; then
+                TEST_LIBRARY="$1"
+            else
+                echo "Invalid argument: ${1:-}"; echo; print_usage; exit 1
+            fi
+            ;;
     esac
     shift
 done
@@ -349,19 +481,5 @@ TEST_LIBRARY="${TEST_LIBRARY:-${DEFAULT_TEST_LIBRARY}}"
 BINARY_PATH="${BINARY_PATH:-}"
 BINARY_URL="${BINARY_URL:-}"
 GITHUB_TOKEN_FILE="${GITHUB_TOKEN_FILE:-}"
-
-if [[ "${BUILD_IMAGES}" =~ /weblog/ && ! -d "${SCRIPT_DIR}/docker/${TEST_LIBRARY}" ]]; then
-    echo "Library ${TEST_LIBRARY} not found"
-    echo "Available libraries: $(echo $(list-libraries))"
-    exit 1
-fi
-
-WEBLOG_VARIANT="${WEBLOG_VARIANT:-$(default-weblog)}"
-
-if [[ "${BUILD_IMAGES}" =~ /weblog/ && (-n "$WEBLOG_VARIANT") && (! -f "${SCRIPT_DIR}/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile") ]]; then
-    echo "Variant ${WEBLOG_VARIANT} for library ${TEST_LIBRARY} not found"
-    echo "Available weblog variants for ${TEST_LIBRARY}: $(echo $(list-weblogs))"
-    exit 1
-fi
 
 "${COMMAND}"

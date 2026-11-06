@@ -35,7 +35,7 @@ class Test_NoError:
 
             for state in config_states:
                 error = state.get("apply_error", None)
-                if error is not None:
+                if error is not None and error != "":  # Allow unset or empty string
                     raise Exception(f"Error in remote config application: {error}")
 
         interfaces.library.validate_all_remote_configuration(no_error, allow_no_data=True)
@@ -210,9 +210,6 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
                 return False
 
             logger.info(f"validating request number {self.request_number}")
-            if self.request_number >= len(asm_features_expected_requests):
-                return True
-
             rc_check_request(data, asm_features_expected_requests[self.request_number], caching=True)
 
             self.python_request_number += 1
@@ -226,7 +223,7 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
             else:
                 self.request_number += 1
 
-            return False
+            return self.request_number >= len(asm_features_expected_requests)
 
         interfaces.library.validate_one_remote_configuration(validator=validate)
 
@@ -311,14 +308,11 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFie
 
             runtime_id = data["request"]["content"]["client"]["client_tracer"]["runtime_id"]
             logger.info(f"validating request number {request_number[runtime_id]}")
-            if request_number[runtime_id] >= len(live_debugging_expected_requests):
-                return True
-
             rc_check_request(data, live_debugging_expected_requests[request_number[runtime_id]], caching=True)
 
             request_number[runtime_id] += 1
 
-            return False
+            return request_number[runtime_id] >= len(live_debugging_expected_requests)
 
         interfaces.library.validate_one_remote_configuration(validator=validate)
 
@@ -341,7 +335,6 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
         context.library >= "java@1.4.0" and context.appsec_rules_file is not None,
         reason="ASM_DD not subscribed with custom rules. This is the compliant behavior",
     )
-    @bug(context.weblog_variant == "spring-boot-openliberty", reason="APPSEC-6721")
     def test_tracer_update_sequence(self):
         """Test update sequence, based on a scenario mocked in the proxy"""
 
@@ -356,15 +349,12 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
             if not self.response_has_been_overwritten(data):
                 return False
 
-            if self.request_number >= len(asm_dd_expected_requests):
-                return True
-
             logger.info(f"Validating request #{self.request_number} in {data['log_filename']}")
             rc_check_request(data, asm_dd_expected_requests[self.request_number], caching=True)
 
             self.request_number += 1
 
-            return False
+            return self.request_number >= len(asm_dd_expected_requests)
 
         interfaces.library.validate_one_remote_configuration(validator=validate)
 
@@ -404,14 +394,11 @@ class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationF
                 return False
 
             logger.info(f"validating request number {self.request_number}")
-            if self.request_number >= len(asm_features_expected_requests):
-                return True
-
             rc_check_request(data, asm_features_expected_requests[self.request_number], caching=False)
 
             self.request_number += 1
 
-            return False
+            return self.request_number >= len(asm_features_expected_requests)
 
         interfaces.library.validate_one_remote_configuration(validator=validate)
 
@@ -449,14 +436,11 @@ class Test_RemoteConfigurationUpdateSequenceASMDDNoCache(RemoteConfigurationFiel
                 return False
 
             logger.info(f"validating request number {self.request_number}")
-            if self.request_number >= len(asm_dd_expected_requests):
-                return True
-
             rc_check_request(data, asm_dd_expected_requests[self.request_number], caching=False)
 
             self.request_number += 1
 
-            return False
+            return self.request_number >= len(asm_dd_expected_requests)
 
         interfaces.library.validate_one_remote_configuration(validator=validate)
 

@@ -1,8 +1,8 @@
-from utils.docker_fixtures.spec.trace import find_only_span
-from utils import features, scenarios, context, irrelevant
+from utils.docker_fixtures.spec.trace import find_only_span, span_has_no_parent
+from utils import features, scenarios
 from utils.docker_fixtures import TestAgentAPI
 
-import pytest
+from utils import pytest
 
 from .conftest import APMLibrary
 
@@ -75,22 +75,21 @@ class Test_Headers_Baggage:
         assert headers["baggage"] == "foo=bar"
 
     @only_baggage_enabled()
-    def test_headers_baggage_only_D002(self, test_library: APMLibrary) -> None:
+    def test_headers_baggage_only_D002(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Ensure that only baggage headers are injected when baggage is the only enabled propagation style."""
         with test_library:
             headers = test_library.dd_make_child_span_and_get_headers(
                 [("x-datadog-trace-id", "123456789"), ("baggage", "foo=bar")]
             )
 
+        # Baggage carries no trace identity, so extraction must not create a parent.
+        span = find_only_span(test_agent.wait_for_num_traces(1))
+        assert span_has_no_parent(span)
         assert "x-datadog-trace-id" not in headers
         assert "x-datadog-parent-id" not in headers
         assert "baggage" in headers
         assert headers["baggage"] == "foo=bar"
 
-    @irrelevant(
-        context.library in ("cpp", "goland", "java", "ruby", "php"),
-        reason="The current default behaviour matches the future baggage disabled behaviour, so we can't activate this test without causing a false easy win",
-    )
     @disable_baggage()
     def test_baggage_disable_settings_D003(self, test_agent: TestAgentAPI, test_library: APMLibrary) -> None:
         """Ensure that baggage headers are not injected when baggage is disabled and does not interfere with other headers."""
@@ -161,10 +160,6 @@ class Test_Headers_Baggage:
             assert span.get_baggage("userId") == "Amélie"
             assert span.get_baggage("serverNode") == "DF 28"
 
-    @irrelevant(
-        context.library in ("cpp", "goland", "java", "ruby", "php"),
-        reason="The current default behaviour matches the future baggage disabled behaviour, so we can't activate this test without causing a false easy win",
-    )
     @disable_baggage()
     def test_baggage_set_disabled_D007(self, test_library: APMLibrary) -> None:
         """Ensure that baggage headers are not injected when baggage is disabled."""
