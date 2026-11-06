@@ -61,6 +61,7 @@ def evaluate_flag(
     attributes: JSON | None = None,
     variation_type: str = "STRING",
     default_value: object = "default",
+    timeout: int | None = None,
 ) -> HttpResponse:
     payload = {
         "flag": flag_key,
@@ -71,7 +72,7 @@ def evaluate_flag(
     }
     if targeting_keys is not None:
         payload["targetingKeys"] = targeting_keys
-    return weblog.post("/ffe", json=payload)
+    return weblog.post("/ffe", json=payload, timeout=timeout)
 
 
 def evp_flagevaluation_events_from_data(
@@ -674,6 +675,7 @@ class Test_FFE_EVP_Flagevaluation_High_Cardinality_Accounting:
                 targeting_key=targeting_keys[0],
                 targeting_keys=targeting_keys,
                 attributes={},
+                timeout=10,
             )
         ]
 
