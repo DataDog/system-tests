@@ -32,6 +32,10 @@ MAX_ARTIFACT_FILE_SIZE = 50 * 1024 * 1024
 PUBLISH_ATTEMPTS = 3
 PUBLISH_TIMEOUT_SECONDS = 30
 PUBLISH_RETRY_DELAY_SECONDS = 5
+# The raw log folder is uploaded before large files are removed. Two attempts of 60s, plus a
+# full feature-parity retry, stay inside the runner's 5-minute after_script timeout.
+S3_PUBLISH_ATTEMPTS = 2
+S3_PUBLISH_TIMEOUT_SECONDS = 60
 
 
 @dataclass
@@ -83,29 +87,41 @@ def run(
     subprocess.run(command, check=True, cwd=cwd, timeout=timeout, env=None if env is None else {**os.environ, **env})
 
 
-def run_publish(command: list[str], env: Mapping[str, str] | None = None, *, ignore_failure: bool = False) -> bool:
+def _publish_failure(command_name: str, error: subprocess.CalledProcessError | subprocess.TimeoutExpired) -> str:
+    """Status only. CalledProcessError stringifies the whole argument list."""
+    if isinstance(error, subprocess.TimeoutExpired):
+        return f"{command_name} timed out after {error.timeout} seconds"
+    return f"{command_name} exited with status {error.returncode}"
+
+
+def run_publish(
+    command: list[str],
+    env: Mapping[str, str] | None = None,
+    *,
+    attempts: int = PUBLISH_ATTEMPTS,
+    timeout: float = PUBLISH_TIMEOUT_SECONDS,
+    ignore_failure: bool = False,
+) -> bool:
     """Retry a publish command.
 
-    Raise the last error when every attempt fails. The S3 log upload sets ignore_failure
-    so a remaining failure is logged and the after_script still exits 0.
+    Raise when every attempt fails. The S3 log upload sets ignore_failure so a remaining
+    failure is logged and the after_script still exits 0.
     """
-    error: subprocess.CalledProcessError | subprocess.TimeoutExpired | None = None
-    for attempt in range(1, PUBLISH_ATTEMPTS + 1):
+    failure = ""
+    for attempt in range(1, attempts + 1):
         try:
-            run(command, env=env, timeout=PUBLISH_TIMEOUT_SECONDS)
+            run(command, env=env, timeout=timeout)
         except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as attempt_error:
-            error = attempt_error
-            print(f"⚠️ {command[0]} attempt {attempt}/{PUBLISH_ATTEMPTS} failed: {attempt_error}", flush=True)
-            if attempt < PUBLISH_ATTEMPTS:
+            failure = _publish_failure(command[0], attempt_error)
+            print(f"⚠️ {failure} (attempt {attempt}/{attempts})", flush=True)
+            if attempt < attempts:
                 time.sleep(PUBLISH_RETRY_DELAY_SECONDS)
             continue
         return True
-    if error is None:
-        raise RuntimeError(f"{command[0]} failed without an error")
     if ignore_failure:
-        print(f"⚠️ {command[0]} failed after {PUBLISH_ATTEMPTS} attempts, ignored", flush=True)
+        print(f"⚠️ {failure} after {attempts} attempts, ignored", flush=True)
         return False
-    raise error
+    raise RuntimeError(f"{failure} after {attempts} attempts")
 
 
 @cache
@@ -137,6 +153,8 @@ def upload_logs_to_s3(job: Job) -> None:
         uploaded = run_publish(
             ["aws", "s3", "cp", str(folder), f"s3://{AWS_LOGS_BUCKET}/{prefix}", "--recursive", "--quiet"],
             env={"AWS_PROFILE": "apm-ecosystems-reliability-ci"},
+            attempts=S3_PUBLISH_ATTEMPTS,
+            timeout=S3_PUBLISH_TIMEOUT_SECONDS,
             ignore_failure=True,
         )
         if uploaded:
