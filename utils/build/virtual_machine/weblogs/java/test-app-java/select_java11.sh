@@ -5,12 +5,13 @@
 set -eu
 
 java11_home=""
+# Fedora installs java-11-openjdk without a version suffix, RHEL/Ubuntu add one,
+# Corretto uses the arch-specific java-11-amazon-corretto.<arch> (or our tarball fallback).
 for candidate in \
     /usr/lib/jvm/java-11-amazon-corretto.* \
-    /usr/lib/jvm/java-11-openjdk-11* \
-    /usr/lib/jvm/java-11-openjdk-* \
-    /usr/lib/jvm/java-11-amazon-corretto \
-    /usr/lib/jvm/java-11-amazon-corretto*; do
+    /usr/lib/jvm/java-11-openjdk* \
+    /usr/lib/jvm/java-11-amazon-corretto* \
+    /usr/lib/jvm/java-11; do
     if [ -x "$candidate/bin/java" ] && [ -x "$candidate/bin/javac" ]; then
         java11_home=$candidate
         break
