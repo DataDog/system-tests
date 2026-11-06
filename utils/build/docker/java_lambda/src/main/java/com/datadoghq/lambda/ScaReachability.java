@@ -9,7 +9,7 @@ public class ScaReachability {
 
     public static void preloadVulnerableClass() {
         // Force LocalFolderExtractor class load during Lambda initialization so the SCA transformer can
-        // register GHSA-hf5p-q87m-crj7 with reached=[] before any HTTP request triggers junrarHit().
+        // register system-tests-sca with reached=[] before any HTTP request triggers junrarHit().
         // Without this, the class loads lazily on the first request, so registerCve() and recordHit()
         // fire in the same request with no heartbeat window between them.
         try {

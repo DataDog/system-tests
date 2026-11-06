@@ -1,6 +1,7 @@
 import pytest
 
 from ._core import DdTraceEndToEndScenario, EndToEndScenario, scenario_groups
+from ._core.sca import configure_sca_advisories
 from utils._context.constants import WeblogCategory
 from utils._context.containers import PostgresContainer
 
@@ -151,6 +152,10 @@ class RuntimeScaReachability(DdTraceEndToEndScenario):
         """,
             scenario_groups=[scenario_groups.appsec],
         )
+
+    def configure(self, config: pytest.Config) -> None:
+        super().configure(config)
+        configure_sca_advisories(self.weblog_infra.library_container)
 
 
 class IastDeduplication(DdTraceEndToEndScenario):

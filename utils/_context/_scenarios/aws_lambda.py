@@ -8,6 +8,7 @@ from ._core import (
     scenario_groups as all_scenario_groups,
     ScenarioGroup,
 )
+from ._core.sca import configure_sca_advisories
 from utils._context.constants import WeblogCategory
 from utils._context.containers import (
     InternalServerContainer,
@@ -244,10 +245,17 @@ class AppsecLambdaSca(_LambdaScenario):
     def __init__(self) -> None:
         super().__init__(
             "APPSEC_LAMBDA_SCA",
-            weblog_env={"DD_APPSEC_ENABLED": "false", "DD_APPSEC_SCA_ENABLED": "true"},
+            weblog_env={
+                "DD_APPSEC_ENABLED": "false",
+                "DD_APPSEC_SCA_ENABLED": "true",
+            },
             doc="SCA dependency metadata and runtime reachability in Lambda with AppSec disabled",
             scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
         )
+
+    def configure(self, config: pytest.Config) -> None:
+        super().configure(config)
+        configure_sca_advisories(self.lambda_weblog)
 
 
 class AppsecLambdaRasp(_LambdaScenario):

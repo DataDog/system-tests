@@ -8,33 +8,43 @@ RFC: https://docs.google.com/document/d/1xDw9iG6h41VCEgJGTqoJdruRaNS4pYgNifO6nhi
 """
 
 import json
+import os
 from typing import Any
 
-from utils import weblog, interfaces, scenarios, features, rfc, context
+from utils import weblog, interfaces, scenarios, features, rfc, context, missing_feature
 
 SCA_REACHABILITY_RFC = "https://docs.google.com/document/d/1xDw9iG6h41VCEgJGTqoJdruRaNS4pYgNifO6nhiizWA/edit"
+
+# Main builds currently share a package version with published RCs that lack the
+# file override. Keep released builds disabled until the override is released.
+_PYTHON_RELEASE_BUILD = context.library.name == "python" and os.environ.get("SYSTEM_TESTS_DEV_MODE") != "true"
 
 # Per-language expected values for SCA reachability tests.
 # Only populate entries once the language's tracer supports SCA reachability
 # and the expected values are confirmed. Missing languages gracefully
 # degrade: structural assertions still run, but value comparisons are skipped.
-# `cve_id` is a list to support retrocompatibility across tracer versions that
-# may emit different identifiers (e.g. CVE id vs GHSA id) for the same advisory.
+# Regular and Lambda scenarios use the same synthetic advisory for each language.
 _LANG_CONFIG: dict[str, dict[str, Any]] = {
     "python": {
-        "cve_id": ["CVE-2024-35195", "GHSA-652x-xj99-gmcc"],
+        "cve_id": ["system-tests-sca"],
         "vulnerable_dep": "requests",
         "path": "app.py",
         "symbol": "sca_requests_vulnerable_call",
     },
     "java": {
-        "cve_id": ["GHSA-hf5p-q87m-crj7"],
+        "cve_id": ["system-tests-sca"],
         "vulnerable_dep": "junrar",
         "path": "com.datadoghq.system_tests.springboot.ScaReachability",
         "symbol": "junrarHit",
     },
+    "python_lambda": {
+        "cve_id": ["system-tests-sca"],
+        "vulnerable_dep": "requests",
+        "path": "handler.py",
+        "symbol": "sca_requests_vulnerable_call",
+    },
     "java_lambda": {
-        "cve_id": ["GHSA-hf5p-q87m-crj7"],
+        "cve_id": ["system-tests-sca"],
         "vulnerable_dep": "junrar",
         "path": "com.datadoghq.lambda.ScaReachability",
         "symbol": "junrarHit",
@@ -115,6 +125,7 @@ def _get_deps_with_reachability_metadata() -> set[str]:
     return deps
 
 
+@missing_feature(_PYTHON_RELEASE_BUILD, reason="CVE file override is currently only available in Python main builds")
 @rfc(SCA_REACHABILITY_RFC)
 @features.runtime_sca_reachability
 @scenarios.runtime_sca_reachability
@@ -133,6 +144,7 @@ class Test_SCA_Reachability_Dependencies_Have_Metadata:
         )
 
 
+@missing_feature(_PYTHON_RELEASE_BUILD, reason="CVE file override is currently only available in Python main builds")
 @rfc(SCA_REACHABILITY_RFC)
 @features.runtime_sca_reachability
 @scenarios.runtime_sca_reachability
@@ -153,6 +165,7 @@ class Test_SCA_Reachability_CVE_Registered_At_Load_Time:
         )
 
 
+@missing_feature(_PYTHON_RELEASE_BUILD, reason="CVE file override is currently only available in Python main builds")
 @rfc(SCA_REACHABILITY_RFC)
 @features.runtime_sca_reachability
 @scenarios.runtime_sca_reachability
@@ -193,6 +206,7 @@ class Test_SCA_Reachability_CVE_After_Vulnerable_Call:
             assert caller["symbol"] == expected_symbol, f"Expected symbol '{expected_symbol}', got '{caller['symbol']}'"
 
 
+@missing_feature(_PYTHON_RELEASE_BUILD, reason="CVE file override is currently only available in Python main builds")
 @rfc(SCA_REACHABILITY_RFC)
 @features.runtime_sca_reachability
 @scenarios.runtime_sca_reachability
@@ -244,6 +258,7 @@ class Test_SCA_Reachability_First_Hit_Wins:
                     )
 
 
+@missing_feature(_PYTHON_RELEASE_BUILD, reason="CVE file override is currently only available in Python main builds")
 @rfc(SCA_REACHABILITY_RFC)
 @features.runtime_sca_reachability
 @scenarios.runtime_sca_reachability

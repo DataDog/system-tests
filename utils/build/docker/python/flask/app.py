@@ -2386,7 +2386,7 @@ async def llm():
 
 @app.route("/sca/vulnerable-call")
 def sca_requests_vulnerable_call():
-    """Trigger a call to requests.sessions.Session.send (CVE-2024-35195 target)."""
+    """Trigger the synthetic advisory's requests.sessions.Session.send target."""
     session = requests.Session()
     try:
         session.get("http://localhost:1")
@@ -2397,7 +2397,7 @@ def sca_requests_vulnerable_call():
 
 @app.route("/sca/vulnerable-call-alt")
 def sca_requests_vulnerable_call_alt():
-    """Alternate call site for same CVE-2024-35195 target (first-hit-wins test)."""
+    """Alternate call site for the same synthetic advisory (first-hit-wins test)."""
     session = requests.Session()
     try:
         session.post("http://localhost:1", data="x")
