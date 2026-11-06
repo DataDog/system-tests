@@ -20,6 +20,7 @@ class TestK8sLibInjection:
 
     def test_k8s_lib_injection(self):
         traces_json = get_dev_agent_traces(get_cluster_info())
+        # At least one trace confirms library injection reached the test agent.
         assert len(traces_json) > 0, "No traces found"
 
     def test_k8s_init_container_https_egress(self):
