@@ -65,6 +65,13 @@ if [ -e /binaries/dd-trace-rs ]; then
     # cargo release requires a git repo; use sed to rewrite the workspace version directly
     sed -i "s/^version = \"${current_version}\"/version = \"${dev_version}\"/" /binaries/dd-trace-rs/Cargo.toml
 
+    # Internal workspace path deps (e.g. datadog-telemetry-api) pin the shared
+    # workspace version in [workspace.dependencies]. Bump those requirements too,
+    # otherwise datadog-opentelemetry inherits a requirement like "^0.6.0" that can
+    # never match the bumped pre-release version ("0.6.1-dev"), and `cargo add
+    # --path` fails with `failed to select a version for the requirement ...`.
+    sed -i "/path = \"/s/version = \"${current_version}\"/version = \"${dev_version}\"/g" /binaries/dd-trace-rs/Cargo.toml
+
     cd /usr/app
     if ! cargo add datadog-opentelemetry --path /binaries/dd-trace-rs/datadog-opentelemetry --features metrics-http,metrics-grpc,logs-http,logs-grpc >/dev/null 2>&1; then
         fail "could not install datadog-opentelemetry from /binaries/dd-trace-rs. Check that the checkout contains that package."
