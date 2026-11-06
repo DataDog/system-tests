@@ -7,6 +7,17 @@ syntax = "proto3";
 
 package datadog.config;
 
+// Request subset used to route published configurations to active SDK clients.
+// Field numbers match the Agent schema; unrelated fields are ignored.
+message LatestConfigsRequest {
+  repeated Client active_clients = 6;
+}
+message Client {
+  string id = 2;
+  repeated string products = 3;
+  bytes capabilities = 11;
+}
+
 // Backend TUF metadata structures
 
 message ConfigMetas {

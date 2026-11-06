@@ -1,5 +1,7 @@
 import pytest
 
+from utils.proxy.ports import ProxyPorts
+
 from ._core import DdTraceEndToEndScenario, ScenarioGroup, scenario_groups
 
 # Shared by the ordinary FFE scenario, the isolated EVP stress scenario, and both
@@ -88,3 +90,23 @@ class FeatureFlaggingEvpStress(DdTraceEndToEndScenario):
         # Allow an EVP flush (Go: 10 s) plus the telemetry heartbeat (2 s) before stopping.
         # Preserve longer language-specific waits.
         self.library_interface_timeout = max(self.library_interface_timeout, 15)
+
+
+class FeatureFlaggingCapabilityRefresh(_ProvisionalFeatureFlaggingScenario):
+    def __init__(self) -> None:
+        super().__init__(
+            "FEATURE_FLAGGING_CAPABILITY_REFRESH",
+            rc_api_enabled=True,
+            rc_backend_enabled=True,
+            weblog_env={**_FFE_WEBLOG_ENV, "DD_FEATURE_FLAGS_ENABLED": "true"},
+            doc="Delayed provider capability registration through a real Agent, without republishing UFC.",
+        )
+        self.weblog_categories = []
+        # A second protocol client uses this listener to preload the real Agent cache.
+        self.proxy_container.ports[f"{ProxyPorts.weblog}/tcp"] = ("127.0.0.1", None)
+
+
+class FeatureFlaggingCapabilityRefreshPreloaded(FeatureFlaggingCapabilityRefresh):
+    def __init__(self) -> None:
+        super().__init__()
+        self.name = "FEATURE_FLAGGING_CAPABILITY_REFRESH_PRELOADED"

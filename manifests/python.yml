@@ -2375,6 +2375,7 @@ manifest:
     - declaration: irrelevant (FFL-1980)
     - weblog_declaration:
         aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
+  tests/ffe/test_rc_capability_refresh.py: incomplete_test_app (Requires a provider initialized lazily after the initial FFE_FLAGS RC subscription)
   tests/integration_frameworks:
     - weblog_declaration:
         aiohttp: missing_feature (new weblog, tests are enabled with easy wins)
