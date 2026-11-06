@@ -259,9 +259,10 @@ class K8sDatadog:
     def _wait_for_daemonset_ready(self, name: str, namespace: str, component_name: str) -> None:
         daemonset_status = None
         for _ in range(20):
-            daemonset_status = self.k8s_cluster_info.apps_api().read_namespaced_daemon_set_status(
-                name=name, namespace=namespace
+            daemonsets = self.k8s_cluster_info.apps_api().list_namespaced_daemon_set(
+                namespace=namespace, field_selector=f"metadata.name={name}"
             )
+            daemonset_status = next(iter(daemonsets.items), None)
             if daemonset_status is not None and daemonset_status.status.number_ready > 0:
                 logger.info(f"[{component_name}] DaemonSet {name} is ready")
                 return
