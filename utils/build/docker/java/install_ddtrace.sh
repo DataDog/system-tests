@@ -36,7 +36,12 @@ install_custom_jar "dd-openfeature*.jar" "dd-openfeature" "$MVN_OPTS"
 if [ $(ls /binaries/dd-java-agent*.jar | wc -l) = 0 ]; then
     BUILD_URL="https://github.com/DataDog/dd-trace-java/releases/latest/download/dd-java-agent.jar"
     echo "install from Github release: $BUILD_URL"
-    curl --retry 3 --retry-delay 5 --retry-connrefused --retry-all-errors -Lf -o /dd-tracer/dd-java-agent.jar $BUILD_URL
+    # --retry-all-errors needs curl 7.71: on older build images (maven:3.6), only transient errors are retried
+    curl_retry=(--retry 3 --retry-delay 5 --retry-connrefused)
+    if curl --retry-all-errors --version >/dev/null 2>&1; then
+        curl_retry+=(--retry-all-errors)
+    fi
+    curl "${curl_retry[@]}" -Lf -o /dd-tracer/dd-java-agent.jar $BUILD_URL
 
 elif [ $(ls /binaries/dd-java-agent*.jar | wc -l) = 1 ]; then
     echo "Install local file $(ls /binaries/dd-java-agent*.jar)"
