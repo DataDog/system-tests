@@ -18,11 +18,6 @@ from utils.onboarding.wait_for_tcp_port import wait_for_port
 class TestK8sLibInjection:
     """Test K8s lib injection"""
 
-    @bug(
-        context.library in ("python", "php")
-        and context.scenario in (scenarios.k8s_lib_injection, scenarios.k8s_lib_injection_uds),
-        reason="INPLAT-1393",
-    )
     @bug(context.library >= "python@2.20.0" and context.k8s_cluster_agent_version == "7.56.2", reason="APMSP-1750")
     @bug(context.library in ("nodejs", "ruby") and context.k8s_cluster_agent_version == "7.56.2", reason="APMSP-2215")
     def test_k8s_lib_injection(self):
