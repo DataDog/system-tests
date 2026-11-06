@@ -5,7 +5,12 @@ from pathlib import Path
 from functools import wraps
 
 from utils import pytest
-from utils.scripts.compute_libraries_and_scenarios import Inputs, get_gitlab_ssi_library, process
+from utils.scripts.compute_libraries_and_scenarios import (
+    Inputs,
+    get_gitlab_ssi_libraries,
+    get_gitlab_ssi_library,
+    process,
+)
 from utils import scenarios
 
 
@@ -201,6 +206,83 @@ class Test_ComputeLibrariesAndScenarios:
             "false",
             "DEFAULT",
             "end_to_end,integration_frameworks,open_telemetry",
+        )
+
+    def test_aws_java_weblog_file(self):
+        inputs = build_inputs(["utils/build/virtual_machine/weblogs/java/provision_test-app-java.yml"])
+
+        assert_github_processor(
+            inputs,
+            ["java"],
+            ["java"],
+            600,
+            "false",
+            "DEFAULT",
+            "onboarding",
+        )
+
+    @pytest.mark.parametrize(
+        ("library", "file", "scenario_groups"),
+        [
+            (
+                "dotnet",
+                "lib-injection/build/docker/dotnet/dd-lib-dotnet-init-test-app/Dockerfile",
+                "docker_ssi,lib_injection,onboarding",
+            ),
+            (
+                "java",
+                "lib-injection/build/docker/java/dd-lib-java-init-test-app/Dockerfile",
+                "docker_ssi,lib_injection,onboarding",
+            ),
+            (
+                "nodejs",
+                "lib-injection/build/docker/nodejs/sample-app/Dockerfile",
+                "docker_ssi,lib_injection,onboarding",
+            ),
+            ("php", "lib-injection/build/docker/php/dd-lib-php-init-test-app/Dockerfile", "lib_injection"),
+            (
+                "python",
+                "lib-injection/build/docker/python/dd-lib-python-init-test-django/Dockerfile",
+                "docker_ssi,lib_injection,onboarding",
+            ),
+            (
+                "ruby",
+                "lib-injection/build/docker/ruby/dd-lib-ruby-init-test-rails/Dockerfile",
+                "docker_ssi,lib_injection,onboarding",
+            ),
+        ],
+    )
+    def test_lib_injection_weblog_file(self, library: str, file: str, scenario_groups: str) -> None:
+        inputs = build_inputs([file])
+
+        assert_github_processor(
+            inputs,
+            [library],
+            [library],
+            300 if library == "nodejs" else 600,
+            "false",
+            "DEFAULT",
+            scenario_groups,
+        )
+
+    @pytest.mark.parametrize(
+        "file",
+        [
+            "lib-injection/build/build_lib_injection_images.sh",
+            "lib-injection/build/build_lib_injection_weblog.sh",
+        ],
+    )
+    def test_lib_injection_build_script(self, file: str) -> None:
+        inputs = build_inputs([file])
+
+        assert_github_processor(
+            inputs,
+            default_libs_with_prod,
+            default_libs_with_dev,
+            3600,
+            "false",
+            "DEFAULT",
+            "lib_injection",
         )
 
     def test_integration_frameworks_docker_file(self):
@@ -541,6 +623,23 @@ class Test_ComputeLibrariesAndScenarios:
     def test_gitlab_ssi_library_title(self, pr_title: str, expected: str | None):
         assert get_gitlab_ssi_library(pr_title) == expected
 
+    @pytest.mark.parametrize(
+        ("pr_title", "impacted_libraries", "expected"),
+        [
+            ("", {"java"}, {"java"}),
+            ("", {"java", "python_lambda"}, {"java"}),
+            ("[nodejs] Test Node.js", {"java"}, {"nodejs"}),
+            ("[java@feature] Test a Java branch", {"python"}, {"python"}),
+        ],
+    )
+    def test_gitlab_ssi_libraries(
+        self,
+        pr_title: str,
+        impacted_libraries: set[str],
+        expected: set[str],
+    ) -> None:
+        assert get_gitlab_ssi_libraries(pr_title, impacted_libraries) == expected
+
     @set_env("GITLAB_CI", "true")
     @set_env("CI_PIPELINE_SOURCE", "pull_request")
     @set_env("CI_COMMIT_REF_NAME", "")
@@ -548,7 +647,45 @@ class Test_ComputeLibrariesAndScenarios:
     def test_gitlab_ssi_library_output(self):
         inputs = build_inputs(["README.md"])
 
-        assert 'ssi_library="java"' in process(inputs)
+        assert 'ssi_libraries="java"' in process(inputs)
+
+    @set_env("GITLAB_CI", "true")
+    @set_env("CI_PIPELINE_SOURCE", "push")
+    @set_env("CI_COMMIT_REF_NAME", "feature/aws-java-weblog")
+    def test_gitlab_ssi_libraries_from_aws_weblog(self):
+        inputs = build_inputs(["utils/build/virtual_machine/weblogs/java/provision_test-app-java.yml"])
+
+        output = process(inputs)
+        assert 'ssi_libraries="java"' in output
+        assert 'scenarios_groups="onboarding"' in output
+
+    @set_env("GITLAB_CI", "true")
+    @set_env("CI_PIPELINE_SOURCE", "push")
+    @set_env("CI_COMMIT_REF_NAME", "feature/k8s-nodejs-weblog")
+    def test_gitlab_ssi_libraries_from_lib_injection_weblog(self):
+        inputs = build_inputs(["lib-injection/build/docker/nodejs/sample-app/Dockerfile"])
+
+        output = process(inputs)
+        assert 'ssi_libraries="nodejs"' in output
+        assert 'scenarios_groups="docker_ssi,lib_injection,onboarding"' in output
+
+    @set_env("GITLAB_CI", "true")
+    @set_env("CI_PIPELINE_SOURCE", "push")
+    @set_env("CI_COMMIT_REF_NAME", "feature/common-aws-weblog")
+    def test_gitlab_ssi_libraries_from_common_file(self):
+        inputs = build_inputs(["utils/build/virtual_machine/weblogs/common/pull_agent_image.sh"])
+
+        output = process(inputs)
+        assert 'ssi_libraries="dotnet java nodejs php python ruby"' in output
+        assert 'scenarios_groups="onboarding"' in output
+
+    @set_env("GITLAB_CI", "true")
+    @set_env("CI_PIPELINE_SOURCE", "push")
+    @set_env("CI_COMMIT_REF_NAME", "feature/docker-ssi-scenario")
+    def test_gitlab_ssi_libraries_from_scenario(self):
+        inputs = build_inputs(["utils/_context/_scenarios/docker_ssi.py"])
+
+        assert 'ssi_libraries="dotnet java nodejs php python ruby"' in process(inputs)
 
     def test_manifest_no_edit(self):
         inputs = build_inputs(
@@ -895,4 +1032,5 @@ class Test_GitLabMode:
 
         output = process(inputs)
         assert 'scenarios_groups="all"' in output
+        assert 'ssi_libraries="dotnet java nodejs php python ruby"' in output
         assert not any(line.startswith("libraries=") for line in output)
