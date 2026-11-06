@@ -52,6 +52,11 @@ else:
     _Base = object
 
 ResponseFormat = Literal["json", "protobuf"]
+SELECTION_IGNORED_RESPONSES = {
+    "selection_ignored_empty": "",
+    "selection_ignored_tag_load_failed": "tag_load_failed",
+    "selection_ignored_unknown": "future_reason",
+}
 VALID_RESPONSE_IDS: dict[ResponseFormat, frozenset[str]] = {
     "json": frozenset(
         {
@@ -77,6 +82,7 @@ VALID_RESPONSE_IDS: dict[ResponseFormat, frozenset[str]] = {
             "delayed_body",
             "disconnect",
             "truncated_body",
+            *SELECTION_IGNORED_RESPONSES,
         }
     ),
 }
@@ -512,7 +518,9 @@ class MockedBackendServerFfeMixin(_Base):
             wire_fixture = load_rules_wire_fixture()
             headers = {"Content-Type": "application/protobuf", "ETag": wire_fixture["rules"]["etag"]}
             body = base64.b64decode(wire_fixture["rules"]["response"])
-            if response == "delayed":
+            if response in SELECTION_IGNORED_RESPONSES:
+                headers["DD-Flag-Selection-Ignored"] = SELECTION_IGNORED_RESPONSES[response]
+            elif response == "delayed":
                 time.sleep(4)
             elif response == "delayed_body":
                 # Each phase fits within the deadline, but their combined duration does not.

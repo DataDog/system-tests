@@ -111,7 +111,7 @@ The JIRA project is derived from the owner of the feature tested by the test. Fi
 * agent_apm: APMLP (the agent team does not run system-tests, so the system-tests team will mostly be the first line of defense for agent failures)
 * asm: APPSEC
 * debugger: DEBUG
-* idm: AIDM
+* idm: IDMPL
 * dsm: DSMON
 * sdk_capabilities: APMAPI
 * ffe: FFL

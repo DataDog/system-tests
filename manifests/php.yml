@@ -441,13 +441,6 @@ manifest:
       excluded_weblog: [apache-mod-8.1-zts, apache-mod-7.4-zts, apache-mod-7.2-zts, php-fpm-8.1, apache-mod-8.2-zts, apache-mod-8.2, php-fpm-7.0, apache-mod-7.0, php-fpm-8.0, apache-mod-7.2, apache-mod-7.1-zts, apache-mod-7.3-zts, apache-mod-7.1, php-fpm-7.3, apache-mod-8.1, symfony7x, apache-mod-7.4, apache-mod-7.3, php-fpm-7.1, apache-mod-8.0, php-fpm-8.5, php-fpm-8.6, php-fpm-8.2, apache-mod-8.0-zts, php-fpm-7.4, apache-mod-7.0-zts, laravel11x, php-fpm-7.2]
   tests/appsec/test_agentic_onboarding.py::Test_AppsecAgenticOnboarding: v1.24.0+dev
   tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone: v1.11.0
-  ? tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_1
-  : - weblog_declaration:
-        laravel11x: flaky (APPSEC-69699)
-  ? tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone::test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2
-  : - weblog_declaration:
-        laravel11x: flaky (APPSEC-69699)
-        symfony7x: flaky (APPSEC-70615)
   tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_APMDisabledMarker:  # TODO: a lower version might be supported
     - weblog_declaration:
         '*': missing_feature
@@ -1434,8 +1427,14 @@ manifest:
   tests/k8s_lib_injection/test_k8s_lib_injection_appsec.py::TestK8sLibInjectionAppsecClusterEnabled: v1.16.0
   tests/k8s_lib_injection/test_k8s_lib_injection_appsec.py::TestK8sLibInjectionAppsecDisabledByDefault: v1.16.0
   tests/k8s_lib_injection/test_k8s_lib_injection_profiling.py::TestK8sLibInjectioProfilingClusterEnabled: v1.9.0
+  ? tests/k8s_lib_injection/test_k8s_lib_injection_profiling.py::TestK8sLibInjectioProfilingClusterEnabled::test_profiling_admission_controller
+  : bug (INPLAT-1393)
   tests/k8s_lib_injection/test_k8s_lib_injection_profiling.py::TestK8sLibInjectioProfilingClusterOverride: v1.9.0
+  ? tests/k8s_lib_injection/test_k8s_lib_injection_profiling.py::TestK8sLibInjectioProfilingClusterOverride::test_profiling_override_cluster_env
+  : bug (INPLAT-1393)
   tests/k8s_lib_injection/test_k8s_lib_injection_profiling.py::TestK8sLibInjectioProfilingDisabledByDefault: v1.9.0
+  ? tests/k8s_lib_injection/test_k8s_lib_injection_profiling.py::TestK8sLibInjectioProfilingDisabledByDefault::test_profiling_disabled_by_default
+  : bug (INPLAT-1393)
   tests/otel/test_context_propagation.py::Test_Otel_Context_Propagation_Default_Propagator_Api: incomplete_test_app (endpoint not implemented)
   tests/otel/test_tracing_otlp.py::Test_Otel_Tracing_OTLP: missing_feature
   tests/otel/test_tracing_otlp.py::Test_Otlp_Carries_Ot: missing_feature (APMAPI-2172)
